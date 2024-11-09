@@ -4,7 +4,10 @@
     "dev": "deno run -A --watch=static/,routes/ dev.ts",
     "build": "deno run -A dev.ts build",
     "start": "deno run -A main.ts",
-    "update": "deno run -A -r jsr:@fresh/update ."
+    "update": "deno run -A -r jsr:@fresh/update .",
+    "drizzle-kit": "deno run -A npm:drizzle-kit",
+    "migrate": "deno run -A npm:drizzle-kit migrate",
+    "migrate:generate": "deno run -A npm:drizzle-kit generate"
   },
   "lint": {
     "rules": {
@@ -18,13 +21,28 @@
     "**/_fresh/*"
   ],
   "imports": {
-    "fresh": "jsr:@fresh/core@^2.0.0-alpha.24",
+    "@logtape/logtape": "jsr:@logtape/logtape@^0.7.1",
+    "@onisaint/validate-email": "jsr:@onisaint/validate-email@^1.0.1",
+    "@schotsl/mailgun": "jsr:@schotsl/mailgun@^1.3.0",
+    "@std/dotenv": "jsr:@std/dotenv@^0.225.2",
+    "@std/encoding": "jsr:@std/encoding@^1.0.5",
+    "@std/http": "jsr:@std/http@^1.0.9",
+    "@tailwindcss/typography": "npm:@tailwindcss/typography@^0.5.15",
+    "drizzle-kit": "npm:drizzle-kit@^0.28.0",
+    "drizzle-orm": "npm:drizzle-orm@^0.36.1",
+    "fresh": "jsr:@fresh/core@^2.0.0-alpha.25",
     "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
+    "postgres": "npm:postgres@^3.4.5",
     "preact": "npm:preact@^10.24.3",
     "@preact/signals": "npm:@preact/signals@^1.3.0",
     "tailwindcss": "npm:tailwindcss@3.4.3",
-    "tailwindcss/plugin": "npm:tailwindcss@3.4.3/plugin.js"
+    "tailwindcss/plugin": "npm:tailwindcss@3.4.3/plugin.js",
+    "uuidv7": "npm:uuidv7@^1.0.2"
   },
+  "unstable": [
+    "kv",
+    "temporal"
+  ],
   "compilerOptions": {
     "lib": [
       "dom",
@@ -42,5 +60,6 @@
       "html",
       "head"
     ]
-  }
+  },
+  "nodeModulesDir": "auto"
 }

@@ -1,27 +1,24 @@
-import { useSignal } from "@preact/signals";
+import { PageTitle } from "../components/PageTitle.tsx";
 import { define } from "../utils.ts";
-import Counter from "../islands/Counter.tsx";
 
 export default define.page(function Home() {
-  const count = useSignal(3);
-
   return (
-    <div class="px-4 py-8 mx-auto fresh-gradient">
-      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
-        <img
-          class="my-6"
-          src="/logo.svg"
-          width="128"
-          height="128"
-          alt="the Fresh logo: a sliced lemon dripping with juice"
-        />
-        <h1 class="text-4xl font-bold">Welcome to Fresh</h1>
-        <p class="my-4">
-          Try updating this message in the
-          <code class="mx-2">./routes/index.tsx</code> file, and refresh.
+    <article>
+      <PageTitle>What is Hackers' Pub?</PageTitle>
+      <div class="prose prose-h2:text-xl dark:prose-invert">
+        <p>
+          Hackers' Pub is a place for hackers to share their knowledge and
+          experience with each other. It's also an ActivityPub-enabled social
+          network, so you can follow your favorite hackers in the fediverse and
+          get their latest posts in your feed.
         </p>
-        <Counter count={count} />
+        <h2>Features</h2>
+        <p>Hackers' Pub has the following features:</p>
+        <ul>
+          <li>ActivityPub support</li>
+          <li>Markdown support</li>
+        </ul>
       </div>
-    </div>
+    </article>
   );
 });
