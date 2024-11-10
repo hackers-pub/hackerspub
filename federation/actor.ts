@@ -14,6 +14,8 @@ import {
 } from "../models/schema.ts";
 import { validateUuid } from "../utils.ts";
 import { federation } from "./federation.ts";
+import { renderMarkup } from "../models/markup.ts";
+import { kv } from "../kv.ts";
 
 federation
   .setActorDispatcher(
@@ -24,11 +26,13 @@ federation
         where: eq(accountTable.id, identifier),
       });
       if (account == null) return null;
+      const bio = await renderMarkup(kv, account.bio);
       const keys = await ctx.getActorKeyPairs(identifier);
       return new Person({
         id: ctx.getActorUri(identifier),
         preferredUsername: account.username,
         name: account.name,
+        summary: bio.html,
         manuallyApprovesFollowers: false,
         published: account.created.toTemporalInstant(),
         assertionMethods: keys.map((pair) => pair.multikey),

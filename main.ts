@@ -1,6 +1,6 @@
 import "@std/dotenv/load";
 import "./logging.ts";
-import { App, fsRoutes, staticFiles } from "fresh";
+import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
 import { federation } from "./federation/mod.ts";
 import { type State } from "./utils.ts";
 
@@ -24,6 +24,8 @@ app.use(async (ctx) => {
   }
   return ctx.next();
 });
+
+app.use(trailingSlashes("never"));
 
 await fsRoutes(app, {
   dir: "./",

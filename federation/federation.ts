@@ -4,7 +4,7 @@ import { PostgresMessageQueue } from "@fedify/postgres";
 import { kv } from "../kv.ts";
 import { postgres } from "../db.ts";
 
-export const federation = createFederation({
+export const federation = createFederation<void>({
   kv: new DenoKvStore(kv),
   queue: Deno.env.get("DENO_DEPLOYMENT_ID")
     ? new DenoKvMessageQueue(kv)

@@ -13,7 +13,7 @@ const MAILGUN_FROM = getEnv("MAILGUN_FROM");
 
 const mailgun = new Mailgun({
   key: MAILGUN_KEY,
-  region: MAILGUN_REGION,
+  region: MAILGUN_REGION === "eu" ? "eu" : "us",
   domain: MAILGUN_DOMAIN,
 });
 

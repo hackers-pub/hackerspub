@@ -1,3 +1,51 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.prose > hr.footnotes-sep {
+  margin: 0;
+}
+
+.prose > hr.footnotes-sep + section.footnotes {
+  font-size: smaller;
+}
+
+.prose .markdown-alert {
+    padding: 1em;
+    border-left: 0.25rem solid;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    border-color: var(--border-color);
+}
+
+.prose .markdown-alert > span {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    color: var(--border-color);
+}
+
+.prose .markdown-alert .markdown-alert-icon {
+    margin-right: 0.5em;
+    fill: var(--border-color);
+}
+
+.prose .markdown-alert.note {
+    --border-color: #539BF5;
+}
+
+.prose .markdown-alert.warning {
+    --border-color: #C69026;
+}
+
+.prose .markdown-alert.important {
+    --border-color: #986EE2;
+}
+
+.prose .markdown-alert.caution {
+    --border-color: #E5534B;
+}
+
+.prose .markdown-alert.tip {
+    --border-color: #57AB5A;
+}

@@ -17,8 +17,16 @@ export default async function App(
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Hackers' Pub</title>
+        <title>{state.title}</title>
         <link rel="stylesheet" href="/styles.css" />
+        {state.links.map((link) => (
+          <link
+            rel={link.rel}
+            href={link.href.toString()}
+            hreflang={link.hreflang}
+            type={link.type}
+          />
+        ))}
       </head>
       <body class="font-sans dark:bg-stone-900 dark:text-white">
         <header class="bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
@@ -38,8 +46,10 @@ export default async function App(
                   action="/sign/out"
                   class="basis-1/2 text-right"
                 >
-                  <strong>{account.name}</strong> &middot;{" "}
-                  <input type="hidden" name="next" value={url.href} />
+                  <a href={`/@${account.username}`}>
+                    <strong>{account.name}</strong>
+                  </a>{" "}
+                  &middot; <input type="hidden" name="next" value={url.href} />
                   <button type="submit">Sign out</button>
                 </form>
               )}
