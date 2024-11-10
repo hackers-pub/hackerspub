@@ -1,7 +1,7 @@
 import { getLogger } from "@logtape/logtape";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { sql } from "drizzle-orm";
-import { uuidv7 } from "uuidv7";
+import { generate as uuidv7 } from "@std/uuid/unstable-v7";
 import {
   Account,
   accountEmailTable,

@@ -2,6 +2,8 @@
   "version": "4",
   "specifiers": {
     "jsr:@fedify/fedify@*": "1.2.3",
+    "jsr:@fedify/fedify@^1.2.3": "1.2.3",
+    "jsr:@fedify/postgres@~0.2.1": "0.2.1",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.24",
     "jsr:@fresh/core@^2.0.0-alpha.24": "2.0.0-alpha.24",
     "jsr:@fresh/core@^2.0.0-alpha.25": "2.0.0-alpha.25",
@@ -17,6 +19,7 @@
     "jsr:@std/bytes@^1.0.2": "1.0.3",
     "jsr:@std/cli@^1.0.6": "1.0.6",
     "jsr:@std/crypto@1": "1.0.3",
+    "jsr:@std/crypto@^1.0.3": "1.0.3",
     "jsr:@std/datetime@~0.225.2": "0.225.2",
     "jsr:@std/dotenv@~0.225.2": "0.225.2",
     "jsr:@std/encoding@1": "1.0.5",
@@ -40,6 +43,7 @@
     "jsr:@std/semver@1": "1.0.3",
     "jsr:@std/semver@^1.0.3": "1.0.3",
     "jsr:@std/streams@^1.0.7": "1.0.8",
+    "jsr:@std/uuid@^1.0.4": "1.0.4",
     "npm:@phensley/language-tag@^1.9.0": "1.9.2",
     "npm:@preact/signals@^1.2.3": "1.3.0_preact@10.24.3",
     "npm:@preact/signals@^1.3.0": "1.3.0_preact@10.24.3",
@@ -67,8 +71,7 @@
     "npm:tailwindcss@3.4.3": "3.4.3_postcss@8.4.47",
     "npm:tailwindcss@^3.4.1": "3.4.3_postcss@8.4.47",
     "npm:uri-template-router@^0.0.16": "0.0.16",
-    "npm:url-template@^3.1.1": "3.1.1",
-    "npm:uuidv7@^1.0.2": "1.0.2"
+    "npm:url-template@^3.1.1": "3.1.1"
   },
   "jsr": {
     "@fedify/fedify@1.2.3": {
@@ -92,11 +95,17 @@
         "npm:url-template"
       ]
     },
+    "@fedify/postgres@0.2.1": {
+      "integrity": "ee4007c692c218150f14ca41bed7008959737fc0e6c6a041216c2567ad68fdfd",
+      "dependencies": [
+        "npm:postgres"
+      ]
+    },
     "@fresh/core@2.0.0-alpha.24": {
       "integrity": "a43a356d2453e78661d018972fbff5e1bad3bf443812abfa55be984400eb174c",
       "dependencies": [
         "jsr:@luca/esbuild-deno-loader",
-        "jsr:@std/crypto",
+        "jsr:@std/crypto@1",
         "jsr:@std/datetime",
         "jsr:@std/encoding@1",
         "jsr:@std/fmt@1",
@@ -118,7 +127,7 @@
       "integrity": "1069232989c4bc7f69ad424f6b97cdba1a7631d1307e1c2964aed748cd0cf74b",
       "dependencies": [
         "jsr:@luca/esbuild-deno-loader",
-        "jsr:@std/crypto",
+        "jsr:@std/crypto@1",
         "jsr:@std/datetime",
         "jsr:@std/encoding@1",
         "jsr:@std/fmt@1",
@@ -250,6 +259,13 @@
     },
     "@std/streams@1.0.8": {
       "integrity": "b41332d93d2cf6a82fe4ac2153b930adf1a859392931e2a19d9fabfb6f154fb3"
+    },
+    "@std/uuid@1.0.4": {
+      "integrity": "f4233149cc8b4753cc3763fd83a7c4101699491f55c7be78dc7b30281946d7a0",
+      "dependencies": [
+        "jsr:@std/bytes",
+        "jsr:@std/crypto@^1.0.3"
+      ]
     }
   },
   "npm": {
@@ -2436,9 +2452,6 @@
     "util-deprecate@1.0.2": {
       "integrity": "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw=="
     },
-    "uuidv7@1.0.2": {
-      "integrity": "sha512-8JQkH4ooXnm1JCIhqTMbtmdnYEn6oKukBxHn1Ic9878jMkL7daTI7anTExfY18VRCX7tcdn5quzvCb6EWrR8PA=="
-    },
     "varint@6.0.0": {
       "integrity": "sha512-cXEIW6cfr15lFv563k4GuVuW/fiwjknytD37jIOLSdSWuOI6WnO/oKwmP2FQTU2l01LP8/M5TSAJpzUaGe3uWg=="
     },
@@ -2488,6 +2501,8 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@fedify/fedify@^1.2.3",
+      "jsr:@fedify/postgres@~0.2.1",
       "jsr:@fresh/core@^2.0.0-alpha.25",
       "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
       "jsr:@logtape/logtape@~0.7.1",
@@ -2496,14 +2511,14 @@
       "jsr:@std/dotenv@~0.225.2",
       "jsr:@std/encoding@^1.0.5",
       "jsr:@std/http@^1.0.9",
+      "jsr:@std/uuid@^1.0.4",
       "npm:@preact/signals@^1.3.0",
       "npm:@tailwindcss/typography@~0.5.15",
       "npm:drizzle-kit@0.28",
       "npm:drizzle-orm@~0.36.1",
       "npm:postgres@^3.4.5",
       "npm:preact@^10.24.3",
-      "npm:tailwindcss@3.4.3",
-      "npm:uuidv7@^1.0.2"
+      "npm:tailwindcss@3.4.3"
     ]
   }
 }

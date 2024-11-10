@@ -1,6 +1,7 @@
 import {
   boolean,
   check,
+  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
@@ -14,20 +15,12 @@ import { relations, sql } from "drizzle-orm";
 
 const currentTimestamp = sql`CURRENT_TIMESTAMP`;
 
-const timestamps = {
-  updated: timestamp({ withTimezone: true })
-    .notNull()
-    .default(currentTimestamp),
-  created: timestamp({ withTimezone: true })
-    .notNull()
-    .default(currentTimestamp),
-  deleted: timestamp({ withTimezone: true }).default(currentTimestamp),
-};
-
 export const accountTypeEnum = pgEnum("account_type", [
   "person",
   "organization",
 ]);
+
+export type AccountType = (typeof accountTypeEnum.enumValues)[number];
 
 export const accountTable = pgTable(
   "account",
@@ -36,7 +29,13 @@ export const accountTable = pgTable(
     username: varchar({ length: 50 }).notNull().unique(),
     name: varchar({ length: 50 }).notNull(),
     bio: text().notNull(),
-    ...timestamps,
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    deleted: timestamp({ withTimezone: true }).default(currentTimestamp),
   },
   (table) => [
     check(
@@ -61,6 +60,7 @@ export const accountRelations = relations(
   accountTable,
   ({ many }) => ({
     emails: many(accountEmailTable),
+    keys: many(accountKeyTable),
     links: many(accountLinkTable),
   }),
 );
@@ -72,7 +72,9 @@ export const accountEmailTable = pgTable(
     accountId: uuid("account_id").notNull().references(() => accountTable.id),
     public: boolean().notNull().default(false),
     verified: timestamp({ withTimezone: true }),
-    ...timestamps,
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
   },
 );
 
@@ -89,6 +91,50 @@ export const accountEmailRelations = relations(
   }),
 );
 
+export const accountKeyTypeEnum = pgEnum("account_key_type", [
+  "Ed25519",
+  "RSASSA-PKCS1-v1_5",
+]);
+
+export type AccountKeyType = (typeof accountKeyTypeEnum.enumValues)[number];
+
+export const accountKeyTable = pgTable(
+  "account_key",
+  {
+    accountId: uuid("account_id").notNull().references(() => accountTable.id),
+    type: accountKeyTypeEnum().notNull(),
+    public: jsonb().$type<JsonWebKey>().notNull(),
+    private: jsonb().$type<JsonWebKey>().notNull(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.accountId, table.type] }),
+    check(
+      "account_key_public_check",
+      sql`${table.public} IS JSON OBJECT`,
+    ),
+    check(
+      "account_key_private_check",
+      sql`${table.private} IS JSON OBJECT`,
+    ),
+  ],
+);
+
+export type AccountKey = typeof accountKeyTable.$inferSelect;
+export type NewAccountKey = typeof accountKeyTable.$inferInsert;
+
+export const accountKeyRelations = relations(
+  accountKeyTable,
+  ({ one }) => ({
+    account: one(accountTable, {
+      fields: [accountKeyTable.accountId],
+      references: [accountTable.id],
+    }),
+  }),
+);
+
 export const accountLinkTable = pgTable(
   "account_link",
   {
@@ -98,7 +144,9 @@ export const accountLinkTable = pgTable(
     url: text().notNull(),
     handle: text(),
     verified: timestamp({ withTimezone: true }),
-    ...timestamps,
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
   },
   (table) => [
     primaryKey({ columns: [table.accountId, table.index] }),

@@ -4,6 +4,7 @@ import {
   drizzle,
   type PostgresJsQueryResultHKT,
 } from "drizzle-orm/postgres-js";
+import postgresJs from "postgres";
 import * as schema from "./models/schema.ts";
 
 export type Database = PgDatabase<
@@ -17,7 +18,8 @@ if (DATABASE_URL == null) {
   throw new Error("Missing DATABASE_URL environment variable.");
 }
 
+export const postgres = postgresJs(DATABASE_URL);
 export const db = drizzle({
   schema,
-  connection: DATABASE_URL,
+  client: postgres,
 });
