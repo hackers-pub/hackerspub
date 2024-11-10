@@ -11,6 +11,7 @@ export const handler = define.middleware([
   },
   (ctx) => {
     ctx.state.title = "Hackers' Pub";
+    ctx.state.metas ??= [];
     ctx.state.links ??= [];
     return ctx.next();
   },

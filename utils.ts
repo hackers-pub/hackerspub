@@ -11,10 +11,19 @@ export interface Link {
   type?: string;
 }
 
+export type Meta = {
+  name: string;
+  content: string | number | URL;
+} | {
+  property: string;
+  content: string | number | URL;
+};
+
 export interface State {
   session?: Session;
   fedCtx: RequestContext<void>;
   title: string;
+  metas: Meta[];
   links: Link[];
 }
 

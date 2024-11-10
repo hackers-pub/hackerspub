@@ -17,6 +17,16 @@ export default async function App(
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {state.metas.map((meta) => (
+          "property" in meta
+            ? (
+              <meta
+                property={meta.property}
+                content={meta.content.toString()}
+              />
+            )
+            : <meta name={meta.name} content={meta.content.toString()} />
+        ))}
         <title>{state.title}</title>
         <link rel="stylesheet" href="/styles.css" />
         {state.links.map((link) => (

@@ -13,6 +13,29 @@ export const handler = define.handlers({
       where: eq(accountTable.username, ctx.params.username),
     });
     if (account == null) return ctx.next();
+    ctx.state.metas.push(
+      {
+        name: "description",
+        content: account.bio, // TODO: Render Markdown to plain text
+      },
+      { property: "og:title", content: account.name },
+      {
+        property: "og:description",
+        content: account.bio, // TODO: Render Markdown to plain text
+      },
+      {
+        property: "og:url",
+        content: new URL(`/@${account.username}`, ctx.url),
+      },
+      { property: "og:type", content: "profile" },
+      {
+        property: "og:image",
+        content: new URL(`/@${account.username}/og`, ctx.url),
+      },
+      { property: "og:image:width", content: 1200 },
+      { property: "og:image:height", content: 630 },
+      { property: "profile:username", content: account.username },
+    );
     const actorUri = ctx.state.fedCtx.getActorUri(account.id);
     ctx.state.links.push(
       {
