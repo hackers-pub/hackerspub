@@ -1,0 +1,27 @@
+name: main
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Needed for auth with Deno Deploy
+      contents: read # Needed to clone the repository
+    steps:
+    - uses: actions/checkout@v4
+    - uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+    - run: cp .env.sample .env
+    - run: deno task build
+    - uses: denoland/deployctl@v1
+      with:
+        project: hackerspub
+        entrypoint: main.ts
+        root: .
+          
+          
