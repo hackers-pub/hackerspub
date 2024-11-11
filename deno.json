@@ -52,7 +52,8 @@
     "satori": "npm:satori@^0.11.3",
     "satori-html": "npm:satori-html@^0.3.2",
     "tailwindcss": "npm:tailwindcss@3.4.3",
-    "tailwindcss/plugin": "npm:tailwindcss@3.4.3/plugin.js"
+    "tailwindcss/plugin": "npm:tailwindcss@3.4.3/plugin.js",
+    "xss": "npm:xss@^1.0.15"
   },
   "unstable": [
     "kv",

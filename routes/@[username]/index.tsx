@@ -3,7 +3,7 @@ import { page } from "fresh";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { Account, accountTable } from "../../models/schema.ts";
-import { renderMarkup } from "../../models/markup.ts";
+import { type RenderedMarkup, renderMarkup } from "../../models/markup.ts";
 import { kv } from "../../kv.ts";
 import { define } from "../../utils.ts";
 
@@ -13,15 +13,16 @@ export const handler = define.handlers({
       where: eq(accountTable.username, ctx.params.username),
     });
     if (account == null) return ctx.next();
+    const bio = await renderMarkup(kv, account.bio);
     ctx.state.metas.push(
       {
         name: "description",
-        content: account.bio, // TODO: Render Markdown to plain text
+        content: bio.text,
       },
       { property: "og:title", content: account.name },
       {
         property: "og:description",
-        content: account.bio, // TODO: Render Markdown to plain text
+        content: bio.text,
       },
       {
         property: "og:url",
@@ -49,8 +50,7 @@ export const handler = define.handlers({
       },
     );
     ctx.state.title = account.name;
-    const { html: bioHtml } = await renderMarkup(kv, account.bio);
-    return page<ProfilePageProps>({ account, actorUri, bioHtml }, {
+    return page<ProfilePageProps>({ account, actorUri, bio }, {
       headers: {
         Link:
           `<${actorUri.href}>; rel="alternate"; type="application/activity+json"`,
@@ -62,7 +62,7 @@ export const handler = define.handlers({
 interface ProfilePageProps {
   account: Account;
   actorUri: URL;
-  bioHtml: string;
+  bio: RenderedMarkup;
 }
 
 export default define.page<typeof handler, ProfilePageProps>(
@@ -79,7 +79,7 @@ export default define.page<typeof handler, ProfilePageProps>(
         </PageTitle>
         <div
           class="prose dark:prose-invert"
-          dangerouslySetInnerHTML={{ __html: data.bioHtml }}
+          dangerouslySetInnerHTML={{ __html: data.bio.html }}
         />
       </div>
     );
