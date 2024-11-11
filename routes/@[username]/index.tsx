@@ -97,7 +97,7 @@ export default define.page<typeof handler, ProfilePageProps>(
                   key={`dt-${link.index}`}
                   class={`
                     opacity-50 mr-1
-                    after:content-[':']
+                    flex flex-row
                     ${link.index > 0 ? "before:content-['·']" : ""}
                   `}
                 >
@@ -106,11 +106,11 @@ export default define.page<typeof handler, ProfilePageProps>(
                     alt=""
                     width={20}
                     height={20}
-                    class={`dark:invert inline-block mr-1 ${
+                    class={`dark:invert block mr-1 ${
                       link.index > 0 ? "ml-2" : ""
                     }`}
                   />
-                  {link.name}
+                  <span class="block after:content-[':']">{link.name}</span>
                 </dt>
                 <dd key={`dd-${link.index}`} class="mr-2">
                   <a href={link.url}>
