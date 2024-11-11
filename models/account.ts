@@ -56,12 +56,14 @@ export async function updateAccountLinks(
   verifyUrl: URL | string,
   links: Link[],
 ): Promise<AccountLink[]> {
-  const metadata = await Promise.all(
-    links.map((link) => fetchAccountLinkMetadata(link.url)),
-  );
-  const verifies = await Promise.all(
-    links.map((link) => verifyAccountLink(link.url, verifyUrl)),
-  );
+  const [metadata, verifies] = await Promise.all([
+    Promise.all(
+      links.map((link) => fetchAccountLinkMetadata(link.url)),
+    ),
+    Promise.all(
+      links.map((link) => verifyAccountLink(link.url, verifyUrl)),
+    ),
+  ]);
   const data = zip(links, metadata, verifies).map(([link, meta, verified]) => ({
     ...link,
     ...meta,
