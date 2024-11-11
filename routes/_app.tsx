@@ -49,16 +49,17 @@ export default async function App(
                 <>
                   <strong>{account.name}</strong>
                   <div class="
-                    hidden group-hover:block
+                    hidden group-hover:flex
                     absolute right-[calc((100%-1280px)/2)]
                     max-w-screen-sm w-1/6 p-4 pt-8
                     bg-black dark:bg-stone-100
+                    flex-col gap-4
                   ">
                     <a href={`/@${account.username}`}>Profile</a>
+                    <a href={`/@${account.username}/settings`}>Settings</a>
                     <form
                       method="post"
                       action="/sign/out"
-                      class="mt-4"
                     >
                       <input type="hidden" name="next" value={url.href} />
                       <button type="submit">Sign out</button>

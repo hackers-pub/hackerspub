@@ -27,6 +27,7 @@ export const accountTable = pgTable(
   {
     id: uuid().primaryKey(),
     username: varchar({ length: 50 }).notNull().unique(),
+    usernameChanged: timestamp("username_changed", { withTimezone: true }),
     name: varchar({ length: 50 }).notNull(),
     bio: text().notNull(),
     updated: timestamp({ withTimezone: true })
@@ -135,6 +136,40 @@ export const accountKeyRelations = relations(
   }),
 );
 
+export const accountLinkIconEnum = pgEnum("account_link_icon", [
+  "activitypub",
+  "bluesky",
+  "codeberg",
+  "dev",
+  "discord",
+  "facebook",
+  "github",
+  "gitlab",
+  "hackernews",
+  "hollo",
+  "instagram",
+  "keybase",
+  "lemmy",
+  "linkedin",
+  "lobsters",
+  "mastodon",
+  "matrix",
+  "misskey",
+  "pixelfed",
+  "pleroma",
+  "qiita",
+  "reddit",
+  "sourcehut",
+  "threads",
+  "velog",
+  "web",
+  "wikipedia",
+  "x",
+  "zenn",
+]);
+
+export type AccountLinkIcon = (typeof accountLinkIconEnum.enumValues)[number];
+
 export const accountLinkTable = pgTable(
   "account_link",
   {
@@ -143,6 +178,7 @@ export const accountLinkTable = pgTable(
     name: varchar({ length: 50 }).notNull(),
     url: text().notNull(),
     handle: text(),
+    icon: accountLinkIconEnum().notNull().default("web"),
     verified: timestamp({ withTimezone: true }),
     created: timestamp({ withTimezone: true })
       .notNull()

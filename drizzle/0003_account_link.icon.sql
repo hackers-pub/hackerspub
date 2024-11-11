@@ -1,0 +1,2 @@
+CREATE TYPE "public"."account_link_icon" AS ENUM('activitypub', 'bluesky', 'codeberg', 'dev', 'discord', 'facebook', 'github', 'gitlab', 'hackernews', 'hollo', 'instagram', 'keybase', 'lemmy', 'linkedin', 'lobsters', 'mastodon', 'matrix', 'misskey', 'pixelfed', 'pleroma', 'qiita', 'reddit', 'sourcehut', 'threads', 'velog', 'web', 'wikipedia', 'x', 'zenn');--> statement-breakpoint
+ALTER TABLE "account_link" ADD COLUMN "icon" "account_link_icon" DEFAULT 'web' NOT NULL;

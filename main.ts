@@ -1,3 +1,4 @@
+/// <reference lib="deno.unstable" />
 import "@std/dotenv/load";
 import "./logging.ts";
 import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";

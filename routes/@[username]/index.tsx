@@ -2,15 +2,23 @@ import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
-import { Account, accountTable } from "../../models/schema.ts";
+import {
+  Account,
+  AccountLink,
+  accountLinkTable,
+  accountTable,
+} from "../../models/schema.ts";
 import { type RenderedMarkup, renderMarkup } from "../../models/markup.ts";
 import { kv } from "../../kv.ts";
-import { define } from "../../utils.ts";
+import { compactUrl, define } from "../../utils.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, ctx.params.username),
+      with: {
+        links: { orderBy: accountLinkTable.index },
+      },
     });
     if (account == null) return ctx.next();
     const bio = await renderMarkup(kv, account.bio);
@@ -60,7 +68,7 @@ export const handler = define.handlers({
 });
 
 interface ProfilePageProps {
-  account: Account;
+  account: Account & { links: AccountLink[] };
   actorUri: URL;
   bio: RenderedMarkup;
 }
@@ -81,6 +89,38 @@ export default define.page<typeof handler, ProfilePageProps>(
           class="prose dark:prose-invert"
           dangerouslySetInnerHTML={{ __html: data.bio.html }}
         />
+        {data.account.links.length > 0 && (
+          <dl class="mt-5 flex flex-wrap gap-y-3">
+            {data.account.links.map((link) => (
+              <>
+                <dt
+                  key={`dt-${link.index}`}
+                  class={`
+                    opacity-50 mr-1
+                    after:content-[':']
+                    ${link.index > 0 ? "before:content-['·']" : ""}
+                  `}
+                >
+                  <img
+                    src={`/icons/${link.icon}.svg`}
+                    alt=""
+                    width={20}
+                    height={20}
+                    class={`dark:invert inline-block mr-1 ${
+                      link.index > 0 ? "ml-2" : ""
+                    }`}
+                  />
+                  {link.name}
+                </dt>
+                <dd key={`dd-${link.index}`} class="mr-2">
+                  <a href={link.url}>
+                    {link.handle ?? compactUrl(link.url)}
+                  </a>
+                </dd>
+              </>
+            ))}
+          </dl>
+        )}
       </div>
     );
   },

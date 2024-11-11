@@ -15,6 +15,20 @@
       "when": 1731220191278,
       "tag": "0001_account_key",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1731301589969,
+      "tag": "0002_account.username_changed",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1731313598745,
+      "tag": "0003_account_link.icon",
+      "breakpoints": true
     }
   ]
 }
