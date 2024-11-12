@@ -20,6 +20,12 @@ Deno.test({
       { icon: "bluesky", "handle": "@hongminhee.org" },
     );
     assertEquals(
+      await fetchAccountLinkMetadata(
+        "https://bsky.app/profile/did:plc:ia76kvnndjutgedggx2ibrem",
+      ),
+      { icon: "bluesky", "handle": "did:plc:ia76kvnndjutgedggx2ibrem" },
+    );
+    assertEquals(
       await fetchAccountLinkMetadata("https://codeberg.org/hongminhee"),
       { icon: "codeberg", handle: "@hongminhee" },
     );

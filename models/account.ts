@@ -1,3 +1,4 @@
+import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { eq, sql } from "drizzle-orm";
 import { Database } from "../db.ts";
@@ -15,6 +16,8 @@ import {
   isActor,
   lookupObject,
 } from "@fedify/fedify";
+
+const logger = getLogger(["hackerspub", "models", "account"]);
 
 export async function updateAccount(
   db: Database,
@@ -56,12 +59,28 @@ export async function updateAccountLinks(
   verifyUrl: URL | string,
   links: Link[],
 ): Promise<AccountLink[]> {
+  const existing = await db.query.accountLinkTable.findMany({
+    where: eq(accountLinkTable.accountId, accountId),
+  });
+  const existingMap = Object.fromEntries(
+    existing.map((link) => [link.url, link]),
+  );
+  const now = Temporal.Now.instant();
   const [metadata, verifies] = await Promise.all([
     Promise.all(
-      links.map((link) => fetchAccountLinkMetadata(link.url)),
+      links.map((link) =>
+        existingMap[link.url.toString()] ??
+          fetchAccountLinkMetadata(link.url)
+      ),
     ),
     Promise.all(
-      links.map((link) => verifyAccountLink(link.url, verifyUrl)),
+      links.map((link) => {
+        const existing = existingMap[link.url.toString()];
+        return existing?.verified == null ||
+            existing.verified.toTemporalInstant().until(now).total("days") > 7
+          ? verifyAccountLink(link.url, verifyUrl)
+          : existing.verified;
+      }),
     ),
   ]);
   const data = zip(links, metadata, verifies).map(([link, meta, verified]) => ({
@@ -79,7 +98,12 @@ export async function updateAccountLinks(
       url: link.url.toString(),
       handle: link.handle,
       icon: link.icon,
-      verified: link.verified ? sql`CURRENT_TIMESTAMP` : null,
+      verified: link.verified instanceof Date
+        ? link.verified
+        : link.verified
+        ? sql`CURRENT_TIMESTAMP`
+        : null,
+      created: link.created ?? sql`CURRENT_TIMESTAMP`,
     })),
   ).returning();
 }
@@ -91,6 +115,7 @@ export async function verifyAccountLink(
   url: string | URL,
   verifyUrl: string | URL,
 ): Promise<boolean> {
+  logger.debug("Verifying account link {url}...", { url: url.toString() });
   const response = await fetch(url);
   if (!response.ok) return false;
   const text = await response.text();
@@ -122,7 +147,12 @@ export async function fetchAccountLinkMetadata(
   if (host.startsWith("www.")) host = host.substring(4);
   if (host === "bsky.app" || url.host === "staging.bsky.app") {
     const m = url.pathname.match(/^\/+profile\/+([^/]+)\/*$/);
-    if (m != null) return { icon: "bluesky", handle: `@${m[1]}` };
+    if (m != null) {
+      return {
+        icon: "bluesky",
+        handle: m[1].startsWith("did:") ? m[1] : `@${m[1]}`,
+      };
+    }
   } else if (host === "codeberg.org") {
     const m = url.pathname.match(/^\/+([^/]+)\/*/);
     if (m != null) return { icon: "codeberg", handle: `@${m[1]}` };
@@ -198,6 +228,7 @@ export async function fetchAccountLinkMetadata(
   } else if (
     url.host.endsWith(".wikipedia.org") && url.pathname.startsWith("/wiki/")
   ) {
+    logger.debug("Fetching metadata for {url}...", { url: url.href });
     const title = decodeURIComponent(url.pathname.substring(6));
     const apiUrl = new URL("/w/api.php", url);
     apiUrl.searchParams.set("action", "query");
@@ -220,6 +251,7 @@ export async function fetchAccountLinkMetadata(
     const m = url.pathname.match(/^\/+([^/]+)\/*/);
     if (m != null) return { icon: "zenn", handle: `@${m[1]}` };
   }
+  logger.debug("Fetching metadata for {url}...", { url: url.href });
   const nodeInfo = await getNodeInfo(url, { parse: "best-effort" });
   if (nodeInfo?.protocols.includes("activitypub")) {
     const object = await lookupObject(url);
