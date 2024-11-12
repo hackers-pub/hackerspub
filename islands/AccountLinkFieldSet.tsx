@@ -19,6 +19,7 @@ export function AccountLinkFieldSet(props: AccountLinkFieldSetProps) {
             !(link.name?.length || link.url?.toString()?.length) &&
             setLinks(links.filter((_, j) => j !== i))}
           required={true}
+          showHelp={i == 0 || link.url == null || link.url === ""}
         />
       ))}
       <AccountLinkField
@@ -27,6 +28,7 @@ export function AccountLinkFieldSet(props: AccountLinkFieldSetProps) {
           (link.name?.length || link.url?.toString()?.length) &&
           setLinks([...links, link])}
         required={false}
+        showHelp={true}
       />
     </div>
   );
@@ -37,13 +39,14 @@ export interface AccountLinkFieldProps {
   url?: URL | string;
   onChanged?: (link: AccountLinkFieldProps) => void;
   required?: boolean;
+  showHelp?: boolean;
 }
 
 export function AccountLinkField(props: AccountLinkFieldProps) {
   return (
     <div class="grid lg:grid-cols-2 gap-5">
       <div>
-        <Label label="Link name" required>
+        <Label label="Link name" required={props.required}>
           <Input
             type="text"
             name="link-name"
@@ -58,13 +61,16 @@ export function AccountLinkField(props: AccountLinkFieldProps) {
             required={props.required}
           />
         </Label>
-        <p class="opacity-50">
-          A name for the link that will be displayed on your profile, e.g.,{" "}
-          <q>GitHub</q>.
-        </p>
+        {props.showHelp && (
+          <p class="opacity-50">
+            A name for the link that will be displayed on your profile, e.g.,
+            {" "}
+            <q>GitHub</q>.
+          </p>
+        )}
       </div>
       <div>
-        <Label label="URL" required>
+        <Label label="URL" required={props.required}>
           <Input
             type="url"
             name="link-url"
@@ -78,9 +84,11 @@ export function AccountLinkField(props: AccountLinkFieldProps) {
             required={props.required}
           />
         </Label>
-        <p class="opacity-50">
-          The URL of the link, e.g., <q>https://github.com/yourhandle</q>.
-        </p>
+        {props.showHelp && (
+          <p class="opacity-50">
+            The URL of the link, e.g., <q>https://github.com/yourhandle</q>.
+          </p>
+        )}
       </div>
     </div>
   );

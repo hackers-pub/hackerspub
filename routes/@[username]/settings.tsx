@@ -25,6 +25,7 @@ export const handler = define.handlers({
       with: { links: { orderBy: accountLinkTable.index } },
     });
     if (account == null) return ctx.next();
+    ctx.state.title = "Profile settings";
     return page<ProfileSettingsPageProps>({
       usernameChanged: account.usernameChanged,
       values: account,
@@ -33,6 +34,7 @@ export const handler = define.handlers({
   },
 
   async POST(ctx) {
+    ctx.state.title = "Profile settings";
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, ctx.params.username),
       with: { links: true },
