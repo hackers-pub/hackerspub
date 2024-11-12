@@ -21,7 +21,7 @@ export const handler = define.handlers({
       },
     });
     if (account == null) return ctx.next();
-    const bio = await renderMarkup(kv, account.bio);
+    const bio = await renderMarkup(kv, account.id, account.bio);
     ctx.state.metas.push(
       {
         name: "description",

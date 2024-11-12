@@ -30,7 +30,7 @@ federation
         with: { links: { orderBy: accountLinkTable.index } },
       });
       if (account == null) return null;
-      const bio = await renderMarkup(kv, account.bio);
+      const bio = await renderMarkup(kv, account.id, account.bio);
       const keys = await ctx.getActorKeyPairs(identifier);
       return new Person({
         id: ctx.getActorUri(identifier),
