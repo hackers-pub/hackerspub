@@ -18,17 +18,19 @@ import { alertPlugin as admonition } from "markdown-it-github-alert";
 import anchor from "markdown-it-anchor";
 import deflist from "markdown-it-deflist";
 import footnote from "markdown-it-footnote";
+import toc from "markdown-it-toc-done-right";
 import { FilterXSS } from "xss";
 
 const logger = getLogger(["hackerspub", "models", "markup"]);
+
+let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
 const md = createMarkdownIt({ html: true })
   .use(abbr)
   .use(admonition)
   .use(anchor, {
     slugifyWithState(title: string, state: { env: { docId: string } }) {
-      return state.env.docId + "--" +
-        slugify(title, { transliterate, strip: NON_ASCII });
+      return slugifyTitle(title, state.env.docId);
     },
     permalink: anchor.permalink.linkInsideHeader({
       symbol: `<span aria-hidden="true">#</span>`,
@@ -54,7 +56,13 @@ const md = createMarkdownIt({ html: true })
       ],
     }),
   )
-  .use(title);
+  .use(title)
+  .use(toc, {
+    placeholder: `--${crypto.randomUUID()}--`.toUpperCase(),
+    callback(_html: string, ast: InternalToc) {
+      tocTree = ast;
+    },
+  });
 
 const textEncoder = new TextEncoder();
 
@@ -178,12 +186,13 @@ const textXss = new FilterXSS({
   stripIgnoreTag: true,
 });
 
-const KV_NAMESPACE = ["markup", "v3"];
+const KV_NAMESPACE = ["markup", "v4"];
 
 export interface RenderedMarkup {
   html: string;
   text: string;
   title: string;
+  toc: Toc[];
 }
 
 export async function renderMarkup(
@@ -205,7 +214,37 @@ export async function renderMarkup(
   );
   const html = xss.process(rawHtml);
   const text = textXss.process(rawHtml);
-  const rendered: RenderedMarkup = { html, text, title: env.title };
+  const toc = toToc(tocTree);
+  const rendered: RenderedMarkup = {
+    html,
+    text,
+    title: env.title,
+    toc: toc.level < 1 ? toc.children : [toc],
+  };
   await kv.set(key, rendered, { expireIn: 30 * 24 * 60 * 60 * 1000 });
   return rendered;
+}
+
+function slugifyTitle(title: string, docId: string): string {
+  return docId + "--" + slugify(title, { transliterate, strip: NON_ASCII });
+}
+
+interface InternalToc {
+  l: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  n: string;
+  c: InternalToc[];
+}
+
+export interface Toc {
+  level: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  title: string;
+  children: Toc[];
+}
+
+function toToc(toc: InternalToc): Toc {
+  return {
+    level: toc.l,
+    title: toc.n.trimStart(),
+    children: toc.c.map(toToc),
+  };
 }

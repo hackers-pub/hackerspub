@@ -78,6 +78,7 @@
     "npm:markdown-it-deflist@3": "3.0.0",
     "npm:markdown-it-footnote@4": "4.0.0",
     "npm:markdown-it-github-alert@^1.0.6": "1.0.6",
+    "npm:markdown-it-toc-done-right@^4.2.0": "4.2.0",
     "npm:markdown-it@^14.1.0": "14.1.0",
     "npm:multibase@^4.0.6": "4.0.6",
     "npm:multicodec@^3.2.1": "3.2.1",
@@ -1935,6 +1936,9 @@
         "markdown-it@13.0.2"
       ]
     },
+    "markdown-it-toc-done-right@4.2.0": {
+      "integrity": "sha512-UB/IbzjWazwTlNAX0pvWNlJS8NKsOQ4syrXZQ/C72j+jirrsjVRT627lCaylrKJFBQWfRsPmIVQie8x38DEhAQ=="
+    },
     "markdown-it@13.0.2": {
       "integrity": "sha512-FtwnEuuK+2yVU7goGn/MJ0WBZMM9ZPgU9spqlFs7/A/pDIUNSOQZhUgOqYCficIuR2QaFnrt8LHqBWsbTAoI5w==",
       "dependencies": [
@@ -3132,6 +3136,7 @@
       "npm:markdown-it-deflist@3",
       "npm:markdown-it-footnote@4",
       "npm:markdown-it-github-alert@^1.0.6",
+      "npm:markdown-it-toc-done-right@^4.2.0",
       "npm:markdown-it@^14.1.0",
       "npm:postgres@^3.4.5",
       "npm:preact@^10.24.3",
