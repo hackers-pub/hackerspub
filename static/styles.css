@@ -81,6 +81,53 @@
   filter: blur(0);
 }
 
+.prose pre.shiki.has-diff {
+  padding-inline-start: 0;
+  padding-inline-end: 0;
+}
+
+.prose pre.shiki.has-diff > code > span.line {
+  padding-left: 1.1428571em;
+  padding-right: 1.1428571em;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff {
+  display: inline-block;
+  width: 100%;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff:before {
+  display: inline-block;
+  width: 15px;
+}
+
+.prose pre.shiki.has-diff > code > span.line:not(.diff) {
+  margin-left: 15px;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.add {
+  background-color: rgba(16, 185, 129, .14) !important;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.add:before {
+  content: '+';
+  color: #18794e;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.remove {
+  background-color: rgba(244, 63, 94, .14) !important;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.remove:before {
+  content: '-';
+  color: #b34e52;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.add > span,
+.prose pre.shiki.has-diff > code > span.line.diff.remove > span {
+  background-color: transparent !important;
+}
+
 @media (prefers-color-scheme: dark) {
   .prose pre.shiki,
   .prose pre.shiki span {
