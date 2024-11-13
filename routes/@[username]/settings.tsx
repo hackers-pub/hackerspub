@@ -15,6 +15,8 @@ import {
 import { accountLinkTable, accountTable } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
 import { updateAccount, updateAccountLinks } from "../../models/account.ts";
+import { syncActorFromAccount } from "../../models/actor.ts";
+import { kv } from "../../kv.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]", "settings"]);
 
@@ -99,6 +101,10 @@ export const handler = define.handlers({
       ctx.url,
       links,
     );
+    await syncActorFromAccount(db, kv, ctx.state.fedCtx, {
+      ...updatedAccount,
+      links: updatedLinks,
+    });
     if (account.username !== updatedAccount.username) {
       return Response.redirect(
         new URL(`/@${updatedAccount.username}/settings`, ctx.url),

@@ -65,6 +65,7 @@
     "npm:any-ascii@~0.3.2": "0.3.2",
     "npm:asn1js@^3.0.5": "3.0.5",
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",
+    "npm:cssfilter@^0.0.11": "0.0.11",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
     "npm:drizzle-kit@*": "0.28.0_esbuild@0.19.12",
     "npm:drizzle-kit@0.28": "0.28.0_esbuild@0.19.12",
@@ -1275,6 +1276,9 @@
     },
     "cssfilter@0.0.10": {
       "integrity": "sha512-FAaLDaplstoRsDR8XGYH51znUN0UY7nMc6Z9/fvE8EXGwvJE9hu7W2vHwx1+bd6gCYnln9nLbzxFTrcO9YQDZw=="
+    },
+    "cssfilter@0.0.11": {
+      "integrity": "sha512-K7PXT5AN8qv1B/0J8wq/XV6pCDh+dUyaMqV/Lii+WA7LxoUBFXtDroBNiQm12OQ4tpYCmivdgwqWBgP6zw/Icg=="
     },
     "cssnano-preset-default@6.1.2_postcss@8.4.35": {
       "integrity": "sha512-1C0C+eNaeN8OcHQa193aRgYexyJtU8XwbdieEjClw+J9d94E41LwT6ivKH0WT+fYwYWB0Zp3I3IZ7tI/BbUbrg==",
@@ -3050,7 +3054,7 @@
       "integrity": "sha512-FVdlVVC67WOIPvfOwhoMETV72f6GbW7aOabBC3WxN/oUdoEMDyLz4OgRv5/gck2ZeNqEQu+Tb0kloovXOfpYVg==",
       "dependencies": [
         "commander@2.20.3",
-        "cssfilter"
+        "cssfilter@0.0.10"
       ]
     },
     "yallist@3.1.1": {
@@ -3129,6 +3133,7 @@
       "npm:@shikijs/transformers@^1.22.2",
       "npm:@tailwindcss/typography@~0.5.15",
       "npm:any-ascii@~0.3.2",
+      "npm:cssfilter@^0.0.11",
       "npm:drizzle-kit@0.28",
       "npm:drizzle-orm@~0.36.1",
       "npm:markdown-it-abbr@2",

@@ -42,7 +42,7 @@ export default async function App(
         <header class="bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
           <nav class="m-auto max-w-screen-xl p-4 text-xl flex flex-row">
             <a href="/" class="basis-3/4 text-white dark:text-black font-bold">
-              Hackers' Pub
+              Hackers’ Pub
             </a>
             <div class="group basis-1/4 text-right">
               {account == null ? <a href="/sign">Sign in/up</a> : (

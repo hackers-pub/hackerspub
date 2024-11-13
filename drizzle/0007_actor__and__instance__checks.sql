@@ -1,0 +1,2 @@
+ALTER TABLE "actor" ADD CONSTRAINT "actor_username_check" CHECK ("actor"."username" NOT LIKE '%@%');--> statement-breakpoint
+ALTER TABLE "instance" ADD CONSTRAINT "instance_host_check" CHECK ("instance"."host" NOT LIKE '%@%');

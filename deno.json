@@ -46,6 +46,7 @@
     "@std/uuid": "jsr:@std/uuid@^1.0.4",
     "@tailwindcss/typography": "npm:@tailwindcss/typography@^0.5.15",
     "any-ascii": "npm:any-ascii@^0.3.2",
+    "cssfilter": "npm:cssfilter@^0.0.11",
     "drizzle-kit": "npm:drizzle-kit@^0.28.0",
     "drizzle-orm": "npm:drizzle-orm@^0.36.1",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.25",

@@ -1,0 +1,1 @@
+ALTER TABLE "actor" ADD COLUMN "published" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL;

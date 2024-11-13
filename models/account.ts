@@ -1,5 +1,6 @@
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
+import { escape } from "@std/html/entities";
 import { eq, sql } from "drizzle-orm";
 import { Database } from "../db.ts";
 import {
@@ -15,7 +16,9 @@ import {
   getNodeInfo,
   isActor,
   lookupObject,
+  PropertyValue,
 } from "@fedify/fedify";
+import { compactUrl } from "../utils.ts";
 
 const logger = getLogger(["hackerspub", "models", "account"]);
 
@@ -90,6 +93,7 @@ export async function updateAccountLinks(
   }));
   await db.delete(accountLinkTable)
     .where(eq(accountLinkTable.accountId, accountId));
+  if (data.length < 1) return [];
   return await db.insert(accountLinkTable).values(
     data.map((link, index) => ({
       accountId,
@@ -271,4 +275,15 @@ export async function fetchAccountLinkMetadata(
     return { icon: "activitypub" };
   }
   return { icon: "web" };
+}
+
+export function renderAccountLinks(links: AccountLink[]): PropertyValue[] {
+  return links.map((link) =>
+    new PropertyValue({
+      name: link.name,
+      value: `<a href="${escape(link.url)}" rel="me" translate="no">${
+        escape(link.handle ?? compactUrl(link.url))
+      }</a>`,
+    })
+  );
 }

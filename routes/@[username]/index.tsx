@@ -1,19 +1,67 @@
-import { eq } from "drizzle-orm";
+import { isActor } from "@fedify/fedify";
+import * as vocab from "@fedify/fedify/vocab";
+import { getLogger } from "@logtape/logtape";
+import { and, eq } from "drizzle-orm";
 import { page } from "fresh";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import {
-  Account,
-  AccountLink,
+  type AccountLink,
   accountLinkTable,
   accountTable,
+  actorTable,
 } from "../../models/schema.ts";
-import { type RenderedMarkup, renderMarkup } from "../../models/markup.ts";
+import { renderMarkup, xss } from "../../models/markup.ts";
 import { kv } from "../../kv.ts";
 import { compactUrl, define } from "../../utils.ts";
+import { persistActor } from "../../models/actor.ts";
+
+const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
 export const handler = define.handlers({
   async GET(ctx) {
+    if (ctx.params.username.endsWith(`@${ctx.url.host}`)) {
+      return Response.redirect(
+        new URL(`/@${ctx.params.username.replace(/@.*$/, "")}`, ctx.url),
+        301,
+      );
+    } else if (ctx.params.username.includes("@")) {
+      if (ctx.state.session == null) return ctx.next();
+      const username = ctx.params.username.replace(/@.*$/, "");
+      const host = ctx.params.username.substring(
+        ctx.params.username.indexOf("@") + 1,
+      );
+      let actor = await db.query.actorTable.findFirst({
+        where: and(
+          eq(actorTable.username, username),
+          eq(actorTable.instanceHost, host),
+        ),
+      });
+      if (actor == null) {
+        let apActor: vocab.Object | null;
+        try {
+          apActor = await ctx.state.fedCtx.lookupObject(ctx.params.username);
+        } catch (error) {
+          logger.warn(
+            "An error occurred while looking up the actor {handle}: {error}",
+            { handle: ctx.params.username, error },
+          );
+          return ctx.next();
+        }
+        if (!isActor(apActor)) return ctx.next();
+        actor = await persistActor(db, apActor);
+        if (actor == null) return ctx.next();
+      }
+      const handle = `@${actor.username}@${actor.instanceHost}`;
+      const name = actor.name ?? handle;
+      ctx.state.title = name;
+      return page<ProfilePageProps>({
+        handle,
+        name,
+        bioHtml: xss.process(actor.bioHtml ?? ""),
+        links: actor.fieldHtmls,
+      });
+    }
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, ctx.params.username),
       with: {
@@ -58,7 +106,12 @@ export const handler = define.handlers({
       },
     );
     ctx.state.title = account.name;
-    return page<ProfilePageProps>({ account, actorUri, bio }, {
+    return page<ProfilePageProps>({
+      handle: `@${account.username}@${ctx.url.host}`,
+      name: account.name,
+      bioHtml: bio.html,
+      links: account.links,
+    }, {
       headers: {
         Link:
           `<${actorUri.href}>; rel="alternate"; type="application/activity+json"`,
@@ -68,30 +121,26 @@ export const handler = define.handlers({
 });
 
 interface ProfilePageProps {
-  account: Account & { links: AccountLink[] };
-  actorUri: URL;
-  bio: RenderedMarkup;
+  handle: string;
+  name: string;
+  bioHtml: string;
+  links: AccountLink[] | Record<string, string>;
 }
 
 export default define.page<typeof handler, ProfilePageProps>(
-  function ProfilePage({ data, url }) {
+  function ProfilePage({ data }) {
     return (
       <div>
-        <PageTitle
-          subtitle={{
-            text: `@${data.account.username}@${url.host}`,
-            class: "select-all",
-          }}
-        >
-          {data.account.name}
+        <PageTitle subtitle={{ text: data.handle, class: "select-all" }}>
+          {data.name}
         </PageTitle>
         <div
           class="prose dark:prose-invert"
-          dangerouslySetInnerHTML={{ __html: data.bio.html }}
+          dangerouslySetInnerHTML={{ __html: data.bioHtml }}
         />
-        {data.account.links.length > 0 && (
+        {Array.isArray(data.links) && data.links.length > 0 && (
           <dl class="mt-5 flex flex-wrap gap-y-3">
-            {data.account.links.map((link) => (
+            {data.links.map((link) => (
               <>
                 <dt
                   key={`dt-${link.index}`}
@@ -116,6 +165,30 @@ export default define.page<typeof handler, ProfilePageProps>(
                   <a href={link.url}>
                     {link.handle ?? compactUrl(link.url)}
                   </a>
+                </dd>
+              </>
+            ))}
+          </dl>
+        )}
+        {!Array.isArray(data.links) && Object.keys(data.links).length > 0 && (
+          <dl class="mt-5 flex flex-wrap gap-y-3">
+            {Object.entries(data.links).map(([name, html], i) => (
+              <>
+                <dt
+                  key={`dt-${i}`}
+                  class={`
+                    opacity-50 mr-1
+                    ${i > 0 ? "before:content-['·']" : ""}
+                    after:content-[':']
+                  `}
+                >
+                  <span class={i > 0 ? "ml-2" : ""}>{name}</span>
+                </dt>
+                <dd
+                  key={`dd-${i}`}
+                  class="mr-2"
+                  dangerouslySetInnerHTML={{ __html: xss.process(html) }}
+                >
                 </dd>
               </>
             ))}

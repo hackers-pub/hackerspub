@@ -17,6 +17,7 @@ import { Button } from "../../../components/Button.tsx";
 import { kv } from "../../../kv.ts";
 import { db } from "../../../db.ts";
 import { define } from "../../../utils.ts";
+import { syncActorFromAccount } from "../../../models/actor.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -76,9 +77,15 @@ export const handler = define.handlers({
         errors,
       });
     }
-    const account = await db.transaction((tx) =>
-      createAccount(tx, token, { username, name, bio })
-    );
+    const account = await db.transaction(async (tx) => {
+      const account = await createAccount(tx, token, { username, name, bio });
+      if (account == null) return null;
+      await syncActorFromAccount(tx, kv, ctx.state.fedCtx, {
+        ...account,
+        links: [],
+      });
+      return account;
+    });
     if (account == null) {
       return page<SignupPageProps>({
         token,

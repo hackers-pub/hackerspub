@@ -1,8 +1,11 @@
 import { getCookies } from "@std/http/cookie";
+import { eq, sql } from "drizzle-orm";
 import { federation } from "../federation/federation.ts";
+import { db } from "../db.ts";
 import { kv } from "../kv.ts";
 import { getSession } from "../models/session.ts";
 import { define } from "../utils.ts";
+import { accountTable } from "../models/schema.ts";
 
 export const handler = define.middleware([
   (ctx) => {
@@ -18,7 +21,14 @@ export const handler = define.middleware([
   async (ctx) => {
     const cookies = getCookies(ctx.req.headers);
     if (cookies.session != null) {
-      ctx.state.session = await getSession(kv, cookies.session);
+      const session = await getSession(kv, cookies.session);
+      if (session != null) {
+        const rows = await db.select({ v: sql<number>`1` })
+          .from(accountTable)
+          .where(eq(accountTable.id, session?.accountId))
+          .limit(1);
+        ctx.state.session = rows.length > 0 ? session : undefined;
+      }
     }
     return await ctx.next();
   },

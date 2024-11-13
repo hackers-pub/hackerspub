@@ -4,9 +4,7 @@ import {
   generateCryptoKeyPair,
   importJwk,
   Person,
-  PropertyValue,
 } from "@fedify/fedify";
-import { escape } from "@std/html/entities";
 import { eq } from "drizzle-orm";
 import { db } from "../db.ts";
 import {
@@ -15,8 +13,9 @@ import {
   accountTable,
   NewAccountKey,
 } from "../models/schema.ts";
-import { compactUrl, validateUuid } from "../utils.ts";
+import { validateUuid } from "../utils.ts";
 import { federation } from "./federation.ts";
+import { renderAccountLinks } from "../models/account.ts";
 import { renderMarkup } from "../models/markup.ts";
 import { kv } from "../kv.ts";
 
@@ -45,14 +44,7 @@ federation
         endpoints: new Endpoints({
           sharedInbox: ctx.getInboxUri(),
         }),
-        attachments: account.links.map((link) =>
-          new PropertyValue({
-            name: link.name,
-            value: `<a href="${escape(link.url)}" rel="me" translate="no">${
-              escape(link.handle ?? compactUrl(link.url))
-            }</a>`,
-          })
-        ),
+        attachments: renderAccountLinks(account.links),
       });
     },
   )

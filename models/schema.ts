@@ -1,6 +1,9 @@
 import {
+  type AnyPgColumn,
   boolean,
   check,
+  integer,
+  json,
   jsonb,
   pgEnum,
   pgTable,
@@ -8,19 +11,13 @@ import {
   smallint,
   text,
   timestamp,
+  unique,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 
 const currentTimestamp = sql`CURRENT_TIMESTAMP`;
-
-export const accountTypeEnum = pgEnum("account_type", [
-  "person",
-  "organization",
-]);
-
-export type AccountType = (typeof accountTypeEnum.enumValues)[number];
 
 export const accountTable = pgTable(
   "account",
@@ -59,10 +56,14 @@ export type NewAccount = typeof accountTable.$inferInsert;
 
 export const accountRelations = relations(
   accountTable,
-  ({ many }) => ({
+  ({ one, many }) => ({
     emails: many(accountEmailTable),
     keys: many(accountKeyTable),
     links: many(accountLinkTable),
+    actor: one(actorTable, {
+      fields: [accountTable.id],
+      references: [actorTable.accountId],
+    }),
   }),
 );
 
@@ -207,5 +208,115 @@ export const accountLinkRelations = relations(
       fields: [accountLinkTable.accountId],
       references: [accountTable.id],
     }),
+  }),
+);
+
+export const actorTypeEnum = pgEnum("actor_type", [
+  "Application",
+  "Group",
+  "Organization",
+  "Person",
+  "Service",
+]);
+
+export type ActorType = (typeof actorTypeEnum.enumValues)[number];
+
+export const actorTable = pgTable(
+  "actor",
+  {
+    id: uuid().primaryKey(),
+    iri: text().notNull().unique(),
+    type: actorTypeEnum().notNull(),
+    username: text().notNull(),
+    instanceHost: text("instance_host")
+      .notNull()
+      .references(() => instanceTable.host),
+    accountId: uuid("account_id").unique().references(() => accountTable.id),
+    name: text(),
+    bioHtml: text("bio_html"),
+    automaticallyApprovesFollowers: boolean("automatically_approves_followers")
+      .notNull().default(false),
+    avatarUrl: text("avatar_url"),
+    headerUrl: text("header_url"),
+    inboxUrl: text("inbox_url").notNull(),
+    sharedInboxUrl: text("shared_inbox_url"),
+    followersUrl: text("followers_url"),
+    featuredUrl: text("featured_url"),
+    fieldHtmls: json("field_htmls")
+      .$type<Record<string, string>>()
+      .notNull()
+      .default({}),
+    emojis: jsonb().$type<Record<string, string>>().notNull().default({}),
+    sensitive: boolean().notNull().default(false),
+    successorId: uuid("successor_id")
+      .references((): AnyPgColumn => actorTable.id, { onDelete: "cascade" }),
+    aliases: text().array().notNull().default(sql`(ARRAY[]::text[])`),
+    followeesCount: integer("followees_count").notNull().default(0),
+    followersCount: integer("followers_count").notNull().default(0),
+    postsCount: integer("posts_count").notNull().default(0),
+    url: text(),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    published: timestamp({ withTimezone: true }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    unique().on(table.username, table.instanceHost),
+    check("actor_username_check", sql`${table.username} NOT LIKE '%@%'`),
+  ],
+);
+
+export type Actor = typeof actorTable.$inferSelect;
+export type NewActor = typeof actorTable.$inferInsert;
+
+export const actorRelations = relations(
+  actorTable,
+  ({ one }) => ({
+    instance: one(instanceTable, {
+      fields: [actorTable.instanceHost],
+      references: [instanceTable.host],
+    }),
+    account: one(accountTable, {
+      fields: [actorTable.accountId],
+      references: [accountTable.id],
+    }),
+    successor: one(actorTable, {
+      fields: [actorTable.successorId],
+      references: [actorTable.id],
+    }),
+  }),
+);
+
+export const instanceTable = pgTable(
+  "instance",
+  {
+    host: text().primaryKey(),
+    software: text(),
+    softwareVersion: text("software_version"),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "instance_host_check",
+      sql`${table.host} NOT LIKE '%@%'`,
+    ),
+  ],
+);
+
+export type Instance = typeof instanceTable.$inferSelect;
+export type NewInstance = typeof instanceTable.$inferInsert;
+
+export const instanceRelations = relations(
+  instanceTable,
+  ({ many }) => ({
+    actors: many(actorTable),
   }),
 );
