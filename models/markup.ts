@@ -26,7 +26,7 @@ const logger = getLogger(["hackerspub", "models", "markup"]);
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
-const md = createMarkdownIt({ html: true })
+let md = createMarkdownIt({ html: true })
   .use(abbr)
   .use(admonition)
   .use(anchor, {
@@ -41,22 +41,6 @@ const md = createMarkdownIt({ html: true })
   .use(cjkBreaks)
   .use(deflist)
   .use(footnote)
-  .use(
-    await shiki({
-      themes: {
-        light: "vitesse-light",
-        dark: "vitesse-dark",
-      },
-      transformers: [
-        transformerNotationDiff(),
-        transformerNotationHighlight(),
-        transformerMetaHighlight(),
-        transformerNotationWordHighlight(),
-        transformerMetaWordHighlight(),
-        transformerNotationFocus(),
-      ],
-    }),
-  )
   .use(title)
   .use(toc, {
     placeholder: `--${crypto.randomUUID()}--`.toUpperCase(),
@@ -64,6 +48,26 @@ const md = createMarkdownIt({ html: true })
       tocTree = ast;
     },
   });
+
+// Lazy load Shiki to avoid blocking the startup time
+let shikiLoaded = false;
+const loadingShiki = shiki({
+  themes: {
+    light: "vitesse-light",
+    dark: "vitesse-dark",
+  },
+  transformers: [
+    transformerNotationDiff(),
+    transformerNotationHighlight(),
+    transformerMetaHighlight(),
+    transformerNotationWordHighlight(),
+    transformerMetaWordHighlight(),
+    transformerNotationFocus(),
+  ],
+}).then((shiki) => {
+  md = md.use(shiki);
+  shikiLoaded = true;
+});
 
 const textEncoder = new TextEncoder();
 
@@ -242,6 +246,7 @@ export async function renderMarkup(
   const key = [...KV_NAMESPACE, hash];
   const result = await kv.get<RenderedMarkup>(key);
   if (result.value != null) return result.value;
+  if (!shikiLoaded) await loadingShiki;
   const env = { docId, title: "" };
   const rawHtml = md.render(markup, env);
   logger.debug(
