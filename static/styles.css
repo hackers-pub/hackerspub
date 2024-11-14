@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+.prose h1 > a:last-child,
+.prose h2 > a:last-child,
+.prose h3 > a:last-child,
+.prose h4 > a:last-child,
+.prose h5 > a:last-child,
+.prose h6 > a:last-child {
+  text-decoration: none;
+  font-weight: normal;
+  opacity: .5;
+}
+
+.prose h1 > a:last-child > span[aria-hidden=true],
+.prose h2 > a:last-child > span[aria-hidden=true],
+.prose h3 > a:last-child > span[aria-hidden=true],
+.prose h4 > a:last-child > span[aria-hidden=true],
+.prose h5 > a:last-child > span[aria-hidden=true],
+.prose h6 > a:last-child > span[aria-hidden=true] {
+  display: none;
+}
+
+.prose h1:hover > a:last-child > span[aria-hidden=true],
+.prose h2:hover > a:last-child > span[aria-hidden=true],
+.prose h3:hover > a:last-child > span[aria-hidden=true],
+.prose h4:hover > a:last-child > span[aria-hidden=true],
+.prose h5:hover > a:last-child > span[aria-hidden=true],
+.prose h6:hover > a:last-child > span[aria-hidden=true] {
+  display: inline;
+}
+
 .prose > hr.footnotes-sep {
   margin: 0;
 }

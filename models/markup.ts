@@ -34,8 +34,8 @@ let md = createMarkdownIt({ html: true })
       return slugifyTitle(title, state.env.docId);
     },
     permalink: anchor.permalink.linkInsideHeader({
-      symbol: `<span aria-hidden="true">#</span>`,
-      placement: "before",
+      symbol: `<span aria-hidden="true" title="Link to this section">#</span>`,
+      placement: "after",
     }),
   })
   .use(cjkBreaks)
@@ -226,7 +226,7 @@ const textXss = new FilterXSS({
   stripIgnoreTag: true,
 });
 
-const KV_NAMESPACE = ["markup", "v4"];
+const KV_NAMESPACE = ["markup", "v5"];
 
 export interface RenderedMarkup {
   html: string;
