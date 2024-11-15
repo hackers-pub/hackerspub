@@ -10,7 +10,7 @@ export interface EditorProps {
 }
 
 export function Editor(props: EditorProps) {
-  const [previewHtml, setPreviewHtml] = useState("");
+  const [previewHtml, setPreviewHtml] = useState<[string, number]>(["", 0]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -22,16 +22,29 @@ export function Editor(props: EditorProps) {
 
   function onInput(event: JSX.TargetedEvent<HTMLTextAreaElement>) {
     const markup = (event.target as HTMLTextAreaElement).value;
+    const now = Date.now();
     setContent(markup);
-    setUpdated(Date.now());
+    setUpdated(now);
     // TODO: spinner
     fetch(props.previewUrl, {
       method: "POST",
-      headers: { "Content-Type": "text/markdown; charset=utf-8" },
+      headers: {
+        "Content-Type": "text/markdown; charset=utf-8",
+        "Echo-Nonce": `${now}`,
+      },
       body: markup,
     })
-      .then((response) => response.text())
-      .then(setPreviewHtml);
+      .then(async (response) => {
+        const nonce = response.headers.get("Echo-Nonce");
+        if (nonce != null) {
+          const html = await response.text();
+          setPreviewHtml(([existingHtml, existingVersion]) => {
+            const v = parseInt(nonce);
+            if (existingVersion < v) return [html, v];
+            return [existingHtml, existingVersion];
+          });
+        }
+      });
   }
 
   useEffect(() => {
@@ -101,7 +114,7 @@ export function Editor(props: EditorProps) {
         <div class="grow overflow-y-scroll p-4 text-xl">
           <div
             class="prose dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: previewHtml }}
+            dangerouslySetInnerHTML={{ __html: previewHtml[0] }}
           />
         </div>
       </div>
