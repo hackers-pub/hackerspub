@@ -1,17 +1,20 @@
-import { eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import type { PageProps } from "fresh";
 import { State } from "../utils.ts";
 import { db } from "../db.ts";
-import { accountTable } from "../models/schema.ts";
+import { accountTable, articleDraftTable } from "../models/schema.ts";
 
 export default async function App(
   { Component, state, url }: PageProps<unknown, State>,
 ) {
-  const account = state.session == null
-    ? null
-    : await db.query.accountTable.findFirst({
+  const [account, drafts] = state.session == null ? [null, 0] : [
+    await db.query.accountTable.findFirst({
       where: eq(accountTable.id, state.session.accountId),
-    });
+    }),
+    (await db.select({ cnt: count() })
+      .from(articleDraftTable)
+      .where(eq(articleDraftTable.accountId, state.session.accountId)))[0].cnt,
+  ];
   return (
     <html>
       <head>
@@ -56,6 +59,10 @@ export default async function App(
                     flex-col gap-4
                   ">
                     <a href={`/@${account.username}/drafts/new`}>New article</a>
+                    <a href={`/@${account.username}/drafts`}>
+                      Drafts{" "}
+                      {drafts > 0 && <span class="opacity-50">({drafts})</span>}
+                    </a>
                     <a href={`/@${account.username}`}>Profile</a>
                     <a href={`/@${account.username}/settings`}>Settings</a>
                     <form
