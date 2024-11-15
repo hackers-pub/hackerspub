@@ -13,11 +13,10 @@ import {
   accountTable,
   NewAccountKey,
 } from "../models/schema.ts";
-import { validateUuid } from "../utils.ts";
 import { federation } from "./federation.ts";
 import { renderAccountLinks } from "../models/account.ts";
 import { renderMarkup } from "../models/markup.ts";
-import { kv } from "../kv.ts";
+import { validateUuid } from "../models/uuid.ts";
 
 federation
   .setActorDispatcher(
@@ -29,7 +28,7 @@ federation
         with: { links: { orderBy: accountLinkTable.index } },
       });
       if (account == null) return null;
-      const bio = await renderMarkup(kv, account.id, account.bio);
+      const bio = await renderMarkup(account.id, account.bio);
       const keys = await ctx.getActorKeyPairs(identifier);
       return new Person({
         id: ctx.getActorUri(identifier),
@@ -55,6 +54,7 @@ federation
     return account == null ? null : account.id;
   })
   .setKeyPairsDispatcher(async (_ctx, identifier) => {
+    if (!validateUuid(identifier)) return [];
     const keyRecords = await db.query.accountKeyTable.findMany({
       where: eq(accountKeyTable.accountId, identifier),
     });

@@ -69,8 +69,6 @@ const loadingShiki = shiki({
   shikiLoaded = true;
 });
 
-const textEncoder = new TextEncoder();
-
 export const xss = new FilterXSS({
   allowList: {
     a: [
@@ -226,8 +224,6 @@ const textXss = new FilterXSS({
   stripIgnoreTag: true,
 });
 
-const KV_NAMESPACE = ["markup", "v5"];
-
 export interface RenderedMarkup {
   html: string;
   text: string;
@@ -236,16 +232,9 @@ export interface RenderedMarkup {
 }
 
 export async function renderMarkup(
-  kv: Deno.Kv,
   docId: string,
   markup: string,
 ): Promise<RenderedMarkup> {
-  const hash = new Uint8Array(
-    await crypto.subtle.digest("SHA-256", textEncoder.encode(markup)),
-  );
-  const key = [...KV_NAMESPACE, hash];
-  const result = await kv.get<RenderedMarkup>(key);
-  if (result.value != null) return result.value;
   if (!shikiLoaded) await loadingShiki;
   const env = { docId, title: "" };
   const rawHtml = md.render(markup, env);
@@ -262,7 +251,6 @@ export async function renderMarkup(
     title: env.title,
     toc: toc.level < 1 ? toc.children : [toc],
   };
-  await kv.set(key, rendered, { expireIn: 30 * 24 * 60 * 60 * 1000 });
   return rendered;
 }
 

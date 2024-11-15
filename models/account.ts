@@ -19,6 +19,7 @@ import {
   PropertyValue,
 } from "@fedify/fedify";
 import { compactUrl } from "../utils.ts";
+import { type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "account"]);
 
@@ -58,7 +59,7 @@ export interface Link {
 
 export async function updateAccountLinks(
   db: Database,
-  accountId: string,
+  accountId: Uuid,
   verifyUrl: URL | string,
   links: Link[],
 ): Promise<AccountLink[]> {
@@ -76,6 +77,7 @@ export async function updateAccountLinks(
           fetchAccountLinkMetadata(link.url)
       ),
     ),
+    // TODO: Forget and fire:
     Promise.all(
       links.map((link) => {
         const existing = existingMap[link.url.toString()];

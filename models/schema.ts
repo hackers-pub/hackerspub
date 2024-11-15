@@ -16,13 +16,14 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
+import { Uuid } from "./uuid.ts";
 
 const currentTimestamp = sql`CURRENT_TIMESTAMP`;
 
 export const accountTable = pgTable(
   "account",
   {
-    id: uuid().primaryKey(),
+    id: uuid().$type<Uuid>().primaryKey(),
     username: varchar({ length: 50 }).notNull().unique(),
     usernameChanged: timestamp("username_changed", { withTimezone: true }),
     name: varchar({ length: 50 }).notNull(),
@@ -64,6 +65,7 @@ export const accountRelations = relations(
       fields: [accountTable.id],
       references: [actorTable.accountId],
     }),
+    articleDrafts: many(articleDraftTable),
   }),
 );
 
@@ -71,7 +73,10 @@ export const accountEmailTable = pgTable(
   "account_email",
   {
     email: text().notNull().primaryKey(),
-    accountId: uuid("account_id").notNull().references(() => accountTable.id),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id),
     public: boolean().notNull().default(false),
     verified: timestamp({ withTimezone: true }),
     created: timestamp({ withTimezone: true })
@@ -103,7 +108,10 @@ export type AccountKeyType = (typeof accountKeyTypeEnum.enumValues)[number];
 export const accountKeyTable = pgTable(
   "account_key",
   {
-    accountId: uuid("account_id").notNull().references(() => accountTable.id),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id),
     type: accountKeyTypeEnum().notNull(),
     public: jsonb().$type<JsonWebKey>().notNull(),
     private: jsonb().$type<JsonWebKey>().notNull(),
@@ -174,7 +182,10 @@ export type AccountLinkIcon = (typeof accountLinkIconEnum.enumValues)[number];
 export const accountLinkTable = pgTable(
   "account_link",
   {
-    accountId: uuid("account_id").notNull().references(() => accountTable.id),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id),
     index: smallint().notNull(),
     name: varchar({ length: 50 }).notNull(),
     url: text().notNull(),
@@ -224,14 +235,17 @@ export type ActorType = (typeof actorTypeEnum.enumValues)[number];
 export const actorTable = pgTable(
   "actor",
   {
-    id: uuid().primaryKey(),
+    id: uuid().$type<Uuid>().primaryKey(),
     iri: text().notNull().unique(),
     type: actorTypeEnum().notNull(),
     username: text().notNull(),
     instanceHost: text("instance_host")
       .notNull()
       .references(() => instanceTable.host),
-    accountId: uuid("account_id").unique().references(() => accountTable.id),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .unique()
+      .references(() => accountTable.id),
     name: text(),
     bioHtml: text("bio_html"),
     automaticallyApprovesFollowers: boolean("automatically_approves_followers")
@@ -249,6 +263,7 @@ export const actorTable = pgTable(
     emojis: jsonb().$type<Record<string, string>>().notNull().default({}),
     sensitive: boolean().notNull().default(false),
     successorId: uuid("successor_id")
+      .$type<Uuid>()
       .references((): AnyPgColumn => actorTable.id, { onDelete: "cascade" }),
     aliases: text().array().notNull().default(sql`(ARRAY[]::text[])`),
     followeesCount: integer("followees_count").notNull().default(0),
@@ -318,5 +333,38 @@ export const instanceRelations = relations(
   instanceTable,
   ({ many }) => ({
     actors: many(actorTable),
+  }),
+);
+
+export const articleDraftTable = pgTable(
+  "article_draft",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id),
+    title: text().notNull(),
+    content: text().notNull(),
+    tags: text().array().notNull().default(sql`(ARRAY[]::text[])`),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+);
+
+export type ArticleDraft = typeof articleDraftTable.$inferSelect;
+export type NewArticleDraft = typeof articleDraftTable.$inferInsert;
+
+export const articleDraftRelations = relations(
+  articleDraftTable,
+  ({ one }) => ({
+    account: one(accountTable, {
+      fields: [articleDraftTable.accountId],
+      references: [accountTable.id],
+    }),
   }),
 );

@@ -20,8 +20,10 @@
   },
   "exclude": [
     "**/_fresh/*",
+    ".github/",
     "drizzle/",
-    "node_modules/"
+    "node_modules/",
+    "static/"
   ],
   "imports": {
     "@fedify/fedify": "jsr:@fedify/fedify@^1.2.3",
@@ -45,6 +47,7 @@
     "@std/text": "jsr:@std/text@^1.0.8",
     "@std/uuid": "jsr:@std/uuid@^1.0.4",
     "@tailwindcss/typography": "npm:@tailwindcss/typography@^0.5.15",
+    "@valibot/valibot": "jsr:@valibot/valibot@^0.42.1",
     "any-ascii": "npm:any-ascii@^0.3.2",
     "cssfilter": "npm:cssfilter@^0.0.11",
     "drizzle-kit": "npm:drizzle-kit@^0.28.0",

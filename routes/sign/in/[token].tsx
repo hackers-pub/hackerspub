@@ -9,9 +9,11 @@ import { kv } from "../../../kv.ts";
 import { define } from "../../../utils.ts";
 import { accountLinkTable, accountTable } from "../../../models/schema.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
+import { validateUuid } from "../../../models/uuid.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
+    if (!validateUuid(ctx.params.token)) return ctx.next();
     const token = await getSigninToken(kv, ctx.params.token);
     if (token == null) return ctx.next();
     const code = ctx.url.searchParams.get("code");

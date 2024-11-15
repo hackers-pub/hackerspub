@@ -1,10 +1,12 @@
+import { Uuid } from "./uuid.ts";
+
 const KV_NAMESPACE = ["session"];
 
 export const EXPIRATION = Temporal.Duration.from({ hours: 24 * 365 });
 
 export interface Session {
-  id: string;
-  accountId: string;
+  id: Uuid;
+  accountId: Uuid;
   userAgent?: string | null;
   ipAddress?: string | null;
   created: Date;
@@ -26,7 +28,7 @@ export async function createSession(
 
 export async function getSession(
   kv: Deno.Kv,
-  sessionId: string,
+  sessionId: Uuid,
 ): Promise<Session | undefined> {
   const result = await kv.get<Session>([...KV_NAMESPACE, sessionId]);
   return result.value ?? undefined;
@@ -34,7 +36,7 @@ export async function getSession(
 
 export async function deleteSession(
   kv: Deno.Kv,
-  sessionId: string,
+  sessionId: Uuid,
 ): Promise<void> {
   await kv.delete([...KV_NAMESPACE, sessionId]);
 }

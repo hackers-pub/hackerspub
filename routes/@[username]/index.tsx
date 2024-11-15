@@ -12,7 +12,6 @@ import {
   actorTable,
 } from "../../models/schema.ts";
 import { renderMarkup, xss } from "../../models/markup.ts";
-import { kv } from "../../kv.ts";
 import { compactUrl, define } from "../../utils.ts";
 import { persistActor } from "../../models/actor.ts";
 
@@ -69,7 +68,7 @@ export const handler = define.handlers({
       },
     });
     if (account == null) return ctx.next();
-    const bio = await renderMarkup(kv, account.id, account.bio);
+    const bio = await renderMarkup(account.id, account.bio);
     ctx.state.metas.push(
       {
         name: "description",

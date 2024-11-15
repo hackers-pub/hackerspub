@@ -7,7 +7,6 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { generate as uuidv7 } from "@std/uuid/unstable-v7";
 import { eq, sql } from "drizzle-orm";
 import type { Database } from "../db.ts";
 import { renderAccountLinks } from "./account.ts";
@@ -22,12 +21,13 @@ import {
 } from "./schema.ts";
 import { renderMarkup } from "./markup.ts";
 import { persistInstance } from "./instance.ts";
+import { generateUuidV7 } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "actor"]);
 
 export async function syncActorFromAccount(
   db: Database,
-  kv: Deno.Kv,
+  _kv: Deno.Kv,
   fedCtx: Context<void>,
   account: Account & { links: AccountLink[] },
 ): Promise<Actor> {
@@ -52,7 +52,7 @@ export async function syncActorFromAccount(
     instanceHost: instance.host,
     accountId: account.id,
     name: account.name,
-    bioHtml: (await renderMarkup(kv, account.id, account.bio)).html,
+    bioHtml: (await renderMarkup(account.id, account.bio)).html,
     automaticallyApprovesFollowers: true,
     inboxUrl: fedCtx.getInboxUri(account.id).href,
     sharedInboxUrl: fedCtx.getInboxUri().href,
@@ -67,7 +67,7 @@ export async function syncActorFromAccount(
     published: account.created,
   };
   const rows = await db.insert(actorTable)
-    .values({ id: uuidv7(), ...values })
+    .values({ id: generateUuidV7(), ...values })
     .onConflictDoUpdate({
       target: actorTable.accountId,
       set: values,
@@ -122,7 +122,7 @@ export async function persistActor(
       : new Date(actor.published.toString()),
   };
   const rows = await db.insert(actorTable)
-    .values({ ...values, id: uuidv7() })
+    .values({ ...values, id: generateUuidV7() })
     .onConflictDoUpdate({
       target: actorTable.iri,
       set: values,

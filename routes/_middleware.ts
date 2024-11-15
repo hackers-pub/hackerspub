@@ -6,6 +6,7 @@ import { kv } from "../kv.ts";
 import { getSession } from "../models/session.ts";
 import { define } from "../utils.ts";
 import { accountTable } from "../models/schema.ts";
+import { validateUuid } from "../models/uuid.ts";
 
 export const handler = define.middleware([
   (ctx) => {
@@ -20,7 +21,7 @@ export const handler = define.middleware([
   },
   async (ctx) => {
     const cookies = getCookies(ctx.req.headers);
-    if (cookies.session != null) {
+    if (validateUuid(cookies.session)) {
       const session = await getSession(kv, cookies.session);
       if (session != null) {
         const rows = await db.select({ v: sql<number>`1` })

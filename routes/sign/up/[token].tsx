@@ -18,9 +18,11 @@ import { kv } from "../../../kv.ts";
 import { db } from "../../../db.ts";
 import { define } from "../../../utils.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
+import { validateUuid } from "../../../models/uuid.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
+    if (!validateUuid(ctx.params.token)) return ctx.next();
     const token = await getSignupToken(kv, ctx.params.token);
     if (token == null) return ctx.next();
     const code = ctx.url.searchParams.get("code");
@@ -32,6 +34,7 @@ export const handler = define.handlers({
   },
 
   async POST(ctx) {
+    if (!validateUuid(ctx.params.token)) return ctx.next();
     const token = await getSignupToken(kv, ctx.params.token);
     if (token == null) return ctx.next();
     const form = await ctx.req.formData();

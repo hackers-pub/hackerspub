@@ -70,9 +70,13 @@ export default async function App(
             </div>
           </nav>
         </header>
-        <main class="m-auto max-w-screen-xl p-4">
-          <Component />
-        </main>
+        {state.withoutMain
+          ? <Component />
+          : (
+            <main class="m-auto max-w-screen-xl p-4">
+              <Component />
+            </main>
+          )}
       </body>
     </html>
   );

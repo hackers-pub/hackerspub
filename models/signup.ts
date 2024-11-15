@@ -1,14 +1,14 @@
 import { getLogger } from "@logtape/logtape";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { sql } from "drizzle-orm";
-import { generate as uuidv7 } from "@std/uuid/unstable-v7";
 import {
-  Account,
+  type Account,
   accountEmailTable,
   accountTable,
-  NewAccount,
+  type NewAccount,
 } from "./schema.ts";
 import { Database } from "../db.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "signup"]);
 
@@ -18,7 +18,7 @@ export const EXPIRATION = Temporal.Duration.from({ days: 1 });
 
 export interface SignupToken {
   email: string;
-  token: string;
+  token: Uuid;
   code: string;
   created: Date;
 }
@@ -50,7 +50,7 @@ export async function createSignupToken(
 
 export async function getSignupToken(
   kv: Deno.Kv,
-  token: string,
+  token: Uuid,
 ): Promise<SignupToken | undefined> {
   const result = await kv.get<SignupToken>([...KV_NAMESPACE, token]);
   return result.value ?? undefined;
@@ -58,7 +58,7 @@ export async function getSignupToken(
 
 export async function deleteSignupToken(
   kv: Deno.Kv,
-  token: string,
+  token: Uuid,
 ): Promise<void> {
   await kv.delete([...KV_NAMESPACE, token]);
 }
@@ -70,7 +70,7 @@ export async function createAccount(
 ): Promise<Account | undefined> {
   const accounts = await db.insert(accountTable).values({
     ...account,
-    id: account.id ?? uuidv7(),
+    id: account.id ?? generateUuidV7(),
   })
     .returning();
   if (accounts.length !== 1) {
