@@ -1,5 +1,5 @@
 import { JSX } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { Button } from "../components/Button.tsx";
 import { TagInput } from "./TagInput.tsx";
 
@@ -19,6 +19,7 @@ export function Editor(props: EditorProps) {
   const [draftContent, setDraftContent] = useState("");
   const [draftTags, setDraftTags] = useState<string[]>([]);
   const [draftUpdated, setDraftUpdated] = useState(Date.now());
+  const contentTextArea = useRef<HTMLTextAreaElement | null>(null);
 
   function onInput(event: JSX.TargetedEvent<HTMLTextAreaElement>) {
     const markup = (event.target as HTMLTextAreaElement).value;
@@ -95,10 +96,17 @@ export function Editor(props: EditorProps) {
             class="w-full text-xl p-3 dark:bg-stone-900 dark:text-white border-4 border-transparent focus:border-stone-200 dark:focus:border-stone-700 focus:outline-none"
             onInput={(event) =>
               setTitle((event.target as HTMLInputElement).value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                contentTextArea.current?.focus();
+              }
+            }}
           />
         </div>
         <div class="grow">
           <textarea
+            ref={contentTextArea}
             required
             placeholder="Write your article here. You can use Markdown."
             class="w-full h-full text-xl p-3 dark:bg-stone-900 dark:text-white border-4 border-transparent focus:border-stone-200 dark:focus:border-stone-700 focus:outline-none font-mono"
