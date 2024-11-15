@@ -2,11 +2,14 @@ import { useState } from "preact/hooks";
 
 export interface TagInputProps {
   class?: string;
+  defaultTags?: string[];
   onTagsChange?: (tags: string[]) => void;
 }
 
-export function TagInput({ class: className, onTagsChange }: TagInputProps) {
-  const [tags, setTags] = useState<string[]>([]);
+export function TagInput(
+  { class: className, defaultTags, onTagsChange }: TagInputProps,
+) {
+  const [tags, setTags] = useState<string[]>(defaultTags ?? []);
   const [input, setInput] = useState<string>("");
 
   const handleKeyDown = (e: KeyboardEvent) => {

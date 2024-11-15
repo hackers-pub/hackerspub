@@ -55,6 +55,7 @@ export default async function App(
                     bg-black dark:bg-stone-100
                     flex-col gap-4
                   ">
+                    <a href={`/@${account.username}/drafts/new`}>New article</a>
                     <a href={`/@${account.username}`}>Profile</a>
                     <a href={`/@${account.username}/settings`}>Settings</a>
                     <form
