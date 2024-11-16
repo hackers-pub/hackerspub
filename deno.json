@@ -8,7 +8,9 @@
     "drizzle-kit": "deno run -A npm:drizzle-kit",
     "migrate": "deno run -A npm:drizzle-kit migrate",
     "migrate:generate": "deno run -A npm:drizzle-kit generate",
-    "migrate:node": "npx drizzle-kit migrate"
+    "migrate:node": "npx drizzle-kit migrate",
+    "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",
+    "hooks:pre-commit": "deno task check"
   },
   "lint": {
     "rules": {
