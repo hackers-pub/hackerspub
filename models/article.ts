@@ -7,6 +7,13 @@ export async function updateArticleDraft(
   db: Database,
   draft: NewArticleDraft,
 ): Promise<ArticleDraft> {
+  if (draft.tags != null) {
+    let tags = draft.tags
+      .map((tag) => tag.trim().replace(/^#\s*/, ""))
+      .filter((tag) => tag !== "" && !tag.includes(","));
+    tags = tags.filter((tag, index) => tags.indexOf(tag) === index);
+    draft = { ...draft, tags };
+  }
   const rows = await db.insert(articleDraftTable)
     .values(draft)
     .onConflictDoUpdate({

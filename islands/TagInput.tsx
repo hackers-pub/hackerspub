@@ -15,10 +15,17 @@ export function TagInput(
   const handleKeyDown = (e: KeyboardEvent) => {
     if ((e.key === " " || e.key === "," || e.key === "Enter") && input.trim()) {
       e.preventDefault();
-      const newTags = [...tags, input.trim().replace(/^#+\s*/, "")];
-      setTags(newTags);
+      const newTag = input.trim().replace(/^#+\s*/, "");
+      const dup = tags.map((t) => t.toLowerCase()).includes(
+        newTag.toLowerCase(),
+      );
+      let newTags: string[] | undefined;
+      if (!dup) {
+        newTags = [...tags, newTag];
+        setTags(newTags);
+      }
       setInput("");
-      onTagsChange?.(newTags);
+      if (newTags != null) onTagsChange?.(newTags);
     } else if (e.key === "Backspace" && !input && tags.length > 0) {
       const newTags = tags.slice(0, -1);
       setTags(newTags);
