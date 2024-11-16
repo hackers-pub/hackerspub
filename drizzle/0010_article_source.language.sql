@@ -1,0 +1,1 @@
+ALTER TABLE "article_source" ADD COLUMN "language" varchar NOT NULL;

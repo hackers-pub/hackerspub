@@ -46,14 +46,14 @@ export default define.page<typeof handler, DraftsPageProps>(
         {drafts.map((draft) => (
           <article key={draft.id} class="mb-4 flex gap-4">
             <div class="grow leading-7 p-4 bg-stone-100 dark:bg-stone-800 has-[:link:hover]:bg-stone-200 dark:has-[:link:hover]:bg-stone-700">
-              <h2 class="text-xl font-bold text-ellipsis">
+              <h2 class="text-xl font-bold truncate">
                 <a href={`/@${account.username}/drafts/${draft.id}`}>
                   {draft.title === ""
                     ? <span class="italic">(No title)</span>
                     : draft.title}
                 </a>
               </h2>
-              <p class="opacity-50 text-ellipsis">
+              <p class="opacity-50 truncate">
                 <a href={`/@${account.username}/drafts/${draft.id}`}>
                   Created at{" "}
                   <time datetime={draft.created.toISOString()}>
@@ -77,7 +77,7 @@ export default define.page<typeof handler, DraftsPageProps>(
                     )}
                 </a>
               </p>
-              <p class="text-ellipsis">
+              <p class="max-w-[calc(1280px-7rem-24px)] truncate">
                 <a href={`/@${account.username}/drafts/${draft.id}`}>
                   {draft.content}
                 </a>

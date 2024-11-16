@@ -1,0 +1,1 @@
+ALTER TABLE "article_source" ADD CONSTRAINT "article_source_account_id_published_year_slug_unique" UNIQUE("account_id","published_year","slug");

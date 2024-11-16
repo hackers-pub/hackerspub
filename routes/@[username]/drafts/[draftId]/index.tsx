@@ -1,12 +1,27 @@
 import * as v from "@valibot/valibot";
 import { and, eq } from "drizzle-orm";
+import { francAll } from "franc";
 import { page } from "fresh";
+import { iso6393To1 } from "iso-639-3";
 import { db } from "../../../../db.ts";
 import { updateArticleDraft } from "../../../../models/article.ts";
 import { define } from "../../../../utils.ts";
-import { accountTable, articleDraftTable } from "../../../../models/schema.ts";
+import {
+  type Account,
+  accountTable,
+  articleDraftTable,
+} from "../../../../models/schema.ts";
 import { validateUuid } from "../../../../models/uuid.ts";
 import { Editor } from "../../../../islands/Editor.tsx";
+import { getLogger } from "@logtape/logtape";
+
+const logger = getLogger([
+  "hackerspub",
+  "routes",
+  "@[username]",
+  "drafts",
+  "[draftId]",
+]);
 
 const TagSchema = v.pipe(v.string(), v.regex(/^[^\s,]+$/));
 
@@ -33,13 +48,14 @@ export const handler = define.handlers({
       ),
     });
     ctx.state.withoutMain = true;
-    return page<DraftPageProps>(
-      draft ?? {
+    return page<DraftPageProps>({
+      account,
+      ...draft ?? {
         title: "",
         content: "",
         tags: [],
       },
-    );
+    });
   },
 
   async PUT(ctx) {
@@ -62,14 +78,32 @@ export const handler = define.handlers({
       id: ctx.params.draftId,
       accountId: ctx.state.session.accountId,
     });
+    const acceptLanguages = parseAcceptLanguage(
+      ctx.req.headers.get("Accept-Language") ?? "",
+    );
+    const langDetect = francAll(draft.title + "\n\n" + draft.content);
+    for (let i = 0; i < langDetect.length; i++) {
+      langDetect[i][0] = iso6393To1[langDetect[i][0]] ?? langDetect[i][0];
+      langDetect[i][1] = (langDetect[i][1] +
+        (acceptLanguages[langDetect[i][0]] ?? acceptLanguages["*"] ?? 0)) / 2;
+    }
+    langDetect.sort((a, b) => b[1] - a[1]);
+    logger.debug("Detected languages: {languages}", { languages: langDetect });
+    const detectedLang = langDetect[0][0];
+    const language = detectedLang ?? null;
+    logger.debug("Detected language: {language}", { language });
     return new Response(
-      JSON.stringify(draft),
+      JSON.stringify({
+        ...draft,
+        language,
+      }),
       { headers: { "Content-Type": "application/json" } },
     );
   },
 });
 
 interface DraftPageProps {
+  account: Account;
   title: string;
   content: string;
   tags: string[];
@@ -83,6 +117,8 @@ export default define.page<typeof handler, DraftPageProps>(
           class="w-full h-full"
           previewUrl={new URL("/api/preview", url).href}
           draftUrl={url.href}
+          publishUrl={`${url.href}/publish`}
+          publishUrlPrefix={new URL(`/@${data.account.username}/`, url).href}
           defaultTitle={data.title}
           defaultContent={data.content}
           defaultTags={data.tags}
@@ -91,3 +127,12 @@ export default define.page<typeof handler, DraftPageProps>(
     );
   },
 );
+
+function parseAcceptLanguage(acceptLanguage: string): Record<string, number> {
+  const langs: [string, number][] = acceptLanguage.split(",").map((lang) => {
+    const [code, q] = lang.trim().split(";").map((s) => s.trim());
+    return [code.substring(0, 2), q == null ? 1 : parseFloat(q.split("=")[1])];
+  });
+  langs.sort((a, b) => b[1] - a[1]);
+  return Object.fromEntries(langs);
+}

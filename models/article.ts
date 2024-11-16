@@ -1,7 +1,14 @@
 import { and, eq, sql } from "drizzle-orm";
 import { Database } from "../db.ts";
-import { ArticleDraft, articleDraftTable, NewArticleDraft } from "./schema.ts";
-import { Uuid } from "./uuid.ts";
+import {
+  ArticleDraft,
+  articleDraftTable,
+  ArticleSource,
+  articleSourceTable,
+  NewArticleDraft,
+  NewArticleSource,
+} from "./schema.ts";
+import { generateUuidV7, Uuid } from "./uuid.ts";
 
 export async function updateArticleDraft(
   db: Database,
@@ -44,6 +51,17 @@ export async function deleteArticleDraft(
         eq(articleDraftTable.id, draftId),
       ),
     )
+    .returning();
+  return rows[0];
+}
+
+export async function createArticleSource(
+  db: Database,
+  source: Omit<NewArticleSource, "id"> & { id?: Uuid },
+): Promise<ArticleSource | undefined> {
+  const rows = await db.insert(articleSourceTable)
+    .values({ id: generateUuidV7(), ...source })
+    .onConflictDoNothing()
     .returning();
   return rows[0];
 }

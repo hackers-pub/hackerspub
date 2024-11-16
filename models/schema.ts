@@ -66,6 +66,7 @@ export const accountRelations = relations(
       references: [actorTable.accountId],
     }),
     articleDrafts: many(articleDraftTable),
+    articleSources: many(articleSourceTable),
   }),
 );
 
@@ -344,6 +345,9 @@ export const articleDraftTable = pgTable(
       .$type<Uuid>()
       .notNull()
       .references(() => accountTable.id),
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .references(() => articleSourceTable.id),
     title: text().notNull(),
     content: text().notNull(),
     tags: text().array().notNull().default(sql`(ARRAY[]::text[])`),
@@ -368,3 +372,34 @@ export const articleDraftRelations = relations(
     }),
   }),
 );
+
+export const articleSourceTable = pgTable(
+  "article_source",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id),
+    publishedYear: smallint("published_year")
+      .notNull()
+      .default(sql`EXTRACT(year FROM CURRENT_TIMESTAMP)`),
+    slug: varchar({ length: 128 }).notNull(),
+    title: text().notNull(),
+    content: text().notNull(),
+    language: varchar().notNull(),
+    tags: text().array().notNull().default(sql`(ARRAY[]::text[])`),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    published: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    unique().on(table.accountId, table.publishedYear, table.slug),
+  ],
+);
+
+export type ArticleSource = typeof articleSourceTable.$inferSelect;
+export type NewArticleSource = typeof articleSourceTable.$inferInsert;
