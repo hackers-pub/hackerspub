@@ -1,3 +1,4 @@
+import { captureException } from "@sentry/deno";
 import { getCookies } from "@std/http/cookie";
 import { eq, sql } from "drizzle-orm";
 import { federation } from "../federation/federation.ts";
@@ -9,6 +10,14 @@ import { accountTable } from "../models/schema.ts";
 import { validateUuid } from "../models/uuid.ts";
 
 export const handler = define.middleware([
+  async (ctx) => {
+    try {
+      return await ctx.next();
+    } catch (error) {
+      captureException(error);
+      throw error;
+    }
+  },
   (ctx) => {
     ctx.state.fedCtx = federation.createContext(ctx.req, undefined);
     return ctx.next();

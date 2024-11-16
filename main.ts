@@ -1,6 +1,8 @@
 /// <reference lib="deno.unstable" />
 import "@std/dotenv/load";
 import "./logging.ts";
+import "./sentry.ts";
+import { captureException } from "@sentry/deno";
 import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
 import { federation } from "./federation/mod.ts";
 import { type State } from "./utils.ts";
@@ -19,9 +21,14 @@ app.use(async (ctx) => {
     ctx.url.pathname.startsWith("/ap/") ||
     ctx.url.pathname.startsWith("/nodeinfo/")
   ) {
-    return await federation.fetch(ctx.req, {
-      contextData: undefined,
-    });
+    try {
+      return await federation.fetch(ctx.req, {
+        contextData: undefined,
+      });
+    } catch (error) {
+      captureException(error);
+      throw error;
+    }
   }
   return ctx.next();
 });

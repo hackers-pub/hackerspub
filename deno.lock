@@ -59,6 +59,7 @@
     "npm:@preact/signals@^1.3.0": "1.3.0_preact@10.24.3",
     "npm:@resvg/resvg-wasm@^2.6.2": "2.6.2",
     "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0": "2.0.1-0",
+    "npm:@sentry/deno@^8.38.0": "8.38.0",
     "npm:@shikijs/markdown-it@^1.22.2": "1.22.2",
     "npm:@shikijs/transformers@^1.22.2": "1.22.2",
     "npm:@tailwindcss/typography@~0.5.15": "0.5.15_tailwindcss@3.4.3__postcss@8.4.47",
@@ -859,6 +860,30 @@
       "integrity": "sha512-U3S7GVZ8geLRyk5PXLkEo/cFUyU5fs3qrqM5lkRKsPfKKTcb+toSkLf7LOaAP+J1D60TA6DZlqVSoMjq2D47Hg==",
       "dependencies": [
         "get-east-asian-width"
+      ]
+    },
+    "@sentry/core@8.38.0": {
+      "integrity": "sha512-sGD+5TEHU9G7X7zpyaoJxpOtwjTjvOd1f/MKBrWW2vf9UbYK+GUJrOzLhMoSWp/pHSYgvObkJkDb/HwieQjvhQ==",
+      "dependencies": [
+        "@sentry/types",
+        "@sentry/utils"
+      ]
+    },
+    "@sentry/deno@8.38.0": {
+      "integrity": "sha512-XV5VealMAm1F6G2vJhtTnxxH6twNAw7KrE9kH8sqR1rZmxRXfEmHc0RDn8J3lejeDRTRmrmiw6JIEc/D4GbpeQ==",
+      "dependencies": [
+        "@sentry/core",
+        "@sentry/types",
+        "@sentry/utils"
+      ]
+    },
+    "@sentry/types@8.38.0": {
+      "integrity": "sha512-fP5H9ZX01W4Z/EYctk3mkSHi7d06cLcX2/UWqwdWbyPWI+pL2QpUPICeO/C+8SnmYx//wFj3qWDhyPCh1PdFAA=="
+    },
+    "@sentry/utils@8.38.0": {
+      "integrity": "sha512-3X7MgIKIx+2q5Al7QkhaRB4wV6DvzYsaeIwdqKUzGLuRjXmNgJrLoU87TAwQRmZ6Wr3IoEpThZZMNrzYPXxArw==",
+      "dependencies": [
+        "@sentry/types"
       ]
     },
     "@shikijs/core@1.22.2": {
@@ -3158,6 +3183,7 @@
       "npm:@preact/signals@^1.3.0",
       "npm:@resvg/resvg-wasm@^2.6.2",
       "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0",
+      "npm:@sentry/deno@^8.38.0",
       "npm:@shikijs/markdown-it@^1.22.2",
       "npm:@shikijs/transformers@^1.22.2",
       "npm:@tailwindcss/typography@~0.5.15",
