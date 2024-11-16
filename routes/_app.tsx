@@ -59,10 +59,11 @@ export default async function App(
                     flex-col gap-4
                   ">
                     <a href={`/@${account.username}/drafts/new`}>New article</a>
-                    <a href={`/@${account.username}/drafts`}>
-                      Drafts{" "}
-                      {drafts > 0 && <span class="opacity-50">({drafts})</span>}
-                    </a>
+                    {drafts > 0 && (
+                      <a href={`/@${account.username}/drafts`}>
+                        Drafts <span class="opacity-50">({drafts})</span>
+                      </a>
+                    )}
                     <a href={`/@${account.username}`}>Profile</a>
                     <a href={`/@${account.username}/settings`}>Settings</a>
                     <form

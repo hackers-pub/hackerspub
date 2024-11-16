@@ -264,7 +264,7 @@ export function Editor(props: EditorProps) {
                 <div>
                   <Label label="Language">
                     <select
-                      class="border-[1px] border-stone-500 p-2"
+                      class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
                       onInput={(event) =>
                         setLanguage(
                           (event.target as HTMLSelectElement).value,

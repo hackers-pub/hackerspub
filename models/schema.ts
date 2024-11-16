@@ -398,8 +398,22 @@ export const articleSourceTable = pgTable(
   },
   (table) => [
     unique().on(table.accountId, table.publishedYear, table.slug),
+    check(
+      "article_source_published_year_check",
+      sql`${table.publishedYear} = EXTRACT(year FROM ${table.published})`,
+    ),
   ],
 );
 
 export type ArticleSource = typeof articleSourceTable.$inferSelect;
 export type NewArticleSource = typeof articleSourceTable.$inferInsert;
+
+export const articleSourceRelations = relations(
+  articleSourceTable,
+  ({ one }) => ({
+    account: one(accountTable, {
+      fields: [articleSourceTable.accountId],
+      references: [accountTable.id],
+    }),
+  }),
+);

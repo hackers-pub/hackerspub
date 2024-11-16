@@ -1,0 +1,1 @@
+ALTER TABLE "article_source" ADD CONSTRAINT "article_source_published_year_check" CHECK ("article_source"."published_year" = EXTRACT(year FROM "article_source"."published"));
