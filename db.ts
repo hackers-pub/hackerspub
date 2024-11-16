@@ -1,3 +1,5 @@
+import "./logging.ts";
+import { getLogger } from "@logtape/logtape";
 import type { ExtractTablesWithRelations } from "drizzle-orm";
 import type { PgDatabase } from "drizzle-orm/pg-core";
 import {
@@ -32,3 +34,5 @@ export const db: Database = new URL(DATABASE_URL).host.endsWith(".neon.tech")
     schema,
     client: postgres,
   });
+getLogger(["hackerspub", "db"])
+  .debug("The driver is ready: {driver}", { driver: db.constructor });
