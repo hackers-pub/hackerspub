@@ -80,15 +80,7 @@ export const handler = define.handlers({
         errors,
       });
     }
-    const account = await db.transaction(async (tx) => {
-      const account = await createAccount(tx, token, { username, name, bio });
-      if (account == null) return null;
-      await syncActorFromAccount(tx, kv, ctx.state.fedCtx, {
-        ...account,
-        links: [],
-      });
-      return account;
-    });
+    const account = await createAccount(db, token, { username, name, bio });
     if (account == null) {
       return page<SignupPageProps>({
         token,
@@ -96,6 +88,10 @@ export const handler = define.handlers({
         errors,
       });
     }
+    await syncActorFromAccount(db, kv, ctx.state.fedCtx, {
+      ...account,
+      links: [],
+    });
     await deleteSignupToken(kv, token.token);
     const session = await createSession(kv, {
       accountId: account.id,

@@ -8,7 +8,6 @@ import {
   drizzle as drizzleNeon,
   type NeonQueryResultHKT,
 } from "drizzle-orm/neon-serverless";
-import { Pool } from "@neondatabase/serverless";
 import postgresJs from "postgres";
 import * as schema from "./models/schema.ts";
 
@@ -27,7 +26,7 @@ export const postgres = postgresJs(DATABASE_URL);
 export const db: Database = new URL(DATABASE_URL).host.endsWith(".neon.tech")
   ? drizzleNeon({
     schema,
-    client: new Pool({ connectionString: DATABASE_URL }),
+    connection: DATABASE_URL,
   })
   : drizzlePostgres({
     schema,
