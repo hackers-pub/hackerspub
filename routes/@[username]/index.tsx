@@ -25,7 +25,6 @@ export const handler = define.handlers({
         301,
       );
     } else if (ctx.params.username.includes("@")) {
-      if (ctx.state.session == null) return ctx.next();
       const username = ctx.params.username.replace(/@.*$/, "");
       const host = ctx.params.username.substring(
         ctx.params.username.indexOf("@") + 1,
@@ -50,6 +49,9 @@ export const handler = define.handlers({
         if (!isActor(apActor)) return ctx.next();
         actor = await persistActor(db, apActor);
         if (actor == null) return ctx.next();
+      }
+      if (ctx.state.session == null) {
+        return ctx.redirect(actor.url ?? actor.iri);
       }
       const handle = `@${actor.username}@${actor.instanceHost}`;
       const name = actor.name ?? handle;
