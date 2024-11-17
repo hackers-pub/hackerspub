@@ -1,7 +1,8 @@
 /// <reference lib="deno.unstable" />
 import { createDefine } from "fresh";
-import { Session } from "./models/session.ts";
-import { RequestContext } from "@fedify/fedify";
+import { type Session } from "./models/session.ts";
+import { type RequestContext } from "@fedify/fedify";
+import { type Account } from "./models/schema.ts";
 
 export interface Link {
   rel: string;
@@ -20,6 +21,7 @@ export type Meta = {
 
 export interface State {
   session?: Session;
+  account?: Account;
   fedCtx: RequestContext<void>;
   title: string;
   metas: Meta[];

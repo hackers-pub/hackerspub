@@ -1,6 +1,6 @@
-import { captureException } from "@sentry/deno";
+import { captureException, setUser } from "@sentry/deno";
 import { getCookies } from "@std/http/cookie";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { federation } from "../federation/federation.ts";
 import { db } from "../db.ts";
 import { kv } from "../kv.ts";
@@ -33,13 +33,35 @@ export const handler = define.middleware([
     if (validateUuid(cookies.session)) {
       const session = await getSession(kv, cookies.session);
       if (session != null) {
-        const rows = await db.select({ v: sql<number>`1` })
-          .from(accountTable)
-          .where(eq(accountTable.id, session?.accountId))
-          .limit(1);
-        ctx.state.session = rows.length > 0 ? session : undefined;
+        const account = await db.query.accountTable.findFirst({
+          where: eq(accountTable.id, session.accountId),
+          with: { emails: true },
+        });
+        ctx.state.account = account;
+        ctx.state.session = account == null ? undefined : session;
+        if (account != null) {
+          setUser({
+            id: account.id,
+            username: account.username,
+            email: account.emails[0]?.email,
+            ip_address: ctx.info.remoteAddr.transport === "tcp"
+              ? ctx.info.remoteAddr.hostname
+              : undefined,
+          });
+        }
       }
     }
-    return await ctx.next();
+    if (ctx.state.account == null) {
+      setUser({
+        ip_address: ctx.info.remoteAddr.transport === "tcp"
+          ? ctx.info.remoteAddr.hostname
+          : undefined,
+      });
+    }
+    try {
+      return await ctx.next();
+    } finally {
+      setUser(null);
+    }
   },
 ]);
