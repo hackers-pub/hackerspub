@@ -113,7 +113,7 @@ export const htmlXss = new FilterXSS({
     del: ["lang", "translate", "datetime"],
     details: ["lang", "translate", "open"],
     dfn: ["lang", "translate"],
-    div: ["lang", "translate"],
+    div: ["lang", "translate", "class", "style"],
     dl: ["lang", "translate"],
     dt: ["lang", "translate"],
     em: ["lang", "translate"],
@@ -201,6 +201,9 @@ export const htmlXss = new FilterXSS({
       "height",
       "width",
     ],
+    // SVG
+    svg: ["class", "viewBox", "version", "width", "height", "aria-hidden"],
+    path: ["d", "fill", "stroke", "stroke-width"],
   },
   css: {
     whiteList: {
