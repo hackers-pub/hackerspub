@@ -20,6 +20,7 @@ import { alertPlugin as admonition } from "markdown-it-github-alert";
 import anchor from "markdown-it-anchor";
 import deflist from "markdown-it-deflist";
 import footnote from "markdown-it-footnote";
+import graphviz from "markdown-it-graphviz";
 import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
 import { FilterXSS, whiteList } from "xss";
@@ -43,6 +44,7 @@ let md = createMarkdownIt({ html: true })
   .use(cjkBreaks)
   .use(deflist)
   .use(footnote)
+  .use(graphviz)
   .use(texmath, { engine: katex })
   .use(title)
   .use(toc, {
@@ -251,6 +253,11 @@ export const htmlXss = new FilterXSS({
     // SVG
     svg: ["class", "viewBox", "version", "width", "height", "aria-hidden"],
     path: ["d", "fill", "stroke", "stroke-width"],
+    g: ["id", "class", "fill", "stroke", "stroke-width", "transform"],
+    polygon: ["points", "fill", "stroke", "stroke-width"],
+    ellipsis: ["cx", "cy", "rx", "ry", "fill", "stroke", "stroke-width"],
+    text: ["x", "y", "fill", "font-size", "font-family", "text-anchor"],
+    title: [],
   },
   css: {
     whiteList: {
@@ -295,7 +302,13 @@ export async function renderMarkup(
 ): Promise<RenderedMarkup> {
   if (!shikiLoaded) await loadingShiki;
   const env = { docId, title: "" };
-  const rawHtml = md.render(markup, env);
+  const rawHtml = md.render(markup, env)
+    .replaceAll('<?xml version="1.0" encoding="UTF-8" standalone="no"?>', "")
+    .replaceAll(
+      '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"\n' +
+        ' "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">',
+      "",
+    );
   logger.debug(
     "Processed Markdown for {docId}:\n{rawHtml}",
     { docId, rawHtml },

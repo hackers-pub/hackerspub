@@ -66,6 +66,7 @@
     "markdown-it-deflist": "npm:markdown-it-deflist@^3.0.0",
     "markdown-it-footnote": "npm:markdown-it-footnote@^4.0.0",
     "markdown-it-github-alert": "npm:markdown-it-github-alert@^1.0.6",
+    "markdown-it-graphviz": "npm:markdown-it-graphviz@^1.1.2",
     "markdown-it-texmath": "npm:markdown-it-texmath@^1.0.0",
     "markdown-it-toc-done-right": "npm:markdown-it-toc-done-right@^4.2.0",
     "postgres": "npm:postgres@^3.4.5",
