@@ -13,12 +13,14 @@ import {
 import { NON_ASCII, slugify } from "@std/text/unstable-slugify";
 import transliterate from "any-ascii";
 import * as cssfilter from "cssfilter";
+import katex from "katex";
 import createMarkdownIt from "markdown-it";
 import abbr from "markdown-it-abbr";
 import { alertPlugin as admonition } from "markdown-it-github-alert";
 import anchor from "markdown-it-anchor";
 import deflist from "markdown-it-deflist";
 import footnote from "markdown-it-footnote";
+import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
 import { FilterXSS, whiteList } from "xss";
 
@@ -41,6 +43,7 @@ let md = createMarkdownIt({ html: true })
   .use(cjkBreaks)
   .use(deflist)
   .use(footnote)
+  .use(texmath, { engine: katex })
   .use(title)
   .use(toc, {
     placeholder: `--${crypto.randomUUID()}--`.toUpperCase(),
@@ -201,6 +204,50 @@ export const htmlXss = new FilterXSS({
       "height",
       "width",
     ],
+
+    // MathML
+    math: ["class", "xmlns"],
+    maction: ["actiontype", "selection"],
+    annotation: ["encoding"],
+    "annotation-xml": ["encoding"],
+    menclose: ["notation"],
+    merror: ["class"],
+    mfenced: ["open", "close", "separators"],
+    mfrac: ["linethickness"],
+    mi: ["mathvariant"],
+    mmultiscripts: ["subscriptshift", "superscriptshift"],
+    mn: ["mathvariant"],
+    mo: ["fence", "lspace", "rspace", "stretchy"],
+    mover: ["accent"],
+    mpadded: ["height", "depth", "width", "lspace", "voffset"],
+    mphantom: ["class"],
+    mprescripts: [],
+    mroot: ["displaystyle"],
+    mrow: ["displaystyle"],
+    ms: ["lquote", "rquote"],
+    semantics: ["class"],
+    mspace: ["depth", "height", "width"],
+    msqrt: ["displaystyle"],
+    mstyle: ["displaystyle", "mathcolor", "mathbackground"],
+    msub: ["subscriptshift"],
+    msup: ["superscriptshift"],
+    msubsup: ["subscriptshift", "superscriptshift"],
+    mtable: [
+      "align",
+      "columnalign",
+      "columnspacing",
+      "columnlines",
+      "rowalign",
+      "rowspacing",
+      "rowlines",
+    ],
+    mtd: ["columnalign", "rowalign"],
+    mtext: ["mathvariant"],
+    mtr: ["columnalign", "rowalign"],
+    munder: ["accentunder"],
+    munderover: ["accent", "accentunder"],
+    eq: [],
+
     // SVG
     svg: ["class", "viewBox", "version", "width", "height", "aria-hidden"],
     path: ["d", "fill", "stroke", "stroke-width"],
