@@ -2,19 +2,30 @@ import { count, eq } from "drizzle-orm";
 import type { PageProps } from "fresh";
 import { State } from "../utils.ts";
 import { db } from "../db.ts";
-import { accountTable, articleDraftTable } from "../models/schema.ts";
+import { getAvatarUrl } from "../models/account.ts";
+import {
+  type Account,
+  type AccountEmail,
+  accountTable,
+  articleDraftTable,
+} from "../models/schema.ts";
 
 export default async function App(
   { Component, state, url }: PageProps<unknown, State>,
 ) {
-  const [account, drafts] = state.session == null ? [null, 0] : [
-    await db.query.accountTable.findFirst({
+  let account: Account & { emails: AccountEmail[] } | undefined = undefined;
+  let drafts = 0;
+  let avatarUrl: string | undefined = undefined;
+  if (state.session != null) {
+    account = await db.query.accountTable.findFirst({
+      with: { emails: true },
       where: eq(accountTable.id, state.session.accountId),
-    }),
-    (await db.select({ cnt: count() })
+    });
+    drafts = (await db.select({ cnt: count() })
       .from(articleDraftTable)
-      .where(eq(articleDraftTable.accountId, state.session.accountId)))[0].cnt,
-  ];
+      .where(eq(articleDraftTable.accountId, state.session.accountId)))[0].cnt;
+    avatarUrl = account == null ? undefined : await getAvatarUrl(account);
+  }
   return (
     <html>
       <head>
@@ -44,13 +55,21 @@ export default async function App(
       <body class="font-sans dark:bg-stone-900 dark:text-white">
         <header class="bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
           <nav class="m-auto max-w-screen-xl p-4 text-xl flex flex-row">
-            <a href="/" class="basis-3/4 text-white dark:text-black font-bold">
+            <a href="/" class="basis-1/2 text-white dark:text-black font-bold">
               Hackers’ Pub
             </a>
-            <div class="group basis-1/4 text-right">
+            <div class="group basis-1/2 text-right">
               {account == null ? <a href="/sign">Sign in/up</a> : (
                 <>
-                  <strong>{account.name}</strong>
+                  <div class="flex flex-row-reverse cursor-default">
+                    <img
+                      src={avatarUrl}
+                      width={28}
+                      height={28}
+                      class="grow-0 order-last mr-4"
+                    />
+                    <strong>{account.name}</strong>
+                  </div>
                   <div class="
                     hidden group-hover:flex
                     absolute right-[calc((100%-1280px)/2)]

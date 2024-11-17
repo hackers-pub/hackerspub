@@ -98,6 +98,8 @@ export async function persistActor(
     return undefined;
   }
   const attachments = await Array.fromAsync(actor.getAttachments());
+  const avatar = await actor.getIcon();
+  const header = await actor.getImage();
   const values: Omit<NewActor, "id"> = {
     iri: actor.id.href,
     type: getActorTypeName(actor),
@@ -108,6 +110,12 @@ export async function persistActor(
     automaticallyApprovesFollowers: !actor.manuallyApprovesFollowers,
     inboxUrl: actor.inboxId.href,
     sharedInboxUrl: actor.endpoints?.sharedInbox?.href,
+    avatarUrl: avatar?.url instanceof Link
+      ? avatar.url.href?.href
+      : avatar?.url?.href,
+    headerUrl: header?.url instanceof Link
+      ? header.url.href?.href
+      : header?.url?.href,
     fieldHtmls: Object.fromEntries(
       attachments.filter((a) => a instanceof PropertyValue).map(
         (p) => [p.name, p.value],

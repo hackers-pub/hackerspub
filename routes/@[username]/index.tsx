@@ -14,6 +14,7 @@ import {
 import { renderMarkup, xss } from "../../models/markup.ts";
 import { compactUrl, define } from "../../utils.ts";
 import { persistActor } from "../../models/actor.ts";
+import { getAvatarUrl } from "../../models/account.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
@@ -59,6 +60,7 @@ export const handler = define.handlers({
       return page<ProfilePageProps>({
         handle,
         name,
+        avatarUrl: actor.avatarUrl ?? undefined,
         bioHtml: xss.process(actor.bioHtml ?? ""),
         links: actor.fieldHtmls,
       });
@@ -66,6 +68,7 @@ export const handler = define.handlers({
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, ctx.params.username),
       with: {
+        emails: true,
         links: { orderBy: accountLinkTable.index },
       },
     });
@@ -110,6 +113,7 @@ export const handler = define.handlers({
     return page<ProfilePageProps>({
       handle: `@${account.username}@${ctx.url.host}`,
       name: account.name,
+      avatarUrl: await getAvatarUrl(account),
       bioHtml: bio.html,
       links: account.links,
     }, {
@@ -125,6 +129,7 @@ interface ProfilePageProps {
   handle: string;
   name: string;
   bioHtml: string;
+  avatarUrl?: string;
   links: AccountLink[] | Record<string, string>;
 }
 
@@ -132,9 +137,19 @@ export default define.page<typeof handler, ProfilePageProps>(
   function ProfilePage({ data }) {
     return (
       <div>
-        <PageTitle subtitle={{ text: data.handle, class: "select-all" }}>
-          {data.name}
-        </PageTitle>
+        <div class="flex">
+          {data.avatarUrl && (
+            <img
+              src={data.avatarUrl}
+              width={56}
+              height={56}
+              class="mb-5 mr-4"
+            />
+          )}
+          <PageTitle subtitle={{ text: data.handle, class: "select-all" }}>
+            {data.name}
+          </PageTitle>
+        </div>
         <div
           class="prose dark:prose-invert"
           dangerouslySetInnerHTML={{ __html: data.bioHtml }}

@@ -1,10 +1,12 @@
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
+import { encodeHex } from "@std/encoding/hex";
 import { escape } from "@std/html/entities";
 import { eq, sql } from "drizzle-orm";
 import { Database } from "../db.ts";
 import {
   type Account,
+  AccountEmail,
   AccountLink,
   AccountLinkIcon,
   accountLinkTable,
@@ -22,6 +24,26 @@ import { compactUrl } from "../utils.ts";
 import { type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "account"]);
+
+export async function getAvatarUrl(
+  account: Account & { emails: AccountEmail[] },
+): Promise<string> {
+  const emails = account.emails
+    .filter((e) => e.verified != null);
+  emails.sort((a, b) => a.public ? 1 : b.public ? -1 : 0);
+  const textEncoder = new TextEncoder();
+  let url = "mp";
+  for (const email of emails) {
+    const hash = await crypto.subtle.digest(
+      "SHA-256",
+      textEncoder.encode(email.email.toLowerCase()),
+    );
+    url = `https://gravatar.com/avatar/${encodeHex(hash)}?r=pg&s=128&d=${
+      encodeURIComponent(url)
+    }`;
+  }
+  return url == "mp" ? "https://gravatar.com/avatar/?d=mp&s=128" : url;
+}
 
 export async function updateAccount(
   db: Database,

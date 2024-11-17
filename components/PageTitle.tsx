@@ -11,11 +11,9 @@ export interface PageTitleProps {
 
 export function PageTitle(props: PageTitleProps) {
   return (
-    <>
+    <div class={props.class}>
       <h1
-        class={`text-xl font-bold ${
-          props.subtitle == null ? "mb-5" : "mb-1"
-        } ${props.class}`}
+        class={`text-xl font-bold ${props.subtitle == null ? "mb-5" : "mb-1"}`}
       >
         {props.children}
       </h1>
@@ -26,6 +24,6 @@ export function PageTitle(props: PageTitleProps) {
           {props.subtitle.text}
         </p>
       )}
-    </>
+    </div>
   );
 }
