@@ -20,7 +20,7 @@ import anchor from "markdown-it-anchor";
 import deflist from "markdown-it-deflist";
 import footnote from "markdown-it-footnote";
 import toc from "markdown-it-toc-done-right";
-import { FilterXSS } from "xss";
+import { FilterXSS, whiteList } from "xss";
 
 const logger = getLogger(["hackerspub", "models", "markup"]);
 
@@ -69,7 +69,7 @@ const loadingShiki = shiki({
   shikiLoaded = true;
 });
 
-export const xss = new FilterXSS({
+export const htmlXss = new FilterXSS({
   allowList: {
     a: [
       "lang",
@@ -219,6 +219,13 @@ export const xss = new FilterXSS({
   },
 });
 
+const excerptHtmlXss = new FilterXSS({
+  allowList: Object.fromEntries(
+    Object.entries(whiteList).filter(([tag]) => tag !== "a"),
+  ),
+  stripIgnoreTag: true,
+});
+
 const textXss = new FilterXSS({
   allowList: {},
   stripIgnoreTag: true,
@@ -226,6 +233,7 @@ const textXss = new FilterXSS({
 
 export interface RenderedMarkup {
   html: string;
+  excerptHtml: string;
   text: string;
   title: string;
   toc: Toc[];
@@ -242,11 +250,13 @@ export async function renderMarkup(
     "Processed Markdown for {docId}:\n{rawHtml}",
     { docId, rawHtml },
   );
-  const html = xss.process(rawHtml);
+  const html = htmlXss.process(rawHtml);
+  const excerptHtml = excerptHtmlXss.process(rawHtml);
   const text = textXss.process(rawHtml);
   const toc = toToc(tocTree);
   const rendered: RenderedMarkup = {
     html,
+    excerptHtml,
     text,
     title: env.title,
     toc: toc.level < 1 ? toc.children : [toc],

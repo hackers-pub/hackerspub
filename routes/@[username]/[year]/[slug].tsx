@@ -10,6 +10,7 @@ import {
 } from "../../../models/schema.ts";
 import { renderMarkup } from "../../../models/markup.ts";
 import { getAvatarUrl } from "../../../models/account.ts";
+import { ArticleMetadata } from "../../../components/ArticleMetadata.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -55,29 +56,14 @@ export default define.page<typeof handler, ArticlePageProps>(
     return (
       <article>
         <h1 class="text-4xl font-bold">{article.title}</h1>
-        <p class="mt-4 text-stone-500">
-          <a href={`/@${article.account.username}`}>
-            <img
-              src={avatarUrl}
-              width={18}
-              height={18}
-              class="inline-block mr-2 align-text-bottom"
-            />
-            <strong class="text-black dark:text-white">
-              {article.account.name}
-            </strong>{" "}
-            <span class="select-all before:content-['('] after:content-[')']">
-              @{article.account.username}@{url.host}
-            </span>
-          </a>{" "}
-          &middot;{" "}
-          <time datetime={article.published.toISOString()}>
-            {article.published.toLocaleString("en-US", {
-              dateStyle: "long",
-              timeStyle: "short",
-            })}
-          </time>
-        </p>
+        <ArticleMetadata
+          class="mt-4"
+          authorUrl={`/@${article.account.username}`}
+          authorName={article.account.name}
+          authorHandle={`@${article.account.username}@${url.host}`}
+          authorAvatarUrl={avatarUrl}
+          published={article.published}
+        />
         <div
           class="prose dark:prose-invert mt-4 text-xl"
           dangerouslySetInnerHTML={{ __html: contentHtml }}

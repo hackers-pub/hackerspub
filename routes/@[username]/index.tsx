@@ -1,8 +1,9 @@
 import { isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { page } from "fresh";
+import { Excerpt } from "../../components/Excerpt.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import {
@@ -10,11 +11,13 @@ import {
   accountLinkTable,
   accountTable,
   actorTable,
+  articleSourceTable,
 } from "../../models/schema.ts";
-import { renderMarkup, xss } from "../../models/markup.ts";
+import { htmlXss, renderMarkup } from "../../models/markup.ts";
 import { compactUrl, define } from "../../utils.ts";
 import { persistActor } from "../../models/actor.ts";
 import { getAvatarUrl } from "../../models/account.ts";
+import { ArticleMetadata } from "../../components/ArticleMetadata.tsx";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
@@ -61,7 +64,7 @@ export const handler = define.handlers({
         handle,
         name,
         avatarUrl: actor.avatarUrl ?? undefined,
-        bioHtml: xss.process(actor.bioHtml ?? ""),
+        bioHtml: htmlXss.process(actor.bioHtml ?? ""),
         links: actor.fieldHtmls,
       });
     }
@@ -110,12 +113,34 @@ export const handler = define.handlers({
       },
     );
     ctx.state.title = account.name;
+    const articles = await db.query.articleSourceTable.findMany({
+      with: {
+        account: { with: { emails: true } },
+      },
+      where: eq(articleSourceTable.accountId, account.id),
+      orderBy: desc(articleSourceTable.published),
+    });
     return page<ProfilePageProps>({
       handle: `@${account.username}@${ctx.url.host}`,
       name: account.name,
       avatarUrl: await getAvatarUrl(account),
       bioHtml: bio.html,
       links: account.links,
+      articles: await Promise.all(articles.map(async (article) => ({
+        title: article.title,
+        url:
+          `/@${account.username}/${article.published.getFullYear()}/${article.slug}`,
+        excerptHtml:
+          (await renderMarkup(article.id, article.content)).excerptHtml,
+        author: {
+          name: article.account.name,
+          handle: `@${article.account.username}@${ctx.url.host}`,
+          url: `/@${article.account.username}`,
+          avatarUrl: await getAvatarUrl(article.account),
+        },
+        published: article.published,
+        updated: article.updated,
+      }))),
     }, {
       headers: {
         Link:
@@ -131,6 +156,19 @@ interface ProfilePageProps {
   bioHtml: string;
   avatarUrl?: string;
   links: AccountLink[] | Record<string, string>;
+  articles?: {
+    title: string;
+    url: string;
+    excerptHtml: string;
+    author: {
+      name: string;
+      handle: string;
+      url: string;
+      avatarUrl?: string;
+    };
+    published: Date;
+    updated: Date;
+  }[];
 }
 
 export default define.page<typeof handler, ProfilePageProps>(
@@ -203,13 +241,33 @@ export default define.page<typeof handler, ProfilePageProps>(
                 <dd
                   key={`dd-${i}`}
                   class="mr-2"
-                  dangerouslySetInnerHTML={{ __html: xss.process(html) }}
+                  dangerouslySetInnerHTML={{ __html: htmlXss.process(html) }}
                 >
                 </dd>
               </>
             ))}
           </dl>
         )}
+        <div>
+          {data.articles?.map((article) => (
+            <article class="mt-5 border-l-4 border-l-stone-400 dark:border-l-stone-600 pl-4">
+              <h2 class="text-3xl font-bold">
+                <a href={article.url}>{article.title}</a>
+              </h2>
+              <ArticleMetadata
+                class="mt-2 mb-2"
+                authorUrl={article.author.url}
+                authorName={article.author.name}
+                authorHandle={article.author.handle}
+                authorAvatarUrl={article.author.avatarUrl}
+                published={article.published}
+              />
+              <a href={article.url}>
+                <Excerpt html={article.excerptHtml} />
+              </a>
+            </article>
+          ))}
+        </div>
       </div>
     );
   },

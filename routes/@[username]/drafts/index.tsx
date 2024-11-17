@@ -1,15 +1,12 @@
 import { desc, eq } from "drizzle-orm";
 import { page } from "fresh";
 import { define } from "../../../utils.ts";
-import {
-  type Account,
-  accountTable,
-  type ArticleDraft,
-  articleDraftTable,
-} from "../../../models/schema.ts";
+import { accountTable, articleDraftTable } from "../../../models/schema.ts";
 import { db } from "../../../db.ts";
 import { PageTitle } from "../../../components/PageTitle.tsx";
 import { ConfirmForm } from "../../../islands/ConfirmForm.tsx";
+import { Excerpt } from "../../../components/Excerpt.tsx";
+import { renderMarkup } from "../../../models/markup.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -27,34 +24,47 @@ export const handler = define.handlers({
     });
     if (account?.id !== ctx.state.session.accountId) return ctx.next();
     return page<DraftsPageProps>({
-      account: account,
-      drafts: account.articleDrafts,
+      drafts: await Promise.all(account.articleDrafts.map(async (draft) => ({
+        url: `/@${account.username}/drafts/${draft.id}`,
+        deleteUrl: `/@${account.username}/drafts/${draft.id}/delete`,
+        title: draft.title,
+        created: draft.created,
+        updated: draft.updated,
+        excerptHtml: (await renderMarkup(draft.id, draft.content)).excerptHtml,
+      }))),
     });
   },
 });
 
 interface DraftsPageProps {
-  account: Account;
-  drafts: ArticleDraft[];
+  drafts: {
+    url: string;
+    deleteUrl: string;
+    title: string;
+    created: Date;
+    updated: Date;
+    excerptHtml: string;
+  }[];
 }
 
 export default define.page<typeof handler, DraftsPageProps>(
-  function DraftsPage({ data: { account, drafts } }) {
+  function DraftsPage({ data: { drafts } }) {
     return (
       <div>
         <PageTitle>Article drafts</PageTitle>
         {drafts.map((draft) => (
-          <article key={draft.id} class="mb-4 flex gap-4">
-            <div class="grow leading-7 p-4 bg-stone-100 dark:bg-stone-800 has-[:link:hover]:bg-stone-200 dark:has-[:link:hover]:bg-stone-700">
-              <h2 class="text-xl font-bold truncate">
-                <a href={`/@${account.username}/drafts/${draft.id}`}>
+          <article key={draft.url} class="mb-4 flex gap-4">
+            <a
+              href={draft.url}
+              class="grow block bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700"
+            >
+              <div class="leading-7 p-4">
+                <h2 class="text-xl font-bold truncate">
                   {draft.title === ""
                     ? <span class="italic">(No title)</span>
                     : draft.title}
-                </a>
-              </h2>
-              <p class="opacity-50 truncate">
-                <a href={`/@${account.username}/drafts/${draft.id}`}>
+                </h2>
+                <p class="text-stone-500 dark:text-stone-400 truncate">
                   Created at{" "}
                   <time datetime={draft.created.toISOString()}>
                     {draft.created.toLocaleString("en-US", {
@@ -75,17 +85,16 @@ export default define.page<typeof handler, DraftsPageProps>(
                         </time>
                       </>
                     )}
-                </a>
-              </p>
-              <p class="max-w-[calc(1280px-7rem-24px)] truncate">
-                <a href={`/@${account.username}/drafts/${draft.id}`}>
-                  {draft.content}
-                </a>
-              </p>
-            </div>
+                </p>
+                <Excerpt
+                  html={draft.excerptHtml}
+                  class="max-w-[calc(1280px-7rem-24px)]"
+                />
+              </div>
+            </a>
             <ConfirmForm
               method="post"
-              action={`/@${account.username}/drafts/${draft.id}/delete`}
+              action={draft.deleteUrl}
               confirm="Are you sure you want to delete this draft?"
             >
               <button
