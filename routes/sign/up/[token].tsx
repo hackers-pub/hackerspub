@@ -18,7 +18,7 @@ import { kv } from "../../../kv.ts";
 import { db } from "../../../db.ts";
 import { define } from "../../../utils.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
-import { validateUuid } from "../../../models/uuid.ts";
+import { generateUuidV7, validateUuid } from "../../../models/uuid.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -80,7 +80,12 @@ export const handler = define.handlers({
         errors,
       });
     }
-    const account = await createAccount(db, token, { username, name, bio });
+    const account = await createAccount(db, token, {
+      id: generateUuidV7(),
+      username,
+      name,
+      bio,
+    });
     if (account == null) {
       return page<SignupPageProps>({
         token,

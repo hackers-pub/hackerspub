@@ -22,11 +22,12 @@ const logger = getLogger(["hackerspub", "routes", "@[username]", "settings"]);
 
 export const handler = define.handlers({
   async GET(ctx) {
+    if (ctx.state.session == null) return ctx.next();
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, ctx.params.username),
       with: { links: { orderBy: accountLinkTable.index } },
     });
-    if (account == null) return ctx.next();
+    if (account?.id !== ctx.state.session.accountId) return ctx.next();
     ctx.state.title = "Profile settings";
     return page<ProfileSettingsPageProps>({
       usernameChanged: account.usernameChanged,

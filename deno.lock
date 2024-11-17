@@ -71,7 +71,7 @@
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
     "npm:drizzle-kit@*": "0.28.0_esbuild@0.19.12",
     "npm:drizzle-kit@0.28": "0.28.0_esbuild@0.19.12",
-    "npm:drizzle-orm@~0.36.1": "0.36.1_postgres@3.4.5",
+    "npm:drizzle-orm@~0.36.3": "0.36.3_@neondatabase+serverless@0.10.3_postgres@3.4.5",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
     "npm:franc@^6.2.0": "6.2.0",
@@ -1440,9 +1440,10 @@
         "esbuild-register"
       ]
     },
-    "drizzle-orm@0.36.1_postgres@3.4.5": {
-      "integrity": "sha512-F4hbimnMEhyWzDowQB4xEuVJJWXLHZYD7FYwvo8RImY+N7pStGqsbfmT95jDbec1s4qKmQbiuxEDZY90LRrfIw==",
+    "drizzle-orm@0.36.3_@neondatabase+serverless@0.10.3_postgres@3.4.5": {
+      "integrity": "sha512-ffQB7CcyCTvQBK6xtRLMl/Jsd5xFTBs+UTHrgs1hbk68i5TPkbsoCPbKEwiEsQZfq2I7VH632XJpV1g7LS2H9Q==",
       "dependencies": [
+        "@neondatabase/serverless",
         "postgres"
       ]
     },
@@ -3190,7 +3191,7 @@
       "npm:any-ascii@~0.3.2",
       "npm:cssfilter@^0.0.11",
       "npm:drizzle-kit@0.28",
-      "npm:drizzle-orm@~0.36.1",
+      "npm:drizzle-orm@~0.36.3",
       "npm:franc@^6.2.0",
       "npm:iso-639-3@^3.0.1",
       "npm:markdown-it-abbr@2",
