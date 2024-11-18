@@ -9,9 +9,10 @@ import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { eq, sql } from "drizzle-orm";
 import type { Database } from "../db.ts";
-import { renderAccountLinks } from "./account.ts";
+import { getAvatarUrl, renderAccountLinks } from "./account.ts";
 import {
   type Account,
+  type AccountEmail,
   type AccountLink,
   type Actor,
   actorTable,
@@ -29,7 +30,7 @@ export async function syncActorFromAccount(
   db: Database,
   _kv: Deno.Kv,
   fedCtx: Context<void>,
-  account: Account & { links: AccountLink[] },
+  account: Account & { emails: AccountEmail[]; links: AccountLink[] },
 ): Promise<Actor> {
   const instance: NewInstance = {
     host: new URL(fedCtx.origin).host,
@@ -56,6 +57,7 @@ export async function syncActorFromAccount(
     automaticallyApprovesFollowers: true,
     inboxUrl: fedCtx.getInboxUri(account.id).href,
     sharedInboxUrl: fedCtx.getInboxUri().href,
+    avatarUrl: await getAvatarUrl(account),
     fieldHtmls: Object.fromEntries(
       renderAccountLinks(account.links).map((
         pair,

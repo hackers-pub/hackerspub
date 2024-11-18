@@ -92,6 +92,13 @@
       "when": 1731747178578,
       "tag": "0012_article_source__check",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1731912895646,
+      "tag": "0013_following",
+      "breakpoints": true
     }
   ]
 }

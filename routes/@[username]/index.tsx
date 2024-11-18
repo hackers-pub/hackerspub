@@ -18,6 +18,8 @@ import { compactUrl, define } from "../../utils.ts";
 import { persistActor } from "../../models/actor.ts";
 import { getAvatarUrl } from "../../models/account.ts";
 import { ArticleMetadata } from "../../components/ArticleMetadata.tsx";
+import { Button } from "../../components/Button.tsx";
+import { FollowingState, getFollowingState } from "../../models/following.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
@@ -59,6 +61,28 @@ export const handler = define.handlers({
       }
       const handle = `@${actor.username}@${actor.instanceHost}`;
       const name = actor.name ?? handle;
+      let followState: FollowStateProps;
+      if (ctx.state.account == null) {
+        followState = {
+          followedState: undefined,
+          followingState: undefined,
+        };
+      } else {
+        followState = {
+          followingState: await getFollowingState(
+            db,
+            ctx.state.account.actor,
+            actor,
+          ),
+          followedState: await getFollowingState(
+            db,
+            actor,
+            ctx.state.account.actor,
+          ),
+          followUrl: `/${handle}/follow`,
+          unfollowUrl: `/${handle}/unfollow`,
+        };
+      }
       ctx.state.title = name;
       return page<ProfilePageProps>({
         handle,
@@ -66,11 +90,13 @@ export const handler = define.handlers({
         avatarUrl: actor.avatarUrl ?? undefined,
         bioHtml: htmlXss.process(actor.bioHtml ?? ""),
         links: actor.fieldHtmls,
+        ...followState,
       });
     }
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, ctx.params.username),
       with: {
+        actor: true,
         emails: true,
         links: { orderBy: accountLinkTable.index },
       },
@@ -120,6 +146,28 @@ export const handler = define.handlers({
       where: eq(articleSourceTable.accountId, account.id),
       orderBy: desc(articleSourceTable.published),
     });
+    let followState: FollowStateProps;
+    if (ctx.state.account == null || ctx.state.account.id === account.id) {
+      followState = {
+        followedState: undefined,
+        followingState: undefined,
+      };
+    } else {
+      followState = {
+        followingState: await getFollowingState(
+          db,
+          ctx.state.account.actor,
+          account.actor,
+        ),
+        followedState: await getFollowingState(
+          db,
+          account.actor,
+          ctx.state.account.actor,
+        ),
+        followUrl: `/@${account.username}/follow`,
+        unfollowUrl: `/@${account.username}/unfollow`,
+      };
+    }
     return page<ProfilePageProps>({
       handle: `@${account.username}@${ctx.url.host}`,
       name: account.name,
@@ -141,6 +189,7 @@ export const handler = define.handlers({
         published: article.published,
         updated: article.updated,
       }))),
+      ...followState,
     }, {
       headers: {
         Link:
@@ -150,7 +199,7 @@ export const handler = define.handlers({
   },
 });
 
-interface ProfilePageProps {
+type ProfilePageProps = {
   handle: string;
   name: string;
   bioHtml: string;
@@ -169,7 +218,17 @@ interface ProfilePageProps {
     published: Date;
     updated: Date;
   }[];
-}
+} & FollowStateProps;
+
+type FollowStateProps = {
+  followingState: FollowingState;
+  followedState: FollowingState;
+  followUrl: string;
+  unfollowUrl: string;
+} | {
+  followingState: undefined;
+  followedState: undefined;
+};
 
 export default define.page<typeof handler, ProfilePageProps>(
   function ProfilePage({ data }) {
@@ -187,6 +246,22 @@ export default define.page<typeof handler, ProfilePageProps>(
           <PageTitle subtitle={{ text: data.handle, class: "select-all" }}>
             {data.name}
           </PageTitle>
+          {data.followingState === "none"
+            ? (
+              <form method="post" action={data.followUrl}>
+                <Button class="ml-4 mt-2 h-9">Follow</Button>
+              </form>
+            )
+            : data.followingState != null &&
+              (
+                <form method="post" action={data.unfollowUrl}>
+                  <Button class="ml-4 mt-2 h-9">
+                    {data.followingState === "following"
+                      ? "Unfollow"
+                      : "Cancel request"}
+                  </Button>
+                </form>
+              )}
         </div>
         <div
           class="prose dark:prose-invert"

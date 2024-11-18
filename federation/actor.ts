@@ -2,6 +2,7 @@ import {
   Endpoints,
   exportJwk,
   generateCryptoKeyPair,
+  Image,
   importJwk,
   Person,
 } from "@fedify/fedify";
@@ -14,7 +15,7 @@ import {
   NewAccountKey,
 } from "../models/schema.ts";
 import { federation } from "./federation.ts";
-import { renderAccountLinks } from "../models/account.ts";
+import { getAvatarUrl, renderAccountLinks } from "../models/account.ts";
 import { renderMarkup } from "../models/markup.ts";
 import { validateUuid } from "../models/uuid.ts";
 
@@ -25,7 +26,10 @@ federation
       if (!validateUuid(identifier)) return null;
       const account = await db.query.accountTable.findFirst({
         where: eq(accountTable.id, identifier),
-        with: { links: { orderBy: accountLinkTable.index } },
+        with: {
+          emails: true,
+          links: { orderBy: accountLinkTable.index },
+        },
       });
       if (account == null) return null;
       const bio = await renderMarkup(account.id, account.bio);
@@ -42,6 +46,9 @@ federation
         inbox: ctx.getInboxUri(identifier),
         endpoints: new Endpoints({
           sharedInbox: ctx.getInboxUri(),
+        }),
+        icon: new Image({
+          url: new URL(await getAvatarUrl(account)),
         }),
         attachments: renderAccountLinks(account.links),
       });

@@ -290,7 +290,7 @@ export type NewActor = typeof actorTable.$inferInsert;
 
 export const actorRelations = relations(
   actorTable,
-  ({ one }) => ({
+  ({ one, many }) => ({
     instance: one(instanceTable, {
       fields: [actorTable.instanceHost],
       references: [instanceTable.host],
@@ -301,6 +301,49 @@ export const actorRelations = relations(
     }),
     successor: one(actorTable, {
       fields: [actorTable.successorId],
+      references: [actorTable.id],
+    }),
+    followers: many(followingTable, { relationName: "followee" }),
+    followees: many(followingTable, { relationName: "follower" }),
+  }),
+);
+
+export const followingTable = pgTable(
+  "following",
+  {
+    iri: text().notNull().primaryKey(),
+    followerId: uuid("follower_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id),
+    followeeId: uuid("followee_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id),
+    accepted: timestamp({ withTimezone: true }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    unique().on(table.followerId, table.followeeId),
+  ],
+);
+
+export type Following = typeof followingTable.$inferSelect;
+export type NewFollowing = typeof followingTable.$inferInsert;
+
+export const followingRelations = relations(
+  followingTable,
+  ({ one }) => ({
+    follower: one(actorTable, {
+      relationName: "follower",
+      fields: [followingTable.followerId],
+      references: [actorTable.id],
+    }),
+    followee: one(actorTable, {
+      relationName: "followee",
+      fields: [followingTable.followeeId],
       references: [actorTable.id],
     }),
   }),

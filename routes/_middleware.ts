@@ -35,7 +35,7 @@ export const handler = define.middleware([
       if (session != null) {
         const account = await db.query.accountTable.findFirst({
           where: eq(accountTable.id, session.accountId),
-          with: { emails: true },
+          with: { actor: true, emails: true },
         });
         ctx.state.account = account;
         ctx.state.session = account == null ? undefined : session;

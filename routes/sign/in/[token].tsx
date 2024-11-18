@@ -21,6 +21,7 @@ export const handler = define.handlers({
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.id, token.accountId),
       with: {
+        emails: true,
         links: { orderBy: accountLinkTable.index },
       },
     });

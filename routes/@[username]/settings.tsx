@@ -12,7 +12,11 @@ import {
   AccountLinkFieldProps,
   AccountLinkFieldSet,
 } from "../../islands/AccountLinkFieldSet.tsx";
-import { accountLinkTable, accountTable } from "../../models/schema.ts";
+import {
+  accountEmailTable,
+  accountLinkTable,
+  accountTable,
+} from "../../models/schema.ts";
 import { define } from "../../utils.ts";
 import { updateAccount, updateAccountLinks } from "../../models/account.ts";
 import { syncActorFromAccount } from "../../models/actor.ts";
@@ -102,8 +106,12 @@ export const handler = define.handlers({
       ctx.url,
       links,
     );
+    const emails = await db.query.accountEmailTable.findMany({
+      where: eq(accountEmailTable.accountId, updatedAccount.id),
+    });
     await syncActorFromAccount(db, kv, ctx.state.fedCtx, {
       ...updatedAccount,
+      emails,
       links: updatedLinks,
     });
     if (account.username !== updatedAccount.username) {

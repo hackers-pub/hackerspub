@@ -3,6 +3,7 @@ import { encodeBase64Url } from "@std/encoding/base64url";
 import { sql } from "drizzle-orm";
 import {
   type Account,
+  AccountEmail,
   accountEmailTable,
   accountTable,
   type NewAccount,
@@ -67,7 +68,7 @@ export async function createAccount(
   db: Database,
   token: SignupToken,
   account: Omit<NewAccount, "id"> & Pick<Partial<NewAccount>, "id">,
-): Promise<Account | undefined> {
+): Promise<Account & { emails: AccountEmail[] } | undefined> {
   const accounts = await db.insert(accountTable).values({
     ...account,
     id: account.id ?? generateUuidV7(),
@@ -77,13 +78,13 @@ export async function createAccount(
     logger.error("Failed to create account: {account}", { account });
     return undefined;
   }
-  await db.insert(accountEmailTable).values(
+  const emails = await db.insert(accountEmailTable).values(
     {
       email: token.email,
       accountId: accounts[0].id,
       public: false,
       verified: sql`CURRENT_TIMESTAMP`,
     },
-  );
-  return accounts[0];
+  ).returning();
+  return { ...accounts[0], emails };
 }

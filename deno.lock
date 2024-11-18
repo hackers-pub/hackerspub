@@ -4,11 +4,12 @@
     "jsr:@fedify/fedify@*": "1.2.3",
     "jsr:@fedify/fedify@1": "1.2.3",
     "jsr:@fedify/fedify@^1.2.3": "1.2.3",
-    "jsr:@fedify/postgres@~0.2.1": "0.2.1",
+    "jsr:@fedify/postgres@~0.2.2": "0.2.2",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.25",
     "jsr:@fresh/core@^2.0.0-alpha.24": "2.0.0-alpha.24",
     "jsr:@fresh/core@^2.0.0-alpha.25": "2.0.0-alpha.25",
     "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7": "0.0.1-alpha.7",
+    "jsr:@hongminhee/x-forwarded-fetch@0.2": "0.2.0",
     "jsr:@hugoalh/http-header-link@^1.0.2": "1.0.2",
     "jsr:@hugoalh/is-string-singleline@1.0.2": "1.0.2",
     "jsr:@logtape/logtape@~0.7.1": "0.7.1",
@@ -126,10 +127,9 @@
         "npm:url-template"
       ]
     },
-    "@fedify/postgres@0.2.1": {
-      "integrity": "ee4007c692c218150f14ca41bed7008959737fc0e6c6a041216c2567ad68fdfd",
+    "@fedify/postgres@0.2.2": {
+      "integrity": "7abfe7c5330e99453c715ff3f55a610a0692a45d7d04cd1def0a4d18fa198329",
       "dependencies": [
-        "jsr:@fedify/fedify@1",
         "npm:postgres"
       ]
     },
@@ -187,6 +187,9 @@
         "npm:postcss",
         "npm:tailwindcss@^3.4.1"
       ]
+    },
+    "@hongminhee/x-forwarded-fetch@0.2.0": {
+      "integrity": "8a347e061974e07b480e9461c7d84047e12e92c462fe7679a6f0f59b5c5f48d5"
     },
     "@hugoalh/http-header-link@1.0.2": {
       "integrity": "1f607e34ac0790a0b0759f89ade294ab3a1d211e46a8dea337eaafa26950205f",
@@ -3457,9 +3460,10 @@
   "workspace": {
     "dependencies": [
       "jsr:@fedify/fedify@^1.2.3",
-      "jsr:@fedify/postgres@~0.2.1",
+      "jsr:@fedify/postgres@~0.2.2",
       "jsr:@fresh/core@^2.0.0-alpha.25",
       "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
+      "jsr:@hongminhee/x-forwarded-fetch@0.2",
       "jsr:@logtape/logtape@~0.7.1",
       "jsr:@onisaint/validate-email@^1.0.1",
       "jsr:@schotsl/mailgun@^1.3.0",
