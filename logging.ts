@@ -7,8 +7,12 @@ await configure({
     console: getConsoleSink(),
   },
   loggers: [
-    { category: "hackerspub", level: "debug", sinks: ["console"] },
-    { category: "fedify", level: "info", sinks: ["console"] },
-    { category: ["logtape", "meta"], level: "warning", sinks: ["console"] },
+    { category: "hackerspub", lowestLevel: "debug", sinks: ["console"] },
+    { category: "fedify", lowestLevel: "info", sinks: ["console"] },
+    {
+      category: ["logtape", "meta"],
+      lowestLevel: "warning",
+      sinks: ["console"],
+    },
   ],
 });

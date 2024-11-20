@@ -28,10 +28,10 @@
     "static/"
   ],
   "imports": {
-    "@fedify/fedify": "jsr:@fedify/fedify@^1.2.3",
+    "@fedify/fedify": "jsr:@fedify/fedify@1.3.0-dev.512+714fd9fa",
     "@fedify/postgres": "jsr:@fedify/postgres@^0.2.2",
     "@hongminhee/x-forwarded-fetch": "jsr:@hongminhee/x-forwarded-fetch@^0.2.0",
-    "@logtape/logtape": "jsr:@logtape/logtape@^0.7.1",
+    "@logtape/logtape": "jsr:@logtape/logtape@^0.8.0",
     "@mdit-vue/plugin-title": "npm:@mdit-vue/plugin-title@^2.1.3",
     "@neondatabase/serverless": "npm:@neondatabase/serverless@^0.10.3",
     "@onisaint/validate-email": "jsr:@onisaint/validate-email@^1.0.1",
