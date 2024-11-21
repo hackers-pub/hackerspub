@@ -3,6 +3,14 @@ import "@std/dotenv/load";
 import "./logging.ts";
 import "./sentry.ts";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
+import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
+import {
+  ATTR_HTTP_REQUEST_HEADER,
+  ATTR_HTTP_REQUEST_METHOD,
+  ATTR_HTTP_RESPONSE_HEADER,
+  ATTR_HTTP_RESPONSE_STATUS_CODE,
+  ATTR_URL_FULL,
+} from "@opentelemetry/semantic-conventions";
 import { captureException } from "@sentry/deno";
 import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
 import { federation } from "./federation/mod.ts";
@@ -25,19 +33,54 @@ if (Deno.env.get("BEHIND_PROXY") === "true") {
 }
 
 app.use(async (ctx) => {
+  const tracer = trace.getTracer("fresh");
+  return await tracer.startActiveSpan(ctx.req.method, {
+    kind: SpanKind.SERVER,
+    attributes: {
+      [ATTR_HTTP_REQUEST_METHOD]: ctx.req.method,
+      [ATTR_URL_FULL]: ctx.req.url,
+    },
+  }, async (span) => {
+    if (span.isRecording()) {
+      for (const [k, v] of ctx.req.headers) {
+        span.setAttribute(ATTR_HTTP_REQUEST_HEADER(k), [v]);
+      }
+    }
+    try {
+      const response = await ctx.next();
+      if (span.isRecording()) {
+        span.setAttribute(ATTR_HTTP_RESPONSE_STATUS_CODE, response.status);
+        for (const [k, v] of response.headers) {
+          span.setAttribute(ATTR_HTTP_RESPONSE_HEADER(k), [v]);
+        }
+        span.setStatus({
+          code: response.status >= 500
+            ? SpanStatusCode.ERROR
+            : SpanStatusCode.UNSET,
+          message: response.statusText,
+        });
+      }
+      return response;
+    } catch (error) {
+      span.setStatus({
+        code: SpanStatusCode.ERROR,
+        message: `${error}`,
+      });
+      captureException(error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
+});
+
+app.use(async (ctx) => {
   if (
     ctx.url.pathname.startsWith("/.well-known/") ||
     ctx.url.pathname.startsWith("/ap/") ||
     ctx.url.pathname.startsWith("/nodeinfo/")
   ) {
-    try {
-      return await federation.fetch(ctx.req, {
-        contextData: undefined,
-      });
-    } catch (error) {
-      captureException(error);
-      throw error;
-    }
+    return await federation.fetch(ctx.req, { contextData: undefined });
   }
   return ctx.next();
 });

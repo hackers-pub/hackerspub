@@ -1,7 +1,7 @@
 import "./logging.ts";
 import { getLogger } from "@logtape/logtape";
 import { neon, neonConfig } from "@neondatabase/serverless";
-import { startSpan } from "@sentry/deno";
+import { trace } from "@opentelemetry/api";
 import type { ExtractTablesWithRelations } from "drizzle-orm";
 import type { PgDatabase } from "drizzle-orm/pg-core";
 import {
@@ -27,28 +27,39 @@ if (DATABASE_URL == null) {
 }
 
 neonConfig.fetchFunction = async (url: string | URL, init: RequestInit) => {
-  return await startSpan(
-    { op: "http.client", name: `${init.method ?? "GET"} ${url}` },
-    async (span) => {
-      const parsedUrl = new URL(url);
-      span.setAttribute("http.query", parsedUrl.search);
-      span.setAttribute("http.request.method", init.method ?? "GET");
-      span.setAttribute("server.address", parsedUrl.hostname);
-      span.setAttribute(
-        "server.port",
-        parsedUrl.port ? parseInt(parsedUrl.port) : undefined,
-      );
-      const response = await fetch(url, init);
-      span.setAttribute("http.response.status_code", response.status);
-      if (response.headers.has("content-length")) {
-        span.setAttribute(
-          "http.response.content_length",
-          parseInt(response.headers.get("content-length")!),
-        );
+  const tracer = trace.getTracer("@neondatabase/serverless");
+  return await tracer.startActiveSpan("postgresql", async (span) => {
+    span.setAttribute("db.system", "postgresql");
+    if (typeof init.body === "string") {
+      const body = JSON.parse(init.body);
+      if (typeof body === "object" && body != null) {
+        if (typeof body.query === "string") {
+          span.setAttribute("db.query.text", body.query);
+        }
+        if (Array.isArray(body.params)) {
+          for (let i = 0; i < body.params.length; i++) {
+            span.setAttribute(`db.query.parameter.${i}`, body.params[i]);
+          }
+        }
       }
-      return response;
-    },
-  );
+    }
+    const headers = new Headers(init.headers);
+    if (headers.has("Neon-Connection-String")) {
+      const url = new URL(headers.get("Neon-Connection-String") ?? "");
+      span.setAttribute("server.address", url.hostname);
+      if (url.port !== "") span.setAttribute("server.port", url.port);
+    }
+    const response = await fetch(url, init);
+    const result = await response.clone().json();
+    if (typeof result === "object" && result != null) {
+      if (typeof result.command === "string") {
+        span.setAttribute("db.operation.name", result.command);
+        span.updateName(result.command);
+      }
+    }
+    span.end();
+    return response;
+  });
 };
 
 export const postgres = postgresJs(DATABASE_URL);
