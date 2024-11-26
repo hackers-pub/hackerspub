@@ -31,6 +31,7 @@ const logger = getLogger(["hackerspub", "sentry"]);
 const SENTRY_DSN = Deno.env.get("SENTRY_DSN");
 
 let provider: BasicTracerProvider | undefined;
+export let client: ConstructorParameters<typeof SentrySampler>[0] | undefined;
 if (SENTRY_DSN != null) {
   init({
     dsn: SENTRY_DSN,
@@ -39,9 +40,8 @@ if (SENTRY_DSN != null) {
       ...getDefaultIntegrations({}),
       denoCronIntegration(),
     ],
-    debug: true,
   });
-  const client = getClient() as ConstructorParameters<typeof SentrySampler>[0];
+  client = getClient() as ConstructorParameters<typeof SentrySampler>[0];
   if (client == null) throw new Error("Sentry client not initialized.");
   getGlobalScope().setClient(client);
   setCurrentClient(client);

@@ -3,7 +3,7 @@
   "specifiers": {
     "jsr:@fedify/fedify@*": "1.2.3",
     "jsr:@fedify/fedify@1": "1.2.3",
-    "jsr:@fedify/fedify@1.3.0-dev.514+006c410a": "1.3.0-dev.514+006c410a",
+    "jsr:@fedify/fedify@1.3.0-dev.565+37191e25": "1.3.0-dev.565+37191e25",
     "jsr:@fedify/fedify@^1.2.3": "1.2.3",
     "jsr:@fedify/postgres@~0.2.2": "0.2.2",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.25",
@@ -15,6 +15,7 @@
     "jsr:@hugoalh/is-string-singleline@1.0.2": "1.0.2",
     "jsr:@logtape/logtape@0.8": "0.8.0",
     "jsr:@logtape/logtape@~0.7.1": "0.7.1",
+    "jsr:@logtape/sentry@0.1": "0.1.0",
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.0",
     "jsr:@onisaint/validate-email@^1.0.1": "1.0.1",
     "jsr:@schotsl/mailgun@^1.3.0": "1.3.0",
@@ -70,8 +71,10 @@
     "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0": "2.0.1-0",
     "npm:@sentry/core@*": "8.39.0",
     "npm:@sentry/core@^8.39.0": "8.39.0",
+    "npm:@sentry/core@^8.40.0": "8.40.0",
     "npm:@sentry/deno@^8.38.0": "8.38.0",
     "npm:@sentry/opentelemetry@^8.39.0": "8.39.0_@opentelemetry+api@1.9.0_@opentelemetry+core@1.28.0__@opentelemetry+api@1.9.0_@opentelemetry+instrumentation@0.54.2__@opentelemetry+api@1.9.0_@opentelemetry+sdk-trace-base@1.28.0__@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.27.0",
+    "npm:@sentry/types@^8.40.0": "8.40.0",
     "npm:@shikijs/markdown-it@^1.22.2": "1.22.2",
     "npm:@shikijs/transformers@^1.22.2": "1.22.2",
     "npm:@tailwindcss/typography@~0.5.15": "0.5.15_tailwindcss@3.4.3__postcss@8.4.47",
@@ -83,6 +86,7 @@
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
     "npm:drizzle-kit@*": "0.28.0_esbuild@0.19.12",
     "npm:drizzle-kit@0.28": "0.28.0_esbuild@0.19.12",
+    "npm:drizzle-kit@0.28.0": "0.28.0_esbuild@0.19.12",
     "npm:drizzle-orm@~0.36.3": "0.36.3_@neondatabase+serverless@0.10.3_postgres@3.4.5",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
@@ -138,8 +142,8 @@
         "npm:url-template"
       ]
     },
-    "@fedify/fedify@1.3.0-dev.514+006c410a": {
-      "integrity": "09893990f1dd587666e13e46ab4a9717e089e1eb82f613a7b76184eb58a46051",
+    "@fedify/fedify@1.3.0-dev.565+37191e25": {
+      "integrity": "9f78865468de3bc5741ab7b0f08c80ad22c822e1739980575c94a84fbcade584",
       "dependencies": [
         "jsr:@hugoalh/http-header-link",
         "jsr:@logtape/logtape@0.8",
@@ -240,6 +244,14 @@
     },
     "@logtape/logtape@0.8.0": {
       "integrity": "12bdf406a713f754d99c2ff65deb45127ce4e2c59e7136d608042250629428bd"
+    },
+    "@logtape/sentry@0.1.0": {
+      "integrity": "d7607e646b13ade52245f46aeb17fbdef60f1e5fef75add54d70b6c9c89b6adc",
+      "dependencies": [
+        "jsr:@logtape/logtape@0.8",
+        "npm:@sentry/core@^8.40.0",
+        "npm:@sentry/types"
+      ]
     },
     "@luca/esbuild-deno-loader@0.11.0": {
       "integrity": "c05a989aa7c4ee6992a27be5f15cfc5be12834cab7ff84cabb47313737c51a2c",
@@ -976,6 +988,12 @@
         "@sentry/utils@8.39.0"
       ]
     },
+    "@sentry/core@8.40.0": {
+      "integrity": "sha512-u/U2CJpG/+SmTR2bPM4ZZoPYTJAOUuxzj/0IURnvI0v9+rNu939J/fzrO9huA5IJVxS5TiYykhQm7o6I3Zuo3Q==",
+      "dependencies": [
+        "@sentry/types@8.40.0"
+      ]
+    },
     "@sentry/deno@8.38.0": {
       "integrity": "sha512-XV5VealMAm1F6G2vJhtTnxxH6twNAw7KrE9kH8sqR1rZmxRXfEmHc0RDn8J3lejeDRTRmrmiw6JIEc/D4GbpeQ==",
       "dependencies": [
@@ -1002,6 +1020,9 @@
     },
     "@sentry/types@8.39.0": {
       "integrity": "sha512-/n1bGkbJcSLZQpzd1Oksi8LFAMbcO8j/d+N8mcXS74GuhGgkxQiEwHF2CKTz6SHt8J4hrlyzqIwVzCevUOxZ2Q=="
+    },
+    "@sentry/types@8.40.0": {
+      "integrity": "sha512-nuCf3U3deolPM9BjNnwCc33UtFl9ec15/r74ngAkNccn+A2JXdIAsDkGJMO/9mgSFykLe1QyeJ0pQFRisCGOiA=="
     },
     "@sentry/utils@8.38.0": {
       "integrity": "sha512-3X7MgIKIx+2q5Al7QkhaRB4wV6DvzYsaeIwdqKUzGLuRjXmNgJrLoU87TAwQRmZ6Wr3IoEpThZZMNrzYPXxArw==",
@@ -3624,12 +3645,13 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@fedify/fedify@1.3.0-dev.514+006c410a",
+      "jsr:@fedify/fedify@1.3.0-dev.565+37191e25",
       "jsr:@fedify/postgres@~0.2.2",
       "jsr:@fresh/core@^2.0.0-alpha.25",
       "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",
       "jsr:@logtape/logtape@0.8",
+      "jsr:@logtape/sentry@0.1",
       "jsr:@onisaint/validate-email@^1.0.1",
       "jsr:@schotsl/mailgun@^1.3.0",
       "jsr:@std/assert@^1.0.7",
