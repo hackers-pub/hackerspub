@@ -3,7 +3,7 @@
   "specifiers": {
     "jsr:@fedify/fedify@*": "1.2.3",
     "jsr:@fedify/fedify@1": "1.2.3",
-    "jsr:@fedify/fedify@1.3.0-dev.565+37191e25": "1.3.0-dev.565+37191e25",
+    "jsr:@fedify/fedify@1.3.0": "1.3.0",
     "jsr:@fedify/fedify@^1.2.3": "1.2.3",
     "jsr:@fedify/postgres@~0.2.2": "0.2.2",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.25",
@@ -142,8 +142,8 @@
         "npm:url-template"
       ]
     },
-    "@fedify/fedify@1.3.0-dev.565+37191e25": {
-      "integrity": "9f78865468de3bc5741ab7b0f08c80ad22c822e1739980575c94a84fbcade584",
+    "@fedify/fedify@1.3.0": {
+      "integrity": "9c7bda345e6ba203448fab2a56523dc56dfe49b7b18fc9d504fe7cbbd4f999e2",
       "dependencies": [
         "jsr:@hugoalh/http-header-link",
         "jsr:@logtape/logtape@0.8",
@@ -3645,7 +3645,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@fedify/fedify@1.3.0-dev.565+37191e25",
+      "jsr:@fedify/fedify@1.3.0",
       "jsr:@fedify/postgres@~0.2.2",
       "jsr:@fresh/core@^2.0.0-alpha.25",
       "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",

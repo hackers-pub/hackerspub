@@ -10,5 +10,8 @@ export const federation = createFederation<void>({
   queue: Deno.env.get("DENO_DEPLOYMENT_ID")
     ? new DenoKvMessageQueue(kv)
     : new PostgresMessageQueue(postgres),
+  userAgent: {
+    software: "HackersPub",
+  },
   tracerProvider,
 });
