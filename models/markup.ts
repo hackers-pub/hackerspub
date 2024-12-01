@@ -56,23 +56,28 @@ let md = createMarkdownIt({ html: true })
 
 // Lazy load Shiki to avoid blocking the startup time
 let shikiLoaded = false;
-const loadingShiki = shiki({
-  themes: {
-    light: "vitesse-light",
-    dark: "vitesse-dark",
-  },
-  transformers: [
-    transformerNotationDiff(),
-    transformerNotationHighlight(),
-    transformerMetaHighlight(),
-    transformerNotationWordHighlight(),
-    transformerMetaWordHighlight(),
-    transformerNotationFocus(),
-  ],
-}).then((shiki) => {
-  md = md.use(shiki);
-  shikiLoaded = true;
-});
+let loadingShiki = new Promise<void>((resolve) =>
+  setTimeout(() => {
+    loadingShiki = shiki({
+      themes: {
+        light: "vitesse-light",
+        dark: "vitesse-dark",
+      },
+      transformers: [
+        transformerNotationDiff(),
+        transformerNotationHighlight(),
+        transformerMetaHighlight(),
+        transformerNotationWordHighlight(),
+        transformerMetaWordHighlight(),
+        transformerNotationFocus(),
+      ],
+    }).then((shiki) => {
+      md = md.use(shiki);
+      shikiLoaded = true;
+      resolve();
+    });
+  }, 500)
+);
 
 export const htmlXss = new FilterXSS({
   allowList: {
