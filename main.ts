@@ -12,7 +12,7 @@ import {
   ATTR_URL_FULL,
 } from "@opentelemetry/semantic-conventions";
 import { captureException } from "@sentry/deno";
-import { App, fsRoutes, staticFiles, trailingSlashes } from "fresh";
+import { App, fsRoutes, HttpError, staticFiles, trailingSlashes } from "fresh";
 import { federation } from "./federation/mod.ts";
 import { type State } from "./utils.ts";
 
@@ -62,6 +62,7 @@ app.use(async (ctx) => {
       }
       return response;
     } catch (error) {
+      if (error instanceof HttpError) throw error;
       span.setStatus({
         code: SpanStatusCode.ERROR,
         message: `${error}`,
