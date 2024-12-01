@@ -6,22 +6,50 @@ on:
     branches: main
 
 jobs:
-  deploy:
+  check:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write # Needed for auth with Deno Deploy
-      contents: read # Needed to clone the repository
     steps:
     - uses: actions/checkout@v4
     - uses: denoland/setup-deno@v2
       with:
         deno-version: v2.x
-    - run: cp .env.sample .env
-    - run: deno task build
-    - uses: denoland/deployctl@v1
-      with:
-        project: hackerspub
-        entrypoint: main.ts
-        root: .
+    - run: deno task check
           
+  build:
+    needs: [check]
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+    - uses: docker/setup-qemu-action@v3
+    - uses: docker/setup-buildx-action@v3 
+    - uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    - uses: docker/build-push-action@v6
+      with:
+        push: true
+        platforms: linux/amd64
+        build-args:
+          GIT_COMMIT=${{ github.sha }}
+        tags: |
+          ghcr.io/${{ github.repository }}:git-${{ github.sha }}
+          ghcr.io/${{ github.repository }}:latest
+        labels: |
+          org.opencontainers.image.revision=${{ github.sha }}
+        annotations: |
+          org.opencontainers.image.title=Hackers' Pub
+          org.opencontainers.image.description=ActivityPub-enabled social network for hackers
+          org.opencontainers.image.url=https://hackers.pub/
+          org.opencontainers.image.source=https://github.com/dahlia/hackerspub
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.licenses=AGPL-3.0-only
+        cache-from:
+          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache
+        cache-to:
+          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache,mode=max
           
