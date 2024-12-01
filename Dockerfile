@@ -14,4 +14,5 @@ RUN cp .env.sample .env && deno task build && rm .env
 ARG GIT_COMMIT
 ENV GIT_COMMIT=${GIT_COMMIT}
 
+EXPOSE 8000
 CMD ["deno", "task", "start"]

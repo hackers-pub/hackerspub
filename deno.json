@@ -8,7 +8,6 @@
     "drizzle-kit": "deno run -A npm:drizzle-kit",
     "migrate": "deno run -A npm:drizzle-kit migrate",
     "migrate:generate": "deno run -A npm:drizzle-kit generate",
-    "migrate:node": "npx drizzle-kit migrate",
     "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",
     "hooks:pre-commit": "deno task check"
   },
@@ -35,7 +34,6 @@
     "@logtape/logtape": "jsr:@logtape/logtape@^0.8.0",
     "@logtape/sentry": "jsr:@logtape/sentry@^0.1.0",
     "@mdit-vue/plugin-title": "npm:@mdit-vue/plugin-title@^2.1.3",
-    "@neondatabase/serverless": "npm:@neondatabase/serverless@^0.10.3",
     "@onisaint/validate-email": "jsr:@onisaint/validate-email@^1.0.1",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
     "@opentelemetry/context-async-hooks": "npm:@opentelemetry/context-async-hooks@^1.28.0",
