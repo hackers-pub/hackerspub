@@ -9,6 +9,7 @@ export const handler = define.handlers({
     const rendered = await renderMarkup("", markup);
     return new Response(rendered.html, {
       headers: {
+        "Access-Control-Expose-Headers": "Echo-Nonce",
         "Content-Type": "text/html; charset=utf-8",
         ...(nonce == null ? {} : { "Echo-Nonce": nonce }),
       },

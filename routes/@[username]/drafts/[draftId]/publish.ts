@@ -57,6 +57,7 @@ export const handler = define.handlers({
       {
         status: 201,
         headers: {
+          "Access-Control-Expose-Headers": "Location",
           "Content-Type": "application/json",
           Location: new URL(
             `/@${draft.account.username}/${article.publishedYear}/${article.slug}`,

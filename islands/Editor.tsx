@@ -48,6 +48,7 @@ export function Editor(props: EditorProps) {
         "Echo-Nonce": `${now}`,
       },
       body: markup,
+      credentials: "include",
     });
     const nonce = response.headers.get("Echo-Nonce");
     if (nonce != null) {
@@ -79,6 +80,7 @@ export function Editor(props: EditorProps) {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     const data = await response.json();
     setDraftTitle(data.title);
@@ -139,6 +141,7 @@ export function Editor(props: EditorProps) {
         language: language ?? draftLanguage ?? "en",
       }),
       redirect: "manual",
+      credentials: "include",
     });
     if (response.status === 409) {
       alert(
