@@ -6,7 +6,6 @@
   "deno.enable": true,
   "deno.lint": true,
   "deno.unstable": [
-    "kv",
     "temporal"
   ],
   "editor.detectIndentation": false,

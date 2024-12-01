@@ -11,3 +11,5 @@ _fresh/
 node_modules/
 vendor/
 
+# keyv data
+kv.db

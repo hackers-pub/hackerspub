@@ -1,6 +1,7 @@
+import Keyv from "keyv";
 import { Uuid } from "./uuid.ts";
 
-const KV_NAMESPACE = ["session"];
+const KV_NAMESPACE = "session";
 
 export const EXPIRATION = Temporal.Duration.from({ hours: 24 * 365 });
 
@@ -13,30 +14,27 @@ export interface Session {
 }
 
 export async function createSession(
-  kv: Deno.Kv,
+  kv: Keyv,
   session:
     & Omit<Session, "id" | "created">
     & Pick<Partial<Session>, "id" | "created">,
 ): Promise<Session> {
   const id = session.id ?? crypto.randomUUID();
   const data = { ...session, id, created: session.created ?? new Date() };
-  await kv.set([...KV_NAMESPACE, id], data, {
-    expireIn: EXPIRATION.total("millisecond"),
-  });
+  await kv.set(`${KV_NAMESPACE}/${id}`, data, EXPIRATION.total("millisecond"));
   return data;
 }
 
-export async function getSession(
-  kv: Deno.Kv,
+export function getSession(
+  kv: Keyv,
   sessionId: Uuid,
 ): Promise<Session | undefined> {
-  const result = await kv.get<Session>([...KV_NAMESPACE, sessionId]);
-  return result.value ?? undefined;
+  return kv.get<Session>(`${KV_NAMESPACE}/${sessionId}`);
 }
 
 export async function deleteSession(
-  kv: Deno.Kv,
+  kv: Keyv,
   sessionId: Uuid,
 ): Promise<void> {
-  await kv.delete([...KV_NAMESPACE, sessionId]);
+  await kv.delete(`${KV_NAMESPACE}/${sessionId}`);
 }

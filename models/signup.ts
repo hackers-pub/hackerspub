@@ -1,6 +1,7 @@
 import { getLogger } from "@logtape/logtape";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { sql } from "drizzle-orm";
+import Keyv from "keyv";
 import {
   type Account,
   AccountEmail,
@@ -13,7 +14,7 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "signup"]);
 
-const KV_NAMESPACE = ["signup"];
+const KV_NAMESPACE = "signup";
 
 export const EXPIRATION = Temporal.Duration.from({ days: 1 });
 
@@ -25,7 +26,7 @@ export interface SignupToken {
 }
 
 export async function createSignupToken(
-  kv: Deno.Kv,
+  kv: Keyv,
   email: string,
 ): Promise<SignupToken> {
   const token = crypto.randomUUID();
@@ -38,9 +39,9 @@ export async function createSignupToken(
     created: new Date(),
   };
   await kv.set(
-    [...KV_NAMESPACE, token],
+    `${KV_NAMESPACE}/${token}`,
     tokenData,
-    { expireIn: EXPIRATION.total("millisecond") },
+    EXPIRATION.total("millisecond"),
   );
   logger.debug("Created sign-up token (expires in {expires}): {token}", {
     expires: EXPIRATION,
@@ -49,19 +50,18 @@ export async function createSignupToken(
   return tokenData;
 }
 
-export async function getSignupToken(
-  kv: Deno.Kv,
+export function getSignupToken(
+  kv: Keyv,
   token: Uuid,
 ): Promise<SignupToken | undefined> {
-  const result = await kv.get<SignupToken>([...KV_NAMESPACE, token]);
-  return result.value ?? undefined;
+  return kv.get<SignupToken>(`${KV_NAMESPACE}/${token}`);
 }
 
 export async function deleteSignupToken(
-  kv: Deno.Kv,
+  kv: Keyv,
   token: Uuid,
 ): Promise<void> {
-  await kv.delete([...KV_NAMESPACE, token]);
+  await kv.delete(`${KV_NAMESPACE}/${token}`);
 }
 
 export async function createAccount(

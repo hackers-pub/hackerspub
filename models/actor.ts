@@ -8,6 +8,7 @@ import {
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { eq, sql } from "drizzle-orm";
+import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import { getAvatarUrl, renderAccountLinks } from "./account.ts";
 import {
@@ -28,7 +29,7 @@ const logger = getLogger(["hackerspub", "models", "actor"]);
 
 export async function syncActorFromAccount(
   db: Database,
-  _kv: Deno.Kv,
+  _kv: Keyv,
   fedCtx: Context<void>,
   account: Account & { emails: AccountEmail[]; links: AccountLink[] },
 ): Promise<Actor> {
