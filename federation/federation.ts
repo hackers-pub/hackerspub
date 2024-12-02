@@ -10,7 +10,11 @@ import { tracerProvider } from "../sentry.ts";
 const logger = getLogger(["hackerspub", "federation"]);
 
 const kv = kvUrl.protocol === "redis:"
-  ? new RedisKvStore(new Redis(kvUrl.href))
+  ? new RedisKvStore(
+    new Redis(kvUrl.href, {
+      family: kvUrl.hostname.endsWith(".upstash.io") ? 6 : 4,
+    }),
+  )
   : new PostgresKvStore(postgres);
 logger.debug("KV store initialized: {kv}", { kv });
 
