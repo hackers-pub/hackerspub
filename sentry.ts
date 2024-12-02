@@ -2,6 +2,8 @@ import "./logging.ts";
 import { getLogger } from "@logtape/logtape";
 import { trace } from "@opentelemetry/api";
 import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-hooks";
+import { registerInstrumentations } from "@opentelemetry/instrumentation";
+import { RedisInstrumentation } from "@opentelemetry/instrumentation-redis-4";
 import { Resource } from "@opentelemetry/resources";
 import { BasicTracerProvider } from "@opentelemetry/sdk-trace-base";
 import {
@@ -33,6 +35,12 @@ const SENTRY_DSN = Deno.env.get("SENTRY_DSN");
 let provider: BasicTracerProvider | undefined;
 export let client: ConstructorParameters<typeof SentrySampler>[0] | undefined;
 if (SENTRY_DSN != null) {
+  registerInstrumentations({
+    instrumentations: [
+      new RedisInstrumentation(),
+    ],
+  });
+
   init({
     dsn: SENTRY_DSN,
     tracesSampleRate: 1.0,
