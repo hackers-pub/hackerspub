@@ -34,7 +34,7 @@ let md = createMarkdownIt({ html: true })
       return slugifyTitle(title, state.env.docId);
     },
     permalink: anchor.permalink.linkInsideHeader({
-      symbol: `<span aria-hidden="true" title="Link to this section">#</span>`,
+      symbol: `<span aria-hidden="true" title="Link to this section"></span>`,
       placement: "after",
     }),
   })

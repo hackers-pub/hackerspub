@@ -13,22 +13,13 @@
   opacity: .5;
 }
 
-.prose h1 > a:last-child > span[aria-hidden=true],
-.prose h2 > a:last-child > span[aria-hidden=true],
-.prose h3 > a:last-child > span[aria-hidden=true],
-.prose h4 > a:last-child > span[aria-hidden=true],
-.prose h5 > a:last-child > span[aria-hidden=true],
-.prose h6 > a:last-child > span[aria-hidden=true] {
-  display: none;
-}
-
-.prose h1:hover > a:last-child > span[aria-hidden=true],
-.prose h2:hover > a:last-child > span[aria-hidden=true],
-.prose h3:hover > a:last-child > span[aria-hidden=true],
-.prose h4:hover > a:last-child > span[aria-hidden=true],
-.prose h5:hover > a:last-child > span[aria-hidden=true],
-.prose h6:hover > a:last-child > span[aria-hidden=true] {
-  display: inline;
+.prose h1:hover > a:last-child:after,
+.prose h2:hover > a:last-child:after,
+.prose h3:hover > a:last-child:after,
+.prose h4:hover > a:last-child:after,
+.prose h5:hover > a:last-child:after,
+.prose h6:hover > a:last-child:after {
+  content: '#';
 }
 
 .prose > hr.footnotes-sep {
