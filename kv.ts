@@ -9,7 +9,7 @@ if (KV_URL == null) {
   throw new Error("Invalid KV_URL environment variable; must be a valid URL.");
 }
 
-const kvUrl = new URL(KV_URL);
+export const kvUrl = new URL(KV_URL);
 if (kvUrl.protocol !== "file:" && kvUrl.protocol !== "redis:") {
   throw new Error(
     "Invalid KV_URL environment variable; must start with file: or redis:",

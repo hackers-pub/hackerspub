@@ -1,11 +1,25 @@
+import { getLogger } from "@logtape/logtape";
 import { createFederation } from "@fedify/fedify";
 import { PostgresKvStore, PostgresMessageQueue } from "@fedify/postgres";
+import { RedisKvStore } from "@fedify/redis";
+import { Redis } from "ioredis";
 import { postgres } from "../db.ts";
+import { kvUrl } from "../kv.ts";
 import { tracerProvider } from "../sentry.ts";
 
+const logger = getLogger(["hackerspub", "federation"]);
+
+const kv = kvUrl.protocol === "redis:"
+  ? new RedisKvStore(new Redis(kvUrl.href))
+  : new PostgresKvStore(postgres);
+logger.debug("KV store initialized: {kv}", { kv });
+
+const queue = new PostgresMessageQueue(postgres);
+logger.debug("Message queue initialized: {queue}", { queue });
+
 export const federation = createFederation<void>({
-  kv: new PostgresKvStore(postgres),
-  queue: new PostgresMessageQueue(postgres),
+  kv,
+  queue,
   userAgent: {
     software: "HackersPub",
   },

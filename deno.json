@@ -29,6 +29,7 @@
   "imports": {
     "@fedify/fedify": "jsr:@fedify/fedify@1.3.0",
     "@fedify/postgres": "jsr:@fedify/postgres@^0.2.2",
+    "@fedify/redis": "jsr:@fedify/redis@^0.3.0",
     "@hongminhee/x-forwarded-fetch": "jsr:@hongminhee/x-forwarded-fetch@^0.2.0",
     "@keyv/redis": "npm:@keyv/redis@^4.0.2",
     "@logtape/logtape": "jsr:@logtape/logtape@^0.8.0",
@@ -38,6 +39,7 @@
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.0",
     "@opentelemetry/context-async-hooks": "npm:@opentelemetry/context-async-hooks@^1.28.0",
     "@opentelemetry/instrumentation": "npm:@opentelemetry/instrumentation@^0.55.0",
+    "@opentelemetry/instrumentation-ioredis": "npm:@opentelemetry/instrumentation-ioredis@^0.45.0",
     "@opentelemetry/instrumentation-redis-4": "npm:@opentelemetry/instrumentation-redis-4@^0.44.0",
     "@opentelemetry/resources": "npm:@opentelemetry/resources@^1.28.0",
     "@opentelemetry/sdk-trace-base": "npm:@opentelemetry/sdk-trace-base@^1.28.0",
@@ -68,6 +70,7 @@
     "franc": "npm:franc@^6.2.0",
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.25",
     "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
+    "ioredis": "npm:ioredis@^5.4.1",
     "iso-639-3": "npm:iso-639-3@^3.0.1",
     "katex": "npm:katex@^0.16.11",
     "keyv": "npm:keyv@^5.2.1",
