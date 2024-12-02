@@ -1,4 +1,3 @@
-import { getLogger } from "@logtape/logtape";
 import { titlePlugin as title } from "@mdit-vue/plugin-title";
 import cjkBreaks from "@searking/markdown-it-cjk-breaks";
 import shiki from "@shikijs/markdown-it";
@@ -24,8 +23,6 @@ import graphviz from "markdown-it-graphviz";
 import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
 import { FilterXSS, whiteList } from "xss";
-
-const logger = getLogger(["hackerspub", "models", "markup"]);
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
@@ -380,10 +377,6 @@ export async function renderMarkup(
         ' "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">',
       "",
     );
-  logger.debug(
-    "Processed Markdown for {docId}:\n{rawHtml}",
-    { docId, rawHtml },
-  );
   const html = htmlXss.process(rawHtml);
   const excerptHtml = excerptHtmlXss.process(rawHtml);
   const text = textXss.process(rawHtml);
