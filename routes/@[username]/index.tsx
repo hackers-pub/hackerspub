@@ -88,6 +88,8 @@ export const handler = define.handlers({
         handle,
         name,
         avatarUrl: actor.avatarUrl ?? undefined,
+        followeesCount: actor.followeesCount,
+        followersCount: actor.followersCount,
         bioHtml: htmlXss.process(actor.bioHtml ?? ""),
         links: actor.fieldHtmls,
         ...followState,
@@ -172,6 +174,8 @@ export const handler = define.handlers({
       handle: `@${account.username}@${ctx.url.host}`,
       name: account.name,
       avatarUrl: await getAvatarUrl(account),
+      followeesCount: account.actor.followeesCount,
+      followersCount: account.actor.followersCount,
       bioHtml: bio.html,
       links: account.links,
       articles: await Promise.all(articles.map(async (article) => ({
@@ -203,6 +207,8 @@ type ProfilePageProps = {
   handle: string;
   name: string;
   bioHtml: string;
+  followeesCount: number;
+  followersCount: number;
   avatarUrl?: string;
   links: AccountLink[] | Record<string, string>;
   articles?: {
@@ -243,7 +249,17 @@ export default define.page<typeof handler, ProfilePageProps>(
               class="mb-5 mr-4"
             />
           )}
-          <PageTitle subtitle={{ text: data.handle, class: "select-all" }}>
+          <PageTitle
+            subtitle={{
+              text: (
+                <>
+                  <span class="select-all">{data.handle}</span> &middot;{" "}
+                  {data.followeesCount} following &middot; {data.followersCount}
+                  {data.followersCount === 1 ? " follower" : " followers"}
+                </>
+              ),
+            }}
+          >
             {data.name}
           </PageTitle>
           {data.followingState === "none"

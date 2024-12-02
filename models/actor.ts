@@ -103,6 +103,10 @@ export async function persistActor(
   const attachments = await Array.fromAsync(actor.getAttachments());
   const avatar = await actor.getIcon();
   const header = await actor.getImage();
+  const [followees, followers] = await Promise.all([
+    await actor.getFollowing(),
+    await actor.getFollowers(),
+  ]);
   const values: Omit<NewActor, "id"> = {
     iri: actor.id.href,
     type: getActorTypeName(actor),
@@ -125,6 +129,8 @@ export async function persistActor(
       ),
     ),
     url: actor.url instanceof Link ? actor.url.href?.href : actor.url?.href,
+    followeesCount: followees?.totalItems ?? 0,
+    followersCount: followers?.totalItems ?? 0,
     updated: actor.updated == null
       ? undefined
       : new Date(actor.updated.toString()),

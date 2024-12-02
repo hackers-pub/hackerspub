@@ -1,12 +1,14 @@
 import { type Context, Follow, Undo } from "@fedify/fedify";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import {
   type Account,
   type Actor,
+  actorTable,
   type Following,
   followingTable,
 } from "./schema.ts";
 import { Database } from "../db.ts";
+import { Uuid } from "./uuid.ts";
 
 export function createFollowingIri(
   fedCtx: Context<void>,
@@ -64,24 +66,33 @@ export async function acceptFollowing(
   iriOrFollower: string | URL | Account & { actor: Actor },
   followee?: Actor,
 ): Promise<Following | undefined> {
+  let rows: Following[];
   if (typeof iriOrFollower === "string" || iriOrFollower instanceof URL) {
     const iri = iriOrFollower.toString();
-    const rows = await db.update(followingTable).set({
+    rows = await db.update(followingTable).set({
+      accepted: sql`CURRENT_TIMESTAMP`,
+    }).where(and(
+      eq(followingTable.iri, iri),
+      isNull(followingTable.accepted),
+    )).returning();
+  } else if (followee == null) {
+    return undefined;
+  } else {
+    const follower = iriOrFollower;
+    rows = await db.update(followingTable).set({
       accepted: sql`CURRENT_TIMESTAMP`,
     }).where(
-      eq(followingTable.iri, iri),
+      and(
+        eq(followingTable.followerId, follower.actor.id),
+        eq(followingTable.followeeId, followee.id),
+        isNull(followingTable.accepted),
+      ),
     ).returning();
-    return rows[0];
-  } else if (followee == null) return undefined;
-  const follower = iriOrFollower;
-  const rows = await db.update(followingTable).set({
-    accepted: sql`CURRENT_TIMESTAMP`,
-  }).where(
-    and(
-      eq(followingTable.followerId, follower.actor.id),
-      eq(followingTable.followeeId, followee.id),
-    ),
-  ).returning();
+  }
+  if (rows.length > 0) {
+    await updateFolloweesCount(db, rows[0].followerId, 1);
+    await updateFollowersCount(db, rows[0].followeeId, 1);
+  }
   return rows[0];
 }
 
@@ -117,6 +128,10 @@ export async function unfollow(
       }),
     );
   }
+  if (rows.length > 0) {
+    await updateFolloweesCount(db, rows[0].followerId, -1);
+    await updateFollowersCount(db, rows[0].followeeId, -1);
+  }
   return rows[0];
 }
 
@@ -138,4 +153,46 @@ export async function getFollowingState(
     : row.accepted == null
     ? "sentRequest"
     : "following";
+}
+
+export async function updateFolloweesCount(
+  db: Database,
+  followerId: Uuid,
+  delta: number,
+): Promise<Actor | undefined> {
+  const rows = await db.update(actorTable).set({
+    followeesCount: sql`
+      CASE WHEN ${actorTable.accountId} IS NULL
+        THEN ${actorTable.followeesCount} + ${delta}
+        ELSE (
+          SELECT count(*)
+          FROM ${followingTable}
+          WHERE ${followingTable.followerId} = ${followerId}
+            AND ${followingTable.accepted} IS NOT NULL
+        )
+      END
+    `,
+  }).where(eq(actorTable.id, followerId)).returning();
+  return rows[0];
+}
+
+export async function updateFollowersCount(
+  db: Database,
+  followeeId: Uuid,
+  delta: number,
+): Promise<Actor | undefined> {
+  const rows = await db.update(actorTable).set({
+    followersCount: sql`
+      CASE WHEN ${actorTable.accountId} IS NULL
+        THEN ${actorTable.followersCount} + ${delta}
+        ELSE (
+          SELECT count(*)
+          FROM ${followingTable}
+          WHERE ${followingTable.followeeId} = ${followeeId}
+            AND ${followingTable.accepted} IS NOT NULL
+        )
+      END
+    `,
+  }).where(eq(actorTable.id, followeeId)).returning();
+  return rows[0];
 }

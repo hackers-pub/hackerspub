@@ -4,7 +4,7 @@ export interface PageTitleProps {
   class?: string;
   children?: ComponentChildren;
   subtitle?: {
-    text: string;
+    text: ComponentChildren;
     class?: string;
   };
 }

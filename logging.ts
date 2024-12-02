@@ -26,6 +26,7 @@ await configure({
       lowestLevel: "debug",
       sinks: ["console", "sentry"],
     },
+    { category: "drizzle", lowestLevel: "debug", sinks: ["console"] },
     { category: "fedify", lowestLevel: "info", sinks: ["console", "sentry"] },
     {
       category: ["logtape", "meta"],
