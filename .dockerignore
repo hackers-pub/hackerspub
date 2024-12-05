@@ -1,3 +1,4 @@
 .env
 _fresh
+Dockerfile
 node_modules

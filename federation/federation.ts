@@ -4,6 +4,7 @@ import { PostgresKvStore, PostgresMessageQueue } from "@fedify/postgres";
 import { RedisKvStore } from "@fedify/redis";
 import { Redis } from "ioredis";
 import { postgres } from "../db.ts";
+import metadata from "../deno.json" with { type: "json" };
 import { kvUrl } from "../kv.ts";
 import { tracerProvider } from "../sentry.ts";
 
@@ -25,7 +26,7 @@ export const federation = createFederation<void>({
   kv,
   queue,
   userAgent: {
-    software: "HackersPub",
+    software: `HackersPup/${metadata.version}`,
   },
   tracerProvider,
 });
