@@ -3,7 +3,7 @@ export interface ArticleMetadataProps {
   authorUrl: string;
   authorName: string;
   authorHandle: string;
-  authorAvatarUrl?: string;
+  authorAvatarUrl?: string | null;
   published: Date;
 }
 

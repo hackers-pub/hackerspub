@@ -2,10 +2,11 @@ import * as v from "@valibot/valibot";
 import { and, eq } from "drizzle-orm";
 import { define } from "../../../../utils.ts";
 import { db } from "../../../../db.ts";
+import { kv } from "../../../../kv.ts";
 import { articleDraftTable } from "../../../../models/schema.ts";
 import { validateUuid } from "../../../../models/uuid.ts";
 import {
-  createArticleSource,
+  createArticle,
   deleteArticleDraft,
 } from "../../../../models/article.ts";
 
@@ -37,7 +38,7 @@ export const handler = define.handlers({
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
-    const article = await createArticleSource(db, {
+    const post = await createArticle(db, kv, ctx.state.fedCtx, {
       accountId: ctx.state.session.accountId,
       title: draft.title,
       content: draft.content,
@@ -45,7 +46,7 @@ export const handler = define.handlers({
       slug: result.output.slug,
       language: result.output.language,
     });
-    if (article == null) {
+    if (post == null) {
       return new Response(
         JSON.stringify({ error: "Conflict error" }),
         { status: 409, headers: { "Content-Type": "application/json" } },
@@ -53,16 +54,13 @@ export const handler = define.handlers({
     }
     await deleteArticleDraft(db, draft.account.id, draft.id);
     return new Response(
-      JSON.stringify({ id: article.id }),
+      JSON.stringify({ id: post.articleSourceId }),
       {
         status: 201,
         headers: {
           "Access-Control-Expose-Headers": "Location",
           "Content-Type": "application/json",
-          Location: new URL(
-            `/@${draft.account.username}/${article.publishedYear}/${article.slug}`,
-            ctx.url,
-          ).href,
+          Location: post.url!,
         },
       },
     );

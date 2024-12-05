@@ -20,6 +20,8 @@ import { getAvatarUrl } from "../../models/account.ts";
 import { ArticleMetadata } from "../../components/ArticleMetadata.tsx";
 import { Button } from "../../components/Button.tsx";
 import { FollowingState, getFollowingState } from "../../models/following.ts";
+import { ArticleExcerpt } from "../../components/ArticleExcerpt.tsx";
+import { Uuid } from "../../models/uuid.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
@@ -179,6 +181,7 @@ export const handler = define.handlers({
       bioHtml: bio.html,
       links: account.links,
       articles: await Promise.all(articles.map(async (article) => ({
+        id: article.id,
         title: article.title,
         url:
           `/@${account.username}/${article.published.getFullYear()}/${article.slug}`,
@@ -212,6 +215,7 @@ type ProfilePageProps = {
   avatarUrl?: string;
   links: AccountLink[] | Record<string, string>;
   articles?: {
+    id: Uuid;
     title: string;
     url: string;
     excerptHtml: string;
@@ -341,22 +345,17 @@ export default define.page<typeof handler, ProfilePageProps>(
         )}
         <div>
           {data.articles?.map((article) => (
-            <article class="mt-5 border-l-4 border-l-stone-400 dark:border-l-stone-600 pl-4">
-              <h2 class="text-3xl font-bold">
-                <a href={article.url}>{article.title}</a>
-              </h2>
-              <ArticleMetadata
-                class="mt-2 mb-2"
-                authorUrl={article.author.url}
-                authorName={article.author.name}
-                authorHandle={article.author.handle}
-                authorAvatarUrl={article.author.avatarUrl}
-                published={article.published}
-              />
-              <a href={article.url}>
-                <Excerpt html={article.excerptHtml} />
-              </a>
-            </article>
+            <ArticleExcerpt
+              key={article.id}
+              url={article.url}
+              title={article.title}
+              authorUrl={article.author.url}
+              authorName={article.author.name}
+              authorHandle={article.author.handle}
+              authorAvatarUrl={article.author.avatarUrl}
+              excerptHtml={article.excerptHtml}
+              published={article.published}
+            />
           ))}
         </div>
       </div>

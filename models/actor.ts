@@ -10,6 +10,7 @@ import { getLogger } from "@logtape/logtape";
 import { eq, sql } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
+import metadata from "../deno.json" with { type: "json" };
 import { getAvatarUrl, renderAccountLinks } from "./account.ts";
 import {
   type Account,
@@ -17,9 +18,10 @@ import {
   type AccountLink,
   type Actor,
   actorTable,
+  type Instance,
   instanceTable,
   type NewActor,
-  NewInstance,
+  type NewInstance,
 } from "./schema.ts";
 import { renderMarkup } from "./markup.ts";
 import { persistInstance } from "./instance.ts";
@@ -32,13 +34,18 @@ export async function syncActorFromAccount(
   _kv: Keyv,
   fedCtx: Context<void>,
   account: Account & { emails: AccountEmail[]; links: AccountLink[] },
-): Promise<Actor> {
+): Promise<
+  Actor & {
+    account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    instance: Instance;
+  }
+> {
   const instance: NewInstance = {
-    host: new URL(fedCtx.origin).host,
+    host: fedCtx.host,
     software: "hackerspub",
-    softwareVersion: "0.0.0", // FIXME
+    softwareVersion: metadata.version,
   };
-  await db.insert(instanceTable)
+  const instances = await db.insert(instanceTable)
     .values(instance)
     .onConflictDoUpdate({
       target: instanceTable.host,
@@ -46,7 +53,8 @@ export async function syncActorFromAccount(
         ...instance,
         updated: sql`CURRENT_TIMESTAMP`,
       },
-    });
+    })
+    .returning();
   const values: Omit<NewActor, "id"> = {
     iri: fedCtx.getActorUri(account.id).href,
     type: "Person",
@@ -77,13 +85,13 @@ export async function syncActorFromAccount(
       setWhere: eq(actorTable.accountId, account.id),
     })
     .returning();
-  return rows[0];
+  return { ...rows[0], account, instance: instances[0] };
 }
 
 export async function persistActor(
   db: Database,
   actor: vocab.Actor,
-): Promise<Actor | undefined> {
+): Promise<Actor & { instance: Instance } | undefined> {
   if (actor.id == null) return undefined;
   else if (actor.inboxId == null) {
     logger.warn("Actor {actorId} has no inbox.", { actorId: actor.id.href });
@@ -146,5 +154,5 @@ export async function persistActor(
       setWhere: eq(actorTable.iri, actor.id.href),
     })
     .returning();
-  return rows[0];
+  return { ...rows[0], instance };
 }

@@ -1,14 +1,24 @@
+import type { Context } from "@fedify/fedify";
 import { and, eq, sql } from "drizzle-orm";
-import { Database } from "../db.ts";
+import Keyv from "keyv";
+import type { Database } from "../db.ts";
 import {
-  ArticleDraft,
+  type Account,
+  type AccountEmail,
+  type AccountLink,
+  accountTable,
+  type Actor,
+  type ArticleDraft,
   articleDraftTable,
-  ArticleSource,
+  type ArticleSource,
   articleSourceTable,
-  NewArticleDraft,
-  NewArticleSource,
+  type Instance,
+  type NewArticleDraft,
+  type NewArticleSource,
+  type Post,
 } from "./schema.ts";
 import { generateUuidV7, Uuid } from "./uuid.ts";
+import { syncPostFromArticleSource } from "./post.ts";
 
 export async function updateArticleDraft(
   db: Database,
@@ -64,4 +74,33 @@ export async function createArticleSource(
     .onConflictDoNothing()
     .returning();
   return rows[0];
+}
+
+export async function createArticle(
+  db: Database,
+  kv: Keyv,
+  fedCtx: Context<void>,
+  source: Omit<NewArticleSource, "id"> & { id?: Uuid },
+): Promise<
+  Post & {
+    actor: Actor & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      instance: Instance;
+    };
+    articleSource: ArticleSource & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    };
+  } | undefined
+> {
+  const articleSource = await createArticleSource(db, source);
+  if (articleSource == null) return undefined;
+  const account = await db.query.accountTable.findFirst({
+    where: eq(accountTable.id, source.accountId),
+    with: { emails: true, links: true },
+  });
+  if (account == undefined) return undefined;
+  return await syncPostFromArticleSource(db, kv, fedCtx, {
+    ...articleSource,
+    account,
+  });
 }

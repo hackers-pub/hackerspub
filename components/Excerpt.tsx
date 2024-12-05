@@ -1,3 +1,5 @@
+import { renderExcerpt } from "../models/markup.ts";
+
 export interface ExcerptProps {
   class?: string;
   html: string;
@@ -15,7 +17,7 @@ export function Excerpt({ class: className, html }: ExcerptProps) {
         prose-a:no-underline prose-a:font-normal
         ${className}
       `}
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: renderExcerpt(html) }}
     />
   );
 }

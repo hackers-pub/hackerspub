@@ -2,6 +2,8 @@ import { and, eq, inArray } from "drizzle-orm";
 import { page } from "fresh";
 import { define } from "../../../utils.ts";
 import { db } from "../../../db.ts";
+import { kv } from "../../../kv.ts";
+import { syncPostFromArticleSource } from "../../../models/post.ts";
 import {
   type Account,
   accountTable,
@@ -19,8 +21,9 @@ export const handler = define.handlers({
     const article = await db.query.articleSourceTable.findFirst({
       with: {
         account: {
-          with: { emails: true },
+          with: { emails: true, links: true },
         },
+        post: true,
       },
       where: and(
         eq(
@@ -37,6 +40,14 @@ export const handler = define.handlers({
       ),
     });
     if (article == null) return ctx.next();
+    if (article.post == null) {
+      article.post = await syncPostFromArticleSource(
+        db,
+        kv,
+        ctx.state.fedCtx,
+        article,
+      );
+    }
     return page<ArticlePageProps>({
       article,
       avatarUrl: await getAvatarUrl(article.account),

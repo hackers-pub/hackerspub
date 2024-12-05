@@ -378,7 +378,7 @@ export async function renderMarkup(
       "",
     );
   const html = htmlXss.process(rawHtml);
-  const excerptHtml = excerptHtmlXss.process(rawHtml);
+  const excerptHtml = renderExcerpt(rawHtml);
   const text = textXss.process(rawHtml);
   const toc = toToc(tocTree);
   const rendered: RenderedMarkup = {
@@ -389,6 +389,10 @@ export async function renderMarkup(
     toc: toc.level < 1 ? toc.children : [toc],
   };
   return rendered;
+}
+
+export function renderExcerpt(html: string): string {
+  return excerptHtmlXss.process(html);
 }
 
 function slugifyTitle(title: string, docId: string): string {

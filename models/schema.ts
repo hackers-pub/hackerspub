@@ -458,5 +458,104 @@ export const articleSourceRelations = relations(
       fields: [articleSourceTable.accountId],
       references: [accountTable.id],
     }),
+    post: one(postTable, {
+      fields: [articleSourceTable.id],
+      references: [postTable.articleSourceId],
+    }),
+  }),
+);
+
+export const postTypeEnum = pgEnum("post_type", [
+  "Article",
+  "Note",
+  "Question",
+]);
+
+export type PostType = (typeof postTypeEnum.enumValues)[number];
+
+export const postTable = pgTable(
+  "post",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    iri: text().notNull().unique(),
+    type: postTypeEnum().notNull(),
+    actorId: uuid("actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .unique()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    sharedPostId: uuid("shared_post_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
+    replyTargetId: uuid("reply_target_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
+    summary: text(),
+    contentHtml: text("content_html").notNull(),
+    language: varchar(),
+    tags: jsonb().$type<Record<string, string>>().notNull().default({}),
+    emojis: jsonb().$type<Record<string, string>>().notNull().default({}),
+    sensitive: boolean().notNull().default(false),
+    repliesCount: integer("replies_count").notNull().default(0),
+    likesCount: integer("likes_count").notNull().default(0),
+    sharesCount: integer("shares_count").notNull().default(0),
+    reactionsCount: jsonb()
+      .$type<Record<string, number>>()
+      .notNull()
+      .default({}),
+    url: text(),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    published: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "post_article_source_id_check",
+      sql`
+        CASE ${table.type}
+          WHEN 'Article' THEN ${table.articleSourceId} IS NOT NULL
+          ELSE ${table.articleSourceId} IS NULL
+        END
+      `,
+    ),
+    check(
+      "post_shared_post_id_reply_target_id_check",
+      sql`${table.sharedPostId} IS NULL OR ${table.replyTargetId} IS NULL`,
+    ),
+  ],
+);
+
+export type Post = typeof postTable.$inferSelect;
+export type NewPost = typeof postTable.$inferInsert;
+
+export const postRelations = relations(
+  postTable,
+  ({ one, many }) => ({
+    actor: one(actorTable, {
+      fields: [postTable.actorId],
+      references: [actorTable.id],
+    }),
+    articleSource: one(articleSourceTable, {
+      fields: [postTable.articleSourceId],
+      references: [articleSourceTable.id],
+    }),
+    sharedPost: one(postTable, {
+      fields: [postTable.sharedPostId],
+      references: [postTable.id],
+      relationName: "sharedPost",
+    }),
+    replyTarget: one(postTable, {
+      fields: [postTable.replyTargetId],
+      references: [postTable.id],
+      relationName: "replyTarget",
+    }),
+    replies: many(postTable, { relationName: "replyTarget" }),
+    shares: many(postTable, { relationName: "sharedPost" }),
   }),
 );
