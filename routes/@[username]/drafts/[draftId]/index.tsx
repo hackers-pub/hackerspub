@@ -110,10 +110,11 @@ interface DraftPageProps {
 }
 
 export default define.page<typeof handler, DraftPageProps>(
-  function DraftPage({ url, data }) {
+  function DraftPage({ url, data, state }) {
     return (
       <main class="w-full h-[calc(100vh-3.75rem)]">
         <Editor
+          language={state.language}
           class="w-full h-full"
           previewUrl={new URL("/api/preview", url).href}
           draftUrl={url.href}

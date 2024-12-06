@@ -3,9 +3,10 @@ import { renderExcerpt } from "../models/markup.ts";
 export interface ExcerptProps {
   class?: string;
   html: string;
+  lang?: string;
 }
 
-export function Excerpt({ class: className, html }: ExcerptProps) {
+export function Excerpt({ class: className, html, lang }: ExcerptProps) {
   return (
     <div
       class={`
@@ -17,6 +18,7 @@ export function Excerpt({ class: className, html }: ExcerptProps) {
         prose-a:no-underline prose-a:font-normal
         ${className}
       `}
+      lang={lang}
       dangerouslySetInnerHTML={{ __html: renderExcerpt(html) }}
     />
   );

@@ -7,8 +7,11 @@ import { TagInput } from "./TagInput.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { Label } from "../components/Label.tsx";
 import { Input } from "../components/Input.tsx";
+import getFixedT, { Language } from "../i18n.ts";
+import { Msg, TranslationSetup } from "../components/Msg.tsx";
 
 export interface EditorProps {
+  language: Language;
   class?: string;
   previewUrl: string;
   draftUrl: string;
@@ -20,6 +23,8 @@ export interface EditorProps {
 }
 
 export function Editor(props: EditorProps) {
+  const t = getFixedT(props.language);
+
   const [previewHtml, setPreviewHtml] = useState<[string, number]>(["", 0]);
   const [title, setTitle] = useState(props.defaultTitle ?? "");
   const [content, setContent] = useState(props.defaultContent ?? "");
@@ -119,13 +124,13 @@ export function Editor(props: EditorProps) {
   function switchToPublushMode() {
     saveDraft(Date.now()).then(() => {
       if (draftTitle.trim() === "") {
-        alert("Please enter a title for your article.");
+        alert(t("editor.titleRequired"));
         return;
       } else if (draftContent.trim() === "") {
-        alert("Please enter some content for your article.");
+        alert(t("editor.contentRequired"));
         return;
       } else if (draftTags.length < 1) {
-        alert("Please enter at least one tag for your article.");
+        alert(t("editor.tagsRequired"));
         return;
       }
       setPublishMode(true);
@@ -138,185 +143,192 @@ export function Editor(props: EditorProps) {
       method: "POST",
       body: JSON.stringify({
         slug: slug ?? makeSlug(draftTitle),
-        language: language ?? draftLanguage ?? "en",
+        language: language ?? draftLanguage ?? props.language,
       }),
       redirect: "manual",
       credentials: "include",
     });
     if (response.status === 409) {
-      alert(
-        "An article with the same slug already exists. Please choose a different slug.",
-      );
+      alert(t("editor.publishMode.slugAlreadyTaken"));
       setPublishing(false);
       slugInput.current?.focus();
       return;
     }
     const redirect = response.headers.get("Location");
     if (response.status !== 201 || redirect == null) {
-      alert("Failed to publish the article. Please try again later.");
+      alert(t("editor.publishMode.failed"));
       setPublishing(false);
       return;
     }
     location.href = redirect;
   }
 
-  const intl = new Intl.DisplayNames("en", { type: "language" });
+  const intl = new Intl.DisplayNames(props.language, { type: "language" });
 
   return (
-    <div class={`flex ${props.class}`}>
-      <div class={`basis-1/2 flex flex-col ${publishMode ? "hidden" : ""}`}>
-        <div class="border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
-          <input
-            ref={titleInput}
-            type="text"
-            required
-            placeholder="Article title"
-            class="w-full text-xl p-3 dark:bg-stone-900 dark:text-white border-4 border-transparent focus:border-stone-200 dark:focus:border-stone-700 focus:outline-none"
-            value={title}
-            onInput={(event) =>
-              setTitle((event.target as HTMLInputElement).value)}
-            onKeyDown={(event) => {
-              setTitle((event.target as HTMLInputElement).value);
-              if (event.key === "Enter") {
-                event.preventDefault();
-                contentTextArea.current?.focus();
-              }
-            }}
-          />
+    <TranslationSetup language={props.language}>
+      <div class={`flex ${props.class}`}>
+        <div class={`basis-1/2 flex flex-col ${publishMode ? "hidden" : ""}`}>
+          <div class="border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
+            <input
+              ref={titleInput}
+              type="text"
+              required
+              placeholder={t("editor.titlePlaceholder")}
+              class="w-full text-xl p-3 dark:bg-stone-900 dark:text-white border-4 border-transparent focus:border-stone-200 dark:focus:border-stone-700 focus:outline-none"
+              value={title}
+              onInput={(event) =>
+                setTitle((event.target as HTMLInputElement).value)}
+              onKeyDown={(event) => {
+                setTitle((event.target as HTMLInputElement).value);
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  contentTextArea.current?.focus();
+                }
+              }}
+            />
+          </div>
+          <div class="grow">
+            <textarea
+              ref={contentTextArea}
+              required
+              placeholder={t("editor.contentPlaceholder")}
+              class="w-full h-full resize-none text-xl p-3 dark:bg-stone-900 dark:text-white border-4 border-transparent focus:border-stone-200 dark:focus:border-stone-700 focus:outline-none font-mono"
+              onInput={onInput}
+              value={content}
+            />
+          </div>
         </div>
-        <div class="grow">
-          <textarea
-            ref={contentTextArea}
-            required
-            placeholder="Write your article here. You can use Markdown."
-            class="w-full h-full resize-none text-xl p-3 dark:bg-stone-900 dark:text-white border-4 border-transparent focus:border-stone-200 dark:focus:border-stone-700 focus:outline-none font-mono"
-            onInput={onInput}
-            value={content}
-          />
+        <div
+          class={`basis-1/2 flex flex-col ${
+            publishMode
+              ? ""
+              : "border-l-[1px] border-l-stone-300 dark:border-l-stone-600"
+          }`}
+        >
+          {publishMode
+            ? (
+              <h1 class="text-2xl p-4 border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
+                {draftTitle}
+              </h1>
+            )
+            : (
+              <div class="flex border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
+                <TagInput
+                  class="grow"
+                  defaultTags={tags}
+                  onTagsChange={setTags}
+                />
+                <Button onClick={switchToPublushMode}>
+                  <Msg $key="editor.publish" />
+                </Button>
+              </div>
+            )}
+          <div class="grow overflow-y-scroll p-4 text-xl">
+            <div
+              class="prose dark:prose-invert"
+              dangerouslySetInnerHTML={{ __html: previewHtml[0] }}
+            />
+          </div>
         </div>
-      </div>
-      <div
-        class={`basis-1/2 flex flex-col ${
-          publishMode
-            ? ""
-            : "border-l-[1px] border-l-stone-300 dark:border-l-stone-600"
-        }`}
-      >
-        {publishMode
-          ? (
-            <h1 class="text-2xl p-4 border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
-              {draftTitle}
-            </h1>
-          )
-          : (
-            <div class="flex border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
-              <TagInput
-                class="grow"
-                defaultTags={tags}
-                onTagsChange={setTags}
-              />
-              <Button onClick={switchToPublushMode}>Publish</Button>
-            </div>
-          )}
-        <div class="grow overflow-y-scroll p-4 text-xl">
-          <div
-            class="prose dark:prose-invert"
-            dangerouslySetInnerHTML={{ __html: previewHtml[0] }}
-          />
-        </div>
-      </div>
-      {publishMode &&
-        (
-          <div class="basis-1/2 flex flex-col border-l-[1px] border-l-stone-300 dark:border-l-stone-600">
-            <div class="p-4">
-              <PageTitle>Publish</PageTitle>
-              <p>
-                You're about to publish your article. Please review it before
-                publishing.
-              </p>
-              <div class="flex flex-col gap-4 mt-4">
-                <div>
-                  <Label label="Slug">
-                    <Input
-                      ref={slugInput}
-                      value={slug ?? makeSlug(draftTitle)}
-                      maxlength={128}
-                      onInput={(e) => {
-                        const input = e.target as HTMLInputElement;
-                        setSlug(input.value);
-                      }}
-                      onChange={(e) => {
-                        const input = e.target as HTMLInputElement;
-                        setSlug(makeSlug(input.value));
-                      }}
-                      class="w-full"
-                    />
-                  </Label>
-                  <p class="opacity-50">
-                    This will be a part of the permalink of your article:<br />
-                    <strong>
-                      {new URL(
-                        `./${new Date().getFullYear()}/${
-                          slug ?? makeSlug(draftTitle)
-                        }`,
-                        props.publishUrlPrefix,
-                      ).href}
-                    </strong>
-                  </p>
-                </div>
-                <div>
-                  <Label label="Language">
-                    <select
-                      class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
-                      onInput={(event) =>
-                        setLanguage(
-                          (event.target as HTMLSelectElement).value,
-                        )}
-                    >
-                      {languages
-                        .map((lang) => [lang, intl.of(lang) ?? ""])
-                        .toSorted(([_, a], [__, b]) =>
-                          a < b ? -1 : a > b ? 1 : 0
-                        )
-                        .map(([lang, displayName]) => {
-                          const nativeName = new Intl.DisplayNames(lang, {
-                            type: "language",
-                          })
-                            .of(lang);
-                          return (
-                            <option
-                              value={lang}
-                              selected={(language ?? draftLanguage) === lang}
-                            >
-                              {nativeName != null && nativeName !== displayName
-                                ? `${displayName} (${nativeName})`
-                                : displayName}
-                            </option>
-                          );
-                        })}
-                    </select>
-                  </Label>
-                </div>
-                <div class="flex w-full">
-                  <div class="grow">
-                    <Button
-                      disabled={publishing}
-                      onClick={() => setPublishMode(false)}
-                    >
-                      Cancel
-                    </Button>
+        {publishMode &&
+          (
+            <div class="basis-1/2 flex flex-col border-l-[1px] border-l-stone-300 dark:border-l-stone-600">
+              <div class="p-4">
+                <PageTitle>
+                  <Msg $key="editor.publishMode.title" />
+                </PageTitle>
+                <p>
+                  <Msg $key="editor.publishMode.description" />
+                </p>
+                <div class="flex flex-col gap-4 mt-4">
+                  <div>
+                    <Label label={t("editor.publishMode.slug")}>
+                      <Input
+                        ref={slugInput}
+                        value={slug ?? makeSlug(draftTitle)}
+                        maxlength={128}
+                        onInput={(e) => {
+                          const input = e.target as HTMLInputElement;
+                          setSlug(input.value);
+                        }}
+                        onChange={(e) => {
+                          const input = e.target as HTMLInputElement;
+                          setSlug(makeSlug(input.value));
+                        }}
+                        class="w-full"
+                      />
+                    </Label>
+                    <p class="opacity-50">
+                      <Msg $key="editor.publishMode.slugDescription" />
+                      <br />
+                      <strong>
+                        {new URL(
+                          `./${new Date().getFullYear()}/${
+                            slug ?? makeSlug(draftTitle)
+                          }`,
+                          props.publishUrlPrefix,
+                        ).href}
+                      </strong>
+                    </p>
                   </div>
-                  <div class="text-right">
-                    <Button disabled={publishing} onClick={publish}>
-                      {publishing ? "Publishing now…" : "Publish now"}
-                    </Button>
+                  <div>
+                    <Label label={t("editor.publishMode.language")}>
+                      <select
+                        class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
+                        onInput={(event) =>
+                          setLanguage(
+                            (event.target as HTMLSelectElement).value,
+                          )}
+                      >
+                        {languages
+                          .map((lang) => [lang, intl.of(lang) ?? ""])
+                          .toSorted(([_, a], [__, b]) =>
+                            a < b ? -1 : a > b ? 1 : 0
+                          )
+                          .map(([lang, displayName]) => {
+                            const nativeName = new Intl.DisplayNames(lang, {
+                              type: "language",
+                            })
+                              .of(lang);
+                            return (
+                              <option
+                                value={lang}
+                                selected={(language ?? draftLanguage) === lang}
+                              >
+                                {nativeName != null &&
+                                    nativeName !== displayName
+                                  ? `${displayName} (${nativeName})`
+                                  : displayName}
+                              </option>
+                            );
+                          })}
+                      </select>
+                    </Label>
+                  </div>
+                  <div class="flex w-full">
+                    <div class="grow">
+                      <Button
+                        disabled={publishing}
+                        onClick={() => setPublishMode(false)}
+                      >
+                        <Msg $key="editor.publishMode.cancel" />
+                      </Button>
+                    </div>
+                    <div class="text-right">
+                      <Button disabled={publishing} onClick={publish}>
+                        {publishing
+                          ? <Msg $key="editor.publishMode.loading" />
+                          : <Msg $key="editor.publishMode.submit" />}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
-    </div>
+          )}
+      </div>
+    </TranslationSetup>
   );
 }
 

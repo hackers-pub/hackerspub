@@ -19,6 +19,7 @@ import { db } from "../../../db.ts";
 import { define } from "../../../utils.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
 import { generateUuidV7, validateUuid } from "../../../models/uuid.ts";
+import { Msg, Translation } from "../../../components/Msg.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -46,29 +47,28 @@ export const handler = define.handlers({
     ) {
       return page<SignupPageProps>({ token, invalidCode: true });
     }
+    const { t } = ctx.state;
     const username = form.get("username")?.toString()?.trim()?.toLowerCase();
     const name = form.get("name")?.toString()?.trim();
     const bio = form.get("bio")?.toString() ?? "";
     const errors = {
       username: username == null || username === ""
-        ? "Username is required."
+        ? t("signUp.usernameRequired")
         : username.length > 50
-        ? "Username is too long. Maximum length is 50 characters."
+        ? t("signUp.usernameTooLong")
         : !username.match(/^[a-z0-9_]{1,15}$/)
-        ? "Username can only contain lowercase letters, numbers, and underscores."
+        ? t("signUp.usernameInvalidChars")
         : await db.query.accountTable.findFirst({
             where: eq(accountTable.username, username),
           }) != null
-        ? "Username is already taken."
+        ? t("signUp.usernameAlreadyTaken")
         : undefined,
       name: name == null || name === ""
-        ? "Name is required."
+        ? t("signUp.nameRequired")
         : name.length > 50
-        ? "Name is too long. Maximum length is 50 characters."
+        ? t("signUp.nameTooLong")
         : undefined,
-      bio: bio != null && bio.length > 512
-        ? "Bio is too long. Maximum length is 512 characters."
-        : undefined,
+      bio: bio != null && bio.length > 512 ? t("signUp.bioTooLong") : undefined,
     };
     if (
       username == null || name == null || errors.username || errors.name ||
@@ -126,19 +126,19 @@ export default define.page<typeof handler, SignupPageProps>(
   function SignupPage({ data: { invalidCode, token, errors, values } }) {
     return (
       <div>
-        <PageTitle>Sign up</PageTitle>
+        <PageTitle>
+          <Msg $key="signUp.title" />
+        </PageTitle>
         {invalidCode
           ? (
             <p>
-              The sign-up link is invalid. Please make sure you're using the
-              correct link from the email you received.
+              <Msg $key="signUp.invalidCode" />
             </p>
           )
           : (
             <>
               <p>
-                Welcome to Hackers' Pub! Please fill out the form below to
-                complete your sign-up.
+                <Msg $key="signUp.welcome" />
               </p>
               <SignupForm token={token} errors={errors} values={values} />
             </>
@@ -164,86 +164,90 @@ interface SignupFormProps {
 
 function SignupForm({ token, values, errors }: SignupFormProps) {
   return (
-    <form method="post" class="mt-5 grid lg:grid-cols-2 gap-5">
-      <div class="lg:col-span-2">
-        <Label label="Email address" required>
-          <Input
-            type="email"
-            name="email"
-            value={token.email}
-            disabled
-            class="w-full lg:w-1/2"
-          />
-        </Label>
-        <p class="opacity-50">
-          Your email address will be used to sign in to your account.
-        </p>
-      </div>
-      <div>
-        <Label label="Username" required>
-          <Input
-            type="text"
-            name="username"
-            required
-            class="w-full"
-            pattern="^[A-Za-z0-9_]{1,50}$"
-            value={values?.username}
-            aria-invalid={errors?.username ? "true" : "false"}
-          />
-        </Label>
-        {errors?.username == null
-          ? (
+    <Translation>
+      {(t) => (
+        <form method="post" class="mt-5 grid lg:grid-cols-2 gap-5">
+          <div class="lg:col-span-2">
+            <Label label={t("signUp.email")} required>
+              <Input
+                type="email"
+                name="email"
+                value={token.email}
+                disabled
+                class="w-full lg:w-1/2"
+              />
+            </Label>
             <p class="opacity-50">
-              Your username will be used to create your profile URL and your
-              fediverse handle.
+              <Msg $key="signUp.emailDescription" />
             </p>
-          )
-          : <p class="text-red-700 dark:text-red-500">{errors.username}</p>}
-      </div>
-      <div>
-        <Label label="Name" required>
-          <Input
-            type="text"
-            name="name"
-            required
-            class="w-full"
-            pattern="^.{1,50}$"
-            value={values?.name}
-            aria-invalid={errors?.name ? "true" : "false"}
-          />
-        </Label>
-        {errors?.name == null
-          ? (
-            <p class="opacity-50">
-              Your name will be displayed on your profile and in your posts.
-            </p>
-          )
-          : <p class="text-red-700 dark:text-red-500">{errors.name}</p>}
-      </div>
-      <div class="lg:col-span-2">
-        <Label label="Bio">
-          <TextArea
-            name="bio"
-            cols={80}
-            rows={7}
-            class="w-full"
-            value={values?.bio}
-            aria-invalid={errors?.bio ? "true" : "false"}
-          />
-        </Label>
-        {errors?.bio == null
-          ? (
-            <p class="opacity-50">
-              Your bio will be displayed on your profile. You can use Markdown
-              to format it.
-            </p>
-          )
-          : <p class="text-red-700 dark:text-red-500">{errors.bio}</p>}
-      </div>
-      <div>
-        <input type="hidden" name="code" value={token.code} />
-        <Button type="submit">Sign up</Button>
-      </div>
-    </form>
+          </div>
+          <div>
+            <Label label={t("signUp.username")} required>
+              <Input
+                type="text"
+                name="username"
+                required
+                class="w-full"
+                pattern="^[A-Za-z0-9_]{1,50}$"
+                value={values?.username}
+                aria-invalid={errors?.username ? "true" : "false"}
+              />
+            </Label>
+            {errors?.username == null
+              ? (
+                <p class="opacity-50">
+                  <Msg $key="signUp.usernameDescription" />
+                </p>
+              )
+              : <p class="text-red-700 dark:text-red-500">{errors.username}</p>}
+          </div>
+          <div>
+            <Label label={t("signUp.name")} required>
+              <Input
+                type="text"
+                name="name"
+                required
+                class="w-full"
+                pattern="^.{1,50}$"
+                value={values?.name}
+                aria-invalid={errors?.name ? "true" : "false"}
+              />
+            </Label>
+            {errors?.name == null
+              ? (
+                <p class="opacity-50">
+                  <Msg $key="signUp.nameDescription" />
+                </p>
+              )
+              : <p class="text-red-700 dark:text-red-500">{errors.name}</p>}
+          </div>
+          <div class="lg:col-span-2">
+            <Label label={t("signUp.bio")}>
+              <TextArea
+                name="bio"
+                cols={80}
+                rows={7}
+                class="w-full"
+                value={values?.bio}
+                aria-invalid={errors?.bio ? "true" : "false"}
+              />
+            </Label>
+            {errors?.bio == null
+              ? (
+                <p class="opacity-50">
+                  <Msg $key="signUp.bioDescription" />
+                </p>
+              )
+              : <p class="text-red-700 dark:text-red-500">{errors.bio}</p>}
+          </div>
+          <div>
+            <input type="hidden" name="code" value={token.code} />
+            <Button type="submit">
+              <Msg $key="signUp.submit" />
+            </Button>
+          </div>
+        </form>
+      )}
+    </Translation>
   );
 }

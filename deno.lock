@@ -97,6 +97,7 @@
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
     "npm:franc@^6.2.0": "6.2.0",
+    "npm:i18next@^24.0.5": "24.0.5",
     "npm:ioredis@^5.4.1": "5.4.1",
     "npm:iso-639-3@^3.0.1": "3.0.1",
     "npm:json-canon@^1.0.1": "1.0.1",
@@ -561,6 +562,12 @@
         "@babel/helper-plugin-utils",
         "@babel/helper-skip-transparent-expression-wrappers",
         "@babel/plugin-syntax-typescript"
+      ]
+    },
+    "@babel/runtime@7.26.0": {
+      "integrity": "sha512-FDSOghenHTiToteC/QRlv2q3DhPZ/oOXTBoirfWNx1Cx3TMVcGWQtMMmQcSvb/JjpNeGzx8Pq/b4fKEJuWm1sw==",
+      "dependencies": [
+        "regenerator-runtime"
       ]
     },
     "@babel/template@7.25.9": {
@@ -2051,6 +2058,12 @@
     "human-signals@4.3.1": {
       "integrity": "sha512-nZXjEF2nbo7lIw3mgYjItAfgQXog3OjJogSbKa2CQIIvSGWcKgeJnQlNXip6NglNzYH45nSRiEVimMvYL8DDqQ=="
     },
+    "i18next@24.0.5": {
+      "integrity": "sha512-1jSdEzgFPGLZRsQwydoMFCBBaV+PmrVEO5WhANllZPX4y2JSGTxUjJ+xVklHIsiS95uR8gYc/y0hYZWevucNjg==",
+      "dependencies": [
+        "@babel/runtime"
+      ]
+    },
     "ieee754@1.2.1": {
       "integrity": "sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA=="
     },
@@ -3033,6 +3046,9 @@
         "@redis/time-series"
       ]
     },
+    "regenerator-runtime@0.14.1": {
+      "integrity": "sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw=="
+    },
     "regex@4.4.0": {
       "integrity": "sha512-uCUSuobNVeqUupowbdZub6ggI5/JZkYyJdDogddJr60L764oxC2pMZov1fQ3wM9bdyzUILDG+Sqx6NAKAz9rKQ=="
     },
@@ -3888,6 +3904,7 @@
       "npm:drizzle-kit@0.28",
       "npm:drizzle-orm@~0.36.3",
       "npm:franc@^6.2.0",
+      "npm:i18next@^24.0.5",
       "npm:ioredis@^5.4.1",
       "npm:iso-639-3@^3.0.1",
       "npm:katex@~0.16.11",

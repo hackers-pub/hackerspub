@@ -21,6 +21,7 @@ import { define } from "../../utils.ts";
 import { updateAccount, updateAccountLinks } from "../../models/account.ts";
 import { syncActorFromAccount } from "../../models/actor.ts";
 import { kv } from "../../kv.ts";
+import { Msg, Translation } from "../../components/Msg.tsx";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]", "settings"]);
 
@@ -32,7 +33,7 @@ export const handler = define.handlers({
       with: { links: { orderBy: accountLinkTable.index } },
     });
     if (account?.id !== ctx.state.session.accountId) return ctx.next();
-    ctx.state.title = "Profile settings";
+    ctx.state.title = ctx.state.t("settings.profile.title");
     return page<ProfileSettingsPageProps>({
       usernameChanged: account.usernameChanged,
       values: account,
@@ -41,7 +42,8 @@ export const handler = define.handlers({
   },
 
   async POST(ctx) {
-    ctx.state.title = "Profile settings";
+    const { t } = ctx.state;
+    ctx.state.title = t("settings.profile.title");
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, ctx.params.username),
       with: { links: true },
@@ -58,24 +60,24 @@ export const handler = define.handlers({
       .map(([name, url]) => ({ name, url }));
     const errors = {
       username: username == null || username === ""
-        ? "Username is required."
+        ? t("settings.profile.usernameRequired")
         : username.length > 50
-        ? "Username is too long. Maximum length is 50 characters."
+        ? t("settings.profile.usernameTooLong")
         : !username.match(/^[a-z0-9_]{1,15}$/)
-        ? "Username can only contain lowercase letters, numbers, and underscores."
+        ? t("settings.profile.usernameInvalidChars")
         : account.username !== username &&
             await db.query.accountTable.findFirst({
                 where: eq(accountTable.username, username),
               }) != null
-        ? "Username is already taken."
+        ? t("settings.profile.usernameAlreadyTaken")
         : undefined,
       name: name == null || name === ""
-        ? "Name is required."
+        ? t("settings.profile.nameRequired")
         : name.length > 50
-        ? "Name is too long. Maximum length is 50 characters."
+        ? t("settings.profile.nameTooLong")
         : undefined,
       bio: bio != null && bio.length > 512
-        ? "Bio is too long. Maximum length is 512 characters."
+        ? t("settings.profile.bioTooLong")
         : undefined,
     };
     if (
@@ -136,7 +138,9 @@ export default define.page<typeof handler, ProfileSettingsPageProps>(
   ) {
     return (
       <div>
-        <PageTitle>Profile settings</PageTitle>
+        <PageTitle>
+          <Msg $key="settings.profile.title" />
+        </PageTitle>
         <ProfileSettingsForm
           usernameChanged={usernameChanged}
           values={values}
@@ -167,91 +171,96 @@ function ProfileSettingsForm(
   { usernameChanged, values, links, errors }: ProfileSettingsFormProps,
 ) {
   return (
-    <form method="post" class="mt-5 grid lg:grid-cols-2 gap-5">
-      <div>
-        <Label label="Username" required>
-          <Input
-            type="text"
-            name="username"
-            required
-            class="w-full"
-            pattern="^[A-Za-z0-9_]{1,50}$"
-            value={values?.username}
-            aria-invalid={errors?.username ? "true" : "false"}
-            readOnly={usernameChanged != null}
-          />
-        </Label>
-        {errors?.username == null
-          ? (
-            <p class="opacity-50">
-              Your username will be used to create your profile URL and your
-              fediverse handle.{" "}
-              <strong>
-                You can change it only once.
-                {usernameChanged != null && (
-                  <>
-                    {" "}As you have already changed it at{" "}
-                    <time datetime={usernameChanged.toString()}>
-                      {usernameChanged.toLocaleString("en-US", {
-                        dateStyle: "full",
-                        timeStyle: "short",
-                      })}
-                    </time>, you can't change it again.
-                  </>
-                )}
-              </strong>
-            </p>
-          )
-          : <p class="text-red-700 dark:text-red-500">{errors.username}</p>}
-      </div>
-      <div>
-        <Label label="Name" required>
-          <Input
-            type="text"
-            name="name"
-            required
-            class="w-full"
-            pattern="^.{1,50}$"
-            value={values?.name}
-            aria-invalid={errors?.name ? "true" : "false"}
-          />
-        </Label>
-        {errors?.name == null
-          ? (
-            <p class="opacity-50">
-              Your name will be displayed on your profile and in your posts.
-            </p>
-          )
-          : <p class="text-red-700 dark:text-red-500">{errors.name}</p>}
-      </div>
-      <div class="lg:col-span-2">
-        <Label label="Bio">
-          <TextArea
-            name="bio"
-            cols={80}
-            rows={7}
-            class="w-full"
-            value={values?.bio}
-            aria-invalid={errors?.bio ? "true" : "false"}
-          />
-        </Label>
-        {errors?.bio == null
-          ? (
-            <p class="opacity-50">
-              Your bio will be displayed on your profile. You can use Markdown
-              to format it.
-            </p>
-          )
-          : <p class="text-red-700 dark:text-red-500">{errors.bio}</p>}
-      </div>
-      <div class="lg:col-span-2">
-        <AccountLinkFieldSet
-          links={links}
-        />
-      </div>
-      <div class="lg:col-span-2">
-        <Button type="submit">Save</Button>
-      </div>
-    </form>
+    <Translation>
+      {(t, lang) => (
+        <form method="post" class="mt-5 grid lg:grid-cols-2 gap-5">
+          <div>
+            <Label label={t("settings.profile.username")} required>
+              <Input
+                type="text"
+                name="username"
+                required
+                class="w-full"
+                pattern="^[A-Za-z0-9_]{1,50}$"
+                value={values?.username}
+                aria-invalid={errors?.username ? "true" : "false"}
+                readOnly={usernameChanged != null}
+              />
+            </Label>
+            {errors?.username == null
+              ? (
+                <p class="opacity-50">
+                  <Msg $key="settings.profile.usernameDescription" />{" "}
+                  <strong>
+                    <Msg $key="settings.profile.usernameCaution" />
+                    {usernameChanged != null && (
+                      <>
+                        {" "}
+                        <Msg
+                          $key="settings.profile.usernameChanged"
+                          changed={
+                            <time datetime={usernameChanged.toString()}>
+                              {usernameChanged.toLocaleString(lang, {
+                                dateStyle: "full",
+                                timeStyle: "short",
+                              })}
+                            </time>
+                          }
+                        />
+                      </>
+                    )}
+                  </strong>
+                </p>
+              )
+              : <p class="text-red-700 dark:text-red-500">{errors.username}</p>}
+          </div>
+          <div>
+            <Label label={t("settings.profile.name")} required>
+              <Input
+                type="text"
+                name="name"
+                required
+                class="w-full"
+                pattern="^.{1,50}$"
+                value={values?.name}
+                aria-invalid={errors?.name ? "true" : "false"}
+              />
+            </Label>
+            {errors?.name == null
+              ? (
+                <p class="opacity-50">
+                  <Msg $key="settings.profile.nameDescription" />
+                </p>
+              )
+              : <p class="text-red-700 dark:text-red-500">{errors.name}</p>}
+          </div>
+          <div class="lg:col-span-2">
+            <Label label={t("settings.profile.bio")}>
+              <TextArea
+                name="bio"
+                cols={80}
+                rows={7}
+                class="w-full"
+                value={values?.bio}
+                aria-invalid={errors?.bio ? "true" : "false"}
+              />
+            </Label>
+            {errors?.bio == null
+              ? (
+                <p class="opacity-50">
+                  <Msg $key="settings.profile.bioDescription" />
+                </p>
+              )
+              : <p class="text-red-700 dark:text-red-500">{errors.bio}</p>}
+          </div>
+          <div class="lg:col-span-2">
+            <AccountLinkFieldSet links={links} language={lang} />
+          </div>
+          <div class="lg:col-span-2">
+            <Button type="submit">Save</Button>
+          </div>
+        </form>
+      )}
+    </Translation>
   );
 }

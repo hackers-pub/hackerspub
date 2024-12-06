@@ -1,12 +1,13 @@
 import { desc, eq } from "drizzle-orm";
 import { page } from "fresh";
-import { define } from "../../../utils.ts";
-import { accountTable, articleDraftTable } from "../../../models/schema.ts";
 import { db } from "../../../db.ts";
+import { Excerpt } from "../../../components/Excerpt.tsx";
+import { Msg } from "../../../components/Msg.tsx";
 import { PageTitle } from "../../../components/PageTitle.tsx";
 import { ConfirmForm } from "../../../islands/ConfirmForm.tsx";
-import { Excerpt } from "../../../components/Excerpt.tsx";
 import { renderMarkup } from "../../../models/markup.ts";
+import { accountTable, articleDraftTable } from "../../../models/schema.ts";
+import { define } from "../../../utils.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -48,10 +49,12 @@ interface DraftsPageProps {
 }
 
 export default define.page<typeof handler, DraftsPageProps>(
-  function DraftsPage({ data: { drafts } }) {
+  function DraftsPage({ state: { t, language }, data: { drafts } }) {
     return (
       <div>
-        <PageTitle>Article drafts</PageTitle>
+        <PageTitle>
+          <Msg $key="articleDrafts.title" />
+        </PageTitle>
         {drafts.map((draft) => (
           <article key={draft.url} class="mb-4 flex gap-4">
             <a
@@ -61,28 +64,41 @@ export default define.page<typeof handler, DraftsPageProps>(
               <div class="leading-7 p-4">
                 <h2 class="text-xl font-bold truncate">
                   {draft.title === ""
-                    ? <span class="italic">(No title)</span>
+                    ? (
+                      <span class="italic">
+                        <Msg $key="articleDrafts.noTitle" />
+                      </span>
+                    )
                     : draft.title}
                 </h2>
                 <p class="text-stone-500 dark:text-stone-400 truncate">
-                  Created at{" "}
-                  <time datetime={draft.created.toISOString()}>
-                    {draft.created.toLocaleString("en-US", {
-                      dateStyle: "full",
-                      timeStyle: "short",
-                    })}
-                  </time>
+                  <Msg
+                    $key="articleDrafts.created"
+                    created={
+                      <time datetime={draft.created.toISOString()}>
+                        {draft.created.toLocaleString(language, {
+                          dateStyle: "full",
+                          timeStyle: "short",
+                        })}
+                      </time>
+                    }
+                  />
                   {+draft.created !== +draft.updated &&
                     (
                       <>
                         {" "}
-                        &middot; Updated at{" "}
-                        <time datetime={draft.updated.toISOString()}>
-                          {draft.updated.toLocaleString("en-US", {
-                            dateStyle: "full",
-                            timeStyle: "short",
-                          })}
-                        </time>
+                        &middot;{" "}
+                        <Msg
+                          $key="articleDrafts.updated"
+                          updated={
+                            <time datetime={draft.updated.toISOString()}>
+                              {draft.updated.toLocaleString(language, {
+                                dateStyle: "full",
+                                timeStyle: "short",
+                              })}
+                            </time>
+                          }
+                        />
                       </>
                     )}
                 </p>
@@ -95,7 +111,7 @@ export default define.page<typeof handler, DraftsPageProps>(
             <ConfirmForm
               method="post"
               action={draft.deleteUrl}
-              confirm="Are you sure you want to delete this draft?"
+              confirm={t("articleDrafts.deleteConfirm")}
             >
               <button
                 type="submit"
@@ -108,7 +124,7 @@ export default define.page<typeof handler, DraftsPageProps>(
                   strokeWidth={1.5}
                   stroke="currentColor"
                   className="size-6"
-                  aria-label="Delete draft"
+                  aria-label={t("articleDrafts.delete")}
                 >
                   <path
                     strokeLinecap="round"

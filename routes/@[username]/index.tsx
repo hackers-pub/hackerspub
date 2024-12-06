@@ -3,7 +3,6 @@ import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { and, desc, eq } from "drizzle-orm";
 import { page } from "fresh";
-import { Excerpt } from "../../components/Excerpt.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import {
@@ -17,11 +16,11 @@ import { htmlXss, renderMarkup } from "../../models/markup.ts";
 import { compactUrl, define } from "../../utils.ts";
 import { persistActor } from "../../models/actor.ts";
 import { getAvatarUrl } from "../../models/account.ts";
-import { ArticleMetadata } from "../../components/ArticleMetadata.tsx";
 import { Button } from "../../components/Button.tsx";
 import { FollowingState, getFollowingState } from "../../models/following.ts";
 import { ArticleExcerpt } from "../../components/ArticleExcerpt.tsx";
 import { Uuid } from "../../models/uuid.ts";
+import { Msg } from "../../components/Msg.tsx";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
@@ -258,8 +257,15 @@ export default define.page<typeof handler, ProfilePageProps>(
               text: (
                 <>
                   <span class="select-all">{data.handle}</span> &middot;{" "}
-                  {data.followeesCount} following &middot; {data.followersCount}
-                  {data.followersCount === 1 ? " follower" : " followers"}
+                  <Msg
+                    $key="profile.followeesCount"
+                    count={data.followeesCount}
+                  />{" "}
+                  &middot;{" "}
+                  <Msg
+                    $key="profile.followersCount"
+                    count={data.followersCount}
+                  />
                 </>
               ),
             }}
@@ -269,7 +275,9 @@ export default define.page<typeof handler, ProfilePageProps>(
           {data.followingState === "none"
             ? (
               <form method="post" action={data.followUrl}>
-                <Button class="ml-4 mt-2 h-9">Follow</Button>
+                <Button class="ml-4 mt-2 h-9">
+                  <Msg $key="profile.follow" />
+                </Button>
               </form>
             )
             : data.followingState != null &&
@@ -277,8 +285,8 @@ export default define.page<typeof handler, ProfilePageProps>(
                 <form method="post" action={data.unfollowUrl}>
                   <Button class="ml-4 mt-2 h-9">
                     {data.followingState === "following"
-                      ? "Unfollow"
-                      : "Cancel request"}
+                      ? <Msg $key="profile.unfollow" />
+                      : <Msg $key="profile.cancelRequest" />}
                   </Button>
                 </form>
               )}

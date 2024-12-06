@@ -1,15 +1,16 @@
 import { isEmail } from "@onisaint/validate-email";
 import { eq } from "drizzle-orm";
 import { page } from "fresh";
-import { accountEmailTable } from "../../models/schema.ts";
-import { createSigninToken } from "../../models/signin.ts";
-import { createSignupToken } from "../../models/signup.ts";
-import { PageTitle } from "../../components/PageTitle.tsx";
-import { Input } from "../../components/Input.tsx";
 import { Button } from "../../components/Button.tsx";
+import { Input } from "../../components/Input.tsx";
+import { Msg } from "../../components/Msg.tsx";
+import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { sendEmail } from "../../email.ts";
 import { kv } from "../../kv.ts";
+import { accountEmailTable } from "../../models/schema.ts";
+import { createSigninToken } from "../../models/signin.ts";
+import { createSignupToken } from "../../models/signup.ts";
 import { define } from "../../utils.ts";
 
 export const handler = define.handlers({
@@ -18,13 +19,14 @@ export const handler = define.handlers({
   },
 
   async POST(ctx) {
+    const { t } = ctx.state;
     const form = await ctx.req.formData();
     const email = form.get("email");
     if (typeof email !== "string" || !isEmail(email)) {
       return page<SignPageProps>({
         success: false,
         values: { email: email?.toString() },
-        errors: { email: "Invalid email address." },
+        errors: { email: t("signInUp.invalidEmail") },
       });
     }
     const accountEmail = await db.query.accountEmailTable.findFirst({
@@ -36,15 +38,8 @@ export const handler = define.handlers({
       verifyUrl.searchParams.set("code", token.code);
       await sendEmail({
         to: email,
-        subject: "Sign up for Hackers' Pub",
-        text: `Welcome to Hackers' Pub! To sign up, click the following link:
-
-${verifyUrl.href}
-
-This link will expire in 24 hours.
-
-If you didn't request this email, you can safely ignore it.
-`,
+        subject: t("signInUp.signUpEmailSubject"),
+        text: t("signInUp.signUpEmailText", { verifyUrl: verifyUrl.href }),
       });
     } else {
       const token = await createSigninToken(kv, accountEmail.accountId);
@@ -52,16 +47,8 @@ If you didn't request this email, you can safely ignore it.
       verifyUrl.searchParams.set("code", token.code);
       await sendEmail({
         to: email,
-        subject: "Sign in to Hackers' Pub",
-        text:
-          `Welcome back to Hackers' Pub! To sign in, click the following link:
-
-${verifyUrl.href}
-
-This link will expire in 24 hours.
-
-If you didn't request this email, you can safely ignore it.
-`,
+        subject: t("signInUp.signInEmailSubject"),
+        text: t("signInUp.signInEmailText", { verifyUrl: verifyUrl.href }),
       });
     }
     return page<SignPageProps>({ success: true, email });
@@ -77,7 +64,9 @@ export default define.page<typeof handler, SignPageProps>(
   function SignPage({ data }) {
     return (
       <div>
-        <PageTitle>Sign in/up</PageTitle>
+        <PageTitle>
+          <Msg $key="signInUp.title" />
+        </PageTitle>
         {data?.success == null
           ? <SignForm />
           : data?.success === false
@@ -85,12 +74,17 @@ export default define.page<typeof handler, SignPageProps>(
           : (
             <div class="prose dark:prose-invert">
               <p>
-                An email has been sent to <strong>{data.email}</strong>{" "}
-                with a sign-in/up link. Please check your inbox. If you don't
-                see it, check your spam folder.
+                <Msg
+                  $key="signInUp.emailSentDescription"
+                  email={<strong>{data.email}</strong>}
+                />
               </p>
-              <p>Note that the link will expire in 24 hours.</p>
-              <p>You can always request a new link by signing in/up again.</p>
+              <p>
+                <Msg $key="signInUp.emailSentExpires" />
+              </p>
+              <p>
+                <Msg $key="signInUp.emailSentResend" />
+              </p>
             </div>
           )}
       </div>
@@ -124,13 +118,12 @@ function SignForm({ values, errors }: SignFormProps) {
           type="submit"
           class="basis-1/7 lg:text-xl"
         >
-          Sign in/up
+          <Msg $key="signInUp.submit" />
         </Button>
       </form>
       <div class="prose dark:prose-invert mt-5">
         <p>
-          {errors?.email ??
-            "If you have an account, we'll send you a sign-in link. If you don't have an account, we'll send you a sign-up link."}
+          {errors?.email ?? <Msg $key="signInUp.description" />}
         </p>
       </div>
     </>

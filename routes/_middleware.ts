@@ -8,6 +8,13 @@ import { getSession } from "../models/session.ts";
 import { define } from "../utils.ts";
 import { accountTable } from "../models/schema.ts";
 import { validateUuid } from "../models/uuid.ts";
+import getFixedT, {
+  DEFAULT_LANGUAGE,
+  isLanguage,
+  type Language,
+  LANGUAGES,
+} from "../i18n.ts";
+import { acceptsLanguages } from "@std/http/negotiation";
 
 export const handler = define.middleware([
   (ctx) => {
@@ -15,6 +22,15 @@ export const handler = define.middleware([
     return ctx.next();
   },
   (ctx) => {
+    const lang = ctx.url.searchParams.get("lang")?.trim();
+    if (lang == null || !isLanguage(lang)) {
+      ctx.state.language =
+        (acceptsLanguages(ctx.req, ...LANGUAGES) as Language | undefined) ??
+          DEFAULT_LANGUAGE;
+    } else {
+      ctx.state.language = lang;
+    }
+    ctx.state.t = getFixedT(ctx.state.language);
     ctx.state.title = "Hackers' Pub";
     ctx.state.metas ??= [];
     ctx.state.links ??= [];

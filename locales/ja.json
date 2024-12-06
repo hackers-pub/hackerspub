@@ -1,0 +1,113 @@
+{
+  "home": {
+    "intro": {
+      "title": "Hackers' Pubとは？",
+      "content": "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を共有する場所です。また、ActivityPubに対応したソーシャルネットワークでもあり、フェディバース（fediverse）で気に入ったハッカーをフォローして、最新の投稿をフィードで受け取ることができます。"
+    }
+  },
+  "nav": {
+    "signInUp": "$t(signInUp.title)",
+    "newArticle": "新規記事",
+    "drafts": "下書き",
+    "settings": "設定",
+    "signOut": "ログアウト"
+  },
+  "signInUp": {
+    "title": "ログイン・登録",
+    "description": "アカウントをお持ちの場合はログインリンクを、お持ちでない場合は登録リンクをメールでお送りします。",
+    "submit": "$t(signInUp.title)",
+    "invalidEmail": "無効なメールアドレスです。",
+    "signUpEmailSubject": "Hackers' Pubへの登録",
+    "signUpEmailText": "Hackers' Pubへようこそ！登録するには以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは24時間後に有効期限が切れます。\n\nこのメールに心当たりがない場合は、無視していただいて構いません。\n",
+    "signInEmailSubject": "Hackers' Pubへのログイン",
+    "signInEmailText": "Hackers' Pubへお帰りなさい！ログインするには以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは24時間後に有効期限が切れます。\n\nこのメールに心当たりがない場合は、無視していただいて構いません。\n",
+    "emailSentDescription": "{{email}}にログイン・登録用のリンクを送信しました。受信トレイをご確認ください。見当たらない場合は、迷惑メールフォルダもご確認ください。",
+    "emailSentExpires": "リンクの有効期限は24時間です。",
+    "emailSentResend": "いつでもログイン・登録を再度リクエストして、新しいリンクを受け取ることができます。"
+  },
+  "signUp": {
+    "title": "登録",
+    "invalidCode": "登録リンクが無効です。受信したメールのリンクを正しく使用しているかご確認ください。",
+    "welcome": "Hackers' Pubへようこそ！登録を完了するには以下のフォームにご記入ください。",
+    "email": "メールアドレス",
+    "emailDescription": "メールアドレスはアカウントへのログインに使用されます。",
+    "username": "$t(settings.profile.username)",
+    "usernameDescription": "$t(settings.profile.usernameDescription)",
+    "usernameRequired": "$t(settings.profile.usernameRequired)",
+    "usernameTooLong": "$t(settings.profile.usernameTooLong)",
+    "usernameInvalidChars": "$t(settings.profile.usernameInvalidChars)",
+    "usernameAlreadyTaken": "$t(settings.profile.usernameAlreadyTaken)",
+    "name": "$t(settings.profile.name)",
+    "nameDescription": "$t(settings.profile.nameDescription)",
+    "nameRequired": "$t(settings.profile.nameRequired)",
+    "nameTooLong": "$t(settings.profile.nameTooLong)",
+    "bio": "$t(settings.profile.bio)",
+    "bioDescription": "$t(settings.profile.bioDescription)",
+    "bioTooLong": "$t(settings.profile.bioTooLong)",
+    "submit": "$t(signUp.title)"
+  },
+  "settings": {
+    "profile": {
+      "title": "プロフィール設定",
+      "username": "ユーザー名",
+      "usernameDescription": "ユーザー名はプロフィールURLとフェディバース（fediverse）のハンドルとして使用されます。",
+      "usernameCaution": "変更は1回のみ可能です。",
+      "usernameChanged": "すでに{{changed}}に変更済みのため、再度変更することはできません。",
+      "usernameRequired": "ユーザー名は必須です。",
+      "usernameTooLong": "ユーザー名が長すぎます。最大50文字までです。",
+      "usernameInvalidChars": "ユーザー名には半角英数字（小文字）とアンダースコア（_）のみ使用できます。",
+      "usernameAlreadyTaken": "このユーザー名はすでに使用されています。",
+      "name": "名前",
+      "nameDescription": "名前はプロフィールと投稿に表示されます。",
+      "nameRequired": "名前は必須です。",
+      "nameTooLong": "名前が長すぎます。最大50文字までです。",
+      "bio": "自己紹介",
+      "bioDescription": "自己紹介はプロフィールに表示されます。Markdownを使用できます。",
+      "bioTooLong": "自己紹介が長すぎます。最大512文字までです。",
+      "linkName": "リンク名",
+      "linkNameDescription": "プロフィールに表示されるリンクの名前（例：GitHub）。",
+      "url": "URL",
+      "urlDescription": "リンクのURL（例：https://github.com/yourhandle）。"
+    }
+  },
+  "profile": {
+    "followeesCount": "{{count}}フォロー",
+    "followersCount": "{{count}}フォロワー",
+    "follow": "フォロー",
+    "unfollow": "フォロー解除",
+    "cancelRequest": "リクエストをキャンセル"
+  },
+  "articleDrafts": {
+    "title": "下書き",
+    "noTitle": "（無題）",
+    "created": "{{created}}に作成",
+    "updated": "{{updated}}に更新",
+    "delete": "下書きを削除",
+    "deleteConfirm": "この下書きを削除してもよろしいですか？"
+  },
+  "article": {
+    "readMore": "続きを読む →"
+  },
+  "editor": {
+    "titlePlaceholder": "記事のタイトル",
+    "titleRequired": "記事のタイトルを入力してください。",
+    "contentPlaceholder": "記事を書く（Markdownが使用できます）",
+    "contentRequired": "記事の内容を入力してください。",
+    "tagsPlaceholder": "タグをスペースで区切って入力",
+    "tagsRequired": "最低1つのタグを入力してください。",
+    "removeTag": "タグを削除",
+    "publish": "公開する",
+    "publishMode": {
+      "title": "記事の公開",
+      "description": "記事を公開しようとしています。公開前に内容を確認してください。",
+      "slug": "スラッグ",
+      "slugDescription": "記事の固定リンクの一部として使用されます：",
+      "slugAlreadyTaken": "同じスラッグの記事がすでに存在します。別のスラッグを選んでください。",
+      "language": "言語",
+      "cancel": "キャンセル",
+      "submit": "公開する",
+      "loading": "公開中…",
+      "failed": "記事の公開に失敗しました。後でもう一度お試しください。"
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "home": {
+    "intro": {
+      "title": "What is Hackers' Pub?",
+      "content": "Hackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed."
+    }
+  },
+  "nav": {
+    "signInUp": "$t(signInUp.title)",
+    "newArticle": "New article",
+    "drafts": "Drafts",
+    "settings": "Settings",
+    "signOut": "Sign out"
+  },
+  "signInUp": {
+    "title": "Sign in/up",
+    "description": "If you have an account, we'll send you a sign-in link. If you don't have an account, we'll send you a sign-up link.",
+    "submit": "$t(signInUp.title)",
+    "invalidEmail": "Invalid email address.",
+    "signUpEmailSubject": "Sign up for Hackers' Pub",
+    "signUpEmailText": "Welcome to Hackers' Pub! To sign up, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in 24 hours.\n\nIf you didn't request this email, you can safely ignore it.\n",
+    "signInEmailSubject": "Sign in to Hackers' Pub",
+    "signInEmailText": "Welcome back to Hackers' Pub! To sign in, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in 24 hours.\n\nIf you didn't request this email, you can safely ignore it.\n",
+    "emailSentDescription": "An email has been sent to {{email}} with a sign-in/up link. Please check your inbox. If you don't see it, check your spam folder.",
+    "emailSentExpires": "Note that the link will expire in 24 hours.",
+    "emailSentResend": "You can always request a new link by signing in/up again."
+  },
+  "signUp": {
+    "title": "Sign up",
+    "invalidCode": "The sign-up link is invalid. Please make sure you're using the correct link from the email you received.",
+    "welcome": "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up.",
+    "email": "Email address",
+    "emailDescription": "Your email address will be used to sign in to your account.",
+    "username": "$t(settings.profile.username)",
+    "usernameDescription": "$t(settings.profile.usernameDescription)",
+    "usernameRequired": "$t(settings.profile.usernameRequired)",
+    "usernameTooLong": "$t(settings.profile.usernameTooLong)",
+    "usernameInvalidChars": "$t(settings.profile.usernameInvalidChars)",
+    "usernameAlreadyTaken": "$t(settings.profile.usernameAlreadyTaken)",
+    "name": "$t(settings.profile.name)",
+    "nameDescription": "$t(settings.profile.nameDescription)",
+    "nameRequired": "$t(settings.profile.nameRequired)",
+    "nameTooLong": "$t(settings.profile.nameTooLong)",
+    "bio": "$t(settings.profile.bio)",
+    "bioDescription": "$t(settings.profile.bioDescription)",
+    "bioTooLong": "$t(settings.profile.bioTooLong)",
+    "submit": "$t(signUp.title)"
+  },
+  "settings": {
+    "profile": {
+      "title": "Profile settings",
+      "username": "Username",
+      "usernameDescription": "Your username will be used to create your profile URL and your fediverse handle.",
+      "usernameCaution": "You can change it only once.",
+      "usernameChanged": "As you have already changed it at {{changed}}, you can't change it again.",
+      "usernameRequired": "Username is required.",
+      "usernameTooLong": "Username is too long. Maximum length is 50 characters.",
+      "usernameInvalidChars": "Username can only contain lowercase letters, numbers, and underscores.",
+      "usernameAlreadyTaken": "Username is already taken.",
+      "name": "Name",
+      "nameDescription": "Your name will be displayed on your profile and in your posts.",
+      "nameRequired": "Name is required.",
+      "nameTooLong": "Name is too long. Maximum length is 50 characters.",
+      "bio": "Bio",
+      "bioDescription": "Your bio will be displayed on your profile. You can use Markdown to format it.",
+      "bioTooLong": "Bio is too long. Maximum length is 512 characters.",
+      "linkName": "Link name",
+      "linkNameDescription": "A name for the link that will be displayed on your profile, e.g., GitHub.",
+      "url": "URL",
+      "urlDescription": "The URL of the link, e.g., https://github.com/yourhandle."
+    }
+  },
+  "profile": {
+    "followeesCount": "{{count}} following",
+    "followersCount_one": "1 follower",
+    "followersCount_other": "{{count}} followers",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "cancelRequest": "Cancel request"
+  },
+  "articleDrafts": {
+    "title": "Article drafts",
+    "noTitle": "(No title)",
+    "created": "Created at {{created}}",
+    "updated": "Updated at {{updated}}",
+    "delete": "Delete draft",
+    "deleteConfirm": "Are you sure you want to delete this draft?"
+  },
+  "article": {
+    "readMore": "Read more →"
+  },
+  "editor": {
+    "titlePlaceholder": "Article title",
+    "titleRequired": "Please enter a title for your article.",
+    "contentPlaceholder": "Write your article here. You can use Markdown.",
+    "contentRequired": "Please enter some content for your article.",
+    "tagsPlaceholder": "Type tags separated by spaces",
+    "tagsRequired": "Please enter at least one tag for your article.",
+    "removeTag": "Remove tag",
+    "publish": "Publish",
+    "publishMode": {
+      "title": "$t(editor.publish)",
+      "description": "You're about to publish your article. Please review it before publishing.",
+      "slug": "Slug",
+      "slugDescription": "This will be a part of the permalink of your article:",
+      "slugAlreadyTaken": "An article with the same slug already exists. Please choose a different slug.",
+      "language": "Language",
+      "cancel": "Cancel",
+      "submit": "Publish now",
+      "loading": "Publishing now…",
+      "failed": "Failed to publish the article. Please try again later."
+    }
+  }
+}

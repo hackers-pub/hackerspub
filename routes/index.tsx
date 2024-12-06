@@ -10,6 +10,7 @@ import {
 } from "../models/schema.ts";
 import { define } from "../utils.ts";
 import { ArticleExcerpt } from "../components/ArticleExcerpt.tsx";
+import { Msg } from "../components/Msg.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -35,7 +36,7 @@ export const handler = define.handlers({
       });
     }
     return page<HomeProps>({
-      intro: ctx.state.account == null,
+      intro: ctx.state.account == null || timeline.length < 1,
       timeline,
     });
   },
@@ -52,13 +53,12 @@ export default define.page<typeof handler, HomeProps>(function Home({ data }) {
       {data.intro &&
         (
           <article>
-            <PageTitle>What is Hackers' Pub?</PageTitle>
+            <PageTitle>
+              <Msg $key="home.intro.title" />
+            </PageTitle>
             <div class="prose prose-h2:text-xl dark:prose-invert">
               <p>
-                Hackers' Pub is a place for hackers to share their knowledge and
-                experience with each other. It's also an ActivityPub-enabled
-                social network, so you can follow your favorite hackers in the
-                fediverse and get their latest posts in your feed.
+                <Msg $key="home.intro.content" />
               </p>
             </div>
           </article>
@@ -67,6 +67,7 @@ export default define.page<typeof handler, HomeProps>(function Home({ data }) {
         <ArticleExcerpt
           key={post.id}
           url={post.url ?? post.iri}
+          lang={post.language ?? undefined}
           target={post.articleSourceId == null ? "_blank" : undefined}
           title={post.summary}
           authorUrl={post.actor.url ?? post.actor.iri}

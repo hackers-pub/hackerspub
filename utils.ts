@@ -3,6 +3,7 @@ import { createDefine } from "fresh";
 import type { Session } from "./models/session.ts";
 import type { RequestContext } from "@fedify/fedify";
 import type { Account, AccountEmail, Actor } from "./models/schema.ts";
+import getFixedT, { type Language } from "./i18n.ts";
 
 export interface Link {
   rel: string;
@@ -23,6 +24,8 @@ export interface State {
   session?: Session;
   account?: Account & { actor: Actor; emails: AccountEmail[] };
   fedCtx: RequestContext<void>;
+  language: Language;
+  t: ReturnType<typeof getFixedT>;
   title: string;
   metas: Meta[];
   links: Link[];
