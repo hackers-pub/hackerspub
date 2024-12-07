@@ -28,6 +28,8 @@ if (Deno.env.get("BEHIND_PROXY") === "true") {
   app.use(async (ctx) => {
     // @ts-ignore: Fresh will fix https://github.com/denoland/fresh/pull/2751
     ctx.req = await getXForwardedRequest(ctx.req);
+    // @ts-ignore: Fresh will fix https://github.com/denoland/fresh/pull/2751
+    ctx.url = new URL(ctx.req.url);
     return await ctx.next();
   });
 }
