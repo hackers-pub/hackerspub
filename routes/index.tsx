@@ -28,7 +28,7 @@ export const handler = define.handlers({
             postTable.actorId,
             db.select({ id: followingTable.followeeId })
               .from(followingTable)
-              .where(eq(followingTable.followerId, ctx.state.account.id)),
+              .where(eq(followingTable.followerId, ctx.state.account.actor.id)),
           ),
           eq(postTable.actorId, ctx.state.account.actor.id),
         ),
