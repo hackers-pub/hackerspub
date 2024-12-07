@@ -48,6 +48,9 @@ export async function follow(
         object: new URL(followee.iri),
       }),
     );
+  } else if (rows.length > 0 && followee.accountId != null) {
+    await updateFolloweesCount(db, rows[0].followerId, 1);
+    await updateFollowersCount(db, rows[0].followeeId, 1);
   }
   return rows[0];
 }
