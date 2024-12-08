@@ -9,8 +9,8 @@ import {
   postTable,
 } from "../models/schema.ts";
 import { define } from "../utils.ts";
-import { ArticleExcerpt } from "../components/ArticleExcerpt.tsx";
 import { Msg } from "../components/Msg.tsx";
+import { PostExcerpt } from "../components/PostExcerpt.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -63,21 +63,7 @@ export default define.page<typeof handler, HomeProps>(function Home({ data }) {
             </div>
           </article>
         )}
-      {data.timeline.map((post) => (
-        <ArticleExcerpt
-          key={post.id}
-          url={post.url ?? post.iri}
-          lang={post.language ?? undefined}
-          target={post.articleSourceId == null ? "_blank" : undefined}
-          title={post.name}
-          authorUrl={post.actor.url ?? post.actor.iri}
-          authorName={post.actor.name ?? post.actor.username}
-          authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
-          authorAvatarUrl={post.actor.avatarUrl}
-          excerptHtml={post.contentHtml}
-          published={post.published}
-        />
-      ))}
+      {data.timeline.map((post) => <PostExcerpt post={post} />)}
     </>
   );
 });

@@ -377,8 +377,8 @@ export async function renderMarkup(
         ' "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">',
       "",
     );
-  const html = htmlXss.process(rawHtml);
-  const excerptHtml = renderExcerpt(rawHtml);
+  const html = sanitizeHtml(rawHtml);
+  const excerptHtml = sanitizeExcerptHtml(rawHtml);
   const text = textXss.process(rawHtml);
   const toc = toToc(tocTree);
   const rendered: RenderedMarkup = {
@@ -391,7 +391,11 @@ export async function renderMarkup(
   return rendered;
 }
 
-export function renderExcerpt(html: string): string {
+export function sanitizeHtml(html: string): string {
+  return htmlXss.process(html);
+}
+
+export function sanitizeExcerptHtml(html: string): string {
   return excerptHtmlXss.process(html);
 }
 

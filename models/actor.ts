@@ -97,6 +97,7 @@ export async function persistActor(
   options: {
     contextLoader?: DocumentLoader;
     documentLoader?: DocumentLoader;
+    outbox?: boolean;
   } = {},
 ): Promise<Actor & { instance: Instance } | undefined> {
   if (actor.id == null) return undefined;
@@ -174,7 +175,7 @@ export async function persistActor(
       await persistPost(db, object, { ...options, actor: result });
     }
   }
-  const outbox = await actor.getOutbox(options);
+  const outbox = options.outbox ? await actor.getOutbox(options) : null;
   if (outbox != null) {
     let i = 0;
     for await (

@@ -9,13 +9,15 @@ export interface ArticleExcerptProps extends ArticleMetadataProps {
   url: string | URL;
   target?: string;
   title?: string | null;
-  excerptHtml: string;
+  contentHtml: string;
   lang?: string;
 }
 
 export function ArticleExcerpt(props: ArticleExcerptProps) {
   return (
-    <article class="mt-5 border-l-4 border-l-stone-400 dark:border-l-stone-600 pl-4">
+    <article
+      class={`mt-5 border-l-4 border-l-stone-400 dark:border-l-stone-600 pl-4 ${props.class}`}
+    >
       {props.title &&
         (
           <h1 class="text-3xl font-bold mb-2" lang={props.lang}>
@@ -33,7 +35,7 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
         published={props.published}
       />
       <a href={props.url.toString()} target={props.target}>
-        <Excerpt lang={props.lang} html={props.excerptHtml} />
+        <Excerpt lang={props.lang} html={props.contentHtml} />
         <Msg $key="article.readMore" />
       </a>
     </article>

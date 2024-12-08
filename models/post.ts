@@ -127,6 +127,7 @@ export async function persistPost(
       tags[tag.name.toString()] = tag.href.href;
     }
   }
+  // TODO: Persist reply target
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
     type: post instanceof vocab.Article

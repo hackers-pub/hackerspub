@@ -3,25 +3,25 @@ import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { and, desc, eq } from "drizzle-orm";
 import { page } from "fresh";
+import { Button } from "../../components/Button.tsx";
+import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
+import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { db } from "../../db.ts";
 import {
   type AccountLink,
   accountLinkTable,
   accountTable,
+  type Actor,
   actorTable,
-  articleSourceTable,
+  type Post,
   postTable,
 } from "../../models/schema.ts";
 import { htmlXss, renderMarkup } from "../../models/markup.ts";
-import { compactUrl, define } from "../../utils.ts";
 import { persistActor } from "../../models/actor.ts";
 import { getAvatarUrl } from "../../models/account.ts";
-import { Button } from "../../components/Button.tsx";
 import { FollowingState, getFollowingState } from "../../models/following.ts";
-import { ArticleExcerpt } from "../../components/ArticleExcerpt.tsx";
-import { Uuid } from "../../models/uuid.ts";
-import { Msg } from "../../components/Msg.tsx";
+import { compactUrl, define } from "../../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
@@ -94,7 +94,8 @@ export const handler = define.handlers({
           unfollowUrl: `/${handle}/unfollow`,
         };
       }
-      const articles = await db.query.postTable.findMany({
+      const posts = await db.query.postTable.findMany({
+        with: { actor: true },
         where: eq(postTable.actorId, actor.id),
         orderBy: desc(postTable.published),
       });
@@ -108,20 +109,7 @@ export const handler = define.handlers({
         bioHtml: htmlXss.process(actor.bioHtml ?? ""),
         links: actor.fieldHtmls,
         ...followState,
-        articles: articles.map((article) => ({
-          id: article.id,
-          title: article.name ?? undefined,
-          url: article.url ?? article.iri,
-          excerptHtml: article.contentHtml,
-          author: {
-            name: actor.name ?? actor.username,
-            handle: `@${actor.username}@${actor.instanceHost}`,
-            url: actor.url ?? actor.iri,
-            avatarUrl: actor.avatarUrl ?? undefined,
-          },
-          published: article.published,
-          updated: article.updated,
-        })),
+        posts,
       });
     }
     const account = await db.query.accountTable.findFirst({
@@ -170,12 +158,10 @@ export const handler = define.handlers({
       },
     );
     ctx.state.title = account.name;
-    const articles = await db.query.articleSourceTable.findMany({
-      with: {
-        account: { with: { emails: true } },
-      },
-      where: eq(articleSourceTable.accountId, account.id),
-      orderBy: desc(articleSourceTable.published),
+    const posts = await db.query.postTable.findMany({
+      with: { actor: true },
+      where: eq(postTable.actorId, account.actor.id),
+      orderBy: desc(postTable.published),
     });
     let followState: FollowStateProps;
     if (ctx.state.account == null || ctx.state.account.id === account.id) {
@@ -207,23 +193,8 @@ export const handler = define.handlers({
       followersCount: account.actor.followersCount,
       bioHtml: bio.html,
       links: account.links,
-      articles: await Promise.all(articles.map(async (article) => ({
-        id: article.id,
-        title: article.title,
-        url:
-          `/@${account.username}/${article.published.getFullYear()}/${article.slug}`,
-        excerptHtml:
-          (await renderMarkup(article.id, article.content)).excerptHtml,
-        author: {
-          name: article.account.name,
-          handle: `@${article.account.username}@${ctx.url.host}`,
-          url: `/@${article.account.username}`,
-          avatarUrl: await getAvatarUrl(article.account),
-        },
-        published: article.published,
-        updated: article.updated,
-      }))),
       ...followState,
+      posts,
     }, {
       headers: {
         Link:
@@ -241,20 +212,7 @@ type ProfilePageProps = {
   followersCount: number;
   avatarUrl?: string;
   links: AccountLink[] | Record<string, string>;
-  articles?: {
-    id: Uuid;
-    title?: string;
-    url: string;
-    excerptHtml: string;
-    author: {
-      name: string;
-      handle: string;
-      url: string;
-      avatarUrl?: string;
-    };
-    published: Date;
-    updated: Date;
-  }[];
+  posts: (Post & { actor: Actor })[];
 } & FollowStateProps;
 
 type FollowStateProps = {
@@ -380,19 +338,7 @@ export default define.page<typeof handler, ProfilePageProps>(
           </dl>
         )}
         <div>
-          {data.articles?.map((article) => (
-            <ArticleExcerpt
-              key={article.id}
-              url={article.url}
-              title={article.title}
-              authorUrl={article.author.url}
-              authorName={article.author.name}
-              authorHandle={article.author.handle}
-              authorAvatarUrl={article.author.avatarUrl}
-              excerptHtml={article.excerptHtml}
-              published={article.published}
-            />
-          ))}
+          {data.posts.map((post) => <PostExcerpt post={post} />)}
         </div>
       </div>
     );

@@ -1,4 +1,4 @@
-import { renderExcerpt } from "../models/markup.ts";
+import { sanitizeExcerptHtml } from "../models/markup.ts";
 
 export interface ExcerptProps {
   class?: string;
@@ -19,7 +19,7 @@ export function Excerpt({ class: className, html, lang }: ExcerptProps) {
         ${className}
       `}
       lang={lang}
-      dangerouslySetInnerHTML={{ __html: renderExcerpt(html) }}
+      dangerouslySetInnerHTML={{ __html: sanitizeExcerptHtml(html) }}
     />
   );
 }
