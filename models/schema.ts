@@ -305,6 +305,7 @@ export const actorRelations = relations(
     }),
     followers: many(followingTable, { relationName: "followee" }),
     followees: many(followingTable, { relationName: "follower" }),
+    mentions: many(mentionTable),
   }),
 );
 
@@ -552,5 +553,40 @@ export const postRelations = relations(
     }),
     replies: many(postTable, { relationName: "replyTarget" }),
     shares: many(postTable, { relationName: "sharedPost" }),
+    mentions: many(mentionTable),
+  }),
+);
+
+export const mentionTable = pgTable(
+  "mention",
+  {
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => postTable.id, { onDelete: "cascade" }),
+    actorId: uuid("actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.postId, table.actorId] }),
+  ],
+);
+
+export type Mention = typeof mentionTable.$inferSelect;
+export type NewMention = typeof mentionTable.$inferInsert;
+
+export const mentionRelations = relations(
+  mentionTable,
+  ({ one }) => ({
+    post: one(postTable, {
+      fields: [mentionTable.postId],
+      references: [postTable.id],
+    }),
+    actor: one(actorTable, {
+      fields: [mentionTable.actorId],
+      references: [actorTable.id],
+    }),
   }),
 );

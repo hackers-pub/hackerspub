@@ -172,7 +172,11 @@ export async function persistActor(
       })
     ) {
       if (!isPostObject(object)) continue;
-      await persistPost(db, object, { ...options, actor: result });
+      await persistPost(db, object, {
+        ...options,
+        actor: result,
+        replies: true,
+      });
     }
   }
   const outbox = options.outbox ? await actor.getOutbox(options) : null;
@@ -199,6 +203,7 @@ export async function persistActor(
         const persisted = await persistPost(db, object, {
           ...options,
           actor: result,
+          replies: true,
         });
         if (persisted != null) i++;
       } else if (activity instanceof vocab.Announce) {
@@ -216,10 +221,10 @@ export async function persistActor(
 
 export function getPersistedActor(
   db: Database,
-  actorId: URL,
+  iri: string | URL,
 ): Promise<Actor & { instance: Instance } | undefined> {
   return db.query.actorTable.findFirst({
     with: { instance: true },
-    where: eq(actorTable.iri, actorId.href),
+    where: eq(actorTable.iri, iri.toString()),
   });
 }

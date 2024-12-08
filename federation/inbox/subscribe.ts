@@ -18,7 +18,11 @@ export async function onPostCreated(
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;
   // TODO: visibility
-  await persistPost(db, object, fedCtx);
+  await persistPost(db, object, {
+    replies: true,
+    documentLoader: fedCtx.documentLoader,
+    contextLoader: fedCtx.contextLoader,
+  });
 }
 
 // TODO: Delete(Article)
@@ -31,7 +35,11 @@ export async function onPostUpdated(
   const object = await update.getObject(fedCtx);
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== update.actorId?.href) return;
-  await persistPost(db, object, fedCtx);
+  await persistPost(db, object, {
+    replies: true,
+    documentLoader: fedCtx.documentLoader,
+    contextLoader: fedCtx.contextLoader,
+  });
 }
 
 export async function onPostShared(

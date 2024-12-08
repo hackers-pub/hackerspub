@@ -1,11 +1,14 @@
 import {
   type Context,
   type DocumentLoader,
+  isActor,
   LanguageString,
+  lookupObject,
+  traverseCollection,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import {
@@ -13,8 +16,10 @@ import {
   type AccountEmail,
   type AccountLink,
   type Actor,
+  actorTable,
   type ArticleSource,
   type Instance,
+  mentionTable,
   type NewPost,
   type Post,
   postTable,
@@ -99,6 +104,8 @@ export async function persistPost(
   post: PostObject,
   options: {
     actor?: Actor & { instance: Instance };
+    replyTarget?: Post & { actor: Actor & { instance: Instance } };
+    replies?: boolean;
     contextLoader?: DocumentLoader;
     documentLoader?: DocumentLoader;
   } = {},
@@ -110,7 +117,10 @@ export async function persistPost(
     );
     return;
   }
-  let actor = options.actor ?? await getPersistedActor(db, post.attributionId);
+  let actor =
+    options.actor == null || options.actor.iri !== post.attributionId.href
+      ? await getPersistedActor(db, post.attributionId)
+      : options.actor;
   if (actor == null) {
     const apActor = await post.getAttribution(options);
     if (apActor == null) return;
@@ -121,13 +131,27 @@ export async function persistPost(
     }
   }
   const tags: Record<string, string> = {};
+  const mentions = new Set<string>();
   for await (const tag of post.getTags(options)) {
     if (tag instanceof vocab.Hashtag) {
       if (tag.name == null || tag.href == null) continue;
-      tags[tag.name.toString()] = tag.href.href;
+      tags[tag.name.toString().replace(/^#/, "")] = tag.href.href;
+    } else if (tag instanceof vocab.Mention) {
+      if (tag.href == null) continue;
+      mentions.add(tag.href.href);
     }
   }
-  // TODO: Persist reply target
+  let replyTarget: Post & { actor: Actor & { instance: Instance } } | undefined;
+  if (post.replyTargetId != null) {
+    replyTarget = options.replyTarget ??
+      await getPersistedPost(db, post.replyTargetId);
+    if (replyTarget == null) {
+      const apReplyTarget = await post.getReplyTarget(options);
+      if (!isPostObject(apReplyTarget)) return;
+      replyTarget = await persistPost(db, apReplyTarget, options);
+      if (replyTarget == null) return;
+    }
+  }
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
     type: post instanceof vocab.Article
@@ -147,6 +171,7 @@ export async function persistPost(
       : undefined,
     tags,
     url: post.url instanceof vocab.Link ? post.url.href?.href : post.url?.href,
+    replyTargetId: replyTarget?.id,
     updated: toDate(post.updated ?? post.published) ?? undefined,
     published: toDate(post.published) ?? undefined,
   };
@@ -158,7 +183,55 @@ export async function persistPost(
       setWhere: eq(postTable.iri, post.id.href),
     })
     .returning();
-  return { ...rows[0], actor };
+  const persistedPost = { ...rows[0], actor };
+  await db.delete(mentionTable).where(
+    eq(mentionTable.postId, persistedPost.id),
+  );
+  if (mentions.size > 0) {
+    const mentionedActors = await db.query.actorTable.findMany({
+      where: inArray(actorTable.iri, [...mentions]),
+    });
+    for (const mentionedActor of mentionedActors) {
+      mentions.delete(mentionedActor.iri);
+    }
+    if (mentions.size > 0) {
+      for (const iri of mentions) {
+        const apActor = await lookupObject(iri, options);
+        if (!isActor(apActor)) continue;
+        const actor = await persistActor(db, apActor, options);
+        if (actor == null) continue;
+        mentionedActors.push(actor);
+      }
+    }
+    await db.insert(mentionTable)
+      .values(
+        mentionedActors.map((actor) => ({
+          postId: persistedPost.id,
+          actorId: actor.id,
+        })),
+      )
+      .onConflictDoNothing()
+      .execute();
+  }
+  if (options.replies) {
+    const replies = await post.getReplies(options);
+    if (replies != null) {
+      for await (
+        const reply of traverseCollection(replies, {
+          ...options,
+          suppressError: true,
+        })
+      ) {
+        if (!isPostObject(reply)) continue;
+        await persistPost(db, reply, {
+          ...options,
+          actor,
+          replyTarget: persistedPost,
+        });
+      }
+    }
+  }
+  return persistedPost;
 }
 
 export async function persistSharedPost(
@@ -192,7 +265,10 @@ export async function persistSharedPost(
   }
   const object = await announce.getObject(options);
   if (!isPostObject(object)) return;
-  const post = await persistPost(db, object, options);
+  const post = await persistPost(db, object, {
+    ...options,
+    replies: true,
+  });
   if (post == null) return;
   const values: Omit<NewPost, "id"> = {
     iri: announce.id.href,
@@ -218,6 +294,16 @@ export async function persistSharedPost(
     })
     .returning();
   return { ...rows[0], actor, sharedPost: post };
+}
+
+export function getPersistedPost(
+  db: Database,
+  iri: URL,
+): Promise<Post & { actor: Actor & { instance: Instance } } | undefined> {
+  return db.query.postTable.findFirst({
+    with: { actor: { with: { instance: true } } },
+    where: eq(postTable.iri, iri.toString()),
+  });
 }
 
 const UNREACHABLE: never = undefined!;
