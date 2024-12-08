@@ -11,6 +11,7 @@ import {
   accountTable,
   actorTable,
   articleSourceTable,
+  postTable,
 } from "../../models/schema.ts";
 import { htmlXss, renderMarkup } from "../../models/markup.ts";
 import { compactUrl, define } from "../../utils.ts";
@@ -45,7 +46,16 @@ export const handler = define.handlers({
       if (actor == null) {
         let apActor: vocab.Object | null;
         try {
-          apActor = await ctx.state.fedCtx.lookupObject(ctx.params.username);
+          apActor = await ctx.state.fedCtx.lookupObject(
+            ctx.params.username,
+            {
+              documentLoader: ctx.state.account == null
+                ? undefined
+                : await ctx.state.fedCtx.getDocumentLoader({
+                  identifier: ctx.state.account.id,
+                }),
+            },
+          );
         } catch (error) {
           logger.warn(
             "An error occurred while looking up the actor {handle}: {error}",
@@ -84,6 +94,10 @@ export const handler = define.handlers({
           unfollowUrl: `/${handle}/unfollow`,
         };
       }
+      const articles = await db.query.postTable.findMany({
+        where: eq(postTable.actorId, actor.id),
+        orderBy: desc(postTable.published),
+      });
       ctx.state.title = name;
       return page<ProfilePageProps>({
         handle,
@@ -94,6 +108,20 @@ export const handler = define.handlers({
         bioHtml: htmlXss.process(actor.bioHtml ?? ""),
         links: actor.fieldHtmls,
         ...followState,
+        articles: articles.map((article) => ({
+          id: article.id,
+          title: article.name ?? undefined,
+          url: article.url ?? article.iri,
+          excerptHtml: article.contentHtml,
+          author: {
+            name: actor.name ?? actor.username,
+            handle: `@${actor.username}@${actor.instanceHost}`,
+            url: actor.url ?? actor.iri,
+            avatarUrl: actor.avatarUrl ?? undefined,
+          },
+          published: article.published,
+          updated: article.updated,
+        })),
       });
     }
     const account = await db.query.accountTable.findFirst({
@@ -215,7 +243,7 @@ type ProfilePageProps = {
   links: AccountLink[] | Record<string, string>;
   articles?: {
     id: Uuid;
-    title: string;
+    title?: string;
     url: string;
     excerptHtml: string;
     author: {

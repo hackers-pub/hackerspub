@@ -1,9 +1,11 @@
 import {
   type Context,
+  type DocumentLoader,
   getActorHandle,
   getActorTypeName,
   Link,
   PropertyValue,
+  traverseCollection,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
@@ -25,6 +27,7 @@ import {
 } from "./schema.ts";
 import { renderMarkup } from "./markup.ts";
 import { persistInstance } from "./instance.ts";
+import { isPostObject, persistPost, persistSharedPost } from "./post.ts";
 import { generateUuidV7 } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "actor"]);
@@ -91,6 +94,10 @@ export async function syncActorFromAccount(
 export async function persistActor(
   db: Database,
   actor: vocab.Actor,
+  options: {
+    contextLoader?: DocumentLoader;
+    documentLoader?: DocumentLoader;
+  } = {},
 ): Promise<Actor & { instance: Instance } | undefined> {
   if (actor.id == null) return undefined;
   else if (actor.inboxId == null) {
@@ -108,12 +115,12 @@ export async function persistActor(
     );
     return undefined;
   }
-  const attachments = await Array.fromAsync(actor.getAttachments());
-  const avatar = await actor.getIcon();
-  const header = await actor.getImage();
+  const attachments = await Array.fromAsync(actor.getAttachments(options));
+  const avatar = await actor.getIcon(options);
+  const header = await actor.getImage(options);
   const [followees, followers] = await Promise.all([
-    await actor.getFollowing(),
-    await actor.getFollowers(),
+    await actor.getFollowing(options),
+    await actor.getFollowers(options),
   ]);
   const values: Omit<NewActor, "id"> = {
     iri: actor.id.href,
@@ -154,5 +161,64 @@ export async function persistActor(
       setWhere: eq(actorTable.iri, actor.id.href),
     })
     .returning();
-  return { ...rows[0], instance };
+  const result = { ...rows[0], instance };
+  const featured = await actor.getFeatured(options);
+  if (featured != null) {
+    for await (
+      const object of traverseCollection(featured, {
+        ...options,
+        suppressError: true,
+      })
+    ) {
+      if (!isPostObject(object)) continue;
+      await persistPost(db, object, { ...options, actor: result });
+    }
+  }
+  const outbox = await actor.getOutbox(options);
+  if (outbox != null) {
+    let i = 0;
+    for await (
+      const activity of traverseCollection(outbox, {
+        ...options,
+        suppressError: true,
+      })
+    ) {
+      if (activity instanceof vocab.Create) {
+        let object: vocab.Object | null;
+        try {
+          object = await activity.getObject(options);
+        } catch (error) {
+          logger.warn(
+            "Failed to get object for activity {activityId}: {error}",
+            { activityId: activity.id?.href, error },
+          );
+          continue;
+        }
+        if (!isPostObject(object)) continue;
+        const persisted = await persistPost(db, object, {
+          ...options,
+          actor: result,
+        });
+        if (persisted != null) i++;
+      } else if (activity instanceof vocab.Announce) {
+        const persisted = await persistSharedPost(db, activity, {
+          ...options,
+          actor: result,
+        });
+        if (persisted != null) i++;
+      }
+      if (i >= 10) break;
+    }
+  }
+  return result;
+}
+
+export function getPersistedActor(
+  db: Database,
+  actorId: URL,
+): Promise<Actor & { instance: Instance } | undefined> {
+  return db.query.actorTable.findFirst({
+    with: { instance: true },
+    where: eq(actorTable.iri, actorId.href),
+  });
 }

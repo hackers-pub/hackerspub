@@ -493,7 +493,7 @@ export const postTable = pgTable(
     replyTargetId: uuid("reply_target_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
-    summary: text(),
+    name: text(),
     contentHtml: text("content_html").notNull(),
     language: varchar(),
     tags: jsonb().$type<Record<string, string>>().notNull().default({}),
@@ -517,12 +517,7 @@ export const postTable = pgTable(
   (table) => [
     check(
       "post_article_source_id_check",
-      sql`
-        CASE ${table.type}
-          WHEN 'Article' THEN ${table.articleSourceId} IS NOT NULL
-          ELSE ${table.articleSourceId} IS NULL
-        END
-      `,
+      sql`${table.type} = 'Article' OR ${table.articleSourceId} IS NULL`,
     ),
     check(
       "post_shared_post_id_reply_target_id_check",

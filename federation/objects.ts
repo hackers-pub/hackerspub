@@ -25,7 +25,7 @@ federation.setObjectDispatcher(
       id: ctx.getObjectUri(vocab.Article, { id: articleSource.id }),
       attribution: ctx.getActorUri(articleSource.accountId),
       to: PUBLIC_COLLECTION,
-      summaries: [
+      names: [
         new LanguageString(articleSource.title, articleSource.language),
         articleSource.title,
       ],

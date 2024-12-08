@@ -69,7 +69,7 @@ export default define.page<typeof handler, HomeProps>(function Home({ data }) {
           url={post.url ?? post.iri}
           lang={post.language ?? undefined}
           target={post.articleSourceId == null ? "_blank" : undefined}
-          title={post.summary}
+          title={post.name}
           authorUrl={post.actor.url ?? post.actor.iri}
           authorName={post.actor.name ?? post.actor.username}
           authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}

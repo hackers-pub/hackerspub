@@ -1,0 +1,2 @@
+ALTER TABLE "post" DROP CONSTRAINT "post_article_source_id_check";--> statement-breakpoint
+ALTER TABLE "post" ADD CONSTRAINT "post_article_source_id_check" CHECK ("post"."type" = 'Article' OR "post"."article_source_id" IS NULL);
