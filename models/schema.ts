@@ -34,7 +34,6 @@ export const accountTable = pgTable(
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
-    deleted: timestamp({ withTimezone: true }).default(currentTimestamp),
   },
   (table) => [
     check(
