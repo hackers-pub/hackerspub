@@ -12,7 +12,7 @@ import getFixedT, {
   DEFAULT_LANGUAGE,
   isLanguage,
   type Language,
-  LANGUAGES,
+  SUPPORTED_LANGUAGES,
 } from "../i18n.ts";
 import { acceptsLanguages } from "@std/http/negotiation";
 
@@ -24,9 +24,10 @@ export const handler = define.middleware([
   (ctx) => {
     const lang = ctx.url.searchParams.get("lang")?.trim();
     if (lang == null || !isLanguage(lang)) {
-      ctx.state.language =
-        (acceptsLanguages(ctx.req, ...LANGUAGES) as Language | undefined) ??
-          DEFAULT_LANGUAGE;
+      ctx.state.language = (acceptsLanguages(ctx.req, ...SUPPORTED_LANGUAGES) as
+        | Language
+        | undefined) ??
+        DEFAULT_LANGUAGE;
     } else {
       ctx.state.language = lang;
     }

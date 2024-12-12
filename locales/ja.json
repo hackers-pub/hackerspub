@@ -109,5 +109,12 @@
       "loading": "公開中…",
       "failed": "記事の公開に失敗しました。後でもう一度お試しください。"
     }
+  },
+  "composer": {
+    "content": "内容",
+    "contentPlaceholder": "今何してる？Markdownが使えます。",
+    "language": "言語",
+    "post": "投稿",
+    "postFailed": "投稿に失敗しました。後でもう一度お試しください。"
   }
 }

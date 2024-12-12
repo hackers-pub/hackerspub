@@ -1,6 +1,7 @@
 import { isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
+import * as v from "@valibot/valibot";
 import { and, desc, eq } from "drizzle-orm";
 import { page } from "fresh";
 import { Button } from "../../components/Button.tsx";
@@ -22,8 +23,16 @@ import { persistActor } from "../../models/actor.ts";
 import { getAvatarUrl } from "../../models/account.ts";
 import { FollowingState, getFollowingState } from "../../models/following.ts";
 import { compactUrl, define } from "../../utils.ts";
+import { POSSIBLE_LANGUAGES } from "../../i18n.ts";
+import { createNote } from "../../models/note.ts";
+import { kv } from "../../kv.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
+
+const NoteSourceSchema = v.object({
+  content: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+  language: v.picklist(POSSIBLE_LANGUAGES),
+});
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -200,6 +209,31 @@ export const handler = define.handlers({
         Link:
           `<${actorUri.href}>; rel="alternate"; type="application/activity+json"`,
       },
+    });
+  },
+
+  async POST(ctx) {
+    if (ctx.state.account?.username !== ctx.params.username) {
+      return new Response("Forbidden", { status: 403 });
+    }
+    const payload = await ctx.req.json();
+    const parsed = await v.safeParseAsync(NoteSourceSchema, payload);
+    if (!parsed.success) {
+      return new Response(JSON.stringify(parsed.issues), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const post = await createNote(db, kv, ctx.state.fedCtx, {
+      ...parsed.output,
+      accountId: ctx.state.account.id,
+    });
+    if (post == null) {
+      return new Response("Internal Server Error", { status: 500 });
+    }
+    return new Response(JSON.stringify(post), {
+      status: 201,
+      headers: { "Content-Type": "application/json" },
     });
   },
 });

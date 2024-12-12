@@ -1,7 +1,9 @@
 import type { Context } from "@fedify/fedify";
+import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, sql } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
+import { getArticle } from "../federation/objects.ts";
 import {
   type Account,
   type AccountEmail,
@@ -17,8 +19,8 @@ import {
   type NewArticleSource,
   type Post,
 } from "./schema.ts";
-import { generateUuidV7, Uuid } from "./uuid.ts";
 import { syncPostFromArticleSource } from "./post.ts";
+import { generateUuidV7, Uuid } from "./uuid.ts";
 
 export async function updateArticleDraft(
   db: Database,
@@ -99,8 +101,22 @@ export async function createArticle(
     with: { emails: true, links: true },
   });
   if (account == undefined) return undefined;
-  return await syncPostFromArticleSource(db, kv, fedCtx, {
+  const post = await syncPostFromArticleSource(db, kv, fedCtx, {
     ...articleSource,
     account,
   });
+  const articleObject = await getArticle(fedCtx, { ...articleSource, account });
+  await fedCtx.sendActivity(
+    { identifier: source.accountId },
+    "followers",
+    new vocab.Create({
+      id: new URL("#create", articleObject.id ?? fedCtx.origin),
+      actors: articleObject.attributionIds,
+      tos: articleObject.toIds,
+      ccs: articleObject.ccIds,
+      object: articleObject,
+    }),
+    { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+  );
+  return post;
 }

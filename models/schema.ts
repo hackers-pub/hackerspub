@@ -465,6 +465,39 @@ export const articleSourceRelations = relations(
   }),
 );
 
+export const noteSourceTable = pgTable("note_source", {
+  id: uuid().$type<Uuid>().primaryKey(),
+  accountId: uuid("account_id")
+    .$type<Uuid>()
+    .notNull()
+    .references(() => accountTable.id),
+  content: text().notNull(),
+  language: varchar().notNull(),
+  updated: timestamp({ withTimezone: true })
+    .notNull()
+    .default(currentTimestamp),
+  published: timestamp({ withTimezone: true })
+    .notNull()
+    .default(currentTimestamp),
+});
+
+export type NoteSource = typeof noteSourceTable.$inferSelect;
+export type NewNoteSource = typeof noteSourceTable.$inferInsert;
+
+export const noteSourceRelations = relations(
+  noteSourceTable,
+  ({ one }) => ({
+    account: one(accountTable, {
+      fields: [noteSourceTable.accountId],
+      references: [accountTable.id],
+    }),
+    post: one(postTable, {
+      fields: [noteSourceTable.id],
+      references: [postTable.noteSourceId],
+    }),
+  }),
+);
+
 export const postTypeEnum = pgEnum("post_type", [
   "Article",
   "Note",
@@ -487,6 +520,10 @@ export const postTable = pgTable(
       .$type<Uuid>()
       .unique()
       .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    noteSourceId: uuid("note_source_id")
+      .$type<Uuid>()
+      .unique()
+      .references(() => noteSourceTable.id, { onDelete: "cascade" }),
     sharedPostId: uuid("shared_post_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
@@ -518,6 +555,10 @@ export const postTable = pgTable(
     check(
       "post_article_source_id_check",
       sql`${table.type} = 'Article' OR ${table.articleSourceId} IS NULL`,
+    ),
+    check(
+      "post_note_source_id_check",
+      sql`${table.type} = 'Note' OR ${table.noteSourceId} IS NULL`,
     ),
     check(
       "post_shared_post_id_reply_target_id_check",

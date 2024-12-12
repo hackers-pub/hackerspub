@@ -51,6 +51,7 @@ federation
           url: new URL(await getAvatarUrl(account)),
         }),
         attachments: renderAccountLinks(account.links),
+        followers: ctx.getFollowersUri(identifier),
       });
     },
   )

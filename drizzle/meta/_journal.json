@@ -134,6 +134,20 @@
       "when": 1733665395904,
       "tag": "0018_get-rid-of-account.deleted",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1733931141118,
+      "tag": "0019_note_source",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1733933438429,
+      "tag": "0020_post_note_source_id_check",
+      "breakpoints": true
     }
   ]
 }

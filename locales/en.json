@@ -110,5 +110,12 @@
       "loading": "Publishing now…",
       "failed": "Failed to publish the article. Please try again later."
     }
+  },
+  "composer": {
+    "content": "Content",
+    "contentPlaceholder": "What's on your mind? You can use Markdown.",
+    "language": "Language",
+    "post": "Post",
+    "postFailed": "Failed to submit your post. Please try again later."
   }
 }

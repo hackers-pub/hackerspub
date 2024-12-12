@@ -96,6 +96,7 @@
     "tailwindcss": "npm:tailwindcss@3.4.3",
     "tailwindcss/plugin": "npm:tailwindcss@3.4.3/plugin.js",
     "tinyld": "npm:tinyld@^1.3.4",
+    "tinyld.browser": "https://cdn.jsdelivr.net/npm/tinyld@1.3.0/dist/tinyld.normal.browser.js",
     "xss": "npm:xss@^1.0.15"
   },
   "unstable": [
@@ -107,7 +108,8 @@
       "dom",
       "dom.asynciterable",
       "dom.iterable",
-      "deno.ns"
+      "deno.ns",
+      "deno.unstable"
     ],
     "jsx": "precompile",
     "jsxImportSource": "preact",

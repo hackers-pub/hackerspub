@@ -21,6 +21,7 @@ import {
   type Instance,
   mentionTable,
   type NewPost,
+  type NoteSource,
   type Post,
   postTable,
 } from "./schema.ts";
@@ -97,6 +98,57 @@ export async function syncPostFromArticleSource(
     })
     .returning();
   return { ...rows[0], actor, articleSource };
+}
+
+export async function syncPostFromNoteSource(
+  db: Database,
+  kv: Keyv,
+  fedCtx: Context<void>,
+  noteSource: NoteSource & {
+    account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+  },
+): Promise<
+  Post & {
+    actor: Actor & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      instance: Instance;
+    };
+    noteSource: NoteSource & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    };
+  }
+> {
+  const actor = await syncActorFromAccount(
+    db,
+    kv,
+    fedCtx,
+    noteSource.account,
+  );
+  // FIXME: Note should be rendered in a different way
+  const rendered = await renderMarkup(noteSource.id, noteSource.content);
+  const url =
+    `${fedCtx.origin}/@${noteSource.account.username}/${noteSource.id}`;
+  const values: Omit<NewPost, "id"> = {
+    iri: fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href,
+    type: "Note",
+    actorId: actor.id,
+    noteSourceId: noteSource.id,
+    contentHtml: rendered.html,
+    language: noteSource.language,
+    tags: {}, // TODO
+    url,
+    updated: noteSource.updated,
+    published: noteSource.published,
+  };
+  const rows = await db.insert(postTable)
+    .values({ id: generateUuidV7(), ...values })
+    .onConflictDoUpdate({
+      target: postTable.noteSourceId,
+      set: values,
+      setWhere: eq(postTable.noteSourceId, noteSource.id),
+    })
+    .returning();
+  return { ...rows[0], actor, noteSource };
 }
 
 export async function persistPost(

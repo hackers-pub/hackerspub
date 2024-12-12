@@ -9,8 +9,9 @@ import {
   postTable,
 } from "../models/schema.ts";
 import { define } from "../utils.ts";
-import { Msg } from "../components/Msg.tsx";
+import { Msg, Translation } from "../components/Msg.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
+import { Composer } from "../islands/Composer.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -37,6 +38,7 @@ export const handler = define.handlers({
     }
     return page<HomeProps>({
       intro: ctx.state.account == null || timeline.length < 1,
+      composer: ctx.state.account != null,
       timeline,
     });
   },
@@ -44,26 +46,39 @@ export const handler = define.handlers({
 
 interface HomeProps {
   intro: boolean;
+  composer: boolean;
   timeline: (Post & { actor: Actor })[];
 }
 
-export default define.page<typeof handler, HomeProps>(function Home({ data }) {
-  return (
-    <>
-      {data.intro &&
-        (
-          <article>
-            <PageTitle>
-              <Msg $key="home.intro.title" />
-            </PageTitle>
-            <div class="prose prose-h2:text-xl dark:prose-invert">
-              <p>
-                <Msg $key="home.intro.content" />
-              </p>
-            </div>
-          </article>
+export default define.page<typeof handler, HomeProps>(
+  function Home({ state, data }) {
+    return (
+      <Translation>
+        {(_, lang) => (
+          <>
+            {data.composer && (
+              <Composer
+                language={lang}
+                postUrl={`/@${state.account!.username}`}
+              />
+            )}
+            {data.intro &&
+              (
+                <article>
+                  <PageTitle>
+                    <Msg $key="home.intro.title" />
+                  </PageTitle>
+                  <div class="prose prose-h2:text-xl dark:prose-invert">
+                    <p>
+                      <Msg $key="home.intro.content" />
+                    </p>
+                  </div>
+                </article>
+              )}
+            {data.timeline.map((post) => <PostExcerpt post={post} />)}
+          </>
         )}
-      {data.timeline.map((post) => <PostExcerpt post={post} />)}
-    </>
-  );
-});
+      </Translation>
+    );
+  },
+);

@@ -109,5 +109,12 @@
       "loading": "게시물을 올리는 중…",
       "failed": "게시물을 올리는 데 실패했습니다. 나중에 다시 시도해 주세요."
     }
+  },
+  "composer": {
+    "content": "내용",
+    "contentPlaceholder": "무슨 생각 해요? Markdown을 사용할 수 있습니다.",
+    "language": "언어",
+    "post": "올리기",
+    "postFailed": "게시물을 올리는 데 실패했습니다. 나중에 다시 시도해 주세요."
   }
 }
