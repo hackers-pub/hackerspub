@@ -1,6 +1,6 @@
 import { JSX } from "preact";
 
-export type TextAreaProps = JSX.HTMLAttributes<HTMLTextAreaElement>;
+export type TextAreaProps = JSX.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
 export function TextArea(props: TextAreaProps) {
   const propsWithoutClass = { ...props };

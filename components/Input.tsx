@@ -1,6 +1,6 @@
 import { JSX } from "preact";
 
-export type InputProps = JSX.HTMLAttributes<HTMLInputElement>;
+export type InputProps = JSX.InputHTMLAttributes<HTMLInputElement>;
 
 export function Input(props: InputProps) {
   const propsWithoutClass = { ...props };

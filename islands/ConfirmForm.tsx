@@ -1,7 +1,7 @@
 import { JSX } from "preact";
 
 export type ConfirmFormProps =
-  & Omit<JSX.HTMLAttributes<HTMLFormElement>, "onSubmit">
+  & Omit<JSX.FormHTMLAttributes<HTMLFormElement>, "onSubmit">
   & { confirm: string };
 
 export function ConfirmForm(props: ConfirmFormProps) {

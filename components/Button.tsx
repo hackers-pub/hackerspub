@@ -1,6 +1,6 @@
 import { JSX } from "preact";
 
-export type ButtonProps = JSX.HTMLAttributes<HTMLButtonElement>;
+export type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export function Button(props: ButtonProps) {
   const propsWithoutClass = { ...props };
