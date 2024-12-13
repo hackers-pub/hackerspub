@@ -123,13 +123,5 @@
       "head"
     ]
   },
-  "nodeModulesDir": "auto",
-  "deploy": {
-    "project": "1b9271c8-17f2-4ee2-b824-9a622ee3b7f3",
-    "exclude": [
-      "**/node_modules"
-    ],
-    "include": [],
-    "entrypoint": "main.ts"
-  }
+  "nodeModulesDir": "auto"
 }
