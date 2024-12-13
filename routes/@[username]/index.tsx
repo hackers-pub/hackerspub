@@ -163,7 +163,7 @@ export const handler = define.handlers({
       {
         rel: "alternate",
         type: "application/activity+json",
-        href: actorUri.href,
+        href: actorUri,
       },
     );
     ctx.state.title = account.name;
