@@ -8,7 +8,7 @@ import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { sendEmail } from "../../email.ts";
 import { kv } from "../../kv.ts";
-import { accountEmailTable } from "../../models/schema.ts";
+import { accountEmailTable, allowedEmailTable } from "../../models/schema.ts";
 import { createSigninToken } from "../../models/signin.ts";
 import { createSignupToken } from "../../models/signup.ts";
 import { define } from "../../utils.ts";
@@ -33,6 +33,16 @@ export const handler = define.handlers({
       where: eq(accountEmailTable.email, email),
     });
     if (accountEmail == null) {
+      const allowed = await db.query.allowedEmailTable.findFirst({
+        where: eq(allowedEmailTable.email, email),
+      });
+      if (allowed == null) {
+        return page<SignPageProps>({
+          success: false,
+          values: { email },
+          errors: { email: t("signInUp.emailNotAllowed") },
+        });
+      }
       const token = await createSignupToken(kv, email);
       const verifyUrl = new URL(`/sign/up/${token.token}`, ctx.url);
       verifyUrl.searchParams.set("code", token.code);

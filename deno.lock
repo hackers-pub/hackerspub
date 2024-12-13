@@ -82,6 +82,7 @@
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",
     "npm:cssfilter@^0.0.11": "0.0.11",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
+    "npm:drizzle-kit@*": "0.28.1_esbuild@0.19.12",
     "npm:drizzle-kit@0.28": "0.28.1_esbuild@0.19.12",
     "npm:drizzle-orm@~0.36.3": "0.36.4_@opentelemetry+api@1.9.0_postgres@3.4.5",
     "npm:esbuild-wasm@0.23.1": "0.23.1",

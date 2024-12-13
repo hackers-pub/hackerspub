@@ -17,6 +17,7 @@
     "description": "이미 계정이 있으면 로그인 링크를 보내드립니다. 계정이 없으면 가입 링크를 보내드립니다.",
     "submit": "$t(signInUp.title)",
     "invalidEmail": "유효하지 않은 이메일 주소입니다.",
+    "emailNotAllowed": "허용되지 않은 이메일 주소입니다. Hackers' Pub은 현재 클로즈드 베타 상태입니다. 가입하고 싶다면 관리자에게 문의하세요.",
     "signUpEmailSubject": "Hackers' Pub 가입",
     "signUpEmailText": "Hackers' Pub에 오신 것을 환영합니다! 가입하려면 다음 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 24시간 후에 만료됩니다.\n\n이 이메일을 요청하지 않았다면 무시해도 됩니다.\n",
     "signInEmailSubject": "Hackers' Pub 로그인",

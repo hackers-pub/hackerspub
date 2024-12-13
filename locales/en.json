@@ -17,6 +17,7 @@
     "description": "If you have an account, we'll send you a sign-in link. If you don't have an account, we'll send you a sign-up link.",
     "submit": "$t(signInUp.title)",
     "invalidEmail": "Invalid email address.",
+    "emailNotAllowed": "Email address is not allowed. Hackers' Pub is currently in closed beta. If you want to join, please contact the administrator.",
     "signUpEmailSubject": "Sign up for Hackers' Pub",
     "signUpEmailText": "Welcome to Hackers' Pub! To sign up, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in 24 hours.\n\nIf you didn't request this email, you can safely ignore it.\n",
     "signInEmailSubject": "Sign in to Hackers' Pub",

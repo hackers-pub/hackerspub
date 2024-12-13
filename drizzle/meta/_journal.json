@@ -148,6 +148,13 @@
       "when": 1733933438429,
       "tag": "0020_post_note_source_id_check",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1734073933492,
+      "tag": "0021_allowed_email",
+      "breakpoints": true
     }
   ]
 }
