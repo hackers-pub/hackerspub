@@ -1,22 +1,25 @@
 name: main
 on:
   push:
-    branches: main
+    branches:
+    - main
   pull_request:
-    branches: main
+    branches:
+    - main
 
 jobs:
-  check:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - uses: denoland/setup-deno@v2
       with:
         deno-version: v2.x
+    - run: deno task test
     - run: deno task check
           
   build:
-    needs: [check]
+    needs: [test]
     permissions:
       contents: read
       packages: write

@@ -147,6 +147,7 @@ export const accountKeyRelations = relations(
 
 export const accountLinkIconEnum = pgEnum("account_link_icon", [
   "activitypub",
+  "akkoma",
   "bluesky",
   "codeberg",
   "dev",
