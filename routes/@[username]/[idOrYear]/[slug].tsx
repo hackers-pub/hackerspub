@@ -1,3 +1,4 @@
+import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, inArray } from "drizzle-orm";
 import { page } from "fresh";
 import { define } from "../../../utils.ts";
@@ -48,10 +49,33 @@ export const handler = define.handlers({
         article,
       );
     }
+    const articleUri = ctx.state.fedCtx.getObjectUri(
+      vocab.Article,
+      { id: article.id },
+    );
+    ctx.state.links.push(
+      {
+        rel: "canonical",
+        href: new URL(
+          `/@${article.account.username}/${article.publishedYear}/${article.slug}`,
+          ctx.url,
+        ),
+      },
+      {
+        rel: "alternate",
+        type: "application/activity+json",
+        href: articleUri,
+      },
+    );
     return page<ArticlePageProps>({
       article,
       avatarUrl: await getAvatarUrl(article.account),
       contentHtml: (await renderMarkup(article.id, article.content)).html,
+    }, {
+      headers: {
+        Link:
+          `<${articleUri.href}>; rel="alternate"; type="application/activity+json"`,
+      },
     });
   },
 });
