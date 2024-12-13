@@ -16,8 +16,8 @@ import { ArticleMetadata } from "../../../components/ArticleMetadata.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
-    if (!ctx.params.year.match(/^\d+$/)) return ctx.next();
-    const year = parseInt(ctx.params.year);
+    if (!ctx.params.idOrYear.match(/^\d+$/)) return ctx.next();
+    const year = parseInt(ctx.params.idOrYear);
     const article = await db.query.articleSourceTable.findFirst({
       with: {
         account: {
