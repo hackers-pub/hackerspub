@@ -73,7 +73,10 @@ export async function onFollowed(
     { identifier: followee.id },
     followActor,
     new Accept({
-      id: new URL(`#accept/${follower.id}`, fedCtx.getActorUri(followee.id)),
+      id: new URL(
+        `#accept/${follower.id}/${+rows[0].accepted!}`,
+        fedCtx.getActorUri(followee.id),
+      ),
       actor: fedCtx.getActorUri(followee.id),
       object: follow,
     }),
