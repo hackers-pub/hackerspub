@@ -57,7 +57,7 @@ export async function onFollowed(
   if (followActor == null) return;
   const follower = await persistActor(db, followActor, {
     ...fedCtx,
-    outbox: true,
+    outbox: false,
   });
   if (follower == null) return;
   const rows = await db.insert(followingTable).values({

@@ -307,8 +307,10 @@ export async function persistSharedPost(
     );
     return;
   }
-  let actor: Actor & { instance: Instance } | undefined = options.actor ??
-    await getPersistedActor(db, announce.actorId);
+  let actor: Actor & { instance: Instance } | undefined =
+    options.actor == null || options.actor.iri !== announce.actorId.href
+      ? await getPersistedActor(db, announce.actorId)
+      : options.actor;
   if (actor == null) {
     const apActor = await announce.getActor(options);
     if (apActor == null) return;
