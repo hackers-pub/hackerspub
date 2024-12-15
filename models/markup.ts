@@ -9,8 +9,7 @@ import {
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
-import { NON_ASCII, slugify } from "@std/text/unstable-slugify";
-import transliterate from "any-ascii";
+import { DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import * as cssfilter from "cssfilter";
 import katex from "katex";
 import createMarkdownIt from "markdown-it";
@@ -30,7 +29,7 @@ let md = createMarkdownIt({ html: true })
   .use(abbr)
   .use(admonition)
   .use(anchor, {
-    slugifyWithState(title: string, state: { env: { docId: string } }) {
+    slugifyWithState(title: string, state: { env: { docId: string | null } }) {
       return slugifyTitle(title, state.env.docId);
     },
     permalink: anchor.permalink.linkInsideHeader({
@@ -365,7 +364,7 @@ export interface RenderedMarkup {
 }
 
 export async function renderMarkup(
-  docId: string,
+  docId: string | null,
   markup: string,
 ): Promise<RenderedMarkup> {
   if (!shikiLoaded) await loadingShiki;
@@ -399,8 +398,9 @@ export function sanitizeExcerptHtml(html: string): string {
   return excerptHtmlXss.process(html);
 }
 
-function slugifyTitle(title: string, docId: string): string {
-  return docId + "--" + slugify(title, { transliterate, strip: NON_ASCII });
+function slugifyTitle(title: string, docId: string | null): string {
+  return (docId == null ? "" : docId + "--") +
+    slugify(title, { strip: DIACRITICS });
 }
 
 interface InternalToc {

@@ -10,7 +10,10 @@
     "newArticle": "새 게시물",
     "drafts": "임시 보관함",
     "settings": "설정",
-    "signOut": "로그아웃"
+    "signOut": "로그아웃",
+    "coc": "행동 강령",
+    "openSource": "이 웹사이트의 소스 코드는 {{license}} 라이선스로 {{repository}}에서 배포됩니다.",
+    "githubRepository": "GitHub 저장소"
   },
   "signInUp": {
     "title": "로그인·가입",

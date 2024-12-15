@@ -1,5 +1,4 @@
-import { NON_ASCII, slugify } from "@std/text/unstable-slugify";
-import transliterate from "any-ascii";
+import { DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Button } from "../components/Button.tsx";
@@ -333,5 +332,5 @@ export function Editor(props: EditorProps) {
 }
 
 function makeSlug(title: string): string {
-  return slugify(title, { transliterate, strip: NON_ASCII });
+  return slugify(title, { strip: DIACRITICS });
 }

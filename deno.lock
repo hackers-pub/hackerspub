@@ -77,7 +77,6 @@
     "npm:@shikijs/transformers@^1.22.2": "1.24.2",
     "npm:@tailwindcss/typography@~0.5.15": "0.5.15_tailwindcss@3.4.3__postcss@8.4.49",
     "npm:@types/node@*": "22.5.4",
-    "npm:any-ascii@~0.3.2": "0.3.2",
     "npm:asn1js@^3.0.5": "3.0.5",
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",
     "npm:cssfilter@^0.0.11": "0.0.11",
@@ -1000,9 +999,6 @@
     },
     "ansi-styles@6.2.1": {
       "integrity": "sha512-bN798gFfQX+viw3R7yrGWRqnrN2oRkEkUjjl4JNn4E8GxxbjtG3FbrEIIY3l8/hrwUwIeCZvi4QuOTP4MErVug=="
-    },
-    "any-ascii@0.3.2": {
-      "integrity": "sha512-ABw9wA6PpMfmBbn5eeoOHJV86uqOcjEiuik6zV3dHCBfXu8kKWaCnKnrgzu9hLiFhvZYhdrRdVSo2RjjVhSycw=="
     },
     "any-promise@1.3.0": {
       "integrity": "sha512-7UvmKalWRt1wgjL1RrGxoSJW/0QZFIegpeGvZG9kjp8vrRu55XTHbwnqq2GpXm9uLbcuhxm3IqX9OB4MZR1b2A=="
@@ -2822,7 +2818,6 @@
       "npm:@shikijs/markdown-it@^1.22.2",
       "npm:@shikijs/transformers@^1.22.2",
       "npm:@tailwindcss/typography@~0.5.15",
-      "npm:any-ascii@~0.3.2",
       "npm:cssfilter@^0.0.11",
       "npm:drizzle-kit@0.28",
       "npm:drizzle-orm@~0.36.3",

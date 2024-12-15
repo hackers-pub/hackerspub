@@ -10,7 +10,10 @@
     "newArticle": "New article",
     "drafts": "Drafts",
     "settings": "Settings",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "coc": "Code of conduct",
+    "openSource": "The source code of this website is available on {{repository}} under the {{license}} license.",
+    "githubRepository": "GitHub repository"
   },
   "signInUp": {
     "title": "Sign in/up",

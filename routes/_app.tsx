@@ -58,7 +58,7 @@ export default async function App(
           ))}
         </head>
         <body class="font-sans dark:bg-stone-900 dark:text-white">
-          <header class="bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
+          <header class="h-[60px] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
             <nav class="m-auto max-w-screen-xl p-4 text-xl flex flex-row">
               <a
                 href="/"
@@ -120,13 +120,42 @@ export default async function App(
               </div>
             </nav>
           </header>
-          {state.withoutMain
-            ? <Component />
-            : (
-              <main class="m-auto max-w-screen-xl p-4">
+          {state.withoutMain ? <Component /> : (
+            <>
+              <main class="m-auto max-w-screen-xl min-h-[calc(100vh_-_120px)] p-4">
                 <Component />
               </main>
-            )}
+              <footer class="left-0 w-full h-[60px] bg-stone-100 dark:bg-stone-800">
+                <nav class="m-auto max-w-screen-xl p-4 pb-5 text-stone-400">
+                  <a href="/coc" class="text-black dark:text-white underline">
+                    <Msg $key="nav.coc" />
+                  </a>{" "}
+                  &middot;{" "}
+                  <span class="text-black dark:text-white">
+                    <Msg
+                      $key="nav.openSource"
+                      repository={
+                        <a
+                          href="https://github.com/dahlia/hackerspub"
+                          class="underline"
+                        >
+                          <Msg $key="nav.githubRepository" />
+                        </a>
+                      }
+                      license={
+                        <a
+                          href="https://www.gnu.org/licenses/agpl-3.0.html"
+                          class="underline"
+                        >
+                          AGPL 3.0
+                        </a>
+                      }
+                    />
+                  </span>
+                </nav>
+              </footer>
+            </>
+          )}
         </body>
       </html>
     </TranslationSetup>
