@@ -1,5 +1,5 @@
 import { JSX } from "preact";
-import { useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { Button } from "../components/Button.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { TextArea } from "../components/TextArea.tsx";
@@ -24,16 +24,20 @@ for (const language of SUPPORTED_LANGUAGES) {
 export function Composer(props: ComposerProps) {
   const t = getFixedT(props.language);
 
+  const contentRef = useRef<HTMLTextAreaElement | null>(null);
+  const [content, setContent] = useState<string>("");
   const [contentLanguage, setContentLanguage] = useState<string>(
     props.language,
   );
   const [contentLanguageManuallySet, setContentLanguageManually] = useState(
     false,
   );
+  const [submitting, setSubmitting] = useState(false);
 
   function onInput(event: JSX.TargetedInputEvent<HTMLTextAreaElement>) {
     if (contentLanguageManuallySet) return;
     const value = event.currentTarget.value;
+    setContent(value);
     const result = detectAll(value);
     for (const pair of result) {
       if (pair.lang === props.language) pair.accuracy += 0.5;
@@ -46,6 +50,7 @@ export function Composer(props: ComposerProps) {
 
   async function onSubmit(event: JSX.TargetedSubmitEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSubmitting(true);
     const form = event.currentTarget;
     const data = new FormData(form);
     const content = data.get("content") as string;
@@ -60,8 +65,10 @@ export function Composer(props: ComposerProps) {
     });
     if (response.status < 200 || response.status >= 300) {
       alert(t("composer.postFailed"));
+      setSubmitting(false);
       return;
     }
+    setContent("");
     location.reload();
   }
 
@@ -74,15 +81,17 @@ export function Composer(props: ComposerProps) {
         class="flex flex-col"
       >
         <TextArea
+          ref={contentRef}
           name="content"
           required
           class="w-full text-xl mb-3"
           placeholder={t("composer.contentPlaceholder")}
+          value={content}
           onInput={onInput}
           aria-label={t("composer.content")}
         />
         <div class="flex">
-          <Button>
+          <Button disabled={submitting}>
             <Msg $key="composer.post" />
           </Button>
           <div class="ml-auto flex gap-2">
