@@ -82,8 +82,16 @@ export function getNote(
   const noteObject = new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
     attribution: ctx.getActorUri(note.accountId),
-    to: PUBLIC_COLLECTION,
-    cc: ctx.getFollowersUri(note.accountId),
+    to: note.visibility === "public"
+      ? PUBLIC_COLLECTION
+      : note.visibility === "unlisted" || note.visibility === "followers"
+      ? ctx.getFollowersUri(note.accountId)
+      : null, // TODO: direct messages
+    cc: note.visibility === "public"
+      ? ctx.getFollowersUri(note.accountId)
+      : note.visibility === "unlisted"
+      ? PUBLIC_COLLECTION
+      : null,
     contents: [
       new LanguageString(note.content, note.language),
       note.content,

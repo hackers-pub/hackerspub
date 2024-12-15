@@ -16,6 +16,7 @@ import {
   type Actor,
   actorTable,
   type Post,
+  POST_VISIBILITIES,
   postTable,
 } from "../../models/schema.ts";
 import { htmlXss, renderMarkup } from "../../models/markup.ts";
@@ -32,6 +33,7 @@ const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 const NoteSourceSchema = v.object({
   content: v.pipe(v.string(), v.trim(), v.nonEmpty()),
   language: v.picklist(POSSIBLE_LANGUAGES),
+  visibility: v.picklist(POST_VISIBILITIES),
 });
 
 export const handler = define.handlers({

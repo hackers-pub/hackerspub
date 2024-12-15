@@ -155,6 +155,13 @@
       "when": 1734073933492,
       "tag": "0021_allowed_email",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1734237419970,
+      "tag": "0022_post_visibility",
+      "breakpoints": true
     }
   ]
 }

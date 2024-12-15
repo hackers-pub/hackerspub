@@ -114,8 +114,15 @@
   "composer": {
     "content": "内容",
     "contentPlaceholder": "今何してる？Markdownが使えます。",
+    "visibility": "公開範囲",
     "language": "言語",
     "post": "投稿",
     "postFailed": "投稿に失敗しました。後でもう一度お試しください。"
+  },
+  "postVisibility": {
+    "public": "公開",
+    "unlisted": "ひかえめな公開",
+    "followers": "フォロワーのみ",
+    "direct": "言及されたユーザーのみ"
   }
 }

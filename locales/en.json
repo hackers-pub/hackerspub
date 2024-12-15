@@ -115,8 +115,15 @@
   "composer": {
     "content": "Content",
     "contentPlaceholder": "What's on your mind? You can use Markdown.",
+    "visibility": "Post privacy",
     "language": "Language",
     "post": "Post",
     "postFailed": "Failed to submit your post. Please try again later."
+  },
+  "postVisibility": {
+    "public": "Public",
+    "unlisted": "Quiet public",
+    "followers": "Followers only",
+    "direct": "Mentioned users only"
   }
 }

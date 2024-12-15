@@ -1,11 +1,14 @@
 import { sanitizeHtml } from "../models/markup.ts";
+import type { PostVisibility } from "../models/schema.ts";
 import { Translation } from "./Msg.tsx";
+import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
 
 export interface NoteExcerptProps {
   class?: string;
   url: string | URL;
   target?: string;
   contentHtml: string;
+  visibility: PostVisibility;
   lang?: string;
   authorUrl: string;
   authorName: string;
@@ -39,19 +42,25 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   {props.authorHandle}
                 </span>
               </a>
-              <a
-                href={props.url.toString()}
-                class="text-stone-500 dark:text-stone-400"
-              >
-                <time
-                  datetime={props.published.toISOString()}
+              <div class="flex text-stone-500 dark:text-stone-400">
+                <a
+                  href={props.url.toString()}
+                  class="after:content-['_·'] mr-1"
                 >
-                  {props.published.toLocaleString(lang, {
-                    dateStyle: "long",
-                    timeStyle: "short",
-                  })}
-                </time>
-              </a>
+                  <time
+                    datetime={props.published.toISOString()}
+                  >
+                    {props.published.toLocaleString(lang, {
+                      dateStyle: "long",
+                      timeStyle: "short",
+                    })}
+                  </time>
+                </a>
+                <PostVisibilityIcon
+                  class="inline-block"
+                  visibility={props.visibility}
+                />
+              </div>
             </div>
           </div>
           <div

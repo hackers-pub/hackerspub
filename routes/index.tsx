@@ -1,5 +1,6 @@
+import { acceptsLanguages } from "@std/http/negotiation";
 import { page } from "fresh";
-import { desc, eq, inArray, or } from "drizzle-orm";
+import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { db } from "../db.ts";
 import {
@@ -17,8 +18,19 @@ export const handler = define.handlers({
   async GET(ctx) {
     let timeline: (Post & { actor: Actor })[];
     if (ctx.state.account == null) {
+      const languages = new Set<string>(
+        acceptsLanguages(ctx.req)
+          .filter((lang) => lang !== "*")
+          .map((lang) => lang.replace(/-.*$/, "")),
+      );
       timeline = await db.query.postTable.findMany({
         with: { actor: true },
+        where: and(
+          eq(postTable.visibility, "public"),
+          languages.size < 1
+            ? undefined
+            : inArray(postTable.language, [...languages]),
+        ),
         orderBy: desc(postTable.published),
       });
     } else {

@@ -31,6 +31,7 @@ export function PostExcerpt(props: PostExcerptProps) {
         url={post.url ?? post.iri}
         contentHtml={post.contentHtml}
         lang={post.language ?? undefined}
+        visibility={post.visibility}
         authorUrl={post.actor.url ?? post.actor.iri}
         authorName={post.actor.name ?? post.actor.username}
         authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}

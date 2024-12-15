@@ -4,6 +4,7 @@ import {
   isActor,
   LanguageString,
   lookupObject,
+  PUBLIC_COLLECTION,
   traverseCollection,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
@@ -75,6 +76,7 @@ export async function syncPostFromArticleSource(
   const values: Omit<NewPost, "id"> = {
     iri: fedCtx.getObjectUri(vocab.Article, { id: articleSource.id }).href,
     type: "Article",
+    visibility: "public",
     actorId: actor.id,
     articleSourceId: articleSource.id,
     name: articleSource.title,
@@ -131,6 +133,7 @@ export async function syncPostFromNoteSource(
   const values: Omit<NewPost, "id"> = {
     iri: fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href,
     type: "Note",
+    visibility: noteSource.visibility,
     actorId: actor.id,
     noteSourceId: noteSource.id,
     contentHtml: rendered.html,
@@ -204,6 +207,8 @@ export async function persistPost(
       if (replyTarget == null) return;
     }
   }
+  const to = new Set(post.toIds.map((u) => u.href));
+  const cc = new Set(post.ccIds.map((u) => u.href));
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
     type: post instanceof vocab.Article
@@ -213,6 +218,14 @@ export async function persistPost(
       : post instanceof vocab.Question
       ? "Question"
       : UNREACHABLE,
+    visibility: to.has(PUBLIC_COLLECTION.href)
+      ? "public"
+      : cc.has(PUBLIC_COLLECTION.href)
+      ? "unlisted"
+      : actor.followersUrl != null &&
+          (to.has(actor.followersUrl) || cc.has(actor.followersUrl))
+      ? "followers"
+      : "none", // TODO: Implement direct message
     actorId: actor.id,
     name: post.name?.toString(),
     contentHtml: post.content?.toString(),
@@ -324,9 +337,19 @@ export async function persistSharedPost(
     replies: true,
   });
   if (post == null) return;
+  const to = new Set(announce.toIds.map((u) => u.href));
+  const cc = new Set(announce.ccIds.map((u) => u.href));
   const values: Omit<NewPost, "id"> = {
     iri: announce.id.href,
     type: post.type,
+    visibility: to.has(PUBLIC_COLLECTION.href)
+      ? "public"
+      : cc.has(PUBLIC_COLLECTION.href)
+      ? "unlisted"
+      : actor.followersUrl != null &&
+          (to.has(actor.followersUrl) || cc.has(actor.followersUrl))
+      ? "followers"
+      : "none", // TODO: Implement direct message
     actorId: actor.id,
     sharedPostId: post.id,
     name: post.name,

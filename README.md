@@ -3,6 +3,11 @@
 Hackers' Pub
 ============
 
+> [!NOTE]
+> Hackers' Pub is currently heavily under development, and it is invite-only.
+> If you want to sign up, please contact the author via fediverse:
+> [@hongminhee@hollo.social].
+
 Hackers' Pub is an ActivityPub-enabled social network for hackers.
 You can think of it as a federated version of DEV Community (또는 연합판
 velog, または連合できるQiita) with a Mastodon-like timeline.
@@ -29,3 +34,5 @@ It focuses on the following features:[^1]
 Hackers' Pub is open source.  The source code is available under the AGPL-3.0.
 
 [^1]: Of course, these features are not implemented yet.  This is just a plan.
+
+[@hongminhee@hollo.social]: https://hollo.social/@hongminhee

@@ -476,12 +476,25 @@ export const articleSourceRelations = relations(
   }),
 );
 
+export const POST_VISIBILITIES = [
+  "public",
+  "unlisted",
+  "followers",
+  "direct",
+  "none",
+] as const;
+
+export const postVisibilityEnum = pgEnum("post_visibility", POST_VISIBILITIES);
+
+export type PostVisibility = (typeof postVisibilityEnum.enumValues)[number];
+
 export const noteSourceTable = pgTable("note_source", {
   id: uuid().$type<Uuid>().primaryKey(),
   accountId: uuid("account_id")
     .$type<Uuid>()
     .notNull()
     .references(() => accountTable.id),
+  visibility: postVisibilityEnum().notNull().default("public"),
   content: text().notNull(),
   language: varchar().notNull(),
   updated: timestamp({ withTimezone: true })
@@ -523,6 +536,7 @@ export const postTable = pgTable(
     id: uuid().$type<Uuid>().primaryKey(),
     iri: text().notNull().unique(),
     type: postTypeEnum().notNull(),
+    visibility: postVisibilityEnum().notNull().default("unlisted"),
     actorId: uuid("actor_id")
       .$type<Uuid>()
       .notNull()

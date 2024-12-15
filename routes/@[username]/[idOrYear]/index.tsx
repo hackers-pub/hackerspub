@@ -79,6 +79,7 @@ export default define.page<typeof handler, NotePageProps>(
         url={`/@${note.account.username}/${note.id}`}
         contentHtml={contentHtml}
         lang={note.language}
+        visibility={note.visibility}
         authorUrl={`/@${note.account.username}`}
         authorName={note.account.name}
         authorHandle={`@${note.account.username}@${url.host}`}
