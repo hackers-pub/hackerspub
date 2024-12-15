@@ -75,11 +75,12 @@ federation.setObjectDispatcher(
   },
 );
 
-export function getNote(
+export async function getNote(
   ctx: Context<void>,
   note: NoteSource & { account: Account },
 ): Promise<vocab.Note> {
-  const noteObject = new vocab.Note({
+  const rendered = await renderMarkup(note.id, note.content);
+  return new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
     attribution: ctx.getActorUri(note.accountId),
     to: note.visibility === "public"
@@ -93,8 +94,8 @@ export function getNote(
       ? PUBLIC_COLLECTION
       : null,
     contents: [
-      new LanguageString(note.content, note.language),
-      note.content,
+      new LanguageString(rendered.html, note.language),
+      rendered.html,
     ],
     source: new vocab.Source({
       content: note.content,
@@ -109,7 +110,6 @@ export function getNote(
       ? note.updated.toTemporalInstant()
       : null,
   });
-  return Promise.resolve(noteObject);
 }
 
 federation.setObjectDispatcher(
