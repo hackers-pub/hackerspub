@@ -1,8 +1,9 @@
 import { dirname } from "@std/path/dirname";
 import { join } from "@std/path/join";
-import { define } from "../utils.ts";
-import { renderMarkup } from "../models/markup.ts";
 import { page } from "fresh";
+import { db } from "../db.ts";
+import { renderMarkup } from "../models/markup.ts";
+import { define } from "../utils.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -12,7 +13,7 @@ export const handler = define.handlers({
         `CODE_OF_CONDUCT.${ctx.state.language}.md`,
       ),
     );
-    const rendered = await renderMarkup(null, coc);
+    const rendered = await renderMarkup(db, ctx.state.fedCtx, null, coc);
     ctx.state.title = rendered.title;
     return page<CocProps>({ html: rendered.html });
   },

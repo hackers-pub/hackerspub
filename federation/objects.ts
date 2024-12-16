@@ -5,7 +5,7 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { eq } from "drizzle-orm";
-import { db } from "../db.ts";
+import { Database, db } from "../db.ts";
 import { renderMarkup } from "../models/markup.ts";
 import {
   type Account,
@@ -13,15 +13,20 @@ import {
   articleSourceTable,
   type NoteSource,
   noteSourceTable,
+  postTable,
 } from "../models/schema.ts";
 import { validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
+import { isPostVisibleTo } from "../models/post.ts";
 
 export async function getArticle(
+  db: Database,
   ctx: Context<void>,
   articleSource: ArticleSource & { account: Account },
 ): Promise<vocab.Article> {
   const rendered = await renderMarkup(
+    db,
+    ctx,
     articleSource.id,
     articleSource.content,
   );
@@ -71,28 +76,32 @@ federation.setObjectDispatcher(
       where: eq(articleSourceTable.id, values.id),
     });
     if (articleSource == null) return null;
-    return await getArticle(ctx, articleSource);
+    return await getArticle(db, ctx, articleSource);
   },
 );
 
 export async function getNote(
+  db: Database,
   ctx: Context<void>,
   note: NoteSource & { account: Account },
 ): Promise<vocab.Note> {
-  const rendered = await renderMarkup(note.id, note.content);
+  const rendered = await renderMarkup(db, ctx, note.id, note.content);
   return new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
     attribution: ctx.getActorUri(note.accountId),
-    to: note.visibility === "public"
-      ? PUBLIC_COLLECTION
-      : note.visibility === "unlisted" || note.visibility === "followers"
-      ? ctx.getFollowersUri(note.accountId)
-      : null, // TODO: direct messages
-    cc: note.visibility === "public"
-      ? ctx.getFollowersUri(note.accountId)
+    tos: [
+      ...(note.visibility === "public"
+        ? [PUBLIC_COLLECTION]
+        : note.visibility === "unlisted" || note.visibility === "followers"
+        ? [ctx.getFollowersUri(note.accountId)]
+        : []),
+      ...Object.values(rendered.mentions).map((actor) => new URL(actor.iri)),
+    ],
+    ccs: note.visibility === "public"
+      ? [ctx.getFollowersUri(note.accountId)]
       : note.visibility === "unlisted"
-      ? PUBLIC_COLLECTION
-      : null,
+      ? [PUBLIC_COLLECTION]
+      : [],
     contents: [
       new LanguageString(rendered.html, note.language),
       rendered.html,
@@ -101,6 +110,12 @@ export async function getNote(
       content: note.content,
       mediaType: "text/markdown",
     }),
+    tags: Object.entries(rendered.mentions).map(([handle, actor]) =>
+      new vocab.Mention({
+        href: new URL(actor.iri),
+        name: handle,
+      })
+    ),
     url: new URL(
       `/@${note.account.username}/${note.id}`,
       ctx.origin,
@@ -112,16 +127,40 @@ export async function getNote(
   });
 }
 
-federation.setObjectDispatcher(
-  vocab.Note,
-  "/ap/notes/{id}",
-  async (ctx, values) => {
-    if (!validateUuid(values.id)) return null;
-    const note = await db.query.noteSourceTable.findFirst({
-      with: { account: true },
-      where: eq(noteSourceTable.id, values.id),
+federation
+  .setObjectDispatcher(
+    vocab.Note,
+    "/ap/notes/{id}",
+    async (ctx, values) => {
+      if (!validateUuid(values.id)) return null;
+      const note = await db.query.noteSourceTable.findFirst({
+        with: { account: true },
+        where: eq(noteSourceTable.id, values.id),
+      });
+      if (note == null) return null;
+      return await getNote(db, ctx, note);
+    },
+  )
+  .authorize(async (_ctx, values, _signedKey, signedKeyOwner) => {
+    if (!validateUuid(values.id)) return false;
+    const post = await db.query.postTable.findFirst({
+      with: {
+        actor: {
+          with: {
+            followers: {
+              with: { follower: true },
+            },
+          },
+        },
+        mentions: {
+          with: { actor: true },
+        },
+      },
+      where: eq(postTable.noteSourceId, values.id),
     });
-    if (note == null) return null;
-    return await getNote(ctx, note);
-  },
-);
+    if (post == null) return false;
+    return isPostVisibleTo(
+      post,
+      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
+    );
+  });

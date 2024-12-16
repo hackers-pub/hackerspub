@@ -32,7 +32,7 @@ federation
         },
       });
       if (account == null) return null;
-      const bio = await renderMarkup(account.id, account.bio);
+      const bio = await renderMarkup(db, ctx, account.id, account.bio);
       const keys = await ctx.getActorKeyPairs(identifier);
       return new Person({
         id: ctx.getActorUri(identifier),

@@ -3,6 +3,7 @@
   "specifiers": {
     "jsr:@fedify/fedify@1": "1.3.0",
     "jsr:@fedify/fedify@1.3.0": "1.3.0",
+    "jsr:@fedify/markdown-it-mention@0.2": "0.2.0",
     "jsr:@fedify/postgres@~0.2.2": "0.2.2",
     "jsr:@fedify/redis@0.3": "0.3.0",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.27",
@@ -32,6 +33,7 @@
     "jsr:@std/fmt@1": "1.0.3",
     "jsr:@std/fmt@^1.0.3": "1.0.3",
     "jsr:@std/fs@1": "1.0.6",
+    "jsr:@std/html@0.224": "0.224.2",
     "jsr:@std/html@1": "1.0.3",
     "jsr:@std/html@^1.0.3": "1.0.3",
     "jsr:@std/http@^1.0.6": "1.0.11",
@@ -76,6 +78,7 @@
     "npm:@shikijs/markdown-it@^1.22.2": "1.24.2",
     "npm:@shikijs/transformers@^1.22.2": "1.24.2",
     "npm:@tailwindcss/typography@~0.5.15": "0.5.15_tailwindcss@3.4.3__postcss@8.4.49",
+    "npm:@types/markdown-it@^14.1.1": "14.1.2",
     "npm:@types/node@*": "22.5.4",
     "npm:asn1js@^3.0.5": "3.0.5",
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",
@@ -140,6 +143,13 @@
         "npm:pkijs",
         "npm:uri-template-router",
         "npm:url-template"
+      ]
+    },
+    "@fedify/markdown-it-mention@0.2.0": {
+      "integrity": "98706e8dfafb0ce45c781e2e7162400be4d9c71f80c5a1671d7209086b9ba6a3",
+      "dependencies": [
+        "jsr:@std/html@0.224",
+        "npm:@types/markdown-it"
       ]
     },
     "@fedify/postgres@0.2.2": {
@@ -272,6 +282,9 @@
       "dependencies": [
         "jsr:@std/path@^1.0.8"
       ]
+    },
+    "@std/html@0.224.2": {
+      "integrity": "2f7bfd71081fad988af9ce991750ed1574917dc8e6fae0e151987ea020d1e21a"
     },
     "@std/html@1.0.3": {
       "integrity": "7a0ac35e050431fb49d44e61c8b8aac1ebd55937e0dc9ec6409aa4bab39a7988"
@@ -2780,6 +2793,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@fedify/fedify@1.3.0",
+      "jsr:@fedify/markdown-it-mention@0.2",
       "jsr:@fedify/postgres@~0.2.2",
       "jsr:@fedify/redis@0.3",
       "jsr:@fresh/core@^2.0.0-alpha.27",

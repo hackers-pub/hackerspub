@@ -19,7 +19,9 @@ import {
   type Actor,
   actorTable,
   type ArticleSource,
+  type Following,
   type Instance,
+  type Mention,
   mentionTable,
   type NewPost,
   type NoteSource,
@@ -32,7 +34,7 @@ import {
   syncActorFromAccount,
 } from "./actor.ts";
 import { renderMarkup } from "./markup.ts";
-import { generateUuidV7 } from "./uuid.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
 import { toDate } from "./date.ts";
 
 const logger = getLogger(["hackerspub", "models", "post"]);
@@ -68,7 +70,12 @@ export async function syncPostFromArticleSource(
     fedCtx,
     articleSource.account,
   );
-  const rendered = await renderMarkup(articleSource.id, articleSource.content);
+  const rendered = await renderMarkup(
+    db,
+    fedCtx,
+    articleSource.id,
+    articleSource.content,
+  );
   const url =
     `${fedCtx.origin}/@${articleSource.account.username}/${articleSource.publishedYear}/${
       encodeURIComponent(articleSource.slug)
@@ -118,6 +125,7 @@ export async function syncPostFromNoteSource(
     noteSource: NoteSource & {
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     };
+    mentions: Mention[];
   }
 > {
   const actor = await syncActorFromAccount(
@@ -127,7 +135,12 @@ export async function syncPostFromNoteSource(
     noteSource.account,
   );
   // FIXME: Note should be rendered in a different way
-  const rendered = await renderMarkup(noteSource.id, noteSource.content);
+  const rendered = await renderMarkup(
+    db,
+    fedCtx,
+    noteSource.id,
+    noteSource.content,
+  );
   const url =
     `${fedCtx.origin}/@${noteSource.account.username}/${noteSource.id}`;
   const values: Omit<NewPost, "id"> = {
@@ -151,7 +164,15 @@ export async function syncPostFromNoteSource(
       setWhere: eq(postTable.noteSourceId, noteSource.id),
     })
     .returning();
-  return { ...rows[0], actor, noteSource };
+  const post = rows[0];
+  await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
+  const mentions = await db.insert(mentionTable).values(
+    globalThis.Object.values(rendered.mentions).map((actor) => ({
+      postId: post.id,
+      actorId: actor.id,
+    })),
+  ).returning();
+  return { ...post, actor, noteSource, mentions };
 }
 
 export async function persistPost(
@@ -209,6 +230,7 @@ export async function persistPost(
   }
   const to = new Set(post.toIds.map((u) => u.href));
   const cc = new Set(post.ccIds.map((u) => u.href));
+  const recipients = to.union(cc);
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
     type: post instanceof vocab.Article
@@ -222,10 +244,12 @@ export async function persistPost(
       ? "public"
       : cc.has(PUBLIC_COLLECTION.href)
       ? "unlisted"
-      : actor.followersUrl != null &&
-          (to.has(actor.followersUrl) || cc.has(actor.followersUrl))
+      : actor.followersUrl != null && recipients.has(actor.followersUrl) &&
+          mentions.isSubsetOf(recipients)
       ? "followers"
-      : "none", // TODO: Implement direct message
+      : mentions.isSubsetOf(recipients)
+      ? "direct"
+      : "none",
     actorId: actor.id,
     name: post.name?.toString(),
     contentHtml: post.content?.toString(),
@@ -349,7 +373,7 @@ export async function persistSharedPost(
       : actor.followersUrl != null &&
           (to.has(actor.followersUrl) || cc.has(actor.followersUrl))
       ? "followers"
-      : "none", // TODO: Implement direct message
+      : "none",
     actorId: actor.id,
     sharedPostId: post.id,
     name: post.name,
@@ -381,6 +405,58 @@ export function getPersistedPost(
     with: { actor: { with: { instance: true } } },
     where: eq(postTable.iri, iri.toString()),
   });
+}
+
+export function isPostVisibleTo(
+  post: Post & {
+    actor: Actor & { followers: Following[] };
+    mentions: Mention[];
+  },
+  actor?: { id: Uuid },
+): boolean;
+export function isPostVisibleTo(
+  post: Post & {
+    actor: Actor & { followers: (Following & { follower: Actor })[] };
+    mentions: (Mention & { actor: Actor })[];
+  },
+  actor?: { iri: string },
+): boolean;
+export function isPostVisibleTo(
+  post: Post & {
+    actor: Actor & { followers: (Following & { follower?: Actor })[] };
+    mentions: (Mention & { actor?: Actor })[];
+  },
+  actor?: { id: Uuid } | { iri: string },
+): boolean {
+  if (post.visibility === "public" || post.visibility === "unlisted") {
+    return true;
+  }
+  if (actor == null) return false;
+  if (
+    "id" in actor && post.actor.id === actor.id ||
+    "iri" in actor && post.actor.iri === actor.iri
+  ) {
+    return true;
+  }
+  if (post.visibility === "followers") {
+    if ("id" in actor) {
+      return post.actor.followers.some((follower) =>
+        follower.followerId === actor.id
+      ) || post.mentions.some((mention) => mention.actorId === actor.id);
+    } else {
+      return post.actor.followers.some((follower) =>
+        follower.follower?.iri === actor.iri
+      ) || post.mentions.some((mention) => mention.actor?.iri === actor.iri);
+    }
+  }
+  if (post.visibility === "direct") {
+    if ("id" in actor) {
+      return post.mentions.some((mention) => mention.actorId === actor.id);
+    } else {
+      return post.mentions.some((mention) => mention.actor?.iri === actor.iri);
+    }
+  }
+  return false;
 }
 
 const UNREACHABLE: never = undefined!;

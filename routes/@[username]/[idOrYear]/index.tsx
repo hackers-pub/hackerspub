@@ -3,10 +3,9 @@ import { and, eq, inArray } from "drizzle-orm";
 import { page } from "fresh";
 import { NoteExcerpt } from "../../../components/NoteExcerpt.tsx";
 import { db } from "../../../db.ts";
-import { kv } from "../../../kv.ts";
 import { getAvatarUrl } from "../../../models/account.ts";
 import { renderMarkup } from "../../../models/markup.ts";
-import { syncPostFromNoteSource } from "../../../models/post.ts";
+import { isPostVisibleTo } from "../../../models/post.ts";
 import {
   type Account,
   accountTable,
@@ -25,7 +24,14 @@ export const handler = define.handlers({
         account: {
           with: { emails: true, links: true },
         },
-        post: true,
+        post: {
+          with: {
+            actor: {
+              with: { followers: true },
+            },
+            mentions: true,
+          },
+        },
       },
       where: and(
         eq(noteSourceTable.id, id),
@@ -38,8 +44,8 @@ export const handler = define.handlers({
       ),
     });
     if (note == null) return ctx.next();
-    if (note.post == null) {
-      note.post = await syncPostFromNoteSource(db, kv, ctx.state.fedCtx, note);
+    if (!isPostVisibleTo(note.post, ctx.state.account?.actor)) {
+      return ctx.next();
     }
     const noteUri = ctx.state.fedCtx.getObjectUri(vocab.Note, { id: note.id });
     ctx.state.links.push(
@@ -56,7 +62,8 @@ export const handler = define.handlers({
     return page<NotePageProps>({
       note,
       avatarUrl: await getAvatarUrl(note.account),
-      contentHtml: (await renderMarkup(note.id, note.content)).html,
+      contentHtml:
+        (await renderMarkup(db, ctx.state.fedCtx, note.id, note.content)).html,
     }, {
       headers: {
         Link:

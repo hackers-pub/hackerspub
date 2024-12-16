@@ -57,7 +57,7 @@ export async function createNote(
     ...noteSource,
     account,
   });
-  const noteObject = await getNote(fedCtx, { ...noteSource, account });
+  const noteObject = await getNote(db, fedCtx, { ...noteSource, account });
   await fedCtx.sendActivity(
     { identifier: source.accountId },
     "followers",

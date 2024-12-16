@@ -3,13 +3,14 @@ import {
   type DocumentLoader,
   getActorHandle,
   getActorTypeName,
+  isActor,
   Link,
   PropertyValue,
   traverseCollection,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, or, type SQL, sql } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import metadata from "../deno.json" with { type: "json" };
@@ -65,7 +66,7 @@ export async function syncActorFromAccount(
     instanceHost: instance.host,
     accountId: account.id,
     name: account.name,
-    bioHtml: (await renderMarkup(account.id, account.bio)).html,
+    bioHtml: (await renderMarkup(db, fedCtx, account.id, account.bio)).html,
     automaticallyApprovesFollowers: true,
     inboxUrl: fedCtx.getInboxUri(account.id).href,
     sharedInboxUrl: fedCtx.getInboxUri().href,
@@ -227,4 +228,50 @@ export function getPersistedActor(
     with: { instance: true },
     where: eq(actorTable.iri, iri.toString()),
   });
+}
+
+export async function persistActorsByHandles(
+  db: Database,
+  ctx: Context<void>,
+  handles: string[],
+): Promise<Record<string, Actor & { instance: Instance }>> {
+  const filter: SQL[] = [];
+  const handlesToFetch = new Set<string>();
+  for (let handle of handles) {
+    handle = handle.trim().replace(/^@/, "").trim();
+    if (!handle.includes("@")) continue;
+    let [username, host] = handle.split("@");
+    username = username.trim();
+    host = host.trim();
+    if (username === "" || host === "") continue;
+    handlesToFetch.add(`@${username}@${host}`);
+    const expr = and(
+      eq(actorTable.username, username),
+      eq(actorTable.instanceHost, host),
+    );
+    if (expr != null) filter.push(expr);
+  }
+  const existingActors = await db.query.actorTable.findMany({
+    with: { instance: true },
+    where: or(...filter),
+  });
+  const result: Record<string, Actor & { instance: Instance }> = {};
+  for (const actor of existingActors) {
+    const handle = `@${actor.username}@${actor.instance.host}`;
+    result[handle] = actor;
+    handlesToFetch.delete(handle);
+  }
+  const promises = [];
+  for (const handle of handlesToFetch) {
+    promises.push(ctx.lookupObject(handle));
+  }
+  const apActors = await Promise.all(promises);
+  for (const apActor of apActors) {
+    if (!isActor(apActor)) continue;
+    const actor = await persistActor(db, apActor, { ...ctx, outbox: false });
+    if (actor == null) continue;
+    const handle = `@${actor.username}@${actor.instance.host}`;
+    result[handle] = actor;
+  }
+  return result;
 }

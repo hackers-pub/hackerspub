@@ -1,11 +1,12 @@
 import { acceptsLanguages } from "@std/http/negotiation";
 import { page } from "fresh";
-import { and, desc, eq, inArray, or } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, or } from "drizzle-orm";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { db } from "../db.ts";
 import {
   type Actor,
   followingTable,
+  mentionTable,
   type Post,
   postTable,
 } from "../models/schema.ts";
@@ -36,14 +37,25 @@ export const handler = define.handlers({
     } else {
       timeline = await db.query.postTable.findMany({
         with: { actor: true },
-        where: or(
-          inArray(
-            postTable.actorId,
-            db.select({ id: followingTable.followeeId })
-              .from(followingTable)
-              .where(eq(followingTable.followerId, ctx.state.account.actor.id)),
+        where: and(
+          or(
+            inArray(
+              postTable.actorId,
+              db.select({ id: followingTable.followeeId })
+                .from(followingTable)
+                .where(
+                  eq(followingTable.followerId, ctx.state.account.actor.id),
+                ),
+            ),
+            inArray(
+              postTable.id,
+              db.select({ postId: mentionTable.postId })
+                .from(mentionTable)
+                .where(eq(mentionTable.actorId, ctx.state.account.actor.id)),
+            ),
+            eq(postTable.actorId, ctx.state.account.actor.id),
           ),
-          eq(postTable.actorId, ctx.state.account.actor.id),
+          ne(postTable.visibility, "none"),
         ),
         orderBy: desc(postTable.published),
       });

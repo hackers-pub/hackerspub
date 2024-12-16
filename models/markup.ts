@@ -19,9 +19,14 @@ import anchor from "markdown-it-anchor";
 import deflist from "markdown-it-deflist";
 import footnote from "markdown-it-footnote";
 import graphviz from "markdown-it-graphviz";
+import { mention } from "@fedify/markdown-it-mention";
 import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
 import { FilterXSS, whiteList } from "xss";
+import { Actor } from "./schema.ts";
+import { Database } from "../db.ts";
+import { Context } from "@fedify/fedify";
+import { persistActorsByHandles } from "./actor.ts";
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
@@ -29,7 +34,7 @@ let md = createMarkdownIt({ html: true })
   .use(abbr)
   .use(admonition)
   .use(anchor, {
-    slugifyWithState(title: string, state: { env: { docId: string | null } }) {
+    slugifyWithState(title: string, state: { env: Env }) {
       return slugifyTitle(title, state.env.docId);
     },
     permalink: anchor.permalink.linkInsideHeader({
@@ -41,6 +46,25 @@ let md = createMarkdownIt({ html: true })
   .use(deflist)
   .use(footnote)
   .use(graphviz)
+  .use(mention, {
+    link(handle: string, env: Env) {
+      const actor = env.mentionedActors[handle];
+      if (actor == null) return null;
+      return actor.url ?? actor.iri;
+    },
+    linkAttributes: (handle: string, env: Env) => {
+      const actor = env.mentionedActors[handle];
+      if (actor == null) return {};
+      return {
+        class: "u-url mention",
+        title: actor.name ?? handle,
+        "data-username": actor.username,
+        "data-host": actor.instanceHost,
+        "data-id": actor.id,
+        "data-iri": actor.iri,
+      };
+    },
+  })
   .use(texmath, { engine: katex })
   .use(title)
   .use(toc, {
@@ -86,6 +110,10 @@ export const htmlXss = new FilterXSS({
       "title",
       "rel",
       "class",
+      "data-username",
+      "data-host",
+      "data-id",
+      "data-iri",
     ],
     abbr: ["lang", "translate", "title"],
     address: ["lang", "translate"],
@@ -361,14 +389,30 @@ export interface RenderedMarkup {
   text: string;
   title: string;
   toc: Toc[];
+  mentions: Record<string, Actor>;
+}
+
+interface Env {
+  docId: string | null;
+  title: string;
+  mentionedActors: Record<string, Actor>;
 }
 
 export async function renderMarkup(
+  db: Database,
+  fedCtx: Context<void>,
   docId: string | null,
   markup: string,
 ): Promise<RenderedMarkup> {
+  const tmpMd = createMarkdownIt().use(mention);
+  const tmpEnv: { mentions: string[] } = { mentions: [] };
+  tmpMd.render(markup, tmpEnv);
+  const mentions = new Set(tmpEnv.mentions);
+  const mentionedActors = await persistActorsByHandles(db, fedCtx, [
+    ...mentions,
+  ]);
   if (!shikiLoaded) await loadingShiki;
-  const env = { docId, title: "" };
+  const env: Env = { docId, title: "", mentionedActors };
   const rawHtml = md.render(markup, env)
     .replaceAll('<?xml version="1.0" encoding="UTF-8" standalone="no"?>', "")
     .replaceAll(
@@ -386,6 +430,7 @@ export async function renderMarkup(
     text,
     title: env.title,
     toc: toc.level < 1 ? toc.children : [toc],
+    mentions: mentionedActors,
   };
   return rendered;
 }

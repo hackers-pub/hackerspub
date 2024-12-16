@@ -105,7 +105,10 @@ export async function createArticle(
     ...articleSource,
     account,
   });
-  const articleObject = await getArticle(fedCtx, { ...articleSource, account });
+  const articleObject = await getArticle(db, fedCtx, {
+    ...articleSource,
+    account,
+  });
   await fedCtx.sendActivity(
     { identifier: source.accountId },
     "followers",

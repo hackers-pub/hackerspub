@@ -31,7 +31,9 @@ export const handler = define.handlers({
         title: draft.title,
         created: draft.created,
         updated: draft.updated,
-        excerptHtml: (await renderMarkup(draft.id, draft.content)).excerptHtml,
+        excerptHtml:
+          (await renderMarkup(db, ctx.state.fedCtx, draft.id, draft.content))
+            .excerptHtml,
       }))),
     });
   },

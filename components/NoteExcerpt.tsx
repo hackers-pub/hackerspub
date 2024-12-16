@@ -33,7 +33,11 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 />
               </a>
             )}
-            <div class="flex flex-col">
+            <div
+              class={`flex flex-col ${
+                props.authorAvatarUrl == null ? "ml-14" : ""
+              }`}
+            >
               <a href={props.authorUrl}>
                 <strong class="text-black dark:text-white">
                   {props.authorName}

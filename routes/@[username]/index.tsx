@@ -2,7 +2,7 @@ import { isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import * as v from "@valibot/valibot";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { page } from "fresh";
 import { Button } from "../../components/Button.tsx";
 import { Msg } from "../../components/Msg.tsx";
@@ -107,7 +107,10 @@ export const handler = define.handlers({
       }
       const posts = await db.query.postTable.findMany({
         with: { actor: true },
-        where: eq(postTable.actorId, actor.id),
+        where: and(
+          eq(postTable.actorId, actor.id),
+          inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
+        ),
         orderBy: desc(postTable.published),
       });
       ctx.state.title = name;
@@ -132,7 +135,12 @@ export const handler = define.handlers({
       },
     });
     if (account == null) return ctx.next();
-    const bio = await renderMarkup(account.id, account.bio);
+    const bio = await renderMarkup(
+      db,
+      ctx.state.fedCtx,
+      account.id,
+      account.bio,
+    );
     ctx.state.metas.push(
       {
         name: "description",
@@ -171,7 +179,10 @@ export const handler = define.handlers({
     ctx.state.title = account.name;
     const posts = await db.query.postTable.findMany({
       with: { actor: true },
-      where: eq(postTable.actorId, account.actor.id),
+      where: and(
+        eq(postTable.actorId, account.actor.id),
+        inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
+      ),
       orderBy: desc(postTable.published),
     });
     let followState: FollowStateProps;

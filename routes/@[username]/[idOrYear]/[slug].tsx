@@ -70,7 +70,9 @@ export const handler = define.handlers({
     return page<ArticlePageProps>({
       article,
       avatarUrl: await getAvatarUrl(article.account),
-      contentHtml: (await renderMarkup(article.id, article.content)).html,
+      contentHtml:
+        (await renderMarkup(db, ctx.state.fedCtx, article.id, article.content))
+          .html,
     }, {
       headers: {
         Link:
