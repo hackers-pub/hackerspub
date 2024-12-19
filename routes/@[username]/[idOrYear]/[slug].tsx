@@ -92,7 +92,9 @@ export default define.page<typeof handler, ArticlePageProps>(
   function ArticlePage({ url, data: { article, avatarUrl, contentHtml } }) {
     return (
       <article>
-        <h1 class="text-4xl font-bold">{article.title}</h1>
+        <h1 class="text-4xl font-bold" lang={article.language}>
+          {article.title}
+        </h1>
         <ArticleMetadata
           class="mt-4"
           authorUrl={`/@${article.account.username}`}
@@ -102,6 +104,7 @@ export default define.page<typeof handler, ArticlePageProps>(
           published={article.published}
         />
         <div
+          lang={article.language}
           class="prose dark:prose-invert mt-4 text-xl"
           dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
