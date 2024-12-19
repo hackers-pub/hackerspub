@@ -90,7 +90,10 @@
     "deleteConfirm": "この下書きを削除してもよろしいですか？"
   },
   "article": {
-    "readMore": "続きを読む →"
+    "readMore": "続きを読む →",
+    "comments_zero": "コメント無し",
+    "comments_other": "{{count}}件のコメント",
+    "remoteCommentDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この記事にコメントを残すことができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当記事にコメントを残してください。"
   },
   "editor": {
     "titlePlaceholder": "記事のタイトル",
@@ -117,6 +120,7 @@
   "composer": {
     "content": "内容",
     "contentPlaceholder": "今何してる？Markdownが使えます。",
+    "commentPlaceholder": "コメントを入力してください。Markdownが使えます。",
     "visibility": "公開範囲",
     "language": "言語",
     "post": "投稿",

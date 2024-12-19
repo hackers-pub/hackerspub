@@ -91,7 +91,11 @@
     "deleteConfirm": "Are you sure you want to delete this draft?"
   },
   "article": {
-    "readMore": "Read more →"
+    "readMore": "Read more →",
+    "comments_zero": "No comments",
+    "comments_one": "1 comment",
+    "comments_other": "{{count}} comments",
+    "remoteCommentDescription": "If you have a fediverse account, you can comment on this post from your own instance. Search {{permalink}} on your instance and reply to it."
   },
   "editor": {
     "titlePlaceholder": "Article title",
@@ -118,6 +122,7 @@
   "composer": {
     "content": "Content",
     "contentPlaceholder": "What's on your mind? You can use Markdown.",
+    "commentPlaceholder": "Write a comment. You can use Markdown.",
     "visibility": "Post privacy",
     "language": "Language",
     "post": "Post",

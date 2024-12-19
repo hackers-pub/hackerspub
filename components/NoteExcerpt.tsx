@@ -15,13 +15,19 @@ export interface NoteExcerptProps {
   authorHandle: string;
   authorAvatarUrl: string;
   published: Date;
+  replyTarget?: boolean;
+  reply?: boolean;
 }
 
 export function NoteExcerpt(props: NoteExcerptProps) {
   return (
     <Translation>
       {(_, lang) => (
-        <article class={`mt-5 flex flex-col ${props.class}`}>
+        <article
+          class={`${props.reply ? "mt-2" : "mt-5"} flex flex-col ${
+            props.replyTarget ? "opacity-55" : ""
+          } ${props.class ?? ""}`}
+        >
           <div class="flex">
             <a href={props.authorUrl}>
               <img
@@ -62,7 +68,14 @@ export function NoteExcerpt(props: NoteExcerptProps) {
             </div>
           </div>
           <div
-            class="ml-14 mt-2 prose dark:prose-invert"
+            class={`
+              mt-2 prose dark:prose-invert
+              ${
+              props.replyTarget
+                ? "ml-6 pl-7 border-stone-400 dark:border-stone-600 border-l-4"
+                : "ml-14"
+            }
+            `}
             lang={props.lang}
             dangerouslySetInnerHTML={{
               __html: sanitizeHtml(props.contentHtml),

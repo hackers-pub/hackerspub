@@ -116,6 +116,7 @@ export async function syncPostFromNoteSource(
   noteSource: NoteSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
   },
+  replyTarget?: { id: Uuid },
 ): Promise<
   Post & {
     actor: Actor & {
@@ -149,6 +150,7 @@ export async function syncPostFromNoteSource(
     visibility: noteSource.visibility,
     actorId: actor.id,
     noteSourceId: noteSource.id,
+    replyTargetId: replyTarget?.id,
     contentHtml: rendered.html,
     language: noteSource.language,
     tags: {}, // TODO
@@ -166,12 +168,15 @@ export async function syncPostFromNoteSource(
     .returning();
   const post = rows[0];
   await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
-  const mentions = await db.insert(mentionTable).values(
-    globalThis.Object.values(rendered.mentions).map((actor) => ({
-      postId: post.id,
-      actorId: actor.id,
-    })),
-  ).returning();
+  const mentionList = globalThis.Object.values(rendered.mentions);
+  const mentions = mentionList.length > 0
+    ? await db.insert(mentionTable).values(
+      mentionList.map((actor) => ({
+        postId: post.id,
+        actorId: actor.id,
+      })),
+    ).returning()
+    : [];
   return { ...post, actor, noteSource, mentions };
 }
 

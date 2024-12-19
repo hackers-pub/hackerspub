@@ -8,8 +8,10 @@ import { detectAll } from "tinyld.browser";
 import { getFixedT } from "i18next";
 
 export interface ComposerProps {
+  class?: string;
   language: Language;
   postUrl: string;
+  commentTarget?: string;
 }
 
 // @ts-ignore: It will be initialized in the loop below.
@@ -25,7 +27,9 @@ export function Composer(props: ComposerProps) {
   const t = getFixedT(props.language);
 
   const contentRef = useRef<HTMLTextAreaElement | null>(null);
-  const [content, setContent] = useState<string>("");
+  const [content, setContent] = useState<string>(
+    props.commentTarget ? `${props.commentTarget} ` : "",
+  );
   const [contentLanguage, setContentLanguage] = useState<string>(
     props.language,
   );
@@ -78,14 +82,16 @@ export function Composer(props: ComposerProps) {
         method="post"
         action={props.postUrl}
         onSubmit={onSubmit}
-        class="flex flex-col"
+        class={`flex flex-col ${props.class ?? ""}`}
       >
         <TextArea
           ref={contentRef}
           name="content"
           required
           class="w-full text-xl mb-3"
-          placeholder={t("composer.contentPlaceholder")}
+          placeholder={props.commentTarget
+            ? t("composer.commentPlaceholder")
+            : t("composer.contentPlaceholder")}
           value={content}
           onInput={onInput}
           aria-label={t("composer.content")}

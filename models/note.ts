@@ -1,6 +1,6 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import { syncPostFromNoteSource } from "./post.ts";
@@ -10,7 +10,9 @@ import {
   type AccountLink,
   accountTable,
   type Actor,
+  type Following,
   type Instance,
+  type Mention,
   type NewNoteSource,
   type NoteSource,
   noteSourceTable,
@@ -30,11 +32,51 @@ export async function createNoteSource(
   return rows[0];
 }
 
+export function getNoteSource(
+  db: Database,
+  username: string,
+  id: Uuid,
+): Promise<
+  NoteSource & {
+    account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    post: Post & {
+      actor: Actor & { followers: Following[] };
+      mentions: Mention[];
+    };
+  } | undefined
+> {
+  return db.query.noteSourceTable.findFirst({
+    with: {
+      account: {
+        with: { emails: true, links: true },
+      },
+      post: {
+        with: {
+          actor: {
+            with: { followers: true },
+          },
+          mentions: true,
+        },
+      },
+    },
+    where: and(
+      eq(noteSourceTable.id, id),
+      inArray(
+        noteSourceTable.accountId,
+        db.select({ id: accountTable.id })
+          .from(accountTable)
+          .where(eq(accountTable.username, username)),
+      ),
+    ),
+  });
+}
+
 export async function createNote(
   db: Database,
   kv: Keyv,
   fedCtx: Context<void>,
   source: Omit<NewNoteSource, "id"> & { id?: Uuid },
+  replyTarget?: { id: Uuid },
 ): Promise<
   Post & {
     actor: Actor & {
@@ -56,7 +98,7 @@ export async function createNote(
   const post = await syncPostFromNoteSource(db, kv, fedCtx, {
     ...noteSource,
     account,
-  });
+  }, replyTarget);
   const noteObject = await getNote(db, fedCtx, { ...noteSource, account });
   await fedCtx.sendActivity(
     { identifier: source.accountId },

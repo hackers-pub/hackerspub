@@ -258,6 +258,7 @@ export async function persistActorsByHandles(
     );
     if (expr != null) filter.push(expr);
   }
+  if (filter.length < 1) return {};
   const existingActors = await db.query.actorTable.findMany({
     with: { instance: true },
     where: or(...filter),

@@ -1,6 +1,6 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import { getArticle } from "../federation/objects.ts";
@@ -14,7 +14,9 @@ import {
   articleDraftTable,
   type ArticleSource,
   articleSourceTable,
+  type Following,
   type Instance,
+  type Mention,
   type NewArticleDraft,
   type NewArticleSource,
   type Post,
@@ -65,6 +67,47 @@ export async function deleteArticleDraft(
     )
     .returning();
   return rows[0];
+}
+
+export function getArticleSource(
+  db: Database,
+  username: string,
+  publishedYear: number,
+  slug: string,
+): Promise<
+  ArticleSource & {
+    account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    post: Post & {
+      actor: Actor & { followers: Following[] };
+      mentions: Mention[];
+    };
+  } | undefined
+> {
+  return db.query.articleSourceTable.findFirst({
+    with: {
+      account: {
+        with: { emails: true, links: true },
+      },
+      post: {
+        with: {
+          actor: {
+            with: { followers: true },
+          },
+          mentions: true,
+        },
+      },
+    },
+    where: and(
+      eq(articleSourceTable.slug, slug),
+      eq(articleSourceTable.publishedYear, publishedYear),
+      inArray(
+        articleSourceTable.accountId,
+        db.select({ id: accountTable.id })
+          .from(accountTable)
+          .where(eq(accountTable.username, username)),
+      ),
+    ),
+  });
 }
 
 export async function createArticleSource(

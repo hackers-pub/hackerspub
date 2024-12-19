@@ -17,7 +17,8 @@ import { Composer } from "../islands/Composer.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
-    let timeline: (Post & { actor: Actor })[];
+    let timeline:
+      (Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null })[];
     if (ctx.state.account == null) {
       const languages = new Set<string>(
         acceptsLanguages(ctx.req)
@@ -25,7 +26,12 @@ export const handler = define.handlers({
           .map((lang) => lang.replace(/-.*$/, "")),
       );
       timeline = await db.query.postTable.findMany({
-        with: { actor: true },
+        with: {
+          actor: true,
+          replyTarget: {
+            with: { actor: true },
+          },
+        },
         where: and(
           eq(postTable.visibility, "public"),
           languages.size < 1
@@ -36,7 +42,12 @@ export const handler = define.handlers({
       });
     } else {
       timeline = await db.query.postTable.findMany({
-        with: { actor: true },
+        with: {
+          actor: true,
+          replyTarget: {
+            with: { actor: true },
+          },
+        },
         where: and(
           or(
             inArray(
@@ -71,7 +82,8 @@ export const handler = define.handlers({
 interface HomeProps {
   intro: boolean;
   composer: boolean;
-  timeline: (Post & { actor: Actor })[];
+  timeline:
+    (Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null })[];
 }
 
 export default define.page<typeof handler, HomeProps>(
