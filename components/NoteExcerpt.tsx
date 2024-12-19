@@ -13,7 +13,7 @@ export interface NoteExcerptProps {
   authorUrl: string;
   authorName: string;
   authorHandle: string;
-  authorAvatarUrl?: string | null;
+  authorAvatarUrl: string;
   published: Date;
 }
 
@@ -23,21 +23,15 @@ export function NoteExcerpt(props: NoteExcerptProps) {
       {(_, lang) => (
         <article class={`mt-5 flex flex-col ${props.class}`}>
           <div class="flex">
-            {props.authorAvatarUrl && (
-              <a href={props.authorUrl}>
-                <img
-                  src={props.authorAvatarUrl}
-                  width={48}
-                  height={48}
-                  class="inline-block mr-2 align-text-bottom"
-                />
-              </a>
-            )}
-            <div
-              class={`flex flex-col ${
-                props.authorAvatarUrl == null ? "ml-14" : ""
-              }`}
-            >
+            <a href={props.authorUrl}>
+              <img
+                src={props.authorAvatarUrl}
+                width={48}
+                height={48}
+                class="inline-block mr-2 align-text-bottom"
+              />
+            </a>
+            <div class="flex flex-col">
               <a href={props.authorUrl}>
                 <strong class="text-black dark:text-white">
                   {props.authorName}

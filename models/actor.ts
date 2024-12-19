@@ -14,7 +14,10 @@ import { and, eq, or, type SQL, sql } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import metadata from "../deno.json" with { type: "json" };
-import { getAvatarUrl, renderAccountLinks } from "./account.ts";
+import {
+  getAvatarUrl as getAccountAvatarUrl,
+  renderAccountLinks,
+} from "./account.ts";
 import {
   type Account,
   type AccountEmail,
@@ -32,6 +35,10 @@ import { isPostObject, persistPost, persistSharedPost } from "./post.ts";
 import { generateUuidV7 } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "actor"]);
+
+export function getAvatarUrl(actor: Actor): string {
+  return actor.avatarUrl ?? "https://gravatar.com/avatar/?d=mp&s=128";
+}
 
 export async function syncActorFromAccount(
   db: Database,
@@ -70,7 +77,7 @@ export async function syncActorFromAccount(
     automaticallyApprovesFollowers: true,
     inboxUrl: fedCtx.getInboxUri(account.id).href,
     sharedInboxUrl: fedCtx.getInboxUri().href,
-    avatarUrl: await getAvatarUrl(account),
+    avatarUrl: await getAccountAvatarUrl(account),
     fieldHtmls: Object.fromEntries(
       renderAccountLinks(account.links).map((
         pair,

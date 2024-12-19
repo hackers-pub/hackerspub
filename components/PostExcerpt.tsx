@@ -1,3 +1,4 @@
+import { getAvatarUrl } from "../models/actor.ts";
 import type { Actor, Post } from "../models/schema.ts";
 import { ArticleExcerpt } from "./ArticleExcerpt.tsx";
 import { NoteExcerpt } from "./NoteExcerpt.tsx";
@@ -35,7 +36,7 @@ export function PostExcerpt(props: PostExcerptProps) {
         authorUrl={post.actor.url ?? post.actor.iri}
         authorName={post.actor.name ?? post.actor.username}
         authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
-        authorAvatarUrl={post.actor.avatarUrl}
+        authorAvatarUrl={getAvatarUrl(post.actor)}
         published={post.published}
       />
     );
