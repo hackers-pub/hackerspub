@@ -12,6 +12,9 @@ export interface ComposerProps {
   language: Language;
   postUrl: string;
   commentTarget?: string;
+  textAreaId?: string;
+  // deno-lint-ignore no-explicit-any
+  onPost: "reload" | ((json: any) => void);
 }
 
 // @ts-ignore: It will be initialized in the loop below.
@@ -72,8 +75,18 @@ export function Composer(props: ComposerProps) {
       setSubmitting(false);
       return;
     }
+    // deno-lint-ignore no-explicit-any
+    let json: any;
+    try {
+      json = await response.json();
+    } catch {
+      alert(t("composer.postFailed"));
+      setSubmitting(false);
+      return;
+    }
     setContent("");
-    location.reload();
+    if (props.onPost === "reload") location.reload();
+    else props.onPost(json);
   }
 
   return (
@@ -86,6 +99,7 @@ export function Composer(props: ComposerProps) {
       >
         <TextArea
           ref={contentRef}
+          id={props.textAreaId}
           name="content"
           required
           class="w-full text-xl mb-3"

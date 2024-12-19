@@ -97,6 +97,9 @@
     "comments_other": "{{count}} comments",
     "remoteCommentDescription": "If you have a fediverse account, you can comment on this post from your own instance. Search {{permalink}} on your instance and reply to it."
   },
+  "note": {
+    "replies": "Replies"
+  },
   "editor": {
     "titlePlaceholder": "Article title",
     "titleRequired": "Please enter a title for your article.",

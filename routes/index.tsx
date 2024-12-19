@@ -96,6 +96,7 @@ export default define.page<typeof handler, HomeProps>(
               <Composer
                 language={lang}
                 postUrl={`/@${state.account!.username}`}
+                onPost="reload"
               />
             )}
             {data.intro &&
@@ -111,7 +112,9 @@ export default define.page<typeof handler, HomeProps>(
                   </div>
                 </article>
               )}
-            {data.timeline.map((post) => <PostExcerpt post={post} />)}
+            {data.timeline.map((post) => (
+              <PostExcerpt post={post} signedIn={state.account != null} />
+            ))}
           </>
         )}
       </Translation>

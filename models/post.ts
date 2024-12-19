@@ -9,7 +9,7 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import {
@@ -462,6 +462,20 @@ export function isPostVisibleTo(
     }
   }
   return false;
+}
+
+export async function updateRepliesCount(
+  db: Database,
+  replyTargetId: Uuid,
+): Promise<Post | undefined> {
+  const rows = await db.update(postTable).set({
+    repliesCount: sql`(
+      SELECT count(*)
+      FROM ${postTable}
+      WHERE ${postTable.replyTargetId} = ${replyTargetId}
+    )`,
+  }).where(eq(postTable.id, replyTargetId)).returning();
+  return rows[0];
 }
 
 const UNREACHABLE: never = undefined!;

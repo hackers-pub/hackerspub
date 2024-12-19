@@ -1,73 +1,111 @@
 import * as vocab from "@fedify/fedify/vocab";
 import * as v from "@valibot/valibot";
+import { and, eq, inArray } from "drizzle-orm";
 import { page } from "fresh";
 import { NoteExcerpt } from "../../../components/NoteExcerpt.tsx";
+import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
 import { Composer } from "../../../islands/Composer.tsx";
+import { NoteControls } from "../../../islands/NoteControls.tsx";
 import { kv } from "../../../kv.ts";
-import { getAvatarUrl } from "../../../models/account.ts";
-import { getAvatarUrl as getActorAvatarUrl } from "../../../models/actor.ts";
-import { renderMarkup } from "../../../models/markup.ts";
+import { getAvatarUrl } from "../../../models/actor.ts";
 import { createNote, getNoteSource } from "../../../models/note.ts";
 import { isPostVisibleTo } from "../../../models/post.ts";
 import {
-  type Account,
   type Actor,
-  type NoteSource,
+  actorTable,
+  Following,
+  Mention,
   type Post,
   postTable,
 } from "../../../models/schema.ts";
-import { validateUuid } from "../../../models/uuid.ts";
+import { Uuid, validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
 import { NoteSourceSchema } from "../index.tsx";
-import { eq } from "drizzle-orm";
 
 export const handler = define.handlers({
   async GET(ctx) {
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
     const id = ctx.params.idOrYear;
-    const note = await getNoteSource(db, ctx.params.username, id);
-    if (note == null) return ctx.next();
-    if (!isPostVisibleTo(note.post, ctx.state.account?.actor)) {
+    let post: Post & {
+      actor: Actor & { followers: Following[] };
+      replyTarget: Post & { actor: Actor } | null;
+      mentions: Mention[];
+    };
+    let postUrl: string;
+    let noteUri: URL | undefined;
+    if (ctx.params.username.includes("@")) {
+      if (ctx.params.username.endsWith(`@${ctx.url.host}`)) {
+        return ctx.redirect(`/@${ctx.params.username}/${id}`);
+      }
+      const result = await getPost(ctx.params.username, id);
+      if (result == null) return ctx.next();
+      post = result;
+      postUrl = `/@${ctx.params.username}/${post.id}`;
+    } else {
+      const note = await getNoteSource(db, ctx.params.username, id);
+      if (note == null) return ctx.next();
+      post = note.post;
+      noteUri = ctx.state.fedCtx.getObjectUri(vocab.Note, {
+        id: note.id,
+      });
+      ctx.state.links.push(
+        {
+          rel: "canonical",
+          href: new URL(`/@${note.account.username}/${note.id}`, ctx.url),
+        },
+        {
+          rel: "alternate",
+          type: "application/activity+json",
+          href: noteUri,
+        },
+      );
+      postUrl = `/@${note.account.username}/${note.id}`;
+    }
+    if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
-    const noteUri = ctx.state.fedCtx.getObjectUri(vocab.Note, { id: note.id });
-    ctx.state.links.push(
-      {
-        rel: "canonical",
-        href: new URL(`/@${note.account.username}/${note.id}`, ctx.url),
-      },
-      {
-        rel: "alternate",
-        type: "application/activity+json",
-        href: noteUri,
-      },
-    );
     const replies = await db.query.postTable.findMany({
       with: { actor: true },
-      where: eq(postTable.replyTargetId, note.post.id),
+      where: eq(postTable.replyTargetId, post.id),
       orderBy: postTable.published,
     });
-    return page<NotePageProps>({
-      note,
-      replies,
-      avatarUrl: await getAvatarUrl(note.account),
-      contentHtml:
-        (await renderMarkup(db, ctx.state.fedCtx, note.id, note.content)).html,
-    }, {
-      headers: {
-        Link:
-          `<${noteUri.href}>; rel="alternate"; type="application/activity+json"`,
+    return page<NotePageProps>(
+      {
+        post,
+        postUrl,
+        replies,
       },
-    });
+      noteUri == null ? undefined : {
+        headers: {
+          Link:
+            `<${noteUri.href}>; rel="alternate"; type="application/activity+json"`,
+        },
+      },
+    );
   },
 
   async POST(ctx) {
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
     const id = ctx.params.idOrYear;
-    const note = await getNoteSource(db, ctx.params.username, id);
-    if (note == null) return ctx.next();
-    if (!isPostVisibleTo(note.post, ctx.state.account?.actor)) {
+    let post: Post & {
+      actor: Actor & { followers: Following[] };
+      replyTarget: Post & { actor: Actor } | null;
+      mentions: Mention[];
+    };
+    if (ctx.params.username.includes("@")) {
+      if (ctx.params.username.endsWith(`@${ctx.url.host}`)) {
+        return ctx.redirect(`/@${ctx.params.username}/${id}`);
+      }
+      const result = await getPost(ctx.params.username, id);
+      if (result == null) return ctx.next();
+      post = result;
+    } else {
+      const note = await getNoteSource(db, ctx.params.username, id);
+      if (note == null) return ctx.next();
+      post = note.post;
+    }
+    if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
     if (ctx.state.account == null) {
@@ -81,51 +119,88 @@ export const handler = define.handlers({
         headers: { "Content-Type": "application/json" },
       });
     }
-    const post = await createNote(db, kv, ctx.state.fedCtx, {
+    const reply = await createNote(db, kv, ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
-    }, note.post);
-    if (post == null) {
+    }, post);
+    if (reply == null) {
       return new Response("Internal Server Error", { status: 500 });
     }
-    return new Response(JSON.stringify(post), {
+    return new Response(JSON.stringify(reply), {
       status: 201,
       headers: { "Content-Type": "application/json" },
     });
   },
 });
 
-interface NotePageProps {
-  note: NoteSource & { account: Account; post: Post };
-  replies: (Post & { actor: Actor })[];
-  avatarUrl: string;
-  contentHtml: string;
+function getPost(
+  username: string,
+  id: Uuid,
+): Promise<
+  | Post & {
+    actor: Actor & { followers: Following[] };
+    replyTarget: Post & { actor: Actor } | null;
+    mentions: Mention[];
+  }
+  | undefined
+> {
+  if (!username.includes("@")) return Promise.resolve(undefined);
+  let host: string;
+  [username, host] = username.split("@");
+  return db.query.postTable.findFirst({
+    with: {
+      actor: {
+        with: { followers: true },
+      },
+      replyTarget: {
+        with: { actor: true },
+      },
+      mentions: true,
+    },
+    where: and(
+      inArray(
+        postTable.actorId,
+        db.select({ id: actorTable.id }).from(actorTable).where(
+          and(
+            eq(actorTable.username, username),
+            eq(actorTable.instanceHost, host),
+          ),
+        ),
+      ),
+      eq(postTable.id, id),
+    ),
+  });
 }
+
+type NotePageProps = {
+  post: Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null };
+  postUrl: string;
+  replies: (Post & { actor: Actor })[];
+};
 
 export default define.page<typeof handler, NotePageProps>(
   function NotePage(
-    { url, state, data: { note, replies, avatarUrl, contentHtml } },
+    {
+      state,
+      data: { post, postUrl, replies },
+    },
   ) {
-    const postUrl = `/@${note.account.username}/${note.id}`;
-    const authorHandle = `@${note.account.username}@${url.host}`;
+    const authorHandle = `@${post.actor.username}@${post.actor.instanceHost}`;
     return (
       <>
-        <NoteExcerpt
-          url={postUrl}
-          contentHtml={contentHtml}
-          lang={note.language}
-          visibility={note.visibility}
-          authorUrl={`/@${note.account.username}`}
-          authorName={note.account.name}
-          authorHandle={authorHandle}
-          authorAvatarUrl={avatarUrl}
-          published={note.published}
+        <PostExcerpt post={post} />
+        <NoteControls
+          class="mt-4 ml-14"
+          language={state.language}
+          replies={replies.length}
         />
         <Composer
           class="mt-8"
           language={state.language}
           postUrl={postUrl}
           commentTarget={authorHandle}
+          textAreaId="reply"
+          onPost="reload"
         />
         {replies.map((reply) => (
           <NoteExcerpt
@@ -136,7 +211,7 @@ export default define.page<typeof handler, NotePageProps>(
             authorUrl={reply.actor.url ?? reply.actor.iri}
             authorName={reply.actor.name ?? reply.actor.username}
             authorHandle={`@${reply.actor.username}@${reply.actor.instanceHost}`}
-            authorAvatarUrl={getActorAvatarUrl(reply.actor)}
+            authorAvatarUrl={getAvatarUrl(reply.actor)}
             published={reply.published}
           />
         ))}

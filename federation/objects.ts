@@ -84,6 +84,7 @@ export async function getNote(
   db: Database,
   ctx: Context<void>,
   note: NoteSource & { account: Account },
+  replyTargetId?: URL,
 ): Promise<vocab.Note> {
   const rendered = await renderMarkup(db, ctx, note.id, note.content);
   return new vocab.Note({
@@ -102,6 +103,7 @@ export async function getNote(
       : note.visibility === "unlisted"
       ? [PUBLIC_COLLECTION]
       : [],
+    replyTarget: replyTargetId,
     contents: [
       new LanguageString(rendered.html, note.language),
       rendered.html,

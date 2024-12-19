@@ -3,7 +3,7 @@ import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, inArray } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
-import { syncPostFromNoteSource } from "./post.ts";
+import { syncPostFromNoteSource, updateRepliesCount } from "./post.ts";
 import {
   type Account,
   type AccountEmail,
@@ -41,6 +41,7 @@ export function getNoteSource(
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     post: Post & {
       actor: Actor & { followers: Following[] };
+      replyTarget: Post & { actor: Actor } | null;
       mentions: Mention[];
     };
   } | undefined
@@ -56,6 +57,9 @@ export function getNoteSource(
             with: { followers: true },
           },
           mentions: true,
+          replyTarget: {
+            with: { actor: true },
+          },
         },
       },
     },
@@ -76,7 +80,7 @@ export async function createNote(
   kv: Keyv,
   fedCtx: Context<void>,
   source: Omit<NewNoteSource, "id"> & { id?: Uuid },
-  replyTarget?: { id: Uuid },
+  replyTarget?: Post,
 ): Promise<
   Post & {
     actor: Actor & {
@@ -99,7 +103,13 @@ export async function createNote(
     ...noteSource,
     account,
   }, replyTarget);
-  const noteObject = await getNote(db, fedCtx, { ...noteSource, account });
+  if (replyTarget != null) await updateRepliesCount(db, replyTarget.id);
+  const noteObject = await getNote(
+    db,
+    fedCtx,
+    { ...noteSource, account },
+    replyTarget == null ? undefined : new URL(replyTarget.iri),
+  );
   await fedCtx.sendActivity(
     { identifier: source.accountId },
     "followers",

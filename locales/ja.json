@@ -95,6 +95,9 @@
     "comments_other": "{{count}}件のコメント",
     "remoteCommentDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この記事にコメントを残すことができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当記事にコメントを残してください。"
   },
+  "note": {
+    "replies": "返信"
+  },
   "editor": {
     "titlePlaceholder": "記事のタイトル",
     "titleRequired": "記事のタイトルを入力してください。",

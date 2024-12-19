@@ -275,7 +275,7 @@ type FollowStateProps = {
 };
 
 export default define.page<typeof handler, ProfilePageProps>(
-  function ProfilePage({ data }) {
+  function ProfilePage({ state, data }) {
     return (
       <div>
         <div class="flex">
@@ -387,7 +387,9 @@ export default define.page<typeof handler, ProfilePageProps>(
           </dl>
         )}
         <div>
-          {data.posts.map((post) => <PostExcerpt post={post} />)}
+          {data.posts.map((post) => (
+            <PostExcerpt post={post} signedIn={state.account != null} />
+          ))}
         </div>
       </div>
     );

@@ -173,6 +173,7 @@ export default define.page<typeof handler, ArticlePageProps>(
                 commentTarget={authorHandle}
                 language={state.language}
                 postUrl={`/@${article.account.username}/${article.publishedYear}/${article.slug}`}
+                onPost="reload"
               />
             )}
           {comments.map((comment) => (
