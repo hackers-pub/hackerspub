@@ -11,6 +11,8 @@ import {
 } from "../models/schema.ts";
 import { State } from "../utils.ts";
 
+const PLAUSIBLE = Deno.env.get("PLAUSIBLE")?.trim()?.toLowerCase() === "true";
+
 export default async function App(
   { Component, state, url }: PageProps<unknown, State>,
 ) {
@@ -56,6 +58,13 @@ export default async function App(
               type={link.type}
             />
           ))}
+          {PLAUSIBLE && (
+            <script
+              defer={true}
+              data-domain={url.host}
+              src="https://plausible.io/js/script.outbound-links.js"
+            />
+          )}
         </head>
         <body class="font-sans dark:bg-stone-900 dark:text-white">
           <header class="h-[60px] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
