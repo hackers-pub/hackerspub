@@ -1,4 +1,4 @@
-import { Accept, Follow, InboxContext, Undo } from "@fedify/fedify";
+import { Accept, Follow, type InboxContext, type Undo } from "@fedify/fedify";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db.ts";
 import { persistActor } from "../../models/actor.ts";

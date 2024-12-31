@@ -18,7 +18,7 @@ import {
   accountTable,
 } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
-import { updateAccount, updateAccountLinks } from "../../models/account.ts";
+import { updateAccount } from "../../models/account.ts";
 import { syncActorFromAccount } from "../../models/actor.ts";
 import { kv } from "../../kv.ts";
 import { Msg, Translation } from "../../components/Msg.tsx";
@@ -96,25 +96,19 @@ export const handler = define.handlers({
       username,
       name,
       bio,
+      links,
     };
-    const updatedAccount = await updateAccount(db, values);
+    const updatedAccount = await updateAccount(db, ctx.state.fedCtx, values);
     if (updatedAccount == null) {
       logger.error("Failed to update account: {values}", { values });
       return ctx.next();
     }
-    const updatedLinks = await updateAccountLinks(
-      db,
-      updatedAccount.id,
-      ctx.url,
-      links,
-    );
     const emails = await db.query.accountEmailTable.findMany({
       where: eq(accountEmailTable.accountId, updatedAccount.id),
     });
     await syncActorFromAccount(db, kv, ctx.state.fedCtx, {
       ...updatedAccount,
       emails,
-      links: updatedLinks,
     });
     if (account.username !== updatedAccount.username) {
       return Response.redirect(
@@ -124,7 +118,7 @@ export const handler = define.handlers({
     return page<ProfileSettingsPageProps>({
       usernameChanged: updatedAccount.usernameChanged,
       values: updatedAccount,
-      links: updatedLinks,
+      links: updatedAccount.links,
     });
   },
 });

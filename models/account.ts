@@ -1,3 +1,12 @@
+import {
+  getActorHandle,
+  getNodeInfo,
+  isActor,
+  lookupObject,
+  PropertyValue,
+  type RequestContext,
+} from "@fedify/fedify";
+import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
@@ -13,13 +22,6 @@ import {
   accountTable,
   type NewAccount,
 } from "./schema.ts";
-import {
-  getActorHandle,
-  getNodeInfo,
-  isActor,
-  lookupObject,
-  PropertyValue,
-} from "@fedify/fedify";
 import { compactUrl } from "../utils.ts";
 import { type Uuid } from "./uuid.ts";
 
@@ -46,6 +48,39 @@ export async function getAvatarUrl(
 }
 
 export async function updateAccount(
+  db: Database,
+  fedCtx: RequestContext<void>,
+  account: NewAccount & { links: Link[] },
+): Promise<Account & { links: AccountLink[] } | undefined> {
+  const result = await updateAccountData(db, account);
+  if (result == null) return undefined;
+  const links = await updateAccountLinks(
+    db,
+    result.id,
+    new URL(`/@${account.username}`, fedCtx.origin).href,
+    account.links,
+  );
+  await fedCtx.sendActivity(
+    { identifier: result.id },
+    "followers",
+    new vocab.Update({
+      id: new URL(
+        `#update/${result.updated.toISOString()}`,
+        fedCtx.getActorUri(result.id),
+      ),
+      actor: fedCtx.getActorUri(result.id),
+      to: vocab.PUBLIC_COLLECTION,
+      object: await fedCtx.getActor(result.id),
+    }),
+    {
+      preferSharedInbox: true,
+      excludeBaseUris: [fedCtx.url],
+    },
+  );
+  return { ...result, links };
+}
+
+export async function updateAccountData(
   db: Database,
   account: NewAccount,
 ): Promise<Account | undefined> {
