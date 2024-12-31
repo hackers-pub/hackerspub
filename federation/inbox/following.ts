@@ -18,7 +18,7 @@ export async function onFollowAccepted(
   fedCtx: InboxContext<void>,
   accept: Accept,
 ): Promise<void> {
-  const follow = await accept.getObject();
+  const follow = await accept.getObject(fedCtx);
   if (!(follow instanceof Follow)) return;
   else if (follow.objectId == null) return;
   else if (accept.actorId?.href !== follow.objectId.href) return;
@@ -53,7 +53,7 @@ export async function onFollowed(
     where: eq(accountTable.id, followObject.identifier),
   });
   if (followee == null) return;
-  const followActor = await follow.getActor();
+  const followActor = await follow.getActor(fedCtx);
   if (followActor == null) return;
   const follower = await persistActor(db, followActor, {
     ...fedCtx,
@@ -88,10 +88,10 @@ export async function onUnfollowed(
   fedCtx: InboxContext<void>,
   undo: Undo,
 ) {
-  const follow = await undo.getObject();
+  const follow = await undo.getObject(fedCtx);
   if (!(follow instanceof Follow)) return;
   if (follow.id == null || follow.actorId?.href !== undo.actorId?.href) return;
-  const actorObject = await undo.getActor();
+  const actorObject = await undo.getActor(fedCtx);
   if (actorObject == null) return;
   const actor = await persistActor(db, actorObject, {
     ...fedCtx,

@@ -15,6 +15,7 @@ import {
   onPostCreated,
   onPostDeleted,
   onPostShared,
+  onPostUnshared,
   onPostUpdated,
 } from "./subscribe.ts";
 import { onActorUpdated } from "./actor.ts";
@@ -27,7 +28,11 @@ federation
   .setInboxListeners("/ap/actors/{identifier}/inbox", "/ap/inbox")
   .on(Accept, onFollowAccepted)
   .on(Follow, onFollowed)
-  .on(Undo, onUnfollowed)
+  .on(Undo, async (fedCtx, undo) => {
+    const object = await undo.getObject(fedCtx);
+    if (object instanceof Follow) await onUnfollowed(fedCtx, undo);
+    else await onPostUnshared(fedCtx, undo);
+  })
   .on(Create, onPostCreated)
   .on(Announce, onPostShared)
   .on(Update, async (fedCtx, update) => {

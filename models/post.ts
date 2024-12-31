@@ -9,7 +9,7 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import {
@@ -426,6 +426,26 @@ export async function deletePersistedPost(
           .from(actorTable)
           .where(eq(actorTable.iri, actorIri.toString())),
       ),
+      isNull(postTable.sharedPostId),
+    ),
+  );
+}
+
+export async function deleteSharedPost(
+  db: Database,
+  iri: URL,
+  actorIri: URL,
+) {
+  await db.delete(postTable).where(
+    and(
+      eq(postTable.iri, iri.toString()),
+      inArray(
+        postTable.actorId,
+        db.select({ id: actorTable.id })
+          .from(actorTable)
+          .where(eq(actorTable.iri, actorIri.toString())),
+      ),
+      isNotNull(postTable.sharedPostId),
     ),
   );
 }
