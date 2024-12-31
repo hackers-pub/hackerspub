@@ -2,6 +2,7 @@ import {
   Accept,
   Announce,
   Create,
+  Delete,
   Follow,
   isActor,
   Undo,
@@ -10,7 +11,12 @@ import {
 import { captureException } from "@sentry/deno";
 import { federation } from "../federation.ts";
 import { onFollowAccepted, onFollowed, onUnfollowed } from "./following.ts";
-import { onPostCreated, onPostShared, onPostUpdated } from "./subscribe.ts";
+import {
+  onPostCreated,
+  onPostDeleted,
+  onPostShared,
+  onPostUpdated,
+} from "./subscribe.ts";
 import { onActorUpdated } from "./actor.ts";
 import { isPostObject } from "../../models/post.ts";
 import { getLogger } from "@logtape/logtape";
@@ -30,4 +36,5 @@ federation
     else if (isPostObject(object)) await onPostUpdated(fedCtx, update);
     else logger.warn("Unhandled Update object: {update}", { update });
   })
+  .on(Delete, onPostDeleted)
   .onError((_, error) => void captureException(error));

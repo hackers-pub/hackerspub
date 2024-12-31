@@ -9,7 +9,7 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import {
@@ -410,6 +410,24 @@ export function getPersistedPost(
     with: { actor: { with: { instance: true } } },
     where: eq(postTable.iri, iri.toString()),
   });
+}
+
+export async function deletePersistedPost(
+  db: Database,
+  iri: URL,
+  actorIri: URL,
+): Promise<void> {
+  await db.delete(postTable).where(
+    and(
+      eq(postTable.iri, iri.toString()),
+      inArray(
+        postTable.actorId,
+        db.select({ id: actorTable.id })
+          .from(actorTable)
+          .where(eq(actorTable.iri, actorIri.toString())),
+      ),
+    ),
+  );
 }
 
 export function isPostVisibleTo(

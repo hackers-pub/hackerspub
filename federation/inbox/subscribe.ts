@@ -1,6 +1,14 @@
-import { Announce, Create, InboxContext, Update } from "@fedify/fedify";
+import {
+  Announce,
+  Create,
+  Delete,
+  InboxContext,
+  Tombstone,
+  Update,
+} from "@fedify/fedify";
 import { getLogger } from "@logtape/logtape";
 import {
+  deletePersistedPost,
   isPostObject,
   persistPost,
   persistSharedPost,
@@ -25,8 +33,6 @@ export async function onPostCreated(
   });
 }
 
-// TODO: Delete(Article)
-
 export async function onPostUpdated(
   fedCtx: InboxContext<void>,
   update: Update,
@@ -40,6 +46,21 @@ export async function onPostUpdated(
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
   });
+}
+
+export async function onPostDeleted(
+  fedCtx: InboxContext<void>,
+  del: Delete,
+): Promise<void> {
+  logger.debug("On post deleted: {delete}", { delete: del });
+  const object = await del.getObject(fedCtx);
+  if (
+    !(isPostObject(object) || object instanceof Tombstone) ||
+    object.id == null || del.actorId == null
+  ) {
+    return;
+  }
+  await deletePersistedPost(db, object.id, del.actorId);
 }
 
 export async function onPostShared(
