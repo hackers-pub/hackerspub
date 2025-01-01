@@ -15,6 +15,7 @@ import {
   type Account,
   type Actor,
   type ArticleSource,
+  type Medium,
   type Post,
   postTable,
 } from "../../../models/schema.ts";
@@ -56,7 +57,7 @@ export const handler = define.handlers({
       },
     );
     const comments = await db.query.postTable.findMany({
-      with: { actor: true },
+      with: { actor: true, media: true },
       where: eq(postTable.replyTargetId, article.post.id),
       orderBy: postTable.published,
     });
@@ -116,7 +117,7 @@ export const handler = define.handlers({
 interface ArticlePageProps {
   article: ArticleSource & { account: Account };
   articleIri: string;
-  comments: (Post & { actor: Actor })[];
+  comments: (Post & { actor: Actor; media: Medium[] })[];
   avatarUrl: string;
   contentHtml: string;
 }

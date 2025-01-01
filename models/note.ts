@@ -12,6 +12,7 @@ import {
   type Actor,
   type Following,
   type Instance,
+  type Medium,
   type Mention,
   type NewNoteSource,
   type NoteSource,
@@ -42,10 +43,15 @@ export function getNoteSource(
     post: Post & {
       actor: Actor & { followers: Following[] };
       sharedPost:
-        | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+        | Post & {
+          actor: Actor;
+          replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+          media: Medium[];
+        }
         | null;
-      replyTarget: Post & { actor: Actor } | null;
+      replyTarget: Post & { actor: Actor; media: Medium[] } | null;
       mentions: Mention[];
+      media: Medium[];
     };
   } | undefined
 > {
@@ -64,13 +70,15 @@ export function getNoteSource(
             with: {
               actor: true,
               replyTarget: {
-                with: { actor: true },
+                with: { actor: true, media: true },
               },
+              media: true,
             },
           },
           replyTarget: {
-            with: { actor: true },
+            with: { actor: true, media: true },
           },
+          media: true,
         },
       },
     },

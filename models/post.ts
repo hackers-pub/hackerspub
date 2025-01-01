@@ -21,6 +21,7 @@ import {
   type ArticleSource,
   type Following,
   type Instance,
+  mediumTable,
   type Mention,
   mentionTable,
   type NewPost,
@@ -36,6 +37,7 @@ import {
 import { renderMarkup } from "./markup.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 import { toDate } from "./date.ts";
+import { postMedium } from "./medium.ts";
 
 const logger = getLogger(["hackerspub", "models", "post"]);
 
@@ -222,6 +224,10 @@ export async function persistPost(
       mentions.add(tag.href.href);
     }
   }
+  const attachments: vocab.Document[] = [];
+  for await (const attachment of post.getAttachments(options)) {
+    if (attachment instanceof vocab.Document) attachments.push(attachment);
+  }
   let replyTarget: Post & { actor: Actor & { instance: Instance } } | undefined;
   if (post.replyTargetId != null) {
     replyTarget = options.replyTarget ??
@@ -306,6 +312,12 @@ export async function persistPost(
       )
       .onConflictDoNothing()
       .execute();
+  }
+  await db.delete(mediumTable).where(eq(mediumTable.postId, persistedPost.id));
+  let i = 0;
+  for (const attachment of attachments) {
+    await postMedium(db, attachment, persistedPost.id, i);
+    i++;
   }
   if (options.replies) {
     const replies = await post.getReplies(options);

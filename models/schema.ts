@@ -619,6 +619,7 @@ export const postRelations = relations(
     replies: many(postTable, { relationName: "replyTarget" }),
     shares: many(postTable, { relationName: "sharedPost" }),
     mentions: many(mentionTable),
+    media: many(mediumTable),
   }),
 );
 
@@ -652,6 +653,65 @@ export const mentionRelations = relations(
     actor: one(actorTable, {
       fields: [mentionTable.actorId],
       references: [actorTable.id],
+    }),
+  }),
+);
+
+export const mediumTypeEnum = pgEnum("medium_type", [
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/svg+xml",
+  "image/webp",
+]);
+
+export type MediumType = (typeof mediumTypeEnum.enumValues)[number];
+
+export function isMediumType(value: unknown): value is MediumType {
+  return mediumTypeEnum.enumValues.includes(value as MediumType);
+}
+
+export const mediumTable = pgTable(
+  "medium",
+  {
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => postTable.id, { onDelete: "cascade" }),
+    index: smallint().notNull(),
+    type: mediumTypeEnum().notNull(),
+    url: text().notNull(),
+    alt: text(),
+    width: integer(),
+    height: integer(),
+    sensitive: boolean().notNull().default(false),
+  },
+  (table) => [
+    primaryKey({ columns: [table.postId, table.index] }),
+    check("medium_index_check", sql`${table.index} >= 0`),
+    check("medium_url_check", sql`${table.url} ~ '^https?://'`),
+    check(
+      "medium_width_height_check",
+      sql`
+        CASE
+          WHEN ${table.width} IS NULL THEN ${table.height} IS NULL
+          ELSE ${table.height} IS NOT NULL AND
+               ${table.width} > 0 AND ${table.height} > 0
+        END
+      `,
+    ),
+  ],
+);
+
+export type Medium = typeof mediumTable.$inferSelect;
+export type NewMedium = typeof mediumTable.$inferInsert;
+
+export const mediumRelations = relations(
+  mediumTable,
+  ({ one }) => ({
+    post: one(postTable, {
+      fields: [mediumTable.postId],
+      references: [postTable.id],
     }),
   }),
 );

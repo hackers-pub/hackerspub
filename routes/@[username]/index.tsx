@@ -15,6 +15,7 @@ import {
   accountTable,
   type Actor,
   actorTable,
+  type Medium,
   type Post,
   POST_VISIBILITIES,
   postTable,
@@ -112,10 +113,12 @@ export const handler = define.handlers({
           sharedPost: {
             with: {
               actor: true,
-              replyTarget: { with: { actor: true } },
+              replyTarget: { with: { actor: true, media: true } },
+              media: true,
             },
           },
-          replyTarget: { with: { actor: true } },
+          replyTarget: { with: { actor: true, media: true } },
+          media: true,
         },
         where: and(
           eq(postTable.actorId, actor.id),
@@ -193,10 +196,12 @@ export const handler = define.handlers({
         sharedPost: {
           with: {
             actor: true,
-            replyTarget: { with: { actor: true } },
+            replyTarget: { with: { actor: true, media: true } },
+            media: true,
           },
         },
-        replyTarget: { with: { actor: true } },
+        replyTarget: { with: { actor: true, media: true } },
+        media: true,
       },
       where: and(
         eq(postTable.actorId, account.actor.id),
@@ -281,9 +286,14 @@ type ProfilePageProps = {
   posts: (Post & {
     actor: Actor;
     sharedPost:
-      | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+      | Post & {
+        actor: Actor;
+        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+        media: Medium[];
+      }
       | null;
-    replyTarget: Post & { actor: Actor } | null;
+    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+    media: Medium[];
   })[];
 } & FollowStateProps;
 

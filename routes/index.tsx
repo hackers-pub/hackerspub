@@ -6,6 +6,7 @@ import { db } from "../db.ts";
 import {
   type Actor,
   followingTable,
+  type Medium,
   mentionTable,
   type Post,
   postTable,
@@ -20,9 +21,14 @@ export const handler = define.handlers({
     let timeline: (Post & {
       actor: Actor;
       sharedPost:
-        | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+        | Post & {
+          actor: Actor;
+          replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+          media: Medium[];
+        }
         | null;
-      replyTarget: Post & { actor: Actor } | null;
+      replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+      media: Medium[];
     })[];
     if (ctx.state.account == null) {
       const languages = new Set<string>(
@@ -37,13 +43,15 @@ export const handler = define.handlers({
             with: {
               actor: true,
               replyTarget: {
-                with: { actor: true },
+                with: { actor: true, media: true },
               },
+              media: true,
             },
           },
           replyTarget: {
-            with: { actor: true },
+            with: { actor: true, media: true },
           },
+          media: true,
         },
         where: and(
           eq(postTable.visibility, "public"),
@@ -61,13 +69,15 @@ export const handler = define.handlers({
             with: {
               actor: true,
               replyTarget: {
-                with: { actor: true },
+                with: { actor: true, media: true },
               },
+              media: true,
             },
           },
           replyTarget: {
-            with: { actor: true },
+            with: { actor: true, media: true },
           },
+          media: true,
         },
         where: and(
           or(
@@ -106,9 +116,14 @@ interface HomeProps {
   timeline: (Post & {
     actor: Actor;
     sharedPost:
-      | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+      | Post & {
+        actor: Actor;
+        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+        media: Medium[];
+      }
       | null;
-    replyTarget: Post & { actor: Actor } | null;
+    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+    media: Medium[];
   })[];
 }
 

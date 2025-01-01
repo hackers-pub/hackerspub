@@ -1,6 +1,6 @@
 import { NoteControls } from "../islands/NoteControls.tsx";
 import { getAvatarUrl } from "../models/actor.ts";
-import type { Actor, Post } from "../models/schema.ts";
+import type { Actor, Medium, Post } from "../models/schema.ts";
 import { ArticleExcerpt } from "./ArticleExcerpt.tsx";
 import { Translation } from "./Msg.tsx";
 import { NoteExcerpt } from "./NoteExcerpt.tsx";
@@ -10,9 +10,14 @@ export interface PostExcerptProps {
   post: Post & {
     actor: Actor;
     sharedPost:
-      | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+      | Post & {
+        actor: Actor;
+        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+        media: Medium[];
+      }
       | null;
-    replyTarget: Post & { actor: Actor } | null;
+    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+    media: Medium[];
   };
   replyTarget?: boolean;
   signedIn?: boolean;
@@ -69,6 +74,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                   authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
                   authorAvatarUrl={getAvatarUrl(post.actor)}
                   sharer={sharer}
+                  media={post.media}
                   published={post.published}
                   replyTarget={props.replyTarget}
                   reply={post.replyTarget != null}

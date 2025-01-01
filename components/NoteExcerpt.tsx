@@ -1,5 +1,5 @@
 import { sanitizeHtml } from "../models/markup.ts";
-import type { PostVisibility } from "../models/schema.ts";
+import type { Medium, PostVisibility } from "../models/schema.ts";
 import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
 
@@ -18,6 +18,7 @@ export interface NoteExcerptProps {
     url: string;
     name: string;
   };
+  media: Medium[];
   published: Date;
   replyTarget?: boolean;
   reply?: boolean;
@@ -98,6 +99,19 @@ export function NoteExcerpt(props: NoteExcerptProps) {
             }}
           >
           </div>
+          {props.media.length > 0 && (
+            <div class="flex justify-center">
+              {props.media.map((medium) => (
+                <img
+                  src={medium.url}
+                  alt={medium.alt ?? ""}
+                  width={medium.width ?? undefined}
+                  height={medium.height ?? undefined}
+                  class="mt-2 object-contain max-w-96 max-h-96"
+                />
+              ))}
+            </div>
+          )}
         </article>
       )}
     </Translation>

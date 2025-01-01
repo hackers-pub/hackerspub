@@ -14,8 +14,9 @@ import { isPostVisibleTo } from "../../../models/post.ts";
 import {
   type Actor,
   actorTable,
-  Following,
-  Mention,
+  type Following,
+  type Medium,
+  type Mention,
   type Post,
   postTable,
 } from "../../../models/schema.ts";
@@ -30,10 +31,15 @@ export const handler = define.handlers({
     let post: Post & {
       actor: Actor & { followers: Following[] };
       sharedPost:
-        | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+        | Post & {
+          actor: Actor;
+          replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+          media: Medium[];
+        }
         | null;
-      replyTarget: Post & { actor: Actor } | null;
+      replyTarget: Post & { actor: Actor; media: Medium[] } | null;
       mentions: Mention[];
+      media: Medium[];
     };
     let postUrl: string;
     let noteUri: URL | undefined;
@@ -69,7 +75,7 @@ export const handler = define.handlers({
       return ctx.next();
     }
     const replies = await db.query.postTable.findMany({
-      with: { actor: true },
+      with: { actor: true, media: true },
       where: eq(postTable.replyTargetId, post.id),
       orderBy: postTable.published,
     });
@@ -143,10 +149,15 @@ function getPost(
   | Post & {
     actor: Actor & { followers: Following[] };
     sharedPost:
-      | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+      | Post & {
+        actor: Actor;
+        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+        media: Medium[];
+      }
       | null;
-    replyTarget: Post & { actor: Actor } | null;
+    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
     mentions: Mention[];
+    media: Medium[];
   }
   | undefined
 > {
@@ -162,14 +173,16 @@ function getPost(
         with: {
           actor: true,
           replyTarget: {
-            with: { actor: true },
+            with: { actor: true, media: true },
           },
+          media: true,
         },
       },
       replyTarget: {
-        with: { actor: true },
+        with: { actor: true, media: true },
       },
       mentions: true,
+      media: true,
     },
     where: and(
       inArray(
@@ -190,12 +203,17 @@ type NotePageProps = {
   post: Post & {
     actor: Actor;
     sharedPost:
-      | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+      | Post & {
+        actor: Actor;
+        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+        media: Medium[];
+      }
       | null;
-    replyTarget: Post & { actor: Actor } | null;
+    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+    media: Medium[];
   };
   postUrl: string;
-  replies: (Post & { actor: Actor })[];
+  replies: (Post & { actor: Actor; media: Medium[] })[];
 };
 
 export default define.page<typeof handler, NotePageProps>(
@@ -232,6 +250,7 @@ export default define.page<typeof handler, NotePageProps>(
             authorName={reply.actor.name ?? reply.actor.username}
             authorHandle={`@${reply.actor.username}@${reply.actor.instanceHost}`}
             authorAvatarUrl={getAvatarUrl(reply.actor)}
+            media={reply.media}
             published={reply.published}
           />
         ))}
