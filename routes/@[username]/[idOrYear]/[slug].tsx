@@ -179,7 +179,7 @@ export default define.page<typeof handler, ArticlePageProps>(
           {comments.map((comment) => (
             <PostExcerpt
               key={comment.id}
-              post={{ ...comment, replyTarget: null }}
+              post={{ ...comment, sharedPost: null, replyTarget: null }}
             />
           ))}
         </div>

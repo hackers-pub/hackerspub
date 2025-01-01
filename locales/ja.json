@@ -93,10 +93,12 @@
     "readMore": "続きを読む →",
     "comments_zero": "コメント無し",
     "comments_other": "{{count}}件のコメント",
-    "remoteCommentDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この記事にコメントを残すことができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当記事にコメントを残してください。"
+    "remoteCommentDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この記事にコメントを残すことができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当記事にコメントを残してください。",
+    "shared": "{{name}}さんが以下の記事を共有しました："
   },
   "note": {
-    "replies": "返信"
+    "replies": "返信",
+    "sharedBy": "{{name}}さんが共有"
   },
   "editor": {
     "titlePlaceholder": "記事のタイトル",

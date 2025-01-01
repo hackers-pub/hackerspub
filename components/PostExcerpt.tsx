@@ -7,20 +7,34 @@ import { NoteExcerpt } from "./NoteExcerpt.tsx";
 
 export interface PostExcerptProps {
   class?: string;
-  post: Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null };
+  post: Post & {
+    actor: Actor;
+    sharedPost:
+      | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+      | null;
+    replyTarget: Post & { actor: Actor } | null;
+  };
   replyTarget?: boolean;
   signedIn?: boolean;
 }
 
 export function PostExcerpt(props: PostExcerptProps) {
-  const { post } = props;
+  const post = props.post.sharedPost ?? props.post;
+  const sharer = props.post.sharedPost == null ? undefined : {
+    url: props.post.actor.url ?? props.post.actor.iri,
+    name: props.post.actor.name ?? props.post.actor.username,
+  };
   return (
     <Translation>
       {(_, language) => (
         <>
           {post.replyTarget != null && (
             <PostExcerpt
-              post={{ ...post.replyTarget, replyTarget: null }}
+              post={{
+                ...post.replyTarget,
+                sharedPost: null,
+                replyTarget: null,
+              }}
               replyTarget={true}
             />
           )}
@@ -37,6 +51,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                 authorName={post.actor.name ?? post.actor.username}
                 authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
                 authorAvatarUrl={post.actor.avatarUrl}
+                sharer={sharer}
                 published={post.published}
                 replyTarget={props.replyTarget}
               />
@@ -53,9 +68,10 @@ export function PostExcerpt(props: PostExcerptProps) {
                   authorName={post.actor.name ?? post.actor.username}
                   authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
                   authorAvatarUrl={getAvatarUrl(post.actor)}
+                  sharer={sharer}
                   published={post.published}
                   replyTarget={props.replyTarget}
-                  reply={props.post.replyTarget != null}
+                  reply={post.replyTarget != null}
                 />
                 {!props.replyTarget && props.signedIn && (
                   <NoteControls

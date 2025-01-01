@@ -1,6 +1,6 @@
 import { sanitizeHtml } from "../models/markup.ts";
 import type { PostVisibility } from "../models/schema.ts";
-import { Translation } from "./Msg.tsx";
+import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
 
 export interface NoteExcerptProps {
@@ -14,6 +14,10 @@ export interface NoteExcerptProps {
   authorName: string;
   authorHandle: string;
   authorAvatarUrl: string;
+  sharer?: {
+    url: string;
+    name: string;
+  };
   published: Date;
   replyTarget?: boolean;
   reply?: boolean;
@@ -64,6 +68,18 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   class="inline-block"
                   visibility={props.visibility}
                 />
+                {props.sharer && (
+                  <span class="before:content-['·_'] ml-1">
+                    <Msg
+                      $key="note.sharedBy"
+                      name={
+                        <a href={props.sharer.url} class="font-bold">
+                          {props.sharer.name}
+                        </a>
+                      }
+                    />
+                  </span>
+                )}
               </div>
             </div>
           </div>

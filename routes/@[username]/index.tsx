@@ -107,7 +107,16 @@ export const handler = define.handlers({
         };
       }
       const posts = await db.query.postTable.findMany({
-        with: { actor: true, replyTarget: { with: { actor: true } } },
+        with: {
+          actor: true,
+          sharedPost: {
+            with: {
+              actor: true,
+              replyTarget: { with: { actor: true } },
+            },
+          },
+          replyTarget: { with: { actor: true } },
+        },
         where: and(
           eq(postTable.actorId, actor.id),
           inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
@@ -179,7 +188,16 @@ export const handler = define.handlers({
     );
     ctx.state.title = account.name;
     const posts = await db.query.postTable.findMany({
-      with: { actor: true, replyTarget: { with: { actor: true } } },
+      with: {
+        actor: true,
+        sharedPost: {
+          with: {
+            actor: true,
+            replyTarget: { with: { actor: true } },
+          },
+        },
+        replyTarget: { with: { actor: true } },
+      },
       where: and(
         eq(postTable.actorId, account.actor.id),
         inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
@@ -260,8 +278,13 @@ type ProfilePageProps = {
   followersCount: number;
   avatarUrl?: string;
   links: AccountLink[] | Record<string, string>;
-  posts:
-    (Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null })[];
+  posts: (Post & {
+    actor: Actor;
+    sharedPost:
+      | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+      | null;
+    replyTarget: Post & { actor: Actor } | null;
+  })[];
 } & FollowStateProps;
 
 type FollowStateProps = {

@@ -8,6 +8,7 @@ import {
   Undo,
   Update,
 } from "@fedify/fedify";
+import { getLogger } from "@logtape/logtape";
 import { captureException } from "@sentry/deno";
 import { federation } from "../federation.ts";
 import { onFollowAccepted, onFollowed, onUnfollowed } from "./following.ts";
@@ -20,7 +21,6 @@ import {
 } from "./subscribe.ts";
 import { onActorUpdated } from "./actor.ts";
 import { isPostObject } from "../../models/post.ts";
-import { getLogger } from "@logtape/logtape";
 
 const logger = getLogger(["hackerspub", "federation", "inbox"]);
 

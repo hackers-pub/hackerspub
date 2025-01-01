@@ -41,6 +41,9 @@ export function getNoteSource(
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     post: Post & {
       actor: Actor & { followers: Following[] };
+      sharedPost:
+        | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+        | null;
       replyTarget: Post & { actor: Actor } | null;
       mentions: Mention[];
     };
@@ -57,6 +60,14 @@ export function getNoteSource(
             with: { followers: true },
           },
           mentions: true,
+          sharedPost: {
+            with: {
+              actor: true,
+              replyTarget: {
+                with: { actor: true },
+              },
+            },
+          },
           replyTarget: {
             with: { actor: true },
           },

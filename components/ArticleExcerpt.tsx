@@ -12,6 +12,10 @@ export interface ArticleExcerptProps extends ArticleMetadataProps {
   contentHtml: string;
   lang?: string;
   replyTarget?: boolean;
+  sharer?: {
+    url: string;
+    name: string;
+  };
 }
 
 export function ArticleExcerpt(props: ArticleExcerptProps) {
@@ -23,6 +27,18 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
         ${props.class}
       `}
     >
+      {props.sharer && (
+        <p class="text-stone-500 dark:text-stone-400 mb-2">
+          <Msg
+            $key="article.shared"
+            name={
+              <a href={props.sharer.url} class="font-bold">
+                {props.sharer.name}
+              </a>
+            }
+          />
+        </p>
+      )}
       {props.title &&
         (
           <h1

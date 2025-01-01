@@ -29,6 +29,9 @@ export const handler = define.handlers({
     const id = ctx.params.idOrYear;
     let post: Post & {
       actor: Actor & { followers: Following[] };
+      sharedPost:
+        | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+        | null;
       replyTarget: Post & { actor: Actor } | null;
       mentions: Mention[];
     };
@@ -139,6 +142,9 @@ function getPost(
 ): Promise<
   | Post & {
     actor: Actor & { followers: Following[] };
+    sharedPost:
+      | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+      | null;
     replyTarget: Post & { actor: Actor } | null;
     mentions: Mention[];
   }
@@ -151,6 +157,14 @@ function getPost(
     with: {
       actor: {
         with: { followers: true },
+      },
+      sharedPost: {
+        with: {
+          actor: true,
+          replyTarget: {
+            with: { actor: true },
+          },
+        },
       },
       replyTarget: {
         with: { actor: true },
@@ -173,7 +187,13 @@ function getPost(
 }
 
 type NotePageProps = {
-  post: Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null };
+  post: Post & {
+    actor: Actor;
+    sharedPost:
+      | Post & { actor: Actor; replyTarget: Post & { actor: Actor } | null }
+      | null;
+    replyTarget: Post & { actor: Actor } | null;
+  };
   postUrl: string;
   replies: (Post & { actor: Actor })[];
 };
