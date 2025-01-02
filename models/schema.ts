@@ -577,6 +577,7 @@ export const postTable = pgTable(
       .default(currentTimestamp),
   },
   (table) => [
+    unique().on(table.actorId, table.sharedPostId),
     check(
       "post_article_source_id_check",
       sql`${table.type} = 'Article' OR ${table.articleSourceId} IS NULL`,
