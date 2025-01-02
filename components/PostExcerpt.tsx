@@ -87,6 +87,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                     replyUrl={post.actor.accountId == null
                       ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}#reply`
                       : `/@${post.actor.username}/${post.noteSourceId}#reply`}
+                    shares={post.sharesCount}
                   />
                 )}
               </>

@@ -9,7 +9,7 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import Keyv from "keyv";
 import type { Database } from "../db.ts";
 import {
@@ -239,6 +239,9 @@ export async function persistPost(
       if (replyTarget == null) return;
     }
   }
+  const replies = options.replies ? await post.getReplies(options) : null;
+  const shares = await post.getShares(options);
+  const likes = await post.getLikes(options);
   const to = new Set(post.toIds.map((u) => u.href));
   const cc = new Set(post.ccIds.map((u) => u.href));
   const recipients = to.union(cc);
@@ -272,6 +275,9 @@ export async function persistPost(
     tags,
     url: post.url instanceof vocab.Link ? post.url.href?.href : post.url?.href,
     replyTargetId: replyTarget?.id,
+    repliesCount: replies?.totalItems ?? 0,
+    sharesCount: shares?.totalItems ?? 0,
+    likesCount: likes?.totalItems ?? 0,
     updated: toDate(post.updated ?? post.published) ?? undefined,
     published: toDate(post.published) ?? undefined,
   };
@@ -322,6 +328,7 @@ export async function persistPost(
   if (options.replies) {
     const replies = await post.getReplies(options);
     if (replies != null) {
+      let repliesCount = 0;
       for await (
         const reply of traverseCollection(replies, {
           ...options,
@@ -334,6 +341,13 @@ export async function persistPost(
           actor,
           replyTarget: persistedPost,
         });
+        repliesCount++;
+      }
+      if (persistedPost.repliesCount < repliesCount) {
+        await db.update(postTable)
+          .set({ repliesCount })
+          .where(eq(postTable.id, persistedPost.id));
+        persistedPost.repliesCount = repliesCount;
       }
     }
   }
@@ -411,6 +425,15 @@ export async function persistSharedPost(
       setWhere: eq(postTable.iri, announce.id.href),
     })
     .returning();
+  const cnt = await db.select({ count: count() })
+    .from(postTable)
+    .where(eq(postTable.sharedPostId, post.id));
+  if (post.sharesCount < cnt[0].count) {
+    await db.update(postTable)
+      .set({ sharesCount: cnt[0].count })
+      .where(eq(postTable.id, post.id));
+    post.sharesCount = cnt[0].count;
+  }
   return { ...rows[0], actor, sharedPost: post };
 }
 

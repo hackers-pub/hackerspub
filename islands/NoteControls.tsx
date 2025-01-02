@@ -7,13 +7,14 @@ export interface NoteControlsProps {
   class?: string;
   replies: number;
   replyUrl?: string;
+  shares: number;
 }
 
 export function NoteControls(props: NoteControlsProps) {
   const t = getFixedT(props.language);
   return (
     <TranslationSetup language={props.language}>
-      <div class={`${props.class ?? ""}`}>
+      <div class={`${props.class ?? ""} flex gap-3`}>
         <a
           class="h-5 flex opacity-50 hover:opacity-100"
           href={props.replyUrl}
@@ -37,6 +38,25 @@ export function NoteControls(props: NoteControlsProps) {
             {props.replies.toLocaleString(props.language)}
           </span>
         </a>
+        <span class="h-5 flex opacity-50 hover:opacity-100">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="size-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
+            />
+          </svg>
+          <span class="ml-1 my-auto text-xs">
+            {props.shares.toLocaleString(props.language)}
+          </span>
+        </span>
       </div>
     </TranslationSetup>
   );

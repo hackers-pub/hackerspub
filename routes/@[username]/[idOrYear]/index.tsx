@@ -231,6 +231,7 @@ export default define.page<typeof handler, NotePageProps>(
           class="mt-4 ml-14"
           language={state.language}
           replies={replies.length}
+          shares={post.sharesCount}
         />
         <Composer
           class="mt-8"

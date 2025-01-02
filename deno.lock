@@ -3,6 +3,7 @@
   "specifiers": {
     "jsr:@fedify/fedify@1": "1.3.0",
     "jsr:@fedify/fedify@1.3.0": "1.3.0",
+    "jsr:@fedify/fedify@1.4.0-dev.599+72b4d6d0": "1.4.0-dev.599+72b4d6d0",
     "jsr:@fedify/markdown-it-mention@0.2": "0.2.0",
     "jsr:@fedify/postgres@~0.2.2": "0.2.2",
     "jsr:@fedify/redis@0.3": "0.3.0",
@@ -124,6 +125,29 @@
   "jsr": {
     "@fedify/fedify@1.3.0": {
       "integrity": "9c7bda345e6ba203448fab2a56523dc56dfe49b7b18fc9d504fe7cbbd4f999e2",
+      "dependencies": [
+        "jsr:@hugoalh/http-header-link",
+        "jsr:@logtape/logtape@0.8",
+        "jsr:@std/async",
+        "jsr:@std/bytes",
+        "jsr:@std/encoding@^1.0.5",
+        "jsr:@std/http@^1.0.6",
+        "jsr:@std/semver@^1.0.3",
+        "npm:@opentelemetry/api",
+        "npm:@opentelemetry/semantic-conventions@^1.27.0",
+        "npm:@phensley/language-tag",
+        "npm:asn1js",
+        "npm:json-canon",
+        "npm:jsonld",
+        "npm:multibase",
+        "npm:multicodec",
+        "npm:pkijs",
+        "npm:uri-template-router",
+        "npm:url-template"
+      ]
+    },
+    "@fedify/fedify@1.4.0-dev.599+72b4d6d0": {
+      "integrity": "0a8e49d13a1ff2ac59b10e454caf8c44e3f05b88cf05bcff400be2acbbefd87a",
       "dependencies": [
         "jsr:@hugoalh/http-header-link",
         "jsr:@logtape/logtape@0.8",
@@ -2792,7 +2816,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@fedify/fedify@1.3.0",
+      "jsr:@fedify/fedify@1.4.0-dev.599+72b4d6d0",
       "jsr:@fedify/markdown-it-mention@0.2",
       "jsr:@fedify/postgres@~0.2.2",
       "jsr:@fedify/redis@0.3",
