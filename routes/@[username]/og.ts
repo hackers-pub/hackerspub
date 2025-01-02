@@ -1,11 +1,13 @@
+import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import { dirname, join } from "@std/path";
 import { eq } from "drizzle-orm";
-import { initWasm, Resvg } from "@resvg/resvg-wasm";
 import satori from "satori";
 import { html } from "satori-html";
-import { define } from "../../utils.ts";
 import { db } from "../../db.ts";
+import { getAvatarUrl } from "../../models/account.ts";
+import { renderMarkup } from "../../models/markup.ts";
 import { accountTable } from "../../models/schema.ts";
+import { define } from "../../utils.ts";
 
 await initWasm(
   "https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm",
@@ -22,9 +24,11 @@ function loadFont(filename: string): Promise<Uint8Array> {
 export const handler = define.handlers({
   async GET(ctx) {
     const account = await db.query.accountTable.findFirst({
+      with: { emails: true },
       where: eq(accountTable.username, ctx.params.username),
     });
     if (account == null) return ctx.next();
+    const bio = await renderMarkup(db, ctx.state.fedCtx, null, account.bio);
     const svg = await satori(
       html`
         <div style="
@@ -33,14 +37,23 @@ export const handler = define.handlers({
           background-color: white;
         ">
           <div style="
-            display: flex; flex-direction: column;
+            display: flex; flex-direction: row; gap: 25px;
             height: 530px; padding: 25px;
           ">
-            <div style="font-size: 64px">
-              ${account.name}
-            </div>
-            <div style="font-size: 32px; color: gray;">
-              @${account.username}@${ctx.url.host}
+            <img src="${await getAvatarUrl(account)}" width="125" height="125">
+            <div style="display: flex; flex-direction: column;">
+              <div style="font-size: 64px; margin-top: -20px;">
+                ${account.name}
+              </div>
+              <div style="font-size: 32px; color: gray;">
+                @${account.username}@${ctx.url.host}
+              </div>
+              <div style="
+                width: 1000px; height: 355px; margin-top: 25px; font-size: 32px;
+                overflow: hidden; text-overflow: ellipsis;
+              ">
+                ${bio.text}
+              </div>
             </div>
           </div>
           <div style="

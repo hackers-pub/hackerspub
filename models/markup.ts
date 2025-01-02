@@ -9,6 +9,7 @@ import {
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
+import { unescape } from "@std/html";
 import { DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import * as cssfilter from "cssfilter";
 import katex from "katex";
@@ -422,7 +423,7 @@ export async function renderMarkup(
     );
   const html = sanitizeHtml(rawHtml);
   const excerptHtml = sanitizeExcerptHtml(rawHtml);
-  const text = textXss.process(rawHtml);
+  const text = unescape(textXss.process(rawHtml));
   const toc = toToc(tocTree);
   const rendered: RenderedMarkup = {
     html,
