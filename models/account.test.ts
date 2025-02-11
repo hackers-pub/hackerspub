@@ -67,9 +67,9 @@ const linkMetadata: Record<string, LinkMetadata> = {
     icon: "misskey",
     handle: "@hongminhee@stella.place",
   },
-  "https://pxlmo.com/hongminhee": {
+  "https://pixelfed.social/dansup": {
     icon: "pixelfed",
-    handle: "@hongminhee@pxlmo.com",
+    handle: "@dansup@pixelfed.social",
   },
   "https://stereophonic.space/users/karolat": {
     icon: "pleroma",
