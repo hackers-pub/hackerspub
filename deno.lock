@@ -84,6 +84,7 @@
     "npm:@shikijs/transformers@^1.22.2": "1.29.2",
     "npm:@tailwindcss/typography@~0.5.15": "0.5.16_tailwindcss@3.4.3__postcss@8.5.2",
     "npm:@types/markdown-it@^14.1.1": "14.1.2",
+    "npm:@types/node@*": "22.5.4",
     "npm:asn1js@^3.0.5": "3.0.5",
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",
     "npm:cssfilter@^0.0.11": "0.0.11",
@@ -224,13 +225,21 @@
     "@fresh/core@2.0.0-alpha.29": {
       "integrity": "5374a478c2d407da2a84a9802e00da2305de2945b0934e6a7b24a989a7b82e0f",
       "dependencies": [
+        "jsr:@luca/esbuild-deno-loader",
+        "jsr:@std/crypto@1",
+        "jsr:@std/datetime",
         "jsr:@std/encoding@1",
         "jsr:@std/fmt@1",
         "jsr:@std/fs",
         "jsr:@std/html@1",
+        "jsr:@std/jsonc",
         "jsr:@std/media-types@1",
         "jsr:@std/path@1",
+        "jsr:@std/semver@1",
         "npm:@opentelemetry/api",
+        "npm:@preact/signals@^1.2.3",
+        "npm:esbuild",
+        "npm:esbuild-wasm",
         "npm:preact-render-to-string",
         "npm:preact@^10.25.1",
         "npm:preact@^10.25.2"
@@ -1039,6 +1048,12 @@
     },
     "@types/mdurl@2.0.0": {
       "integrity": "sha512-RGdgjQUZba5p6QEFAVx2OGb8rQDL/cPRG7GiedRzMcJ1tYnUANBncjbSB1NRGwbvjcPeikRABz2nshyPk1bhWg=="
+    },
+    "@types/node@22.5.4": {
+      "integrity": "sha512-FDuKUJQm/ju9fT/SeX/6+gBzoPzlVCzfzmGkwKvRHQVxi4BntVbyIwf6a4Xn62mrvndLiml6z/UBXIdEVjQLXg==",
+      "dependencies": [
+        "undici-types"
+      ]
     },
     "@types/shimmer@1.2.0": {
       "integrity": "sha512-UE7oxhQLLd9gub6JKIAhDq06T0F6FnztwMNRvYgjeQSBeMc1ZG/tA47EwfduvkuQS8apbkM/lpLpWsaCeYsXVg=="
@@ -2719,6 +2734,9 @@
     },
     "ultrahtml@1.5.3": {
       "integrity": "sha512-GykOvZwgDWZlTQMtp5jrD4BVL+gNn2NVlVafjcFUJ7taY20tqYdwdoWBFy6GBJsNTZe1GkGPkSl5knQAjtgceg=="
+    },
+    "undici-types@6.19.8": {
+      "integrity": "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="
     },
     "undici@5.28.5": {
       "integrity": "sha512-zICwjrDrcrUE0pyyJc1I2QzBkLM8FINsgOrt6WjA+BgajVq9Nxu2PbFFXUrAggLfDXlZGZBVZYw7WNV5KiBiBA==",

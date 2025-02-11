@@ -2,15 +2,15 @@ import * as vocab from "@fedify/fedify/vocab";
 import * as v from "@valibot/valibot";
 import { eq } from "drizzle-orm";
 import { page } from "fresh";
-import { ArticleMetadata } from "../../../components/ArticleMetadata.tsx";
-import { Msg } from "../../../components/Msg.tsx";
-import { db } from "../../../db.ts";
-import { kv } from "../../../kv.ts";
-import { getAvatarUrl } from "../../../models/account.ts";
-import { getArticleSource } from "../../../models/article.ts";
-import { renderMarkup } from "../../../models/markup.ts";
-import { createNote } from "../../../models/note.ts";
-import { isPostVisibleTo } from "../../../models/post.ts";
+import { ArticleMetadata } from "../../../../components/ArticleMetadata.tsx";
+import { Msg } from "../../../../components/Msg.tsx";
+import { db } from "../../../../db.ts";
+import { kv } from "../../../../kv.ts";
+import { getAvatarUrl } from "../../../../models/account.ts";
+import { getArticleSource } from "../../../../models/article.ts";
+import { renderMarkup } from "../../../../models/markup.ts";
+import { createNote } from "../../../../models/note.ts";
+import { isPostVisibleTo } from "../../../../models/post.ts";
 import {
   type Account,
   type Actor,
@@ -18,11 +18,11 @@ import {
   type Medium,
   type Post,
   postTable,
-} from "../../../models/schema.ts";
-import { define } from "../../../utils.ts";
-import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
-import { Composer } from "../../../islands/Composer.tsx";
-import { NoteSourceSchema } from "../index.tsx";
+} from "../../../../models/schema.ts";
+import { define } from "../../../../utils.ts";
+import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
+import { Composer } from "../../../../islands/Composer.tsx";
+import { NoteSourceSchema } from "../../index.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -131,6 +131,8 @@ export default define.page<typeof handler, ArticlePageProps>(
     },
   ) {
     const authorHandle = `@${article.account.username}@${url.host}`;
+    const postUrl =
+      `/@${article.account.username}/${article.publishedYear}/${article.slug}`;
     return (
       <>
         <article>
@@ -144,6 +146,9 @@ export default define.page<typeof handler, ArticlePageProps>(
             authorHandle={authorHandle}
             authorAvatarUrl={avatarUrl}
             published={article.published}
+            editUrl={state.account?.id === article.accountId
+              ? `${postUrl}/edit`
+              : null}
           />
           <div
             lang={article.language}
@@ -173,7 +178,7 @@ export default define.page<typeof handler, ArticlePageProps>(
                 class="mt-4"
                 commentTarget={authorHandle}
                 language={state.language}
-                postUrl={`/@${article.account.username}/${article.publishedYear}/${article.slug}`}
+                postUrl={postUrl}
                 onPost="reload"
               />
             )}

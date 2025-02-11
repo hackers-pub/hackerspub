@@ -166,3 +166,65 @@ export async function createArticle(
   );
   return post;
 }
+
+export async function updateArticleSource(
+  db: Database,
+  id: Uuid,
+  source: Partial<NewArticleSource>,
+): Promise<ArticleSource | undefined> {
+  const rows = await db.update(articleSourceTable)
+    .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
+    .where(eq(articleSourceTable.id, id))
+    .returning();
+  return rows[0];
+}
+
+export async function updateArticle(
+  db: Database,
+  kv: Keyv,
+  fedCtx: Context<void>,
+  articleSourceId: Uuid,
+  source: Partial<NewArticleSource>,
+): Promise<
+  Post & {
+    actor: Actor & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      instance: Instance;
+    };
+    articleSource: ArticleSource & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    };
+  } | undefined
+> {
+  const articleSource = await updateArticleSource(db, articleSourceId, source);
+  if (articleSource == null) return undefined;
+  const account = await db.query.accountTable.findFirst({
+    where: eq(accountTable.id, articleSource.accountId),
+    with: { emails: true, links: true },
+  });
+  if (account == null) return undefined;
+  const post = await syncPostFromArticleSource(db, kv, fedCtx, {
+    ...articleSource,
+    account,
+  });
+  const articleObject = await getArticle(db, fedCtx, {
+    ...articleSource,
+    account,
+  });
+  await fedCtx.sendActivity(
+    { identifier: articleSource.accountId },
+    "followers",
+    new vocab.Update({
+      id: new URL(
+        `#update/${articleSource.updated.toISOString()}`,
+        articleObject.id ?? fedCtx.origin,
+      ),
+      actors: articleObject.attributionIds,
+      tos: articleObject.toIds,
+      ccs: articleObject.ccIds,
+      object: articleObject,
+    }),
+    { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+  );
+  return post;
+}

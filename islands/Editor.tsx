@@ -9,17 +9,24 @@ import { PageTitle } from "../components/PageTitle.tsx";
 import getFixedT, { Language, POSSIBLE_LANGUAGES } from "../i18n.ts";
 import { TagInput } from "./TagInput.tsx";
 
-export interface EditorProps {
-  language: Language;
-  class?: string;
-  previewUrl: string;
-  draftUrl: string;
-  publishUrl: string;
-  publishUrlPrefix: string;
-  defaultTitle?: string;
-  defaultContent?: string;
-  defaultTags?: string[];
-}
+export type EditorProps =
+  & {
+    language: Language;
+    class?: string;
+    previewUrl: string;
+    publishUrl: string;
+    defaultTitle?: string;
+    defaultContent?: string;
+    defaultTags?: string[];
+  }
+  & ({
+    draftUrl: string;
+    publishUrlPrefix: string;
+  } | {
+    slug: string;
+    permalink: string;
+    articleLanguage: string;
+  });
 
 export function Editor(props: EditorProps) {
   const t = getFixedT(props.language);
@@ -37,8 +44,12 @@ export function Editor(props: EditorProps) {
   const titleInput = useRef<HTMLInputElement | null>(null);
   const contentTextArea = useRef<HTMLTextAreaElement | null>(null);
   const [publishMode, setPublishMode] = useState(false);
-  const [slug, setSlug] = useState<string | null>(null);
-  const [language, setLanguage] = useState<string | null>(null);
+  const [slug, setSlug] = useState<string | null>(
+    "slug" in props ? props.slug : null,
+  );
+  const [language, setLanguage] = useState<string | null>(
+    "articleLanguage" in props ? props.articleLanguage : null,
+  );
   const [publishing, setPublishing] = useState(false);
   const slugInput = useRef<HTMLInputElement | null>(null);
 
@@ -77,8 +88,8 @@ export function Editor(props: EditorProps) {
     renderPreview(markup);
   }
 
-  async function saveDraft(now: number) {
-    const response = await fetch(props.draftUrl, {
+  async function saveDraft(draftUrl: string, now: number) {
+    const response = await fetch(draftUrl, {
       method: "PUT",
       body: JSON.stringify({ title, content, tags }),
       headers: {
@@ -94,46 +105,56 @@ export function Editor(props: EditorProps) {
     setDraftLanguage(data.language);
   }
 
-  useEffect(() => {
-    const handle = setInterval(() => {
-      const now = Date.now();
-      if (now - draftUpdated < 5000) return;
-      if (now - updated < 5000) return;
-      if (
-        draftTitle === title && draftContent === content &&
-        draftTags.length === tags.length && draftTags.every((v, i) =>
-          tags[i] === v
-        )
-      ) return;
-      saveDraft(now);
-    }, 1000);
+  if ("draftUrl" in props) {
+    useEffect(() => {
+      const handle = setInterval(() => {
+        const now = Date.now();
+        if (now - draftUpdated < 5000) return;
+        if (now - updated < 5000) return;
+        if (
+          draftTitle === title && draftContent === content &&
+          draftTags.length === tags.length && draftTags.every((v, i) =>
+            tags[i] === v
+          )
+        ) return;
+        saveDraft(props.draftUrl, now);
+      }, 1000);
 
-    return () => clearInterval(handle);
-  }, [
-    props.draftUrl,
-    title,
-    content,
-    tags,
-    draftTitle,
-    draftContent,
-    draftUpdated,
-    updated,
-  ]);
+      return () => clearInterval(handle);
+    }, [
+      props.draftUrl,
+      title,
+      content,
+      tags,
+      draftTitle,
+      draftContent,
+      draftUpdated,
+      updated,
+    ]);
+  }
 
-  function switchToPublushMode() {
-    saveDraft(Date.now()).then(() => {
-      if (draftTitle.trim() === "") {
-        alert(t("editor.titleRequired"));
-        return;
-      } else if (draftContent.trim() === "") {
-        alert(t("editor.contentRequired"));
-        return;
-      } else if (draftTags.length < 1) {
-        alert(t("editor.tagsRequired"));
-        return;
-      }
-      setPublishMode(true);
-    });
+  function switchToPublishMode() {
+    if ("draftUrl" in props) {
+      saveDraft(props.draftUrl, Date.now()).then(() => {
+        validateAndSetPublishMode();
+      });
+    } else {
+      validateAndSetPublishMode();
+    }
+  }
+
+  function validateAndSetPublishMode() {
+    if (draftTitle.trim() === "") {
+      alert(t("editor.titleRequired"));
+      return;
+    } else if (draftContent.trim() === "") {
+      alert(t("editor.contentRequired"));
+      return;
+    } else if (draftTags.length < 1) {
+      alert(t("editor.tagsRequired"));
+      return;
+    }
+    setPublishMode(true);
   }
 
   async function publish() {
@@ -141,6 +162,9 @@ export function Editor(props: EditorProps) {
     const response = await fetch(props.publishUrl, {
       method: "POST",
       body: JSON.stringify({
+        title,
+        content,
+        tags,
         slug: slug ?? makeSlug(draftTitle),
         language: language ?? draftLanguage ?? props.language,
       }),
@@ -218,7 +242,7 @@ export function Editor(props: EditorProps) {
                   defaultTags={tags}
                   onTagsChange={setTags}
                 />
-                <Button onClick={switchToPublushMode}>
+                <Button onClick={switchToPublishMode}>
                   <Msg $key="editor.publish" />
                 </Button>
               </div>
@@ -246,6 +270,8 @@ export function Editor(props: EditorProps) {
                       <Input
                         ref={slugInput}
                         value={slug ?? makeSlug(draftTitle)}
+                        readOnly={"slug" in props}
+                        disabled={"slug" in props}
                         maxlength={128}
                         onInput={(e) => {
                           const input = e.target as HTMLInputElement;
@@ -262,7 +288,7 @@ export function Editor(props: EditorProps) {
                       <Msg $key="editor.publishMode.slugDescription" />
                       <br />
                       <strong>
-                        {new URL(
+                        {"permalink" in props ? props.permalink : new URL(
                           `./${new Date().getFullYear()}/${
                             slug ?? makeSlug(draftTitle)
                           }`,

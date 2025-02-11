@@ -1,4 +1,4 @@
-import { Translation } from "./Msg.tsx";
+import { Msg, Translation } from "./Msg.tsx";
 
 export interface ArticleMetadataProps {
   class?: string;
@@ -7,6 +7,7 @@ export interface ArticleMetadataProps {
   authorHandle: string;
   authorAvatarUrl?: string | null;
   published: Date;
+  editUrl?: string | null;
 }
 
 export function ArticleMetadata(props: ArticleMetadataProps) {
@@ -37,6 +38,14 @@ export function ArticleMetadata(props: ArticleMetadataProps) {
               timeStyle: "short",
             })}
           </time>
+          {props.editUrl && (
+            <>
+              {" "} &middot;{" "}
+              <a href={props.editUrl}>
+                <Msg $key="article.edit" />
+              </a>
+            </>
+          )}
         </p>
       )}
     </Translation>

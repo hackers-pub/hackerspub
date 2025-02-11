@@ -96,7 +96,8 @@
     "comments_one": "1 comment",
     "comments_other": "{{count}} comments",
     "remoteCommentDescription": "If you have a fediverse account, you can comment on this post from your own instance. Search {{permalink}} on your instance and reply to it.",
-    "shared": "{{name}} shared the below article:"
+    "shared": "{{name}} shared the below article:",
+    "edit": "Edit"
   },
   "note": {
     "replies": "Replies",
