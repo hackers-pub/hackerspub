@@ -22,6 +22,11 @@
       ]
     }
   },
+  "fmt": {
+    "exclude": [
+      "*.md"
+    ]
+  },
   "exclude": [
     "**/_fresh/*",
     ".github/",
