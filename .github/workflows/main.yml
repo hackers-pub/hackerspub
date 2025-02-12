@@ -19,6 +19,7 @@ jobs:
     - run: deno task check
 
   build:
+    if: github.event_name == 'push'
     needs: [test]
     permissions:
       contents: read
