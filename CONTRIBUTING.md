@@ -82,6 +82,17 @@ of all available variables in the *.env.sample* file.  Copy this file to *.env*
 and set the values of the variables according to your environment.
 
 
+Creating a database schema
+--------------------------
+
+Before running the server, you need to create the database schema.  To do this,
+you need to run the database migrations:
+
+~~~~ sh
+deno task migrate
+~~~~
+
+
 Running the server
 ------------------
 
@@ -92,14 +103,6 @@ deno task dev
 ~~~~
 
 This command starts the server on port 8000.
-
-> [!TIP]
-> The `deno task dev` command also runs the database migrations.  If you want
-> to run the migrations separately, execute the following command:
->
-> ~~~~ sh
-> deno task migrate
-> ~~~~
 
 
 Setting up federation
