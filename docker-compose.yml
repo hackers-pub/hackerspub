@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/hackerspub
+      KV_URL: file:///tmp/kv.db
+      SECRET_KEY: ${SECRET_KEY}
+      BEHIND_PROXY: ${BEHIND_PROXY}
+      MAILGUN_KEY: ${MAILGUN_KEY}
+      MAILGUN_REGION: ${MAILGUN_REGION}
+      MAILGUN_DOMAIN: ${MAILGUN_DOMAIN}
+      MAILGUN_FROM: ${MAILGUN_FROM}
+      SENTRY_DSN: ${SENTRY_DSN}
+      PLAUSIBLE: ${PLAUSIBLE}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    command: deno task dev
+    volumes:
+      - .:/app
+      - /app/deps
+      - /app/.cache
+      - /app/.deno
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: hackerspub
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
