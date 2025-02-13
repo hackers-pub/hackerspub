@@ -9,8 +9,14 @@ import { db } from "../../db.ts";
 import { sendEmail } from "../../email.ts";
 import { kv } from "../../kv.ts";
 import { accountEmailTable, allowedEmailTable } from "../../models/schema.ts";
-import { createSigninToken } from "../../models/signin.ts";
-import { createSignupToken } from "../../models/signup.ts";
+import {
+  createSigninToken,
+  EXPIRATION as SIGNIN_EXPIRATION,
+} from "../../models/signin.ts";
+import {
+  createSignupToken,
+  EXPIRATION as SIGNUP_EXPIRATION,
+} from "../../models/signup.ts";
 import { define } from "../../utils.ts";
 
 export const handler = define.handlers({
@@ -32,6 +38,7 @@ export const handler = define.handlers({
     const accountEmail = await db.query.accountEmailTable.findFirst({
       where: eq(accountEmailTable.email, email),
     });
+    let expiration: Temporal.Duration;
     if (accountEmail == null) {
       const allowed = await db.query.allowedEmailTable.findFirst({
         where: eq(allowedEmailTable.email, email),
@@ -46,32 +53,46 @@ export const handler = define.handlers({
       const token = await createSignupToken(kv, email);
       const verifyUrl = new URL(`/sign/up/${token.token}`, ctx.url);
       verifyUrl.searchParams.set("code", token.code);
+      expiration = SIGNUP_EXPIRATION;
       await sendEmail({
         to: email,
         subject: t("signInUp.signUpEmailSubject"),
-        text: t("signInUp.signUpEmailText", { verifyUrl: verifyUrl.href }),
+        text: t("signInUp.signUpEmailText", {
+          verifyUrl: verifyUrl.href,
+          expiration: expiration.toLocaleString(ctx.state.language, {
+            // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
+            style: "long",
+          }),
+        }),
       });
     } else {
       const token = await createSigninToken(kv, accountEmail.accountId);
       const verifyUrl = new URL(`/sign/in/${token.token}`, ctx.url);
       verifyUrl.searchParams.set("code", token.code);
+      expiration = SIGNIN_EXPIRATION;
       await sendEmail({
         to: email,
         subject: t("signInUp.signInEmailSubject"),
-        text: t("signInUp.signInEmailText", { verifyUrl: verifyUrl.href }),
+        text: t("signInUp.signInEmailText", {
+          verifyUrl: verifyUrl.href,
+          expiration: expiration.toLocaleString(ctx.state.language, {
+            // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
+            style: "long",
+          }),
+        }),
       });
     }
-    return page<SignPageProps>({ success: true, email });
+    return page<SignPageProps>({ success: true, email, expiration });
   },
 });
 
 type SignPageProps =
   | { success?: undefined }
   | { success: false } & SignFormProps
-  | { success: true; email: string };
+  | { success: true; email: string; expiration: Temporal.Duration };
 
 export default define.page<typeof handler, SignPageProps>(
-  function SignPage({ data }) {
+  function SignPage({ data, state }) {
     return (
       <div>
         <PageTitle>
@@ -90,7 +111,13 @@ export default define.page<typeof handler, SignPageProps>(
                 />
               </p>
               <p>
-                <Msg $key="signInUp.emailSentExpires" />
+                <Msg
+                  $key="signInUp.emailSentExpires"
+                  expiration={data.expiration.toLocaleString(state.language, {
+                    // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
+                    style: "long",
+                  })}
+                />
               </p>
               <p>
                 <Msg $key="signInUp.emailSentResend" />

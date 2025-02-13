@@ -7,7 +7,7 @@ const logger = getLogger(["hackerspub", "models", "signin"]);
 
 const KV_NAMESPACE = "signin";
 
-export const EXPIRATION = Temporal.Duration.from({ days: 1 });
+export const EXPIRATION = Temporal.Duration.from({ hours: 12 });
 
 export interface SigninToken {
   accountId: Uuid;

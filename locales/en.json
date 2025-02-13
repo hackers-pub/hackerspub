@@ -22,11 +22,11 @@
     "invalidEmail": "Invalid email address.",
     "emailNotAllowed": "Email address is not allowed. Hackers' Pub is currently in closed beta. If you want to join, please contact the administrator.",
     "signUpEmailSubject": "Sign up for Hackers' Pub",
-    "signUpEmailText": "Welcome to Hackers' Pub! To sign up, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in 24 hours.\n\nIf you didn't request this email, you can safely ignore it.\n",
+    "signUpEmailText": "Welcome to Hackers' Pub! To sign up, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n\nIf you didn't request this email, you can safely ignore it.\n",
     "signInEmailSubject": "Sign in to Hackers' Pub",
-    "signInEmailText": "Welcome back to Hackers' Pub! To sign in, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in 24 hours.\n\nIf you didn't request this email, you can safely ignore it.\n",
+    "signInEmailText": "Welcome back to Hackers' Pub! To sign in, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n\nIf you didn't request this email, you can safely ignore it.\n",
     "emailSentDescription": "An email has been sent to {{email}} with a sign-in/up link. Please check your inbox. If you don't see it, check your spam folder.",
-    "emailSentExpires": "Note that the link will expire in 24 hours.",
+    "emailSentExpires": "Note that the link will expire in {{expiration}}.",
     "emailSentResend": "You can always request a new link by signing in/up again."
   },
   "signUp": {
