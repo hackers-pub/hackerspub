@@ -2,23 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-.prose h1 > a:last-child,
-.prose h2 > a:last-child,
-.prose h3 > a:last-child,
-.prose h4 > a:last-child,
-.prose h5 > a:last-child,
-.prose h6 > a:last-child {
+.prose h1 > a.header-anchor:last-child,
+.prose h2 > a.header-anchor:last-child,
+.prose h3 > a.header-anchor:last-child,
+.prose h4 > a.header-anchor:last-child,
+.prose h5 > a.header-anchor:last-child,
+.prose h6 > a.header-anchor:last-child {
   text-decoration: none;
   font-weight: normal;
   opacity: .5;
 }
 
-.prose h1:hover > a:last-child:after,
-.prose h2:hover > a:last-child:after,
-.prose h3:hover > a:last-child:after,
-.prose h4:hover > a:last-child:after,
-.prose h5:hover > a:last-child:after,
-.prose h6:hover > a:last-child:after {
+.prose h1:hover > a.header-anchor:last-child:after,
+.prose h2:hover > a.header-anchor:last-child:after,
+.prose h3:hover > a.header-anchor:last-child:after,
+.prose h4:hover > a.header-anchor:last-child:after,
+.prose h5:hover > a.header-anchor:last-child:after,
+.prose h6:hover > a.header-anchor:last-child:after {
   content: '#';
 }
 
