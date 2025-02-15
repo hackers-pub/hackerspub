@@ -1,6 +1,6 @@
 import { NoteControls } from "../islands/NoteControls.tsx";
 import { getAvatarUrl } from "../models/actor.ts";
-import type { Actor, Medium, Post } from "../models/schema.ts";
+import type { Account, Actor, Medium, Post } from "../models/schema.ts";
 import { ArticleExcerpt } from "./ArticleExcerpt.tsx";
 import { Translation } from "./Msg.tsx";
 import { NoteExcerpt } from "./NoteExcerpt.tsx";
@@ -14,13 +14,15 @@ export interface PostExcerptProps {
         actor: Actor;
         replyTarget: Post & { actor: Actor; media: Medium[] } | null;
         media: Medium[];
+        shares: Post[];
       }
       | null;
     replyTarget: Post & { actor: Actor; media: Medium[] } | null;
     media: Medium[];
+    shares: Post[];
   };
   replyTarget?: boolean;
-  signedIn?: boolean;
+  signedAccount?: Account & { actor: Actor };
 }
 
 export function PostExcerpt(props: PostExcerptProps) {
@@ -29,6 +31,9 @@ export function PostExcerpt(props: PostExcerptProps) {
     url: props.post.actor.url ?? props.post.actor.iri,
     name: props.post.actor.name ?? props.post.actor.username,
   };
+  const localPostUrl = post.articleSourceId == null && post.noteSourceId == null
+    ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
+    : `/@${post.actor.username}/${post.articleSourceId ?? post.noteSourceId}`;
   return (
     <Translation>
       {(_, language) => (
@@ -39,6 +44,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                 ...post.replyTarget,
                 sharedPost: null,
                 replyTarget: null,
+                shares: [], // TODO: extract PostExcerpt from Post
               }}
               replyTarget={true}
             />
@@ -79,7 +85,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                   replyTarget={props.replyTarget}
                   reply={post.replyTarget != null}
                 />
-                {!props.replyTarget && props.signedIn && (
+                {!props.replyTarget && props.signedAccount && (
                   <NoteControls
                     language={language}
                     class="mt-4 ml-14"
@@ -88,6 +94,11 @@ export function PostExcerpt(props: PostExcerptProps) {
                       ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}#reply`
                       : `/@${post.actor.username}/${post.noteSourceId}#reply`}
                     shares={post.sharesCount}
+                    shareUrl={`${localPostUrl}/share`}
+                    unshareUrl={`${localPostUrl}/unshare`}
+                    shared={post.shares.some((share) =>
+                      share.actorId === props.signedAccount?.actor.id
+                    )}
                   />
                 )}
               </>

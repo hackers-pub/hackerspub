@@ -1,8 +1,11 @@
 import { acceptsLanguages } from "@std/http/negotiation";
+import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { page } from "fresh";
-import { and, desc, eq, inArray, ne, or } from "drizzle-orm";
+import { Msg, Translation } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
+import { PostExcerpt } from "../components/PostExcerpt.tsx";
 import { db } from "../db.ts";
+import { Composer } from "../islands/Composer.tsx";
 import {
   type Actor,
   followingTable,
@@ -12,9 +15,6 @@ import {
   postTable,
 } from "../models/schema.ts";
 import { define } from "../utils.ts";
-import { Msg, Translation } from "../components/Msg.tsx";
-import { PostExcerpt } from "../components/PostExcerpt.tsx";
-import { Composer } from "../islands/Composer.tsx";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -25,10 +25,12 @@ export const handler = define.handlers({
           actor: Actor;
           replyTarget: Post & { actor: Actor; media: Medium[] } | null;
           media: Medium[];
+          shares: Post[];
         }
         | null;
       replyTarget: Post & { actor: Actor; media: Medium[] } | null;
       media: Medium[];
+      shares: Post[];
     })[];
     if (ctx.state.account == null) {
       const languages = new Set<string>(
@@ -46,12 +48,14 @@ export const handler = define.handlers({
                 with: { actor: true, media: true },
               },
               media: true,
+              shares: { where: sql`false` },
             },
           },
           replyTarget: {
             with: { actor: true, media: true },
           },
           media: true,
+          shares: { where: sql`false` },
         },
         where: and(
           eq(postTable.visibility, "public"),
@@ -72,12 +76,18 @@ export const handler = define.handlers({
                 with: { actor: true, media: true },
               },
               media: true,
+              shares: {
+                where: eq(postTable.actorId, ctx.state.account.actor.id),
+              },
             },
           },
           replyTarget: {
             with: { actor: true, media: true },
           },
           media: true,
+          shares: {
+            where: eq(postTable.actorId, ctx.state.account.actor.id),
+          },
         },
         where: and(
           or(
@@ -120,10 +130,12 @@ interface HomeProps {
         actor: Actor;
         replyTarget: Post & { actor: Actor; media: Medium[] } | null;
         media: Medium[];
+        shares: Post[];
       }
       | null;
     replyTarget: Post & { actor: Actor; media: Medium[] } | null;
     media: Medium[];
+    shares: Post[];
   })[];
 }
 
@@ -154,7 +166,7 @@ export default define.page<typeof handler, HomeProps>(
                 </article>
               )}
             {data.timeline.map((post) => (
-              <PostExcerpt post={post} signedIn={state.account != null} />
+              <PostExcerpt post={post} signedAccount={state.account} />
             ))}
           </>
         )}

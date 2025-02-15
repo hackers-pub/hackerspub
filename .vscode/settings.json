@@ -18,14 +18,14 @@
     "editor.defaultFormatter": "denoland.vscode-deno",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.sortImorts": "always"
+      "source.sortImports": "always"
     }
   },
   "[javascriptreact]": {
     "editor.defaultFormatter": "denoland.vscode-deno",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.sortImorts": "always"
+      "source.sortImports": "always"
     }
   },
   "[json]": {
@@ -40,14 +40,14 @@
     "editor.defaultFormatter": "denoland.vscode-deno",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.sortImorts": "always"
+      "source.sortImports": "always"
     }
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "denoland.vscode-deno",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.sortImorts": "always"
+      "source.sortImports": "always"
     }
   }
 }

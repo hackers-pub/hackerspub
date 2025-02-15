@@ -1,7 +1,12 @@
 import * as vocab from "@fedify/fedify/vocab";
 import type { Database } from "../db.ts";
-import { isMediumType, type Medium, mediumTable, NewMedium } from "./schema.ts";
-import { Uuid } from "./uuid.ts";
+import {
+  isMediumType,
+  type Medium,
+  mediumTable,
+  type NewMedium,
+} from "./schema.ts";
+import type { Uuid } from "./uuid.ts";
 
 export async function postMedium(
   db: Database,

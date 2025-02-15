@@ -5,23 +5,23 @@ import { page } from "fresh";
 import { Button } from "../../components/Button.tsx";
 import { Input } from "../../components/Input.tsx";
 import { Label } from "../../components/Label.tsx";
+import { Msg, Translation } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { TextArea } from "../../components/TextArea.tsx";
 import { db } from "../../db.ts";
 import {
-  AccountLinkFieldProps,
+  type AccountLinkFieldProps,
   AccountLinkFieldSet,
 } from "../../islands/AccountLinkFieldSet.tsx";
+import { kv } from "../../kv.ts";
+import { updateAccount } from "../../models/account.ts";
+import { syncActorFromAccount } from "../../models/actor.ts";
 import {
   accountEmailTable,
   accountLinkTable,
   accountTable,
 } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
-import { updateAccount } from "../../models/account.ts";
-import { syncActorFromAccount } from "../../models/actor.ts";
-import { kv } from "../../kv.ts";
-import { Msg, Translation } from "../../components/Msg.tsx";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]", "settings"]);
 

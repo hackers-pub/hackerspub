@@ -12,18 +12,18 @@ import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
 import { escape } from "@std/html/entities";
 import { eq, sql } from "drizzle-orm";
-import { Database } from "../db.ts";
+import type { Database } from "../db.ts";
+import { compactUrl } from "../utils.ts";
 import {
   type Account,
-  AccountEmail,
-  AccountLink,
-  AccountLinkIcon,
+  type AccountEmail,
+  type AccountLink,
+  type AccountLinkIcon,
   accountLinkTable,
   accountTable,
   type NewAccount,
 } from "./schema.ts";
-import { compactUrl } from "../utils.ts";
-import { type Uuid } from "./uuid.ts";
+import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "account"]);
 

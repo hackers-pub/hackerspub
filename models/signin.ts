@@ -1,7 +1,7 @@
 import { getLogger } from "@logtape/logtape";
 import { encodeBase64Url } from "@std/encoding/base64url";
-import Keyv from "keyv";
-import { type Uuid } from "./uuid.ts";
+import type Keyv from "keyv";
+import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "signin"]);
 

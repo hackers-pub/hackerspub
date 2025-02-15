@@ -1,8 +1,9 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import { and, eq, inArray } from "drizzle-orm";
-import Keyv from "keyv";
+import { and, eq, inArray, sql } from "drizzle-orm";
+import type Keyv from "keyv";
 import type { Database } from "../db.ts";
+import { getNote } from "../federation/objects.ts";
 import { syncPostFromNoteSource, updateRepliesCount } from "./post.ts";
 import {
   type Account,
@@ -18,9 +19,9 @@ import {
   type NoteSource,
   noteSourceTable,
   type Post,
+  postTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
-import { getNote } from "../federation/objects.ts";
 
 export async function createNoteSource(
   db: Database,
@@ -37,6 +38,7 @@ export function getNoteSource(
   db: Database,
   username: string,
   id: Uuid,
+  signedAccount?: Account & { actor: Actor },
 ): Promise<
   NoteSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
@@ -47,11 +49,13 @@ export function getNoteSource(
           actor: Actor;
           replyTarget: Post & { actor: Actor; media: Medium[] } | null;
           media: Medium[];
+          shares: Post[];
         }
         | null;
       replyTarget: Post & { actor: Actor; media: Medium[] } | null;
       mentions: Mention[];
       media: Medium[];
+      shares: Post[];
     };
   } | undefined
 > {
@@ -73,12 +77,22 @@ export function getNoteSource(
                 with: { actor: true, media: true },
               },
               media: true,
+              shares: {
+                where: signedAccount == null
+                  ? sql`false`
+                  : eq(postTable.actorId, signedAccount.actor.id),
+              },
             },
           },
           replyTarget: {
             with: { actor: true, media: true },
           },
           media: true,
+          shares: {
+            where: signedAccount == null
+              ? sql`false`
+              : eq(postTable.actorId, signedAccount.actor.id),
+          },
         },
       },
     },

@@ -1,5 +1,5 @@
-import Keyv from "keyv";
-import { Uuid } from "./uuid.ts";
+import type Keyv from "keyv";
+import type { Uuid } from "./uuid.ts";
 
 const KV_NAMESPACE = "session";
 

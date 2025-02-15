@@ -101,6 +101,11 @@
   },
   "note": {
     "replies": "Replies",
+    "shares": "Shares",
+    "sharing": "Sharing…",
+    "shared": "Already shared",
+    "unshare": "Unshare",
+    "unsharing": "Unsharing…",
     "sharedBy": "Shared by {{name}}"
   },
   "editor": {

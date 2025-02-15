@@ -99,7 +99,12 @@
   },
   "note": {
     "replies": "返信",
-    "sharedBy": "{{name}}さんが共有"
+    "shares": "共有",
+    "sharing": "共有中…",
+    "shared": "共有済み",
+    "unshare": "共有解除",
+    "unsharing": "共有解除中…",
+    "sharedBy": "{{name}}さんが$t(note.shares)"
   },
   "editor": {
     "titlePlaceholder": "記事のタイトル",

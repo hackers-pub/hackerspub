@@ -1,9 +1,10 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import Keyv from "keyv";
+import type Keyv from "keyv";
 import type { Database } from "../db.ts";
 import { getArticle } from "../federation/objects.ts";
+import { syncPostFromArticleSource } from "./post.ts";
 import {
   type Account,
   type AccountEmail,
@@ -21,8 +22,7 @@ import {
   type NewArticleSource,
   type Post,
 } from "./schema.ts";
-import { syncPostFromArticleSource } from "./post.ts";
-import { generateUuidV7, Uuid } from "./uuid.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 export async function updateArticleDraft(
   db: Database,

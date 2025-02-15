@@ -1,3 +1,4 @@
+import { relations, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   boolean,
@@ -15,8 +16,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import { relations, sql } from "drizzle-orm";
-import { Uuid } from "./uuid.ts";
+import type { Uuid } from "./uuid.ts";
 
 const currentTimestamp = sql`CURRENT_TIMESTAMP`;
 

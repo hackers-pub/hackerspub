@@ -99,7 +99,12 @@
   },
   "note": {
     "replies": "댓글",
-    "sharedBy": "{{name}} 님이 공유"
+    "shares": "공유",
+    "sharing": "공유중…",
+    "shared": "이미 공유함",
+    "unshare": "공유 취소",
+    "unsharing": "공유 취소중…",
+    "sharedBy": "{{name}} 님이 $t(note.shares)"
   },
   "editor": {
     "titlePlaceholder": "게시물 제목",

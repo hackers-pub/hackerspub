@@ -11,13 +11,16 @@ import {
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, or, type SQL, sql } from "drizzle-orm";
-import Keyv from "keyv";
+import type Keyv from "keyv";
 import type { Database } from "../db.ts";
 import metadata from "../deno.json" with { type: "json" };
 import {
   getAvatarUrl as getAccountAvatarUrl,
   renderAccountLinks,
 } from "./account.ts";
+import { persistInstance } from "./instance.ts";
+import { renderMarkup } from "./markup.ts";
+import { isPostObject, persistPost, persistSharedPost } from "./post.ts";
 import {
   type Account,
   type AccountEmail,
@@ -29,9 +32,6 @@ import {
   type NewActor,
   type NewInstance,
 } from "./schema.ts";
-import { renderMarkup } from "./markup.ts";
-import { persistInstance } from "./instance.ts";
-import { isPostObject, persistPost, persistSharedPost } from "./post.ts";
 import { generateUuidV7 } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "actor"]);
@@ -282,4 +282,14 @@ export async function persistActorsByHandles(
     result[handle] = actor;
   }
   return result;
+}
+
+export function toRecipient(actor: Actor): vocab.Recipient {
+  return {
+    id: new URL(actor.iri),
+    inboxId: new URL(actor.inboxUrl),
+    endpoints: actor.sharedInboxUrl == null ? null : {
+      sharedInbox: new URL(actor.sharedInboxUrl),
+    },
+  };
 }

@@ -1,10 +1,12 @@
 import * as vocab from "@fedify/fedify/vocab";
 import * as v from "@valibot/valibot";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { ArticleMetadata } from "../../../../components/ArticleMetadata.tsx";
 import { Msg } from "../../../../components/Msg.tsx";
+import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
+import { Composer } from "../../../../islands/Composer.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
@@ -20,8 +22,6 @@ import {
   postTable,
 } from "../../../../models/schema.ts";
 import { define } from "../../../../utils.ts";
-import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
-import { Composer } from "../../../../islands/Composer.tsx";
 import { NoteSourceSchema } from "../../index.tsx";
 
 export const handler = define.handlers({
@@ -57,7 +57,15 @@ export const handler = define.handlers({
       },
     );
     const comments = await db.query.postTable.findMany({
-      with: { actor: true, media: true },
+      with: {
+        actor: true,
+        media: true,
+        shares: {
+          where: ctx.state.account == null
+            ? sql`false`
+            : eq(postTable.actorId, ctx.state.account.actor.id),
+        },
+      },
       where: eq(postTable.replyTargetId, article.post.id),
       orderBy: postTable.published,
     });
@@ -117,7 +125,7 @@ export const handler = define.handlers({
 interface ArticlePageProps {
   article: ArticleSource & { account: Account };
   articleIri: string;
-  comments: (Post & { actor: Actor; media: Medium[] })[];
+  comments: (Post & { actor: Actor; media: Medium[]; shares: Post[] })[];
   avatarUrl: string;
   contentHtml: string;
 }

@@ -1,20 +1,20 @@
 import { setUser } from "@sentry/deno";
 import { getCookies } from "@std/http/cookie";
+import { acceptsLanguages } from "@std/http/negotiation";
 import { eq } from "drizzle-orm";
-import { federation } from "../federation/federation.ts";
 import { db } from "../db.ts";
-import { kv } from "../kv.ts";
-import { getSession } from "../models/session.ts";
-import { define } from "../utils.ts";
-import { accountTable } from "../models/schema.ts";
-import { validateUuid } from "../models/uuid.ts";
+import { federation } from "../federation/federation.ts";
 import getFixedT, {
   DEFAULT_LANGUAGE,
   isLanguage,
   type Language,
   SUPPORTED_LANGUAGES,
 } from "../i18n.ts";
-import { acceptsLanguages } from "@std/http/negotiation";
+import { kv } from "../kv.ts";
+import { accountTable } from "../models/schema.ts";
+import { getSession } from "../models/session.ts";
+import { validateUuid } from "../models/uuid.ts";
+import { define } from "../utils.ts";
 
 export const handler = define.middleware([
   (ctx) => {
@@ -44,7 +44,7 @@ export const handler = define.middleware([
       if (session != null) {
         const account = await db.query.accountTable.findFirst({
           where: eq(accountTable.id, session.accountId),
-          with: { actor: true, emails: true },
+          with: { actor: true, emails: true, links: true },
         });
         ctx.state.account = account;
         ctx.state.session = account == null ? undefined : session;

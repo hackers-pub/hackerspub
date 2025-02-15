@@ -2,10 +2,10 @@ import * as v from "@valibot/valibot";
 import { page } from "fresh";
 import { db } from "../../../../db.ts";
 import { Editor } from "../../../../islands/Editor.tsx";
-import { getArticleSource, updateArticle } from "../../../../models/article.ts";
-import { Account } from "../../../../models/schema.ts";
-import { define } from "../../../../utils.ts";
 import { kv } from "../../../../kv.ts";
+import { getArticleSource, updateArticle } from "../../../../models/article.ts";
+import type { Account } from "../../../../models/schema.ts";
+import { define } from "../../../../utils.ts";
 
 const ArticleSourceSchema = v.object({
   title: v.pipe(v.string(), v.trim()),

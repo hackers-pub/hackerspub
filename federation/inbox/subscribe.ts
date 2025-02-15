@@ -1,13 +1,14 @@
 import {
-  Announce,
-  Create,
-  Delete,
-  InboxContext,
+  type Announce,
+  type Create,
+  type Delete,
+  type InboxContext,
   Tombstone,
-  Undo,
-  Update,
+  type Undo,
+  type Update,
 } from "@fedify/fedify";
 import { getLogger } from "@logtape/logtape";
+import { db } from "../../db.ts";
 import {
   deletePersistedPost,
   deleteSharedPost,
@@ -15,7 +16,6 @@ import {
   persistPost,
   persistSharedPost,
 } from "../../models/post.ts";
-import { db } from "../../db.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "subscribe"]);
 

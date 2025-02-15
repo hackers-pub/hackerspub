@@ -10,8 +10,18 @@ import {
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { and, count, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
-import Keyv from "keyv";
+import type Keyv from "keyv";
 import type { Database } from "../db.ts";
+import { getAnnounce } from "../federation/objects.ts";
+import {
+  getPersistedActor,
+  persistActor,
+  syncActorFromAccount,
+  toRecipient,
+} from "./actor.ts";
+import { toDate } from "./date.ts";
+import { renderMarkup } from "./markup.ts";
+import { postMedium } from "./medium.ts";
 import {
   type Account,
   type AccountEmail,
@@ -21,6 +31,7 @@ import {
   type ArticleSource,
   type Following,
   type Instance,
+  type Medium,
   mediumTable,
   type Mention,
   mentionTable,
@@ -29,15 +40,7 @@ import {
   type Post,
   postTable,
 } from "./schema.ts";
-import {
-  getPersistedActor,
-  persistActor,
-  syncActorFromAccount,
-} from "./actor.ts";
-import { renderMarkup } from "./markup.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
-import { toDate } from "./date.ts";
-import { postMedium } from "./medium.ts";
 
 const logger = getLogger(["hackerspub", "models", "post"]);
 
@@ -425,16 +428,89 @@ export async function persistSharedPost(
       setWhere: eq(postTable.iri, announce.id.href),
     })
     .returning();
-  const cnt = await db.select({ count: count() })
-    .from(postTable)
-    .where(eq(postTable.sharedPostId, post.id));
-  if (post.sharesCount < cnt[0].count) {
-    await db.update(postTable)
-      .set({ sharesCount: cnt[0].count })
-      .where(eq(postTable.id, post.id));
-    post.sharesCount = cnt[0].count;
-  }
+  await updateSharesCount(db, post, 1);
   return { ...rows[0], actor, sharedPost: post };
+}
+
+export async function sharePost(
+  db: Database,
+  kv: Keyv,
+  fedCtx: Context<void>,
+  account: Account & {
+    emails: AccountEmail[];
+    links: AccountLink[];
+  },
+  post: Post & { actor: Actor },
+): Promise<Post> {
+  const actor = await syncActorFromAccount(db, kv, fedCtx, account);
+  const id = generateUuidV7();
+  const posts = await db.insert(postTable).values({
+    id,
+    iri: fedCtx.getObjectUri(vocab.Announce, { id }).href,
+    type: post.type,
+    visibility: "public",
+    actorId: actor.id,
+    sharedPostId: post.id,
+    name: post.name,
+    contentHtml: post.contentHtml,
+    language: post.language,
+    tags: {},
+    emojis: post.emojis,
+    sensitive: post.sensitive,
+    url: post.url,
+  }).onConflictDoNothing().returning();
+  if (posts.length < 1) {
+    const share = await db.query.postTable.findFirst({
+      where: and(
+        eq(postTable.actorId, actor.id),
+        eq(postTable.sharedPostId, post.id),
+      ),
+    });
+    return share!;
+  }
+  const share = posts[0];
+  post.sharesCount = await updateSharesCount(db, post, 1);
+  share.sharesCount = post.sharesCount;
+  const announce = getAnnounce(fedCtx, {
+    ...share,
+    actor: { ...actor, account },
+  });
+  await fedCtx.sendActivity(
+    { identifier: account.id },
+    "followers",
+    announce,
+    { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+  );
+  await fedCtx.sendActivity(
+    { identifier: account.id },
+    toRecipient(post.actor),
+    announce,
+    { excludeBaseUris: [new URL(fedCtx.origin)] },
+  );
+  return share;
+}
+
+export async function unsharePost(
+  db: Database,
+  kv: Keyv,
+  fedCtx: Context<void>,
+  account: Account & {
+    emails: AccountEmail[];
+    links: AccountLink[];
+  },
+  post: Post,
+): Promise<Post | undefined> {
+  const actor = await syncActorFromAccount(db, kv, fedCtx, account);
+  const unshared = await db.delete(postTable).where(
+    and(
+      eq(postTable.actorId, actor.id),
+      eq(postTable.sharedPostId, post.id ?? post.sharedPostId),
+    ),
+  ).returning();
+  if (unshared.length > 0) {
+    post.sharesCount = await updateSharesCount(db, post, -1);
+  }
+  return unshared[0];
 }
 
 export function getPersistedPost(
@@ -444,6 +520,77 @@ export function getPersistedPost(
   return db.query.postTable.findFirst({
     with: { actor: { with: { instance: true } } },
     where: eq(postTable.iri, iri.toString()),
+  });
+}
+
+export function getPostByUsernameAndId(
+  db: Database,
+  username: string,
+  id: Uuid,
+  signedAccount?: Account & { actor: Actor },
+): Promise<
+  | Post & {
+    actor: Actor & { followers: Following[] };
+    sharedPost:
+      | Post & {
+        actor: Actor;
+        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+        media: Medium[];
+        shares: Post[];
+      }
+      | null;
+    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+    mentions: Mention[];
+    media: Medium[];
+    shares: Post[];
+  }
+  | undefined
+> {
+  if (!username.includes("@")) return Promise.resolve(undefined);
+  let host: string;
+  [username, host] = username.split("@");
+  return db.query.postTable.findFirst({
+    with: {
+      actor: {
+        with: { followers: true },
+      },
+      sharedPost: {
+        with: {
+          actor: true,
+          replyTarget: {
+            with: { actor: true, media: true },
+          },
+          media: true,
+          shares: {
+            where: signedAccount == null
+              ? sql`false`
+              : eq(postTable.actorId, signedAccount.actor.id),
+          },
+        },
+      },
+      replyTarget: {
+        with: { actor: true, media: true },
+      },
+      mentions: true,
+      media: true,
+      shares: {
+        where: signedAccount == null
+          ? sql`false`
+          : eq(postTable.actorId, signedAccount.actor.id),
+      },
+    },
+    where: and(
+      inArray(
+        postTable.actorId,
+        db.select({ id: actorTable.id }).from(actorTable).where(
+          and(
+            eq(actorTable.username, username),
+            eq(actorTable.instanceHost, host),
+          ),
+        ),
+      ),
+      eq(postTable.id, id),
+    ),
   });
 }
 
@@ -470,8 +617,8 @@ export async function deleteSharedPost(
   db: Database,
   iri: URL,
   actorIri: URL,
-) {
-  await db.delete(postTable).where(
+): Promise<void> {
+  const shares = await db.delete(postTable).where(
     and(
       eq(postTable.iri, iri.toString()),
       inArray(
@@ -482,7 +629,15 @@ export async function deleteSharedPost(
       ),
       isNotNull(postTable.sharedPostId),
     ),
-  );
+  ).returning();
+  if (shares.length < 1) return;
+  const [share] = shares;
+  if (share.sharedPostId == null) return;
+  const sharedPost = await db.query.postTable.findFirst({
+    where: eq(postTable.id, share.sharedPostId),
+  });
+  if (sharedPost == null) return;
+  await updateSharesCount(db, sharedPost, -1);
 }
 
 export function isPostVisibleTo(
@@ -549,6 +704,25 @@ export async function updateRepliesCount(
     )`,
   }).where(eq(postTable.id, replyTargetId)).returning();
   return rows[0];
+}
+
+export async function updateSharesCount(
+  db: Database,
+  post: Post,
+  delta: number,
+): Promise<number> {
+  const sharesCount = post.sharesCount + delta;
+  const cnt = await db.select({ count: count() })
+    .from(postTable)
+    .where(eq(postTable.sharedPostId, post.id));
+  if (sharesCount <= cnt[0].count) {
+    await db.update(postTable)
+      .set({ sharesCount: cnt[0].count })
+      .where(eq(postTable.id, post.id));
+    post.sharesCount = cnt[0].count;
+    return cnt[0].count;
+  }
+  return sharesCount;
 }
 
 const UNREACHABLE: never = undefined!;

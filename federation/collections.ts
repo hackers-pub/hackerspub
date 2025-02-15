@@ -9,6 +9,7 @@ import {
   like,
 } from "drizzle-orm";
 import { db } from "../db.ts";
+import { toRecipient } from "../models/actor.ts";
 import { accountTable, actorTable, followingTable } from "../models/schema.ts";
 import { validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
@@ -42,13 +43,7 @@ federation
         limit: 100,
       });
       return {
-        items: followers.map((follow) => ({
-          id: new URL(follow.follower.iri),
-          inboxId: new URL(follow.follower.inboxUrl),
-          endpoints: follow.follower.sharedInboxUrl == null ? null : {
-            sharedInbox: new URL(follow.follower.sharedInboxUrl),
-          },
-        })),
+        items: followers.map((follow) => toRecipient(follow.follower)),
         next: followers.length < 100
           ? null
           : followers[99].accepted?.toISOString(),

@@ -18,7 +18,11 @@
     "rules": {
       "tags": [
         "fresh",
+        "jsr",
         "recommended"
+      ],
+      "exclude": [
+        "no-slow-types"
       ]
     }
   },

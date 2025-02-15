@@ -1,11 +1,15 @@
-import { JSX } from "preact";
+import { getFixedT } from "i18next";
+import type { JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
+import { detectAll } from "tinyld.browser";
 import { Button } from "../components/Button.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { TextArea } from "../components/TextArea.tsx";
-import { Language, POSSIBLE_LANGUAGES, SUPPORTED_LANGUAGES } from "../i18n.ts";
-import { detectAll } from "tinyld.browser";
-import { getFixedT } from "i18next";
+import {
+  type Language,
+  POSSIBLE_LANGUAGES,
+  SUPPORTED_LANGUAGES,
+} from "../i18n.ts";
 
 export interface ComposerProps {
   class?: string;

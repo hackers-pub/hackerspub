@@ -1,3 +1,5 @@
+import type { Context } from "@fedify/fedify";
+import { mention } from "@fedify/markdown-it-mention";
 import { titlePlugin as title } from "@mdit-vue/plugin-title";
 import cjkBreaks from "@searking/markdown-it-cjk-breaks";
 import shiki from "@shikijs/markdown-it";
@@ -15,19 +17,17 @@ import * as cssfilter from "cssfilter";
 import katex from "katex";
 import createMarkdownIt from "markdown-it";
 import abbr from "markdown-it-abbr";
-import { alertPlugin as admonition } from "markdown-it-github-alert";
 import anchor from "markdown-it-anchor";
 import deflist from "markdown-it-deflist";
 import footnote from "markdown-it-footnote";
+import { alertPlugin as admonition } from "markdown-it-github-alert";
 import graphviz from "markdown-it-graphviz";
-import { mention } from "@fedify/markdown-it-mention";
 import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
 import { FilterXSS, whiteList } from "xss";
-import { Actor } from "./schema.ts";
-import { Database } from "../db.ts";
-import { Context } from "@fedify/fedify";
+import type { Database } from "../db.ts";
 import { persistActorsByHandles } from "./actor.ts";
+import type { Actor } from "./schema.ts";
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 

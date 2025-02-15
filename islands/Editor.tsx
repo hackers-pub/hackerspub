@@ -1,12 +1,12 @@
 import { DIACRITICS, slugify } from "@std/text/unstable-slugify";
-import { JSX } from "preact";
+import type { JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Button } from "../components/Button.tsx";
 import { Input } from "../components/Input.tsx";
 import { Label } from "../components/Label.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
-import getFixedT, { Language, POSSIBLE_LANGUAGES } from "../i18n.ts";
+import getFixedT, { type Language, POSSIBLE_LANGUAGES } from "../i18n.ts";
 import { TagInput } from "./TagInput.tsx";
 
 export type EditorProps =

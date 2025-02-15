@@ -9,7 +9,7 @@ import {
   accountTable,
   articleDraftTable,
 } from "../models/schema.ts";
-import { State } from "../utils.ts";
+import type { State } from "../utils.ts";
 
 const PLAUSIBLE = Deno.env.get("PLAUSIBLE")?.trim()?.toLowerCase() === "true";
 

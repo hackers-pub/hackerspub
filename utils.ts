@@ -1,9 +1,15 @@
 /// <reference lib="deno.unstable" />
-import { createDefine } from "fresh";
-import type { Session } from "./models/session.ts";
 import type { RequestContext } from "@fedify/fedify";
-import type { Account, AccountEmail, Actor } from "./models/schema.ts";
-import getFixedT, { type Language } from "./i18n.ts";
+import { createDefine } from "fresh";
+import type getFixedT from "./i18n.ts";
+import type { Language } from "./i18n.ts";
+import type {
+  Account,
+  AccountEmail,
+  AccountLink,
+  Actor,
+} from "./models/schema.ts";
+import type { Session } from "./models/session.ts";
 
 export interface Link {
   rel: string;
@@ -22,7 +28,11 @@ export type Meta = {
 
 export interface State {
   session?: Session;
-  account?: Account & { actor: Actor; emails: AccountEmail[] };
+  account?: Account & {
+    actor: Actor;
+    emails: AccountEmail[];
+    links: AccountLink[];
+  };
   fedCtx: RequestContext<void>;
   language: Language;
   t: ReturnType<typeof getFixedT>;

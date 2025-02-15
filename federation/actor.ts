@@ -8,16 +8,16 @@ import {
 } from "@fedify/fedify";
 import { eq } from "drizzle-orm";
 import { db } from "../db.ts";
+import { getAvatarUrl, renderAccountLinks } from "../models/account.ts";
+import { renderMarkup } from "../models/markup.ts";
 import {
   accountKeyTable,
   accountLinkTable,
   accountTable,
-  NewAccountKey,
+  type NewAccountKey,
 } from "../models/schema.ts";
-import { federation } from "./federation.ts";
-import { getAvatarUrl, renderAccountLinks } from "../models/account.ts";
-import { renderMarkup } from "../models/markup.ts";
 import { validateUuid } from "../models/uuid.ts";
+import { federation } from "./federation.ts";
 
 federation
   .setActorDispatcher(

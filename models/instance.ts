@@ -1,7 +1,7 @@
-import { eq, sql } from "drizzle-orm";
-import { Database } from "../db.ts";
-import { Instance, instanceTable, NewInstance } from "./schema.ts";
 import { formatSemVer, getNodeInfo } from "@fedify/fedify";
+import { eq, sql } from "drizzle-orm";
+import type { Database } from "../db.ts";
+import { type Instance, instanceTable, type NewInstance } from "./schema.ts";
 
 export interface PersistInstanceOptions {
   skipUpdate?: boolean;

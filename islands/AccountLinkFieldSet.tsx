@@ -2,7 +2,7 @@ import { useState } from "preact/hooks";
 import { Input } from "../components/Input.tsx";
 import { Label } from "../components/Label.tsx";
 import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
-import { Language } from "../i18n.ts";
+import type { Language } from "../i18n.ts";
 
 export interface AccountLinkFieldSetProps {
   links: AccountLinkFieldProps[];

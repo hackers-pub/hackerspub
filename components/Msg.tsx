@@ -1,4 +1,8 @@
-import { ComponentChild, type ComponentChildren, createContext } from "preact";
+import {
+  type ComponentChild,
+  type ComponentChildren,
+  createContext,
+} from "preact";
 import getFixedT, { DEFAULT_LANGUAGE, type Language } from "../i18n.ts";
 
 const TranslationContext = createContext<

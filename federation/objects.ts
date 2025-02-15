@@ -4,20 +4,22 @@ import {
   PUBLIC_COLLECTION,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import { eq } from "drizzle-orm";
-import { Database, db } from "../db.ts";
+import { and, eq, isNotNull } from "drizzle-orm";
+import { type Database, db } from "../db.ts";
 import { renderMarkup } from "../models/markup.ts";
+import { isPostVisibleTo } from "../models/post.ts";
 import {
   type Account,
+  type Actor,
   type ArticleSource,
   articleSourceTable,
   type NoteSource,
   noteSourceTable,
+  type Post,
   postTable,
 } from "../models/schema.ts";
 import { validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
-import { isPostVisibleTo } from "../models/post.ts";
 
 export async function getArticle(
   db: Database,
@@ -166,3 +168,37 @@ federation
       signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
     );
   });
+
+export function getAnnounce(
+  ctx: Context<void>,
+  share: Post & { actor: Actor & { account: Account } },
+): vocab.Announce {
+  return new vocab.Announce({
+    id: ctx.getObjectUri(vocab.Announce, { id: share.id }),
+    actor: ctx.getActorUri(share.actor.account.id),
+    object: new URL(share.iri),
+    to: PUBLIC_COLLECTION,
+    cc: ctx.getFollowersUri(share.actor.account.id),
+    published: share.published.toTemporalInstant(),
+  });
+}
+
+federation.setObjectDispatcher(
+  vocab.Announce,
+  "/ap/announces/{id}",
+  async (ctx, values) => {
+    if (!validateUuid(values.id)) return null;
+    const share = await db.query.postTable.findFirst({
+      with: { actor: { with: { account: true } } },
+      where: and(
+        eq(postTable.id, values.id),
+        isNotNull(postTable.sharedPostId),
+      ),
+    });
+    if (share == null || share.actor.account == null) return null;
+    return getAnnounce(ctx, {
+      ...share,
+      actor: { ...share.actor, account: share.actor.account },
+    });
+  },
+);

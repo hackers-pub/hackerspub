@@ -1,5 +1,7 @@
 import { type Context, Follow, Undo } from "@fedify/fedify";
 import { and, eq, isNull, sql } from "drizzle-orm";
+import type { Database } from "../db.ts";
+import { toRecipient } from "./actor.ts";
 import {
   type Account,
   type Actor,
@@ -7,8 +9,7 @@ import {
   type Following,
   followingTable,
 } from "./schema.ts";
-import { Database } from "../db.ts";
-import { Uuid } from "./uuid.ts";
+import type { Uuid } from "./uuid.ts";
 
 export function createFollowingIri(
   fedCtx: Context<void>,
@@ -35,13 +36,7 @@ export async function follow(
   if (rows.length > 0 && followee.accountId == null) {
     await fedCtx.sendActivity(
       { identifier: follower.id },
-      {
-        id: new URL(followee.iri),
-        inboxId: new URL(followee.inboxUrl),
-        endpoints: followee.sharedInboxUrl == null
-          ? null
-          : { sharedInbox: new URL(followee.sharedInboxUrl) },
-      },
+      toRecipient(followee),
       new Follow({
         id: new URL(rows[0].iri),
         actor: fedCtx.getActorUri(follower.id),
@@ -115,13 +110,7 @@ export async function unfollow(
   if (rows.length > 0 && followee.accountId == null) {
     await fedCtx.sendActivity(
       { identifier: follower.id },
-      {
-        id: new URL(followee.iri),
-        inboxId: new URL(followee.inboxUrl),
-        endpoints: followee.sharedInboxUrl == null
-          ? null
-          : { sharedInbox: new URL(followee.sharedInboxUrl) },
-      },
+      toRecipient(followee),
       new Undo({
         actor: fedCtx.getActorUri(follower.id),
         object: new Follow({

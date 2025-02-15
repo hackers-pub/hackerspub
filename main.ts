@@ -1,7 +1,4 @@
 /// <reference lib="deno.unstable" />
-import "@std/dotenv/load";
-import "./logging.ts";
-import "./sentry.ts";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
 import {
@@ -12,9 +9,12 @@ import {
   ATTR_URL_FULL,
 } from "@opentelemetry/semantic-conventions";
 import { captureException } from "@sentry/deno";
+import "@std/dotenv/load";
 import { App, fsRoutes, HttpError, staticFiles, trailingSlashes } from "fresh";
 import { federation } from "./federation/mod.ts";
-import { type State } from "./utils.ts";
+import "./logging.ts";
+import "./sentry.ts";
+import type { State } from "./utils.ts";
 
 export const app = new App<State>();
 const staticHandler = staticFiles();

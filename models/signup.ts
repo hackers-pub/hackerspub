@@ -1,15 +1,15 @@
 import { getLogger } from "@logtape/logtape";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { sql } from "drizzle-orm";
-import Keyv from "keyv";
+import type Keyv from "keyv";
+import type { Database } from "../db.ts";
 import {
   type Account,
-  AccountEmail,
+  type AccountEmail,
   accountEmailTable,
   accountTable,
   type NewAccount,
 } from "./schema.ts";
-import { Database } from "../db.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "signup"]);

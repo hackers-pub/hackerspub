@@ -1,4 +1,4 @@
-import { JSX } from "preact";
+import type { JSX } from "preact";
 
 export type ConfirmFormProps =
   & Omit<JSX.FormHTMLAttributes<HTMLFormElement>, "onSubmit">

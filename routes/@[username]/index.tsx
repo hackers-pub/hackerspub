@@ -1,14 +1,24 @@
 import { isActor } from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import type * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import * as v from "@valibot/valibot";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Button } from "../../components/Button.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { db } from "../../db.ts";
+import { POSSIBLE_LANGUAGES } from "../../i18n.ts";
+import { kv } from "../../kv.ts";
+import { getAvatarUrl } from "../../models/account.ts";
+import { persistActor } from "../../models/actor.ts";
+import {
+  type FollowingState,
+  getFollowingState,
+} from "../../models/following.ts";
+import { htmlXss, renderMarkup } from "../../models/markup.ts";
+import { createNote } from "../../models/note.ts";
 import {
   type AccountLink,
   accountLinkTable,
@@ -20,14 +30,7 @@ import {
   POST_VISIBILITIES,
   postTable,
 } from "../../models/schema.ts";
-import { htmlXss, renderMarkup } from "../../models/markup.ts";
-import { persistActor } from "../../models/actor.ts";
-import { getAvatarUrl } from "../../models/account.ts";
-import { FollowingState, getFollowingState } from "../../models/following.ts";
 import { compactUrl, define } from "../../utils.ts";
-import { POSSIBLE_LANGUAGES } from "../../i18n.ts";
-import { createNote } from "../../models/note.ts";
-import { kv } from "../../kv.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
@@ -115,10 +118,20 @@ export const handler = define.handlers({
               actor: true,
               replyTarget: { with: { actor: true, media: true } },
               media: true,
+              shares: {
+                where: ctx.state.account == null
+                  ? sql`false`
+                  : eq(postTable.actorId, ctx.state.account.actor.id),
+              },
             },
           },
           replyTarget: { with: { actor: true, media: true } },
           media: true,
+          shares: {
+            where: ctx.state.account == null
+              ? sql`false`
+              : eq(postTable.actorId, ctx.state.account.actor.id),
+          },
         },
         where: and(
           eq(postTable.actorId, actor.id),
@@ -198,10 +211,20 @@ export const handler = define.handlers({
             actor: true,
             replyTarget: { with: { actor: true, media: true } },
             media: true,
+            shares: {
+              where: ctx.state.account == null
+                ? sql`false`
+                : eq(postTable.actorId, ctx.state.account.actor.id),
+            },
           },
         },
         replyTarget: { with: { actor: true, media: true } },
         media: true,
+        shares: {
+          where: ctx.state.account == null
+            ? sql`false`
+            : eq(postTable.actorId, ctx.state.account.actor.id),
+        },
       },
       where: and(
         eq(postTable.actorId, account.actor.id),
@@ -290,10 +313,12 @@ type ProfilePageProps = {
         actor: Actor;
         replyTarget: Post & { actor: Actor; media: Medium[] } | null;
         media: Medium[];
+        shares: Post[];
       }
       | null;
     replyTarget: Post & { actor: Actor; media: Medium[] } | null;
     media: Medium[];
+    shares: Post[];
   })[];
 } & FollowStateProps;
 
@@ -421,7 +446,7 @@ export default define.page<typeof handler, ProfilePageProps>(
         )}
         <div>
           {data.posts.map((post) => (
-            <PostExcerpt post={post} signedIn={state.account != null} />
+            <PostExcerpt post={post} signedAccount={state.account} />
           ))}
         </div>
       </div>
