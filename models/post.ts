@@ -473,6 +473,7 @@ export async function sharePost(
   share.sharesCount = post.sharesCount;
   const announce = getAnnounce(fedCtx, {
     ...share,
+    sharedPost: post,
     actor: { ...actor, account },
   });
   await fedCtx.sendActivity(
@@ -498,17 +499,41 @@ export async function unsharePost(
     emails: AccountEmail[];
     links: AccountLink[];
   },
-  post: Post,
+  sharedPost: Post & { actor: Actor },
 ): Promise<Post | undefined> {
+  if (sharedPost.sharedPostId != null) return;
   const actor = await syncActorFromAccount(db, kv, fedCtx, account);
   const unshared = await db.delete(postTable).where(
     and(
       eq(postTable.actorId, actor.id),
-      eq(postTable.sharedPostId, post.id ?? post.sharedPostId),
+      eq(postTable.sharedPostId, sharedPost.id),
     ),
   ).returning();
   if (unshared.length > 0) {
-    post.sharesCount = await updateSharesCount(db, post, -1);
+    sharedPost.sharesCount = await updateSharesCount(db, sharedPost, -1);
+    const announce = getAnnounce(fedCtx, {
+      ...unshared[0],
+      actor,
+      sharedPost,
+    });
+    const undo = new vocab.Undo({
+      actor: fedCtx.getActorUri(account.id),
+      object: announce,
+      tos: announce.toIds,
+      ccs: announce.ccIds,
+    });
+    await fedCtx.sendActivity(
+      { identifier: account.id },
+      "followers",
+      undo,
+      { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+    );
+    await fedCtx.sendActivity(
+      { identifier: account.id },
+      toRecipient(sharedPost.actor),
+      undo,
+      { excludeBaseUris: [new URL(fedCtx.origin)] },
+    );
   }
   return unshared[0];
 }

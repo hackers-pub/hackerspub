@@ -171,12 +171,12 @@ federation
 
 export function getAnnounce(
   ctx: Context<void>,
-  share: Post & { actor: Actor & { account: Account } },
+  share: Post & { actor: Actor & { account: Account }; sharedPost: Post },
 ): vocab.Announce {
   return new vocab.Announce({
     id: ctx.getObjectUri(vocab.Announce, { id: share.id }),
     actor: ctx.getActorUri(share.actor.account.id),
-    object: new URL(share.iri),
+    object: new URL(share.sharedPost.iri),
     to: PUBLIC_COLLECTION,
     cc: ctx.getFollowersUri(share.actor.account.id),
     published: share.published.toTemporalInstant(),
@@ -189,15 +189,20 @@ federation.setObjectDispatcher(
   async (ctx, values) => {
     if (!validateUuid(values.id)) return null;
     const share = await db.query.postTable.findFirst({
-      with: { actor: { with: { account: true } } },
+      with: { actor: { with: { account: true } }, sharedPost: true },
       where: and(
         eq(postTable.id, values.id),
         isNotNull(postTable.sharedPostId),
       ),
     });
-    if (share == null || share.actor.account == null) return null;
+    if (
+      share == null || share.actor.account == null || share.sharedPost == null
+    ) {
+      return null;
+    }
     return getAnnounce(ctx, {
       ...share,
+      sharedPost: share.sharedPost,
       actor: { ...share.actor, account: share.actor.account },
     });
   },
