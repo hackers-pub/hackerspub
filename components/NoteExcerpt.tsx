@@ -1,3 +1,4 @@
+import { Link } from "../islands/Link.tsx";
 import { sanitizeHtml } from "../models/markup.ts";
 import type { Medium, PostVisibility } from "../models/schema.ts";
 import { Msg, Translation } from "./Msg.tsx";
@@ -6,16 +7,19 @@ import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
 export interface NoteExcerptProps {
   class?: string;
   url: string | URL;
+  internalUrl?: string;
   target?: string;
   contentHtml: string;
   visibility: PostVisibility;
   lang?: string;
   authorUrl: string;
+  authorInternalUrl?: string;
   authorName: string;
   authorHandle: string;
   authorAvatarUrl: string;
   sharer?: {
     url: string;
+    internalUrl?: string;
     name: string;
   };
   media: Medium[];
@@ -34,26 +38,33 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           } ${props.class ?? ""}`}
         >
           <div class="flex">
-            <a href={props.authorUrl}>
+            <Link
+              href={props.authorUrl}
+              internalHref={props.authorInternalUrl}
+            >
               <img
                 src={props.authorAvatarUrl}
                 width={48}
                 height={48}
                 class="inline-block mr-2 align-text-bottom"
               />
-            </a>
+            </Link>
             <div class="flex flex-col">
-              <a href={props.authorUrl}>
+              <Link
+                href={props.authorUrl}
+                internalHref={props.authorInternalUrl}
+              >
                 <strong class="text-black dark:text-white">
                   {props.authorName}
                 </strong>{" "}
                 <span class="text-stone-500 dark:text-stone-400 select-all before:content-['('] after:content-[')']">
                   {props.authorHandle}
                 </span>
-              </a>
+              </Link>
               <div class="flex text-stone-500 dark:text-stone-400">
-                <a
+                <Link
                   href={props.url.toString()}
+                  internalHref={props.internalUrl}
                   class="after:content-['_·'] mr-1"
                 >
                   <time
@@ -64,7 +75,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                       timeStyle: "short",
                     })}
                   </time>
-                </a>
+                </Link>
                 <PostVisibilityIcon
                   class="inline-block"
                   visibility={props.visibility}
@@ -74,9 +85,13 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                     <Msg
                       $key="note.sharedBy"
                       name={
-                        <a href={props.sharer.url} class="font-bold">
+                        <Link
+                          href={props.sharer.url}
+                          internalHref={props.sharer.internalUrl}
+                          class="font-bold"
+                        >
                           {props.sharer.name}
-                        </a>
+                        </Link>
                       }
                     />
                   </span>

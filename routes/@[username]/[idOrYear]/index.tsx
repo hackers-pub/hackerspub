@@ -247,10 +247,16 @@ export default define.page<typeof handler, NotePageProps>(
         {replies.map((reply) => (
           <NoteExcerpt
             url={reply.url ?? reply.iri}
+            internalUrl={reply.noteSourceId == null
+              ? `/@${reply.actor.username}@${reply.actor.instanceHost}/${reply.id}`
+              : `/@${reply.actor.username}/${reply.noteSourceId}`}
             contentHtml={reply.contentHtml}
             lang={reply.language ?? undefined}
             visibility={reply.visibility}
             authorUrl={reply.actor.url ?? reply.actor.iri}
+            authorInternalUrl={reply.actor.accountId == null
+              ? `/@${reply.actor.username}@${reply.actor.instanceHost}`
+              : `/@${reply.actor.username}`}
             authorName={reply.actor.name ?? reply.actor.username}
             authorHandle={`@${reply.actor.username}@${reply.actor.instanceHost}`}
             authorAvatarUrl={getAvatarUrl(reply.actor)}
