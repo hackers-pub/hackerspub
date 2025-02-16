@@ -18,31 +18,40 @@ jobs:
     - run: deno task test
     - run: deno task check
 
-  build:
+  image:
     if: github.event_name == 'push'
     needs: [test]
     permissions:
       contents: read
       packages: write
       attestations: write
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+        - ubuntu-latest
+        - ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: docker/setup-qemu-action@v3
     - uses: docker/setup-buildx-action@v3
     - uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ github.token }}
+    - id: arch
+      run: |
+        set -ex
+        if [[ "$RUNNER_ARCH" = "ARM64" ]]; then
+          echo arch=arm64 >> "$GITHUB_OUTPUT"
+        else
+          echo arch=amd64 >> "$GITHUB_OUTPUT"
+        fi
     - uses: docker/build-push-action@v6
       with:
         push: true
-        platforms: linux/amd64,linux/arm64
         build-args:
           GIT_COMMIT=${{ github.sha }}
-        tags: |
-          ghcr.io/${{ github.repository }}:git-${{ github.sha }}
-          ghcr.io/${{ github.repository }}:latest
+        tags: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-${{ steps.arch.outputs.arch }}
         labels: |
           org.opencontainers.image.revision=${{ github.sha }}
         annotations: |
@@ -53,6 +62,27 @@ jobs:
           org.opencontainers.image.revision=${{ github.sha }}
           org.opencontainers.image.licenses=AGPL-3.0-only
         cache-from:
-          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache
+          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-${{ steps.arch.outputs.arch }}
         cache-to:
-          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache,mode=max
+          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-${{ steps.arch.outputs.arch }},mode=max
+        provenance: false
+
+  manifest:
+    if: github.event_name == 'push'
+    needs: [image]
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+    - uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    - uses: Noelware/docker-manifest-action@0.4.2
+      with:
+        inputs: ghcr.io/${{ github.repository }}:git-${{ github.sha }},ghcr.io/${{ github.repository }}:latest
+        images: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-amd64,ghcr.io/${{ github.repository }}:git-${{ github.sha }}-arm64
+        push: true
