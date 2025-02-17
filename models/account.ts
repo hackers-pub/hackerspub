@@ -120,6 +120,10 @@ export async function updateAccountLinks(
   verifyUrl: URL | string,
   links: Link[],
 ): Promise<AccountLink[]> {
+  logger.debug(
+    "Updating account links for {accountId}: {links}",
+    { accountId, links },
+  );
   const existing = await db.query.accountLinkTable.findMany({
     where: eq(accountLinkTable.accountId, accountId),
   });
@@ -146,8 +150,8 @@ export async function updateAccountLinks(
     ),
   ]);
   const data = zip(links, metadata, verifies).map(([link, meta, verified]) => ({
-    ...link,
     ...meta,
+    name: link.name,
     verified,
   }));
   await db.delete(accountLinkTable)
