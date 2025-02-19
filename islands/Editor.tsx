@@ -120,6 +120,7 @@ export function Editor(props: EditorProps) {
   }
 
   if ("draftUrl" in props) {
+    // deno-lint-ignore react-rules-of-hooks
     useEffect(() => {
       const handle = setInterval(() => {
         const now = Date.now();

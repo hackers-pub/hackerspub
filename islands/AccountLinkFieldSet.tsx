@@ -22,7 +22,7 @@ export function AccountLinkFieldSet(props: AccountLinkFieldSetProps) {
             onChanged={(link) =>
               !(link.name?.length || link.url?.toString()?.length) &&
               setLinks(links.filter((_, j) => j !== i))}
-            required={true}
+            required
             showHelp={i == 0 || link.url == null || link.url === ""}
           />
         ))}
@@ -32,7 +32,7 @@ export function AccountLinkFieldSet(props: AccountLinkFieldSetProps) {
             (link.name?.length || link.url?.toString()?.length) &&
             setLinks([...links, link])}
           required={false}
-          showHelp={true}
+          showHelp
         />
       </div>
     </TranslationSetup>

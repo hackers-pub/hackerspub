@@ -60,7 +60,7 @@ export default async function App(
           ))}
           {PLAUSIBLE && (
             <script
-              defer={true}
+              defer
               data-domain={url.host}
               src="https://plausible.io/js/script.outbound-links.js"
             />

@@ -13,12 +13,13 @@ await initWasm(
   "https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm",
 );
 
-function loadFont(filename: string): Promise<Uint8Array> {
-  return Deno.readFile(join(
+async function loadFont(filename: string): Promise<ArrayBuffer> {
+  const f = await Deno.readFile(join(
     dirname(dirname(import.meta.dirname!)),
     "fonts",
     filename,
   ));
+  return f.buffer;
 }
 
 export const handler = define.handlers({
