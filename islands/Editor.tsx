@@ -53,6 +53,11 @@ export function Editor(props: EditorProps) {
   const [publishing, setPublishing] = useState(false);
   const slugInput = useRef<HTMLInputElement | null>(null);
 
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [draftSavedTimestamp, setDraftSavedTimestamp] = useState<string | null>(
+    null,
+  );
+
   async function renderPreview(markup: string): Promise<void> {
     // TODO: spinner
     const now = Date.now();
@@ -103,9 +108,19 @@ export function Editor(props: EditorProps) {
     setDraftTags(data.tags);
     setDraftUpdated(now);
     setDraftLanguage(data.language);
+
+    // Show the "Draft saved" indicator
+    const timestamp = new Date().toLocaleTimeString(props.language, {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    setDraftSavedTimestamp(timestamp);
+    setDraftSaved(true);
   }
 
   if ("draftUrl" in props) {
+    // deno-lint-ignore react-rules-of-hooks
     useEffect(() => {
       const handle = setInterval(() => {
         const now = Date.now();
@@ -314,8 +329,7 @@ export function Editor(props: EditorProps) {
                           .map(([lang, displayName]) => {
                             const nativeName = new Intl.DisplayNames(lang, {
                               type: "language",
-                            })
-                              .of(lang);
+                            }).of(lang);
                             return (
                               <option
                                 value={lang}
@@ -353,6 +367,11 @@ export function Editor(props: EditorProps) {
             </div>
           )}
       </div>
+      {draftSaved && draftSavedTimestamp && (
+        <div class="fixed bottom-6 right-6 bg-stone-300 text-white px-4 py-2 rounded-lg text-sm shadow-lg bg-opacity-60">
+          <Msg $key="editor.draftSaved" saved={draftSavedTimestamp} />
+        </div>
+      )}
     </TranslationSetup>
   );
 }

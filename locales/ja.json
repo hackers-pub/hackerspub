@@ -126,7 +126,8 @@
       "submit": "公開する",
       "loading": "公開中…",
       "failed": "記事の公開に失敗しました。後でもう一度お試しください。"
-    }
+    },
+    "draftSaved": "{{saved}}に下書きが自動保存"
   },
   "composer": {
     "content": "内容",

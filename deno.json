@@ -22,7 +22,8 @@
         "recommended"
       ],
       "exclude": [
-        "no-slow-types"
+        "no-slow-types",
+        "react-no-danger"
       ]
     }
   },

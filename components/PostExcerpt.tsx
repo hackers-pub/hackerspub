@@ -49,7 +49,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                 replyTarget: null,
                 shares: [], // TODO: extract PostExcerpt from Post
               }}
-              replyTarget={true}
+              replyTarget
             />
           )}
           {post.type === "Article" || post.name != null

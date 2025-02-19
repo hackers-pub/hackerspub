@@ -126,7 +126,8 @@
       "submit": "게시물 공개",
       "loading": "게시물을 올리는 중…",
       "failed": "게시물을 올리는 데 실패했습니다. 나중에 다시 시도해 주세요."
-    }
+    },
+    "draftSaved": "{{saved}}에 임시 보관됨"
   },
   "composer": {
     "content": "내용",
