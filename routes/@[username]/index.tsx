@@ -2,12 +2,13 @@ import { isActor } from "@fedify/fedify";
 import type * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import * as v from "@valibot/valibot";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Button } from "../../components/Button.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
+import { PostPagination } from "../../components/PostPagination.tsx";
 import { db } from "../../db.ts";
 import { POSSIBLE_LANGUAGES } from "../../i18n.ts";
 import { kv } from "../../kv.ts";
@@ -34,6 +35,8 @@ import { compactUrl, define } from "../../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
+const DEFAULT_WINDOW = 50;
+
 export const NoteSourceSchema = v.object({
   content: v.pipe(v.string(), v.trim(), v.nonEmpty()),
   language: v.picklist(POSSIBLE_LANGUAGES),
@@ -48,7 +51,16 @@ export const handler = define.handlers({
         new URL(`/@${ctx.params.username.replace(/@.*$/, "")}`, ctx.url),
         301,
       );
-    } else if (ctx.params.username.includes("@")) {
+    }
+    const untilString = ctx.url.searchParams.get("until");
+    const until = untilString == null || !untilString.match(/^\d+(\.\d+)?$/)
+      ? undefined
+      : new Date(parseInt(untilString));
+    const windowString = ctx.url.searchParams.get("window");
+    const window = windowString == null || !windowString.match(/^\d+$/)
+      ? DEFAULT_WINDOW
+      : parseInt(windowString);
+    if (ctx.params.username.includes("@")) {
       const username = ctx.params.username.replace(/@.*$/, "");
       const host = ctx.params.username.substring(
         ctx.params.username.indexOf("@") + 1,
@@ -136,10 +148,13 @@ export const handler = define.handlers({
         where: and(
           eq(postTable.actorId, actor.id),
           inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
+          until == null ? undefined : lte(postTable.published, until),
         ),
         orderBy: desc(postTable.published),
+        limit: window + 1,
       });
       ctx.state.title = name;
+      const next = posts.length > window ? posts[window].published : undefined;
       return page<ProfilePageProps>({
         handle,
         name,
@@ -149,7 +164,12 @@ export const handler = define.handlers({
         bioHtml: htmlXss.process(actor.bioHtml ?? ""),
         links: actor.fieldHtmls,
         ...followState,
-        posts,
+        posts: posts.slice(0, window),
+        nextHref: next == null
+          ? undefined
+          : window === DEFAULT_WINDOW
+          ? `/${handle}?until=${+next}`
+          : `/${handle}?until=${+next}&window=${window}`,
       });
     }
     const account = await db.query.accountTable.findFirst({
@@ -229,8 +249,10 @@ export const handler = define.handlers({
       where: and(
         eq(postTable.actorId, account.actor.id),
         inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
+        until == null ? undefined : lte(postTable.published, until),
       ),
       orderBy: desc(postTable.published),
+      limit: window + 1,
     });
     let followState: FollowStateProps;
     if (ctx.state.account == null || ctx.state.account.id === account.id) {
@@ -254,6 +276,7 @@ export const handler = define.handlers({
         unfollowUrl: `/@${account.username}/unfollow`,
       };
     }
+    const next = posts.length > window ? posts[window].published : undefined;
     return page<ProfilePageProps>({
       handle: `@${account.username}@${ctx.url.host}`,
       name: account.name,
@@ -263,7 +286,12 @@ export const handler = define.handlers({
       bioHtml: bio.html,
       links: account.links,
       ...followState,
-      posts,
+      posts: posts.slice(0, window),
+      nextHref: next == null
+        ? undefined
+        : window === DEFAULT_WINDOW
+        ? `/@${account.username}?until=${+next}`
+        : `/@${account.username}?until=${+next}&window=${window}`,
     }, {
       headers: {
         Link:
@@ -320,6 +348,7 @@ type ProfilePageProps = {
     media: Medium[];
     shares: Post[];
   })[];
+  nextHref?: string;
 } & FollowStateProps;
 
 type FollowStateProps = {
@@ -448,6 +477,7 @@ export default define.page<typeof handler, ProfilePageProps>(
           {data.posts.map((post) => (
             <PostExcerpt post={post} signedAccount={state.account} />
           ))}
+          <PostPagination nextHref={data.nextHref} />
         </div>
       </div>
     );

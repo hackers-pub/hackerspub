@@ -1,9 +1,10 @@
 import { acceptsLanguages } from "@std/http/negotiation";
-import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, ne, or, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Msg, Translation } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
+import { PostPagination } from "../components/PostPagination.tsx";
 import { db } from "../db.ts";
 import { Composer } from "../islands/Composer.tsx";
 import {
@@ -16,8 +17,18 @@ import {
 } from "../models/schema.ts";
 import { define } from "../utils.ts";
 
+const DEFAULT_WINDOW = 50;
+
 export const handler = define.handlers({
   async GET(ctx) {
+    const untilString = ctx.url.searchParams.get("until");
+    const until = untilString == null || !untilString.match(/^\d+(\.\d+)?$/)
+      ? undefined
+      : new Date(parseInt(untilString));
+    const windowString = ctx.url.searchParams.get("window");
+    const window = windowString == null || !windowString.match(/^\d+$/)
+      ? DEFAULT_WINDOW
+      : parseInt(windowString);
     let timeline: (Post & {
       actor: Actor;
       sharedPost:
@@ -62,8 +73,10 @@ export const handler = define.handlers({
           languages.size < 1
             ? undefined
             : inArray(postTable.language, [...languages]),
+          until == null ? undefined : lte(postTable.published, until),
         ),
         orderBy: desc(postTable.published),
+        limit: window + 1,
       });
     } else {
       timeline = await db.query.postTable.findMany({
@@ -108,14 +121,23 @@ export const handler = define.handlers({
             eq(postTable.actorId, ctx.state.account.actor.id),
           ),
           ne(postTable.visibility, "none"),
+          until == null ? undefined : lte(postTable.published, until),
         ),
         orderBy: desc(postTable.published),
+        limit: window + 1,
       });
+    }
+    let next: Date | undefined = undefined;
+    if (timeline.length > window) {
+      next = timeline[window].published;
+      timeline = timeline.slice(0, window);
     }
     return page<HomeProps>({
       intro: ctx.state.account == null || timeline.length < 1,
       composer: ctx.state.account != null,
       timeline,
+      next,
+      window,
     });
   },
 });
@@ -137,10 +159,17 @@ interface HomeProps {
     media: Medium[];
     shares: Post[];
   })[];
+  next?: Date;
+  window: number;
 }
 
 export default define.page<typeof handler, HomeProps>(
   function Home({ state, data }) {
+    const nextHref = data.next == null
+      ? undefined
+      : data.window === DEFAULT_WINDOW
+      ? `?until=${+data.next}`
+      : `?until=${+data.next}&window=${data.window}`;
     return (
       <Translation>
         {(_, lang) => (
@@ -168,6 +197,7 @@ export default define.page<typeof handler, HomeProps>(
             {data.timeline.map((post) => (
               <PostExcerpt post={post} signedAccount={state.account} />
             ))}
+            <PostPagination nextHref={nextHref} />
           </>
         )}
       </Translation>

@@ -145,5 +145,9 @@
     "unlisted": "Quiet public",
     "followers": "Followers only",
     "direct": "Mentioned users only"
+  },
+  "postPagination": {
+    "more": "More posts",
+    "end": "There are no more posts"
   }
 }

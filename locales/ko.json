@@ -143,5 +143,9 @@
     "unlisted": "조용히 공개",
     "followers": "팔로워만",
     "direct": "언급된 사용자만"
+  },
+  "postPagination": {
+    "more": "게시물 더 보기",
+    "end": "더 이상 게시물이 없습니다"
   }
 }

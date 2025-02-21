@@ -143,5 +143,9 @@
     "unlisted": "ひかえめな公開",
     "followers": "フォロワーのみ",
     "direct": "言及されたユーザーのみ"
+  },
+  "postPagination": {
+    "more": "投稿をもっと見る",
+    "end": "これ以上投稿はありません"
   }
 }
