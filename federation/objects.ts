@@ -13,12 +13,14 @@ import {
   type Actor,
   type ArticleSource,
   articleSourceTable,
+  type Mention,
   type NoteSource,
   noteSourceTable,
   type Post,
   postTable,
+  type PostVisibility,
 } from "../models/schema.ts";
-import { validateUuid } from "../models/uuid.ts";
+import { type Uuid, validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
 
 export async function getArticle(
@@ -82,6 +84,34 @@ federation.setObjectDispatcher(
   },
 );
 
+export interface RecipientSet {
+  readonly tos: URL[];
+  readonly ccs: URL[];
+}
+
+export function getPostRecipients(
+  ctx: Context<void>,
+  accountId: Uuid,
+  mentionedActorIds: URL[],
+  visibility: PostVisibility,
+): RecipientSet {
+  return {
+    tos: [
+      ...(visibility === "public"
+        ? [PUBLIC_COLLECTION]
+        : visibility === "unlisted" || visibility === "followers"
+        ? [ctx.getFollowersUri(accountId)]
+        : []),
+      ...mentionedActorIds,
+    ],
+    ccs: visibility === "public"
+      ? [ctx.getFollowersUri(accountId)]
+      : visibility === "unlisted"
+      ? [PUBLIC_COLLECTION]
+      : [],
+  };
+}
+
 export async function getNote(
   db: Database,
   ctx: Context<void>,
@@ -92,19 +122,12 @@ export async function getNote(
   return new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
     attribution: ctx.getActorUri(note.accountId),
-    tos: [
-      ...(note.visibility === "public"
-        ? [PUBLIC_COLLECTION]
-        : note.visibility === "unlisted" || note.visibility === "followers"
-        ? [ctx.getFollowersUri(note.accountId)]
-        : []),
-      ...Object.values(rendered.mentions).map((actor) => new URL(actor.iri)),
-    ],
-    ccs: note.visibility === "public"
-      ? [ctx.getFollowersUri(note.accountId)]
-      : note.visibility === "unlisted"
-      ? [PUBLIC_COLLECTION]
-      : [],
+    ...getPostRecipients(
+      ctx,
+      note.accountId,
+      Object.values(rendered.mentions).map((actor) => new URL(actor.iri)),
+      note.visibility,
+    ),
     replyTarget: replyTargetId,
     contents: [
       new LanguageString(rendered.html, note.language),
@@ -171,14 +194,22 @@ federation
 
 export function getAnnounce(
   ctx: Context<void>,
-  share: Post & { actor: Actor & { account: Account }; sharedPost: Post },
+  share: Post & {
+    actor: Actor & { account: Account };
+    sharedPost: Post;
+    mentions: (Mention & { actor: Actor })[];
+  },
 ): vocab.Announce {
   return new vocab.Announce({
     id: ctx.getObjectUri(vocab.Announce, { id: share.id }),
     actor: ctx.getActorUri(share.actor.account.id),
+    ...getPostRecipients(
+      ctx,
+      share.actor.account.id,
+      share.mentions.map((m) => new URL(m.actor.iri)),
+      share.visibility,
+    ),
     object: new URL(share.sharedPost.iri),
-    to: PUBLIC_COLLECTION,
-    cc: ctx.getFollowersUri(share.actor.account.id),
     published: share.published.toTemporalInstant(),
   });
 }
@@ -189,7 +220,11 @@ federation.setObjectDispatcher(
   async (ctx, values) => {
     if (!validateUuid(values.id)) return null;
     const share = await db.query.postTable.findFirst({
-      with: { actor: { with: { account: true } }, sharedPost: true },
+      with: {
+        actor: { with: { account: true } },
+        sharedPost: true,
+        mentions: { with: { actor: true } },
+      },
       where: and(
         eq(postTable.id, values.id),
         isNotNull(postTable.sharedPostId),

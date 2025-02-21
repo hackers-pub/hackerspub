@@ -44,6 +44,7 @@ federation
         assertionMethods: keys.map((pair) => pair.multikey),
         publicKey: keys[0].cryptographicKey,
         inbox: ctx.getInboxUri(identifier),
+        outbox: ctx.getOutboxUri(identifier),
         endpoints: new Endpoints({
           sharedInbox: ctx.getInboxUri(),
         }),

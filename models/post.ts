@@ -475,6 +475,7 @@ export async function sharePost(
     ...share,
     sharedPost: post,
     actor: { ...actor, account },
+    mentions: [],
   });
   await fedCtx.sendActivity(
     { identifier: account.id },
@@ -515,6 +516,7 @@ export async function unsharePost(
       ...unshared[0],
       actor,
       sharedPost,
+      mentions: [],
     });
     const undo = new vocab.Undo({
       actor: fedCtx.getActorUri(account.id),
