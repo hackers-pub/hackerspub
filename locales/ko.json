@@ -71,7 +71,8 @@
       "linkName": "링크 이름",
       "linkNameDescription": "프로필에 표시될 링크의 이름. 예: GitHub.",
       "url": "URL",
-      "urlDescription": "링크의 URL. 예: https://github.com/yourhandle."
+      "urlDescription": "링크의 URL. 예: https://github.com/yourhandle.",
+      "save": "저장"
     }
   },
   "profile": {

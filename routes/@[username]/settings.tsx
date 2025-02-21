@@ -251,7 +251,9 @@ function ProfileSettingsForm(
             <AccountLinkFieldSet links={links} language={lang} />
           </div>
           <div class="lg:col-span-2">
-            <Button type="submit">Save</Button>
+            <Button type="submit">
+              <Msg $key="settings.profile.save" />
+            </Button>
           </div>
         </form>
       )}

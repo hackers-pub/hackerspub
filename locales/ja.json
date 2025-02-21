@@ -71,7 +71,8 @@
       "linkName": "リンク名",
       "linkNameDescription": "プロフィールに表示されるリンクの名前（例：GitHub）。",
       "url": "URL",
-      "urlDescription": "リンクのURL（例：https://github.com/yourhandle）。"
+      "urlDescription": "リンクのURL（例：https://github.com/yourhandle）。",
+      "save": "保存"
     }
   },
   "profile": {

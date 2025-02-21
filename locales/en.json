@@ -71,7 +71,8 @@
       "linkName": "Link name",
       "linkNameDescription": "A name for the link that will be displayed on your profile, e.g., GitHub.",
       "url": "URL",
-      "urlDescription": "The URL of the link, e.g., https://github.com/yourhandle."
+      "urlDescription": "The URL of the link, e.g., https://github.com/yourhandle.",
+      "save": "Save"
     }
   },
   "profile": {
