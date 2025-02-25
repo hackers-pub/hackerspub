@@ -1,5 +1,5 @@
 import { Link } from "../islands/Link.tsx";
-import { sanitizeHtml } from "../models/markup.ts";
+import { renderCustomEmojis, sanitizeHtml } from "../models/markup.ts";
 import type { Medium, PostVisibility } from "../models/schema.ts";
 import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
@@ -10,6 +10,7 @@ export interface NoteExcerptProps {
   internalUrl?: string;
   target?: string;
   contentHtml: string;
+  emojis?: Record<string, string>;
   visibility: PostVisibility;
   lang?: string;
   authorUrl: string;
@@ -110,7 +111,10 @@ export function NoteExcerpt(props: NoteExcerptProps) {
             `}
             lang={props.lang}
             dangerouslySetInnerHTML={{
-              __html: sanitizeHtml(props.contentHtml),
+              __html: renderCustomEmojis(
+                sanitizeHtml(props.contentHtml),
+                props.emojis ?? {},
+              ),
             }}
           >
           </div>

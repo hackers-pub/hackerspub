@@ -18,7 +18,11 @@ import {
   type FollowingState,
   getFollowingState,
 } from "../../models/following.ts";
-import { htmlXss, renderMarkup } from "../../models/markup.ts";
+import {
+  htmlXss,
+  renderCustomEmojis,
+  renderMarkup,
+} from "../../models/markup.ts";
 import { createNote } from "../../models/note.ts";
 import {
   type AccountLink,
@@ -161,7 +165,10 @@ export const handler = define.handlers({
         avatarUrl: actor.avatarUrl ?? undefined,
         followeesCount: actor.followeesCount,
         followersCount: actor.followersCount,
-        bioHtml: htmlXss.process(actor.bioHtml ?? ""),
+        bioHtml: renderCustomEmojis(
+          htmlXss.process(actor.bioHtml ?? ""),
+          actor.emojis,
+        ),
         links: actor.fieldHtmls,
         ...followState,
         posts: posts.slice(0, window),

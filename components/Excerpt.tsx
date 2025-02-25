@@ -1,12 +1,15 @@
-import { sanitizeExcerptHtml } from "../models/markup.ts";
+import { renderCustomEmojis, sanitizeExcerptHtml } from "../models/markup.ts";
 
 export interface ExcerptProps {
   class?: string;
   html: string;
+  emojis?: Record<string, string>;
   lang?: string;
 }
 
-export function Excerpt({ class: className, html, lang }: ExcerptProps) {
+export function Excerpt(
+  { class: className, html, emojis, lang }: ExcerptProps,
+) {
   return (
     <div
       class={`
@@ -19,7 +22,9 @@ export function Excerpt({ class: className, html, lang }: ExcerptProps) {
         ${className}
       `}
       lang={lang}
-      dangerouslySetInnerHTML={{ __html: sanitizeExcerptHtml(html) }}
+      dangerouslySetInnerHTML={{
+        __html: renderCustomEmojis(sanitizeExcerptHtml(html), emojis ?? {}),
+      }}
     />
   );
 }

@@ -10,6 +10,7 @@ export interface ArticleExcerptProps extends ArticleMetadataProps {
   target?: string;
   title?: string | null;
   contentHtml: string;
+  emojis?: Record<string, string>;
   lang?: string;
   replyTarget?: boolean;
   sharer?: {
@@ -62,7 +63,11 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
       />
       {!props.replyTarget && (
         <a href={props.url.toString()} target={props.target}>
-          <Excerpt lang={props.lang} html={props.contentHtml} />
+          <Excerpt
+            lang={props.lang}
+            html={props.contentHtml}
+            emojis={props.emojis}
+          />
           <Msg $key="article.readMore" />
         </a>
       )}

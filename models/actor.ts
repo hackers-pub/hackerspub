@@ -131,6 +131,22 @@ export async function persistActor(
     await actor.getFollowing(options),
     await actor.getFollowers(options),
   ]);
+  const emojis: Record<string, string> = {};
+  for await (const tag of actor.getTags(options)) {
+    if (tag instanceof vocab.Emoji) {
+      if (tag.name == null) continue;
+      const icon = await tag.getIcon(options);
+      if (
+        icon?.url == null ||
+        icon.url instanceof vocab.Link && icon.url.href == null
+      ) {
+        continue;
+      }
+      emojis[tag.name.toString()] = icon.url instanceof URL
+        ? icon.url.href
+        : icon.url.href!.href;
+    }
+  }
   const values: Omit<NewActor, "id"> = {
     iri: actor.id.href,
     type: getActorTypeName(actor),
@@ -152,6 +168,7 @@ export async function persistActor(
         (p) => [p.name, p.value],
       ),
     ),
+    emojis,
     url: actor.url instanceof Link ? actor.url.href?.href : actor.url?.href,
     followeesCount: followees?.totalItems ?? 0,
     followersCount: followers?.totalItems ?? 0,

@@ -218,6 +218,7 @@ export async function persistPost(
   }
   const tags: Record<string, string> = {};
   const mentions = new Set<string>();
+  const emojis: Record<string, string> = {};
   for await (const tag of post.getTags(options)) {
     if (tag instanceof vocab.Hashtag) {
       if (tag.name == null || tag.href == null) continue;
@@ -225,6 +226,18 @@ export async function persistPost(
     } else if (tag instanceof vocab.Mention) {
       if (tag.href == null) continue;
       mentions.add(tag.href.href);
+    } else if (tag instanceof vocab.Emoji) {
+      if (tag.name == null) continue;
+      const icon = await tag.getIcon(options);
+      if (
+        icon?.url == null ||
+        icon.url instanceof vocab.Link && icon.url.href == null
+      ) {
+        continue;
+      }
+      emojis[tag.name.toString()] = icon.url instanceof URL
+        ? icon.url.href
+        : icon.url.href!.href;
     }
   }
   const attachments: vocab.Document[] = [];
@@ -276,6 +289,7 @@ export async function persistPost(
       ? post.contents[1].language.compact()
       : undefined,
     tags,
+    emojis,
     url: post.url instanceof vocab.Link ? post.url.href?.href : post.url?.href,
     replyTargetId: replyTarget?.id,
     repliesCount: replies?.totalItems ?? 0,

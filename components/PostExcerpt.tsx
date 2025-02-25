@@ -60,6 +60,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                 target={post.actor.accountId == null ? "_blank" : undefined}
                 title={post.name}
                 contentHtml={post.contentHtml}
+                emojis={post.emojis}
                 lang={post.language ?? undefined}
                 authorUrl={post.actor.url ?? post.actor.iri}
                 authorName={post.actor.name ?? post.actor.username}
@@ -79,6 +80,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                     ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
                     : `/@${post.actor.username}/${post.noteSourceId}`}
                   contentHtml={post.contentHtml}
+                  emojis={post.emojis}
                   lang={post.language ?? undefined}
                   visibility={post.visibility}
                   authorUrl={post.actor.url ?? post.actor.iri}
