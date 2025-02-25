@@ -13,6 +13,7 @@ import {
   type AccountLinkFieldProps,
   AccountLinkFieldSet,
 } from "../../islands/AccountLinkFieldSet.tsx";
+import { Timestamp } from "../../islands/Timestamp.tsx";
 import { kv } from "../../kv.ts";
 import { updateAccount } from "../../models/account.ts";
 import { syncActorFromAccount } from "../../models/actor.ts";
@@ -193,12 +194,7 @@ function ProfileSettingsForm(
                         <Msg
                           $key="settings.profile.usernameChanged"
                           changed={
-                            <time datetime={usernameChanged.toString()}>
-                              {usernameChanged.toLocaleString(lang, {
-                                dateStyle: "full",
-                                timeStyle: "short",
-                              })}
-                            </time>
+                            <Timestamp value={usernameChanged} locale={lang} />
                           }
                         />
                       </>

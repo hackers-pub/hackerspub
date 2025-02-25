@@ -1,3 +1,4 @@
+import { Timestamp } from "../islands/Timestamp.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 
 export interface ArticleMetadataProps {
@@ -37,12 +38,7 @@ export function ArticleMetadata(props: ArticleMetadataProps) {
             {" "}
           </p>
           <p class="pt-0.5 text-stone-600 dark:text-stone-500 text-sm">
-            <time datetime={props.published.toISOString()}>
-              {props.published.toLocaleString(lang, {
-                dateStyle: "long",
-                timeStyle: "short",
-              })}
-            </time>
+            <Timestamp value={props.published} locale={lang} />
             {props.editUrl && (
               <>
                 {" "}

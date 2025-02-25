@@ -1,4 +1,5 @@
 import { Link } from "../islands/Link.tsx";
+import { Timestamp } from "../islands/Timestamp.tsx";
 import { renderCustomEmojis, sanitizeHtml } from "../models/markup.ts";
 import type { Medium, PostVisibility } from "../models/schema.ts";
 import { Msg, Translation } from "./Msg.tsx";
@@ -68,14 +69,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   internalHref={props.internalUrl}
                   class="after:content-['_·'] mr-1"
                 >
-                  <time
-                    datetime={props.published.toISOString()}
-                  >
-                    {props.published.toLocaleString(lang, {
-                      dateStyle: "long",
-                      timeStyle: "short",
-                    })}
-                  </time>
+                  <Timestamp value={props.published} locale={lang} />
                 </Link>
                 <PostVisibilityIcon
                   class="inline-block"

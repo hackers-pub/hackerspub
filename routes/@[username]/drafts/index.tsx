@@ -1,10 +1,11 @@
 import { desc, eq } from "drizzle-orm";
 import { page } from "fresh";
-import { db } from "../../../db.ts";
 import { Excerpt } from "../../../components/Excerpt.tsx";
 import { Msg } from "../../../components/Msg.tsx";
 import { PageTitle } from "../../../components/PageTitle.tsx";
+import { db } from "../../../db.ts";
 import { ConfirmForm } from "../../../islands/ConfirmForm.tsx";
+import { Timestamp } from "../../../islands/Timestamp.tsx";
 import { renderMarkup } from "../../../models/markup.ts";
 import { accountTable, articleDraftTable } from "../../../models/schema.ts";
 import { define } from "../../../utils.ts";
@@ -77,12 +78,7 @@ export default define.page<typeof handler, DraftsPageProps>(
                   <Msg
                     $key="articleDrafts.created"
                     created={
-                      <time datetime={draft.created.toISOString()}>
-                        {draft.created.toLocaleString(language, {
-                          dateStyle: "full",
-                          timeStyle: "short",
-                        })}
-                      </time>
+                      <Timestamp value={draft.created} locale={language} />
                     }
                   />
                   {+draft.created !== +draft.updated &&
@@ -93,12 +89,10 @@ export default define.page<typeof handler, DraftsPageProps>(
                         <Msg
                           $key="articleDrafts.updated"
                           updated={
-                            <time datetime={draft.updated.toISOString()}>
-                              {draft.updated.toLocaleString(language, {
-                                dateStyle: "full",
-                                timeStyle: "short",
-                              })}
-                            </time>
+                            <Timestamp
+                              value={draft.updated}
+                              locale={language}
+                            />
                           }
                         />
                       </>
