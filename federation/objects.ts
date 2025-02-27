@@ -5,7 +5,9 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, isNotNull } from "drizzle-orm";
+import type { Disk } from "flydrive";
 import { type Database, db } from "../db.ts";
+import { drive } from "../drive.ts";
 import { renderMarkup } from "../models/markup.ts";
 import { isPostVisibleTo } from "../models/post.ts";
 import {
@@ -14,6 +16,7 @@ import {
   type ArticleSource,
   articleSourceTable,
   type Mention,
+  type NoteMedium,
   type NoteSource,
   noteSourceTable,
   type Post,
@@ -114,11 +117,24 @@ export function getPostRecipients(
 
 export async function getNote(
   db: Database,
+  disk: Disk,
   ctx: Context<void>,
-  note: NoteSource & { account: Account },
+  note: NoteSource & { account: Account; media: NoteMedium[] },
   replyTargetId?: URL,
 ): Promise<vocab.Note> {
   const rendered = await renderMarkup(db, ctx, note.id, note.content);
+  const attachments: vocab.Document[] = [];
+  for (const medium of note.media) {
+    attachments.push(
+      new vocab.Document({
+        mediaType: "image/webp",
+        url: new URL(await disk.getUrl(medium.key)),
+        name: medium.alt,
+        width: medium.width,
+        height: medium.height,
+      }),
+    );
+  }
   return new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
     attribution: ctx.getActorUri(note.accountId),
@@ -137,6 +153,7 @@ export async function getNote(
       content: note.content,
       mediaType: "text/markdown",
     }),
+    attachments,
     tags: Object.entries(rendered.mentions).map(([handle, actor]) =>
       new vocab.Mention({
         href: new URL(actor.iri),
@@ -161,11 +178,12 @@ federation
     async (ctx, values) => {
       if (!validateUuid(values.id)) return null;
       const note = await db.query.noteSourceTable.findFirst({
-        with: { account: true },
+        with: { account: true, media: true },
         where: eq(noteSourceTable.id, values.id),
       });
       if (note == null) return null;
-      return await getNote(db, ctx, note);
+      const disk = drive.use();
+      return await getNote(db, disk, ctx, note);
     },
   )
   .authorize(async (_ctx, values, _signedKey, signedKeyOwner) => {

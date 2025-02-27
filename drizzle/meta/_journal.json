@@ -183,6 +183,27 @@
       "when": 1740632842963,
       "tag": "0025_account.avatar_key",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1740671399188,
+      "tag": "0026_rename-medium-to-post_medium",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1740671550505,
+      "tag": "0027_rename-medium_type-to-post_medium_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1740676028837,
+      "tag": "0028_note_medium",
+      "breakpoints": true
     }
   ]
 }

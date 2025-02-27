@@ -1,7 +1,7 @@
 import { Link } from "../islands/Link.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
 import { renderCustomEmojis, sanitizeHtml } from "../models/markup.ts";
-import type { Medium, PostVisibility } from "../models/schema.ts";
+import type { PostMedium, PostVisibility } from "../models/schema.ts";
 import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
 
@@ -24,7 +24,7 @@ export interface NoteExcerptProps {
     internalUrl?: string;
     name: string;
   };
-  media: Medium[];
+  media: PostMedium[];
   published: Date;
   replyTarget?: boolean;
   reply?: boolean;

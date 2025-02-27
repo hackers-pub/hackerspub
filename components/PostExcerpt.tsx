@@ -1,6 +1,6 @@
 import { NoteControls } from "../islands/NoteControls.tsx";
 import { getAvatarUrl } from "../models/actor.ts";
-import type { Account, Actor, Medium, Post } from "../models/schema.ts";
+import type { Account, Actor, Post, PostMedium } from "../models/schema.ts";
 import { ArticleExcerpt } from "./ArticleExcerpt.tsx";
 import { Translation } from "./Msg.tsx";
 import { NoteExcerpt } from "./NoteExcerpt.tsx";
@@ -12,13 +12,13 @@ export interface PostExcerptProps {
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-        media: Medium[];
+        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-    media: Medium[];
+    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+    media: PostMedium[];
     shares: Post[];
   };
   replyTarget?: boolean;

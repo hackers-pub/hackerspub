@@ -511,7 +511,7 @@ export type NewNoteSource = typeof noteSourceTable.$inferInsert;
 
 export const noteSourceRelations = relations(
   noteSourceTable,
-  ({ one }) => ({
+  ({ one, many }) => ({
     account: one(accountTable, {
       fields: [noteSourceTable.accountId],
       references: [accountTable.id],
@@ -519,6 +519,38 @@ export const noteSourceRelations = relations(
     post: one(postTable, {
       fields: [noteSourceTable.id],
       references: [postTable.noteSourceId],
+    }),
+    media: many(noteMediumTable),
+  }),
+);
+
+export const noteMediumTable = pgTable(
+  "note_medium",
+  {
+    sourceId: uuid("note_source_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => noteSourceTable.id, { onDelete: "cascade" }),
+    index: smallint().notNull(),
+    key: text().notNull().unique(),
+    alt: text().notNull(),
+    width: integer().notNull(),
+    height: integer().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.sourceId, table.index] }),
+  ],
+);
+
+export type NoteMedium = typeof noteMediumTable.$inferSelect;
+export type NewNoteMedium = typeof noteMediumTable.$inferInsert;
+
+export const noteMediumRelations = relations(
+  noteMediumTable,
+  ({ one }) => ({
+    source: one(noteSourceTable, {
+      fields: [noteMediumTable.sourceId],
+      references: [noteSourceTable.id],
     }),
   }),
 );
@@ -621,7 +653,7 @@ export const postRelations = relations(
     replies: many(postTable, { relationName: "replyTarget" }),
     shares: many(postTable, { relationName: "sharedPost" }),
     mentions: many(mentionTable),
-    media: many(mediumTable),
+    media: many(postMediumTable),
   }),
 );
 
@@ -659,7 +691,7 @@ export const mentionRelations = relations(
   }),
 );
 
-export const mediumTypeEnum = pgEnum("medium_type", [
+export const postMediumTypeEnum = pgEnum("post_medium_type", [
   "image/gif",
   "image/jpeg",
   "image/png",
@@ -667,21 +699,21 @@ export const mediumTypeEnum = pgEnum("medium_type", [
   "image/webp",
 ]);
 
-export type MediumType = (typeof mediumTypeEnum.enumValues)[number];
+export type PostMediumType = (typeof postMediumTypeEnum.enumValues)[number];
 
-export function isMediumType(value: unknown): value is MediumType {
-  return mediumTypeEnum.enumValues.includes(value as MediumType);
+export function isPostMediumType(value: unknown): value is PostMediumType {
+  return postMediumTypeEnum.enumValues.includes(value as PostMediumType);
 }
 
-export const mediumTable = pgTable(
-  "medium",
+export const postMediumTable = pgTable(
+  "post_medium",
   {
     postId: uuid("post_id")
       .$type<Uuid>()
       .notNull()
       .references(() => postTable.id, { onDelete: "cascade" }),
     index: smallint().notNull(),
-    type: mediumTypeEnum().notNull(),
+    type: postMediumTypeEnum().notNull(),
     url: text().notNull(),
     alt: text(),
     width: integer(),
@@ -690,10 +722,10 @@ export const mediumTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.postId, table.index] }),
-    check("medium_index_check", sql`${table.index} >= 0`),
-    check("medium_url_check", sql`${table.url} ~ '^https?://'`),
+    check("post_medium_index_check", sql`${table.index} >= 0`),
+    check("post_medium_url_check", sql`${table.url} ~ '^https?://'`),
     check(
-      "medium_width_height_check",
+      "post_medium_width_height_check",
       sql`
         CASE
           WHEN ${table.width} IS NULL THEN ${table.height} IS NULL
@@ -705,14 +737,14 @@ export const mediumTable = pgTable(
   ],
 );
 
-export type Medium = typeof mediumTable.$inferSelect;
-export type NewMedium = typeof mediumTable.$inferInsert;
+export type PostMedium = typeof postMediumTable.$inferSelect;
+export type NewPostMedium = typeof postMediumTable.$inferInsert;
 
-export const mediumRelations = relations(
-  mediumTable,
+export const postMediumRelations = relations(
+  postMediumTable,
   ({ one }) => ({
     post: one(postTable, {
-      fields: [mediumTable.postId],
+      fields: [postMediumTable.postId],
       references: [postTable.id],
     }),
   }),

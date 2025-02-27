@@ -11,6 +11,13 @@ import {
   SUPPORTED_LANGUAGES,
 } from "../i18n.ts";
 
+const SUPPORTED_MEDIA_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+
 export interface ComposerProps {
   class?: string;
   language: Language;
@@ -44,6 +51,10 @@ export function Composer(props: ComposerProps) {
     false,
   );
   const [submitting, setSubmitting] = useState(false);
+  const [mediaDragging, setMediaDragging] = useState(false);
+  const [media, setMedia] = useState<{ url: string; alt: string }[]>(
+    [],
+  );
 
   function onInput(event: JSX.TargetedInputEvent<HTMLTextAreaElement>) {
     if (contentLanguageManuallySet) return;
@@ -59,6 +70,48 @@ export function Composer(props: ComposerProps) {
     if (detected != null) setContentLanguage(detected);
   }
 
+  function isMediaDragEvent(
+    event: JSX.TargetedDragEvent<HTMLTextAreaElement>,
+  ): event is JSX.TargetedDragEvent<HTMLTextAreaElement> & {
+    dataTransfer: DataTransfer;
+  } {
+    return event.dataTransfer != null && event.dataTransfer.items.length > 0 &&
+      [...event.dataTransfer.items].every((i) =>
+        i.kind === "file" &&
+        SUPPORTED_MEDIA_TYPES.includes(i.type)
+      );
+  }
+
+  function onDragOver(event: JSX.TargetedDragEvent<HTMLTextAreaElement>) {
+    if (isMediaDragEvent(event)) {
+      event.preventDefault();
+      setMediaDragging(true);
+    }
+  }
+
+  function onDragLeave(event: JSX.TargetedDragEvent<HTMLTextAreaElement>) {
+    if (isMediaDragEvent(event)) {
+      setMediaDragging(false);
+    }
+  }
+
+  function onDrop(event: JSX.TargetedDragEvent<HTMLTextAreaElement>) {
+    if (isMediaDragEvent(event)) {
+      event.preventDefault();
+      for (const f of event.dataTransfer.files) {
+        const reader = new FileReader();
+        reader.addEventListener("load", (e) => {
+          console.debug(e);
+          if (e.target == null || typeof e.target.result !== "string") return;
+          const url = e.target.result;
+          setMedia((media) => [...media, { url, alt: "" }]);
+        });
+        reader.readAsDataURL(f);
+      }
+      setMediaDragging(false);
+    }
+  }
+
   async function onSubmit(event: JSX.TargetedSubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
@@ -72,7 +125,7 @@ export function Composer(props: ComposerProps) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ content, visibility, language }),
+      body: JSON.stringify({ content, visibility, language, media }),
     });
     if (response.status < 200 || response.status >= 300) {
       alert(t("composer.postFailed"));
@@ -106,12 +159,15 @@ export function Composer(props: ComposerProps) {
           id={props.textAreaId}
           name="content"
           required
-          class="w-full text-xl mb-3"
+          class={`w-full text-xl mb-3 ${mediaDragging ? "border-4" : ""}`}
           placeholder={props.commentTarget
             ? t("composer.commentPlaceholder")
             : t("composer.contentPlaceholder")}
           value={content}
           onInput={onInput}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
           aria-label={t("composer.content")}
         />
         <div class="flex">
@@ -168,6 +224,50 @@ export function Composer(props: ComposerProps) {
             </select>
           </div>
         </div>
+        {media.length > 0 && (
+          <div>
+            {media.map(({ url, alt }, idx) => (
+              <div key={idx} class="flex flex-row gap-2 mt-2">
+                <img src={url} alt={alt} class="w-48" />
+                <TextArea
+                  value={alt}
+                  onInput={(e) =>
+                    setMedia(
+                      (media) => [
+                        ...media.slice(0, idx),
+                        { url: media[idx].url, alt: e.currentTarget.value },
+                        ...media.slice(idx + 1),
+                      ],
+                    )}
+                  placeholder={t("composer.mediumAltPlaceholder")}
+                  class="w-full"
+                  required
+                />
+                <button
+                  type="button"
+                  title={t("composer.removeMedium")}
+                  class="hover:bg-stone-200 hover:dark:bg-stone-700"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="size-6"
+                    aria-label={t("composer.removeMedium")}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18 18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </form>
     </TranslationSetup>
   );

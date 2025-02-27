@@ -10,9 +10,9 @@ import { Composer } from "../islands/Composer.tsx";
 import {
   type Actor,
   followingTable,
-  type Medium,
   mentionTable,
   type Post,
+  type PostMedium,
   postTable,
 } from "../models/schema.ts";
 import { define } from "../utils.ts";
@@ -34,13 +34,13 @@ export const handler = define.handlers({
       sharedPost:
         | Post & {
           actor: Actor;
-          replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-          media: Medium[];
+          replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+          media: PostMedium[];
           shares: Post[];
         }
         | null;
-      replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-      media: Medium[];
+      replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+      media: PostMedium[];
       shares: Post[];
     })[];
     if (ctx.state.account == null) {
@@ -150,13 +150,13 @@ interface HomeProps {
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-        media: Medium[];
+        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-    media: Medium[];
+    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+    media: PostMedium[];
     shares: Post[];
   })[];
   next?: Date;

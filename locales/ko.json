@@ -136,8 +136,10 @@
   },
   "composer": {
     "content": "내용",
-    "contentPlaceholder": "무슨 생각 해요? Markdown을 사용할 수 있습니다.",
-    "commentPlaceholder": "댓글을 입력하세요. Markdown을 사용할 수 있습니다.",
+    "contentPlaceholder": "무슨 생각 해요? Markdown을 사용할 수 있습니다. 이미지를 첨부하려면 파일을 여기에 드래그 앤 드롭 하세요.",
+    "commentPlaceholder": "댓글을 입력하세요. Markdown을 사용할 수 있습니다. 이미지를 첨부하려면 파일을 여기에 드래그 앤 드롭 하세요.",
+    "mediumAltPlaceholder": "시각장애인을 위한 대체 텍스트",
+    "removeMedium": "이미지 삭제",
     "visibility": "공개 범위",
     "language": "언어",
     "post": "올리기",

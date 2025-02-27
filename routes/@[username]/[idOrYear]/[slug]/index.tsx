@@ -6,6 +6,7 @@ import { ArticleMetadata } from "../../../../components/ArticleMetadata.tsx";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
+import { drive } from "../../../../drive.ts";
 import { Composer } from "../../../../islands/Composer.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
@@ -17,8 +18,8 @@ import {
   type Account,
   type Actor,
   type ArticleSource,
-  type Medium,
   type Post,
+  type PostMedium,
   postTable,
 } from "../../../../models/schema.ts";
 import { define } from "../../../../utils.ts";
@@ -108,7 +109,8 @@ export const handler = define.handlers({
         headers: { "Content-Type": "application/json" },
       });
     }
-    const post = await createNote(db, kv, ctx.state.fedCtx, {
+    const disk = drive.use();
+    const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
     }, article.post);
@@ -125,7 +127,7 @@ export const handler = define.handlers({
 interface ArticlePageProps {
   article: ArticleSource & { account: Account };
   articleIri: string;
-  comments: (Post & { actor: Actor; media: Medium[]; shares: Post[] })[];
+  comments: (Post & { actor: Actor; media: PostMedium[]; shares: Post[] })[];
   avatarUrl: string;
   contentHtml: string;
 }

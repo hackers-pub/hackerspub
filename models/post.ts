@@ -10,6 +10,7 @@ import {
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { and, count, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
+import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import type { Database } from "../db.ts";
 import { getAnnounce } from "../federation/objects.ts";
@@ -31,13 +32,14 @@ import {
   type ArticleSource,
   type Following,
   type Instance,
-  type Medium,
-  mediumTable,
   type Mention,
   mentionTable,
   type NewPost,
+  type NoteMedium,
   type NoteSource,
   type Post,
+  type PostMedium,
+  postMediumTable,
   postTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
@@ -117,9 +119,11 @@ export async function syncPostFromArticleSource(
 export async function syncPostFromNoteSource(
   db: Database,
   kv: Keyv,
+  disk: Disk,
   fedCtx: Context<void>,
   noteSource: NoteSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    media: NoteMedium[];
   },
   replyTarget?: { id: Uuid },
 ): Promise<
@@ -130,8 +134,10 @@ export async function syncPostFromNoteSource(
     };
     noteSource: NoteSource & {
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      media: NoteMedium[];
     };
     mentions: Mention[];
+    media: PostMedium[];
   }
 > {
   const actor = await syncActorFromAccount(
@@ -182,7 +188,19 @@ export async function syncPostFromNoteSource(
       })),
     ).returning()
     : [];
-  return { ...post, actor, noteSource, mentions };
+  await db.delete(postMediumTable).where(eq(postMediumTable.postId, post.id));
+  const media = await db.insert(postMediumTable).values(
+    await Promise.all(noteSource.media.map(async (medium) => ({
+      postId: post.id,
+      index: medium.index,
+      type: "image/webp" as const,
+      url: await disk.getUrl(medium.key),
+      alt: medium.alt,
+      width: medium.width,
+      height: medium.height,
+    }))),
+  ).returning();
+  return { ...post, actor, noteSource, mentions, media };
 }
 
 export async function persistPost(
@@ -336,7 +354,9 @@ export async function persistPost(
       .onConflictDoNothing()
       .execute();
   }
-  await db.delete(mediumTable).where(eq(mediumTable.postId, persistedPost.id));
+  await db.delete(postMediumTable).where(
+    eq(postMediumTable.postId, persistedPost.id),
+  );
   let i = 0;
   for (const attachment of attachments) {
     await postMedium(db, attachment, persistedPost.id, i);
@@ -575,14 +595,14 @@ export function getPostByUsernameAndId(
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-        media: Medium[];
+        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
     mentions: Mention[];
-    media: Medium[];
+    media: PostMedium[];
     shares: Post[];
   }
   | undefined

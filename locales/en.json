@@ -138,8 +138,10 @@
   },
   "composer": {
     "content": "Content",
-    "contentPlaceholder": "What's on your mind? You can use Markdown.",
-    "commentPlaceholder": "Write a comment. You can use Markdown.",
+    "contentPlaceholder": "What's on your mind? You can use Markdown. Drag and drop images here to attach them.",
+    "commentPlaceholder": "Write a comment. You can use Markdown. Drag and drop images here to attach them.",
+    "mediumAltPlaceholder": "Alt text for visually impaired people",
+    "removeMedium": "Remove this image",
     "visibility": "Post privacy",
     "language": "Language",
     "post": "Post",

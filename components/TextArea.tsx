@@ -8,7 +8,9 @@ export function TextArea(props: TextAreaProps) {
   return (
     <textarea
       {...propsWithoutClass}
-      class={`border dark:border-stone-500 dark:bg-stone-900 px-2 py-1 ${props.class}`}
+      class={`border dark:border-stone-500 dark:bg-stone-900 px-2 py-1 ${
+        props.class ?? ""
+      }`}
     />
   );
 }

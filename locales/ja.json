@@ -136,8 +136,10 @@
   },
   "composer": {
     "content": "内容",
-    "contentPlaceholder": "今何してる？Markdownが使えます。",
-    "commentPlaceholder": "コメントを入力してください。Markdownが使えます。",
+    "contentPlaceholder": "今何してる？Markdownが使えます。画像を添付するにはファイルをここにドラッグ＆ドロップしてください。",
+    "commentPlaceholder": "コメントを入力してください。Markdownが使えます。画像を添付するにはファイルをここにドラッグ＆ドロップしてください。",
+    "mediumAltPlaceholder": "視覚障碍者向けの代替テキスト",
+    "removeMedium": "画像を削除",
     "visibility": "公開範囲",
     "language": "言語",
     "post": "投稿",

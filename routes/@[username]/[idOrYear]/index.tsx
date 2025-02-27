@@ -5,6 +5,7 @@ import { page } from "fresh";
 import { NoteExcerpt } from "../../../components/NoteExcerpt.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
+import { drive } from "../../../drive.ts";
 import { Composer } from "../../../islands/Composer.tsx";
 import { NoteControls } from "../../../islands/NoteControls.tsx";
 import { kv } from "../../../kv.ts";
@@ -18,9 +19,9 @@ import {
   type Actor,
   actorTable,
   type Following,
-  type Medium,
   type Mention,
   type Post,
+  type PostMedium,
   postTable,
 } from "../../../models/schema.ts";
 import { validateUuid } from "../../../models/uuid.ts";
@@ -36,14 +37,14 @@ export const handler = define.handlers({
       sharedPost:
         | Post & {
           actor: Actor;
-          replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-          media: Medium[];
+          replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+          media: PostMedium[];
           shares: Post[];
         }
         | null;
-      replyTarget: Post & { actor: Actor; media: Medium[] } | null;
+      replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
       mentions: Mention[];
-      media: Medium[];
+      media: PostMedium[];
       shares: Post[];
     };
     let postUrl: string;
@@ -181,7 +182,8 @@ export const handler = define.handlers({
         headers: { "Content-Type": "application/json" },
       });
     }
-    const reply = await createNote(db, kv, ctx.state.fedCtx, {
+    const disk = drive.use();
+    const reply = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
     }, post);
@@ -201,17 +203,17 @@ type NotePageProps = {
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-        media: Medium[];
+        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-    media: Medium[];
+    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+    media: PostMedium[];
     shares: Post[];
   };
   postUrl: string;
-  replies: (Post & { actor: Actor; media: Medium[] })[];
+  replies: (Post & { actor: Actor; media: PostMedium[] })[];
 };
 
 export default define.page<typeof handler, NotePageProps>(

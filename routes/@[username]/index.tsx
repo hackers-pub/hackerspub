@@ -10,6 +10,7 @@ import { PageTitle } from "../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { PostPagination } from "../../components/PostPagination.tsx";
 import { db } from "../../db.ts";
+import { drive } from "../../drive.ts";
 import { POSSIBLE_LANGUAGES } from "../../i18n.ts";
 import { kv } from "../../kv.ts";
 import { getAvatarUrl } from "../../models/account.ts";
@@ -30,9 +31,9 @@ import {
   accountTable,
   type Actor,
   actorTable,
-  type Medium,
   type Post,
   POST_VISIBILITIES,
+  type PostMedium,
   postTable,
 } from "../../models/schema.ts";
 import { compactUrl, define } from "../../utils.ts";
@@ -41,11 +42,27 @@ const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
 const DEFAULT_WINDOW = 50;
 
-export const NoteSourceSchema = v.object({
+export const NoteSourceSchema = v.objectAsync({
   content: v.pipe(v.string(), v.trim(), v.nonEmpty()),
   language: v.picklist(POSSIBLE_LANGUAGES),
   visibility: v.picklist(POST_VISIBILITIES),
   replyTargetId: v.optional(v.pipe(v.string(), v.uuid())),
+  media: v.arrayAsync(
+    v.pipeAsync(
+      v.objectAsync({
+        url: v.pipeAsync(
+          v.string(),
+          v.startsWith("data:"),
+          v.url(),
+          v.transformAsync<string, Blob>((url) =>
+            fetch(url).then((r) => r.blob())
+          ),
+        ),
+        alt: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+      }),
+      v.transform((pair) => ({ alt: pair.alt, blob: pair.url })),
+    ),
+  ),
 });
 
 export const handler = define.handlers({
@@ -319,7 +336,8 @@ export const handler = define.handlers({
         headers: { "Content-Type": "application/json" },
       });
     }
-    const post = await createNote(db, kv, ctx.state.fedCtx, {
+    const disk = drive.use();
+    const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
     });
@@ -346,13 +364,13 @@ type ProfilePageProps = {
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-        media: Medium[];
+        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: Medium[] } | null;
-    media: Medium[];
+    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+    media: PostMedium[];
     shares: Post[];
   })[];
   nextHref?: string;

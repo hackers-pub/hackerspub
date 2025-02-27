@@ -1,0 +1,1 @@
+ALTER TYPE "public"."medium_type" RENAME TO "post_medium_type";
