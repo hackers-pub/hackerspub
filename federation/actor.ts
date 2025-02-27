@@ -53,6 +53,7 @@ federation
         }),
         attachments: renderAccountLinks(account.links),
         followers: ctx.getFollowersUri(identifier),
+        url: new URL(`/@${account.username}`, ctx.canonicalOrigin),
       });
     },
   )
