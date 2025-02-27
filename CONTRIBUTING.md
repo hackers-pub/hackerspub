@@ -81,6 +81,29 @@ The project uses environment variables for configuration. You can see the list
 of all available variables in the *.env.sample* file.  Copy this file to *.env*
 and set the values of the variables according to your environment.
 
+> [!TIP]
+> Here are some tips for setting up the environment variables for your local
+> development:
+>
+>  -  Even if you are setting up a local development environment, you should
+>     set `ORIGIN` to the URL where the server will be hosted, which is
+>     accessible from the public internet.  This is required for the ActivityPub
+>     federation to work.  See also the section on [*Setting up
+>     federation*](#setting-up-federation).
+>
+>  -  `KV_URL` can start with `file://` to use a file-based cache, e.g.,
+>     `KV_URL=file:///tmp/kv.db`.
+>
+>  -  `DRIVE_DISK` can be set to `fs` to use the file system for storing files.
+>
+>     In this case, you also need to set `FS_LOCATION` to the directory where
+>     the files will be stored, which can be a relative path to the project
+>     directory, e.g., `FS_LOCATION=./media`.
+>
+>     For your information, the *media/* directory under the project directory
+>     is listed in the *.gitignore* file, so you don't need to worry about
+>     accidentally committing the files to the repository.
+
 
 Creating a database schema
 --------------------------
@@ -111,8 +134,14 @@ Setting up federation
 Since Hackers' Pub is a federated platform through ActivityPub, you would need
 to set up federation to test how your changes affect the federation.  To do
 this, you need to place your local server behind a reverse proxy that supports
-tunneling.  There are quite [many options available][1], but we recommend using
-[ngrok]:
+tunneling.
+
+There are quite [many options available][1], but we recommend using [ngrok]
+for one-time contributions.
+
+> [!TIP]
+> If you are a regular contributor, you may want to use a more permanent
+> solution, such as [Tailscale Funnel] or [Cloudflare Tunnel].
 
  1. Configure `BEHIND_PROXY=true` in the *.env* file.
 
@@ -127,8 +156,10 @@ tunneling.  There are quite [many options available][1], but we recommend using
     ngrok http 8000
     ~~~~
 
- 5. Copy the HTTPS URL provided by `ngrok` and open it in your browser.  You
-    should see the Hackers' Pub homepage.
+ 5. Copy the HTTPS URL provided by `ngrok`, and put it in the `ORIGIN`
+    environment variable in the *.env* file.
+
+ 6. Restart the server, and you are ready to test federation.
 
 When testing federation, you must use the HTTPS URL provided by `ngrok` as the
 base URL for your local server.  This is because ActivityPub requires
@@ -137,6 +168,7 @@ the server to be accessible over HTTPS.
 [1]: https://fedify.dev/manual/test#exposing-a-local-server-to-the-public
 [ngrok]: https://ngrok.com/
 [Tailscale Funnel]: https://tailscale.com/kb/1223/funnel
+[Cloudflare Tunnel]: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
 [2]: https://ngrok.com/docs/getting-started/
 
 
