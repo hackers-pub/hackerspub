@@ -10,6 +10,7 @@ import {
 } from "@opentelemetry/semantic-conventions";
 import { captureException } from "@sentry/deno";
 import "@std/dotenv/load";
+import { serveDir } from "@std/http/file-server";
 import { App, fsRoutes, HttpError, staticFiles, trailingSlashes } from "fresh";
 import { federation } from "./federation/mod.ts";
 import "./logging.ts";
@@ -20,9 +21,24 @@ export const app = new App<State>();
 const staticHandler = staticFiles();
 app.use(async (ctx) => {
   // Work around a bug of Fresh's staticFiles middleware:
-  if (ctx.url.pathname.startsWith("/.well-known/")) return ctx.next();
+  if (ctx.url.pathname.startsWith("/.well-known/")) return await ctx.next();
   return await staticHandler(ctx);
 });
+
+if (Deno.env.get("DRIVE_DISK") === "fs") {
+  const FS_LOCATION = Deno.env.get("FS_LOCATION");
+  if (FS_LOCATION == null) {
+    throw new Error("Missing FS_LOCATION environment variable.");
+  }
+
+  app.use((ctx) => {
+    if (!ctx.url.pathname.startsWith("/media/")) return ctx.next();
+    return serveDir(ctx.req, {
+      urlRoot: "media",
+      fsRoot: FS_LOCATION,
+    });
+  });
+}
 
 if (Deno.env.get("BEHIND_PROXY") === "true") {
   app.use(async (ctx) => {

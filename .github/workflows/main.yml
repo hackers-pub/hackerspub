@@ -15,7 +15,7 @@ jobs:
     - uses: denoland/setup-deno@v2
       with:
         deno-version: v2.x
-    - run: deno task test
+    - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
     - run: deno task check
 
   image:

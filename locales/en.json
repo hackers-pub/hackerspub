@@ -53,10 +53,14 @@
   "settings": {
     "profile": {
       "title": "Profile settings",
+      "avatar": "Avatar",
+      "avatarDescription": "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size.",
+      "avatarInvalid": "Invalid image format. Please upload a PNG, JPEG, GIF, or WebP image.",
+      "avatarTooLarge": "Image is too large. Maximum size is 5 MiB.",
       "username": "Username",
       "usernameDescription": "Your username will be used to create your profile URL and your fediverse handle.",
       "usernameCaution": "You can change it only once.",
-      "usernameChanged": "As you have already changed it at {{changed}}, you can't change it again.",
+      "usernameChanged": "As you have already changed it {{changed}}, you can't change it again.",
       "usernameRequired": "Username is required.",
       "usernameTooLong": "Username is too long. Maximum length is 50 characters.",
       "usernameInvalidChars": "Username can only contain lowercase letters, numbers, and underscores.",
@@ -86,8 +90,8 @@
   "articleDrafts": {
     "title": "Article drafts",
     "noTitle": "(No title)",
-    "created": "Created at {{created}}",
-    "updated": "Updated at {{updated}}",
+    "created": "Created {{created}}",
+    "updated": "Updated {{updated}}",
     "delete": "Delete draft",
     "deleteConfirm": "Are you sure you want to delete this draft?"
   },

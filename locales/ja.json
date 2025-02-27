@@ -53,6 +53,10 @@
   "settings": {
     "profile": {
       "title": "プロフィール設定",
+      "avatar": "アイコン",
+      "avatarDescription": "アイコンはプロフィールと投稿に表示されます。PNG、JPEG、GIF、WebP形式の画像を5MiBまでアップロードできます。",
+      "avatarInvalid": "画像形式が無効です。PNG、JPEG、GIF、WebP形式の画像をアップロードしてください。",
+      "avatarTooLarge": "画像が大きすぎます。最大サイズは5MiBです。",
       "username": "ユーザー名",
       "usernameDescription": "ユーザー名はプロフィールURLとフェディバース（fediverse）のハンドルとして使用されます。",
       "usernameCaution": "変更は1回のみ可能です。",

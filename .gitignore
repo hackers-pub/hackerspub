@@ -11,5 +11,8 @@ _fresh/
 node_modules/
 vendor/
 
+# media in fs
+media/
+
 # keyv data
 kv.db

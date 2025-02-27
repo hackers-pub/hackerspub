@@ -176,6 +176,13 @@
       "when": 1735792500200,
       "tag": "0024_unique_post.actor_id_shared_post_id",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1740632842963,
+      "tag": "0025_account.avatar_key",
+      "breakpoints": true
     }
   ]
 }

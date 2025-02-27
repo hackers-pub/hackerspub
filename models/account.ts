@@ -13,6 +13,7 @@ import { encodeHex } from "@std/encoding/hex";
 import { escape } from "@std/html/entities";
 import { eq, sql } from "drizzle-orm";
 import type { Database } from "../db.ts";
+import { drive } from "../drive.ts";
 import { compactUrl } from "../utils.ts";
 import {
   type Account,
@@ -30,6 +31,10 @@ const logger = getLogger(["hackerspub", "models", "account"]);
 export async function getAvatarUrl(
   account: Account & { emails: AccountEmail[] },
 ): Promise<string> {
+  if (account.avatarKey != null) {
+    const disk = drive.use();
+    return await disk.getUrl(account.avatarKey);
+  }
   const emails = account.emails
     .filter((e) => e.verified != null);
   emails.sort((a, b) => a.public ? 1 : b.public ? -1 : 0);

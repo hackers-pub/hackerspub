@@ -38,6 +38,7 @@ export const accountTable = pgTable(
     usernameChanged: timestamp("username_changed", { withTimezone: true }),
     name: varchar({ length: 50 }).notNull(),
     bio: text().notNull(),
+    avatarKey: text("avatar_key").unique(),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),

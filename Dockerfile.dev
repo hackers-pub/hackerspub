@@ -1,6 +1,7 @@
-FROM docker.io/denoland/deno:alpine-2.1.2
+FROM docker.io/denoland/deno:2.2.2
 
-RUN apk add --no-cache jq
+RUN apt-get update && apt-get install -y build-essential jq && \
+  apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY fonts /app/fonts

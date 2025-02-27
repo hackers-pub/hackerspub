@@ -2,6 +2,7 @@ import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { eq } from "drizzle-orm";
 import { page } from "fresh";
+import sharp from "sharp";
 import { Button } from "../../components/Button.tsx";
 import { Input } from "../../components/Input.tsx";
 import { Label } from "../../components/Label.tsx";
@@ -9,13 +10,14 @@ import { Msg, Translation } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { TextArea } from "../../components/TextArea.tsx";
 import { db } from "../../db.ts";
+import { drive } from "../../drive.ts";
 import {
   type AccountLinkFieldProps,
   AccountLinkFieldSet,
 } from "../../islands/AccountLinkFieldSet.tsx";
 import { Timestamp } from "../../islands/Timestamp.tsx";
 import { kv } from "../../kv.ts";
-import { updateAccount } from "../../models/account.ts";
+import { getAvatarUrl, updateAccount } from "../../models/account.ts";
 import { syncActorFromAccount } from "../../models/actor.ts";
 import {
   accountEmailTable,
@@ -26,16 +28,25 @@ import { define } from "../../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]", "settings"]);
 
+const SUPPORTED_AVATAR_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5 MiB
+
 export const handler = define.handlers({
   async GET(ctx) {
     if (ctx.state.session == null) return ctx.next();
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, ctx.params.username),
-      with: { links: { orderBy: accountLinkTable.index } },
+      with: { emails: true, links: { orderBy: accountLinkTable.index } },
     });
     if (account?.id !== ctx.state.session.accountId) return ctx.next();
     ctx.state.title = ctx.state.t("settings.profile.title");
     return page<ProfileSettingsPageProps>({
+      avatarUrl: await getAvatarUrl(account),
       usernameChanged: account.usernameChanged,
       values: account,
       links: account.links,
@@ -47,10 +58,11 @@ export const handler = define.handlers({
     ctx.state.title = t("settings.profile.title");
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, ctx.params.username),
-      with: { links: true },
+      with: { emails: true, links: true },
     });
     if (account == null) return ctx.next();
     const form = await ctx.req.formData();
+    const avatar = form.get("avatar");
     const username = form.get("username")?.toString()?.trim()?.toLowerCase();
     const name = form.get("name")?.toString()?.trim();
     const bio = form.get("bio")?.toString() ?? "";
@@ -60,6 +72,14 @@ export const handler = define.handlers({
       .filter(([name, url]) => name !== "" && url !== "")
       .map(([name, url]) => ({ name, url }));
     const errors = {
+      avatar: avatar == null || avatar === ""
+        ? undefined
+        : !(avatar instanceof File) ||
+            !SUPPORTED_AVATAR_TYPES.includes(avatar.type)
+        ? t("settings.profile.avatarInvalid")
+        : avatar instanceof File && avatar.size > MAX_AVATAR_SIZE
+        ? t("settings.profile.avatarTooLarge")
+        : undefined,
       username: username == null || username === ""
         ? t("settings.profile.usernameRequired")
         : username.length > 50
@@ -82,10 +102,12 @@ export const handler = define.handlers({
         : undefined,
     };
     if (
-      username == null || name == null || errors.username || errors.name ||
+      errors.avatar || username == null || name == null || errors.username ||
+      errors.name ||
       errors.bio
     ) {
       return page<ProfileSettingsPageProps>({
+        avatarUrl: await getAvatarUrl(account),
         usernameChanged: account.usernameChanged,
         values: { username: username ?? "", name: name ?? "", bio },
         links: account.links,
@@ -99,6 +121,36 @@ export const handler = define.handlers({
       bio,
       links,
     };
+    const promises: Promise<void>[] = [];
+    if (avatar instanceof File) {
+      const disk = drive.use();
+      if (account.avatarKey != null) {
+        promises.push(disk.delete(account.avatarKey));
+      }
+      let image = sharp(await avatar.arrayBuffer());
+      const metadata = await image.metadata();
+      let { width, height } = metadata;
+      if (width == null || height == null) {
+        // FIXME: This should be a proper error message.
+        throw new Error("Failed to read image metadata.");
+      }
+      if (width !== height) { // crop to square
+        const size = Math.min(width, height);
+        const left = (width - size) / 2;
+        const top = (height - size) / 2;
+        image = image.extract({ left, top, width: size, height: size });
+        width = height = size;
+      }
+      if (width > 1024) {
+        image = image.resize(1024);
+        width = height = 1024;
+      }
+      image = image.webp();
+      const buffer = await image.toBuffer();
+      const key = `avatars/${crypto.randomUUID()}.webp`;
+      promises.push(disk.put(key, new Uint8Array(buffer.buffer)));
+      values.avatarKey = key;
+    }
     const updatedAccount = await updateAccount(db, ctx.state.fedCtx, values);
     if (updatedAccount == null) {
       logger.error("Failed to update account: {values}", { values });
@@ -111,12 +163,14 @@ export const handler = define.handlers({
       ...updatedAccount,
       emails,
     });
+    await Promise.all(promises);
     if (account.username !== updatedAccount.username) {
       return Response.redirect(
         new URL(`/@${updatedAccount.username}/settings`, ctx.url),
       );
     }
     return page<ProfileSettingsPageProps>({
+      avatarUrl: await getAvatarUrl({ ...updatedAccount, emails }),
       usernameChanged: updatedAccount.usernameChanged,
       values: updatedAccount,
       links: updatedAccount.links,
@@ -129,7 +183,7 @@ interface ProfileSettingsPageProps extends ProfileSettingsFormProps {
 
 export default define.page<typeof handler, ProfileSettingsPageProps>(
   function ProfileSettingsPage(
-    { data: { usernameChanged, values, links, errors } },
+    { data: { avatarUrl, usernameChanged, values, links, errors } },
   ) {
     return (
       <div>
@@ -137,6 +191,7 @@ export default define.page<typeof handler, ProfileSettingsPageProps>(
           <Msg $key="settings.profile.title" />
         </PageTitle>
         <ProfileSettingsForm
+          avatarUrl={avatarUrl}
           usernameChanged={usernameChanged}
           values={values}
           links={links}
@@ -148,6 +203,7 @@ export default define.page<typeof handler, ProfileSettingsPageProps>(
 );
 
 interface ProfileSettingsFormProps {
+  avatarUrl: string;
   usernameChanged: Date | null;
   values: {
     username: string;
@@ -156,6 +212,7 @@ interface ProfileSettingsFormProps {
   };
   links: AccountLinkFieldProps[];
   errors?: {
+    avatar?: string;
     username?: string;
     name?: string;
     bio?: string;
@@ -163,12 +220,41 @@ interface ProfileSettingsFormProps {
 }
 
 function ProfileSettingsForm(
-  { usernameChanged, values, links, errors }: ProfileSettingsFormProps,
+  { avatarUrl, usernameChanged, values, links, errors }:
+    ProfileSettingsFormProps,
 ) {
   return (
     <Translation>
       {(t, lang) => (
-        <form method="post" class="mt-5 grid lg:grid-cols-2 gap-5">
+        <form
+          method="post"
+          encType="multipart/form-data"
+          class="mt-5 grid lg:grid-cols-2 gap-5"
+        >
+          <div class="col-span-2 flex flex-row">
+            <img
+              src={avatarUrl}
+              width={128}
+              height={128}
+              class="mr-5 w-20 h-20"
+            />
+            <div>
+              <Label label={t("settings.profile.avatar")}>
+                <Input
+                  type="file"
+                  name="avatar"
+                  accept="image/jpeg, image/png, image/gif, image/webp"
+                />
+              </Label>
+              {errors?.avatar == null
+                ? (
+                  <p class="opacity-50">
+                    <Msg $key="settings.profile.avatarDescription" />
+                  </p>
+                )
+                : <p class="text-red-700 dark:text-red-500">{errors.avatar}</p>}
+            </div>
+          </div>
           <div>
             <Label label={t("settings.profile.username")} required>
               <Input

@@ -53,10 +53,14 @@
   "settings": {
     "profile": {
       "title": "프로필 설정",
+      "avatar": "프로필 사진",
+      "avatarDescription": "프로필 사진은 프로필과 게시물에 표시됩니다. PNG, JPEG, GIF, WebP 형식의 이미지를 5MiB 이하로 업로드할 수 있습니다.",
+      "avatarInvalid": "유효하지 않은 이미지 형식입니다. PNG, JPEG, GIF, WebP 형식의 이미지를 업로드해주세요.",
+      "avatarTooLarge": "이미지가 너무 큽니다. 최대 크기는 5MiB입니다.",
       "username": "아이디",
       "usernameDescription": "아이디는 프로필 URL과 연합우주(fediverse) 핸들로 사용됩니다.",
       "usernameCaution": "아이디는 단 한 번만 변경할 수 있습니다.",
-      "usernameChanged": "이미 {{changed}}에 변경하였기 때문에 다시 변경할 수 없습니다.",
+      "usernameChanged": "이미 {{changed}} 변경하였기 때문에 다시 변경할 수 없습니다.",
       "usernameRequired": "아이디는 필수입니다.",
       "usernameTooLong": "아이디가 너무 깁니다. 최대 길이는 50자입니다.",
       "usernameInvalidChars": "아이디는 영문 소문자, 숫자, 밑줄(_)만 사용할 수 있습니다.",
@@ -85,8 +89,8 @@
   "articleDrafts": {
     "title": "게시물 임시 보관함",
     "noTitle": "(제목 없음)",
-    "created": "{{created}}에 작성됨",
-    "updated": "{{updated}}에 고쳐짐",
+    "created": "{{created}} 작성됨",
+    "updated": "{{updated}} 고쳐짐",
     "delete": "초고 삭제",
     "deleteConfirm": "정말로 이 초고를 삭제하시겠습니까?"
   },
