@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "tasks": {
     "check": "deno fmt --check && deno lint && deno check .",
-    "test": "deno test --allow-env --allow-net --parallel",
+    "test": "deno test --env-file=.env.test --allow-env --allow-net --parallel",
     "dev": "deno run -A --watch=static/,routes/ dev.ts",
     "build": "deno run -A dev.ts build",
     "start": "deno run -A main.ts",
@@ -11,6 +11,7 @@
     "drizzle-kit": "deno run -A npm:drizzle-kit",
     "migrate": "deno run -A npm:drizzle-kit migrate",
     "migrate:generate": "deno run -A npm:drizzle-kit generate",
+    "migrate:test": "deno run --env-file=.env.test -A npm:drizzle-kit migrate",
     "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",
     "hooks:pre-commit": "deno task check"
   },
