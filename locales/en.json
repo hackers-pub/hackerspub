@@ -111,7 +111,8 @@
     "shared": "Already shared",
     "unshare": "Unshare",
     "unsharing": "Unsharing…",
-    "sharedBy": "Shared by {{name}}"
+    "sharedBy": "Shared by {{name}}",
+    "remoteReplyDescription": "If you have a fediverse account, you can reply to this note from your own instance. Search {{permalink}} on your instance and reply to it."
   },
   "editor": {
     "titlePlaceholder": "Article title",

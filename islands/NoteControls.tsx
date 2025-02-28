@@ -10,8 +10,8 @@ export interface NoteControlsProps {
   replyUrl?: string;
   shares: number;
   shared: boolean;
-  shareUrl: string;
-  unshareUrl: string;
+  shareUrl?: string;
+  unshareUrl?: string;
 }
 
 export function NoteControls(props: NoteControlsProps) {
@@ -23,6 +23,7 @@ export function NoteControls(props: NoteControlsProps) {
 
   function onShareSubmit(this: HTMLButtonElement, event: SubmitEvent) {
     event.preventDefault();
+    if (props.shareUrl == null) return;
     if (event.currentTarget instanceof HTMLFormElement) {
       setShareSubmitting(true);
       const form = event.currentTarget;
@@ -50,7 +51,9 @@ export function NoteControls(props: NoteControlsProps) {
     <TranslationSetup language={props.language}>
       <div class={`${props.class ?? ""} flex gap-3`}>
         <a
-          class="h-5 flex opacity-50 hover:opacity-100"
+          class={`h-5 flex opacity-50 ${
+            props.replyUrl == null ? "" : "hover:opacity-100"
+          }`}
           href={props.replyUrl}
         >
           <svg
@@ -79,7 +82,9 @@ export function NoteControls(props: NoteControlsProps) {
         >
           <button
             type="submit"
-            class="h-5 flex opacity-50 hover:opacity-100"
+            class={`h-5 flex opacity-50 ${
+              props.shareUrl == null ? "cursor-default" : "hover:opacity-100"
+            }`}
             onMouseOver={onShareFocus}
             onFocus={onShareFocus}
             onMouseOut={onShareFocusOut}

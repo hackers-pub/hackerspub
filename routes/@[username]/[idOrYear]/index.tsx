@@ -2,6 +2,7 @@ import * as vocab from "@fedify/fedify/vocab";
 import * as v from "@valibot/valibot";
 import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { page } from "fresh";
+import { Msg } from "../../../components/Msg.tsx";
 import { NoteExcerpt } from "../../../components/NoteExcerpt.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
@@ -239,26 +240,44 @@ export default define.page<typeof handler, NotePageProps>(
     const authorHandle = `@${post.actor.username}@${post.actor.instanceHost}`;
     return (
       <>
-        <PostExcerpt post={post} />
+        <PostExcerpt post={post} noControls />
         <NoteControls
           class="mt-4 ml-14"
           language={state.language}
           replies={replies.length}
           shares={(post.sharedPost ?? post).sharesCount}
-          shareUrl={`${postUrl}/share`}
-          unshareUrl={`${postUrl}/unshare`}
+          shareUrl={state.account == null ? undefined : `${postUrl}/share`}
+          unshareUrl={state.account == null ? undefined : `${postUrl}/unshare`}
           shared={(post.sharedPost ?? post).shares.some((share) =>
             share.actorId === state.account?.actor.id
           )}
         />
-        <Composer
-          class="mt-8"
-          language={state.language}
-          postUrl={postUrl}
-          commentTarget={authorHandle}
-          textAreaId="reply"
-          onPost="reload"
-        />
+        {state.account == null
+          ? (
+            <>
+              <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
+              <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400">
+                <Msg
+                  $key="note.remoteReplyDescription"
+                  permalink={
+                    <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
+                      {post.iri}
+                    </span>
+                  }
+                />
+              </p>
+            </>
+          )
+          : (
+            <Composer
+              class="mt-8"
+              language={state.language}
+              postUrl={postUrl}
+              commentTarget={authorHandle}
+              textAreaId="reply"
+              onPost="reload"
+            />
+          )}
         {replies.map((reply) => (
           <NoteExcerpt
             url={reply.url ?? reply.iri}

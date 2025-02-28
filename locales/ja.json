@@ -109,7 +109,8 @@
     "shared": "共有済み",
     "unshare": "共有解除",
     "unsharing": "共有解除中…",
-    "sharedBy": "{{name}}さんが$t(note.shares)"
+    "sharedBy": "{{name}}さんが$t(note.shares)",
+    "remoteReplyDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この投稿に返信することができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当投稿に返信してください。"
   },
   "editor": {
     "titlePlaceholder": "記事のタイトル",

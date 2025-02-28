@@ -22,6 +22,7 @@ export interface PostExcerptProps {
     shares: Post[];
   };
   replyTarget?: boolean;
+  noControls?: boolean;
   signedAccount?: Account & { actor: Actor };
 }
 
@@ -96,7 +97,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                   replyTarget={props.replyTarget}
                   reply={post.replyTarget != null}
                 />
-                {!props.replyTarget && props.signedAccount && (
+                {!props.replyTarget && !props.noControls && (
                   <NoteControls
                     language={language}
                     class="mt-4 ml-14"
@@ -105,8 +106,12 @@ export function PostExcerpt(props: PostExcerptProps) {
                       ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}#reply`
                       : `/@${post.actor.username}/${post.noteSourceId}#reply`}
                     shares={post.sharesCount}
-                    shareUrl={`${localPostUrl}/share`}
-                    unshareUrl={`${localPostUrl}/unshare`}
+                    shareUrl={props.signedAccount == null
+                      ? undefined
+                      : `${localPostUrl}/share`}
+                    unshareUrl={props.signedAccount == null
+                      ? undefined
+                      : `${localPostUrl}/unshare`}
                     shared={post.shares.some((share) =>
                       share.actorId === props.signedAccount?.actor.id
                     )}
