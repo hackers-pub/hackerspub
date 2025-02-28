@@ -178,12 +178,24 @@ federation
     async (ctx, values) => {
       if (!validateUuid(values.id)) return null;
       const note = await db.query.noteSourceTable.findFirst({
-        with: { account: true, media: true },
+        with: {
+          account: true,
+          media: true,
+          post: { with: { replyTarget: true } },
+        },
         where: eq(noteSourceTable.id, values.id),
       });
       if (note == null) return null;
       const disk = drive.use();
-      return await getNote(db, disk, ctx, note);
+      return await getNote(
+        db,
+        disk,
+        ctx,
+        note,
+        note.post.replyTarget == null
+          ? undefined
+          : new URL(note.post.replyTarget.iri),
+      );
     },
   )
   .authorize(async (_ctx, values, _signedKey, signedKeyOwner) => {

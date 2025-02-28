@@ -264,6 +264,11 @@ export async function updateNote(
     disk,
     fedCtx,
     { ...noteSource, media, account },
+    post.replyTargetId == null
+      ? undefined
+      : await db.query.postTable.findFirst({
+        where: eq(postTable.id, post.replyTargetId),
+      }).then((r) => r?.iri == null ? undefined : new URL(r.iri)),
   );
   await fedCtx.sendActivity(
     { identifier: noteSource.accountId },
