@@ -211,6 +211,13 @@
       "when": 1740713484670,
       "tag": "0029_account.old_username",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1740718990351,
+      "tag": "0030_account.moderator",
+      "breakpoints": true
     }
   ]
 }

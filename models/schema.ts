@@ -40,6 +40,7 @@ export const accountTable = pgTable(
     name: varchar({ length: 50 }).notNull(),
     bio: text().notNull(),
     avatarKey: text("avatar_key").unique(),
+    moderator: boolean().notNull().default(false),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),

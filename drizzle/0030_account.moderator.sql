@@ -1,0 +1,1 @@
+ALTER TABLE "account" ADD COLUMN "moderator" boolean DEFAULT false NOT NULL;
