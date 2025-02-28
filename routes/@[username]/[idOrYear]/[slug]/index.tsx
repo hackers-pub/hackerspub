@@ -44,8 +44,10 @@ export const handler = define.handlers({
       ctx.state.canonicalOrigin,
     );
     if (
+      ctx.state.account?.moderator &&
+        ctx.url.searchParams.has("refresh") ||
       ctx.params.username !== article.account.username &&
-      article.post.url !== permalink.href
+        article.post.url !== permalink.href
     ) {
       await updateArticle(db, kv, ctx.state.fedCtx, article.id, {});
     }

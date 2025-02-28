@@ -113,8 +113,10 @@ export const handler = define.handlers({
           ctx.state.canonicalOrigin,
         );
         if (
+          ctx.state.account?.moderator &&
+            ctx.url.searchParams.has("refresh") ||
           note.account.username !== ctx.params.username &&
-          post.url !== permalink.href
+            post.url !== permalink.href
         ) {
           const disk = drive.use();
           await updateNote(db, kv, disk, ctx.state.fedCtx, note.id, {});
