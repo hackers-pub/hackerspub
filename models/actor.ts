@@ -124,13 +124,16 @@ export async function persistActor(
     );
     return undefined;
   }
-  const attachments = await Array.fromAsync(actor.getAttachments(options));
-  const avatar = await actor.getIcon(options);
-  const header = await actor.getImage(options);
-  const [followees, followers] = await Promise.all([
-    await actor.getFollowing(options),
-    await actor.getFollowers(options),
-  ]);
+  const getterOpts = { ...options, suppressError: true };
+  const [attachments, avatar, header, followees, followers] = await Promise.all(
+    [
+      Array.fromAsync(actor.getAttachments(getterOpts)),
+      actor.getIcon(getterOpts),
+      await actor.getImage(getterOpts),
+      await actor.getFollowing(getterOpts),
+      await actor.getFollowers(getterOpts),
+    ],
+  );
   const emojis: Record<string, string> = {};
   for await (const tag of actor.getTags(options)) {
     if (tag instanceof vocab.Emoji) {
