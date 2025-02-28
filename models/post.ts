@@ -189,17 +189,19 @@ export async function syncPostFromNoteSource(
     ).returning()
     : [];
   await db.delete(postMediumTable).where(eq(postMediumTable.postId, post.id));
-  const media = await db.insert(postMediumTable).values(
-    await Promise.all(noteSource.media.map(async (medium) => ({
-      postId: post.id,
-      index: medium.index,
-      type: "image/webp" as const,
-      url: await disk.getUrl(medium.key),
-      alt: medium.alt,
-      width: medium.width,
-      height: medium.height,
-    }))),
-  ).returning();
+  const media = noteSource.media.length > 0
+    ? await db.insert(postMediumTable).values(
+      await Promise.all(noteSource.media.map(async (medium) => ({
+        postId: post.id,
+        index: medium.index,
+        type: "image/webp" as const,
+        url: await disk.getUrl(medium.key),
+        alt: medium.alt,
+        width: medium.width,
+        height: medium.height,
+      }))),
+    ).returning()
+    : [];
   return { ...post, actor, noteSource, mentions, media };
 }
 
