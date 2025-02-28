@@ -90,7 +90,10 @@ export const handler = define.handlers({
           eq(actorTable.instanceHost, host),
         ),
       });
-      if (actor == null) {
+      if (
+        ctx.state.account?.moderator && ctx.url.searchParams.has("refresh") ||
+        actor == null
+      ) {
         let apActor: vocab.Object | null;
         try {
           apActor = await ctx.state.fedCtx.lookupObject(
