@@ -41,6 +41,7 @@ import {
   type PostMedium,
   postMediumTable,
   postTable,
+  type PostVisibility,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
@@ -281,6 +282,21 @@ export async function persistPost(
   const to = new Set(post.toIds.map((u) => u.href));
   const cc = new Set(post.ccIds.map((u) => u.href));
   const recipients = to.union(cc);
+  const visibility: PostVisibility = to.has(PUBLIC_COLLECTION.href)
+    ? "public"
+    : cc.has(PUBLIC_COLLECTION.href)
+    ? "unlisted"
+    : actor.followersUrl != null && recipients.has(actor.followersUrl) &&
+        mentions.isSubsetOf(recipients)
+    ? "followers"
+    : mentions.isSubsetOf(recipients)
+    ? "direct"
+    : "none";
+  logger.debug(
+    "Post visibility: {visibility} (drived from recipients {recipients} and " +
+      "mentions {mentions}).",
+    { visibility, recipients, to, cc, mentions },
+  );
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
     type: post instanceof vocab.Article
@@ -290,16 +306,7 @@ export async function persistPost(
       : post instanceof vocab.Question
       ? "Question"
       : UNREACHABLE,
-    visibility: to.has(PUBLIC_COLLECTION.href)
-      ? "public"
-      : cc.has(PUBLIC_COLLECTION.href)
-      ? "unlisted"
-      : actor.followersUrl != null && recipients.has(actor.followersUrl) &&
-          mentions.isSubsetOf(recipients)
-      ? "followers"
-      : mentions.isSubsetOf(recipients)
-      ? "direct"
-      : "none",
+    visibility,
     actorId: actor.id,
     name: post.name?.toString(),
     contentHtml: post.content?.toString(),

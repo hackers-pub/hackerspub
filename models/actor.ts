@@ -157,6 +157,7 @@ export async function persistActor(
     automaticallyApprovesFollowers: !actor.manuallyApprovesFollowers,
     inboxUrl: actor.inboxId.href,
     sharedInboxUrl: actor.endpoints?.sharedInbox?.href,
+    followersUrl: actor.followersId?.href,
     avatarUrl: avatar?.url instanceof Link
       ? avatar.url.href?.href
       : avatar?.url?.href,
