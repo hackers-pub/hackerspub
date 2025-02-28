@@ -59,7 +59,7 @@
       "avatarTooLarge": "画像が大きすぎます。最大サイズは5MiBです。",
       "username": "ユーザー名",
       "usernameDescription": "ユーザー名はプロフィールURLとフェディバース（fediverse）のハンドルとして使用されます。",
-      "usernameCaution": "変更は1回のみ可能です。",
+      "usernameCaution": "変更は1回のみ可能で、変更前のユーザー名は他のユーザーが使用できるようになります。",
       "usernameChanged": "すでに{{changed}}に変更済みのため、再度変更することはできません。",
       "usernameRequired": "ユーザー名は必須です。",
       "usernameTooLong": "ユーザー名が長すぎます。最大50文字までです。",

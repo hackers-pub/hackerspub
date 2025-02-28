@@ -13,7 +13,7 @@ import { db } from "../../db.ts";
 import { drive } from "../../drive.ts";
 import { POSSIBLE_LANGUAGES } from "../../i18n.ts";
 import { kv } from "../../kv.ts";
-import { getAvatarUrl } from "../../models/account.ts";
+import { getAccountByUsername, getAvatarUrl } from "../../models/account.ts";
 import { persistActor } from "../../models/actor.ts";
 import {
   type FollowingState,
@@ -27,8 +27,6 @@ import {
 import { createNote } from "../../models/note.ts";
 import {
   type AccountLink,
-  accountLinkTable,
-  accountTable,
   type Actor,
   actorTable,
   type Post,
@@ -196,15 +194,11 @@ export const handler = define.handlers({
           : `/${handle}?until=${+next}&window=${window}`,
       });
     }
-    const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.username, ctx.params.username),
-      with: {
-        actor: true,
-        emails: true,
-        links: { orderBy: accountLinkTable.index },
-      },
-    });
+    const account = await getAccountByUsername(db, ctx.params.username);
     if (account == null) return ctx.next();
+    if (account.username !== ctx.params.username) {
+      return ctx.redirect(`/@${account.username}`, 301);
+    }
     const bio = await renderMarkup(
       db,
       ctx.state.fedCtx,

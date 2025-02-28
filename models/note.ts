@@ -1,6 +1,6 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import sharp from "sharp";
@@ -38,7 +38,7 @@ export async function createNoteSource(
   return rows[0];
 }
 
-export function getNoteSource(
+export async function getNoteSource(
   db: Database,
   username: string,
   id: Uuid,
@@ -64,7 +64,20 @@ export function getNoteSource(
     media: NoteMedium[];
   } | undefined
 > {
-  return db.query.noteSourceTable.findFirst({
+  let account = await db.query.accountTable.findFirst({
+    where: eq(accountTable.username, username),
+  });
+  if (account == null) {
+    account = await db.query.accountTable.findFirst({
+      where: and(
+        eq(accountTable.oldUsername, username),
+        isNotNull(accountTable.usernameChanged),
+      ),
+      orderBy: desc(accountTable.usernameChanged),
+    });
+  }
+  if (account == null) return undefined;
+  return await db.query.noteSourceTable.findFirst({
     with: {
       account: {
         with: { emails: true, links: true },
@@ -104,12 +117,7 @@ export function getNoteSource(
     },
     where: and(
       eq(noteSourceTable.id, id),
-      inArray(
-        noteSourceTable.accountId,
-        db.select({ id: accountTable.id })
-          .from(accountTable)
-          .where(eq(accountTable.username, username)),
-      ),
+      eq(noteSourceTable.accountId, account.id),
     ),
   });
 }
@@ -199,6 +207,84 @@ export async function createNote(
       object: noteObject,
     }),
     { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+  );
+  return post;
+}
+
+export async function updateNoteSource(
+  db: Database,
+  noteSourceId: Uuid,
+  source: Partial<NewNoteSource>,
+): Promise<NoteSource | undefined> {
+  const rows = await db.update(noteSourceTable)
+    .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
+    .where(eq(noteSourceTable.id, noteSourceId))
+    .returning();
+  return rows[0];
+}
+
+export async function updateNote(
+  db: Database,
+  kv: Keyv,
+  disk: Disk,
+  fedCtx: Context<void>,
+  noteSourceId: Uuid,
+  source: Partial<NewNoteSource>,
+): Promise<
+  Post & {
+    actor: Actor & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      instance: Instance;
+    };
+    noteSource: NoteSource & {
+      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      media: NoteMedium[];
+    };
+    mentions: Mention[];
+    media: PostMedium[];
+  } | undefined
+> {
+  const noteSource = await updateNoteSource(db, noteSourceId, source);
+  if (noteSource == null) return undefined;
+  const account = await db.query.accountTable.findFirst({
+    where: eq(accountTable.id, noteSource.accountId),
+    with: { emails: true, links: true },
+  });
+  const media = await db.query.noteMediumTable.findMany({
+    where: eq(noteMediumTable.sourceId, noteSourceId),
+  });
+  if (account == null) return undefined;
+  const post = await syncPostFromNoteSource(db, kv, disk, fedCtx, {
+    ...noteSource,
+    account,
+    media,
+  });
+  const noteObject = await getNote(
+    db,
+    disk,
+    fedCtx,
+    { ...noteSource, media, account },
+  );
+  await fedCtx.sendActivity(
+    { identifier: noteSource.accountId },
+    "followers",
+    new vocab.Update({
+      id: new URL(
+        `#update/${noteSource.updated.toISOString()}`,
+        noteObject.id ?? fedCtx.canonicalOrigin,
+      ),
+      actors: noteObject.attributionIds,
+      tos: noteObject.toIds,
+      ccs: noteObject.ccIds,
+      object: noteObject,
+    }),
+    {
+      preferSharedInbox: true,
+      excludeBaseUris: [
+        new URL(fedCtx.origin),
+        new URL(fedCtx.canonicalOrigin),
+      ],
+    },
   );
   return post;
 }

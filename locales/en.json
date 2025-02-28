@@ -59,7 +59,7 @@
       "avatarTooLarge": "Image is too large. Maximum size is 5 MiB.",
       "username": "Username",
       "usernameDescription": "Your username will be used to create your profile URL and your fediverse handle.",
-      "usernameCaution": "You can change it only once.",
+      "usernameCaution": "You can change it only once, and the old username will become available to others.",
       "usernameChanged": "As you have already changed it {{changed}}, you can't change it again.",
       "usernameRequired": "Username is required.",
       "usernameTooLong": "Username is too long. Maximum length is 50 characters.",

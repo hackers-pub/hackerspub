@@ -11,7 +11,7 @@ import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
 import { escape } from "@std/html/entities";
-import { eq, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import type { Database } from "../db.ts";
 import { drive } from "../drive.ts";
 import { compactUrl } from "../utils.ts";
@@ -22,6 +22,7 @@ import {
   type AccountLinkIcon,
   accountLinkTable,
   accountTable,
+  type Actor,
   type NewAccount,
 } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
@@ -50,6 +51,36 @@ export async function getAvatarUrl(
     }`;
   }
   return url == "mp" ? "https://gravatar.com/avatar/?d=mp&s=128" : url;
+}
+
+export async function getAccountByUsername(
+  db: Database,
+  username: string,
+): Promise<
+  | Account & { actor: Actor; emails: AccountEmail[]; links: AccountLink[] }
+  | undefined
+> {
+  const account = await db.query.accountTable.findFirst({
+    with: {
+      actor: true,
+      emails: true,
+      links: { orderBy: accountLinkTable.index },
+    },
+    where: eq(accountTable.username, username),
+  });
+  if (account != null) return account;
+  return await db.query.accountTable.findFirst({
+    with: {
+      actor: true,
+      emails: true,
+      links: { orderBy: accountLinkTable.index },
+    },
+    where: and(
+      eq(accountTable.oldUsername, username),
+      isNotNull(accountTable.usernameChanged),
+    ),
+    orderBy: desc(accountTable.usernameChanged),
+  });
 }
 
 export async function updateAccount(
@@ -97,6 +128,15 @@ export async function updateAccountData(
       CASE
         WHEN ${accountTable.usernameChanged} IS NULL
         THEN ${values.username}
+        ELSE ${accountTable.username}
+      END
+    `,
+    oldUsername: sql`
+      CASE
+        WHEN
+          ${accountTable.username} = ${values.username} OR
+          ${accountTable.usernameChanged} IS NOT NULL
+        THEN NULL
         ELSE ${accountTable.username}
       END
     `,

@@ -1,6 +1,6 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import type Keyv from "keyv";
 import type { Database } from "../db.ts";
 import { getArticle } from "../federation/objects.ts";
@@ -69,7 +69,7 @@ export async function deleteArticleDraft(
   return rows[0];
 }
 
-export function getArticleSource(
+export async function getArticleSource(
   db: Database,
   username: string,
   publishedYear: number,
@@ -83,7 +83,20 @@ export function getArticleSource(
     };
   } | undefined
 > {
-  return db.query.articleSourceTable.findFirst({
+  let account = await db.query.accountTable.findFirst({
+    where: eq(accountTable.username, username),
+  });
+  if (account == null) {
+    account = await db.query.accountTable.findFirst({
+      where: and(
+        eq(accountTable.oldUsername, username),
+        isNotNull(accountTable.usernameChanged),
+      ),
+      orderBy: desc(accountTable.usernameChanged),
+    });
+  }
+  if (account == null) return undefined;
+  return await db.query.articleSourceTable.findFirst({
     with: {
       account: {
         with: { emails: true, links: true },
@@ -100,12 +113,7 @@ export function getArticleSource(
     where: and(
       eq(articleSourceTable.slug, slug),
       eq(articleSourceTable.publishedYear, publishedYear),
-      inArray(
-        articleSourceTable.accountId,
-        db.select({ id: accountTable.id })
-          .from(accountTable)
-          .where(eq(accountTable.username, username)),
-      ),
+      eq(articleSourceTable.accountId, account.id),
     ),
   });
 }
@@ -217,14 +225,20 @@ export async function updateArticle(
     new vocab.Update({
       id: new URL(
         `#update/${articleSource.updated.toISOString()}`,
-        articleObject.id ?? fedCtx.origin,
+        articleObject.id ?? fedCtx.canonicalOrigin,
       ),
       actors: articleObject.attributionIds,
       tos: articleObject.toIds,
       ccs: articleObject.ccIds,
       object: articleObject,
     }),
-    { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+    {
+      preferSharedInbox: true,
+      excludeBaseUris: [
+        new URL(fedCtx.origin),
+        new URL(fedCtx.canonicalOrigin),
+      ],
+    },
   );
   return post;
 }

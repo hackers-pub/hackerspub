@@ -35,6 +35,7 @@ export const accountTable = pgTable(
   {
     id: uuid().$type<Uuid>().primaryKey(),
     username: varchar({ length: 50 }).notNull().unique(),
+    oldUsername: varchar({ length: 50 }),
     usernameChanged: timestamp("username_changed", { withTimezone: true }),
     name: varchar({ length: 50 }).notNull(),
     bio: text().notNull(),

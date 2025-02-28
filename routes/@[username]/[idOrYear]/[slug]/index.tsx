@@ -10,7 +10,7 @@ import { drive } from "../../../../drive.ts";
 import { Composer } from "../../../../islands/Composer.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
-import { getArticleSource } from "../../../../models/article.ts";
+import { getArticleSource, updateArticle } from "../../../../models/article.ts";
 import { renderMarkup } from "../../../../models/markup.ts";
 import { createNote } from "../../../../models/note.ts";
 import { isPostVisibleTo } from "../../../../models/post.ts";
@@ -39,6 +39,16 @@ export const handler = define.handlers({
     if (!isPostVisibleTo(article.post, ctx.state.account?.actor)) {
       return ctx.next();
     }
+    const permalink = new URL(
+      `/@${article.account.username}/${article.publishedYear}/${article.slug}`,
+      ctx.state.canonicalOrigin,
+    );
+    if (
+      ctx.params.username !== article.account.username &&
+      article.post.url !== permalink.href
+    ) {
+      await updateArticle(db, kv, ctx.state.fedCtx, article.id, {});
+    }
     const articleUri = ctx.state.fedCtx.getObjectUri(
       vocab.Article,
       { id: article.id },
@@ -46,10 +56,7 @@ export const handler = define.handlers({
     ctx.state.links.push(
       {
         rel: "canonical",
-        href: new URL(
-          `/@${article.account.username}/${article.publishedYear}/${article.slug}`,
-          ctx.url,
-        ),
+        href: permalink,
       },
       {
         rel: "alternate",

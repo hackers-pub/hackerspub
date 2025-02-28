@@ -10,7 +10,7 @@ import { Composer } from "../../../islands/Composer.tsx";
 import { NoteControls } from "../../../islands/NoteControls.tsx";
 import { kv } from "../../../kv.ts";
 import { getAvatarUrl } from "../../../models/actor.ts";
-import { createNote, getNoteSource } from "../../../models/note.ts";
+import { createNote, getNoteSource, updateNote } from "../../../models/note.ts";
 import {
   getPostByUsernameAndId,
   isPostVisibleTo,
@@ -108,13 +108,24 @@ export const handler = define.handlers({
           }`;
       } else {
         post = note.post;
+        const permalink = new URL(
+          `/@${note.account.username}/${note.id}`,
+          ctx.state.canonicalOrigin,
+        );
+        if (
+          note.account.username !== ctx.params.username &&
+          post.url !== permalink.href
+        ) {
+          const disk = drive.use();
+          await updateNote(db, kv, disk, ctx.state.fedCtx, note.id, {});
+        }
         noteUri = ctx.state.fedCtx.getObjectUri(vocab.Note, {
           id: note.id,
         });
         ctx.state.links.push(
           {
             rel: "canonical",
-            href: new URL(`/@${note.account.username}/${note.id}`, ctx.url),
+            href: permalink,
           },
           {
             rel: "alternate",

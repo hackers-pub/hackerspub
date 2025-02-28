@@ -18,7 +18,9 @@ import { define } from "../utils.ts";
 
 export const handler = define.middleware([
   (ctx) => {
-    ctx.state.fedCtx = federation.createContext(ctx.req, undefined);
+    const fedCtx = federation.createContext(ctx.req, undefined);
+    ctx.state.fedCtx = fedCtx;
+    ctx.state.canonicalOrigin = fedCtx.canonicalOrigin;
     return ctx.next();
   },
   (ctx) => {

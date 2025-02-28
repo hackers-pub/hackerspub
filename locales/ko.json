@@ -59,7 +59,7 @@
       "avatarTooLarge": "이미지가 너무 큽니다. 최대 크기는 5MiB입니다.",
       "username": "아이디",
       "usernameDescription": "아이디는 프로필 URL과 연합우주(fediverse) 핸들로 사용됩니다.",
-      "usernameCaution": "아이디는 단 한 번만 변경할 수 있습니다.",
+      "usernameCaution": "아이디는 단 한 번만 변경할 수 있으며, 변경하기 전 아이디는 다른 사람이 사용할 수 있게 됩니다.",
       "usernameChanged": "이미 {{changed}} 변경하였기 때문에 다시 변경할 수 없습니다.",
       "usernameRequired": "아이디는 필수입니다.",
       "usernameTooLong": "아이디가 너무 깁니다. 최대 길이는 50자입니다.",

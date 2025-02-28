@@ -57,14 +57,14 @@ export async function getArticle(
     tags: articleSource.tags.map((tag) =>
       new vocab.Hashtag({
         name: tag,
-        href: new URL(`/tags/${encodeURIComponent(tag)}`, ctx.origin),
+        href: new URL(`/tags/${encodeURIComponent(tag)}`, ctx.canonicalOrigin),
       })
     ),
     url: new URL(
       `/@${articleSource.account.username}/${articleSource.publishedYear}/${
         encodeURIComponent(articleSource.slug)
       }`,
-      ctx.origin,
+      ctx.canonicalOrigin,
     ),
     published: articleSource.published.toTemporalInstant(),
     updated: +articleSource.updated > +articleSource.published
@@ -162,7 +162,7 @@ export async function getNote(
     ),
     url: new URL(
       `/@${note.account.username}/${note.id}`,
-      ctx.origin,
+      ctx.canonicalOrigin,
     ),
     published: note.published.toTemporalInstant(),
     updated: +note.updated > +note.published

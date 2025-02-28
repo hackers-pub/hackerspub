@@ -1,0 +1,1 @@
+ALTER TABLE "account" ADD COLUMN "oldUsername" varchar(50);

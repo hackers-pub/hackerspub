@@ -33,6 +33,7 @@ export interface State {
     emails: AccountEmail[];
     links: AccountLink[];
   };
+  canonicalOrigin: string;
   fedCtx: RequestContext<void>;
   language: Language;
   t: ReturnType<typeof getFixedT>;
