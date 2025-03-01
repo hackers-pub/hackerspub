@@ -208,6 +208,10 @@ export const handler = define.handlers({
       account.id,
       account.bio,
     );
+    const permalink = new URL(
+      `/@${account.username}`,
+      ctx.state.canonicalOrigin,
+    );
     ctx.state.metas.push(
       {
         name: "description",
@@ -218,14 +222,11 @@ export const handler = define.handlers({
         property: "og:description",
         content: bio.text,
       },
-      {
-        property: "og:url",
-        content: new URL(`/@${account.username}`, ctx.url),
-      },
+      { property: "og:url", content: permalink },
       { property: "og:type", content: "profile" },
       {
         property: "og:image",
-        content: new URL(`/@${account.username}/og`, ctx.url),
+        content: new URL(`/@${account.username}/og`, ctx.state.canonicalOrigin),
       },
       { property: "og:image:width", content: 1200 },
       { property: "og:image:height", content: 630 },
@@ -233,10 +234,7 @@ export const handler = define.handlers({
     );
     const actorUri = ctx.state.fedCtx.getActorUri(account.id);
     ctx.state.links.push(
-      {
-        rel: "canonical",
-        href: new URL(`/@${account.username}`, ctx.url),
-      },
+      { rel: "canonical", href: permalink },
       {
         rel: "alternate",
         type: "application/activity+json",

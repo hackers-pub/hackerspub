@@ -55,16 +55,48 @@ export const handler = define.handlers({
       vocab.Article,
       { id: article.id },
     );
+    const content = await renderMarkup(
+      db,
+      ctx.state.fedCtx,
+      article.id,
+      article.content,
+    );
     ctx.state.links.push(
-      {
-        rel: "canonical",
-        href: permalink,
-      },
+      { rel: "canonical", href: permalink },
       {
         rel: "alternate",
         type: "application/activity+json",
         href: articleUri,
       },
+    );
+    const description = content.text; // FIXME: Summarize content
+    ctx.state.metas.push(
+      { name: "description", content: description },
+      { name: "og:title", content: article.title },
+      { name: "og:description", content: description },
+      { name: "og:url", content: permalink },
+      { name: "og:type", content: "article" },
+      { name: "og:locale", content: article.language },
+      {
+        property: "og:image",
+        content: new URL(
+          `/@${article.account.username}/${article.publishedYear}/${article.slug}/og`,
+          ctx.state.canonicalOrigin,
+        ),
+      },
+      { property: "og:image:width", content: 1200 },
+      { property: "og:image:height", content: 630 },
+      {
+        name: "article:published_time",
+        content: article.published.toISOString(),
+      },
+      {
+        name: "article:modified_time",
+        content: article.updated.toISOString(),
+      },
+      { name: "article:author", content: article.account.name },
+      { name: "article:author.username", content: article.account.username },
+      ...article.tags.map((tag) => ({ name: "article:tag", content: tag })),
     );
     const comments = await db.query.postTable.findMany({
       with: {
@@ -84,9 +116,7 @@ export const handler = define.handlers({
       articleIri: articleUri.href,
       comments,
       avatarUrl: await getAvatarUrl(article.account),
-      contentHtml:
-        (await renderMarkup(db, ctx.state.fedCtx, article.id, article.content))
-          .html,
+      contentHtml: content.html,
     }, {
       headers: {
         Link:

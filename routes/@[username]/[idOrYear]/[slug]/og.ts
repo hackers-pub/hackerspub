@@ -1,20 +1,33 @@
-import { eq } from "drizzle-orm";
 import { html } from "satori-html";
-import { db } from "../../db.ts";
-import { getAvatarUrl } from "../../models/account.ts";
-import { renderMarkup } from "../../models/markup.ts";
-import { accountTable } from "../../models/schema.ts";
-import { drawOgImage } from "../../og.ts";
-import { define } from "../../utils.ts";
+import { db } from "../../../../db.ts";
+import { getAvatarUrl } from "../../../../models/account.ts";
+import { getArticleSource } from "../../../../models/article.ts";
+import { renderMarkup } from "../../../../models/markup.ts";
+import { isPostVisibleTo } from "../../../../models/post.ts";
+import { drawOgImage } from "../../../../og.ts";
+import { define } from "../../../../utils.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
-    const account = await db.query.accountTable.findFirst({
-      with: { emails: true },
-      where: eq(accountTable.username, ctx.params.username),
-    });
-    if (account == null) return ctx.next();
-    const bio = await renderMarkup(db, ctx.state.fedCtx, null, account.bio);
+    if (!ctx.params.idOrYear.match(/^\d+$/)) return ctx.next();
+    const year = parseInt(ctx.params.idOrYear);
+    const article = await getArticleSource(
+      db,
+      ctx.params.username,
+      year,
+      ctx.params.slug,
+    );
+    if (article == null) return ctx.next();
+    if (!isPostVisibleTo(article.post, ctx.state.account?.actor)) {
+      return ctx.next();
+    }
+    const { account } = article;
+    const content = await renderMarkup(
+      db,
+      ctx.state.fedCtx,
+      null,
+      article.content,
+    );
     const png = await drawOgImage(
       html`
         <div style="
@@ -28,17 +41,17 @@ export const handler = define.handlers({
           ">
             <img src="${await getAvatarUrl(account)}" width="125" height="125">
             <div style="display: flex; flex-direction: column;">
-              <div style="font-size: 64px; margin-top: -20px;">
-                ${account.name}
+              <div style="font-size: 42px; margin-top: -12px; width: 1000px;">
+                ${article.title}
               </div>
-              <div style="font-size: 32px; color: gray;">
-                @${account.username}@${ctx.url.host}
+              <div style="font-size: 32px; margin-top: 25px; color: gray;">
+                ${account.name}
               </div>
               <div style="
                 width: 1000px; height: 355px; margin-top: 25px; font-size: 32px;
                 overflow: hidden; text-overflow: ellipsis;
               ">
-                ${bio.text}
+                ${content.text}
               </div>
             </div>
           </div>
