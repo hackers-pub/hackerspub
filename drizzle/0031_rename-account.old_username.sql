@@ -1,0 +1,1 @@
+ALTER TABLE "account" RENAME COLUMN "oldUsername" TO "old_username";
