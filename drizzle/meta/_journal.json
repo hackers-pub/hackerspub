@@ -225,6 +225,13 @@
       "when": 1740844957159,
       "tag": "0031_rename-account.old_username",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1740913594319,
+      "tag": "0032_og_image_key",
+      "breakpoints": true
     }
   ]
 }

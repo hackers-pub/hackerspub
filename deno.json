@@ -91,6 +91,7 @@
     "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
     "i18next": "npm:i18next@^24.0.5",
     "ioredis": "npm:ioredis@^5.4.1",
+    "json-canonicalize": "npm:json-canonicalize@^1.0.6",
     "katex": "npm:katex@^0.16.11",
     "keyv": "npm:keyv@^5.2.1",
     "keyv-file": "npm:keyv-file@^5.0.3",

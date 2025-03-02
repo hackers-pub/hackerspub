@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { html } from "satori-html";
 import { db } from "../../db.ts";
+import { drive } from "../../drive.ts";
 import { getAvatarUrl } from "../../models/account.ts";
 import { renderMarkup } from "../../models/markup.ts";
 import { accountTable } from "../../models/schema.ts";
@@ -14,8 +15,11 @@ export const handler = define.handlers({
       where: eq(accountTable.username, ctx.params.username),
     });
     if (account == null) return ctx.next();
+    const disk = drive.use();
     const bio = await renderMarkup(db, ctx.state.fedCtx, null, account.bio);
-    const png = await drawOgImage(
+    const ogImageKey = await drawOgImage(
+      disk,
+      account.ogImageKey,
       html`
         <div style="
           display: flex; flex-direction: column;
@@ -52,9 +56,11 @@ export const handler = define.handlers({
         </div>
       `,
     );
-    return new Response(
-      png,
-      { headers: { "Content-Type": "image/png" } },
-    );
+    if (ogImageKey !== account.ogImageKey) {
+      await db.update(accountTable)
+        .set({ ogImageKey })
+        .where(eq(accountTable.id, account.id));
+    }
+    return ctx.redirect(await disk.getUrl(ogImageKey));
   },
 });

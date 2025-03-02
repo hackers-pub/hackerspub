@@ -101,6 +101,7 @@
     "npm:i18next@^24.0.5": "24.2.2",
     "npm:ioredis@^5.4.1": "5.5.0",
     "npm:json-canon@^1.0.1": "1.0.1",
+    "npm:json-canonicalize@^1.0.6": "1.0.6",
     "npm:jsonld@^8.3.2": "8.3.3",
     "npm:katex@~0.16.11": "0.16.21",
     "npm:keyv-file@^5.0.3": "5.1.1",
@@ -3030,6 +3031,9 @@
     "json-canon@1.0.1": {
       "integrity": "sha512-PQcj4PFOTAQxE8PgoQ4KrM0DcKWZd7S3ELOON8rmysl9I8JuFMgxu1H9v+oZsTPjjkpeS3IHPwLjr7d+gKygnw=="
     },
+    "json-canonicalize@1.0.6": {
+      "integrity": "sha512-kP2iYpOS5SZHYhIaR1t9oG80d4uTY3jPoaBj+nimy3njtJk8+sRsVatN8pyJRDRtk9Su3+6XqA2U8k0dByJBUQ=="
+    },
     "jsonfile@4.0.0": {
       "integrity": "sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==",
       "dependencies": [
@@ -4266,6 +4270,7 @@
       "npm:flydrive@^1.1.0",
       "npm:i18next@^24.0.5",
       "npm:ioredis@^5.4.1",
+      "npm:json-canonicalize@^1.0.6",
       "npm:katex@~0.16.11",
       "npm:keyv-file@^5.0.3",
       "npm:keyv@^5.2.1",

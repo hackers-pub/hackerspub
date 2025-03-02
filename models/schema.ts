@@ -40,6 +40,7 @@ export const accountTable = pgTable(
     name: varchar({ length: 50 }).notNull(),
     bio: text().notNull(),
     avatarKey: text("avatar_key").unique(),
+    ogImageKey: text("og_image_key").unique(),
     moderator: boolean().notNull().default(false),
     updated: timestamp({ withTimezone: true })
       .notNull()
@@ -446,6 +447,7 @@ export const articleSourceTable = pgTable(
     content: text().notNull(),
     language: varchar().notNull(),
     tags: text().array().notNull().default(sql`(ARRAY[]::text[])`),
+    ogImageKey: text("og_image_key").unique(),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),

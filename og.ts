@@ -1,5 +1,8 @@
 import { initWasm, Resvg } from "@resvg/resvg-wasm";
+import { encodeHex } from "@std/encoding/hex";
 import { join } from "@std/path";
+import type { Disk } from "flydrive";
+import { canonicalize } from "json-canonicalize";
 import satori from "satori";
 
 await initWasm(
@@ -71,9 +74,19 @@ const FONTS: FontOptions[] = [
 ];
 
 export async function drawOgImage(
+  disk: Disk,
+  existingKey: string | null | undefined,
   html: Parameters<typeof satori>[0],
   size: { width: number; height: number } = { width: 1200, height: 630 },
-): Promise<Uint8Array> {
+): Promise<string> {
+  const input = canonicalize({ html, size });
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(input),
+  );
+  const key = `og/${encodeHex(digest)}.png`;
+  if (existingKey === key) return key;
+  if (existingKey != null) await disk.delete(existingKey);
   const svg = await satori(html, { ...size, fonts: FONTS });
   const resvg = new Resvg(svg, {
     fitTo: {
@@ -82,5 +95,6 @@ export async function drawOgImage(
     },
   });
   const renderedImage = resvg.render();
-  return renderedImage.asPng();
+  await disk.put(key, renderedImage.asPng());
+  return key;
 }

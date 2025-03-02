@@ -1,9 +1,12 @@
+import { eq } from "drizzle-orm/expressions";
 import { html } from "satori-html";
 import { db } from "../../../../db.ts";
+import { drive } from "../../../../drive.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
 import { renderMarkup } from "../../../../models/markup.ts";
 import { isPostVisibleTo } from "../../../../models/post.ts";
+import { articleSourceTable } from "../../../../models/schema.ts";
 import { drawOgImage } from "../../../../og.ts";
 import { define } from "../../../../utils.ts";
 
@@ -22,13 +25,16 @@ export const handler = define.handlers({
       return ctx.next();
     }
     const { account } = article;
+    const disk = drive.use();
     const content = await renderMarkup(
       db,
       ctx.state.fedCtx,
       null,
       article.content,
     );
-    const png = await drawOgImage(
+    const ogImageKey = await drawOgImage(
+      disk,
+      article.ogImageKey,
       html`
         <div style="
           display: flex; flex-direction: column;
@@ -65,9 +71,11 @@ export const handler = define.handlers({
         </div>
       `,
     );
-    return new Response(
-      png,
-      { headers: { "Content-Type": "image/png" } },
-    );
+    if (ogImageKey !== article.ogImageKey) {
+      await db.update(articleSourceTable)
+        .set({ ogImageKey })
+        .where(eq(articleSourceTable.id, article.id));
+    }
+    return ctx.redirect(await disk.getUrl(ogImageKey));
   },
 });
