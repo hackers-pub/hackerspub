@@ -195,10 +195,11 @@ export async function updateAccountLinks(
     ),
   ]);
   const data = zip(links, metadata, verifies).map(([link, meta, verified]) => ({
+    ...link,
     ...meta,
     name: link.name,
     verified,
-  }));
+  })).filter((link) => link.url != null);
   await db.delete(accountLinkTable)
     .where(eq(accountLinkTable.accountId, accountId));
   if (data.length < 1) return [];
