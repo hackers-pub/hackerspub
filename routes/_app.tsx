@@ -114,6 +114,7 @@ export default async function App(
                         <a href={`/@${account.username}/settings`}>
                           <Msg $key="nav.settings" />
                         </a>
+                        {account.moderator && <a href="/admin">Admin</a>}
                         <form
                           method="post"
                           action="/sign/out"
