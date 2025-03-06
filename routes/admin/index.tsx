@@ -1,4 +1,5 @@
 import { page } from "fresh";
+import { AdminNav } from "../../components/AdminNav.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { Timestamp } from "../../islands/Timestamp.tsx";
@@ -32,6 +33,7 @@ export default define.page<typeof handler, AccountListProps>(
   function AccountList({ state: { language }, data: { accounts, avatars } }) {
     return (
       <div>
+        <AdminNav active="accounts" />
         <PageTitle>Accounts</PageTitle>
         <table class="table table-auto border-collapse border border-stone-500 w-full">
           <thead>
