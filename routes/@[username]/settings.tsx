@@ -231,7 +231,7 @@ function ProfileSettingsForm(
           encType="multipart/form-data"
           class="mt-5 grid lg:grid-cols-2 gap-5"
         >
-          <div class="col-span-2 flex flex-row">
+          <div class="lg:col-span-2 flex flex-row">
             <img
               src={avatarUrl}
               width={128}

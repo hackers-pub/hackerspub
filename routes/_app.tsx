@@ -71,11 +71,11 @@ export default async function App(
             <nav class="m-auto max-w-screen-xl p-4 text-xl flex flex-row">
               <a
                 href="/"
-                class="basis-1/2 text-white dark:text-black font-bold"
+                class="basis-1/3 text-white dark:text-black font-bold"
               >
                 Hackers’ Pub
               </a>
-              <div class="group basis-1/2 text-right">
+              <div class="group basis-2/3 text-right">
                 {account == null
                   ? (
                     <a href="/sign">
@@ -85,15 +85,18 @@ export default async function App(
                   : (
                     <>
                       <div class="flex flex-row-reverse cursor-default">
-                        <img
-                          src={avatarUrl}
-                          width={28}
-                          height={28}
-                          class="grow-0 order-last mr-4"
-                        />
-                        <a href={`/@${account.username}`}>
-                          <strong>{account.name}</strong>
-                        </a>
+                        <div class="grow-0 order-last mr-4">
+                          <img
+                            src={avatarUrl}
+                            width={30}
+                            height={30}
+                          />
+                        </div>
+                        <div class="block truncate">
+                          <a href={`/@${account.username}`}>
+                            <strong>{account.name}</strong>
+                          </a>
+                        </div>
                       </div>
                       <div class="
                           hidden group-hover:flex
