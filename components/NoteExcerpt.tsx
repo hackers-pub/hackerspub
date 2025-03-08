@@ -1,6 +1,7 @@
 import { Link } from "../islands/Link.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
-import { renderCustomEmojis, sanitizeHtml } from "../models/markup.ts";
+import { renderCustomEmojis } from "../models/emoji.ts";
+import { sanitizeHtml } from "../models/markup.ts";
 import type { PostMedium, PostVisibility } from "../models/schema.ts";
 import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";

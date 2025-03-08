@@ -3,8 +3,10 @@ import { Button } from "../components/Button.tsx";
 import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import type { Language } from "../i18n.ts";
+import { renderCustomEmojis } from "../models/emoji.ts";
 import type { Account, Actor } from "../models/schema.ts";
 import type { Uuid } from "../models/uuid.ts";
+import { htmlXss } from "../models/xss.ts";
 import { Link } from "./Link.tsx";
 
 export interface RecommendedActorsProps {
@@ -67,7 +69,12 @@ export function RecommendedActors(
                     </div>
                     <div
                       class="mt-4 prose dark:prose-invert"
-                      dangerouslySetInnerHTML={{ __html: actor.bioHtml ?? "" }}
+                      dangerouslySetInnerHTML={{
+                        __html: renderCustomEmojis(
+                          htmlXss.process(actor.bioHtml ?? ""),
+                          actor.emojis,
+                        ),
+                      }}
                     />
                   </div>
                   <Button

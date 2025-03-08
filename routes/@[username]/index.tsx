@@ -15,15 +15,12 @@ import { POSSIBLE_LANGUAGES } from "../../i18n.ts";
 import { kv } from "../../kv.ts";
 import { getAccountByUsername, getAvatarUrl } from "../../models/account.ts";
 import { persistActor } from "../../models/actor.ts";
+import { renderCustomEmojis } from "../../models/emoji.ts";
 import {
   type FollowingState,
   getFollowingState,
 } from "../../models/following.ts";
-import {
-  htmlXss,
-  renderCustomEmojis,
-  renderMarkup,
-} from "../../models/markup.ts";
+import { renderMarkup } from "../../models/markup.ts";
 import { createNote } from "../../models/note.ts";
 import {
   type AccountLink,
@@ -34,6 +31,7 @@ import {
   type PostMedium,
   postTable,
 } from "../../models/schema.ts";
+import { htmlXss } from "../../models/xss.ts";
 import { compactUrl, define } from "../../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
