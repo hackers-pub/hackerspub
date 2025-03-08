@@ -463,7 +463,7 @@ export default define.page<typeof handler, ProfilePageProps>(
                   <span class="block after:content-[':']">{link.name}</span>
                 </dt>
                 <dd key={`dd-${link.index}`} class="mr-2">
-                  <a href={link.url}>
+                  <a href={link.url} rel="me">
                     {link.handle ?? compactUrl(link.url)}
                   </a>
                 </dd>
