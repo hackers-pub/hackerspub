@@ -1,6 +1,6 @@
 import { count, eq } from "drizzle-orm";
 import type { PageProps } from "fresh";
-import { Msg, TranslationSetup } from "../components/Msg.tsx";
+import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
 import { db } from "../db.ts";
 import { getAvatarUrl } from "../models/account.ts";
 import {
@@ -31,146 +31,170 @@ export default async function App(
   }
   return (
     <TranslationSetup language={state.language}>
-      <html lang={state.language}>
-        <head>
-          <meta charset="utf-8" />
-          <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0"
-          />
-          {state.metas.map((meta) => (
-            "property" in meta
-              ? (
-                <meta
-                  property={meta.property}
-                  content={meta.content.toString()}
-                />
-              )
-              : <meta name={meta.name} content={meta.content.toString()} />
-          ))}
-          <title>{state.title}</title>
-          <link rel="stylesheet" href="/styles.css" />
-          {state.links.map((link) => (
-            <link
-              rel={link.rel}
-              href={link.href.toString()}
-              hreflang={link.hreflang}
-              type={link.type}
-            />
-          ))}
-          {PLAUSIBLE && (
-            <script
-              defer
-              data-domain={url.host}
-              src="https://plausible.io/js/script.outbound-links.js"
-            />
-          )}
-        </head>
-        <body class="font-sans dark:bg-stone-900 dark:text-white">
-          <header class="h-[60px] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
-            <nav class="m-auto max-w-screen-xl p-4 text-xl flex flex-row">
-              <a
-                href="/"
-                class="basis-1/3 text-white dark:text-black font-bold"
-              >
-                Hackers’ Pub
-              </a>
-              <div class="group basis-2/3 text-right">
-                {account == null
+      <Translation>
+        {(t) => (
+          <html lang={state.language}>
+            <head>
+              <meta charset="utf-8" />
+              <meta
+                name="viewport"
+                content="width=device-width, initial-scale=1.0"
+              />
+              {state.metas.map((meta) => (
+                "property" in meta
                   ? (
-                    <a href="/sign">
-                      <Msg $key="nav.signInUp" />
-                    </a>
+                    <meta
+                      property={meta.property}
+                      content={meta.content.toString()}
+                    />
                   )
-                  : (
-                    <>
-                      <div class="flex flex-row-reverse cursor-default">
-                        <div class="grow-0 order-last mr-4">
-                          <img
-                            src={avatarUrl}
-                            width={30}
-                            height={30}
-                          />
-                        </div>
-                        <div class="block truncate">
-                          <a href={`/@${account.username}`}>
-                            <strong>{account.name}</strong>
-                          </a>
-                        </div>
-                      </div>
-                      <div class="
+                  : <meta name={meta.name} content={meta.content.toString()} />
+              ))}
+              <title>{state.title}</title>
+              <link rel="stylesheet" href="/styles.css" />
+              {state.links.map((link) => (
+                <link
+                  rel={link.rel}
+                  href={link.href.toString()}
+                  hreflang={link.hreflang}
+                  type={link.type}
+                />
+              ))}
+              {PLAUSIBLE && (
+                <script
+                  defer
+                  data-domain={url.host}
+                  src="https://plausible.io/js/script.outbound-links.js"
+                />
+              )}
+            </head>
+            <body class="font-sans dark:bg-stone-900 dark:text-white">
+              <header class="h-[60px] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
+                <nav class="m-auto max-w-screen-xl text-xl flex flex-row gap-4">
+                  <a
+                    href="/"
+                    class="basis-1/3 p-4 text-white dark:text-black font-bold"
+                  >
+                    Hackers’ Pub
+                  </a>
+                  <form
+                    method="get"
+                    action="/search"
+                    class="hidden lg:block lg:basis-1/3"
+                  >
+                    <input
+                      type="search"
+                      name="query"
+                      placeholder={t("nav.search")}
+                      value={state.searchQuery}
+                      class="w-full h-[calc(100%-2px)] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700 border-none text-center"
+                    />
+                  </form>
+                  <div class="group basis-2/3 lg:basis-1/3 p-4 text-right">
+                    {account == null
+                      ? (
+                        <a href="/sign">
+                          <Msg $key="nav.signInUp" />
+                        </a>
+                      )
+                      : (
+                        <>
+                          <div class="flex flex-row-reverse cursor-default">
+                            <div class="grow-0 order-last mr-4">
+                              <img
+                                src={avatarUrl}
+                                width={30}
+                                height={30}
+                              />
+                            </div>
+                            <div class="block truncate">
+                              <a href={`/@${account.username}`}>
+                                <strong>{account.name}</strong>
+                              </a>
+                            </div>
+                          </div>
+                          <div class="
                           hidden group-hover:flex
                           absolute right-[calc((100%-1280px)/2)]
                           max-w-screen-sm w-1/6 p-4 pt-8
                           bg-black dark:bg-stone-100
                           flex-col gap-4
                         ">
-                        <a href={`/@${account.username}/drafts/new`}>
-                          <Msg $key="nav.newArticle" />
-                        </a>
-                        {drafts > 0 && (
-                          <a href={`/@${account.username}/drafts`}>
-                            <Msg $key="nav.drafts" />{" "}
-                            <span class="opacity-50">({drafts})</span>
-                          </a>
-                        )}
-                        <a href={`/@${account.username}/settings`}>
-                          <Msg $key="nav.settings" />
-                        </a>
-                        {account.moderator && <a href="/admin">Admin</a>}
-                        <form
-                          method="post"
-                          action="/sign/out"
-                        >
-                          <input type="hidden" name="next" value={url.href} />
-                          <button type="submit">
-                            <Msg $key="nav.signOut" />
-                          </button>
-                        </form>
-                      </div>
-                    </>
-                  )}
-              </div>
-            </nav>
-          </header>
-          {state.withoutMain ? <Component /> : (
-            <>
-              <main class="m-auto max-w-screen-xl min-h-[calc(100vh_-_120px)] p-4">
-                <Component />
-              </main>
-              <footer class="left-0 w-full h-[60px] bg-stone-100 dark:bg-stone-800">
-                <nav class="m-auto max-w-screen-xl p-4 pb-5 text-stone-400">
-                  <a href="/coc" class="text-black dark:text-white underline">
-                    <Msg $key="nav.coc" />
-                  </a>{" "}
-                  &middot;{" "}
-                  <span class="text-black dark:text-white">
-                    <Msg
-                      $key="nav.openSource"
-                      repository={
-                        <a
-                          href="https://github.com/dahlia/hackerspub"
-                          class="underline"
-                        >
-                          <Msg $key="nav.githubRepository" />
-                        </a>
-                      }
-                      license={
-                        <a
-                          href="https://www.gnu.org/licenses/agpl-3.0.html"
-                          class="underline"
-                        >
-                          AGPL 3.0
-                        </a>
-                      }
-                    />
-                  </span>
+                            <a href={`/@${account.username}/drafts/new`}>
+                              <Msg $key="nav.newArticle" />
+                            </a>
+                            {drafts > 0 && (
+                              <a href={`/@${account.username}/drafts`}>
+                                <Msg $key="nav.drafts" />{" "}
+                                <span class="opacity-50">({drafts})</span>
+                              </a>
+                            )}
+                            <a href={`/@${account.username}/settings`}>
+                              <Msg $key="nav.settings" />
+                            </a>
+                            {account.moderator && <a href="/admin">Admin</a>}
+                            <form
+                              method="post"
+                              action="/sign/out"
+                            >
+                              <input
+                                type="hidden"
+                                name="next"
+                                value={url.href}
+                              />
+                              <button type="submit">
+                                <Msg $key="nav.signOut" />
+                              </button>
+                            </form>
+                          </div>
+                        </>
+                      )}
+                  </div>
                 </nav>
-              </footer>
-            </>
-          )}
-        </body>
-      </html>
+              </header>
+              {state.withoutMain ? <Component /> : (
+                <>
+                  <main class="m-auto max-w-screen-xl min-h-[calc(100vh_-_120px)] p-4">
+                    <Component />
+                  </main>
+                  <footer class="left-0 w-full h-[60px] bg-stone-100 dark:bg-stone-800">
+                    <nav class="m-auto max-w-screen-xl p-4 pb-5 text-stone-400">
+                      <a
+                        href="/coc"
+                        class="text-black dark:text-white underline"
+                      >
+                        <Msg $key="nav.coc" />
+                      </a>{" "}
+                      &middot;{" "}
+                      <span class="text-black dark:text-white">
+                        <Msg
+                          $key="nav.openSource"
+                          repository={
+                            <a
+                              href="https://github.com/dahlia/hackerspub"
+                              class="underline"
+                            >
+                              <Msg $key="nav.githubRepository" />
+                            </a>
+                          }
+                          license={
+                            <a
+                              href="https://www.gnu.org/licenses/agpl-3.0.html"
+                              class="underline"
+                            >
+                              AGPL 3.0
+                            </a>
+                          }
+                        />
+                      </span>
+                    </nav>
+                  </footer>
+                </>
+              )}
+            </body>
+          </html>
+        )}
+      </Translation>
     </TranslationSetup>
   );
 }

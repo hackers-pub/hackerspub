@@ -41,6 +41,7 @@ export interface State {
   metas: Meta[];
   links: Link[];
   withoutMain?: boolean;
+  searchQuery?: string;
 }
 
 export const define = createDefine<State>();

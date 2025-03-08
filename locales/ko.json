@@ -6,6 +6,7 @@
     }
   },
   "nav": {
+    "search": "검색",
     "signInUp": "$t(signInUp.title)",
     "newArticle": "새 게시물",
     "drafts": "임시 보관함",
@@ -155,5 +156,9 @@
   "postPagination": {
     "more": "게시물 더 보기",
     "end": "더 이상 게시물이 없습니다"
+  },
+  "search": {
+    "title": "검색 결과",
+    "noResults": "검색 결과가 없습니다"
   }
 }

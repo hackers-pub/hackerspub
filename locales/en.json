@@ -6,6 +6,7 @@
     }
   },
   "nav": {
+    "search": "Search",
     "signInUp": "$t(signInUp.title)",
     "newArticle": "New article",
     "drafts": "Drafts",
@@ -157,5 +158,9 @@
   "postPagination": {
     "more": "More posts",
     "end": "There are no more posts"
+  },
+  "search": {
+    "title": "Search results",
+    "noResults": "No results found"
   }
 }

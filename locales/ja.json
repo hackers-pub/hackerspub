@@ -6,6 +6,7 @@
     }
   },
   "nav": {
+    "search": "検索",
     "signInUp": "$t(signInUp.title)",
     "newArticle": "新規記事",
     "drafts": "下書き",
@@ -155,5 +156,9 @@
   "postPagination": {
     "more": "投稿をもっと見る",
     "end": "これ以上投稿はありません"
+  },
+  "search": {
+    "title": "検索結果",
+    "noResults": "検索結果がありません"
   }
 }

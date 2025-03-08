@@ -1,4 +1,3 @@
-import { AsyncLocalStorage } from "node:async_hooks";
 import {
   ansiColorFormatter,
   configure,
@@ -6,6 +5,7 @@ import {
   withFilter,
 } from "@logtape/logtape";
 import { getSentrySink } from "@logtape/sentry";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { client } from "./sentry.ts";
 
 await configure({

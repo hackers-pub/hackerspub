@@ -1,7 +1,7 @@
 import { acceptsLanguages } from "@std/http/negotiation";
 import { and, desc, eq, inArray, lte, ne, or, sql } from "drizzle-orm";
 import { page } from "fresh";
-import { Msg, Translation } from "../components/Msg.tsx";
+import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
 import { PostPagination } from "../components/PostPagination.tsx";
@@ -171,36 +171,32 @@ export default define.page<typeof handler, HomeProps>(
       ? `?until=${+data.next}`
       : `?until=${+data.next}&window=${data.window}`;
     return (
-      <Translation>
-        {(_, lang) => (
-          <>
-            {data.composer && (
-              <Composer
-                language={lang}
-                postUrl={`/@${state.account!.username}`}
-                onPost="reload"
-              />
-            )}
-            {data.intro &&
-              (
-                <article>
-                  <PageTitle>
-                    <Msg $key="home.intro.title" />
-                  </PageTitle>
-                  <div class="prose prose-h2:text-xl dark:prose-invert">
-                    <p>
-                      <Msg $key="home.intro.content" />
-                    </p>
-                  </div>
-                </article>
-              )}
-            {data.timeline.map((post) => (
-              <PostExcerpt post={post} signedAccount={state.account} />
-            ))}
-            <PostPagination nextHref={nextHref} />
-          </>
+      <>
+        {data.composer && (
+          <Composer
+            language={state.language}
+            postUrl={`/@${state.account!.username}`}
+            onPost="reload"
+          />
         )}
-      </Translation>
+        {data.intro &&
+          (
+            <article>
+              <PageTitle>
+                <Msg $key="home.intro.title" />
+              </PageTitle>
+              <div class="prose prose-h2:text-xl dark:prose-invert">
+                <p>
+                  <Msg $key="home.intro.content" />
+                </p>
+              </div>
+            </article>
+          )}
+        {data.timeline.map((post) => (
+          <PostExcerpt post={post} signedAccount={state.account} />
+        ))}
+        <PostPagination nextHref={nextHref} />
+      </>
     );
   },
 );

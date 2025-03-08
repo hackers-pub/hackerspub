@@ -176,6 +176,7 @@ export const handler = define.handlers({
         limit: window + 1,
       });
       ctx.state.title = name;
+      ctx.state.searchQuery = `@${actor.username}@${actor.instanceHost}`;
       const next = posts.length > window ? posts[window].published : undefined;
       return page<ProfilePageProps>({
         handle,
@@ -242,6 +243,7 @@ export const handler = define.handlers({
       },
     );
     ctx.state.title = account.name;
+    ctx.state.searchQuery = `@${account.username}`;
     const posts = await db.query.postTable.findMany({
       with: {
         actor: true,
