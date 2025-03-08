@@ -170,32 +170,29 @@ export function Composer(props: ComposerProps) {
           onDrop={onDrop}
           aria-label={t("composer.content")}
         />
-        <div class="flex">
-          <Button disabled={submitting}>
-            <Msg $key="composer.post" />
-          </Button>
-          <div class="ml-auto flex gap-2">
-            <select
-              name="visibility"
-              class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
-              aria-label={t("composer.visibility")}
-            >
-              <option value="public">
-                <Msg $key="postVisibility.public" />
-              </option>
-              <option value="unlisted">
-                <Msg $key="postVisibility.unlisted" />
-              </option>
-              <option value="followers">
-                <Msg $key="postVisibility.followers" />
-              </option>
-              <option value="direct">
-                <Msg $key="postVisibility.direct" />
-              </option>
-            </select>
+        <div class="flex flex-col lg:flex-row gap-2">
+          <select
+            name="visibility"
+            class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
+            aria-label={t("composer.visibility")}
+          >
+            <option value="public">
+              <Msg $key="postVisibility.public" />
+            </option>
+            <option value="unlisted">
+              <Msg $key="postVisibility.unlisted" />
+            </option>
+            <option value="followers">
+              <Msg $key="postVisibility.followers" />
+            </option>
+            <option value="direct">
+              <Msg $key="postVisibility.direct" />
+            </option>
+          </select>
+          <div class="lg:grow">
             <select
               name="language"
-              class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
+              class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2 w-full lg:w-auto"
               aria-label={t("composer.language")}
               onSelect={() => setContentLanguageManually(true)}
             >
@@ -222,6 +219,11 @@ export function Composer(props: ComposerProps) {
                   );
                 })}
             </select>
+          </div>
+          <div>
+            <Button disabled={submitting} class="w-full lg:w-auto">
+              <Msg $key="composer.post" />
+            </Button>
           </div>
         </div>
         {media.length > 0 && (

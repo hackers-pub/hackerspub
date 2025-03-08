@@ -73,7 +73,7 @@ export default async function App(
                 <nav class="m-auto max-w-screen-xl text-xl flex flex-row gap-4">
                   <a
                     href="/"
-                    class="basis-1/3 p-4 text-white dark:text-black font-bold"
+                    class="grow-0 lg:basis-1/3 p-4 text-white dark:text-black font-bold"
                   >
                     Hackers’ Pub
                   </a>
@@ -90,7 +90,7 @@ export default async function App(
                       class="w-full h-[calc(100%-2px)] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700 border-none text-center"
                     />
                   </form>
-                  <div class="group basis-2/3 lg:basis-1/3 p-4 text-right">
+                  <div class="group grow lg:basis-1/3 p-4 text-right">
                     {account == null
                       ? (
                         <a href="/sign">
