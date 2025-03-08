@@ -43,12 +43,12 @@ export async function getArticle(
     to: PUBLIC_COLLECTION,
     cc: ctx.getFollowersUri(articleSource.accountId),
     names: [
-      new LanguageString(articleSource.title, articleSource.language),
       articleSource.title,
+      new LanguageString(articleSource.title, articleSource.language),
     ],
     contents: [
-      new LanguageString(rendered.html, articleSource.language),
       rendered.html,
+      new LanguageString(rendered.html, articleSource.language),
     ],
     source: new vocab.Source({
       content: articleSource.content,
@@ -146,8 +146,8 @@ export async function getNote(
     ),
     replyTarget: replyTargetId,
     contents: [
-      new LanguageString(rendered.html, note.language),
       rendered.html,
+      new LanguageString(rendered.html, note.language),
     ],
     source: new vocab.Source({
       content: note.content,
