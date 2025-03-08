@@ -84,7 +84,9 @@
     "followeesCount": "{{count}} following",
     "followersCount_one": "1 follower",
     "followersCount_other": "{{count}} followers",
+    "followsYou": "Follows you",
     "follow": "Follow",
+    "followBack": "Follow back",
     "unfollow": "Unfollow",
     "cancelRequest": "Cancel request"
   },

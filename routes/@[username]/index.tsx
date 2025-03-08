@@ -410,6 +410,12 @@ export default define.page<typeof handler, ProfilePageProps>(
                     $key="profile.followersCount"
                     count={data.followersCount}
                   />
+                  {data.followedState === "following" &&
+                    (
+                      <>
+                        {" "}&middot; <Msg $key="profile.followsYou" />
+                      </>
+                    )}
                 </>
               ),
             }}
@@ -420,7 +426,9 @@ export default define.page<typeof handler, ProfilePageProps>(
             ? (
               <form method="post" action={data.followUrl}>
                 <Button class="ml-4 mt-2 h-9">
-                  <Msg $key="profile.follow" />
+                  {data.followedState === "following"
+                    ? <Msg $key="profile.followBack" />
+                    : <Msg $key="profile.follow" />}
                 </Button>
               </form>
             )

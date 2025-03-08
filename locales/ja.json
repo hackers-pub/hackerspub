@@ -83,7 +83,9 @@
   "profile": {
     "followeesCount": "{{count}}フォロー",
     "followersCount": "{{count}}フォロワー",
+    "followsYou": "フォローされています",
     "follow": "フォロー",
+    "followBack": "相互フォロー",
     "unfollow": "フォロー解除",
     "cancelRequest": "リクエストをキャンセル"
   },
