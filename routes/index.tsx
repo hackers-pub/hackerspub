@@ -1,3 +1,4 @@
+import { getLogger } from "@logtape/logtape";
 import { acceptsLanguages } from "@std/http/negotiation";
 import { and, desc, eq, inArray, lte, ne, or, sql } from "drizzle-orm";
 import { page } from "fresh";
@@ -7,7 +8,10 @@ import { PostExcerpt } from "../components/PostExcerpt.tsx";
 import { PostPagination } from "../components/PostPagination.tsx";
 import { db } from "../db.ts";
 import { Composer } from "../islands/Composer.tsx";
+import { RecommendedActors } from "../islands/RecommendedActors.tsx";
+import { recommendActors } from "../models/actor.ts";
 import {
+  type Account,
   type Actor,
   followingTable,
   mentionTable,
@@ -16,6 +20,8 @@ import {
   postTable,
 } from "../models/schema.ts";
 import { define } from "../utils.ts";
+
+const logger = getLogger(["hackerspub", "routes", "index"]);
 
 const DEFAULT_WINDOW = 50;
 
@@ -43,12 +49,13 @@ export const handler = define.handlers({
       media: PostMedium[];
       shares: Post[];
     })[];
+    const languages = new Set<string>(
+      acceptsLanguages(ctx.req)
+        .filter((lang) => lang !== "*")
+        .map((lang) => lang.replace(/-.*$/, "")),
+    );
+    logger.debug("Accepted languages: {languages}", { languages });
     if (ctx.state.account == null) {
-      const languages = new Set<string>(
-        acceptsLanguages(ctx.req)
-          .filter((lang) => lang !== "*")
-          .map((lang) => lang.replace(/-.*$/, "")),
-      );
       timeline = await db.query.postTable.findMany({
         with: {
           actor: true,
@@ -132,12 +139,23 @@ export const handler = define.handlers({
       next = timeline[window].published;
       timeline = timeline.slice(0, window);
     }
+    const recommendedActors = next == null
+      ? await recommendActors(db, {
+        languages: [...languages],
+        account: ctx.state.account,
+        limit: 50,
+      })
+      : [];
+    logger.debug("Recommended actors: {recommendedActors}", {
+      recommendedActors,
+    });
     return page<HomeProps>({
       intro: ctx.state.account == null || timeline.length < 1,
       composer: ctx.state.account != null,
       timeline,
       next,
       window,
+      recommendedActors,
     });
   },
 });
@@ -161,6 +179,7 @@ interface HomeProps {
   })[];
   next?: Date;
   window: number;
+  recommendedActors: (Actor & { account?: Account | null })[];
 }
 
 export default define.page<typeof handler, HomeProps>(
@@ -196,6 +215,13 @@ export default define.page<typeof handler, HomeProps>(
           <PostExcerpt post={post} signedAccount={state.account} />
         ))}
         <PostPagination nextHref={nextHref} />
+        {data.recommendedActors.length > 0 && (
+          <RecommendedActors
+            language={state.language}
+            actors={data.recommendedActors}
+            window={6}
+          />
+        )}
       </>
     );
   },

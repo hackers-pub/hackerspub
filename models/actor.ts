@@ -10,7 +10,17 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { and, eq, or, type SQL, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  notInArray,
+  or,
+  type SQL,
+  sql,
+  sum,
+} from "drizzle-orm";
 import type Keyv from "keyv";
 import type { Database } from "../db.ts";
 import metadata from "../deno.json" with { type: "json" };
@@ -27,10 +37,12 @@ import {
   type AccountLink,
   type Actor,
   actorTable,
+  followingTable,
   type Instance,
   instanceTable,
   type NewActor,
   type NewInstance,
+  postTable,
 } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 
@@ -313,4 +325,59 @@ export function toRecipient(actor: Actor): vocab.Recipient {
       sharedInbox: new URL(actor.sharedInboxUrl),
     },
   };
+}
+
+export interface RecommendActorsOptions {
+  languages?: string[];
+  account?: Account & { actor: Actor };
+  limit?: number;
+}
+
+export function recommendActors(
+  db: Database,
+  { languages, account, limit }: RecommendActorsOptions = {},
+): Promise<(Actor & { account?: Account | null })[]> {
+  if (languages != null) {
+    languages = languages.map((lang) => lang.replace(/-.*$/, ""));
+  }
+  const subquery = db.select({ actorId: postTable.actorId })
+    .from(postTable)
+    .innerJoin(actorTable, eq(postTable.actorId, actorTable.id))
+    .where(
+      and(
+        languages == null || languages.length < 1
+          ? undefined
+          : inArray(postTable.language, languages),
+        account == null ? undefined : notInArray(
+          postTable.actorId,
+          db.select({ followeeId: followingTable.followeeId }).from(
+            followingTable,
+          ).where(eq(followingTable.followerId, account.actor.id)),
+        ),
+      ),
+    )
+    .groupBy(postTable.actorId)
+    .orderBy(
+      desc(
+        sum(
+          sql`(
+            ${postTable.likesCount} +
+            ${postTable.repliesCount} +
+            ${postTable.sharesCount} +
+            ${actorTable.followersCount}
+          ) * CASE ${actorTable.accountId}
+            WHEN NULL THEN 5
+            ELSE 1
+          END`,
+        ),
+      ),
+    );
+  return db.query.actorTable.findMany({
+    with: { account: true },
+    where: inArray(
+      actorTable.id,
+      limit == null ? subquery : subquery.limit(limit),
+    ),
+    limit,
+  });
 }

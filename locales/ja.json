@@ -160,5 +160,11 @@
   "search": {
     "title": "検索結果",
     "noResults": "検索結果がありません"
+  },
+  "recommendedActors": {
+    "title": "フォローのおすすめ",
+    "description": "あなたが興味を持つかもしれないハッカーです。",
+    "follow": "$t(profile.follow)",
+    "following": "フォロー中…"
   }
 }

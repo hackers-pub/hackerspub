@@ -160,5 +160,11 @@
   "search": {
     "title": "검색 결과",
     "noResults": "검색 결과가 없습니다"
+  },
+  "recommendedActors": {
+    "title": "팔로 추천",
+    "description": "관심 있으실 만한 해커들입니다.",
+    "follow": "$t(profile.follow)",
+    "following": "팔로 중…"
   }
 }

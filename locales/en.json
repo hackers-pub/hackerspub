@@ -162,5 +162,11 @@
   "search": {
     "title": "Search results",
     "noResults": "No results found"
+  },
+  "recommendedActors": {
+    "title": "Who to follow",
+    "description": "Here are some hackers you might be interested in.",
+    "follow": "$t(profile.follow)",
+    "following": "Following…"
   }
 }
