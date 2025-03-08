@@ -88,7 +88,13 @@
     "follow": "Follow",
     "followBack": "Follow back",
     "unfollow": "Unfollow",
-    "cancelRequest": "Cancel request"
+    "cancelRequest": "Cancel request",
+    "followerList": {
+      "title": "{{name}}'s followers"
+    },
+    "followeeList": {
+      "title": "{{name}} is following"
+    }
   },
   "articleDrafts": {
     "title": "Article drafts",

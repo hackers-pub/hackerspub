@@ -87,7 +87,13 @@
     "follow": "팔로",
     "followBack": "맞팔로",
     "unfollow": "언팔로",
-    "cancelRequest": "요청 취소"
+    "cancelRequest": "요청 취소",
+    "followerList": {
+      "title": "{{name}} 님의 팔로워"
+    },
+    "followeeList": {
+      "title": "{{name}} 님의 팔로잉"
+    }
   },
   "articleDrafts": {
     "title": "게시물 임시 보관함",

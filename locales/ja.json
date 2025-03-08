@@ -87,7 +87,13 @@
     "follow": "フォロー",
     "followBack": "相互フォロー",
     "unfollow": "フォロー解除",
-    "cancelRequest": "リクエストをキャンセル"
+    "cancelRequest": "リクエストをキャンセル",
+    "followerList": {
+      "title": "{{name}}さんのフォロワー"
+    },
+    "followeeList": {
+      "title": "{{name}}さんのフォロー"
+    }
   },
   "articleDrafts": {
     "title": "下書き",
