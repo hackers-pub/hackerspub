@@ -139,8 +139,13 @@ export const handler = define.handlers({
       next = timeline[window].published;
       timeline = timeline.slice(0, window);
     }
+    const acceptedLanguages = acceptsLanguages(ctx.req);
     const recommendedActors = next == null
       ? await recommendActors(db, {
+        mainLanguage:
+          acceptedLanguages.length > 0 && acceptedLanguages[0] !== "*"
+            ? acceptedLanguages[0]
+            : undefined,
         languages: [...languages],
         account: ctx.state.account,
         limit: 50,

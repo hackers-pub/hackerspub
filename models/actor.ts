@@ -19,7 +19,6 @@ import {
   or,
   type SQL,
   sql,
-  sum,
 } from "drizzle-orm";
 import type Keyv from "keyv";
 import type { Database } from "../db.ts";
@@ -328,15 +327,19 @@ export function toRecipient(actor: Actor): vocab.Recipient {
 }
 
 export interface RecommendActorsOptions {
+  mainLanguage?: string;
   languages?: string[];
   account?: Account & { actor: Actor };
   limit?: number;
 }
 
-export function recommendActors(
+export async function recommendActors(
   db: Database,
-  { languages, account, limit }: RecommendActorsOptions = {},
+  { mainLanguage, languages, account, limit }: RecommendActorsOptions = {},
 ): Promise<(Actor & { account?: Account | null })[]> {
+  if (mainLanguage != null) {
+    mainLanguage = mainLanguage.replace(/-.*$/, "");
+  }
   if (languages != null) {
     languages = languages.map((lang) => lang.replace(/-.*$/, ""));
   }
@@ -345,6 +348,7 @@ export function recommendActors(
     .innerJoin(actorTable, eq(postTable.actorId, actorTable.id))
     .where(
       and(
+        eq(actorTable.type, "Person"),
         languages == null || languages.length < 1
           ? undefined
           : inArray(postTable.language, languages),
@@ -356,28 +360,47 @@ export function recommendActors(
         ),
       ),
     )
-    .groupBy(postTable.actorId)
+    .groupBy(postTable.actorId, actorTable.accountId, actorTable.followersCount)
     .orderBy(
       desc(
-        sum(
-          sql`(
-            ${postTable.likesCount} +
-            ${postTable.repliesCount} +
-            ${postTable.sharesCount} +
-            ${actorTable.followersCount}
-          ) * CASE ${actorTable.accountId}
-            WHEN NULL THEN 5
-            ELSE 1
-          END`,
-        ),
+        sql`
+          (
+            sum(
+              ${postTable.likesCount} / (${postTable.likesCount} + 15.0) +
+              ${postTable.repliesCount} / (${postTable.repliesCount} + 5.0) +
+              ${postTable.sharesCount} / (${postTable.sharesCount} + 10.0)
+            ) / (
+              sum(
+                ${postTable.likesCount} / (${postTable.likesCount} + 15.0) +
+                ${postTable.repliesCount} / (${postTable.repliesCount} + 5.0) +
+                ${postTable.sharesCount} / (${postTable.sharesCount} + 10.0)
+              ) + 100
+            )
+          ) +
+          (
+            sum(CASE
+              WHEN ${postTable.language} = ${mainLanguage ?? null} THEN 1
+              ELSE 0
+            END) /
+            (sum(CASE
+              WHEN ${postTable.language} = ${mainLanguage ?? null} THEN 1
+              ELSE 0
+            END) + 15.0)
+          ) * 10 +
+          ${actorTable.followersCount} / (${actorTable.followersCount} + 50.0) +
+          CASE WHEN ${actorTable.accountId} IS NULL THEN 0 ELSE 1 END
+          `,
       ),
     );
-  return db.query.actorTable.findMany({
+  const actorIds =
+    (limit == null ? await subquery : await subquery.limit(limit))
+      .map(({ actorId }) => actorId);
+  if (actorIds.length < 1) return [];
+  const actors = await db.query.actorTable.findMany({
     with: { account: true },
-    where: inArray(
-      actorTable.id,
-      limit == null ? subquery : subquery.limit(limit),
-    ),
+    where: inArray(actorTable.id, actorIds),
     limit,
   });
+  actors.sort((a, b) => actorIds.indexOf(a.id) - actorIds.indexOf(b.id));
+  return actors;
 }
