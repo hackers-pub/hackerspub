@@ -15,6 +15,7 @@ import {
   desc,
   eq,
   inArray,
+  ne,
   notInArray,
   or,
   type SQL,
@@ -352,11 +353,14 @@ export async function recommendActors(
         languages == null || languages.length < 1
           ? undefined
           : inArray(postTable.language, languages),
-        account == null ? undefined : notInArray(
-          postTable.actorId,
-          db.select({ followeeId: followingTable.followeeId }).from(
-            followingTable,
-          ).where(eq(followingTable.followerId, account.actor.id)),
+        account == null ? undefined : and(
+          ne(actorTable.accountId, account.id),
+          notInArray(
+            postTable.actorId,
+            db.select({ followeeId: followingTable.followeeId }).from(
+              followingTable,
+            ).where(eq(followingTable.followerId, account.actor.id)),
+          ),
         ),
       ),
     )
