@@ -120,12 +120,14 @@ export const handler = define.handlers({
         return ctx.redirect(actor.url ?? actor.iri);
       }
       const handle = `@${actor.username}@${actor.instanceHost}`;
-      const followingState = ctx.state.account == null
-        ? undefined
-        : await getFollowingState(db, ctx.state.account.actor, actor);
-      const followedState = ctx.state.account == null
-        ? undefined
-        : await getFollowingState(db, actor, ctx.state.account.actor);
+      const followingState =
+        ctx.state.account == null || ctx.state.account.actor.id === actor.id
+          ? undefined
+          : await getFollowingState(db, ctx.state.account.actor, actor);
+      const followedState =
+        ctx.state.account == null || ctx.state.account.actor.id === actor.id
+          ? undefined
+          : await getFollowingState(db, actor, ctx.state.account.actor);
       const posts = await db.query.postTable.findMany({
         with: {
           actor: true,
@@ -251,12 +253,14 @@ export const handler = define.handlers({
       orderBy: desc(postTable.published),
       limit: window + 1,
     });
-    const followingState = ctx.state.account == null
-      ? undefined
-      : await getFollowingState(db, ctx.state.account.actor, account.actor);
-    const followedState = ctx.state.account == null
-      ? undefined
-      : await getFollowingState(db, account.actor, ctx.state.account.actor);
+    const followingState =
+      ctx.state.account == null || ctx.state.account.id === account.id
+        ? undefined
+        : await getFollowingState(db, ctx.state.account.actor, account.actor);
+    const followedState =
+      ctx.state.account == null || ctx.state.account.id === account.id
+        ? undefined
+        : await getFollowingState(db, account.actor, ctx.state.account.actor);
     const next = posts.length > window ? posts[window].published : undefined;
     return page<ProfilePageProps>({
       profileHref: permalink.href,

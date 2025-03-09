@@ -64,12 +64,14 @@ export const handler = define.handlers({
       actor = acct.actor;
       links = acct.links;
     }
-    const followingState = ctx.state.account == null
-      ? undefined
-      : await getFollowingState(db, ctx.state.account.actor, actor);
-    const followedState = ctx.state.account == null
-      ? undefined
-      : await getFollowingState(db, actor, ctx.state.account.actor);
+    const followingState =
+      ctx.state.account == null || ctx.state.account.actor.id === actor.id
+        ? undefined
+        : await getFollowingState(db, ctx.state.account.actor, actor);
+    const followedState =
+      ctx.state.account == null || ctx.state.account.actor.id === actor.id
+        ? undefined
+        : await getFollowingState(db, actor, ctx.state.account.actor);
     const stats = await getActorStats(db, actor.id);
     const posts = await db.query.postTable.findMany({
       with: {
