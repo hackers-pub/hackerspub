@@ -16,6 +16,7 @@ import {
   desc,
   eq,
   inArray,
+  isNull,
   ne,
   notInArray,
   or,
@@ -402,7 +403,10 @@ export async function recommendActors(
           ? undefined
           : inArray(postTable.language, languages),
         account == null ? undefined : and(
-          ne(actorTable.accountId, account.id),
+          or(
+            isNull(actorTable.accountId),
+            ne(actorTable.accountId, account.id),
+          ),
           notInArray(
             postTable.actorId,
             db.select({ followeeId: followingTable.followeeId }).from(
