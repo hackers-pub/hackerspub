@@ -1,3 +1,4 @@
+import { escape } from "@std/html/entities";
 import { Link } from "../islands/Link.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
 import { renderCustomEmojis } from "../models/emoji.ts";
@@ -20,6 +21,7 @@ export interface NoteExcerptProps {
   authorName: string;
   authorHandle: string;
   authorAvatarUrl: string;
+  authorEmojis: Record<string, string>;
   sharer?: {
     url: string;
     internalUrl?: string;
@@ -57,9 +59,15 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 href={props.authorUrl}
                 internalHref={props.authorInternalUrl}
               >
-                <strong class="text-black dark:text-white">
-                  {props.authorName}
-                </strong>{" "}
+                <strong
+                  class="text-black dark:text-white"
+                  dangerouslySetInnerHTML={{
+                    __html: renderCustomEmojis(
+                      escape(props.authorName),
+                      props.authorEmojis,
+                    ),
+                  }}
+                />{" "}
                 <span class="text-stone-500 dark:text-stone-400 select-all before:content-['('] after:content-[')']">
                   {props.authorHandle}
                 </span>

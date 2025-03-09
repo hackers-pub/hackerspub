@@ -91,6 +91,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                   authorName={post.actor.name ?? post.actor.username}
                   authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
                   authorAvatarUrl={getAvatarUrl(post.actor)}
+                  authorEmojis={post.actor.emojis}
                   sharer={sharer}
                   media={post.media}
                   published={post.published}

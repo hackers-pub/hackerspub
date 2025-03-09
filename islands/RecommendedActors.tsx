@@ -1,3 +1,4 @@
+import { escape } from "@std/html/entities";
 import { useState } from "preact/hooks";
 import { Button } from "../components/Button.tsx";
 import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
@@ -51,7 +52,16 @@ export function RecommendedActors(
                               : `/@${actor.username}`}
                             href={actor.url ?? actor.iri}
                           >
-                            {actor.name ?? actor.username}
+                            {actor.name == null ? actor.username : (
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: renderCustomEmojis(
+                                    escape(actor.name),
+                                    actor.emojis,
+                                  ),
+                                }}
+                              />
+                            )}
                           </Link>
                         </h2>
                         <p class="text-stone-500">

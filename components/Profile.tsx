@@ -1,3 +1,4 @@
+import { escape } from "@std/html/entities";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import type { FollowingState } from "../models/following.ts";
 import type { AccountLink, Actor } from "../models/schema.ts";
@@ -79,7 +80,13 @@ export function Profile(
             ),
           }}
         >
-          {actor.name ?? actor.username}
+          {actor.name == null ? actor.username : (
+            <span
+              dangerouslySetInnerHTML={{
+                __html: renderCustomEmojis(escape(actor.name), actor.emojis),
+              }}
+            />
+          )}
         </PageTitle>
         {followingState === "none"
           ? (

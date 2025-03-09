@@ -334,6 +334,7 @@ export default define.page<typeof handler, NotePageProps>(
             authorName={reply.actor.name ?? reply.actor.username}
             authorHandle={`@${reply.actor.username}@${reply.actor.instanceHost}`}
             authorAvatarUrl={getAvatarUrl(reply.actor)}
+            authorEmojis={reply.actor.emojis}
             media={reply.media}
             published={reply.published}
           />
