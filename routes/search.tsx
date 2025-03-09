@@ -111,13 +111,13 @@ async function searchUrl(
 export const handler = define.handlers({
   async GET(ctx) {
     const query = ctx.url.searchParams.get("query");
-    let redirect = await searchHandle(
+    let redirect = await searchUrl(ctx.state.fedCtx, ctx.state.account, query);
+    if (redirect != null) return ctx.redirect(redirect);
+    redirect = await searchHandle(
       ctx.state.fedCtx,
       ctx.state.account,
       query,
     );
-    if (redirect != null) return ctx.redirect(redirect);
-    redirect = await searchUrl(ctx.state.fedCtx, ctx.state.account, query);
     if (redirect != null) return ctx.redirect(redirect);
     const expr = query == null ? undefined : parseQuery(query);
     const posts = expr == null ? [] : await db.query.postTable.findMany({
