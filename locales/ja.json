@@ -93,7 +93,11 @@
     },
     "followeeList": {
       "title": "{{name}}さんのフォロー"
-    }
+    },
+    "total": "合計：{{total}}",
+    "notes": "ノート：{{notes}}",
+    "shares": "共有：{{shares}}",
+    "articles": "記事：{{articles}}"
   },
   "articleDrafts": {
     "title": "下書き",

@@ -94,7 +94,11 @@
     },
     "followeeList": {
       "title": "{{name}} is following"
-    }
+    },
+    "total": "Total: {{total}}",
+    "notes": "Notes: {{notes}}",
+    "shares": "Shares: {{shares}}",
+    "articles": "Articles: {{articles}}"
   },
   "articleDrafts": {
     "title": "Article drafts",

@@ -93,7 +93,11 @@
     },
     "followeeList": {
       "title": "{{name}} 님의 팔로잉"
-    }
+    },
+    "total": "총: {{total}}",
+    "notes": "노트: {{notes}}",
+    "shares": "공유: {{shares}}",
+    "articles": "게시물: {{articles}}"
   },
   "articleDrafts": {
     "title": "게시물 임시 보관함",

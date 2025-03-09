@@ -12,6 +12,7 @@ import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import {
   and,
+  count,
   desc,
   eq,
   inArray,
@@ -44,7 +45,7 @@ import {
   type NewInstance,
   postTable,
 } from "./schema.ts";
-import { generateUuidV7 } from "./uuid.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "actor"]);
 
@@ -325,6 +326,53 @@ export function toRecipient(actor: Actor): vocab.Recipient {
       sharedInbox: new URL(actor.sharedInboxUrl),
     },
   };
+}
+
+export interface ActorStats {
+  total: number;
+  notes: number;
+  shares: number;
+  articles: number;
+}
+
+export async function getActorStats(
+  db: Database,
+  actorId: Uuid,
+): Promise<ActorStats> {
+  const rows = await db.select({
+    total: count(),
+    notes: sql<number>`
+      coalesce(
+        sum(
+          CASE WHEN ${postTable.type} = 'Note' AND
+                    ${postTable.sharedPostId} IS NULL
+            THEN 1
+            ELSE 0
+          END
+        ),
+        0
+      )`,
+    shares: sql<number>`
+      coalesce(
+        sum(CASE WHEN ${postTable.sharedPostId} IS NULL THEN 0 ELSE 1 END),
+        0
+      )
+    `,
+    articles: sql<number>`
+      coalesce(
+        sum(
+          CASE WHEN ${postTable.type} = 'Article' AND
+                    ${postTable.sharedPostId} IS NULL
+            THEN 1
+            ELSE 0
+          END
+        ),
+        0
+      )
+    `,
+  }).from(postTable).where(eq(postTable.actorId, actorId));
+  if (rows.length < 1) return { total: 0, notes: 0, shares: 0, articles: 0 };
+  return rows[0];
 }
 
 export interface RecommendActorsOptions {

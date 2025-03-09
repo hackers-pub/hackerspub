@@ -4,18 +4,20 @@ import { getLogger } from "@logtape/logtape";
 import * as v from "@valibot/valibot";
 import { and, desc, eq, inArray, lte, sql } from "drizzle-orm";
 import { page } from "fresh";
-import { Button } from "../../components/Button.tsx";
-import { Msg } from "../../components/Msg.tsx";
-import { PageTitle } from "../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { PostPagination } from "../../components/PostPagination.tsx";
+import { Profile } from "../../components/Profile.tsx";
+import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
 import { drive } from "../../drive.ts";
 import { POSSIBLE_LANGUAGES } from "../../i18n.ts";
 import { kv } from "../../kv.ts";
-import { getAccountByUsername, getAvatarUrl } from "../../models/account.ts";
-import { persistActor } from "../../models/actor.ts";
-import { renderCustomEmojis } from "../../models/emoji.ts";
+import { getAccountByUsername } from "../../models/account.ts";
+import {
+  type ActorStats,
+  getActorStats,
+  persistActor,
+} from "../../models/actor.ts";
 import {
   type FollowingState,
   getFollowingState,
@@ -31,8 +33,7 @@ import {
   type PostMedium,
   postTable,
 } from "../../models/schema.ts";
-import { htmlXss } from "../../models/xss.ts";
-import { compactUrl, define } from "../../utils.ts";
+import { define } from "../../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
 
@@ -119,29 +120,12 @@ export const handler = define.handlers({
         return ctx.redirect(actor.url ?? actor.iri);
       }
       const handle = `@${actor.username}@${actor.instanceHost}`;
-      const name = actor.name ?? handle;
-      let followState: FollowStateProps;
-      if (ctx.state.account == null) {
-        followState = {
-          followedState: undefined,
-          followingState: undefined,
-        };
-      } else {
-        followState = {
-          followingState: await getFollowingState(
-            db,
-            ctx.state.account.actor,
-            actor,
-          ),
-          followedState: await getFollowingState(
-            db,
-            actor,
-            ctx.state.account.actor,
-          ),
-          followUrl: `/${handle}/follow`,
-          unfollowUrl: `/${handle}/unfollow`,
-        };
-      }
+      const followingState = ctx.state.account == null
+        ? undefined
+        : await getFollowingState(db, ctx.state.account.actor, actor);
+      const followedState = ctx.state.account == null
+        ? undefined
+        : await getFollowingState(db, actor, ctx.state.account.actor);
       const posts = await db.query.postTable.findMany({
         with: {
           actor: true,
@@ -173,24 +157,15 @@ export const handler = define.handlers({
         orderBy: desc(postTable.published),
         limit: window + 1,
       });
-      ctx.state.title = name;
+      ctx.state.title = actor.name ?? handle;
       ctx.state.searchQuery = handle;
       const next = posts.length > window ? posts[window].published : undefined;
       return page<ProfilePageProps>({
-        self: false,
-        remote: true,
-        permalink: `/${handle}`,
-        handle,
-        name,
-        avatarUrl: actor.avatarUrl ?? undefined,
-        followeesCount: actor.followeesCount,
-        followersCount: actor.followersCount,
-        bioHtml: renderCustomEmojis(
-          htmlXss.process(actor.bioHtml ?? ""),
-          actor.emojis,
-        ),
-        links: actor.fieldHtmls,
-        ...followState,
+        profileHref: `/${handle}`,
+        actor,
+        followingState,
+        followedState,
+        stats: await getActorStats(db, actor.id),
         posts: posts.slice(0, window),
         nextHref: next == null
           ? undefined
@@ -276,41 +251,20 @@ export const handler = define.handlers({
       orderBy: desc(postTable.published),
       limit: window + 1,
     });
-    let followState: FollowStateProps;
-    if (ctx.state.account == null || ctx.state.account.id === account.id) {
-      followState = {
-        followedState: undefined,
-        followingState: undefined,
-      };
-    } else {
-      followState = {
-        followingState: await getFollowingState(
-          db,
-          ctx.state.account.actor,
-          account.actor,
-        ),
-        followedState: await getFollowingState(
-          db,
-          account.actor,
-          ctx.state.account.actor,
-        ),
-        followUrl: `/@${account.username}/follow`,
-        unfollowUrl: `/@${account.username}/unfollow`,
-      };
-    }
+    const followingState = ctx.state.account == null
+      ? undefined
+      : await getFollowingState(db, ctx.state.account.actor, account.actor);
+    const followedState = ctx.state.account == null
+      ? undefined
+      : await getFollowingState(db, account.actor, ctx.state.account.actor);
     const next = posts.length > window ? posts[window].published : undefined;
     return page<ProfilePageProps>({
-      self: ctx.state.account?.id === account.id,
-      remote: false,
-      permalink: permalink.href,
-      handle: `@${account.username}@${ctx.url.host}`,
-      name: account.name,
-      avatarUrl: await getAvatarUrl(account),
-      followeesCount: account.actor.followeesCount,
-      followersCount: account.actor.followersCount,
-      bioHtml: bio.html,
+      profileHref: permalink.href,
+      actor: account.actor,
       links: account.links,
-      ...followState,
+      followingState,
+      followedState,
+      stats: await getActorStats(db, account.actor.id),
       posts: posts.slice(0, window),
       nextHref: next == null
         ? undefined
@@ -352,17 +306,13 @@ export const handler = define.handlers({
   },
 });
 
-type ProfilePageProps = {
-  self: boolean;
-  permalink: string;
-  remote: boolean;
-  handle: string;
-  name: string;
-  bioHtml: string;
-  followeesCount: number;
-  followersCount: number;
-  avatarUrl?: string;
-  links: AccountLink[] | Record<string, string>;
+interface ProfilePageProps {
+  profileHref: string;
+  actor: Actor;
+  followingState?: FollowingState;
+  followedState?: FollowingState;
+  links?: AccountLink[];
+  stats: ActorStats;
   posts: (Post & {
     actor: Actor;
     sharedPost:
@@ -378,158 +328,24 @@ type ProfilePageProps = {
     shares: Post[];
   })[];
   nextHref?: string;
-} & FollowStateProps;
-
-type FollowStateProps = {
-  followingState: FollowingState;
-  followedState: FollowingState;
-  followUrl: string;
-  unfollowUrl: string;
-} | {
-  followingState: undefined;
-  followedState: undefined;
-};
+}
 
 export default define.page<typeof handler, ProfilePageProps>(
   function ProfilePage({ state, data }) {
     return (
       <div>
-        <div class="flex">
-          {data.avatarUrl && (
-            <img
-              src={data.avatarUrl}
-              width={56}
-              height={56}
-              class="mb-5 mr-4"
-            />
-          )}
-          <PageTitle
-            subtitle={{
-              text: (
-                <>
-                  <span class="select-all">{data.handle}</span> &middot;{" "}
-                  {data.remote
-                    ? (
-                      <Msg
-                        $key="profile.followeesCount"
-                        count={data.followeesCount}
-                      />
-                    )
-                    : (
-                      <a href={`${data.permalink}/following`}>
-                        <Msg
-                          $key="profile.followeesCount"
-                          count={data.followeesCount}
-                        />
-                      </a>
-                    )} &middot; {data.remote
-                    ? (
-                      <Msg
-                        $key="profile.followersCount"
-                        count={data.followersCount}
-                      />
-                    )
-                    : (
-                      <a href={`${data.permalink}/followers`}>
-                        <Msg
-                          $key="profile.followersCount"
-                          count={data.followersCount}
-                        />
-                      </a>
-                    )}
-                  {data.followedState === "following" &&
-                    (
-                      <>
-                        {" "}&middot; <Msg $key="profile.followsYou" />
-                      </>
-                    )}
-                </>
-              ),
-            }}
-          >
-            {data.name}
-          </PageTitle>
-          {data.followingState === "none"
-            ? (
-              <form method="post" action={data.followUrl}>
-                <Button class="ml-4 mt-2 h-9">
-                  {data.followedState === "following"
-                    ? <Msg $key="profile.followBack" />
-                    : <Msg $key="profile.follow" />}
-                </Button>
-              </form>
-            )
-            : data.followingState != null &&
-              (
-                <form method="post" action={data.unfollowUrl}>
-                  <Button class="ml-4 mt-2 h-9">
-                    {data.followingState === "following"
-                      ? <Msg $key="profile.unfollow" />
-                      : <Msg $key="profile.cancelRequest" />}
-                  </Button>
-                </form>
-              )}
-        </div>
-        <div
-          class="prose dark:prose-invert"
-          dangerouslySetInnerHTML={{ __html: data.bioHtml }}
+        <Profile
+          actor={data.actor}
+          followingState={data.followingState}
+          followedState={data.followedState}
+          links={data.links}
+          profileHref={data.profileHref}
         />
-        {Array.isArray(data.links) && data.links.length > 0 && (
-          <dl class="mt-5 flex flex-wrap gap-y-3">
-            {data.links.map((link) => (
-              <>
-                <dt
-                  key={`dt-${link.index}`}
-                  class={`
-                    opacity-50 mr-1
-                    flex flex-row
-                    ${link.index > 0 ? "before:content-['·']" : ""}
-                  `}
-                >
-                  <img
-                    src={`/icons/${link.icon}.svg`}
-                    alt=""
-                    width={20}
-                    height={20}
-                    class={`dark:invert block mr-1 ${
-                      link.index > 0 ? "ml-2" : ""
-                    }`}
-                  />
-                  <span class="block after:content-[':']">{link.name}</span>
-                </dt>
-                <dd key={`dd-${link.index}`} class="mr-2">
-                  <a href={link.url} rel="me">
-                    {link.handle ?? compactUrl(link.url)}
-                  </a>
-                </dd>
-              </>
-            ))}
-          </dl>
-        )}
-        {!Array.isArray(data.links) && Object.keys(data.links).length > 0 && (
-          <dl class="mt-5 flex flex-wrap gap-y-3">
-            {Object.entries(data.links).map(([name, html], i) => (
-              <>
-                <dt
-                  key={`dt-${i}`}
-                  class={`
-                    opacity-50 mr-1
-                    ${i > 0 ? "before:content-['·']" : ""}
-                    after:content-[':']
-                  `}
-                >
-                  <span class={i > 0 ? "ml-2" : ""}>{name}</span>
-                </dt>
-                <dd
-                  key={`dd-${i}`}
-                  class="mr-2"
-                  dangerouslySetInnerHTML={{ __html: htmlXss.process(html) }}
-                >
-                </dd>
-              </>
-            ))}
-          </dl>
-        )}
+        <ProfileNav
+          active="total"
+          stats={data.stats}
+          profileHref={data.profileHref}
+        />
         <div>
           {data.posts.map((post) => (
             <PostExcerpt post={post} signedAccount={state.account} />
