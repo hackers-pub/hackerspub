@@ -157,12 +157,22 @@ export function Profile(
                     after:content-[':']
                   `}
               >
-                <span class={i > 0 ? "ml-2" : ""}>{name}</span>
+                <span
+                  class={i > 0 ? "ml-2" : ""}
+                  dangerouslySetInnerHTML={{
+                    __html: renderCustomEmojis(escape(name), actor.emojis),
+                  }}
+                />
               </dt>
               <dd
                 key={`dd-${i}`}
                 class="mr-2"
-                dangerouslySetInnerHTML={{ __html: htmlXss.process(html) }}
+                dangerouslySetInnerHTML={{
+                  __html: renderCustomEmojis(
+                    htmlXss.process(html),
+                    actor.emojis,
+                  ),
+                }}
               >
               </dd>
             </>
