@@ -33,6 +33,9 @@ export const handler = define.handlers({
       ),
       orderBy: desc(followingTable.accepted),
     });
+    ctx.state.title = ctx.state.t("profile.followerList.title", {
+      name: account.name,
+    });
     return page<FollowerListProps>({
       account,
       followers: followers.map((f) => f.follower),

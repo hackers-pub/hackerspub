@@ -72,11 +72,11 @@ export const handler = define.handlers({
     const description = content.text; // FIXME: Summarize content
     ctx.state.metas.push(
       { name: "description", content: description },
-      { name: "og:title", content: article.title },
-      { name: "og:description", content: description },
-      { name: "og:url", content: permalink },
-      { name: "og:type", content: "article" },
-      { name: "og:locale", content: article.language },
+      { property: "og:title", content: article.title },
+      { property: "og:description", content: description },
+      { property: "og:url", content: permalink },
+      { property: "og:type", content: "article" },
+      { property: "og:locale", content: article.language },
       {
         property: "og:image",
         content: new URL(
@@ -87,16 +87,25 @@ export const handler = define.handlers({
       { property: "og:image:width", content: 1200 },
       { property: "og:image:height", content: 630 },
       {
-        name: "article:published_time",
+        property: "article:published_time",
         content: article.published.toISOString(),
       },
       {
-        name: "article:modified_time",
+        property: "article:modified_time",
         content: article.updated.toISOString(),
       },
-      { name: "article:author", content: article.account.name },
-      { name: "article:author.username", content: article.account.username },
-      ...article.tags.map((tag) => ({ name: "article:tag", content: tag })),
+      { property: "article:author", content: article.account.name },
+      {
+        property: "article:author.username",
+        content: article.account.username,
+      },
+      ...article.tags.map((tag) => ({ property: "article:tag", content: tag })),
+      {
+        name: "fediverse:creator",
+        content: `@${article.account.username}@${
+          new URL(ctx.state.canonicalOrigin).host
+        }`,
+      },
     );
     const comments = await db.query.postTable.findMany({
       with: {

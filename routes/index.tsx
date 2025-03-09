@@ -154,6 +154,28 @@ export const handler = define.handlers({
     logger.debug("Recommended actors: {recommendedActors}", {
       recommendedActors,
     });
+    ctx.state.metas.push(
+      { name: "description", content: ctx.state.t("home.intro.content") },
+      { property: "og:title", content: "Hackers' Pub" },
+      {
+        property: "og:description",
+        content: ctx.state.t("home.intro.content"),
+      },
+      {
+        property: "og:url",
+        content: new URL("/", ctx.state.canonicalOrigin).href,
+      },
+      { property: "og:type", content: "website" },
+      {
+        property: "og:image",
+        content: new URL("/og.png", ctx.state.canonicalOrigin).href,
+      },
+      { property: "og:image:width", content: 1200 },
+      { property: "og:image:height", content: 630 },
+    );
+    ctx.state.links.push(
+      { rel: "canonical", href: new URL("/", ctx.state.canonicalOrigin).href },
+    );
     return page<HomeProps>({
       intro: ctx.state.account == null || timeline.length < 1,
       composer: ctx.state.account != null,

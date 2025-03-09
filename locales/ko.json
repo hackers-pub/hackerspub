@@ -112,6 +112,7 @@
     "edit": "수정"
   },
   "note": {
+    "title": "{{name}}: {{content}}",
     "replies": "댓글",
     "shares": "공유",
     "sharing": "공유중…",

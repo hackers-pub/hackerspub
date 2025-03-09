@@ -112,6 +112,7 @@
     "edit": "編集"
   },
   "note": {
+    "title": "{{name}}：{{content}}",
     "replies": "返信",
     "shares": "共有",
     "sharing": "共有中…",

@@ -114,6 +114,7 @@
     "edit": "Edit"
   },
   "note": {
+    "title": "{{name}}: {{content}}",
     "replies": "Replies",
     "shares": "Shares",
     "sharing": "Sharing…",

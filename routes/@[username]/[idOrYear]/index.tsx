@@ -11,6 +11,7 @@ import { Composer } from "../../../islands/Composer.tsx";
 import { NoteControls } from "../../../islands/NoteControls.tsx";
 import { kv } from "../../../kv.ts";
 import { getAvatarUrl } from "../../../models/actor.ts";
+import { renderMarkup } from "../../../models/markup.ts";
 import { createNote, getNoteSource, updateNote } from "../../../models/note.ts";
 import {
   getPostByUsernameAndId,
@@ -136,6 +137,9 @@ export const handler = define.handlers({
             href: noteUri,
           },
         );
+        ctx.state.metas.push(
+          { name: "og:url", content: permalink.href },
+        );
         postUrl = `/@${note.account.username}/${note.id}`;
       }
     }
@@ -147,6 +151,42 @@ export const handler = define.handlers({
       where: eq(postTable.replyTargetId, post.sharedPostId ?? post.id),
       orderBy: postTable.published,
     });
+    const content = await renderMarkup(
+      db,
+      ctx.state.fedCtx,
+      post.id,
+      post.contentHtml,
+    );
+    const authorHandle = `@${post.actor.username}@${post.actor.instanceHost}`;
+    const author = post.actor.name ?? authorHandle;
+    ctx.state.title = ctx.state.t("note.title", {
+      name: author,
+      content: content.text,
+    });
+    ctx.state.metas.push(
+      { name: "description", content: content.text },
+      { property: "og:title", content: content.text },
+      { property: "og:description", content: content.text },
+      { property: "og:type", content: "article" },
+      {
+        property: "article:published_time",
+        content: post.published.toISOString(),
+      },
+      {
+        property: "article:modified_time",
+        content: post.updated.toISOString(),
+      },
+      { property: "article:author", content: author },
+      { property: "article:author.username", content: post.actor.username },
+      ...Object.keys(post.tags).map((tag) => ({
+        property: "article:tag",
+        content: tag,
+      })),
+      { name: "fediverse:creator", content: authorHandle },
+    );
+    if (post.language != null) {
+      ctx.state.metas.push({ property: "og:locale", content: post.language });
+    }
     return page<NotePageProps>(
       {
         post,
