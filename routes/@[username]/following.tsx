@@ -6,6 +6,7 @@ import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import {
   type Account,
+  accountTable,
   type Actor,
   followingTable,
 } from "../../models/schema.ts";
@@ -15,10 +16,11 @@ export const handler = define.handlers({
   async GET(ctx) {
     const { username } = ctx.params;
     if (username.includes("@")) return ctx.next();
-    const { account } = ctx.state;
-    if (account == null || account.username !== username) {
-      return ctx.redirect(`/@${username}`);
-    }
+    const account = await db.query.accountTable.findFirst({
+      with: { actor: true },
+      where: eq(accountTable.username, username),
+    });
+    if (account == null) return ctx.redirect(`/@${username}`);
     const followees = await db.query.followingTable.findMany({
       with: {
         followee: {

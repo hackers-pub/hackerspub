@@ -178,6 +178,7 @@ export const handler = define.handlers({
       const next = posts.length > window ? posts[window].published : undefined;
       return page<ProfilePageProps>({
         self: false,
+        remote: true,
         permalink: `/${handle}`,
         handle,
         name,
@@ -300,6 +301,7 @@ export const handler = define.handlers({
     const next = posts.length > window ? posts[window].published : undefined;
     return page<ProfilePageProps>({
       self: ctx.state.account?.id === account.id,
+      remote: false,
       permalink: permalink.href,
       handle: `@${account.username}@${ctx.url.host}`,
       name: account.name,
@@ -353,6 +355,7 @@ export const handler = define.handlers({
 type ProfilePageProps = {
   self: boolean;
   permalink: string;
+  remote: boolean;
   handle: string;
   name: string;
   bioHtml: string;
@@ -405,34 +408,34 @@ export default define.page<typeof handler, ProfilePageProps>(
               text: (
                 <>
                   <span class="select-all">{data.handle}</span> &middot;{" "}
-                  {data.self
+                  {data.remote
                     ? (
+                      <Msg
+                        $key="profile.followeesCount"
+                        count={data.followeesCount}
+                      />
+                    )
+                    : (
                       <a href={`${data.permalink}/following`}>
                         <Msg
                           $key="profile.followeesCount"
                           count={data.followeesCount}
                         />
                       </a>
+                    )} &middot; {data.remote
+                    ? (
+                      <Msg
+                        $key="profile.followersCount"
+                        count={data.followersCount}
+                      />
                     )
                     : (
-                      <Msg
-                        $key="profile.followeesCount"
-                        count={data.followeesCount}
-                      />
-                    )} &middot; {data.self
-                    ? (
                       <a href={`${data.permalink}/followers`}>
                         <Msg
                           $key="profile.followersCount"
                           count={data.followersCount}
                         />
                       </a>
-                    )
-                    : (
-                      <Msg
-                        $key="profile.followersCount"
-                        count={data.followersCount}
-                      />
                     )}
                   {data.followedState === "following" &&
                     (
