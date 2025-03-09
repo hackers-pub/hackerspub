@@ -59,30 +59,42 @@ export default define.page<typeof handler, AccountListProps>(
       <div>
         <AdminNav active="accounts" />
         <PageTitle>Accounts</PageTitle>
-        <table class="table table-auto border-collapse border border-stone-500 w-full">
+        <table class="table table-auto border-collapse border border-stone-300 dark:border-stone-500 w-full">
           <thead>
             <tr>
-              <th class="border border-stone-500 bg-stone-700 p-2">ID</th>
-              <th class="border border-stone-500 bg-stone-700 p-2">Avatar</th>
-              <th class="border border-stone-500 bg-stone-700 p-2">Username</th>
-              <th class="border border-stone-500 bg-stone-700 p-2">Name</th>
-              <th class="border border-stone-500 bg-stone-700 p-2">
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                ID
+              </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Avatar
+              </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Username
+              </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Name
+              </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
                 Following
               </th>
-              <th class="border border-stone-500 bg-stone-700 p-2">
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
                 Followers
               </th>
-              <th class="border border-stone-500 bg-stone-700 p-2">Posts</th>
-              <th class="border border-stone-500 bg-stone-700 p-2">Created</th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Posts
+              </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Created
+              </th>
             </tr>
           </thead>
           <tbody>
             {accounts.map((account) => (
               <tr>
-                <th class="border border-stone-500 bg-stone-800 p-2">
+                <th class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   {account.id}
                 </th>
-                <td class="border border-stone-500 bg-stone-800 w-[64px]">
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 w-[64px]">
                   <a href={`/@${account.username}`}>
                     <img
                       src={avatars[account.id]}
@@ -92,22 +104,22 @@ export default define.page<typeof handler, AccountListProps>(
                     />
                   </a>
                 </td>
-                <td class="border border-stone-500 bg-stone-800 p-2">
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   <a href={`/@${account.username}`}>{account.username}</a>
                 </td>
-                <td class="border border-stone-500 bg-stone-800 p-2">
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   <a href={`/@${account.username}`}>{account.name}</a>
                 </td>
-                <td class="border border-stone-500 bg-stone-800 p-2">
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   {account.actor.followeesCount.toLocaleString(language)}
                 </td>
-                <td class="border border-stone-500 bg-stone-800 p-2">
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   {account.actor.followersCount.toLocaleString(language)}
                 </td>
-                <td class="border border-stone-500 bg-stone-800 p-2">
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   {(postsCounts[account.id] ?? 0).toLocaleString(language)}
                 </td>
-                <td class="border border-stone-500 bg-stone-800 p-2">
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   <Timestamp value={account.created} locale={language} />
                 </td>
               </tr>

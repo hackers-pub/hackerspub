@@ -37,20 +37,24 @@ export default define.page<typeof handler, AllowListProps>(
       <div>
         <AdminNav active="allowlist" />
         <PageTitle>Allowed emails</PageTitle>
-        <table class="table table-auto border-collapse border border-stone-500 w-full">
+        <table class="table table-auto border-collapse border border-stone-300 dark:border-stone-500 w-full">
           <thead>
             <tr>
-              <th class="border border-stone-500 bg-stone-700 p-2">Email</th>
-              <th class="border border-stone-500 bg-stone-700 p-2">Created</th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Email
+              </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Created
+              </th>
             </tr>
           </thead>
           <tbody>
             {allowedEmails.map((email) => (
               <tr>
-                <td class="border border-stone-500 bg-stone-800 p-2">
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   {email.email}
                 </td>
-                <td class="border border-stone-500 bg-stone-800 p-2">
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   <Timestamp value={email.created} locale={language} />
                 </td>
               </tr>
