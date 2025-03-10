@@ -11,7 +11,6 @@ import {
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
-import { unescape } from "@std/html";
 import { DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import katex from "katex";
 import createMarkdownIt from "markdown-it";
@@ -23,11 +22,10 @@ import { alertPlugin as admonition } from "markdown-it-github-alert";
 import graphviz from "markdown-it-graphviz";
 import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
-import { FilterXSS, whiteList } from "xss";
 import type { Database } from "../db.ts";
 import { persistActorsByHandles } from "./actor.ts";
 import type { Actor } from "./schema.ts";
-import { htmlXss } from "./xss.ts";
+import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./xss.ts";
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
@@ -100,18 +98,6 @@ let loadingShiki = new Promise<void>((resolve) =>
   }, 500)
 );
 
-const excerptHtmlXss = new FilterXSS({
-  allowList: Object.fromEntries(
-    Object.entries(whiteList).filter(([tag]) => tag !== "a"),
-  ),
-  stripIgnoreTag: true,
-});
-
-const textXss = new FilterXSS({
-  allowList: {},
-  stripIgnoreTag: true,
-});
-
 export interface RenderedMarkup {
   html: string;
   excerptHtml: string;
@@ -151,7 +137,7 @@ export async function renderMarkup(
     );
   const html = sanitizeHtml(rawHtml);
   const excerptHtml = sanitizeExcerptHtml(rawHtml);
-  const text = unescape(textXss.process(rawHtml));
+  const text = stripHtml(rawHtml);
   const toc = toToc(tocTree);
   const rendered: RenderedMarkup = {
     html,
@@ -162,14 +148,6 @@ export async function renderMarkup(
     mentions: mentionedActors,
   };
   return rendered;
-}
-
-export function sanitizeHtml(html: string): string {
-  return htmlXss.process(html);
-}
-
-export function sanitizeExcerptHtml(html: string): string {
-  return excerptHtmlXss.process(html);
 }
 
 function slugifyTitle(title: string, docId: string | null): string {

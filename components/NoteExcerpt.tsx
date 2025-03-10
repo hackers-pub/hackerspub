@@ -2,8 +2,8 @@ import { escape } from "@std/html/entities";
 import { Link } from "../islands/Link.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
 import { renderCustomEmojis } from "../models/emoji.ts";
-import { sanitizeHtml } from "../models/markup.ts";
 import type { PostMedium, PostVisibility } from "../models/schema.ts";
+import { sanitizeHtml } from "../models/xss.ts";
 import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
 

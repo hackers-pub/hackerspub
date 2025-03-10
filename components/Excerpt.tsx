@@ -1,5 +1,5 @@
 import { renderCustomEmojis } from "../models/emoji.ts";
-import { sanitizeExcerptHtml } from "../models/markup.ts";
+import { sanitizeExcerptHtml } from "../models/xss.ts";
 
 export interface ExcerptProps {
   class?: string;

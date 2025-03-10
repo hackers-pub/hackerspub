@@ -1,7 +1,7 @@
 import { Link } from "../islands/Link.tsx";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import type { Account, Actor } from "../models/schema.ts";
-import { htmlXss } from "../models/xss.ts";
+import { sanitizeHtml } from "../models/xss.ts";
 
 export interface ActorListProps {
   actors: (Actor & { account?: Account | null })[];
@@ -50,7 +50,7 @@ export function ActorList({ actors }: ActorListProps) {
             class="mt-4 prose dark:prose-invert"
             dangerouslySetInnerHTML={{
               __html: renderCustomEmojis(
-                htmlXss.process(actor.bioHtml ?? ""),
+                sanitizeHtml(actor.bioHtml ?? ""),
                 actor.emojis,
               ),
             }}

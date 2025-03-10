@@ -1,7 +1,8 @@
+import { unescape } from "@std/html/entities";
 import * as cssfilter from "cssfilter";
-import { FilterXSS } from "xss";
+import { FilterXSS, whiteList } from "xss";
 
-export const htmlXss = new FilterXSS({
+const htmlXss = new FilterXSS({
   allowList: {
     a: [
       "lang",
@@ -16,6 +17,7 @@ export const htmlXss = new FilterXSS({
       "data-host",
       "data-id",
       "data-iri",
+      "id",
     ],
     abbr: ["lang", "translate", "title"],
     address: ["lang", "translate"],
@@ -78,10 +80,10 @@ export const htmlXss = new FilterXSS({
     ],
     ins: ["lang", "translate", "datetime"],
     kbd: ["lang", "translate"],
-    li: ["lang", "translate"],
+    li: ["class", "id", "lang", "translate"],
     mark: ["lang", "translate"],
     nav: ["lang", "translate"],
-    ol: ["lang", "translate"],
+    ol: ["class", "lang", "translate"],
     p: ["lang", "translate"],
     picture: ["lang", "translate"],
     pre: ["lang", "translate", "class", "style"],
@@ -107,7 +109,7 @@ export const htmlXss = new FilterXSS({
     span: ["lang", "translate", "aria-hidden", "class", "style"],
     sub: ["lang", "translate"],
     summary: ["lang", "translate"],
-    sup: ["lang", "translate", "class"],
+    sup: ["class", "lang", "translate", "class"],
     strong: ["lang", "translate"],
     strike: ["lang", "translate"],
     table: ["lang", "translate", "width", "border", "align", "valign"],
@@ -272,3 +274,27 @@ export const htmlXss = new FilterXSS({
     },
   },
 });
+
+const excerptHtmlXss = new FilterXSS({
+  allowList: Object.fromEntries(
+    Object.entries(whiteList).filter(([tag]) => tag !== "a"),
+  ),
+  stripIgnoreTag: true,
+});
+
+const textXss = new FilterXSS({
+  allowList: {},
+  stripIgnoreTag: true,
+});
+
+export function sanitizeHtml(html: string): string {
+  return htmlXss.process(html);
+}
+
+export function sanitizeExcerptHtml(html: string): string {
+  return excerptHtmlXss.process(html);
+}
+
+export function stripHtml(html: string): string {
+  return unescape(textXss.process(html));
+}

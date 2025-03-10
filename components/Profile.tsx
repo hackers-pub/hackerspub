@@ -2,7 +2,7 @@ import { escape } from "@std/html/entities";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import type { FollowingState } from "../models/following.ts";
 import type { AccountLink, Actor } from "../models/schema.ts";
-import { htmlXss } from "../models/xss.ts";
+import { sanitizeHtml } from "../models/xss.ts";
 import { compactUrl } from "../utils.ts";
 import { Button } from "./Button.tsx";
 import { Msg } from "./Msg.tsx";
@@ -20,7 +20,7 @@ export function Profile(
   { actor, profileHref, followingState, followedState, links }: ProfileProps,
 ) {
   const bioHtml = renderCustomEmojis(
-    htmlXss.process(actor.bioHtml ?? ""),
+    sanitizeHtml(actor.bioHtml ?? ""),
     actor.emojis,
   );
   return (
@@ -169,7 +169,7 @@ export function Profile(
                 class="mr-2"
                 dangerouslySetInnerHTML={{
                   __html: renderCustomEmojis(
-                    htmlXss.process(html),
+                    sanitizeHtml(html),
                     actor.emojis,
                   ),
                 }}
