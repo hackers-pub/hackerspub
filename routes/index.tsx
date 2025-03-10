@@ -111,13 +111,16 @@ export const handler = define.handlers({
         },
         where: and(
           or(
-            inArray(
-              postTable.actorId,
-              db.select({ id: followingTable.followeeId })
-                .from(followingTable)
-                .where(
-                  eq(followingTable.followerId, ctx.state.account.actor.id),
-                ),
+            and(
+              inArray(
+                postTable.actorId,
+                db.select({ id: followingTable.followeeId })
+                  .from(followingTable)
+                  .where(
+                    eq(followingTable.followerId, ctx.state.account.actor.id),
+                  ),
+              ),
+              ne(postTable.visibility, "direct"),
             ),
             inArray(
               postTable.id,
