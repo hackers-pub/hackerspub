@@ -52,6 +52,13 @@ export default async function App(
               ))}
               <title>{state.title}</title>
               <link rel="stylesheet" href="/styles.css" />
+              <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+              <link
+                rel="alternate icon"
+                type="image/x-icon"
+                href="/favicon.ico"
+                sizes="16x16 32x32 48x48 256x256"
+              />
               {state.links.map((link) => (
                 <link
                   rel={link.rel}
