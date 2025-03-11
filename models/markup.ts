@@ -18,7 +18,7 @@ import abbr from "markdown-it-abbr";
 import anchor from "markdown-it-anchor";
 import deflist from "markdown-it-deflist";
 import footnote from "markdown-it-footnote";
-import { alertPlugin as admonition } from "markdown-it-github-alert";
+import admonition from "markdown-it-github-alerts";
 import graphviz from "markdown-it-graphviz";
 import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";

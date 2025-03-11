@@ -112,6 +112,7 @@
     "npm:markdown-it-deflist@3": "3.0.0",
     "npm:markdown-it-footnote@4": "4.0.0",
     "npm:markdown-it-github-alert@^1.0.6": "1.0.6",
+    "npm:markdown-it-github-alerts@~0.3.1": "0.3.1_markdown-it@14.1.0",
     "npm:markdown-it-graphviz@^1.1.2": "1.1.2",
     "npm:markdown-it-texmath@1": "1.0.0",
     "npm:markdown-it-toc-done-right@^4.2.0": "4.2.0",
@@ -3055,6 +3056,12 @@
         "markdown-it@13.0.2"
       ]
     },
+    "markdown-it-github-alerts@0.3.1_markdown-it@14.1.0": {
+      "integrity": "sha512-WUzfxjr8E4Fh9LTVOIneYT8qQHydkV8cRLXX5/HPpKhRzRQFUuYmNEt7KNBA12V9ZepIIRqQ2lj3haKms2/9Pw==",
+      "dependencies": [
+        "markdown-it@14.1.0"
+      ]
+    },
     "markdown-it-graphviz@1.1.2": {
       "integrity": "sha512-tO30MEOU9mAFMpQvJN72+b0MLP9hMwPK43no9cctEkM0jn3fgjnZxCaavB6IlvrV5Rz2spR+hyNP4zAfgPt9oA=="
     },
@@ -4138,7 +4145,7 @@
       "npm:markdown-it-anchor@^9.2.0",
       "npm:markdown-it-deflist@3",
       "npm:markdown-it-footnote@4",
-      "npm:markdown-it-github-alert@^1.0.6",
+      "npm:markdown-it-github-alerts@~0.3.1",
       "npm:markdown-it-graphviz@^1.1.2",
       "npm:markdown-it-texmath@1",
       "npm:markdown-it-toc-done-right@^4.2.0",
