@@ -107,10 +107,12 @@ export function PostExcerpt(props: PostExcerptProps) {
                       ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}#reply`
                       : `/@${post.actor.username}/${post.noteSourceId}#reply`}
                     shares={post.sharesCount}
-                    shareUrl={props.signedAccount == null
+                    shareUrl={props.signedAccount == null ||
+                        !["public", "unlisted"].includes(post.visibility)
                       ? undefined
                       : `${localPostUrl}/share`}
-                    unshareUrl={props.signedAccount == null
+                    unshareUrl={props.signedAccount == null ||
+                        !["public", "unlisted"].includes(post.visibility)
                       ? undefined
                       : `${localPostUrl}/unshare`}
                     shared={post.shares.some((share) =>

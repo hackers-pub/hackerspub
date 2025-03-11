@@ -286,8 +286,14 @@ export default define.page<typeof handler, NotePageProps>(
           language={state.language}
           replies={replies.length}
           shares={(post.sharedPost ?? post).sharesCount}
-          shareUrl={state.account == null ? undefined : `${postUrl}/share`}
-          unshareUrl={state.account == null ? undefined : `${postUrl}/unshare`}
+          shareUrl={state.account == null ||
+              !["public", "unlisted"].includes(post.visibility)
+            ? undefined
+            : `${postUrl}/share`}
+          unshareUrl={state.account == null ||
+              !["public", "unlisted"].includes(post.visibility)
+            ? undefined
+            : `${postUrl}/unshare`}
           shared={(post.sharedPost ?? post).shares.some((share) =>
             share.actorId === state.account?.actor.id
           )}
