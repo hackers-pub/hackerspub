@@ -190,7 +190,8 @@
     "@fedify/markdown-it-mention@0.3.0": {
       "integrity": "f643f850da6310566a1de2744900d7bc06c0f59d3ae9a14202a6d968f5d20227",
       "dependencies": [
-        "jsr:@std/html@0.224"
+        "jsr:@std/html@0.224",
+        "npm:@types/markdown-it"
       ]
     },
     "@fedify/postgres@0.2.2": {
