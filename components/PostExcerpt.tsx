@@ -1,6 +1,14 @@
 import { NoteControls } from "../islands/NoteControls.tsx";
 import { getAvatarUrl } from "../models/actor.ts";
-import type { Account, Actor, Post, PostMedium } from "../models/schema.ts";
+import { isPostVisibleTo } from "../models/post.ts";
+import type {
+  Account,
+  Actor,
+  Following,
+  Mention,
+  Post,
+  PostMedium,
+} from "../models/schema.ts";
 import { ArticleExcerpt } from "./ArticleExcerpt.tsx";
 import { Translation } from "./Msg.tsx";
 import { NoteExcerpt } from "./NoteExcerpt.tsx";
@@ -12,12 +20,24 @@ export interface PostExcerptProps {
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        replyTarget:
+          | Post & {
+            actor: Actor & { followers: Following[] };
+            mentions: Mention[];
+            media: PostMedium[];
+          }
+          | null;
         media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+    replyTarget:
+      | Post & {
+        actor: Actor & { followers: Following[] };
+        mentions: Mention[];
+        media: PostMedium[];
+      }
+      | null;
     media: PostMedium[];
     shares: Post[];
   };
@@ -42,7 +62,8 @@ export function PostExcerpt(props: PostExcerptProps) {
     <Translation>
       {(_, language) => (
         <>
-          {post.replyTarget != null && (
+          {post.replyTarget != null &&
+            isPostVisibleTo(post.replyTarget, props.signedAccount?.actor) && (
             <PostExcerpt
               post={{
                 ...post.replyTarget,

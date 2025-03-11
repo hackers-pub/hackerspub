@@ -31,6 +31,7 @@ import {
   actorTable,
   type ArticleSource,
   type Following,
+  followingTable,
   type Instance,
   type Mention,
   mentionTable,
@@ -604,12 +605,24 @@ export function getPostByUsernameAndId(
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        replyTarget:
+          | Post & {
+            actor: Actor & { followers: (Following & { follower: Actor })[] };
+            mentions: (Mention & { actor: Actor })[];
+            media: PostMedium[];
+          }
+          | null;
         media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+    replyTarget:
+      | Post & {
+        actor: Actor & { followers: (Following & { follower: Actor })[] };
+        mentions: (Mention & { actor: Actor })[];
+        media: PostMedium[];
+      }
+      | null;
     mentions: Mention[];
     media: PostMedium[];
     shares: Post[];
@@ -628,7 +641,22 @@ export function getPostByUsernameAndId(
         with: {
           actor: true,
           replyTarget: {
-            with: { actor: true, media: true },
+            with: {
+              actor: {
+                with: {
+                  followers: {
+                    where: signedAccount == null
+                      ? sql`false`
+                      : eq(followingTable.followerId, signedAccount.actor.id),
+                    with: { follower: true },
+                  },
+                },
+              },
+              mentions: {
+                with: { actor: true },
+              },
+              media: true,
+            },
           },
           media: true,
           shares: {
@@ -639,7 +667,22 @@ export function getPostByUsernameAndId(
         },
       },
       replyTarget: {
-        with: { actor: true, media: true },
+        with: {
+          actor: {
+            with: {
+              followers: {
+                where: signedAccount == null
+                  ? sql`false`
+                  : eq(followingTable.followerId, signedAccount.actor.id),
+                with: { follower: true },
+              },
+            },
+          },
+          mentions: {
+            with: { actor: true },
+          },
+          media: true,
+        },
       },
       mentions: true,
       media: true,

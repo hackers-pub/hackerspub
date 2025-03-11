@@ -15,6 +15,9 @@ import {
   type AccountLink,
   type Actor,
   actorTable,
+  type Following,
+  followingTable,
+  type Mention,
   type Post,
   type PostMedium,
   postTable,
@@ -79,7 +82,22 @@ export const handler = define.handlers({
         sharedPost: {
           with: {
             actor: true,
-            replyTarget: { with: { actor: true, media: true } },
+            replyTarget: {
+              with: {
+                actor: {
+                  with: {
+                    followers: {
+                      where: ctx.state.account == null ? sql`false` : eq(
+                        followingTable.followerId,
+                        ctx.state.account.actor.id,
+                      ),
+                    },
+                  },
+                },
+                mentions: true,
+                media: true,
+              },
+            },
             media: true,
             shares: {
               where: ctx.state.account == null
@@ -88,7 +106,22 @@ export const handler = define.handlers({
             },
           },
         },
-        replyTarget: { with: { actor: true, media: true } },
+        replyTarget: {
+          with: {
+            actor: {
+              with: {
+                followers: {
+                  where: ctx.state.account == null ? sql`false` : eq(
+                    followingTable.followerId,
+                    ctx.state.account.actor.id,
+                  ),
+                },
+              },
+            },
+            mentions: true,
+            media: true,
+          },
+        },
         media: true,
         shares: {
           where: ctx.state.account == null
@@ -138,12 +171,24 @@ interface ProfileNoteListProps {
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        replyTarget:
+          | Post & {
+            actor: Actor & { followers: Following[] };
+            mentions: Mention[];
+            media: PostMedium[];
+          }
+          | null;
         media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+    replyTarget:
+      | Post & {
+        actor: Actor & { followers: Following[] };
+        mentions: Mention[];
+        media: PostMedium[];
+      }
+      | null;
     media: PostMedium[];
     shares: Post[];
   })[];

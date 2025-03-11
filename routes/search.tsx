@@ -13,6 +13,9 @@ import {
   accountTable,
   type Actor,
   actorTable,
+  type Following,
+  followingTable,
+  type Mention,
   type Post,
   type PostMedium,
   postTable,
@@ -131,7 +134,19 @@ export const handler = define.handlers({
             : eq(postTable.actorId, ctx.state.account.actor.id),
         },
         replyTarget: {
-          with: { actor: true, media: true },
+          with: {
+            actor: {
+              with: {
+                followers: {
+                  where: ctx.state.account == null
+                    ? sql`false`
+                    : eq(followingTable.followerId, ctx.state.account.actor.id),
+                },
+              },
+            },
+            mentions: true,
+            media: true,
+          },
         },
         sharedPost: {
           with: {
@@ -143,7 +158,20 @@ export const handler = define.handlers({
                 : eq(postTable.actorId, ctx.state.account.actor.id),
             },
             replyTarget: {
-              with: { actor: true, media: true },
+              with: {
+                actor: {
+                  with: {
+                    followers: {
+                      where: ctx.state.account == null ? sql`false` : eq(
+                        followingTable.followerId,
+                        ctx.state.account.actor.id,
+                      ),
+                    },
+                  },
+                },
+                mentions: true,
+                media: true,
+              },
             },
           },
         },
@@ -163,12 +191,24 @@ interface SearchResultsProps {
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        replyTarget:
+          | Post & {
+            actor: Actor & { followers: Following[] };
+            mentions: Mention[];
+            media: PostMedium[];
+          }
+          | null;
         media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+    replyTarget:
+      | Post & {
+        actor: Actor & { followers: (Following & { follower?: Actor })[] };
+        mentions: (Mention & { actor?: Actor })[];
+        media: PostMedium[];
+      }
+      | null;
     media: PostMedium[];
     shares: Post[];
   })[];

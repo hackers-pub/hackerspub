@@ -13,7 +13,9 @@ import { recommendActors } from "../models/actor.ts";
 import {
   type Account,
   type Actor,
+  type Following,
   followingTable,
+  type Mention,
   mentionTable,
   type Post,
   type PostMedium,
@@ -40,12 +42,24 @@ export const handler = define.handlers({
       sharedPost:
         | Post & {
           actor: Actor;
-          replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+          replyTarget:
+            | Post & {
+              actor: Actor & { followers: Following[] };
+              mentions: Mention[];
+              media: PostMedium[];
+            }
+            | null;
           media: PostMedium[];
           shares: Post[];
         }
         | null;
-      replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+      replyTarget:
+        | Post & {
+          actor: Actor & { followers: Following[] };
+          mentions: Mention[];
+          media: PostMedium[];
+        }
+        | null;
       media: PostMedium[];
       shares: Post[];
     })[];
@@ -63,14 +77,30 @@ export const handler = define.handlers({
             with: {
               actor: true,
               replyTarget: {
-                with: { actor: true, media: true },
+                with: {
+                  actor: {
+                    with: {
+                      followers: { where: sql`false` },
+                    },
+                  },
+                  mentions: true,
+                  media: true,
+                },
               },
               media: true,
               shares: { where: sql`false` },
             },
           },
           replyTarget: {
-            with: { actor: true, media: true },
+            with: {
+              actor: {
+                with: {
+                  followers: { where: sql`false` },
+                },
+              },
+              mentions: true,
+              media: true,
+            },
           },
           media: true,
           shares: { where: sql`false` },
@@ -93,7 +123,20 @@ export const handler = define.handlers({
             with: {
               actor: true,
               replyTarget: {
-                with: { actor: true, media: true },
+                with: {
+                  actor: {
+                    with: {
+                      followers: {
+                        where: eq(
+                          followingTable.followerId,
+                          ctx.state.account.actor.id,
+                        ),
+                      },
+                    },
+                  },
+                  mentions: true,
+                  media: true,
+                },
               },
               media: true,
               shares: {
@@ -102,7 +145,20 @@ export const handler = define.handlers({
             },
           },
           replyTarget: {
-            with: { actor: true, media: true },
+            with: {
+              actor: {
+                with: {
+                  followers: {
+                    where: eq(
+                      followingTable.followerId,
+                      ctx.state.account.actor.id,
+                    ),
+                  },
+                },
+              },
+              mentions: true,
+              media: true,
+            },
           },
           media: true,
           shares: {
@@ -198,12 +254,24 @@ interface HomeProps {
     sharedPost:
       | Post & {
         actor: Actor;
-        replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+        replyTarget:
+          | Post & {
+            actor: Actor & { followers: Following[] };
+            mentions: Mention[];
+            media: PostMedium[];
+          }
+          | null;
         media: PostMedium[];
         shares: Post[];
       }
       | null;
-    replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+    replyTarget:
+      | Post & {
+        actor: Actor & { followers: Following[] };
+        mentions: Mention[];
+        media: PostMedium[];
+      }
+      | null;
     media: PostMedium[];
     shares: Post[];
   })[];

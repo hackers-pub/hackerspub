@@ -14,6 +14,7 @@ import {
   accountTable,
   type Actor,
   type Following,
+  followingTable,
   type Instance,
   type Mention,
   type NewNoteSource,
@@ -51,12 +52,24 @@ export async function getNoteSource(
       sharedPost:
         | Post & {
           actor: Actor;
-          replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+          replyTarget:
+            | Post & {
+              actor: Actor & { followers: Following[] };
+              mentions: Mention[];
+              media: PostMedium[];
+            }
+            | null;
           media: PostMedium[];
           shares: Post[];
         }
         | null;
-      replyTarget: Post & { actor: Actor; media: PostMedium[] } | null;
+      replyTarget:
+        | Post & {
+          actor: Actor & { followers: Following[] };
+          mentions: Mention[];
+          media: PostMedium[];
+        }
+        | null;
       mentions: Mention[];
       media: PostMedium[];
       shares: Post[];
@@ -92,7 +105,20 @@ export async function getNoteSource(
             with: {
               actor: true,
               replyTarget: {
-                with: { actor: true, media: true },
+                with: {
+                  actor: {
+                    with: {
+                      followers: {
+                        where: signedAccount == null ? sql`false` : eq(
+                          followingTable.followerId,
+                          signedAccount.actor.id,
+                        ),
+                      },
+                    },
+                  },
+                  mentions: true,
+                  media: true,
+                },
               },
               media: true,
               shares: {
@@ -103,7 +129,20 @@ export async function getNoteSource(
             },
           },
           replyTarget: {
-            with: { actor: true, media: true },
+            with: {
+              actor: {
+                with: {
+                  followers: {
+                    where: signedAccount == null ? sql`false` : eq(
+                      followingTable.followerId,
+                      signedAccount.actor.id,
+                    ),
+                  },
+                },
+              },
+              mentions: true,
+              media: true,
+            },
           },
           media: true,
           shares: {
