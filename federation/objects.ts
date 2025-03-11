@@ -198,7 +198,7 @@ federation
       );
     },
   )
-  .authorize(async (_ctx, values, _signedKey, signedKeyOwner) => {
+  .authorize(async (ctx, values) => {
     if (!validateUuid(values.id)) return false;
     const post = await db.query.postTable.findFirst({
       with: {
@@ -215,7 +215,11 @@ federation
       },
       where: eq(postTable.noteSourceId, values.id),
     });
-    if (post == null) return false;
+    if (post == null || post.actor.accountId == null) return false;
+    const documentLoader = await ctx.getDocumentLoader({
+      identifier: post.actor.accountId,
+    });
+    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
     return isPostVisibleTo(
       post,
       signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
