@@ -322,6 +322,7 @@ export default define.page<typeof handler, NotePageProps>(
               commentTarget={authorHandle}
               textAreaId="reply"
               onPost="reload"
+              defaultVisibility={post.visibility}
             />
           )}
         {replies.map((reply) => (

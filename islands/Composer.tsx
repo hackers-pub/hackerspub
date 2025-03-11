@@ -10,6 +10,7 @@ import {
   POSSIBLE_LANGUAGES,
   SUPPORTED_LANGUAGES,
 } from "../i18n.ts";
+import type { PostVisibility } from "../models/schema.ts";
 
 const SUPPORTED_MEDIA_TYPES = [
   "image/jpeg",
@@ -26,6 +27,7 @@ export interface ComposerProps {
   textAreaId?: string;
   // deno-lint-ignore no-explicit-any
   onPost: "reload" | ((json: any) => void);
+  defaultVisibility?: PostVisibility;
 }
 
 // @ts-ignore: It will be initialized in the loop below.
@@ -54,6 +56,9 @@ export function Composer(props: ComposerProps) {
   const [mediaDragging, setMediaDragging] = useState(false);
   const [media, setMedia] = useState<{ url: string; alt: string }[]>(
     [],
+  );
+  const [visibility, setVisibility] = useState<PostVisibility>(
+    props.defaultVisibility ?? "public",
   );
 
   function onInput(event: JSX.TargetedInputEvent<HTMLTextAreaElement>) {
@@ -175,6 +180,9 @@ export function Composer(props: ComposerProps) {
             name="visibility"
             class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
             aria-label={t("composer.visibility")}
+            value={visibility}
+            onSelect={(event) =>
+              setVisibility(event.currentTarget.value as PostVisibility)}
           >
             <option value="public">
               <Msg $key="postVisibility.public" />
