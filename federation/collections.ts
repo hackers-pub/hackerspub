@@ -26,7 +26,10 @@ import { getPostRecipients } from "./objects.ts";
 federation
   .setFollowersDispatcher(
     "/ap/actors/{identifier}/followers",
-    async (_ctx, identifier, cursor, filter) => {
+    async (ctx, identifier, cursor, filter) => {
+      if (identifier === new URL(ctx.canonicalOrigin).hostname) {
+        return { items: [] };
+      }
       if (cursor == null || !validateUuid(identifier)) return null;
       const account = await db.query.accountTable.findFirst({
         with: { actor: true },
@@ -84,6 +87,9 @@ federation
   .setOutboxDispatcher(
     "/ap/actors/{identifier}/outbox",
     async (ctx, identifier, cursor) => {
+      if (identifier === new URL(ctx.canonicalOrigin).hostname) {
+        return { items: [] };
+      }
       if (cursor == null || !validateUuid(identifier)) return null;
       const account = await db.query.accountTable.findFirst({
         with: { actor: true },

@@ -10,7 +10,9 @@ import {
 } from "@fedify/fedify";
 import { getLogger } from "@logtape/logtape";
 import { captureException } from "@sentry/deno";
+import { isPostObject } from "../../models/post.ts";
 import { federation } from "../federation.ts";
+import { onActorUpdated } from "./actor.ts";
 import { onFollowAccepted, onFollowed, onUnfollowed } from "./following.ts";
 import {
   onPostCreated,
@@ -19,13 +21,14 @@ import {
   onPostUnshared,
   onPostUpdated,
 } from "./subscribe.ts";
-import { onActorUpdated } from "./actor.ts";
-import { isPostObject } from "../../models/post.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox"]);
 
 federation
   .setInboxListeners("/ap/actors/{identifier}/inbox", "/ap/inbox")
+  .setSharedKeyDispatcher((ctx) => ({
+    identifier: new URL(ctx.canonicalOrigin).hostname,
+  }))
   .on(Accept, onFollowAccepted)
   .on(Follow, onFollowed)
   .on(Undo, async (fedCtx, undo) => {

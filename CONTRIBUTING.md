@@ -91,6 +91,23 @@ and set the values of the variables according to your environment.
 >     federation to work.  See also the section on [*Setting up
 >     federation*](#setting-up-federation).
 >
+>  -  `SECRET_KEY` is a random string that is used for encrypting the session
+>     data.  You can generate a new key using the following command:
+>
+>     ~~~~ sh
+>     openssl rand -hex 32
+>     ~~~~
+>
+>  -  `INSTANCE_ACTOR_KEY` is a RSA private key with JWK format.  You can
+>     generate a new key using the following command:
+>
+>     ~~~~ sh
+>     deno task keygen
+>     ~~~~
+>
+>     Warn that you should quote the key value with single quotes in the *.env*
+>     file, e.g., `INSTANCE_ACTOR_KEY='{"kty":"RSA",...}'`.
+>
 >  -  `KV_URL` can start with `file://` to use a file-based cache, e.g.,
 >     `KV_URL=file:///tmp/kv.db`.
 >

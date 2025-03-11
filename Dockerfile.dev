@@ -9,10 +9,14 @@ COPY fonts /app/fonts
 COPY deno.json /app/deno.json
 COPY deno.lock /app/deno.lock
 
-RUN ["deno", "install"]
+RUN ["deno", "install", "--allow-scripts"]
 
 COPY . /app
-RUN cp .env.sample .env && deno task build && rm .env
+RUN cp .env.sample .env && \
+  echo >> .env && \
+  echo "INSTANCE_ACTOR_KEY='$(deno task keygen)'" >> .env && \
+  deno task build && \
+  rm .env
 
 EXPOSE 8000
 CMD ["deno", "task", "start"]

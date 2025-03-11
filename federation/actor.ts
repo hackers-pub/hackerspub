@@ -1,4 +1,5 @@
 import {
+  Application,
   Endpoints,
   exportJwk,
   generateCryptoKeyPair,
@@ -19,10 +20,52 @@ import {
 import { validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
 
+const INSTANCE_ACTOR_KEY = Deno.env.get("INSTANCE_ACTOR_KEY");
+if (INSTANCE_ACTOR_KEY == null) {
+  throw new Error("INSTANCE_ACTOR_KEY is required");
+}
+const INSTANCE_ACTOR_KEY_JWK = JSON.parse(INSTANCE_ACTOR_KEY);
+if (INSTANCE_ACTOR_KEY_JWK.kty !== "RSA") {
+  throw new Error("INSTANCE_ACTOR_KEY must be an RSA key");
+}
+const INSTANCE_ACTOR_KEY_PAIR: CryptoKeyPair = {
+  privateKey: await importJwk(INSTANCE_ACTOR_KEY_JWK, "private"),
+  publicKey: await importJwk({
+    kty: INSTANCE_ACTOR_KEY_JWK.kty,
+    alg: INSTANCE_ACTOR_KEY_JWK.alg,
+    e: INSTANCE_ACTOR_KEY_JWK.e,
+    n: INSTANCE_ACTOR_KEY_JWK.n,
+    key_ops: ["verify"],
+  }, "public"),
+};
+
 federation
   .setActorDispatcher(
     "/ap/actors/{identifier}",
     async (ctx, identifier) => {
+      if (identifier == new URL(ctx.canonicalOrigin).hostname) {
+        // Instance actor:
+        const keys = await ctx.getActorKeyPairs(identifier);
+        return new Application({
+          id: ctx.getActorUri(identifier),
+          preferredUsername: identifier,
+          name: "Hackers' Pub",
+          summary: "An instance actor for Hackers' Pub.",
+          manuallyApprovesFollowers: true,
+          inbox: ctx.getInboxUri(identifier),
+          outbox: ctx.getOutboxUri(identifier),
+          endpoints: new Endpoints({
+            sharedInbox: ctx.getInboxUri(),
+          }),
+          followers: ctx.getFollowersUri(identifier),
+          icon: new Image({
+            url: new URL("/favicon.svg", ctx.canonicalOrigin),
+          }),
+          publicKey: keys[0].cryptographicKey,
+          assertionMethods: keys.map((pair) => pair.multikey),
+        });
+      }
+
       if (!validateUuid(identifier)) return null;
       const account = await db.query.accountTable.findFirst({
         where: eq(accountTable.id, identifier),
@@ -57,13 +100,19 @@ federation
       });
     },
   )
-  .mapHandle(async (_ctx, handle) => {
+  .mapHandle(async (ctx, handle) => {
+    if (handle === new URL(ctx.canonicalOrigin).hostname) return handle;
     const account = await db.query.accountTable.findFirst({
       where: eq(accountTable.username, handle),
     });
     return account == null ? null : account.id;
   })
-  .setKeyPairsDispatcher(async (_ctx, identifier) => {
+  .setKeyPairsDispatcher(async (ctx, identifier) => {
+    if (identifier === new URL(ctx.canonicalOrigin).hostname) {
+      // Instance actor:
+      return [INSTANCE_ACTOR_KEY_PAIR];
+    }
+
     if (!validateUuid(identifier)) return [];
     const keyRecords = await db.query.accountKeyTable.findMany({
       where: eq(accountKeyTable.accountId, identifier),
