@@ -77,7 +77,7 @@ export default async function App(
             </head>
             <body class="font-sans dark:bg-stone-900 dark:text-white">
               <header class="h-[60px] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
-                <nav class="m-auto max-w-screen-xl text-xl flex flex-row gap-4">
+                <nav class="m-auto xl:max-w-screen-xl text-xl flex flex-row gap-4">
                   <a
                     href="/"
                     class="grow-0 lg:basis-1/3 p-4 text-white dark:text-black font-bold"
@@ -97,62 +97,135 @@ export default async function App(
                       class="w-full h-[calc(100%-2px)] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700 border-none text-center"
                     />
                   </form>
-                  <div class="group grow lg:basis-1/3 p-4 text-right">
+                  <div class="grow lg:basis-1/3 text-right">
                     {account == null
                       ? (
-                        <a href="/sign">
-                          <Msg $key="nav.signInUp" />
-                        </a>
+                        <div class="flex flex-row-reverse">
+                          <a href="/sign" class="block grow-0 p-4">
+                            <Msg $key="nav.signInUp" />
+                          </a>
+                        </div>
                       )
                       : (
                         <>
-                          <div class="flex flex-row-reverse cursor-default">
-                            <div class="grow-0 order-last mr-4">
+                          <div class="flex flex-row-reverse">
+                            <div class="
+                              group block
+                              w-[calc(30px+2rem)] h-[calc(30px+2rem)] p-4
+                            ">
                               <img
                                 src={avatarUrl}
                                 width={30}
                                 height={30}
                               />
+                              <div class="
+                                hidden group-hover:flex group-active:flex
+                                absolute z-50
+                                right-0 xl:right-[calc((100%-1280px)/2)]
+                                max-w-screen-sm w-64 mt-2 p-4 pl-2
+                                bg-stone-200 dark:bg-stone-700
+                                border border-stone-400 dark:border-stone-500
+                                text-stone-800 dark:text-stone-100
+                                flex-col gap-4
+                              ">
+                                <a
+                                  href={`/@${account.username}`}
+                                  class="flex flex-row gap-4"
+                                >
+                                  <img
+                                    src={avatarUrl}
+                                    width={30}
+                                    height={30}
+                                    class="block"
+                                  />
+                                  <strong class="block truncate">
+                                    {account.name}
+                                  </strong>
+                                </a>
+                                <a href={`/@${account.username}/settings`}>
+                                  <Msg $key="nav.settings" />
+                                </a>
+                                {account.moderator && (
+                                  <a href="/admin">
+                                    Admin
+                                  </a>
+                                )}
+                                <form
+                                  method="post"
+                                  action="/sign/out"
+                                >
+                                  <input
+                                    type="hidden"
+                                    name="next"
+                                    value={url.href}
+                                  />
+                                  <button type="submit">
+                                    <Msg $key="nav.signOut" />
+                                  </button>
+                                </form>
+                              </div>
                             </div>
-                            <div class="block truncate">
-                              <a href={`/@${account.username}`}>
-                                <strong>{account.name}</strong>
-                              </a>
-                            </div>
-                          </div>
-                          <div class="
-                          hidden group-hover:flex
-                          absolute right-[calc((100%-1280px)/2)]
-                          max-w-screen-sm w-1/6 p-4 pt-8
-                          bg-black dark:bg-stone-100
-                          flex-col gap-4
-                        ">
-                            <a href={`/@${account.username}/drafts/new`}>
-                              <Msg $key="nav.newArticle" />
+                            <a
+                              href={`/@${account.username}/drafts/new`}
+                              title={t("nav.newArticle")}
+                              class="block grow-0 py-4 px-2"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={1.5}
+                                stroke="currentColor"
+                                aria-label={t("nav.newArticle")}
+                                className="size-[30px]"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                                />
+                              </svg>
                             </a>
                             {drafts > 0 && (
-                              <a href={`/@${account.username}/drafts`}>
-                                <Msg $key="nav.drafts" />{" "}
-                                <span class="opacity-50">({drafts})</span>
+                              <a
+                                href={`/@${account.username}/drafts`}
+                                title={`${t("nav.drafts")} (${drafts})`}
+                                class="block grow-0 py-4 px-2"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  strokeWidth={1.5}
+                                  stroke="currentColor"
+                                  aria-label={`${t("nav.drafts")} (${drafts})`}
+                                  className="size-[30px]"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="m 20.25,7.5 -0.625,10.632 c -0.06991,1.189655 -1.055292,2.118464 -2.247,2.118 H 6.622 C 5.4302924,20.250464 4.4449134,19.321655 4.375,18.132 L 3.75,7.5 m -0.375,0 h 17.25 c 0.621,0 1.125,-0.504 1.125,-1.125 v -1.5 C 21.75,4.254 21.246,3.75 20.625,3.75 H 3.375 C 2.754,3.75 2.25,4.254 2.25,4.875 v 1.5 C 2.25,6.996 2.754,7.5 3.375,7.5 Z"
+                                  />
+                                  <text
+                                    style="font-size:8px;text-align:center;text-anchor:middle"
+                                    stroke="none"
+                                    fill="currentColor"
+                                    x="12.016002"
+                                    y="16.292"
+                                  >
+                                    <tspan
+                                      x="12.016002"
+                                      y="16.292"
+                                      style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;font-family:sans-serif;"
+                                      stroke="none"
+                                      fill="currentColor"
+                                    >
+                                      {drafts}
+                                    </tspan>
+                                  </text>
+                                </svg>
                               </a>
                             )}
-                            <a href={`/@${account.username}/settings`}>
-                              <Msg $key="nav.settings" />
-                            </a>
-                            {account.moderator && <a href="/admin">Admin</a>}
-                            <form
-                              method="post"
-                              action="/sign/out"
-                            >
-                              <input
-                                type="hidden"
-                                name="next"
-                                value={url.href}
-                              />
-                              <button type="submit">
-                                <Msg $key="nav.signOut" />
-                              </button>
-                            </form>
                           </div>
                         </>
                       )}
