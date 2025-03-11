@@ -46,6 +46,9 @@ let md = createMarkdownIt({ html: true })
   .use(footnote)
   .use(graphviz)
   .use(mention, {
+    localDomain(_bareHandle: string, env: Env) {
+      return env.localDomain;
+    },
     link(handle: string, env: Env) {
       const actor = env.mentionedActors[handle];
       if (actor == null) return null;
@@ -110,6 +113,7 @@ export interface RenderedMarkup {
 interface Env {
   docId: string | null;
   title: string;
+  localDomain: string;
   mentionedActors: Record<string, Actor>;
 }
 
@@ -119,7 +123,12 @@ export async function renderMarkup(
   docId: string | null,
   markup: string,
 ): Promise<RenderedMarkup> {
-  const tmpMd = createMarkdownIt().use(mention);
+  const localDomain = new URL(fedCtx.canonicalOrigin).host;
+  const tmpMd = createMarkdownIt().use(mention, {
+    localDomain() {
+      return localDomain;
+    },
+  });
   const tmpEnv: { mentions: string[] } = { mentions: [] };
   tmpMd.render(markup, tmpEnv);
   const mentions = new Set(tmpEnv.mentions);
@@ -127,7 +136,7 @@ export async function renderMarkup(
     ...mentions,
   ]);
   if (!shikiLoaded) await loadingShiki;
-  const env: Env = { docId, title: "", mentionedActors };
+  const env: Env = { docId, title: "", localDomain, mentionedActors };
   const rawHtml = md.render(markup, env)
     .replaceAll('<?xml version="1.0" encoding="UTF-8" standalone="no"?>', "")
     .replaceAll(

@@ -4,7 +4,7 @@
     "jsr:@david/which-runtime@~0.2.1": "0.2.1",
     "jsr:@fedify/fedify@1": "1.4.5",
     "jsr:@fedify/fedify@1.5.0-dev.717+38e2fb51": "1.5.0-dev.717+38e2fb51",
-    "jsr:@fedify/markdown-it-mention@0.2": "0.2.0",
+    "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
     "jsr:@fedify/postgres@~0.2.2": "0.2.2",
     "jsr:@fedify/redis@0.3": "0.3.0",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.29",
@@ -187,11 +187,10 @@
         "npm:url-template"
       ]
     },
-    "@fedify/markdown-it-mention@0.2.0": {
-      "integrity": "98706e8dfafb0ce45c781e2e7162400be4d9c71f80c5a1671d7209086b9ba6a3",
+    "@fedify/markdown-it-mention@0.3.0": {
+      "integrity": "f643f850da6310566a1de2744900d7bc06c0f59d3ae9a14202a6d968f5d20227",
       "dependencies": [
-        "jsr:@std/html@0.224",
-        "npm:@types/markdown-it"
+        "jsr:@std/html@0.224"
       ]
     },
     "@fedify/postgres@0.2.2": {
@@ -4089,7 +4088,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@fedify/fedify@1.5.0-dev.717+38e2fb51",
-      "jsr:@fedify/markdown-it-mention@0.2",
+      "jsr:@fedify/markdown-it-mention@0.3",
       "jsr:@fedify/postgres@~0.2.2",
       "jsr:@fedify/redis@0.3",
       "jsr:@fresh/core@^2.0.0-alpha.29",
