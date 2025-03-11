@@ -183,6 +183,8 @@ export function Composer(props: ComposerProps) {
             value={visibility}
             onSelect={(event) =>
               setVisibility(event.currentTarget.value as PostVisibility)}
+            onChange={(event) =>
+              setVisibility(event.currentTarget.value as PostVisibility)}
           >
             <option value="public">
               <Msg $key="postVisibility.public" />
