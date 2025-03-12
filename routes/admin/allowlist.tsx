@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import { AdminNav } from "../../components/AdminNav.tsx";
 import { Button } from "../../components/Button.tsx";
@@ -5,13 +6,30 @@ import { Input } from "../../components/Input.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { Timestamp } from "../../islands/Timestamp.tsx";
-import { type AllowedEmail, allowedEmailTable } from "../../models/schema.ts";
+import {
+  accountEmailTable,
+  type AllowedEmail,
+  allowedEmailTable,
+} from "../../models/schema.ts";
 import { define } from "../../utils.ts";
+
+function getAllowedEmails(): Promise<
+  (AllowedEmail & { consumed: Date | null })[]
+> {
+  return db.select({
+    email: allowedEmailTable.email,
+    created: allowedEmailTable.created,
+    consumed: accountEmailTable.created,
+  }).from(allowedEmailTable).leftJoin(
+    accountEmailTable,
+    eq(allowedEmailTable.email, accountEmailTable.email),
+  ).execute();
+}
 
 export const handler = define.handlers({
   async GET(_ctx) {
     return page<AllowListProps>({
-      allowedEmails: await db.query.allowedEmailTable.findMany(),
+      allowedEmails: await getAllowedEmails(),
     });
   },
 
@@ -22,13 +40,13 @@ export const handler = define.handlers({
       await db.insert(allowedEmailTable).values({ email }).execute();
     }
     return page<AllowListProps>({
-      allowedEmails: await db.query.allowedEmailTable.findMany(),
+      allowedEmails: await getAllowedEmails(),
     });
   },
 });
 
 interface AllowListProps {
-  allowedEmails: AllowedEmail[];
+  allowedEmails: (AllowedEmail & { consumed: Date | null })[];
 }
 
 export default define.page<typeof handler, AllowListProps>(
@@ -46,6 +64,9 @@ export default define.page<typeof handler, AllowListProps>(
               <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
                 Created
               </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Consumed
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -56,6 +77,11 @@ export default define.page<typeof handler, AllowListProps>(
                 </td>
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   <Timestamp value={email.created} locale={language} />
+                </td>
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
+                  {email.consumed == null
+                    ? "N/A"
+                    : <Timestamp value={email.consumed} locale={language} />}
                 </td>
               </tr>
             ))}
