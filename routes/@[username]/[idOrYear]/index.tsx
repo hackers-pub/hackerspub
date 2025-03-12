@@ -14,6 +14,7 @@ import { getAvatarUrl } from "../../../models/actor.ts";
 import { renderMarkup } from "../../../models/markup.ts";
 import { createNote, getNoteSource, updateNote } from "../../../models/note.ts";
 import {
+  deletePost,
   getPostByUsernameAndId,
   isPostVisibleTo,
 } from "../../../models/post.ts";
@@ -307,6 +308,23 @@ export const handler = define.handlers({
       status: 201,
       headers: { "Content-Type": "application/json" },
     });
+  },
+
+  async DELETE(ctx) {
+    if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
+    if (ctx.params.username.includes("@")) return ctx.next();
+    if (ctx.state.account == null) return ctx.next();
+    const id = ctx.params.idOrYear;
+    const note = await getNoteSource(db, ctx.params.username, id);
+    if (note == null || note.accountId !== ctx.state.account.id) {
+      return ctx.next();
+    }
+    const post: Post & { actor: Actor } = {
+      ...note.post,
+      actor: ctx.state.account.actor,
+    };
+    await deletePost(db, ctx.state.fedCtx, post);
+    return new Response(null, { status: 202 });
   },
 });
 

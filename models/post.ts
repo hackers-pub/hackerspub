@@ -5,11 +5,21 @@ import {
   LanguageString,
   lookupObject,
   PUBLIC_COLLECTION,
+  type Recipient,
   traverseCollection,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
-import { and, count, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+} from "drizzle-orm";
 import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import type { Database } from "../db.ts";
@@ -836,6 +846,70 @@ export async function updateSharesCount(
     return cnt[0].count;
   }
   return sharesCount;
+}
+
+export async function deletePost(
+  db: Database,
+  fedCtx: Context<void>,
+  post: Post & { actor: Actor },
+): Promise<void> {
+  const replies = await db.query.postTable.findMany({
+    with: { actor: true },
+    where: and(
+      eq(postTable.replyTargetId, post.id),
+      or(
+        isNotNull(postTable.articleSourceId),
+        isNotNull(postTable.noteSourceId),
+      ),
+    ),
+  });
+  for (const reply of replies) {
+    await deletePost(db, fedCtx, reply);
+  }
+  const interactorIds = await db.delete(postTable).where(
+    or(
+      eq(postTable.replyTargetId, post.id),
+      eq(postTable.sharedPostId, post.id),
+      eq(postTable.id, post.id),
+    ),
+  ).returning({ id: postTable.actorId });
+  if (post.actor.accountId == null) return;
+  const interactors = await db.query.actorTable.findMany({
+    where: inArray(actorTable.id, interactorIds.map((id) => id.id)),
+  });
+  const recipients: Recipient[] = interactors.map((actor) => ({
+    id: new URL(actor.iri),
+    inboxId: new URL(actor.inboxUrl),
+    endpoints: actor.sharedInboxUrl == null ? null : {
+      sharedInbox: new URL(actor.sharedInboxUrl),
+    },
+  }));
+  const activity = new vocab.Delete({
+    id: new URL("#delete", post.iri),
+    actor: fedCtx.getActorUri(post.actor.accountId),
+    to: PUBLIC_COLLECTION,
+    object: new vocab.Tombstone({
+      id: new URL(post.iri),
+    }),
+  });
+  await fedCtx.sendActivity(
+    { identifier: post.actor.accountId },
+    "followers",
+    activity,
+    {
+      preferSharedInbox: true,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
+  );
+  await fedCtx.sendActivity(
+    { identifier: post.actor.accountId },
+    recipients,
+    activity,
+    {
+      preferSharedInbox: true,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
+  );
 }
 
 const UNREACHABLE: never = undefined!;

@@ -12,6 +12,7 @@ export interface NoteControlsProps {
   shared: boolean;
   shareUrl?: string;
   unshareUrl?: string;
+  deleteUrl?: string;
 }
 
 export function NoteControls(props: NoteControlsProps) {
@@ -20,8 +21,9 @@ export function NoteControls(props: NoteControlsProps) {
   const [shared, setShared] = useState(props.shared);
   const [shareSubmitting, setShareSubmitting] = useState(false);
   const [shareFocused, setShareFocused] = useState(false);
+  const [deleted, setDeleted] = useState<null | "deleting" | "deleted">(null);
 
-  function onShareSubmit(this: HTMLButtonElement, event: SubmitEvent) {
+  function onShareSubmit(this: HTMLFormElement, event: SubmitEvent) {
     event.preventDefault();
     if (props.shareUrl == null) return;
     if (event.currentTarget instanceof HTMLFormElement) {
@@ -29,7 +31,6 @@ export function NoteControls(props: NoteControlsProps) {
       const form = event.currentTarget;
       fetch(form.action, { method: form.method })
         .then((response) => {
-          console.debug(response);
           if (response.status >= 200 && response.status < 400) {
             setShared(!shared);
             setShareSubmitting(false);
@@ -47,12 +48,23 @@ export function NoteControls(props: NoteControlsProps) {
     setShareFocused(false);
   }
 
+  function onDelete(this: HTMLButtonElement, _event: MouseEvent) {
+    if (props.deleteUrl == null || !confirm(t("note.deleteConfirm"))) return;
+    setDeleted("deleting");
+    fetch(props.deleteUrl, { method: "delete" })
+      .then((response) => {
+        if (response.status >= 200 && response.status < 400) {
+          setDeleted("deleted");
+        }
+      });
+  }
+
   return (
     <TranslationSetup language={props.language}>
       <div class={`${props.class ?? ""} flex gap-3`}>
         <a
           class={`h-5 flex opacity-50 ${
-            props.replyUrl == null ? "" : "hover:opacity-100"
+            deleted != null || props.replyUrl == null ? "" : "hover:opacity-100"
           }`}
           href={props.replyUrl}
           title={t("note.replies")}
@@ -84,7 +96,9 @@ export function NoteControls(props: NoteControlsProps) {
           <button
             type="submit"
             class={`h-5 flex opacity-50 ${
-              props.shareUrl == null ? "cursor-default" : "hover:opacity-100"
+              deleted != null || props.shareUrl == null
+                ? "cursor-default"
+                : "hover:opacity-100"
             }`}
             onMouseOver={onShareFocus}
             onFocus={onShareFocus}
@@ -126,6 +140,50 @@ export function NoteControls(props: NoteControlsProps) {
             </span>
           </button>
         </form>
+        {props.deleteUrl != null &&
+          (
+            <button
+              type="button"
+              class={`h-5 flex opacity-50 ${
+                deleted != null || props.replyUrl == null
+                  ? "cursor-default"
+                  : "hover:opacity-100"
+              }`}
+              title={t("note.delete")}
+              onClick={onDelete}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className={`size-5 ${deleted === "deleted" ? "stroke-2" : ""}`}
+                aria-label={t("note.delete")}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+                />
+              </svg>
+              {deleted != null &&
+                (
+                  <span
+                    class={`ml-1 my-auto text-xs ${
+                      deleted === "deleted" ? "font-bold" : ""
+                    }`}
+                  >
+                    {" — "}
+                    <Msg
+                      $key={deleted === "deleted"
+                        ? "note.deleted"
+                        : "note.deleting"}
+                    />
+                  </span>
+                )}
+            </button>
+          )}
       </div>
     </TranslationSetup>
   );

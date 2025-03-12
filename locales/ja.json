@@ -95,7 +95,7 @@
       "title": "{{name}}さんのフォロー"
     },
     "total": "合計：{{total}}",
-    "notes": "ノート：{{notes}}",
+    "notes": "投稿：{{notes}}",
     "shares": "共有：{{shares}}",
     "articles": "記事：{{articles}}"
   },
@@ -123,6 +123,10 @@
     "shared": "共有済み",
     "unshare": "共有解除",
     "unsharing": "共有解除中…",
+    "delete": "削除",
+    "deleteConfirm": "この投稿を削除してもよろしいですか？",
+    "deleting": "削除中…",
+    "deleted": "削除済み",
     "sharedBy": "{{name}}さんが$t(note.shares)",
     "remoteReplyDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この投稿に返信することができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当投稿に返信してください。"
   },
