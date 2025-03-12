@@ -232,6 +232,13 @@
       "when": 1740913594319,
       "tag": "0032_og_image_key",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1741755246635,
+      "tag": "0033_on-delete-cascade",
+      "breakpoints": true
     }
   ]
 }

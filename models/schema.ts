@@ -90,7 +90,7 @@ export const accountEmailTable = pgTable(
     accountId: uuid("account_id")
       .$type<Uuid>()
       .notNull()
-      .references(() => accountTable.id),
+      .references(() => accountTable.id, { onDelete: "cascade" }),
     public: boolean().notNull().default(false),
     verified: timestamp({ withTimezone: true }),
     created: timestamp({ withTimezone: true })
@@ -125,7 +125,7 @@ export const accountKeyTable = pgTable(
     accountId: uuid("account_id")
       .$type<Uuid>()
       .notNull()
-      .references(() => accountTable.id),
+      .references(() => accountTable.id, { onDelete: "cascade" }),
     type: accountKeyTypeEnum().notNull(),
     public: jsonb().$type<JsonWebKey>().notNull(),
     private: jsonb().$type<JsonWebKey>().notNull(),
@@ -200,7 +200,7 @@ export const accountLinkTable = pgTable(
     accountId: uuid("account_id")
       .$type<Uuid>()
       .notNull()
-      .references(() => accountTable.id),
+      .references(() => accountTable.id, { onDelete: "cascade" }),
     index: smallint().notNull(),
     name: varchar({ length: 50 }).notNull(),
     url: text().notNull(),
@@ -260,7 +260,7 @@ export const actorTable = pgTable(
     accountId: uuid("account_id")
       .$type<Uuid>()
       .unique()
-      .references(() => accountTable.id),
+      .references(() => accountTable.id, { onDelete: "cascade" }),
     name: text(),
     bioHtml: text("bio_html"),
     automaticallyApprovesFollowers: boolean("automatically_approves_followers")
@@ -330,11 +330,11 @@ export const followingTable = pgTable(
     followerId: uuid("follower_id")
       .$type<Uuid>()
       .notNull()
-      .references(() => actorTable.id),
+      .references(() => actorTable.id, { onDelete: "cascade" }),
     followeeId: uuid("followee_id")
       .$type<Uuid>()
       .notNull()
-      .references(() => actorTable.id),
+      .references(() => actorTable.id, { onDelete: "cascade" }),
     accepted: timestamp({ withTimezone: true }),
     created: timestamp({ withTimezone: true })
       .notNull()
@@ -402,10 +402,10 @@ export const articleDraftTable = pgTable(
     accountId: uuid("account_id")
       .$type<Uuid>()
       .notNull()
-      .references(() => accountTable.id),
+      .references(() => accountTable.id, { onDelete: "cascade" }),
     articleSourceId: uuid("article_source_id")
       .$type<Uuid>()
-      .references(() => articleSourceTable.id),
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
     title: text().notNull(),
     content: text().notNull(),
     tags: text().array().notNull().default(sql`(ARRAY[]::text[])`),
@@ -438,7 +438,7 @@ export const articleSourceTable = pgTable(
     accountId: uuid("account_id")
       .$type<Uuid>()
       .notNull()
-      .references(() => accountTable.id),
+      .references(() => accountTable.id, { onDelete: "cascade" }),
     publishedYear: smallint("published_year")
       .notNull()
       .default(sql`EXTRACT(year FROM CURRENT_TIMESTAMP)`),
@@ -498,7 +498,7 @@ export const noteSourceTable = pgTable("note_source", {
   accountId: uuid("account_id")
     .$type<Uuid>()
     .notNull()
-    .references(() => accountTable.id),
+    .references(() => accountTable.id, { onDelete: "cascade" }),
   visibility: postVisibilityEnum().notNull().default("public"),
   content: text().notNull(),
   language: varchar().notNull(),
