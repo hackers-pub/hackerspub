@@ -139,7 +139,8 @@ export function PostExcerpt(props: PostExcerptProps) {
                     shared={post.shares.some((share) =>
                       share.actorId === props.signedAccount?.actor.id
                     )}
-                    deleteUrl={post.actor.accountId == null
+                    deleteUrl={post.actor.accountId == null ||
+                        post.actor.accountId !== props.signedAccount?.id
                       ? undefined
                       : `/@${post.actor.username}/${post.noteSourceId}`}
                   />
