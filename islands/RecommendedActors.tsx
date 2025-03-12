@@ -37,14 +37,14 @@ export function RecommendedActors(
                   class="bg-white dark:bg-stone-800 p-4 flex flex-col h-full"
                 >
                   <div class="grow">
-                    <div class="flex items-center space-x-4">
+                    <div class="flex space-x-4">
                       <img
                         src={actor.avatarUrl ??
                           "https://gravatar.com/avatar/?d=mp&s=128"}
                         alt={actor.name ?? undefined}
                         class="w-12 h-12"
                       />
-                      <div>
+                      <div class="grow">
                         <h2 class="text-lg font-semibold">
                           <Link
                             internalHref={actor.accountId == null
@@ -76,6 +76,35 @@ export function RecommendedActors(
                           </Link>
                         </p>
                       </div>
+                      <button
+                        type="button"
+                        class="size-6"
+                        onClick={() => {
+                          setHiddenActors((hiddenActors) =>
+                            hiddenActors.slice(1)
+                          );
+                          setShownActors((actors) => [
+                            ...actors.slice(0, index),
+                            ...hiddenActors.slice(0, 1),
+                            ...actors.slice(index + 1),
+                          ]);
+                        }}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="size-6 stroke-stone-400 hover:stroke-stone-800 dark:stroke-stone-500 dark:hover:stroke-stone-100 hover:stroke-2"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M6 18 18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
                     </div>
                     <div
                       class="mt-4 prose dark:prose-invert"
