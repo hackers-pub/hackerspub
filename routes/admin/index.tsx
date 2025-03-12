@@ -1,4 +1,4 @@
-import { count, desc, eq, isNotNull } from "drizzle-orm";
+import { count, desc, eq, isNotNull, max } from "drizzle-orm";
 import { page } from "fresh";
 import { AdminNav } from "../../components/AdminNav.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
@@ -22,18 +22,30 @@ export const handler = define.handlers({
       with: { emails: true, actor: true },
       orderBy: desc(accountTable.created),
     });
-    const postsCounts: Record<Uuid, number> = Object.fromEntries(
+    const postsMetadata: Record<
+      Uuid,
+      { count: number; lastPublished: Date | null }
+    > = Object.fromEntries(
       (await db.select({
         accountId: actorTable.accountId,
         count: count(),
+        lastPublished: max(postTable.published),
       })
         .from(postTable)
         .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
         .where(isNotNull(actorTable.accountId))
         .groupBy(actorTable.accountId)).map((
-          { accountId, count },
-        ) => [accountId, count]),
+          { accountId, count, lastPublished },
+        ) => [accountId, { count, lastPublished }]),
     );
+    // Sort accounts by the latest post published date
+    accounts.sort((a, b) => {
+      const aLastPublished = postsMetadata[a.id]?.lastPublished;
+      const bLastPublished = postsMetadata[b.id]?.lastPublished;
+      if (aLastPublished == null) return 1;
+      if (bLastPublished == null) return -1;
+      return bLastPublished.getTime() - aLastPublished.getTime();
+    });
     const avatars = Object.fromEntries(
       await Promise.all(
         accounts.map(async (
@@ -41,19 +53,19 @@ export const handler = define.handlers({
         ) => [account.id, await getAvatarUrl(account)]),
       ),
     );
-    return page<AccountListProps>({ accounts, postsCounts, avatars });
+    return page<AccountListProps>({ accounts, postsMetadata, avatars });
   },
 });
 
 interface AccountListProps {
   accounts: (Account & { actor: Actor; emails: AccountEmail[] })[];
-  postsCounts: Record<Uuid, number>;
+  postsMetadata: Record<Uuid, { count: number; lastPublished: Date | null }>;
   avatars: Record<Uuid, string>;
 }
 
 export default define.page<typeof handler, AccountListProps>(
   function AccountList(
-    { state: { language }, data: { accounts, postsCounts, avatars } },
+    { state: { language }, data: { accounts, postsMetadata, avatars } },
   ) {
     return (
       <div>
@@ -111,13 +123,18 @@ export default define.page<typeof handler, AccountListProps>(
                   <a href={`/@${account.username}`}>{account.name}</a>
                 </td>
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
-                  {account.actor.followeesCount.toLocaleString(language)}
+                  <a href={`/@${account.username}/following`}>
+                    {account.actor.followeesCount.toLocaleString(language)}
+                  </a>
                 </td>
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
-                  {account.actor.followersCount.toLocaleString(language)}
+                  <a href={`/@${account.username}/followers`}>
+                    {account.actor.followersCount.toLocaleString(language)}
+                  </a>
                 </td>
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
-                  {(postsCounts[account.id] ?? 0).toLocaleString(language)}
+                  {(postsMetadata[account.id] ?? { count: 0 }).count
+                    .toLocaleString(language)}
                 </td>
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   <Timestamp value={account.created} locale={language} />
