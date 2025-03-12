@@ -239,6 +239,13 @@
       "when": 1741755246635,
       "tag": "0033_on-delete-cascade",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1741775204270,
+      "tag": "0034_delete-orphan-note-sources",
+      "breakpoints": true
     }
   ]
 }

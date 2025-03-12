@@ -40,6 +40,7 @@ import {
   type Actor,
   actorTable,
   type ArticleSource,
+  articleSourceTable,
   type Following,
   followingTable,
   type Instance,
@@ -48,6 +49,7 @@ import {
   type NewPost,
   type NoteMedium,
   type NoteSource,
+  noteSourceTable,
   type Post,
   type PostMedium,
   postMediumTable,
@@ -866,16 +868,32 @@ export async function deletePost(
   for (const reply of replies) {
     await deletePost(db, fedCtx, reply);
   }
-  const interactorIds = await db.delete(postTable).where(
+  const interactions = await db.delete(postTable).where(
     or(
       eq(postTable.replyTargetId, post.id),
       eq(postTable.sharedPostId, post.id),
       eq(postTable.id, post.id),
     ),
-  ).returning({ id: postTable.actorId });
+  ).returning();
+  const noteSourceIds = interactions
+    .filter((i) => i.noteSourceId != null)
+    .map((i) => i.noteSourceId!);
+  if (noteSourceIds.length > 0) {
+    await db.delete(noteSourceTable).where(
+      inArray(noteSourceTable.id, noteSourceIds),
+    );
+  }
+  const articleSourceIds = interactions
+    .filter((i) => i.articleSourceId != null)
+    .map((i) => i.articleSourceId!);
+  if (articleSourceIds.length > 0) {
+    await db.delete(articleSourceTable).where(
+      inArray(articleSourceTable.id, articleSourceIds),
+    );
+  }
   if (post.actor.accountId == null) return;
   const interactors = await db.query.actorTable.findMany({
-    where: inArray(actorTable.id, interactorIds.map((id) => id.id)),
+    where: inArray(actorTable.id, interactions.map((i) => i.actorId)),
   });
   const recipients: Recipient[] = interactors.map((actor) => ({
     id: new URL(actor.iri),
