@@ -2,11 +2,11 @@ import * as vocab from "@fedify/fedify/vocab";
 import * as v from "@valibot/valibot";
 import { eq, sql } from "drizzle-orm";
 import { page } from "fresh";
-import { ArticleMetadata } from "../../../../components/ArticleMetadata.tsx";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
 import { drive } from "../../../../drive.ts";
+import { ArticleMetadata } from "../../../../islands/ArticleMetadata.tsx";
 import { Composer } from "../../../../islands/Composer.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
@@ -198,6 +198,7 @@ export default define.page<typeof handler, ArticlePageProps>(
             {article.title}
           </h1>
           <ArticleMetadata
+            language={state.language}
             class="mt-4"
             authorUrl={`/@${article.account.username}`}
             authorName={article.account.name}
@@ -206,6 +207,9 @@ export default define.page<typeof handler, ArticlePageProps>(
             published={article.published}
             editUrl={state.account?.id === article.accountId
               ? `${postUrl}/edit`
+              : null}
+            deleteUrl={state.account?.id === article.accountId
+              ? `${postUrl}/delete`
               : null}
           />
           <div
@@ -244,6 +248,7 @@ export default define.page<typeof handler, ArticlePageProps>(
             <PostExcerpt
               key={comment.id}
               post={{ ...comment, sharedPost: null, replyTarget: null }}
+              signedAccount={state.account}
             />
           ))}
         </div>

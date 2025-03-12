@@ -115,7 +115,9 @@
     "comments_other": "{{count}} comments",
     "remoteCommentDescription": "If you have a fediverse account, you can comment on this post from your own instance. Search {{permalink}} on your instance and reply to it.",
     "shared": "{{name}} shared the below article:",
-    "edit": "Edit"
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this article?"
   },
   "note": {
     "title": "{{name}}: {{content}}",

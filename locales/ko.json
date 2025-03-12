@@ -113,7 +113,9 @@
     "comments_other": "{{count}}개의 댓글",
     "remoteCommentDescription": "연합우주(fediverse) 계정이 있으시다면, 이 게시물에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {{permalink}}로 검색하신 뒤, 해당 게시물에 댓글을 남기시면 됩니다.",
     "shared": "{{name}} 님이 아래 게시물을 공유했습니다:",
-    "edit": "수정"
+    "edit": "수정",
+    "delete": "삭제",
+    "deleteConfirm": "이 게시물을 삭제하시겠습니까?"
   },
   "note": {
     "title": "{{name}}: {{content}}",

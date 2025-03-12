@@ -1,9 +1,9 @@
 import {
   ArticleMetadata,
   type ArticleMetadataProps,
-} from "./ArticleMetadata.tsx";
+} from "../islands/ArticleMetadata.tsx";
 import { Excerpt } from "./Excerpt.tsx";
-import { Msg } from "./Msg.tsx";
+import { Msg, Translation } from "./Msg.tsx";
 
 export interface ArticleExcerptProps extends ArticleMetadataProps {
   url: string | URL;
@@ -53,14 +53,21 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
             </a>
           </h1>
         )}
-      <ArticleMetadata
-        class="mb-2"
-        authorUrl={props.authorUrl}
-        authorName={props.authorName}
-        authorHandle={props.authorHandle}
-        authorAvatarUrl={props.authorAvatarUrl}
-        published={props.published}
-      />
+      <Translation>
+        {(_, language) => (
+          <ArticleMetadata
+            language={language}
+            class="mb-2"
+            authorUrl={props.authorUrl}
+            authorName={props.authorName}
+            authorHandle={props.authorHandle}
+            authorAvatarUrl={props.authorAvatarUrl}
+            published={props.published}
+            editUrl={props.editUrl}
+            deleteUrl={props.deleteUrl}
+          />
+        )}
+      </Translation>
       {!props.replyTarget && (
         <a href={props.url.toString()} target={props.target}>
           <Excerpt

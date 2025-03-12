@@ -77,6 +77,7 @@ export function PostExcerpt(props: PostExcerptProps) {
           {post.type === "Article" || post.name != null
             ? (
               <ArticleExcerpt
+                language={language}
                 class={props.class}
                 url={post.url ?? post.iri}
                 target={post.actor.accountId == null ? "_blank" : undefined}
@@ -91,6 +92,14 @@ export function PostExcerpt(props: PostExcerptProps) {
                 sharer={sharer}
                 published={post.published}
                 replyTarget={props.replyTarget}
+                editUrl={post.articleSourceId == null ||
+                    post.actorId !== props.signedAccount?.actor.id
+                  ? null
+                  : `${post.url}/edit`}
+                deleteUrl={post.articleSourceId == null ||
+                    post.actorId !== props.signedAccount?.actor.id
+                  ? null
+                  : `${post.url}/delete`}
               />
             )
             : (

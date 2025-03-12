@@ -113,7 +113,9 @@
     "comments_other": "{{count}}件のコメント",
     "remoteCommentDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この記事にコメントを残すことができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当記事にコメントを残してください。",
     "shared": "{{name}}さんが以下の記事を共有しました：",
-    "edit": "編集"
+    "edit": "編集",
+    "delete": "削除",
+    "deleteConfirm": "この記事を削除してもよろしいですか？"
   },
   "note": {
     "title": "{{name}}：{{content}}",

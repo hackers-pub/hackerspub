@@ -50,7 +50,11 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
     const postUrl = `/@${note.account.username}/${note.id}`;
     return (
       <>
-        <PostExcerpt post={note.post} noControls />
+        <PostExcerpt
+          post={note.post}
+          noControls
+          signedAccount={state.account}
+        />
         <NoteControls
           class="mt-4 ml-14"
           language={state.language}

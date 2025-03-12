@@ -379,7 +379,7 @@ export default define.page<typeof handler, NotePageProps>(
     const authorHandle = `@${post.actor.username}@${post.actor.instanceHost}`;
     return (
       <>
-        <PostExcerpt post={post} noControls />
+        <PostExcerpt post={post} noControls signedAccount={state.account} />
         <NoteControls
           class="mt-4 ml-14"
           language={state.language}
