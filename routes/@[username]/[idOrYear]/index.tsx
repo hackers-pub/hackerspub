@@ -69,12 +69,22 @@ export const handler = define.handlers({
       if (ctx.params.username.endsWith(`@${ctx.url.host}`)) {
         return ctx.redirect(`/@${ctx.params.username}/${id}`);
       }
-      const result = await getPostByUsernameAndId(db, ctx.params.username, id);
+      const result = await getPostByUsernameAndId(
+        db,
+        ctx.params.username,
+        id,
+        ctx.state.account,
+      );
       if (result == null) return ctx.next();
       post = result;
       postUrl = `/@${ctx.params.username}/${post.id}`;
     } else {
-      const note = await getNoteSource(db, ctx.params.username, id);
+      const note = await getNoteSource(
+        db,
+        ctx.params.username,
+        id,
+        ctx.state.account,
+      );
       if (note == null) {
         const share = await db.query.postTable.findFirst({
           with: {
@@ -373,6 +383,7 @@ export default define.page<typeof handler, NotePageProps>(
         <NoteControls
           class="mt-4 ml-14"
           language={state.language}
+          active="reply"
           replies={replies.length}
           shares={(post.sharedPost ?? post).sharesCount}
           shareUrl={state.account == null ||
@@ -386,6 +397,11 @@ export default define.page<typeof handler, NotePageProps>(
           shared={(post.sharedPost ?? post).shares.some((share) =>
             share.actorId === state.account?.actor.id
           )}
+          sharedPeopleUrl={`${postUrl}/shares`}
+          deleteUrl={state.account == null ||
+              state.account.id !== post.actor.accountId
+            ? undefined
+            : postUrl}
         />
         {state.account == null
           ? (

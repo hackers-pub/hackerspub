@@ -123,6 +123,7 @@
     "shared": "이미 공유함",
     "unshare": "공유 취소",
     "unsharing": "공유 취소중…",
+    "sharedPeople": "이 노트를 공유한 사람들",
     "delete": "삭제",
     "deleteConfirm": "이 노트를 삭제하시겠습니까?",
     "deleting": "삭제중…",

@@ -123,6 +123,7 @@
     "shared": "共有済み",
     "unshare": "共有解除",
     "unsharing": "共有解除中…",
+    "sharedPeople": "この投稿を共有した人々",
     "delete": "削除",
     "deleteConfirm": "この投稿を削除してもよろしいですか？",
     "deleting": "削除中…",

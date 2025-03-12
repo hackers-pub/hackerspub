@@ -125,6 +125,7 @@
     "shared": "Already shared",
     "unshare": "Unshare",
     "unsharing": "Unsharing…",
+    "sharedPeople": "People who shared this note",
     "delete": "Delete",
     "deleteConfirm": "Are you sure you want to delete this note?",
     "deleting": "Deleting…",
