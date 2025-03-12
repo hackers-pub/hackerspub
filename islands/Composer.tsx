@@ -103,18 +103,30 @@ export function Composer(props: ComposerProps) {
   function onDrop(event: JSX.TargetedDragEvent<HTMLTextAreaElement>) {
     if (isMediaDragEvent(event)) {
       event.preventDefault();
-      for (const f of event.dataTransfer.files) {
-        const reader = new FileReader();
-        reader.addEventListener("load", (e) => {
-          console.debug(e);
-          if (e.target == null || typeof e.target.result !== "string") return;
-          const url = e.target.result;
-          setMedia((media) => [...media, { url, alt: "" }]);
-        });
-        reader.readAsDataURL(f);
-      }
+      for (const f of event.dataTransfer.files) addMedium(f);
       setMediaDragging(false);
     }
+  }
+
+  function onPaste(event: JSX.TargetedClipboardEvent<HTMLTextAreaElement>) {
+    for (const item of event.clipboardData?.items ?? []) {
+      if (item.kind === "file" && SUPPORTED_MEDIA_TYPES.includes(item.type)) {
+        event.preventDefault();
+        const file = item.getAsFile();
+        if (file == null) continue;
+        addMedium(file);
+      }
+    }
+  }
+
+  function addMedium(file: File) {
+    const reader = new FileReader();
+    reader.addEventListener("load", (e) => {
+      if (e.target == null || typeof e.target.result !== "string") return;
+      const url = e.target.result;
+      setMedia((media) => [...media, { url, alt: "" }]);
+    });
+    reader.readAsDataURL(file);
   }
 
   async function onSubmit(event: JSX.TargetedSubmitEvent<HTMLFormElement>) {
@@ -173,6 +185,7 @@ export function Composer(props: ComposerProps) {
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDrop={onDrop}
+          onPaste={onPaste}
           aria-label={t("composer.content")}
         />
         <div class="flex flex-col lg:flex-row gap-2">
@@ -259,6 +272,12 @@ export function Composer(props: ComposerProps) {
                   type="button"
                   title={t("composer.removeMedium")}
                   class="hover:bg-stone-200 hover:dark:bg-stone-700"
+                  onClick={() =>
+                    setMedia((media) =>
+                      media.filter((_, i) =>
+                        i !== idx
+                      )
+                    )}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
