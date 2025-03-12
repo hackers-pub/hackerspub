@@ -29,7 +29,7 @@ import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./xss.ts";
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
-let md = createMarkdownIt({ html: true })
+let md = createMarkdownIt({ html: true, linkify: true })
   .use(abbr)
   .use(admonition)
   .use(anchor, {
