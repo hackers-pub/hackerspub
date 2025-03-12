@@ -55,6 +55,7 @@ export function NoteControls(props: NoteControlsProps) {
             props.replyUrl == null ? "" : "hover:opacity-100"
           }`}
           href={props.replyUrl}
+          title={t("note.replies")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -89,6 +90,7 @@ export function NoteControls(props: NoteControlsProps) {
             onFocus={onShareFocus}
             onMouseOut={onShareFocusOut}
             onBlur={onShareFocusOut}
+            title={t("note.shares")}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
