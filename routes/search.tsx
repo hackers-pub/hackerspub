@@ -1,6 +1,6 @@
 import { type Context, isActor } from "@fedify/fedify";
 import type * as vocab from "@fedify/fedify/vocab";
-import { and, desc, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
@@ -124,7 +124,7 @@ export const handler = define.handlers({
     if (redirect != null) return ctx.redirect(redirect);
     const expr = query == null ? undefined : parseQuery(query);
     const posts = expr == null ? [] : await db.query.postTable.findMany({
-      where: compileQuery(db, expr),
+      where: and(compileQuery(db, expr), isNull(postTable.sharedPostId)),
       with: {
         actor: true,
         mentions: {
