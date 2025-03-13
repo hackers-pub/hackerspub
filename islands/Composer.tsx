@@ -60,6 +60,7 @@ export function Composer(props: ComposerProps) {
   const [visibility, setVisibility] = useState<PostVisibility>(
     props.defaultVisibility ?? "public",
   );
+  const rows = (content.match(/\n/g)?.length ?? 0) + 1;
 
   function onInput(event: JSX.TargetedInputEvent<HTMLTextAreaElement>) {
     if (contentLanguageManuallySet) return;
@@ -186,6 +187,7 @@ export function Composer(props: ComposerProps) {
           onDragLeave={onDragLeave}
           onDrop={onDrop}
           onPaste={onPaste}
+          rows={Math.min(Math.max(2, rows), 10)}
           aria-label={t("composer.content")}
         />
         <div class="flex flex-col lg:flex-row gap-2">
