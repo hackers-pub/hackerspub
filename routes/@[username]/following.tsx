@@ -4,6 +4,7 @@ import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
+import { extractMentionsFromHtml } from "../../models/markup.ts";
 import {
   type Account,
   accountTable,
@@ -33,12 +34,21 @@ export const handler = define.handlers({
       ),
       orderBy: desc(followingTable.accepted),
     });
+    const followeesMentions = await extractMentionsFromHtml(
+      db,
+      ctx.state.fedCtx,
+      followees.map((f) => f.followee.bioHtml).join("\n"),
+      {
+        documentLoader: await ctx.state.fedCtx.getDocumentLoader(account),
+      },
+    );
     ctx.state.title = ctx.state.t("profile.followeeList.title", {
       name: account.name,
     });
     return page<FolloweeListProps>({
       account,
       followees: followees.map((f) => f.followee),
+      followeesMentions,
     });
   },
 });
@@ -46,6 +56,7 @@ export const handler = define.handlers({
 interface FolloweeListProps {
   account: Account;
   followees: (Actor & { account?: Account | null })[];
+  followeesMentions: { actor: Actor }[];
 }
 
 export default define.page<typeof handler, FolloweeListProps>(
@@ -62,7 +73,10 @@ export default define.page<typeof handler, FolloweeListProps>(
             }
           />
         </PageTitle>
-        <ActorList actors={data.followees} />
+        <ActorList
+          actors={data.followees}
+          actorMentions={data.followeesMentions}
+        />
       </>
     );
   },

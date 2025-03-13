@@ -55,10 +55,11 @@ export async function getNoteSource(
           replyTarget:
             | Post & {
               actor: Actor & { followers: Following[] };
-              mentions: Mention[];
+              mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
             }
             | null;
+          mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
           shares: Post[];
         }
@@ -66,11 +67,11 @@ export async function getNoteSource(
       replyTarget:
         | Post & {
           actor: Actor & { followers: Following[] };
-          mentions: Mention[];
+          mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
         }
         | null;
-      mentions: Mention[];
+      mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
       shares: Post[];
     };
@@ -100,7 +101,9 @@ export async function getNoteSource(
           actor: {
             with: { followers: true },
           },
-          mentions: true,
+          mentions: {
+            with: { actor: true },
+          },
           sharedPost: {
             with: {
               actor: true,
@@ -116,9 +119,14 @@ export async function getNoteSource(
                       },
                     },
                   },
-                  mentions: true,
+                  mentions: {
+                    with: { actor: true },
+                  },
                   media: true,
                 },
+              },
+              mentions: {
+                with: { actor: true },
               },
               media: true,
               shares: {
@@ -140,7 +148,9 @@ export async function getNoteSource(
                   },
                 },
               },
-              mentions: true,
+              mentions: {
+                with: { actor: true },
+              },
               media: true,
             },
           },

@@ -624,6 +624,7 @@ export function getPostByUsernameAndId(
             media: PostMedium[];
           }
           | null;
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
       }
@@ -635,7 +636,7 @@ export function getPostByUsernameAndId(
         media: PostMedium[];
       }
       | null;
-    mentions: Mention[];
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
   }
@@ -670,6 +671,9 @@ export function getPostByUsernameAndId(
               media: true,
             },
           },
+          mentions: {
+            with: { actor: true },
+          },
           media: true,
           shares: {
             where: signedAccount == null
@@ -696,7 +700,9 @@ export function getPostByUsernameAndId(
           media: true,
         },
       },
-      mentions: true,
+      mentions: {
+        with: { actor: true },
+      },
       media: true,
       shares: {
         where: signedAccount == null

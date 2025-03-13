@@ -79,7 +79,7 @@ export async function getArticleSource(
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     post: Post & {
       actor: Actor & { followers: Following[] };
-      mentions: Mention[];
+      mentions: (Mention & { actor: Actor })[];
     };
   } | undefined
 > {
@@ -106,7 +106,9 @@ export async function getArticleSource(
           actor: {
             with: { followers: true },
           },
-          mentions: true,
+          mentions: {
+            with: { actor: true },
+          },
         },
       },
     },

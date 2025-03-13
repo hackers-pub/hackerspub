@@ -85,6 +85,7 @@
     "@tailwindcss/typography": "npm:@tailwindcss/typography@^0.5.15",
     "@valibot/valibot": "jsr:@valibot/valibot@^0.42.1",
     "arcsecond": "npm:arcsecond@^5.0.0",
+    "cheerio": "npm:cheerio@^1.0.0",
     "cssfilter": "npm:cssfilter@^0.0.11",
     "drizzle-kit": "npm:drizzle-kit@^0.28.0",
     "drizzle-orm": "npm:drizzle-orm@^0.36.3",

@@ -22,7 +22,7 @@ import {
   type FollowingState,
   getFollowingState,
 } from "../../models/following.ts";
-import { renderMarkup } from "../../models/markup.ts";
+import { extractMentionsFromHtml, renderMarkup } from "../../models/markup.ts";
 import { createNote } from "../../models/note.ts";
 import {
   type AccountLink,
@@ -149,9 +149,14 @@ export const handler = define.handlers({
                       },
                     },
                   },
-                  mentions: true,
+                  mentions: {
+                    with: { actor: true },
+                  },
                   media: true,
                 },
+              },
+              mentions: {
+                with: { actor: true },
               },
               media: true,
               shares: {
@@ -173,9 +178,14 @@ export const handler = define.handlers({
                   },
                 },
               },
-              mentions: true,
+              mentions: {
+                with: { actor: true },
+              },
               media: true,
             },
+          },
+          mentions: {
+            with: { actor: true },
           },
           media: true,
           shares: {
@@ -198,6 +208,11 @@ export const handler = define.handlers({
       return page<ProfilePageProps>({
         profileHref: `/${handle}`,
         actor,
+        actorMentions: await extractMentionsFromHtml(
+          db,
+          ctx.state.fedCtx,
+          actor.bioHtml ?? "",
+        ),
         followingState,
         followedState,
         stats: await getActorStats(db, actor.id),
@@ -273,9 +288,14 @@ export const handler = define.handlers({
                     },
                   },
                 },
-                mentions: true,
+                mentions: {
+                  with: { actor: true },
+                },
                 media: true,
               },
+            },
+            mentions: {
+              with: { actor: true },
             },
             media: true,
             shares: {
@@ -297,9 +317,14 @@ export const handler = define.handlers({
                 },
               },
             },
-            mentions: true,
+            mentions: {
+              with: { actor: true },
+            },
             media: true,
           },
+        },
+        mentions: {
+          with: { actor: true },
         },
         media: true,
         shares: {
@@ -328,6 +353,12 @@ export const handler = define.handlers({
     return page<ProfilePageProps>({
       profileHref: permalink.href,
       actor: account.actor,
+      actorMentions: await extractMentionsFromHtml(
+        db,
+        ctx.state.fedCtx,
+        account.actor.bioHtml ?? "",
+        { documentLoader: await ctx.state.fedCtx.getDocumentLoader(account) },
+      ),
       links: account.links,
       followingState,
       followedState,
@@ -376,6 +407,7 @@ export const handler = define.handlers({
 interface ProfilePageProps {
   profileHref: string;
   actor: Actor;
+  actorMentions: { actor: Actor }[];
   followingState?: FollowingState;
   followedState?: FollowingState;
   links?: AccountLink[];
@@ -388,10 +420,11 @@ interface ProfilePageProps {
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            mentions: Mention[];
+            mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
           | null;
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
       }
@@ -399,10 +432,11 @@ interface ProfilePageProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
-        mentions: Mention[];
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
       | null;
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
   })[];
@@ -415,6 +449,7 @@ export default define.page<typeof handler, ProfilePageProps>(
       <div>
         <Profile
           actor={data.actor}
+          actorMentions={data.actorMentions}
           followingState={data.followingState}
           followedState={data.followedState}
           links={data.links}

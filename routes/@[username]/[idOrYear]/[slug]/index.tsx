@@ -11,6 +11,7 @@ import { Composer } from "../../../../islands/Composer.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource, updateArticle } from "../../../../models/article.ts";
+import { preprocessContentHtml } from "../../../../models/html.ts";
 import { renderMarkup } from "../../../../models/markup.ts";
 import { createNote } from "../../../../models/note.ts";
 import { isPostVisibleTo } from "../../../../models/post.ts";
@@ -18,6 +19,7 @@ import {
   type Account,
   type Actor,
   type ArticleSource,
+  type Mention,
   type Post,
   type PostMedium,
   postTable,
@@ -110,6 +112,9 @@ export const handler = define.handlers({
     const comments = await db.query.postTable.findMany({
       with: {
         actor: true,
+        mentions: {
+          with: { actor: true },
+        },
         media: true,
         shares: {
           where: ctx.state.account == null
@@ -125,7 +130,11 @@ export const handler = define.handlers({
       articleIri: articleUri.href,
       comments,
       avatarUrl: await getAvatarUrl(article.account),
-      contentHtml: content.html,
+      contentHtml: preprocessContentHtml(
+        content.html,
+        article.post.mentions,
+        article.post.emojis,
+      ),
     }, {
       headers: {
         Link:
@@ -175,7 +184,12 @@ export const handler = define.handlers({
 interface ArticlePageProps {
   article: ArticleSource & { account: Account };
   articleIri: string;
-  comments: (Post & { actor: Actor; media: PostMedium[]; shares: Post[] })[];
+  comments: (Post & {
+    actor: Actor;
+    mentions: (Mention & { actor: Actor })[];
+    media: PostMedium[];
+    shares: Post[];
+  })[];
   avatarUrl: string;
   contentHtml: string;
 }

@@ -2,8 +2,13 @@ import { escape } from "@std/html/entities";
 import { Link } from "../islands/Link.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
 import { renderCustomEmojis } from "../models/emoji.ts";
-import type { PostMedium, PostVisibility } from "../models/schema.ts";
-import { sanitizeHtml } from "../models/xss.ts";
+import { preprocessContentHtml } from "../models/html.ts";
+import type {
+  Actor,
+  Mention,
+  PostMedium,
+  PostVisibility,
+} from "../models/schema.ts";
 import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
 
@@ -14,6 +19,7 @@ export interface NoteExcerptProps {
   target?: string;
   contentHtml: string;
   emojis?: Record<string, string>;
+  mentions: (Mention & { actor: Actor })[];
   visibility: PostVisibility;
   lang?: string;
   authorUrl: string;
@@ -114,8 +120,9 @@ export function NoteExcerpt(props: NoteExcerptProps) {
             `}
             lang={props.lang}
             dangerouslySetInnerHTML={{
-              __html: renderCustomEmojis(
-                sanitizeHtml(props.contentHtml),
+              __html: preprocessContentHtml(
+                props.contentHtml,
+                props.mentions,
                 props.emojis ?? {},
               ),
             }}

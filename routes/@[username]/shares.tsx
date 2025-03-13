@@ -10,6 +10,7 @@ import {
   type FollowingState,
   getFollowingState,
 } from "../../models/following.ts";
+import { extractMentionsFromHtml } from "../../models/markup.ts";
 import {
   type Account,
   type AccountLink,
@@ -94,9 +95,14 @@ export const handler = define.handlers({
                     },
                   },
                 },
-                mentions: true,
+                mentions: {
+                  with: { actor: true },
+                },
                 media: true,
               },
+            },
+            mentions: {
+              with: { actor: true },
             },
             media: true,
             shares: {
@@ -118,9 +124,14 @@ export const handler = define.handlers({
                 },
               },
             },
-            mentions: true,
+            mentions: {
+              with: { actor: true },
+            },
             media: true,
           },
+        },
+        mentions: {
+          with: { actor: true },
         },
         media: true,
         shares: {
@@ -144,6 +155,16 @@ export const handler = define.handlers({
         ? `/@${actor.username}@${actor.instanceHost}`
         : `/@${account.username}`,
       actor,
+      actorMentions: await extractMentionsFromHtml(
+        db,
+        ctx.state.fedCtx,
+        actor.bioHtml ?? "",
+        actor.accountId == null ? {} : {
+          documentLoader: await ctx.state.fedCtx.getDocumentLoader({
+            identifier: actor.accountId,
+          }),
+        },
+      ),
       links,
       followingState,
       followedState,
@@ -161,6 +182,7 @@ export const handler = define.handlers({
 interface ProfileShareListProps {
   profileHref: string;
   actor: Actor;
+  actorMentions: { actor: Actor }[];
   followingState?: FollowingState;
   followedState?: FollowingState;
   links?: AccountLink[];
@@ -173,10 +195,11 @@ interface ProfileShareListProps {
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            mentions: Mention[];
+            mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
           | null;
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
       }
@@ -184,10 +207,11 @@ interface ProfileShareListProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
-        mentions: Mention[];
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
       | null;
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
   })[];
@@ -200,6 +224,7 @@ export default define.page<typeof handler, ProfileShareListProps>(
       <div>
         <Profile
           actor={data.actor}
+          actorMentions={data.actorMentions}
           profileHref={data.profileHref}
           followingState={data.followingState}
           followedState={data.followedState}

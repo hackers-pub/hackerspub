@@ -10,6 +10,7 @@ import { db } from "../db.ts";
 import { Composer } from "../islands/Composer.tsx";
 import { RecommendedActors } from "../islands/RecommendedActors.tsx";
 import { recommendActors } from "../models/actor.ts";
+import { extractMentionsFromHtml } from "../models/markup.ts";
 import {
   type Account,
   type Actor,
@@ -45,10 +46,11 @@ export const handler = define.handlers({
           replyTarget:
             | Post & {
               actor: Actor & { followers: Following[] };
-              mentions: Mention[];
+              mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
             }
             | null;
+          mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
           shares: Post[];
         }
@@ -56,10 +58,11 @@ export const handler = define.handlers({
       replyTarget:
         | Post & {
           actor: Actor & { followers: Following[] };
-          mentions: Mention[];
+          mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
         }
         | null;
+      mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
       shares: Post[];
     })[];
@@ -83,9 +86,14 @@ export const handler = define.handlers({
                       followers: { where: sql`false` },
                     },
                   },
-                  mentions: true,
+                  mentions: {
+                    with: { actor: true },
+                  },
                   media: true,
                 },
+              },
+              mentions: {
+                with: { actor: true },
               },
               media: true,
               shares: { where: sql`false` },
@@ -98,9 +106,14 @@ export const handler = define.handlers({
                   followers: { where: sql`false` },
                 },
               },
-              mentions: true,
+              mentions: {
+                with: { actor: true },
+              },
               media: true,
             },
+          },
+          mentions: {
+            with: { actor: true },
           },
           media: true,
           shares: { where: sql`false` },
@@ -134,9 +147,14 @@ export const handler = define.handlers({
                       },
                     },
                   },
-                  mentions: true,
+                  mentions: {
+                    with: { actor: true },
+                  },
                   media: true,
                 },
+              },
+              mentions: {
+                with: { actor: true },
               },
               media: true,
               shares: {
@@ -156,9 +174,14 @@ export const handler = define.handlers({
                   },
                 },
               },
-              mentions: true,
+              mentions: {
+                with: { actor: true },
+              },
               media: true,
             },
+          },
+          mentions: {
+            with: { actor: true },
           },
           media: true,
           shares: {
@@ -213,6 +236,16 @@ export const handler = define.handlers({
     logger.debug("Recommended actors: {recommendedActors}", {
       recommendedActors,
     });
+    const recommendedActorMentions = await extractMentionsFromHtml(
+      db,
+      ctx.state.fedCtx,
+      recommendedActors.map((actor) => actor.bioHtml).join("\n"),
+      ctx.state.account == null ? {} : {
+        documentLoader: await ctx.state.fedCtx.getDocumentLoader(
+          ctx.state.account,
+        ),
+      },
+    );
     ctx.state.metas.push(
       { name: "description", content: ctx.state.t("home.intro.content") },
       { property: "og:title", content: "Hackers' Pub" },
@@ -242,6 +275,7 @@ export const handler = define.handlers({
       next,
       window,
       recommendedActors,
+      recommendedActorMentions,
     });
   },
 });
@@ -257,10 +291,11 @@ interface HomeProps {
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            mentions: Mention[];
+            mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
           | null;
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
       }
@@ -268,16 +303,18 @@ interface HomeProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
-        mentions: Mention[];
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
       | null;
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
   })[];
   next?: Date;
   window: number;
   recommendedActors: (Actor & { account?: Account | null })[];
+  recommendedActorMentions: { actor: Actor }[];
 }
 
 export default define.page<typeof handler, HomeProps>(
@@ -317,6 +354,7 @@ export default define.page<typeof handler, HomeProps>(
           <RecommendedActors
             language={state.language}
             actors={data.recommendedActors}
+            actorMentions={data.recommendedActorMentions}
             window={6}
           />
         )}

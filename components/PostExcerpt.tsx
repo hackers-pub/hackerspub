@@ -23,10 +23,11 @@ export interface PostExcerptProps {
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            mentions: Mention[];
+            mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
           | null;
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
       }
@@ -34,10 +35,11 @@ export interface PostExcerptProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
-        mentions: Mention[];
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
       | null;
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
   };
@@ -112,6 +114,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                     : `/@${post.actor.username}/${post.noteSourceId}`}
                   contentHtml={post.contentHtml}
                   emojis={post.emojis}
+                  mentions={post.mentions}
                   lang={post.language ?? undefined}
                   visibility={post.visibility}
                   authorUrl={post.actor.url ?? post.actor.iri}

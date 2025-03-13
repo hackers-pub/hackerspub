@@ -5,19 +5,20 @@ import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import type { Language } from "../i18n.ts";
 import { renderCustomEmojis } from "../models/emoji.ts";
+import { preprocessContentHtml } from "../models/html.ts";
 import type { Account, Actor } from "../models/schema.ts";
 import type { Uuid } from "../models/uuid.ts";
-import { sanitizeHtml } from "../models/xss.ts";
 import { Link } from "./Link.tsx";
 
 export interface RecommendedActorsProps {
   language: Language;
   actors: (Actor & { account?: Account | null })[];
+  actorMentions: { actor: Actor }[];
   window: number;
 }
 
 export function RecommendedActors(
-  { language, actors, window }: RecommendedActorsProps,
+  { language, actors, actorMentions, window }: RecommendedActorsProps,
 ) {
   const [shownActors, setShownActors] = useState(actors.slice(0, window));
   const [hiddenActors, setHiddenActors] = useState(actors.slice(window));
@@ -109,8 +110,9 @@ export function RecommendedActors(
                     <div
                       class="mt-4 prose dark:prose-invert"
                       dangerouslySetInnerHTML={{
-                        __html: renderCustomEmojis(
-                          sanitizeHtml(actor.bioHtml ?? ""),
+                        __html: preprocessContentHtml(
+                          actor.bioHtml ?? "",
+                          actorMentions,
                           actor.emojis,
                         ),
                       }}

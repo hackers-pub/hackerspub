@@ -44,10 +44,11 @@ export const handler = define.handlers({
           replyTarget:
             | Post & {
               actor: Actor & { followers: Following[] };
-              mentions: Mention[];
+              mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
             }
             | null;
+          mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
           shares: Post[];
         }
@@ -55,11 +56,11 @@ export const handler = define.handlers({
       replyTarget:
         | Post & {
           actor: Actor & { followers: Following[] };
-          mentions: Mention[];
+          mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
         }
         | null;
-      mentions: Mention[];
+      mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
       shares: Post[];
     };
@@ -101,11 +102,15 @@ export const handler = define.handlers({
                     },
                   },
                 },
-                mentions: true,
+                mentions: {
+                  with: { actor: true },
+                },
                 media: true,
               },
             },
-            mentions: true,
+            mentions: {
+              with: { actor: true },
+            },
             media: true,
             shares: {
               where: ctx.state.account == null
@@ -127,11 +132,15 @@ export const handler = define.handlers({
                         },
                       },
                     },
-                    mentions: true,
+                    mentions: {
+                      with: { actor: true },
+                    },
                     media: true,
                   },
                 },
-                mentions: true,
+                mentions: {
+                  with: { actor: true },
+                },
                 media: true,
                 shares: {
                   where: ctx.state.account == null
@@ -212,7 +221,9 @@ export const handler = define.handlers({
             },
           },
         },
-        mentions: true,
+        mentions: {
+          with: { actor: true },
+        },
         media: true,
       },
       where: eq(postTable.replyTargetId, post.sharedPostId ?? post.id),
@@ -347,10 +358,11 @@ type NotePageProps = {
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            mentions: Mention[];
+            mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
           | null;
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
       }
@@ -358,15 +370,20 @@ type NotePageProps = {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
-        mentions: Mention[];
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
       | null;
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
   };
   postUrl: string;
-  replies: (Post & { actor: Actor; media: PostMedium[] })[];
+  replies: (Post & {
+    actor: Actor;
+    mentions: (Mention & { actor: Actor })[];
+    media: PostMedium[];
+  })[];
 };
 
 export default define.page<typeof handler, NotePageProps>(
@@ -437,6 +454,8 @@ export default define.page<typeof handler, NotePageProps>(
               ? `/@${reply.actor.username}@${reply.actor.instanceHost}/${reply.id}`
               : `/@${reply.actor.username}/${reply.noteSourceId}`}
             contentHtml={reply.contentHtml}
+            emojis={reply.emojis}
+            mentions={reply.mentions}
             lang={reply.language ?? undefined}
             visibility={reply.visibility}
             authorUrl={reply.actor.url ?? reply.actor.iri}

@@ -127,6 +127,9 @@ export const handler = define.handlers({
       where: compileQuery(db, expr),
       with: {
         actor: true,
+        mentions: {
+          with: { actor: true },
+        },
         media: true,
         shares: {
           where: ctx.state.account == null
@@ -144,13 +147,18 @@ export const handler = define.handlers({
                 },
               },
             },
-            mentions: true,
+            mentions: {
+              with: { actor: true },
+            },
             media: true,
           },
         },
         sharedPost: {
           with: {
             actor: true,
+            mentions: {
+              with: { actor: true },
+            },
             media: true,
             shares: {
               where: ctx.state.account == null
@@ -169,7 +177,9 @@ export const handler = define.handlers({
                     },
                   },
                 },
-                mentions: true,
+                mentions: {
+                  with: { actor: true },
+                },
                 media: true,
               },
             },
@@ -194,10 +204,11 @@ interface SearchResultsProps {
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            mentions: Mention[];
+            mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
           | null;
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
       }
@@ -205,10 +216,11 @@ interface SearchResultsProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: (Following & { follower?: Actor })[] };
-        mentions: (Mention & { actor?: Actor })[];
+        mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
       | null;
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
   })[];

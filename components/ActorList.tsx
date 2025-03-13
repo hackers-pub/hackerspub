@@ -1,13 +1,13 @@
 import { Link } from "../islands/Link.tsx";
-import { renderCustomEmojis } from "../models/emoji.ts";
+import { preprocessContentHtml } from "../models/html.ts";
 import type { Account, Actor } from "../models/schema.ts";
-import { sanitizeHtml } from "../models/xss.ts";
 
 export interface ActorListProps {
   actors: (Actor & { account?: Account | null })[];
+  actorMentions: { actor: Actor }[];
 }
 
-export function ActorList({ actors }: ActorListProps) {
+export function ActorList({ actors, actorMentions }: ActorListProps) {
   return (
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {actors.map((actor) => (
@@ -49,8 +49,9 @@ export function ActorList({ actors }: ActorListProps) {
           <div
             class="mt-4 prose dark:prose-invert"
             dangerouslySetInnerHTML={{
-              __html: renderCustomEmojis(
-                sanitizeHtml(actor.bioHtml ?? ""),
+              __html: preprocessContentHtml(
+                actor.bioHtml ?? "",
+                actorMentions,
                 actor.emojis,
               ),
             }}

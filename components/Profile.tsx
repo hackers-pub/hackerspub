@@ -1,8 +1,8 @@
 import { escape } from "@std/html/entities";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import type { FollowingState } from "../models/following.ts";
+import { preprocessContentHtml, sanitizeHtml } from "../models/html.ts";
 import type { AccountLink, Actor } from "../models/schema.ts";
-import { sanitizeHtml } from "../models/xss.ts";
 import { compactUrl } from "../utils.ts";
 import { Button } from "./Button.tsx";
 import { Msg } from "./Msg.tsx";
@@ -10,6 +10,7 @@ import { PageTitle } from "./PageTitle.tsx";
 
 export interface ProfileProps {
   actor: Actor;
+  actorMentions: { actor: Actor }[];
   followingState?: FollowingState;
   followedState?: FollowingState;
   links?: AccountLink[];
@@ -17,10 +18,12 @@ export interface ProfileProps {
 }
 
 export function Profile(
-  { actor, profileHref, followingState, followedState, links }: ProfileProps,
+  { actor, actorMentions, profileHref, followingState, followedState, links }:
+    ProfileProps,
 ) {
-  const bioHtml = renderCustomEmojis(
-    sanitizeHtml(actor.bioHtml ?? ""),
+  const bioHtml = preprocessContentHtml(
+    actor.bioHtml ?? "",
+    actorMentions,
     actor.emojis,
   );
   return (

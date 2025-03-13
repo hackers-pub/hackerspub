@@ -1,6 +1,9 @@
 import { unescape } from "@std/html/entities";
+import { load } from "cheerio";
 import * as cssfilter from "cssfilter";
 import { FilterXSS, whiteList } from "xss";
+import { renderCustomEmojis } from "./emoji.ts";
+import type { Actor } from "./schema.ts";
 
 const htmlXss = new FilterXSS({
   allowList: {
@@ -17,6 +20,7 @@ const htmlXss = new FilterXSS({
       "data-host",
       "data-id",
       "data-iri",
+      "data-internal-href",
       "id",
     ],
     abbr: ["lang", "translate", "title"],
@@ -297,4 +301,43 @@ export function sanitizeExcerptHtml(html: string): string {
 
 export function stripHtml(html: string): string {
   return unescape(textXss.process(html));
+}
+
+export function internalizeMentions(
+  html: string,
+  mentions: { actor: Actor }[],
+): string {
+  const $ = load(html, null, false);
+  $("a.mention[href]").each((_, el) => {
+    const $el = $(el);
+    const href = $el.attr("href");
+    if (href == null) return;
+    for (const { actor } of mentions) {
+      if (href === actor.iri || href === actor.url) {
+        $el.attr(
+          "data-internal-href",
+          actor.accountId == null
+            ? `/@${actor.username}@${actor.instanceHost}`
+            : `/@${actor.username}`,
+        );
+        break;
+      }
+    }
+  });
+  $("a.mention[data-internal-href]").attr(
+    "onclick",
+    "location.href = this.dataset.internalHref; return false;",
+  );
+  return $.html();
+}
+
+export function preprocessContentHtml(
+  html: string,
+  mentions: { actor: Actor }[],
+  emojis: Record<string, string>,
+) {
+  html = sanitizeHtml(html);
+  html = internalizeMentions(html, mentions);
+  html = renderCustomEmojis(html, emojis);
+  return html;
 }

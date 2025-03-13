@@ -6,6 +6,7 @@ import { PageTitle } from "../../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
 import { NoteControls } from "../../../islands/NoteControls.tsx";
+import { extractMentionsFromHtml } from "../../../models/markup.ts";
 import { getNoteSource } from "../../../models/note.ts";
 import { isPostVisibleTo } from "../../../models/post.ts";
 import { type Account, type Actor, postTable } from "../../../models/schema.ts";
@@ -36,17 +37,28 @@ export const handler = define.handlers({
     const sharers = shares
       .filter((s) => isPostVisibleTo(s, ctx.state.account?.actor))
       .map((s) => s.actor);
-    return page<NoteSharedPeopleProps>({ note, sharers });
+    const sharersMentions = await extractMentionsFromHtml(
+      db,
+      ctx.state.fedCtx,
+      sharers.map((s) => s.bioHtml).join("\n"),
+      {
+        documentLoader: await ctx.state.fedCtx.getDocumentLoader(note.account),
+      },
+    );
+    return page<NoteSharedPeopleProps>({ note, sharers, sharersMentions });
   },
 });
 
 interface NoteSharedPeopleProps {
   note: NonNullable<Awaited<ReturnType<typeof getNoteSource>>>;
   sharers: (Actor & { account?: Account | null })[];
+  sharersMentions: { actor: Actor }[];
 }
 
 export default define.page<typeof handler, NoteSharedPeopleProps>(
-  function NoteSharedPeople({ data: { note, sharers }, state }) {
+  function NoteSharedPeople(
+    { data: { note, sharers, sharersMentions }, state },
+  ) {
     const postUrl = `/@${note.account.username}/${note.id}`;
     return (
       <>
@@ -82,7 +94,7 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
         <PageTitle class="mt-4">
           <Msg $key="note.sharedPeople" />
         </PageTitle>
-        <ActorList actors={sharers} />
+        <ActorList actors={sharers} actorMentions={sharersMentions} />
       </>
     );
   },

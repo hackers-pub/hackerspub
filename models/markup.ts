@@ -1,4 +1,4 @@
-import type { Context } from "@fedify/fedify";
+import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import { mention } from "@fedify/markdown-it-mention";
 import { titlePlugin as title } from "@mdit-vue/plugin-title";
 import cjkBreaks from "@searking/markdown-it-cjk-breaks";
@@ -12,6 +12,8 @@ import {
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
 import { DIACRITICS, slugify } from "@std/text/unstable-slugify";
+import { load } from "cheerio";
+import { inArray, or } from "drizzle-orm";
 import katex from "katex";
 import createMarkdownIt from "markdown-it";
 import abbr from "markdown-it-abbr";
@@ -23,9 +25,9 @@ import graphviz from "markdown-it-graphviz";
 import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
 import type { Database } from "../db.ts";
-import { persistActorsByHandles } from "./actor.ts";
-import type { Actor } from "./schema.ts";
-import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./xss.ts";
+import { persistActor, persistActorsByHandles } from "./actor.ts";
+import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./html.ts";
+import { type Actor, actorTable } from "./schema.ts";
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
@@ -182,4 +184,48 @@ function toToc(toc: InternalToc): Toc {
     title: toc.n.trimStart(),
     children: toc.c.map(toToc),
   };
+}
+
+export interface ExtractMentionsFromHtmlOptions {
+  contextLoader?: DocumentLoader;
+  documentLoader?: DocumentLoader;
+}
+
+export async function extractMentionsFromHtml(
+  db: Database,
+  fedCtx: Context<void>,
+  html: string,
+  options: ExtractMentionsFromHtmlOptions = {},
+): Promise<{ actor: Actor }[]> {
+  const $ = load(html, null, false);
+  const mentionHrefs = new Set<string>();
+  $("a.mention[href]").each((_, el) => {
+    const href = $(el).attr("href");
+    if (href != null) mentionHrefs.add(href);
+  });
+  if (mentionHrefs.size < 1) return [];
+  const actors = await db.query.actorTable.findMany({
+    where: or(
+      inArray(actorTable.iri, [...mentionHrefs]),
+      inArray(actorTable.url, [...mentionHrefs]),
+    ),
+  });
+  for (const actor of actors) {
+    mentionHrefs.delete(actor.iri);
+    if (actor.url != null) mentionHrefs.delete(actor.url);
+  }
+  if (mentionHrefs.size < 1) return actors.map((actor) => ({ actor }));
+  const promises = [...mentionHrefs].map(async (href) => {
+    try {
+      return await fedCtx.lookupObject(href, options);
+    } catch (_) {
+      return null;
+    }
+  });
+  for (const object of await Promise.all(promises)) {
+    if (!isActor(object)) continue;
+    const actor = await persistActor(db, object, { ...options, outbox: false });
+    if (actor != null) actors.push(actor);
+  }
+  return actors.map((actor) => ({ actor }));
 }
