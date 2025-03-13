@@ -182,7 +182,10 @@ export const handler = define.handlers({
 });
 
 interface ArticlePageProps {
-  article: ArticleSource & { account: Account };
+  article: ArticleSource & {
+    account: Account;
+    post: Post & { mentions: (Mention & { actor: Actor })[] };
+  };
   articleIri: string;
   comments: (Post & {
     actor: Actor;
@@ -203,6 +206,18 @@ export default define.page<typeof handler, ArticlePageProps>(
     },
   ) {
     const authorHandle = `@${article.account.username}@${url.host}`;
+    const commentTargets = article.post.mentions
+      .filter((m) =>
+        m.actorId !== article.post.actorId &&
+        m.actorId !== state.account?.actor.id
+      )
+      .map((m) => `@${m.actor.username}@${m.actor.instanceHost}`);
+    if (
+      !commentTargets.includes(authorHandle) &&
+      state.account?.id !== article.accountId
+    ) {
+      commentTargets.unshift(authorHandle);
+    }
     const postUrl =
       `/@${article.account.username}/${article.publishedYear}/${article.slug}`;
     return (
@@ -252,7 +267,7 @@ export default define.page<typeof handler, ArticlePageProps>(
             : (
               <Composer
                 class="mt-4"
-                commentTarget={authorHandle}
+                commentTargets={commentTargets}
                 language={state.language}
                 postUrl={postUrl}
                 onPost="reload"

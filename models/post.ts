@@ -83,6 +83,7 @@ export async function syncPostFromArticleSource(
     articleSource: ArticleSource & {
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     };
+    mentions: Mention[];
   }
 > {
   const actor = await syncActorFromAccount(
@@ -127,7 +128,18 @@ export async function syncPostFromArticleSource(
       setWhere: eq(postTable.articleSourceId, articleSource.id),
     })
     .returning();
-  return { ...rows[0], actor, articleSource };
+  const [post] = rows;
+  await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
+  const mentionList = globalThis.Object.values(rendered.mentions);
+  const mentions = mentionList.length > 0
+    ? await db.insert(mentionTable).values(
+      mentionList.map((actor) => ({
+        postId: post.id,
+        actorId: actor.id,
+      })),
+    ).returning()
+    : [];
+  return { ...post, actor, mentions, articleSource };
 }
 
 export async function syncPostFromNoteSource(

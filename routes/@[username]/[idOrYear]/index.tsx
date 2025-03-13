@@ -394,6 +394,17 @@ export default define.page<typeof handler, NotePageProps>(
     },
   ) {
     const authorHandle = `@${post.actor.username}@${post.actor.instanceHost}`;
+    const commentTargets = post.mentions
+      .filter((m) =>
+        m.actorId !== post.actorId && m.actorId !== state.account?.actor.id
+      )
+      .map((m) => `@${m.actor.username}@${m.actor.instanceHost}`);
+    if (
+      !commentTargets.includes(authorHandle) &&
+      state.account?.actor.id !== post.actorId
+    ) {
+      commentTargets.unshift(authorHandle);
+    }
     return (
       <>
         <PostExcerpt post={post} noControls signedAccount={state.account} />
@@ -441,7 +452,7 @@ export default define.page<typeof handler, NotePageProps>(
               class="mt-8"
               language={state.language}
               postUrl={postUrl}
-              commentTarget={authorHandle}
+              commentTargets={commentTargets}
               textAreaId="reply"
               onPost="reload"
               defaultVisibility={post.visibility}

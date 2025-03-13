@@ -23,7 +23,7 @@ export interface ComposerProps {
   class?: string;
   language: Language;
   postUrl: string;
-  commentTarget?: string;
+  commentTargets?: string[];
   textAreaId?: string;
   // deno-lint-ignore no-explicit-any
   onPost: "reload" | ((json: any) => void);
@@ -44,7 +44,7 @@ export function Composer(props: ComposerProps) {
 
   const contentRef = useRef<HTMLTextAreaElement | null>(null);
   const [content, setContent] = useState<string>(
-    props.commentTarget ? `${props.commentTarget} ` : "",
+    (props.commentTargets ?? []).map((t) => `${t} `).join(""),
   );
   const [contentLanguage, setContentLanguage] = useState<string>(
     props.language,
@@ -178,7 +178,8 @@ export function Composer(props: ComposerProps) {
           name="content"
           required
           class={`w-full text-xl mb-3 ${mediaDragging ? "border-4" : ""}`}
-          placeholder={props.commentTarget
+          placeholder={props.commentTargets != null &&
+              props.commentTargets.length > 0
             ? t("composer.commentPlaceholder")
             : t("composer.contentPlaceholder")}
           value={content}
