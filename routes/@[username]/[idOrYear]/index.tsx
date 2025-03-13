@@ -425,7 +425,9 @@ export default define.page<typeof handler, NotePageProps>(
           shared={(post.sharedPost ?? post).shares.some((share) =>
             share.actorId === state.account?.actor.id
           )}
-          sharedPeopleUrl={`${postUrl}/shares`}
+          sharedPeopleUrl={post.noteSourceId == null
+            ? undefined
+            : `${postUrl}/shares`}
           deleteUrl={state.account == null ||
               state.account.id !== post.actor.accountId
             ? undefined
