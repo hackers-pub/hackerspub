@@ -162,6 +162,7 @@
     "content": "Content",
     "contentPlaceholder": "What's on your mind? You can use Markdown. Drag and drop images here to attach them.",
     "commentPlaceholder": "Write a comment. You can use Markdown. Drag and drop images here to attach them.",
+    "threadPlaceholder": "Write a continuation note to thread it. You can use Markdown. Drag and drop images here to attach them.",
     "mediumAltPlaceholder": "Alt text for visually impaired people",
     "removeMedium": "Remove this image",
     "visibility": "Post privacy",

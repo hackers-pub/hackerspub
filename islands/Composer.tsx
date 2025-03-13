@@ -178,9 +178,10 @@ export function Composer(props: ComposerProps) {
           name="content"
           required
           class={`w-full text-xl mb-3 ${mediaDragging ? "border-4" : ""}`}
-          placeholder={props.commentTargets != null &&
-              props.commentTargets.length > 0
-            ? t("composer.commentPlaceholder")
+          placeholder={props.commentTargets != null
+            ? props.commentTargets.length > 0
+              ? t("composer.commentPlaceholder")
+              : t("composer.threadPlaceholder")
             : t("composer.contentPlaceholder")}
           value={content}
           onInput={onInput}
