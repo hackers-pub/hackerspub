@@ -189,5 +189,9 @@
     "description": "Here are some hackers you might be interested in.",
     "follow": "$t(profile.follow)",
     "following": "Following…"
+  },
+  "pageNotFound": {
+    "title": "Page not found",
+    "description": "The page you were looking for vould not be found."
   }
 }

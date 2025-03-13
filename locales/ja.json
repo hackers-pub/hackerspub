@@ -187,5 +187,9 @@
     "description": "あなたが興味を持つかもしれないハッカーです。",
     "follow": "$t(profile.follow)",
     "following": "フォロー中…"
+  },
+  "pageNotFound": {
+    "title": "ページが見つかりません",
+    "description": "お探しのページが見つかりませんでした。"
   }
 }
