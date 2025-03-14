@@ -1,7 +1,10 @@
+import { escape } from "@std/html/entities";
 import {
   ArticleMetadata,
   type ArticleMetadataProps,
 } from "../islands/ArticleMetadata.tsx";
+import { Link } from "../islands/Link.tsx";
+import { renderCustomEmojis } from "../models/emoji.ts";
 import { Excerpt } from "./Excerpt.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 
@@ -15,7 +18,10 @@ export interface ArticleExcerptProps extends ArticleMetadataProps {
   replyTarget?: boolean;
   sharer?: {
     url: string;
+    internalUrl?: string;
     name: string;
+    emojis: Record<string, string>;
+    avatarUrl: string;
   };
 }
 
@@ -33,9 +39,26 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
           <Msg
             $key="article.shared"
             name={
-              <a href={props.sharer.url} class="font-bold">
-                {props.sharer.name}
-              </a>
+              <Link
+                href={props.sharer.url}
+                internalHref={props.sharer.internalUrl}
+                class="font-bold"
+              >
+                <img
+                  src={props.sharer.avatarUrl}
+                  width={16}
+                  height={16}
+                  class="inline-block mr-1 mt-[2px] align-text-top"
+                />
+                <strong
+                  dangerouslySetInnerHTML={{
+                    __html: renderCustomEmojis(
+                      escape(props.sharer.name),
+                      props.sharer.emojis,
+                    ),
+                  }}
+                />
+              </Link>
             }
           />
         </p>

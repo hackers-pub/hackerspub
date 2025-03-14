@@ -56,6 +56,8 @@ export function PostExcerpt(props: PostExcerptProps) {
       ? `/@${props.post.actor.username}@${props.post.actor.instanceHost}`
       : `/@${props.post.actor.username}`,
     name: props.post.actor.name ?? props.post.actor.username,
+    emojis: props.post.actor.emojis,
+    avatarUrl: getAvatarUrl(props.post.actor),
   };
   const localPostUrl = post.articleSourceId == null && post.noteSourceId == null
     ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
