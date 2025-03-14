@@ -97,6 +97,7 @@
     },
     "total": "Total: {{total}}",
     "notes": "Notes: {{notes}}",
+    "notesWithReplies": "Notes with replies: {{notesWithReplies}}",
     "shares": "Shares: {{shares}}",
     "articles": "Articles: {{articles}}"
   },

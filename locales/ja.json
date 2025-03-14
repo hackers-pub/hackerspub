@@ -96,6 +96,7 @@
     },
     "total": "合計：{{total}}",
     "notes": "投稿：{{notes}}",
+    "notesWithReplies": "投稿と返信：{{notesWithReplies}}",
     "shares": "共有：{{shares}}",
     "articles": "記事：{{articles}}"
   },

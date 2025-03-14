@@ -43,6 +43,7 @@ export const handler = define.handlers({
     const window = windowString == null || !windowString.match(/^\d+$/)
       ? DEFAULT_WINDOW
       : parseInt(windowString);
+    const withReplies = ctx.url.searchParams.has("replies");
     let account: Account | undefined;
     let actor: Actor | undefined;
     let links: AccountLink[] | undefined;
@@ -145,6 +146,7 @@ export const handler = define.handlers({
         inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
         eq(postTable.type, "Note"),
         isNull(postTable.sharedPostId),
+        withReplies ? undefined : isNull(postTable.replyTargetId),
         until == null ? undefined : lte(postTable.published, until),
       ),
       orderBy: desc(postTable.published),
@@ -171,11 +173,12 @@ export const handler = define.handlers({
       followedState,
       stats,
       posts: posts.slice(0, window),
+      withReplies,
       nextHref: next == null
         ? undefined
         : window === DEFAULT_WINDOW
-        ? `?until=${+next}`
-        : `?until=${+next}&window=${window}`,
+        ? `?${withReplies ? "replies&" : ""}until=${+next}`
+        : `?${withReplies ? "replies&" : ""}until=${+next}&window=${window}`,
     });
   },
 });
@@ -216,6 +219,7 @@ interface ProfileNoteListProps {
     media: PostMedium[];
     shares: Post[];
   })[];
+  withReplies: boolean;
   nextHref?: string;
 }
 
@@ -232,7 +236,7 @@ export default define.page<typeof handler, ProfileNoteListProps>(
           links={data.links}
         />
         <ProfileNav
-          active="notes"
+          active={data.withReplies ? "notesWithReplies" : "notes"}
           stats={data.stats}
           profileHref={data.profileHref}
         />

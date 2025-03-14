@@ -1,6 +1,11 @@
 import { Translation } from "./Msg.tsx";
 
-export type ProfileNavItem = "total" | "notes" | "shares" | "articles";
+export type ProfileNavItem =
+  | "total"
+  | "notes"
+  | "notesWithReplies"
+  | "shares"
+  | "articles";
 
 export interface ProfileNavProps {
   active: ProfileNavItem;
@@ -52,6 +57,13 @@ export function ProfileNav({ active, stats, profileHref }: ProfileNavProps) {
               notes: stats.notes.toLocaleString(lang),
             })}
             item="notes"
+          />
+          <Item
+            href={`${profileHref}/notes?replies`}
+            label={t("profile.notesWithReplies", {
+              notesWithReplies: stats.notesWithReplies.toLocaleString(lang),
+            })}
+            item="notesWithReplies"
           />
           <Item
             href={`${profileHref}/shares`}

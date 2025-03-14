@@ -96,6 +96,7 @@
     },
     "total": "총: {{total}}",
     "notes": "단문: {{notes}}",
+    "notesWithReplies": "단문과 댓글: {{notesWithReplies}}",
     "shares": "공유: {{shares}}",
     "articles": "게시글: {{articles}}"
   },

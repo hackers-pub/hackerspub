@@ -1,4 +1,3 @@
-import "./logging.ts";
 import { getLogger } from "@logtape/logtape";
 import type { ExtractTablesWithRelations } from "drizzle-orm";
 import type { Logger } from "drizzle-orm/logger";
@@ -8,6 +7,7 @@ import {
   type PostgresJsQueryResultHKT,
 } from "drizzle-orm/postgres-js";
 import postgresJs from "postgres";
+import "./logging.ts";
 import * as schema from "./models/schema.ts";
 
 export type Database = PgDatabase<

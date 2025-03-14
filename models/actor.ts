@@ -332,6 +332,7 @@ export function toRecipient(actor: Actor): vocab.Recipient {
 export interface ActorStats {
   total: number;
   notes: number;
+  notesWithReplies: number;
   shares: number;
   articles: number;
 }
@@ -343,6 +344,18 @@ export async function getActorStats(
   const rows = await db.select({
     total: count(),
     notes: sql<number>`
+      coalesce(
+        sum(
+          CASE WHEN ${postTable.type} = 'Note' AND
+                    ${postTable.replyTargetId} IS NULL AND
+                    ${postTable.sharedPostId} IS NULL
+            THEN 1
+            ELSE 0
+          END
+        ),
+        0
+      )`,
+    notesWithReplies: sql<number>`
       coalesce(
         sum(
           CASE WHEN ${postTable.type} = 'Note' AND
@@ -372,8 +385,8 @@ export async function getActorStats(
       )
     `,
   }).from(postTable).where(eq(postTable.actorId, actorId));
-  if (rows.length < 1) return { total: 0, notes: 0, shares: 0, articles: 0 };
-  return rows[0];
+  if (rows.length > 0) return rows[0];
+  return { total: 0, notes: 0, notesWithReplies: 0, shares: 0, articles: 0 };
 }
 
 export interface RecommendActorsOptions {
