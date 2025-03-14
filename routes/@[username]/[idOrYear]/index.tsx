@@ -340,7 +340,7 @@ export const handler = define.handlers({
     if (note == null || note.accountId !== ctx.state.account.id) {
       return ctx.next();
     }
-    const post: Post & { actor: Actor } = {
+    const post: Post & { actor: Actor; replyTarget: Post | null } = {
       ...note.post,
       actor: ctx.state.account.actor,
     };

@@ -742,7 +742,7 @@ export async function deletePersistedPost(
   iri: URL,
   actorIri: URL,
 ): Promise<void> {
-  await db.delete(postTable).where(
+  const deletedPosts = await db.delete(postTable).where(
     and(
       eq(postTable.iri, iri.toString()),
       inArray(
@@ -753,7 +753,15 @@ export async function deletePersistedPost(
       ),
       isNull(postTable.sharedPostId),
     ),
-  );
+  ).returning();
+  if (deletedPosts.length < 1) return;
+  const [deletedPost] = deletedPosts;
+  if (deletedPost.replyTargetId == null) return;
+  const replyTarget = await db.query.postTable.findFirst({
+    where: eq(postTable.id, deletedPost.replyTargetId),
+  });
+  if (replyTarget == null) return;
+  await updateRepliesCount(db, replyTarget, -1);
 }
 
 export async function deleteSharedPost(
@@ -837,16 +845,21 @@ export function isPostVisibleTo(
 
 export async function updateRepliesCount(
   db: Database,
-  replyTargetId: Uuid,
-): Promise<Post | undefined> {
-  const rows = await db.update(postTable).set({
-    repliesCount: sql`(
-      SELECT count(*)
-      FROM ${postTable}
-      WHERE ${postTable.replyTargetId} = ${replyTargetId}
-    )`,
-  }).where(eq(postTable.id, replyTargetId)).returning();
-  return rows[0];
+  replyTarget: Post,
+  delta: number,
+): Promise<number | undefined> {
+  const repliesCount = replyTarget.repliesCount + delta;
+  const cnt = await db.select({ count: count() })
+    .from(postTable)
+    .where(eq(postTable.replyTargetId, replyTarget.id));
+  if (repliesCount <= cnt[0].count) {
+    await db.update(postTable)
+      .set({ repliesCount: cnt[0].count })
+      .where(eq(postTable.id, replyTarget.id));
+    replyTarget.repliesCount = cnt[0].count;
+    return cnt[0].count;
+  }
+  return repliesCount;
 }
 
 export async function updateSharesCount(
@@ -871,7 +884,7 @@ export async function updateSharesCount(
 export async function deletePost(
   db: Database,
   fedCtx: Context<void>,
-  post: Post & { actor: Actor },
+  post: Post & { actor: Actor; replyTarget: Post | null },
 ): Promise<void> {
   const replies = await db.query.postTable.findMany({
     with: { actor: true },
@@ -884,7 +897,10 @@ export async function deletePost(
     ),
   });
   for (const reply of replies) {
-    await deletePost(db, fedCtx, reply);
+    await deletePost(db, fedCtx, { ...reply, replyTarget: post });
+  }
+  if (post.replyTarget != null) {
+    await updateRepliesCount(db, post.replyTarget, -1);
   }
   const interactions = await db.delete(postTable).where(
     or(

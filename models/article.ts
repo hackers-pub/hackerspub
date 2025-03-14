@@ -79,6 +79,7 @@ export async function getArticleSource(
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     post: Post & {
       actor: Actor & { followers: Following[] };
+      replyTarget: Post | null;
       mentions: (Mention & { actor: Actor })[];
     };
   } | undefined
@@ -106,6 +107,7 @@ export async function getArticleSource(
           actor: {
             with: { followers: true },
           },
+          replyTarget: true,
           mentions: {
             with: { actor: true },
           },

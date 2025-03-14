@@ -237,7 +237,7 @@ export async function createNote(
     media,
     account,
   }, replyTarget);
-  if (replyTarget != null) await updateRepliesCount(db, replyTarget.id);
+  if (replyTarget != null) await updateRepliesCount(db, replyTarget, 1);
   const noteObject = await getNote(
     db,
     disk,
