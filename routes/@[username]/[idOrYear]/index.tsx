@@ -16,7 +16,9 @@ import { createNote, getNoteSource, updateNote } from "../../../models/note.ts";
 import {
   deletePost,
   getPostByUsernameAndId,
+  isPostObject,
   isPostVisibleTo,
+  persistPost,
 } from "../../../models/post.ts";
 import {
   type Actor,
@@ -78,6 +80,18 @@ export const handler = define.handlers({
       );
       if (result == null) return ctx.next();
       post = result;
+      if (ctx.url.searchParams.has("refresh") && ctx.state.account?.moderator) {
+        const documentLoader = await ctx.state.fedCtx.getDocumentLoader({
+          identifier: ctx.state.account.id,
+        });
+        const object = await ctx.state.fedCtx.lookupObject(
+          post.iri,
+          { documentLoader },
+        );
+        if (isPostObject(object)) {
+          await persistPost(db, object, { documentLoader });
+        }
+      }
       postUrl = `/@${ctx.params.username}/${post.id}`;
     } else {
       const note = await getNoteSource(
