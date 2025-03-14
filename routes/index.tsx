@@ -1,6 +1,6 @@
 import { getLogger } from "@logtape/logtape";
 import { acceptsLanguages } from "@std/http/negotiation";
-import { and, desc, eq, inArray, lte, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
@@ -123,6 +123,7 @@ export const handler = define.handlers({
           languages.size < 1
             ? undefined
             : inArray(postTable.language, [...languages]),
+          isNull(postTable.replyTargetId),
           until == null ? undefined : lte(postTable.published, until),
         ),
         orderBy: desc(postTable.published),
@@ -200,6 +201,30 @@ export const handler = define.handlers({
                   ),
               ),
               ne(postTable.visibility, "direct"),
+              or(
+                isNull(postTable.replyTargetId),
+                inArray(
+                  postTable.replyTargetId,
+                  db.select({ id: postTable.id })
+                    .from(postTable)
+                    .where(
+                      or(
+                        eq(postTable.actorId, ctx.state.account.actor.id),
+                        inArray(
+                          postTable.actorId,
+                          db.select({ id: followingTable.followeeId })
+                            .from(followingTable)
+                            .where(
+                              eq(
+                                followingTable.followerId,
+                                ctx.state.account.actor.id,
+                              ),
+                            ),
+                        ),
+                      ),
+                    ),
+                ),
+              ),
             ),
             inArray(
               postTable.id,
