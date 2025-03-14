@@ -122,7 +122,7 @@ export default async function App(
                                 hidden group-hover:flex group-active:flex
                                 absolute z-50
                                 right-0 xl:right-[calc((100%-1280px)/2)]
-                                max-w-screen-sm w-64 mt-2 p-4 pl-2
+                                max-w-screen-md mt-2 p-4
                                 bg-stone-200 dark:bg-stone-700
                                 border border-stone-400 dark:border-stone-500
                                 text-stone-800 dark:text-stone-100
@@ -130,17 +130,17 @@ export default async function App(
                               ">
                                 <a
                                   href={`/@${account.username}`}
-                                  class="flex flex-row gap-4"
+                                  class="flex flex-row-reverse gap-4"
                                 >
+                                  <strong class="block truncate">
+                                    {account.name}
+                                  </strong>
                                   <img
                                     src={avatarUrl}
                                     width={30}
                                     height={30}
                                     class="block"
                                   />
-                                  <strong class="block truncate">
-                                    {account.name}
-                                  </strong>
                                 </a>
                                 <a href={`/@${account.username}/settings`}>
                                   <Msg $key="nav.settings" />
