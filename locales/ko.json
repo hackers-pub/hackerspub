@@ -188,6 +188,9 @@
     "follow": "$t(profile.follow)",
     "following": "팔로 중…"
   },
+  "actorList": {
+    "seeMore": "더 보기"
+  },
   "pageNotFound": {
     "title": "페이지를 찾을 수 없습니다",
     "description": "찾으시는 페이지를 찾을 수 없습니다."

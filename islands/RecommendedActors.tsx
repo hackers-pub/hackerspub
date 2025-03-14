@@ -35,7 +35,7 @@ export function RecommendedActors(
               {shownActors.map((actor, index) => (
                 <div
                   key={actor.id}
-                  class="bg-white dark:bg-stone-800 p-4 flex flex-col h-full"
+                  class="bg-stone-100 dark:bg-stone-800 p-4 flex flex-col h-full"
                 >
                   <div class="grow">
                     <div class="flex space-x-4">

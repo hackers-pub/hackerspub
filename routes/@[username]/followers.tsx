@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, lt } from "drizzle-orm";
 import { page } from "fresh";
 import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
@@ -13,6 +13,8 @@ import {
 } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
 
+const WINDOW = 23;
+
 export const handler = define.handlers({
   async GET(ctx) {
     const { username } = ctx.params;
@@ -22,6 +24,7 @@ export const handler = define.handlers({
       where: eq(accountTable.username, username),
     });
     if (account == null) return ctx.redirect(`/@${username}`);
+    const until = ctx.url.searchParams.get("until");
     const followers = await db.query.followingTable.findMany({
       with: {
         follower: {
@@ -31,13 +34,21 @@ export const handler = define.handlers({
       where: and(
         eq(followingTable.followeeId, account.actor.id),
         isNotNull(followingTable.accepted),
+        until == null || !until.match(/^\d+(\.\d+)?$/)
+          ? undefined
+          : lt(followingTable.accepted, new Date(parseInt(until))),
       ),
       orderBy: desc(followingTable.accepted),
+      limit: WINDOW + 1,
     });
+    let nextUrl: string | undefined;
+    if (followers.length > WINDOW) {
+      nextUrl = `?until=${followers[WINDOW - 1].accepted!.getTime()}`;
+    }
     const followersMentions = await extractMentionsFromHtml(
       db,
       ctx.state.fedCtx,
-      followers.map((f) => f.follower.bioHtml).join("\n"),
+      followers.slice(0, WINDOW).map((f) => f.follower.bioHtml).join("\n"),
       {
         documentLoader: await ctx.state.fedCtx.getDocumentLoader(account),
       },
@@ -47,8 +58,9 @@ export const handler = define.handlers({
     });
     return page<FollowerListProps>({
       account,
-      followers: followers.map((f) => f.follower),
+      followers: followers.map((f) => f.follower).slice(0, WINDOW),
       followersMentions,
+      nextUrl,
     });
   },
 });
@@ -57,6 +69,7 @@ interface FollowerListProps {
   account: Account;
   followers: (Actor & { account?: Account | null })[];
   followersMentions: { actor: Actor }[];
+  nextUrl?: string;
 }
 
 export default define.page<typeof handler, FollowerListProps>(
@@ -76,6 +89,7 @@ export default define.page<typeof handler, FollowerListProps>(
         <ActorList
           actors={data.followers}
           actorMentions={data.followersMentions}
+          nextUrl={data.nextUrl}
         />
       </>
     );

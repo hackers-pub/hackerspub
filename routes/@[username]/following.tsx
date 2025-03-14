@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNotNull, lt } from "drizzle-orm";
 import { page } from "fresh";
 import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
@@ -13,6 +13,8 @@ import {
 } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
 
+const WINDOW = 23;
+
 export const handler = define.handlers({
   async GET(ctx) {
     const { username } = ctx.params;
@@ -22,6 +24,7 @@ export const handler = define.handlers({
       where: eq(accountTable.username, username),
     });
     if (account == null) return ctx.redirect(`/@${username}`);
+    const until = ctx.url.searchParams.get("until");
     const followees = await db.query.followingTable.findMany({
       with: {
         followee: {
@@ -31,13 +34,21 @@ export const handler = define.handlers({
       where: and(
         eq(followingTable.followerId, account.actor.id),
         isNotNull(followingTable.accepted),
+        until == null || !until.match(/^\d+(\.\d+)?$/)
+          ? undefined
+          : lt(followingTable.accepted, new Date(parseInt(until))),
       ),
       orderBy: desc(followingTable.accepted),
+      limit: WINDOW + 1,
     });
+    let nextUrl: string | undefined;
+    if (followees.length > WINDOW) {
+      nextUrl = `?until=${followees[WINDOW - 1].accepted!.getTime()}`;
+    }
     const followeesMentions = await extractMentionsFromHtml(
       db,
       ctx.state.fedCtx,
-      followees.map((f) => f.followee.bioHtml).join("\n"),
+      followees.slice(0, WINDOW).map((f) => f.followee.bioHtml).join("\n"),
       {
         documentLoader: await ctx.state.fedCtx.getDocumentLoader(account),
       },
@@ -47,8 +58,9 @@ export const handler = define.handlers({
     });
     return page<FolloweeListProps>({
       account,
-      followees: followees.map((f) => f.followee),
+      followees: followees.map((f) => f.followee).slice(0, WINDOW),
       followeesMentions,
+      nextUrl,
     });
   },
 });
@@ -57,6 +69,7 @@ interface FolloweeListProps {
   account: Account;
   followees: (Actor & { account?: Account | null })[];
   followeesMentions: { actor: Actor }[];
+  nextUrl?: string;
 }
 
 export default define.page<typeof handler, FolloweeListProps>(
@@ -76,6 +89,7 @@ export default define.page<typeof handler, FolloweeListProps>(
         <ActorList
           actors={data.followees}
           actorMentions={data.followeesMentions}
+          nextUrl={data.nextUrl}
         />
       </>
     );

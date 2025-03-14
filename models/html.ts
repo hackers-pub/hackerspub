@@ -308,7 +308,7 @@ export function internalizeMentions(
   mentions: { actor: Actor }[],
 ): string {
   const $ = load(html, null, false);
-  $("a.mention[href]").each((_, el) => {
+  $("a.mention[href]:not(.hashtag)").each((_, el) => {
     const $el = $(el);
     const href = $el.attr("href");
     if (href == null) return;

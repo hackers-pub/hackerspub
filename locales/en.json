@@ -190,6 +190,9 @@
     "follow": "$t(profile.follow)",
     "following": "Following…"
   },
+  "actorList": {
+    "seeMore": "See more"
+  },
   "pageNotFound": {
     "title": "Page not found",
     "description": "The page you were looking for vould not be found."

@@ -1,5 +1,6 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import { mention } from "@fedify/markdown-it-mention";
+import { getLogger } from "@logtape/logtape";
 import { titlePlugin as title } from "@mdit-vue/plugin-title";
 import cjkBreaks from "@searking/markdown-it-cjk-breaks";
 import shiki from "@shikijs/markdown-it";
@@ -28,6 +29,8 @@ import type { Database } from "../db.ts";
 import { persistActor, persistActorsByHandles } from "./actor.ts";
 import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./html.ts";
 import { type Actor, actorTable } from "./schema.ts";
+
+const logger = getLogger(["hackerspub", "models", "markup"]);
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
@@ -199,7 +202,7 @@ export async function extractMentionsFromHtml(
 ): Promise<{ actor: Actor }[]> {
   const $ = load(html, null, false);
   const mentionHrefs = new Set<string>();
-  $("a.mention[href]").each((_, el) => {
+  $("a.mention[href]:not(.hashtag)").each((_, el) => {
     const href = $(el).attr("href");
     if (href != null) mentionHrefs.add(href);
   });
@@ -215,7 +218,12 @@ export async function extractMentionsFromHtml(
     if (actor.url != null) mentionHrefs.delete(actor.url);
   }
   if (mentionHrefs.size < 1) return actors.map((actor) => ({ actor }));
-  const promises = [...mentionHrefs].map(async (href) => {
+  const mentionedUrls = [...mentionHrefs];
+  logger.debug(
+    "There are mentions to actors that are not persisted: {mentionedUrls}",
+    { mentionedUrls },
+  );
+  const promises = mentionedUrls.map(async (href) => {
     try {
       return await fedCtx.lookupObject(href, options);
     } catch (_) {
