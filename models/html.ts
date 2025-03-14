@@ -313,7 +313,9 @@ export function internalizeMentions(
     const href = $el.attr("href");
     if (href == null) return;
     for (const { actor } of mentions) {
-      if (href === actor.iri || href === actor.url) {
+      if (
+        href === actor.iri || href === actor.url || actor.aliases.includes(href)
+      ) {
         $el.attr(
           "data-internal-href",
           actor.accountId == null

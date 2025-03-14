@@ -1,4 +1,5 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
+import type * as vocab from "@fedify/fedify/vocab";
 import { mention } from "@fedify/markdown-it-mention";
 import { getLogger } from "@logtape/logtape";
 import { titlePlugin as title } from "@mdit-vue/plugin-title";
@@ -14,7 +15,7 @@ import {
 } from "@shikijs/transformers";
 import { DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
-import { inArray, or } from "drizzle-orm";
+import { arrayOverlaps, eq, inArray, or } from "drizzle-orm";
 import katex from "katex";
 import createMarkdownIt from "markdown-it";
 import abbr from "markdown-it-abbr";
@@ -211,11 +212,13 @@ export async function extractMentionsFromHtml(
     where: or(
       inArray(actorTable.iri, [...mentionHrefs]),
       inArray(actorTable.url, [...mentionHrefs]),
+      arrayOverlaps(actorTable.aliases, [...mentionHrefs]),
     ),
   });
   for (const actor of actors) {
     mentionHrefs.delete(actor.iri);
     if (actor.url != null) mentionHrefs.delete(actor.url);
+    for (const alias of actor.aliases) mentionHrefs.delete(alias);
   }
   if (mentionHrefs.size < 1) return actors.map((actor) => ({ actor }));
   const mentionedUrls = [...mentionHrefs];
@@ -225,15 +228,28 @@ export async function extractMentionsFromHtml(
   );
   const promises = mentionedUrls.map(async (href) => {
     try {
-      return await fedCtx.lookupObject(href, options);
+      return [href, await fedCtx.lookupObject(href, options)] as [
+        string,
+        vocab.Object | null,
+      ];
     } catch (_) {
       return null;
     }
   });
-  for (const object of await Promise.all(promises)) {
+  for (const pair of await Promise.all(promises)) {
+    if (pair == null) continue;
+    const [href, object] = pair;
     if (!isActor(object)) continue;
-    const actor = await persistActor(db, object, { ...options, outbox: false });
-    if (actor != null) actors.push(actor);
+    let actor = await persistActor(db, object, { ...options, outbox: false });
+    if (actor == null) continue;
+    if (actor.iri !== href && !actor.aliases.includes(href)) {
+      const aliases = [...actor.aliases, href];
+      await db.update(actorTable)
+        .set({ aliases })
+        .where(eq(actorTable.id, actor.id));
+      actor = { ...actor, aliases };
+    }
+    actors.push(actor);
   }
   return actors.map((actor) => ({ actor }));
 }
