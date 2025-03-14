@@ -113,7 +113,7 @@
     "comments_zero": "No comments",
     "comments_one": "1 comment",
     "comments_other": "{{count}} comments",
-    "remoteCommentDescription": "If you have a fediverse account, you can comment on this post from your own instance. Search {{permalink}} on your instance and reply to it.",
+    "remoteCommentDescription": "If you have a fediverse account, you can comment on this article from your own instance. Search {{permalink}} on your instance and reply to it.",
     "shared": "{{name}} shared the below article:",
     "edit": "Edit",
     "delete": "Delete",
@@ -168,7 +168,7 @@
     "visibility": "Post privacy",
     "language": "Language",
     "post": "Post",
-    "postFailed": "Failed to submit your post. Please try again later."
+    "postFailed": "Failed to submit your note. Please try again later."
   },
   "postVisibility": {
     "public": "Public",

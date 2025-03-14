@@ -2,13 +2,13 @@
   "home": {
     "intro": {
       "title": "Hackers' Pub이란?",
-      "content": "Hackers' Pub은 소프트웨어 프로그래머들이 지식과 경험을 서로 나누는 곳입니다. 또한 ActivityPub을 지원하는 소셜 네트워크이기도 하며, 연합우주(fediverse)에서 즐겨찾는 소프트웨어 프로그래머들을 팔로하고 최신 게시물을 받아 볼 수 있습니다."
+      "content": "Hackers' Pub은 소프트웨어 프로그래머들이 지식과 경험을 서로 나누는 곳입니다. 또한 ActivityPub을 지원하는 소셜 네트워크이기도 하며, 연합우주(fediverse)에서 즐겨찾는 소프트웨어 프로그래머들을 팔로하고 최신 콘텐츠를 받아 볼 수 있습니다."
     }
   },
   "nav": {
     "search": "검색",
     "signInUp": "$t(signInUp.title)",
-    "newArticle": "새 게시물",
+    "newArticle": "새 게시글",
     "drafts": "임시 보관함",
     "settings": "설정",
     "signOut": "로그아웃",
@@ -55,7 +55,7 @@
     "profile": {
       "title": "프로필 설정",
       "avatar": "프로필 사진",
-      "avatarDescription": "프로필 사진은 프로필과 게시물에 표시됩니다. PNG, JPEG, GIF, WebP 형식의 이미지를 5MiB 이하로 업로드할 수 있습니다.",
+      "avatarDescription": "프로필 사진은 프로필과 콘텐츠에 표시됩니다. PNG, JPEG, GIF, WebP 형식의 이미지를 5MiB 이하로 업로드할 수 있습니다.",
       "avatarInvalid": "유효하지 않은 이미지 형식입니다. PNG, JPEG, GIF, WebP 형식의 이미지를 업로드해주세요.",
       "avatarTooLarge": "이미지가 너무 큽니다. 최대 크기는 5MiB입니다.",
       "username": "아이디",
@@ -67,7 +67,7 @@
       "usernameInvalidChars": "아이디는 영문 소문자, 숫자, 밑줄(_)만 사용할 수 있습니다.",
       "usernameAlreadyTaken": "이미 사용중인 아이디입니다.",
       "name": "이름",
-      "nameDescription": "이름은 프로필과 게시물에 표시됩니다.",
+      "nameDescription": "이름은 프로필과 콘텐츠에 표시됩니다.",
       "nameRequired": "이름은 필수입니다.",
       "nameTooLong": "이름이 너무 깁니다. 최대 길이는 50자입니다.",
       "bio": "약력",
@@ -95,12 +95,12 @@
       "title": "{{name}} 님의 팔로잉"
     },
     "total": "총: {{total}}",
-    "notes": "노트: {{notes}}",
+    "notes": "단문: {{notes}}",
     "shares": "공유: {{shares}}",
-    "articles": "게시물: {{articles}}"
+    "articles": "게시글: {{articles}}"
   },
   "articleDrafts": {
-    "title": "게시물 임시 보관함",
+    "title": "게시글 임시 보관함",
     "noTitle": "(제목 없음)",
     "created": "{{created}} 작성됨",
     "updated": "{{updated}} 고쳐짐",
@@ -111,11 +111,11 @@
     "readMore": "더 읽기 →",
     "comments_zero": "댓글 없음",
     "comments_other": "{{count}}개의 댓글",
-    "remoteCommentDescription": "연합우주(fediverse) 계정이 있으시다면, 이 게시물에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {{permalink}}로 검색하신 뒤, 해당 게시물에 댓글을 남기시면 됩니다.",
-    "shared": "{{name}} 님이 아래 게시물을 공유했습니다:",
+    "remoteCommentDescription": "연합우주(fediverse) 계정이 있으시다면, 이 게시글에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {{permalink}}로 검색하신 뒤, 해당 게시글에 댓글을 남기시면 됩니다.",
+    "shared": "{{name}} 님이 아래 게시글을 공유했습니다:",
     "edit": "수정",
     "delete": "삭제",
-    "deleteConfirm": "이 게시물을 삭제하시겠습니까?"
+    "deleteConfirm": "이 게시글을 삭제하시겠습니까?"
   },
   "note": {
     "title": "{{name}}: {{content}}",
@@ -125,34 +125,34 @@
     "shared": "이미 공유함",
     "unshare": "공유 취소",
     "unsharing": "공유 취소중…",
-    "sharedPeople": "이 노트를 공유한 사람들",
+    "sharedPeople": "이 단문을 공유한 사람들",
     "delete": "삭제",
-    "deleteConfirm": "이 노트를 삭제하시겠습니까?",
+    "deleteConfirm": "이 단문을 삭제하시겠습니까?",
     "deleting": "삭제중…",
     "deleted": "이미 삭제됨",
     "sharedBy": "{{name}} 님이 $t(note.shares)",
-    "remoteCommentDescription": "연합우주(fediverse) 계정이 있으시다면, 이 게시물에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {{permalink}}로 검색하신 뒤, 해당 게시물에 댓글을 남기시면 됩니다."
+    "remoteCommentDescription": "연합우주(fediverse) 계정이 있으시다면, 이 게시글에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {{permalink}}로 검색하신 뒤, 해당 게시글에 댓글을 남기시면 됩니다."
   },
   "editor": {
-    "titlePlaceholder": "게시물 제목",
-    "titleRequired": "게시물 제목을 입력하세요.",
-    "contentPlaceholder": "게시물을 작성하세요. Markdown을 사용할 수 있습니다.",
-    "contentRequired": "게시물 내용을 뭐라도 입력하세요.",
+    "titlePlaceholder": "게시글 제목",
+    "titleRequired": "게시글 제목을 입력하세요.",
+    "contentPlaceholder": "게시글을 작성하세요. Markdown을 사용할 수 있습니다.",
+    "contentRequired": "게시글 내용을 뭐라도 입력하세요.",
     "tagsPlaceholder": "태그를 공백으로 구분하여 입력하세요.",
-    "tagsRequired": "게시물에는 최소한 하나의 태그를 붙여야 합니다.",
+    "tagsRequired": "게시글에는 최소한 하나의 태그를 붙여야 합니다.",
     "removeTag": "태그 지우기",
-    "publish": "게시물 공개",
+    "publish": "게시글 공개",
     "publishMode": {
       "title": "$t(editor.publish)",
-      "description": "게시물을 공개합니다. 공개하기 전에 확인해 주세요.",
+      "description": "게시글을 공개합니다. 공개하기 전에 확인해 주세요.",
       "slug": "슬러그",
-      "slugDescription": "게시물의 고유 링크에 쓰입니다:",
-      "slugAlreadyTaken": "같은 슬러그를 가진 게시물이 이미 있습니다. 다른 슬러그를 사용해 주세요.",
+      "slugDescription": "게시글의 고유 링크에 쓰입니다:",
+      "slugAlreadyTaken": "같은 슬러그를 가진 게시글이 이미 있습니다. 다른 슬러그를 사용해 주세요.",
       "language": "언어",
       "cancel": "취소",
-      "submit": "게시물 공개",
-      "loading": "게시물을 올리는 중…",
-      "failed": "게시물을 올리는 데 실패했습니다. 나중에 다시 시도해 주세요."
+      "submit": "게시글 공개",
+      "loading": "게시글을 올리는 중…",
+      "failed": "게시글을 올리는 데 실패했습니다. 나중에 다시 시도해 주세요."
     },
     "draftSaved": "{{saved}}에 임시 보관됨"
   },
@@ -160,13 +160,13 @@
     "content": "내용",
     "contentPlaceholder": "무슨 생각 해요? Markdown을 사용할 수 있습니다. 이미지를 첨부하려면 파일을 여기에 드래그 앤 드롭 하세요.",
     "commentPlaceholder": "댓글을 입력하세요. Markdown을 사용할 수 있습니다. 이미지를 첨부하려면 파일을 여기에 드래그 앤 드롭 하세요.",
-    "threadPlaceholder": "이어지는 노트를 써서 스레드를 이어가세요. Markdown을 사용할 수 있습니다. 이미지를 첨부하려면 파일을 여기에 드래그 앤 드롭 하세요.",
+    "threadPlaceholder": "이어지는 단문을 써서 스레드를 이어가세요. Markdown을 사용할 수 있습니다. 이미지를 첨부하려면 파일을 여기에 드래그 앤 드롭 하세요.",
     "mediumAltPlaceholder": "시각장애인을 위한 대체 텍스트",
     "removeMedium": "이미지 삭제",
     "visibility": "공개 범위",
     "language": "언어",
     "post": "올리기",
-    "postFailed": "노트를 올리는 데 실패했습니다. 나중에 다시 시도해 주세요."
+    "postFailed": "단문을 올리는 데 실패했습니다. 나중에 다시 시도해 주세요."
   },
   "postVisibility": {
     "public": "공개",
@@ -175,8 +175,8 @@
     "direct": "언급된 사용자만"
   },
   "postPagination": {
-    "more": "게시물 더 보기",
-    "end": "더 이상 게시물이 없습니다"
+    "more": "콘텐츠 더 보기",
+    "end": "더 이상 콘텐츠가 없습니다"
   },
   "search": {
     "title": "검색 결과",

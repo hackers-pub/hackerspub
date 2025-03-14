@@ -2,7 +2,7 @@
   "home": {
     "intro": {
       "title": "Hackers' Pubとは？",
-      "content": "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を共有する場所です。また、ActivityPubに対応したソーシャルネットワークでもあり、フェディバース（fediverse）で気に入ったハッカーをフォローして、最新の投稿をフィードで受け取ることができます。"
+      "content": "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を共有する場所です。また、ActivityPubに対応したソーシャルネットワークでもあり、フェディバース（fediverse）で気に入ったハッカーをフォローして、最新のコンテンツをフィードで受け取ることができます。"
     }
   },
   "nav": {
@@ -55,7 +55,7 @@
     "profile": {
       "title": "プロフィール設定",
       "avatar": "アイコン",
-      "avatarDescription": "アイコンはプロフィールと投稿に表示されます。PNG、JPEG、GIF、WebP形式の画像を5MiBまでアップロードできます。",
+      "avatarDescription": "アイコンはプロフィールとコンテンツに表示されます。PNG、JPEG、GIF、WebP形式の画像を5MiBまでアップロードできます。",
       "avatarInvalid": "画像形式が無効です。PNG、JPEG、GIF、WebP形式の画像をアップロードしてください。",
       "avatarTooLarge": "画像が大きすぎます。最大サイズは5MiBです。",
       "username": "ユーザー名",
@@ -67,7 +67,7 @@
       "usernameInvalidChars": "ユーザー名には半角英数字（小文字）とアンダースコア（_）のみ使用できます。",
       "usernameAlreadyTaken": "このユーザー名はすでに使用されています。",
       "name": "名前",
-      "nameDescription": "名前はプロフィールと投稿に表示されます。",
+      "nameDescription": "名前はプロフィールとコンテンツに表示されます。",
       "nameRequired": "名前は必須です。",
       "nameTooLong": "名前が長すぎます。最大50文字までです。",
       "bio": "自己紹介",
@@ -175,8 +175,8 @@
     "direct": "言及されたユーザーのみ"
   },
   "postPagination": {
-    "more": "投稿をもっと見る",
-    "end": "これ以上投稿はありません"
+    "more": "コンテンツをもっと見る",
+    "end": "これ以上コンテンツはありません"
   },
   "search": {
     "title": "検索結果",
