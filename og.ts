@@ -1,13 +1,9 @@
-import { initWasm, Resvg } from "@resvg/resvg-wasm";
+import { Resvg } from "@resvg/resvg-js";
 import { encodeHex } from "@std/encoding/hex";
 import { join } from "@std/path";
 import type { Disk } from "flydrive";
 import { canonicalize } from "json-canonicalize";
 import satori from "satori";
-
-await initWasm(
-  "https://unpkg.com/@resvg/resvg-wasm/index_bg.wasm",
-);
 
 async function loadFont(filename: string): Promise<ArrayBuffer> {
   const f = await Deno.readFile(join(
