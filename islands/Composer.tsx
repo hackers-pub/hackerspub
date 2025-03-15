@@ -13,6 +13,7 @@ import {
 import { preprocessContentHtml } from "../models/html.ts";
 import type { RenderedMarkup } from "../models/markup.ts";
 import type { Actor, PostVisibility } from "../models/schema.ts";
+import { MarkupTextArea } from "./MarkupTextArea.tsx";
 
 const SUPPORTED_MEDIA_TYPES = [
   "image/jpeg",
@@ -216,15 +217,19 @@ export function Composer(props: ComposerProps) {
             />
           )}
 
-        <TextArea
+        <MarkupTextArea
           ref={contentRef}
           id={props.textAreaId}
           name="content"
           required
           disabled={mode === "previewLoading"}
-          class={`w-full text-xl mb-3 ${mediaDragging ? "border-4" : ""} ${
-            mode === "preview" ? "hidden" : ""
-          }`}
+          class={`
+            w-full text-xl mb-3
+            border dark:border-stone-500 dark:bg-stone-900
+            px-2 py-1
+            ${mediaDragging ? "border-4" : ""}
+            ${mode === "preview" ? "hidden" : ""}
+          `}
           placeholder={props.commentTargets != null
             ? props.commentTargets.length > 0
               ? t("composer.commentPlaceholder")

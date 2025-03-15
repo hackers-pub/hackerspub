@@ -10,6 +10,7 @@ import getFixedT, { type Language, POSSIBLE_LANGUAGES } from "../i18n.ts";
 import { preprocessContentHtml } from "../models/html.ts";
 import type { RenderedMarkup } from "../models/markup.ts";
 import type { Actor } from "../models/schema.ts";
+import { MarkupTextArea } from "./MarkupTextArea.tsx";
 import { TagInput } from "./TagInput.tsx";
 
 export type EditorProps =
@@ -239,7 +240,7 @@ export function Editor(props: EditorProps) {
             />
           </div>
           <div class="grow">
-            <textarea
+            <MarkupTextArea
               ref={contentTextArea}
               required
               placeholder={t("editor.contentPlaceholder")}
