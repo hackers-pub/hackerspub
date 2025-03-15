@@ -22,6 +22,36 @@
   content: '#';
 }
 
+.prose a.mention:not(.hashtag) {
+  display: inline-flex; 
+  flex-direction: row;
+  text-decoration: none;
+  font-weight: bolder;
+  height: 1em;
+  line-height: 1.2;
+  vertical-align: text-top;
+}
+
+.prose a.mention:not(.hashtag):hover {
+  background-color: color-mix(in srgb, var(--tw-prose-links) 15%, transparent);
+}
+
+.prose a.mention:not(.hashtag) > img {
+  width: 1em;
+  height: 1em;
+  margin-top: 3px;
+}
+
+.prose a.mention:not(.hashtag) > .name {
+  font-weight: normal;
+  opacity: .5;
+  margin-left: .25em;
+}
+
+.prose a.mention:not(.hashtag):hover > .name {
+  opacity: .75;
+}
+
 .prose > hr.footnotes-sep {
   margin: 0;
 }

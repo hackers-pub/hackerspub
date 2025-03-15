@@ -1,4 +1,4 @@
-import { unescape } from "@std/html/entities";
+import { escape, unescape } from "@std/html/entities";
 import { load } from "cheerio";
 import * as cssfilter from "cssfilter";
 import { FilterXSS, whiteList } from "xss";
@@ -303,7 +303,7 @@ export function stripHtml(html: string): string {
   return unescape(textXss.process(html));
 }
 
-export function internalizeMentions(
+export function transformMentions(
   html: string,
   mentions: { actor: Actor }[],
 ): string {
@@ -317,11 +317,33 @@ export function internalizeMentions(
         href === actor.iri || href === actor.url || actor.aliases.includes(href)
       ) {
         $el.attr(
+          "title",
+          `${
+            actor.name ?? actor.username
+          }\n@${actor.username}@${actor.instanceHost}`,
+        );
+        $el.attr(
           "data-internal-href",
           actor.accountId == null
             ? `/@${actor.username}@${actor.instanceHost}`
             : `/@${actor.username}`,
         );
+        if (actor.avatarUrl != null) {
+          $el.prepend(
+            `<img src="${actor.avatarUrl}" width="18" height="18" class="inline-block mr-1">`,
+          );
+        }
+        if (
+          actor.name != null &&
+          actor.name.toLowerCase().replace(/[\s_.-]+/g, "") !==
+            actor.username.toLowerCase().replace(/[_.-]+/g, "")
+        ) {
+          $el.append(
+            `<span class="name">${
+              renderCustomEmojis(escape(actor.name), actor.emojis)
+            }</span>`,
+          );
+        }
         break;
       }
     }
@@ -339,7 +361,7 @@ export function preprocessContentHtml(
   emojis: Record<string, string>,
 ) {
   html = sanitizeHtml(html);
-  html = internalizeMentions(html, mentions);
+  html = transformMentions(html, mentions);
   html = renderCustomEmojis(html, emojis);
   return html;
 }

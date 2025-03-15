@@ -7,6 +7,9 @@ import { Label } from "../components/Label.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import getFixedT, { type Language, POSSIBLE_LANGUAGES } from "../i18n.ts";
+import { preprocessContentHtml } from "../models/html.ts";
+import type { RenderedMarkup } from "../models/markup.ts";
+import type { Actor } from "../models/schema.ts";
 import { TagInput } from "./TagInput.tsx";
 
 export type EditorProps =
@@ -31,7 +34,9 @@ export type EditorProps =
 export function Editor(props: EditorProps) {
   const t = getFixedT(props.language);
 
-  const [previewHtml, setPreviewHtml] = useState<[string, number]>(["", 0]);
+  const [preview, setPreview] = useState<
+    { html: string; mentions: { actor: Actor }[]; version: number }
+  >({ html: "", mentions: [], version: 0 });
   const [title, setTitle] = useState(props.defaultTitle ?? "");
   const [content, setContent] = useState(props.defaultContent ?? "");
   const [tags, setTags] = useState<string[]>(props.defaultTags ?? []);
@@ -64,6 +69,7 @@ export function Editor(props: EditorProps) {
     const response = await fetch(props.previewUrl, {
       method: "POST",
       headers: {
+        "Accept": "application/json",
         "Content-Type": "text/markdown; charset=utf-8",
         "Echo-Nonce": `${now}`,
       },
@@ -72,16 +78,22 @@ export function Editor(props: EditorProps) {
     });
     const nonce = response.headers.get("Echo-Nonce");
     if (nonce != null) {
-      const html = await response.text();
-      setPreviewHtml(([existingHtml, existingVersion]) => {
-        const v = parseInt(nonce);
-        if (existingVersion < v) return [html, v];
-        return [existingHtml, existingVersion];
+      const { html, mentions }: RenderedMarkup = await response.json();
+      setPreview((existingPreview) => {
+        const version = parseInt(nonce);
+        if (existingPreview.version < version) {
+          return {
+            html,
+            version,
+            mentions: Object.values(mentions).map((actor) => ({ actor })),
+          };
+        }
+        return existingPreview;
       });
     }
   }
 
-  if (previewHtml[1] === 0 && content.trim() !== "") {
+  if (preview.version === 0 && content.trim() !== "") {
     renderPreview(content);
   }
 
@@ -265,7 +277,13 @@ export function Editor(props: EditorProps) {
           <div class="grow overflow-y-scroll p-4 text-xl">
             <div
               class="prose dark:prose-invert"
-              dangerouslySetInnerHTML={{ __html: previewHtml[0] }}
+              dangerouslySetInnerHTML={{
+                __html: preprocessContentHtml(
+                  preview.html,
+                  preview.mentions,
+                  {},
+                ),
+              }}
             />
           </div>
         </div>

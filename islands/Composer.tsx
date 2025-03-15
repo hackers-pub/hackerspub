@@ -10,7 +10,9 @@ import {
   POSSIBLE_LANGUAGES,
   SUPPORTED_LANGUAGES,
 } from "../i18n.ts";
-import type { PostVisibility } from "../models/schema.ts";
+import { preprocessContentHtml } from "../models/html.ts";
+import type { RenderedMarkup } from "../models/markup.ts";
+import type { Actor, PostVisibility } from "../models/schema.ts";
 
 const SUPPORTED_MEDIA_TYPES = [
   "image/jpeg",
@@ -51,6 +53,7 @@ export function Composer(props: ComposerProps) {
     (props.commentTargets ?? []).map((t) => `${t} `).join(""),
   );
   const [contentHtml, setContentHtml] = useState("");
+  const [mentions, setMentions] = useState<{ actor: Actor }[]>([]);
   const [contentLanguage, setContentLanguage] = useState<string>(
     props.language,
   );
@@ -87,16 +90,18 @@ export function Composer(props: ComposerProps) {
     fetch(props.previewUrl, {
       method: "POST",
       headers: {
+        "Accept": "application/json",
         "Content-Type": "text/markdown; charset=utf-8",
         "Echo-Nonce": Math.random().toString(),
       },
       body: content,
       credentials: "include",
     })
-      .then((response) => response.text())
-      .then((html) => {
+      .then((response) => response.json())
+      .then(({ html, mentions }: RenderedMarkup) => {
         setMode("preview");
         setContentHtml(html);
+        setMentions(Object.values(mentions).map((actor) => ({ actor })));
       });
   }
 
@@ -205,7 +210,9 @@ export function Composer(props: ComposerProps) {
           (
             <div
               class="w-full mb-3 bg-stone-100 dark:bg-stone-800 p-4 prose dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: contentHtml }}
+              dangerouslySetInnerHTML={{
+                __html: preprocessContentHtml(contentHtml, mentions, {}),
+              }}
             />
           )}
 
