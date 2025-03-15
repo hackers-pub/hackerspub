@@ -304,14 +304,21 @@ export async function persistActorsByHandles(
     result[handle] = actor;
     handlesToFetch.delete(handle);
   }
+  const documentLoader = await ctx.getDocumentLoader({
+    identifier: new URL(ctx.canonicalOrigin).host,
+  });
   const promises = [];
   for (const handle of handlesToFetch) {
-    promises.push(ctx.lookupObject(handle));
+    promises.push(ctx.lookupObject(handle, { documentLoader }));
   }
   const apActors = await Promise.all(promises);
   for (const apActor of apActors) {
     if (!isActor(apActor)) continue;
-    const actor = await persistActor(db, apActor, { ...ctx, outbox: false });
+    const actor = await persistActor(db, apActor, {
+      ...ctx,
+      documentLoader,
+      outbox: false,
+    });
     if (actor == null) continue;
     const handle = `@${actor.username}@${actor.instance.host}`;
     result[handle] = actor;
