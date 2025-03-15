@@ -168,6 +168,9 @@
     "removeMedium": "Remove this image",
     "visibility": "Post privacy",
     "language": "Language",
+    "preview": "Preview",
+    "previewLoading": "Loading…",
+    "edit": "Edit",
     "post": "Post",
     "postFailed": "Failed to submit your note. Please try again later."
   },

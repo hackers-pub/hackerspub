@@ -270,6 +270,7 @@ export default define.page<typeof handler, ArticlePageProps>(
                 commentTargets={commentTargets}
                 language={state.language}
                 postUrl={postUrl}
+                previewUrl={new URL("/api/preview", url).href}
                 onPost="reload"
               />
             )}

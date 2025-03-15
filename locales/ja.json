@@ -166,6 +166,9 @@
     "removeMedium": "画像を削除",
     "visibility": "公開範囲",
     "language": "言語",
+    "preview": "プレビュー",
+    "previewLoading": "読み込み中…",
+    "edit": "編集",
     "post": "投稿",
     "postFailed": "投稿に失敗しました。後でもう一度お試しください。"
   },

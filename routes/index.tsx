@@ -343,7 +343,7 @@ interface HomeProps {
 }
 
 export default define.page<typeof handler, HomeProps>(
-  function Home({ state, data }) {
+  function Home({ url, state, data }) {
     const nextHref = data.next == null
       ? undefined
       : data.window === DEFAULT_WINDOW
@@ -355,6 +355,7 @@ export default define.page<typeof handler, HomeProps>(
           <Composer
             language={state.language}
             postUrl={`/@${state.account!.username}`}
+            previewUrl={new URL("/api/preview", url).href}
             onPost="reload"
           />
         )}

@@ -166,6 +166,9 @@
     "removeMedium": "이미지 삭제",
     "visibility": "공개 범위",
     "language": "언어",
+    "preview": "미리보기",
+    "previewLoading": "로딩 중…",
+    "edit": "고치기",
     "post": "올리기",
     "postFailed": "단문을 올리는 데 실패했습니다. 나중에 다시 시도해 주세요."
   },

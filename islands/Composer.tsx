@@ -22,6 +22,7 @@ const SUPPORTED_MEDIA_TYPES = [
 export interface ComposerProps {
   class?: string;
   language: Language;
+  previewUrl: string;
   postUrl: string;
   commentTargets?: string[];
   textAreaId?: string;
@@ -42,10 +43,14 @@ for (const language of SUPPORTED_LANGUAGES) {
 export function Composer(props: ComposerProps) {
   const t = getFixedT(props.language);
 
+  const [mode, setMode] = useState<"edit" | "preview" | "previewLoading">(
+    "edit",
+  );
   const contentRef = useRef<HTMLTextAreaElement | null>(null);
   const [content, setContent] = useState<string>(
     (props.commentTargets ?? []).map((t) => `${t} `).join(""),
   );
+  const [contentHtml, setContentHtml] = useState("");
   const [contentLanguage, setContentLanguage] = useState<string>(
     props.language,
   );
@@ -74,6 +79,30 @@ export function Composer(props: ComposerProps) {
     result.sort((a, b) => b.accuracy - a.accuracy);
     const detected = result[0]?.lang;
     if (detected != null) setContentLanguage(detected);
+  }
+
+  function onPreview(event: JSX.TargetedMouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    setMode("previewLoading");
+    fetch(props.previewUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/markdown; charset=utf-8",
+        "Echo-Nonce": Math.random().toString(),
+      },
+      body: content,
+      credentials: "include",
+    })
+      .then((response) => response.text())
+      .then((html) => {
+        setMode("preview");
+        setContentHtml(html);
+      });
+  }
+
+  function onEdit(event: JSX.TargetedMouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    setMode("edit");
   }
 
   function isMediaDragEvent(
@@ -172,12 +201,23 @@ export function Composer(props: ComposerProps) {
         onSubmit={onSubmit}
         class={`flex flex-col ${props.class ?? ""}`}
       >
+        {mode === "preview" &&
+          (
+            <div
+              class="w-full mb-3 bg-stone-100 dark:bg-stone-800 p-4 prose dark:prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: contentHtml }}
+            />
+          )}
+
         <TextArea
           ref={contentRef}
           id={props.textAreaId}
           name="content"
           required
-          class={`w-full text-xl mb-3 ${mediaDragging ? "border-4" : ""}`}
+          disabled={mode === "previewLoading"}
+          class={`w-full text-xl mb-3 ${mediaDragging ? "border-4" : ""} ${
+            mode === "preview" ? "hidden" : ""
+          }`}
           placeholder={props.commentTargets != null
             ? props.commentTargets.length > 0
               ? t("composer.commentPlaceholder")
@@ -247,8 +287,22 @@ export function Composer(props: ComposerProps) {
                 })}
             </select>
           </div>
-          <div>
-            <Button disabled={submitting} class="w-full lg:w-auto">
+          <div class="flex flex-row gap-2">
+            <Button
+              type="button"
+              disabled={mode === "previewLoading"}
+              onClick={mode === "edit" ? onPreview : onEdit}
+              class="grow"
+            >
+              <Msg
+                $key={mode === "preview"
+                  ? "composer.edit"
+                  : mode === "previewLoading"
+                  ? "composer.previewLoading"
+                  : "composer.preview"}
+              />
+            </Button>
+            <Button type="submit" disabled={submitting} class="grow">
               <Msg $key="composer.post" />
             </Button>
           </div>

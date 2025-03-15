@@ -403,6 +403,7 @@ type NotePageProps = {
 export default define.page<typeof handler, NotePageProps>(
   function NotePage(
     {
+      url,
       state,
       data: { post, postUrl, replies },
     },
@@ -468,6 +469,7 @@ export default define.page<typeof handler, NotePageProps>(
               class="mt-8"
               language={state.language}
               postUrl={postUrl}
+              previewUrl={new URL("/api/preview", url).href}
               commentTargets={commentTargets}
               textAreaId="reply"
               onPost="reload"
