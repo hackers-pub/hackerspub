@@ -51,10 +51,11 @@ export function NoteExcerpt(props: NoteExcerptProps) {
             props.replyTarget ? "opacity-55" : ""
           } ${props.class ?? ""}`}
         >
-          <div class="flex">
+          <div class="flex gap-2">
             <Link
               href={props.authorUrl}
               internalHref={props.authorInternalUrl}
+              class="w-12 h-12"
             >
               <img
                 src={props.authorAvatarUrl}
@@ -81,7 +82,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   {props.authorHandle}
                 </span>
               </Link>
-              <div class="flex text-stone-500 dark:text-stone-400">
+              <div class="flex flex-wrap sm:flex-nowrap text-stone-500 dark:text-stone-400">
                 <Link
                   href={props.url.toString()}
                   internalHref={props.internalUrl}
@@ -94,7 +95,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   visibility={props.visibility}
                 />
                 {props.sharer && (
-                  <span class="before:content-['·_'] ml-1">
+                  <span class="w-full sm:w-auto sm:before:content-['·_'] sm:ml-1">
                     <Msg
                       $key="note.sharedBy"
                       name={
@@ -126,7 +127,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           </div>
           <div
             class={`
-              mt-2 prose dark:prose-invert
+              mt-2 prose dark:prose-invert break-words overflow-wrap
               ${
               props.replyTarget
                 ? "ml-6 pl-7 border-stone-400 dark:border-stone-600 border-l-4"
@@ -144,7 +145,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           >
           </div>
           {props.media.length > 0 && (
-            <div class="flex justify-center">
+            <div class="flex justify-center w-full overflow-x-scroll">
               {props.media.map((medium) => (
                 <MediumThumbnail key={medium.index} medium={medium} />
               ))}
