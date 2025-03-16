@@ -1,5 +1,6 @@
 import { escape } from "@std/html/entities";
 import { Link } from "../islands/Link.tsx";
+import { MediumThumbnail } from "../islands/MediumThumbnail.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import { preprocessContentHtml } from "../models/html.ts";
@@ -145,13 +146,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           {props.media.length > 0 && (
             <div class="flex justify-center">
               {props.media.map((medium) => (
-                <img
-                  src={medium.url}
-                  alt={medium.alt ?? ""}
-                  width={medium.width ?? undefined}
-                  height={medium.height ?? undefined}
-                  class="mt-2 object-contain max-w-96 max-h-96"
-                />
+                <MediumThumbnail key={medium.index} medium={medium} />
               ))}
             </div>
           )}
