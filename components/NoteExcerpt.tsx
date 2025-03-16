@@ -48,10 +48,10 @@ export function NoteExcerpt(props: NoteExcerptProps) {
       {(_, lang) => (
         <article
           class={`${props.reply ? "mt-2" : "mt-5"} flex flex-col ${
-            props.replyTarget ? "opacity-55" : ""
-          } ${props.class ?? ""}`}
+            props.class ?? ""
+          }`}
         >
-          <div class="flex gap-2">
+          <div class={`flex gap-2 ${props.replyTarget ? "opacity-55" : ""}`}>
             <Link
               href={props.authorUrl}
               internalHref={props.authorInternalUrl}
@@ -128,6 +128,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           <div
             class={`
               mt-2 prose dark:prose-invert break-words overflow-wrap
+              ${props.replyTarget ? "opacity-55" : ""}
               ${
               props.replyTarget
                 ? "ml-6 pl-7 border-stone-400 dark:border-stone-600 border-l-4"
@@ -145,9 +146,26 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           >
           </div>
           {props.media.length > 0 && (
-            <div class="flex justify-center w-full overflow-x-scroll">
+            <div
+              class={`
+              flex justify-center w-full overflow-x-scroll
+              ${
+                props.replyTarget
+                  ? `
+                    before:content-['.'] before:absolute before:w-1 before:left-[40px] before:xl:left-[calc((100%-1280px)/2+40px)]
+                    before:opacity-55 before:bg-gradient-to-b before:from-stone-400 dark:before:from-stone-600 before:to-transparent
+                    before:text-transparent
+                  `
+                  : ""
+              }
+            `}
+            >
               {props.media.map((medium) => (
-                <MediumThumbnail key={medium.index} medium={medium} />
+                <MediumThumbnail
+                  key={medium.index}
+                  medium={medium}
+                  class={props.replyTarget ? "opacity-55" : ""}
+                />
               ))}
             </div>
           )}
