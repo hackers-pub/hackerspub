@@ -148,7 +148,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           {props.media.length > 0 && (
             <div
               class={`
-              flex justify-center w-full overflow-x-scroll
+              flex justify-center w-full overflow-x-auto
               ${
                 props.replyTarget
                   ? `

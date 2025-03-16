@@ -237,7 +237,7 @@ export default async function App(
                   <main class="m-auto max-w-screen-xl min-h-[calc(100vh_-_120px)] p-4">
                     <Component />
                   </main>
-                  <footer class="left-0 w-full h-[60px] bg-stone-100 dark:bg-stone-800">
+                  <footer class="left-0 w-full min-h-[60px] bg-stone-100 dark:bg-stone-800">
                     <nav class="m-auto max-w-screen-xl p-4 pb-5 text-stone-400">
                       <a
                         href="/coc"

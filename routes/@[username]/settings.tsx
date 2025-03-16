@@ -244,6 +244,7 @@ function ProfileSettingsForm(
                   type="file"
                   name="avatar"
                   accept="image/jpeg, image/png, image/gif, image/webp"
+                  class="w-full lg:w-auto"
                 />
               </Label>
               {errors?.avatar == null
