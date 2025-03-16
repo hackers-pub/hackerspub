@@ -4,9 +4,12 @@ import type { PostMedium } from "../models/schema.ts";
 
 export interface MediumThumbnailProps {
   medium: PostMedium;
+  class?: string;
 }
 
-export function MediumThumbnail({ medium }: MediumThumbnailProps) {
+export function MediumThumbnail(
+  { medium, class: klass }: MediumThumbnailProps,
+) {
   const [zoomed, setZoomed] = useState(false);
 
   useEffect(() => {
@@ -38,7 +41,12 @@ export function MediumThumbnail({ medium }: MediumThumbnailProps) {
 
   return (
     <>
-      <a href={medium.url} target="_blank" onClick={onZoomIn}>
+      <a
+        href={medium.url}
+        target="_blank"
+        onClick={onZoomIn}
+        class={klass ?? ""}
+      >
         <img
           src={medium.url}
           alt={medium.alt ?? ""}
