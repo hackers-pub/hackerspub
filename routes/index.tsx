@@ -1,11 +1,26 @@
 import { getLogger } from "@logtape/logtape";
 import { acceptsLanguages } from "@std/http/negotiation";
-import { and, desc, eq, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  lte,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
 import { page } from "fresh";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
 import { PostPagination } from "../components/PostPagination.tsx";
+import {
+  TimelineNav,
+  type TimelineNavItem,
+} from "../components/TimelineNav.tsx";
 import { db } from "../db.ts";
 import { Composer } from "../islands/Composer.tsx";
 import { RecommendedActors } from "../islands/RecommendedActors.tsx";
@@ -30,6 +45,17 @@ const DEFAULT_WINDOW = 50;
 
 export const handler = define.handlers({
   async GET(ctx) {
+    const filterString = ctx.url.searchParams.get("filter");
+    let filter: TimelineNavItem;
+    if (
+      filterString === "local" || filterString === "withoutShares" ||
+      ctx.state.account != null &&
+        (filterString === "mentions" || filterString === "recommendations")
+    ) {
+      filter = filterString;
+    } else {
+      filter = "fediverse";
+    }
     const untilString = ctx.url.searchParams.get("until");
     const until = untilString == null || !untilString.match(/^\d+(\.\d+)?$/)
       ? undefined
@@ -124,122 +150,145 @@ export const handler = define.handlers({
             ? undefined
             : inArray(postTable.language, [...languages]),
           isNull(postTable.replyTargetId),
+          filter === "local"
+            ? or(
+              isNotNull(postTable.noteSourceId),
+              isNotNull(postTable.articleSourceId),
+            )
+            : filter === "withoutShares"
+            ? isNull(postTable.sharedPostId)
+            : sql`true`,
           until == null ? undefined : lte(postTable.published, until),
         ),
         orderBy: desc(postTable.published),
         limit: window + 1,
       });
     } else {
-      timeline = await db.query.postTable.findMany({
-        with: {
-          actor: true,
-          sharedPost: {
-            with: {
-              actor: true,
-              replyTarget: {
-                with: {
-                  actor: {
-                    with: {
-                      followers: {
-                        where: eq(
+      timeline = filter === "recommendations"
+        ? []
+        : await db.query.postTable.findMany({
+          with: {
+            actor: true,
+            sharedPost: {
+              with: {
+                actor: true,
+                replyTarget: {
+                  with: {
+                    actor: {
+                      with: {
+                        followers: {
+                          where: eq(
+                            followingTable.followerId,
+                            ctx.state.account.actor.id,
+                          ),
+                        },
+                      },
+                    },
+                    mentions: {
+                      with: { actor: true },
+                    },
+                    media: true,
+                  },
+                },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
+                shares: {
+                  where: eq(postTable.actorId, ctx.state.account.actor.id),
+                },
+              },
+            },
+            replyTarget: {
+              with: {
+                actor: {
+                  with: {
+                    followers: {
+                      where: eq(
+                        followingTable.followerId,
+                        ctx.state.account.actor.id,
+                      ),
+                    },
+                  },
+                },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
+              },
+            },
+            mentions: {
+              with: { actor: true },
+            },
+            media: true,
+            shares: {
+              where: eq(postTable.actorId, ctx.state.account.actor.id),
+            },
+          },
+          where: and(
+            or(
+              filter === "mentions" ? sql`false` : or(
+                and(
+                  inArray(
+                    postTable.actorId,
+                    db.select({ id: followingTable.followeeId })
+                      .from(followingTable)
+                      .where(
+                        eq(
                           followingTable.followerId,
                           ctx.state.account.actor.id,
                         ),
-                      },
-                    },
-                  },
-                  mentions: {
-                    with: { actor: true },
-                  },
-                  media: true,
-                },
-              },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
-              shares: {
-                where: eq(postTable.actorId, ctx.state.account.actor.id),
-              },
-            },
-          },
-          replyTarget: {
-            with: {
-              actor: {
-                with: {
-                  followers: {
-                    where: eq(
-                      followingTable.followerId,
-                      ctx.state.account.actor.id,
-                    ),
-                  },
-                },
-              },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
-            },
-          },
-          mentions: {
-            with: { actor: true },
-          },
-          media: true,
-          shares: {
-            where: eq(postTable.actorId, ctx.state.account.actor.id),
-          },
-        },
-        where: and(
-          or(
-            and(
-              inArray(
-                postTable.actorId,
-                db.select({ id: followingTable.followeeId })
-                  .from(followingTable)
-                  .where(
-                    eq(followingTable.followerId, ctx.state.account.actor.id),
-                  ),
-              ),
-              ne(postTable.visibility, "direct"),
-              or(
-                isNull(postTable.replyTargetId),
-                inArray(
-                  postTable.replyTargetId,
-                  db.select({ id: postTable.id })
-                    .from(postTable)
-                    .where(
-                      or(
-                        eq(postTable.actorId, ctx.state.account.actor.id),
-                        inArray(
-                          postTable.actorId,
-                          db.select({ id: followingTable.followeeId })
-                            .from(followingTable)
-                            .where(
-                              eq(
-                                followingTable.followerId,
-                                ctx.state.account.actor.id,
-                              ),
-                            ),
-                        ),
                       ),
+                  ),
+                  ne(postTable.visibility, "direct"),
+                  or(
+                    isNull(postTable.replyTargetId),
+                    inArray(
+                      postTable.replyTargetId,
+                      db.select({ id: postTable.id })
+                        .from(postTable)
+                        .where(
+                          or(
+                            eq(postTable.actorId, ctx.state.account.actor.id),
+                            inArray(
+                              postTable.actorId,
+                              db.select({ id: followingTable.followeeId })
+                                .from(followingTable)
+                                .where(
+                                  eq(
+                                    followingTable.followerId,
+                                    ctx.state.account.actor.id,
+                                  ),
+                                ),
+                            ),
+                          ),
+                        ),
                     ),
+                  ),
                 ),
+                eq(postTable.actorId, ctx.state.account.actor.id),
+              ),
+              inArray(
+                postTable.id,
+                db.select({ postId: mentionTable.postId })
+                  .from(mentionTable)
+                  .where(eq(mentionTable.actorId, ctx.state.account.actor.id)),
               ),
             ),
-            inArray(
-              postTable.id,
-              db.select({ postId: mentionTable.postId })
-                .from(mentionTable)
-                .where(eq(mentionTable.actorId, ctx.state.account.actor.id)),
-            ),
-            eq(postTable.actorId, ctx.state.account.actor.id),
+            ne(postTable.visibility, "none"),
+            filter === "local"
+              ? or(
+                isNotNull(postTable.noteSourceId),
+                isNotNull(postTable.articleSourceId),
+              )
+              : filter === "withoutShares"
+              ? isNull(postTable.sharedPostId)
+              : sql`true`,
+            until == null ? undefined : lte(postTable.published, until),
           ),
-          ne(postTable.visibility, "none"),
-          until == null ? undefined : lte(postTable.published, until),
-        ),
-        orderBy: desc(postTable.published),
-        limit: window + 1,
-      });
+          orderBy: desc(postTable.published),
+          limit: window + 1,
+        });
     }
     let next: Date | undefined = undefined;
     if (timeline.length > window) {
@@ -247,7 +296,7 @@ export const handler = define.handlers({
       timeline = timeline.slice(0, window);
     }
     const acceptedLanguages = acceptsLanguages(ctx.req);
-    const recommendedActors = next == null
+    const recommendedActors = next == null || filter === "recommendations"
       ? await recommendActors(db, {
         mainLanguage:
           acceptedLanguages.length > 0 && acceptedLanguages[0] !== "*"
@@ -294,8 +343,10 @@ export const handler = define.handlers({
       { rel: "canonical", href: new URL("/", ctx.state.canonicalOrigin).href },
     );
     return page<HomeProps>({
-      intro: ctx.state.account == null || timeline.length < 1,
+      intro: filter !== "recommendations" &&
+        (ctx.state.account == null || timeline.length < 1),
       composer: ctx.state.account != null,
+      filter,
       timeline,
       next,
       window,
@@ -308,6 +359,7 @@ export const handler = define.handlers({
 interface HomeProps {
   intro: boolean;
   composer: boolean;
+  filter: TimelineNavItem;
   timeline: (Post & {
     actor: Actor;
     sharedPost:
@@ -347,8 +399,8 @@ export default define.page<typeof handler, HomeProps>(
     const nextHref = data.next == null
       ? undefined
       : data.window === DEFAULT_WINDOW
-      ? `?until=${+data.next}`
-      : `?until=${+data.next}&window=${data.window}`;
+      ? `?filter=${data.filter}&until=${+data.next}`
+      : `?filter=${data.filter}&until=${+data.next}&window=${data.window}`;
     return (
       <>
         {data.composer && (
@@ -372,16 +424,23 @@ export default define.page<typeof handler, HomeProps>(
               </div>
             </article>
           )}
-        {data.timeline.map((post) => (
-          <PostExcerpt post={post} signedAccount={state.account} />
-        ))}
-        <PostPagination nextHref={nextHref} />
+        <TimelineNav active={data.filter} signedIn={state.account != null} />
+        {data.filter !== "recommendations" && (
+          <>
+            {data.timeline.map((post) => (
+              <PostExcerpt post={post} signedAccount={state.account} />
+            ))}
+            <PostPagination nextHref={nextHref} />
+          </>
+        )}
         {data.recommendedActors.length > 0 && (
           <RecommendedActors
             language={state.language}
             actors={data.recommendedActors}
             actorMentions={data.recommendedActorMentions}
             window={6}
+            title={data.filter !== "recommendations"}
+            class={data.filter === "recommendations" ? "mt-4" : ""}
           />
         )}
       </>

@@ -32,7 +32,7 @@ export interface TabNavProps {
 
 export function TabNav(props: TabNavProps) {
   return (
-    <nav class="mt-6 border-b border-stone-300 dark:border-stone-700 flex">
+    <nav class="mt-6 border-b border-stone-300 dark:border-stone-700 flex max-w-full overflow-y-scroll">
       {props.children}
     </nav>
   );

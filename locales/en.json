@@ -180,6 +180,13 @@
     "followers": "Followers only",
     "direct": "Mentioned users only"
   },
+  "timeline": {
+    "fediverse": "Fediverse",
+    "local": "Hackers' Pub",
+    "withoutShares": "Without shares",
+    "mentions": "Mentions",
+    "recommendations": "$t(recommendedActors.title)"
+  },
   "postPagination": {
     "more": "More posts",
     "end": "There are no more posts"

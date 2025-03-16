@@ -178,6 +178,13 @@
     "followers": "フォロワーのみ",
     "direct": "言及されたユーザーのみ"
   },
+  "timeline": {
+    "fediverse": "フェディバース",
+    "local": "Hackers' Pub",
+    "withoutShares": "共有除外",
+    "mentions": "言及",
+    "recommendations": "$t(recommendedActors.title)"
+  },
   "postPagination": {
     "more": "コンテンツをもっと見る",
     "end": "これ以上コンテンツはありません"

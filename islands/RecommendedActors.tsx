@@ -15,10 +15,13 @@ export interface RecommendedActorsProps {
   actors: (Actor & { account?: Account | null })[];
   actorMentions: { actor: Actor }[];
   window: number;
+  title: boolean;
+  class?: string;
 }
 
 export function RecommendedActors(
-  { language, actors, actorMentions, window }: RecommendedActorsProps,
+  { language, actors, actorMentions, window, title, class: klass }:
+    RecommendedActorsProps,
 ) {
   const [shownActors, setShownActors] = useState(actors.slice(0, window));
   const [hiddenActors, setHiddenActors] = useState(actors.slice(window));
@@ -28,10 +31,18 @@ export function RecommendedActors(
       <Translation>
         {(t) => (
           <>
-            <PageTitle subtitle={{ text: t("recommendedActors.description") }}>
-              <Msg $key="recommendedActors.title" />
-            </PageTitle>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {title && (
+              <PageTitle
+                subtitle={{ text: t("recommendedActors.description") }}
+              >
+                <Msg $key="recommendedActors.title" />
+              </PageTitle>
+            )}
+            <div
+              class={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${
+                klass ?? ""
+              }`}
+            >
               {shownActors.map((actor, index) => (
                 <div
                   key={actor.id}

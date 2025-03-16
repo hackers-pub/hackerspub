@@ -178,6 +178,13 @@
     "followers": "팔로워만",
     "direct": "언급된 사용자만"
   },
+  "timeline": {
+    "fediverse": "연합우주",
+    "local": "Hackers' Pub",
+    "withoutShares": "공유 제외",
+    "mentions": "언급",
+    "recommendations": "$t(recommendedActors.title)"
+  },
   "postPagination": {
     "more": "콘텐츠 더 보기",
     "end": "더 이상 콘텐츠가 없습니다"
