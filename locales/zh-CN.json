@@ -1,0 +1,211 @@
+{
+  "home": {
+    "intro": {
+      "title": "Hackers' Pub 是什么？",
+      "content": "Hackers' Pub 是个为软件工程师共同分享知识和经验的地方。它也是启用了 ActivityPub 的社交网络，这样你可以在联邦宇宙里关注你喜爱的黑客，并获取最新的帖子。"
+    }
+  },
+  "nav": {
+    "search": "搜索",
+    "signInUp": "$t(signInUp.title)",
+    "newArticle": "新文章",
+    "drafts": "草稿",
+    "settings": "设置",
+    "signOut": "退出登录",
+    "coc": "行为准则",
+    "openSource": "可在 {{repository}} 上以 {{license}} 许可获取该网站的源代码。",
+    "githubRepository": "GitHub 仓库"
+  },
+  "signInUp": {
+    "title": "注册或登录",
+    "description": "如果你有了账户，我们将发送一个登录链接；如果你没有账号，我们将发送一个注册链接。",
+    "submit": "$t(signInUp.title)",
+    "invalidEmail": "电子邮件地址无效。",
+    "emailNotAllowed": "不允许电子邮件地址登录。Hackers' Pub 目前处于内测阶段。如果你想加入，请与管理员联系。",
+    "signUpEmailSubject": "注册 Hackers' Pub",
+    "signUpEmailText": "欢迎来到 Hackers' Pub！要注册，点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n\n如果你并没申请这个电子邮件，可以安全地忽略它。\n",
+    "signInEmailSubject": "登录 Hackers' Pub",
+    "signInEmailText": "欢迎回到 Hackers' Pub！要注册，点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n\n如果你并没申请这个电子邮件，可以安全地忽略它。\n",
+    "emailSentDescription": "一封带登录（注册）邮件已经送至 {{email}}。请查看你的收件箱，如果你没看到，检查一下垃圾邮件文件夹。",
+    "emailSentExpires": "注意到链接会于 {{expiration}} 失效。",
+    "emailSentResend": "你仍然可以请求一个新链接，只需要再进行登录（注册）操作。"
+  },
+  "signUp": {
+    "title": "注册",
+    "invalidCode": "注册链接无效。请确保你使用的是你收到的正确邮件链接。",
+    "welcome": "欢迎来到 Hackers' Pub！请填写以下表单完成注册。",
+    "email": "电子邮件地址",
+    "emailDescription": "你的电子邮件地址将用于登录。",
+    "username": "$t(settings.profile.username)",
+    "usernameDescription": "$t(settings.profile.usernameDescription)",
+    "usernameRequired": "$t(settings.profile.usernameRequired)",
+    "usernameTooLong": "$t(settings.profile.usernameTooLong)",
+    "usernameInvalidChars": "$t(settings.profile.usernameInvalidChars)",
+    "usernameAlreadyTaken": "$t(settings.profile.usernameAlreadyTaken)",
+    "name": "$t(settings.profile.name)",
+    "nameDescription": "$t(settings.profile.nameDescription)",
+    "nameRequired": "$t(settings.profile.nameRequired)",
+    "nameTooLong": "$t(settings.profile.nameTooLong)",
+    "bio": "$t(settings.profile.bio)",
+    "bioDescription": "$t(settings.profile.bioDescription)",
+    "bioTooLong": "$t(settings.profile.bioTooLong)",
+    "submit": "$t(signUp.title)"
+  },
+  "settings": {
+    "profile": {
+      "title": "个人资料设置",
+      "avatar": "头像",
+      "avatarDescription": "你的头像将在您的个人资料页面和您的帖文中显示。可以上传大小不超过 5 MiB 的 PNG、JPEG、GIF 或 WebP 图片。",
+      "avatarInvalid": "图片格式无效。请上传 PNG、JPEG、GIF 或 WebP 图片。",
+      "avatarTooLarge": "图片太大了。不能超过 5 MiB。",
+      "username": "用户名",
+      "usernameDescription": "你的用户名将被用来创建你的个人资料 URL 和你的 Fediverse 用户名（handle）。",
+      "usernameCaution": "你只能更改一次用户名，而旧的用户名会公开为别人使用。",
+      "usernameChanged": "自打你已经把用户名换成 {{changed}} 了，你再也改不了了。",
+      "usernameRequired": "需要用户名",
+      "usernameTooLong": "用户名太长。不能长于 50 字符。",
+      "usernameInvalidChars": "用户名只能包含小写字母、数字以及下划线。",
+      "usernameAlreadyTaken": "用户名已被占用。",
+      "name": "昵称",
+      "nameDescription": "你的昵称将在你的个人资料页面和你的帖文中显示。",
+      "nameRequired": "需要昵称",
+      "nameTooLong": "用户名太长。不能长于 50 字符。",
+      "bio": "个人简介",
+      "bioDescription": "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。",
+      "bioTooLong": "个人简介太长。不能长于 512 字符。",
+      "linkName": "链接名",
+      "linkNameDescription": "为显示在你个人资料页面的链接命名，例如 GitHub。",
+      "url": "URL",
+      "urlDescription": "该链接的 URL，例如 https://github.com/nideyonghuming.",
+      "save": "保存"
+    }
+  },
+  "profile": {
+    "followeesCount": "关注 {{count}} 人",
+    "followersCount_one": "被 1 人关注",
+    "followersCount_other": "被 {{count}} 人关注",
+    "followsYou": "关注了你",
+    "follow": "关注",
+    "followBack": "回关",
+    "unfollow": "取消关注",
+    "cancelRequest": "取消关注请求",
+    "followerList": {
+      "title": "{{name}} 的粉丝"
+    },
+    "followeeList": {
+      "title": "{{name}} 正在关注"
+    },
+    "total": "总共：{{total}}",
+    "notes": "帖文：{{notes}}",
+    "notesWithReplies": "含回复帖文：{{notesWithReplies}}",
+    "shares": "转帖：{{shares}}",
+    "articles": "文章：{{articles}}"
+  },
+  "articleDrafts": {
+    "title": "文章草稿",
+    "noTitle": "（无标题）",
+    "created": "创建了 {{created}}",
+    "updated": "更新了 {{updated}}",
+    "delete": "删除草稿",
+    "deleteConfirm": "你确定要删除此草稿吗？"
+  },
+  "article": {
+    "readMore": "查看更多 →",
+    "comments_zero": "暂无评论",
+    "comments_one": "1 条评论",
+    "comments_other": "{{count}} 条评论",
+    "remoteCommentDescription": "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论。在你的实例搜索 {{permalink}} 后回复。",
+    "shared": "{{name}} 转帖了以下文章：",
+    "edit": "编辑",
+    "delete": "删除",
+    "deleteConfirm": "你确定要删除此文章吗？"
+  },
+  "note": {
+    "title": "{{name}}：{{content}}",
+    "replies": "回复",
+    "shares": "转帖",
+    "sharing": "正在转帖……",
+    "shared": "已转帖",
+    "unshare": "取消转帖",
+    "unsharing": "正在取消转帖……",
+    "sharedPeople": "转帖此帖文的人",
+    "delete": "删除",
+    "deleteConfirm": "你确定要删除此帖文吗？",
+    "deleting": "正在删除……",
+    "deleted": "已经删除",
+    "sharedBy": "被 {{name}} 转帖",
+    "remoteReplyDescription": "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论。在你的实例搜索 {{permalink}} 后回复。"
+  },
+  "editor": {
+    "titlePlaceholder": "文章标题",
+    "titleRequired": "请给文章取个标题。",
+    "contentPlaceholder": "在这里写文章。可用 Markdown。",
+    "contentRequired": "请输入文章内容。",
+    "tagsPlaceholder": "输入标签，用空格分割。",
+    "tagsRequired": "请在文章中至少用一个标签。",
+    "removeTag": "删除标签",
+    "publish": "发布",
+    "publishMode": {
+      "title": "$t(editor.publish)",
+      "description": "你将要发布你的文章，请在发布前仔细检查。",
+      "slug": "数据域",
+      "slugDescription": "这将会成为你文章永久链接的一部分：",
+      "slugAlreadyTaken": "存在相同数据域的文章。请另选一个。",
+      "language": "语言",
+      "cancel": "取消",
+      "submit": "现在发布",
+      "loading": "正在发布……",
+      "failed": "文章发布失败。请稍后重试。"
+    },
+    "draftSaved": "草稿保存在 {{saved}}"
+  },
+  "composer": {
+    "content": "内容",
+    "contentPlaceholder": "你在想啥？可用 Markdown。拖拽图片作为附件。",
+    "commentPlaceholder": "写个评论。可用 Markdown。拖拽图片作为附件。",
+    "threadPlaceholder": "写一个连续帖文把它做成帖文串。可用 Markdown。拖拽图片作为附件。",
+    "mediumAltPlaceholder": "用于视障者的可选文字",
+    "removeMedium": "删除此图片",
+    "visibility": "发帖隐私度",
+    "language": "语言",
+    "preview": "预览",
+    "previewLoading": "正在预览……",
+    "edit": "编辑",
+    "post": "发帖",
+    "postFailed": "发帖失败。请稍候再试。"
+  },
+  "postVisibility": {
+    "public": "公开",
+    "unlisted": "悄悄公开",
+    "followers": "只粉丝可见",
+    "direct": "只提及用户可见"
+  },
+  "timeline": {
+    "fediverse": "联邦宇宙",
+    "local": "Hackers' Pub",
+    "withoutShares": "不含转帖",
+    "mentions": "提及",
+    "recommendations": "$t(recommendedActors.title)"
+  },
+  "postPagination": {
+    "more": "更多帖子",
+    "end": "没有更多帖子"
+  },
+  "search": {
+    "title": "搜索结果",
+    "noResults": "未找到结果"
+  },
+  "recommendedActors": {
+    "title": "推荐关注",
+    "description": "这些是你可能感兴趣的黑客。",
+    "follow": "$t(profile.follow)",
+    "following": "正在关注……"
+  },
+  "actorList": {
+    "seeMore": "查看更多"
+  },
+  "pageNotFound": {
+    "title": "未找到页面",
+    "description": "未找到你请求的页面。"
+  }
+}
