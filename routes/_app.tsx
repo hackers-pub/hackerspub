@@ -11,6 +11,7 @@ import {
 } from "../models/schema.ts";
 import type { State } from "../utils.ts";
 
+const MODE = Deno.env.get("MODE") ?? "production";
 const PLAUSIBLE = Deno.env.get("PLAUSIBLE")?.trim()?.toLowerCase() === "true";
 
 export default async function App(
@@ -75,7 +76,13 @@ export default async function App(
                 />
               )}
             </head>
-            <body class="font-sans dark:bg-stone-900 dark:text-white">
+            <body
+              class={`font-sans dark:bg-stone-900 dark:text-white ${
+                MODE === "development"
+                  ? "bg-[url(/dev-bg-light.svg)] dark:bg-[url(/dev-bg-dark.svg)]"
+                  : ""
+              }`}
+            >
               <header class="h-[60px] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
                 <nav class="m-auto xl:max-w-screen-xl text-xl flex flex-row gap-4">
                   <a
