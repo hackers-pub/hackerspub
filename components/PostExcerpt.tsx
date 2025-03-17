@@ -81,7 +81,6 @@ export function PostExcerpt(props: PostExcerptProps) {
           {post.type === "Article" || post.name != null
             ? (
               <ArticleExcerpt
-                language={language}
                 class={props.class}
                 url={post.url ?? post.iri}
                 target={post.actor.accountId == null ? "_blank" : undefined}
@@ -97,27 +96,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                 authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
                 authorAvatarUrl={post.actor.avatarUrl}
                 sharer={sharer}
-                sharesCount={post.sharesCount}
-                shared={props.signedAccount == null
-                  ? false
-                  : post.shares.some((s) =>
-                    s.actorId === props.signedAccount!.actor.id
-                  )}
-                shareUrl={props.signedAccount == null
-                  ? undefined
-                  : post.articleSourceId == null
-                  ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}/share`
-                  : `${post.url}/share`}
-                unshareUrl={props.signedAccount == null
-                  ? undefined
-                  : post.articleSourceId == null
-                  ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}/unshare`
-                  : `${post.url}/unshare`}
                 published={post.published}
-                repliesCount={post.repliesCount}
-                replyUrl={post.articleSourceId == null
-                  ? undefined
-                  : `${post.url}#replies`}
                 replyTarget={props.replyTarget}
                 editUrl={post.articleSourceId == null ||
                     post.actorId !== props.signedAccount?.actor.id
@@ -127,6 +106,31 @@ export function PostExcerpt(props: PostExcerptProps) {
                     post.actorId !== props.signedAccount?.actor.id
                   ? undefined
                   : `${post.url}/delete`}
+                controls={{
+                  repliesCount: post.repliesCount,
+                  replyUrl: post.articleSourceId == null
+                    ? undefined
+                    : `${post.url}#replies`,
+                  sharesCount: post.sharesCount,
+                  shared: props.signedAccount == null
+                    ? false
+                    : post.shares.some((s) =>
+                      s.actorId === props.signedAccount!.actor.id
+                    ),
+                  shareUrl: props.signedAccount == null
+                    ? undefined
+                    : post.articleSourceId == null
+                    ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}/share`
+                    : `${post.url}/share`,
+                  unshareUrl: props.signedAccount == null
+                    ? undefined
+                    : post.articleSourceId == null
+                    ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}/unshare`
+                    : `${post.url}/unshare`,
+                  sharedPeopleUrl: post.articleSourceId == null
+                    ? undefined
+                    : `${post.url}/shares`,
+                }}
               />
             )
             : (

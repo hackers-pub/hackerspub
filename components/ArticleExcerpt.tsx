@@ -9,15 +9,13 @@ import { renderCustomEmojis } from "../models/emoji.ts";
 import { Excerpt } from "./Excerpt.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 
-export interface ArticleExcerptProps extends ArticleMetadataProps {
+export type ArticleExcerptProps = Omit<ArticleMetadataProps, "language"> & {
   url: string | URL;
   target?: string;
   title?: string | null;
   contentHtml: string;
   emojis?: Record<string, string>;
   lang?: string;
-  repliesCount: number;
-  replyUrl?: string;
   replyTarget?: boolean;
   sharer?: {
     url: string;
@@ -26,11 +24,16 @@ export interface ArticleExcerptProps extends ArticleMetadataProps {
     emojis: Record<string, string>;
     avatarUrl: string;
   };
-  sharesCount: number;
-  shared: boolean;
-  shareUrl?: string;
-  unshareUrl?: string;
-}
+  controls?: {
+    repliesCount: number;
+    replyUrl?: string;
+    sharesCount: number;
+    shared: boolean;
+    shareUrl?: string;
+    unshareUrl?: string;
+    sharedPeopleUrl?: string;
+  };
+};
 
 export function ArticleExcerpt(props: ArticleExcerptProps) {
   return (
@@ -108,18 +111,21 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
               <Msg $key="article.readMore" />
             </a>
           )}
-          <PostControls
-            language={language}
-            class="mt-4"
-            replies={props.repliesCount}
-            replyUrl={props.replyUrl}
-            shares={props.sharesCount}
-            shared={props.shared}
-            shareUrl={props.shareUrl}
-            unshareUrl={props.unshareUrl}
-            deleteUrl={props.deleteUrl ?? undefined}
-            deleteMethod="post"
-          />
+          {props.controls && (
+            <PostControls
+              language={language}
+              class="mt-4"
+              replies={props.controls.repliesCount}
+              replyUrl={props.controls.replyUrl}
+              shares={props.controls.sharesCount}
+              shared={props.controls.shared}
+              shareUrl={props.controls.shareUrl}
+              unshareUrl={props.controls.unshareUrl}
+              sharedPeopleUrl={props.controls.sharedPeopleUrl}
+              deleteUrl={props.deleteUrl ?? undefined}
+              deleteMethod="post"
+            />
+          )}
         </article>
       )}
     </Translation>

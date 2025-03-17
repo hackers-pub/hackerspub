@@ -263,6 +263,7 @@ export default define.page<typeof handler, ArticlePageProps>(
             unshareUrl={state.account == null
               ? undefined
               : `${postUrl}/unshare`}
+            sharedPeopleUrl={`${postUrl}/shares`}
             deleteUrl={state.account == null ? undefined : `${postUrl}/delete`}
             deleteMethod="post"
           />
