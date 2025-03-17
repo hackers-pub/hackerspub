@@ -154,6 +154,17 @@ export const handler = define.handlers({
             ? or(
               isNotNull(postTable.noteSourceId),
               isNotNull(postTable.articleSourceId),
+              inArray(
+                postTable.sharedPostId,
+                db.select({ id: postTable.id })
+                  .from(postTable)
+                  .where(
+                    or(
+                      isNotNull(postTable.noteSourceId),
+                      isNotNull(postTable.articleSourceId),
+                    ),
+                  ),
+              ),
             )
             : filter === "withoutShares"
             ? isNull(postTable.sharedPostId)
@@ -280,6 +291,17 @@ export const handler = define.handlers({
               ? or(
                 isNotNull(postTable.noteSourceId),
                 isNotNull(postTable.articleSourceId),
+                inArray(
+                  postTable.sharedPostId,
+                  db.select({ id: postTable.id })
+                    .from(postTable)
+                    .where(
+                      or(
+                        isNotNull(postTable.noteSourceId),
+                        isNotNull(postTable.articleSourceId),
+                      ),
+                    ),
+                ),
               )
               : filter === "withoutShares"
               ? isNull(postTable.sharedPostId)
