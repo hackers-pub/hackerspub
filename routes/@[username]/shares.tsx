@@ -150,6 +150,7 @@ export const handler = define.handlers({
       limit: window + 1,
     });
     const next = posts.length > window ? posts[window].published : undefined;
+    ctx.state.title = actor.name ?? actor.username;
     return page<ProfileShareListProps>({
       profileHref: account == null
         ? `/@${actor.username}@${actor.instanceHost}`
