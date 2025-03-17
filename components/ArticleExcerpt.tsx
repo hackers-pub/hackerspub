@@ -4,6 +4,7 @@ import {
   type ArticleMetadataProps,
 } from "../islands/ArticleMetadata.tsx";
 import { Link } from "../islands/Link.tsx";
+import { PostControls } from "../islands/PostControls.tsx";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import { Excerpt } from "./Excerpt.tsx";
 import { Msg, Translation } from "./Msg.tsx";
@@ -15,6 +16,8 @@ export interface ArticleExcerptProps extends ArticleMetadataProps {
   contentHtml: string;
   emojis?: Record<string, string>;
   lang?: string;
+  repliesCount: number;
+  replyUrl?: string;
   replyTarget?: boolean;
   sharer?: {
     url: string;
@@ -23,65 +26,71 @@ export interface ArticleExcerptProps extends ArticleMetadataProps {
     emojis: Record<string, string>;
     avatarUrl: string;
   };
+  sharesCount: number;
+  shared: boolean;
+  shareUrl?: string;
+  unshareUrl?: string;
 }
 
 export function ArticleExcerpt(props: ArticleExcerptProps) {
   return (
-    <article
-      class={`
-        mt-5 border-l-4 border-l-stone-400 dark:border-l-stone-600 pl-4
-        ${props.replyTarget ? "opacity-55 ml-6 pl-7" : ""}
-        ${props.class}
-      `}
-    >
-      {props.sharer && (
-        <p class="text-stone-500 dark:text-stone-400 mb-2">
-          <Msg
-            $key="article.shared"
-            name={
-              <Link
-                href={props.sharer.url}
-                internalHref={props.sharer.internalUrl}
-                class="font-bold"
+    <Translation>
+      {(_, language) => (
+        <article
+          class={`
+            mt-5 p-5 bg-stone-100 dark:bg-stone-800
+            ${props.replyTarget ? "opacity-55 ml-6 pl-7" : ""}
+            ${props.class}
+          `}
+        >
+          {props.sharer && (
+            <p class="text-stone-500 dark:text-stone-400 mb-2">
+              <Msg
+                $key="article.shared"
+                name={
+                  <Link
+                    href={props.sharer.url}
+                    internalHref={props.sharer.internalUrl}
+                    class="font-bold"
+                  >
+                    <img
+                      src={props.sharer.avatarUrl}
+                      width={16}
+                      height={16}
+                      class="inline-block mr-1 mt-[2px] align-text-top"
+                    />
+                    <strong
+                      dangerouslySetInnerHTML={{
+                        __html: renderCustomEmojis(
+                          escape(props.sharer.name),
+                          props.sharer.emojis,
+                        ),
+                      }}
+                    />
+                  </Link>
+                }
+              />
+            </p>
+          )}
+          {props.title &&
+            (
+              <h1
+                class={`
+                  ${props.replyTarget ? "text-xl" : "text-3xl"}
+                  font-bold mb-2
+                `}
+                lang={props.lang}
               >
-                <img
-                  src={props.sharer.avatarUrl}
-                  width={16}
-                  height={16}
-                  class="inline-block mr-1 mt-[2px] align-text-top"
-                />
-                <strong
-                  dangerouslySetInnerHTML={{
-                    __html: renderCustomEmojis(
-                      escape(props.sharer.name),
-                      props.sharer.emojis,
-                    ),
-                  }}
-                />
-              </Link>
-            }
-          />
-        </p>
-      )}
-      {props.title &&
-        (
-          <h1
-            class={`${
-              props.replyTarget ? "text-xl" : "text-3xl"
-            } font-bold mb-2`}
-            lang={props.lang}
-          >
-            <a href={props.url.toString()} target={props.target}>
-              {props.title}
-            </a>
-          </h1>
-        )}
-      <Translation>
-        {(_, language) => (
+                <a href={props.url.toString()} target={props.target}>
+                  {props.title}
+                </a>
+              </h1>
+            )}
           <ArticleMetadata
             language={language}
-            class="mb-2"
+            class="mt-4 mb-2"
             authorUrl={props.authorUrl}
+            authorInternalUrl={props.authorInternalUrl}
             authorName={props.authorName}
             authorHandle={props.authorHandle}
             authorAvatarUrl={props.authorAvatarUrl}
@@ -89,18 +98,30 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
             editUrl={props.editUrl}
             deleteUrl={props.deleteUrl}
           />
-        )}
-      </Translation>
-      {!props.replyTarget && (
-        <a href={props.url.toString()} target={props.target}>
-          <Excerpt
-            lang={props.lang}
-            html={props.contentHtml}
-            emojis={props.emojis}
+          {!props.replyTarget && (
+            <a href={props.url.toString()} target={props.target}>
+              <Excerpt
+                lang={props.lang}
+                html={props.contentHtml}
+                emojis={props.emojis}
+              />
+              <Msg $key="article.readMore" />
+            </a>
+          )}
+          <PostControls
+            language={language}
+            class="mt-4"
+            replies={props.repliesCount}
+            replyUrl={props.replyUrl}
+            shares={props.sharesCount}
+            shared={props.shared}
+            shareUrl={props.shareUrl}
+            unshareUrl={props.unshareUrl}
+            deleteUrl={props.deleteUrl ?? undefined}
+            deleteMethod="post"
           />
-          <Msg $key="article.readMore" />
-        </a>
+        </article>
       )}
-    </article>
+    </Translation>
   );
 }

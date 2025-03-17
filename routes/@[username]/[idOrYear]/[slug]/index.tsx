@@ -3,18 +3,20 @@ import * as v from "@valibot/valibot";
 import { eq, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Msg } from "../../../../components/Msg.tsx";
+import { PageTitle } from "../../../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
 import { drive } from "../../../../drive.ts";
 import { ArticleMetadata } from "../../../../islands/ArticleMetadata.tsx";
 import { Composer } from "../../../../islands/Composer.tsx";
+import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource, updateArticle } from "../../../../models/article.ts";
 import { preprocessContentHtml } from "../../../../models/html.ts";
 import { renderMarkup } from "../../../../models/markup.ts";
 import { createNote } from "../../../../models/note.ts";
-import { isPostVisibleTo } from "../../../../models/post.ts";
+import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
 import {
   type Account,
   type Actor,
@@ -130,6 +132,7 @@ export const handler = define.handlers({
     return page<ArticlePageProps>({
       article,
       articleIri: articleUri.href,
+      shared: await isPostSharedBy(db, article.post, ctx.state.account),
       comments,
       avatarUrl: await getAvatarUrl(article.account),
       contentHtml: preprocessContentHtml(
@@ -189,6 +192,7 @@ interface ArticlePageProps {
     post: Post & { mentions: (Mention & { actor: Actor })[] };
   };
   articleIri: string;
+  shared: boolean;
   comments: (Post & {
     actor: Actor;
     mentions: (Mention & { actor: Actor })[];
@@ -204,7 +208,7 @@ export default define.page<typeof handler, ArticlePageProps>(
     {
       url,
       state,
-      data: { article, articleIri, comments, avatarUrl, contentHtml },
+      data: { article, articleIri, shared, comments, avatarUrl, contentHtml },
     },
   ) {
     const authorHandle = `@${article.account.username}@${url.host}`;
@@ -248,11 +252,25 @@ export default define.page<typeof handler, ArticlePageProps>(
             class="prose dark:prose-invert mt-4 text-xl"
             dangerouslySetInnerHTML={{ __html: contentHtml }}
           />
+          <PostControls
+            language={state.language}
+            class="mt-8"
+            active="reply"
+            replies={comments.length}
+            shares={article.post.sharesCount}
+            shared={shared}
+            shareUrl={state.account == null ? undefined : `${postUrl}/share`}
+            unshareUrl={state.account == null
+              ? undefined
+              : `${postUrl}/unshare`}
+            deleteUrl={state.account == null ? undefined : `${postUrl}/delete`}
+            deleteMethod="post"
+          />
         </article>
-        <div>
-          <h1 class="text-3xl font-bold mt-10">
+        <div id="replies">
+          <PageTitle class="mt-8">
             <Msg $key="article.comments" count={comments.length} />
-          </h1>
+          </PageTitle>
           {state.account == null
             ? (
               <p class="mt-4 leading-7">

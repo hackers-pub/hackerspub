@@ -53,9 +53,7 @@ export const handler = define.handlers({
     return ctx.redirect(
       post.actor.accountId == null
         ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
-        : `/@${post.actor.username}/${
-          post.articleSourceId ?? post.noteSourceId
-        }`,
+        : `/@${post.actor.username}/${post.noteSourceId}`,
       303,
     );
   },

@@ -5,7 +5,7 @@ import { Msg } from "../../../components/Msg.tsx";
 import { PageTitle } from "../../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
-import { NoteControls } from "../../../islands/NoteControls.tsx";
+import { PostControls } from "../../../islands/PostControls.tsx";
 import { extractMentionsFromHtml } from "../../../models/markup.ts";
 import { getNoteSource } from "../../../models/note.ts";
 import { isPostVisibleTo } from "../../../models/post.ts";
@@ -67,7 +67,7 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
           noControls
           signedAccount={state.account}
         />
-        <NoteControls
+        <PostControls
           class="mt-4 ml-14"
           language={state.language}
           active="sharedPeople"

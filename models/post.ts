@@ -608,6 +608,24 @@ export async function unsharePost(
   return unshared[0];
 }
 
+export async function isPostSharedBy(
+  db: Database,
+  post: Post,
+  account?: Account & { actor: Actor } | null,
+): Promise<boolean> {
+  if (account == null) return false;
+  const rows = await db.select({ id: postTable.id })
+    .from(postTable)
+    .where(
+      and(
+        eq(postTable.actorId, account.actor.id),
+        eq(postTable.sharedPostId, post.id),
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
 export function getPersistedPost(
   db: Database,
   iri: URL,

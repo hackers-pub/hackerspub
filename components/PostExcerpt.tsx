@@ -1,4 +1,4 @@
-import { NoteControls } from "../islands/NoteControls.tsx";
+import { PostControls } from "../islands/PostControls.tsx";
 import { getAvatarUrl } from "../models/actor.ts";
 import { isPostVisibleTo } from "../models/post.ts";
 import type {
@@ -90,11 +90,34 @@ export function PostExcerpt(props: PostExcerptProps) {
                 emojis={post.emojis}
                 lang={post.language ?? undefined}
                 authorUrl={post.actor.url ?? post.actor.iri}
+                authorInternalUrl={post.actor.accountId == null
+                  ? `/@${post.actor.username}@${post.actor.instanceHost}`
+                  : `/@${post.actor.username}`}
                 authorName={post.actor.name ?? post.actor.username}
                 authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
                 authorAvatarUrl={post.actor.avatarUrl}
                 sharer={sharer}
+                sharesCount={post.sharesCount}
+                shared={props.signedAccount == null
+                  ? false
+                  : post.shares.some((s) =>
+                    s.actorId === props.signedAccount!.actor.id
+                  )}
+                shareUrl={props.signedAccount == null
+                  ? undefined
+                  : post.articleSourceId == null
+                  ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}/share`
+                  : `${post.url}/share`}
+                unshareUrl={props.signedAccount == null
+                  ? undefined
+                  : post.articleSourceId == null
+                  ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}/unshare`
+                  : `${post.url}/unshare`}
                 published={post.published}
+                repliesCount={post.repliesCount}
+                replyUrl={post.articleSourceId == null
+                  ? undefined
+                  : `${post.url}#replies`}
                 replyTarget={props.replyTarget}
                 editUrl={post.articleSourceId == null ||
                     post.actorId !== props.signedAccount?.actor.id
@@ -102,7 +125,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                   : `${post.url}/edit`}
                 deleteUrl={post.articleSourceId == null ||
                     post.actorId !== props.signedAccount?.actor.id
-                  ? null
+                  ? undefined
                   : `${post.url}/delete`}
               />
             )
@@ -134,7 +157,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                   reply={post.replyTarget != null}
                 />
                 {!props.replyTarget && !props.noControls && (
-                  <NoteControls
+                  <PostControls
                     language={language}
                     class="mt-4 ml-14"
                     replies={post.repliesCount}

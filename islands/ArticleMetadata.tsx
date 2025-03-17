@@ -1,12 +1,14 @@
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import type { Language } from "../i18n.ts";
 import getFixedT from "../i18n.ts";
+import { Link } from "./Link.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 
 export interface ArticleMetadataProps {
   language: Language;
   class?: string;
   authorUrl: string;
+  authorInternalUrl?: string | null;
   authorName: string;
   authorHandle: string;
   authorAvatarUrl?: string | null;
@@ -30,7 +32,10 @@ export function ArticleMetadata(props: ArticleMetadataProps) {
       <div
         class={`flex flex-row text-stone-500 dark:text-stone-400 truncate ${props.class}`}
       >
-        <a href={props.authorUrl}>
+        <Link
+          href={props.authorUrl}
+          internalHref={props.authorInternalUrl ?? undefined}
+        >
           {props.authorAvatarUrl && (
             <img
               src={props.authorAvatarUrl}
@@ -39,15 +44,16 @@ export function ArticleMetadata(props: ArticleMetadataProps) {
               class="inline-block mr-2 align-text-bottom"
             />
           )}
-        </a>
+        </Link>
         <div class="flex flex-col">
           <p>
-            <a
+            <Link
               href={props.authorUrl}
+              internalHref={props.authorInternalUrl ?? undefined}
               class="font-bold text-black dark:text-white"
             >
               {props.authorName}
-            </a>{" "}
+            </Link>{" "}
             <span class="select-all before:content-['('] after:content-[')']">
               {props.authorHandle}
             </span>
