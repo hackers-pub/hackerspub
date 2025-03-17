@@ -42,9 +42,12 @@ export function ArticleMetadata(props: ArticleMetadataProps) {
         </a>
         <div class="flex flex-col">
           <p>
-            <strong class="text-black dark:text-white">
+            <a
+              href={props.authorUrl}
+              class="font-bold text-black dark:text-white"
+            >
               {props.authorName}
-            </strong>{" "}
+            </a>{" "}
             <span class="select-all before:content-['('] after:content-[')']">
               {props.authorHandle}
             </span>
