@@ -43,7 +43,13 @@ export interface PostExcerptProps {
     media: PostMedium[];
     shares: Post[];
   };
-  replyTarget?: boolean;
+  replier?: {
+    url: string;
+    internalUrl?: string;
+    name: string;
+    emojis: Record<string, string>;
+    avatarUrl: string;
+  };
   noControls?: boolean;
   signedAccount?: Account & { actor: Actor };
 }
@@ -62,20 +68,35 @@ export function PostExcerpt(props: PostExcerptProps) {
   const localPostUrl = post.articleSourceId == null && post.noteSourceId == null
     ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
     : `/@${post.actor.username}/${post.articleSourceId ?? post.noteSourceId}`;
+  const replyTarget = post.replyTarget != null &&
+      isPostVisibleTo(
+        post.replyTarget,
+        props.signedAccount?.actor,
+      )
+    ? post.replyTarget
+    : null;
   return (
     <Translation>
       {(_, language) => (
         <>
-          {post.replyTarget != null &&
-            isPostVisibleTo(post.replyTarget, props.signedAccount?.actor) && (
+          {replyTarget != null &&
+            isPostVisibleTo(replyTarget, props.signedAccount?.actor) && (
             <PostExcerpt
               post={{
-                ...post.replyTarget,
+                ...replyTarget,
                 sharedPost: null,
                 replyTarget: null,
                 shares: [], // TODO: extract PostExcerpt from Post
               }}
-              replyTarget
+              replier={{
+                url: post.actor.url ?? post.actor.iri,
+                internalUrl: post.actor.accountId == null
+                  ? `/@${post.actor.username}@${post.actor.instanceHost}`
+                  : `/@${post.actor.username}`,
+                name: post.actor.name ?? post.actor.username,
+                emojis: post.actor.emojis,
+                avatarUrl: getAvatarUrl(post.actor),
+              }}
             />
           )}
           {post.type === "Article" || post.name != null
@@ -97,7 +118,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                 authorAvatarUrl={post.actor.avatarUrl}
                 sharer={sharer}
                 published={post.published}
-                replyTarget={props.replyTarget}
+                replier={props.replier}
                 editUrl={post.articleSourceId == null ||
                     post.actorId !== props.signedAccount?.actor.id
                   ? null
@@ -106,7 +127,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                     post.actorId !== props.signedAccount?.actor.id
                   ? undefined
                   : `${post.url}/delete`}
-                controls={{
+                controls={props.replier ? undefined : {
                   repliesCount: post.repliesCount,
                   replyUrl: post.articleSourceId == null
                     ? undefined
@@ -134,62 +155,86 @@ export function PostExcerpt(props: PostExcerptProps) {
               />
             )
             : (
-              <>
-                <NoteExcerpt
-                  class={props.class}
-                  url={post.url ?? post.iri}
-                  internalUrl={post.noteSourceId == null
-                    ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
-                    : `/@${post.actor.username}/${post.noteSourceId}`}
-                  contentHtml={post.contentHtml}
-                  emojis={post.emojis}
-                  mentions={post.mentions}
-                  lang={post.language ?? undefined}
-                  visibility={post.visibility}
-                  authorUrl={post.actor.url ?? post.actor.iri}
-                  authorInternalUrl={post.actor.accountId == null
-                    ? `/@${post.actor.username}@${post.actor.instanceHost}`
-                    : `/@${post.actor.username}`}
-                  authorName={post.actor.name ?? post.actor.username}
-                  authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
-                  authorAvatarUrl={getAvatarUrl(post.actor)}
-                  authorEmojis={post.actor.emojis}
-                  sharer={sharer}
-                  media={post.media}
-                  published={post.published}
-                  replyTarget={props.replyTarget}
-                  reply={post.replyTarget != null}
-                />
-                {!props.replyTarget && !props.noControls && (
-                  <PostControls
-                    language={language}
-                    class="mt-4 ml-14"
-                    replies={post.repliesCount}
-                    replyUrl={post.actor.accountId == null
-                      ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}#reply`
-                      : `/@${post.actor.username}/${post.noteSourceId}#reply`}
-                    shares={post.sharesCount}
-                    shareUrl={props.signedAccount == null ||
-                        !["public", "unlisted"].includes(post.visibility)
-                      ? undefined
-                      : `${localPostUrl}/share`}
-                    unshareUrl={props.signedAccount == null ||
-                        !["public", "unlisted"].includes(post.visibility)
-                      ? undefined
-                      : `${localPostUrl}/unshare`}
-                    shared={post.shares.some((share) =>
-                      share.actorId === props.signedAccount?.actor.id
-                    )}
-                    sharedPeopleUrl={post.noteSourceId == null
-                      ? undefined
-                      : `/@${post.actor.username}/${post.noteSourceId}/shares`}
-                    deleteUrl={post.actor.accountId == null ||
-                        post.actor.accountId !== props.signedAccount?.id
-                      ? undefined
-                      : `/@${post.actor.username}/${post.noteSourceId}`}
-                  />
+              <div
+                class={replyTarget?.type === "Article"
+                  ? "bg-gradient-to-b from-stone-100 dark:from-stone-800 to-transparent flex flex-row p-4 pt-0 gap-4"
+                  : ""}
+              >
+                {replyTarget?.type === "Article" && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="m16.49 12 3.75 3.75m0 0-3.75 3.75m3.75-3.75H3.74V4.499"
+                    />
+                  </svg>
                 )}
-              </>
+                <div>
+                  <NoteExcerpt
+                    class={replyTarget?.type != "Article"
+                      ? `${props.class} mt-2`
+                      : props.class}
+                    url={post.url ?? post.iri}
+                    internalUrl={post.noteSourceId == null
+                      ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
+                      : `/@${post.actor.username}/${post.noteSourceId}`}
+                    contentHtml={post.contentHtml}
+                    emojis={post.emojis}
+                    mentions={post.mentions}
+                    lang={post.language ?? undefined}
+                    visibility={post.visibility}
+                    authorUrl={post.actor.url ?? post.actor.iri}
+                    authorInternalUrl={post.actor.accountId == null
+                      ? `/@${post.actor.username}@${post.actor.instanceHost}`
+                      : `/@${post.actor.username}`}
+                    authorName={post.actor.name ?? post.actor.username}
+                    authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
+                    authorAvatarUrl={getAvatarUrl(post.actor)}
+                    authorEmojis={post.actor.emojis}
+                    sharer={sharer}
+                    media={post.media}
+                    published={post.published}
+                    replyTarget={props.replier != null}
+                    reply={replyTarget != null}
+                  />
+                  {!props.replier && !props.noControls && (
+                    <PostControls
+                      language={language}
+                      class="mt-4 ml-14"
+                      replies={post.repliesCount}
+                      replyUrl={post.actor.accountId == null
+                        ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}#reply`
+                        : `/@${post.actor.username}/${post.noteSourceId}#reply`}
+                      shares={post.sharesCount}
+                      shareUrl={props.signedAccount == null ||
+                          !["public", "unlisted"].includes(post.visibility)
+                        ? undefined
+                        : `${localPostUrl}/share`}
+                      unshareUrl={props.signedAccount == null ||
+                          !["public", "unlisted"].includes(post.visibility)
+                        ? undefined
+                        : `${localPostUrl}/unshare`}
+                      shared={post.shares.some((share) =>
+                        share.actorId === props.signedAccount?.actor.id
+                      )}
+                      sharedPeopleUrl={post.noteSourceId == null
+                        ? undefined
+                        : `/@${post.actor.username}/${post.noteSourceId}/shares`}
+                      deleteUrl={post.actor.accountId == null ||
+                          post.actor.accountId !== props.signedAccount?.id
+                        ? undefined
+                        : `/@${post.actor.username}/${post.noteSourceId}`}
+                    />
+                  )}
+                </div>
+              </div>
             )}
         </>
       )}

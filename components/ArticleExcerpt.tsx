@@ -16,7 +16,13 @@ export type ArticleExcerptProps = Omit<ArticleMetadataProps, "language"> & {
   contentHtml: string;
   emojis?: Record<string, string>;
   lang?: string;
-  replyTarget?: boolean;
+  replier?: {
+    url: string;
+    internalUrl?: string;
+    name: string;
+    emojis: Record<string, string>;
+    avatarUrl: string;
+  };
   sharer?: {
     url: string;
     internalUrl?: string;
@@ -42,10 +48,38 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
         <article
           class={`
             mt-5 p-5 bg-stone-100 dark:bg-stone-800
-            ${props.replyTarget ? "opacity-55 ml-6 pl-7" : ""}
             ${props.class}
           `}
         >
+          {props.replier && (
+            <p class="text-stone-500 dark:text-stone-400 mb-2">
+              <Msg
+                $key="article.replied"
+                name={
+                  <Link
+                    href={props.replier.url}
+                    internalHref={props.replier.internalUrl}
+                    class="font-bold"
+                  >
+                    <img
+                      src={props.replier.avatarUrl}
+                      width={16}
+                      height={16}
+                      class="inline-block mr-1 mt-[2px] align-text-top"
+                    />
+                    <strong
+                      dangerouslySetInnerHTML={{
+                        __html: renderCustomEmojis(
+                          escape(props.replier.name),
+                          props.replier.emojis,
+                        ),
+                      }}
+                    />
+                  </Link>
+                }
+              />
+            </p>
+          )}
           {props.sharer && (
             <p class="text-stone-500 dark:text-stone-400 mb-2">
               <Msg
@@ -78,10 +112,7 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
           {props.title &&
             (
               <h1
-                class={`
-                  ${props.replyTarget ? "text-xl" : "text-3xl"}
-                  font-bold mb-2
-                `}
+                class="text-3xl font-bold mb-2"
                 lang={props.lang}
               >
                 <a href={props.url.toString()} target={props.target}>
@@ -101,16 +132,14 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
             editUrl={props.editUrl}
             deleteUrl={props.deleteUrl}
           />
-          {!props.replyTarget && (
-            <a href={props.url.toString()} target={props.target}>
-              <Excerpt
-                lang={props.lang}
-                html={props.contentHtml}
-                emojis={props.emojis}
-              />
-              <Msg $key="article.readMore" />
-            </a>
-          )}
+          <a href={props.url.toString()} target={props.target}>
+            <Excerpt
+              lang={props.lang}
+              html={props.contentHtml}
+              emojis={props.emojis}
+            />
+            <Msg $key="article.readMore" />
+          </a>
           {props.controls && (
             <PostControls
               language={language}

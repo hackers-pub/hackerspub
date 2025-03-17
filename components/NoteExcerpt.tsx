@@ -47,7 +47,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
     <Translation>
       {(_, lang) => (
         <article
-          class={`${props.reply ? "mt-2" : "mt-5"} flex flex-col ${
+          class={`${props.reply ? "" : "mt-5"} flex flex-col ${
             props.class ?? ""
           }`}
         >
