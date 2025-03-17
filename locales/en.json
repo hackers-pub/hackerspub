@@ -139,7 +139,7 @@
   "editor": {
     "titlePlaceholder": "Article title",
     "titleRequired": "Please enter a title for your article.",
-    "contentPlaceholder": "Write your article here. You can use Markdown.",
+    "contentPlaceholder": "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing.",
     "contentRequired": "Please enter some content for your article.",
     "tagsPlaceholder": "Type tags separated by spaces",
     "tagsRequired": "Please enter at least one tag for your article.",

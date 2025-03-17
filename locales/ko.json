@@ -137,7 +137,7 @@
   "editor": {
     "titlePlaceholder": "게시글 제목",
     "titleRequired": "게시글 제목을 입력하세요.",
-    "contentPlaceholder": "게시글을 작성하세요. Markdown을 사용할 수 있습니다.",
+    "contentPlaceholder": "게시글을 작성하세요. Markdown을 사용할 수 있습니다. 작성중인 게시글은 자동으로 임시 저장됩니다.",
     "contentRequired": "게시글 내용을 뭐라도 입력하세요.",
     "tagsPlaceholder": "태그를 공백으로 구분하여 입력하세요.",
     "tagsRequired": "게시글에는 최소한 하나의 태그를 붙여야 합니다.",
