@@ -29,6 +29,7 @@ import { extractMentionsFromHtml } from "../models/markup.ts";
 import {
   type Account,
   type Actor,
+  actorTable,
   type Following,
   followingTable,
   type Mention,
@@ -154,16 +155,14 @@ export const handler = define.handlers({
             ? or(
               isNotNull(postTable.noteSourceId),
               isNotNull(postTable.articleSourceId),
-              inArray(
-                postTable.sharedPostId,
-                db.select({ id: postTable.id })
-                  .from(postTable)
-                  .where(
-                    or(
-                      isNotNull(postTable.noteSourceId),
-                      isNotNull(postTable.articleSourceId),
-                    ),
-                  ),
+              and(
+                isNotNull(postTable.sharedPostId),
+                inArray(
+                  postTable.actorId,
+                  db.select({ id: actorTable.id })
+                    .from(actorTable)
+                    .where(isNotNull(actorTable.accountId)),
+                ),
               ),
             )
             : filter === "withoutShares"
@@ -291,16 +290,14 @@ export const handler = define.handlers({
               ? or(
                 isNotNull(postTable.noteSourceId),
                 isNotNull(postTable.articleSourceId),
-                inArray(
-                  postTable.sharedPostId,
-                  db.select({ id: postTable.id })
-                    .from(postTable)
-                    .where(
-                      or(
-                        isNotNull(postTable.noteSourceId),
-                        isNotNull(postTable.articleSourceId),
-                      ),
-                    ),
+                and(
+                  isNotNull(postTable.sharedPostId),
+                  inArray(
+                    postTable.actorId,
+                    db.select({ id: actorTable.id })
+                      .from(actorTable)
+                      .where(isNotNull(actorTable.accountId)),
+                  ),
                 ),
               )
               : filter === "withoutShares"
