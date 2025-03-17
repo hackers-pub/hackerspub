@@ -34,7 +34,7 @@ export default async function App(
     <TranslationSetup language={state.language}>
       <Translation>
         {(t) => (
-          <html lang={state.language}>
+          <html lang={state.language} prefix="og: https://ogp.me/ns#">
             <head>
               <meta charset="utf-8" />
               <meta

@@ -63,6 +63,7 @@ export const handler = define.handlers({
       article.id,
       article.content,
     );
+    ctx.state.title = article.title;
     ctx.state.links.push(
       { rel: "canonical", href: permalink },
       {
@@ -75,6 +76,7 @@ export const handler = define.handlers({
     ctx.state.metas.push(
       { name: "description", content: description },
       { property: "og:title", content: article.title },
+      { property: "og:site_name", content: "Hackers' Pub" },
       { property: "og:description", content: description },
       { property: "og:url", content: permalink },
       { property: "og:type", content: "article" },
