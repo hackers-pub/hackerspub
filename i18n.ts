@@ -2,7 +2,7 @@ import { getFixedT, init } from "i18next";
 import en from "./locales/en.json" with { type: "json" };
 import ja from "./locales/ja.json" with { type: "json" };
 import ko from "./locales/ko.json" with { type: "json" };
-import zh-CN from "./locales/zh-CN.json" with { type: "json" };
+import zhCN from "./locales/zh-CN.json" with { type: "json" };
 
 declare module "i18next" {
   interface CustomTypeOptions {
