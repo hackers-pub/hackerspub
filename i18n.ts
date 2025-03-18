@@ -22,8 +22,8 @@ const resources = {
   ko: {
     translation: ko,
   },
-  zh-CN: {
-    translation: zh-CN,
+  "zh-CN": {
+    translation: zhCN,
   },
 } as const;
 
