@@ -16,6 +16,7 @@ export interface Link {
   href: string | URL;
   hreflang?: string;
   type?: string;
+  title?: string;
 }
 
 export type Meta = {
