@@ -114,6 +114,8 @@
     "comments_other": "{{count}}件のコメント",
     "remoteCommentDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この記事にコメントを残すことができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当記事にコメントを残してください。",
     "shared": "{{name}}さんが以下の記事を共有しました：",
+    "sharedPeople": "この記事を共有した人々",
+    "replied": "{{name}}さんが以下の記事にコメントしました：",
     "edit": "編集",
     "delete": "削除",
     "deleteConfirm": "この記事を削除してもよろしいですか？"
@@ -137,7 +139,7 @@
   "editor": {
     "titlePlaceholder": "記事のタイトル",
     "titleRequired": "記事のタイトルを入力してください。",
-    "contentPlaceholder": "記事を書く（Markdownが使用できます）",
+    "contentPlaceholder": "記事を書きましょう。Markdownが使用できます。書いている記事は自動的に下書き保存されます。",
     "contentRequired": "記事の内容を入力してください。",
     "tagsPlaceholder": "タグをスペースで区切って入力",
     "tagsRequired": "最低1つのタグを入力してください。",

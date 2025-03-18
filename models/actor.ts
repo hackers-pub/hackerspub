@@ -11,6 +11,7 @@ import {
 import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import {
+  aliasedTable,
   and,
   count,
   desc,
@@ -413,9 +414,30 @@ export async function recommendActors(
   if (languages != null) {
     languages = languages.map((lang) => lang.replace(/-.*$/, ""));
   }
-  const subquery = db.select({ actorId: postTable.actorId })
-    .from(postTable)
-    .innerJoin(actorTable, eq(postTable.actorId, actorTable.id))
+  const stats = db
+    .select({
+      actorId: actorTable.id,
+      local: sql<number>`
+        CASE
+          WHEN ${actorTable.accountId} IS NULL THEN 0
+          ELSE 1
+        END`.as("local"),
+      followersCount: actorTable.followersCount,
+      likesCount: sql<number>`coalesce(sum(${postTable.likesCount}), 0)`
+        .as("likesCount"),
+      repliesCount: sql<number>`coalesce(sum(${postTable.repliesCount}), 0)`
+        .as("repliesCount"),
+      sharesCount: sql<number>`coalesce(sum(${postTable.sharesCount}), 0)`
+        .as("sharesCount"),
+      postsCount: sql<number>`
+        sum(CASE
+          WHEN ${postTable.language} = ${mainLanguage ?? null} THEN 1
+          ELSE 0
+        END)
+      `.as("postsCount"),
+    })
+    .from(actorTable)
+    .leftJoin(postTable, eq(postTable.actorId, actorTable.id))
     .where(
       and(
         eq(actorTable.type, "Person"),
@@ -436,35 +458,43 @@ export async function recommendActors(
         ),
       ),
     )
-    .groupBy(postTable.actorId, actorTable.accountId, actorTable.followersCount)
+    .groupBy(
+      actorTable.id,
+      actorTable.accountId,
+      actorTable.followersCount,
+    );
+  const statsCte = db.$with("stats").as(stats);
+  const f1 = aliasedTable(followingTable, "f1");
+  const f2 = aliasedTable(followingTable, "f2");
+  const follows = db
+    .select({
+      followeeId: f2.followeeId,
+      followersCount: count().as("followersCount"),
+    })
+    .from(f1)
+    .innerJoin(f2, eq(f1.followeeId, f2.followerId))
+    .where(
+      account == null ? sql`false` : eq(f1.followerId, account.actor.id),
+    )
+    .groupBy(f2.followeeId);
+  const followsCte = db.$with("follows").as(follows);
+  const subquery = db.with(statsCte, followsCte)
+    .select({ actorId: statsCte.actorId })
+    .from(statsCte)
+    .leftJoin(followsCte, eq(statsCte.actorId, followsCte.followeeId))
     .orderBy(
       desc(
         sql`
-          (
-            sum(
-              ${postTable.likesCount} / (${postTable.likesCount} + 15.0) +
-              ${postTable.repliesCount} / (${postTable.repliesCount} + 5.0) +
-              ${postTable.sharesCount} / (${postTable.sharesCount} + 10.0)
-            ) / (
-              sum(
-                ${postTable.likesCount} / (${postTable.likesCount} + 15.0) +
-                ${postTable.repliesCount} / (${postTable.repliesCount} + 5.0) +
-                ${postTable.sharesCount} / (${postTable.sharesCount} + 10.0)
-              ) + 100
-            )
-          ) +
-          (
-            sum(CASE
-              WHEN ${postTable.language} = ${mainLanguage ?? null} THEN 1
-              ELSE 0
-            END) /
-            (sum(CASE
-              WHEN ${postTable.language} = ${mainLanguage ?? null} THEN 1
-              ELSE 0
-            END) + 15.0)
-          ) * 10 +
-          ${actorTable.followersCount} / (${actorTable.followersCount} + 50.0) +
-          CASE WHEN ${actorTable.accountId} IS NULL THEN 0 ELSE 1 END
+          ${statsCte.likesCount} / (${statsCte.likesCount} + 15.0) +
+          ${statsCte.repliesCount} / (${statsCte.repliesCount} + 5.0) +
+          ${statsCte.sharesCount} / (${statsCte.sharesCount} + 10.0) +
+          ${statsCte.followersCount} / (${statsCte.followersCount} + 50.0) +
+          CASE
+            WHEN ${followsCte.followersCount} IS NULL THEN 0
+            ELSE ${followsCte.followersCount} / (${followsCte.followersCount} + 5.0)
+          END * 5+
+          ${statsCte.postsCount} / (${statsCte.postsCount} + 15.0) * 5 +
+          ${statsCte.local} * 5
           `,
       ),
     );

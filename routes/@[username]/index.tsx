@@ -267,6 +267,15 @@ export const handler = define.handlers({
         type: "application/activity+json",
         href: actorUri,
       },
+      {
+        rel: "alternate",
+        type: "application/atom+xml",
+        href: new URL(
+          `/@${account.username}/feed.xml`,
+          ctx.state.canonicalOrigin,
+        ),
+        title: `${account.name} (Atom 1.0)`,
+      },
     );
     ctx.state.title = account.name;
     ctx.state.searchQuery = `@${account.username}`;

@@ -320,6 +320,7 @@ export const actorRelations = relations(
     followers: many(followingTable, { relationName: "followee" }),
     followees: many(followingTable, { relationName: "follower" }),
     mentions: many(mentionTable),
+    posts: many(postTable),
   }),
 );
 

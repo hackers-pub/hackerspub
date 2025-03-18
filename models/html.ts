@@ -300,7 +300,17 @@ export function sanitizeExcerptHtml(html: string): string {
 }
 
 export function stripHtml(html: string): string {
-  return unescape(textXss.process(html));
+  return unescape(
+    textXss.process(
+      html
+        .replace(/\s*<(\/?br|\/?p|\/?h[1-6])\b[^>]*>\s*/g, (m) => `<${m[1]}>`)
+        .replace(/([ \t\r\v]*\n[ \t\r\v]*)/g, "")
+        .replace(
+          /\s*<(\/?br|\/?p|\/?h[1-6])\s*\/?>\s*/g,
+          (m) => m[1].endsWith("br") ? "\n" : "\n\n\n",
+        ),
+    ),
+  ).replace(/(\r?\n){3,}/, "\n\n").trim();
 }
 
 export function transformMentions(

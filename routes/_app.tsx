@@ -11,6 +11,7 @@ import {
 } from "../models/schema.ts";
 import type { State } from "../utils.ts";
 
+const MODE = Deno.env.get("MODE") ?? "production";
 const PLAUSIBLE = Deno.env.get("PLAUSIBLE")?.trim()?.toLowerCase() === "true";
 
 export default async function App(
@@ -33,7 +34,7 @@ export default async function App(
     <TranslationSetup language={state.language}>
       <Translation>
         {(t) => (
-          <html lang={state.language}>
+          <html lang={state.language} prefix="og: https://ogp.me/ns#">
             <head>
               <meta charset="utf-8" />
               <meta
@@ -75,7 +76,13 @@ export default async function App(
                 />
               )}
             </head>
-            <body class="font-sans dark:bg-stone-900 dark:text-white">
+            <body
+              class={`font-sans dark:bg-stone-900 dark:text-white ${
+                MODE === "development"
+                  ? "bg-[url(/dev-bg-light.svg)] dark:bg-[url(/dev-bg-dark.svg)]"
+                  : ""
+              }`}
+            >
               <header class="h-[60px] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
                 <nav class="m-auto xl:max-w-screen-xl text-xl flex flex-row gap-4">
                   <a
@@ -237,7 +244,7 @@ export default async function App(
                   <main class="m-auto max-w-screen-xl min-h-[calc(100vh_-_120px)] p-4">
                     <Component />
                   </main>
-                  <footer class="left-0 w-full h-[60px] bg-stone-100 dark:bg-stone-800">
+                  <footer class="left-0 w-full min-h-[60px] bg-stone-100 dark:bg-stone-800">
                     <nav class="m-auto max-w-screen-xl p-4 pb-5 text-stone-400">
                       <a
                         href="/coc"

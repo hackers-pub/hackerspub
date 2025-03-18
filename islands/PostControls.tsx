@@ -3,7 +3,7 @@ import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import type { Language } from "../i18n.ts";
 import getFixedT from "../i18n.ts";
 
-export interface NoteControlsProps {
+export interface PostControlsProps {
   language: Language;
   active?: "reply" | "sharedPeople";
   class?: string;
@@ -15,9 +15,10 @@ export interface NoteControlsProps {
   unshareUrl?: string;
   sharedPeopleUrl?: string;
   deleteUrl?: string;
+  deleteMethod?: "DELETE" | "POST" | "delete" | "post";
 }
 
-export function NoteControls(props: NoteControlsProps) {
+export function PostControls(props: PostControlsProps) {
   const t = getFixedT(props.language);
   const [shares, setShares] = useState(props.shares);
   const [shared, setShared] = useState(props.shared);
@@ -53,7 +54,7 @@ export function NoteControls(props: NoteControlsProps) {
   function onDelete(this: HTMLButtonElement, _event: MouseEvent) {
     if (props.deleteUrl == null || !confirm(t("note.deleteConfirm"))) return;
     setDeleted("deleting");
-    fetch(props.deleteUrl, { method: "delete" })
+    fetch(props.deleteUrl, { method: props.deleteMethod ?? "delete" })
       .then((response) => {
         if (response.status >= 200 && response.status < 400) {
           setDeleted("deleted");

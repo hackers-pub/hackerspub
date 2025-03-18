@@ -8,7 +8,7 @@ import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
 import { drive } from "../../../drive.ts";
 import { Composer } from "../../../islands/Composer.tsx";
-import { NoteControls } from "../../../islands/NoteControls.tsx";
+import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { getAvatarUrl } from "../../../models/actor.ts";
 import { renderMarkup } from "../../../models/markup.ts";
@@ -423,7 +423,7 @@ export default define.page<typeof handler, NotePageProps>(
     return (
       <>
         <PostExcerpt post={post} noControls signedAccount={state.account} />
-        <NoteControls
+        <PostControls
           class="mt-4 ml-14"
           language={state.language}
           active="reply"
