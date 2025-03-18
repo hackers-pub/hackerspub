@@ -7,7 +7,7 @@ import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { TextArea } from "../components/TextArea.tsx";
 import {
   type Language,
-  POSSIBLE_LANGUAGES,
+  POSSIBLE_LOCALES,
   SUPPORTED_LANGUAGES,
 } from "../i18n.ts";
 import { preprocessContentHtml } from "../models/html.ts";
@@ -275,7 +275,7 @@ export function Composer(props: ComposerProps) {
               aria-label={t("composer.language")}
               onSelect={() => setContentLanguageManually(true)}
             >
-              {POSSIBLE_LANGUAGES
+              {POSSIBLE_LOCALES
                 .map((
                   lang,
                 ) => [

@@ -3,28 +3,28 @@ import { zip } from "@std/collections/zip";
 import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import sharp from "sharp";
-import { Button } from "../../components/Button.tsx";
-import { Input } from "../../components/Input.tsx";
-import { Label } from "../../components/Label.tsx";
-import { Msg, Translation } from "../../components/Msg.tsx";
-import { PageTitle } from "../../components/PageTitle.tsx";
-import { TextArea } from "../../components/TextArea.tsx";
-import { db } from "../../db.ts";
-import { drive } from "../../drive.ts";
+import { Button } from "../../../components/Button.tsx";
+import { Input } from "../../../components/Input.tsx";
+import { Label } from "../../../components/Label.tsx";
+import { Msg, Translation } from "../../../components/Msg.tsx";
+import { SettingsNav } from "../../../components/SettingsNav.tsx";
+import { TextArea } from "../../../components/TextArea.tsx";
+import { db } from "../../../db.ts";
+import { drive } from "../../../drive.ts";
 import {
   type AccountLinkFieldProps,
   AccountLinkFieldSet,
-} from "../../islands/AccountLinkFieldSet.tsx";
-import { Timestamp } from "../../islands/Timestamp.tsx";
-import { kv } from "../../kv.ts";
-import { getAvatarUrl, updateAccount } from "../../models/account.ts";
-import { syncActorFromAccount } from "../../models/actor.ts";
+} from "../../../islands/AccountLinkFieldSet.tsx";
+import { Timestamp } from "../../../islands/Timestamp.tsx";
+import { kv } from "../../../kv.ts";
+import { getAvatarUrl, updateAccount } from "../../../models/account.ts";
+import { syncActorFromAccount } from "../../../models/actor.ts";
 import {
   accountEmailTable,
   accountLinkTable,
   accountTable,
-} from "../../models/schema.ts";
-import { define } from "../../utils.ts";
+} from "../../../models/schema.ts";
+import { define } from "../../../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]", "settings"]);
 
@@ -187,9 +187,10 @@ export default define.page<typeof handler, ProfileSettingsPageProps>(
   ) {
     return (
       <div>
-        <PageTitle>
-          <Msg $key="settings.profile.title" />
-        </PageTitle>
+        <SettingsNav
+          active="profile"
+          settingsHref={`/@${values.username}/settings`}
+        />
         <ProfileSettingsForm
           avatarUrl={avatarUrl}
           usernameChanged={usernameChanged}
@@ -253,7 +254,11 @@ function ProfileSettingsForm(
                     <Msg $key="settings.profile.avatarDescription" />
                   </p>
                 )
-                : <p class="text-red-700 dark:text-red-500">{errors.avatar}</p>}
+                : (
+                  <p class="text-red-700 dark:text-red-500">
+                    {errors.avatar}
+                  </p>
+                )}
             </div>
           </div>
           <div>
@@ -281,7 +286,10 @@ function ProfileSettingsForm(
                         <Msg
                           $key="settings.profile.usernameChanged"
                           changed={
-                            <Timestamp value={usernameChanged} locale={lang} />
+                            <Timestamp
+                              value={usernameChanged}
+                              locale={lang}
+                            />
                           }
                         />
                       </>
@@ -289,7 +297,11 @@ function ProfileSettingsForm(
                   </strong>
                 </p>
               )
-              : <p class="text-red-700 dark:text-red-500">{errors.username}</p>}
+              : (
+                <p class="text-red-700 dark:text-red-500">
+                  {errors.username}
+                </p>
+              )}
           </div>
           <div>
             <Label label={t("settings.profile.name")} required>

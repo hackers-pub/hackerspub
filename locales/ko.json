@@ -78,6 +78,10 @@
       "url": "URL",
       "urlDescription": "링크의 URL. 예: https://github.com/yourhandle.",
       "save": "저장"
+    },
+    "language": {
+      "title": "언어 설정",
+      "save": "$t(settings.profile.save)"
     }
   },
   "profile": {
@@ -203,6 +207,13 @@
   },
   "actorList": {
     "seeMore": "더 보기"
+  },
+  "localePriorityList": {
+    "languagesToSelect": "선택할 언어:",
+    "languagesToSelectDescription": "Hackers' Pub의 UI에서 지원하는 언어는 {{boldText}}로 표시됩니다.",
+    "boldText": "두꺼운 글씨",
+    "selectedLanguages": "선택된 언어:",
+    "selectedLanguagesDescription": "익숙한 언어 순서로 나열해 주세요."
   },
   "pageNotFound": {
     "title": "페이지를 찾을 수 없습니다",

@@ -28,11 +28,17 @@ export function Tab({ selected, href, children }: TabProps) {
 
 export interface TabNavProps {
   children: ComponentChildren;
+  class?: string;
 }
 
 export function TabNav(props: TabNavProps) {
   return (
-    <nav class="mt-6 border-b border-stone-300 dark:border-stone-700 flex max-w-full overflow-x-auto">
+    <nav
+      class={`
+        border-b border-stone-300 dark:border-stone-700 flex max-w-full overflow-x-auto
+        ${props.class ?? "mt-6"}
+      `}
+    >
       {props.children}
     </nav>
   );

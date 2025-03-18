@@ -398,21 +398,26 @@ export async function getActorStats(
 }
 
 export interface RecommendActorsOptions {
-  mainLanguage?: string;
-  languages?: string[];
+  mainLocale?: string;
+  locales?: string[];
   account?: Account & { actor: Actor };
   limit?: number;
 }
 
 export async function recommendActors(
   db: Database,
-  { mainLanguage, languages, account, limit }: RecommendActorsOptions = {},
+  { mainLocale, locales, account, limit }: RecommendActorsOptions = {},
 ): Promise<(Actor & { account?: Account | null })[]> {
-  if (mainLanguage != null) {
-    mainLanguage = mainLanguage.replace(/-.*$/, "");
-  }
-  if (languages != null) {
-    languages = languages.map((lang) => lang.replace(/-.*$/, ""));
+  const mainLanguage = mainLocale == null
+    ? undefined
+    : mainLocale.replace(/-.*$/, "");
+  const languages = locales == null
+    ? undefined
+    : locales.map((l) => l.replace(/-.*$/, ""));
+  if (languages != null && locales != null) {
+    for (const locale of locales) {
+      if (!languages.includes(locale)) languages.push(locale);
+    }
   }
   const stats = db
     .select({
@@ -431,6 +436,7 @@ export async function recommendActors(
         .as("sharesCount"),
       postsCount: sql<number>`
         sum(CASE
+          WHEN ${postTable.language} = ${mainLocale ?? null} THEN 1
           WHEN ${postTable.language} = ${mainLanguage ?? null} THEN 1
           ELSE 0
         END)

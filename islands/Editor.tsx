@@ -6,7 +6,7 @@ import { Input } from "../components/Input.tsx";
 import { Label } from "../components/Label.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
-import getFixedT, { type Language, POSSIBLE_LANGUAGES } from "../i18n.ts";
+import getFixedT, { type Language, POSSIBLE_LOCALES } from "../i18n.ts";
 import { preprocessContentHtml } from "../models/html.ts";
 import type { RenderedMarkup } from "../models/markup.ts";
 import type { Actor } from "../models/schema.ts";
@@ -340,7 +340,7 @@ export function Editor(props: EditorProps) {
                             (event.target as HTMLSelectElement).value,
                           )}
                       >
-                        {POSSIBLE_LANGUAGES
+                        {POSSIBLE_LOCALES
                           .map((lang) => [lang, intl.of(lang) ?? ""])
                           .toSorted(([_, a], [__, b]) =>
                             a < b ? -1 : a > b ? 1 : 0

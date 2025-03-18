@@ -78,6 +78,10 @@
       "url": "URL",
       "urlDescription": "The URL of the link, e.g., https://github.com/yourhandle.",
       "save": "Save"
+    },
+    "language": {
+      "title": "Language settings",
+      "save": "$t(settings.profile.save)"
     }
   },
   "profile": {
@@ -205,6 +209,13 @@
   },
   "actorList": {
     "seeMore": "See more"
+  },
+  "localePriorityList": {
+    "languagesToSelect": "Languages to select:",
+    "languagesToSelectDescription": "Languages supported by Hackers' Pub UI are shown in {{boldText}}.",
+    "boldText": "bold text",
+    "selectedLanguages": "Selected languages:",
+    "selectedLanguagesDescription": "Please arrange them in order of your familiar languages."
   },
   "pageNotFound": {
     "title": "Page not found",

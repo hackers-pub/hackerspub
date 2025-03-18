@@ -314,14 +314,12 @@ export const handler = define.handlers({
       next = timeline[window].published;
       timeline = timeline.slice(0, window);
     }
-    const acceptedLanguages = acceptsLanguages(ctx.req);
     const recommendedActors = next == null || filter === "recommendations"
       ? await recommendActors(db, {
-        mainLanguage:
-          acceptedLanguages.length > 0 && acceptedLanguages[0] !== "*"
-            ? acceptedLanguages[0]
-            : undefined,
-        languages: [...languages],
+        mainLocale: ctx.state.locales.length > 0
+          ? ctx.state.locales[0]
+          : ctx.state.language,
+        locales: ctx.state.locales,
         account: ctx.state.account,
         limit: 50,
       })

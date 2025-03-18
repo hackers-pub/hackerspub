@@ -78,6 +78,10 @@
       "url": "URL",
       "urlDescription": "リンクのURL（例：https://github.com/yourhandle）。",
       "save": "保存"
+    },
+    "language": {
+      "title": "言語設定",
+      "save": "$t(settings.profile.save)"
     }
   },
   "profile": {
@@ -203,6 +207,13 @@
   },
   "actorList": {
     "seeMore": "もっと見る"
+  },
+  "localePriorityList": {
+    "languagesToSelect": "選択可能な言語：",
+    "languagesToSelectDescription": "Hackers' PubのUIでサポートされている言語は{{boldText}}で表示されます。",
+    "boldText": "太字",
+    "selectedLanguages": "選択された言語：",
+    "selectedLanguagesDescription": "馴染みのある言語順に並べてください。"
   },
   "pageNotFound": {
     "title": "ページが見つかりません",

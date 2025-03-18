@@ -10,7 +10,7 @@ import { Profile } from "../../components/Profile.tsx";
 import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
 import { drive } from "../../drive.ts";
-import { POSSIBLE_LANGUAGES } from "../../i18n.ts";
+import { POSSIBLE_LOCALES } from "../../i18n.ts";
 import { kv } from "../../kv.ts";
 import { getAccountByUsername } from "../../models/account.ts";
 import {
@@ -44,7 +44,7 @@ const DEFAULT_WINDOW = 50;
 
 export const NoteSourceSchema = v.objectAsync({
   content: v.pipe(v.string(), v.trim(), v.nonEmpty()),
-  language: v.picklist(POSSIBLE_LANGUAGES),
+  language: v.picklist(POSSIBLE_LOCALES),
   visibility: v.picklist(POST_VISIBILITIES),
   replyTargetId: v.optional(v.pipe(v.string(), v.uuid())),
   media: v.arrayAsync(

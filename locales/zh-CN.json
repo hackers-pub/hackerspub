@@ -78,6 +78,10 @@
       "url": "URL",
       "urlDescription": "该链接的 URL，例如 https://github.com/nideyonghuming.",
       "save": "保存"
+    },
+    "language": {
+      "title": "语言设置",
+      "save": "$t(settings.profile.save)"
     }
   },
   "profile": {
@@ -205,6 +209,13 @@
   },
   "actorList": {
     "seeMore": "查看更多"
+  },
+  "localePriorityList": {
+    "languagesToSelect": "可选语言：",
+    "languagesToSelectDescription": "Hackers' Pub UI 支持的语言以{{boldText}}显示。",
+    "boldText": "粗体文本",
+    "selectedLanguages": "已选语言：",
+    "selectedLanguagesDescription": "请按照你熟悉的语言顺序排列。"
   },
   "pageNotFound": {
     "title": "未找到页面",

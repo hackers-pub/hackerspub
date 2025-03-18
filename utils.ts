@@ -2,7 +2,7 @@
 import type { RequestContext } from "@fedify/fedify";
 import { createDefine } from "fresh";
 import type getFixedT from "./i18n.ts";
-import type { Language } from "./i18n.ts";
+import type { Language, Locale } from "./i18n.ts";
 import type {
   Account,
   AccountEmail,
@@ -37,6 +37,7 @@ export interface State {
   canonicalOrigin: string;
   fedCtx: RequestContext<void>;
   language: Language;
+  locales: Locale[];
   t: ReturnType<typeof getFixedT>;
   title: string;
   metas: Meta[];
