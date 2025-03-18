@@ -116,6 +116,8 @@
     "comments_other": "{{count}} 条评论",
     "remoteCommentDescription": "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论。在你的实例搜索 {{permalink}} 后回复。",
     "shared": "{{name}} 转帖了以下文章：",
+    "sharedPeople": "转帖此文章的人",
+    "replied": "{{name}} 回复了以下文章：",
     "edit": "编辑",
     "delete": "删除",
     "deleteConfirm": "你确定要删除此文章吗？"
@@ -139,7 +141,7 @@
   "editor": {
     "titlePlaceholder": "文章标题",
     "titleRequired": "请给文章取个标题。",
-    "contentPlaceholder": "在这里写文章。可用 Markdown。",
+    "contentPlaceholder": "在这里写文章。可使用 Markdown。你的文章会在你写的时候以草稿方式自动保存。",
     "contentRequired": "请输入文章内容。",
     "tagsPlaceholder": "输入标签，用空格分割。",
     "tagsRequired": "请在文章中至少用一个标签。",
