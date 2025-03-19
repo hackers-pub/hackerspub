@@ -38,6 +38,7 @@
     "**/_fresh/*",
     ".github/",
     "drizzle/",
+    "locales/*.md",
     "node_modules/",
     "static/"
   ],
