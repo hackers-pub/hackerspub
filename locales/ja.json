@@ -209,6 +209,7 @@
     "fediverse": "フェディバース",
     "local": "Hackers' Pub",
     "withoutShares": "共有除外",
+    "articlesOnly": "記事のみ",
     "mentions": "言及",
     "recommendations": "$t(recommendedActors.title)"
   },

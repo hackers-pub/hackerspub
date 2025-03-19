@@ -5,6 +5,7 @@ export type TimelineNavItem =
   | "fediverse"
   | "local"
   | "withoutShares"
+  | "articlesOnly"
   | "mentions"
   | "recommendations";
 
@@ -24,6 +25,9 @@ export function TimelineNav({ active, signedIn }: TimelineNavProps) {
       </Tab>
       <Tab selected={active === "withoutShares"} href="/?filter=withoutShares">
         <Msg $key="timeline.withoutShares" />
+      </Tab>
+      <Tab selected={active === "articlesOnly"} href="/?filter=articlesOnly">
+        <Msg $key="timeline.articlesOnly" />
       </Tab>
       {signedIn && (
         <>

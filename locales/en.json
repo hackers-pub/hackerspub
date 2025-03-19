@@ -211,6 +211,7 @@
     "fediverse": "Fediverse",
     "local": "Hackers' Pub",
     "withoutShares": "Without shares",
+    "articlesOnly": "Articles only",
     "mentions": "Mentions",
     "recommendations": "$t(recommendedActors.title)"
   },

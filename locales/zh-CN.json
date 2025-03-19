@@ -211,6 +211,7 @@
     "fediverse": "联邦宇宙",
     "local": "Hackers' Pub",
     "withoutShares": "不含转帖",
+    "articlesOnly": "仅文章",
     "mentions": "提及",
     "recommendations": "$t(recommendedActors.title)"
   },

@@ -50,6 +50,7 @@ export const handler = define.handlers({
     let filter: TimelineNavItem;
     if (
       filterString === "local" || filterString === "withoutShares" ||
+      filterString === "articlesOnly" ||
       ctx.state.account != null &&
         (filterString === "mentions" || filterString === "recommendations")
     ) {
@@ -167,6 +168,8 @@ export const handler = define.handlers({
             )
             : filter === "withoutShares"
             ? isNull(postTable.sharedPostId)
+            : filter === "articlesOnly"
+            ? eq(postTable.type, "Article")
             : sql`true`,
           until == null ? undefined : lte(postTable.published, until),
         ),
@@ -302,6 +305,8 @@ export const handler = define.handlers({
               )
               : filter === "withoutShares"
               ? isNull(postTable.sharedPostId)
+              : filter === "articlesOnly"
+              ? eq(postTable.type, "Article")
               : sql`true`,
             until == null ? undefined : lte(postTable.published, until),
           ),
