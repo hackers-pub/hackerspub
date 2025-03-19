@@ -10,7 +10,7 @@ import * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
-import { escape } from "@std/html/entities";
+import { escape, unescape } from "@std/html/entities";
 import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import type { Database } from "../db.ts";
 import { drive } from "../drive.ts";
@@ -241,7 +241,10 @@ export async function verifyAccountLink(
     }
     const rel = attributes.rel?.toLowerCase()?.split(/\s+/g) ?? [];
     if (!rel.includes("me")) continue;
-    if (attributes.href === verifyUrl.toString()) return true;
+    const href = attributes.href;
+    if (href == null) continue;
+    const normalizedHref = new URL(unescape(href));
+    if (normalizedHref.href === verifyUrl.toString()) return true;
   }
   return false;
 }
