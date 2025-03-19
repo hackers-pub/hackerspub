@@ -123,7 +123,9 @@
     "notes": "단문: {{notes}}",
     "notesWithReplies": "단문과 댓글: {{notesWithReplies}}",
     "shares": "공유: {{shares}}",
-    "articles": "게시글: {{articles}}"
+    "articles": "게시글: {{articles}}",
+    "feed": "{{name}} 님의 피드 (단문과 게시글)",
+    "articlesFeed": "{{name}} 님의 피드 (게시글만)"
   },
   "articleDrafts": {
     "title": "게시글 임시 보관함",

@@ -20,9 +20,14 @@ export const handler = define.handlers(async (ctx) => {
     where: eq(accountTable.username, username),
   });
   if (account == null) return ctx.next();
+  const articlesOnly = ctx.url.searchParams.has("articles");
   const canonicalUrl =
-    `${ctx.state.canonicalOrigin}/@${account.username}/feed.xml`;
-  const profileUrl = `${ctx.state.canonicalOrigin}/@${account.username}`;
+    `${ctx.state.canonicalOrigin}/@${account.username}/feed.xml${
+      articlesOnly ? "?articles" : ""
+    }`;
+  const profileUrl = `${ctx.state.canonicalOrigin}/@${account.username}${
+    articlesOnly ? "/articles" : ""
+  }`;
   const avatarUrl = await getAvatarUrl(account);
   const posts = await db.query.postTable.findMany({
     with: {
@@ -32,6 +37,7 @@ export const handler = define.handlers(async (ctx) => {
       eq(postTable.actorId, account.actor.id),
       isNull(postTable.sharedPostId),
       inArray(postTable.visibility, ["public", "unlisted"]),
+      articlesOnly ? eq(postTable.type, "Article") : undefined,
     ),
     orderBy: desc(postTable.published),
     limit: WINDOW,

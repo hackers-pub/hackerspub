@@ -274,7 +274,16 @@ export const handler = define.handlers({
           `/@${account.username}/feed.xml`,
           ctx.state.canonicalOrigin,
         ),
-        title: `${account.name} (Atom 1.0)`,
+        title: ctx.state.t("profile.feed"),
+      },
+      {
+        rel: "alternate",
+        type: "application/atom+xml",
+        href: new URL(
+          `/@${account.username}/feed.xml?articles`,
+          ctx.state.canonicalOrigin,
+        ),
+        title: ctx.state.t("profile.articlesFeed"),
       },
     );
     ctx.state.title = account.name;

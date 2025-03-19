@@ -124,7 +124,9 @@
     "notes": "帖子：{{notes}}",
     "notesWithReplies": "含回复帖子：{{notesWithReplies}}",
     "shares": "转帖：{{shares}}",
-    "articles": "文章：{{articles}}"
+    "articles": "文章：{{articles}}",
+    "feed": "{{name}} 的订阅流（帖子和文章）",
+    "articlesFeed": "{{name}} 的订阅流（仅文章）"
   },
   "articleDrafts": {
     "title": "文章草稿",

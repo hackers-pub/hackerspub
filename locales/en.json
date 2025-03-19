@@ -124,7 +124,9 @@
     "notes": "Notes: {{notes}}",
     "notesWithReplies": "Notes with replies: {{notesWithReplies}}",
     "shares": "Shares: {{shares}}",
-    "articles": "Articles: {{articles}}"
+    "articles": "Articles: {{articles}}",
+    "feed": "{{name}}'s feed (notes and articles)",
+    "articlesFeed": "{{name}}'s feed (articles only)"
   },
   "articleDrafts": {
     "title": "Article drafts",
