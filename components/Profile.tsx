@@ -30,12 +30,17 @@ export function Profile(
     <>
       <div class="flex">
         {actor.avatarUrl && (
-          <img
-            src={actor.avatarUrl}
-            width={56}
-            height={56}
-            class="mb-5 mr-4"
-          />
+          <a
+            href={actor.url ?? actor.iri}
+            target={actor.accountId == null ? "_blank" : undefined}
+          >
+            <img
+              src={actor.avatarUrl}
+              width={56}
+              height={56}
+              class="mb-5 mr-4"
+            />
+          </a>
         )}
         <PageTitle
           subtitle={{
@@ -83,13 +88,24 @@ export function Profile(
             ),
           }}
         >
-          {actor.name == null ? actor.username : (
-            <span
-              dangerouslySetInnerHTML={{
-                __html: renderCustomEmojis(escape(actor.name), actor.emojis),
-              }}
-            />
-          )}
+          {actor.name == null
+            ? (
+              <a
+                href={actor.url ?? actor.iri}
+                target={actor.accountId == null ? "_blank" : undefined}
+              >
+                {actor.username}
+              </a>
+            )
+            : (
+              <a
+                href={actor.url ?? actor.iri}
+                target={actor.accountId == null ? "_blank" : undefined}
+                dangerouslySetInnerHTML={{
+                  __html: renderCustomEmojis(escape(actor.name), actor.emojis),
+                }}
+              />
+            )}
         </PageTitle>
         {followingState === "none"
           ? (
