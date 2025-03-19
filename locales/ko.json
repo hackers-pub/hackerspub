@@ -95,6 +95,7 @@
       "linkNameDescription": "프로필에 표시될 링크의 이름. 예: GitHub.",
       "url": "URL",
       "urlDescription": "링크의 URL. 예: https://github.com/yourhandle.",
+      "howToVerifyLinks": "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링크한 페이지에서도 {{relMe}} 속성을 사용해 당신의 Hackers' Pub 프로필로 링크를 걸어 주세요.",
       "save": "저장"
     },
     "language": {
@@ -116,6 +117,8 @@
     "followeeList": {
       "title": "{{name}} 님의 팔로잉"
     },
+    "verified": "인증됨",
+    "verifiedDescription": "이 링크는 이 사용자에게 속한 것으로 인증되었습니다.",
     "total": "총: {{total}}",
     "notes": "단문: {{notes}}",
     "notesWithReplies": "단문과 댓글: {{notesWithReplies}}",

@@ -95,6 +95,7 @@
       "linkNameDescription": "A name for the link that will be displayed on your profile, e.g., GitHub.",
       "url": "URL",
       "urlDescription": "The URL of the link, e.g., https://github.com/yourhandle.",
+      "howToVerifyLinks": "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {{relMe}} attribute.",
       "save": "Save"
     },
     "language": {
@@ -117,6 +118,8 @@
     "followeeList": {
       "title": "{{name}} is following"
     },
+    "verified": "Verified",
+    "verifiedDescription": "This link is verified that it belongs to this user.",
     "total": "Total: {{total}}",
     "notes": "Notes: {{notes}}",
     "notesWithReplies": "Notes with replies: {{notesWithReplies}}",

@@ -221,8 +221,9 @@ export async function updateAccountLinks(
   ).returning();
 }
 
-const LINK_PATTERN = /<(?:a|link)\s+([^>])>/g;
-const LINK_ATTRIBUTE_PATTERN = /(\w+)=(?:"([^"]*)"|'([^']*)'|[^\s>]+)\b/g;
+const LINK_PATTERN = /<(?:a|link)\s+([^>]*)>/gi;
+const LINK_ATTRIBUTE_PATTERN =
+  /\b([a-z-]+)=(?:"([^"]*)"|'([^']*)'|([^\s"'>]*))/gi;
 
 export async function verifyAccountLink(
   url: string | URL,
@@ -238,7 +239,8 @@ export async function verifyAccountLink(
       attributes[attrMatch[1].toLowerCase()] = attrMatch[2] ?? attrMatch[3] ??
         attrMatch[4];
     }
-    if (attributes.rel?.toLowerCase() !== "me") continue;
+    const rel = attributes.rel?.toLowerCase()?.split(/\s+/g) ?? [];
+    if (!rel.includes("me")) continue;
     if (attributes.href === verifyUrl.toString()) return true;
   }
   return false;

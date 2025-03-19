@@ -92,9 +92,10 @@
       "bioDescription": "自己紹介はプロフィールに表示されます。Markdownを使用できます。",
       "bioTooLong": "自己紹介が長すぎます。最大512文字までです。",
       "linkName": "リンク名",
-      "linkNameDescription": "プロフィールに表示されるリンクの名前（例：GitHub）。",
+      "linkNameDescription": "プロフィールに表示されるリンクの名前。（例：GitHub）",
       "url": "URL",
-      "urlDescription": "リンクのURL（例：https://github.com/yourhandle）。",
+      "urlDescription": "リンクのURL。（例：https://github.com/yourhandle）",
+      "howToVerifyLinks": "リンクが実際にあなたのものであることを認証できます。リンク先のページでも{{relMe}}属性を使用してあなたのHackers' Pubプロフィールへリンクしてください。",
       "save": "保存"
     },
     "language": {
@@ -116,6 +117,8 @@
     "followeeList": {
       "title": "{{name}}さんのフォロー"
     },
+    "verified": "認証済み",
+    "verifiedDescription": "このリンクはこのユーザーに帰属していることが確認されています。",
     "total": "合計：{{total}}",
     "notes": "投稿：{{notes}}",
     "notesWithReplies": "投稿と返信：{{notesWithReplies}}",

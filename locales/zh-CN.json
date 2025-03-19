@@ -94,7 +94,8 @@
       "linkName": "链接名",
       "linkNameDescription": "为显示在你个人资料页面的链接命名，例如 GitHub。",
       "url": "URL",
-      "urlDescription": "该链接的 URL，例如 https://github.com/nideyonghuming.",
+      "urlDescription": "该链接的 URL，例如 https://github.com/nideyonghuming 。",
+      "howToVerifyLinks": "你可以验证这些链接确实属于你。在链接的页面上使用 {{relMe}} 属性链接回你的 Hackers' Pub 个人资料页。",
       "save": "保存"
     },
     "language": {
@@ -117,6 +118,8 @@
     "followeeList": {
       "title": "{{name}} 正在关注"
     },
+    "verified": "已认证",
+    "verifiedDescription": "此链接已验证属于此用户。",
     "total": "总共：{{total}}",
     "notes": "帖子：{{notes}}",
     "notesWithReplies": "含回复帖子：{{notesWithReplies}}",
