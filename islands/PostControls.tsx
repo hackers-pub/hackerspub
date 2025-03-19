@@ -131,7 +131,9 @@ export function PostControls(props: PostControlsProps) {
             <span
               class={`ml-1 my-auto text-xs ${shared ? "font-bold" : ""}`}
             >
-              {shares.toLocaleString(props.language)}
+              {(shared ? Math.max(shares, 1) : shares).toLocaleString(
+                props.language,
+              )}
               {(shared || shareSubmitting) && (
                 <>
                   {" "}&mdash;{" "}

@@ -19,6 +19,7 @@ import {
   isPostObject,
   isPostVisibleTo,
   persistPost,
+  updateSharesCount,
 } from "../../../models/post.ts";
 import {
   type Actor,
@@ -222,6 +223,9 @@ export const handler = define.handlers({
     }
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
+    }
+    if (post.noteSourceId != null) {
+      post.sharesCount = await updateSharesCount(db, post, 0);
     }
     let replies = await db.query.postTable.findMany({
       with: {
