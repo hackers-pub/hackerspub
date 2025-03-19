@@ -1,4 +1,22 @@
 {
+  "glossary": {
+    "post": "コンテンツ",
+    "note": "投稿",
+    "article": "記事",
+    "tag": "タグ",
+    "draft": "下書き",
+    "reply": "返信",
+    "comment": "コメント",
+    "share": "共有",
+    "username": "ユーザー名",
+    "displayName": "名前",
+    "bio": "自己紹介",
+    "avatar": "アイコン",
+    "follow": "フォロー",
+    "followee": "フォロー中",
+    "follower": "フォロワー",
+    "fediverse": "フェディバース"
+  },
   "home": {
     "intro": {
       "title": "Hackers' Pubとは？",

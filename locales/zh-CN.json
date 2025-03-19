@@ -1,4 +1,22 @@
 {
+  "glossary": {
+    "post": "内容",
+    "note": "帖子",
+    "article": "文章",
+    "tag": "标签",
+    "draft": "草稿",
+    "reply": "回复",
+    "comment": "评论",
+    "share": "转帖",
+    "username": "用户名",
+    "displayName": "昵称",
+    "bio": "个人简介",
+    "avatar": "头像",
+    "follow": "关注",
+    "followee": "关注",
+    "follower": "粉丝",
+    "fediverse": "联邦宇宙"
+  },
   "home": {
     "intro": {
       "title": "Hackers' Pub 是什么？",
@@ -100,8 +118,8 @@
       "title": "{{name}} 正在关注"
     },
     "total": "总共：{{total}}",
-    "notes": "帖文：{{notes}}",
-    "notesWithReplies": "含回复帖文：{{notesWithReplies}}",
+    "notes": "帖子：{{notes}}",
+    "notesWithReplies": "含回复帖子：{{notesWithReplies}}",
     "shares": "转帖：{{shares}}",
     "articles": "文章：{{articles}}"
   },
@@ -134,9 +152,9 @@
     "shared": "已转帖",
     "unshare": "取消转帖",
     "unsharing": "正在取消转帖……",
-    "sharedPeople": "转帖此帖文的人",
+    "sharedPeople": "转帖此帖子的人",
     "delete": "删除",
-    "deleteConfirm": "你确定要删除此帖文吗？",
+    "deleteConfirm": "你确定要删除此帖子吗？",
     "deleting": "正在删除……",
     "deleted": "已经删除",
     "sharedBy": "被 {{name}} 转帖",
@@ -169,16 +187,16 @@
     "content": "内容",
     "contentPlaceholder": "你在想啥？可用 Markdown。拖拽图片作为附件。",
     "commentPlaceholder": "写个评论。可用 Markdown。拖拽图片作为附件。",
-    "threadPlaceholder": "写一个连续帖文把它做成帖文串。可用 Markdown。拖拽图片作为附件。",
+    "threadPlaceholder": "写一个连续帖子把它做成帖子串。可用 Markdown。拖拽图片作为附件。",
     "mediumAltPlaceholder": "用于视障者的可选文字",
     "removeMedium": "删除此图片",
-    "visibility": "发帖隐私度",
+    "visibility": "内容隐私度",
     "language": "语言",
     "preview": "预览",
     "previewLoading": "正在预览……",
     "edit": "编辑",
-    "post": "发帖",
-    "postFailed": "发帖失败。请稍候再试。"
+    "post": "发布",
+    "postFailed": "发布失败。请稍候再试。"
   },
   "postVisibility": {
     "public": "公开",
@@ -194,8 +212,8 @@
     "recommendations": "$t(recommendedActors.title)"
   },
   "postPagination": {
-    "more": "更多帖子",
-    "end": "没有更多帖子"
+    "more": "更多内容",
+    "end": "没有更多内容"
   },
   "search": {
     "title": "搜索结果",
