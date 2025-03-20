@@ -596,6 +596,7 @@ export const postTable = pgTable(
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
     name: text(),
+    summary: text(),
     contentHtml: text("content_html").notNull(),
     language: varchar(),
     tags: jsonb().$type<Record<string, string>>().notNull().default({}),

@@ -333,7 +333,9 @@ export async function persistPost(
       : UNREACHABLE,
     visibility,
     actorId: actor.id,
+    sensitive: post.sensitive ?? false,
     name: post.name?.toString(),
+    summary: post.summary?.toString(),
     contentHtml: post.content?.toString(),
     language: post.content instanceof LanguageString
       ? post.content.language.compact()

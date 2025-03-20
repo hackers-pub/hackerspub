@@ -185,6 +185,8 @@ export function PostExcerpt(props: PostExcerptProps) {
                     internalUrl={post.noteSourceId == null
                       ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
                       : `/@${post.actor.username}/${post.noteSourceId}`}
+                    sensitive={post.sensitive}
+                    summary={post.summary ?? undefined}
                     contentHtml={post.contentHtml}
                     emojis={post.emojis}
                     mentions={post.mentions}

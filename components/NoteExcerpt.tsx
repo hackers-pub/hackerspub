@@ -18,6 +18,8 @@ export interface NoteExcerptProps {
   url: string | URL;
   internalUrl?: string;
   target?: string;
+  sensitive: boolean;
+  summary?: string;
   contentHtml: string;
   emojis?: Record<string, string>;
   mentions: (Mention & { actor: Actor })[];
@@ -127,7 +129,6 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           </div>
           <div
             class={`
-              mt-2 prose dark:prose-invert break-words overflow-wrap
               ${props.replyTarget ? "opacity-55" : ""}
               ${
               props.replyTarget
@@ -136,14 +137,25 @@ export function NoteExcerpt(props: NoteExcerptProps) {
             }
             `}
             lang={props.lang}
-            dangerouslySetInnerHTML={{
-              __html: preprocessContentHtml(
-                props.contentHtml,
-                props.mentions,
-                props.emojis ?? {},
-              ),
-            }}
           >
+            {props.summary && (
+              <p class="my-2 text-stone-500 dark:text-stone-400 font-bold">
+                {props.summary}
+              </p>
+            )}
+            <div
+              class={`
+                mt-2 prose dark:prose-invert break-words overflow-wrap
+                ${props.sensitive ? "blur-md hover:blur-0 transition-all" : ""}
+              `}
+              dangerouslySetInnerHTML={{
+                __html: preprocessContentHtml(
+                  props.contentHtml,
+                  props.mentions,
+                  props.emojis ?? {},
+                ),
+              }}
+            />
           </div>
           {props.media.length > 0 && (
             <div
@@ -164,7 +176,14 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 <MediumThumbnail
                   key={medium.index}
                   medium={medium}
-                  class={props.replyTarget ? "opacity-55" : ""}
+                  class={`
+                    ${props.replyTarget ? "opacity-55" : ""}
+                    ${
+                    props.sensitive
+                      ? "my-20 blur-2xl hover:blur-0 transition-all"
+                      : ""
+                  }
+                  `}
                 />
               ))}
             </div>

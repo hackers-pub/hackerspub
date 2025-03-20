@@ -486,6 +486,8 @@ export default define.page<typeof handler, NotePageProps>(
             internalUrl={reply.noteSourceId == null
               ? `/@${reply.actor.username}@${reply.actor.instanceHost}/${reply.id}`
               : `/@${reply.actor.username}/${reply.noteSourceId}`}
+            sensitive={reply.sensitive}
+            summary={reply.summary ?? undefined}
             contentHtml={reply.contentHtml}
             emojis={reply.emojis}
             mentions={reply.mentions}
