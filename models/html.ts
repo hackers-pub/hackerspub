@@ -375,3 +375,26 @@ export function preprocessContentHtml(
   html = renderCustomEmojis(html, emojis);
   return html;
 }
+
+export function extractExternalLinks(html: string): URL[] {
+  // Extract external links from an HTML fragmenmt, except for mentions
+  // and hashtags.  This is used to extract links from the content of a post.
+  const $ = load(html, null, false);
+  const links: URL[] = [];
+  $("a[href]").each((_, el) => {
+    const $el = $(el);
+    const href = $el.attr("href");
+    if (href == null) return;
+    if ($el.hasClass("mention") || $el.hasClass("hashtag")) return;
+    const rel = $el.attr("rel")?.split(/\s+/g) ?? [];
+    if (rel.includes("tag")) return;
+    if (href.startsWith("/")) return;
+    if (href.startsWith("#")) return;
+    const url = URL.parse(href);
+    if (url == null || url.protocol !== "http:" && url.protocol !== "https:") {
+      return;
+    }
+    links.push(url);
+  });
+  return links;
+}

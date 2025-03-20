@@ -55,7 +55,7 @@ export async function onFollowed(
   if (followee == null) return;
   const followActor = await follow.getActor(fedCtx);
   if (followActor == null) return;
-  const follower = await persistActor(db, followActor, {
+  const follower = await persistActor(db, fedCtx, followActor, {
     ...fedCtx,
     outbox: false,
   });
@@ -93,7 +93,7 @@ export async function onUnfollowed(
   if (follow.id == null || follow.actorId?.href !== undo.actorId?.href) return;
   const actorObject = await undo.getActor(fedCtx);
   if (actorObject == null) return;
-  const actor = await persistActor(db, actorObject, {
+  const actor = await persistActor(db, fedCtx, actorObject, {
     ...fedCtx,
     outbox: false,
   });

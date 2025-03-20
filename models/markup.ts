@@ -240,7 +240,10 @@ export async function extractMentionsFromHtml(
     if (pair == null) continue;
     const [href, object] = pair;
     if (!isActor(object)) continue;
-    let actor = await persistActor(db, object, { ...options, outbox: false });
+    let actor = await persistActor(db, fedCtx, object, {
+      ...options,
+      outbox: false,
+    });
     if (actor == null) continue;
     if (actor.iri !== href && !actor.aliases.includes(href)) {
       const aliases = [...actor.aliases, href];

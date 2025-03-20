@@ -28,7 +28,7 @@ export async function onPostCreated(
   const object = await create.getObject(fedCtx);
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;
-  await persistPost(db, object, {
+  await persistPost(db, fedCtx, object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
@@ -44,7 +44,7 @@ export async function onPostUpdated(
   const object = await update.getObject(fedCtx);
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== update.actorId?.href) return;
-  await persistPost(db, object, {
+  await persistPost(db, fedCtx, object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
@@ -75,7 +75,7 @@ export async function onPostShared(
   if (announce.id?.origin !== announce.actorId?.origin) return;
   const object = await announce.getObject(fedCtx);
   if (!isPostObject(object)) return;
-  await persistSharedPost(db, announce, fedCtx);
+  await persistSharedPost(db, fedCtx, announce, fedCtx);
 }
 
 export async function onPostUnshared(

@@ -609,6 +609,12 @@ export const postTable = pgTable(
       .$type<Record<string, number>>()
       .notNull()
       .default({}),
+    linkId: uuid("link_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => postLinkTable.id, {
+        onDelete: "restrict",
+      }),
+    linkUrl: text("link_url"),
     url: text(),
     updated: timestamp({ withTimezone: true })
       .notNull()
@@ -630,6 +636,10 @@ export const postTable = pgTable(
     check(
       "post_shared_post_id_reply_target_id_check",
       sql`${table.sharedPostId} IS NULL OR ${table.replyTargetId} IS NULL`,
+    ),
+    check(
+      "post_link_id_check",
+      sql`(${table.linkId} IS NULL) = (${table.linkUrl} IS NULL)`,
     ),
   ],
 );
@@ -662,6 +672,10 @@ export const postRelations = relations(
     shares: many(postTable, { relationName: "sharedPost" }),
     mentions: many(mentionTable),
     media: many(postMediumTable),
+    link: one(postLinkTable, {
+      fields: [postTable.linkId],
+      references: [postLinkTable.id],
+    }),
   }),
 );
 
@@ -754,6 +768,80 @@ export const postMediumRelations = relations(
     post: one(postTable, {
       fields: [postMediumTable.postId],
       references: [postTable.id],
+    }),
+  }),
+);
+
+export const postLinkTable = pgTable(
+  "post_link",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    url: text().notNull().unique(),
+    title: text(),
+    siteName: text("site_name"),
+    type: text(),
+    description: text(),
+    imageUrl: text("image_url"),
+    imageAlt: text("image_alt"),
+    imageType: text("image_type"),
+    imageWidth: integer("image_width"),
+    imageHeight: integer("image_height"),
+    creatorId: uuid("creator_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => actorTable.id, { onDelete: "set null" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    scraped: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "post_link_image_alt_check",
+      sql`${table.imageAlt} IS NULL OR ${table.imageUrl} IS NOT NULL`,
+    ),
+    check(
+      "post_link_image_type_check",
+      sql`
+        CASE
+          WHEN ${table.imageType} IS NULL THEN true
+          ELSE ${table.imageType} ~ '^image/' AND
+               ${table.imageUrl} IS NOT NULL
+        END
+      `,
+    ),
+    check(
+      "post_link_image_width_height_check",
+      sql`
+        CASE
+          WHEN ${table.imageWidth} IS NOT NULL
+          THEN ${table.imageUrl} IS NOT NULL AND
+                 ${table.imageHeight} IS NOT NULL AND
+                 ${table.imageWidth} > 0 AND
+                 ${table.imageHeight} > 0
+          WHEN ${table.imageHeight} IS NOT NULL
+          THEN ${table.imageUrl} IS NOT NULL AND
+               ${table.imageWidth} IS NOT NULL AND
+               ${table.imageWidth} > 0 AND
+               ${table.imageHeight} > 0
+          ELSE true
+        END
+      `,
+    ),
+  ],
+);
+
+export type PostLink = typeof postLinkTable.$inferSelect;
+export type NewPostLink = typeof postLinkTable.$inferInsert;
+
+export const postLinkRelations = relations(
+  postLinkTable,
+  ({ one, many }) => ({
+    posts: many(postTable),
+    creator: one(actorTable, {
+      fields: [postLinkTable.creatorId],
+      references: [actorTable.id],
     }),
   }),
 );

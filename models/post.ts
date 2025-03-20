@@ -1,6 +1,7 @@
 import {
   type Context,
   type DocumentLoader,
+  getUserAgent,
   isActor,
   LanguageString,
   lookupObject,
@@ -22,15 +23,20 @@ import {
 } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import type Keyv from "keyv";
+import ogs from "open-graph-scraper";
+import { isSSRFSafeURL } from "ssrfcheck";
 import type { Database } from "../db.ts";
+import { ORIGIN } from "../federation/federation.ts";
 import { getAnnounce } from "../federation/objects.ts";
 import {
   getPersistedActor,
   persistActor,
+  persistActorsByHandles,
   syncActorFromAccount,
   toRecipient,
 } from "./actor.ts";
 import { toDate } from "./date.ts";
+import { extractExternalLinks } from "./html.ts";
 import { renderMarkup } from "./markup.ts";
 import { postMedium } from "./medium.ts";
 import {
@@ -47,10 +53,13 @@ import {
   type Mention,
   mentionTable,
   type NewPost,
+  type NewPostLink,
   type NoteMedium,
   type NoteSource,
   noteSourceTable,
   type Post,
+  type PostLink,
+  postLinkTable,
   type PostMedium,
   postMediumTable,
   postTable,
@@ -179,8 +188,12 @@ export async function syncPostFromNoteSource(
     noteSource.id,
     noteSource.content,
   );
+  const externalLinks = extractExternalLinks(rendered.html);
+  const link = externalLinks.length > 0
+    ? await persistPostLink(db, fedCtx, externalLinks[0])
+    : undefined;
   const url =
-    `${fedCtx.origin}/@${noteSource.account.username}/${noteSource.id}`;
+    `${fedCtx.canonicalOrigin}/@${noteSource.account.username}/${noteSource.id}`;
   const values: Omit<NewPost, "id"> = {
     iri: fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href,
     type: "Note",
@@ -191,6 +204,12 @@ export async function syncPostFromNoteSource(
     contentHtml: rendered.html,
     language: noteSource.language,
     tags: {}, // TODO
+    linkId: link?.id,
+    linkUrl: link == null
+      ? undefined
+      : externalLinks[0].hash === ""
+      ? link.url
+      : new URL(externalLinks[0].hash, link.url).href,
     url,
     updated: noteSource.updated,
     published: noteSource.published,
@@ -233,6 +252,7 @@ export async function syncPostFromNoteSource(
 
 export async function persistPost(
   db: Database,
+  ctx: Context<void>,
   post: PostObject,
   options: {
     actor?: Actor & { instance: Instance };
@@ -256,7 +276,7 @@ export async function persistPost(
   if (actor == null) {
     const apActor = await post.getAttribution(options);
     if (apActor == null) return;
-    actor = await persistActor(db, apActor, options);
+    actor = await persistActor(db, ctx, apActor, options);
     if (actor == null) {
       logger.debug("Failed to persist actor: {actor}", { actor: apActor });
       return;
@@ -297,7 +317,7 @@ export async function persistPost(
     if (replyTarget == null) {
       const apReplyTarget = await post.getReplyTarget(options);
       if (!isPostObject(apReplyTarget)) return;
-      replyTarget = await persistPost(db, apReplyTarget, options);
+      replyTarget = await persistPost(db, ctx, apReplyTarget, options);
       if (replyTarget == null) return;
     }
   }
@@ -322,6 +342,13 @@ export async function persistPost(
       "mentions {mentions}).",
     { visibility, recipients, to, cc, mentions },
   );
+  const contentHtml = post.content?.toString();
+  const externalLinks = contentHtml == null
+    ? []
+    : extractExternalLinks(contentHtml);
+  const link = externalLinks.length > 0
+    ? await persistPostLink(db, ctx, externalLinks[0])
+    : undefined;
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
     type: post instanceof vocab.Article
@@ -336,7 +363,7 @@ export async function persistPost(
     sensitive: post.sensitive ?? false,
     name: post.name?.toString(),
     summary: post.summary?.toString(),
-    contentHtml: post.content?.toString(),
+    contentHtml,
     language: post.content instanceof LanguageString
       ? post.content.language.compact()
       : post.contents.length > 1 && post.contents[1] instanceof LanguageString
@@ -344,6 +371,12 @@ export async function persistPost(
       : undefined,
     tags,
     emojis,
+    linkId: link?.id,
+    linkUrl: link == null
+      ? undefined
+      : externalLinks[0].hash === ""
+      ? link.url
+      : new URL(externalLinks[0].hash, link.url).href,
     url: post.url instanceof vocab.Link ? post.url.href?.href : post.url?.href,
     replyTargetId: replyTarget?.id,
     repliesCount: replies?.totalItems ?? 0,
@@ -375,7 +408,7 @@ export async function persistPost(
       for (const iri of mentions) {
         const apActor = await lookupObject(iri, options);
         if (!isActor(apActor)) continue;
-        const actor = await persistActor(db, apActor, options);
+        const actor = await persistActor(db, ctx, apActor, options);
         if (actor == null) continue;
         mentionedActors.push(actor);
       }
@@ -409,7 +442,7 @@ export async function persistPost(
         })
       ) {
         if (!isPostObject(reply)) continue;
-        await persistPost(db, reply, {
+        await persistPost(db, ctx, reply, {
           ...options,
           actor,
           replyTarget: persistedPost,
@@ -429,6 +462,7 @@ export async function persistPost(
 
 export async function persistSharedPost(
   db: Database,
+  ctx: Context<void>,
   announce: vocab.Announce,
   options: {
     actor?: Actor & { instance: Instance };
@@ -455,12 +489,12 @@ export async function persistSharedPost(
   if (actor == null) {
     const apActor = await announce.getActor(options);
     if (apActor == null) return;
-    actor = await persistActor(db, apActor, options);
+    actor = await persistActor(db, ctx, apActor, options);
     if (actor == null) return;
   }
   const object = await announce.getObject(options);
   if (!isPostObject(object)) return;
-  const post = await persistPost(db, object, {
+  const post = await persistPost(db, ctx, object, {
     ...options,
     replies: true,
   });
@@ -646,12 +680,15 @@ export function getPostByUsernameAndId(
 ): Promise<
   | Post & {
     actor: Actor & { followers: Following[] };
+    link?: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
+        link?: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: (Following & { follower: Actor })[] };
+            link?: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -664,6 +701,7 @@ export function getPostByUsernameAndId(
     replyTarget:
       | Post & {
         actor: Actor & { followers: (Following & { follower: Actor })[] };
+        link?: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
@@ -682,9 +720,11 @@ export function getPostByUsernameAndId(
       actor: {
         with: { followers: true },
       },
+      link: { with: { creator: true } },
       sharedPost: {
         with: {
           actor: true,
+          link: { with: { creator: true } },
           replyTarget: {
             with: {
               actor: {
@@ -697,6 +737,7 @@ export function getPostByUsernameAndId(
                   },
                 },
               },
+              link: { with: { creator: true } },
               mentions: {
                 with: { actor: true },
               },
@@ -726,6 +767,7 @@ export function getPostByUsernameAndId(
               },
             },
           },
+          link: { with: { creator: true } },
           mentions: {
             with: { actor: true },
           },
@@ -982,6 +1024,142 @@ export async function deletePost(
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
+}
+
+export async function scrapePostLink(
+  url: string | URL,
+  handleToActorId: (handle: string) => Promise<Uuid | undefined>,
+): Promise<NewPostLink | undefined> {
+  const lg = logger.getChild("scrapePostLink");
+  if (!isSSRFSafeURL(url.toString())) {
+    lg.error("Unsafe URL: {url}", { url: url.toString() });
+    return undefined;
+  }
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": getUserAgent({
+        software: "HackersPub",
+        url: new URL(ORIGIN),
+      }),
+    },
+    redirect: "follow",
+  });
+  if (!response.ok) {
+    lg.error("Failed to scrape {url}: {status} {statusText}", {
+      url: url.toString(),
+      status: response.status,
+      statusText: response.statusText,
+    });
+    return undefined;
+  }
+  const { error, result } = await ogs({
+    html: await response.text(),
+    customMetaTags: [
+      {
+        multiple: false,
+        property: "fediverse:creator",
+        fieldName: "fediverseCreator",
+      },
+    ],
+  });
+  if (error) {
+    lg.error(
+      "Failed to scrape {url}: {error}",
+      { url: url.toString(), result },
+    );
+    return undefined;
+  }
+  lg.debug("Scraped {url}: {result}", { url: url.toString(), result });
+  const image = result.ogImage != null && result.ogImage.length > 0
+    ? {
+      imageUrl: result.ogImage[0].url,
+      imageAlt: result.ogImage[0].alt,
+      imageType: result.ogImage[0].type == null ||
+          !result.ogImage[0].type.startsWith("image/")
+        ? undefined
+        : result.ogImage[0].type,
+      imageWidth: typeof result.ogImage[0].width === "string"
+        ? parseInt(result.ogImage[0].width)
+        : result.ogImage[0].width,
+      imageHeight: typeof result.ogImage[0].height === "string"
+        ? parseInt(result.ogImage[0].height)
+        : result.ogImage[0].height,
+    }
+    : result.twitterImage != null && result.twitterImage.length > 0
+    ? {
+      imageUrl: result.twitterImage[0].url,
+      imageAlt: result.twitterImage[0].alt,
+      imageWidth: typeof result.twitterImage[0].width === "string"
+        ? parseInt(result.twitterImage[0].width)
+        : result.twitterImage[0].width,
+      imageHeight: typeof result.twitterImage[0].height === "string"
+        ? parseInt(result.twitterImage[0].height)
+        : result.twitterImage[0].height,
+    }
+    : {};
+  const creatorHandle = result.customMetaTags?.fediverseCreator == null
+    ? undefined
+    : Array.isArray(result.customMetaTags.fediverseCreator)
+    ? result.customMetaTags.fediverseCreator[0]
+    : result.customMetaTags.fediverseCreator;
+  return {
+    id: generateUuidV7(),
+    url: result.ogUrl ?? result.twitterUrl ?? result.requestUrl ??
+      url.toString(),
+    title: result.ogTitle ?? result.twitterTitle,
+    siteName: result.ogSiteName,
+    type: result.ogType,
+    description: result.ogDescription ?? result.twitterDescription,
+    creatorId: creatorHandle == null || handleToActorId == null
+      ? undefined
+      : await handleToActorId(creatorHandle),
+    ...image,
+  };
+}
+
+export async function persistPostLink(
+  db: Database,
+  ctx: Context<void>,
+  url: string | URL,
+): Promise<PostLink | undefined> {
+  if (typeof url === "string") url = new URL(url);
+  if (!isSSRFSafeURL(url.href)) {
+    logger.error("Unsafe URL: {url}", { url: url.href });
+    return undefined;
+  }
+  const link = await db.query.postLinkTable.findFirst({
+    where: eq(postLinkTable.url, url.href),
+  });
+  if (link != null) return link;
+  const scraped = await scrapePostLink(url, async (handle) => {
+    if (!handle.startsWith("@")) handle = `@${handle}`;
+    const actors = await persistActorsByHandles(db, ctx, [handle]);
+    return actors[handle]?.id;
+  });
+  logger.debug("Scraped link {url}: {scraped}", { url: url.href, scraped });
+  if (scraped == null) return undefined;
+  const result = await db
+    .insert(postLinkTable)
+    .values(scraped)
+    .onConflictDoUpdate({
+      target: postLinkTable.url,
+      set: {
+        title: scraped.title,
+        siteName: scraped.siteName,
+        type: scraped.type,
+        description: scraped.description,
+        imageUrl: scraped.imageUrl,
+        imageAlt: scraped.imageAlt,
+        imageType: scraped.imageType,
+        imageWidth: scraped.imageWidth,
+        imageHeight: scraped.imageHeight,
+        creatorId: scraped.creatorId,
+        scraped: sql`CURRENT_TIMESTAMP`,
+      },
+      setWhere: eq(postLinkTable.url, scraped.url),
+    })
+    .returning();
+  return result[0];
 }
 
 const UNREACHABLE: never = undefined!;

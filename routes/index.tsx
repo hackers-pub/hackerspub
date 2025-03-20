@@ -35,6 +35,7 @@ import {
   type Mention,
   mentionTable,
   type Post,
+  type PostLink,
   type PostMedium,
   postTable,
 } from "../models/schema.ts";
@@ -68,12 +69,15 @@ export const handler = define.handlers({
       : parseInt(windowString);
     let timeline: (Post & {
       actor: Actor;
+      link?: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
           actor: Actor;
+          link?: PostLink & { creator?: Actor | null } | null;
           replyTarget:
             | Post & {
               actor: Actor & { followers: Following[] };
+              link?: PostLink & { creator?: Actor | null } | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
             }
@@ -86,6 +90,7 @@ export const handler = define.handlers({
       replyTarget:
         | Post & {
           actor: Actor & { followers: Following[] };
+          link?: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
         }
@@ -104,9 +109,11 @@ export const handler = define.handlers({
       timeline = await db.query.postTable.findMany({
         with: {
           actor: true,
+          link: { with: { creator: true } },
           sharedPost: {
             with: {
               actor: true,
+              link: { with: { creator: true } },
               replyTarget: {
                 with: {
                   actor: {
@@ -114,6 +121,7 @@ export const handler = define.handlers({
                       followers: { where: sql`false` },
                     },
                   },
+                  link: { with: { creator: true } },
                   mentions: {
                     with: { actor: true },
                   },
@@ -134,6 +142,7 @@ export const handler = define.handlers({
                   followers: { where: sql`false` },
                 },
               },
+              link: { with: { creator: true } },
               mentions: {
                 with: { actor: true },
               },
@@ -182,9 +191,11 @@ export const handler = define.handlers({
         : await db.query.postTable.findMany({
           with: {
             actor: true,
+            link: { with: { creator: true } },
             sharedPost: {
               with: {
                 actor: true,
+                link: { with: { creator: true } },
                 replyTarget: {
                   with: {
                     actor: {
@@ -197,6 +208,7 @@ export const handler = define.handlers({
                         },
                       },
                     },
+                    link: { with: { creator: true } },
                     mentions: {
                       with: { actor: true },
                     },
@@ -224,6 +236,7 @@ export const handler = define.handlers({
                     },
                   },
                 },
+                link: { with: { creator: true } },
                 mentions: {
                   with: { actor: true },
                 },
@@ -384,12 +397,15 @@ interface HomeProps {
   filter: TimelineNavItem;
   timeline: (Post & {
     actor: Actor;
+    link?: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
+        link?: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
+            link?: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -402,6 +418,7 @@ interface HomeProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
+        link?: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }

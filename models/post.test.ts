@@ -1,0 +1,63 @@
+import {
+  mockFetch,
+  mockGlobalFetch,
+  resetFetch,
+  resetGlobalFetch,
+} from "@c4spar/mock-fetch";
+import { assert } from "@std/assert/assert";
+import { assertEquals } from "@std/assert/equals";
+import { validate } from "@std/uuid/unstable-v7";
+import { scrapePostLink } from "./post.ts";
+
+Deno.test("scrapePostLink()", async (t) => {
+  mockGlobalFetch();
+
+  await t.step("", async () => {
+    mockFetch("https://example.internal/index.html", {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+      },
+      body: `<html>
+        <head>
+          <meta property="og:type" content="website">
+          <meta property="og:site_name" content="Example Site">
+          <meta property="og:title" content="Example title">
+          <meta property="og:description" content="Example og description">
+          <meta property="og:url" content="https://example.internal/">
+          <meta property="og:image" content="https://example.internal/image.jpg">
+          <meta property="og:image:width" content="1200">
+          <meta property="og:image:height" content="630">
+          <meta property="og:image:type" content="image/jpeg">
+          <meta name="fediverse:creator" content="@hongminhee@hollo.social">
+        </head>
+      </html>`,
+    });
+    const link = await scrapePostLink(
+      "https://example.internal/index.html",
+      (handle) =>
+        Promise.resolve(
+          handle === "@hongminhee@hollo.social"
+            ? "00000000-0000-0000-0000-000000000000"
+            : undefined,
+        ),
+    );
+    assertEquals(link, {
+      id: link?.id ?? "00000000-0000-0000-0000-000000000000",
+      url: "https://example.internal/",
+      title: "Example title",
+      description: "Example og description",
+      siteName: "Example Site",
+      type: "website",
+      imageUrl: "https://example.internal/image.jpg",
+      imageWidth: 1200,
+      imageHeight: 630,
+      imageType: "image/jpeg",
+      imageAlt: undefined,
+      creatorId: "00000000-0000-0000-0000-000000000000",
+    });
+    assert(link != null && validate(link.id));
+    resetFetch();
+  });
+
+  resetGlobalFetch();
+});

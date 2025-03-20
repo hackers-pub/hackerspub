@@ -1,0 +1,2 @@
+ALTER TABLE "post_link" ADD COLUMN "image_alt" text;--> statement-breakpoint
+ALTER TABLE "post_link" ADD CONSTRAINT "post_link_image_alt_check" CHECK ("post_link"."image_alt" IS NULL OR "post_link"."image_url" IS NOT NULL);

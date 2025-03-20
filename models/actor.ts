@@ -116,6 +116,7 @@ export async function syncActorFromAccount(
 
 export async function persistActor(
   db: Database,
+  ctx: Context<void>,
   actor: vocab.Actor,
   options: {
     contextLoader?: DocumentLoader;
@@ -216,7 +217,7 @@ export async function persistActor(
       })
     ) {
       if (!isPostObject(object)) continue;
-      await persistPost(db, object, {
+      await persistPost(db, ctx, object, {
         ...options,
         actor: result,
         replies: true,
@@ -244,14 +245,14 @@ export async function persistActor(
           continue;
         }
         if (!isPostObject(object)) continue;
-        const persisted = await persistPost(db, object, {
+        const persisted = await persistPost(db, ctx, object, {
           ...options,
           actor: result,
           replies: true,
         });
         if (persisted != null) i++;
       } else if (activity instanceof vocab.Announce) {
-        const persisted = await persistSharedPost(db, activity, {
+        const persisted = await persistSharedPost(db, ctx, activity, {
           ...options,
           actor: result,
         });
@@ -315,7 +316,7 @@ export async function persistActorsByHandles(
   const apActors = await Promise.all(promises);
   for (const apActor of apActors) {
     if (!isActor(apActor)) continue;
-    const actor = await persistActor(db, apActor, {
+    const actor = await persistActor(db, ctx, apActor, {
       ...ctx,
       documentLoader,
       outbox: false,

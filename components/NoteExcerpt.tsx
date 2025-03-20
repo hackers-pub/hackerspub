@@ -7,6 +7,7 @@ import { preprocessContentHtml } from "../models/html.ts";
 import type {
   Actor,
   Mention,
+  PostLink,
   PostMedium,
   PostVisibility,
 } from "../models/schema.ts";
@@ -25,6 +26,8 @@ export interface NoteExcerptProps {
   mentions: (Mention & { actor: Actor })[];
   visibility: PostVisibility;
   lang?: string;
+  link?: PostLink & { creator?: Actor | null } | null;
+  linkUrl?: string;
   authorUrl: string;
   authorInternalUrl?: string;
   authorName: string;
@@ -156,6 +159,82 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 ),
               }}
             />
+            {props.media.length < 1 && props.link && (
+              <div class="mt-4">
+                <a
+                  href={props.linkUrl ?? props.link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="block border border-stone-300 bg-stone-100 dark:border-stone-700 dark:bg-stone-800 max-w-prose"
+                >
+                  {props.link.imageUrl &&
+                    (
+                      <img
+                        src={props.link.imageUrl}
+                        alt={props.link.imageAlt ?? undefined}
+                        width={props.link.imageWidth ?? undefined}
+                        height={props.link.imageHeight ?? undefined}
+                        class="w-full h-auto"
+                      />
+                    )}
+                  <p class="m-4 font-bold">{props.link.title}</p>
+                  {props.link.description && (
+                    <p class="m-4 text-stone-500 dark:text-stone-400 line-clamp-2">
+                      {props.link.description}
+                    </p>
+                  )}
+                  <p class="m-4">
+                    <span class="text-stone-500 dark:text-stone-400 uppercase">
+                      {new URL(props.link.url).host}
+                    </span>
+                    {props.link.siteName && (
+                      <>
+                        <span class="text-stone-500 dark:text-stone-400">
+                          {" · "}
+                        </span>
+                        <span class="text-stone-500 dark:text-stone-400 font-bold">
+                          {props.link.siteName}
+                        </span>
+                      </>
+                    )}
+                  </p>
+                </a>
+                {props.link.creator && (
+                  <p class="max-w-prose p-4 bg-stone-300 dark:bg-stone-700 text-stone-700 dark:text-stone-300">
+                    <Msg
+                      $key="note.linkAuthor"
+                      author={
+                        <Link
+                          href={props.link.creator.url ??
+                            props.link.creator.iri}
+                          internalHref={props.link.creator.accountId == null
+                            ? `/@${props.link.creator.username}@${props.link.creator.instanceHost}`
+                            : `/@${props.link.creator.username}`}
+                          class="font-bold text-stone-950 dark:text-stone-50"
+                        >
+                          {props.link.creator.avatarUrl && (
+                            <img
+                              src={props.link.creator.avatarUrl}
+                              class="inline-block size-5 mr-1 align-text-top"
+                            />
+                          )}
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: props.link.creator.name == null
+                                ? props.link.creator.username
+                                : renderCustomEmojis(
+                                  escape(props.link.creator.name),
+                                  props.link.creator.emojis,
+                                ),
+                            }}
+                          />
+                        </Link>
+                      }
+                    />
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           {props.media.length > 0 && (
             <div

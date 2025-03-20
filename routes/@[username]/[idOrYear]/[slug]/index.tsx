@@ -23,6 +23,7 @@ import {
   type ArticleSource,
   type Mention,
   type Post,
+  type PostLink,
   type PostMedium,
   postTable,
 } from "../../../../models/schema.ts";
@@ -116,6 +117,7 @@ export const handler = define.handlers({
     const comments = await db.query.postTable.findMany({
       with: {
         actor: true,
+        link: { with: { creator: true } },
         mentions: {
           with: { actor: true },
         },
@@ -195,6 +197,7 @@ interface ArticlePageProps {
   shared: boolean;
   comments: (Post & {
     actor: Actor;
+    link?: PostLink & { creator?: Actor | null } | null;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];

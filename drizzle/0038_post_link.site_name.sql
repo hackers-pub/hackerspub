@@ -1,0 +1,1 @@
+ALTER TABLE "post_link" ADD COLUMN "site_name" text;

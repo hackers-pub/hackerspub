@@ -10,10 +10,11 @@ import { tracerProvider } from "../sentry.ts";
 
 const logger = getLogger(["hackerspub", "federation"]);
 
-const ORIGIN = Deno.env.get("ORIGIN");
-if (ORIGIN == null) {
+const origin = Deno.env.get("ORIGIN");
+if (origin == null) {
   throw new Error("Missing ORIGIN environment variable.");
 }
+export const ORIGIN = origin;
 
 const kv = kvUrl.protocol === "redis:"
   ? new RedisKvStore(
@@ -33,6 +34,7 @@ export const federation = createFederation<void>({
   origin: ORIGIN,
   userAgent: {
     software: `HackersPup/${metadata.version}`,
+    url: new URL(ORIGIN),
   },
   tracerProvider,
 });

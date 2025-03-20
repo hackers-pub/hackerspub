@@ -17,6 +17,7 @@ import {
   followingTable,
   type Mention,
   type Post,
+  type PostLink,
   type PostMedium,
   postTable,
 } from "../models/schema.ts";
@@ -65,7 +66,7 @@ async function searchHandle(
     return undefined;
   }
   if (!isActor(object)) return undefined;
-  actor = await persistActor(db, object, {
+  actor = await persistActor(db, fedCtx, object, {
     contextLoader: fedCtx.contextLoader,
     documentLoader,
     outbox: false,
@@ -97,7 +98,7 @@ async function searchUrl(
       return undefined;
     }
     if (!isPostObject(object)) return undefined;
-    post = await persistPost(db, object, {
+    post = await persistPost(db, fedCtx, object, {
       contextLoader: fedCtx.contextLoader,
       documentLoader,
     });
@@ -127,6 +128,7 @@ export const handler = define.handlers({
       where: and(compileQuery(db, expr), isNull(postTable.sharedPostId)),
       with: {
         actor: true,
+        link: { with: { creator: true } },
         mentions: {
           with: { actor: true },
         },
@@ -147,6 +149,7 @@ export const handler = define.handlers({
                 },
               },
             },
+            link: { with: { creator: true } },
             mentions: {
               with: { actor: true },
             },
@@ -156,6 +159,7 @@ export const handler = define.handlers({
         sharedPost: {
           with: {
             actor: true,
+            link: { with: { creator: true } },
             mentions: {
               with: { actor: true },
             },
@@ -177,6 +181,7 @@ export const handler = define.handlers({
                     },
                   },
                 },
+                link: { with: { creator: true } },
                 mentions: {
                   with: { actor: true },
                 },
@@ -198,12 +203,15 @@ export const handler = define.handlers({
 interface SearchResultsProps {
   posts: (Post & {
     actor: Actor;
+    link?: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
+        link?: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
+            link?: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -216,6 +224,7 @@ interface SearchResultsProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: (Following & { follower?: Actor })[] };
+        link?: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }

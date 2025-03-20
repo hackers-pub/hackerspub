@@ -23,6 +23,7 @@ import {
   type NoteSource,
   noteSourceTable,
   type Post,
+  type PostLink,
   type PostMedium,
   postTable,
 } from "./schema.ts";
@@ -49,12 +50,15 @@ export async function getNoteSource(
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     post: Post & {
       actor: Actor & { followers: Following[] };
+      link?: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
           actor: Actor;
+          link?: PostLink & { creator?: Actor | null } | null;
           replyTarget:
             | Post & {
               actor: Actor & { followers: Following[] };
+              link?: PostLink & { creator?: Actor | null } | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
             }
@@ -67,6 +71,7 @@ export async function getNoteSource(
       replyTarget:
         | Post & {
           actor: Actor & { followers: Following[] };
+          link?: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
         }
@@ -101,6 +106,7 @@ export async function getNoteSource(
           actor: {
             with: { followers: true },
           },
+          link: { with: { creator: true } },
           mentions: {
             with: { actor: true },
           },
@@ -119,6 +125,7 @@ export async function getNoteSource(
                       },
                     },
                   },
+                  link: { with: { creator: true } },
                   mentions: {
                     with: { actor: true },
                   },
@@ -148,6 +155,7 @@ export async function getNoteSource(
                   },
                 },
               },
+              link: { with: { creator: true } },
               mentions: {
                 with: { actor: true },
               },

@@ -151,6 +151,7 @@
   },
   "note": {
     "title": "{{name}}：{{content}}",
+    "linkAuthor": "链接作者：{{author}}",
     "replies": "回复",
     "shares": "转帖",
     "sharing": "正在转帖……",

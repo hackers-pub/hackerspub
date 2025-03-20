@@ -7,6 +7,7 @@ import type {
   Following,
   Mention,
   Post,
+  PostLink,
   PostMedium,
 } from "../models/schema.ts";
 import { ArticleExcerpt } from "./ArticleExcerpt.tsx";
@@ -17,12 +18,15 @@ export interface PostExcerptProps {
   class?: string;
   post: Post & {
     actor: Actor;
+    link?: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
+        link?: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
+            link?: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -35,6 +39,7 @@ export interface PostExcerptProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
+        link?: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
@@ -192,6 +197,8 @@ export function PostExcerpt(props: PostExcerptProps) {
                     mentions={post.mentions}
                     lang={post.language ?? undefined}
                     visibility={post.visibility}
+                    link={post.link ?? undefined}
+                    linkUrl={post.linkUrl ?? undefined}
                     authorUrl={post.actor.url ?? post.actor.iri}
                     authorInternalUrl={post.actor.accountId == null
                       ? `/@${post.actor.username}@${post.actor.instanceHost}`

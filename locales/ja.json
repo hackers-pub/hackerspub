@@ -149,6 +149,7 @@
   },
   "note": {
     "title": "{{name}}：{{content}}",
+    "linkAuthor": "リンクの著者：{{author}}",
     "replies": "返信",
     "shares": "共有",
     "sharing": "共有中…",

@@ -33,6 +33,7 @@ import {
   type Mention,
   type Post,
   POST_VISIBILITIES,
+  type PostLink,
   type PostMedium,
   postTable,
 } from "../../models/schema.ts";
@@ -116,7 +117,7 @@ export const handler = define.handlers({
           return ctx.next();
         }
         if (!isActor(apActor)) return ctx.next();
-        actor = await persistActor(db, apActor);
+        actor = await persistActor(db, ctx.state.fedCtx, apActor);
         if (actor == null) return ctx.next();
       }
       if (ctx.state.session == null) {
@@ -291,9 +292,11 @@ export const handler = define.handlers({
     const posts = await db.query.postTable.findMany({
       with: {
         actor: true,
+        link: { with: { creator: true } },
         sharedPost: {
           with: {
             actor: true,
+            link: { with: { creator: true } },
             replyTarget: {
               with: {
                 actor: {
@@ -306,6 +309,7 @@ export const handler = define.handlers({
                     },
                   },
                 },
+                link: { with: { creator: true } },
                 mentions: {
                   with: { actor: true },
                 },
@@ -335,6 +339,7 @@ export const handler = define.handlers({
                 },
               },
             },
+            link: { with: { creator: true } },
             mentions: {
               with: { actor: true },
             },
@@ -432,12 +437,15 @@ interface ProfilePageProps {
   stats: ActorStats;
   posts: (Post & {
     actor: Actor;
+    link?: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
+        link?: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
+            link?: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -450,6 +458,7 @@ interface ProfilePageProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
+        link?: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }

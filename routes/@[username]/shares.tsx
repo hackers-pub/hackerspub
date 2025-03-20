@@ -20,6 +20,7 @@ import {
   followingTable,
   type Mention,
   type Post,
+  type PostLink,
   type PostMedium,
   postTable,
 } from "../../models/schema.ts";
@@ -80,9 +81,11 @@ export const handler = define.handlers({
     const posts = await db.query.postTable.findMany({
       with: {
         actor: true,
+        link: { with: { creator: true } },
         sharedPost: {
           with: {
             actor: true,
+            link: { with: { creator: true } },
             replyTarget: {
               with: {
                 actor: {
@@ -95,6 +98,7 @@ export const handler = define.handlers({
                     },
                   },
                 },
+                link: { with: { creator: true } },
                 mentions: {
                   with: { actor: true },
                 },
@@ -124,6 +128,7 @@ export const handler = define.handlers({
                 },
               },
             },
+            link: { with: { creator: true } },
             mentions: {
               with: { actor: true },
             },
@@ -190,12 +195,15 @@ interface ProfileShareListProps {
   stats: ActorStats;
   posts: (Post & {
     actor: Actor;
+    link?: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
+        link?: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
+            link?: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -208,6 +216,7 @@ interface ProfileShareListProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
+        link?: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }

@@ -28,6 +28,7 @@ import {
   followingTable,
   type Mention,
   type Post,
+  type PostLink,
   type PostMedium,
   postTable,
 } from "../../../models/schema.ts";
@@ -90,7 +91,7 @@ export const handler = define.handlers({
           { documentLoader },
         );
         if (isPostObject(object)) {
-          await persistPost(db, object, { documentLoader });
+          await persistPost(db, ctx.state.fedCtx, object, { documentLoader });
         }
       }
       postUrl = `/@${ctx.params.username}/${post.id}`;
@@ -117,6 +118,7 @@ export const handler = define.handlers({
                     },
                   },
                 },
+                link: { with: { creator: true } },
                 mentions: {
                   with: { actor: true },
                 },
@@ -147,6 +149,7 @@ export const handler = define.handlers({
                         },
                       },
                     },
+                    link: { with: { creator: true } },
                     mentions: {
                       with: { actor: true },
                     },
@@ -239,6 +242,7 @@ export const handler = define.handlers({
             },
           },
         },
+        link: { with: { creator: true } },
         mentions: {
           with: { actor: true },
         },
@@ -370,12 +374,15 @@ export const handler = define.handlers({
 type NotePageProps = {
   post: Post & {
     actor: Actor;
+    link?: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
+        link?: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
+            link?: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -388,6 +395,7 @@ type NotePageProps = {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
+        link?: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
@@ -399,6 +407,7 @@ type NotePageProps = {
   postUrl: string;
   replies: (Post & {
     actor: Actor;
+    link?: PostLink & { creator?: Actor | null } | null;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
   })[];
@@ -493,6 +502,8 @@ export default define.page<typeof handler, NotePageProps>(
             mentions={reply.mentions}
             lang={reply.language ?? undefined}
             visibility={reply.visibility}
+            link={reply.link ?? undefined}
+            linkUrl={reply.linkUrl ?? undefined}
             authorUrl={reply.actor.url ?? reply.actor.iri}
             authorInternalUrl={reply.actor.accountId == null
               ? `/@${reply.actor.username}@${reply.actor.instanceHost}`

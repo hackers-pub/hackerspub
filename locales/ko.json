@@ -149,6 +149,7 @@
   },
   "note": {
     "title": "{{name}}: {{content}}",
+    "linkAuthor": "링크 저자: {{author}}",
     "replies": "댓글",
     "shares": "공유",
     "sharing": "공유중…",
