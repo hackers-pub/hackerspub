@@ -11,6 +11,8 @@ import type {
 } from "./models/schema.ts";
 import type { Session } from "./models/session.ts";
 
+export const MODE = Deno.env.get("MODE") ?? "production";
+
 export interface Link {
   rel: string;
   href: string | URL;

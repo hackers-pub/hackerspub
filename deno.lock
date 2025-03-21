@@ -124,6 +124,7 @@
     "npm:multibase@^4.0.6": "4.0.6",
     "npm:multicodec@^3.2.1": "3.2.1",
     "npm:open-graph-scraper@^6.9.0": "6.9.0",
+    "npm:pdf-lib@^1.17.1": "1.17.1",
     "npm:pkijs@^3.2.4": "3.2.5",
     "npm:postcss@8.4.35": "8.4.35",
     "npm:postgres@^3.4.5": "3.4.5",
@@ -1503,6 +1504,18 @@
     },
     "@opentelemetry/semantic-conventions@1.30.0": {
       "integrity": "sha512-4VlGgo32k2EQ2wcCY3vEU28A0O13aOtHz3Xt2/2U5FAh9EfhD6t6DqL5Z6yAnRCntbTFDU4YfbpyzSlHNWycPw=="
+    },
+    "@pdf-lib/standard-fonts@1.0.0": {
+      "integrity": "sha512-hU30BK9IUN/su0Mn9VdlVKsWBS6GyhVfqjwl1FjZN4TxP6cCw0jP2w7V3Hf5uX7M0AZJ16vey9yE0ny7Sa59ZA==",
+      "dependencies": [
+        "pako@1.0.11"
+      ]
+    },
+    "@pdf-lib/upng@1.0.1": {
+      "integrity": "sha512-dQK2FUMQtowVP00mtIksrlZhdFXQZPC+taih1q4CvPZ5vqdxR/LKBaFg0oAfzd1GlHZXXSPdQfzQnt+ViGvEIQ==",
+      "dependencies": [
+        "pako@1.0.11"
+      ]
     },
     "@phensley/language-tag@1.10.2": {
       "integrity": "sha512-Xdui/GVDztdYb9oGzysHRRnakD9FKJIRIRTYvq5SoeGmglAgtDXOLEAm+yTMl8sqMr6AdVCz3/kH7F9wNeGnSQ==",
@@ -3398,6 +3411,9 @@
     "pako@0.2.9": {
       "integrity": "sha512-NUcwaKxUxWrZLpDG+z/xZaCgQITkA/Dv4V/T6bw7VON6l1Xz/VnrBqrYjZQ12TamKHzITTfOEIYUj48y2KXImA=="
     },
+    "pako@1.0.11": {
+      "integrity": "sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw=="
+    },
     "parse-css-color@0.2.1": {
       "integrity": "sha512-bwS/GGIFV3b6KS4uwpzCFj4w297Yl3uqnSgIPsoQkx7GMLROXfMnWvxfNkL0oh8HVhZA4hvJoEoEIqonfJ3BWg==",
       "dependencies": [
@@ -3435,6 +3451,15 @@
       "dependencies": [
         "lru-cache@10.4.3",
         "minipass"
+      ]
+    },
+    "pdf-lib@1.17.1": {
+      "integrity": "sha512-V/mpyJAoTsN4cnP31vc0wfNA1+p20evqqnap0KLoRUN0Yk/p3wN52DOEsL4oBFcLdb76hlpKPtzJIgo67j/XLw==",
+      "dependencies": [
+        "@pdf-lib/standard-fonts",
+        "@pdf-lib/upng",
+        "pako@1.0.11",
+        "tslib@1.14.1"
       ]
     },
     "picocolors@1.1.1": {
@@ -4141,7 +4166,7 @@
     "unicode-trie@2.0.0": {
       "integrity": "sha512-x7bc76x0bm4prf1VLg79uhAzKw8DVboClSN5VxJuQ+LKDOVEW9CdH+VY7SP+vX7xCYQqzzgQpFqz15zeLvAtZQ==",
       "dependencies": [
-        "pako",
+        "pako@0.2.9",
         "tiny-inflate"
       ]
     },
@@ -4358,6 +4383,7 @@
       "npm:markdown-it-toc-done-right@^4.2.0",
       "npm:markdown-it@^14.1.0",
       "npm:open-graph-scraper@^6.9.0",
+      "npm:pdf-lib@^1.17.1",
       "npm:postgres@^3.4.5",
       "npm:preact@^10.25.2",
       "npm:satori-html@~0.3.2",

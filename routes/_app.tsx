@@ -9,9 +9,8 @@ import {
   accountTable,
   articleDraftTable,
 } from "../models/schema.ts";
-import type { State } from "../utils.ts";
+import { MODE, type State } from "../utils.ts";
 
-const MODE = Deno.env.get("MODE") ?? "production";
 const PLAUSIBLE = Deno.env.get("PLAUSIBLE")?.trim()?.toLowerCase() === "true";
 
 export default async function App(

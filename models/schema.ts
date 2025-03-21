@@ -781,6 +781,7 @@ export const postLinkTable = pgTable(
     siteName: text("site_name"),
     type: text(),
     description: text(),
+    author: text(),
     imageUrl: text("image_url"),
     imageAlt: text("image_alt"),
     imageType: text("image_type"),
@@ -797,6 +798,14 @@ export const postLinkTable = pgTable(
       .default(currentTimestamp),
   },
   (table) => [
+    check(
+      "post_link_url_check",
+      sql`${table.url} ~ '^https?://'`,
+    ),
+    check(
+      "post_link_image_url_check",
+      sql`${table.imageUrl} ~ '^https?://'`,
+    ),
     check(
       "post_link_image_alt_check",
       sql`${table.imageAlt} IS NULL OR ${table.imageUrl} IS NOT NULL`,

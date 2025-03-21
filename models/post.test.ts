@@ -24,6 +24,7 @@ Deno.test("scrapePostLink()", async (t) => {
           <meta property="og:title" content="Example title">
           <meta property="og:description" content="Example og description">
           <meta property="og:url" content="https://example.internal/">
+          <meta property="og:article:author" content="John Doe">
           <meta property="og:image" content="https://example.internal/image.jpg">
           <meta property="og:image:width" content="1200">
           <meta property="og:image:height" content="630">
@@ -48,6 +49,7 @@ Deno.test("scrapePostLink()", async (t) => {
       description: "Example og description",
       siteName: "Example Site",
       type: "website",
+      author: "John Doe",
       imageUrl: "https://example.internal/image.jpg",
       imageWidth: 1200,
       imageHeight: 630,

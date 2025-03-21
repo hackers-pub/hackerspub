@@ -111,6 +111,7 @@
     "markdown-it-texmath": "npm:markdown-it-texmath@^1.0.0",
     "markdown-it-toc-done-right": "npm:markdown-it-toc-done-right@^4.2.0",
     "open-graph-scraper": "npm:open-graph-scraper@^6.9.0",
+    "pdf-lib": "npm:pdf-lib@^1.17.1",
     "postgres": "npm:postgres@^3.4.5",
     "preact": "npm:preact@^10.25.2",
     "@preact/signals": "npm:@preact/signals@^1.3.1",

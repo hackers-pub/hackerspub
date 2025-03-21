@@ -24,10 +24,12 @@ import {
 import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import ogs from "open-graph-scraper";
+import { PDFDocument } from "pdf-lib";
 import { isSSRFSafeURL } from "ssrfcheck";
 import type { Database } from "../db.ts";
 import { ORIGIN } from "../federation/federation.ts";
 import { getAnnounce } from "../federation/objects.ts";
+import { MODE } from "../utils.ts";
 import {
   getPersistedActor,
   persistActor,
@@ -1031,8 +1033,9 @@ export async function scrapePostLink(
   handleToActorId: (handle: string) => Promise<Uuid | undefined>,
 ): Promise<NewPostLink | undefined> {
   const lg = logger.getChild("scrapePostLink");
-  if (!isSSRFSafeURL(url.toString())) {
-    lg.error("Unsafe URL: {url}", { url: url.toString() });
+  url = typeof url === "string" ? new URL(url) : url;
+  if (!isSSRFSafeURL(url.href)) {
+    lg.error("Unsafe URL: {url}", { url: url.href });
     return undefined;
   }
   const response = await fetch(url, {
@@ -1044,11 +1047,39 @@ export async function scrapePostLink(
     },
     redirect: "follow",
   });
+  const responseUrl = response.url == null || response.url === ""
+    ? url.href
+    : response.url;
   if (!response.ok) {
     lg.error("Failed to scrape {url}: {status} {statusText}", {
-      url: url.toString(),
+      url: responseUrl,
       status: response.status,
       statusText: response.statusText,
+    });
+    return undefined;
+  }
+  const contentType = response.headers.get("Content-Type")?.replace(
+    /\s*;.*$/,
+    "",
+  );
+  if (
+    contentType === "application/pdf" || contentType === "application/x-pdf"
+  ) {
+    const pdf = await PDFDocument.load(await response.bytes(), {
+      updateMetadata: false,
+    });
+    return {
+      id: generateUuidV7(),
+      url: responseUrl,
+      title: pdf.getTitle(),
+      description: pdf.getSubject(),
+      author: pdf.getAuthor(),
+    };
+  }
+  if (contentType !== "text/html" && contentType !== "application/xhtml+xml") {
+    lg.warn("Not an HTML page: {url} ({contentType})", {
+      url: responseUrl,
+      contentType,
     });
     return undefined;
   }
@@ -1063,38 +1094,41 @@ export async function scrapePostLink(
     ],
   });
   if (error) {
-    lg.error(
-      "Failed to scrape {url}: {error}",
-      { url: url.toString(), result },
-    );
+    lg.error("Failed to scrape {url}: {error}", { url: responseUrl, result });
     return undefined;
   }
-  lg.debug("Scraped {url}: {result}", { url: url.toString(), result });
-  const image = result.ogImage != null && result.ogImage.length > 0
+  lg.debug("Scraped {url}: {result}", { url: responseUrl, result });
+  const ogImage = result.ogImage ?? [];
+  const twitterImage = result.twitterImage ?? [];
+  const image = ogImage.length > 0
     ? {
-      imageUrl: result.ogImage[0].url,
-      imageAlt: result.ogImage[0].alt,
-      imageType: result.ogImage[0].type == null ||
-          !result.ogImage[0].type.startsWith("image/")
+      imageUrl: new URL(ogImage[0].url, responseUrl).href,
+      imageAlt: ogImage[0].alt,
+      imageType: ogImage[0].type === "png"
+        ? "image/png"
+        : ogImage[0].type === "jpg" || ogImage[0].type === "jpeg"
+        ? "image/jpeg"
+        : ogImage[0].type == null ||
+            !ogImage[0].type.startsWith("image/")
         ? undefined
-        : result.ogImage[0].type,
-      imageWidth: typeof result.ogImage[0].width === "string"
-        ? parseInt(result.ogImage[0].width)
-        : result.ogImage[0].width,
-      imageHeight: typeof result.ogImage[0].height === "string"
-        ? parseInt(result.ogImage[0].height)
-        : result.ogImage[0].height,
+        : ogImage[0].type,
+      imageWidth: typeof ogImage[0].width === "string"
+        ? parseInt(ogImage[0].width)
+        : ogImage[0].width,
+      imageHeight: typeof ogImage[0].height === "string"
+        ? parseInt(ogImage[0].height)
+        : ogImage[0].height,
     }
-    : result.twitterImage != null && result.twitterImage.length > 0
+    : twitterImage.length > 0
     ? {
-      imageUrl: result.twitterImage[0].url,
-      imageAlt: result.twitterImage[0].alt,
-      imageWidth: typeof result.twitterImage[0].width === "string"
-        ? parseInt(result.twitterImage[0].width)
-        : result.twitterImage[0].width,
-      imageHeight: typeof result.twitterImage[0].height === "string"
-        ? parseInt(result.twitterImage[0].height)
-        : result.twitterImage[0].height,
+      imageUrl: new URL(twitterImage[0].url, responseUrl).href,
+      imageAlt: twitterImage[0].alt,
+      imageWidth: typeof twitterImage[0].width === "string"
+        ? parseInt(twitterImage[0].width)
+        : twitterImage[0].width,
+      imageHeight: typeof twitterImage[0].height === "string"
+        ? parseInt(twitterImage[0].height)
+        : twitterImage[0].height,
     }
     : {};
   const creatorHandle = result.customMetaTags?.fediverseCreator == null
@@ -1102,20 +1136,33 @@ export async function scrapePostLink(
     : Array.isArray(result.customMetaTags.fediverseCreator)
     ? result.customMetaTags.fediverseCreator[0]
     : result.customMetaTags.fediverseCreator;
+  const canonicalUrl = new URL(
+    result.ogUrl ?? result.twitterUrl ?? result.requestUrl ??
+      responseUrl,
+    responseUrl,
+  );
+  // Verify if the canonical URL they claim is the same as the one we
+  // requested.
+  const canonicalUrlVerified = canonicalUrl.origin === url.origin ||
+    new URL(responseUrl ?? url).origin;
   return {
     id: generateUuidV7(),
-    url: result.ogUrl ?? result.twitterUrl ?? result.requestUrl ??
-      url.toString(),
+    url: canonicalUrlVerified ? canonicalUrl.href : responseUrl,
     title: result.ogTitle ?? result.twitterTitle,
     siteName: result.ogSiteName,
     type: result.ogType,
     description: result.ogDescription ?? result.twitterDescription,
+    author: result.ogArticleAuthor,
     creatorId: creatorHandle == null || handleToActorId == null
       ? undefined
       : await handleToActorId(creatorHandle),
     ...image,
   };
 }
+
+const POST_LINK_CACHE_TTL = Temporal.Duration.from(
+  MODE === "development" ? { minutes: 1 } : { hours: 24 },
+);
 
 export async function persistPostLink(
   db: Database,
@@ -1130,33 +1177,47 @@ export async function persistPostLink(
   const link = await db.query.postLinkTable.findFirst({
     where: eq(postLinkTable.url, url.href),
   });
-  if (link != null) return link;
-  const scraped = await scrapePostLink(url, async (handle) => {
+  if (link != null) {
+    const scraped = link.scraped.toTemporalInstant();
+    if (
+      Temporal.Instant.compare(
+        scraped.add(POST_LINK_CACHE_TTL),
+        Temporal.Now.instant(),
+      ) > 0
+    ) {
+      logger.debug("Post link cache hit: {url}", { url: url.href });
+      return link;
+    }
+  }
+  const scrapedLink = await scrapePostLink(url, async (handle) => {
     if (!handle.startsWith("@")) handle = `@${handle}`;
     const actors = await persistActorsByHandles(db, ctx, [handle]);
     return actors[handle]?.id;
   });
-  logger.debug("Scraped link {url}: {scraped}", { url: url.href, scraped });
-  if (scraped == null) return undefined;
+  logger.debug("Scraped link {url}: {link}", {
+    url: url.href,
+    link: scrapedLink,
+  });
+  if (scrapedLink == null) return undefined;
   const result = await db
     .insert(postLinkTable)
-    .values(scraped)
+    .values(scrapedLink)
     .onConflictDoUpdate({
       target: postLinkTable.url,
       set: {
-        title: scraped.title,
-        siteName: scraped.siteName,
-        type: scraped.type,
-        description: scraped.description,
-        imageUrl: scraped.imageUrl,
-        imageAlt: scraped.imageAlt,
-        imageType: scraped.imageType,
-        imageWidth: scraped.imageWidth,
-        imageHeight: scraped.imageHeight,
-        creatorId: scraped.creatorId,
+        title: scrapedLink.title,
+        siteName: scrapedLink.siteName,
+        type: scrapedLink.type,
+        description: scrapedLink.description,
+        imageUrl: scrapedLink.imageUrl,
+        imageAlt: scrapedLink.imageAlt,
+        imageType: scrapedLink.imageType,
+        imageWidth: scrapedLink.imageWidth,
+        imageHeight: scrapedLink.imageHeight,
+        creatorId: scrapedLink.creatorId,
         scraped: sql`CURRENT_TIMESTAMP`,
       },
-      setWhere: eq(postLinkTable.url, scraped.url),
+      setWhere: eq(postLinkTable.url, scrapedLink.url),
     })
     .returning();
   return result[0];

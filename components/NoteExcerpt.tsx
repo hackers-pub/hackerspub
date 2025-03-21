@@ -178,8 +178,15 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                       />
                     )}
                   <p class="m-4 font-bold">{props.link.title}</p>
-                  {props.link.description && (
+                  {(props.link.description ||
+                    props.link.author && !URL.canParse(props.link.author)) && (
                     <p class="m-4 text-stone-500 dark:text-stone-400 line-clamp-2">
+                      {props.link.author && (
+                        <>
+                          <span class="font-bold">{props.link.author}</span>
+                          {props.link.description && " · "}
+                        </>
+                      )}
                       {props.link.description}
                     </p>
                   )}
@@ -228,6 +235,10 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                                 ),
                             }}
                           />
+                          <span class="opacity-50 before:content-['_('] after:content-[')'] font-normal">
+                            @{props.link.creator.username}@{props.link.creator
+                              .instanceHost}
+                          </span>
                         </Link>
                       }
                     />
