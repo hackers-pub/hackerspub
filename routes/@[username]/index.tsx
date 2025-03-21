@@ -135,9 +135,11 @@ export const handler = define.handlers({
       const posts = await db.query.postTable.findMany({
         with: {
           actor: true,
+          link: { with: { creator: true } },
           sharedPost: {
             with: {
               actor: true,
+              link: { with: { creator: true } },
               replyTarget: {
                 with: {
                   actor: {
@@ -150,6 +152,7 @@ export const handler = define.handlers({
                       },
                     },
                   },
+                  link: { with: { creator: true } },
                   mentions: {
                     with: { actor: true },
                   },
@@ -179,6 +182,7 @@ export const handler = define.handlers({
                   },
                 },
               },
+              link: { with: { creator: true } },
               mentions: {
                 with: { actor: true },
               },
