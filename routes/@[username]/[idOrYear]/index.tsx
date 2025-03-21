@@ -81,6 +81,9 @@ export const handler = define.handlers({
         ctx.state.account,
       );
       if (result == null) return ctx.next();
+      if (ctx.state.account == null) {
+        return ctx.redirect(result.url ?? result.iri, 301);
+      }
       post = result;
       if (ctx.url.searchParams.has("refresh") && ctx.state.account?.moderator) {
         const documentLoader = await ctx.state.fedCtx.getDocumentLoader({
