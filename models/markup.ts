@@ -64,7 +64,7 @@ let md = createMarkdownIt({ html: true, linkify: true })
       const actor = env.mentionedActors[handle];
       if (actor == null) return {};
       return {
-        class: "u-url mention",
+        class: "u-url mention bg-stone-300 rounded-lg p-1",
         title: actor.name ?? handle,
         "data-username": actor.username,
         "data-host": actor.instanceHost,
