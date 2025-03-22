@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Button } from "../../../components/Button.tsx";
 import { Input } from "../../../components/Input.tsx";
@@ -33,6 +33,7 @@ export const handler = define.handlers({
         },
         invitees: {
           with: { actor: true },
+          orderBy: desc(accountTable.created),
         },
       },
     });
@@ -53,6 +54,7 @@ export const handler = define.handlers({
         },
         invitees: {
           with: { actor: true },
+          orderBy: desc(accountTable.created),
         },
       },
     });
