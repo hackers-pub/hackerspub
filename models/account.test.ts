@@ -2,9 +2,9 @@ import { assertEquals } from "@std/assert/equals";
 import { fetchAccountLinkMetadata, type LinkMetadata } from "./account.ts";
 
 const linkMetadata: Record<string, LinkMetadata> = {
-  "https://gnusocial.jp/hongminhee": {
+  "https://fedibird.com/@hongminhee": {
     icon: "activitypub",
-    "handle": "@hongminhee@gnusocial.jp",
+    "handle": "@hongminhee@fedibird.com",
   },
   "https://bsky.app/profile/hongminhee.org": {
     icon: "bluesky",
