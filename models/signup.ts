@@ -22,12 +22,19 @@ export interface SignupToken {
   email: string;
   token: Uuid;
   code: string;
+  inviterId?: Uuid;
   created: Date;
+}
+
+export interface CreateSignupTokenOptions {
+  inviterId?: Uuid;
+  expiration?: Temporal.DurationLike;
 }
 
 export async function createSignupToken(
   kv: Keyv,
   email: string,
+  options: CreateSignupTokenOptions = {},
 ): Promise<SignupToken> {
   const token = crypto.randomUUID();
   const buffer = new Uint8Array(8);
@@ -36,12 +43,16 @@ export async function createSignupToken(
     email,
     token,
     code: encodeBase64Url(buffer),
+    inviterId: options.inviterId,
     created: new Date(),
   };
+  const expiration = options.expiration == null
+    ? EXPIRATION
+    : Temporal.Duration.from(options.expiration);
   await kv.set(
     `${KV_NAMESPACE}/${token}`,
     tokenData,
-    EXPIRATION.total("millisecond"),
+    expiration.total("millisecond"),
   );
   logger.debug("Created sign-up token (expires in {expires}): {token}", {
     expires: EXPIRATION,
@@ -72,6 +83,7 @@ export async function createAccount(
   const accounts = await db.insert(accountTable).values({
     ...account,
     id: account.id ?? generateUuidV7(),
+    inviterId: token.inviterId,
   })
     .returning();
   if (accounts.length !== 1) {

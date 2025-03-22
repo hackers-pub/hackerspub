@@ -1,7 +1,16 @@
 import { setCookie } from "@std/http/cookie";
 import { eq } from "drizzle-orm";
 import { page } from "fresh";
+import { Button } from "../../../components/Button.tsx";
+import { Input } from "../../../components/Input.tsx";
+import { Label } from "../../../components/Label.tsx";
+import { Msg, Translation } from "../../../components/Msg.tsx";
 import { PageTitle } from "../../../components/PageTitle.tsx";
+import { TextArea } from "../../../components/TextArea.tsx";
+import { db } from "../../../db.ts";
+import { kv } from "../../../kv.ts";
+import { syncActorFromAccount } from "../../../models/actor.ts";
+import { follow } from "../../../models/following.ts";
 import { accountEmailTable, accountTable } from "../../../models/schema.ts";
 import { createSession, EXPIRATION } from "../../../models/session.ts";
 import {
@@ -10,16 +19,8 @@ import {
   getSignupToken,
   type SignupToken,
 } from "../../../models/signup.ts";
-import { Input } from "../../../components/Input.tsx";
-import { TextArea } from "../../../components/TextArea.tsx";
-import { Label } from "../../../components/Label.tsx";
-import { Button } from "../../../components/Button.tsx";
-import { kv } from "../../../kv.ts";
-import { db } from "../../../db.ts";
-import { define } from "../../../utils.ts";
-import { syncActorFromAccount } from "../../../models/actor.ts";
 import { generateUuidV7, validateUuid } from "../../../models/uuid.ts";
-import { Msg, Translation } from "../../../components/Msg.tsx";
+import { define } from "../../../utils.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -85,6 +86,7 @@ export const handler = define.handlers({
       username,
       name,
       bio,
+      leftInvitations: 0,
     });
     if (account == null) {
       return page<SignupPageProps>({
@@ -93,11 +95,21 @@ export const handler = define.handlers({
         errors,
       });
     }
-    await syncActorFromAccount(db, kv, ctx.state.fedCtx, {
+    const actor = await syncActorFromAccount(db, kv, ctx.state.fedCtx, {
       ...account,
       links: [],
     });
     await deleteSignupToken(kv, token.token);
+    const inviter = token.inviterId == null
+      ? null
+      : await db.query.accountTable.findFirst({
+        where: eq(accountTable.id, token.inviterId),
+        with: { actor: true },
+      });
+    if (inviter != null) {
+      await follow(db, ctx.state.fedCtx, { ...account, actor }, inviter.actor);
+      await follow(db, ctx.state.fedCtx, inviter, actor);
+    }
     const session = await createSession(kv, {
       accountId: account.id,
       userAgent: ctx.req.headers.get("user-agent") ?? null,

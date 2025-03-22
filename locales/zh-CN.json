@@ -28,6 +28,7 @@
     "signInUp": "$t(signInUp.title)",
     "newArticle": "新文章",
     "drafts": "草稿",
+    "invite": "$t(settings.invite.title)",
     "settings": "设置",
     "signOut": "退出登录",
     "coc": "行为准则",
@@ -101,6 +102,27 @@
     "language": {
       "title": "语言设置",
       "save": "$t(settings.profile.save)"
+    },
+    "invite": {
+      "title": "邀请",
+      "description_zero": "邀请你的朋友加入 Hackers' Pub。目前，你没有剩余邀请名额——请稍后再来查看。",
+      "description_one": "邀请你的朋友加入 Hackers' Pub。你可以邀请 1 个人。",
+      "description_other": "邀请你的朋友加入 Hackers' Pub。你可以邀请最多 {{count}} 个人。",
+      "email": "$t(signUp.email)",
+      "emailDescription": "电子邮件地址不仅用于接收邀请，还用于登录账户。",
+      "extraMessage": "额外信息",
+      "extraMessageDescription": "你的朋友将在邀请邮件中看到此信息。",
+      "send": "发送邀请",
+      "noLeftInvitations": "你没有剩余邀请名额。请稍后再试。",
+      "emailRequired": "电子邮件地址是必填项。",
+      "alreadyExists": "{{account}} 已经是 Hackers' Pub 的成员了。",
+      "success_zero": "邀请已发送至 {{email}}。你没有剩余邀请名额。",
+      "success_other": "邀请已发送至 {{email}}。你还剩余 {{count}} 张邀请名额。",
+      "invitationEmailSubject": "{{inviterName}} 邀请你加入 Hackers' Pub！",
+      "invitationEmailText": "{{inviter}} 邀请你加入 Hackers' Pub！\n\n$t(home.intro.content)\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n",
+      "invitationEmailTextWithMessage": "{{inviter}} 邀请你加入 Hackers' Pub！以下是来自 {{inviterName}} 的信息：\n\n{{message}}\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n",
+      "inviter": "邀请人",
+      "invitees": "被邀请人"
     }
   },
   "profile": {

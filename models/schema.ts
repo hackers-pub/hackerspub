@@ -44,6 +44,11 @@ export const accountTable = pgTable(
     ogImageKey: text("og_image_key").unique(),
     locales: varchar().array().$type<Locale[] | null>(),
     moderator: boolean().notNull().default(false),
+    leftInvitations: smallint("left_invitations").notNull(),
+    inviterId: uuid("inviter_id").$type<Uuid | null>().references(
+      (): AnyPgColumn => accountTable.id,
+      { onDelete: "set null" },
+    ),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -82,6 +87,14 @@ export const accountRelations = relations(
     }),
     articleDrafts: many(articleDraftTable),
     articleSources: many(articleSourceTable),
+    inviter: one(accountTable, {
+      fields: [accountTable.inviterId],
+      references: [accountTable.id],
+      relationName: "inviter",
+    }),
+    invitees: many(accountTable, {
+      relationName: "inviter",
+    }),
   }),
 );
 

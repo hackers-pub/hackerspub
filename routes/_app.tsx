@@ -148,6 +148,17 @@ export default async function App(
                                     class="block"
                                   />
                                 </a>
+                                {account.leftInvitations > 0 &&
+                                  (
+                                    <a
+                                      href={`/@${account.username}/settings/invite`}
+                                    >
+                                      <Msg $key="nav.invite" />
+                                      <span class="opacity-50 ml-1 font-normal">
+                                        ({account.leftInvitations})
+                                      </span>
+                                    </a>
+                                  )}
                                 <a href={`/@${account.username}/settings`}>
                                   <Msg $key="nav.settings" />
                                 </a>

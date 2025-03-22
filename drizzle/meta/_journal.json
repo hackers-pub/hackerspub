@@ -295,6 +295,20 @@
       "when": 1742520970876,
       "tag": "0041_post_link_url_check",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1742619788983,
+      "tag": "0042_account.left_invitations",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1742624899477,
+      "tag": "0043_account.inviter_id",
+      "breakpoints": true
     }
   ]
 }

@@ -28,6 +28,7 @@
     "signInUp": "$t(signInUp.title)",
     "newArticle": "新規記事",
     "drafts": "下書き",
+    "invite": "$t(settings.invite.title)",
     "settings": "設定",
     "signOut": "ログアウト",
     "coc": "行動規範",
@@ -101,6 +102,27 @@
     "language": {
       "title": "言語設定",
       "save": "$t(settings.profile.save)"
+    },
+    "invite": {
+      "title": "招待",
+      "description_zero": "友達をHackers' Pubに招待しましょう。現在、招待可能な人数はありません。後ほどご確認ください。",
+      "description_one": "友達をHackers' Pubに招待しましょう。1人だけ招待できます。",
+      "description_other": "友達をHackers' Pubに招待しましょう。最大{{count}}人まで招待できます。",
+      "email": "$t(signUp.email)",
+      "emailDescription": "メールアドレスは招待状を受け取るだけでなく、アカウントへのログインにも使用されます。",
+      "extraMessage": "追加メッセージ",
+      "extraMessageDescription": "友達は招待メールでこのメッセージを見ることができます。",
+      "send": "招待状を送る",
+      "noLeftInvitations": "招待状が残っていません。後でもう一度お試しください。",
+      "emailRequired": "メールアドレスは必須です。",
+      "alreadyExists": "{{account}}さんは既にHackers' Pubに登録されています。",
+      "success_zero": "{{email}}さんに招待状を送信しました。招待状は残っていません。",
+      "success_other": "{{email}}さんに招待状を送信しました。招待状は{{count}}枚残っています。",
+      "invitationEmailSubject": "{{inviterName}}さんがHackers' Pubに招待しています！",
+      "invitationEmailText": "{{inviter}}さんがHackers' Pubに招待しています！\n\n$t(home.intro.content)\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n",
+      "invitationEmailTextWithMessage": "{{inviter}}さんがHackers' Pubに招待しています！{{inviterName}}さんからのメッセージです：\n\n{{message}}\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n",
+      "inviter": "招待者",
+      "invitees": "招待された人々"
     }
   },
   "profile": {

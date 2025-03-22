@@ -28,6 +28,7 @@
     "signInUp": "$t(signInUp.title)",
     "newArticle": "New article",
     "drafts": "Drafts",
+    "invite": "$t(settings.invite.title)",
     "settings": "Settings",
     "signOut": "Sign out",
     "coc": "Code of conduct",
@@ -101,6 +102,28 @@
     "language": {
       "title": "Language settings",
       "save": "$t(settings.profile.save)"
+    },
+    "invite": {
+      "title": "Invite",
+      "description_zero": "Invite your friends to Hackers' Pub. Currently, you have no invitations left—please check back later.",
+      "description_one": "Invite your friends to Hackers' Pub. You can invite up to 1 person.",
+      "description_other": "Invite your friends to Hackers' Pub. You can invite up to {{count}} people.",
+      "email": "$t(signUp.email)",
+      "emailDescription": "The email address is not only used for receiving the invitation, but also for signing in to the account.",
+      "extraMessage": "Extra message",
+      "extraMessageDescription": "Your friend will see this message in the invitation email.",
+      "send": "Send invitation",
+      "noLeftInvitations": "You have no invitations left. Please try again later.",
+      "emailRequired": "Email address is required.",
+      "alreadyExists": "{{account}} is already a member of Hackers' Pub.",
+      "success_zero": "The invitation has been sent to {{email}}. You have no invitations left.",
+      "success_one": "The invitation has been sent to {{email}}. You have 1 invitation left.",
+      "success_other": "The invitation has been sent to {{email}}. You have {{count}} invitations left.",
+      "invitationEmailSubject": "{{inviterName}} invites you to Hackers' Pub!",
+      "invitationEmailText": "{{inviter}} invites you to Hackers' Pub!\n\n$t(home.intro.content)\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n",
+      "invitationEmailTextWithMessage": "{{inviter}} invites you to Hackers' Pub! Here's a message from {{inviterName}}:\n\n{{message}}\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n",
+      "inviter": "Who invited you",
+      "invitees": "Users invited by you"
     }
   },
   "profile": {

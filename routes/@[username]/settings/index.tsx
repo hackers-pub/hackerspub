@@ -109,7 +109,12 @@ export const handler = define.handlers({
       return page<ProfileSettingsPageProps>({
         avatarUrl: await getAvatarUrl(account),
         usernameChanged: account.usernameChanged,
-        values: { username: username ?? "", name: name ?? "", bio },
+        values: {
+          username: username ?? "",
+          name: name ?? "",
+          bio,
+          leftInvitations: account.leftInvitations,
+        },
         links: account.links,
         errors,
       });
@@ -190,6 +195,7 @@ export default define.page<typeof handler, ProfileSettingsPageProps>(
         <SettingsNav
           active="profile"
           settingsHref={`/@${values.username}/settings`}
+          leftInvitations={values.leftInvitations}
         />
         <ProfileSettingsForm
           avatarUrl={avatarUrl}
@@ -210,6 +216,7 @@ interface ProfileSettingsFormProps {
     username: string;
     name: string;
     bio: string;
+    leftInvitations: number;
   };
   links: AccountLinkFieldProps[];
   errors?: {

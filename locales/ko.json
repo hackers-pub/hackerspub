@@ -29,6 +29,7 @@
     "newArticle": "새 게시글",
     "drafts": "임시 보관함",
     "settings": "설정",
+    "invite": "$t(settings.invite.title)",
     "signOut": "로그아웃",
     "coc": "행동 강령",
     "openSource": "이 웹사이트의 소스 코드는 {{license}} 라이선스로 {{repository}}에서 배포됩니다.",
@@ -101,6 +102,25 @@
     "language": {
       "title": "언어 설정",
       "save": "$t(settings.profile.save)"
+    },
+    "invite": {
+      "title": "초대",
+      "description_zero": "Hackers' Pub에 친구를 초대하세요. 현재 남은 초대장이 없습니다. 나중에 다시 확인해주세요.",
+      "description_other": "Hackers' Pub에 친구를 초대하세요. 현재 {{count}}장의 초대장이 남아 있습니다.",
+      "email": "$t(signUp.email)",
+      "emailDescription": "이메일 주소는 초대장을 받을 때 뿐만 아니라, 계정에 로그인할 때도 사용됩니다.",
+      "extraMessage": "추가 메시지",
+      "extraMessageDescription": "초대장을 받는 친구가 볼 수 있는 메시지입니다.",
+      "send": "초대장 보내기",
+      "noLeftInvitations": "남은 초대장이 없습니다. 다음에 다시 보내주세요.",
+      "emailRequired": "이메일 주소는 필수입니다.",
+      "alreadyExists": "{{account}} 님은 이미 Hackers' Pub에 가입되어 있습니다.",
+      "success": "{{email}} 님에게 초대장이 발송되었습니다. 초대장이 {{count}}장 남았습니다.",
+      "invitationEmailSubject": "{{inviter}} 님이 Hackers' Pub에 초대합니다!",
+      "invitationEmailText": "{{inviter}} 님이 Hackers' Pub에 초대합니다!\n\n$t(home.intro.content)\n\n초대장을 받으려면 아래 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n",
+      "invitationEmailTextWithMessage": "{{inviter}} 님이 Hackers' Pub에 초대합니다! 다음은 {{inviterName}} 님의 메세지입니다:\n\n{{message}}\n\n초대장을 받으려면 아래 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n",
+      "inviter": "초대한 사람",
+      "invitees": "초대한 사람들"
     }
   },
   "profile": {

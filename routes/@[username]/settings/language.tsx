@@ -54,6 +54,7 @@ export default define.page<typeof handler, LanguageSettingsPageProps>(
         <SettingsNav
           active="language"
           settingsHref={`/@${account.username}/settings`}
+          leftInvitations={account.leftInvitations}
         />
         <LocalePriorityList
           language={state.language}
