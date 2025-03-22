@@ -18,7 +18,7 @@ import { define } from "../../utils.ts";
 export const handler = define.handlers({
   async GET(_ctx) {
     const accounts = await db.query.accountTable.findMany({
-      with: { emails: true, actor: true },
+      with: { emails: true, actor: true, inviter: true, invitees: true },
       orderBy: desc(accountTable.created),
     });
     const postsMetadata: Record<
@@ -57,7 +57,12 @@ export const handler = define.handlers({
 });
 
 interface AccountListProps {
-  accounts: (Account & { actor: Actor; emails: AccountEmail[] })[];
+  accounts: (Account & {
+    actor: Actor;
+    emails: AccountEmail[];
+    inviter: Account | null;
+    invitees: Account[];
+  })[];
   postsMetadata: Record<Uuid, { count: number; lastPublished: Date | null }>;
   avatars: Record<Uuid, string>;
 }
@@ -72,7 +77,7 @@ export default define.page<typeof handler, AccountListProps>(
         <table class="table table-auto border-collapse border border-stone-300 dark:border-stone-500 w-full">
           <thead>
             <tr>
-              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2 w-9">
                 ID
               </th>
               <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
@@ -94,6 +99,12 @@ export default define.page<typeof handler, AccountListProps>(
                 Posts
               </th>
               <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Invited by
+              </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Invited
+              </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
                 Created
               </th>
             </tr>
@@ -101,7 +112,7 @@ export default define.page<typeof handler, AccountListProps>(
           <tbody>
             {accounts.map((account) => (
               <tr>
-                <th class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
+                <th class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2 w-9">
                   {account.id}
                 </th>
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 w-[64px]">
@@ -133,6 +144,25 @@ export default define.page<typeof handler, AccountListProps>(
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   {(postsMetadata[account.id] ?? { count: 0 }).count
                     .toLocaleString(language)}
+                </td>
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
+                  {account.inviter != null && (
+                    <a href={`/@${account.inviter.username}`}>
+                      <img
+                        src={avatars[account.inviter.id]}
+                        width={16}
+                        height={16}
+                        class="inline-block mr-1"
+                      />
+                      <strong>{account.inviter.name}</strong>
+                      <span class="opacity-50 before:content-['('] after:content-[')'] ml-1">
+                        @{account.inviter.username}
+                      </span>
+                    </a>
+                  )}
+                </td>
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
+                  {account.invitees.length.toLocaleString(language)}
                 </td>
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   <Timestamp value={account.created} locale={language} />
