@@ -37,10 +37,10 @@ export const handler = define.handlers({
           { accountId, count, lastPublished },
         ) => [accountId, { count, lastPublished }]),
     );
-    // Sort accounts by the latest post published date
+    // Sort accounts by the latest post published date or updated date
     accounts.sort((a, b) => {
-      const aLastPublished = postsMetadata[a.id]?.lastPublished;
-      const bLastPublished = postsMetadata[b.id]?.lastPublished;
+      const aLastPublished = postsMetadata[a.id]?.lastPublished ?? a.updated;
+      const bLastPublished = postsMetadata[b.id]?.lastPublished ?? b.updated;
       if (aLastPublished == null) return 1;
       if (bLastPublished == null) return -1;
       return bLastPublished.getTime() - aLastPublished.getTime();
