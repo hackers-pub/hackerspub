@@ -99,6 +99,9 @@ export default define.page<typeof handler, AccountListProps>(
                 Posts
               </th>
               <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
+                Invitations
+              </th>
+              <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
                 Invited by
               </th>
               <th class="border border-stone-300 dark:border-stone-500 bg-stone-200 dark:bg-stone-700 p-2">
@@ -144,6 +147,9 @@ export default define.page<typeof handler, AccountListProps>(
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   {(postsMetadata[account.id] ?? { count: 0 }).count
                     .toLocaleString(language)}
+                </td>
+                <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
+                  {account.leftInvitations.toLocaleString(language)}
                 </td>
                 <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                   {account.inviter != null && (
