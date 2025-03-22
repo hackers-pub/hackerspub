@@ -288,7 +288,7 @@ export const handler = define.handlers({
         property: "article:tag",
         content: tag,
       })),
-      { name: "fediverse:creator", content: authorHandle },
+      { name: "fediverse:creator", content: authorHandle.replace(/^@/, "") },
     );
     if (post.language != null) {
       ctx.state.metas.push({ property: "og:locale", content: post.language });

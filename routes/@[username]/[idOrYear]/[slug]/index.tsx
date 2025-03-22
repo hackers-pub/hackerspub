@@ -109,7 +109,7 @@ export const handler = define.handlers({
       ...article.tags.map((tag) => ({ property: "article:tag", content: tag })),
       {
         name: "fediverse:creator",
-        content: `@${article.account.username}@${
+        content: `${article.account.username}@${
           new URL(ctx.state.canonicalOrigin).host
         }`,
       },
