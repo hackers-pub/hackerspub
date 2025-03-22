@@ -50,15 +50,15 @@ export async function getNoteSource(
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     post: Post & {
       actor: Actor & { followers: Following[] };
-      link?: PostLink & { creator?: Actor | null } | null;
+      link: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
           actor: Actor;
-          link?: PostLink & { creator?: Actor | null } | null;
+          link: PostLink & { creator?: Actor | null } | null;
           replyTarget:
             | Post & {
               actor: Actor & { followers: Following[] };
-              link?: PostLink & { creator?: Actor | null } | null;
+              link: PostLink & { creator?: Actor | null } | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
             }
@@ -71,7 +71,7 @@ export async function getNoteSource(
       replyTarget:
         | Post & {
           actor: Actor & { followers: Following[] };
-          link?: PostLink & { creator?: Actor | null } | null;
+          link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
         }
@@ -113,6 +113,7 @@ export async function getNoteSource(
           sharedPost: {
             with: {
               actor: true,
+              link: { with: { creator: true } },
               replyTarget: {
                 with: {
                   actor: {

@@ -203,15 +203,15 @@ export const handler = define.handlers({
 interface SearchResultsProps {
   posts: (Post & {
     actor: Actor;
-    link?: PostLink & { creator?: Actor | null } | null;
+    link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            link?: PostLink & { creator?: Actor | null } | null;
+            link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -224,7 +224,7 @@ interface SearchResultsProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: (Following & { follower?: Actor })[] };
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }

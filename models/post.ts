@@ -287,6 +287,7 @@ export async function persistPost(
   const tags: Record<string, string> = {};
   const mentions = new Set<string>();
   const emojis: Record<string, string> = {};
+  const quotedPostIris: string[] = [];
   for await (const tag of post.getTags(options)) {
     if (tag instanceof vocab.Hashtag) {
       if (tag.name == null || tag.href == null) continue;
@@ -306,6 +307,64 @@ export async function persistPost(
       emojis[tag.name.toString()] = icon.url instanceof URL
         ? icon.url.href
         : icon.url.href!.href;
+    } else if (tag instanceof vocab.Link) {
+      if (tag.mediaType == null || tag.href == null) continue;
+      const [mediaType, ...paramList] = tag.mediaType.split(/\s*;\s*/g);
+      const params = Object.fromEntries(
+        paramList.map((param) => {
+          let [key, value] = param.split(/\s*=\s*/g);
+          // value can be quoted:
+          value = value.match(/^"([^"]*)"\s*$/)?.[1] ?? value.trim();
+          return [key.trim(), value];
+        }),
+      );
+      if (
+        mediaType !== "application/activity+json" &&
+        !(mediaType === "application/ld+json" &&
+          params.profile === "https://www.w3.org/ns/activitystreams")
+      ) {
+        continue;
+      }
+      if (quotedPostIris.includes(tag.href.href)) continue;
+      quotedPostIris.push(tag.href.href);
+    }
+  }
+  if (post.quoteUrl != null) {
+    if (!quotedPostIris.includes(post.quoteUrl.href)) {
+      quotedPostIris.push(post.quoteUrl.href);
+    }
+  }
+  let quotedPost: Post & { actor: Actor & { instance: Instance } } | undefined;
+  if (quotedPostIris.length > 0) {
+    const quotedPosts = await db.query.postTable.findMany({
+      with: {
+        actor: {
+          with: { instance: true },
+        },
+      },
+      where: inArray(postTable.iri, quotedPostIris),
+    });
+    quotedPosts.sort((a, b) =>
+      quotedPostIris.indexOf(a.iri) - quotedPostIris.indexOf(b.iri)
+    );
+    if (quotedPosts.length > 0) {
+      quotedPost = quotedPosts[0];
+    } else {
+      for (const iri of quotedPostIris) {
+        let obj: vocab.Object | null;
+        try {
+          obj = await ctx.lookupObject(iri, options);
+        } catch {
+          continue;
+        }
+        if (!isPostObject(obj)) continue;
+        quotedPost = await persistPost(db, ctx, obj, {
+          replies: false,
+          contextLoader: options.contextLoader,
+          documentLoader: options.documentLoader,
+        });
+        if (quotedPost != null) break;
+      }
     }
   }
   const attachments: vocab.Document[] = [];
@@ -345,9 +404,14 @@ export async function persistPost(
     { visibility, recipients, to, cc, mentions },
   );
   const contentHtml = post.content?.toString();
-  const externalLinks = contentHtml == null
+  let externalLinks = contentHtml == null
     ? []
     : extractExternalLinks(contentHtml);
+  if (quotedPost != null) {
+    externalLinks = externalLinks.filter((l) =>
+      quotedPost.iri !== l.href && quotedPost.url !== l.href
+    );
+  }
   const link = externalLinks.length > 0
     ? await persistPostLink(db, ctx, externalLinks[0])
     : undefined;
@@ -373,14 +437,15 @@ export async function persistPost(
       : undefined,
     tags,
     emojis,
-    linkId: link?.id,
+    linkId: link?.id ?? null,
     linkUrl: link == null
-      ? undefined
+      ? null
       : externalLinks[0].hash === ""
       ? link.url
       : new URL(externalLinks[0].hash, link.url).href,
     url: post.url instanceof vocab.Link ? post.url.href?.href : post.url?.href,
     replyTargetId: replyTarget?.id,
+    quotedPostId: quotedPost?.id,
     repliesCount: replies?.totalItems ?? 0,
     sharesCount: shares?.totalItems ?? 0,
     likesCount: likes?.totalItems ?? 0,
@@ -682,15 +747,15 @@ export function getPostByUsernameAndId(
 ): Promise<
   | Post & {
     actor: Actor & { followers: Following[] };
-    link?: PostLink & { creator?: Actor | null } | null;
+    link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: (Following & { follower: Actor })[] };
-            link?: PostLink & { creator?: Actor | null } | null;
+            link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -703,7 +768,7 @@ export function getPostByUsernameAndId(
     replyTarget:
       | Post & {
         actor: Actor & { followers: (Following & { follower: Actor })[] };
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }

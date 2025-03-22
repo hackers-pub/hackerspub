@@ -1,6 +1,7 @@
 import { escape } from "@std/html/entities";
 import { Link } from "../islands/Link.tsx";
 import { MediumThumbnail } from "../islands/MediumThumbnail.tsx";
+import { QuotedPostCard } from "../islands/QuotedPostCard.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import { preprocessContentHtml } from "../models/html.ts";
@@ -11,6 +12,7 @@ import type {
   PostMedium,
   PostVisibility,
 } from "../models/schema.ts";
+import type { Uuid } from "../models/uuid.ts";
 import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
 
@@ -34,6 +36,7 @@ export interface NoteExcerptProps {
   authorHandle: string;
   authorAvatarUrl: string;
   authorEmojis: Record<string, string>;
+  quotedPostId?: Uuid;
   sharer?: {
     url: string;
     internalUrl?: string;
@@ -159,7 +162,16 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 ),
               }}
             />
-            {props.media.length < 1 && props.link && (
+            {props.media.length < 1 && props.quotedPostId != null &&
+              (
+                <QuotedPostCard
+                  id={props.quotedPostId}
+                  language={lang}
+                  class="mt-4"
+                />
+              )}
+            {props.media.length < 1 && props.quotedPostId == null &&
+              props.link && (
               <div class="mt-4">
                 <a
                   href={props.linkUrl ?? props.link.url}

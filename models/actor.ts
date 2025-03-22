@@ -48,12 +48,9 @@ import {
   postTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+export { getAvatarUrl } from "./avatar.ts";
 
 const logger = getLogger(["hackerspub", "models", "actor"]);
-
-export function getAvatarUrl(actor: Actor): string {
-  return actor.avatarUrl ?? "https://gravatar.com/avatar/?d=mp&s=128";
-}
 
 export async function syncActorFromAccount(
   db: Database,

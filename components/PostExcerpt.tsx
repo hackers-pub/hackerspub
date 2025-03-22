@@ -18,15 +18,15 @@ export interface PostExcerptProps {
   class?: string;
   post: Post & {
     actor: Actor;
-    link?: PostLink & { creator?: Actor | null } | null;
+    link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            link?: PostLink & { creator?: Actor | null } | null;
+            link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -39,7 +39,7 @@ export interface PostExcerptProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
@@ -207,6 +207,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                     authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
                     authorAvatarUrl={getAvatarUrl(post.actor)}
                     authorEmojis={post.actor.emojis}
+                    quotedPostId={post.quotedPostId ?? undefined}
                     sharer={sharer}
                     media={post.media}
                     published={post.published}

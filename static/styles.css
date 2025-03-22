@@ -239,3 +239,7 @@
     text-decoration: var(--shiki-dark-text-decoration) !important;
   }
 }
+
+.prose > .quote-inline:last-child {
+  display: none;
+}

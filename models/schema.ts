@@ -597,7 +597,10 @@ export const postTable = pgTable(
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
     replyTargetId: uuid("reply_target_id")
       .$type<Uuid>()
-      .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
+      .references((): AnyPgColumn => postTable.id, { onDelete: "set null" }),
+    quotedPostId: uuid("quoted_post_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => postTable.id, { onDelete: "set null" }),
     name: text(),
     summary: text(),
     contentHtml: text("content_html").notNull(),

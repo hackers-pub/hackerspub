@@ -441,15 +441,15 @@ interface ProfilePageProps {
   stats: ActorStats;
   posts: (Post & {
     actor: Actor;
-    link?: PostLink & { creator?: Actor | null } | null;
+    link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            link?: PostLink & { creator?: Actor | null } | null;
+            link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -462,7 +462,7 @@ interface ProfilePageProps {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }

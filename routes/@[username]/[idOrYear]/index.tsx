@@ -42,12 +42,15 @@ export const handler = define.handlers({
     const id = ctx.params.idOrYear;
     let post: Post & {
       actor: Actor & { followers: Following[] };
+      link: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
           actor: Actor;
+          link: PostLink & { creator?: Actor | null } | null;
           replyTarget:
             | Post & {
               actor: Actor & { followers: Following[] };
+              link: PostLink & { creator?: Actor | null } | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
             }
@@ -60,6 +63,7 @@ export const handler = define.handlers({
       replyTarget:
         | Post & {
           actor: Actor & { followers: Following[] };
+          link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
         }
@@ -109,6 +113,7 @@ export const handler = define.handlers({
         const share = await db.query.postTable.findFirst({
           with: {
             actor: { with: { followers: true } },
+            link: { with: { creator: true } },
             replyTarget: {
               with: {
                 actor: {
@@ -140,6 +145,7 @@ export const handler = define.handlers({
             sharedPost: {
               with: {
                 actor: { with: { followers: true } },
+                link: { with: { creator: true } },
                 replyTarget: {
                   with: {
                     actor: {
@@ -377,15 +383,15 @@ export const handler = define.handlers({
 type NotePageProps = {
   post: Post & {
     actor: Actor;
-    link?: PostLink & { creator?: Actor | null } | null;
+    link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
         actor: Actor;
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & { followers: Following[] };
-            link?: PostLink & { creator?: Actor | null } | null;
+            link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
           }
@@ -398,7 +404,7 @@ type NotePageProps = {
     replyTarget:
       | Post & {
         actor: Actor & { followers: Following[] };
-        link?: PostLink & { creator?: Actor | null } | null;
+        link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
       }
@@ -515,6 +521,7 @@ export default define.page<typeof handler, NotePageProps>(
             authorHandle={`@${reply.actor.username}@${reply.actor.instanceHost}`}
             authorAvatarUrl={getAvatarUrl(reply.actor)}
             authorEmojis={reply.actor.emojis}
+            quotedPostId={reply.quotedPostId ?? undefined}
             media={reply.media}
             published={reply.published}
           />

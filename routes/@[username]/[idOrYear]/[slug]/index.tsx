@@ -197,7 +197,7 @@ interface ArticlePageProps {
   shared: boolean;
   comments: (Post & {
     actor: Actor;
-    link?: PostLink & { creator?: Actor | null } | null;
+    link: PostLink & { creator?: Actor | null } | null;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
