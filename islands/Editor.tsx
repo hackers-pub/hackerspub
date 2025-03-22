@@ -9,7 +9,7 @@ import { PageTitle } from "../components/PageTitle.tsx";
 import getFixedT, { type Language, POSSIBLE_LOCALES } from "../i18n.ts";
 import { preprocessContentHtml } from "../models/html.ts";
 import type { RenderedMarkup } from "../models/markup.ts";
-import type { Actor } from "../models/schema.ts";
+import type { Actor, ArticleDraft } from "../models/schema.ts";
 import { MarkupTextArea } from "./MarkupTextArea.tsx";
 import { TagInput } from "./TagInput.tsx";
 
@@ -47,6 +47,7 @@ export function Editor(props: EditorProps) {
   const [draftTags, setDraftTags] = useState<string[]>(props.defaultTags ?? []);
   const [draftUpdated, setDraftUpdated] = useState(Date.now());
   const [draftLanguage, setDraftLanguage] = useState<string | null>(null);
+  const [draftSaved, setDraftSaved] = useState(false);
   const titleInput = useRef<HTMLInputElement | null>(null);
   const contentTextArea = useRef<HTMLTextAreaElement | null>(null);
   const [publishMode, setPublishMode] = useState(false);
@@ -58,11 +59,6 @@ export function Editor(props: EditorProps) {
   );
   const [publishing, setPublishing] = useState(false);
   const slugInput = useRef<HTMLInputElement | null>(null);
-
-  const [draftSaved, setDraftSaved] = useState(false);
-  const [draftSavedTimestamp, setDraftSavedTimestamp] = useState<string | null>(
-    null,
-  );
 
   async function renderPreview(markup: string): Promise<void> {
     // TODO: spinner
@@ -106,7 +102,10 @@ export function Editor(props: EditorProps) {
     renderPreview(markup);
   }
 
-  async function saveDraft(draftUrl: string, now: number) {
+  async function saveDraft(
+    draftUrl: string,
+    now: number,
+  ): Promise<ArticleDraft & { language: string | null }> {
     const response = await fetch(draftUrl, {
       method: "PUT",
       body: JSON.stringify({ title, content, tags }),
@@ -115,7 +114,8 @@ export function Editor(props: EditorProps) {
       },
       credentials: "include",
     });
-    const data = await response.json();
+    const data: ArticleDraft & { language: string | null } = await response
+      .json();
     setDraftTitle(data.title);
     setDraftContent(data.content);
     setDraftTags(data.tags);
@@ -123,13 +123,8 @@ export function Editor(props: EditorProps) {
     setDraftLanguage(data.language);
 
     // Show the "Draft saved" indicator
-    const timestamp = new Date().toLocaleTimeString(props.language, {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-    setDraftSavedTimestamp(timestamp);
     setDraftSaved(true);
+    return data;
   }
 
   if ("draftUrl" in props) {
@@ -163,22 +158,22 @@ export function Editor(props: EditorProps) {
 
   function switchToPublishMode() {
     if ("draftUrl" in props) {
-      saveDraft(props.draftUrl, Date.now()).then(() => {
-        validateAndSetPublishMode();
+      saveDraft(props.draftUrl, Date.now()).then((data) => {
+        validateAndSetPublishMode(data);
       });
     } else {
       validateAndSetPublishMode();
     }
   }
 
-  function validateAndSetPublishMode() {
-    if (draftTitle.trim() === "") {
+  function validateAndSetPublishMode(data?: ArticleDraft) {
+    if ((data?.title ?? draftTitle).trim() === "") {
       alert(t("editor.titleRequired"));
       return;
-    } else if (draftContent.trim() === "") {
+    } else if ((data?.content ?? draftContent).trim() === "") {
       alert(t("editor.contentRequired"));
       return;
-    } else if (draftTags.length < 1) {
+    } else if ((data?.tags ?? draftTags).length < 1) {
       alert(t("editor.tagsRequired"));
       return;
     }
@@ -386,9 +381,14 @@ export function Editor(props: EditorProps) {
             </div>
           )}
       </div>
-      {draftSaved && draftSavedTimestamp && (
+      {draftSaved && (
         <div class="fixed bottom-6 right-6 bg-stone-300 text-white px-4 py-2 rounded-lg text-sm shadow-lg bg-opacity-60">
-          <Msg $key="editor.draftSaved" saved={draftSavedTimestamp} />
+          <Msg
+            $key="editor.draftSaved"
+            saved={new Date(draftUpdated).toLocaleTimeString(props.language, {
+              timeStyle: "short",
+            })}
+          />
         </div>
       )}
     </TranslationSetup>

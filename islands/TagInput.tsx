@@ -13,20 +13,26 @@ export function TagInput(
   const [tags, setTags] = useState<string[]>(defaultTags ?? []);
   const [input, setInput] = useState<string>("");
 
+  function commitTag() {
+    const tag = input.trim();
+    if (tag === "") return;
+    const newTag = tag.replace(/^#+\s*/, "");
+    const dup = tags.map((t) => t.toLowerCase()).includes(
+      newTag.toLowerCase(),
+    );
+    let newTags: string[] | undefined;
+    if (!dup) {
+      newTags = [...tags, newTag];
+      setTags(newTags);
+    }
+    setInput("");
+    if (newTags != null) onTagsChange?.(newTags);
+  }
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if ((e.key === " " || e.key === "," || e.key === "Enter") && input.trim()) {
       e.preventDefault();
-      const newTag = input.trim().replace(/^#+\s*/, "");
-      const dup = tags.map((t) => t.toLowerCase()).includes(
-        newTag.toLowerCase(),
-      );
-      let newTags: string[] | undefined;
-      if (!dup) {
-        newTags = [...tags, newTag];
-        setTags(newTags);
-      }
-      setInput("");
-      if (newTags != null) onTagsChange?.(newTags);
+      commitTag();
     } else if (e.key === "Backspace" && !input && tags.length > 0) {
       const newTags = tags.slice(0, -1);
       setTags(newTags);
@@ -79,6 +85,7 @@ export function TagInput(
               onInput={(e: Event) =>
                 setInput((e.target as HTMLInputElement).value)}
               onKeyDown={(e: KeyboardEvent) => handleKeyDown(e)}
+              onBlur={commitTag}
               class="flex-1 outline-none min-w-[120px] h-full bg-transparent"
               placeholder={tags.length === 0 ? t("editor.tagsPlaceholder") : ""}
             />
