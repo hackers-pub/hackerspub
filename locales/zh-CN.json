@@ -37,17 +37,15 @@
   },
   "signInUp": {
     "title": "注册或登录",
-    "description": "如果你有了账户，我们将发送一个登录链接；如果你没有账号，我们将发送一个注册链接。",
+    "description": "如果你有了账户，我们将发送一个登录链接；如果你没有账号，你需要被现有的 Hackers' Pub 成员邀请。",
     "submit": "$t(signInUp.title)",
     "invalidEmail": "电子邮件地址无效。",
-    "emailNotAllowed": "不允许电子邮件地址登录。Hackers' Pub 目前处于内测阶段。如果你想加入，请与管理员联系。",
-    "signUpEmailSubject": "注册 Hackers' Pub",
-    "signUpEmailText": "欢迎来到 Hackers' Pub！要注册，点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n\n如果你并没申请这个电子邮件，可以安全地忽略它。\n",
+    "noSuchEmail": "此电子邮件地址未在 Hackers' Pub 注册。",
     "signInEmailSubject": "登录 Hackers' Pub",
-    "signInEmailText": "欢迎回到 Hackers' Pub！要注册，点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n\n如果你并没申请这个电子邮件，可以安全地忽略它。\n",
-    "emailSentDescription": "一封带登录（注册）邮件已经送至 {{email}}。请查看你的收件箱，如果你没看到，检查一下垃圾邮件文件夹。",
+    "signInEmailText": "欢迎回到 Hackers' Pub！要登录，点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n\n如果你并没申请这个电子邮件，可以安全地忽略它。\n",
+    "emailSentDescription": "一封带登录链接的邮件已经送至 {{email}}。请查看你的收件箱，如果你没看到，检查一下垃圾邮件文件夹。",
     "emailSentExpires": "注意到链接会于 {{expiration}} 失效。",
-    "emailSentResend": "你仍然可以请求一个新链接，只需要再进行登录（注册）操作。"
+    "emailSentResend": "你仍然可以请求一个新链接，只需要再进行登录操作。"
   },
   "signUp": {
     "title": "注册",

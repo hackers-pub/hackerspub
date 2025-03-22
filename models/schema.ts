@@ -21,16 +21,6 @@ import type { Uuid } from "./uuid.ts";
 
 const currentTimestamp = sql`CURRENT_TIMESTAMP`;
 
-export const allowedEmailTable = pgTable("allowed_email", {
-  email: text().notNull().primaryKey(),
-  created: timestamp({ withTimezone: true })
-    .notNull()
-    .default(currentTimestamp),
-});
-
-export type AllowedEmail = typeof allowedEmailTable.$inferSelect;
-export type NewAllowedEmail = typeof allowedEmailTable.$inferInsert;
-
 export const accountTable = pgTable(
   "account",
   {

@@ -37,17 +37,15 @@
   },
   "signInUp": {
     "title": "Sign in/up",
-    "description": "If you have an account, we'll send you a sign-in link. If you don't have an account, we'll send you a sign-up link.",
+    "description": "If you have an account, we'll send you a sign-in link. If you don't have an account, you need to be invited by an existing Hackers' Pub member.",
     "submit": "$t(signInUp.title)",
     "invalidEmail": "Invalid email address.",
-    "emailNotAllowed": "Email address is not allowed. Hackers' Pub is currently in closed beta. If you want to join, please contact the administrator.",
-    "signUpEmailSubject": "Sign up for Hackers' Pub",
-    "signUpEmailText": "Welcome to Hackers' Pub! To sign up, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n\nIf you didn't request this email, you can safely ignore it.\n",
+    "noSuchEmail": "This email address is not registered with Hackers' Pub.",
     "signInEmailSubject": "Sign in to Hackers' Pub",
     "signInEmailText": "Welcome back to Hackers' Pub! To sign in, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n\nIf you didn't request this email, you can safely ignore it.\n",
-    "emailSentDescription": "An email has been sent to {{email}} with a sign-in/up link. Please check your inbox. If you don't see it, check your spam folder.",
+    "emailSentDescription": "An email has been sent to {{email}} with a sign-in link. Please check your inbox. If you don't see it, check your spam folder.",
     "emailSentExpires": "Note that the link will expire in {{expiration}}.",
-    "emailSentResend": "You can always request a new link by signing in/up again."
+    "emailSentResend": "You can always request a new link by signing in again."
   },
   "signUp": {
     "title": "Sign up",

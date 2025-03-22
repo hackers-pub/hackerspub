@@ -8,15 +8,11 @@ import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { sendEmail } from "../../email.ts";
 import { kv } from "../../kv.ts";
-import { accountEmailTable, allowedEmailTable } from "../../models/schema.ts";
+import { accountEmailTable } from "../../models/schema.ts";
 import {
   createSigninToken,
   EXPIRATION as SIGNIN_EXPIRATION,
 } from "../../models/signin.ts";
-import {
-  createSignupToken,
-  EXPIRATION as SIGNUP_EXPIRATION,
-} from "../../models/signup.ts";
 import { define } from "../../utils.ts";
 
 export const handler = define.handlers({
@@ -40,30 +36,10 @@ export const handler = define.handlers({
     });
     let expiration: Temporal.Duration;
     if (accountEmail == null) {
-      const allowed = await db.query.allowedEmailTable.findFirst({
-        where: eq(allowedEmailTable.email, email),
-      });
-      if (allowed == null) {
-        return page<SignPageProps>({
-          success: false,
-          values: { email },
-          errors: { email: t("signInUp.emailNotAllowed") },
-        });
-      }
-      const token = await createSignupToken(kv, email);
-      const verifyUrl = new URL(`/sign/up/${token.token}`, ctx.url);
-      verifyUrl.searchParams.set("code", token.code);
-      expiration = SIGNUP_EXPIRATION;
-      await sendEmail({
-        to: email,
-        subject: t("signInUp.signUpEmailSubject"),
-        text: t("signInUp.signUpEmailText", {
-          verifyUrl: verifyUrl.href,
-          expiration: expiration.toLocaleString(ctx.state.language, {
-            // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
-            style: "long",
-          }),
-        }),
+      return page<SignPageProps>({
+        success: false,
+        values: { email },
+        errors: { email: t("signInUp.noSuchEmail") },
       });
     } else {
       const token = await createSigninToken(kv, accountEmail.accountId);

@@ -37,17 +37,15 @@
   },
   "signInUp": {
     "title": "ログイン・登録",
-    "description": "アカウントをお持ちの場合はログインリンクを、お持ちでない場合は登録リンクをメールでお送りします。",
+    "description": "アカウントをお持ちの場合はログインリンクを送信します。アカウントをお持ちでない場合は、既存のHackers' Pubメンバーからの招待が必要です。",
     "submit": "$t(signInUp.title)",
     "invalidEmail": "無効なメールアドレスです。",
-    "emailNotAllowed": "許可されていないメールアドレスです。Hackers' Pubは現在クローズドベータです。参加希望の方は管理者にお問い合わせください。",
-    "signUpEmailSubject": "Hackers' Pubへの登録",
-    "signUpEmailText": "Hackers' Pubへようこそ！登録するには以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n\nこのメールに心当たりがない場合は、無視していただいて構いません。\n",
+    "noSuchEmail": "このメールアドレスはHackers' Pubに登録されていません。",
     "signInEmailSubject": "Hackers' Pubへのログイン",
     "signInEmailText": "Hackers' Pubへお帰りなさい！ログインするには以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n\nこのメールに心当たりがない場合は、無視していただいて構いません。\n",
-    "emailSentDescription": "{{email}}にログイン・登録用のリンクを送信しました。受信トレイをご確認ください。見当たらない場合は、迷惑メールフォルダもご確認ください。",
+    "emailSentDescription": "{{email}}にログインリンクを送信しました。受信トレイをご確認ください。見当たらない場合は、迷惑メールフォルダもご確認ください。",
     "emailSentExpires": "リンクの有効期限は{{expiration}}です。",
-    "emailSentResend": "いつでもログイン・登録を再度リクエストして、新しいリンクを受け取ることができます。"
+    "emailSentResend": "いつでもログインを再度リクエストして、新しいリンクを受け取ることができます。"
   },
   "signUp": {
     "title": "登録",

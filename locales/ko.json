@@ -36,18 +36,16 @@
     "githubRepository": "GitHub 저장소"
   },
   "signInUp": {
-    "title": "로그인·가입",
-    "description": "이미 계정이 있으면 로그인 링크를 보내드립니다. 계정이 없으면 가입 링크를 보내드립니다.",
+    "title": "로그인",
+    "description": "이미 계정이 있으면 로그인 링크를 보내드립니다. 계정이 없으시면 다른 Hackers' Pub 회원에게 초대를 받으셔야 합니다.",
     "submit": "$t(signInUp.title)",
     "invalidEmail": "유효하지 않은 이메일 주소입니다.",
-    "emailNotAllowed": "허용되지 않은 이메일 주소입니다. Hackers' Pub은 현재 클로즈드 베타 상태입니다. 가입하고 싶다면 관리자에게 문의하세요.",
-    "signUpEmailSubject": "Hackers' Pub 가입",
-    "signUpEmailText": "Hackers' Pub에 오신 것을 환영합니다! 가입하려면 다음 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n\n이 이메일을 요청하지 않았다면 무시해도 됩니다.\n",
+    "noSuchEmail": "이 이메일 주소는 Hackers' Pub에 등록되어 있지 않습니다.",
     "signInEmailSubject": "Hackers' Pub 로그인",
     "signInEmailText": "Hackers' Pub에 다시 오신 것을 환영합니다! 로그인하려면 다음 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n\n이 이메일을 요청하지 않았다면 무시해도 됩니다.\n",
-    "emailSentDescription": "{{email}}로 로그인·가입 링크가 포함된 이메일이 발송되었습니다. 받은 편지함을 확인해주세요. 받은 편지함에 없다면 스팸함을 확인해주세요.",
+    "emailSentDescription": "{{email}}로 로그인 링크가 포함된 이메일이 발송되었습니다. 받은 편지함을 확인해주세요. 받은 편지함에 없다면 스팸함을 확인해주세요.",
     "emailSentExpires": "링크는 {{expiration}} 후에 만료됩니다.",
-    "emailSentResend": "언제라도 로그인·가입을 다시 요청하여 새 링크를 받을 수 있습니다."
+    "emailSentResend": "언제라도 로그인을 다시 요청하여 새 링크를 받을 수 있습니다."
   },
   "signUp": {
     "title": "가입",
