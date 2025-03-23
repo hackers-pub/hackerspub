@@ -114,7 +114,9 @@ export default define.page<typeof handler, ArticleSharesProps>(
           shareUrl={state.account == null ? undefined : `${postUrl}/share`}
           unshareUrl={state.account == null ? undefined : `${postUrl}/unshare`}
           reactionsUrl={`${postUrl}/shares`}
-          deleteUrl={state.account == null ? undefined : `${postUrl}/delete`}
+          deleteUrl={state.account?.id === article.accountId
+            ? `${postUrl}/delete`
+            : undefined}
           deleteMethod="post"
         />
         <PostReactionsNav
