@@ -1,4 +1,5 @@
 import * as vocab from "@fedify/fedify/vocab";
+import { encodeBase64Url } from "@std/encoding/base64url";
 import * as v from "@valibot/valibot";
 import { eq, sql } from "drizzle-orm";
 import { page } from "fresh";
@@ -14,7 +15,10 @@ import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource, updateArticle } from "../../../../models/article.ts";
 import { preprocessContentHtml } from "../../../../models/html.ts";
-import { renderMarkup } from "../../../../models/markup.ts";
+import {
+  type RenderedMarkup,
+  renderMarkup,
+} from "../../../../models/markup.ts";
 import { createNote } from "../../../../models/note.ts";
 import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
 import {
@@ -29,6 +33,8 @@ import {
 } from "../../../../models/schema.ts";
 import { define } from "../../../../utils.ts";
 import { NoteSourceSchema } from "../../index.tsx";
+
+const KV_NAMESPACE = "article/content";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -60,12 +66,22 @@ export const handler = define.handlers({
       vocab.Article,
       { id: article.id },
     );
-    const content = await renderMarkup(
-      db,
-      ctx.state.fedCtx,
-      article.id,
-      article.content,
+    const encoder = new TextEncoder();
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      encoder.encode(JSON.stringify([article.id, article.content])),
     );
+    const cacheKey = `${KV_NAMESPACE}/${encodeBase64Url(digest)}`;
+    let content = await kv.get<RenderedMarkup>(cacheKey);
+    if (content == null) {
+      content = await renderMarkup(
+        db,
+        ctx.state.fedCtx,
+        article.id,
+        article.content,
+      );
+      await kv.set(cacheKey, content);
+    }
     ctx.state.title = article.title;
     ctx.state.links.push(
       { rel: "canonical", href: permalink },
