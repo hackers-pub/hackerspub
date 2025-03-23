@@ -36,7 +36,7 @@
     "githubRepository": "GitHubリポジトリ"
   },
   "signInUp": {
-    "title": "ログイン・登録",
+    "title": "ログイン",
     "description": "アカウントをお持ちの場合はログインリンクを送信します。アカウントをお持ちでない場合は、既存のHackers' Pubメンバーからの招待が必要です。",
     "submit": "$t(signInUp.title)",
     "invalidEmail": "無効なメールアドレスです。",

@@ -36,7 +36,7 @@
     "githubRepository": "GitHub 仓库"
   },
   "signInUp": {
-    "title": "注册或登录",
+    "title": "登录",
     "description": "如果你有了账户，我们将发送一个登录链接；如果你没有账号，你需要被现有的 Hackers' Pub 成员邀请。",
     "submit": "$t(signInUp.title)",
     "invalidEmail": "电子邮件地址无效。",

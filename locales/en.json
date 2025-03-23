@@ -36,7 +36,7 @@
     "githubRepository": "GitHub repository"
   },
   "signInUp": {
-    "title": "Sign in/up",
+    "title": "Sign in",
     "description": "If you have an account, we'll send you a sign-in link. If you don't have an account, you need to be invited by an existing Hackers' Pub member.",
     "submit": "$t(signInUp.title)",
     "invalidEmail": "Invalid email address.",
