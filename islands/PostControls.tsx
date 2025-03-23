@@ -13,7 +13,7 @@ export interface PostControlsProps {
   shared: boolean;
   shareUrl?: string;
   unshareUrl?: string;
-  sharedPeopleUrl?: string;
+  reactionsUrl?: string;
   deleteUrl?: string;
   deleteMethod?: "DELETE" | "POST" | "delete" | "post";
 }
@@ -52,7 +52,7 @@ export function PostControls(props: PostControlsProps) {
   }
 
   function onDelete(this: HTMLButtonElement, _event: MouseEvent) {
-    if (props.deleteUrl == null || !confirm(t("note.deleteConfirm"))) return;
+    if (props.deleteUrl == null || !confirm(t("post.deleteConfirm"))) return;
     setDeleted("deleting");
     fetch(props.deleteUrl, { method: props.deleteMethod ?? "delete" })
       .then((response) => {
@@ -149,13 +149,13 @@ export function PostControls(props: PostControlsProps) {
             </span>
           </button>
         </form>
-        {props.sharedPeopleUrl != null && (
+        {props.reactionsUrl != null && (
           <a
             class={`h-5 flex opacity-50 ${
               deleted != null ? "" : "hover:opacity-100"
             }`}
-            href={props.sharedPeopleUrl}
-            title={t("note.sharedPeople")}
+            href={props.reactionsUrl}
+            title={t("post.reactions.title")}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -166,12 +166,12 @@ export function PostControls(props: PostControlsProps) {
               className={`size-5 ${
                 props.active === "sharedPeople" ? "stroke-2" : ""
               }`}
-              aria-label={t("note.sharedPeople")}
+              aria-label={t("post.reactions.title")}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
+                d="M9.348 14.652a3.75 3.75 0 0 1 0-5.304m5.304 0a3.75 3.75 0 0 1 0 5.304m-7.425 2.121a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
               />
             </svg>
           </a>
@@ -185,7 +185,7 @@ export function PostControls(props: PostControlsProps) {
                   ? "cursor-default"
                   : "hover:opacity-100"
               }`}
-              title={t("note.delete")}
+              title={t("post.delete")}
               onClick={onDelete}
             >
               <svg
@@ -195,7 +195,7 @@ export function PostControls(props: PostControlsProps) {
                 strokeWidth={1.5}
                 stroke="currentColor"
                 className={`size-5 ${deleted === "deleted" ? "stroke-2" : ""}`}
-                aria-label={t("note.delete")}
+                aria-label={t("post.delete")}
               >
                 <path
                   strokeLinecap="round"
@@ -213,8 +213,8 @@ export function PostControls(props: PostControlsProps) {
                     {" — "}
                     <Msg
                       $key={deleted === "deleted"
-                        ? "note.deleted"
-                        : "note.deleting"}
+                        ? "post.deleted"
+                        : "post.deleting"}
                     />
                   </span>
                 )}

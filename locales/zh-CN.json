@@ -163,7 +163,6 @@
     "comments_other": "{{count}} 条评论",
     "remoteCommentDescription": "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论。在你的实例搜索 {{permalink}} 后回复。",
     "shared": "{{name}} 转帖了以下文章：",
-    "sharedPeople": "转帖此文章的人",
     "replied": "{{name}} 回复了以下文章：",
     "edit": "编辑",
     "delete": "删除",
@@ -178,13 +177,19 @@
     "shared": "已转帖",
     "unshare": "取消转帖",
     "unsharing": "正在取消转帖……",
-    "sharedPeople": "转帖此帖子的人",
-    "delete": "删除",
-    "deleteConfirm": "你确定要删除此帖子吗？",
-    "deleting": "正在删除……",
-    "deleted": "已经删除",
     "sharedBy": "被 {{name}} 转帖",
     "remoteReplyDescription": "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论。在你的实例搜索 {{permalink}} 后回复。"
+  },
+  "post": {
+    "delete": "删除",
+    "deleteConfirm": "你确定要删除此内容吗？",
+    "deleting": "正在删除……",
+    "deleted": "已经删除",
+    "reactions": {
+      "title": "反应",
+      "sharers": "转帖此内容的人",
+      "quotes": "引用"
+    }
   },
   "editor": {
     "titlePlaceholder": "文章标题",

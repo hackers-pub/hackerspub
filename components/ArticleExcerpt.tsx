@@ -150,7 +150,7 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
               shared={props.controls.shared}
               shareUrl={props.controls.shareUrl}
               unshareUrl={props.controls.unshareUrl}
-              sharedPeopleUrl={props.controls.sharedPeopleUrl}
+              reactionsUrl={props.controls.sharedPeopleUrl}
               deleteUrl={props.deleteUrl ?? undefined}
               deleteMethod="post"
             />

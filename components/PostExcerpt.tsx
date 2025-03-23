@@ -56,6 +56,7 @@ export interface PostExcerptProps {
     avatarUrl: string;
   };
   noControls?: boolean;
+  noQuote?: boolean;
   signedAccount?: Account & { actor: Actor };
 }
 
@@ -207,7 +208,9 @@ export function PostExcerpt(props: PostExcerptProps) {
                     authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
                     authorAvatarUrl={getAvatarUrl(post.actor)}
                     authorEmojis={post.actor.emojis}
-                    quotedPostId={post.quotedPostId ?? undefined}
+                    quotedPostId={props.noQuote
+                      ? undefined
+                      : (post.quotedPostId ?? undefined)}
                     sharer={sharer}
                     media={post.media}
                     published={post.published}
@@ -234,7 +237,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                       shared={post.shares.some((share) =>
                         share.actorId === props.signedAccount?.actor.id
                       )}
-                      sharedPeopleUrl={post.noteSourceId == null
+                      reactionsUrl={post.noteSourceId == null
                         ? undefined
                         : `/@${post.actor.username}/${post.noteSourceId}/shares`}
                       deleteUrl={post.actor.accountId == null ||

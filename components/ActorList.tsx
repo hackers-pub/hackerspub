@@ -7,11 +7,19 @@ export interface ActorListProps {
   actors: (Actor & { account?: Account | null })[];
   actorMentions: { actor: Actor }[];
   nextUrl?: string;
+  class?: string;
 }
 
-export function ActorList({ actors, actorMentions, nextUrl }: ActorListProps) {
+export function ActorList(
+  { actors, actorMentions, nextUrl, class: cls }: ActorListProps,
+) {
   return (
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div
+      class={`
+        grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4
+        ${cls ?? ""}
+      `}
+    >
       {actors.map((actor) => (
         <div
           key={actor.id}

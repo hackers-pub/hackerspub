@@ -1,9 +1,8 @@
 import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import { ActorList } from "../../../components/ActorList.tsx";
-import { Msg } from "../../../components/Msg.tsx";
-import { PageTitle } from "../../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
+import { PostReactionsNav } from "../../../components/PostReactionsNav.tsx";
 import { db } from "../../../db.ts";
 import { PostControls } from "../../../islands/PostControls.tsx";
 import { extractMentionsFromHtml } from "../../../models/markup.ts";
@@ -45,7 +44,16 @@ export const handler = define.handlers({
         documentLoader: await ctx.state.fedCtx.getDocumentLoader(note.account),
       },
     );
-    return page<NoteSharedPeopleProps>({ note, sharers, sharersMentions });
+    const quotes = await db.$count(
+      postTable,
+      eq(postTable.quotedPostId, note.post.id),
+    );
+    return page<NoteSharedPeopleProps>({
+      note,
+      sharers,
+      sharersMentions,
+      quotes,
+    });
   },
 });
 
@@ -53,11 +61,12 @@ interface NoteSharedPeopleProps {
   note: NonNullable<Awaited<ReturnType<typeof getNoteSource>>>;
   sharers: (Actor & { account?: Account | null })[];
   sharersMentions: { actor: Actor }[];
+  quotes: number;
 }
 
 export default define.page<typeof handler, NoteSharedPeopleProps>(
   function NoteSharedPeople(
-    { data: { note, sharers, sharersMentions }, state },
+    { data: { note, sharers, sharersMentions, quotes }, state },
   ) {
     const postUrl = `/@${note.account.username}/${note.id}`;
     return (
@@ -73,7 +82,7 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
           active="sharedPeople"
           replies={note.post.repliesCount}
           replyUrl={`${postUrl}#replies`}
-          shares={note.post.sharesCount}
+          shares={sharers.length}
           shareUrl={state.account == null ||
               !["public", "unlisted"].includes(note.post.visibility)
             ? undefined
@@ -85,16 +94,24 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
           shared={note.post.shares.some((share) =>
             share.actorId === state.account?.actor.id
           )}
-          sharedPeopleUrl={`${postUrl}/shares`}
+          reactionsUrl={`${postUrl}/shares`}
           deleteUrl={state.account == null ||
               state.account.id !== note.accountId
             ? undefined
             : postUrl}
         />
-        <PageTitle class="mt-4">
-          <Msg $key="note.sharedPeople" />
-        </PageTitle>
-        <ActorList actors={sharers} actorMentions={sharersMentions} />
+        <div class="mt-4 ml-14">
+          <PostReactionsNav
+            active="sharers"
+            hrefs={{ sharers: "", quotes: `${postUrl}/quotes` }}
+            stats={{ sharers: sharers.length, quotes }}
+          />
+          <ActorList
+            actors={sharers}
+            actorMentions={sharersMentions}
+            class="mt-4"
+          />
+        </div>
       </>
     );
   },
