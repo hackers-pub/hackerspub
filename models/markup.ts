@@ -73,7 +73,13 @@ let md = createMarkdownIt({ html: true, linkify: true })
       };
     },
   })
-  .use(texmath, { engine: katex })
+  .use(texmath, {
+    engine: katex,
+    katexOptions: {
+      output: "mathml",
+      throwOnError: false,
+    },
+  })
   .use(title)
   .use(toc, {
     placeholder: `--${crypto.randomUUID()}--`.toUpperCase(),
