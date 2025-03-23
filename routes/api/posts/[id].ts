@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../../../db.ts";
 import { isPostVisibleTo } from "../../../models/post.ts";
-import { postTable } from "../../../models/schema.ts";
+import { postMediumTable, postTable } from "../../../models/schema.ts";
 import { validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
 
@@ -14,6 +14,9 @@ export const handler = define.handlers(async (ctx) => {
       actor: { with: { followers: true } },
       articleSource: true,
       mentions: { with: { actor: true } },
+      media: {
+        orderBy: postMediumTable.index,
+      },
     },
     where: eq(postTable.id, postId),
   });

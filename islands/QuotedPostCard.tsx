@@ -6,7 +6,13 @@ import type { Language } from "../i18n.ts";
 import { getAvatarUrl } from "../models/avatar.ts";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import { preprocessContentHtml } from "../models/html.ts";
-import type { Actor, ArticleSource, Mention, Post } from "../models/schema.ts";
+import type {
+  Actor,
+  ArticleSource,
+  Mention,
+  Post,
+  PostMedium,
+} from "../models/schema.ts";
 import type { Uuid } from "../models/uuid.ts";
 import { Link } from "./Link.tsx";
 import { Timestamp } from "./Timestamp.tsx";
@@ -21,6 +27,7 @@ type PostObject = Post & {
   actor: Actor;
   articleSource: ArticleSource | null;
   mentions: (Mention & { actor: Actor })[];
+  media: PostMedium[];
 };
 
 export function QuotedPostCard(props: QuotedPostCardProps) {
@@ -36,7 +43,7 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
     <TranslationSetup language={props.language}>
       <div
         class={`
-        block border
+        block border group
         border-stone-300 bg-stone-100 dark:border-stone-700 dark:bg-stone-800
         hover:border-stone-400 hover:bg-stone-200
         dark:hover:border-stone-500 dark:hover:bg-stone-700
@@ -127,11 +134,36 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                   ),
                 }}
               />
+              {post.media.length > 0 && (
+                <div class="flex justify-center w-full overflow-x-auto">
+                  {post.media.map((medium) => (
+                    <img
+                      key={medium.index}
+                      src={medium.url}
+                      width={medium.width ?? undefined}
+                      height={medium.height ?? undefined}
+                      alt={medium.alt ?? undefined}
+                      class={`
+                        mt-2 object-contain max-w-96 max-h-96
+                        ${
+                        post.sensitive || medium.sensitive
+                          ? "my-20 blur-2xl hover:blur-0 transition-all"
+                          : ""
+                      }
+                      `}
+                    />
+                  ))}
+                </div>
+              )}
               {post.quotedPostId && (
                 <QuotedPostCard
                   language={props.language}
                   id={post.quotedPostId}
-                  class="mt-4 ml-14"
+                  class="
+                    mt-4 ml-14
+                    group-hover:border-stone-400 group-hover:bg-stone-200
+                    dark:group-hover:border-stone-500 dark:group-hover:bg-stone-700
+                  "
                 />
               )}
             </Link>

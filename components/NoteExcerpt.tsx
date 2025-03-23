@@ -162,14 +162,6 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 ),
               }}
             />
-            {props.media.length < 1 && props.quotedPostId != null &&
-              (
-                <QuotedPostCard
-                  id={props.quotedPostId}
-                  language={lang}
-                  class="mt-4"
-                />
-              )}
             {props.media.length < 1 && props.quotedPostId == null &&
               props.link && (
               <div class="mt-4">
@@ -281,7 +273,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   class={`
                     ${props.replyTarget ? "opacity-55" : ""}
                     ${
-                    props.sensitive
+                    props.sensitive || medium.sensitive
                       ? "my-20 blur-2xl hover:blur-0 transition-all"
                       : ""
                   }
@@ -290,6 +282,14 @@ export function NoteExcerpt(props: NoteExcerptProps) {
               ))}
             </div>
           )}
+          {props.quotedPostId != null &&
+            (
+              <QuotedPostCard
+                id={props.quotedPostId}
+                language={lang}
+                class="mt-4 ml-14"
+              />
+            )}
         </article>
       )}
     </Translation>
