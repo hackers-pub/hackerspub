@@ -252,7 +252,7 @@ export default define.page<typeof handler, ArticlePageProps>(
           />
           <div
             lang={article.language}
-            class="prose dark:prose-invert mt-4 text-xl"
+            class="prose dark:prose-invert mt-4 text-xl leading-8"
             dangerouslySetInnerHTML={{ __html: contentHtml }}
           />
           <PostControls
