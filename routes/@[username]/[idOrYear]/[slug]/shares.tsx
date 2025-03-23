@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { page } from "fresh";
 import { ActorList } from "../../../../components/ActorList.tsx";
 import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
@@ -36,6 +36,7 @@ export const handler = define.handlers({
         mentions: true,
       },
       where: eq(postTable.sharedPostId, post.id),
+      orderBy: desc(postTable.published),
     });
     const sharers = shares
       .filter((s) => isPostVisibleTo(s, ctx.state.account?.actor))
