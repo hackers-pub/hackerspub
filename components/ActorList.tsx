@@ -1,4 +1,6 @@
+import { escape } from "@std/html/entities";
 import { Link } from "../islands/Link.tsx";
+import { renderCustomEmojis } from "../models/emoji.ts";
 import { preprocessContentHtml } from "../models/html.ts";
 import type { Account, Actor } from "../models/schema.ts";
 import { Msg } from "./Msg.tsx";
@@ -40,7 +42,16 @@ export function ActorList(
                     : `/@${actor.username}`}
                   href={actor.url ?? actor.iri}
                 >
-                  {actor.name ?? actor.username}
+                  {actor.name == null ? actor.username : (
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: renderCustomEmojis(
+                          escape(actor.name),
+                          actor.emojis,
+                        ),
+                      }}
+                    />
+                  )}
                 </Link>
               </h2>
               <p class="text-stone-500">
