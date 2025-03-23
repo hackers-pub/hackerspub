@@ -125,8 +125,8 @@ export const handler = define.handlers({
       expires: new Date(Temporal.Now.instant().add(EXPIRATION).toString()),
       secure: ctx.url.protocol === "https:",
     });
-    headers.set("Location", "/");
-    return new Response(null, { status: 301, headers });
+    headers.set("Location", "/?filter=recommendations");
+    return new Response(null, { status: 302, headers });
   },
 });
 
