@@ -21,6 +21,7 @@ import { Timestamp } from "./Timestamp.tsx";
 export interface QuotedPostCardProps {
   language: Language;
   id: Uuid;
+  noLink?: boolean;
   class?: string | null;
 }
 
@@ -75,8 +76,10 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
           : (
             <Link
               class="block p-4"
-              href={post.url ?? post.iri}
-              internalHref={post.noteSourceId
+              href={props.noLink ? undefined : post.url ?? post.iri}
+              internalHref={props.noLink
+                ? undefined
+                : post.noteSourceId
                 ? `/@${post.actor.username}/${post.noteSourceId}`
                 : post.articleSource
                 ? `/@${post.actor.username}/${post.articleSource.publishedYear}/${post.articleSource.slug}`
@@ -114,7 +117,7 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                       {post.actor.handle}
                     </span>
                   </p>
-                  <p class="flex flex-wrap sm:flex-nowrap text-stone-500 dark:text-stone-400">
+                  <div class="flex flex-wrap sm:flex-nowrap text-stone-500 dark:text-stone-400">
                     <span class="after:content-['_·'] mr-1">
                       <Timestamp
                         value={post.published}
@@ -122,7 +125,7 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                       />
                     </span>
                     <PostVisibilityIcon visibility={post.visibility} />
-                  </p>
+                  </div>
                 </div>
               </div>
               {post.type === "Article"

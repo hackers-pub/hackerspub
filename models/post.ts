@@ -162,7 +162,10 @@ export async function syncPostFromNoteSource(
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     media: NoteMedium[];
   },
-  replyTarget?: { id: Uuid },
+  relations: {
+    replyTarget?: { id: Uuid };
+    quotedPost?: { id: Uuid };
+  } = {},
 ): Promise<
   Post & {
     actor: Actor & {
@@ -202,7 +205,8 @@ export async function syncPostFromNoteSource(
     visibility: noteSource.visibility,
     actorId: actor.id,
     noteSourceId: noteSource.id,
-    replyTargetId: replyTarget?.id,
+    replyTargetId: relations.replyTarget?.id,
+    quotedPostId: relations.quotedPost?.id,
     contentHtml: rendered.html,
     language: noteSource.language,
     tags: {}, // TODO
@@ -263,7 +267,13 @@ export async function persistPost(
     contextLoader?: DocumentLoader;
     documentLoader?: DocumentLoader;
   } = {},
-): Promise<Post & { actor: Actor & { instance: Instance } } | undefined> {
+): Promise<
+  | Post & {
+    actor: Actor & { instance: Instance };
+    mentions: (Mention & { actor: Actor })[];
+  }
+  | undefined
+> {
   if (post.id == null || post.attributionId == null || post.content == null) {
     logger.debug(
       "Missing required fields (id, attributedTo, content): {post}",
@@ -464,6 +474,7 @@ export async function persistPost(
   await db.delete(mentionTable).where(
     eq(mentionTable.postId, persistedPost.id),
   );
+  let mentionList: (Mention & { actor: Actor })[] = [];
   if (mentions.size > 0) {
     const mentionedActors = await db.query.actorTable.findMany({
       where: inArray(actorTable.iri, [...mentions]),
@@ -480,7 +491,7 @@ export async function persistPost(
         mentionedActors.push(actor);
       }
     }
-    await db.insert(mentionTable)
+    const mentionsResult = await db.insert(mentionTable)
       .values(
         mentionedActors.map((actor) => ({
           postId: persistedPost.id,
@@ -488,7 +499,12 @@ export async function persistPost(
         })),
       )
       .onConflictDoNothing()
+      .returning()
       .execute();
+    mentionList = mentionsResult.map((m) => ({
+      ...m,
+      actor: mentionedActors.find((a) => a.id === m.actorId)!,
+    }));
   }
   await db.delete(postMediumTable).where(
     eq(postMediumTable.postId, persistedPost.id),
@@ -524,7 +540,7 @@ export async function persistPost(
       }
     }
   }
-  return persistedPost;
+  return { ...persistedPost, mentions: mentionList };
 }
 
 export async function persistSharedPost(

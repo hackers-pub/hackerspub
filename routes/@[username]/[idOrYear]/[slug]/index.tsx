@@ -31,6 +31,7 @@ import {
   type PostMedium,
   postTable,
 } from "../../../../models/schema.ts";
+import type { Uuid } from "../../../../models/uuid.ts";
 import { define } from "../../../../utils.ts";
 import { NoteSourceSchema } from "../../index.tsx";
 
@@ -190,10 +191,15 @@ export const handler = define.handlers({
       });
     }
     const disk = drive.use();
+    const quotedPost = parsed.output.quotedPostId == null
+      ? undefined
+      : await db.query.postTable.findFirst({
+        where: eq(postTable.id, parsed.output.quotedPostId as Uuid),
+      });
     const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
-    }, article.post);
+    }, { replyTarget: article.post, quotedPost });
     if (post == null) {
       return new Response("Internal Server Error", { status: 500 });
     }
@@ -312,7 +318,6 @@ export default define.page<typeof handler, ArticlePageProps>(
                 commentTargets={commentTargets}
                 language={state.language}
                 postUrl={postUrl}
-                previewUrl={new URL("/api/preview", url).href}
                 onPost="reload"
               />
             )}

@@ -225,6 +225,10 @@
     "language": "语言",
     "preview": "预览",
     "previewLoading": "正在预览……",
+    "quoteLoading": "正在加载引用……",
+    "quoteArticleConfirm": "你想引用这篇文章吗？",
+    "quoteNoteConfirm": "你想引用这个帖子吗？",
+    "removeQuote": "删除引用",
     "edit": "编辑",
     "post": "发布",
     "postFailed": "发布失败。请稍候再试。"

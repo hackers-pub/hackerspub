@@ -37,6 +37,7 @@ import {
   type PostMedium,
   postTable,
 } from "../../models/schema.ts";
+import type { Uuid } from "../../models/uuid.ts";
 import { define } from "../../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]"]);
@@ -47,7 +48,6 @@ export const NoteSourceSchema = v.objectAsync({
   content: v.pipe(v.string(), v.trim(), v.nonEmpty()),
   language: v.picklist(POSSIBLE_LOCALES),
   visibility: v.picklist(POST_VISIBILITIES),
-  replyTargetId: v.optional(v.pipe(v.string(), v.uuid())),
   media: v.arrayAsync(
     v.pipeAsync(
       v.objectAsync({
@@ -64,6 +64,7 @@ export const NoteSourceSchema = v.objectAsync({
       v.transform((pair) => ({ alt: pair.alt, blob: pair.url })),
     ),
   ),
+  quotedPostId: v.optional(v.pipe(v.string(), v.uuid())),
 });
 
 export const handler = define.handlers({
@@ -419,10 +420,15 @@ export const handler = define.handlers({
       });
     }
     const disk = drive.use();
+    const quotedPost = parsed.output.quotedPostId == null
+      ? undefined
+      : await db.query.postTable.findFirst({
+        where: eq(postTable.id, parsed.output.quotedPostId as Uuid),
+      });
     const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
-    });
+    }, { quotedPost });
     if (post == null) {
       return new Response("Internal Server Error", { status: 500 });
     }

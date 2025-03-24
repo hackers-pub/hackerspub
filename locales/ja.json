@@ -223,6 +223,10 @@
     "language": "言語",
     "preview": "プレビュー",
     "previewLoading": "読み込み中…",
+    "quoteLoading": "引用を読み込み中…",
+    "quoteArticleConfirm": "この記事を引用しますか？",
+    "quoteNoteConfirm": "この投稿を引用しますか？",
+    "removeQuote": "引用を削除",
     "edit": "編集",
     "post": "投稿",
     "postFailed": "投稿に失敗しました。後でもう一度お試しください。"

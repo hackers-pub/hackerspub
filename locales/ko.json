@@ -221,6 +221,10 @@
     "language": "언어",
     "preview": "미리보기",
     "previewLoading": "로딩 중…",
+    "quoteLoading": "인용 로딩 중…",
+    "quoteArticleConfirm": "이 게시글을 인용하시겠습니까?",
+    "quoteNoteConfirm": "이 단문을 인용하시겠습니까?",
+    "removeQuote": "인용 지우기",
     "edit": "고치기",
     "post": "올리기",
     "postFailed": "단문을 올리는 데 실패했습니다. 나중에 다시 시도해 주세요."

@@ -213,7 +213,10 @@ export async function createNote(
     id?: Uuid;
     media: { blob: Blob; alt: string }[];
   },
-  replyTarget?: Post,
+  relations: {
+    replyTarget?: Post;
+    quotedPost?: Post;
+  } = {},
 ): Promise<
   Post & {
     actor: Actor & {
@@ -245,14 +248,23 @@ export async function createNote(
     ...noteSource,
     media,
     account,
-  }, replyTarget);
-  if (replyTarget != null) await updateRepliesCount(db, replyTarget, 1);
+  }, relations);
+  if (relations.replyTarget != null) {
+    await updateRepliesCount(db, relations.replyTarget, 1);
+  }
   const noteObject = await getNote(
     db,
     disk,
     fedCtx,
     { ...noteSource, media, account },
-    replyTarget == null ? undefined : new URL(replyTarget.iri),
+    {
+      replyTargetId: relations.replyTarget == null
+        ? undefined
+        : new URL(relations.replyTarget.iri),
+      quotedPostId: relations.quotedPost == null
+        ? undefined
+        : new URL(relations.quotedPost.iri),
+    },
   );
   await fedCtx.sendActivity(
     { identifier: source.accountId },
@@ -322,11 +334,18 @@ export async function updateNote(
     disk,
     fedCtx,
     { ...noteSource, media, account },
-    post.replyTargetId == null
-      ? undefined
-      : await db.query.postTable.findFirst({
-        where: eq(postTable.id, post.replyTargetId),
-      }).then((r) => r?.iri == null ? undefined : new URL(r.iri)),
+    {
+      replyTargetId: post.replyTargetId == null
+        ? undefined
+        : await db.query.postTable.findFirst({
+          where: eq(postTable.id, post.replyTargetId),
+        }).then((r) => r?.iri == null ? undefined : new URL(r.iri)),
+      quotedPostId: post.quotedPostId == null
+        ? undefined
+        : await db.query.postTable.findFirst({
+          where: eq(postTable.id, post.quotedPostId),
+        }).then((r) => r?.iri == null ? undefined : new URL(r.iri)),
+    },
   );
   await fedCtx.sendActivity(
     { identifier: noteSource.accountId },

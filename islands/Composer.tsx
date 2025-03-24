@@ -12,8 +12,10 @@ import {
 } from "../i18n.ts";
 import { preprocessContentHtml } from "../models/html.ts";
 import type { RenderedMarkup } from "../models/markup.ts";
-import type { Actor, PostVisibility } from "../models/schema.ts";
+import type { Actor, Post, PostVisibility } from "../models/schema.ts";
+import type { Uuid } from "../models/uuid.ts";
 import { MarkupTextArea } from "./MarkupTextArea.tsx";
+import { QuotedPostCard } from "./QuotedPostCard.tsx";
 
 const SUPPORTED_MEDIA_TYPES = [
   "image/jpeg",
@@ -25,9 +27,9 @@ const SUPPORTED_MEDIA_TYPES = [
 export interface ComposerProps {
   class?: string;
   language: Language;
-  previewUrl: string;
   postUrl: string;
   commentTargets?: string[];
+  quotedPostId?: Uuid | null;
   textAreaId?: string;
   // deno-lint-ignore no-explicit-any
   onPost: "reload" | ((json: any) => void);
@@ -69,6 +71,10 @@ export function Composer(props: ComposerProps) {
   const [visibility, setVisibility] = useState<PostVisibility>(
     props.defaultVisibility ?? "public",
   );
+  const [quotedPostId, setQuotedPostId] = useState<Uuid | null>(
+    props.quotedPostId ?? null,
+  );
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const rows = (content.match(/\n/g)?.length ?? 0) + 1;
 
   function onInput(event: JSX.TargetedInputEvent<HTMLTextAreaElement>) {
@@ -88,7 +94,7 @@ export function Composer(props: ComposerProps) {
   function onPreview(event: JSX.TargetedMouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     setMode("previewLoading");
-    fetch(props.previewUrl, {
+    fetch("/api/preview", {
       method: "POST",
       headers: {
         "Accept": "application/json",
@@ -151,6 +157,30 @@ export function Composer(props: ComposerProps) {
         const file = item.getAsFile();
         if (file == null) continue;
         addMedium(file);
+      } else if (item.kind === "string" && item.type === "text/plain") {
+        item.getAsString((text) => {
+          if (!URL.canParse(text)) return;
+          setQuoteLoading(true);
+          fetch(`/api/posts?iri=${encodeURIComponent(text)}`).then(
+            async (r) => {
+              if (!r.ok) {
+                setQuoteLoading(false);
+                return;
+              }
+              const pastedPost: Post = await r.json();
+              const confirmMsg = t(
+                pastedPost.type === "Article"
+                  ? "composer.quoteArticleConfirm"
+                  : "composer.quoteNoteConfirm",
+              );
+              setQuoteLoading(false);
+              if (confirm(confirmMsg)) {
+                setQuotedPostId(pastedPost.id);
+                setContent(content);
+              }
+            },
+          );
+        });
       }
     }
   }
@@ -173,12 +203,19 @@ export function Composer(props: ComposerProps) {
     const content = data.get("content") as string;
     const visibility = data.get("visibility") as string;
     const language = data.get("language") as string;
+    const quotedPostId = data.get("quotedPostId") as Uuid | null;
     const response = await fetch(form.action, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ content, visibility, language, media }),
+      body: JSON.stringify({
+        content,
+        visibility,
+        language,
+        media,
+        quotedPostId,
+      }),
     });
     if (response.status < 200 || response.status >= 300) {
       alert(t("composer.postFailed"));
@@ -207,6 +244,14 @@ export function Composer(props: ComposerProps) {
         onSubmit={onSubmit}
         class={`flex flex-col ${props.class ?? ""}`}
       >
+        {quotedPostId != null && (
+          <QuotedPostCard
+            id={quotedPostId}
+            noLink
+            language={props.language}
+            class="mb-4"
+          />
+        )}
         {mode === "preview" &&
           (
             <div
@@ -300,6 +345,23 @@ export function Composer(props: ComposerProps) {
             </select>
           </div>
           <div class="flex flex-row gap-2">
+            {!quoteLoading && quotedPostId != null && (
+              <>
+                <Button
+                  type="button"
+                  class="grow"
+                  onClick={() => setQuotedPostId(null)}
+                >
+                  <Msg $key="composer.removeQuote" />
+                </Button>
+                <input type="hidden" name="quotedPostId" value={quotedPostId} />
+              </>
+            )}
+            {quoteLoading && (
+              <span class="mt-2 grow">
+                <Msg $key="composer.quoteLoading" />
+              </span>
+            )}
             <Button
               type="button"
               disabled={mode === "previewLoading"}

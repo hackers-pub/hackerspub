@@ -120,7 +120,10 @@ export async function getNote(
   disk: Disk,
   ctx: Context<void>,
   note: NoteSource & { account: Account; media: NoteMedium[] },
-  replyTargetId?: URL,
+  relations: {
+    replyTargetId?: URL;
+    quotedPostId?: URL;
+  } = {},
 ): Promise<vocab.Note> {
   const rendered = await renderMarkup(db, ctx, note.id, note.content);
   const attachments: vocab.Document[] = [];
@@ -135,6 +138,22 @@ export async function getNote(
       }),
     );
   }
+  const tags: vocab.Link[] = Object.entries(rendered.mentions)
+    .map(([handle, actor]) =>
+      new vocab.Mention({
+        href: new URL(actor.iri),
+        name: handle,
+      })
+    );
+  if (relations.quotedPostId != null) {
+    tags.push(
+      new vocab.Link({
+        mediaType: "application/activity+json",
+        href: relations.quotedPostId,
+        name: `RE: ${relations.quotedPostId.href}`,
+      }),
+    );
+  }
   return new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
     attribution: ctx.getActorUri(note.accountId),
@@ -144,7 +163,8 @@ export async function getNote(
       Object.values(rendered.mentions).map((actor) => new URL(actor.iri)),
       note.visibility,
     ),
-    replyTarget: replyTargetId,
+    replyTarget: relations.replyTargetId,
+    quoteUrl: relations.quotedPostId,
     contents: [
       rendered.html,
       new LanguageString(rendered.html, note.language),
@@ -154,12 +174,7 @@ export async function getNote(
       mediaType: "text/markdown",
     }),
     attachments,
-    tags: Object.entries(rendered.mentions).map(([handle, actor]) =>
-      new vocab.Mention({
-        href: new URL(actor.iri),
-        name: handle,
-      })
-    ),
+    tags,
     url: new URL(
       `/@${note.account.username}/${note.id}`,
       ctx.canonicalOrigin,
@@ -181,7 +196,7 @@ federation
         with: {
           account: true,
           media: true,
-          post: { with: { replyTarget: true } },
+          post: { with: { replyTarget: true, quotedPost: true } },
         },
         where: eq(noteSourceTable.id, values.id),
       });
@@ -192,9 +207,14 @@ federation
         disk,
         ctx,
         note,
-        note.post.replyTarget == null
-          ? undefined
-          : new URL(note.post.replyTarget.iri),
+        {
+          replyTargetId: note.post.replyTarget == null
+            ? undefined
+            : new URL(note.post.replyTarget.iri),
+          quotedPostId: note.post.quotedPost == null
+            ? undefined
+            : new URL(note.post.quotedPost.iri),
+        },
       );
     },
   )

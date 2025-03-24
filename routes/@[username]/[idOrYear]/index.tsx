@@ -32,7 +32,7 @@ import {
   type PostMedium,
   postTable,
 } from "../../../models/schema.ts";
-import { validateUuid } from "../../../models/uuid.ts";
+import { type Uuid, validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
 import { NoteSourceSchema } from "../index.tsx";
 
@@ -351,10 +351,15 @@ export const handler = define.handlers({
       });
     }
     const disk = drive.use();
+    const quotedPost = parsed.output.quotedPostId == null
+      ? undefined
+      : await db.query.postTable.findFirst({
+        where: eq(postTable.id, parsed.output.quotedPostId as Uuid),
+      });
     const reply = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
-    }, post);
+    }, { replyTarget: post, quotedPost });
     if (reply == null) {
       return new Response("Internal Server Error", { status: 500 });
     }
@@ -427,7 +432,6 @@ type NotePageProps = {
 export default define.page<typeof handler, NotePageProps>(
   function NotePage(
     {
-      url,
       state,
       data: { post, postUrl, replies },
     },
@@ -492,7 +496,6 @@ export default define.page<typeof handler, NotePageProps>(
               class="mt-8"
               language={state.language}
               postUrl={postUrl}
-              previewUrl={new URL("/api/preview", url).href}
               commentTargets={commentTargets}
               textAreaId="reply"
               onPost="reload"

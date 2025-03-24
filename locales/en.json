@@ -226,6 +226,10 @@
     "language": "Language",
     "preview": "Preview",
     "previewLoading": "Loading…",
+    "quoteLoading": "Loading quote…",
+    "quoteArticleConfirm": "Do you want to quote this article?",
+    "quoteNoteConfirm": "Do you want to quote this note?",
+    "removeQuote": "Remove quote",
     "edit": "Edit",
     "post": "Post",
     "postFailed": "Failed to submit your note. Please try again later."

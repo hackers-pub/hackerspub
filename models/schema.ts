@@ -678,8 +678,16 @@ export const postRelations = relations(
       references: [postTable.id],
       relationName: "replyTarget",
     }),
+    quotedPost: one(postTable, {
+      fields: [postTable.quotedPostId],
+      references: [postTable.id],
+      relationName: "quotedPost",
+    }),
     replies: many(postTable, { relationName: "replyTarget" }),
     shares: many(postTable, { relationName: "sharedPost" }),
+    quotes: many(postTable, {
+      relationName: "quotedPost",
+    }),
     mentions: many(mentionTable),
     media: many(postMediumTable),
     link: one(postLinkTable, {
