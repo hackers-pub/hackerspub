@@ -64,7 +64,7 @@ export const NoteSourceSchema = v.objectAsync({
       v.transform((pair) => ({ alt: pair.alt, blob: pair.url })),
     ),
   ),
-  quotedPostId: v.optional(v.pipe(v.string(), v.uuid())),
+  quotedPostId: v.optional(v.nullable(v.pipe(v.string(), v.uuid()))),
 });
 
 export const handler = define.handlers({
