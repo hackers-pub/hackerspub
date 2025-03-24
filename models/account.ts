@@ -242,8 +242,10 @@ export async function verifyAccountLink(
     const rel = attributes.rel?.toLowerCase()?.split(/\s+/g) ?? [];
     if (!rel.includes("me")) continue;
     const href = attributes.href;
-    if (href == null) continue;
-    const normalizedHref = new URL(unescape(href));
+    if (href == null || href.trim() === "") continue;
+    const url = unescape(href.trim());
+    if (!URL.canParse(url)) continue;
+    const normalizedHref = new URL(url);
     if (normalizedHref.href === verifyUrl.toString()) return true;
   }
   return false;
