@@ -1,6 +1,7 @@
 import { escape } from "@std/html/entities";
 import { useEffect, useState } from "preact/hooks";
-import { TranslationSetup } from "../components/Msg.tsx";
+import { Excerpt } from "../components/Excerpt.tsx";
+import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { PostVisibilityIcon } from "../components/PostVisibilityIcon.tsx";
 import type { Language } from "../i18n.ts";
 import { getAvatarUrl } from "../models/avatar.ts";
@@ -81,6 +82,14 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                 ? `/@${post.actor.username}/${post.articleSource.publishedYear}/${post.articleSource.slug}`
                 : `/${post.actor.handle}/${post.id}`}
             >
+              {post.type === "Article" && post.name != null && (
+                <h1
+                  lang={post.language ?? undefined}
+                  class="text-2xl font-bold mb-2"
+                >
+                  {post.name}
+                </h1>
+              )}
               <div class="flex gap-2">
                 <img src={getAvatarUrl(post.actor)} width={48} height={48} />
                 <div class="flex flex-col">
@@ -116,56 +125,77 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                   </p>
                 </div>
               </div>
-              {post.summary && (
-                <p class="my-2 text-stone-500 dark:text-stone-400 font-bold">
-                  {post.summary}
-                </p>
-              )}
-              <div
-                class={`
+              {post.type === "Article"
+                ? (
+                  <>
+                    <Excerpt
+                      lang={post.language ?? undefined}
+                      html={post.contentHtml}
+                      emojis={post.emojis ?? {}}
+                    />
+                    <p>
+                      <Msg $key="article.readMore" />
+                    </p>
+                  </>
+                )
+                : (
+                  <>
+                    {post.summary && (
+                      <p
+                        lang={post.language ?? undefined}
+                        class="my-2 text-stone-500 dark:text-stone-400 font-bold"
+                      >
+                        {post.summary}
+                      </p>
+                    )}
+                    <div
+                      lang={post.language ?? undefined}
+                      class={`
                 mt-2 ml-14 prose dark:prose-invert break-words overflow-wrap
                 ${post.sensitive ? "blur-md hover:blur-0 transition-all" : ""}
               `}
-                dangerouslySetInnerHTML={{
-                  __html: preprocessContentHtml(
-                    post.contentHtml,
-                    post.mentions,
-                    post.emojis ?? {},
-                  ),
-                }}
-              />
-              {post.media.length > 0 && (
-                <div class="flex justify-center w-full overflow-x-auto">
-                  {post.media.map((medium) => (
-                    <img
-                      key={medium.index}
-                      src={medium.url}
-                      width={medium.width ?? undefined}
-                      height={medium.height ?? undefined}
-                      alt={medium.alt ?? undefined}
-                      class={`
+                      dangerouslySetInnerHTML={{
+                        __html: preprocessContentHtml(
+                          post.contentHtml,
+                          post.mentions,
+                          post.emojis ?? {},
+                        ),
+                      }}
+                    />
+                    {post.media.length > 0 && (
+                      <div class="flex justify-center w-full overflow-x-auto">
+                        {post.media.map((medium) => (
+                          <img
+                            key={medium.index}
+                            src={medium.url}
+                            width={medium.width ?? undefined}
+                            height={medium.height ?? undefined}
+                            alt={medium.alt ?? undefined}
+                            class={`
                         mt-2 object-contain max-w-96 max-h-96
                         ${
-                        post.sensitive || medium.sensitive
-                          ? "my-20 blur-2xl hover:blur-0 transition-all"
-                          : ""
-                      }
+                              post.sensitive || medium.sensitive
+                                ? "my-20 blur-2xl hover:blur-0 transition-all"
+                                : ""
+                            }
                       `}
-                    />
-                  ))}
-                </div>
-              )}
-              {post.quotedPostId && (
-                <QuotedPostCard
-                  language={props.language}
-                  id={post.quotedPostId}
-                  class="
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {post.quotedPostId && (
+                      <QuotedPostCard
+                        language={props.language}
+                        id={post.quotedPostId}
+                        class="
                     mt-4 ml-14
                     group-hover:border-stone-400 group-hover:bg-stone-200
                     dark:group-hover:border-stone-500 dark:group-hover:bg-stone-700
                   "
-                />
-              )}
+                      />
+                    )}
+                  </>
+                )}
             </Link>
           )}
       </div>
