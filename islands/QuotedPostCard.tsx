@@ -35,6 +35,7 @@ type PostObject = Post & {
 export function QuotedPostCard(props: QuotedPostCardProps) {
   const [post, setPost] = useState<PostObject | null>(null);
   useEffect(() => {
+    if (post != null) return;
     fetch(`/api/posts/${props.id}`)
       .then((response) => response.text())
       .then((data) =>
