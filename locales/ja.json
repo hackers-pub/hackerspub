@@ -66,6 +66,8 @@
     "bio": "$t(settings.profile.bio)",
     "bioDescription": "$t(settings.profile.bioDescription)",
     "bioTooLong": "$t(settings.profile.bioTooLong)",
+    "coc": "$t(nav.coc)",
+    "cocDescription": "Hackers' Pubの$t(signUp.coc)に同意します。",
     "submit": "$t(signUp.title)"
   },
   "settings": {

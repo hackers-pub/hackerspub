@@ -1,4 +1,6 @@
 import { setCookie } from "@std/http/cookie";
+import { dirname } from "@std/path/dirname";
+import { join } from "@std/path/join";
 import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import { Button } from "../../../components/Button.tsx";
@@ -11,6 +13,7 @@ import { db } from "../../../db.ts";
 import { kv } from "../../../kv.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
 import { follow } from "../../../models/following.ts";
+import { renderMarkup } from "../../../models/markup.ts";
 import { accountEmailTable, accountTable } from "../../../models/schema.ts";
 import { createSession, EXPIRATION } from "../../../models/session.ts";
 import {
@@ -130,12 +133,36 @@ export const handler = define.handlers({
   },
 });
 
-interface SignupPageProps extends SignupFormProps {
+interface SignupPageProps {
   invalidCode?: boolean;
+  token: SignupToken;
+  errors?: {
+    username?: string;
+    name?: string;
+    bio?: string;
+  };
+  values?: {
+    username?: string;
+    name?: string;
+    bio?: string;
+  };
 }
 
 export default define.page<typeof handler, SignupPageProps>(
-  function SignupPage({ data: { invalidCode, token, errors, values } }) {
+  async function SignupPage(
+    {
+      state: { language, fedCtx },
+      data: { invalidCode, token, errors, values },
+    },
+  ) {
+    const coc = await Deno.readTextFile(
+      join(
+        dirname(dirname(dirname(import.meta.dirname!))),
+        `CODE_OF_CONDUCT.${language}.md`,
+      ),
+    );
+    const rendered = await renderMarkup(db, fedCtx, null, coc);
+    const cocHtml = rendered.html;
     return (
       <div>
         <PageTitle>
@@ -152,7 +179,12 @@ export default define.page<typeof handler, SignupPageProps>(
               <p>
                 <Msg $key="signUp.welcome" />
               </p>
-              <SignupForm token={token} errors={errors} values={values} />
+              <SignupForm
+                token={token}
+                errors={errors}
+                values={values}
+                cocHtml={cocHtml}
+              />
             </>
           )}
       </div>
@@ -172,9 +204,10 @@ interface SignupFormProps {
     name?: string;
     bio?: string;
   };
+  cocHtml: string;
 }
 
-function SignupForm({ token, values, errors }: SignupFormProps) {
+function SignupForm({ token, values, errors, cocHtml }: SignupFormProps) {
   return (
     <Translation>
       {(t) => (
@@ -252,11 +285,30 @@ function SignupForm({ token, values, errors }: SignupFormProps) {
               )
               : <p class="text-red-700 dark:text-red-500">{errors.bio}</p>}
           </div>
-          <div>
+          <div class="lg:col-span-2">
+            <strong>
+              <Msg $key="signUp.coc" />
+            </strong>
+            <article
+              class="
+                border p-4
+                dark:border-stone-500 dark:bg-stone-900
+                prose dark:prose-invert h-96 overflow-y-scroll
+                max-w-full
+              "
+              dangerouslySetInnerHTML={{ __html: cocHtml }}
+            />
+            <p class="opacity-50">
+              <Msg $key="signUp.cocDescription" />
+            </p>
+          </div>
+          <div class="lg:col-span-2">
             <input type="hidden" name="code" value={token.code} />
-            <Button type="submit">
-              <Msg $key="signUp.submit" />
-            </Button>
+            <div class="mx-auto text-center">
+              <Button type="submit">
+                <Msg $key="signUp.submit" />
+              </Button>
+            </div>
           </div>
         </form>
       )}

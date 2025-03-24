@@ -66,6 +66,8 @@
     "bio": "$t(settings.profile.bio)",
     "bioDescription": "$t(settings.profile.bioDescription)",
     "bioTooLong": "$t(settings.profile.bioTooLong)",
+    "coc": "$t(nav.coc)",
+    "cocDescription": "I have read and agree to the $t(signUp.coc).",
     "submit": "$t(signUp.title)"
   },
   "settings": {
