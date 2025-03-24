@@ -283,11 +283,30 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           )}
           {props.quotedPostId != null &&
             (
-              <QuotedPostCard
-                id={props.quotedPostId}
-                language={lang}
-                class="mt-4 ml-14"
-              />
+              <div
+                class={`
+                  ml-14
+                  ${
+                  props.replyTarget && props.media.length < 1
+                    ? `
+                      mb-2
+                      before:content-['.'] before:absolute before:w-1 before:left-[40px] before:xl:left-[calc((100%-1280px)/2+40px)]
+                      before:opacity-55 before:bg-gradient-to-b before:from-stone-400 dark:before:from-stone-600 before:to-transparent
+                      before:text-transparent before:min-h-28
+                      `
+                    : ""
+                }
+                `}
+              >
+                <QuotedPostCard
+                  id={props.quotedPostId}
+                  language={lang}
+                  class={`
+                    mt-4 mb-2
+                    ${props.replyTarget ? "opacity-55" : ""}
+                  `}
+                />
+              </div>
             )}
         </article>
       )}
