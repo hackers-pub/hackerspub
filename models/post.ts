@@ -164,7 +164,7 @@ export async function syncPostFromNoteSource(
   },
   relations: {
     replyTarget?: { id: Uuid };
-    quotedPost?: { id: Uuid };
+    quotedPost?: { id: Uuid; sharedPostId?: Uuid | null };
   } = {},
 ): Promise<
   Post & {
@@ -206,7 +206,8 @@ export async function syncPostFromNoteSource(
     actorId: actor.id,
     noteSourceId: noteSource.id,
     replyTargetId: relations.replyTarget?.id,
-    quotedPostId: relations.quotedPost?.id,
+    quotedPostId: relations.quotedPost?.sharedPostId ??
+      relations.quotedPost?.id,
     contentHtml: rendered.html,
     language: noteSource.language,
     tags: {}, // TODO

@@ -9,7 +9,7 @@ export const handler = define.handlers(async (ctx) => {
   const postId = ctx.params.id;
   if (!validateUuid(postId)) return ctx.next();
   const { account } = ctx.state;
-  const post = await db.query.postTable.findFirst({
+  let post = await db.query.postTable.findFirst({
     with: {
       actor: { with: { followers: true } },
       articleSource: true,
@@ -17,10 +17,21 @@ export const handler = define.handlers(async (ctx) => {
       media: {
         orderBy: postMediumTable.index,
       },
+      sharedPost: {
+        with: {
+          actor: { with: { followers: true } },
+          articleSource: true,
+          mentions: { with: { actor: true } },
+          media: {
+            orderBy: postMediumTable.index,
+          },
+        },
+      },
     },
     where: eq(postTable.id, postId),
   });
   if (post == null) return ctx.next();
+  if (post.sharedPost != null) post = { ...post.sharedPost, sharedPost: null };
   if (!isPostVisibleTo(post, account?.actor)) return ctx.next();
   return new Response(JSON.stringify(post), {
     headers: {

@@ -14,13 +14,20 @@ export const handler = define.handlers(async (ctx) => {
     return ctx.next();
   }
   const { account, fedCtx } = ctx.state;
-  let post = await db.query.postTable.findFirst({
-    with: {
-      actor: { with: { followers: true } },
-      mentions: { with: { actor: true } },
-    },
-    where: or(eq(postTable.iri, iri), eq(postTable.url, iri)),
-  });
+  let post = await db.query.postTable
+    .findFirst({
+      with: {
+        actor: { with: { followers: true } },
+        mentions: { with: { actor: true } },
+        sharedPost: {
+          with: {
+            actor: { with: { followers: true } },
+            mentions: { with: { actor: true } },
+          },
+        },
+      },
+      where: or(eq(postTable.iri, iri), eq(postTable.url, iri)),
+    });
   if (post == null) {
     const documentLoader = account == null
       ? undefined
@@ -34,7 +41,9 @@ export const handler = define.handlers(async (ctx) => {
       where: eq(actorTable.id, p.actorId),
     });
     if (actor == null) return ctx.next();
-    post = { ...p, actor };
+    post = { ...p, actor, sharedPost: null };
+  } else if (post.sharedPost != null) {
+    post = { ...post.sharedPost, sharedPost: null };
   }
   if (!isPostVisibleTo(post, account?.actor)) return ctx.next();
   return new Response(JSON.stringify(post), {
