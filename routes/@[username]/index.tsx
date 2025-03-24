@@ -423,7 +423,10 @@ export const handler = define.handlers({
     const quotedPost = parsed.output.quotedPostId == null
       ? undefined
       : await db.query.postTable.findFirst({
-        where: eq(postTable.id, parsed.output.quotedPostId as Uuid),
+        where: and(
+          eq(postTable.id, parsed.output.quotedPostId as Uuid),
+          inArray(postTable.visibility, ["public", "unlisted"]),
+        ),
       });
     const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,

@@ -1,7 +1,7 @@
 import * as vocab from "@fedify/fedify/vocab";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import * as v from "@valibot/valibot";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PageTitle } from "../../../../components/PageTitle.tsx";
@@ -194,7 +194,10 @@ export const handler = define.handlers({
     const quotedPost = parsed.output.quotedPostId == null
       ? undefined
       : await db.query.postTable.findFirst({
-        where: eq(postTable.id, parsed.output.quotedPostId as Uuid),
+        where: and(
+          eq(postTable.id, parsed.output.quotedPostId as Uuid),
+          inArray(postTable.visibility, ["public", "unlisted"]),
+        ),
       });
     const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,

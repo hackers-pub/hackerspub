@@ -174,6 +174,12 @@ export function Composer(props: ComposerProps) {
                   : "composer.quoteNoteConfirm",
               );
               setQuoteLoading(false);
+              if (
+                pastedPost.visibility !== "public" &&
+                pastedPost.visibility !== "unlisted"
+              ) {
+                return;
+              }
               if (confirm(confirmMsg)) {
                 setQuotedPostId(pastedPost.id);
                 setContent(content);
