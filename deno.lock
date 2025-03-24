@@ -4,9 +4,9 @@
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
     "jsr:@david/which-runtime@~0.2.1": "0.2.1",
     "jsr:@fedify/fedify@1": "1.4.6",
-    "jsr:@fedify/fedify@1.5.0-dev.730+390610bf": "1.5.0-dev.730+390610bf",
+    "jsr:@fedify/fedify@1.5.0-dev.732+7b169275": "1.5.0-dev.732+7b169275",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
-    "jsr:@fedify/postgres@~0.2.2": "0.2.2",
+    "jsr:@fedify/postgres@0.3.0-dev.20+84eaf26f": "0.3.0-dev.20+84eaf26f",
     "jsr:@fedify/redis@0.3": "0.3.0",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.29",
     "jsr:@fresh/core@^2.0.0-alpha.29": "2.0.0-alpha.29",
@@ -15,6 +15,7 @@
     "jsr:@hugoalh/http-header-link@^1.0.2": "1.0.3",
     "jsr:@hugoalh/is-string-singleline@^1.0.4": "1.0.4",
     "jsr:@logtape/logtape@0.8": "0.8.2",
+    "jsr:@logtape/logtape@0.9": "0.9.0",
     "jsr:@logtape/logtape@~0.6.3": "0.6.5",
     "jsr:@logtape/logtape@~0.8.2": "0.8.2",
     "jsr:@logtape/sentry@0.1": "0.1.0",
@@ -178,8 +179,8 @@
         "npm:url-template"
       ]
     },
-    "@fedify/fedify@1.5.0-dev.730+390610bf": {
-      "integrity": "109062365ab54eb2fcf3b9c969ab9f711a87c5a7d599ff7048a4e03fb8e21bc5",
+    "@fedify/fedify@1.5.0-dev.732+7b169275": {
+      "integrity": "7b0dbf545b8a568f83dc7419bc75d36decea529e4fa252a31c9929c12cd475db",
       "dependencies": [
         "jsr:@david/which-runtime",
         "jsr:@hugoalh/http-header-link",
@@ -209,10 +210,10 @@
         "npm:@types/markdown-it"
       ]
     },
-    "@fedify/postgres@0.2.2": {
-      "integrity": "7abfe7c5330e99453c715ff3f55a610a0692a45d7d04cd1def0a4d18fa198329",
+    "@fedify/postgres@0.3.0-dev.20+84eaf26f": {
+      "integrity": "2995580276aa6af3a9f34cdc3253a5f5772e5008a414891922ff3e6a42ea65c4",
       "dependencies": [
-        "jsr:@fedify/fedify@1",
+        "jsr:@logtape/logtape@0.9",
         "npm:postgres"
       ]
     },
@@ -275,6 +276,9 @@
     },
     "@logtape/logtape@0.8.2": {
       "integrity": "e2ae1fc2561e8d010359b9894efb39bdb559dae44f5824540cbb26a78eee36bc"
+    },
+    "@logtape/logtape@0.9.0": {
+      "integrity": "aacdeb0e040e5723021bef8b9b8c03ad7cffb5e2146a0024c30814930f6e7c89"
     },
     "@logtape/sentry@0.1.0": {
       "integrity": "d7607e646b13ade52245f46aeb17fbdef60f1e5fef75add54d70b6c9c89b6adc",
@@ -4318,9 +4322,9 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@1.5.0-dev.730+390610bf",
+      "jsr:@fedify/fedify@1.5.0-dev.732+7b169275",
       "jsr:@fedify/markdown-it-mention@0.3",
-      "jsr:@fedify/postgres@~0.2.2",
+      "jsr:@fedify/postgres@0.3.0-dev.20+84eaf26f",
       "jsr:@fedify/redis@0.3",
       "jsr:@fresh/core@^2.0.0-alpha.29",
       "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
