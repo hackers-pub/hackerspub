@@ -261,9 +261,7 @@ export async function createNote(
       replyTargetId: relations.replyTarget == null
         ? undefined
         : new URL(relations.replyTarget.iri),
-      quotedPostId: relations.quotedPost == null
-        ? undefined
-        : new URL(relations.quotedPost.iri),
+      quotedPost: relations.quotedPost ?? undefined,
     },
   );
   await fedCtx.sendActivity(
@@ -340,11 +338,11 @@ export async function updateNote(
         : await db.query.postTable.findFirst({
           where: eq(postTable.id, post.replyTargetId),
         }).then((r) => r?.iri == null ? undefined : new URL(r.iri)),
-      quotedPostId: post.quotedPostId == null
+      quotedPost: post.quotedPostId == null
         ? undefined
         : await db.query.postTable.findFirst({
           where: eq(postTable.id, post.quotedPostId),
-        }).then((r) => r?.iri == null ? undefined : new URL(r.iri)),
+        }),
     },
   );
   await fedCtx.sendActivity(

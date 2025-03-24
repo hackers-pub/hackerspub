@@ -4,6 +4,7 @@ import {
   PUBLIC_COLLECTION,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import { escape } from "@std/html/entities";
 import { and, eq, isNotNull } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import { type Database, db } from "../db.ts";
@@ -122,7 +123,7 @@ export async function getNote(
   note: NoteSource & { account: Account; media: NoteMedium[] },
   relations: {
     replyTargetId?: URL;
-    quotedPostId?: URL;
+    quotedPost?: Post;
   } = {},
 ): Promise<vocab.Note> {
   const rendered = await renderMarkup(db, ctx, note.id, note.content);
@@ -145,14 +146,19 @@ export async function getNote(
         name: handle,
       })
     );
-  if (relations.quotedPostId != null) {
+  let contentHtml = rendered.html;
+  if (relations.quotedPost != null) {
+    const quoteUrl = relations.quotedPost.url ?? relations.quotedPost.iri;
     tags.push(
       new vocab.Link({
         mediaType: "application/activity+json",
-        href: relations.quotedPostId,
-        name: `RE: ${relations.quotedPostId.href}`,
+        href: new URL(relations.quotedPost.iri),
+        name: `RE: ${quoteUrl}`,
       }),
     );
+    contentHtml =
+      `${contentHtml}<p class="quote-inline"><span class="quote-inline"><br><br>` +
+      `RE: <a href="${escape(quoteUrl)}">${escape(quoteUrl)}</a></span></p>`;
   }
   return new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
@@ -164,10 +170,12 @@ export async function getNote(
       note.visibility,
     ),
     replyTarget: relations.replyTargetId,
-    quoteUrl: relations.quotedPostId,
+    quoteUrl: relations.quotedPost == null
+      ? null
+      : new URL(relations.quotedPost.iri),
     contents: [
-      rendered.html,
-      new LanguageString(rendered.html, note.language),
+      contentHtml,
+      new LanguageString(contentHtml, note.language),
     ],
     source: new vocab.Source({
       content: note.content,
@@ -211,9 +219,7 @@ federation
           replyTargetId: note.post.replyTarget == null
             ? undefined
             : new URL(note.post.replyTarget.iri),
-          quotedPostId: note.post.quotedPost == null
-            ? undefined
-            : new URL(note.post.quotedPost.iri),
+          quotedPost: note.post.quotedPost ?? undefined,
         },
       );
     },
