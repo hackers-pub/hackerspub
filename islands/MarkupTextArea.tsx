@@ -198,7 +198,7 @@ export function MarkupTextArea(props: MarkupTextAreaProps) {
     if (actor == null) return false;
     const start = match.index;
     const end = start + match[0].length;
-    const inserted = `@${actor.username}@${actor.instanceHost}` +
+    const inserted = actor.handle +
       (textArea.value.charAt(end).match(/^\s$/) ? "" : " ");
     const newText = textArea.value.substring(0, start) +
       inserted +
@@ -300,8 +300,7 @@ export function MarkupTextArea(props: MarkupTextAreaProps) {
                     class="inline-block mr-1"
                   />
                 )}
-                @{actor.username}@{actor.instanceHost}{" "}
-                {actor.name != null && (
+                {actor.handle} {actor.name != null && (
                   <span
                     class="opacity-50"
                     dangerouslySetInnerHTML={{

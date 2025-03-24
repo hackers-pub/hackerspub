@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, lte, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { PostPagination } from "../../components/PostPagination.tsx";
@@ -55,7 +55,10 @@ export const handler = define.handlers({
       actor = await db.query.actorTable.findFirst({
         where: and(
           eq(actorTable.username, username),
-          eq(actorTable.instanceHost, host),
+          or(
+            eq(actorTable.instanceHost, host),
+            eq(actorTable.handleHost, host),
+          ),
         ),
       });
       if (actor == null) return ctx.next();
@@ -159,7 +162,7 @@ export const handler = define.handlers({
     ctx.state.title = actor.name ?? actor.username;
     return page<ProfileArticleListProps>({
       profileHref: account == null
-        ? `/@${actor.username}@${actor.instanceHost}`
+        ? `/${actor.handle}`
         : `/@${account.username}`,
       actor,
       actorMentions: await extractMentionsFromHtml(

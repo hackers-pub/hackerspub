@@ -1,8 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { db } from "../../db.ts";
+import { unfollow } from "../../models/following.ts";
 import { accountTable, actorTable } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
-import { unfollow } from "../../models/following.ts";
 
 export const handler = define.handlers({
   async POST(ctx) {
@@ -15,7 +15,10 @@ export const handler = define.handlers({
       const followee = await db.query.actorTable.findFirst({
         where: and(
           eq(actorTable.username, username),
-          eq(actorTable.instanceHost, host),
+          or(
+            eq(actorTable.instanceHost, host),
+            eq(actorTable.handleHost, host),
+          ),
         ),
       });
       if (followee == null) return ctx.next();

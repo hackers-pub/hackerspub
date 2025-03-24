@@ -21,11 +21,15 @@ export const handler = define.handlers({
         : and(
           eq(actorTable.username, username),
           ilike(
+            actorTable.handleHost,
+            `${new URL(`http://${host}`).host}%`,
+          ),
+          ilike(
             actorTable.instanceHost,
             `${new URL(`http://${host}`).host}%`,
           ),
         ),
-      orderBy: [actorTable.username, actorTable.instanceHost],
+      orderBy: [actorTable.username, actorTable.handleHost],
       limit: 25,
     });
     return new Response(JSON.stringify(result), {

@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { relations, type SQL, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   boolean,
@@ -262,6 +262,10 @@ export const actorTable = pgTable(
     instanceHost: text("instance_host")
       .notNull()
       .references(() => instanceTable.host),
+    handleHost: text("handle_host").notNull(),
+    handle: text().notNull().generatedAlwaysAs((): SQL =>
+      sql`'@' || ${actorTable.username} || '@' || ${actorTable.handleHost}`
+    ),
     accountId: uuid("account_id")
       .$type<Uuid>()
       .unique()

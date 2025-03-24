@@ -857,7 +857,10 @@ export function getPostByUsernameAndId(
         db.select({ id: actorTable.id }).from(actorTable).where(
           and(
             eq(actorTable.username, username),
-            eq(actorTable.instanceHost, host),
+            or(
+              eq(actorTable.instanceHost, host),
+              eq(actorTable.handleHost, host),
+            ),
           ),
         ),
       ),

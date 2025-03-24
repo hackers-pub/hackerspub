@@ -48,10 +48,8 @@ export function Profile(
               subtitle={{
                 text: (
                   <>
-                    <span class="select-all">
-                      @{actor.username}@{actor.instanceHost}
-                    </span>{" "}
-                    &middot; {actor.accountId == null
+                    <span class="select-all">{actor.handle}</span> &middot;{" "}
+                    {actor.accountId == null
                       ? (
                         <Msg
                           $key="profile.followeesCount"

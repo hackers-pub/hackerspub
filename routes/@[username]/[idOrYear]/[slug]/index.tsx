@@ -236,7 +236,7 @@ export default define.page<typeof handler, ArticlePageProps>(
         m.actorId !== article.post.actorId &&
         m.actorId !== state.account?.actor.id
       )
-      .map((m) => `@${m.actor.username}@${m.actor.instanceHost}`);
+      .map((m) => m.actor.handle);
     if (
       !commentTargets.includes(authorHandle) &&
       state.account?.id !== article.accountId

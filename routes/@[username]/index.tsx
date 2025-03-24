@@ -2,7 +2,7 @@ import { isActor } from "@fedify/fedify";
 import type * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import * as v from "@valibot/valibot";
-import { and, desc, eq, inArray, lte, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lte, or, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { PostPagination } from "../../components/PostPagination.tsx";
@@ -90,7 +90,10 @@ export const handler = define.handlers({
       let actor = await db.query.actorTable.findFirst({
         where: and(
           eq(actorTable.username, username),
-          eq(actorTable.instanceHost, host),
+          or(
+            eq(actorTable.instanceHost, host),
+            eq(actorTable.handleHost, host),
+          ),
         ),
       });
       if (
@@ -123,7 +126,6 @@ export const handler = define.handlers({
       if (ctx.state.session == null) {
         return ctx.redirect(actor.url ?? actor.iri);
       }
-      const handle = `@${actor.username}@${actor.instanceHost}`;
       const followingState =
         ctx.state.account == null || ctx.state.account.actor.id === actor.id
           ? undefined
@@ -207,11 +209,11 @@ export const handler = define.handlers({
         orderBy: desc(postTable.published),
         limit: window + 1,
       });
-      ctx.state.title = actor.name ?? handle;
-      ctx.state.searchQuery = handle;
+      ctx.state.title = actor.name ?? actor.handle;
+      ctx.state.searchQuery = actor.handle;
       const next = posts.length > window ? posts[window].published : undefined;
       return page<ProfilePageProps>({
-        profileHref: `/${handle}`,
+        profileHref: `/${actor.handle}`,
         actor,
         actorMentions: await extractMentionsFromHtml(
           db,
@@ -225,8 +227,8 @@ export const handler = define.handlers({
         nextHref: next == null
           ? undefined
           : window === DEFAULT_WINDOW
-          ? `/${handle}?until=${+next}`
-          : `/${handle}?until=${+next}&window=${window}`,
+          ? `/${actor.handle}?until=${+next}`
+          : `/${actor.handle}?until=${+next}&window=${window}`,
       });
     }
     const account = await getAccountByUsername(db, ctx.params.username);

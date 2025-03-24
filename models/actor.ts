@@ -83,6 +83,7 @@ export async function syncActorFromAccount(
     type: "Person",
     username: account.username,
     instanceHost: instance.host,
+    handleHost: instance.host,
     accountId: account.id,
     name: account.name,
     bioHtml: (await renderMarkup(db, fedCtx, account.id, account.bio)).html,
@@ -168,6 +169,7 @@ export async function persistActor(
     type: getActorTypeName(actor),
     username: handle.substring(0, handle.indexOf("@")),
     instanceHost: instance.host,
+    handleHost: handle.substring(handle.indexOf("@") + 1),
     name: actor.name?.toString(),
     bioHtml: actor.summary?.toString(),
     automaticallyApprovesFollowers: !actor.manuallyApprovesFollowers,
@@ -288,7 +290,10 @@ export async function persistActorsByHandles(
     handlesToFetch.add(`@${username}@${host}`);
     const expr = and(
       eq(actorTable.username, username),
-      eq(actorTable.instanceHost, host),
+      or(
+        eq(actorTable.instanceHost, host),
+        eq(actorTable.handleHost, host),
+      ),
     );
     if (expr != null) filter.push(expr);
   }

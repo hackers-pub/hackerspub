@@ -49,12 +49,14 @@ async function searchHandle(
   let actor = await db.query.actorTable.findFirst({
     where: and(
       eq(actorTable.username, fullMatch[1]),
-      eq(actorTable.instanceHost, host),
+      or(
+        eq(actorTable.instanceHost, host),
+        eq(actorTable.handleHost, host),
+      ),
     ),
   });
   if (actor != null) {
-    if (actor.accountId != null) return `/@${actor.username}`;
-    return `/@${actor.username}@${actor.instanceHost}`;
+    return actor.accountId == null ? `/${actor.handle}` : `/@${actor.username}`;
   }
   const documentLoader = account == null
     ? fedCtx.documentLoader
@@ -72,7 +74,7 @@ async function searchHandle(
     outbox: false,
   });
   if (actor == null) return undefined;
-  return `/@${actor.username}@${actor.instanceHost}`;
+  return `/${actor.handle}`;
 }
 
 async function searchUrl(
@@ -105,7 +107,7 @@ async function searchUrl(
     if (post == null) return undefined;
   }
   if (post.actor.accountId == null) {
-    return `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`;
+    return `/${post.actor.handle}/${post.id}`;
   } else if (post.noteSourceId != null) {
     return `/@${post.actor.username}/${post.noteSourceId}`;
   } else if (post.articleSourceId != null) return post.url ?? post.iri;

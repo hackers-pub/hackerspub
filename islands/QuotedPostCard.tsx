@@ -79,7 +79,7 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                 ? `/@${post.actor.username}/${post.noteSourceId}`
                 : post.articleSource
                 ? `/@${post.actor.username}/${post.articleSource.publishedYear}/${post.articleSource.slug}`
-                : `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`}
+                : `/${post.actor.handle}/${post.id}`}
             >
               <div class="flex gap-2">
                 <img src={getAvatarUrl(post.actor)} width={48} height={48} />
@@ -102,7 +102,7 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                     ml-1 before:content-['('] after:content-[')']
                     text-stone-500 dark:text-stone-400
                   ">
-                      @{post.actor.username}@{post.actor.instanceHost}
+                      {post.actor.handle}
                     </span>
                   </p>
                   <p class="flex flex-wrap sm:flex-nowrap text-stone-500 dark:text-stone-400">

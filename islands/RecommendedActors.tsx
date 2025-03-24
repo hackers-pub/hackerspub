@@ -60,7 +60,7 @@ export function RecommendedActors(
                         <h2 class="text-lg font-semibold">
                           <Link
                             internalHref={actor.accountId == null
-                              ? `/@${actor.username}@${actor.instanceHost}`
+                              ? `/${actor.handle}`
                               : `/@${actor.username}`}
                             href={actor.url ?? actor.iri}
                           >
@@ -79,12 +79,12 @@ export function RecommendedActors(
                         <p class="text-stone-500">
                           <Link
                             internalHref={actor.accountId == null
-                              ? `/@${actor.username}@${actor.instanceHost}`
+                              ? `/${actor.handle}`
                               : `/@${actor.username}`}
                             href={actor.url ?? actor.iri}
                             class="select-all"
                           >
-                            @{actor.username}@{actor.instanceHost}
+                            {actor.handle}
                           </Link>
                         </p>
                       </div>
@@ -141,7 +141,7 @@ export function RecommendedActors(
                       });
                       fetch(
                         actor.accountId == null
-                          ? `/@${actor.username}@${actor.instanceHost}/follow`
+                          ? `/${actor.handle}/follow`
                           : `/@${actor.username}/follow`,
                         {
                           method: "POST",

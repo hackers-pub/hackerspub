@@ -316,6 +316,20 @@
       "when": 1742651208752,
       "tag": "0044_post.quoted_post_id",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1742787263265,
+      "tag": "0045_actor.handle",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1742787348302,
+      "tag": "0046_not-null-actor.handle",
+      "breakpoints": true
     }
   ]
 }

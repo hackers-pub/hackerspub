@@ -94,7 +94,7 @@ export default define.page<typeof handler, ArticleQuotesProps>(
           contentHtml={article.post.contentHtml}
           published={article.published}
           authorName={article.account.name}
-          authorHandle={`@${article.post.actor.username}@${article.post.actor.instanceHost}`}
+          authorHandle={article.post.actor.handle}
           authorUrl={`/@${article.account.username}`}
           authorAvatarUrl={avatarUrl}
           lang={article.language}

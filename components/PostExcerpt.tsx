@@ -65,14 +65,14 @@ export function PostExcerpt(props: PostExcerptProps) {
   const sharer = props.post.sharedPost == null ? undefined : {
     url: props.post.actor.url ?? props.post.actor.iri,
     internalUrl: props.post.actor.accountId == null
-      ? `/@${props.post.actor.username}@${props.post.actor.instanceHost}`
+      ? `/${props.post.actor.handle}`
       : `/@${props.post.actor.username}`,
     name: props.post.actor.name ?? props.post.actor.username,
     emojis: props.post.actor.emojis,
     avatarUrl: getAvatarUrl(props.post.actor),
   };
   const localPostUrl = post.articleSourceId == null && post.noteSourceId == null
-    ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
+    ? `/${post.actor.handle}/${post.id}`
     : `/@${post.actor.username}/${post.articleSourceId ?? post.noteSourceId}`;
   const replyTarget = post.replyTarget != null &&
       isPostVisibleTo(
@@ -97,7 +97,7 @@ export function PostExcerpt(props: PostExcerptProps) {
               replier={{
                 url: post.actor.url ?? post.actor.iri,
                 internalUrl: post.actor.accountId == null
-                  ? `/@${post.actor.username}@${post.actor.instanceHost}`
+                  ? `/${post.actor.handle}`
                   : `/@${post.actor.username}`,
                 name: post.actor.name ?? post.actor.username,
                 emojis: post.actor.emojis,
@@ -117,10 +117,10 @@ export function PostExcerpt(props: PostExcerptProps) {
                 lang={post.language ?? undefined}
                 authorUrl={post.actor.url ?? post.actor.iri}
                 authorInternalUrl={post.actor.accountId == null
-                  ? `/@${post.actor.username}@${post.actor.instanceHost}`
+                  ? `/${post.actor.handle}`
                   : `/@${post.actor.username}`}
                 authorName={post.actor.name ?? post.actor.username}
-                authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
+                authorHandle={post.actor.handle}
                 authorAvatarUrl={post.actor.avatarUrl}
                 sharer={sharer}
                 published={post.published}
@@ -147,12 +147,12 @@ export function PostExcerpt(props: PostExcerptProps) {
                   shareUrl: props.signedAccount == null
                     ? undefined
                     : post.articleSourceId == null
-                    ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}/share`
+                    ? `/${post.actor.handle}/${post.id}/share`
                     : `${post.url}/share`,
                   unshareUrl: props.signedAccount == null
                     ? undefined
                     : post.articleSourceId == null
-                    ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}/unshare`
+                    ? `/${post.actor.handle}/${post.id}/unshare`
                     : `${post.url}/unshare`,
                   sharedPeopleUrl: post.articleSourceId == null
                     ? undefined
@@ -189,7 +189,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                       : props.class}
                     url={post.url ?? post.iri}
                     internalUrl={post.noteSourceId == null
-                      ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}`
+                      ? `/${post.actor.handle}/${post.id}`
                       : `/@${post.actor.username}/${post.noteSourceId}`}
                     sensitive={post.sensitive}
                     summary={post.summary ?? undefined}
@@ -202,10 +202,10 @@ export function PostExcerpt(props: PostExcerptProps) {
                     linkUrl={post.linkUrl ?? undefined}
                     authorUrl={post.actor.url ?? post.actor.iri}
                     authorInternalUrl={post.actor.accountId == null
-                      ? `/@${post.actor.username}@${post.actor.instanceHost}`
+                      ? `/${post.actor.handle}`
                       : `/@${post.actor.username}`}
                     authorName={post.actor.name ?? post.actor.username}
-                    authorHandle={`@${post.actor.username}@${post.actor.instanceHost}`}
+                    authorHandle={post.actor.handle}
                     authorAvatarUrl={getAvatarUrl(post.actor)}
                     authorEmojis={post.actor.emojis}
                     quotedPostId={props.noQuote
@@ -223,7 +223,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                       class="mt-4 ml-14"
                       replies={post.repliesCount}
                       replyUrl={post.actor.accountId == null
-                        ? `/@${post.actor.username}@${post.actor.instanceHost}/${post.id}#reply`
+                        ? `/${post.actor.handle}/${post.id}#reply`
                         : `/@${post.actor.username}/${post.noteSourceId}#reply`}
                       shares={post.sharesCount}
                       shareUrl={props.signedAccount == null ||

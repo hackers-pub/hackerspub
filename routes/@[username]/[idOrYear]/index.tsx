@@ -194,7 +194,7 @@ export const handler = define.handlers({
         if (share == null || share.sharedPost == null) return ctx.next();
         post = share;
         postUrl = share.sharedPost.actor.accountId == null
-          ? `/@${share.sharedPost.actor.username}@${share.sharedPost.actor.instanceHost}/${share.sharedPostId}`
+          ? `/${share.sharedPost.actor.handle}/${share.sharedPostId}`
           : `/@${share.sharedPost.actor.username}/${
             share.sharedPost.articleSourceId ?? share.sharedPost.noteSourceId
           }`;
@@ -269,8 +269,7 @@ export const handler = define.handlers({
       post.id,
       post.contentHtml,
     );
-    const authorHandle = `@${post.actor.username}@${post.actor.instanceHost}`;
-    const author = post.actor.name ?? authorHandle;
+    const author = post.actor.name ?? post.actor.handle;
     ctx.state.title = ctx.state.t("note.title", {
       name: author,
       content: content.text,
@@ -294,7 +293,10 @@ export const handler = define.handlers({
         property: "article:tag",
         content: tag,
       })),
-      { name: "fediverse:creator", content: authorHandle.replace(/^@/, "") },
+      {
+        name: "fediverse:creator",
+        content: post.actor.handle.replace(/^@/, ""),
+      },
     );
     if (post.language != null) {
       ctx.state.metas.push({ property: "og:locale", content: post.language });
@@ -430,17 +432,16 @@ export default define.page<typeof handler, NotePageProps>(
       data: { post, postUrl, replies },
     },
   ) {
-    const authorHandle = `@${post.actor.username}@${post.actor.instanceHost}`;
     const commentTargets = post.mentions
       .filter((m) =>
         m.actorId !== post.actorId && m.actorId !== state.account?.actor.id
       )
-      .map((m) => `@${m.actor.username}@${m.actor.instanceHost}`);
+      .map((m) => m.actor.handle);
     if (
-      !commentTargets.includes(authorHandle) &&
+      !commentTargets.includes(post.actor.handle) &&
       state.account?.actor.id !== post.actorId
     ) {
-      commentTargets.unshift(authorHandle);
+      commentTargets.unshift(post.actor.handle);
     }
     return (
       <>
@@ -502,7 +503,7 @@ export default define.page<typeof handler, NotePageProps>(
           <NoteExcerpt
             url={reply.url ?? reply.iri}
             internalUrl={reply.noteSourceId == null
-              ? `/@${reply.actor.username}@${reply.actor.instanceHost}/${reply.id}`
+              ? `/${reply.actor.handle}/${reply.id}`
               : `/@${reply.actor.username}/${reply.noteSourceId}`}
             sensitive={reply.sensitive}
             summary={reply.summary ?? undefined}
@@ -515,10 +516,10 @@ export default define.page<typeof handler, NotePageProps>(
             linkUrl={reply.linkUrl ?? undefined}
             authorUrl={reply.actor.url ?? reply.actor.iri}
             authorInternalUrl={reply.actor.accountId == null
-              ? `/@${reply.actor.username}@${reply.actor.instanceHost}`
+              ? `/${reply.actor.handle}`
               : `/@${reply.actor.username}`}
             authorName={reply.actor.name ?? reply.actor.username}
-            authorHandle={`@${reply.actor.username}@${reply.actor.instanceHost}`}
+            authorHandle={reply.actor.handle}
             authorAvatarUrl={getAvatarUrl(reply.actor)}
             authorEmojis={reply.actor.emojis}
             quotedPostId={reply.quotedPostId ?? undefined}

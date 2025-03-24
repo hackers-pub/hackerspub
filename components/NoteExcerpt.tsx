@@ -219,7 +219,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                           href={props.link.creator.url ??
                             props.link.creator.iri}
                           internalHref={props.link.creator.accountId == null
-                            ? `/@${props.link.creator.username}@${props.link.creator.instanceHost}`
+                            ? `/${props.link.creator.handle}`
                             : `/@${props.link.creator.username}`}
                           class="font-bold text-stone-950 dark:text-stone-50"
                         >
@@ -240,8 +240,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                             }}
                           />
                           <span class="opacity-50 before:content-['_('] after:content-[')'] font-normal">
-                            @{props.link.creator.username}@{props.link.creator
-                              .instanceHost}
+                            {props.link.creator.handle}
                           </span>
                         </Link>
                       }

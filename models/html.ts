@@ -328,15 +328,11 @@ export function transformMentions(
       ) {
         $el.attr(
           "title",
-          `${
-            actor.name ?? actor.username
-          }\n@${actor.username}@${actor.instanceHost}`,
+          `${actor.name ?? actor.username}\n${actor.handle}`,
         );
         $el.attr(
           "data-internal-href",
-          actor.accountId == null
-            ? `/@${actor.username}@${actor.instanceHost}`
-            : `/@${actor.username}`,
+          actor.accountId == null ? `/${actor.handle}` : `/@${actor.username}`,
         );
         if (actor.avatarUrl != null) {
           $el.prepend(

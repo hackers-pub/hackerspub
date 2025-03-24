@@ -1,0 +1,1 @@
+ALTER TABLE "actor" ALTER COLUMN "handle" SET NOT NULL;

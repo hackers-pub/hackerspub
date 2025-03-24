@@ -15,7 +15,16 @@ import {
   str,
   whitespace,
 } from "arcsecond";
-import { and, eq, ilike, inArray, not, or, type SQL } from "drizzle-orm";
+import {
+  and,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  not,
+  or,
+  type SQL,
+} from "drizzle-orm";
 import type { Database } from "../db.ts";
 import { actorTable, postTable } from "./schema.ts";
 
@@ -129,9 +138,10 @@ export function compileQuery(db: Database, expr: Expr): SQL {
         db.select({ id: actorTable.id }).from(actorTable).where(
           and(
             eq(actorTable.username, expr.username),
-            expr.host == null
-              ? undefined
-              : eq(actorTable.instanceHost, expr.host),
+            expr.host == null ? isNotNull(actorTable.accountId) : or(
+              eq(actorTable.instanceHost, expr.host),
+              eq(actorTable.handleHost, expr.host),
+            ),
           ),
         ),
       );
