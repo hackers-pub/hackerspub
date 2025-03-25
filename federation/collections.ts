@@ -4,7 +4,6 @@ import {
   count,
   desc,
   eq,
-  gt,
   inArray,
   isNotNull,
   like,
@@ -23,6 +22,8 @@ import { validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
 import { getPostRecipients } from "./objects.ts";
 
+const FOLLOWERS_WINDOW = 5;
+
 federation
   .setFollowersDispatcher(
     "/ap/actors/{identifier}/followers",
@@ -30,9 +31,7 @@ federation
       if (identifier === new URL(ctx.canonicalOrigin).hostname) {
         return { items: [] };
       }
-      if (cursor == null && filter == null || !validateUuid(identifier)) {
-        return null;
-      }
+      if (!validateUuid(identifier)) return null;
       const account = await db.query.accountTable.findFirst({
         with: { actor: true },
         where: eq(accountTable.id, identifier),
@@ -51,16 +50,16 @@ federation
           ),
           cursor == null || cursor.trim() === ""
             ? undefined
-            : gt(followingTable.accepted, new Date(cursor.trim())),
+            : lte(followingTable.accepted, new Date(cursor.trim())),
         ),
         orderBy: desc(followingTable.accepted),
-        limit: cursor == null ? undefined : 100,
+        limit: cursor == null ? undefined : FOLLOWERS_WINDOW,
       });
       return {
         items: followers.map((follow) => toRecipient(follow.follower)),
-        nextCursor: cursor == null || followers.length < 100
+        nextCursor: cursor == null || followers.length < FOLLOWERS_WINDOW
           ? null
-          : followers[99].accepted?.toISOString(),
+          : followers[FOLLOWERS_WINDOW - 1].accepted?.toISOString(),
       };
     },
   )
