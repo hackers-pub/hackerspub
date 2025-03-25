@@ -2,7 +2,7 @@ import { isActor } from "@fedify/fedify";
 import type * as vocab from "@fedify/fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import * as v from "@valibot/valibot";
-import { and, desc, eq, inArray, lte, or, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { page } from "fresh";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { PostPagination } from "../../components/PostPagination.tsx";
@@ -27,15 +27,12 @@ import { createNote } from "../../models/note.ts";
 import {
   type AccountLink,
   type Actor,
-  actorTable,
   type Following,
-  followingTable,
   type Mention,
   type Post,
   POST_VISIBILITIES,
   type PostLink,
   type PostMedium,
-  postTable,
 } from "../../models/schema.ts";
 import type { Uuid } from "../../models/uuid.ts";
 import { define } from "../../utils.ts";
@@ -89,13 +86,13 @@ export const handler = define.handlers({
         ctx.params.username.indexOf("@") + 1,
       );
       let actor = await db.query.actorTable.findFirst({
-        where: and(
-          eq(actorTable.username, username),
-          or(
-            eq(actorTable.instanceHost, host),
-            eq(actorTable.handleHost, host),
-          ),
-        ),
+        where: {
+          username,
+          OR: [
+            { instanceHost: host },
+            { handleHost: host },
+          ],
+        },
       });
       if (
         ctx.state.account?.moderator && ctx.url.searchParams.has("refresh") ||
@@ -148,10 +145,9 @@ export const handler = define.handlers({
                   actor: {
                     with: {
                       followers: {
-                        where: ctx.state.account == null ? sql`false` : eq(
-                          followingTable.followerId,
-                          ctx.state.account.actor.id,
-                        ),
+                        where: ctx.state.account == null
+                          ? { RAW: sql`false` }
+                          : { followerId: ctx.state.account.actor.id },
                       },
                     },
                   },
@@ -168,8 +164,8 @@ export const handler = define.handlers({
               media: true,
               shares: {
                 where: ctx.state.account == null
-                  ? sql`false`
-                  : eq(postTable.actorId, ctx.state.account.actor.id),
+                  ? { RAW: sql`false` }
+                  : { actorId: ctx.state.account.actor.id },
               },
             },
           },
@@ -178,10 +174,9 @@ export const handler = define.handlers({
               actor: {
                 with: {
                   followers: {
-                    where: ctx.state.account == null ? sql`false` : eq(
-                      followingTable.followerId,
-                      ctx.state.account.actor.id,
-                    ),
+                    where: ctx.state.account == null
+                      ? { RAW: sql`false` }
+                      : { followerId: ctx.state.account.actor.id },
                   },
                 },
               },
@@ -198,16 +193,16 @@ export const handler = define.handlers({
           media: true,
           shares: {
             where: ctx.state.account == null
-              ? sql`false`
-              : eq(postTable.actorId, ctx.state.account.actor.id),
+              ? { RAW: sql`false` }
+              : { actorId: ctx.state.account.actor.id },
           },
         },
-        where: and(
-          eq(postTable.actorId, actor.id),
-          inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
-          until == null ? undefined : lte(postTable.published, until),
-        ),
-        orderBy: desc(postTable.published),
+        where: {
+          actorId: actor.id,
+          visibility: { in: ["public", "unlisted"] }, // FIXME
+          published: { lte: until },
+        },
+        orderBy: { published: "desc" },
         limit: window + 1,
       });
       ctx.state.title = actor.name ?? actor.handle;
@@ -309,10 +304,9 @@ export const handler = define.handlers({
                 actor: {
                   with: {
                     followers: {
-                      where: ctx.state.account == null ? sql`false` : eq(
-                        followingTable.followerId,
-                        ctx.state.account.actor.id,
-                      ),
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { followerId: ctx.state.account.actor.id },
                     },
                   },
                 },
@@ -329,8 +323,8 @@ export const handler = define.handlers({
             media: true,
             shares: {
               where: ctx.state.account == null
-                ? sql`false`
-                : eq(postTable.actorId, ctx.state.account.actor.id),
+                ? { RAW: sql`false` }
+                : { actorId: ctx.state.account.actor.id },
             },
           },
         },
@@ -339,10 +333,9 @@ export const handler = define.handlers({
             actor: {
               with: {
                 followers: {
-                  where: ctx.state.account == null ? sql`false` : eq(
-                    followingTable.followerId,
-                    ctx.state.account.actor.id,
-                  ),
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { followerId: ctx.state.account.actor.id },
                 },
               },
             },
@@ -359,16 +352,16 @@ export const handler = define.handlers({
         media: true,
         shares: {
           where: ctx.state.account == null
-            ? sql`false`
-            : eq(postTable.actorId, ctx.state.account.actor.id),
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
         },
       },
-      where: and(
-        eq(postTable.actorId, account.actor.id),
-        inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
-        until == null ? undefined : lte(postTable.published, until),
-      ),
-      orderBy: desc(postTable.published),
+      where: {
+        actorId: account.actor.id,
+        visibility: { in: ["public", "unlisted"] }, // FIXME
+        published: { lte: until },
+      },
+      orderBy: { published: "desc" },
       limit: window + 1,
     });
     const followingState =
@@ -423,10 +416,10 @@ export const handler = define.handlers({
     const quotedPost = parsed.output.quotedPostId == null
       ? undefined
       : await db.query.postTable.findFirst({
-        where: and(
-          eq(postTable.id, parsed.output.quotedPostId as Uuid),
-          inArray(postTable.visibility, ["public", "unlisted"]),
-        ),
+        where: {
+          id: parsed.output.quotedPostId as Uuid,
+          visibility: { in: ["public", "unlisted"] },
+        },
       });
     const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,

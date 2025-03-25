@@ -1,6 +1,5 @@
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
-import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import sharp from "sharp";
 import { Button } from "../../../components/Button.tsx";
@@ -19,11 +18,6 @@ import { Timestamp } from "../../../islands/Timestamp.tsx";
 import { kv } from "../../../kv.ts";
 import { getAvatarUrl, updateAccount } from "../../../models/account.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
-import {
-  accountEmailTable,
-  accountLinkTable,
-  accountTable,
-} from "../../../models/schema.ts";
 import { define } from "../../../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]", "settings"]);
@@ -40,8 +34,8 @@ export const handler = define.handlers({
   async GET(ctx) {
     if (ctx.state.session == null) return ctx.next();
     const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.username, ctx.params.username),
-      with: { emails: true, links: { orderBy: accountLinkTable.index } },
+      where: { username: ctx.params.username },
+      with: { emails: true, links: { orderBy: { index: "asc" } } },
     });
     if (account?.id !== ctx.state.session.accountId) return ctx.next();
     ctx.state.title = ctx.state.t("settings.profile.title");
@@ -57,7 +51,7 @@ export const handler = define.handlers({
     const { t } = ctx.state;
     ctx.state.title = t("settings.profile.title");
     const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.username, ctx.params.username),
+      where: { username: ctx.params.username },
       with: { emails: true, links: true },
     });
     if (account == null) return ctx.next();
@@ -88,7 +82,7 @@ export const handler = define.handlers({
         ? t("settings.profile.usernameInvalidChars")
         : account.username !== username &&
             await db.query.accountTable.findFirst({
-                where: eq(accountTable.username, username),
+                where: { username },
               }) != null
         ? t("settings.profile.usernameAlreadyTaken")
         : undefined,
@@ -162,7 +156,7 @@ export const handler = define.handlers({
       return ctx.next();
     }
     const emails = await db.query.accountEmailTable.findMany({
-      where: eq(accountEmailTable.accountId, updatedAccount.id),
+      where: { accountId: updatedAccount.id },
     });
     await syncActorFromAccount(db, kv, ctx.state.fedCtx, {
       ...updatedAccount,

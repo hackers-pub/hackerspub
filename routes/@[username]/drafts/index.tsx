@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import { page } from "fresh";
 import { Excerpt } from "../../../components/Excerpt.tsx";
 import { Msg } from "../../../components/Msg.tsx";
@@ -7,7 +7,6 @@ import { db } from "../../../db.ts";
 import { ConfirmForm } from "../../../islands/ConfirmForm.tsx";
 import { Timestamp } from "../../../islands/Timestamp.tsx";
 import { renderMarkup } from "../../../models/markup.ts";
-import { accountTable, articleDraftTable } from "../../../models/schema.ts";
 import { define } from "../../../utils.ts";
 
 export const handler = define.handlers({
@@ -16,13 +15,10 @@ export const handler = define.handlers({
     const account = await db.query.accountTable.findFirst({
       with: {
         articleDrafts: {
-          orderBy: [
-            desc(articleDraftTable.updated),
-            desc(articleDraftTable.created),
-          ],
+          orderBy: (t) => [desc(t.updated), desc(t.created)],
         },
       },
-      where: eq(accountTable.id, ctx.state.session.accountId),
+      where: { id: ctx.state.session.accountId },
     });
     if (account?.id !== ctx.state.session.accountId) return ctx.next();
     return page<DraftsPageProps>({

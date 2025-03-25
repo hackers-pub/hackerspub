@@ -15,7 +15,7 @@ import {
 } from "@shikijs/transformers";
 import { DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
-import { arrayOverlaps, eq, inArray, or } from "drizzle-orm";
+import { arrayOverlaps, eq } from "drizzle-orm";
 import katex from "katex";
 import createMarkdownIt from "markdown-it";
 import abbr from "markdown-it-abbr";
@@ -215,11 +215,13 @@ export async function extractMentionsFromHtml(
   });
   if (mentionHrefs.size < 1) return [];
   const actors = await db.query.actorTable.findMany({
-    where: or(
-      inArray(actorTable.iri, [...mentionHrefs]),
-      inArray(actorTable.url, [...mentionHrefs]),
-      arrayOverlaps(actorTable.aliases, [...mentionHrefs]),
-    ),
+    where: {
+      OR: [
+        { iri: { in: [...mentionHrefs] } },
+        { url: { in: [...mentionHrefs] } },
+        { RAW: (table) => arrayOverlaps(table.aliases, [...mentionHrefs]) },
+      ],
+    },
   });
   for (const actor of actors) {
     mentionHrefs.delete(actor.iri);

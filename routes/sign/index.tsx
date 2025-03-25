@@ -1,5 +1,4 @@
 import { isEmail } from "@onisaint/validate-email";
-import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import { Button } from "../../components/Button.tsx";
 import { Input } from "../../components/Input.tsx";
@@ -8,7 +7,6 @@ import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { sendEmail } from "../../email.ts";
 import { kv } from "../../kv.ts";
-import { accountEmailTable } from "../../models/schema.ts";
 import {
   createSigninToken,
   EXPIRATION as SIGNIN_EXPIRATION,
@@ -32,7 +30,7 @@ export const handler = define.handlers({
       });
     }
     const accountEmail = await db.query.accountEmailTable.findFirst({
-      where: eq(accountEmailTable.email, email),
+      where: { email },
     });
     let expiration: Temporal.Duration;
     if (accountEmail == null) {

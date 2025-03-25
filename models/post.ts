@@ -52,7 +52,6 @@ import {
   type ArticleSource,
   articleSourceTable,
   type Following,
-  followingTable,
   type Instance,
   type Mention,
   mentionTable,
@@ -358,7 +357,7 @@ export async function persistPost(
           with: { instance: true },
         },
       },
-      where: inArray(postTable.iri, quotedPostIris),
+      where: { iri: { in: quotedPostIris } },
     });
     quotedPosts.sort((a, b) =>
       quotedPostIris.indexOf(a.iri) - quotedPostIris.indexOf(b.iri)
@@ -483,7 +482,7 @@ export async function persistPost(
   let mentionList: (Mention & { actor: Actor })[] = [];
   if (mentions.size > 0) {
     const mentionedActors = await db.query.actorTable.findMany({
-      where: inArray(actorTable.iri, [...mentions]),
+      where: { iri: { in: [...mentions] } },
     });
     for (const mentionedActor of mentionedActors) {
       mentions.delete(mentionedActor.iri);
@@ -654,10 +653,10 @@ export async function sharePost(
   }).onConflictDoNothing().returning();
   if (posts.length < 1) {
     const share = await db.query.postTable.findFirst({
-      where: and(
-        eq(postTable.actorId, actor.id),
-        eq(postTable.sharedPostId, post.id),
-      ),
+      where: {
+        actorId: actor.id,
+        sharedPostId: post.id,
+      },
     });
     return share!;
   }
@@ -757,7 +756,7 @@ export function getPersistedPost(
 ): Promise<Post & { actor: Actor & { instance: Instance } } | undefined> {
   return db.query.postTable.findFirst({
     with: { actor: { with: { instance: true } } },
-    where: eq(postTable.iri, iri.toString()),
+    where: { iri: iri.toString() },
   });
 }
 
@@ -820,8 +819,8 @@ export function getPostByUsernameAndId(
                 with: {
                   followers: {
                     where: signedAccount == null
-                      ? sql`false`
-                      : eq(followingTable.followerId, signedAccount.actor.id),
+                      ? { RAW: sql`false` }
+                      : { followerId: signedAccount.actor.id },
                     with: { follower: true },
                   },
                 },
@@ -839,8 +838,8 @@ export function getPostByUsernameAndId(
           media: true,
           shares: {
             where: signedAccount == null
-              ? sql`false`
-              : eq(postTable.actorId, signedAccount.actor.id),
+              ? { RAW: sql`false` }
+              : { actorId: signedAccount.actor.id },
           },
         },
       },
@@ -850,8 +849,8 @@ export function getPostByUsernameAndId(
             with: {
               followers: {
                 where: signedAccount == null
-                  ? sql`false`
-                  : eq(followingTable.followerId, signedAccount.actor.id),
+                  ? { RAW: sql`false` }
+                  : { followerId: signedAccount.actor.id },
                 with: { follower: true },
               },
             },
@@ -869,25 +868,20 @@ export function getPostByUsernameAndId(
       media: true,
       shares: {
         where: signedAccount == null
-          ? sql`false`
-          : eq(postTable.actorId, signedAccount.actor.id),
+          ? { RAW: sql`false` }
+          : { actorId: signedAccount.actor.id },
       },
     },
-    where: and(
-      inArray(
-        postTable.actorId,
-        db.select({ id: actorTable.id }).from(actorTable).where(
-          and(
-            eq(actorTable.username, username),
-            or(
-              eq(actorTable.instanceHost, host),
-              eq(actorTable.handleHost, host),
-            ),
-          ),
-        ),
-      ),
-      eq(postTable.id, id),
-    ),
+    where: {
+      id,
+      actor: {
+        username,
+        OR: [
+          { instanceHost: host },
+          { handleHost: host },
+        ],
+      },
+    },
   });
 }
 
@@ -912,7 +906,7 @@ export async function deletePersistedPost(
   const [deletedPost] = deletedPosts;
   if (deletedPost.replyTargetId == null) return;
   const replyTarget = await db.query.postTable.findFirst({
-    where: eq(postTable.id, deletedPost.replyTargetId),
+    where: { id: deletedPost.replyTargetId },
   });
   if (replyTarget == null) return;
   await updateRepliesCount(db, replyTarget, -1);
@@ -939,7 +933,7 @@ export async function deleteSharedPost(
   const [share] = shares;
   if (share.sharedPostId == null) return;
   const sharedPost = await db.query.postTable.findFirst({
-    where: eq(postTable.id, share.sharedPostId),
+    where: { id: share.sharedPostId },
   });
   if (sharedPost == null) return;
   await updateSharesCount(db, sharedPost, -1);
@@ -1042,13 +1036,13 @@ export async function deletePost(
 ): Promise<void> {
   const replies = await db.query.postTable.findMany({
     with: { actor: true },
-    where: and(
-      eq(postTable.replyTargetId, post.id),
-      or(
-        isNotNull(postTable.articleSourceId),
-        isNotNull(postTable.noteSourceId),
-      ),
-    ),
+    where: {
+      replyTargetId: post.id,
+      OR: [
+        { articleSourceId: { isNotNull: true } },
+        { noteSourceId: { isNotNull: true } },
+      ],
+    },
   });
   for (const reply of replies) {
     await deletePost(db, fedCtx, { ...reply, replyTarget: post });
@@ -1081,7 +1075,7 @@ export async function deletePost(
   }
   if (post.actor.accountId == null) return;
   const interactors = await db.query.actorTable.findMany({
-    where: inArray(actorTable.id, interactions.map((i) => i.actorId)),
+    where: { id: { in: interactions.map((i) => i.actorId) } },
   });
   const recipients: Recipient[] = interactors.map((actor) => ({
     id: new URL(actor.iri),
@@ -1284,7 +1278,7 @@ export async function persistPostLink(
     return undefined;
   }
   const link = await db.query.postLinkTable.findFirst({
-    where: eq(postLinkTable.url, url.href),
+    where: { url: url.href },
   });
   if (link != null) {
     const scraped = link.scraped.toTemporalInstant();

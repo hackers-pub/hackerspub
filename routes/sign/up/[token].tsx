@@ -1,7 +1,6 @@
 import { setCookie } from "@std/http/cookie";
 import { dirname } from "@std/path/dirname";
 import { join } from "@std/path/join";
-import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import { Button } from "../../../components/Button.tsx";
 import { Input } from "../../../components/Input.tsx";
@@ -14,7 +13,6 @@ import { kv } from "../../../kv.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
 import { follow } from "../../../models/following.ts";
 import { renderMarkup } from "../../../models/markup.ts";
-import { accountEmailTable, accountTable } from "../../../models/schema.ts";
 import { createSession, EXPIRATION } from "../../../models/session.ts";
 import {
   createAccount,
@@ -33,7 +31,7 @@ export const handler = define.handlers({
     const code = ctx.url.searchParams.get("code");
     const invalidCode = code !== token.code ||
       await db.query.accountEmailTable.findFirst({
-          where: eq(accountEmailTable.email, token.email),
+          where: { email: token.email },
         }) != null;
     return page<SignupPageProps>({ invalidCode, token });
   },
@@ -46,7 +44,7 @@ export const handler = define.handlers({
     const code = form.get("code");
     if (
       code !== token.code || await db.query.accountEmailTable.findFirst({
-          where: eq(accountEmailTable.email, token.email),
+          where: { email: token.email },
         }) != null
     ) {
       return page<SignupPageProps>({ token, invalidCode: true });
@@ -63,7 +61,7 @@ export const handler = define.handlers({
         : !username.match(/^[a-z0-9_]{1,15}$/)
         ? t("signUp.usernameInvalidChars")
         : await db.query.accountTable.findFirst({
-            where: eq(accountTable.username, username),
+            where: { username },
           }) != null
         ? t("signUp.usernameAlreadyTaken")
         : undefined,
@@ -106,7 +104,7 @@ export const handler = define.handlers({
     const inviter = token.inviterId == null
       ? null
       : await db.query.accountTable.findFirst({
-        where: eq(accountTable.id, token.inviterId),
+        where: { id: token.inviterId },
         with: { actor: true },
       });
     if (inviter != null) {

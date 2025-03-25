@@ -7,16 +7,10 @@ import {
   importJwk,
   Person,
 } from "@fedify/fedify";
-import { eq } from "drizzle-orm";
 import { db } from "../db.ts";
 import { getAvatarUrl, renderAccountLinks } from "../models/account.ts";
 import { renderMarkup } from "../models/markup.ts";
-import {
-  accountKeyTable,
-  accountLinkTable,
-  accountTable,
-  type NewAccountKey,
-} from "../models/schema.ts";
+import { accountKeyTable, type NewAccountKey } from "../models/schema.ts";
 import { validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
 
@@ -68,10 +62,10 @@ federation
 
       if (!validateUuid(identifier)) return null;
       const account = await db.query.accountTable.findFirst({
-        where: eq(accountTable.id, identifier),
+        where: { id: identifier },
         with: {
           emails: true,
-          links: { orderBy: accountLinkTable.index },
+          links: { orderBy: { index: "asc" } },
         },
       });
       if (account == null) return null;
@@ -103,7 +97,7 @@ federation
   .mapHandle(async (ctx, handle) => {
     if (handle === new URL(ctx.canonicalOrigin).hostname) return handle;
     const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.username, handle),
+      where: { username: handle },
     });
     return account == null ? null : account.id;
   })
@@ -115,7 +109,7 @@ federation
 
     if (!validateUuid(identifier)) return [];
     const keyRecords = await db.query.accountKeyTable.findMany({
-      where: eq(accountKeyTable.accountId, identifier),
+      where: { accountId: identifier },
     });
     const keys = new Map(keyRecords.map((r) => [r.type, r]));
     if (!keys.has("RSASSA-PKCS1-v1_5")) {

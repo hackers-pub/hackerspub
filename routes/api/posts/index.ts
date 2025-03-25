@@ -1,11 +1,9 @@
-import { eq, or } from "drizzle-orm";
 import { db } from "../../../db.ts";
 import {
   isPostObject,
   isPostVisibleTo,
   persistPost,
 } from "../../../models/post.ts";
-import { actorTable, postTable } from "../../../models/schema.ts";
 import { define } from "../../../utils.ts";
 
 export const handler = define.handlers(async (ctx) => {
@@ -26,7 +24,7 @@ export const handler = define.handlers(async (ctx) => {
           },
         },
       },
-      where: or(eq(postTable.iri, iri), eq(postTable.url, iri)),
+      where: { OR: [{ iri }, { url: iri }] },
     });
   if (post == null) {
     const documentLoader = account == null
@@ -38,7 +36,7 @@ export const handler = define.handlers(async (ctx) => {
     if (p == null) return ctx.next();
     const actor = await db.query.actorTable.findFirst({
       with: { followers: true },
-      where: eq(actorTable.id, p.actorId),
+      where: { id: p.actorId },
     });
     if (actor == null) return ctx.next();
     post = { ...p, actor, sharedPost: null };

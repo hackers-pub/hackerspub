@@ -137,10 +137,10 @@ export async function getFollowingState(
   followee: Actor,
 ): Promise<FollowingState> {
   const row = await db.query.followingTable.findFirst({
-    where: and(
-      eq(followingTable.followerId, follower.id),
-      eq(followingTable.followeeId, followee.id),
-    ),
+    where: {
+      followerId: follower.id,
+      followeeId: followee.id,
+    },
   });
   return row == null
     ? "none"

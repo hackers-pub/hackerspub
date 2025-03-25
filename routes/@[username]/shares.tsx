@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, lte, or, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { page } from "fresh";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { PostPagination } from "../../components/PostPagination.tsx";
@@ -11,18 +11,15 @@ import {
   getFollowingState,
 } from "../../models/following.ts";
 import { extractMentionsFromHtml } from "../../models/markup.ts";
-import {
-  type Account,
-  type AccountLink,
-  type Actor,
-  actorTable,
-  type Following,
-  followingTable,
-  type Mention,
-  type Post,
-  type PostLink,
-  type PostMedium,
-  postTable,
+import type {
+  Account,
+  AccountLink,
+  Actor,
+  Following,
+  Mention,
+  Post,
+  PostLink,
+  PostMedium,
 } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
 
@@ -53,19 +50,19 @@ export const handler = define.handlers({
         ctx.params.username.indexOf("@") + 1,
       );
       actor = await db.query.actorTable.findFirst({
-        where: and(
-          eq(actorTable.username, username),
-          or(
-            eq(actorTable.instanceHost, host),
-            eq(actorTable.handleHost, host),
-          ),
-        ),
+        where: {
+          username,
+          OR: [
+            { instanceHost: host },
+            { handleHost: host },
+          ],
+        },
       });
       if (actor == null) return ctx.next();
     } else {
       const acct = await db.query.accountTable.findFirst({
         with: { actor: true, links: true },
-        where: eq(actorTable.username, ctx.params.username),
+        where: { username: ctx.params.username },
       });
       if (acct == null) return ctx.next();
       account = acct;
@@ -94,10 +91,9 @@ export const handler = define.handlers({
                 actor: {
                   with: {
                     followers: {
-                      where: ctx.state.account == null ? sql`false` : eq(
-                        followingTable.followerId,
-                        ctx.state.account.actor.id,
-                      ),
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { followerId: ctx.state.account.actor.id },
                     },
                   },
                 },
@@ -114,8 +110,8 @@ export const handler = define.handlers({
             media: true,
             shares: {
               where: ctx.state.account == null
-                ? sql`false`
-                : eq(postTable.actorId, ctx.state.account.actor.id),
+                ? { RAW: sql`false` }
+                : { actorId: ctx.state.account.actor.id },
             },
           },
         },
@@ -124,10 +120,9 @@ export const handler = define.handlers({
             actor: {
               with: {
                 followers: {
-                  where: ctx.state.account == null ? sql`false` : eq(
-                    followingTable.followerId,
-                    ctx.state.account.actor.id,
-                  ),
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { followerId: ctx.state.account.actor.id },
                 },
               },
             },
@@ -144,17 +139,17 @@ export const handler = define.handlers({
         media: true,
         shares: {
           where: ctx.state.account == null
-            ? sql`false`
-            : eq(postTable.actorId, ctx.state.account.actor.id),
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
         },
       },
-      where: and(
-        eq(postTable.actorId, actor.id),
-        inArray(postTable.visibility, ["public", "unlisted"]), // FIXME
-        isNotNull(postTable.sharedPostId),
-        until == null ? undefined : lte(postTable.published, until),
-      ),
-      orderBy: desc(postTable.published),
+      where: {
+        actorId: actor.id,
+        visibility: { in: ["public", "unlisted"] }, // FIXME
+        sharedPostId: { isNotNull: true },
+        published: { lte: until },
+      },
+      orderBy: { published: "desc" },
       limit: window + 1,
     });
     const next = posts.length > window ? posts[window].published : undefined;

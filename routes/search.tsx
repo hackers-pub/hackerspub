@@ -1,6 +1,6 @@
 import { type Context, isActor } from "@fedify/fedify";
 import type * as vocab from "@fedify/fedify/vocab";
-import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
@@ -8,18 +8,14 @@ import { PostExcerpt } from "../components/PostExcerpt.tsx";
 import { db } from "../db.ts";
 import { persistActor } from "../models/actor.ts";
 import { isPostObject, persistPost } from "../models/post.ts";
-import {
-  type Account,
-  accountTable,
-  type Actor,
-  actorTable,
-  type Following,
-  followingTable,
-  type Mention,
-  type Post,
-  type PostLink,
-  type PostMedium,
-  postTable,
+import type {
+  Account,
+  Actor,
+  Following,
+  Mention,
+  Post,
+  PostLink,
+  PostMedium,
 } from "../models/schema.ts";
 import { compileQuery, parseQuery } from "../models/search.ts";
 import { define } from "../utils.ts";
@@ -37,7 +33,7 @@ async function searchHandle(
   const match = HANDLE_REGEXP.exec(keyword);
   if (match) {
     const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.username, match[1].toLocaleLowerCase()),
+      where: { username: match[1].toLocaleLowerCase() },
     });
     if (account != null) return `/@${account.username}`;
   }
@@ -47,13 +43,13 @@ async function searchHandle(
   if (!URL.canParse(origin)) return undefined;
   const host = new URL(origin).host;
   let actor = await db.query.actorTable.findFirst({
-    where: and(
-      eq(actorTable.username, fullMatch[1]),
-      or(
-        eq(actorTable.instanceHost, host),
-        eq(actorTable.handleHost, host),
-      ),
-    ),
+    where: {
+      username: fullMatch[1],
+      OR: [
+        { instanceHost: host },
+        { handleHost: host },
+      ],
+    },
   });
   if (actor != null) {
     return actor.accountId == null ? `/${actor.handle}` : `/@${actor.username}`;
@@ -87,7 +83,7 @@ async function searchUrl(
   keyword = new URL(keyword).href;
   let post = await db.query.postTable.findFirst({
     with: { actor: true },
-    where: or(eq(postTable.iri, keyword), eq(postTable.url, keyword)),
+    where: { OR: [{ iri: keyword }, { url: keyword }] },
   });
   if (post == null) {
     const documentLoader = account == null
@@ -127,7 +123,10 @@ export const handler = define.handlers({
     if (redirect != null) return ctx.redirect(redirect);
     const expr = query == null ? undefined : parseQuery(query);
     const posts = expr == null ? [] : await db.query.postTable.findMany({
-      where: and(compileQuery(db, expr), isNull(postTable.sharedPostId)),
+      where: {
+        ...compileQuery(db, expr),
+        sharedPostId: { isNull: true },
+      },
       with: {
         actor: true,
         link: { with: { creator: true } },
@@ -137,8 +136,8 @@ export const handler = define.handlers({
         media: true,
         shares: {
           where: ctx.state.account == null
-            ? sql`false`
-            : eq(postTable.actorId, ctx.state.account.actor.id),
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
         },
         replyTarget: {
           with: {
@@ -146,8 +145,8 @@ export const handler = define.handlers({
               with: {
                 followers: {
                   where: ctx.state.account == null
-                    ? sql`false`
-                    : eq(followingTable.followerId, ctx.state.account.actor.id),
+                    ? { RAW: sql`false` }
+                    : { followerId: ctx.state.account.actor.id },
                 },
               },
             },
@@ -168,18 +167,17 @@ export const handler = define.handlers({
             media: true,
             shares: {
               where: ctx.state.account == null
-                ? sql`false`
-                : eq(postTable.actorId, ctx.state.account.actor.id),
+                ? { RAW: sql`false` }
+                : { actorId: ctx.state.account.actor.id },
             },
             replyTarget: {
               with: {
                 actor: {
                   with: {
                     followers: {
-                      where: ctx.state.account == null ? sql`false` : eq(
-                        followingTable.followerId,
-                        ctx.state.account.actor.id,
-                      ),
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { followerId: ctx.state.account.actor.id },
                     },
                   },
                 },
@@ -193,7 +191,7 @@ export const handler = define.handlers({
           },
         },
       },
-      orderBy: desc(postTable.published),
+      orderBy: { published: "desc" },
     });
     ctx.state.searchQuery = query ?? undefined;
     return page<SearchResultsProps>({

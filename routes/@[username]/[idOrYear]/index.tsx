@@ -1,6 +1,6 @@
 import * as vocab from "@fedify/fedify/vocab";
 import * as v from "@valibot/valibot";
-import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Msg } from "../../../components/Msg.tsx";
 import { NoteExcerpt } from "../../../components/NoteExcerpt.tsx";
@@ -21,16 +21,13 @@ import {
   persistPost,
   updateSharesCount,
 } from "../../../models/post.ts";
-import {
-  type Actor,
-  actorTable,
-  type Following,
-  followingTable,
-  type Mention,
-  type Post,
-  type PostLink,
-  type PostMedium,
-  postTable,
+import type {
+  Actor,
+  Following,
+  Mention,
+  Post,
+  PostLink,
+  PostMedium,
 } from "../../../models/schema.ts";
 import { type Uuid, validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
@@ -119,10 +116,9 @@ export const handler = define.handlers({
                 actor: {
                   with: {
                     followers: {
-                      where: ctx.state.account == null ? sql`false` : eq(
-                        followingTable.followerId,
-                        ctx.state.account.actor.id,
-                      ),
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { followerId: ctx.state.account.actor.id },
                     },
                   },
                 },
@@ -139,8 +135,8 @@ export const handler = define.handlers({
             media: true,
             shares: {
               where: ctx.state.account == null
-                ? sql`false`
-                : eq(postTable.actorId, ctx.state.account.actor.id),
+                ? { RAW: sql`false` }
+                : { actorId: ctx.state.account.actor.id },
             },
             sharedPost: {
               with: {
@@ -151,10 +147,9 @@ export const handler = define.handlers({
                     actor: {
                       with: {
                         followers: {
-                          where: ctx.state.account == null ? sql`false` : eq(
-                            followingTable.followerId,
-                            ctx.state.account.actor.id,
-                          ),
+                          where: ctx.state.account == null
+                            ? { RAW: sql`false` }
+                            : { followerId: ctx.state.account.actor.id },
                         },
                       },
                     },
@@ -171,25 +166,20 @@ export const handler = define.handlers({
                 media: true,
                 shares: {
                   where: ctx.state.account == null
-                    ? sql`false`
-                    : eq(postTable.actorId, ctx.state.account.actor.id),
+                    ? { RAW: sql`false` }
+                    : { actorId: ctx.state.account.actor.id },
                 },
               },
             },
           },
-          where: and(
-            eq(postTable.id, id),
-            isNotNull(postTable.sharedPostId),
-            inArray(
-              postTable.actorId,
-              db.select({ id: actorTable.id })
-                .from(actorTable)
-                .where(and(
-                  eq(actorTable.username, ctx.params.username),
-                  isNotNull(actorTable.accountId),
-                )),
-            ),
-          ),
+          where: {
+            id,
+            sharedPostId: { isNotNull: true },
+            actor: {
+              username: ctx.params.username,
+              accountId: { isNotNull: true },
+            },
+          },
         });
         if (share == null || share.sharedPost == null) return ctx.next();
         post = share;
@@ -244,10 +234,9 @@ export const handler = define.handlers({
         actor: {
           with: {
             followers: {
-              where: ctx.state.account == null ? sql`false` : eq(
-                followingTable.followerId,
-                ctx.state.account.actor.id,
-              ),
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { followerId: ctx.state.account.actor.id },
             },
           },
         },
@@ -257,8 +246,8 @@ export const handler = define.handlers({
         },
         media: true,
       },
-      where: eq(postTable.replyTargetId, post.sharedPostId ?? post.id),
-      orderBy: postTable.published,
+      where: { replyTargetId: post.sharedPostId ?? post.id },
+      orderBy: { published: "asc" },
     });
     replies = replies.filter((reply) =>
       isPostVisibleTo(reply, ctx.state.account?.actor)
@@ -354,10 +343,10 @@ export const handler = define.handlers({
     const quotedPost = parsed.output.quotedPostId == null
       ? undefined
       : await db.query.postTable.findFirst({
-        where: and(
-          eq(postTable.id, parsed.output.quotedPostId as Uuid),
-          inArray(postTable.visibility, ["public", "unlisted"]),
-        ),
+        where: {
+          id: parsed.output.quotedPostId as Uuid,
+          visibility: { in: ["public", "unlisted"] },
+        },
       });
     const reply = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,

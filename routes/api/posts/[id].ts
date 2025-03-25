@@ -1,7 +1,5 @@
-import { eq } from "drizzle-orm";
 import { db } from "../../../db.ts";
 import { isPostVisibleTo } from "../../../models/post.ts";
-import { postMediumTable, postTable } from "../../../models/schema.ts";
 import { validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
 
@@ -15,7 +13,7 @@ export const handler = define.handlers(async (ctx) => {
       articleSource: true,
       mentions: { with: { actor: true } },
       media: {
-        orderBy: postMediumTable.index,
+        orderBy: { index: "asc" },
       },
       sharedPost: {
         with: {
@@ -23,12 +21,12 @@ export const handler = define.handlers(async (ctx) => {
           articleSource: true,
           mentions: { with: { actor: true } },
           media: {
-            orderBy: postMediumTable.index,
+            orderBy: { index: "asc" },
           },
         },
       },
     },
-    where: eq(postTable.id, postId),
+    where: { id: postId },
   });
   if (post == null) return ctx.next();
   if (post.sharedPost != null) post = { ...post.sharedPost, sharedPost: null };

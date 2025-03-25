@@ -12,7 +12,7 @@ export const handler = define.handlers({
   async GET(ctx) {
     const account = await db.query.accountTable.findFirst({
       with: { emails: true },
-      where: eq(accountTable.username, ctx.params.username),
+      where: { username: ctx.params.username },
     });
     if (account == null) return ctx.next();
     const disk = drive.use();

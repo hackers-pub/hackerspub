@@ -1,17 +1,6 @@
 import { getLogger } from "@logtape/logtape";
 import { acceptsLanguages } from "@std/http/negotiation";
-import {
-  and,
-  desc,
-  eq,
-  inArray,
-  isNotNull,
-  isNull,
-  lte,
-  ne,
-  or,
-  sql,
-} from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
@@ -26,18 +15,14 @@ import { Composer } from "../islands/Composer.tsx";
 import { RecommendedActors } from "../islands/RecommendedActors.tsx";
 import { recommendActors } from "../models/actor.ts";
 import { extractMentionsFromHtml } from "../models/markup.ts";
-import {
-  type Account,
-  type Actor,
-  actorTable,
-  type Following,
-  followingTable,
-  type Mention,
-  mentionTable,
-  type Post,
-  type PostLink,
-  type PostMedium,
-  postTable,
+import type {
+  Account,
+  Actor,
+  Following,
+  Mention,
+  Post,
+  PostLink,
+  PostMedium,
 } from "../models/schema.ts";
 import { define } from "../utils.ts";
 
@@ -119,7 +104,7 @@ export const handler = define.handlers({
                 with: {
                   actor: {
                     with: {
-                      followers: { where: sql`false` },
+                      followers: { where: { RAW: sql`false` } },
                     },
                   },
                   link: { with: { creator: true } },
@@ -133,14 +118,14 @@ export const handler = define.handlers({
                 with: { actor: true },
               },
               media: true,
-              shares: { where: sql`false` },
+              shares: { where: { RAW: sql`false` } },
             },
           },
           replyTarget: {
             with: {
               actor: {
                 with: {
-                  followers: { where: sql`false` },
+                  followers: { where: { RAW: sql`false` } },
                 },
               },
               link: { with: { creator: true } },
@@ -154,36 +139,39 @@ export const handler = define.handlers({
             with: { actor: true },
           },
           media: true,
-          shares: { where: sql`false` },
+          shares: { where: { RAW: sql`false` } },
         },
-        where: and(
-          eq(postTable.visibility, "public"),
-          languages.size < 1
-            ? undefined
-            : inArray(postTable.language, [...languages]),
-          isNull(postTable.replyTargetId),
-          filter === "local"
-            ? or(
-              isNotNull(postTable.noteSourceId),
-              isNotNull(postTable.articleSourceId),
-              and(
-                isNotNull(postTable.sharedPostId),
-                inArray(
-                  postTable.actorId,
-                  db.select({ id: actorTable.id })
-                    .from(actorTable)
-                    .where(isNotNull(actorTable.accountId)),
-                ),
-              ),
-            )
-            : filter === "withoutShares"
-            ? isNull(postTable.sharedPostId)
-            : filter === "articlesOnly"
-            ? eq(postTable.type, "Article")
-            : sql`true`,
-          until == null ? undefined : lte(postTable.published, until),
-        ),
-        orderBy: desc(postTable.published),
+        where: {
+          visibility: "public",
+          ...(
+            languages.size < 1
+              ? undefined
+              : { language: { in: [...languages] } }
+          ),
+          replyTargetId: { isNull: true },
+          ...(
+            filter === "local"
+              ? {
+                OR: [
+                  { noteSourceId: { isNotNull: true } },
+                  { articleSourceId: { isNotNull: true } },
+                  {
+                    sharedPostId: { isNotNull: true },
+                    actor: {
+                      accountId: { isNotNull: true },
+                    },
+                  },
+                ],
+              }
+              : filter === "withoutShares"
+              ? { sharedPostId: { isNull: true } }
+              : filter === "articlesOnly"
+              ? { type: "Article" }
+              : undefined
+          ),
+          ...(until == null ? undefined : { published: { lte: until } }),
+        },
+        orderBy: { published: "desc" },
         limit: window + 1,
       });
     } else {
@@ -202,10 +190,9 @@ export const handler = define.handlers({
                     actor: {
                       with: {
                         followers: {
-                          where: eq(
-                            followingTable.followerId,
-                            ctx.state.account.actor.id,
-                          ),
+                          where: {
+                            followerId: ctx.state.account.actor.id,
+                          },
                         },
                       },
                     },
@@ -221,7 +208,7 @@ export const handler = define.handlers({
                 },
                 media: true,
                 shares: {
-                  where: eq(postTable.actorId, ctx.state.account.actor.id),
+                  where: { actorId: ctx.state.account.actor.id },
                 },
               },
             },
@@ -230,10 +217,7 @@ export const handler = define.handlers({
                 actor: {
                   with: {
                     followers: {
-                      where: eq(
-                        followingTable.followerId,
-                        ctx.state.account.actor.id,
-                      ),
+                      where: { followerId: ctx.state.account.actor.id },
                     },
                   },
                 },
@@ -249,88 +233,65 @@ export const handler = define.handlers({
             },
             media: true,
             shares: {
-              where: eq(postTable.actorId, ctx.state.account.actor.id),
+              where: { actorId: ctx.state.account.actor.id },
             },
           },
-          where: and(
-            or(
-              filter === "mentionsAndQuotes" ? sql`false` : or(
-                and(
-                  inArray(
-                    postTable.actorId,
-                    db.select({ id: followingTable.followeeId })
-                      .from(followingTable)
-                      .where(
-                        eq(
-                          followingTable.followerId,
-                          ctx.state.account.actor.id,
-                        ),
-                      ),
-                  ),
-                  ne(postTable.visibility, "direct"),
-                  or(
-                    isNull(postTable.replyTargetId),
-                    inArray(
-                      postTable.replyTargetId,
-                      db.select({ id: postTable.id })
-                        .from(postTable)
-                        .where(
-                          or(
-                            eq(postTable.actorId, ctx.state.account.actor.id),
-                            inArray(
-                              postTable.actorId,
-                              db.select({ id: followingTable.followeeId })
-                                .from(followingTable)
-                                .where(
-                                  eq(
-                                    followingTable.followerId,
-                                    ctx.state.account.actor.id,
-                                  ),
-                                ),
-                            ),
-                          ),
-                        ),
-                    ),
-                  ),
-                ),
-                eq(postTable.actorId, ctx.state.account.actor.id),
-              ),
-              inArray(
-                postTable.id,
-                db.select({ postId: mentionTable.postId })
-                  .from(mentionTable)
-                  .where(eq(mentionTable.actorId, ctx.state.account.actor.id)),
-              ),
-              inArray(
-                postTable.quotedPostId,
-                db.select({ postId: postTable.id })
-                  .from(postTable)
-                  .where(eq(postTable.actorId, ctx.state.account.actor.id)),
-              ),
+          where: {
+            OR: [
+              filter === "mentionsAndQuotes" ? { RAW: sql`false` } : {
+                OR: [{
+                  actor: {
+                    followers: {
+                      followerId: ctx.state.account.actor.id,
+                    },
+                  },
+                  visibility: { ne: "direct" },
+                  OR: [
+                    { replyTargetId: { isNull: true } },
+                    {
+                      replyTarget: {
+                        OR: [
+                          { actorId: ctx.state.account.actor.id },
+                          {
+                            actor: {
+                              followers: {
+                                followerId: ctx.state.account.actor.id,
+                              },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                }, { actorId: ctx.state.account.actor.id }],
+              },
+              { mentions: { actorId: ctx.state.account.actor.id } },
+              { quotedPost: { actorId: ctx.state.account.actor.id } },
+            ],
+            visibility: { ne: "none" },
+            ...(
+              filter === "local"
+                ? {
+                  OR: [
+                    { noteSourceId: { isNotNull: true } },
+                    { articleSourceId: { isNotNull: true } },
+                    {
+                      sharedPostId: { isNotNull: true },
+                      actor: {
+                        accountId: { isNotNull: true },
+                      },
+                    },
+                  ],
+                }
+                : filter === "withoutShares"
+                ? { sharedPostId: { isNull: true } }
+                : filter === "articlesOnly"
+                ? { type: "Article" }
+                : undefined
             ),
-            ne(postTable.visibility, "none"),
-            filter === "local"
-              ? or(
-                isNotNull(postTable.noteSourceId),
-                isNotNull(postTable.articleSourceId),
-                and(
-                  isNotNull(postTable.sharedPostId),
-                  inArray(
-                    postTable.actorId,
-                    db.select({ id: actorTable.id })
-                      .from(actorTable)
-                      .where(isNotNull(actorTable.accountId)),
-                  ),
-                ),
-              )
-              : filter === "withoutShares"
-              ? isNull(postTable.sharedPostId)
-              : filter === "articlesOnly"
-              ? eq(postTable.type, "Article")
-              : sql`true`,
-            until == null ? undefined : lte(postTable.published, until),
-          ),
-          orderBy: desc(postTable.published),
+            published: { lte: until },
+          },
+          orderBy: { published: "desc" },
           limit: window + 1,
         });
     }

@@ -1,7 +1,5 @@
-import { desc } from "drizzle-orm/expressions";
 import { create } from "xmlbuilder2";
 import { db } from "../db.ts";
-import { postTable } from "../models/schema.ts";
 import { define } from "../utils.ts";
 
 export const handler = define.handlers(async (ctx) => {
@@ -13,7 +11,7 @@ export const handler = define.handlers(async (ctx) => {
         with: {
           posts: {
             columns: { updated: true },
-            orderBy: desc(postTable.updated),
+            orderBy: { updated: "desc" },
             limit: 1,
           },
         },

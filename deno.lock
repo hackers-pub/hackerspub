@@ -100,9 +100,8 @@
     "npm:cheerio@1": "1.0.0",
     "npm:cssfilter@^0.0.11": "0.0.11",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
-    "npm:drizzle-kit@*": "0.28.1_esbuild@0.19.12",
-    "npm:drizzle-kit@0.28": "0.28.1_esbuild@0.19.12",
-    "npm:drizzle-orm@~0.36.3": "0.36.4_@opentelemetry+api@1.9.0_postgres@3.4.5",
+    "npm:drizzle-kit@beta": "1.0.0-beta.1-2e234ba_esbuild@0.19.12",
+    "npm:drizzle-orm@beta": "1.0.0-beta.1-2e234ba_@opentelemetry+api@1.9.0_postgres@3.4.5",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
     "npm:feed@^4.2.2": "4.2.2",
@@ -1549,6 +1548,9 @@
         "pako@1.0.11"
       ]
     },
+    "@petamoriken/float16@3.9.2": {
+      "integrity": "sha512-VgffxawQde93xKxT3qap3OH+meZf7VaSB5Sqd4Rqc+FP5alWbpOyan/7tRbOAvynjpG3GpdtAuGU/NdhQpmrog=="
+    },
     "@phensley/language-tag@1.10.2": {
       "integrity": "sha512-Xdui/GVDztdYb9oGzysHRRnakD9FKJIRIRTYvq5SoeGmglAgtDXOLEAm+yTMl8sqMr6AdVCz3/kH7F9wNeGnSQ==",
       "dependencies": [
@@ -2548,7 +2550,7 @@
       "dependencies": [
         "path-key",
         "shebang-command",
-        "which"
+        "which@2.0.2"
       ]
     },
     "css-background-parser@0.1.0": {
@@ -2724,17 +2726,18 @@
         "domhandler"
       ]
     },
-    "drizzle-kit@0.28.1_esbuild@0.19.12": {
-      "integrity": "sha512-JimOV+ystXTWMgZkLHYHf2w3oS28hxiH1FR0dkmJLc7GHzdGJoJAQtQS5DRppnabsRZwE2U1F6CuezVBgmsBBQ==",
+    "drizzle-kit@1.0.0-beta.1-2e234ba_esbuild@0.19.12": {
+      "integrity": "sha512-VEvVWMbjBkPaVJ1hzeLU56Et7fTXy2bPA2K4lIOkgN3Us4ztuCqlJqhCh/GGAcyV3nfoDwbHNEI9pxjipTJ2YA==",
       "dependencies": [
         "@drizzle-team/brocli",
         "@esbuild-kit/esm-loader",
         "esbuild@0.19.12",
-        "esbuild-register"
+        "esbuild-register",
+        "gel"
       ]
     },
-    "drizzle-orm@0.36.4_@opentelemetry+api@1.9.0_postgres@3.4.5": {
-      "integrity": "sha512-1OZY3PXD7BR00Gl61UUOFihslDldfH4NFRH2MbP54Yxi0G/PKn4HfO65JYZ7c16DeP3SpM3Aw+VXVG9j6CRSXA==",
+    "drizzle-orm@1.0.0-beta.1-2e234ba_@opentelemetry+api@1.9.0_postgres@3.4.5": {
+      "integrity": "sha512-czN462MWnH4KCa/vG7LjEj4yLtVjsjY1v2C/XtnLYPLQ83uwRfGO6qEVZWm4uysVbko63PPdrKQyA2PPFwiXFA==",
       "dependencies": [
         "@opentelemetry/api",
         "postgres"
@@ -2767,6 +2770,9 @@
     },
     "entities@4.5.0": {
       "integrity": "sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw=="
+    },
+    "env-paths@3.0.0": {
+      "integrity": "sha512-dtJUTepzMW3Lm/NPxRf3wP4642UWhjL2sQxc+ym2YMj1m/H2zDNQOlezafzkHwn6sMstjHTwG6iQQsctDW/b1A=="
     },
     "esbuild-register@3.6.0_esbuild@0.19.12": {
       "integrity": "sha512-H2/S7Pm8a9CL1uhp9OvjwrBh5Pvx0H8qVOxNu8Wed9Y7qv56MPtq+GGM8RJpq6glYJn9Wspr8uw7l55uyinNeg==",
@@ -2965,6 +2971,17 @@
     "function-bind@1.1.2": {
       "integrity": "sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA=="
     },
+    "gel@2.0.1": {
+      "integrity": "sha512-gfem3IGvqKqXwEq7XseBogyaRwGsQGuE7Cw/yQsjLGdgiyqX92G1xENPCE0ltunPGcsJIa6XBOTx/PK169mOqw==",
+      "dependencies": [
+        "@petamoriken/float16",
+        "debug",
+        "env-paths",
+        "semver",
+        "shell-quote",
+        "which@4.0.0"
+      ]
+    },
     "generic-pool@3.9.0": {
       "integrity": "sha512-hymDOu5B53XvN4QT9dBmZxPX4CWhBPPLguTZ9MMFeFa/Kg0xWVfylOVNlJji/E7yTZWFd/q9GO5TxDLq156D7g=="
     },
@@ -3116,6 +3133,9 @@
     },
     "isexe@2.0.0": {
       "integrity": "sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw=="
+    },
+    "isexe@3.1.1": {
+      "integrity": "sha512-LpB/54B+/2J5hqQ7imZHfdU31OlgQqx7ZicVlkm9kzg9/w8GKLEcFfJl/t7DCEDueOyBAD6zCCwTO6Fzs0NoEQ=="
     },
     "jackspeak@3.4.3": {
       "integrity": "sha512-OGlZQpz2yfahA/Rd1Y8Cd9SIEsqvXkLVoSw/cgwhnhFMDbsQFeZYoJJ7bIZBS9BcamUW96asq/npPWugM+RQBw==",
@@ -3976,6 +3996,9 @@
     "shebang-regex@3.0.0": {
       "integrity": "sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A=="
     },
+    "shell-quote@1.8.2": {
+      "integrity": "sha512-AzqKpGKjrj7EM6rKVQEPpB288oCfnrEIuyoT9cyF4nmGa7V8Zk6f7RRqYisX8X9m+Q7bd632aZW4ky7EhbQztA=="
+    },
     "shiki@1.29.2": {
       "integrity": "sha512-njXuliz/cP+67jU2hukkxCNuH1yUi4QfdZZY+sMr5PPrIyXSu5iTb/qYC4BiWWB0vZ+7TbdvYUCeL23zpwCfbg==",
       "dependencies": [
@@ -4290,7 +4313,13 @@
     "which@2.0.2": {
       "integrity": "sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==",
       "dependencies": [
-        "isexe"
+        "isexe@2.0.0"
+      ]
+    },
+    "which@4.0.0": {
+      "integrity": "sha512-GlaYyEb07DPxYCKhKzplCWBJtvxZcZMrL+4UkrTSJHHPyZU4mYYTv3qaOe77H7EODLSSopAUFAc6W8U4yqvscg==",
+      "dependencies": [
+        "isexe@3.1.1"
       ]
     },
     "wrap-ansi@7.0.0": {
@@ -4395,8 +4424,8 @@
       "npm:arcsecond@5",
       "npm:cheerio@1",
       "npm:cssfilter@^0.0.11",
-      "npm:drizzle-kit@0.28",
-      "npm:drizzle-orm@~0.36.3",
+      "npm:drizzle-kit@beta",
+      "npm:drizzle-orm@beta",
       "npm:feed@^4.2.2",
       "npm:flydrive@^1.1.0",
       "npm:i18next@^24.0.5",
