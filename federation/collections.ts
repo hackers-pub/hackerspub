@@ -30,7 +30,9 @@ federation
       if (identifier === new URL(ctx.canonicalOrigin).hostname) {
         return { items: [] };
       }
-      if (cursor == null || !validateUuid(identifier)) return null;
+      if (cursor == null && filter == null || !validateUuid(identifier)) {
+        return null;
+      }
       const account = await db.query.accountTable.findFirst({
         with: { actor: true },
         where: eq(accountTable.id, identifier),
@@ -47,16 +49,16 @@ federation
               like(actorTable.iri, `${filter.origin}/%`),
             ),
           ),
-          cursor.trim() === ""
+          cursor == null || cursor.trim() === ""
             ? undefined
             : gt(followingTable.accepted, new Date(cursor.trim())),
         ),
         orderBy: desc(followingTable.accepted),
-        limit: 100,
+        limit: cursor == null ? undefined : 100,
       });
       return {
         items: followers.map((follow) => toRecipient(follow.follower)),
-        next: followers.length < 100
+        nextCursor: cursor == null || followers.length < 100
           ? null
           : followers[99].accepted?.toISOString(),
       };
