@@ -1,4 +1,4 @@
-import type { Context } from "@fedify/fedify";
+import type { Context, Recipient } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
@@ -264,18 +264,36 @@ export async function createNote(
       quotedPost: relations.quotedPost ?? undefined,
     },
   );
-  await fedCtx.sendActivity(
-    { identifier: source.accountId },
-    "followers",
-    new vocab.Create({
-      id: new URL("#create", noteObject.id ?? fedCtx.origin),
-      actors: noteObject.attributionIds,
-      tos: noteObject.toIds,
-      ccs: noteObject.ccIds,
-      object: noteObject,
-    }),
-    { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
-  );
+  const activity = new vocab.Create({
+    id: new URL("#create", noteObject.id ?? fedCtx.origin),
+    actors: noteObject.attributionIds,
+    tos: noteObject.toIds,
+    ccs: noteObject.ccIds,
+    object: noteObject,
+  });
+  if (post.mentions.length > 0) {
+    const directRecipients: Recipient[] = post.mentions.map((m) => ({
+      id: new URL(m.actor.iri),
+      inboxId: new URL(m.actor.inboxUrl),
+      endpoints: m.actor.sharedInboxUrl == null
+        ? null
+        : { sharedInbox: new URL(m.actor.sharedInboxUrl) },
+    }));
+    await fedCtx.sendActivity(
+      { identifier: source.accountId },
+      directRecipients,
+      activity,
+      { preferSharedInbox: false, excludeBaseUris: [new URL(fedCtx.origin)] },
+    );
+  }
+  if (post.visibility !== "direct") {
+    await fedCtx.sendActivity(
+      { identifier: source.accountId },
+      "followers",
+      activity,
+      { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+    );
+  }
   return post;
 }
 

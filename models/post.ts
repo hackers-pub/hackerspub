@@ -176,7 +176,7 @@ export async function syncPostFromNoteSource(
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
       media: NoteMedium[];
     };
-    mentions: Mention[];
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
   }
 > {
@@ -233,12 +233,15 @@ export async function syncPostFromNoteSource(
   await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
   const mentionList = globalThis.Object.values(rendered.mentions);
   const mentions = mentionList.length > 0
-    ? await db.insert(mentionTable).values(
+    ? (await db.insert(mentionTable).values(
       mentionList.map((actor) => ({
         postId: post.id,
         actorId: actor.id,
       })),
-    ).returning()
+    ).returning()).map((m) => ({
+      ...m,
+      actor: mentionList.find((a) => a.id === m.actorId)!,
+    }))
     : [];
   await db.delete(postMediumTable).where(eq(postMediumTable.postId, post.id));
   const media = noteSource.media.length > 0
