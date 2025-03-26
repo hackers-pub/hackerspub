@@ -5,7 +5,7 @@
     "jsr:@david/which-runtime@~0.2.1": "0.2.1",
     "jsr:@fedify/fedify@1": "1.4.6",
     "jsr:@fedify/fedify@1.5.0-dev.732": "1.5.0-dev.732+7b169275",
-    "jsr:@fedify/fedify@1.5.0-dev.738+8ca6f775": "1.5.0-dev.738+8ca6f775",
+    "jsr:@fedify/fedify@1.5.0-dev.745+3feb71c5": "1.5.0-dev.745+3feb71c5",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
     "jsr:@fedify/postgres@0.3.0-dev.20+84eaf26f": "0.3.0-dev.20+84eaf26f",
     "jsr:@fedify/redis@0.3": "0.3.0",
@@ -36,6 +36,7 @@
     "jsr:@std/datetime@~0.225.2": "0.225.3",
     "jsr:@std/dotenv@~0.225.2": "0.225.3",
     "jsr:@std/encoding@1": "1.0.7",
+    "jsr:@std/encoding@1.0.7": "1.0.7",
     "jsr:@std/encoding@^1.0.5": "1.0.7",
     "jsr:@std/encoding@^1.0.6": "1.0.7",
     "jsr:@std/encoding@^1.0.7": "1.0.7",
@@ -204,15 +205,15 @@
         "npm:url-template"
       ]
     },
-    "@fedify/fedify@1.5.0-dev.738+8ca6f775": {
-      "integrity": "8eca298a2a36f597c9ca297134d3ed2f6a4c22d64176b458c0630abc99fabc84",
+    "@fedify/fedify@1.5.0-dev.745+3feb71c5": {
+      "integrity": "85c0cad2fb2c07db915efe71d236284eb949a81207335ada367aebf771e52e95",
       "dependencies": [
         "jsr:@david/which-runtime",
         "jsr:@hugoalh/http-header-link",
         "jsr:@logtape/logtape@~0.8.2",
         "jsr:@std/async",
         "jsr:@std/bytes@^1.0.2",
-        "jsr:@std/encoding@^1.0.5",
+        "jsr:@std/encoding@1.0.7",
         "jsr:@std/http@^1.0.6",
         "jsr:@std/semver@^1.0.3",
         "npm:@multiformats/base-x",
@@ -4348,7 +4349,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@1.5.0-dev.738+8ca6f775",
+      "jsr:@fedify/fedify@1.5.0-dev.745+3feb71c5",
       "jsr:@fedify/markdown-it-mention@0.3",
       "jsr:@fedify/postgres@0.3.0-dev.20+84eaf26f",
       "jsr:@fedify/redis@0.3",

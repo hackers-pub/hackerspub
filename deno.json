@@ -49,7 +49,7 @@
     "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@^3.750.0",
     "@aws-sdk/s3-request-presigner": "npm:@aws-sdk/s3-request-presigner@^3.750.0",
     "@c4spar/mock-fetch": "jsr:@c4spar/mock-fetch@^1.0.0",
-    "@fedify/fedify": "jsr:@fedify/fedify@1.5.0-dev.738+8ca6f775",
+    "@fedify/fedify": "jsr:@fedify/fedify@1.5.0-dev.745+3feb71c5",
     "@fedify/markdown-it-mention": "jsr:@fedify/markdown-it-mention@^0.3.0",
     "@fedify/postgres": "jsr:@fedify/postgres@0.3.0-dev.20+84eaf26f",
     "@fedify/redis": "jsr:@fedify/redis@^0.3.0",
