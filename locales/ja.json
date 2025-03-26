@@ -244,7 +244,7 @@
     "local": "Hackers' Pub",
     "withoutShares": "共有除外",
     "articlesOnly": "記事のみ",
-    "mentions": "言及",
+    "mentionsAndQuotes": "言及と引用",
     "recommendations": "$t(recommendedActors.title)"
   },
   "postPagination": {

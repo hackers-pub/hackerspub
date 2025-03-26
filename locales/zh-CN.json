@@ -246,7 +246,7 @@
     "local": "Hackers' Pub",
     "withoutShares": "不含转帖",
     "articlesOnly": "仅文章",
-    "mentions": "提及",
+    "mentionsAndQuotes": "提及和引用",
     "recommendations": "$t(recommendedActors.title)"
   },
   "postPagination": {

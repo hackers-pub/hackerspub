@@ -247,7 +247,7 @@
     "local": "Hackers' Pub",
     "withoutShares": "Without shares",
     "articlesOnly": "Articles only",
-    "mentions": "Mentions",
+    "mentionsAndQuotes": "Mentions and quotes",
     "recommendations": "$t(recommendedActors.title)"
   },
   "postPagination": {

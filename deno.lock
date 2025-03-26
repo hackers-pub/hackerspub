@@ -4,7 +4,8 @@
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
     "jsr:@david/which-runtime@~0.2.1": "0.2.1",
     "jsr:@fedify/fedify@1": "1.4.6",
-    "jsr:@fedify/fedify@1.5.0-dev.732+7b169275": "1.5.0-dev.732+7b169275",
+    "jsr:@fedify/fedify@1.5.0-dev.732": "1.5.0-dev.732+7b169275",
+    "jsr:@fedify/fedify@1.5.0-dev.738+8ca6f775": "1.5.0-dev.738+8ca6f775",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
     "jsr:@fedify/postgres@0.3.0-dev.20+84eaf26f": "0.3.0-dev.20+84eaf26f",
     "jsr:@fedify/redis@0.3": "0.3.0",
@@ -203,6 +204,30 @@
         "npm:url-template"
       ]
     },
+    "@fedify/fedify@1.5.0-dev.738+8ca6f775": {
+      "integrity": "8eca298a2a36f597c9ca297134d3ed2f6a4c22d64176b458c0630abc99fabc84",
+      "dependencies": [
+        "jsr:@david/which-runtime",
+        "jsr:@hugoalh/http-header-link",
+        "jsr:@logtape/logtape@~0.8.2",
+        "jsr:@std/async",
+        "jsr:@std/bytes@^1.0.2",
+        "jsr:@std/encoding@^1.0.5",
+        "jsr:@std/http@^1.0.6",
+        "jsr:@std/semver@^1.0.3",
+        "npm:@multiformats/base-x",
+        "npm:@opentelemetry/api",
+        "npm:@opentelemetry/semantic-conventions@^1.27.0",
+        "npm:@phensley/language-tag",
+        "npm:asn1js",
+        "npm:json-canon",
+        "npm:jsonld",
+        "npm:multicodec",
+        "npm:pkijs",
+        "npm:uri-template-router",
+        "npm:url-template"
+      ]
+    },
     "@fedify/markdown-it-mention@0.3.0": {
       "integrity": "f643f850da6310566a1de2744900d7bc06c0f59d3ae9a14202a6d968f5d20227",
       "dependencies": [
@@ -213,6 +238,7 @@
     "@fedify/postgres@0.3.0-dev.20+84eaf26f": {
       "integrity": "2995580276aa6af3a9f34cdc3253a5f5772e5008a414891922ff3e6a42ea65c4",
       "dependencies": [
+        "jsr:@fedify/fedify@1.5.0-dev.732",
         "jsr:@logtape/logtape@0.9",
         "npm:postgres"
       ]
@@ -4322,7 +4348,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@1.5.0-dev.732+7b169275",
+      "jsr:@fedify/fedify@1.5.0-dev.738+8ca6f775",
       "jsr:@fedify/markdown-it-mention@0.3",
       "jsr:@fedify/postgres@0.3.0-dev.20+84eaf26f",
       "jsr:@fedify/redis@0.3",

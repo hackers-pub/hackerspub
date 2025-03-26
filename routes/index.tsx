@@ -53,7 +53,8 @@ export const handler = define.handlers({
       filterString === "local" || filterString === "withoutShares" ||
       filterString === "articlesOnly" ||
       ctx.state.account != null &&
-        (filterString === "mentions" || filterString === "recommendations")
+        (filterString === "mentionsAndQuotes" ||
+          filterString === "recommendations")
     ) {
       filter = filterString;
     } else {
@@ -253,7 +254,7 @@ export const handler = define.handlers({
           },
           where: and(
             or(
-              filter === "mentions" ? sql`false` : or(
+              filter === "mentionsAndQuotes" ? sql`false` : or(
                 and(
                   inArray(
                     postTable.actorId,
@@ -299,6 +300,12 @@ export const handler = define.handlers({
                 db.select({ postId: mentionTable.postId })
                   .from(mentionTable)
                   .where(eq(mentionTable.actorId, ctx.state.account.actor.id)),
+              ),
+              inArray(
+                postTable.quotedPostId,
+                db.select({ postId: postTable.id })
+                  .from(postTable)
+                  .where(eq(postTable.actorId, ctx.state.account.actor.id)),
               ),
             ),
             ne(postTable.visibility, "none"),
