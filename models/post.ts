@@ -1179,10 +1179,19 @@ export async function scrapePostLink(
         pair as [string, string]
       ),
   );
-  const charset = contentTypeParams.charset?.toLowerCase();
-  const html = charset == null || charset === "utf-8" || charset === "utf8"
-    ? await response.text()
-    : iconv.decode(Buffer.from(await response.bytes()), charset);
+  let charset = contentTypeParams.charset?.toLowerCase();
+  const bytes = await response.bytes();
+  if (!charset) {
+    // Try to find charset in meta tags if not specified in Content-Type
+    const decoder = new TextDecoder();
+    const rawHtml = decoder.decode(bytes);
+    const charsetMatch = rawHtml.match(/<meta\s+.*?charset=["']?([\w-]+)/i);
+    if (charsetMatch != null) charset = charsetMatch[1].toLowerCase();
+  }
+
+  const html = !charset || charset === "utf-8" || charset === "utf8"
+    ? new TextDecoder().decode(bytes)
+    : iconv.decode(Buffer.from(bytes), charset);
   const { error, result } = await ogs({
     html,
     customMetaTags: [
