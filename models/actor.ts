@@ -21,11 +21,10 @@ import {
   ne,
   notInArray,
   or,
-  type SQL,
   sql,
 } from "drizzle-orm";
 import type Keyv from "keyv";
-import type { Database } from "../db.ts";
+import type { Database, RelationsFilter } from "../db.ts";
 import metadata from "../deno.json" with { type: "json" };
 import {
   getAvatarUrl as getAccountAvatarUrl,
@@ -269,7 +268,7 @@ export function getPersistedActor(
 ): Promise<Actor & { instance: Instance } | undefined> {
   return db.query.actorTable.findFirst({
     with: { instance: true },
-    where: eq(actorTable.iri, iri.toString()),
+    where: { iri: iri.toString() },
   });
 }
 
@@ -278,7 +277,7 @@ export async function persistActorsByHandles(
   ctx: Context<void>,
   handles: string[],
 ): Promise<Record<string, Actor & { instance: Instance }>> {
-  const filter: SQL[] = [];
+  const filter: RelationsFilter<"actorTable">[] = [];
   const handlesToFetch = new Set<string>();
   for (let handle of handles) {
     handle = handle.trim().replace(/^@/, "").trim();
@@ -288,19 +287,18 @@ export async function persistActorsByHandles(
     host = host.trim();
     if (username === "" || host === "") continue;
     handlesToFetch.add(`@${username}@${host}`);
-    const expr = and(
-      eq(actorTable.username, username),
-      or(
-        eq(actorTable.instanceHost, host),
-        eq(actorTable.handleHost, host),
-      ),
-    );
-    if (expr != null) filter.push(expr);
+    filter.push({
+      username,
+      OR: [
+        { instanceHost: host },
+        { handleHost: host },
+      ],
+    });
   }
   if (filter.length < 1) return {};
   const existingActors = await db.query.actorTable.findMany({
     with: { instance: true },
-    where: or(...filter),
+    where: { OR: [...filter] },
   });
   const result: Record<string, Actor & { instance: Instance }> = {};
   for (const actor of existingActors) {
@@ -513,7 +511,7 @@ export async function recommendActors(
   if (actorIds.length < 1) return [];
   const actors = await db.query.actorTable.findMany({
     with: { account: true },
-    where: inArray(actorTable.id, actorIds),
+    where: { id: { in: actorIds } },
     limit,
   });
   actors.sort((a, b) => actorIds.indexOf(a.id) - actorIds.indexOf(b.id));

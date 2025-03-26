@@ -6,7 +6,6 @@ import { getAvatarUrl } from "../models/account.ts";
 import {
   type Account,
   type AccountEmail,
-  accountTable,
   articleDraftTable,
 } from "../models/schema.ts";
 import { MODE, type State } from "../utils.ts";
@@ -22,7 +21,7 @@ export default async function App(
   if (state.session != null) {
     account = await db.query.accountTable.findFirst({
       with: { emails: true },
-      where: eq(accountTable.id, state.session.accountId),
+      where: { id: state.session.accountId },
     });
     drafts = (await db.select({ cnt: count() })
       .from(articleDraftTable)

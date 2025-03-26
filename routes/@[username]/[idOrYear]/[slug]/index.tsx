@@ -1,7 +1,7 @@
 import * as vocab from "@fedify/fedify/vocab";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import * as v from "@valibot/valibot";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PageTitle } from "../../../../components/PageTitle.tsx";
@@ -21,15 +21,14 @@ import {
 } from "../../../../models/markup.ts";
 import { createNote } from "../../../../models/note.ts";
 import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
-import {
-  type Account,
-  type Actor,
-  type ArticleSource,
-  type Mention,
-  type Post,
-  type PostLink,
-  type PostMedium,
-  postTable,
+import type {
+  Account,
+  Actor,
+  ArticleSource,
+  Mention,
+  Post,
+  PostLink,
+  PostMedium,
 } from "../../../../models/schema.ts";
 import type { Uuid } from "../../../../models/uuid.ts";
 import { define } from "../../../../utils.ts";
@@ -141,12 +140,12 @@ export const handler = define.handlers({
         media: true,
         shares: {
           where: ctx.state.account == null
-            ? sql`false`
-            : eq(postTable.actorId, ctx.state.account.actor.id),
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
         },
       },
-      where: eq(postTable.replyTargetId, article.post.id),
-      orderBy: postTable.published,
+      where: { replyTargetId: article.post.id },
+      orderBy: { published: "asc" },
     });
     return page<ArticlePageProps>({
       article,
@@ -194,10 +193,10 @@ export const handler = define.handlers({
     const quotedPost = parsed.output.quotedPostId == null
       ? undefined
       : await db.query.postTable.findFirst({
-        where: and(
-          eq(postTable.id, parsed.output.quotedPostId as Uuid),
-          inArray(postTable.visibility, ["public", "unlisted"]),
-        ),
+        where: {
+          id: parsed.output.quotedPostId as Uuid,
+          visibility: { in: ["public", "unlisted"] },
+        },
       });
     const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,

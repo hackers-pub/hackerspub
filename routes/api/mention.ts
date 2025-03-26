@@ -1,6 +1,5 @@
-import { and, eq, ilike } from "drizzle-orm";
 import { db } from "../../db.ts";
-import { type Actor, actorTable } from "../../models/schema.ts";
+import type { Actor } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
 
 export const handler = define.handlers({
@@ -14,22 +13,17 @@ export const handler = define.handlers({
       : [prefix, undefined];
     const result: Actor[] = await db.query.actorTable.findMany({
       where: host == null || !URL.canParse(`http://${host}`)
-        ? ilike(
-          actorTable.username,
-          `${username}%`,
-        )
-        : and(
-          eq(actorTable.username, username),
-          ilike(
-            actorTable.handleHost,
-            `${new URL(`http://${host}`).host}%`,
-          ),
-          ilike(
-            actorTable.instanceHost,
-            `${new URL(`http://${host}`).host}%`,
-          ),
-        ),
-      orderBy: [actorTable.username, actorTable.handleHost],
+        ? { username: { ilike: `${username}%` } }
+        : {
+          username,
+          handleHost: {
+            ilike: `${new URL(`http://${host}`).host}%`,
+          },
+          instanceHost: {
+            ilike: `${new URL(`http://${host}`).host}%`,
+          },
+        },
+      orderBy: (t) => [t.username, t.handleHost],
       limit: 25,
     });
     return new Response(JSON.stringify(result), {

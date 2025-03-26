@@ -1,15 +1,13 @@
 import { setCookie } from "@std/http/cookie";
-import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import { PageTitle } from "../../../components/PageTitle.tsx";
-import { createSession, EXPIRATION } from "../../../models/session.ts";
-import { getSigninToken } from "../../../models/signin.ts";
 import { db } from "../../../db.ts";
 import { kv } from "../../../kv.ts";
-import { define } from "../../../utils.ts";
-import { accountLinkTable, accountTable } from "../../../models/schema.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
+import { createSession, EXPIRATION } from "../../../models/session.ts";
+import { getSigninToken } from "../../../models/signin.ts";
 import { validateUuid } from "../../../models/uuid.ts";
+import { define } from "../../../utils.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -19,10 +17,10 @@ export const handler = define.handlers({
     const code = ctx.url.searchParams.get("code");
     if (code !== token.code) return page();
     const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.id, token.accountId),
+      where: { id: token.accountId },
       with: {
         emails: true,
-        links: { orderBy: accountLinkTable.index },
+        links: { orderBy: { index: "asc" } },
       },
     });
     if (account == null) return page();

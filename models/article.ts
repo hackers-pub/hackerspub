@@ -1,6 +1,6 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type Keyv from "keyv";
 import type { Database } from "../db.ts";
 import { getArticle } from "../federation/objects.ts";
@@ -9,7 +9,6 @@ import {
   type Account,
   type AccountEmail,
   type AccountLink,
-  accountTable,
   type Actor,
   type ArticleDraft,
   articleDraftTable,
@@ -85,15 +84,15 @@ export async function getArticleSource(
   } | undefined
 > {
   let account = await db.query.accountTable.findFirst({
-    where: eq(accountTable.username, username),
+    where: { username },
   });
   if (account == null) {
     account = await db.query.accountTable.findFirst({
-      where: and(
-        eq(accountTable.oldUsername, username),
-        isNotNull(accountTable.usernameChanged),
-      ),
-      orderBy: desc(accountTable.usernameChanged),
+      where: {
+        oldUsername: username,
+        usernameChanged: { isNotNull: true },
+      },
+      orderBy: { usernameChanged: "desc" },
     });
   }
   if (account == null) return undefined;
@@ -114,11 +113,11 @@ export async function getArticleSource(
         },
       },
     },
-    where: and(
-      eq(articleSourceTable.slug, slug),
-      eq(articleSourceTable.publishedYear, publishedYear),
-      eq(articleSourceTable.accountId, account.id),
-    ),
+    where: {
+      slug,
+      publishedYear,
+      accountId: account.id,
+    },
   });
 }
 
@@ -152,7 +151,7 @@ export async function createArticle(
   const articleSource = await createArticleSource(db, source);
   if (articleSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
-    where: eq(accountTable.id, source.accountId),
+    where: { id: source.accountId },
     with: { emails: true, links: true },
   });
   if (account == undefined) return undefined;
@@ -211,7 +210,7 @@ export async function updateArticle(
   const articleSource = await updateArticleSource(db, articleSourceId, source);
   if (articleSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
-    where: eq(accountTable.id, articleSource.accountId),
+    where: { id: articleSource.accountId },
     with: { emails: true, links: true },
   });
   if (account == null) return undefined;

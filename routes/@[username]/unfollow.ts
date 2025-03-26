@@ -1,7 +1,5 @@
-import { and, eq, or } from "drizzle-orm";
 import { db } from "../../db.ts";
 import { unfollow } from "../../models/following.ts";
-import { accountTable, actorTable } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
 
 export const handler = define.handlers({
@@ -13,20 +11,20 @@ export const handler = define.handlers({
     if (handle.includes("@")) {
       const [username, host] = handle.split("@");
       const followee = await db.query.actorTable.findFirst({
-        where: and(
-          eq(actorTable.username, username),
-          or(
-            eq(actorTable.instanceHost, host),
-            eq(actorTable.handleHost, host),
-          ),
-        ),
+        where: {
+          username,
+          OR: [
+            { instanceHost: host },
+            { handleHost: host },
+          ],
+        },
       });
       if (followee == null) return ctx.next();
       await unfollow(db, ctx.state.fedCtx, ctx.state.account, followee);
     } else {
       const followee = await db.query.accountTable.findFirst({
         with: { actor: true },
-        where: eq(accountTable.username, handle),
+        where: { username: handle },
       });
       if (followee == null || followee.id === ctx.state.session.accountId) {
         return ctx.next();

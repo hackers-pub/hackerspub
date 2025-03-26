@@ -1,6 +1,6 @@
 import type { Context, Recipient } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import sharp from "sharp";
@@ -11,10 +11,8 @@ import {
   type Account,
   type AccountEmail,
   type AccountLink,
-  accountTable,
   type Actor,
   type Following,
-  followingTable,
   type Instance,
   type Mention,
   type NewNoteSource,
@@ -25,7 +23,6 @@ import {
   type Post,
   type PostLink,
   type PostMedium,
-  postTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
@@ -84,15 +81,15 @@ export async function getNoteSource(
   } | undefined
 > {
   let account = await db.query.accountTable.findFirst({
-    where: eq(accountTable.username, username),
+    where: { username },
   });
   if (account == null) {
     account = await db.query.accountTable.findFirst({
-      where: and(
-        eq(accountTable.oldUsername, username),
-        isNotNull(accountTable.usernameChanged),
-      ),
-      orderBy: desc(accountTable.usernameChanged),
+      where: {
+        oldUsername: username,
+        usernameChanged: { isNotNull: true },
+      },
+      orderBy: { usernameChanged: "desc" },
     });
   }
   if (account == null) return undefined;
@@ -119,10 +116,9 @@ export async function getNoteSource(
                   actor: {
                     with: {
                       followers: {
-                        where: signedAccount == null ? sql`false` : eq(
-                          followingTable.followerId,
-                          signedAccount.actor.id,
-                        ),
+                        where: signedAccount == null ? { RAW: sql`false` } : {
+                          followerId: signedAccount.actor.id,
+                        },
                       },
                     },
                   },
@@ -139,8 +135,8 @@ export async function getNoteSource(
               media: true,
               shares: {
                 where: signedAccount == null
-                  ? sql`false`
-                  : eq(postTable.actorId, signedAccount.actor.id),
+                  ? { RAW: sql`false` }
+                  : { actorId: signedAccount.actor.id },
               },
             },
           },
@@ -149,10 +145,9 @@ export async function getNoteSource(
               actor: {
                 with: {
                   followers: {
-                    where: signedAccount == null ? sql`false` : eq(
-                      followingTable.followerId,
-                      signedAccount.actor.id,
-                    ),
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { followerId: signedAccount.actor.id },
                   },
                 },
               },
@@ -166,17 +161,14 @@ export async function getNoteSource(
           media: true,
           shares: {
             where: signedAccount == null
-              ? sql`false`
-              : eq(postTable.actorId, signedAccount.actor.id),
+              ? { RAW: sql`false` }
+              : { actorId: signedAccount.actor.id },
           },
         },
       },
       media: true,
     },
-    where: and(
-      eq(noteSourceTable.id, id),
-      eq(noteSourceTable.accountId, account.id),
-    ),
+    where: { id, accountId: account.id },
   });
 }
 
@@ -240,7 +232,7 @@ export async function createNote(
     index++;
   }
   const account = await db.query.accountTable.findFirst({
-    where: eq(accountTable.id, source.accountId),
+    where: { id: source.accountId },
     with: { emails: true, links: true },
   });
   if (account == undefined) return undefined;
@@ -333,11 +325,11 @@ export async function updateNote(
   const noteSource = await updateNoteSource(db, noteSourceId, source);
   if (noteSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
-    where: eq(accountTable.id, noteSource.accountId),
+    where: { id: noteSource.accountId },
     with: { emails: true, links: true },
   });
   const media = await db.query.noteMediumTable.findMany({
-    where: eq(noteMediumTable.sourceId, noteSourceId),
+    where: { sourceId: noteSourceId },
   });
   if (account == null) return undefined;
   const post = await syncPostFromNoteSource(db, kv, disk, fedCtx, {
@@ -354,12 +346,12 @@ export async function updateNote(
       replyTargetId: post.replyTargetId == null
         ? undefined
         : await db.query.postTable.findFirst({
-          where: eq(postTable.id, post.replyTargetId),
+          where: { id: post.replyTargetId },
         }).then((r) => r?.iri == null ? undefined : new URL(r.iri)),
       quotedPost: post.quotedPostId == null
         ? undefined
         : await db.query.postTable.findFirst({
-          where: eq(postTable.id, post.quotedPostId),
+          where: { id: post.quotedPostId },
         }),
     },
   );

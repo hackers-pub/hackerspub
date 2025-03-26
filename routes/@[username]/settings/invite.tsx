@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { Button } from "../../../components/Button.tsx";
 import { Input } from "../../../components/Input.tsx";
@@ -13,7 +13,6 @@ import { kv } from "../../../kv.ts";
 import { getAvatarUrl } from "../../../models/actor.ts";
 import {
   type Account,
-  accountEmailTable,
   accountTable,
   type Actor,
 } from "../../../models/schema.ts";
@@ -26,14 +25,14 @@ export const handler = define.handlers({
   async GET(ctx) {
     if (ctx.state.account == null) return ctx.next();
     const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.username, ctx.params.username),
+      where: { username: ctx.params.username },
       with: {
         inviter: {
           with: { actor: true },
         },
         invitees: {
           with: { actor: true },
-          orderBy: desc(accountTable.created),
+          orderBy: { created: "desc" },
         },
       },
     });
@@ -47,14 +46,14 @@ export const handler = define.handlers({
     const { t } = ctx.state;
     if (ctx.state.account == null) return ctx.next();
     const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.username, ctx.params.username),
+      where: { username: ctx.params.username },
       with: {
         inviter: {
           with: { actor: true },
         },
         invitees: {
           with: { actor: true },
-          orderBy: desc(accountTable.created),
+          orderBy: { created: "desc" },
         },
       },
     });
@@ -77,7 +76,7 @@ export const handler = define.handlers({
       });
     }
     const existingEmail = await db.query.accountEmailTable.findFirst({
-      where: eq(accountEmailTable.email, email),
+      where: { email },
       with: { account: true },
     });
     if (existingEmail != null) {

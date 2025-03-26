@@ -14,7 +14,7 @@ export async function persistInstance(
 ): Promise<Instance> {
   if (options.skipUpdate) {
     const instance = await db.query.instanceTable.findFirst({
-      where: eq(instanceTable.host, host),
+      where: { host },
     });
     if (instance != null) return instance;
   }

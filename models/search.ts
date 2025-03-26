@@ -15,18 +15,7 @@ import {
   str,
   whitespace,
 } from "arcsecond";
-import {
-  and,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  not,
-  or,
-  type SQL,
-} from "drizzle-orm";
-import type { Database } from "../db.ts";
-import { actorTable, postTable } from "./schema.ts";
+import type { Database, RelationsFilter } from "../db.ts";
 
 export type Term =
   | { type: "keyword"; keyword: string }
@@ -126,36 +115,42 @@ export function parseQuery(input: string): Expr | undefined {
   return result.result;
 }
 
-export function compileQuery(db: Database, expr: Expr): SQL {
+export function compileQuery(
+  db: Database,
+  expr: Expr,
+): RelationsFilter<"postTable"> {
   switch (expr.type) {
     case "keyword":
-      return ilike(postTable.contentHtml, `%${expr.keyword}%`);
+      return { contentHtml: { ilike: `%${expr.keyword}%` } };
     case "language":
-      return eq(postTable.language, expr.language);
+      return { language: expr.language };
     case "actor":
-      return inArray(
-        postTable.actorId,
-        db.select({ id: actorTable.id }).from(actorTable).where(
-          and(
-            eq(actorTable.username, expr.username),
-            expr.host == null ? isNotNull(actorTable.accountId) : or(
-              eq(actorTable.instanceHost, expr.host),
-              eq(actorTable.handleHost, expr.host),
-            ),
-          ),
-        ),
-      );
+      return {
+        actor: {
+          username: expr.username,
+          ...(expr.host == null ? { accountId: { isNotNull: true } } : {
+            OR: [
+              { instanceHost: expr.host },
+              { handleHost: expr.host },
+            ],
+          }),
+        },
+      };
     case "and":
-      return and(
-        compileQuery(db, expr.left),
-        compileQuery(db, expr.right),
-      ) as SQL;
+      return {
+        AND: [
+          compileQuery(db, expr.left),
+          compileQuery(db, expr.right),
+        ],
+      };
     case "or":
-      return or(
-        compileQuery(db, expr.left),
-        compileQuery(db, expr.right),
-      ) as SQL;
+      return {
+        OR: [
+          compileQuery(db, expr.left),
+          compileQuery(db, expr.right),
+        ],
+      };
     case "not":
-      return not(compileQuery(db, expr.expr));
+      return { NOT: compileQuery(db, expr.expr) };
   }
 }

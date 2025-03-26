@@ -1,4 +1,4 @@
-import { relations, type SQL, sql } from "drizzle-orm";
+import { type SQL, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   boolean,
@@ -65,29 +65,6 @@ export const accountTable = pgTable(
 export type Account = typeof accountTable.$inferSelect;
 export type NewAccount = typeof accountTable.$inferInsert;
 
-export const accountRelations = relations(
-  accountTable,
-  ({ one, many }) => ({
-    emails: many(accountEmailTable),
-    keys: many(accountKeyTable),
-    links: many(accountLinkTable),
-    actor: one(actorTable, {
-      fields: [accountTable.id],
-      references: [actorTable.accountId],
-    }),
-    articleDrafts: many(articleDraftTable),
-    articleSources: many(articleSourceTable),
-    inviter: one(accountTable, {
-      fields: [accountTable.inviterId],
-      references: [accountTable.id],
-      relationName: "inviter",
-    }),
-    invitees: many(accountTable, {
-      relationName: "inviter",
-    }),
-  }),
-);
-
 export const accountEmailTable = pgTable(
   "account_email",
   {
@@ -106,16 +83,6 @@ export const accountEmailTable = pgTable(
 
 export type AccountEmail = typeof accountEmailTable.$inferSelect;
 export type NewAccountEmail = typeof accountEmailTable.$inferInsert;
-
-export const accountEmailRelations = relations(
-  accountEmailTable,
-  ({ one }) => ({
-    account: one(accountTable, {
-      fields: [accountEmailTable.accountId],
-      references: [accountTable.id],
-    }),
-  }),
-);
 
 export const accountKeyTypeEnum = pgEnum("account_key_type", [
   "Ed25519",
@@ -153,16 +120,6 @@ export const accountKeyTable = pgTable(
 
 export type AccountKey = typeof accountKeyTable.$inferSelect;
 export type NewAccountKey = typeof accountKeyTable.$inferInsert;
-
-export const accountKeyRelations = relations(
-  accountKeyTable,
-  ({ one }) => ({
-    account: one(accountTable, {
-      fields: [accountKeyTable.accountId],
-      references: [accountTable.id],
-    }),
-  }),
-);
 
 export const accountLinkIconEnum = pgEnum("account_link_icon", [
   "activitypub",
@@ -231,16 +188,6 @@ export const accountLinkTable = pgTable(
 
 export type AccountLink = typeof accountLinkTable.$inferSelect;
 export type NewAccountLink = typeof accountLinkTable.$inferInsert;
-
-export const accountLinkRelations = relations(
-  accountLinkTable,
-  ({ one }) => ({
-    account: one(accountTable, {
-      fields: [accountLinkTable.accountId],
-      references: [accountTable.id],
-    }),
-  }),
-);
 
 export const actorTypeEnum = pgEnum("actor_type", [
   "Application",
@@ -311,28 +258,6 @@ export const actorTable = pgTable(
 export type Actor = typeof actorTable.$inferSelect;
 export type NewActor = typeof actorTable.$inferInsert;
 
-export const actorRelations = relations(
-  actorTable,
-  ({ one, many }) => ({
-    instance: one(instanceTable, {
-      fields: [actorTable.instanceHost],
-      references: [instanceTable.host],
-    }),
-    account: one(accountTable, {
-      fields: [actorTable.accountId],
-      references: [accountTable.id],
-    }),
-    successor: one(actorTable, {
-      fields: [actorTable.successorId],
-      references: [actorTable.id],
-    }),
-    followers: many(followingTable, { relationName: "followee" }),
-    followees: many(followingTable, { relationName: "follower" }),
-    mentions: many(mentionTable),
-    posts: many(postTable),
-  }),
-);
-
 export const followingTable = pgTable(
   "following",
   {
@@ -358,22 +283,6 @@ export const followingTable = pgTable(
 export type Following = typeof followingTable.$inferSelect;
 export type NewFollowing = typeof followingTable.$inferInsert;
 
-export const followingRelations = relations(
-  followingTable,
-  ({ one }) => ({
-    follower: one(actorTable, {
-      relationName: "follower",
-      fields: [followingTable.followerId],
-      references: [actorTable.id],
-    }),
-    followee: one(actorTable, {
-      relationName: "followee",
-      fields: [followingTable.followeeId],
-      references: [actorTable.id],
-    }),
-  }),
-);
-
 export const instanceTable = pgTable(
   "instance",
   {
@@ -397,13 +306,6 @@ export const instanceTable = pgTable(
 
 export type Instance = typeof instanceTable.$inferSelect;
 export type NewInstance = typeof instanceTable.$inferInsert;
-
-export const instanceRelations = relations(
-  instanceTable,
-  ({ many }) => ({
-    actors: many(actorTable),
-  }),
-);
 
 export const articleDraftTable = pgTable(
   "article_draft",
@@ -430,16 +332,6 @@ export const articleDraftTable = pgTable(
 
 export type ArticleDraft = typeof articleDraftTable.$inferSelect;
 export type NewArticleDraft = typeof articleDraftTable.$inferInsert;
-
-export const articleDraftRelations = relations(
-  articleDraftTable,
-  ({ one }) => ({
-    account: one(accountTable, {
-      fields: [articleDraftTable.accountId],
-      references: [accountTable.id],
-    }),
-  }),
-);
 
 export const articleSourceTable = pgTable(
   "article_source",
@@ -477,20 +369,6 @@ export const articleSourceTable = pgTable(
 export type ArticleSource = typeof articleSourceTable.$inferSelect;
 export type NewArticleSource = typeof articleSourceTable.$inferInsert;
 
-export const articleSourceRelations = relations(
-  articleSourceTable,
-  ({ one }) => ({
-    account: one(accountTable, {
-      fields: [articleSourceTable.accountId],
-      references: [accountTable.id],
-    }),
-    post: one(postTable, {
-      fields: [articleSourceTable.id],
-      references: [postTable.articleSourceId],
-    }),
-  }),
-);
-
 export const POST_VISIBILITIES = [
   "public",
   "unlisted",
@@ -523,21 +401,6 @@ export const noteSourceTable = pgTable("note_source", {
 export type NoteSource = typeof noteSourceTable.$inferSelect;
 export type NewNoteSource = typeof noteSourceTable.$inferInsert;
 
-export const noteSourceRelations = relations(
-  noteSourceTable,
-  ({ one, many }) => ({
-    account: one(accountTable, {
-      fields: [noteSourceTable.accountId],
-      references: [accountTable.id],
-    }),
-    post: one(postTable, {
-      fields: [noteSourceTable.id],
-      references: [postTable.noteSourceId],
-    }),
-    media: many(noteMediumTable),
-  }),
-);
-
 export const noteMediumTable = pgTable(
   "note_medium",
   {
@@ -558,16 +421,6 @@ export const noteMediumTable = pgTable(
 
 export type NoteMedium = typeof noteMediumTable.$inferSelect;
 export type NewNoteMedium = typeof noteMediumTable.$inferInsert;
-
-export const noteMediumRelations = relations(
-  noteMediumTable,
-  ({ one }) => ({
-    source: one(noteSourceTable, {
-      fields: [noteMediumTable.sourceId],
-      references: [noteSourceTable.id],
-    }),
-  }),
-);
 
 export const postTypeEnum = pgEnum("post_type", [
   "Article",
@@ -657,46 +510,6 @@ export const postTable = pgTable(
 export type Post = typeof postTable.$inferSelect;
 export type NewPost = typeof postTable.$inferInsert;
 
-export const postRelations = relations(
-  postTable,
-  ({ one, many }) => ({
-    actor: one(actorTable, {
-      fields: [postTable.actorId],
-      references: [actorTable.id],
-    }),
-    articleSource: one(articleSourceTable, {
-      fields: [postTable.articleSourceId],
-      references: [articleSourceTable.id],
-    }),
-    sharedPost: one(postTable, {
-      fields: [postTable.sharedPostId],
-      references: [postTable.id],
-      relationName: "sharedPost",
-    }),
-    replyTarget: one(postTable, {
-      fields: [postTable.replyTargetId],
-      references: [postTable.id],
-      relationName: "replyTarget",
-    }),
-    quotedPost: one(postTable, {
-      fields: [postTable.quotedPostId],
-      references: [postTable.id],
-      relationName: "quotedPost",
-    }),
-    replies: many(postTable, { relationName: "replyTarget" }),
-    shares: many(postTable, { relationName: "sharedPost" }),
-    quotes: many(postTable, {
-      relationName: "quotedPost",
-    }),
-    mentions: many(mentionTable),
-    media: many(postMediumTable),
-    link: one(postLinkTable, {
-      fields: [postTable.linkId],
-      references: [postLinkTable.id],
-    }),
-  }),
-);
-
 export const mentionTable = pgTable(
   "mention",
   {
@@ -716,20 +529,6 @@ export const mentionTable = pgTable(
 
 export type Mention = typeof mentionTable.$inferSelect;
 export type NewMention = typeof mentionTable.$inferInsert;
-
-export const mentionRelations = relations(
-  mentionTable,
-  ({ one }) => ({
-    post: one(postTable, {
-      fields: [mentionTable.postId],
-      references: [postTable.id],
-    }),
-    actor: one(actorTable, {
-      fields: [mentionTable.actorId],
-      references: [actorTable.id],
-    }),
-  }),
-);
 
 export const postMediumTypeEnum = pgEnum("post_medium_type", [
   "image/gif",
@@ -779,16 +578,6 @@ export const postMediumTable = pgTable(
 
 export type PostMedium = typeof postMediumTable.$inferSelect;
 export type NewPostMedium = typeof postMediumTable.$inferInsert;
-
-export const postMediumRelations = relations(
-  postMediumTable,
-  ({ one }) => ({
-    post: one(postTable, {
-      fields: [postMediumTable.postId],
-      references: [postTable.id],
-    }),
-  }),
-);
 
 export const postLinkTable = pgTable(
   "post_link",
@@ -861,14 +650,3 @@ export const postLinkTable = pgTable(
 
 export type PostLink = typeof postLinkTable.$inferSelect;
 export type NewPostLink = typeof postLinkTable.$inferInsert;
-
-export const postLinkRelations = relations(
-  postLinkTable,
-  ({ one, many }) => ({
-    posts: many(postTable),
-    creator: one(actorTable, {
-      fields: [postLinkTable.creatorId],
-      references: [actorTable.id],
-    }),
-  }),
-);

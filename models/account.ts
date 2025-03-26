@@ -11,7 +11,7 @@ import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
 import { escape, unescape } from "@std/html/entities";
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Database } from "../db.ts";
 import { drive } from "../drive.ts";
 import { compactUrl } from "../utils.ts";
@@ -64,22 +64,22 @@ export async function getAccountByUsername(
     with: {
       actor: true,
       emails: true,
-      links: { orderBy: accountLinkTable.index },
+      links: { orderBy: { index: "asc" } },
     },
-    where: eq(accountTable.username, username),
+    where: { username },
   });
   if (account != null) return account;
   return await db.query.accountTable.findFirst({
     with: {
       actor: true,
       emails: true,
-      links: { orderBy: accountLinkTable.index },
+      links: { orderBy: { index: "asc" } },
     },
-    where: and(
-      eq(accountTable.oldUsername, username),
-      isNotNull(accountTable.usernameChanged),
-    ),
-    orderBy: desc(accountTable.usernameChanged),
+    where: {
+      oldUsername: username,
+      usernameChanged: { isNotNull: true },
+    },
+    orderBy: { usernameChanged: "desc" },
   });
 }
 
@@ -170,7 +170,7 @@ export async function updateAccountLinks(
     { accountId, links },
   );
   const existing = await db.query.accountLinkTable.findMany({
-    where: eq(accountLinkTable.accountId, accountId),
+    where: { accountId },
   });
   const existingMap = Object.fromEntries(
     existing.map((link) => [link.url, link]),

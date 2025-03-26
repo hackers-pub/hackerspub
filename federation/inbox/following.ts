@@ -7,11 +7,7 @@ import {
   updateFolloweesCount,
   updateFollowersCount,
 } from "../../models/following.ts";
-import {
-  accountTable,
-  actorTable,
-  followingTable,
-} from "../../models/schema.ts";
+import { followingTable } from "../../models/schema.ts";
 import { validateUuid } from "../../models/uuid.ts";
 
 export async function onFollowAccepted(
@@ -27,11 +23,11 @@ export async function onFollowAccepted(
   else if (!validateUuid(followActor.identifier)) return;
   const follower = await db.query.accountTable.findFirst({
     with: { actor: true },
-    where: eq(accountTable.id, followActor.identifier),
+    where: { id: followActor.identifier },
   });
   if (follower == null) return;
   const followee = await db.query.actorTable.findFirst({
-    where: eq(actorTable.iri, follow.objectId.href),
+    where: { iri: follow.objectId.href },
   });
   if (followee == null) return;
   if (follow.id == null) await acceptFollowing(db, follower, followee);
@@ -50,7 +46,7 @@ export async function onFollowed(
   else if (!validateUuid(followObject.identifier)) return;
   const followee = await db.query.accountTable.findFirst({
     with: { actor: true },
-    where: eq(accountTable.id, followObject.identifier),
+    where: { id: followObject.identifier },
   });
   if (followee == null) return;
   const followActor = await follow.getActor(fedCtx);

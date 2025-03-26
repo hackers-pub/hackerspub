@@ -1,14 +1,12 @@
 import * as v from "@valibot/valibot";
-import { and, eq } from "drizzle-orm";
-import { define } from "../../../../utils.ts";
 import { db } from "../../../../db.ts";
 import { kv } from "../../../../kv.ts";
-import { articleDraftTable } from "../../../../models/schema.ts";
-import { validateUuid } from "../../../../models/uuid.ts";
 import {
   createArticle,
   deleteArticleDraft,
 } from "../../../../models/article.ts";
+import { validateUuid } from "../../../../models/uuid.ts";
+import { define } from "../../../../utils.ts";
 
 const ArticleSourceSchema = v.object({
   slug: v.pipe(v.string(), v.trim(), v.maxLength(128)),
@@ -23,10 +21,10 @@ export const handler = define.handlers({
       with: {
         account: true,
       },
-      where: and(
-        eq(articleDraftTable.id, ctx.params.draftId),
-        eq(articleDraftTable.accountId, ctx.state.session.accountId),
-      ),
+      where: {
+        id: ctx.params.draftId,
+        accountId: ctx.state.session.accountId,
+      },
     });
     if (draft == null || draft.account.username !== ctx.params.username) {
       return ctx.next();

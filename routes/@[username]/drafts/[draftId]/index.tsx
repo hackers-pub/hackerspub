@@ -1,15 +1,10 @@
 import * as v from "@valibot/valibot";
-import { and, eq } from "drizzle-orm";
 import { page } from "fresh";
 import { db } from "../../../../db.ts";
 import { Editor } from "../../../../islands/Editor.tsx";
 import { updateArticleDraft } from "../../../../models/article.ts";
 import { detectLanguage } from "../../../../models/langdet.ts";
-import {
-  type Account,
-  accountTable,
-  articleDraftTable,
-} from "../../../../models/schema.ts";
+import type { Account } from "../../../../models/schema.ts";
 import { validateUuid } from "../../../../models/uuid.ts";
 import { define } from "../../../../utils.ts";
 
@@ -26,16 +21,16 @@ export const handler = define.handlers({
     if (!validateUuid(ctx.params.draftId)) return ctx.next();
     if (ctx.state.session == null) return ctx.next();
     const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.id, ctx.state.session.accountId),
+      where: { id: ctx.state.session.accountId },
     });
     if (account == null || account.username != ctx.params.username) {
       return ctx.next();
     }
     const draft = await db.query.articleDraftTable.findFirst({
-      where: and(
-        eq(articleDraftTable.id, ctx.params.draftId),
-        eq(articleDraftTable.accountId, account.id),
-      ),
+      where: {
+        id: ctx.params.draftId,
+        accountId: account.id,
+      },
     });
     ctx.state.withoutMain = true;
     return page<DraftPageProps>({
@@ -52,7 +47,7 @@ export const handler = define.handlers({
     if (!validateUuid(ctx.params.draftId)) return ctx.next();
     if (ctx.state.session == null) return ctx.next();
     const account = await db.query.accountTable.findFirst({
-      where: eq(accountTable.username, ctx.params.username),
+      where: { username: ctx.params.username },
     });
     if (account?.id !== ctx.state.session.accountId) return ctx.next();
     const data = await ctx.req.json();

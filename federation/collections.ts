@@ -1,23 +1,8 @@
 import * as vocab from "@fedify/fedify/vocab";
-import {
-  and,
-  count,
-  desc,
-  eq,
-  inArray,
-  isNotNull,
-  like,
-  lte,
-  or,
-} from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, like, or } from "drizzle-orm";
 import { db } from "../db.ts";
 import { toRecipient } from "../models/actor.ts";
-import {
-  accountTable,
-  actorTable,
-  followingTable,
-  postTable,
-} from "../models/schema.ts";
+import { actorTable, followingTable, postTable } from "../models/schema.ts";
 import { validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
 import { getPostRecipients } from "./objects.ts";
@@ -34,25 +19,26 @@ federation
       if (!validateUuid(identifier)) return null;
       const account = await db.query.accountTable.findFirst({
         with: { actor: true },
-        where: eq(accountTable.id, identifier),
+        where: { id: identifier },
       });
       if (account == null) return null;
       const followers = await db.query.followingTable.findMany({
         with: { follower: true },
-        where: and(
-          eq(followingTable.followeeId, account.actor.id),
-          isNotNull(followingTable.accepted),
-          filter == null ? undefined : inArray(
-            followingTable.followerId,
-            db.select({ id: actorTable.id }).from(actorTable).where(
-              like(actorTable.iri, `${filter.origin}/%`),
-            ),
+        where: {
+          followeeId: account.actor.id,
+          accepted: { isNotNull: true },
+          ...(filter == null ? undefined : {
+            follower: {
+              iri: { like: `${filter.origin}/%` },
+            },
+          }),
+          ...(
+            cursor == null || cursor.trim() === ""
+              ? undefined
+              : { accepted: { lte: new Date(cursor.trim()) } }
           ),
-          cursor == null || cursor.trim() === ""
-            ? undefined
-            : lte(followingTable.accepted, new Date(cursor.trim())),
-        ),
-        orderBy: desc(followingTable.accepted),
+        },
+        orderBy: { accepted: "desc" },
         limit: cursor == null ? undefined : FOLLOWERS_WINDOW,
       });
       return {
@@ -94,7 +80,7 @@ federation
       if (cursor == null || !validateUuid(identifier)) return null;
       const account = await db.query.accountTable.findFirst({
         with: { actor: true },
-        where: eq(accountTable.id, identifier),
+        where: { id: identifier },
       });
       if (account == null) return null;
       const posts = await db.query.postTable.findMany({
@@ -102,15 +88,14 @@ federation
           mentions: { with: { actor: true } },
           sharedPost: true,
         },
-        where: and(
-          eq(postTable.actorId, account.actor.id),
-          or( // FIXME
-            eq(postTable.visibility, "public"),
-            eq(postTable.visibility, "unlisted"),
+        where: {
+          actorId: account.actor.id,
+          visibility: { in: ["public", "unlisted"] }, // FIXME
+          ...(
+            validateUuid(cursor) ? { id: { lte: cursor } } : undefined
           ),
-          validateUuid(cursor) ? lte(postTable.id, cursor) : undefined,
-        ),
-        orderBy: desc(postTable.id),
+        },
+        orderBy: { id: "desc" },
         limit: OUTBOX_WINDOW + 1,
       });
       return {
@@ -147,7 +132,7 @@ federation
     if (!validateUuid(identifier)) return null;
     const account = await db.query.accountTable.findFirst({
       with: { actor: true },
-      where: eq(accountTable.id, identifier),
+      where: { id: identifier },
     });
     if (account == null) return null;
     const [{ cnt }] = await db.select({ cnt: count() })

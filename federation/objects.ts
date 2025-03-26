@@ -5,24 +5,20 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { escape } from "@std/html/entities";
-import { and, eq, isNotNull } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import { type Database, db } from "../db.ts";
 import { drive } from "../drive.ts";
 import { renderMarkup } from "../models/markup.ts";
 import { isPostVisibleTo } from "../models/post.ts";
-import {
-  type Account,
-  type Actor,
-  type ArticleSource,
-  articleSourceTable,
-  type Mention,
-  type NoteMedium,
-  type NoteSource,
-  noteSourceTable,
-  type Post,
-  postTable,
-  type PostVisibility,
+import type {
+  Account,
+  Actor,
+  ArticleSource,
+  Mention,
+  NoteMedium,
+  NoteSource,
+  Post,
+  PostVisibility,
 } from "../models/schema.ts";
 import { type Uuid, validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
@@ -81,7 +77,7 @@ federation.setObjectDispatcher(
     if (!validateUuid(values.id)) return null;
     const articleSource = await db.query.articleSourceTable.findFirst({
       with: { account: true },
-      where: eq(articleSourceTable.id, values.id),
+      where: { id: values.id },
     });
     if (articleSource == null) return null;
     return await getArticle(db, ctx, articleSource);
@@ -206,7 +202,7 @@ federation
           media: true,
           post: { with: { replyTarget: true, quotedPost: true } },
         },
-        where: eq(noteSourceTable.id, values.id),
+        where: { id: values.id },
       });
       if (note == null) return null;
       const disk = drive.use();
@@ -239,7 +235,7 @@ federation
           with: { actor: true },
         },
       },
-      where: eq(postTable.noteSourceId, values.id),
+      where: { noteSourceId: values.id },
     });
     if (post == null || post.actor.accountId == null) return false;
     const documentLoader = await ctx.getDocumentLoader({
@@ -285,10 +281,10 @@ federation.setObjectDispatcher(
         sharedPost: true,
         mentions: { with: { actor: true } },
       },
-      where: and(
-        eq(postTable.id, values.id),
-        isNotNull(postTable.sharedPostId),
-      ),
+      where: {
+        id: values.id,
+        sharedPostId: { isNotNull: true },
+      },
     });
     if (
       share == null || share.actor.account == null || share.sharedPost == null

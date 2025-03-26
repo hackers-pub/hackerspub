@@ -1,7 +1,6 @@
 import { setUser } from "@sentry/deno";
 import { getCookies } from "@std/http/cookie";
 import { acceptsLanguages } from "@std/http/negotiation";
-import { eq } from "drizzle-orm";
 import { db } from "../db.ts";
 import { federation } from "../federation/federation.ts";
 import getFixedT, {
@@ -13,7 +12,6 @@ import getFixedT, {
   SUPPORTED_LANGUAGES,
 } from "../i18n.ts";
 import { kv } from "../kv.ts";
-import { accountTable } from "../models/schema.ts";
 import { getSession } from "../models/session.ts";
 import { validateUuid } from "../models/uuid.ts";
 import { define } from "../utils.ts";
@@ -31,7 +29,7 @@ export const handler = define.middleware([
       const session = await getSession(kv, cookies.session);
       if (session != null) {
         const account = await db.query.accountTable.findFirst({
-          where: eq(accountTable.id, session.accountId),
+          where: { id: session.accountId },
           with: { actor: true, emails: true, links: true },
         });
         ctx.state.account = account;

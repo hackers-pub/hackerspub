@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { page } from "fresh";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { PostReactionsNav } from "../../../components/PostReactionsNav.tsx";
@@ -39,15 +39,15 @@ export const handler = define.handlers(async (ctx) => {
       media: true,
       shares: {
         where: ctx.state.account == null
-          ? sql`false`
-          : eq(postTable.actorId, ctx.state.account.actor.id),
+          ? { RAW: sql`false` }
+          : { actorId: ctx.state.account.actor.id },
       },
     },
-    where: and(
-      eq(postTable.quotedPostId, note.post.id),
-      isNull(postTable.sharedPostId),
-    ),
-    orderBy: desc(postTable.published),
+    where: {
+      quotedPostId: note.post.id,
+      sharedPostId: { isNull: true },
+    },
+    orderBy: { published: "desc" },
   });
   const sharers = await db.$count(
     postTable,

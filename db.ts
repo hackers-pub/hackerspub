@@ -1,5 +1,8 @@
 import { getLogger } from "@logtape/logtape";
-import type { ExtractTablesWithRelations } from "drizzle-orm";
+import type {
+  ExtractTablesWithRelations,
+  RelationsFilter as RelationsFilterImpl,
+} from "drizzle-orm";
 import type { Logger } from "drizzle-orm/logger";
 import type { PgDatabase } from "drizzle-orm/pg-core";
 import {
@@ -9,11 +12,18 @@ import {
 import postgresJs from "postgres";
 import "./logging.ts";
 import * as schema from "./models/schema.ts";
+import { relations } from "./models/relations.ts";
 
 export type Database = PgDatabase<
   PostgresJsQueryResultHKT,
   typeof schema,
-  ExtractTablesWithRelations<typeof schema>
+  typeof relations
+>;
+export type RelationsFilter<
+  T extends keyof ExtractTablesWithRelations<typeof relations>,
+> = RelationsFilterImpl<
+  ExtractTablesWithRelations<typeof relations>[T],
+  ExtractTablesWithRelations<typeof relations>
 >;
 
 class LogTapeLogger implements Logger {
@@ -72,6 +82,7 @@ if (DATABASE_URL == null) {
 export const postgres = postgresJs(DATABASE_URL);
 export const db: Database = drizzlePostgres({
   schema,
+  relations,
   client: postgres,
   logger: new LogTapeLogger(),
 });

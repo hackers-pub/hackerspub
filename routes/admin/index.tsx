@@ -1,4 +1,4 @@
-import { count, desc, eq, isNotNull, max } from "drizzle-orm";
+import { count, eq, isNotNull, max } from "drizzle-orm";
 import { page } from "fresh";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
@@ -7,7 +7,6 @@ import { getAvatarUrl } from "../../models/account.ts";
 import {
   type Account,
   type AccountEmail,
-  accountTable,
   type Actor,
   actorTable,
   postTable,
@@ -19,7 +18,7 @@ export const handler = define.handlers({
   async GET(_ctx) {
     const accounts = await db.query.accountTable.findMany({
       with: { emails: true, actor: true, inviter: true, invitees: true },
-      orderBy: desc(accountTable.created),
+      orderBy: { created: "desc" },
     });
     const postsMetadata: Record<
       Uuid,

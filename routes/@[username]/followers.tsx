@@ -1,16 +1,10 @@
-import { and, desc, eq, isNotNull, lt } from "drizzle-orm";
 import { page } from "fresh";
 import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { extractMentionsFromHtml } from "../../models/markup.ts";
-import {
-  type Account,
-  accountTable,
-  type Actor,
-  followingTable,
-} from "../../models/schema.ts";
+import type { Account, Actor } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
 
 const WINDOW = 23;
@@ -21,7 +15,7 @@ export const handler = define.handlers({
     if (username.includes("@")) return ctx.next();
     const account = await db.query.accountTable.findFirst({
       with: { actor: true },
-      where: eq(accountTable.username, username),
+      where: { username },
     });
     if (account == null) return ctx.redirect(`/@${username}`);
     const until = ctx.url.searchParams.get("until");
@@ -31,14 +25,16 @@ export const handler = define.handlers({
           with: { account: true },
         },
       },
-      where: and(
-        eq(followingTable.followeeId, account.actor.id),
-        isNotNull(followingTable.accepted),
-        until == null || !until.match(/^\d+(\.\d+)?$/)
-          ? undefined
-          : lt(followingTable.accepted, new Date(parseInt(until))),
-      ),
-      orderBy: desc(followingTable.accepted),
+      where: {
+        followeeId: account.actor.id,
+        accepted: {
+          isNotNull: true,
+          ...(until == null || !until.match(/^\d+(\.\d+)?$/)
+            ? undefined
+            : { lt: new Date(parseInt(until)) }),
+        },
+      },
+      orderBy: { accepted: "desc" },
       limit: WINDOW + 1,
     });
     let nextUrl: string | undefined;
