@@ -96,6 +96,7 @@
     "fresh": "jsr:@fresh/core@^2.0.0-alpha.29",
     "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
     "i18next": "npm:i18next@^24.0.5",
+    "iconv-lite": "npm:iconv-lite@^0.6.3",
     "ioredis": "npm:ioredis@^5.4.1",
     "json-canonicalize": "npm:json-canonicalize@^1.0.6",
     "katex": "npm:katex@^0.16.11",

@@ -22,7 +22,9 @@ import {
   sql,
 } from "drizzle-orm";
 import type { Disk } from "flydrive";
+import iconv from "iconv-lite";
 import type Keyv from "keyv";
+import { Buffer } from "node:buffer";
 import ogs from "open-graph-scraper";
 import { PDFDocument } from "pdf-lib";
 import { isSSRFSafeURL } from "ssrfcheck";
@@ -1146,10 +1148,8 @@ export async function scrapePostLink(
     });
     return undefined;
   }
-  const contentType = response.headers.get("Content-Type")?.replace(
-    /\s*;.*$/,
-    "",
-  );
+  const fullContentType = response.headers.get("Content-Type");
+  const contentType = fullContentType?.replace(/\s*;.*$/, "");
   if (
     contentType === "application/pdf" || contentType === "application/x-pdf"
   ) {
@@ -1171,8 +1171,20 @@ export async function scrapePostLink(
     });
     return undefined;
   }
+  const contentTypeParams = Object.fromEntries(
+    (fullContentType
+      ?.replace(/^[^;]*;\s*/, "")
+      ?.split(/\s*;\s*/g) ?? []).map((pair: string) => pair.split(/\s*=\s*/))
+      .filter((pair) => pair.length === 2).map((pair) =>
+        pair as [string, string]
+      ),
+  );
+  const charset = contentTypeParams.charset?.toLowerCase();
+  const html = charset == null || charset === "utf-8" || charset === "utf8"
+    ? await response.text()
+    : iconv.decode(Buffer.from(await response.bytes()), charset);
   const { error, result } = await ogs({
-    html: await response.text(),
+    html,
     customMetaTags: [
       {
         multiple: false,
