@@ -287,6 +287,14 @@ export default define.page<typeof handler, InvitePageProps>(
             </ul>
           </>
         )}
+        <PageTitle class="mt-8">
+          <Msg $key="settings.invite.tree" />
+        </PageTitle>
+        <p>
+          <a href="/tree">
+            <Msg $key="settings.invite.viewTree" />
+          </a>
+        </p>
       </form>
     );
   },

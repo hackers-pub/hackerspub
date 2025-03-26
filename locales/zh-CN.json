@@ -122,7 +122,9 @@
       "invitationEmailText": "{{inviter}} 邀请你加入 Hackers' Pub！\n\n$t(home.intro.content)\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n",
       "invitationEmailTextWithMessage": "{{inviter}} 邀请你加入 Hackers' Pub！以下是来自 {{inviterName}} 的信息：\n\n{{message}}\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n",
       "inviter": "邀请人",
-      "invitees": "被邀请人"
+      "invitees": "被邀请人",
+      "tree": "$t(invitationTree.title)",
+      "viewTree": "查看树"
     }
   },
   "profile": {
@@ -272,6 +274,9 @@
     "boldText": "粗体文本",
     "selectedLanguages": "已选语言：",
     "selectedLanguagesDescription": "请按照你熟悉的语言顺序排列。"
+  },
+  "invitationTree": {
+    "title": "邀请树"
   },
   "pageNotFound": {
     "title": "未找到页面",

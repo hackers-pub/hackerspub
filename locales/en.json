@@ -123,7 +123,9 @@
       "invitationEmailText": "{{inviter}} invites you to Hackers' Pub!\n\n$t(home.intro.content)\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n",
       "invitationEmailTextWithMessage": "{{inviter}} invites you to Hackers' Pub! Here's a message from {{inviterName}}:\n\n{{message}}\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n",
       "inviter": "Who invited you",
-      "invitees": "Users invited by you"
+      "invitees": "Users invited by you",
+      "tree": "$t(invitationTree.title)",
+      "viewTree": "View tree"
     }
   },
   "profile": {
@@ -273,6 +275,9 @@
     "boldText": "bold text",
     "selectedLanguages": "Selected languages:",
     "selectedLanguagesDescription": "Please arrange them in order of your familiar languages."
+  },
+  "invitationTree": {
+    "title": "Invitation tree"
   },
   "pageNotFound": {
     "title": "Page not found",

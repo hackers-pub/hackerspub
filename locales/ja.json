@@ -122,7 +122,9 @@
       "invitationEmailText": "{{inviter}}さんがHackers' Pubに招待しています！\n\n$t(home.intro.content)\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n",
       "invitationEmailTextWithMessage": "{{inviter}}さんがHackers' Pubに招待しています！{{inviterName}}さんからのメッセージです：\n\n{{message}}\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n",
       "inviter": "招待者",
-      "invitees": "招待された人々"
+      "invitees": "招待された人々",
+      "tree": "$t(invitationTree.title)",
+      "viewTree": "ツリーを表示"
     }
   },
   "profile": {
@@ -270,6 +272,9 @@
     "boldText": "太字",
     "selectedLanguages": "選択された言語：",
     "selectedLanguagesDescription": "馴染みのある言語順に並べてください。"
+  },
+  "invitationTree": {
+    "title": "招待ツリー"
   },
   "pageNotFound": {
     "title": "ページが見つかりません",

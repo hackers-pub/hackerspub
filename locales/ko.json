@@ -120,7 +120,9 @@
       "invitationEmailText": "{{inviter}} 님이 Hackers' Pub에 초대합니다!\n\n$t(home.intro.content)\n\n초대장을 받으려면 아래 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n",
       "invitationEmailTextWithMessage": "{{inviter}} 님이 Hackers' Pub에 초대합니다! 다음은 {{inviterName}} 님의 메세지입니다:\n\n{{message}}\n\n초대장을 받으려면 아래 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n",
       "inviter": "초대한 사람",
-      "invitees": "초대한 사람들"
+      "invitees": "초대한 사람들",
+      "tree": "$t(invitationTree.title)",
+      "viewTree": "족보 보기"
     }
   },
   "profile": {
@@ -268,6 +270,9 @@
     "boldText": "두꺼운 글씨",
     "selectedLanguages": "선택된 언어:",
     "selectedLanguagesDescription": "익숙한 언어 순서로 나열해 주세요."
+  },
+  "invitationTree": {
+    "title": "초대 족보"
   },
   "pageNotFound": {
     "title": "페이지를 찾을 수 없습니다",
