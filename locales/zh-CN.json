@@ -170,7 +170,8 @@
     "replied": "{{name}} 回复了以下文章：",
     "edit": "编辑",
     "delete": "删除",
-    "deleteConfirm": "你确定要删除此文章吗？"
+    "deleteConfirm": "你确定要删除此文章吗？",
+    "tableOfContents": "目录"
   },
   "note": {
     "title": "{{name}}：{{content}}",

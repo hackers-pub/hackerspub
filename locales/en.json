@@ -171,7 +171,8 @@
     "replied": "{{name}} replied to the below article:",
     "edit": "Edit",
     "delete": "Delete",
-    "deleteConfirm": "Are you sure you want to delete this article?"
+    "deleteConfirm": "Are you sure you want to delete this article?",
+    "tableOfContents": "Table of Contents"
   },
   "note": {
     "title": "{{name}}: {{content}}",

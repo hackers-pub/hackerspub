@@ -1,5 +1,5 @@
 import * as vocab from "@fedify/fedify/vocab";
-import { encodeBase64Url } from "@std/encoding/base64url";
+import { encodeAscii85 } from "@std/encoding/ascii85";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
 import { page } from "fresh";
@@ -18,6 +18,7 @@ import { preprocessContentHtml } from "../../../../models/html.ts";
 import {
   type RenderedMarkup,
   renderMarkup,
+  type Toc,
 } from "../../../../models/markup.ts";
 import { createNote } from "../../../../models/note.ts";
 import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
@@ -71,9 +72,12 @@ export const handler = define.handlers({
       "SHA-256",
       encoder.encode(JSON.stringify([article.id, article.content])),
     );
-    const cacheKey = `${KV_NAMESPACE}/${encodeBase64Url(digest)}`;
+    const cacheKey = `${KV_NAMESPACE}/${encodeAscii85(digest)}`;
     let content = await kv.get<RenderedMarkup>(cacheKey);
-    if (content == null) {
+    if (
+      content == null ||
+      ctx.state.account?.moderator && ctx.url.searchParams.has("refresh")
+    ) {
       content = await renderMarkup(
         db,
         ctx.state.fedCtx,
@@ -158,6 +162,7 @@ export const handler = define.handlers({
         article.post.mentions,
         article.post.emojis,
       ),
+      toc: content.toc,
     }, {
       headers: {
         Link:
@@ -228,6 +233,31 @@ interface ArticlePageProps {
   })[];
   avatarUrl: string;
   contentHtml: string;
+  toc: Toc[];
+}
+
+interface TableOfContentsProps {
+  toc: Toc[];
+  class?: string;
+}
+
+function TableOfContents({ toc, class: cls }: TableOfContentsProps) {
+  return (
+    <ol class={cls}>
+      {toc.map((item) => (
+        <li key={item.id} class="leading-7 text-sm">
+          <a
+            href={`#${encodeURIComponent(item.id)}`}
+          >
+            {item.title}
+          </a>
+          {item.children.length > 0 && (
+            <TableOfContents toc={item.children} class="ml-6" />
+          )}
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 export default define.page<typeof handler, ArticlePageProps>(
@@ -235,7 +265,15 @@ export default define.page<typeof handler, ArticlePageProps>(
     {
       url,
       state,
-      data: { article, articleIri, shared, comments, avatarUrl, contentHtml },
+      data: {
+        article,
+        articleIri,
+        shared,
+        comments,
+        avatarUrl,
+        contentHtml,
+        toc,
+      },
     },
   ) {
     const authorHandle = `@${article.account.username}@${url.host}`;
@@ -274,6 +312,21 @@ export default define.page<typeof handler, ArticlePageProps>(
               ? `${postUrl}/delete`
               : null}
           />
+          {toc.length > 0 &&
+            (
+              <nav class="
+                mt-4 p-4 bg-stone-100 dark:bg-stone-800 w-fit
+                xl:absolute right-[calc((100%-1280px)/2)]
+              ">
+                <p class="
+                  font-bold text-sm leading-7 uppercase
+                  text-stone-500 dark:text-stone-400
+                ">
+                  <Msg $key="article.tableOfContents" />
+                </p>
+                <TableOfContents toc={toc} />
+              </nav>
+            )}
           <div
             lang={article.language}
             class="prose dark:prose-invert mt-4 text-xl leading-8"

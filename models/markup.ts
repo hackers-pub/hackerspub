@@ -159,7 +159,7 @@ export async function renderMarkup(
   const html = sanitizeHtml(rawHtml);
   const excerptHtml = sanitizeExcerptHtml(rawHtml);
   const text = stripHtml(rawHtml);
-  const toc = toToc(tocTree);
+  const toc = toToc(tocTree, docId);
   const rendered: RenderedMarkup = {
     html,
     excerptHtml,
@@ -183,16 +183,18 @@ interface InternalToc {
 }
 
 export interface Toc {
+  id: string;
   level: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   title: string;
   children: Toc[];
 }
 
-function toToc(toc: InternalToc): Toc {
+function toToc(toc: InternalToc, docId: string | null): Toc {
   return {
+    id: slugifyTitle(toc.n.trimStart(), docId),
     level: toc.l,
     title: toc.n.trimStart(),
-    children: toc.c.map(toToc),
+    children: toc.c.map((t) => toToc(t, docId)),
   };
 }
 

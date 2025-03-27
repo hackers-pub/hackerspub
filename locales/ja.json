@@ -168,7 +168,8 @@
     "replied": "{{name}}さんが以下の記事にコメントしました：",
     "edit": "編集",
     "delete": "削除",
-    "deleteConfirm": "この記事を削除してもよろしいですか？"
+    "deleteConfirm": "この記事を削除してもよろしいですか？",
+    "tableOfContents": "目次"
   },
   "note": {
     "title": "{{name}}：{{content}}",

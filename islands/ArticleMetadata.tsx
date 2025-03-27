@@ -35,13 +35,14 @@ export function ArticleMetadata(props: ArticleMetadataProps) {
         <Link
           href={props.authorUrl}
           internalHref={props.authorInternalUrl ?? undefined}
+          class="block size-12 shrink-0 mr-2"
         >
           {props.authorAvatarUrl && (
             <img
               src={props.authorAvatarUrl}
               width={48}
               height={48}
-              class="inline-block mr-2 align-text-bottom"
+              class="block size-12"
             />
           )}
         </Link>
