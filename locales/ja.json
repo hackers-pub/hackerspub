@@ -274,7 +274,12 @@
     "selectedLanguagesDescription": "馴染みのある言語順に並べてください。"
   },
   "invitationTree": {
-    "title": "招待ツリー"
+    "title": "招待ツリー",
+    "hideMe": "招待ツリーから非表示にする",
+    "showMe": "招待ツリーに表示する",
+    "invited": "{{count}}人を招待",
+    "hiddenAccount": "非表示のアカウント",
+    "hiddenAccountDescription": "このアカウントは、プライバシー保護のために非表示になっています。"
   },
   "pageNotFound": {
     "title": "ページが見つかりません",

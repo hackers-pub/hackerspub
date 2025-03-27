@@ -276,7 +276,12 @@
     "selectedLanguagesDescription": "请按照你熟悉的语言顺序排列。"
   },
   "invitationTree": {
-    "title": "邀请树"
+    "title": "邀请树",
+    "hideMe": "在邀请树中隐藏我",
+    "showMe": "在邀请树中显示我",
+    "invited": "邀请了 {{count}} 人",
+    "hiddenAccount": "隐藏账户",
+    "hiddenAccountDescription": "此账户已隐藏，因为用户希望保持身份私密。"
   },
   "pageNotFound": {
     "title": "未找到页面",

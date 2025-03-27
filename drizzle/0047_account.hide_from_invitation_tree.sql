@@ -1,0 +1,1 @@
+ALTER TABLE "account" ADD COLUMN "hide_from_invitation_tree" boolean DEFAULT false NOT NULL;

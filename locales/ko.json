@@ -272,7 +272,12 @@
     "selectedLanguagesDescription": "익숙한 언어 순서로 나열해 주세요."
   },
   "invitationTree": {
-    "title": "초대 족보"
+    "title": "초대 족보",
+    "hideMe": "내 계정 족보에서 숨기기",
+    "showMe": "내 계정 족보에서 보이기",
+    "invited": "{{count}}명 초대",
+    "hiddenAccount": "숨겨진 계정",
+    "hiddenAccountDescription": "이 계정은 본인이 신원 공개를 원치 않았기에 숨겨져 있습니다."
   },
   "pageNotFound": {
     "title": "페이지를 찾을 수 없습니다",

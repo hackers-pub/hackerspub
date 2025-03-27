@@ -277,7 +277,14 @@
     "selectedLanguagesDescription": "Please arrange them in order of your familiar languages."
   },
   "invitationTree": {
-    "title": "Invitation tree"
+    "title": "Invitation tree",
+    "hideMe": "Hide me from the invitation tree",
+    "showMe": "Show me in the invitation tree",
+    "invited_zero": "Not invited anyone",
+    "invited_one": "Invited 1 person",
+    "invited_other": "Invited {{count}} people",
+    "hiddenAccount": "Hidden account",
+    "hiddenAccountDescription": "This account is hidden because they want to keep their identity private."
   },
   "pageNotFound": {
     "title": "Page not found",

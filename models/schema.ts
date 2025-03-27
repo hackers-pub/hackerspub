@@ -39,6 +39,9 @@ export const accountTable = pgTable(
       (): AnyPgColumn => accountTable.id,
       { onDelete: "set null" },
     ),
+    hideFromInvitationTree: boolean("hide_from_invitation_tree")
+      .notNull()
+      .default(false),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),

@@ -330,6 +330,13 @@
       "when": 1742787348302,
       "tag": "0046_not-null-actor.handle",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1743036712870,
+      "tag": "0047_account.hide_from_invitation_tree",
+      "breakpoints": true
     }
   ]
 }
