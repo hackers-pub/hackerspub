@@ -1,5 +1,6 @@
 import * as v from "@valibot/valibot";
 import { db } from "../../../../db.ts";
+import { POSSIBLE_LOCALES } from "../../../../i18n.ts";
 import { kv } from "../../../../kv.ts";
 import {
   createArticle,
@@ -10,7 +11,7 @@ import { define } from "../../../../utils.ts";
 
 const ArticleSourceSchema = v.object({
   slug: v.pipe(v.string(), v.trim(), v.maxLength(128)),
-  language: v.pipe(v.string(), v.trim(), v.maxLength(2)),
+  language: v.picklist(POSSIBLE_LOCALES),
 });
 
 export const handler = define.handlers({
