@@ -1,3 +1,5 @@
+import { eq } from "drizzle-orm";
+import { desc } from "drizzle-orm/expressions";
 import { db } from "../../db.ts";
 import type { Actor } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
@@ -11,6 +13,7 @@ export const handler = define.handlers({
     const [username, host] = prefix.includes("@")
       ? prefix.split("@")
       : [prefix, undefined];
+    const canonicalHost = new URL(ctx.state.fedCtx.canonicalOrigin).host;
     const result: Actor[] = await db.query.actorTable.findMany({
       where: host == null || !URL.canParse(`http://${host}`)
         ? { username: { ilike: `${username}%` } }
@@ -23,7 +26,12 @@ export const handler = define.handlers({
             ilike: `${new URL(`http://${host}`).host}%`,
           },
         },
-      orderBy: (t) => [t.username, t.handleHost],
+      orderBy: (t) => [
+        desc(eq(t.username, username)),
+        desc(eq(t.handleHost, canonicalHost)),
+        t.username,
+        t.handleHost,
+      ],
       limit: 25,
     });
     return new Response(JSON.stringify(result), {
