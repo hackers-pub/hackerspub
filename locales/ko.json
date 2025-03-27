@@ -130,7 +130,7 @@
     "followersCount": "{{count}} 팔로워",
     "followsYou": "날 팔로 중",
     "follow": "팔로",
-    "followBack": "맞팔로",
+    "followBack": "맞팔하기",
     "unfollow": "언팔로",
     "cancelRequest": "요청 취소",
     "followerList": {
