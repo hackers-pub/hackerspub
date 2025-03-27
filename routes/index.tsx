@@ -237,39 +237,44 @@ export const handler = define.handlers({
             },
           },
           where: {
-            OR: [
-              filter === "mentionsAndQuotes" ? { RAW: sql`false` } : {
-                OR: [{
-                  actor: {
-                    followers: {
-                      followerId: ctx.state.account.actor.id,
-                    },
-                  },
-                  visibility: { ne: "direct" },
-                  OR: [
-                    { replyTargetId: { isNull: true } },
-                    {
-                      replyTarget: {
+            AND: [
+              {
+                OR: [
+                  filter === "mentionsAndQuotes" ? { RAW: sql`false` } : {
+                    OR: [
+                      {
+                        actor: {
+                          followers: {
+                            followerId: ctx.state.account.actor.id,
+                          },
+                        },
+                        visibility: { ne: "direct" },
                         OR: [
-                          { actorId: ctx.state.account.actor.id },
+                          { replyTargetId: { isNull: true } },
                           {
-                            actor: {
-                              followers: {
-                                followerId: ctx.state.account.actor.id,
-                              },
+                            replyTarget: {
+                              OR: [
+                                { actorId: ctx.state.account.actor.id },
+                                {
+                                  actor: {
+                                    followers: {
+                                      followerId: ctx.state.account.actor.id,
+                                    },
+                                  },
+                                },
+                              ],
                             },
                           },
                         ],
                       },
-                    },
-                  ],
-                }, { actorId: ctx.state.account.actor.id }],
+                      { actorId: ctx.state.account.actor.id },
+                    ],
+                  },
+                  { mentions: { actorId: ctx.state.account.actor.id } },
+                  { quotedPost: { actorId: ctx.state.account.actor.id } },
+                ],
               },
-              { mentions: { actorId: ctx.state.account.actor.id } },
-              { quotedPost: { actorId: ctx.state.account.actor.id } },
-            ],
-            visibility: { ne: "none" },
-            ...(
+              { visibility: { ne: "none" } },
               filter === "local"
                 ? {
                   OR: [
@@ -287,9 +292,9 @@ export const handler = define.handlers({
                 ? { sharedPostId: { isNull: true } }
                 : filter === "articlesOnly"
                 ? { type: "Article" }
-                : undefined
-            ),
-            published: { lte: until },
+                : {},
+              { published: { lte: until } },
+            ],
           },
           orderBy: { published: "desc" },
           limit: window + 1,
