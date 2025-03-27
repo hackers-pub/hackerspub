@@ -1,8 +1,9 @@
-import { type SQL, sql } from "drizzle-orm";
+import { desc, type SQL, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   boolean,
   check,
+  index,
   integer,
   json,
   jsonb,
@@ -280,6 +281,7 @@ export const followingTable = pgTable(
   },
   (table) => [
     unique().on(table.followerId, table.followeeId),
+    index().on(table.followerId),
   ],
 );
 
@@ -507,6 +509,11 @@ export const postTable = pgTable(
       "post_link_id_check",
       sql`(${table.linkId} IS NULL) = (${table.linkUrl} IS NULL)`,
     ),
+    index("idx_post_visibility_published")
+      .on(table.visibility, desc(table.published)),
+    index("idx_post_actor_id_published")
+      .on(table.actorId, desc(table.published)),
+    index().on(table.replyTargetId),
   ],
 );
 
@@ -527,6 +534,7 @@ export const mentionTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.postId, table.actorId] }),
+    index().on(table.actorId),
   ],
 );
 
@@ -648,6 +656,7 @@ export const postLinkTable = pgTable(
         END
       `,
     ),
+    index().on(table.creatorId),
   ],
 );
 
