@@ -23,13 +23,10 @@
 }
 
 .prose a.mention:not(.hashtag) {
-  display: inline-flex; 
-  flex-direction: row;
+  display: inline; 
   text-decoration: none;
   font-weight: bolder;
-  height: 1em;
-  line-height: 1.2;
-  vertical-align: text-top;
+  white-space: nowrap;
 }
 
 .prose a.mention:not(.hashtag):hover {
@@ -37,15 +34,19 @@
 }
 
 .prose a.mention:not(.hashtag) > img {
+  display: inline-block;
   width: 1em;
   height: 1em;
-  margin-top: 3px;
+  margin-top: 0;
+  margin-bottom: 2px;
+  margin-right: 0.25rem;
 }
 
 .prose a.mention:not(.hashtag) > .name {
   font-weight: normal;
   opacity: .5;
   margin-left: .25em;
+  white-space: normal;
 }
 
 .prose a.mention:not(.hashtag):hover > .name {

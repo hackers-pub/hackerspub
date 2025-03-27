@@ -214,7 +214,7 @@ export default define.page<typeof handler, InvitePageProps>(
               name="email"
               required
               disabled={leftInvitations < 1}
-              class="w-96"
+              class="w-full lg:w-96"
             />
           </Label>
           <p class="opacity-50">
@@ -228,6 +228,7 @@ export default define.page<typeof handler, InvitePageProps>(
               rows={4}
               cols={80}
               disabled={leftInvitations < 1}
+              class="w-full lg:w-auto"
             />
           </Label>
           <p class="opacity-50">
