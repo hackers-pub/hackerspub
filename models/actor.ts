@@ -302,9 +302,13 @@ export async function persistActorsByHandles(
   });
   const result: Record<string, Actor & { instance: Instance }> = {};
   for (const actor of existingActors) {
-    const handle = `@${actor.username}@${actor.instance.host}`;
-    result[handle] = actor;
-    handlesToFetch.delete(handle);
+    result[actor.handle] = actor;
+    handlesToFetch.delete(actor.handle);
+    if (actor.instanceHost !== actor.handleHost) {
+      const handle = `@${actor.username}@${actor.instanceHost}`;
+      result[handle] = actor;
+      handlesToFetch.delete(handle);
+    }
   }
   const documentLoader = await ctx.getDocumentLoader({
     identifier: new URL(ctx.canonicalOrigin).host,
