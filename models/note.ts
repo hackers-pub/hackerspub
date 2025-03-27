@@ -179,7 +179,7 @@ export async function createNoteMedium(
   index: number,
   medium: { blob: Blob; alt: string },
 ): Promise<NoteMedium | undefined> {
-  const image = sharp(await medium.blob.arrayBuffer());
+  const image = sharp(await medium.blob.arrayBuffer()).rotate();
   const { width, height } = await image.metadata();
   if (width == null || height == null) return undefined;
   const buffer = await image.webp().toBuffer();
