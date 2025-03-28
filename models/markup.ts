@@ -13,7 +13,7 @@ import {
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
-import { DIACRITICS, slugify } from "@std/text/unstable-slugify";
+import { ASCII_DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
 import { arrayOverlaps, eq } from "drizzle-orm";
 import katex from "katex";
@@ -173,7 +173,7 @@ export async function renderMarkup(
 
 function slugifyTitle(title: string, docId: string | null): string {
   return (docId == null ? "" : docId + "--") +
-    slugify(title, { strip: DIACRITICS });
+    slugify(title, { strip: ASCII_DIACRITICS });
 }
 
 interface InternalToc {
