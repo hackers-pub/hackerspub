@@ -186,6 +186,7 @@ const htmlXss = new FilterXSS({
     munder: ["accentunder"],
     munderover: ["accent", "accentunder"],
     eq: [],
+    eqn: [],
 
     // SVG
     svg: ["class", "viewBox", "version", "width", "height", "aria-hidden"],
