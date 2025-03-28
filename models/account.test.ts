@@ -67,10 +67,11 @@ const linkMetadata: Record<string, LinkMetadata> = {
     icon: "misskey",
     handle: "@hongminhee@stella.place",
   },
-  "https://pixelfed.social/dansup": {
-    icon: "pixelfed",
-    handle: "@dansup@pixelfed.social",
-  },
+  // FIXME: pixelfed.social seems down for a while?
+  // "https://pixelfed.social/dansup": {
+  //   icon: "pixelfed",
+  //   handle: "@dansup@pixelfed.social",
+  // },
   "https://stereophonic.space/users/karolat": {
     icon: "pleroma",
     handle: "@karolat@stereophonic.space",
