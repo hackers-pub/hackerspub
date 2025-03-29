@@ -8,6 +8,7 @@ import {
   Person,
 } from "@fedify/fedify";
 import { db } from "../db.ts";
+import { kv } from "../kv.ts";
 import { getAvatarUrl, renderAccountLinks } from "../models/account.ts";
 import { renderMarkup } from "../models/markup.ts";
 import { accountKeyTable, type NewAccountKey } from "../models/schema.ts";
@@ -69,7 +70,10 @@ federation
         },
       });
       if (account == null) return null;
-      const bio = await renderMarkup(db, ctx, account.id, account.bio);
+      const bio = await renderMarkup(db, ctx, account.bio, {
+        docId: account.id,
+        kv,
+      });
       const keys = await ctx.getActorKeyPairs(identifier);
       return new Person({
         id: ctx.getActorUri(identifier),

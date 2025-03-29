@@ -232,12 +232,10 @@ export const handler = define.handlers({
     if (account.username !== ctx.params.username) {
       return ctx.redirect(`/@${account.username}`, 301);
     }
-    const bio = await renderMarkup(
-      db,
-      ctx.state.fedCtx,
-      account.id,
-      account.bio,
-    );
+    const bio = await renderMarkup(db, ctx.state.fedCtx, account.bio, {
+      docId: account.id,
+      kv,
+    });
     const permalink = new URL(
       `/@${account.username}`,
       ctx.state.canonicalOrigin,

@@ -1,5 +1,4 @@
 import * as vocab from "@fedify/fedify/vocab";
-import { encodeAscii85 } from "@std/encoding/ascii85";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
 import { page } from "fresh";
@@ -15,11 +14,7 @@ import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource, updateArticle } from "../../../../models/article.ts";
 import { preprocessContentHtml } from "../../../../models/html.ts";
-import {
-  type RenderedMarkup,
-  renderMarkup,
-  type Toc,
-} from "../../../../models/markup.ts";
+import { renderMarkup, type Toc } from "../../../../models/markup.ts";
 import { createNote } from "../../../../models/note.ts";
 import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
 import type {
@@ -34,8 +29,6 @@ import type {
 import type { Uuid } from "../../../../models/uuid.ts";
 import { define } from "../../../../utils.ts";
 import { NoteSourceSchema } from "../../index.tsx";
-
-const KV_NAMESPACE = "article/content";
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -67,25 +60,12 @@ export const handler = define.handlers({
       vocab.Article,
       { id: article.id },
     );
-    const encoder = new TextEncoder();
-    const digest = await crypto.subtle.digest(
-      "SHA-256",
-      encoder.encode(JSON.stringify([article.id, article.content])),
-    );
-    const cacheKey = `${KV_NAMESPACE}/${encodeAscii85(digest)}`;
-    let content = await kv.get<RenderedMarkup>(cacheKey);
-    if (
-      content == null ||
-      ctx.state.account?.moderator && ctx.url.searchParams.has("refresh")
-    ) {
-      content = await renderMarkup(
-        db,
-        ctx.state.fedCtx,
-        article.id,
-        article.content,
-      );
-      await kv.set(cacheKey, content);
-    }
+    const content = await renderMarkup(db, ctx.state.fedCtx, article.content, {
+      docId: article.id,
+      kv,
+      refresh: ctx.url.searchParams.has("refresh") &&
+        ctx.state.account?.moderator,
+    });
     ctx.state.title = article.title;
     ctx.state.links.push(
       { rel: "canonical", href: permalink },

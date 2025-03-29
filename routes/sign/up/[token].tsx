@@ -159,7 +159,7 @@ export default define.page<typeof handler, SignupPageProps>(
         `CODE_OF_CONDUCT.${language}.md`,
       ),
     );
-    const rendered = await renderMarkup(db, fedCtx, null, coc);
+    const rendered = await renderMarkup(db, fedCtx, coc, { kv });
     const cocHtml = rendered.html;
     return (
       <div>

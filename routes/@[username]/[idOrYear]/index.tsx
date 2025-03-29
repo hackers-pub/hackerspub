@@ -252,12 +252,10 @@ export const handler = define.handlers({
     replies = replies.filter((reply) =>
       isPostVisibleTo(reply, ctx.state.account?.actor)
     );
-    const content = await renderMarkup(
-      db,
-      ctx.state.fedCtx,
-      post.id,
-      post.contentHtml,
-    );
+    const content = await renderMarkup(db, ctx.state.fedCtx, post.contentHtml, {
+      kv,
+      docId: post.id,
+    });
     const author = post.actor.name ?? post.actor.handle;
     ctx.state.title = ctx.state.t("note.title", {
       name: author,

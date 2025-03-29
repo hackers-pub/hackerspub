@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm/expressions";
 import { html } from "satori-html";
 import { db } from "../../../../db.ts";
 import { drive } from "../../../../drive.ts";
+import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
 import { renderMarkup } from "../../../../models/markup.ts";
@@ -29,8 +30,8 @@ export const handler = define.handlers({
     const content = await renderMarkup(
       db,
       ctx.state.fedCtx,
-      null,
       article.content,
+      { kv },
     );
     const ogImageKey = await drawOgImage(
       disk,

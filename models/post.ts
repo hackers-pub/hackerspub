@@ -104,12 +104,10 @@ export async function syncPostFromArticleSource(
     fedCtx,
     articleSource.account,
   );
-  const rendered = await renderMarkup(
-    db,
-    fedCtx,
-    articleSource.id,
-    articleSource.content,
-  );
+  const rendered = await renderMarkup(db, fedCtx, articleSource.content, {
+    docId: articleSource.id,
+    kv,
+  });
   const url =
     `${fedCtx.origin}/@${articleSource.account.username}/${articleSource.publishedYear}/${
       encodeURIComponent(articleSource.slug)
@@ -188,12 +186,10 @@ export async function syncPostFromNoteSource(
     noteSource.account,
   );
   // FIXME: Note should be rendered in a different way
-  const rendered = await renderMarkup(
-    db,
-    fedCtx,
-    noteSource.id,
-    noteSource.content,
-  );
+  const rendered = await renderMarkup(db, fedCtx, noteSource.content, {
+    docId: noteSource.id,
+    kv,
+  });
   const externalLinks = extractExternalLinks(rendered.html);
   const link = externalLinks.length > 0
     ? await persistPostLink(db, fedCtx, externalLinks[0])

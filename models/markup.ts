@@ -13,10 +13,12 @@ import {
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
+import { encodeAscii85 } from "@std/encoding/ascii85";
 import { ASCII_DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
 import { arrayOverlaps, eq } from "drizzle-orm";
 import katex from "katex";
+import type Keyv from "keyv";
 import createMarkdownIt from "markdown-it";
 import abbr from "markdown-it-abbr";
 import anchor from "markdown-it-anchor";
@@ -32,6 +34,9 @@ import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./html.ts";
 import { type Actor, actorTable } from "./schema.ts";
 
 const logger = getLogger(["hackerspub", "models", "markup"]);
+
+const KV_NAMESPACE = "markup";
+const KV_CACHE_VERSION = "2025-03-29";
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
@@ -123,18 +128,38 @@ export interface RenderedMarkup {
 }
 
 interface Env {
-  docId: string | null;
+  docId?: string | null;
   title: string;
   localDomain: string;
   mentionedActors: Record<string, Actor>;
 }
 
+export interface RenderMarkupOptions {
+  kv?: Keyv | null;
+  docId?: string | null;
+  refresh?: boolean;
+}
+
 export async function renderMarkup(
   db: Database,
   fedCtx: Context<void>,
-  docId: string | null,
   markup: string,
+  options: RenderMarkupOptions = {},
 ): Promise<RenderedMarkup> {
+  let cacheKey: string | undefined;
+  if (options.kv != null) {
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(
+        `${JSON.stringify(options.docId ?? null)}\n${markup}`,
+      ),
+    );
+    cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/${encodeAscii85(digest)}`;
+    if (!options.refresh) {
+      const cached = await options.kv.get<RenderedMarkup>(cacheKey);
+      if (cached != null) return cached;
+    }
+  }
   const localDomain = new URL(fedCtx.canonicalOrigin).host;
   const tmpMd = createMarkdownIt().use(mention, {
     localDomain() {
@@ -148,7 +173,12 @@ export async function renderMarkup(
     ...mentions,
   ]);
   if (!shikiLoaded) await loadingShiki;
-  const env: Env = { docId, title: "", localDomain, mentionedActors };
+  const env: Env = {
+    docId: options.docId,
+    title: "",
+    localDomain,
+    mentionedActors,
+  };
   const rawHtml = md.render(markup, env)
     .replaceAll('<?xml version="1.0" encoding="UTF-8" standalone="no"?>', "")
     .replaceAll(
@@ -159,7 +189,7 @@ export async function renderMarkup(
   const html = sanitizeHtml(rawHtml);
   const excerptHtml = sanitizeExcerptHtml(rawHtml);
   const text = stripHtml(rawHtml);
-  const toc = toToc(tocTree, docId);
+  const toc = toToc(tocTree, options.docId);
   const rendered: RenderedMarkup = {
     html,
     excerptHtml,
@@ -168,10 +198,13 @@ export async function renderMarkup(
     toc: toc.level < 1 ? toc.children : [toc],
     mentions: mentionedActors,
   };
+  if (options.kv != null && cacheKey != null) {
+    await options.kv.set(cacheKey, rendered);
+  }
   return rendered;
 }
 
-function slugifyTitle(title: string, docId: string | null): string {
+function slugifyTitle(title: string, docId?: string | null): string {
   return (docId == null ? "" : docId + "--") +
     slugify(title, { strip: ASCII_DIACRITICS });
 }
@@ -189,7 +222,7 @@ export interface Toc {
   children: Toc[];
 }
 
-function toToc(toc: InternalToc, docId: string | null): Toc {
+function toToc(toc: InternalToc, docId?: string | null): Toc {
   return {
     id: slugifyTitle(toc.n.trimStart(), docId),
     level: toc.l,

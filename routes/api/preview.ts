@@ -7,7 +7,7 @@ export const handler = define.handlers({
     if (ctx.state.session == null) return ctx.next();
     const nonce = ctx.req.headers.get("Echo-Nonce");
     const markup = await ctx.req.text();
-    const rendered = await renderMarkup(db, ctx.state.fedCtx, "", markup);
+    const rendered = await renderMarkup(db, ctx.state.fedCtx, markup);
     if (ctx.req.headers.get("Accept") === "application/json") {
       return new Response(JSON.stringify(rendered), {
         headers: {

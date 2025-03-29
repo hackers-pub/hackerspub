@@ -53,7 +53,7 @@ const logger = getLogger(["hackerspub", "models", "actor"]);
 
 export async function syncActorFromAccount(
   db: Database,
-  _kv: Keyv,
+  kv: Keyv,
   fedCtx: Context<void>,
   account: Account & { emails: AccountEmail[]; links: AccountLink[] },
 ): Promise<
@@ -85,7 +85,10 @@ export async function syncActorFromAccount(
     handleHost: instance.host,
     accountId: account.id,
     name: account.name,
-    bioHtml: (await renderMarkup(db, fedCtx, account.id, account.bio)).html,
+    bioHtml: (await renderMarkup(db, fedCtx, account.bio, {
+      docId: account.id,
+      kv,
+    })).html,
     automaticallyApprovesFollowers: true,
     inboxUrl: fedCtx.getInboxUri(account.id).href,
     sharedInboxUrl: fedCtx.getInboxUri().href,

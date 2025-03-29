@@ -6,6 +6,7 @@ import { PageTitle } from "../../../components/PageTitle.tsx";
 import { db } from "../../../db.ts";
 import { ConfirmForm } from "../../../islands/ConfirmForm.tsx";
 import { Timestamp } from "../../../islands/Timestamp.tsx";
+import { kv } from "../../../kv.ts";
 import { renderMarkup } from "../../../models/markup.ts";
 import { define } from "../../../utils.ts";
 
@@ -28,9 +29,10 @@ export const handler = define.handlers({
         title: draft.title,
         created: draft.created,
         updated: draft.updated,
-        excerptHtml:
-          (await renderMarkup(db, ctx.state.fedCtx, draft.id, draft.content))
-            .excerptHtml,
+        excerptHtml: (await renderMarkup(db, ctx.state.fedCtx, draft.content, {
+          docId: draft.id,
+          kv,
+        })).excerptHtml,
       }))),
     });
   },

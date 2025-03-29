@@ -8,6 +8,7 @@ import { escape } from "@std/html/entities";
 import type { Disk } from "flydrive";
 import { type Database, db } from "../db.ts";
 import { drive } from "../drive.ts";
+import { kv } from "../kv.ts";
 import { renderMarkup } from "../models/markup.ts";
 import { isPostVisibleTo } from "../models/post.ts";
 import type {
@@ -28,12 +29,10 @@ export async function getArticle(
   ctx: Context<void>,
   articleSource: ArticleSource & { account: Account },
 ): Promise<vocab.Article> {
-  const rendered = await renderMarkup(
-    db,
-    ctx,
-    articleSource.id,
-    articleSource.content,
-  );
+  const rendered = await renderMarkup(db, ctx, articleSource.content, {
+    docId: articleSource.id,
+    kv,
+  });
   return new vocab.Article({
     id: ctx.getObjectUri(vocab.Article, { id: articleSource.id }),
     attribution: ctx.getActorUri(articleSource.accountId),
@@ -122,7 +121,10 @@ export async function getNote(
     quotedPost?: Post;
   } = {},
 ): Promise<vocab.Note> {
-  const rendered = await renderMarkup(db, ctx, note.id, note.content);
+  const rendered = await renderMarkup(db, ctx, note.content, {
+    docId: note.id,
+    kv,
+  });
   const attachments: vocab.Document[] = [];
   for (const medium of note.media) {
     attachments.push(
