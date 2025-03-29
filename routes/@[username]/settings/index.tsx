@@ -144,9 +144,18 @@ export const handler = define.handlers({
         image = image.resize(1024);
         width = height = 1024;
       }
-      if (metadata.format !== "jpeg") image = image.jpeg({ quality: 90 });
+      let ext: "jpg" | "webp";
+      if (metadata.hasAlpha) {
+        image = image.webp({ quality: 90 });
+        ext = "webp";
+      } else if (metadata.format !== "jpeg") {
+        image = image.jpeg({ quality: 90 });
+        ext = "jpg";
+      } else {
+        ext = "jpg";
+      }
       const buffer = await image.toBuffer();
-      const key = `avatars/${crypto.randomUUID()}.jpg`;
+      const key = `avatars/${crypto.randomUUID()}.${ext}`;
       promises.push(disk.put(key, new Uint8Array(buffer.buffer)));
       values.avatarKey = key;
     }
