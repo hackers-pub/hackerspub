@@ -95,7 +95,12 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                 </h1>
               )}
               <div class="flex gap-2">
-                <img src={getAvatarUrl(post.actor)} width={48} height={48} />
+                <img
+                  src={getAvatarUrl(post.actor)}
+                  width={48}
+                  height={48}
+                  class="shrink-0 size-12"
+                />
                 <div class="flex flex-col">
                   <p>
                     {post.actor.name == null

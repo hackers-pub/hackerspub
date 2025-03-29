@@ -73,7 +73,7 @@ function Leaf({ tree, parentId, class: cls }: LeafProps) {
               ? (
                 <>
                   <img
-                    class="size-14"
+                    class="shrink-0 size-14"
                     src={getAvatarUrl({ avatarUrl: null })}
                   />
                   <div class="flex flex-col">
@@ -88,7 +88,7 @@ function Leaf({ tree, parentId, class: cls }: LeafProps) {
               )
               : (
                 <>
-                  <a href={`/@${account.username}`}>
+                  <a href={`/@${account.username}`} class="shrink-0">
                     <img
                       class="size-14"
                       src={getAvatarUrl(account.actor)}
