@@ -7,7 +7,7 @@ import { PageTitle } from "../components/PageTitle.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
 import { db } from "../db.ts";
 import { persistActor } from "../models/actor.ts";
-import { isPostObject, persistPost } from "../models/post.ts";
+import { isPostObject, isPostVisibleTo, persistPost } from "../models/post.ts";
 import type {
   Account,
   Actor,
@@ -128,7 +128,7 @@ export const handler = define.handlers({
         sharedPostId: { isNull: true },
       },
       with: {
-        actor: true,
+        actor: { with: { followers: true } },
         link: { with: { creator: true } },
         mentions: {
           with: { actor: true },
@@ -195,7 +195,7 @@ export const handler = define.handlers({
     });
     ctx.state.searchQuery = query ?? undefined;
     return page<SearchResultsProps>({
-      posts,
+      posts: posts.filter((p) => isPostVisibleTo(p, ctx.state.account?.actor)),
     });
   },
 });
