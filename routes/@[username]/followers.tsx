@@ -3,6 +3,7 @@ import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
+import { kv } from "../../kv.ts";
 import { extractMentionsFromHtml } from "../../models/markup.ts";
 import type { Account, Actor } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
@@ -47,6 +48,7 @@ export const handler = define.handlers({
       followers.slice(0, WINDOW).map((f) => f.follower.bioHtml).join("\n"),
       {
         documentLoader: await ctx.state.fedCtx.getDocumentLoader(account),
+        kv,
       },
     );
     ctx.state.title = ctx.state.t("profile.followerList.title", {

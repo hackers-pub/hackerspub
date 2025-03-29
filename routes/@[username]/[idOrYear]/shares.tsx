@@ -5,6 +5,7 @@ import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { PostReactionsNav } from "../../../components/PostReactionsNav.tsx";
 import { db } from "../../../db.ts";
 import { PostControls } from "../../../islands/PostControls.tsx";
+import { kv } from "../../../kv.ts";
 import { extractMentionsFromHtml } from "../../../models/markup.ts";
 import { getNoteSource } from "../../../models/note.ts";
 import { isPostVisibleTo } from "../../../models/post.ts";
@@ -43,6 +44,7 @@ export const handler = define.handlers({
       sharers.map((s) => s.bioHtml).join("\n"),
       {
         documentLoader: await ctx.state.fedCtx.getDocumentLoader(note.account),
+        kv,
       },
     );
     const quotes = await db.$count(

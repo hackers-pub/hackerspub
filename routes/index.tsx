@@ -13,6 +13,7 @@ import {
 import { db } from "../db.ts";
 import { Composer } from "../islands/Composer.tsx";
 import { RecommendedActors } from "../islands/RecommendedActors.tsx";
+import { kv } from "../kv.ts";
 import { recommendActors } from "../models/actor.ts";
 import { extractMentionsFromHtml } from "../models/markup.ts";
 import type {
@@ -322,10 +323,11 @@ export const handler = define.handlers({
       db,
       ctx.state.fedCtx,
       recommendedActors.map((actor) => actor.bioHtml).join("\n"),
-      ctx.state.account == null ? {} : {
+      ctx.state.account == null ? { kv } : {
         documentLoader: await ctx.state.fedCtx.getDocumentLoader(
           ctx.state.account,
         ),
+        kv,
       },
     );
     ctx.state.metas.push(

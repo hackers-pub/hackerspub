@@ -5,6 +5,7 @@ import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
 import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
 import { PostControls } from "../../../../islands/PostControls.tsx";
+import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
 import { extractMentionsFromHtml } from "../../../../models/markup.ts";
@@ -49,6 +50,7 @@ export const handler = define.handlers({
         documentLoader: await ctx.state.fedCtx.getDocumentLoader(
           article.account,
         ),
+        kv,
       },
     );
     const quotes = await db.$count(

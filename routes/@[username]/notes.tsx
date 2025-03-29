@@ -5,6 +5,7 @@ import { PostPagination } from "../../components/PostPagination.tsx";
 import { Profile } from "../../components/Profile.tsx";
 import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
+import { kv } from "../../kv.ts";
 import { type ActorStats, getActorStats } from "../../models/actor.ts";
 import {
   type FollowingState,
@@ -166,10 +167,11 @@ export const handler = define.handlers({
         db,
         ctx.state.fedCtx,
         actor.bioHtml ?? "",
-        actor.accountId == null ? {} : {
+        actor.accountId == null ? { kv } : {
           documentLoader: await ctx.state.fedCtx.getDocumentLoader({
             identifier: actor.accountId,
           }),
+          kv,
         },
       ),
       links,

@@ -13,6 +13,7 @@ import {
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
+import { deadline } from "@std/async/deadline";
 import { encodeAscii85 } from "@std/encoding/ascii85";
 import { ASCII_DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
@@ -154,7 +155,9 @@ export async function renderMarkup(
         `${JSON.stringify(options.docId ?? null)}\n${markup}`,
       ),
     );
-    cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/${encodeAscii85(digest)}`;
+    cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/markup/${
+      encodeAscii85(digest)
+    }`;
     if (!options.refresh) {
       const cached = await options.kv.get<RenderedMarkup>(cacheKey);
       if (cached != null) return cached;
@@ -234,6 +237,7 @@ function toToc(toc: InternalToc, docId?: string | null): Toc {
 export interface ExtractMentionsFromHtmlOptions {
   contextLoader?: DocumentLoader;
   documentLoader?: DocumentLoader;
+  kv?: Keyv;
 }
 
 export async function extractMentionsFromHtml(
@@ -242,6 +246,18 @@ export async function extractMentionsFromHtml(
   html: string,
   options: ExtractMentionsFromHtmlOptions = {},
 ): Promise<{ actor: Actor }[]> {
+  let cacheKey: string | undefined;
+  if (options.kv != null) {
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(html),
+    );
+    cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/mentions/${
+      encodeAscii85(digest)
+    }`;
+    const cached = await options.kv.get<Actor[]>(cacheKey);
+    if (cached) return cached.map((actor) => ({ actor }));
+  }
   const $ = load(html, null, false);
   const mentionHrefs = new Set<string>();
   $("a.mention[href]:not(.hashtag)").each((_, el) => {
@@ -271,7 +287,10 @@ export async function extractMentionsFromHtml(
   );
   const promises = mentionedUrls.map(async (href) => {
     try {
-      return [href, await fedCtx.lookupObject(href, options)] as [
+      return [
+        href,
+        await deadline(fedCtx.lookupObject(href, options), 3000),
+      ] as [
         string,
         vocab.Object | null,
       ];
@@ -296,6 +315,9 @@ export async function extractMentionsFromHtml(
       actor = { ...actor, aliases };
     }
     actors.push(actor);
+  }
+  if (options.kv != null && cacheKey != null) {
+    await options.kv.set(cacheKey, actors);
   }
   return actors.map((actor) => ({ actor }));
 }
