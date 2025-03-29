@@ -135,8 +135,8 @@ export const handler = define.handlers({
       }
       if (width !== height) { // crop to square
         const size = Math.min(width, height);
-        const left = (width - size) / 2;
-        const top = (height - size) / 2;
+        const left = ((width - size) / 2) | 0;
+        const top = ((height - size) / 2) | 0;
         image = image.extract({ left, top, width: size, height: size });
         width = height = size;
       }
