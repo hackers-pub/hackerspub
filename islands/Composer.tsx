@@ -75,7 +75,6 @@ export function Composer(props: ComposerProps) {
     props.quotedPostId ?? null,
   );
   const [quoteLoading, setQuoteLoading] = useState(false);
-  const rows = (content.match(/\n/g)?.length ?? 0) + 1;
 
   function onInput(event: JSX.TargetedInputEvent<HTMLTextAreaElement>) {
     if (contentLanguageManuallySet) return;
@@ -268,33 +267,43 @@ export function Composer(props: ComposerProps) {
             />
           )}
 
-        <MarkupTextArea
-          ref={contentRef}
-          id={props.textAreaId}
-          name="content"
-          required
-          disabled={mode === "previewLoading"}
+        <div
           class={`
-            w-full text-xl mb-3
-            border dark:border-stone-500 dark:bg-stone-900
-            px-2 py-1
-            ${mediaDragging ? "border-4" : ""}
+            grid w-full mb-3
+            after:content-[attr(data-replicated-value)_'_'] after:whitespace-pre-wrap after:invisible
+            after:w-full after:text-xl after:border after:px-2 after:py-1 after:[grid-area:1/1/2/2]
+            ${mediaDragging ? "after:border-4" : ""}
             ${mode === "preview" ? "hidden" : ""}
           `}
-          placeholder={props.commentTargets != null
-            ? props.commentTargets.length > 0
-              ? t("composer.commentPlaceholder")
-              : t("composer.threadPlaceholder")
-            : t("composer.contentPlaceholder")}
-          value={content}
-          onInput={onInput}
-          onDragOver={onDragOver}
-          onDragLeave={onDragLeave}
-          onDrop={onDrop}
-          onPaste={onPaste}
-          rows={Math.min(Math.max(2, rows), 10)}
-          aria-label={t("composer.content")}
-        />
+          data-replicated-value={content}
+        >
+          <MarkupTextArea
+            ref={contentRef}
+            id={props.textAreaId}
+            name="content"
+            required
+            disabled={mode === "previewLoading"}
+            class={`
+              w-full text-xl resize-none overflow-hidden
+              border dark:border-stone-500 dark:bg-stone-900
+              px-2 py-1 [grid-area:1/1/2/2]
+              ${mediaDragging ? "border-4" : ""}
+            `}
+            placeholder={props.commentTargets != null
+              ? props.commentTargets.length > 0
+                ? t("composer.commentPlaceholder")
+                : t("composer.threadPlaceholder")
+              : t("composer.contentPlaceholder")}
+            value={content}
+            onInput={onInput}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            onPaste={onPaste}
+            rows={2}
+            aria-label={t("composer.content")}
+          />
+        </div>
         <div class="flex flex-col lg:flex-row gap-2">
           <select
             name="visibility"
