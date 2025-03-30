@@ -1166,15 +1166,21 @@ export async function scrapePostLink(
     lg.error("Unsafe URL: {url}", { url: url.href });
     return undefined;
   }
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": getUserAgent({
-        software: "HackersPub",
-        url: new URL(ORIGIN),
-      }),
-    },
-    redirect: "follow",
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        "User-Agent": getUserAgent({
+          software: "HackersPub",
+          url: new URL(ORIGIN),
+        }),
+      },
+      redirect: "follow",
+    });
+  } catch (error) {
+    lg.error("Failed to fetch {url}: {error}", { url: url.href, error });
+    return undefined;
+  }
   const responseUrl = response.url == null || response.url === ""
     ? url.href
     : response.url;
