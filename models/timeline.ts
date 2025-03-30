@@ -33,6 +33,7 @@ export async function addPostToTimeline(
       ],
     },
   });
+  if (recipients.length < 1) return;
   const records: NewTimelineItem[] = recipients.map(({ accountId }) => ({
     accountId: accountId!,
     postId: post.sharedPostId ?? post.id,
