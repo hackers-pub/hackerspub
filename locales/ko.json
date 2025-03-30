@@ -109,6 +109,8 @@
       "description_other": "Hackers' Pub에 친구를 초대하세요. 현재 {{count}}장의 초대장이 남아 있습니다.",
       "email": "$t(signUp.email)",
       "emailDescription": "이메일 주소는 초대장을 받을 때 뿐만 아니라, 계정에 로그인할 때도 사용됩니다.",
+      "language": "초대장 언어",
+      "languageDescription": "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다.",
       "extraMessage": "추가 메시지",
       "extraMessageDescription": "초대장을 받는 친구가 볼 수 있는 메시지입니다.",
       "send": "초대장 보내기",

@@ -9,6 +9,11 @@ import { SettingsNav } from "../../../components/SettingsNav.tsx";
 import { TextArea } from "../../../components/TextArea.tsx";
 import { db } from "../../../db.ts";
 import { sendEmail } from "../../../email.ts";
+import getFixedT, {
+  isLanguage,
+  type Language,
+  SUPPORTED_LANGUAGES,
+} from "../../../i18n.ts";
 import { kv } from "../../../kv.ts";
 import { getAvatarUrl } from "../../../models/actor.ts";
 import {
@@ -43,7 +48,6 @@ export const handler = define.handlers({
   },
 
   async POST(ctx) {
-    const { t } = ctx.state;
     if (ctx.state.account == null) return ctx.next();
     const account = await db.query.accountTable.findFirst({
       where: { username: ctx.params.username },
@@ -67,6 +71,10 @@ export const handler = define.handlers({
     }
     const form = await ctx.req.formData();
     const email = form.get("email")?.toString()?.trim();
+    let language = form.get("language")?.toString()?.trim();
+    if (language == null || !isLanguage(language)) {
+      language = ctx.state.language;
+    }
     const message = form.get("message")?.toString()?.trim();
     if (email == null || email === "") {
       return page<InvitePageProps>({
@@ -99,6 +107,7 @@ export const handler = define.handlers({
     const inviter = `${account.name} (@${account.username}@${
       new URL(ctx.state.canonicalOrigin).host
     })`;
+    const t = getFixedT(language);
     await sendEmail({
       to: email,
       subject: t("settings.invite.invitationEmailSubject", {
@@ -110,7 +119,7 @@ export const handler = define.handlers({
           inviter,
           inviterName: account.name,
           verifyUrl: verifyUrl.href,
-          expiration: EXPIRATION.toLocaleString(ctx.state.language, {
+          expiration: EXPIRATION.toLocaleString(language, {
             // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
             style: "long",
           }),
@@ -120,7 +129,7 @@ export const handler = define.handlers({
           inviterName: account.name,
           message: `> ${message.replace(/\n/g, "\n> ")}`,
           verifyUrl: verifyUrl.href,
-          expiration: EXPIRATION.toLocaleString(ctx.state.language, {
+          expiration: EXPIRATION.toLocaleString(language, {
             // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
             style: "long",
           }),
@@ -154,8 +163,11 @@ type InvitePageProps =
 
 export default define.page<typeof handler, InvitePageProps>(
   function InvitePage({ state, data: { account, ...data } }) {
-    const { t, canonicalOrigin } = state;
+    const { t, canonicalOrigin, language } = state;
     const { leftInvitations } = account;
+    const languageDisplayNames = new Intl.DisplayNames(language, {
+      type: "language",
+    });
     return (
       <form method="post">
         <SettingsNav
@@ -207,19 +219,51 @@ export default define.page<typeof handler, InvitePageProps>(
                 )}
             </p>
           )}
-        <div class="mt-4">
-          <Label label={t("settings.invite.email")} required>
-            <Input
-              type="email"
-              name="email"
-              required
-              disabled={leftInvitations < 1}
-              class="w-full lg:w-96"
-            />
-          </Label>
-          <p class="opacity-50">
-            <Msg $key="settings.invite.emailDescription" />
-          </p>
+        <div class="mt-4 grid grid-cols-2 gap-5">
+          <div>
+            <Label label={t("settings.invite.email")} required>
+              <Input
+                type="email"
+                name="email"
+                required
+                disabled={leftInvitations < 1}
+                class="w-full"
+              />
+            </Label>
+            <p class="opacity-50">
+              <Msg $key="settings.invite.emailDescription" />
+            </p>
+          </div>
+          <div>
+            <Label label={t("settings.invite.language")} required>
+              <select
+                name="language"
+                class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
+              >
+                {SUPPORTED_LANGUAGES
+                  .map((l) =>
+                    [l, languageDisplayNames.of(l) ?? l] satisfies [
+                      Language,
+                      string,
+                    ]
+                  )
+                  .toSorted(([_, a], [__, b]) => a.localeCompare(b, language))
+                  .map(([l, name]) => {
+                    const nativeName = new Intl.DisplayNames(l, {
+                      type: "language",
+                    }).of(l);
+                    return (
+                      <option key={l} value={l} selected={l === language}>
+                        {nativeName === name ? name : `${name} (${nativeName})`}
+                      </option>
+                    );
+                  })}
+              </select>
+            </Label>
+            <p class="opacity-50">
+              <Msg $key="settings.invite.languageDescription" />
+            </p>
+          </div>
         </div>
         <div class="mt-4">
           <Label label={t("settings.invite.extraMessage")}>

@@ -110,6 +110,8 @@
       "description_other": "友達をHackers' Pubに招待しましょう。最大{{count}}人まで招待できます。",
       "email": "$t(signUp.email)",
       "emailDescription": "メールアドレスは招待状を受け取るだけでなく、アカウントへのログインにも使用されます。",
+      "language": "招待状の言語",
+      "languageDescription": "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。",
       "extraMessage": "追加メッセージ",
       "extraMessageDescription": "友達は招待メールでこのメッセージを見ることができます。",
       "send": "招待状を送る",

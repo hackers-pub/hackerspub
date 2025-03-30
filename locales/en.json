@@ -110,6 +110,8 @@
       "description_other": "Invite your friends to Hackers' Pub. You can invite up to {{count}} people.",
       "email": "$t(signUp.email)",
       "emailDescription": "The email address is not only used for receiving the invitation, but also for signing in to the account.",
+      "language": "Invitation language",
+      "languageDescription": "Choose the language your friend prefers. This language will only be used for the invitation.",
       "extraMessage": "Extra message",
       "extraMessageDescription": "Your friend will see this message in the invitation email.",
       "send": "Send invitation",

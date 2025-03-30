@@ -110,6 +110,8 @@
       "description_other": "邀请你的朋友加入 Hackers' Pub。你可以邀请最多 {{count}} 个人。",
       "email": "$t(signUp.email)",
       "emailDescription": "电子邮件地址不仅用于接收邀请，还用于登录账户。",
+      "language": "邀请语言",
+      "languageDescription": "选择你的朋友使用的语言。这个语言只会用于邀请。",
       "extraMessage": "额外信息",
       "extraMessageDescription": "你的朋友将在邀请邮件中看到此信息。",
       "send": "发送邀请",
