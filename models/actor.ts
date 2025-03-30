@@ -318,7 +318,15 @@ export async function persistActorsByHandles(
   });
   const promises = [];
   for (const handle of handlesToFetch) {
-    promises.push(ctx.lookupObject(handle, { documentLoader }));
+    promises.push(
+      ctx.lookupObject(handle, { documentLoader }).catch((error) => {
+        logger.warn("Failed to lookup actor {handle}: {error}", {
+          handle,
+          error,
+        });
+        return null;
+      }),
+    );
   }
   const apActors = await Promise.all(promises);
   for (const apActor of apActors) {
