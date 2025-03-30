@@ -1,6 +1,6 @@
 import { count, eq, isNotNull, max } from "drizzle-orm";
 import { page } from "fresh";
-import { PageTitle } from "../../components/PageTitle.tsx";
+import { AdminNav } from "../../components/AdminNav.tsx";
 import { db } from "../../db.ts";
 import { Timestamp } from "../../islands/Timestamp.tsx";
 import { getAvatarUrl } from "../../models/account.ts";
@@ -72,7 +72,7 @@ export default define.page<typeof handler, AccountListProps>(
   ) {
     return (
       <div>
-        <PageTitle>Accounts</PageTitle>
+        <AdminNav active="accounts" />
         <table class="table table-auto border-collapse border border-stone-300 dark:border-stone-500 w-full">
           <thead>
             <tr>

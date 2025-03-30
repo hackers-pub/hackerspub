@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gt, isNotNull, sql } from "drizzle-orm";
 import { page } from "fresh";
+import { AdminNav } from "../../components/AdminNav.tsx";
 import { Button } from "../../components/Button.tsx";
-import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { kv } from "../../kv.ts";
 import { accountTable, actorTable, postTable } from "../../models/schema.ts";
@@ -94,18 +94,20 @@ interface RegenerateInvitationsProps {
 }
 
 export default define.page<typeof handler, RegenerateInvitationsProps>(
-  function RegenerateInvitations({ data }) {
+  function RegenerateInvitations({ state: { language }, data }) {
     const { lastRegenDate, regenerated, accountsCount } = data;
 
     return (
       <div>
-        <PageTitle>Regenerate Invitations</PageTitle>
+        <AdminNav active="invitations" />
 
         <div class="mb-6">
           <p class="mb-4">
             This will regenerate invitations for the most active users (top 1/3
             by post count) since {lastRegenDate
-              ? `the last regeneration (${lastRegenDate.toLocaleString()})`
+              ? `the last regeneration (${
+                lastRegenDate.toLocaleString(language)
+              })`
               : "the last week"}.
           </p>
 
