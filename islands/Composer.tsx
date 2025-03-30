@@ -379,6 +379,47 @@ export function Composer(props: ComposerProps) {
             )}
             <Button
               type="button"
+              class="grow"
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = SUPPORTED_MEDIA_TYPES.join(",");
+                input.multiple = true;
+                input.onchange = (e) => {
+                  const files = (e.target as HTMLInputElement).files;
+                  if (files) {
+                    for (const file of files) {
+                      if (SUPPORTED_MEDIA_TYPES.includes(file.type)) {
+                        addMedium(file);
+                      }
+                    }
+                  }
+                };
+                input.click();
+              }}
+              title={t("composer.uploadImage")}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                class="size-5 inline-block"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                />
+              </svg>
+              <span class="ml-1 hidden md:inline">
+                <Msg $key="composer.uploadImage" />
+              </span>
+            </Button>
+            <Button
+              type="button"
               disabled={mode === "previewLoading"}
               onClick={mode === "edit" ? onPreview : onEdit}
               class="grow"

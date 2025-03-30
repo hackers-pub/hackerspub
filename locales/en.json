@@ -239,7 +239,8 @@
     "removeQuote": "Remove quote",
     "edit": "Edit",
     "post": "Post",
-    "postFailed": "Failed to submit your note. Please try again later."
+    "postFailed": "Failed to submit your note. Please try again later.",
+    "uploadImage": "Upload image"
   },
   "postVisibility": {
     "public": "Public",

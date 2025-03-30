@@ -236,7 +236,8 @@
     "removeQuote": "引用を削除",
     "edit": "編集",
     "post": "投稿",
-    "postFailed": "投稿に失敗しました。後でもう一度お試しください。"
+    "postFailed": "投稿に失敗しました。後でもう一度お試しください。",
+    "uploadImage": "画像をアップロード"
   },
   "postVisibility": {
     "public": "公開",
