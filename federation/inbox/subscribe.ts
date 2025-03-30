@@ -16,6 +16,10 @@ import {
   persistPost,
   persistSharedPost,
 } from "../../models/post.ts";
+import {
+  addPostToTimeline,
+  removeFromTimeline,
+} from "../../models/timeline.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "subscribe"]);
 
@@ -28,11 +32,12 @@ export async function onPostCreated(
   const object = await create.getObject(fedCtx);
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;
-  await persistPost(db, fedCtx, object, {
+  const post = await persistPost(db, fedCtx, object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
   });
+  if (post != null) await addPostToTimeline(db, post);
 }
 
 export async function onPostUpdated(
@@ -75,7 +80,8 @@ export async function onPostShared(
   if (announce.id?.origin !== announce.actorId?.origin) return;
   const object = await announce.getObject(fedCtx);
   if (!isPostObject(object)) return;
-  await persistSharedPost(db, fedCtx, announce, fedCtx);
+  const post = await persistSharedPost(db, fedCtx, announce, fedCtx);
+  if (post != null) await addPostToTimeline(db, post);
 }
 
 export async function onPostUnshared(
@@ -85,5 +91,6 @@ export async function onPostUnshared(
   logger.debug("On post unshared: {undo}", { undo });
   if (undo.objectId == null || undo.actorId == null) return;
   if (undo.objectId?.origin !== undo.actorId?.origin) return;
-  await deleteSharedPost(db, undo.objectId, undo.actorId);
+  const post = await deleteSharedPost(db, undo.objectId, undo.actorId);
+  if (post != null) await removeFromTimeline(db, post);
 }

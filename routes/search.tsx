@@ -7,7 +7,12 @@ import { PageTitle } from "../components/PageTitle.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
 import { db } from "../db.ts";
 import { persistActor } from "../models/actor.ts";
-import { isPostObject, isPostVisibleTo, persistPost } from "../models/post.ts";
+import {
+  getPostVisibilityFilter,
+  isPostObject,
+  isPostVisibleTo,
+  persistPost,
+} from "../models/post.ts";
 import type {
   Account,
   Actor,
@@ -124,8 +129,11 @@ export const handler = define.handlers({
     const expr = query == null ? undefined : parseQuery(query);
     const posts = expr == null ? [] : await db.query.postTable.findMany({
       where: {
-        ...compileQuery(db, expr),
-        sharedPostId: { isNull: true },
+        AND: [
+          compileQuery(db, expr),
+          getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+          { sharedPostId: { isNull: true } },
+        ],
       },
       with: {
         actor: { with: { followers: true } },

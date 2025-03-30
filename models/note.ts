@@ -24,6 +24,7 @@ import {
   type PostLink,
   type PostMedium,
 } from "./schema.ts";
+import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 export async function createNoteSource(
@@ -244,6 +245,7 @@ export async function createNote(
   if (relations.replyTarget != null) {
     await updateRepliesCount(db, relations.replyTarget, 1);
   }
+  await addPostToTimeline(db, post);
   const noteObject = await getNote(
     db,
     disk,

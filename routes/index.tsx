@@ -16,6 +16,7 @@ import { RecommendedActors } from "../islands/RecommendedActors.tsx";
 import { kv } from "../kv.ts";
 import { recommendActors } from "../models/actor.ts";
 import { extractMentionsFromHtml } from "../models/markup.ts";
+import { getPostVisibilityFilter, isPostVisibleTo } from "../models/post.ts";
 import type {
   Account,
   Actor,
@@ -54,37 +55,42 @@ export const handler = define.handlers({
     const window = windowString == null || !windowString.match(/^\d+$/)
       ? DEFAULT_WINDOW
       : parseInt(windowString);
-    let timeline: (Post & {
-      actor: Actor;
-      link: PostLink & { creator?: Actor | null } | null;
-      sharedPost:
-        | Post & {
-          actor: Actor;
-          link: PostLink & { creator?: Actor | null } | null;
-          replyTarget:
-            | Post & {
-              actor: Actor & { followers: Following[] };
-              link: PostLink & { creator?: Actor | null } | null;
-              mentions: (Mention & { actor: Actor })[];
-              media: PostMedium[];
-            }
-            | null;
-          mentions: (Mention & { actor: Actor })[];
-          media: PostMedium[];
-          shares: Post[];
-        }
-        | null;
-      replyTarget:
-        | Post & {
-          actor: Actor & { followers: Following[] };
-          link: PostLink & { creator?: Actor | null } | null;
-          mentions: (Mention & { actor: Actor })[];
-          media: PostMedium[];
-        }
-        | null;
-      mentions: (Mention & { actor: Actor })[];
-      media: PostMedium[];
-      shares: Post[];
+    let timeline: ({
+      post: Post & {
+        actor: Actor & { followers: Following[] };
+        link: PostLink & { creator?: Actor | null } | null;
+        sharedPost:
+          | Post & {
+            actor: Actor;
+            link: PostLink & { creator?: Actor | null } | null;
+            replyTarget:
+              | Post & {
+                actor: Actor & { followers: Following[] };
+                link: PostLink & { creator?: Actor | null } | null;
+                mentions: (Mention & { actor: Actor })[];
+                media: PostMedium[];
+              }
+              | null;
+            mentions: (Mention & { actor: Actor })[];
+            media: PostMedium[];
+            shares: Post[];
+          }
+          | null;
+        replyTarget:
+          | Post & {
+            actor: Actor & { followers: Following[] };
+            link: PostLink & { creator?: Actor | null } | null;
+            mentions: (Mention & { actor: Actor })[];
+            media: PostMedium[];
+          }
+          | null;
+        mentions: (Mention & { actor: Actor })[];
+        media: PostMedium[];
+        shares: Post[];
+      };
+      lastSharer: Actor | null;
+      sharersCount: number;
+      added: Date;
     })[];
     const languages = new Set<string>(
       acceptsLanguages(ctx.req)
@@ -93,9 +99,9 @@ export const handler = define.handlers({
     );
     logger.debug("Accepted languages: {languages}", { languages });
     if (ctx.state.account == null) {
-      timeline = await db.query.postTable.findMany({
+      const posts = await db.query.postTable.findMany({
         with: {
-          actor: true,
+          actor: { with: { followers: true } },
           link: { with: { creator: true } },
           sharedPost: {
             with: {
@@ -175,25 +181,58 @@ export const handler = define.handlers({
         orderBy: { published: "desc" },
         limit: window + 1,
       });
+      timeline = posts.map((post) => ({
+        post,
+        lastSharer: null,
+        sharersCount: 0,
+        added: post.published,
+      }));
     } else {
       timeline = filter === "recommendations"
         ? []
-        : await db.query.postTable.findMany({
+        : await db.query.timelineItemTable.findMany({
           with: {
-            actor: true,
-            link: { with: { creator: true } },
-            sharedPost: {
+            post: {
               with: {
-                actor: true,
+                actor: { with: { followers: true } },
                 link: { with: { creator: true } },
+                sharedPost: {
+                  with: {
+                    actor: true,
+                    link: { with: { creator: true } },
+                    replyTarget: {
+                      with: {
+                        actor: {
+                          with: {
+                            followers: {
+                              where: {
+                                followerId: ctx.state.account.actor.id,
+                              },
+                            },
+                          },
+                        },
+                        link: { with: { creator: true } },
+                        mentions: {
+                          with: { actor: true },
+                        },
+                        media: true,
+                      },
+                    },
+                    mentions: {
+                      with: { actor: true },
+                    },
+                    media: true,
+                    shares: {
+                      where: { actorId: ctx.state.account.actor.id },
+                    },
+                  },
+                },
                 replyTarget: {
                   with: {
                     actor: {
                       with: {
                         followers: {
-                          where: {
-                            followerId: ctx.state.account.actor.id,
-                          },
+                          where: { followerId: ctx.state.account.actor.id },
                         },
                       },
                     },
@@ -213,97 +252,53 @@ export const handler = define.handlers({
                 },
               },
             },
-            replyTarget: {
-              with: {
-                actor: {
-                  with: {
-                    followers: {
-                      where: { followerId: ctx.state.account.actor.id },
-                    },
-                  },
-                },
-                link: { with: { creator: true } },
-                mentions: {
-                  with: { actor: true },
-                },
-                media: true,
-              },
-            },
-            mentions: {
-              with: { actor: true },
-            },
-            media: true,
-            shares: {
-              where: { actorId: ctx.state.account.actor.id },
-            },
+            lastSharer: true,
           },
           where: {
-            AND: [
-              {
-                OR: [
-                  filter === "mentionsAndQuotes" ? { RAW: sql`false` } : {
+            accountId: ctx.state.account.id,
+            post: {
+              AND: [
+                getPostVisibilityFilter(ctx.state.account.actor),
+                filter === "local"
+                  ? {
                     OR: [
-                      {
-                        actor: {
-                          followers: {
-                            followerId: ctx.state.account.actor.id,
-                          },
-                        },
-                        visibility: { ne: "direct" },
-                        OR: [
-                          { replyTargetId: { isNull: true } },
-                          {
-                            replyTarget: {
-                              OR: [
-                                { actorId: ctx.state.account.actor.id },
-                                {
-                                  actor: {
-                                    followers: {
-                                      followerId: ctx.state.account.actor.id,
-                                    },
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                        ],
-                      },
-                      { actorId: ctx.state.account.actor.id },
+                      { noteSourceId: { isNotNull: true } },
+                      { articleSourceId: { isNotNull: true } },
                     ],
-                  },
-                  { mentions: { actorId: ctx.state.account.actor.id } },
-                  { quotedPost: { actorId: ctx.state.account.actor.id } },
-                ],
-              },
-              { visibility: { ne: "none" } },
-              filter === "local"
-                ? {
-                  OR: [
-                    { noteSourceId: { isNotNull: true } },
-                    { articleSourceId: { isNotNull: true } },
-                    {
-                      sharedPostId: { isNotNull: true },
-                      actor: {
-                        accountId: { isNotNull: true },
-                      },
-                    },
-                  ],
-                }
-                : filter === "withoutShares"
-                ? { sharedPostId: { isNull: true } }
-                : filter === "articlesOnly"
-                ? { type: "Article" }
-                : {},
-              { published: { lte: until } },
-            ],
+                  }
+                  : filter === "articlesOnly"
+                  ? { type: "Article" }
+                  : filter === "mentionsAndQuotes"
+                  ? {
+                    OR: [
+                      { mentions: { actorId: ctx.state.account.actor.id } },
+                      { quotedPost: { actorId: ctx.state.account.actor.id } },
+                    ],
+                  }
+                  : {},
+              ],
+            },
+            ...(filter === "withoutShares"
+              ? { originalAuthorId: { isNotNull: true } }
+              : {}),
+            ...(until == null ? undefined : { added: { lte: until } }),
           },
-          orderBy: { published: "desc" },
+          orderBy: filter === "withoutShares"
+            ? { added: "desc" }
+            : { appended: "desc" },
           limit: window + 1,
         });
+      if (filter === "withoutShares") {
+        timeline = timeline.map((item) => ({
+          ...item,
+          lastSharer: null,
+          lastSharerId: null,
+        }));
+      }
     }
     let next: Date | undefined = undefined;
     if (timeline.length > window) {
-      next = timeline[window].published;
+      next = timeline[window].added;
       timeline = timeline.slice(0, window);
     }
     const recommendedActors = next == null || filter === "recommendations"
@@ -357,7 +352,9 @@ export const handler = define.handlers({
         (ctx.state.account == null || timeline.length < 1),
       composer: ctx.state.account != null,
       filter,
-      timeline,
+      timeline: timeline.filter((item) =>
+        isPostVisibleTo(item.post, ctx.state.account?.actor)
+      ),
       next,
       window,
       recommendedActors,
@@ -370,37 +367,42 @@ interface HomeProps {
   intro: boolean;
   composer: boolean;
   filter: TimelineNavItem;
-  timeline: (Post & {
-    actor: Actor;
-    link: PostLink & { creator?: Actor | null } | null;
-    sharedPost:
-      | Post & {
-        actor: Actor;
-        link: PostLink & { creator?: Actor | null } | null;
-        replyTarget:
-          | Post & {
-            actor: Actor & { followers: Following[] };
-            link: PostLink & { creator?: Actor | null } | null;
-            mentions: (Mention & { actor: Actor })[];
-            media: PostMedium[];
-          }
-          | null;
-        mentions: (Mention & { actor: Actor })[];
-        media: PostMedium[];
-        shares: Post[];
-      }
-      | null;
-    replyTarget:
-      | Post & {
-        actor: Actor & { followers: Following[] };
-        link: PostLink & { creator?: Actor | null } | null;
-        mentions: (Mention & { actor: Actor })[];
-        media: PostMedium[];
-      }
-      | null;
-    mentions: (Mention & { actor: Actor })[];
-    media: PostMedium[];
-    shares: Post[];
+  timeline: ({
+    post: Post & {
+      actor: Actor;
+      link: PostLink & { creator?: Actor | null } | null;
+      sharedPost:
+        | Post & {
+          actor: Actor;
+          link: PostLink & { creator?: Actor | null } | null;
+          replyTarget:
+            | Post & {
+              actor: Actor & { followers: Following[] };
+              link: PostLink & { creator?: Actor | null } | null;
+              mentions: (Mention & { actor: Actor })[];
+              media: PostMedium[];
+            }
+            | null;
+          mentions: (Mention & { actor: Actor })[];
+          media: PostMedium[];
+          shares: Post[];
+        }
+        | null;
+      replyTarget:
+        | Post & {
+          actor: Actor & { followers: Following[] };
+          link: PostLink & { creator?: Actor | null } | null;
+          mentions: (Mention & { actor: Actor })[];
+          media: PostMedium[];
+        }
+        | null;
+      mentions: (Mention & { actor: Actor })[];
+      media: PostMedium[];
+      shares: Post[];
+    };
+    lastSharer: Actor | null;
+    sharersCount: number;
+    added: Date;
   })[];
   next?: Date;
   window: number;
@@ -440,8 +442,13 @@ export default define.page<typeof handler, HomeProps>(
         <TimelineNav active={data.filter} signedIn={state.account != null} />
         {data.filter !== "recommendations" && (
           <>
-            {data.timeline.map((post) => (
-              <PostExcerpt post={post} signedAccount={state.account} />
+            {data.timeline.map((item) => (
+              <PostExcerpt
+                post={item.post}
+                lastSharer={item.lastSharer}
+                sharersCount={item.sharersCount}
+                signedAccount={state.account}
+              />
             ))}
             <PostPagination nextHref={nextHref} />
           </>

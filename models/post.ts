@@ -28,7 +28,7 @@ import { Buffer } from "node:buffer";
 import ogs from "open-graph-scraper";
 import { PDFDocument } from "pdf-lib";
 import { isSSRFSafeURL } from "ssrfcheck";
-import type { Database } from "../db.ts";
+import type { Database, RelationsFilter } from "../db.ts";
 import { ORIGIN } from "../federation/federation.ts";
 import { getAnnounce } from "../federation/objects.ts";
 import { MODE } from "../utils.ts";
@@ -68,6 +68,7 @@ import {
   postTable,
   type PostVisibility,
 } from "./schema.ts";
+import { addPostToTimeline, removeFromTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "post"]);
@@ -659,6 +660,7 @@ export async function sharePost(
   const share = posts[0];
   post.sharesCount = await updateSharesCount(db, post, 1);
   share.sharesCount = post.sharesCount;
+  await addPostToTimeline(db, share);
   const announce = getAnnounce(fedCtx, {
     ...share,
     sharedPost: post,
@@ -700,6 +702,7 @@ export async function unsharePost(
   ).returning();
   if (unshared.length > 0) {
     sharedPost.sharesCount = await updateSharesCount(db, sharedPost, -1);
+    await removeFromTimeline(db, unshared[0]);
     const announce = getAnnounce(fedCtx, {
       ...unshared[0],
       actor,
@@ -912,7 +915,7 @@ export async function deleteSharedPost(
   db: Database,
   iri: URL,
   actorIri: URL,
-): Promise<void> {
+): Promise<Post | undefined> {
   const shares = await db.delete(postTable).where(
     and(
       eq(postTable.iri, iri.toString()),
@@ -925,14 +928,15 @@ export async function deleteSharedPost(
       isNotNull(postTable.sharedPostId),
     ),
   ).returning();
-  if (shares.length < 1) return;
+  if (shares.length < 1) return undefined;
   const [share] = shares;
-  if (share.sharedPostId == null) return;
+  if (share.sharedPostId == null) return undefined;
   const sharedPost = await db.query.postTable.findFirst({
     where: { id: share.sharedPostId },
   });
-  if (sharedPost == null) return;
+  if (sharedPost == null) return share;
   await updateSharesCount(db, sharedPost, -1);
+  return share;
 }
 
 export function isPostVisibleTo(
@@ -940,7 +944,7 @@ export function isPostVisibleTo(
     actor: Actor & { followers: Following[] };
     mentions: Mention[];
   },
-  actor?: { id: Uuid },
+  actor?: Actor,
 ): boolean;
 export function isPostVisibleTo(
   post: Post & {
@@ -954,7 +958,7 @@ export function isPostVisibleTo(
     actor: Actor & { followers: (Following & { follower?: Actor })[] };
     mentions: (Mention & { actor?: Actor })[];
   },
-  actor?: { id: Uuid } | { iri: string },
+  actor?: Actor | { iri: string },
 ): boolean {
   if (post.visibility === "public" || post.visibility === "unlisted") {
     return true;
@@ -985,6 +989,50 @@ export function isPostVisibleTo(
     }
   }
   return false;
+}
+
+export function getPostVisibilityFilter(
+  actor: Actor | null,
+): RelationsFilter<"postTable">;
+export function getPostVisibilityFilter(
+  actor: Post,
+): RelationsFilter<"actorTable">;
+
+export function getPostVisibilityFilter(
+  actorOrPost: Actor | Post | null,
+): RelationsFilter<"postTable"> | RelationsFilter<"actorTable"> {
+  if (actorOrPost == null) {
+    return { visibility: { in: ["public", "unlisted"] } };
+  }
+  if ("accountId" in actorOrPost) {
+    return {
+      OR: [
+        { actorId: actorOrPost.id },
+        { visibility: { in: ["public", "unlisted"] } },
+        { mentions: { actorId: actorOrPost.id } },
+        {
+          visibility: "followers",
+          actor: { followers: { followerId: actorOrPost.id } },
+        },
+      ],
+    };
+  } else {
+    if (
+      actorOrPost.visibility === "public" ||
+      actorOrPost.visibility === "unlisted"
+    ) {
+      return {};
+    }
+    return {
+      OR: [
+        { id: actorOrPost.actorId },
+        { mentions: { postId: actorOrPost.id } },
+        ...(actorOrPost.visibility === "followers"
+          ? [{ followees: { followeeId: actorOrPost.actorId } }]
+          : []),
+      ],
+    };
+  }
 }
 
 export async function updateRepliesCount(

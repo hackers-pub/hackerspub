@@ -55,6 +55,8 @@ export interface PostExcerptProps {
     emojis: Record<string, string>;
     avatarUrl: string;
   };
+  lastSharer?: Actor | null;
+  sharersCount?: number;
   noControls?: boolean;
   noQuote?: boolean;
   signedAccount?: Account & { actor: Actor };
@@ -62,15 +64,25 @@ export interface PostExcerptProps {
 
 export function PostExcerpt(props: PostExcerptProps) {
   const post = props.post.sharedPost ?? props.post;
-  const sharer = props.post.sharedPost == null ? undefined : {
-    url: props.post.actor.url ?? props.post.actor.iri,
-    internalUrl: props.post.actor.accountId == null
-      ? `/${props.post.actor.handle}`
-      : `/@${props.post.actor.username}`,
-    name: props.post.actor.name ?? props.post.actor.username,
-    emojis: props.post.actor.emojis,
-    avatarUrl: getAvatarUrl(props.post.actor),
-  };
+  const sharer = props.lastSharer == null
+    ? props.post.sharedPost == null ? undefined : {
+      url: props.post.actor.url ?? props.post.actor.iri,
+      internalUrl: props.post.actor.accountId == null
+        ? `/${props.post.actor.handle}`
+        : `/@${props.post.actor.username}`,
+      name: props.post.actor.name ?? props.post.actor.username,
+      emojis: props.post.actor.emojis,
+      avatarUrl: getAvatarUrl(props.post.actor),
+    }
+    : {
+      url: props.lastSharer.url ?? props.lastSharer.iri,
+      internalUrl: props.lastSharer.accountId == null
+        ? `/${props.lastSharer.handle}`
+        : `/@${props.lastSharer.username}`,
+      name: props.lastSharer.name ?? props.lastSharer.username,
+      emojis: props.lastSharer.emojis,
+      avatarUrl: getAvatarUrl(props.lastSharer),
+    };
   const localPostUrl = post.articleSourceId == null && post.noteSourceId == null
     ? `/${post.actor.handle}/${post.id}`
     : `/@${post.actor.username}/${post.articleSourceId ?? post.noteSourceId}`;

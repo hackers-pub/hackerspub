@@ -175,4 +175,20 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.actorTable.id,
     }),
   },
+  timelineItemTable: {
+    account: r.one.accountTable({
+      from: r.timelineItemTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    post: r.one.postTable({
+      from: r.timelineItemTable.postId,
+      to: r.postTable.id,
+      optional: false,
+    }),
+    lastSharer: r.one.actorTable({
+      from: r.timelineItemTable.lastSharerId,
+      to: r.actorTable.id,
+    }),
+  },
 }));

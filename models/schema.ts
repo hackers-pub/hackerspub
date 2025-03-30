@@ -662,3 +662,38 @@ export const postLinkTable = pgTable(
 
 export type PostLink = typeof postLinkTable.$inferSelect;
 export type NewPostLink = typeof postLinkTable.$inferInsert;
+
+export const timelineItemTable = pgTable(
+  "timeline_item",
+  {
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
+    originalAuthorId: uuid("original_author_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => actorTable.id, { onDelete: "cascade" }),
+    lastSharerId: uuid("last_sharer_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => actorTable.id, { onDelete: "set null" }),
+    sharersCount: integer("sharers_count").notNull().default(0),
+    added: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    appended: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.accountId, table.postId] }),
+    index("idx_timeline_item_account_id_added")
+      .on(table.accountId, desc(table.added)),
+  ],
+);
+
+export type TimelineItem = typeof timelineItemTable.$inferSelect;
+export type NewTimelineItem = typeof timelineItemTable.$inferInsert;

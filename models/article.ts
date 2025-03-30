@@ -21,6 +21,7 @@ import {
   type NewArticleSource,
   type Post,
 } from "./schema.ts";
+import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 export async function updateArticleDraft(
@@ -159,6 +160,7 @@ export async function createArticle(
     ...articleSource,
     account,
   });
+  await addPostToTimeline(db, post);
   const articleObject = await getArticle(db, fedCtx, {
     ...articleSource,
     account,
