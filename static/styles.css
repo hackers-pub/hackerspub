@@ -111,6 +111,39 @@
   }
 }
 
+.prose blockquote {
+  font-style: normal;
+  font-weight: normal;
+}
+
+.prose blockquote p:before {
+  content: none;
+}
+
+.prose blockquote p:after {
+  content: none;
+}
+
+.prose code {
+  font-weight: normal;
+  font-size: inherit;
+  background-color: rgba(101, 117, 133, .25);
+  padding: 1px;
+}
+
+.prose pre > code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.prose code:before {
+  content: none;
+}
+
+.prose code:after {
+  content: none;
+}
+
 .prose .markdown-alert.markdown-alert-note {
   border-left-color: var(--color-note);
 }
@@ -151,24 +184,42 @@
   color: var(--color-caution);
 }
 
-.prose pre.shiki.has-highlighted {
+.prose pre.shiki.has-highlighted,
+.prose pre.shiki:has(> code > span.highlighted.line) {
   padding-inline-start: 0;
   padding-inline-end: 0;
 }
 
-.prose pre.shiki.has-highlighted > code > span.line {
+.prose pre.shiki.has-highlighted > code > span.line,
+.prose pre.shiki:has(> code > span.highlighted.line) > code > span.line {
   padding-left: 1.1428571em;
   padding-right: 1.1428571em;
 }
 
-.prose pre.shiki.has-highlighted > code > span.highlighted.line {
+.prose pre.shiki > code > span.highlighted.line {
   display: inline-block;
   width: 100%;
   background-color: rgba(101, 117, 133, .16) !important;
 }
 
-.prose pre.shiki.has-highlighted > code > span.highlighted.line > span {
+.prose pre.shiki > code > span.highlighted.line > span {
   background-color: transparent !important;
+}
+
+.prose pre.shiki.has-highlighted > code > span.highlighted.line.error {
+  background-color: rgba(244, 63, 94, .14) !important;
+}
+
+.prose pre.shiki.has-highlighted > code > span.highlighted.line.warning {
+  background-color: rgba(251, 191, 36, .14) !important;
+}
+
+.prose pre.shiki > code > span.line > span.highlighted-word {
+  background-color: rgba(101, 117, 133, .5) !important;
+  border: 1px solid rgba(101, 117, 133, .5);
+  padding: 1px 0px;
+  margin: -1px 0px;
+  border-radius: 4px;
 }
 
 .prose pre.shiki.has-focused > code > span.line:not(.focused) {

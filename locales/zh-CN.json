@@ -239,7 +239,8 @@
     "edit": "编辑",
     "post": "发布",
     "postFailed": "发布失败。请稍候再试。",
-    "uploadImage": "上传图片"
+    "uploadImage": "上传图片",
+    "markdownEnabled": "Markdown 可用"
   },
   "postVisibility": {
     "public": "公开",

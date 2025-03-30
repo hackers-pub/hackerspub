@@ -237,7 +237,8 @@
     "edit": "編集",
     "post": "投稿",
     "postFailed": "投稿に失敗しました。後でもう一度お試しください。",
-    "uploadImage": "画像をアップロード"
+    "uploadImage": "画像アップ",
+    "markdownEnabled": "Markdown対応"
   },
   "postVisibility": {
     "public": "公開",

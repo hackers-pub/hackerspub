@@ -39,6 +39,7 @@
     ".github/",
     "drizzle/",
     "locales/*.md",
+    "locales/markdown/*.md",
     "node_modules/",
     "static/"
   ],

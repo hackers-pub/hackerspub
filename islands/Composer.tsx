@@ -359,6 +359,33 @@ export function Composer(props: ComposerProps) {
                 })}
             </select>
           </div>
+          <a
+            href="/markdown"
+            target="_blank"
+            class="hidden lg:flex flex-row items-center opacity-50 hover:opacity-100"
+          >
+            <svg
+              fill="currentColor"
+              height="128"
+              viewBox="0 0 208 128"
+              width="208"
+              xmlns="http://www.w3.org/2000/svg"
+              class="size-8 mr-2 shrink-0"
+              stroke="currentColor"
+            >
+              <g>
+                <path
+                  clip-rule="evenodd"
+                  d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
+                  fill-rule="evenodd"
+                />
+                <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
+              </g>
+            </svg>
+            <span class="hidden xl:block">
+              <Msg $key="composer.markdownEnabled" />
+            </span>
+          </a>
           <div class="flex flex-row gap-2">
             {!quoteLoading && quotedPostId != null && (
               <>

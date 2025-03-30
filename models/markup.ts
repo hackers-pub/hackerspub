@@ -9,9 +9,11 @@ import {
   transformerMetaHighlight,
   transformerMetaWordHighlight,
   transformerNotationDiff,
+  transformerNotationErrorLevel,
   transformerNotationFocus,
   transformerNotationHighlight,
   transformerNotationWordHighlight,
+  transformerRemoveNotationEscape,
 } from "@shikijs/transformers";
 import { deadline } from "@std/async/deadline";
 import { encodeAscii85 } from "@std/encoding/ascii85";
@@ -104,12 +106,14 @@ let loadingShiki = new Promise<void>((resolve) =>
         dark: "vitesse-dark",
       },
       transformers: [
-        transformerNotationDiff(),
-        transformerNotationHighlight(),
+        transformerNotationDiff({ matchAlgorithm: "v3" }),
+        transformerNotationHighlight({ matchAlgorithm: "v3" }),
         transformerMetaHighlight(),
-        transformerNotationWordHighlight(),
+        transformerNotationWordHighlight({ matchAlgorithm: "v3" }),
+        transformerNotationErrorLevel({ matchAlgorithm: "v3" }),
         transformerMetaWordHighlight(),
-        transformerNotationFocus(),
+        transformerNotationFocus({ matchAlgorithm: "v3" }),
+        transformerRemoveNotationEscape(),
       ],
     }).then((shiki) => {
       md = md.use(shiki);

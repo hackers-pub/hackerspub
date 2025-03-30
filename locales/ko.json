@@ -235,7 +235,8 @@
     "edit": "고치기",
     "post": "올리기",
     "postFailed": "단문을 올리는 데 실패했습니다. 나중에 다시 시도해 주세요.",
-    "uploadImage": "이미지 업로드"
+    "uploadImage": "이미지 업로드",
+    "markdownEnabled": "Markdown 사용 가능"
   },
   "postVisibility": {
     "public": "공개",

@@ -240,7 +240,8 @@
     "edit": "Edit",
     "post": "Post",
     "postFailed": "Failed to submit your note. Please try again later.",
-    "uploadImage": "Upload image"
+    "uploadImage": "Upload image",
+    "markdownEnabled": "Markdown enabled"
   },
   "postVisibility": {
     "public": "Public",
