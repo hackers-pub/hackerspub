@@ -23,6 +23,7 @@ import type {
   PostMedium,
 } from "../models/schema.ts";
 import { compileQuery, parseQuery } from "../models/search.ts";
+import { addPostToTimeline } from "../models/timeline.ts";
 import { define } from "../utils.ts";
 
 const HANDLE_REGEXP = /@([a-z0-9_]{1,50})$/i;
@@ -106,6 +107,7 @@ async function searchUrl(
       documentLoader,
     });
     if (post == null) return undefined;
+    await addPostToTimeline(db, post);
   }
   if (post.actor.accountId == null) {
     return `/${post.actor.handle}/${post.id}`;
