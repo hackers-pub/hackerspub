@@ -7,7 +7,7 @@ import { validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
 import { getPostRecipients } from "./objects.ts";
 
-const FOLLOWERS_WINDOW = 5;
+const FOLLOWERS_WINDOW = 50;
 
 federation
   .setFollowersDispatcher(
@@ -64,6 +64,56 @@ federation
             like(actorTable.iri, `${filter.origin}/%`),
           ),
         ),
+      ));
+    return cnt;
+  });
+
+const FOLLOWEES_WINDOW = 50;
+
+federation
+  .setFollowingDispatcher(
+    "/ap/actors/{identifier}/followees",
+    async (ctx, identifier, cursor) => {
+      if (identifier === new URL(ctx.canonicalOrigin).hostname) {
+        return { items: [] };
+      }
+      if (!validateUuid(identifier)) return null;
+      const account = await db.query.accountTable.findFirst({
+        with: { actor: true },
+        where: { id: identifier },
+      });
+      if (account == null) return null;
+      const followees = await db.query.followingTable.findMany({
+        with: { followee: true },
+        where: {
+          followerId: account.actor.id,
+          accepted: { isNotNull: true },
+          ...(
+            cursor == null || cursor.trim() === ""
+              ? undefined
+              : { accepted: { lte: new Date(cursor.trim()) } }
+          ),
+        },
+        orderBy: { accepted: "desc" },
+        limit: cursor == null ? undefined : FOLLOWEES_WINDOW,
+      });
+      return {
+        items: followees.map((follow) => new URL(follow.followee.iri)),
+        nextCursor: cursor == null || followees.length < FOLLOWEES_WINDOW
+          ? null
+          : followees[FOLLOWEES_WINDOW - 1].accepted?.toISOString(),
+      };
+    },
+  )
+  .setFirstCursor((_ctx, _identifier) => "")
+  .setCounter(async (_ctx, identifier) => {
+    if (!validateUuid(identifier)) return null;
+    const [{ cnt }] = await db.select({ cnt: count() })
+      .from(followingTable)
+      .innerJoin(actorTable, eq(followingTable.followerId, actorTable.id))
+      .where(and(
+        eq(actorTable.accountId, identifier),
+        isNotNull(followingTable.accepted),
       ));
     return cnt;
   });

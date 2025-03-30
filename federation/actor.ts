@@ -52,6 +52,7 @@ federation
           endpoints: new Endpoints({
             sharedInbox: ctx.getInboxUri(),
           }),
+          following: ctx.getFollowingUri(identifier),
           followers: ctx.getFollowersUri(identifier),
           icon: new Image({
             url: new URL("/favicon.svg", ctx.canonicalOrigin),
@@ -93,6 +94,7 @@ federation
           url: new URL(await getAvatarUrl(account)),
         }),
         attachments: renderAccountLinks(account.links),
+        following: ctx.getFollowingUri(identifier),
         followers: ctx.getFollowersUri(identifier),
         url: new URL(`/@${account.username}`, ctx.canonicalOrigin),
       });
