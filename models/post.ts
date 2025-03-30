@@ -148,7 +148,7 @@ export async function syncPostFromArticleSource(
         postId: post.id,
         actorId: actor.id,
       })),
-    ).returning()
+    ).onConflictDoNothing().returning()
     : [];
   return { ...post, actor, mentions, articleSource };
 }
@@ -236,7 +236,7 @@ export async function syncPostFromNoteSource(
         postId: post.id,
         actorId: actor.id,
       })),
-    ).returning()).map((m) => ({
+    ).onConflictDoNothing().returning()).map((m) => ({
       ...m,
       actor: mentionList.find((a) => a.id === m.actorId)!,
     }))
