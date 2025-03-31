@@ -75,6 +75,7 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
         <PostControls
           class="mt-4 ml-14"
           language={state.language}
+          visibility={note.post.visibility}
           active="reactions"
           replies={note.post.repliesCount}
           replyUrl={`${postUrl}#replies`}

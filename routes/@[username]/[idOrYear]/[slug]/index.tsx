@@ -314,6 +314,7 @@ export default define.page<typeof handler, ArticlePageProps>(
           />
           <PostControls
             language={state.language}
+            visibility={article.post.visibility}
             class="mt-8"
             active="reply"
             replies={comments.length}

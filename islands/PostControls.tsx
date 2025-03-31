@@ -2,9 +2,11 @@ import { useState } from "preact/hooks";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import type { Language } from "../i18n.ts";
 import getFixedT from "../i18n.ts";
+import type { PostVisibility } from "../models/schema.ts";
 
 export interface PostControlsProps {
   language: Language;
+  visibility: PostVisibility;
   active?: "reply" | "quote" | "reactions";
   class?: string;
   replies: number;
@@ -27,10 +29,12 @@ export function PostControls(props: PostControlsProps) {
   const [shareSubmitting, setShareSubmitting] = useState(false);
   const [shareFocused, setShareFocused] = useState(false);
   const [deleted, setDeleted] = useState<null | "deleting" | "deleted">(null);
+  const nonPrivate = props.visibility === "public" ||
+    props.visibility === "unlisted";
 
   function onShareSubmit(this: HTMLFormElement, event: SubmitEvent) {
     event.preventDefault();
-    if (props.shareUrl == null) return;
+    if (!nonPrivate || props.shareUrl == null) return;
     if (event.currentTarget instanceof HTMLFormElement) {
       setShareSubmitting(true);
       const form = event.currentTarget;
@@ -95,7 +99,9 @@ export function PostControls(props: PostControlsProps) {
         </a>
         <form
           method="post"
-          action={shared ? props.unshareUrl : props.shareUrl}
+          action={nonPrivate
+            ? shared ? props.unshareUrl : props.shareUrl
+            : undefined}
           onSubmit={onShareSubmit}
         >
           <button
@@ -143,7 +149,7 @@ export function PostControls(props: PostControlsProps) {
             </span>
           </button>
         </form>
-        {props.quotesCount != null && (
+        {props.quotesCount != null && nonPrivate && (
           <a
             href={props.quoteUrl}
             class={`h-5 flex opacity-50 hover:opacity-100`}
@@ -169,7 +175,7 @@ export function PostControls(props: PostControlsProps) {
             </span>
           </a>
         )}
-        {props.reactionsUrl != null && (
+        {props.reactionsUrl != null && nonPrivate && (
           <a
             class={`h-5 flex opacity-50 ${
               deleted != null ? "" : "hover:opacity-100"

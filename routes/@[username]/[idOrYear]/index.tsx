@@ -443,6 +443,7 @@ export default define.page<typeof handler, NotePageProps>(
         <PostControls
           class="mt-4 ml-14"
           language={state.language}
+          visibility={post.visibility}
           active="reply"
           replies={replies.length}
           shares={(post.sharedPost ?? post).sharesCount}

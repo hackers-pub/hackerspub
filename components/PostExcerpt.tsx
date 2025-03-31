@@ -122,6 +122,7 @@ export function PostExcerpt(props: PostExcerptProps) {
               <ArticleExcerpt
                 class={props.class}
                 url={post.url ?? post.iri}
+                visibility={post.visibility}
                 target={post.actor.accountId == null ? "_blank" : undefined}
                 title={post.name}
                 contentHtml={post.contentHtml}
@@ -238,24 +239,22 @@ export function PostExcerpt(props: PostExcerptProps) {
                   {!props.replier && !props.noControls && (
                     <PostControls
                       language={language}
+                      visibility={post.visibility}
                       class="mt-4 ml-14"
                       replies={post.repliesCount}
                       replyUrl={`${localPostUrl}#reply`}
                       shares={post.sharesCount}
-                      shareUrl={props.signedAccount == null ||
-                          !["public", "unlisted"].includes(post.visibility)
+                      shareUrl={props.signedAccount == null
                         ? undefined
                         : `${localPostUrl}/share`}
-                      unshareUrl={props.signedAccount == null ||
-                          !["public", "unlisted"].includes(post.visibility)
+                      unshareUrl={props.signedAccount == null
                         ? undefined
                         : `${localPostUrl}/unshare`}
                       shared={post.shares.some((share) =>
                         share.actorId === props.signedAccount?.actor.id
                       )}
                       quotesCount={post.quotesCount}
-                      quoteUrl={props.signedAccount == null ||
-                          !["public", "unlisted"].includes(post.visibility)
+                      quoteUrl={props.signedAccount == null
                         ? undefined
                         : `${localPostUrl}/quotes`}
                       reactionsUrl={post.noteSourceId == null

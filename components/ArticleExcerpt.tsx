@@ -6,11 +6,13 @@ import {
 import { Link } from "../islands/Link.tsx";
 import { PostControls } from "../islands/PostControls.tsx";
 import { renderCustomEmojis } from "../models/emoji.ts";
+import type { PostVisibility } from "../models/schema.ts";
 import { Excerpt } from "./Excerpt.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 
 export type ArticleExcerptProps = Omit<ArticleMetadataProps, "language"> & {
   url: string | URL;
+  visibility: PostVisibility;
   target?: string;
   title?: string | null;
   contentHtml: string;
@@ -145,6 +147,7 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
           {props.controls && (
             <PostControls
               language={language}
+              visibility={props.visibility}
               class="mt-4"
               replies={props.controls.repliesCount}
               replyUrl={props.controls.replyUrl}

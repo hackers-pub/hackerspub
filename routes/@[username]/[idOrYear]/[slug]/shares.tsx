@@ -79,6 +79,7 @@ export default define.page<typeof handler, ArticleSharesProps>(
       <div>
         <ArticleExcerpt
           url={postUrl}
+          visibility={article.post.visibility}
           title={article.title}
           contentHtml={article.post.contentHtml}
           published={article.published}
@@ -96,6 +97,7 @@ export default define.page<typeof handler, ArticleSharesProps>(
         />
         <PostControls
           language={state.language}
+          visibility={article.post.visibility}
           class="mt-8"
           active="reactions"
           replies={article.post.repliesCount}

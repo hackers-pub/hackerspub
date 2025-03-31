@@ -9,9 +9,13 @@ import { Composer } from "../../../islands/Composer.tsx";
 import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { createNote, getNoteSource } from "../../../models/note.ts";
-import { isPostVisibleTo } from "../../../models/post.ts";
+import {
+  getPostByUsernameAndId,
+  isPostVisibleTo,
+} from "../../../models/post.ts";
 import type {
   Actor,
+  Following,
   Mention,
   Post,
   PostLink,
@@ -21,19 +25,64 @@ import { validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
 import { NoteSourceSchema } from "../index.tsx";
 
+type EnrichedPost = Post & {
+  actor: Actor & { followers: Following[] };
+  link: PostLink & { creator?: Actor | null } | null;
+  sharedPost:
+    | Post & {
+      actor: Actor;
+      link: PostLink & { creator?: Actor | null } | null;
+      replyTarget:
+        | Post & {
+          actor: Actor & { followers: Following[] };
+          link: PostLink & { creator?: Actor | null } | null;
+          mentions: (Mention & { actor: Actor })[];
+          media: PostMedium[];
+        }
+        | null;
+      mentions: (Mention & { actor: Actor })[];
+      media: PostMedium[];
+      shares: Post[];
+    }
+    | null;
+  replyTarget:
+    | Post & {
+      actor: Actor & { followers: Following[] };
+      link: PostLink & { creator?: Actor | null } | null;
+      mentions: (Mention & { actor: Actor })[];
+      media: PostMedium[];
+    }
+    | null;
+  mentions: (Mention & { actor: Actor })[];
+  media: PostMedium[];
+  shares: Post[];
+};
+
 export const handler = define.handlers({
   async GET(ctx) {
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
     const id = ctx.params.idOrYear;
-    if (ctx.params.username.includes("@")) return ctx.next();
-    const note = await getNoteSource(
-      db,
-      ctx.params.username,
-      id,
-      ctx.state.account,
-    );
-    if (note == null) return ctx.next();
-    if (!isPostVisibleTo(note.post, ctx.state.account?.actor)) {
+    let post: EnrichedPost;
+    if (ctx.params.username.includes("@")) {
+      const result = await getPostByUsernameAndId(
+        db,
+        ctx.params.username,
+        id,
+        ctx.state.account,
+      );
+      if (result == null) return ctx.next();
+      post = result;
+    } else {
+      const note = await getNoteSource(
+        db,
+        ctx.params.username,
+        id,
+        ctx.state.account,
+      );
+      if (note == null) return ctx.next();
+      post = note.post;
+    }
+    if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
     const quotes = await db.query.postTable.findMany({
@@ -53,13 +102,13 @@ export const handler = define.handlers({
         },
       },
       where: {
-        quotedPostId: note.post.id,
+        quotedPostId: post.id,
         sharedPostId: { isNull: true },
       },
       orderBy: { published: "desc" },
     });
     return page<NoteQuotesProps>({
-      note,
+      post,
       quotes,
     });
   },
@@ -67,15 +116,27 @@ export const handler = define.handlers({
   async POST(ctx) {
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
     const id = ctx.params.idOrYear;
-    if (ctx.params.username.includes("@")) return ctx.next();
-    const note = await getNoteSource(
-      db,
-      ctx.params.username,
-      id,
-      ctx.state.account,
-    );
-    if (note == null) return ctx.next();
-    if (!isPostVisibleTo(note.post, ctx.state.account?.actor)) {
+    let post: EnrichedPost;
+    if (ctx.params.username.includes("@")) {
+      const result = await getPostByUsernameAndId(
+        db,
+        ctx.params.username,
+        id,
+        ctx.state.account,
+      );
+      if (result == null) return ctx.next();
+      post = result;
+    } else {
+      const note = await getNoteSource(
+        db,
+        ctx.params.username,
+        id,
+        ctx.state.account,
+      );
+      if (note == null) return ctx.next();
+      post = note.post;
+    }
+    if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
     if (ctx.state.account == null) {
@@ -93,7 +154,7 @@ export const handler = define.handlers({
     const quote = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
-    }, { quotedPost: note.post });
+    }, { quotedPost: post });
     if (quote == null) {
       return new Response("Internal Server Error", { status: 500 });
     }
@@ -105,7 +166,7 @@ export const handler = define.handlers({
 });
 
 interface NoteQuotesProps {
-  note: NonNullable<Awaited<ReturnType<typeof getNoteSource>>>;
+  post: EnrichedPost;
   quotes: (
     Post & {
       actor: Actor;
@@ -119,39 +180,42 @@ interface NoteQuotesProps {
 
 export default define.page<typeof handler, NoteQuotesProps>(
   function NoteQuotes(
-    { data: { note, quotes }, state },
+    { data: { post, quotes }, state },
   ) {
-    const postUrl = `/@${note.account.username}/${note.id}`;
+    const postUrl = post.noteSourceId == null
+      ? `/${post.actor.handle}/${post.id}`
+      : `/@${post.actor.username}/${post.noteSourceId}`;
     return (
       <>
         <PostExcerpt
-          post={note.post}
+          post={post}
           noControls
           signedAccount={state.account}
         />
         <PostControls
           class="mt-4 ml-14"
           language={state.language}
+          visibility={post.visibility}
           active="quote"
-          replies={note.post.repliesCount}
+          replies={post.repliesCount}
           replyUrl={`${postUrl}#replies`}
-          shares={note.post.sharesCount}
+          shares={post.sharesCount}
           shareUrl={state.account == null ||
-              !["public", "unlisted"].includes(note.post.visibility)
+              !["public", "unlisted"].includes(post.visibility)
             ? undefined
             : `${postUrl}/share`}
           unshareUrl={state.account == null ||
-              !["public", "unlisted"].includes(note.post.visibility)
+              !["public", "unlisted"].includes(post.visibility)
             ? undefined
             : `${postUrl}/unshare`}
-          shared={note.post.shares.some((share) =>
+          shared={post.shares.some((share) =>
             share.actorId === state.account?.actor.id
           )}
           quoteUrl=""
           quotesCount={quotes.length}
           reactionsUrl={`${postUrl}/shares`}
           deleteUrl={state.account == null ||
-              state.account.id !== note.accountId
+              state.account.actor.id !== post.actorId
             ? undefined
             : postUrl}
         />
@@ -165,7 +229,7 @@ export default define.page<typeof handler, NoteQuotesProps>(
                     $key="note.remoteQuoteDescription"
                     permalink={
                       <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
-                        {note.post.iri}
+                        {post.iri}
                       </span>
                     }
                   />
