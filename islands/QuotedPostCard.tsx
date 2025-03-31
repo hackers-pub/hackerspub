@@ -46,13 +46,13 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
     <TranslationSetup language={props.language}>
       <div
         class={`
-        block border group
-        border-stone-300 bg-stone-100 dark:border-stone-700 dark:bg-stone-800
-        hover:border-stone-400 hover:bg-stone-200
-        dark:hover:border-stone-500 dark:hover:bg-stone-700
-        ${props.class ?? ""}
-        ${post == null ? "cursor-wait" : ""}
-      `}
+          block border group
+          border-stone-300 bg-stone-100 dark:border-stone-700 dark:bg-stone-800
+          hover:border-stone-400 hover:bg-stone-200
+          dark:hover:border-stone-500 dark:hover:bg-stone-700
+          ${props.class ?? ""}
+          ${post == null ? "cursor-wait" : ""}
+        `}
       >
         {post == null
           ? (
@@ -117,9 +117,9 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                         </strong>
                       )}
                     <span class="
-                    ml-1 before:content-['('] after:content-[')']
-                    text-stone-500 dark:text-stone-400
-                  ">
+                      ml-1 before:content-['('] after:content-[')']
+                      text-stone-500 dark:text-stone-400
+                    ">
                       {post.actor.handle}
                     </span>
                   </p>
@@ -160,9 +160,13 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                     <div
                       lang={post.language ?? undefined}
                       class={`
-                mt-2 ml-14 prose dark:prose-invert break-words overflow-wrap
-                ${post.sensitive ? "blur-md hover:blur-0 transition-all" : ""}
-              `}
+                        mt-2 ml-14 prose dark:prose-invert break-words overflow-wrap
+                        ${
+                        post.sensitive
+                          ? "blur-md hover:blur-0 transition-all"
+                          : ""
+                      }
+                      `}
                       dangerouslySetInnerHTML={{
                         __html: preprocessContentHtml(
                           post.contentHtml,
@@ -181,13 +185,13 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                             height={medium.height ?? undefined}
                             alt={medium.alt ?? undefined}
                             class={`
-                        mt-2 object-contain max-w-96 max-h-96
-                        ${
+                              mt-2 object-contain max-w-96 max-h-96
+                              ${
                               post.sensitive || medium.sensitive
                                 ? "my-20 blur-2xl hover:blur-0 transition-all"
                                 : ""
                             }
-                      `}
+                            `}
                           />
                         ))}
                       </div>
@@ -197,10 +201,11 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                         language={props.language}
                         id={post.quotedPostId}
                         class="
-                    mt-4 ml-14
-                    group-hover:border-stone-400 group-hover:bg-stone-200
-                    dark:group-hover:border-stone-500 dark:group-hover:bg-stone-700
-                  "
+                          hidden lg:block
+                          mt-4 ml-14
+                          group-hover:border-stone-400 group-hover:bg-stone-200
+                          dark:group-hover:border-stone-500 dark:group-hover:bg-stone-700
+                        "
                       />
                     )}
                   </>
