@@ -166,9 +166,15 @@ export function PostExcerpt(props: PostExcerptProps) {
                     : post.articleSourceId == null
                     ? `/${post.actor.handle}/${post.id}/unshare`
                     : `${post.url}/unshare`,
+                  quotesCount: post.quotesCount,
                   sharedPeopleUrl: post.articleSourceId == null
                     ? undefined
                     : `${post.url}/shares`,
+                  quoteUrl: props.signedAccount == null
+                    ? undefined
+                    : post.articleSourceId == null
+                    ? `/${post.actor.handle}/${post.id}/quotes`
+                    : `${post.url}/quotes`,
                 }}
               />
             )
@@ -234,9 +240,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                       language={language}
                       class="mt-4 ml-14"
                       replies={post.repliesCount}
-                      replyUrl={post.actor.accountId == null
-                        ? `/${post.actor.handle}/${post.id}#reply`
-                        : `/@${post.actor.username}/${post.noteSourceId}#reply`}
+                      replyUrl={`${localPostUrl}#reply`}
                       shares={post.sharesCount}
                       shareUrl={props.signedAccount == null ||
                           !["public", "unlisted"].includes(post.visibility)
@@ -249,13 +253,18 @@ export function PostExcerpt(props: PostExcerptProps) {
                       shared={post.shares.some((share) =>
                         share.actorId === props.signedAccount?.actor.id
                       )}
+                      quotesCount={post.quotesCount}
+                      quoteUrl={props.signedAccount == null ||
+                          !["public", "unlisted"].includes(post.visibility)
+                        ? undefined
+                        : `${localPostUrl}/quotes`}
                       reactionsUrl={post.noteSourceId == null
                         ? undefined
-                        : `/@${post.actor.username}/${post.noteSourceId}/shares`}
+                        : `${localPostUrl}/shares`}
                       deleteUrl={post.actor.accountId == null ||
                           post.actor.accountId !== props.signedAccount?.id
                         ? undefined
-                        : `/@${post.actor.username}/${post.noteSourceId}`}
+                        : localPostUrl}
                     />
                   )}
                 </div>

@@ -5,7 +5,7 @@ import getFixedT from "../i18n.ts";
 
 export interface PostControlsProps {
   language: Language;
-  active?: "reply" | "sharedPeople";
+  active?: "reply" | "quote" | "reactions";
   class?: string;
   replies: number;
   replyUrl?: string;
@@ -13,6 +13,8 @@ export interface PostControlsProps {
   shared: boolean;
   shareUrl?: string;
   unshareUrl?: string;
+  quoteUrl?: string;
+  quotesCount?: number;
   reactionsUrl?: string;
   deleteUrl?: string;
   deleteMethod?: "DELETE" | "POST" | "delete" | "post";
@@ -141,6 +143,32 @@ export function PostControls(props: PostControlsProps) {
             </span>
           </button>
         </form>
+        {props.quotesCount != null && (
+          <a
+            href={props.quoteUrl}
+            class={`h-5 flex opacity-50 hover:opacity-100`}
+            title={t("post.quotes")}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className={`size-5 ${props.active === "quote" ? "stroke-2" : ""}`}
+              aria-label={t("post.quotes")}
+            >
+              <path d="M4 9v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1h4a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2v2l-2-2h-6a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h4m0 6v1a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-4m-2 2l2-2l2 2" />
+              <path stroke-linecap="round" d="M14 12v.01m2 0v-.01m2 0v.01" />
+            </svg>
+            <span
+              class={`ml-1 my-auto text-xs ${
+                props.active === "reply" ? "font-bold" : ""
+              }`}
+            >
+              {props.quotesCount.toLocaleString(props.language)}
+            </span>
+          </a>
+        )}
         {props.reactionsUrl != null && (
           <a
             class={`h-5 flex opacity-50 ${
@@ -156,7 +184,7 @@ export function PostControls(props: PostControlsProps) {
               strokeWidth={1.5}
               stroke="currentColor"
               className={`size-5 ${
-                props.active === "sharedPeople" ? "stroke-2" : ""
+                props.active === "reactions" ? "stroke-2" : ""
               }`}
               aria-label={t("post.reactions.title")}
             >
@@ -203,18 +231,6 @@ export function PostControls(props: PostControlsProps) {
                   </span>
                 )}
             </button>
-          )}
-        {props.class == "quotable" &&
-          (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-            >
-              <path d="M4 9v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1h4a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2v2l-2-2h-6a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h4m0 6v1a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-4m-2 2l2-2l2 2" />
-              <path stroke-linecap="round" d="M14 12v.01m2 0v-.01m2 0v.01" />
-            </svg>
           )}
       </div>
     </TranslationSetup>

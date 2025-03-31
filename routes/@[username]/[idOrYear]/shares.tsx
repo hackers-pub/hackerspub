@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import { ActorList } from "../../../components/ActorList.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
@@ -9,7 +8,7 @@ import { kv } from "../../../kv.ts";
 import { extractMentionsFromHtml } from "../../../models/markup.ts";
 import { getNoteSource } from "../../../models/note.ts";
 import { isPostVisibleTo } from "../../../models/post.ts";
-import { type Account, type Actor, postTable } from "../../../models/schema.ts";
+import type { Account, Actor } from "../../../models/schema.ts";
 import { validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
 
@@ -47,15 +46,10 @@ export const handler = define.handlers({
         kv,
       },
     );
-    const quotes = await db.$count(
-      postTable,
-      eq(postTable.quotedPostId, note.post.id),
-    );
     return page<NoteSharedPeopleProps>({
       note,
       sharers,
       sharersMentions,
-      quotes,
     });
   },
 });
@@ -64,12 +58,11 @@ interface NoteSharedPeopleProps {
   note: NonNullable<Awaited<ReturnType<typeof getNoteSource>>>;
   sharers: (Actor & { account?: Account | null })[];
   sharersMentions: { actor: Actor }[];
-  quotes: number;
 }
 
 export default define.page<typeof handler, NoteSharedPeopleProps>(
   function NoteSharedPeople(
-    { data: { note, sharers, sharersMentions, quotes }, state },
+    { data: { note, sharers, sharersMentions }, state },
   ) {
     const postUrl = `/@${note.account.username}/${note.id}`;
     return (
@@ -82,7 +75,7 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
         <PostControls
           class="mt-4 ml-14"
           language={state.language}
-          active="sharedPeople"
+          active="reactions"
           replies={note.post.repliesCount}
           replyUrl={`${postUrl}#replies`}
           shares={sharers.length}
@@ -97,6 +90,8 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
           shared={note.post.shares.some((share) =>
             share.actorId === state.account?.actor.id
           )}
+          quoteUrl={`${postUrl}/quotes`}
+          quotesCount={note.post.quotesCount}
           reactionsUrl={`${postUrl}/shares`}
           deleteUrl={state.account == null ||
               state.account.id !== note.accountId
@@ -106,8 +101,8 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
         <div class="mt-4 ml-14">
           <PostReactionsNav
             active="sharers"
-            hrefs={{ sharers: "", quotes: `${postUrl}/quotes` }}
-            stats={{ sharers: sharers.length, quotes }}
+            hrefs={{ sharers: "" }}
+            stats={{ sharers: sharers.length }}
           />
           <ActorList
             actors={sharers}

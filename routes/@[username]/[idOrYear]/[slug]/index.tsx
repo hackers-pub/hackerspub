@@ -323,6 +323,8 @@ export default define.page<typeof handler, ArticlePageProps>(
             unshareUrl={state.account == null
               ? undefined
               : `${postUrl}/unshare`}
+            quoteUrl={`${postUrl}/quotes`}
+            quotesCount={article.post.quotesCount}
             reactionsUrl={`${postUrl}/shares`}
             deleteUrl={state.account?.id === article.accountId
               ? `${postUrl}/delete`

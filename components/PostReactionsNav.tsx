@@ -1,7 +1,7 @@
 import { Msg, type MsgKey } from "./Msg.tsx";
 import { Tab, TabNav } from "./TabNav.tsx";
 
-export type PostReactionsNavItem = "sharers" | "quotes";
+export type PostReactionsNavItem = "sharers";
 
 export interface PostReactionsNavProps {
   active: PostReactionsNavItem;
@@ -11,7 +11,6 @@ export interface PostReactionsNavProps {
 
 const labels: [PostReactionsNavItem, MsgKey][] = [
   ["sharers", "post.reactions.sharers"],
-  ["quotes", "post.reactions.quotes"],
 ];
 
 export function PostReactionsNav(

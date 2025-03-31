@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { page } from "fresh";
 import { ActorList } from "../../../../components/ActorList.tsx";
 import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
@@ -10,11 +9,7 @@ import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
 import { extractMentionsFromHtml } from "../../../../models/markup.ts";
 import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
-import {
-  type Account,
-  type Actor,
-  postTable,
-} from "../../../../models/schema.ts";
+import type { Account, Actor } from "../../../../models/schema.ts";
 import { define } from "../../../../utils.ts";
 
 export const handler = define.handlers({
@@ -53,10 +48,6 @@ export const handler = define.handlers({
         kv,
       },
     );
-    const quotes = await db.$count(
-      postTable,
-      eq(postTable.quotedPostId, post.id),
-    );
     return page<ArticleSharesProps>({
       article,
       sharers,
@@ -66,7 +57,6 @@ export const handler = define.handlers({
         : shares.some((share) =>
           share.actorId === ctx.state.account?.actor.id
         ) || await isPostSharedBy(db, article.post, ctx.state.account),
-      quotes,
     });
   },
 });
@@ -76,12 +66,11 @@ interface ArticleSharesProps {
   sharers: (Actor & { account?: Account | null })[];
   sharersMentions: { actor: Actor }[];
   shared: boolean;
-  quotes: number;
 }
 
 export default define.page<typeof handler, ArticleSharesProps>(
   async function ArticleShares(
-    { data: { article, sharers, sharersMentions, shared, quotes }, state },
+    { data: { article, sharers, sharersMentions, shared }, state },
   ) {
     const postUrl =
       `/@${article.account.username}/${article.publishedYear}/${article.slug}`;
@@ -108,13 +97,15 @@ export default define.page<typeof handler, ArticleSharesProps>(
         <PostControls
           language={state.language}
           class="mt-8"
-          active="sharedPeople"
+          active="reactions"
           replies={article.post.repliesCount}
           replyUrl={`${postUrl}#replies`}
           shares={article.post.sharesCount}
           shared={shared}
           shareUrl={state.account == null ? undefined : `${postUrl}/share`}
           unshareUrl={state.account == null ? undefined : `${postUrl}/unshare`}
+          quoteUrl={`${postUrl}/quotes`}
+          quotesCount={article.post.quotesCount}
           reactionsUrl={`${postUrl}/shares`}
           deleteUrl={state.account?.id === article.accountId
             ? `${postUrl}/delete`
@@ -123,8 +114,8 @@ export default define.page<typeof handler, ArticleSharesProps>(
         />
         <PostReactionsNav
           active="sharers"
-          hrefs={{ sharers: "", quotes: `${postUrl}/quotes` }}
-          stats={{ sharers: sharers.length, quotes }}
+          hrefs={{ sharers: "" }}
+          stats={{ sharers: sharers.length }}
         />
         <ActorList
           actors={sharers}

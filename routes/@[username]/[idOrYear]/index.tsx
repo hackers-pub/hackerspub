@@ -457,6 +457,8 @@ export default define.page<typeof handler, NotePageProps>(
           shared={(post.sharedPost ?? post).shares.some((share) =>
             share.actorId === state.account?.actor.id
           )}
+          quoteUrl={`${postUrl}/quotes`}
+          quotesCount={(post.sharedPost ?? post).quotesCount}
           reactionsUrl={post.noteSourceId == null
             ? undefined
             : `${postUrl}/shares`}

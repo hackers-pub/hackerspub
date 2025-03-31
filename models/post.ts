@@ -164,7 +164,7 @@ export async function syncPostFromNoteSource(
   },
   relations: {
     replyTarget?: { id: Uuid };
-    quotedPost?: { id: Uuid; sharedPostId?: Uuid | null };
+    quotedPost?: Post;
   } = {},
 ): Promise<
   Post & {
@@ -230,6 +230,11 @@ export async function syncPostFromNoteSource(
   const post = rows[0];
   await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
   const mentionList = globalThis.Object.values(rendered.mentions);
+
+  // Update quotes count if this is a quote post
+  if (relations.quotedPost) {
+    await updateQuotesCount(db, relations.quotedPost, 1);
+  }
   const mentions = mentionList.length > 0
     ? (await db.insert(mentionTable).values(
       mentionList.map((actor) => ({
@@ -476,6 +481,11 @@ export async function persistPost(
   await db.delete(mentionTable).where(
     eq(mentionTable.postId, persistedPost.id),
   );
+
+  // Update quotes count if this is a quote post
+  if (quotedPost) {
+    await updateQuotesCount(db, quotedPost, 1);
+  }
   let mentionList: (Mention & { actor: Actor })[] = [];
   if (mentions.size > 0) {
     const mentionedActors = await db.query.actorTable.findMany({
@@ -1073,6 +1083,25 @@ export async function updateSharesCount(
   return sharesCount;
 }
 
+export async function updateQuotesCount(
+  db: Database,
+  post: Post,
+  delta: number,
+): Promise<number> {
+  const quotesCount = post.quotesCount + delta;
+  const cnt = await db.select({ count: count() })
+    .from(postTable)
+    .where(eq(postTable.quotedPostId, post.id));
+  if (quotesCount <= cnt[0].count) {
+    await db.update(postTable)
+      .set({ quotesCount: cnt[0].count })
+      .where(eq(postTable.id, post.id));
+    post.quotesCount = cnt[0].count;
+    return cnt[0].count;
+  }
+  return quotesCount;
+}
+
 export async function deletePost(
   db: Database,
   fedCtx: Context<void>,
@@ -1094,13 +1123,35 @@ export async function deletePost(
   if (post.replyTarget != null) {
     await updateRepliesCount(db, post.replyTarget, -1);
   }
+  // Get posts quoting this post before deleting
+  const quotingPosts = await db.query.postTable.findMany({
+    where: {
+      quotedPostId: post.id,
+    },
+  });
+
   const interactions = await db.delete(postTable).where(
     or(
       eq(postTable.replyTargetId, post.id),
       eq(postTable.sharedPostId, post.id),
+      eq(postTable.quotedPostId, post.id),
       eq(postTable.id, post.id),
     ),
   ).returning();
+
+  // When a quoted post is deleted, update the quotes count of the original posts
+  for (const quotingPost of quotingPosts) {
+    if (quotingPost.quotedPostId) {
+      const quotedPost = await db.query.postTable.findFirst({
+        where: {
+          id: quotingPost.quotedPostId,
+        },
+      });
+      if (quotedPost) {
+        await updateQuotesCount(db, quotedPost, -1);
+      }
+    }
+  }
   const noteSourceIds = interactions
     .filter((i) => i.noteSourceId != null)
     .map((i) => i.noteSourceId!);

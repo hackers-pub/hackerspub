@@ -8,6 +8,7 @@
     "reply": "返信",
     "comment": "コメント",
     "share": "共有",
+    "quote": "引用",
     "username": "ユーザー名",
     "displayName": "名前",
     "bio": "自己紹介",
@@ -166,6 +167,7 @@
     "comments_zero": "コメント無し",
     "comments_other": "{{count}}件のコメント",
     "remoteCommentDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この記事にコメントを残すことができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当記事にコメントを残してください。",
+    "remoteQuoteDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この記事を引用することができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当記事を引用してください。（Mastodonでは引用機能がサポートされていません）",
     "shared": "{{name}}さんが以下の記事を共有しました：",
     "replied": "{{name}}さんが以下の記事にコメントしました：",
     "edit": "編集",
@@ -183,17 +185,18 @@
     "unshare": "共有解除",
     "unsharing": "共有解除中…",
     "sharedBy": "{{name}}さんが$t(note.shares)",
-    "remoteReplyDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この投稿に返信することができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当投稿に返信してください。"
+    "remoteReplyDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この投稿に返信することができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当投稿に返信してください。",
+    "remoteQuoteDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この投稿を引用することができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当投稿を引用してください。（Mastodonでは引用機能がサポートされていません）"
   },
   "post": {
     "delete": "削除",
     "deleteConfirm": "このコンテンツを削除してもよろしいですか？",
     "deleting": "削除中…",
     "deleted": "削除済み",
+    "quotes": "引用",
     "reactions": {
       "title": "反応",
-      "sharers": "共有した人々",
-      "quotes": "引用"
+      "sharers": "共有した人々"
     }
   },
   "editor": {
@@ -221,9 +224,10 @@
   },
   "composer": {
     "content": "内容",
-    "contentPlaceholder": "今何してる？Markdownが使えます。画像を添付するにはファイルをここにドラッグ＆ドロップしてください。",
-    "commentPlaceholder": "コメントを入力してください。Markdownが使えます。画像を添付するにはファイルをここにドラッグ＆ドロップしてください。",
-    "threadPlaceholder": "スレッドを続けるための追加ノートを書いてください。Markdownが使えます。画像を添付するにはファイルをここにドラッグ＆ドロップしてください。",
+    "contentPlaceholder": "今何してる？",
+    "commentPlaceholder": "コメントを入力してください。",
+    "threadPlaceholder": "スレッドを続けるための追加ノートを書いてください。",
+    "quotePlaceholder": "上記のコンテンツを引用して残すテキストを入力してください。",
     "mediumAltPlaceholder": "視覚障碍者向けの代替テキスト",
     "removeMedium": "画像を削除",
     "visibility": "公開範囲",

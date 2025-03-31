@@ -473,6 +473,7 @@ export const postTable = pgTable(
     repliesCount: integer("replies_count").notNull().default(0),
     likesCount: integer("likes_count").notNull().default(0),
     sharesCount: integer("shares_count").notNull().default(0),
+    quotesCount: integer("quotes_count").notNull().default(0),
     reactionsCount: jsonb()
       .$type<Record<string, number>>()
       .notNull()

@@ -30,9 +30,10 @@ export interface ComposerProps {
   postUrl: string;
   commentTargets?: string[];
   quotedPostId?: Uuid | null;
+  noQuoteOnPaste?: boolean;
   textAreaId?: string;
   // deno-lint-ignore no-explicit-any
-  onPost: "reload" | ((json: any) => void);
+  onPost: "reload" | `javascript:${string}` | ((json: any) => void);
   defaultVisibility?: PostVisibility;
 }
 
@@ -157,6 +158,7 @@ export function Composer(props: ComposerProps) {
         if (file == null) continue;
         addMedium(file);
       } else if (item.kind === "string" && item.type === "text/plain") {
+        if (props.noQuoteOnPaste) continue;
         item.getAsString((text) => {
           if (!URL.canParse(text)) return;
           setQuoteLoading(true);
@@ -228,9 +230,9 @@ export function Composer(props: ComposerProps) {
       return;
     }
     // deno-lint-ignore no-explicit-any
-    let json: any;
+    let post: any;
     try {
-      json = await response.json();
+      post = await response.json();
     } catch {
       alert(t("composer.postFailed"));
       setSubmitting(false);
@@ -238,7 +240,9 @@ export function Composer(props: ComposerProps) {
     }
     setContent("");
     if (props.onPost === "reload") location.reload();
-    else props.onPost(json);
+    else if (typeof props.onPost === "string") {
+      eval(props.onPost.substring(11));
+    } else props.onPost(post);
   }
 
   return (
@@ -293,6 +297,8 @@ export function Composer(props: ComposerProps) {
               ? props.commentTargets.length > 0
                 ? t("composer.commentPlaceholder")
                 : t("composer.threadPlaceholder")
+              : props.noQuoteOnPaste
+              ? t("composer.quotePlaceholder")
               : t("composer.contentPlaceholder")}
             value={content}
             onInput={onInput}

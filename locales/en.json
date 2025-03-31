@@ -8,6 +8,7 @@
     "reply": "reply",
     "comment": "comment",
     "share": "share",
+    "quote": "quote",
     "username": "username",
     "displayName": "name",
     "bio": "bio",
@@ -169,6 +170,7 @@
     "comments_one": "1 comment",
     "comments_other": "{{count}} comments",
     "remoteCommentDescription": "If you have a fediverse account, you can comment on this article from your own instance. Search {{permalink}} on your instance and reply to it.",
+    "remoteQuoteDescription": "If you have a fediverse account, you can quote this article from your own instance. Search {{permalink}} on your instance and quote it. (Note that quoting is not supported in Mastodon.)",
     "shared": "{{name}} shared the below article:",
     "replied": "{{name}} replied to the below article:",
     "edit": "Edit",
@@ -186,17 +188,18 @@
     "unshare": "Unshare",
     "unsharing": "Unsharing…",
     "sharedBy": "Shared by {{name}}",
-    "remoteReplyDescription": "If you have a fediverse account, you can reply to this note from your own instance. Search {{permalink}} on your instance and reply to it."
+    "remoteReplyDescription": "If you have a fediverse account, you can reply to this note from your own instance. Search {{permalink}} on your instance and reply to it.",
+    "remoteQuoteDescription": "If you have a fediverse account, you can quote this note from your own instance. Search {{permalink}} on your instance and quote it. (Note that quoting is not supported in Mastodon.)"
   },
   "post": {
     "delete": "Delete",
     "deleteConfirm": "Are you sure you want to delete this post?",
     "deleting": "Deleting…",
     "deleted": "Already deleted",
+    "quotes": "Quotes",
     "reactions": {
       "title": "Reactions",
-      "sharers": "Who shared this",
-      "quotes": "Quotes"
+      "sharers": "Who shared this"
     }
   },
   "editor": {
@@ -224,9 +227,10 @@
   },
   "composer": {
     "content": "Content",
-    "contentPlaceholder": "What's on your mind? You can use Markdown. Drag and drop images here to attach them.",
-    "commentPlaceholder": "Write a comment. You can use Markdown. Drag and drop images here to attach them.",
-    "threadPlaceholder": "Write a continuation note to thread it. You can use Markdown. Drag and drop images here to attach them.",
+    "contentPlaceholder": "What's on your mind?",
+    "commentPlaceholder": "Write a comment.",
+    "threadPlaceholder": "Write a continuation note to thread it.",
+    "quotePlaceholder": "Enter text to quote the above content.",
     "mediumAltPlaceholder": "Alt text for visually impaired people",
     "removeMedium": "Remove this image",
     "visibility": "Post privacy",

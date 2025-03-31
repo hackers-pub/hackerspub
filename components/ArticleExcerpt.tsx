@@ -38,6 +38,8 @@ export type ArticleExcerptProps = Omit<ArticleMetadataProps, "language"> & {
     shareUrl?: string;
     unshareUrl?: string;
     sharedPeopleUrl?: string;
+    quoteUrl?: string;
+    quotesCount?: number;
   };
 };
 
@@ -150,6 +152,8 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
               shared={props.controls.shared}
               shareUrl={props.controls.shareUrl}
               unshareUrl={props.controls.unshareUrl}
+              quoteUrl={props.controls.quoteUrl}
+              quotesCount={props.controls.quotesCount}
               reactionsUrl={props.controls.sharedPeopleUrl}
               deleteUrl={props.deleteUrl ?? undefined}
               deleteMethod="post"
