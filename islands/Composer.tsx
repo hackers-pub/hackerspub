@@ -33,7 +33,7 @@ export interface ComposerProps {
   noQuoteOnPaste?: boolean;
   textAreaId?: string;
   // deno-lint-ignore no-explicit-any
-  onPost: "reload" | `javascript:${string}` | ((json: any) => void);
+  onPost: "reload" | "post.url" | ((json: any) => void);
   defaultVisibility?: PostVisibility;
 }
 
@@ -240,8 +240,8 @@ export function Composer(props: ComposerProps) {
     }
     setContent("");
     if (props.onPost === "reload") location.reload();
-    else if (typeof props.onPost === "string") {
-      eval(props.onPost.substring(11));
+    else if (props.onPost === "post.url") {
+      location.href = post.url;
     } else props.onPost(post);
   }
 

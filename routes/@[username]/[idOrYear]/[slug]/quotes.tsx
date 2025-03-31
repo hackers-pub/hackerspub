@@ -181,7 +181,7 @@ export default define.page<typeof handler, ArticleQuotesProps>(
                 language={state.language}
                 postUrl=""
                 noQuoteOnPaste
-                onPost="javascript:location.href = post.url"
+                onPost="post.url"
               />
             )}
           {quotes.map((quote) => (
