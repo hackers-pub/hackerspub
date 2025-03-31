@@ -204,6 +204,18 @@ export function PostControls(props: PostControlsProps) {
                 )}
             </button>
           )}
+        {props.class == "quotable" &&
+          (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path d="M4 9v-1a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1h4a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2v2l-2-2h-6a2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2h4m0 6v1a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2v-4m-2 2l2-2l2 2" />
+              <path stroke-linecap="round" d="M14 12v.01m2 0v-.01m2 0v.01" />
+            </svg>
+          )}
       </div>
     </TranslationSetup>
   );
