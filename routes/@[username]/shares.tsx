@@ -17,6 +17,7 @@ import type {
   AccountLink,
   Actor,
   Following,
+  Instance,
   Mention,
   Post,
   PostLink,
@@ -81,16 +82,17 @@ export const handler = define.handlers({
     const stats = await getActorStats(db, actor.id);
     const posts = await db.query.postTable.findMany({
       with: {
-        actor: true,
+        actor: { with: { instance: true } },
         link: { with: { creator: true } },
         sharedPost: {
           with: {
-            actor: true,
+            actor: { with: { instance: true } },
             link: { with: { creator: true } },
             replyTarget: {
               with: {
                 actor: {
                   with: {
+                    instance: true,
                     followers: {
                       where: ctx.state.account == null
                         ? { RAW: sql`false` }
@@ -120,6 +122,7 @@ export const handler = define.handlers({
           with: {
             actor: {
               with: {
+                instance: true,
                 followers: {
                   where: ctx.state.account == null
                     ? { RAW: sql`false` }
@@ -194,15 +197,15 @@ interface ProfileShareListProps {
   links?: AccountLink[];
   stats: ActorStats;
   posts: (Post & {
-    actor: Actor;
+    actor: Actor & { instance: Instance };
     link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
-        actor: Actor;
+        actor: Actor & { instance: Instance };
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { followers: Following[] };
+            actor: Actor & { instance: Instance; followers: Following[] };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -215,7 +218,7 @@ interface ProfileShareListProps {
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { followers: Following[] };
+        actor: Actor & { instance: Instance; followers: Following[] };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];

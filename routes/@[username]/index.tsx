@@ -28,6 +28,7 @@ import {
   type AccountLink,
   type Actor,
   type Following,
+  type Instance,
   type Mention,
   type Post,
   POST_VISIBILITIES,
@@ -134,16 +135,17 @@ export const handler = define.handlers({
           : await getFollowingState(db, actor, ctx.state.account.actor);
       const posts = await db.query.postTable.findMany({
         with: {
-          actor: true,
+          actor: { with: { instance: true } },
           link: { with: { creator: true } },
           sharedPost: {
             with: {
-              actor: true,
+              actor: { with: { instance: true } },
               link: { with: { creator: true } },
               replyTarget: {
                 with: {
                   actor: {
                     with: {
+                      instance: true,
                       followers: {
                         where: ctx.state.account == null
                           ? { RAW: sql`false` }
@@ -173,6 +175,7 @@ export const handler = define.handlers({
             with: {
               actor: {
                 with: {
+                  instance: true,
                   followers: {
                     where: ctx.state.account == null
                       ? { RAW: sql`false` }
@@ -292,16 +295,17 @@ export const handler = define.handlers({
     ctx.state.searchQuery = `@${account.username}`;
     const posts = await db.query.postTable.findMany({
       with: {
-        actor: true,
+        actor: { with: { instance: true } },
         link: { with: { creator: true } },
         sharedPost: {
           with: {
-            actor: true,
+            actor: { with: { instance: true } },
             link: { with: { creator: true } },
             replyTarget: {
               with: {
                 actor: {
                   with: {
+                    instance: true,
                     followers: {
                       where: ctx.state.account == null
                         ? { RAW: sql`false` }
@@ -331,6 +335,7 @@ export const handler = define.handlers({
           with: {
             actor: {
               with: {
+                instance: true,
                 followers: {
                   where: ctx.state.account == null
                     ? { RAW: sql`false` }
@@ -446,15 +451,15 @@ interface ProfilePageProps {
   links?: AccountLink[];
   stats: ActorStats;
   posts: (Post & {
-    actor: Actor;
+    actor: Actor & { instance: Instance };
     link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
-        actor: Actor;
+        actor: Actor & { instance: Instance };
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { followers: Following[] };
+            actor: Actor & { instance: Instance; followers: Following[] };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -467,7 +472,7 @@ interface ProfilePageProps {
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { followers: Following[] };
+        actor: Actor & { instance: Instance; followers: Following[] };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];

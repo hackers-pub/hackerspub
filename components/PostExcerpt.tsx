@@ -5,6 +5,7 @@ import type {
   Account,
   Actor,
   Following,
+  Instance,
   Mention,
   Post,
   PostLink,
@@ -17,15 +18,15 @@ import { NoteExcerpt } from "./NoteExcerpt.tsx";
 export interface PostExcerptProps {
   class?: string;
   post: Post & {
-    actor: Actor;
+    actor: Actor & { instance: Instance };
     link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
-        actor: Actor;
+        actor: Actor & { instance: Instance };
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { followers: Following[] };
+            actor: Actor & { instance: Instance; followers: Following[] };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -38,7 +39,7 @@ export interface PostExcerptProps {
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { followers: Following[] };
+        actor: Actor & { instance: Instance; followers: Following[] };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
@@ -117,7 +118,8 @@ export function PostExcerpt(props: PostExcerptProps) {
               }}
             />
           )}
-          {post.type === "Article" || post.name != null
+          {post.type === "Article" ||
+              post.name != null && post.actor.instance.software !== "nodebb"
             ? (
               <ArticleExcerpt
                 class={props.class}

@@ -24,6 +24,7 @@ import {
 import type {
   Actor,
   Following,
+  Instance,
   Mention,
   Post,
   PostLink,
@@ -38,15 +39,15 @@ export const handler = define.handlers({
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
     const id = ctx.params.idOrYear;
     let post: Post & {
-      actor: Actor & { followers: Following[] };
+      actor: Actor & { instance: Instance; followers: Following[] };
       link: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
-          actor: Actor;
+          actor: Actor & { instance: Instance };
           link: PostLink & { creator?: Actor | null } | null;
           replyTarget:
             | Post & {
-              actor: Actor & { followers: Following[] };
+              actor: Actor & { instance: Instance; followers: Following[] };
               link: PostLink & { creator?: Actor | null } | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
@@ -59,7 +60,7 @@ export const handler = define.handlers({
         | null;
       replyTarget:
         | Post & {
-          actor: Actor & { followers: Following[] };
+          actor: Actor & { instance: Instance; followers: Following[] };
           link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
@@ -109,12 +110,13 @@ export const handler = define.handlers({
       if (note == null) {
         const share = await db.query.postTable.findFirst({
           with: {
-            actor: { with: { followers: true } },
+            actor: { with: { instance: true, followers: true } },
             link: { with: { creator: true } },
             replyTarget: {
               with: {
                 actor: {
                   with: {
+                    instance: true,
                     followers: {
                       where: ctx.state.account == null
                         ? { RAW: sql`false` }
@@ -140,12 +142,13 @@ export const handler = define.handlers({
             },
             sharedPost: {
               with: {
-                actor: { with: { followers: true } },
+                actor: { with: { instance: true, followers: true } },
                 link: { with: { creator: true } },
                 replyTarget: {
                   with: {
                     actor: {
                       with: {
+                        instance: true,
                         followers: {
                           where: ctx.state.account == null
                             ? { RAW: sql`false` }
@@ -379,15 +382,15 @@ export const handler = define.handlers({
 
 type NotePageProps = {
   post: Post & {
-    actor: Actor;
+    actor: Actor & { instance: Instance };
     link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
-        actor: Actor;
+        actor: Actor & { instance: Instance };
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { followers: Following[] };
+            actor: Actor & { instance: Instance; followers: Following[] };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -400,7 +403,7 @@ type NotePageProps = {
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { followers: Following[] };
+        actor: Actor & { instance: Instance; followers: Following[] };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];

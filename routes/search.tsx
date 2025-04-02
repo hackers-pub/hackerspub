@@ -17,6 +17,7 @@ import type {
   Account,
   Actor,
   Following,
+  Instance,
   Mention,
   Post,
   PostLink,
@@ -138,7 +139,7 @@ export const handler = define.handlers({
         ],
       },
       with: {
-        actor: { with: { followers: true } },
+        actor: { with: { instance: true, followers: true } },
         link: { with: { creator: true } },
         mentions: {
           with: { actor: true },
@@ -153,6 +154,7 @@ export const handler = define.handlers({
           with: {
             actor: {
               with: {
+                instance: true,
                 followers: {
                   where: ctx.state.account == null
                     ? { RAW: sql`false` }
@@ -169,7 +171,7 @@ export const handler = define.handlers({
         },
         sharedPost: {
           with: {
-            actor: true,
+            actor: { with: { instance: true } },
             link: { with: { creator: true } },
             mentions: {
               with: { actor: true },
@@ -184,6 +186,7 @@ export const handler = define.handlers({
               with: {
                 actor: {
                   with: {
+                    instance: true,
                     followers: {
                       where: ctx.state.account == null
                         ? { RAW: sql`false` }
@@ -212,15 +215,15 @@ export const handler = define.handlers({
 
 interface SearchResultsProps {
   posts: (Post & {
-    actor: Actor;
+    actor: Actor & { instance: Instance };
     link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
-        actor: Actor;
+        actor: Actor & { instance: Instance };
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { followers: Following[] };
+            actor: Actor & { instance: Instance; followers: Following[] };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -233,7 +236,10 @@ interface SearchResultsProps {
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { followers: (Following & { follower?: Actor })[] };
+        actor: Actor & {
+          instance: Instance;
+          followers: (Following & { follower?: Actor })[];
+        };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];

@@ -776,15 +776,18 @@ export function getPostByUsernameAndId(
   signedAccount?: Account & { actor: Actor },
 ): Promise<
   | Post & {
-    actor: Actor & { followers: Following[] };
+    actor: Actor & { instance: Instance; followers: Following[] };
     link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
-        actor: Actor;
+        actor: Actor & { instance: Instance };
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { followers: (Following & { follower: Actor })[] };
+            actor: Actor & {
+              instance: Instance;
+              followers: (Following & { follower: Actor })[];
+            };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -797,7 +800,10 @@ export function getPostByUsernameAndId(
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { followers: (Following & { follower: Actor })[] };
+        actor: Actor & {
+          instance: Instance;
+          followers: (Following & { follower: Actor })[];
+        };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
@@ -815,17 +821,18 @@ export function getPostByUsernameAndId(
   return db.query.postTable.findFirst({
     with: {
       actor: {
-        with: { followers: true },
+        with: { instance: true, followers: true },
       },
       link: { with: { creator: true } },
       sharedPost: {
         with: {
-          actor: true,
+          actor: { with: { instance: true } },
           link: { with: { creator: true } },
           replyTarget: {
             with: {
               actor: {
                 with: {
+                  instance: true,
                   followers: {
                     where: signedAccount == null
                       ? { RAW: sql`false` }
@@ -856,6 +863,7 @@ export function getPostByUsernameAndId(
         with: {
           actor: {
             with: {
+              instance: true,
               followers: {
                 where: signedAccount == null
                   ? { RAW: sql`false` }

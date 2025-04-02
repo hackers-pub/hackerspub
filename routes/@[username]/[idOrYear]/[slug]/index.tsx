@@ -21,6 +21,7 @@ import type {
   Account,
   Actor,
   ArticleSource,
+  Instance,
   Mention,
   Post,
   PostLink,
@@ -116,7 +117,7 @@ export const handler = define.handlers({
     );
     const comments = await db.query.postTable.findMany({
       with: {
-        actor: true,
+        actor: { with: { instance: true } },
         link: { with: { creator: true } },
         mentions: {
           with: { actor: true },
@@ -205,7 +206,7 @@ interface ArticlePageProps {
   articleIri: string;
   shared: boolean;
   comments: (Post & {
-    actor: Actor;
+    actor: Actor & { instance: Instance };
     link: PostLink & { creator?: Actor | null } | null;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];

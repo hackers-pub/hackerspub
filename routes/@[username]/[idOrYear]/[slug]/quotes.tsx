@@ -15,6 +15,7 @@ import { createNote } from "../../../../models/note.ts";
 import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
 import type {
   Actor,
+  Instance,
   Mention,
   Post,
   PostLink,
@@ -37,7 +38,7 @@ export const handler = define.handlers({
     }
     const quotes = await db.query.postTable.findMany({
       with: {
-        actor: true,
+        actor: { with: { instance: true } },
         link: {
           with: { creator: true },
         },
@@ -106,7 +107,7 @@ interface ArticleQuotesProps {
   article: NonNullable<Awaited<ReturnType<typeof getArticleSource>>>;
   quotes: (
     Post & {
-      actor: Actor;
+      actor: Actor & { instance: Instance };
       link: PostLink & { creator?: Actor | null } | null;
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];

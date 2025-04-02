@@ -21,6 +21,7 @@ import type {
   Account,
   Actor,
   Following,
+  Instance,
   Mention,
   Post,
   PostLink,
@@ -57,15 +58,15 @@ export const handler = define.handlers({
       : parseInt(windowString);
     let timeline: ({
       post: Post & {
-        actor: Actor & { followers: Following[] };
+        actor: Actor & { instance: Instance; followers: Following[] };
         link: PostLink & { creator?: Actor | null } | null;
         sharedPost:
           | Post & {
-            actor: Actor;
+            actor: Actor & { instance: Instance };
             link: PostLink & { creator?: Actor | null } | null;
             replyTarget:
               | Post & {
-                actor: Actor & { followers: Following[] };
+                actor: Actor & { instance: Instance; followers: Following[] };
                 link: PostLink & { creator?: Actor | null } | null;
                 mentions: (Mention & { actor: Actor })[];
                 media: PostMedium[];
@@ -78,7 +79,7 @@ export const handler = define.handlers({
           | null;
         replyTarget:
           | Post & {
-            actor: Actor & { followers: Following[] };
+            actor: Actor & { instance: Instance; followers: Following[] };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -101,16 +102,17 @@ export const handler = define.handlers({
     if (ctx.state.account == null) {
       const posts = await db.query.postTable.findMany({
         with: {
-          actor: { with: { followers: true } },
+          actor: { with: { instance: true, followers: true } },
           link: { with: { creator: true } },
           sharedPost: {
             with: {
-              actor: true,
+              actor: { with: { instance: true } },
               link: { with: { creator: true } },
               replyTarget: {
                 with: {
                   actor: {
                     with: {
+                      instance: true,
                       followers: { where: { RAW: sql`false` } },
                     },
                   },
@@ -132,6 +134,7 @@ export const handler = define.handlers({
             with: {
               actor: {
                 with: {
+                  instance: true,
                   followers: { where: { RAW: sql`false` } },
                 },
               },
@@ -194,16 +197,17 @@ export const handler = define.handlers({
           with: {
             post: {
               with: {
-                actor: { with: { followers: true } },
+                actor: { with: { instance: true, followers: true } },
                 link: { with: { creator: true } },
                 sharedPost: {
                   with: {
-                    actor: true,
+                    actor: { with: { instance: true } },
                     link: { with: { creator: true } },
                     replyTarget: {
                       with: {
                         actor: {
                           with: {
+                            instance: true,
                             followers: {
                               where: {
                                 followerId: ctx.state.account.actor.id,
@@ -231,6 +235,7 @@ export const handler = define.handlers({
                   with: {
                     actor: {
                       with: {
+                        instance: true,
                         followers: {
                           where: { followerId: ctx.state.account.actor.id },
                         },
@@ -369,15 +374,15 @@ interface HomeProps {
   filter: TimelineNavItem;
   timeline: ({
     post: Post & {
-      actor: Actor;
+      actor: Actor & { instance: Instance };
       link: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
-          actor: Actor;
+          actor: Actor & { instance: Instance };
           link: PostLink & { creator?: Actor | null } | null;
           replyTarget:
             | Post & {
-              actor: Actor & { followers: Following[] };
+              actor: Actor & { instance: Instance; followers: Following[] };
               link: PostLink & { creator?: Actor | null } | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
@@ -390,7 +395,7 @@ interface HomeProps {
         | null;
       replyTarget:
         | Post & {
-          actor: Actor & { followers: Following[] };
+          actor: Actor & { instance: Instance; followers: Following[] };
           link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];

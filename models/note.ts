@@ -47,15 +47,15 @@ export async function getNoteSource(
   NoteSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     post: Post & {
-      actor: Actor & { followers: Following[] };
+      actor: Actor & { instance: Instance; followers: Following[] };
       link: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
-          actor: Actor;
+          actor: Actor & { instance: Instance };
           link: PostLink & { creator?: Actor | null } | null;
           replyTarget:
             | Post & {
-              actor: Actor & { followers: Following[] };
+              actor: Actor & { instance: Instance; followers: Following[] };
               link: PostLink & { creator?: Actor | null } | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
@@ -68,7 +68,7 @@ export async function getNoteSource(
         | null;
       replyTarget:
         | Post & {
-          actor: Actor & { followers: Following[] };
+          actor: Actor & { instance: Instance; followers: Following[] };
           link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
@@ -102,7 +102,7 @@ export async function getNoteSource(
       post: {
         with: {
           actor: {
-            with: { followers: true },
+            with: { instance: true, followers: true },
           },
           link: { with: { creator: true } },
           mentions: {
@@ -110,12 +110,13 @@ export async function getNoteSource(
           },
           sharedPost: {
             with: {
-              actor: true,
+              actor: { with: { instance: true } },
               link: { with: { creator: true } },
               replyTarget: {
                 with: {
                   actor: {
                     with: {
+                      instance: true,
                       followers: {
                         where: signedAccount == null ? { RAW: sql`false` } : {
                           followerId: signedAccount.actor.id,
@@ -145,6 +146,7 @@ export async function getNoteSource(
             with: {
               actor: {
                 with: {
+                  instance: true,
                   followers: {
                     where: signedAccount == null
                       ? { RAW: sql`false` }

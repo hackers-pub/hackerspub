@@ -16,6 +16,7 @@ import {
 import type {
   Actor,
   Following,
+  Instance,
   Mention,
   Post,
   PostLink,
@@ -26,15 +27,15 @@ import { define } from "../../../utils.ts";
 import { NoteSourceSchema } from "../index.tsx";
 
 type EnrichedPost = Post & {
-  actor: Actor & { followers: Following[] };
+  actor: Actor & { instance: Instance; followers: Following[] };
   link: PostLink & { creator?: Actor | null } | null;
   sharedPost:
     | Post & {
-      actor: Actor;
+      actor: Actor & { instance: Instance };
       link: PostLink & { creator?: Actor | null } | null;
       replyTarget:
         | Post & {
-          actor: Actor & { followers: Following[] };
+          actor: Actor & { instance: Instance; followers: Following[] };
           link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
@@ -47,7 +48,7 @@ type EnrichedPost = Post & {
     | null;
   replyTarget:
     | Post & {
-      actor: Actor & { followers: Following[] };
+      actor: Actor & { instance: Instance; followers: Following[] };
       link: PostLink & { creator?: Actor | null } | null;
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
@@ -87,7 +88,7 @@ export const handler = define.handlers({
     }
     const quotes = await db.query.postTable.findMany({
       with: {
-        actor: true,
+        actor: { with: { instance: true } },
         link: {
           with: { creator: true },
         },
@@ -169,7 +170,7 @@ interface NoteQuotesProps {
   post: EnrichedPost;
   quotes: (
     Post & {
-      actor: Actor;
+      actor: Actor & { instance: Instance };
       link: PostLink & { creator?: Actor | null } | null;
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
