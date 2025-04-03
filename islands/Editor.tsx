@@ -276,8 +276,7 @@ export function Editor(props: EditorProps) {
               dangerouslySetInnerHTML={{
                 __html: preprocessContentHtml(
                   preview.html,
-                  preview.mentions,
-                  {},
+                  { ...preview, emojis: {} },
                 ),
               }}
             />

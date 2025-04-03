@@ -123,8 +123,10 @@ export function RecommendedActors(
                       dangerouslySetInnerHTML={{
                         __html: preprocessContentHtml(
                           actor.bioHtml ?? "",
-                          actorMentions,
-                          actor.emojis,
+                          {
+                            mentions: actorMentions,
+                            emojis: actor.emojis,
+                          },
                         ),
                       }}
                     />

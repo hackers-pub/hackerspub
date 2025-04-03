@@ -157,8 +157,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
               dangerouslySetInnerHTML={{
                 __html: preprocessContentHtml(
                   props.contentHtml,
-                  props.mentions,
-                  props.emojis ?? {},
+                  { ...props, quote: props.quotedPostId != null },
                 ),
               }}
             />

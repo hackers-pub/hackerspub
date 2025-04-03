@@ -266,7 +266,10 @@ export function Composer(props: ComposerProps) {
             <div
               class="w-full mb-3 bg-stone-100 dark:bg-stone-800 p-4 prose dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{
-                __html: preprocessContentHtml(contentHtml, mentions, {}),
+                __html: preprocessContentHtml(contentHtml, {
+                  mentions,
+                  emojis: {},
+                }),
               }}
             />
           )}

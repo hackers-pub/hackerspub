@@ -72,8 +72,7 @@ export function ActorList(
             dangerouslySetInnerHTML={{
               __html: preprocessContentHtml(
                 actor.bioHtml ?? "",
-                actorMentions,
-                actor.emojis,
+                { mentions: actorMentions, emojis: actor.emojis },
               ),
             }}
           />

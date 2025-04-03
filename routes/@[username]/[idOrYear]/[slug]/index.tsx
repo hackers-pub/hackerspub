@@ -140,8 +140,10 @@ export const handler = define.handlers({
       avatarUrl: await getAvatarUrl(article.account),
       contentHtml: preprocessContentHtml(
         content.html,
-        article.post.mentions,
-        article.post.emojis,
+        {
+          ...article.post,
+          quote: article.post.quotedPostId != null,
+        },
       ),
       toc: content.toc,
     }, {

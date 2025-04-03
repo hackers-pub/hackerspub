@@ -170,8 +170,10 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                       dangerouslySetInnerHTML={{
                         __html: preprocessContentHtml(
                           post.contentHtml,
-                          post.mentions,
-                          post.emojis ?? {},
+                          {
+                            ...post,
+                            quote: post.quotedPostId != null,
+                          },
                         ),
                       }}
                     />

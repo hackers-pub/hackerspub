@@ -362,14 +362,46 @@ export function transformMentions(
   return $.html();
 }
 
+/**
+ * Work around <https://github.com/misskey-dev/misskey/issues/15698>.
+ * @param html A content HTML.
+ * @returns A transformed HTML.
+ */
+export function transformMisskeyInlineQuote(html: string): string {
+  const $ = load(html, null, false);
+  $("p:last-child > span:has(> br + br) + a[href]:last-child").each((_, el) => {
+    const $a = $(el);
+    if ($a.attr("href") !== $a.text()) return;
+    const $span = $a.prev();
+    if (!$span.text().trimEnd().endsWith("RE:")) return;
+    const spanHtml = $span.html();
+    if (spanHtml == null) return;
+    $span.html(
+      spanHtml.replace(
+        /<br\s*\/?><br\s*\/?>RE:\s*$/,
+        (m) => `<span class="quote-inline">${m}</span>`,
+      ),
+    );
+    $a.addClass("quote-inline");
+    console.debug($a.html());
+  });
+  return $.html();
+}
+
+export interface PreprocessContentHtmlOptions {
+  mentions: { actor: Actor }[];
+  emojis?: Record<string, string>;
+  quote?: boolean;
+}
+
 export function preprocessContentHtml(
   html: string,
-  mentions: { actor: Actor }[],
-  emojis: Record<string, string>,
+  { mentions, emojis = {}, quote }: PreprocessContentHtmlOptions,
 ) {
   html = sanitizeHtml(html);
   html = transformMentions(html, mentions);
   html = renderCustomEmojis(html, emojis);
+  if (quote) html = transformMisskeyInlineQuote(html);
   return html;
 }
 

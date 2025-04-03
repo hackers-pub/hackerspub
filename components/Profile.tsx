@@ -23,8 +23,10 @@ export function Profile(
 ) {
   const bioHtml = preprocessContentHtml(
     actor.bioHtml ?? "",
-    actorMentions,
-    actor.emojis,
+    {
+      mentions: actorMentions,
+      emojis: actor.emojis,
+    },
   );
   return (
     <Translation>

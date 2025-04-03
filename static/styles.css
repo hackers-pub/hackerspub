@@ -292,9 +292,11 @@
   }
 }
 
+/* Hide "RE: <link>" parts of the quoting notes */
 .prose > .quote-inline:last-child,
 .prose > p:last-child > .quote-inline:has(+ .reference-link-inline:last-child),
 .prose > p:last-child > .reference-link-inline:last-child,
-.prose > p:last-child > span:has(> br + br) + a[href]:last-child {
+.prose > p:last-child > span:has(+ a.quote-inline:last-child) > .quote-inline,
+.prose > p:last-child > a.quote-inline:last-child {
   display: none;
 }
