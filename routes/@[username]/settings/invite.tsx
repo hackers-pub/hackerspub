@@ -219,7 +219,7 @@ export default define.page<typeof handler, InvitePageProps>(
                 )}
             </p>
           )}
-        <div class="mt-4 grid grid-cols-2 gap-5">
+        <div class="mt-4 grid md:grid-cols-2 gap-5">
           <div>
             <Label label={t("settings.invite.email")} required>
               <Input
