@@ -84,7 +84,8 @@ export const handler = define.handlers({
       );
       if (result == null) return ctx.next();
       if (ctx.state.account == null) {
-        return ctx.redirect(result.url ?? result.iri, 301);
+        const original = result.sharedPost ?? result;
+        return ctx.redirect(original.url ?? original.iri, 301);
       }
       post = result;
       if (ctx.url.searchParams.has("refresh") && ctx.state.account?.moderator) {

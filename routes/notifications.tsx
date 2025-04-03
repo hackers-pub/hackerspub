@@ -6,6 +6,7 @@ import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { PostPagination } from "../components/PostPagination.tsx";
 import { db } from "../db.ts";
+import { Link } from "../islands/Link.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
 import { getAvatarUrl } from "../models/avatar.ts";
 import { renderCustomEmojis } from "../models/emoji.ts";
@@ -209,9 +210,9 @@ export default define.page<typeof handler, NotificationsProps>(
                           />
                         </div>
 
-                        <a
-                          href={post.articleSourceId == null &&
-                              post.noteSourceId == null
+                        <Link
+                          href={post.url ?? post.iri}
+                          internalHref={post.actor.accountId == null
                             ? `/${post.actor.handle}/${post.id}`
                             : post.url ?? post.iri}
                           class="block mt-4"
@@ -222,7 +223,7 @@ export default define.page<typeof handler, NotificationsProps>(
                             html={post.contentHtml}
                             emojis={post.emojis}
                           />
-                        </a>
+                        </Link>
                       </div>
                     );
                 }
@@ -238,8 +239,11 @@ export default define.page<typeof handler, NotificationsProps>(
 
 function NotificationActor({ actor }: { actor: Actor }) {
   return (
-    <a
-      href={actor.accountId ? `/@${actor.username}` : `/${actor.handle}`}
+    <Link
+      href={actor.url ?? actor.iri}
+      internalHref={actor.accountId
+        ? `/@${actor.username}`
+        : `/${actor.handle}`}
       title={`${actor.name ?? actor.username}\n${actor.handle}`}
       class="text-black dark:text-white font-bold"
     >
@@ -257,6 +261,6 @@ function NotificationActor({ actor }: { actor: Actor }) {
       <span class="opacity-50 ml-1 font-normal before:content-['('] after:content-[')']">
         {actor.handle}
       </span>
-    </a>
+    </Link>
   );
 }
