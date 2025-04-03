@@ -72,7 +72,7 @@ export async function onFollowed(
   if (rows.length < 1) return;
   await updateFolloweesCount(db, follower.id, 1);
   await updateFollowersCount(db, followee.actor.id, 1);
-  await createFollowNotification(db, followee.id, follower);
+  await createFollowNotification(db, followee.id, follower, rows[0].accepted);
   await fedCtx.sendActivity(
     { identifier: followee.id },
     followActor,

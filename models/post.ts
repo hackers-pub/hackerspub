@@ -702,12 +702,17 @@ export async function sharePost(
 
   // Create a share notification for the original post's author
   if (post.actor.accountId != null) {
-    await createShareNotification(
+    const notification = await createShareNotification(
       db,
       post.actor.accountId,
       post,
       actor,
+      share.published,
     );
+    logger.debug("Created share notification for {accountId}: {notification}", {
+      accountId: post.actor.accountId,
+      notification,
+    });
   }
   const announce = getAnnounce(fedCtx, {
     ...share,

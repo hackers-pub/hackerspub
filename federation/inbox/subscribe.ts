@@ -125,6 +125,7 @@ export async function onPostShared(
         post.sharedPost.actor.accountId,
         post.sharedPost,
         post.actor,
+        post.published,
       );
     }
   }

@@ -29,6 +29,7 @@ export async function createNotification(
   type: NotificationType,
   post: Post | null,
   actorId: Uuid,
+  created?: Date | null,
 ): Promise<Notification | undefined> {
   try {
     const postId = post?.id;
@@ -40,7 +41,7 @@ export async function createNotification(
         type,
         postId,
         actorIds: [actorId],
-        created: post?.published ?? sql`CURRENT_TIMESTAMP`,
+        created: created ?? sql`CURRENT_TIMESTAMP`,
       })
       .onConflictDoUpdate({
         target: [
@@ -51,7 +52,7 @@ export async function createNotification(
         set: {
           actorIds:
             sql`array_append(${notificationTable.actorIds}, ${actorId})`,
-          created: post?.published ?? sql`CURRENT_TIMESTAMP`,
+          created: created ?? sql`CURRENT_TIMESTAMP`,
         },
       })
       .returning();
@@ -73,6 +74,7 @@ export function createFollowNotification(
   db: Database,
   followeeAccountId: Uuid,
   follower: Actor,
+  created?: Date | null,
 ): Promise<Notification | undefined> {
   return createNotification(
     db,
@@ -80,6 +82,7 @@ export function createFollowNotification(
     "follow",
     null,
     follower.id,
+    created,
   );
 }
 
@@ -103,6 +106,7 @@ export function createMentionNotification(
     "mention",
     post,
     mentioningActor.id,
+    post.published,
   );
 }
 
@@ -126,6 +130,7 @@ export function createReplyNotification(
     "reply",
     replyPost,
     replyAuthor.id,
+    replyPost.published,
   );
 }
 
@@ -142,6 +147,7 @@ export function createShareNotification(
   originalPostAuthorAccountId: Uuid,
   sharedPost: Post,
   sharingActor: Actor,
+  created?: Date | null,
 ): Promise<Notification | undefined> {
   return createNotification(
     db,
@@ -149,6 +155,7 @@ export function createShareNotification(
     "share",
     sharedPost,
     sharingActor.id,
+    created,
   );
 }
 
@@ -172,6 +179,7 @@ export function createQuoteNotification(
     "quote",
     quotePost,
     quotingActor.id,
+    quotePost.published,
   );
 }
 

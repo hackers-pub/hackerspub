@@ -51,7 +51,12 @@ export async function follow(
   } else if (rows.length > 0 && followee.accountId != null) {
     await updateFolloweesCount(db, rows[0].followerId, 1);
     await updateFollowersCount(db, rows[0].followeeId, 1);
-    await createFollowNotification(db, followee.accountId, follower.actor);
+    await createFollowNotification(
+      db,
+      followee.accountId,
+      follower.actor,
+      rows[0].accepted,
+    );
   }
   return rows[0];
 }
