@@ -10,6 +10,13 @@ import {
 import { getLogger } from "@logtape/logtape";
 import { db } from "../../db.ts";
 import {
+  createMentionNotification,
+  createQuoteNotification,
+  createReplyNotification,
+  createShareNotification,
+  deleteShareNotification,
+} from "../../models/notification.ts";
+import {
   deletePersistedPost,
   deleteSharedPost,
   isPostObject,
@@ -37,7 +44,36 @@ export async function onPostCreated(
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
   });
-  if (post != null) await addPostToTimeline(db, post);
+  if (post != null) {
+    await addPostToTimeline(db, post);
+    if (post.replyTarget != null && post.replyTarget.actor.accountId != null) {
+      await createReplyNotification(
+        db,
+        post.replyTarget.actor.accountId,
+        post,
+        post.actor,
+      );
+    }
+    if (post.quotedPost != null && post.quotedPost.actor.accountId != null) {
+      await createQuoteNotification(
+        db,
+        post.quotedPost.actor.accountId,
+        post,
+        post.actor,
+      );
+    }
+    for (const mention of post.mentions) {
+      if (mention.actor.accountId == null) continue;
+      if (post.replyTarget?.actorId === mention.actorId) continue;
+      if (post.quotedPost?.actorId === mention.actorId) continue;
+      await createMentionNotification(
+        db,
+        mention.actor.accountId,
+        post,
+        post.actor,
+      );
+    }
+  }
 }
 
 export async function onPostUpdated(
@@ -81,7 +117,17 @@ export async function onPostShared(
   const object = await announce.getObject(fedCtx);
   if (!isPostObject(object)) return;
   const post = await persistSharedPost(db, fedCtx, announce, fedCtx);
-  if (post != null) await addPostToTimeline(db, post);
+  if (post != null) {
+    await addPostToTimeline(db, post);
+    if (post.sharedPost.actor.accountId != null) {
+      await createShareNotification(
+        db,
+        post.sharedPost.actor.accountId,
+        post.sharedPost,
+        post.actor,
+      );
+    }
+  }
 }
 
 export async function onPostUnshared(
@@ -92,5 +138,21 @@ export async function onPostUnshared(
   if (undo.objectId == null || undo.actorId == null) return;
   if (undo.objectId?.origin !== undo.actorId?.origin) return;
   const post = await deleteSharedPost(db, undo.objectId, undo.actorId);
-  if (post != null) await removeFromTimeline(db, post);
+  if (post != null) {
+    await removeFromTimeline(db, post);
+    if (post.sharedPostId != null) {
+      const sharedPost = await db.query.postTable.findFirst({
+        where: { id: post.sharedPostId },
+        with: { actor: true },
+      });
+      if (sharedPost?.actor.accountId != null) {
+        await deleteShareNotification(
+          db,
+          sharedPost.actor.accountId,
+          sharedPost,
+          post.actor,
+        );
+      }
+    }
+  }
 }

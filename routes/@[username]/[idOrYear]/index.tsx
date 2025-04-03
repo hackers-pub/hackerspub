@@ -348,6 +348,7 @@ export const handler = define.handlers({
           id: parsed.output.quotedPostId as Uuid,
           visibility: { in: ["public", "unlisted"] },
         },
+        with: { actor: true },
       });
     const reply = await createNote(db, kv, disk, ctx.state.fedCtx, {
       ...parsed.output,

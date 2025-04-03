@@ -1,4 +1,5 @@
 import { Accept, Follow, type InboxContext, type Undo } from "@fedify/fedify";
+import { getLogger } from "@logtape/logtape";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db.ts";
 import { persistActor } from "../../models/actor.ts";
@@ -7,8 +8,14 @@ import {
   updateFolloweesCount,
   updateFollowersCount,
 } from "../../models/following.ts";
+import {
+  createFollowNotification,
+  deleteFollowNotification,
+} from "../../models/notification.ts";
 import { followingTable } from "../../models/schema.ts";
 import { validateUuid } from "../../models/uuid.ts";
+
+const logger = getLogger(["hackerspub", "federation", "inbox", "following"]);
 
 export async function onFollowAccepted(
   fedCtx: InboxContext<void>,
@@ -65,6 +72,7 @@ export async function onFollowed(
   if (rows.length < 1) return;
   await updateFolloweesCount(db, follower.id, 1);
   await updateFollowersCount(db, followee.actor.id, 1);
+  await createFollowNotification(db, followee.id, follower);
   await fedCtx.sendActivity(
     { identifier: followee.id },
     followActor,
@@ -101,8 +109,21 @@ export async function onUnfollowed(
         eq(followingTable.followerId, actor.id),
       ),
     ).returning();
-  if (rows.length < 1) return;
+  if (rows.length < 1) {
+    logger.debug("No following found for unfollow: {follow}", { follow });
+    return;
+  }
   const [following] = rows;
   await updateFolloweesCount(db, following.followerId, 1);
   await updateFollowersCount(db, following.followeeId, 1);
+  const followee = await db.query.actorTable.findFirst({
+    where: { id: following.followeeId },
+  });
+  if (followee?.accountId != null) {
+    await deleteFollowNotification(
+      db,
+      followee.accountId,
+      actor,
+    );
+  }
 }

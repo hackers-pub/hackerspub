@@ -1,6 +1,6 @@
 import { PostControls } from "../islands/PostControls.tsx";
 import { getAvatarUrl } from "../models/actor.ts";
-import { isPostVisibleTo } from "../models/post.ts";
+import { isArticleLike, isPostVisibleTo } from "../models/post.ts";
 import type {
   Account,
   Actor,
@@ -118,8 +118,7 @@ export function PostExcerpt(props: PostExcerptProps) {
               }}
             />
           )}
-          {post.type === "Article" ||
-              post.name != null && post.actor.instance.software !== "nodebb"
+          {isArticleLike(post)
             ? (
               <ArticleExcerpt
                 class={props.class}

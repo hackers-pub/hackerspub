@@ -18,6 +18,16 @@
     "follower": "フォロワー",
     "fediverse": "フェディバース"
   },
+  "notification": {
+    "title": "通知",
+    "empty": "通知はまだありません",
+    "followedYou": "{{actor}}さんがあなたをフォローしました",
+    "mentionedYou": "{{actor}}さんがあなたに言及しました",
+    "repliedToYourPost": "{{actor}}さんがあなたのコンテンツに返信しました",
+    "sharedYourPost_zero": "{{actor}}さんがあなたのコンテンツを共有しました",
+    "sharedYourPost_other": "{{actor}}さん外{{count}}人があなたのコンテンツを共有しました",
+    "quotedYourPost": "{{actor}}さんがあなたのコンテンツを引用しました"
+  },
   "home": {
     "intro": {
       "title": "Hackers' Pubとは？",
@@ -27,6 +37,8 @@
   "nav": {
     "search": "検索",
     "signInUp": "$t(signInUp.title)",
+    "notifications": "$t(notification.title)",
+    "unreadNotifications": "未読通知",
     "newArticle": "新規記事",
     "drafts": "下書き",
     "invite": "$t(settings.invite.title)",

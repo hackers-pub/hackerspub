@@ -3,6 +3,10 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Database } from "../db.ts";
 import { toRecipient } from "./actor.ts";
 import {
+  createFollowNotification,
+  deleteFollowNotification,
+} from "./notification.ts";
+import {
   type Account,
   type Actor,
   actorTable,
@@ -47,6 +51,7 @@ export async function follow(
   } else if (rows.length > 0 && followee.accountId != null) {
     await updateFolloweesCount(db, rows[0].followerId, 1);
     await updateFollowersCount(db, rows[0].followeeId, 1);
+    await createFollowNotification(db, followee.accountId, follower.actor);
   }
   return rows[0];
 }
@@ -125,6 +130,13 @@ export async function unfollow(
   if (rows.length > 0) {
     await updateFolloweesCount(db, rows[0].followerId, -1);
     await updateFollowersCount(db, rows[0].followeeId, -1);
+    if (followee.accountId != null) {
+      await deleteFollowNotification(
+        db,
+        followee.accountId,
+        follower.actor,
+      );
+    }
   }
   return rows[0];
 }

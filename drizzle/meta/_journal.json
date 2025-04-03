@@ -379,6 +379,34 @@
       "when": 1743417453949,
       "tag": "0053_post.quotes_count",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1743574287872,
+      "tag": "0054_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1743576192734,
+      "tag": "0055_populate_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1743579277294,
+      "tag": "0056_idx_notification_account_id_created",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1743642523201,
+      "tag": "0057_account.notification_read",
+      "breakpoints": true
     }
   ]
 }

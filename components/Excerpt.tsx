@@ -5,7 +5,7 @@ export interface ExcerptProps {
   class?: string;
   html: string;
   emojis?: Record<string, string>;
-  lang?: string;
+  lang?: string | null;
 }
 
 export function Excerpt(
@@ -22,7 +22,7 @@ export function Excerpt(
         prose-a:no-underline prose-a:font-normal
         ${className}
       `}
-      lang={lang}
+      lang={lang ?? undefined}
       dangerouslySetInnerHTML={{
         __html: renderCustomEmojis(sanitizeExcerptHtml(html), emojis ?? {}),
       }}

@@ -18,6 +18,16 @@
     "follower": "팔로워",
     "fediverse": "연합우주"
   },
+  "notification": {
+    "title": "알림",
+    "empty": "아직 알림이 없습니다",
+    "followedYou": "{{actor}} 님이 팔로했습니다",
+    "mentionedYou": "{{actor}} 님이 언급했습니다",
+    "repliedToYourPost": "{{actor}} 님이 회원님의 콘텐츠에 댓글을 달았습니다",
+    "sharedYourPost_zero": "{{actor}} 님이 회원님의 콘텐츠를 공유했습니다",
+    "sharedYourPost_other": "{{actor}} 님 외 {{count}}명이 회원님의 콘텐츠를 공유했습니다",
+    "quotedYourPost": "{{actor}} 님이 회원님의 콘텐츠를 인용했습니다"
+  },
   "home": {
     "intro": {
       "title": "Hackers' Pub이란?",
@@ -27,6 +37,8 @@
   "nav": {
     "search": "검색",
     "signInUp": "$t(signInUp.title)",
+    "notifications": "$t(notification.title)",
+    "unreadNotifications": "읽지 않은 알림",
     "newArticle": "새 게시글",
     "drafts": "임시 보관함",
     "settings": "설정",

@@ -18,6 +18,17 @@
     "follower": "follower",
     "fediverse": "fediverse"
   },
+  "notification": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "followedYou": "{{actor}} followed you",
+    "mentionedYou": "{{actor}} mentioned you",
+    "repliedToYourPost": "{{actor}} replied to your post",
+    "sharedYourPost_zero": "{{actor}} shared your post",
+    "sharedYourPost_one": "{{actor}} and 1 other shared your post",
+    "sharedYourPost_other": "{{actor}} and {{count}} others shared your post",
+    "quotedYourPost": "{{actor}} quoted your post"
+  },
   "home": {
     "intro": {
       "title": "What is Hackers' Pub?",
@@ -27,6 +38,8 @@
   "nav": {
     "search": "Search",
     "signInUp": "$t(signInUp.title)",
+    "notifications": "$t(notification.title)",
+    "unreadNotifications": "Unread notifications",
     "newArticle": "New article",
     "drafts": "Drafts",
     "invite": "$t(settings.invite.title)",

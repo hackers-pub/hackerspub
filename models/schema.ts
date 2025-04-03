@@ -35,6 +35,7 @@ export const accountTable = pgTable(
     ogImageKey: text("og_image_key").unique(),
     locales: varchar().array().$type<Locale[] | null>(),
     moderator: boolean().notNull().default(false),
+    notificationRead: timestamp("notification_read", { withTimezone: true }),
     leftInvitations: smallint("left_invitations").notNull(),
     inviterId: uuid("inviter_id").$type<Uuid | null>().references(
       (): AnyPgColumn => accountTable.id,
@@ -698,3 +699,61 @@ export const timelineItemTable = pgTable(
 
 export type TimelineItem = typeof timelineItemTable.$inferSelect;
 export type NewTimelineItem = typeof timelineItemTable.$inferInsert;
+
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "follow",
+  "mention",
+  "reply",
+  "share",
+  "quote",
+]);
+
+export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];
+
+export const notificationTable = pgTable(
+  "notification",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
+    type: notificationTypeEnum().notNull(),
+    // For the postId column:
+    // - When type is 'follow', this is not used
+    // - When type is 'mention', this is the ID of the post containing the mention
+    // - When type is 'reply', this is the ID of the reply post
+    // - When type is 'share', this is the ID of the shared post
+    // - When type is 'quote', this is the ID of the post doing the quoting
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
+    actorIds: uuid("actor_ids")
+      .array()
+      .$type<Uuid[]>()
+      .notNull()
+      .default(sql`(ARRAY[]::uuid[])`),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index("idx_notification_account_id_created").on(
+      table.accountId,
+      desc(table.created),
+    ),
+    check(
+      "notification_post_id_check",
+      sql`
+        CASE ${table.type}
+          WHEN 'follow' THEN ${table.postId} IS NULL
+          ELSE ${table.postId} IS NOT NULL
+        END
+      `,
+    ),
+    unique().on(table.accountId, table.type, table.postId),
+  ],
+);
+
+export type Notification = typeof notificationTable.$inferSelect;
+export type NewNotification = typeof notificationTable.$inferInsert;

@@ -191,4 +191,15 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.actorTable.id,
     }),
   },
+  notificationTable: {
+    account: r.one.accountTable({
+      from: r.notificationTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    post: r.one.postTable({
+      from: r.notificationTable.postId,
+      to: r.postTable.id,
+    }),
+  },
 }));

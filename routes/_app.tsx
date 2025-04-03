@@ -2,6 +2,7 @@ import { count, eq } from "drizzle-orm";
 import type { PageProps } from "fresh";
 import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
 import { db } from "../db.ts";
+import { NotificationIcon } from "../islands/NotificationIcon.tsx";
 import { getAvatarUrl } from "../models/account.ts";
 import {
   type Account,
@@ -83,12 +84,14 @@ export default async function App(
             >
               <header class="h-[60px] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700">
                 <nav class="m-auto xl:max-w-screen-xl text-xl flex flex-row gap-4">
-                  <a
-                    href="/"
-                    class="grow-0 lg:basis-1/3 p-4 text-white dark:text-black font-bold"
-                  >
-                    Hackers’ Pub
-                  </a>
+                  <div class="grow-0 lg:basis-1/3 p-4 flex flex-row gap-4">
+                    <a
+                      href="/"
+                      class="text-white dark:text-black font-bold"
+                    >
+                      Hackers&rsquo; Pub
+                    </a>
+                  </div>
                   <form
                     method="get"
                     action="/search"
@@ -116,7 +119,7 @@ export default async function App(
                           <div class="flex flex-row-reverse">
                             <div class="
                               group block
-                              w-[calc(30px+2rem)] h-[calc(30px+2rem)] p-4
+                              w-[calc(30px+2rem)] h-[calc(30px+2rem)] py-4 px-2
                             ">
                               <img
                                 src={avatarUrl}
@@ -181,6 +184,11 @@ export default async function App(
                                 </form>
                               </div>
                             </div>
+                            <NotificationIcon
+                              class="grow-0 py-4 px-2"
+                              title={t("nav.notifications")}
+                              unreadTitle={t("nav.unreadNotifications")}
+                            />
                             <a
                               href={`/@${account.username}/drafts/new`}
                               title={t("nav.newArticle")}

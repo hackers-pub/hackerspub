@@ -6,6 +6,11 @@ import type Keyv from "keyv";
 import sharp from "sharp";
 import type { Database } from "../db.ts";
 import { getNote } from "../federation/objects.ts";
+import {
+  createMentionNotification,
+  createQuoteNotification,
+  createReplyNotification,
+} from "./notification.ts";
 import { syncPostFromNoteSource, updateRepliesCount } from "./post.ts";
 import {
   type Account,
@@ -209,8 +214,8 @@ export async function createNote(
     media: { blob: Blob; alt: string }[];
   },
   relations: {
-    replyTarget?: Post;
-    quotedPost?: Post;
+    replyTarget?: Post & { actor: Actor };
+    quotedPost?: Post & { actor: Actor };
   } = {},
 ): Promise<
   Post & {
@@ -288,6 +293,40 @@ export async function createNote(
       "followers",
       activity,
       { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+    );
+  }
+  if (
+    post.replyTarget != null && post.replyTarget.actor.accountId != null &&
+    post.replyTarget.actorId !== post.actorId
+  ) {
+    await createReplyNotification(
+      db,
+      post.replyTarget.actor.accountId,
+      post,
+      post.actor,
+    );
+  }
+  if (
+    post.quotedPost != null && post.quotedPost.actor.accountId != null &&
+    post.quotedPost.actorId !== post.actorId
+  ) {
+    await createQuoteNotification(
+      db,
+      post.quotedPost.actor.accountId,
+      post,
+      post.actor,
+    );
+  }
+  for (const mention of post.mentions) {
+    if (mention.actor.accountId == null) continue;
+    if (post.replyTarget?.actorId === mention.actorId) continue;
+    if (post.quotedPost?.actorId === mention.actorId) continue;
+    if (mention.actorId === post.actorId) continue;
+    await createMentionNotification(
+      db,
+      mention.actor.accountId,
+      post,
+      post.actor,
     );
   }
   return post;

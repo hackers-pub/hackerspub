@@ -18,6 +18,16 @@
     "follower": "粉丝",
     "fediverse": "联邦宇宙"
   },
+  "notification": {
+    "title": "通知",
+    "empty": "暂无通知",
+    "followedYou": "{{actor}} 关注了你",
+    "mentionedYou": "{{actor}} 提到了你",
+    "repliedToYourPost": "{{actor}} 回复了你的内容",
+    "sharedYourPost_zero": "{{actor}} 转发了你的内容",
+    "sharedYourPost_other": "{{actor}} 和其他 {{count}} 人转发了你的内容",
+    "quotedYourPost": "{{actor}} 引用了你的内容"
+  },
   "home": {
     "intro": {
       "title": "Hackers' Pub 是什么？",
@@ -27,6 +37,8 @@
   "nav": {
     "search": "搜索",
     "signInUp": "$t(signInUp.title)",
+    "notifications": "$t(notification.title)",
+    "unreadNotifications": "未读通知",
     "newArticle": "新文章",
     "drafts": "草稿",
     "invite": "$t(settings.invite.title)",

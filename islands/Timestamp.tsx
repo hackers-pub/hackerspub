@@ -7,10 +7,12 @@ export interface TimestampProps {
   noRelative?: boolean;
   dateStyle?: Intl.DateTimeFormatOptions["dateStyle"];
   timeStyle?: Intl.DateTimeFormatOptions["timeStyle"];
+  class?: string;
 }
 
 export function Timestamp(
-  { value, locale, noRelative, dateStyle, timeStyle }: TimestampProps,
+  { value, locale, noRelative, dateStyle, timeStyle, class: cls }:
+    TimestampProps,
 ) {
   const [currentDate, setCurrentDate] = useState(new Date());
   if (!noRelative) {
@@ -28,7 +30,7 @@ export function Timestamp(
     timeStyle,
   });
   return (
-    <time datetime={value.toISOString()} title={absTime}>
+    <time datetime={value.toISOString()} title={absTime} class={cls}>
       {noRelative || !IS_BROWSER
         ? absTime
         : formatRelativeTime(currentDate, value, locale)}

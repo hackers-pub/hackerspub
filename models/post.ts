@@ -44,6 +44,10 @@ import { extractExternalLinks } from "./html.ts";
 import { renderMarkup } from "./markup.ts";
 import { postMedium } from "./medium.ts";
 import {
+  createShareNotification,
+  deleteShareNotification,
+} from "./notification.ts";
+import {
   type Account,
   type AccountEmail,
   type AccountLink,
@@ -78,6 +82,13 @@ export type PostObject = vocab.Article | vocab.Note | vocab.Question;
 export function isPostObject(object: unknown): object is PostObject {
   return object instanceof vocab.Article || object instanceof vocab.Note ||
     object instanceof vocab.Question;
+}
+
+export function isArticleLike(
+  post: Post & { actor: Actor & { instance: Instance } },
+): boolean {
+  return post.type === "Article" ||
+    post.name != null && post.actor.instance.software !== "nodebb";
 }
 
 export async function syncPostFromArticleSource(
@@ -163,8 +174,8 @@ export async function syncPostFromNoteSource(
     media: NoteMedium[];
   },
   relations: {
-    replyTarget?: { id: Uuid };
-    quotedPost?: Post;
+    replyTarget?: Post & { actor: Actor };
+    quotedPost?: Post & { actor: Actor };
   } = {},
 ): Promise<
   Post & {
@@ -176,6 +187,8 @@ export async function syncPostFromNoteSource(
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
       media: NoteMedium[];
     };
+    replyTarget: Post & { actor: Actor } | null;
+    quotedPost: Post & { actor: Actor } | null;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
   }
@@ -260,7 +273,15 @@ export async function syncPostFromNoteSource(
       }))),
     ).returning()
     : [];
-  return { ...post, actor, noteSource, mentions, media };
+  return {
+    ...post,
+    actor,
+    noteSource,
+    mentions,
+    media,
+    replyTarget: relations.replyTarget ?? null,
+    quotedPost: relations.quotedPost ?? null,
+  };
 }
 
 export async function persistPost(
@@ -278,6 +299,8 @@ export async function persistPost(
   | Post & {
     actor: Actor & { instance: Instance };
     mentions: (Mention & { actor: Actor })[];
+    replyTarget: Post & { actor: Actor } | null;
+    quotedPost: Post & { actor: Actor } | null;
   }
   | undefined
 > {
@@ -552,7 +575,12 @@ export async function persistPost(
       }
     }
   }
-  return { ...persistedPost, mentions: mentionList };
+  return {
+    ...persistedPost,
+    replyTarget: replyTarget ?? null,
+    quotedPost: quotedPost ?? null,
+    mentions: mentionList,
+  };
 }
 
 export async function persistSharedPost(
@@ -671,6 +699,16 @@ export async function sharePost(
   post.sharesCount = await updateSharesCount(db, post, 1);
   share.sharesCount = post.sharesCount;
   await addPostToTimeline(db, share);
+
+  // Create a share notification for the original post's author
+  if (post.actor.accountId != null) {
+    await createShareNotification(
+      db,
+      post.actor.accountId,
+      post,
+      actor,
+    );
+  }
   const announce = getAnnounce(fedCtx, {
     ...share,
     sharedPost: post,
@@ -710,34 +748,41 @@ export async function unsharePost(
       eq(postTable.sharedPostId, sharedPost.id),
     ),
   ).returning();
-  if (unshared.length > 0) {
-    sharedPost.sharesCount = await updateSharesCount(db, sharedPost, -1);
-    await removeFromTimeline(db, unshared[0]);
-    const announce = getAnnounce(fedCtx, {
-      ...unshared[0],
-      actor,
+  if (unshared.length < 1) return undefined;
+  sharedPost.sharesCount = await updateSharesCount(db, sharedPost, -1);
+  await removeFromTimeline(db, unshared[0]);
+  if (sharedPost.actor.accountId != null) {
+    await deleteShareNotification(
+      db,
+      sharedPost.actor.accountId,
       sharedPost,
-      mentions: [],
-    });
-    const undo = new vocab.Undo({
-      actor: fedCtx.getActorUri(account.id),
-      object: announce,
-      tos: announce.toIds,
-      ccs: announce.ccIds,
-    });
-    await fedCtx.sendActivity(
-      { identifier: account.id },
-      "followers",
-      undo,
-      { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
-    );
-    await fedCtx.sendActivity(
-      { identifier: account.id },
-      toRecipient(sharedPost.actor),
-      undo,
-      { excludeBaseUris: [new URL(fedCtx.origin)] },
+      actor,
     );
   }
+  const announce = getAnnounce(fedCtx, {
+    ...unshared[0],
+    actor,
+    sharedPost,
+    mentions: [],
+  });
+  const undo = new vocab.Undo({
+    actor: fedCtx.getActorUri(account.id),
+    object: announce,
+    tos: announce.toIds,
+    ccs: announce.ccIds,
+  });
+  await fedCtx.sendActivity(
+    { identifier: account.id },
+    "followers",
+    undo,
+    { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+  );
+  await fedCtx.sendActivity(
+    { identifier: account.id },
+    toRecipient(sharedPost.actor),
+    undo,
+    { excludeBaseUris: [new URL(fedCtx.origin)] },
+  );
   return unshared[0];
 }
 
@@ -933,16 +978,15 @@ export async function deleteSharedPost(
   db: Database,
   iri: URL,
   actorIri: URL,
-): Promise<Post | undefined> {
+): Promise<Post & { actor: Actor } | undefined> {
+  const actor = await db.query.actorTable.findFirst({
+    where: { iri: actorIri.toString() },
+  });
+  if (actor == null) return undefined;
   const shares = await db.delete(postTable).where(
     and(
       eq(postTable.iri, iri.toString()),
-      inArray(
-        postTable.actorId,
-        db.select({ id: actorTable.id })
-          .from(actorTable)
-          .where(eq(actorTable.iri, actorIri.toString())),
-      ),
+      eq(postTable.actorId, actor.id),
       isNotNull(postTable.sharedPostId),
     ),
   ).returning();
@@ -952,9 +996,9 @@ export async function deleteSharedPost(
   const sharedPost = await db.query.postTable.findFirst({
     where: { id: share.sharedPostId },
   });
-  if (sharedPost == null) return share;
+  if (sharedPost == null) return { ...share, actor };
   await updateSharesCount(db, sharedPost, -1);
-  return share;
+  return { ...share, actor };
 }
 
 export function isPostVisibleTo(
