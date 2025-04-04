@@ -347,8 +347,8 @@ This Code of Conduct evolves with our community:
   - Direct administrator contact
 - Include rationale with proposals
 
-[GitHub repository]: https://github.com/dahlia/hackerspub
-[GitHub Discussions]: https://github.com/dahlia/hackerspub/discussions
+[GitHub repository]: https://github.com/hackers-pub/hackerspub
+[GitHub Discussions]: https://github.com/hackers-pub/hackerspub/discussions
 
 ### Implementation Process
 

@@ -22,6 +22,11 @@ Getting started
  -  Add a translated version of the code of conduct as
     *CODE_OF_CONDUCT.`language-code`.md*.
 
+### Create Markdown guide translation
+
+ -  Add a translated version of the Markdown guide as
+    *locales/markdown/`language-code`.md*.
+
 
 Translation guidelines
 ----------------------

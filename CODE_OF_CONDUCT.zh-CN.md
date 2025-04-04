@@ -320,8 +320,8 @@ Hackers' Pub 致力于为所有软件工程师和技术爱好者提供一个平�
   - 直接联系管理员
 - 提案中应包含理由
 
-[GitHub 仓库]: https://github.com/dahlia/hackerspub
-[GitHub 讨论]: https://github.com/dahlia/hackerspub/discussions
+[GitHub 仓库]: https://github.com/hackers-pub/hackerspub
+[GitHub 讨论]: https://github.com/hackers-pub/hackerspub/discussions
 
 ### 实施流程
 

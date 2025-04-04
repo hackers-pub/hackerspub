@@ -1,0 +1,311 @@
+{
+  "glossary": {
+    "post": "內容",
+    "note": "貼文",
+    "article": "文章",
+    "tag": "標籤",
+    "draft": "草稿",
+    "reply": "回覆",
+    "comment": "評論",
+    "share": "轉貼",
+    "quote": "引用",
+    "username": "使用者名稱",
+    "displayName": "暱稱",
+    "bio": "個人簡介",
+    "avatar": "頭像",
+    "follow": "關注",
+    "followee": "關注",
+    "follower": "粉絲",
+    "fediverse": "聯邦宇宙"
+  },
+  "notification": {
+    "title": "通知",
+    "empty": "暫無通知",
+    "followedYou": "{{actor}} 關注了你",
+    "mentionedYou": "{{actor}} 提到了你",
+    "repliedToYourPost": "{{actor}} 回覆了你的內容",
+    "sharedYourPost_zero": "{{actor}} 轉發了你的內容",
+    "sharedYourPost_other": "{{actor}} 和其他 {{count}} 人轉發了你的內容",
+    "quotedYourPost": "{{actor}} 引用了你的內容"
+  },
+  "home": {
+    "intro": {
+      "title": "Hackers' Pub 是什麼？",
+      "content": "Hackers' Pub 是個為軟體工程師共同分享知識和經驗的地方。它也是啟用了 ActivityPub 的社交網路，這樣你可以在聯邦宇宙裡關注你喜愛的駭客，並獲取最新的貼文。"
+    }
+  },
+  "nav": {
+    "search": "搜尋",
+    "signInUp": "$t(signInUp.title)",
+    "notifications": "$t(notification.title)",
+    "unreadNotifications": "未讀通知",
+    "newArticle": "新文章",
+    "drafts": "草稿",
+    "invite": "$t(settings.invite.title)",
+    "settings": "設定",
+    "signOut": "登出",
+    "coc": "行為準則",
+    "openSource": "可在 {{repository}} 上以 {{license}} 授權取得該網站的原始碼。",
+    "githubRepository": "GitHub 儲存庫"
+  },
+  "signInUp": {
+    "title": "登入",
+    "description": "如果你有了帳戶，我們將發送一個登入連結；如果你沒有帳號，你需要被現有的 Hackers' Pub 成員邀請。",
+    "submit": "$t(signInUp.title)",
+    "invalidEmail": "電子郵件地址無效。",
+    "noSuchEmail": "此電子郵件地址未在 Hackers' Pub 註冊。",
+    "signInEmailSubject": "登入 Hackers' Pub",
+    "signInEmailText": "歡迎回到 Hackers' Pub！要登入，點擊以下連結：\n\n{{verifyUrl}}\n\n該連結將於 {{expiration}} 失效。\n\n如果你並沒申請這個電子郵件，可以安全地忽略它。\n",
+    "emailSentDescription": "一封帶登入連結的郵件已經送至 {{email}}。請查看你的收件匣，如果你沒看到，檢查一下垃圾郵件資料夾。",
+    "emailSentExpires": "注意連結會於 {{expiration}} 失效。",
+    "emailSentResend": "你仍然可以請求一個新連結，只需要再進行登入操作。"
+  },
+  "signUp": {
+    "title": "註冊",
+    "invalidCode": "註冊連結無效。請確保你使用的是你收到的正確郵件連結。",
+    "welcome": "歡迎來到 Hackers' Pub！請填寫以下表單完成註冊。",
+    "email": "電子郵件地址",
+    "emailDescription": "你的電子郵件地址將用於登入。",
+    "username": "$t(settings.profile.username)",
+    "usernameDescription": "$t(settings.profile.usernameDescription)",
+    "usernameRequired": "$t(settings.profile.usernameRequired)",
+    "usernameTooLong": "$t(settings.profile.usernameTooLong)",
+    "usernameInvalidChars": "$t(settings.profile.usernameInvalidChars)",
+    "usernameAlreadyTaken": "$t(settings.profile.usernameAlreadyTaken)",
+    "name": "$t(settings.profile.name)",
+    "nameDescription": "$t(settings.profile.nameDescription)",
+    "nameRequired": "$t(settings.profile.nameRequired)",
+    "nameTooLong": "$t(settings.profile.nameTooLong)",
+    "bio": "$t(settings.profile.bio)",
+    "bioDescription": "$t(settings.profile.bioDescription)",
+    "bioTooLong": "$t(settings.profile.bioTooLong)",
+    "coc": "$t(nav.coc)",
+    "cocDescription": "我同意 Hackers' Pub 的$t(signUp.coc)。",
+    "submit": "$t(signUp.title)"
+  },
+  "settings": {
+    "profile": {
+      "title": "個人資料設定",
+      "avatar": "頭像",
+      "avatarDescription": "你的頭像將在您的個人資料頁面和您的貼文中顯示。可以上傳大小不超過 5 MiB 的 PNG、JPEG、GIF 或 WebP 圖片。",
+      "avatarInvalid": "圖片格式無效。請上傳 PNG、JPEG、GIF 或 WebP 圖片。",
+      "avatarTooLarge": "圖片太大了。不能超過 5 MiB。",
+      "username": "使用者名稱",
+      "usernameDescription": "你的使用者名稱將被用來創建你的個人資料 URL 和你的 Fediverse 使用者名稱（handle）。",
+      "usernameCaution": "你只能更改一次使用者名稱，而舊的使用者名稱會公開為別人使用。",
+      "usernameChanged": "自從你已經把使用者名稱換成 {{changed}} 了，你再也改不了了。",
+      "usernameRequired": "需要使用者名稱",
+      "usernameTooLong": "使用者名稱太長。不能長於 50 字元。",
+      "usernameInvalidChars": "使用者名稱只能包含小寫字母、數字以及底線。",
+      "usernameAlreadyTaken": "使用者名稱已被佔用。",
+      "name": "暱稱",
+      "nameDescription": "你的暱稱將在你的個人資料頁面和你的貼文中顯示。",
+      "nameRequired": "需要暱稱",
+      "nameTooLong": "使用者名稱太長。不能長於 50 字元。",
+      "bio": "個人簡介",
+      "bioDescription": "你的個人簡介將在你的個人資料頁面顯示。你可以用 Markdown 文件格式化。",
+      "bioTooLong": "個人簡介太長。不能長於 512 字元。",
+      "linkName": "連結名",
+      "linkNameDescription": "為顯示在你個人資料頁面的連結命名，例如 GitHub。",
+      "url": "URL",
+      "urlDescription": "該連結的 URL，例如 https://github.com/你的使用者名稱 。",
+      "howToVerifyLinks": "你可以驗證這些連結確實屬於你。在連結的頁面上使用 {{relMe}} 屬性連結回你的 Hackers' Pub 個人資料頁。",
+      "save": "儲存"
+    },
+    "language": {
+      "title": "語言設定",
+      "save": "$t(settings.profile.save)"
+    },
+    "invite": {
+      "title": "邀請",
+      "description_zero": "邀請你的朋友加入 Hackers' Pub。目前，你沒有剩餘邀請名額——請稍後再來查看。",
+      "description_one": "邀請你的朋友加入 Hackers' Pub。你可以邀請 1 個人。",
+      "description_other": "邀請你的朋友加入 Hackers' Pub。你可以邀請最多 {{count}} 個人。",
+      "email": "$t(signUp.email)",
+      "emailDescription": "電子郵件地址不僅用於接收邀請，還用於登入帳戶。",
+      "language": "邀請語言",
+      "languageDescription": "選擇你的朋友使用的語言。這個語言只會用於邀請。",
+      "extraMessage": "額外訊息",
+      "extraMessageDescription": "你的朋友將在邀請郵件中看到此訊息。",
+      "send": "發送邀請",
+      "noLeftInvitations": "你沒有剩餘邀請名額。請稍後再試。",
+      "emailRequired": "電子郵件地址是必填項。",
+      "alreadyExists": "{{account}} 已經是 Hackers' Pub 的成員了。",
+      "success_zero": "邀請已發送至 {{email}}。你沒有剩餘邀請名額。",
+      "success_other": "邀請已發送至 {{email}}。你還剩餘 {{count}} 張邀請名額。",
+      "invitationEmailSubject": "{{inviterName}} 邀請你加入 Hackers' Pub！",
+      "invitationEmailText": "{{inviter}} 邀請你加入 Hackers' Pub！\n\n$t(home.intro.content)\n\n要接受邀請，請點擊以下連結：\n\n{{verifyUrl}}\n\n該連結將於 {{expiration}} 失效。\n",
+      "invitationEmailTextWithMessage": "{{inviter}} 邀請你加入 Hackers' Pub！以下是來自 {{inviterName}} 的訊息：\n\n{{message}}\n\n要接受邀請，請點擊以下連結：\n\n{{verifyUrl}}\n\n該連結將於 {{expiration}} 失效。\n",
+      "inviter": "邀請人",
+      "invitees": "被邀請人",
+      "tree": "$t(invitationTree.title)",
+      "viewTree": "查看樹"
+    }
+  },
+  "profile": {
+    "followeesCount": "關注 {{count}} 人",
+    "followersCount_one": "被 1 人關注",
+    "followersCount_other": "被 {{count}} 人關注",
+    "followsYou": "關注了你",
+    "follow": "關注",
+    "followBack": "回關",
+    "unfollow": "取消關注",
+    "cancelRequest": "取消關注請求",
+    "followerList": {
+      "title": "{{name}} 的粉絲"
+    },
+    "followeeList": {
+      "title": "{{name}} 正在關注"
+    },
+    "verified": "已認證",
+    "verifiedDescription": "此連結已驗證屬於此使用者。",
+    "total": "總共：{{total}}",
+    "notes": "貼文：{{notes}}",
+    "notesWithReplies": "含回覆貼文：{{notesWithReplies}}",
+    "shares": "轉貼：{{shares}}",
+    "articles": "文章：{{articles}}",
+    "feed": "{{name}} 的訂閱流（貼文和文章）",
+    "articlesFeed": "{{name}} 的訂閱流（僅文章）"
+  },
+  "articleDrafts": {
+    "title": "文章草稿",
+    "noTitle": "（無標題）",
+    "created": "建立於 {{created}}",
+    "updated": "更新於 {{updated}}",
+    "delete": "刪除草稿",
+    "deleteConfirm": "你確定要刪除此草稿嗎？"
+  },
+  "article": {
+    "readMore": "查看更多 →",
+    "comments_zero": "暫無評論",
+    "comments_one": "1 條評論",
+    "comments_other": "{{count}} 條評論",
+    "remoteCommentDescription": "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡評論。在你的實例搜尋 {{permalink}} 後回覆。",
+    "remoteQuoteDescription": "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡引用此文章。在你的實例搜尋 {{permalink}} 後進行引用。（請注意，Mastodon不支援引用功能）",
+    "shared": "{{name}} 轉貼了以下文章：",
+    "replied": "{{name}} 回覆了以下文章：",
+    "edit": "編輯",
+    "delete": "刪除",
+    "deleteConfirm": "你確定要刪除此文章嗎？",
+    "tableOfContents": "目錄"
+  },
+  "note": {
+    "title": "{{name}}：{{content}}",
+    "linkAuthor": "連結作者：{{author}}",
+    "replies": "回覆",
+    "shares": "轉貼",
+    "sharing": "正在轉貼……",
+    "shared": "已轉貼",
+    "unshare": "取消轉貼",
+    "unsharing": "正在取消轉貼……",
+    "sharedBy": "被 {{name}} 轉貼",
+    "remoteReplyDescription": "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡評論此貼文。在你的實例搜尋 {{permalink}} 後回覆。",
+    "remoteQuoteDescription": "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡引用此貼文。在你的實例搜尋 {{permalink}} 後進行引用。（請注意，Mastodon不支援引用功能）"
+  },
+  "post": {
+    "delete": "刪除",
+    "deleteConfirm": "你確定要刪除此內容嗎？",
+    "deleting": "正在刪除……",
+    "deleted": "已經刪除",
+    "quotes": "引用",
+    "reactions": {
+      "title": "反應",
+      "sharers": "轉貼此內容的人"
+    }
+  },
+  "editor": {
+    "titlePlaceholder": "文章標題",
+    "titleRequired": "請給文章取個標題。",
+    "contentPlaceholder": "在這裡寫文章。可使用 Markdown。你的文章會在你寫的時候以草稿方式自動儲存。",
+    "contentRequired": "請輸入文章內容。",
+    "tagsPlaceholder": "輸入標籤，用空格分隔。",
+    "tagsRequired": "請在文章中至少用一個標籤。",
+    "removeTag": "刪除標籤",
+    "publish": "發佈",
+    "publishMode": {
+      "title": "$t(editor.publish)",
+      "description": "你將要發佈你的文章，請在發佈前仔細檢查。",
+      "slug": "資料域",
+      "slugDescription": "這將會成為你文章永久連結的一部分：",
+      "slugAlreadyTaken": "存在相同資料域的文章。請另選一個。",
+      "language": "語言",
+      "cancel": "取消",
+      "submit": "現在發佈",
+      "loading": "正在發佈……",
+      "failed": "文章發佈失敗。請稍後重試。"
+    },
+    "draftSaved": "草稿儲存於 {{saved}}"
+  },
+  "composer": {
+    "content": "內容",
+    "contentPlaceholder": "你在想什麼？",
+    "commentPlaceholder": "寫個評論。",
+    "threadPlaceholder": "寫一個連續貼文把它做成貼文串。",
+    "quotePlaceholder": "輸入文字引用上述內容。",
+    "mediumAltPlaceholder": "用於視障者的替代文字",
+    "removeMedium": "刪除此圖片",
+    "visibility": "內容隱私度",
+    "language": "語言",
+    "preview": "預覽",
+    "previewLoading": "正在預覽……",
+    "quoteLoading": "正在載入引用……",
+    "quoteArticleConfirm": "你想引用這篇文章嗎？",
+    "quoteNoteConfirm": "你想引用這個貼文嗎？",
+    "removeQuote": "刪除引用",
+    "edit": "編輯",
+    "post": "發佈",
+    "postFailed": "發佈失敗。請稍候再試。",
+    "uploadImage": "上傳圖片",
+    "markdownEnabled": "Markdown 可用"
+  },
+  "postVisibility": {
+    "public": "公開",
+    "unlisted": "悄悄公開",
+    "followers": "只粉絲可見",
+    "direct": "只提及使用者可見"
+  },
+  "timeline": {
+    "fediverse": "聯邦宇宙",
+    "local": "Hackers' Pub",
+    "withoutShares": "不含轉貼",
+    "articlesOnly": "僅文章",
+    "mentionsAndQuotes": "提及和引用",
+    "recommendations": "$t(recommendedActors.title)"
+  },
+  "postPagination": {
+    "more": "更多內容",
+    "end": "沒有更多內容"
+  },
+  "search": {
+    "title": "搜尋結果",
+    "noResults": "未找到結果"
+  },
+  "recommendedActors": {
+    "title": "推薦關注",
+    "description": "這些是你可能感興趣的駭客。",
+    "follow": "$t(profile.follow)",
+    "following": "正在關注……"
+  },
+  "actorList": {
+    "seeMore": "查看更多"
+  },
+  "localePriorityList": {
+    "languagesToSelect": "可選語言：",
+    "languagesToSelectDescription": "Hackers' Pub UI 支援的語言以{{boldText}}顯示。",
+    "boldText": "粗體文字",
+    "selectedLanguages": "已選語言：",
+    "selectedLanguagesDescription": "請按照你熟悉的語言順序排列。"
+  },
+  "invitationTree": {
+    "title": "邀請樹",
+    "hideMe": "在邀請樹中隱藏我",
+    "showMe": "在邀請樹中顯示我",
+    "invited": "邀請了 {{count}} 人",
+    "hiddenAccount": "隱藏帳戶",
+    "hiddenAccountDescription": "此帳戶已隱藏，因為使用者希望保持身分私密。"
+  },
+  "pageNotFound": {
+    "title": "未找到頁面",
+    "description": "未找到你請求的頁面。"
+  }
+}

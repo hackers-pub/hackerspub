@@ -30,7 +30,7 @@ federation.setNodeInfoDispatcher("/nodeinfo/2.1", async (_ctx) => {
       name: "hackerspub",
       version: parseSemVer(metadata.version),
       homepage: new URL("https://hackers.pub/"),
-      repository: new URL("https://github.com/dahlia/hackerspub"),
+      repository: new URL("https://github.com/hackers-pub/hackerspub"),
     },
     protocols: ["activitypub"],
     services: {

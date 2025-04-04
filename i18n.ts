@@ -3,6 +3,7 @@ import en from "./locales/en.json" with { type: "json" };
 import ja from "./locales/ja.json" with { type: "json" };
 import ko from "./locales/ko.json" with { type: "json" };
 import zhCN from "./locales/zh-CN.json" with { type: "json" };
+import zhTW from "./locales/zh-TW.json" with { type: "json" };
 
 declare module "i18next" {
   interface CustomTypeOptions {
@@ -24,6 +25,9 @@ const resources = {
   },
   "zh-CN": {
     translation: zhCN,
+  },
+  "zh-TW": {
+    translation: zhTW,
   },
 } as const;
 

@@ -322,8 +322,8 @@ Pubでは：
   - 運営チームへの直接連絡
 - 提案には具体的な改善内容とその理由を含めてください
 
-[GitHubリポジトリ]: https://github.com/dahlia/hackerspub
-[GitHub Discussions]: https://github.com/dahlia/hackerspub/discussions
+[GitHubリポジトリ]: https://github.com/hackers-pub/hackerspub
+[GitHub Discussions]: https://github.com/hackers-pub/hackerspub/discussions
 
 ### 改善の手順
 

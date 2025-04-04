@@ -275,7 +275,7 @@ export default async function App(
                           $key="nav.openSource"
                           repository={
                             <a
-                              href="https://github.com/dahlia/hackerspub"
+                              href="https://github.com/hackers-pub/hackerspub"
                               class="underline"
                             >
                               <Msg $key="nav.githubRepository" />

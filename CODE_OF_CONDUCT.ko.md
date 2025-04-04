@@ -351,8 +351,8 @@ ActivityPub 연동 게시물의 신고:
   - 운영진에게 직접 의견 전달
 - 제안 시에는 구체적인 개선 내용과 그 이유를 함께 설명해 주시기 바랍니다.
 
-[GitHub 저장소]: https://github.com/dahlia/hackerspub
-[GitHub 토론 게시판]: https://github.com/dahlia/hackerspub/discussions
+[GitHub 저장소]: https://github.com/hackers-pub/hackerspub
+[GitHub 토론 게시판]: https://github.com/hackers-pub/hackerspub/discussions
 
 ### 개선 절차
 
