@@ -1450,7 +1450,7 @@ export async function persistPostLink(
       return link;
     }
   }
-  const scrapedLink = await scrapePostLink(url, async (handle) => {
+  let scrapedLink = await scrapePostLink(url, async (handle) => {
     if (!handle.startsWith("@")) handle = `@${handle}`;
     const actors = await persistActorsByHandles(db, ctx, [handle]);
     return actors[handle]?.id;
@@ -1460,6 +1460,13 @@ export async function persistPostLink(
     link: scrapedLink,
   });
   if (scrapedLink == null) return undefined;
+  if (scrapedLink.imageWidth == null || scrapedLink.imageHeight == null) {
+    scrapedLink = {
+      ...scrapedLink,
+      imageWidth: undefined,
+      imageHeight: undefined,
+    };
+  }
   const result = await db
     .insert(postLinkTable)
     .values(scrapedLink)
