@@ -1,4 +1,4 @@
-FROM docker.io/denoland/deno:2.2.2
+FROM docker.io/denoland/deno:2.2.8
 
 RUN apt-get update && apt-get install -y build-essential jq && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -9,7 +9,7 @@ COPY fonts /app/fonts
 COPY deno.json /app/deno.json
 COPY deno.lock /app/deno.lock
 
-RUN ["deno", "install", "--allow-scripts"]
+RUN ["deno", "install"]
 
 COPY . /app
 RUN cp .env.sample .env && \
@@ -21,7 +21,7 @@ RUN cp .env.sample .env && \
 ARG GIT_COMMIT
 ENV GIT_COMMIT=${GIT_COMMIT}
 
-RUN jq '.version += "+" + $git_commit' --arg git_commit $GIT_COMMIT deno.json > /tmp/deno.json && \ 
+RUN jq '.version += "+" + $git_commit' --arg git_commit $GIT_COMMIT deno.json > /tmp/deno.json && \
   mv /tmp/deno.json deno.json
 
 EXPOSE 8000
