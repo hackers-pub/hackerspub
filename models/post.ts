@@ -27,6 +27,7 @@ import type Keyv from "keyv";
 import { Buffer } from "node:buffer";
 import ogs from "open-graph-scraper";
 import { PDFDocument } from "pdf-lib";
+import postgres from "postgres";
 import { isSSRFSafeURL } from "ssrfcheck";
 import type { Database, RelationsFilter } from "../db.ts";
 import { ORIGIN } from "../federation/federation.ts";
@@ -647,15 +648,43 @@ export async function persistSharedPost(
     updated: toDate(announce.updated ?? announce.published) ?? undefined,
     published: toDate(announce.published) ?? undefined,
   };
-  const rows = await db.insert(postTable)
-    .values({ id: generateUuidV7(), ...values })
-    .onConflictDoUpdate({
-      target: postTable.iri,
-      set: values,
-      setWhere: eq(postTable.iri, announce.id.href),
-    })
-    .returning();
-  await updateSharesCount(db, post, 1);
+  const id = generateUuidV7();
+  let rows: Post[];
+  try {
+    rows = await db.insert(postTable)
+      .values({ id, ...values })
+      .onConflictDoUpdate({
+        target: postTable.iri,
+        set: values,
+        setWhere: eq(postTable.iri, announce.id.href),
+      })
+      .returning();
+  } catch (error) {
+    if (
+      error instanceof postgres.PostgresError &&
+      error.constraint_name == "post_actor_id_shared_post_id_unique"
+    ) {
+      const deleted = await db.delete(postTable)
+        .where(
+          and(
+            eq(postTable.actorId, actor.id),
+            eq(postTable.sharedPostId, post.id),
+          ),
+        );
+      await updateSharesCount(db, post, -deleted.length);
+      rows = await db.insert(postTable)
+        .values({ id, ...values })
+        .onConflictDoUpdate({
+          target: postTable.iri,
+          set: values,
+          setWhere: eq(postTable.iri, announce.id.href),
+        })
+        .returning();
+    }
+    throw error;
+  }
+  if (rows.length < 1) return undefined;
+  if (rows[0].id === id) await updateSharesCount(db, post, 1);
   return { ...rows[0], actor, sharedPost: post };
 }
 
