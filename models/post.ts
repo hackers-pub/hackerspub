@@ -532,16 +532,18 @@ export async function persistPost(
         mentionedActors.push(actor);
       }
     }
-    const mentionsResult = await db.insert(mentionTable)
-      .values(
-        mentionedActors.map((actor) => ({
-          postId: persistedPost.id,
-          actorId: actor.id,
-        })),
-      )
-      .onConflictDoNothing()
-      .returning()
-      .execute();
+    const mentionsResult = mentionedActors.length > 0
+      ? await db.insert(mentionTable)
+        .values(
+          mentionedActors.map((actor) => ({
+            postId: persistedPost.id,
+            actorId: actor.id,
+          })),
+        )
+        .onConflictDoNothing()
+        .returning()
+        .execute()
+      : [];
     mentionList = mentionsResult.map((m) => ({
       ...m,
       actor: mentionedActors.find((a) => a.id === m.actorId)!,
