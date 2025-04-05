@@ -1,12 +1,5 @@
-import {
-  ansiColorFormatter,
-  configure,
-  getStreamSink,
-  withFilter,
-} from "@logtape/logtape";
-import { getSentrySink } from "@logtape/sentry";
+import { ansiColorFormatter, configure, getStreamSink } from "@logtape/logtape";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { client } from "./sentry.ts";
 
 await configure({
   contextLocalStorage: new AsyncLocalStorage(),
@@ -14,24 +7,19 @@ await configure({
     console: getStreamSink(Deno.stderr.writable, {
       formatter: ansiColorFormatter,
     }),
-    sentry: withFilter(
-      // @ts-ignore: client is assignable to type 'Client'.
-      getSentrySink(client),
-      (record) => record.level === "debug" || record.level === "info",
-    ),
   },
   loggers: [
     {
       category: "hackerspub",
       lowestLevel: "debug",
-      sinks: ["console", "sentry"],
+      sinks: ["console"],
     },
     { category: "drizzle-orm", lowestLevel: "info", sinks: ["console"] },
-    { category: "fedify", lowestLevel: "info", sinks: ["console", "sentry"] },
+    { category: "fedify", lowestLevel: "info", sinks: ["console"] },
     {
       category: ["logtape", "meta"],
       lowestLevel: "warning",
-      sinks: ["console", "sentry"],
+      sinks: ["console"],
     },
   ],
 });

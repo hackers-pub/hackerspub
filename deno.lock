@@ -19,7 +19,6 @@
     "jsr:@logtape/logtape@0.9": "0.9.0",
     "jsr:@logtape/logtape@~0.6.3": "0.6.5",
     "jsr:@logtape/logtape@~0.8.2": "0.8.2",
-    "jsr:@logtape/sentry@0.1": "0.1.0",
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.1",
     "jsr:@onisaint/validate-email@^1.0.1": "1.0.1",
     "jsr:@schotsl/mailgun@^1.3.0": "1.3.0",
@@ -89,7 +88,6 @@
     "npm:@sentry/core@^8.40.0": "8.55.0",
     "npm:@sentry/deno@^8.38.0": "8.55.0",
     "npm:@sentry/opentelemetry@^8.39.0": "8.55.0_@opentelemetry+api@1.9.0_@opentelemetry+context-async-hooks@1.30.1__@opentelemetry+api@1.9.0_@opentelemetry+core@1.30.1__@opentelemetry+api@1.9.0_@opentelemetry+instrumentation@0.57.2__@opentelemetry+api@1.9.0_@opentelemetry+sdk-trace-base@1.30.1__@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.30.0",
-    "npm:@sentry/types@^8.40.0": "8.55.0",
     "npm:@shikijs/markdown-it@^1.22.2": "1.29.2",
     "npm:@shikijs/transformers@^1.22.2": "1.29.2",
     "npm:@tailwindcss/typography@~0.5.15": "0.5.16_tailwindcss@3.4.3__postcss@8.5.3",
@@ -307,14 +305,6 @@
     },
     "@logtape/logtape@0.9.0": {
       "integrity": "aacdeb0e040e5723021bef8b9b8c03ad7cffb5e2146a0024c30814930f6e7c89"
-    },
-    "@logtape/sentry@0.1.0": {
-      "integrity": "d7607e646b13ade52245f46aeb17fbdef60f1e5fef75add54d70b6c9c89b6adc",
-      "dependencies": [
-        "jsr:@logtape/logtape@0.8",
-        "npm:@sentry/core@^8.40.0",
-        "npm:@sentry/types"
-      ]
     },
     "@luca/esbuild-deno-loader@0.11.1": {
       "integrity": "dc020d16d75b591f679f6b9288b10f38bdb4f24345edb2f5732affa1d9885267",
@@ -1722,12 +1712,6 @@
         "@opentelemetry/instrumentation@0.57.2_@opentelemetry+api@1.9.0",
         "@opentelemetry/sdk-trace-base",
         "@opentelemetry/semantic-conventions@1.30.0",
-        "@sentry/core"
-      ]
-    },
-    "@sentry/types@8.55.0": {
-      "integrity": "sha512-6LRT0+r6NWQ+RtllrUW2yQfodST0cJnkOmdpHA75vONgBUhpKwiJ4H7AmgfoTET8w29pU6AnntaGOe0LJbOmog==",
-      "dependencies": [
         "@sentry/core"
       ]
     },
@@ -4391,7 +4375,6 @@
       "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",
       "jsr:@logtape/logtape@~0.8.2",
-      "jsr:@logtape/sentry@0.1",
       "jsr:@onisaint/validate-email@^1.0.1",
       "jsr:@schotsl/mailgun@^1.3.0",
       "jsr:@std/assert@^1.0.7",

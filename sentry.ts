@@ -45,7 +45,7 @@ if (SENTRY_DSN != null) {
 
   init({
     dsn: SENTRY_DSN,
-    tracesSampleRate: 1.0,
+    tracesSampleRate: 0.5,
     integrations: [
       ...getDefaultIntegrations({}),
       denoCronIntegration(),
