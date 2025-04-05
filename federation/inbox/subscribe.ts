@@ -36,7 +36,7 @@ export async function onPostCreated(
 ): Promise<void> {
   logger.debug("On post created: {create}", { create });
   if (create.objectId?.origin !== create.actorId?.origin) return;
-  const object = await create.getObject(fedCtx);
+  const object = await create.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;
   const post = await persistPost(db, fedCtx, object, {
@@ -82,7 +82,7 @@ export async function onPostUpdated(
 ): Promise<void> {
   logger.debug("On post updated: {update}", { update });
   if (update.objectId?.origin !== update.actorId?.origin) return;
-  const object = await update.getObject(fedCtx);
+  const object = await update.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== update.actorId?.href) return;
   await persistPost(db, fedCtx, object, {
@@ -98,7 +98,7 @@ export async function onPostDeleted(
 ): Promise<void> {
   logger.debug("On post deleted: {delete}", { delete: del });
   if (del.objectId?.origin !== del.actorId?.origin) return;
-  const object = await del.getObject(fedCtx);
+  const object = await del.getObject({ ...fedCtx, suppressError: true });
   if (
     !(isPostObject(object) || object instanceof Tombstone) ||
     object.id == null || del.actorId == null
@@ -114,7 +114,7 @@ export async function onPostShared(
 ): Promise<void> {
   logger.debug("On post shared: {announce}", { announce });
   if (announce.id?.origin !== announce.actorId?.origin) return;
-  const object = await announce.getObject(fedCtx);
+  const object = await announce.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
   const post = await persistSharedPost(db, fedCtx, announce, fedCtx);
   if (post != null) {
