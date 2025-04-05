@@ -316,8 +316,13 @@ export async function persistPost(
     options.actor == null || options.actor.iri !== post.attributionId.href
       ? await getPersistedActor(db, post.attributionId)
       : options.actor;
+  const opts = {
+    contextLoader: options.contextLoader,
+    documentLoader: options.documentLoader,
+    suppressError: true,
+  };
   if (actor == null) {
-    const apActor = await post.getAttribution(options);
+    const apActor = await post.getAttribution(opts);
     if (apActor == null) return;
     actor = await persistActor(db, ctx, apActor, options);
     if (actor == null) {
@@ -329,7 +334,7 @@ export async function persistPost(
   const mentions = new Set<string>();
   const emojis: Record<string, string> = {};
   const quotedPostIris: string[] = [];
-  for await (const tag of post.getTags(options)) {
+  for await (const tag of post.getTags(opts)) {
     if (tag instanceof vocab.Hashtag) {
       if (tag.name == null || tag.href == null) continue;
       tags[tag.name.toString().replace(/^#/, "")] = tag.href.href;
@@ -338,7 +343,7 @@ export async function persistPost(
       mentions.add(tag.href.href);
     } else if (tag instanceof vocab.Emoji) {
       if (tag.name == null) continue;
-      const icon = await tag.getIcon(options);
+      const icon = await tag.getIcon(opts);
       if (
         icon?.url == null ||
         icon.url instanceof vocab.Link && icon.url.href == null
@@ -409,7 +414,7 @@ export async function persistPost(
     }
   }
   const attachments: vocab.Document[] = [];
-  for await (const attachment of post.getAttachments(options)) {
+  for await (const attachment of post.getAttachments(opts)) {
     if (attachment instanceof vocab.Document) attachments.push(attachment);
   }
   let replyTarget: Post & { actor: Actor & { instance: Instance } } | undefined;
@@ -417,15 +422,15 @@ export async function persistPost(
     replyTarget = options.replyTarget ??
       await getPersistedPost(db, post.replyTargetId);
     if (replyTarget == null) {
-      const apReplyTarget = await post.getReplyTarget(options);
+      const apReplyTarget = await post.getReplyTarget(opts);
       if (!isPostObject(apReplyTarget)) return;
       replyTarget = await persistPost(db, ctx, apReplyTarget, options);
       if (replyTarget == null) return;
     }
   }
-  const replies = options.replies ? await post.getReplies(options) : null;
-  const shares = await post.getShares(options);
-  const likes = await post.getLikes(options);
+  const replies = options.replies ? await post.getReplies(opts) : null;
+  const shares = await post.getShares(opts);
+  const likes = await post.getLikes(opts);
   const to = new Set(post.toIds.map((u) => u.href));
   const cc = new Set(post.ccIds.map((u) => u.href));
   const recipients = to.union(cc);
@@ -551,15 +556,9 @@ export async function persistPost(
     i++;
   }
   if (options.replies) {
-    const replies = await post.getReplies(options);
     if (replies != null) {
       let repliesCount = 0;
-      for await (
-        const reply of traverseCollection(replies, {
-          ...options,
-          suppressError: true,
-        })
-      ) {
+      for await (const reply of traverseCollection(replies, opts)) {
         if (!isPostObject(reply)) continue;
         await persistPost(db, ctx, reply, {
           ...options,
