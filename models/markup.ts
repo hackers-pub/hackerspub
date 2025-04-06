@@ -97,6 +97,7 @@ let md = createMarkdownIt({ html: true, linkify: true })
   });
 
 // Lazy load Shiki to avoid blocking the startup time
+// TODO: Use markdown-it-async
 let shikiLoaded = false;
 let loadingShiki = new Promise<void>((resolve) =>
   setTimeout(() => {
@@ -115,6 +116,8 @@ let loadingShiki = new Promise<void>((resolve) =>
         transformerNotationFocus({ matchAlgorithm: "v3" }),
         transformerRemoveNotationEscape(),
       ],
+      // @ts-ignore: Shiki has a special language name for plain text
+      fallbackLanguage: "text",
     }).then((shiki) => {
       md = md.use(shiki);
       shikiLoaded = true;
