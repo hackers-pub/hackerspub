@@ -543,7 +543,7 @@ export default define.page<typeof handler, NotePageProps>(
                 class="mt-4 ml-14"
                 language={state.language}
                 visibility={reply.visibility}
-                active="reply"
+                replyUrl={replyUrl}
                 replies={reply.repliesCount}
                 shares={reply.sharesCount}
                 shareUrl={state.account == null ||
