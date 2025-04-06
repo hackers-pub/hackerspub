@@ -281,6 +281,9 @@ export const handler = define.handlers({
                     ],
                   }
                   : {},
+                ctx.state.account.hideForeignLanguages
+                  ? { language: { in: ctx.state.locales } }
+                  : {},
               ],
             },
             ...(filter === "withoutShares"

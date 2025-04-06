@@ -1,0 +1,1 @@
+ALTER TABLE "account" ADD COLUMN "hide_foreign_languages" boolean DEFAULT false NOT NULL;

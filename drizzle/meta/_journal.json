@@ -407,6 +407,13 @@
       "when": 1743642523201,
       "tag": "0057_account.notification_read",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1743950102344,
+      "tag": "0058_account.hide_foreign_languages",
+      "breakpoints": true
     }
   ]
 }

@@ -114,6 +114,7 @@
     },
     "language": {
       "title": "言語設定",
+      "hideForeignLanguages": "理解できない言語の$t(glossary.post)を$t(glossary.timeline)から非表示にする",
       "save": "$t(settings.profile.save)"
     },
     "invite": {

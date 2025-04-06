@@ -16,7 +16,8 @@
     "follow": "팔로",
     "followee": "팔로잉",
     "follower": "팔로워",
-    "fediverse": "연합우주"
+    "fediverse": "연합우주",
+    "timeline": "타임라인"
   },
   "notification": {
     "title": "알림",
@@ -114,6 +115,7 @@
     },
     "language": {
       "title": "언어 설정",
+      "hideForeignLanguages": "$t(glossary.timeline)에서 내가 모르는 언어로 된 $t(glossary.post) 숨기기",
       "save": "$t(settings.profile.save)"
     },
     "invite": {

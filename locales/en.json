@@ -16,7 +16,8 @@
     "follow": "follow",
     "followee": "following",
     "follower": "follower",
-    "fediverse": "fediverse"
+    "fediverse": "fediverse",
+    "timeline": "timeline"
   },
   "notification": {
     "title": "Notifications",
@@ -115,6 +116,7 @@
     },
     "language": {
       "title": "Language settings",
+      "hideForeignLanguages": "Hide posts in languages you don't know from your timeline",
       "save": "$t(settings.profile.save)"
     },
     "invite": {

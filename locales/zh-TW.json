@@ -114,6 +114,7 @@
     },
     "language": {
       "title": "語言設定",
+      "hideForeignLanguages": "在你的$t(glossary.timeline)中隱藏你不懂的語言的$t(glossary.post)",
       "save": "$t(settings.profile.save)"
     },
     "invite": {

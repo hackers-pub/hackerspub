@@ -44,6 +44,9 @@ export const accountTable = pgTable(
     hideFromInvitationTree: boolean("hide_from_invitation_tree")
       .notNull()
       .default(false),
+    hideForeignLanguages: boolean("hide_foreign_languages")
+      .notNull()
+      .default(false),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),

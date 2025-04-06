@@ -33,9 +33,14 @@ export const handler = define.handlers({
     }
     const form = await ctx.req.formData();
     const locales = form.getAll("locales").map(String).filter(isLocale);
+    const hideForeignLanguages = form.get("hideForeignLanguages") === "true";
     await db.update(accountTable)
-      .set({ locales: locales.length < 1 ? null : locales })
+      .set({
+        locales: locales.length < 1 ? null : locales,
+        hideForeignLanguages,
+      })
       .where(eq(accountTable.id, account.id));
+    account.hideForeignLanguages = hideForeignLanguages;
     ctx.state.locales = locales;
     ctx.state.language = locales.find(isLanguage) ?? DEFAULT_LANGUAGE;
     return page<LanguageSettingsPageProps>({ account, locales });
@@ -60,8 +65,18 @@ export default define.page<typeof handler, LanguageSettingsPageProps>(
           language={state.language}
           name="locales"
           selectedLocales={locales}
-          class="mt-4"
+          class="my-4"
         />
+        <label>
+          <input
+            type="checkbox"
+            name="hideForeignLanguages"
+            value="true"
+            checked={account.hideForeignLanguages}
+            class="mr-1"
+          />
+          <Msg $key="settings.language.hideForeignLanguages" />
+        </label>
         <Button type="submit" class="mt-4 w-full">
           <Msg $key="settings.language.save" />
         </Button>
