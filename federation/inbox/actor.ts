@@ -21,8 +21,11 @@ export async function onActorUpdated(
 export async function onActorDeleted(
   _fedCtx: InboxContext<void>,
   del: Delete,
-): Promise<void> {
+): Promise<boolean> {
   const actorId = del.actorId;
-  if (actorId == null || del.objectId?.href !== actorId.href) return;
-  await db.delete(actorTable).where(eq(actorTable.iri, actorId.href));
+  if (actorId == null || del.objectId?.href !== actorId.href) return false;
+  const deletedRows = await db.delete(actorTable)
+    .where(eq(actorTable.iri, actorId.href))
+    .returning();
+  return deletedRows.length > 0;
 }

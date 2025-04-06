@@ -45,9 +45,8 @@ federation
     else logger.warn("Unhandled Update object: {update}", { update });
   })
   .on(Delete, async (fedCtx, del) => {
-    const object = await del.getObject(fedCtx);
-    if (isActor(object)) await onActorDeleted(fedCtx, del);
-    else if (isPostObject(object)) await onPostDeleted(fedCtx, del);
-    else logger.warn("Unhandled Delete object: {delete}", { delete: del });
+    await onPostDeleted(fedCtx, del) ||
+      await onActorDeleted(fedCtx, del) ||
+      logger.warn("Unhandled Delete object: {delete}", { delete: del });
   })
   .onError((_, error) => void captureException(error));

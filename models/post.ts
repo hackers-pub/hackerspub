@@ -986,7 +986,7 @@ export async function deletePersistedPost(
   db: Database,
   iri: URL,
   actorIri: URL,
-): Promise<void> {
+): Promise<boolean> {
   const deletedPosts = await db.delete(postTable).where(
     and(
       eq(postTable.iri, iri.toString()),
@@ -999,14 +999,15 @@ export async function deletePersistedPost(
       isNull(postTable.sharedPostId),
     ),
   ).returning();
-  if (deletedPosts.length < 1) return;
+  if (deletedPosts.length < 1) return false;
   const [deletedPost] = deletedPosts;
-  if (deletedPost.replyTargetId == null) return;
+  if (deletedPost.replyTargetId == null) return true;
   const replyTarget = await db.query.postTable.findFirst({
     where: { id: deletedPost.replyTargetId },
   });
-  if (replyTarget == null) return;
+  if (replyTarget == null) return true;
   await updateRepliesCount(db, replyTarget, -1);
+  return true;
 }
 
 export async function deleteSharedPost(

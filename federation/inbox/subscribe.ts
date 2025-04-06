@@ -95,17 +95,17 @@ export async function onPostUpdated(
 export async function onPostDeleted(
   fedCtx: InboxContext<void>,
   del: Delete,
-): Promise<void> {
+): Promise<boolean> {
   logger.debug("On post deleted: {delete}", { delete: del });
-  if (del.objectId?.origin !== del.actorId?.origin) return;
+  if (del.objectId?.origin !== del.actorId?.origin) return false;
   const object = await del.getObject({ ...fedCtx, suppressError: true });
   if (
     !(isPostObject(object) || object instanceof Tombstone) ||
     object.id == null || del.actorId == null
   ) {
-    return;
+    return false;
   }
-  await deletePersistedPost(db, object.id, del.actorId);
+  return await deletePersistedPost(db, object.id, del.actorId);
 }
 
 export async function onPostShared(
