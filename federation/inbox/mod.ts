@@ -12,7 +12,7 @@ import { getLogger } from "@logtape/logtape";
 import { captureException } from "@sentry/deno";
 import { isPostObject } from "../../models/post.ts";
 import { federation } from "../federation.ts";
-import { onActorUpdated } from "./actor.ts";
+import { onActorDeleted, onActorUpdated } from "./actor.ts";
 import { onFollowAccepted, onFollowed, onUnfollowed } from "./following.ts";
 import {
   onPostCreated,
@@ -44,5 +44,10 @@ federation
     else if (isPostObject(object)) await onPostUpdated(fedCtx, update);
     else logger.warn("Unhandled Update object: {update}", { update });
   })
-  .on(Delete, onPostDeleted)
+  .on(Delete, async (fedCtx, del) => {
+    const object = await del.getObject(fedCtx);
+    if (isActor(object)) await onActorDeleted(fedCtx, del);
+    else if (isPostObject(object)) await onPostDeleted(fedCtx, del);
+    else logger.warn("Unhandled Delete object: {delete}", { delete: del });
+  })
   .onError((_, error) => void captureException(error));
