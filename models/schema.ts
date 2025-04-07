@@ -243,7 +243,7 @@ export const actorTable = pgTable(
     sensitive: boolean().notNull().default(false),
     successorId: uuid("successor_id")
       .$type<Uuid>()
-      .references((): AnyPgColumn => actorTable.id, { onDelete: "cascade" }),
+      .references((): AnyPgColumn => actorTable.id, { onDelete: "set null" }),
     aliases: text().array().notNull().default(sql`(ARRAY[]::text[])`),
     followeesCount: integer("followees_count").notNull().default(0),
     followersCount: integer("followers_count").notNull().default(0),

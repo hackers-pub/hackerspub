@@ -169,7 +169,8 @@
     "shares": "Shares: {{shares}}",
     "articles": "Articles: {{articles}}",
     "feed": "{{name}}'s feed (notes and articles)",
-    "articlesFeed": "{{name}}'s feed (articles only)"
+    "articlesFeed": "{{name}}'s feed (articles only)",
+    "successorDescription": "This account has moved to {{successor}}. This account is no longer in use."
   },
   "articleDrafts": {
     "title": "Article drafts",

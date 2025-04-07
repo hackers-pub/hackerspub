@@ -57,12 +57,16 @@ export async function getAccountByUsername(
   db: Database,
   username: string,
 ): Promise<
-  | Account & { actor: Actor; emails: AccountEmail[]; links: AccountLink[] }
+  | Account & {
+    actor: Actor & { successor: Actor | null };
+    emails: AccountEmail[];
+    links: AccountLink[];
+  }
   | undefined
 > {
   const account = await db.query.accountTable.findFirst({
     with: {
-      actor: true,
+      actor: { with: { successor: true } },
       emails: true,
       links: { orderBy: { index: "asc" } },
     },
@@ -71,7 +75,7 @@ export async function getAccountByUsername(
   if (account != null) return account;
   return await db.query.accountTable.findFirst({
     with: {
-      actor: true,
+      actor: { with: { successor: true } },
       emails: true,
       links: { orderBy: { index: "asc" } },
     },

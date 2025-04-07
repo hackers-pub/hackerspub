@@ -123,7 +123,9 @@ export async function persistActor(
     documentLoader?: DocumentLoader;
     outbox?: boolean;
   } = {},
-): Promise<Actor & { instance: Instance } | undefined> {
+): Promise<
+  Actor & { instance: Instance; successor: Actor | null } | undefined
+> {
   if (actor.id == null) return undefined;
   else if (actor.inboxId == null) {
     logger.warn("Actor {actorId} has no inbox.", { actorId: actor.id.href });
@@ -151,10 +153,10 @@ export async function persistActor(
     ],
   );
   const emojis: Record<string, string> = {};
-  for await (const tag of actor.getTags(options)) {
+  for await (const tag of actor.getTags(getterOpts)) {
     if (tag instanceof vocab.Emoji) {
       if (tag.name == null) continue;
-      const icon = await tag.getIcon(options);
+      const icon = await tag.getIcon(getterOpts);
       if (
         icon?.url == null ||
         icon.url instanceof vocab.Link && icon.url.href == null
@@ -166,6 +168,10 @@ export async function persistActor(
         : icon.url.href!.href;
     }
   }
+  const successor = await actor.getSuccessor(getterOpts);
+  const successorActor = isActor(successor)
+    ? await persistActor(db, ctx, successor, options)
+    : null;
   const values: Omit<NewActor, "id"> = {
     iri: actor.id.href,
     type: getActorTypeName(actor),
@@ -193,6 +199,11 @@ export async function persistActor(
     url: actor.url instanceof Link ? actor.url.href?.href : actor.url?.href,
     followeesCount: followees?.totalItems ?? 0,
     followersCount: followers?.totalItems ?? 0,
+    aliases: actor.aliasIds?.map((a) => a.href),
+    successorId:
+      successorActor == null || !successorActor.aliases.includes(actor.id.href)
+        ? null
+        : successorActor.id,
     updated: actor.updated == null
       ? undefined
       : new Date(actor.updated.toString()),
@@ -209,14 +220,9 @@ export async function persistActor(
     })
     .returning();
   const result = { ...rows[0], instance };
-  const featured = await actor.getFeatured(options);
+  const featured = await actor.getFeatured(getterOpts);
   if (featured != null) {
-    for await (
-      const object of traverseCollection(featured, {
-        ...options,
-        suppressError: true,
-      })
-    ) {
+    for await (const object of traverseCollection(featured, getterOpts)) {
       if (!isPostObject(object)) continue;
       await persistPost(db, ctx, object, {
         ...options,
@@ -225,19 +231,16 @@ export async function persistActor(
       });
     }
   }
-  const outbox = options.outbox ? await actor.getOutbox(options) : null;
+  const outbox = options.outbox ? await actor.getOutbox(getterOpts) : null;
   if (outbox != null) {
     let i = 0;
     for await (
-      const activity of traverseCollection(outbox, {
-        ...options,
-        suppressError: true,
-      })
+      const activity of traverseCollection(outbox, getterOpts)
     ) {
       if (activity instanceof vocab.Create) {
         let object: vocab.Object | null;
         try {
-          object = await activity.getObject(options);
+          object = await activity.getObject(getterOpts);
         } catch (error) {
           logger.warn(
             "Failed to get object for activity {activityId}: {error}",
@@ -262,7 +265,7 @@ export async function persistActor(
       if (i >= 10) break;
     }
   }
-  return result;
+  return { ...result, successor: successorActor ?? null };
 }
 
 export function getPersistedActor(

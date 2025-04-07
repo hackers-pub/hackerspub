@@ -87,6 +87,7 @@ export const handler = define.handlers({
         ctx.params.username.indexOf("@") + 1,
       );
       let actor = await db.query.actorTable.findFirst({
+        with: { successor: true },
         where: {
           username,
           OR: [
@@ -445,7 +446,7 @@ export const handler = define.handlers({
 
 interface ProfilePageProps {
   profileHref: string;
-  actor: Actor;
+  actor: Actor & { successor: Actor | null };
   actorMentions: { actor: Actor }[];
   followingState?: FollowingState;
   followedState?: FollowingState;

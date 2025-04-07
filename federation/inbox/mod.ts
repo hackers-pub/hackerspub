@@ -5,6 +5,7 @@ import {
   Delete,
   Follow,
   isActor,
+  Move,
   Undo,
   Update,
 } from "@fedify/fedify";
@@ -12,7 +13,7 @@ import { getLogger } from "@logtape/logtape";
 import { captureException } from "@sentry/deno";
 import { isPostObject } from "../../models/post.ts";
 import { federation } from "../federation.ts";
-import { onActorDeleted, onActorUpdated } from "./actor.ts";
+import { onActorDeleted, onActorMoved, onActorUpdated } from "./actor.ts";
 import { onFollowAccepted, onFollowed, onUnfollowed } from "./following.ts";
 import {
   onPostCreated,
@@ -49,4 +50,5 @@ federation
       await onActorDeleted(fedCtx, del) ||
       logger.warn("Unhandled Delete object: {delete}", { delete: del });
   })
+  .on(Move, onActorMoved)
   .onError((_, error) => void captureException(error));

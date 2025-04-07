@@ -165,7 +165,8 @@
     "shares": "共有：{{shares}}",
     "articles": "記事：{{articles}}",
     "feed": "{{name}}さんのフィード（投稿と記事）",
-    "articlesFeed": "{{name}}さんのフィード（記事のみ）"
+    "articlesFeed": "{{name}}さんのフィード（記事のみ）",
+    "successorDescription": "このアカウントは{{successor}}に移行しました。このアカウントは使用されていません。"
   },
   "articleDrafts": {
     "title": "下書き",

@@ -164,7 +164,8 @@
     "shares": "공유: {{shares}}",
     "articles": "게시글: {{articles}}",
     "feed": "{{name}} 님의 피드 (단문과 게시글)",
-    "articlesFeed": "{{name}} 님의 피드 (게시글만)"
+    "articlesFeed": "{{name}} 님의 피드 (게시글만)",
+    "successorDescription": "이 계정은 {{successor}}로 이전되었습니다. 이 계정은 더 이상 사용되지 않습니다."
   },
   "articleDrafts": {
     "title": "게시글 임시 보관함",

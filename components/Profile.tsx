@@ -1,4 +1,6 @@
 import { escape } from "@std/html/entities";
+import { Link } from "../islands/Link.tsx";
+import { getAvatarUrl } from "../models/avatar.ts";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import type { FollowingState } from "../models/following.ts";
 import { preprocessContentHtml, sanitizeHtml } from "../models/html.ts";
@@ -9,7 +11,7 @@ import { Msg, Translation } from "./Msg.tsx";
 import { PageTitle } from "./PageTitle.tsx";
 
 export interface ProfileProps {
-  actor: Actor;
+  actor: Actor & { successor: Actor | null };
   actorMentions: { actor: Actor }[];
   followingState?: FollowingState;
   followedState?: FollowingState;
@@ -32,6 +34,44 @@ export function Profile(
     <Translation>
       {(t) => (
         <>
+          {actor.successor != null && (
+            <div class="mb-4 p-4 bg-stone-100 dark:bg-stone-800">
+              <Msg
+                $key="profile.successorDescription"
+                successor={
+                  <Link
+                    href={actor.successor.url ?? actor.successor.iri}
+                    internalHref={actor.accountId == null
+                      ? `/${actor.successor.handle}`
+                      : `/@${actor.successor.username}`}
+                    class="font-bold"
+                  >
+                    <img
+                      src={getAvatarUrl(actor.successor)}
+                      width={18}
+                      height={18}
+                      class="inline-block align-top mt-0.5 mr-1"
+                    />
+                    {actor.successor.name == null
+                      ? actor.successor.username
+                      : (
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html: renderCustomEmojis(
+                              escape(actor.successor.name),
+                              actor.successor.emojis,
+                            ),
+                          }}
+                        />
+                      )}
+                    <span class="opacity-50 before:content-['('] after:content-[')'] font-normal ml-1">
+                      {actor.successor.handle}
+                    </span>
+                  </Link>
+                }
+              />
+            </div>
+          )}
           <div class="flex">
             {actor.avatarUrl && (
               <a
@@ -42,7 +82,9 @@ export function Profile(
                   src={actor.avatarUrl}
                   width={56}
                   height={56}
-                  class="mb-5 mr-4"
+                  class={`mb-5 mr-4 ${
+                    actor.successorId == null ? "" : "grayscale"
+                  }`}
                 />
               </a>
             )}
@@ -95,6 +137,7 @@ export function Profile(
                   <a
                     href={actor.url ?? actor.iri}
                     target={actor.accountId == null ? "_blank" : undefined}
+                    class={actor.successorId == null ? "" : "grayscale"}
                   >
                     {actor.username}
                   </a>
@@ -109,6 +152,7 @@ export function Profile(
                         actor.emojis,
                       ),
                     }}
+                    class={actor.successorId == null ? "" : "grayscale"}
                   />
                 )}
             </PageTitle>

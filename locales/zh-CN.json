@@ -166,7 +166,8 @@
     "shares": "转帖：{{shares}}",
     "articles": "文章：{{articles}}",
     "feed": "{{name}} 的订阅流（帖子和文章）",
-    "articlesFeed": "{{name}} 的订阅流（仅文章）"
+    "articlesFeed": "{{name}} 的订阅流（仅文章）",
+    "successorDescription": "此账户已迁移至 {{successor}}。此账户不再使用。"
   },
   "articleDrafts": {
     "title": "文章草稿",

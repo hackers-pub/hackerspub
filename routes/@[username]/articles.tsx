@@ -44,7 +44,7 @@ export const handler = define.handlers({
       ? DEFAULT_WINDOW
       : parseInt(windowString);
     let account: Account | undefined;
-    let actor: Actor | undefined;
+    let actor: Actor & { successor: Actor | null } | undefined;
     let links: AccountLink[] | undefined;
     if (ctx.params.username.includes("@")) {
       const username = ctx.params.username.replace(/@.*$/, "");
@@ -52,6 +52,7 @@ export const handler = define.handlers({
         ctx.params.username.indexOf("@") + 1,
       );
       actor = await db.query.actorTable.findFirst({
+        with: { successor: true },
         where: {
           username,
           OR: [
@@ -63,7 +64,7 @@ export const handler = define.handlers({
       if (actor == null) return ctx.next();
     } else {
       const acct = await db.query.accountTable.findFirst({
-        with: { actor: true, links: true },
+        with: { actor: { with: { successor: true } }, links: true },
         where: { username: ctx.params.username },
       });
       if (acct == null) return ctx.next();
@@ -191,7 +192,7 @@ export const handler = define.handlers({
 
 interface ProfileArticleListProps {
   profileHref: string;
-  actor: Actor;
+  actor: Actor & { successor: Actor | null };
   actorMentions: { actor: Actor }[];
   followingState?: FollowingState;
   followedState?: FollowingState;
