@@ -4,7 +4,7 @@ import { mention } from "@fedify/markdown-it-mention";
 import { getLogger } from "@logtape/logtape";
 import { titlePlugin as title } from "@mdit-vue/plugin-title";
 import cjkBreaks from "@searking/markdown-it-cjk-breaks";
-import shiki from "@shikijs/markdown-it";
+import { fromAsyncCodeToHtml } from "@shikijs/markdown-it/async";
 import {
   transformerMetaHighlight,
   transformerMetaWordHighlight,
@@ -22,15 +22,16 @@ import { load } from "cheerio";
 import { arrayOverlaps, eq } from "drizzle-orm";
 import katex from "katex";
 import type Keyv from "keyv";
-import createMarkdownIt from "markdown-it";
 import abbr from "markdown-it-abbr";
 import anchor from "markdown-it-anchor";
+import MarkdownItAsync from "markdown-it-async";
 import deflist from "markdown-it-deflist";
 import footnote from "markdown-it-footnote";
 import admonition from "markdown-it-github-alerts";
 import graphviz from "markdown-it-graphviz";
 import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
+import { codeToHtml } from "shiki";
 import type { Database } from "../db.ts";
 import { persistActor, persistActorsByHandles } from "./actor.ts";
 import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./html.ts";
@@ -43,7 +44,7 @@ const KV_CACHE_VERSION = "2025-03-29";
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
-let md = createMarkdownIt({ html: true, linkify: true })
+const md = MarkdownItAsync({ html: true, linkify: true })
   .use(abbr)
   .use(admonition)
   .use(anchor, {
@@ -94,37 +95,31 @@ let md = createMarkdownIt({ html: true, linkify: true })
     callback(_html: string, ast: InternalToc) {
       tocTree = ast;
     },
-  });
-
-// Lazy load Shiki to avoid blocking the startup time
-// TODO: Use markdown-it-async
-let shikiLoaded = false;
-let loadingShiki = new Promise<void>((resolve) =>
-  setTimeout(() => {
-    loadingShiki = shiki({
-      themes: {
-        light: "vitesse-light",
-        dark: "vitesse-dark",
+  })
+  .use(
+    fromAsyncCodeToHtml(
+      (code, options) =>
+        codeToHtml(code, options).catch((_) =>
+          codeToHtml(code, { ...options, lang: "text" })
+        ),
+      {
+        themes: {
+          light: "vitesse-light",
+          dark: "vitesse-dark",
+        },
+        transformers: [
+          transformerNotationDiff({ matchAlgorithm: "v3" }),
+          transformerNotationHighlight({ matchAlgorithm: "v3" }),
+          transformerMetaHighlight(),
+          transformerNotationWordHighlight({ matchAlgorithm: "v3" }),
+          transformerNotationErrorLevel({ matchAlgorithm: "v3" }),
+          transformerMetaWordHighlight(),
+          transformerNotationFocus({ matchAlgorithm: "v3" }),
+          transformerRemoveNotationEscape(),
+        ],
       },
-      transformers: [
-        transformerNotationDiff({ matchAlgorithm: "v3" }),
-        transformerNotationHighlight({ matchAlgorithm: "v3" }),
-        transformerMetaHighlight(),
-        transformerNotationWordHighlight({ matchAlgorithm: "v3" }),
-        transformerNotationErrorLevel({ matchAlgorithm: "v3" }),
-        transformerMetaWordHighlight(),
-        transformerNotationFocus({ matchAlgorithm: "v3" }),
-        transformerRemoveNotationEscape(),
-      ],
-      // @ts-ignore: Shiki has a special language name for plain text
-      fallbackLanguage: "text",
-    }).then((shiki) => {
-      md = md.use(shiki);
-      shikiLoaded = true;
-      resolve();
-    });
-  }, 500)
-);
+    ),
+  );
 
 export interface RenderedMarkup {
   html: string;
@@ -171,25 +166,24 @@ export async function renderMarkup(
     }
   }
   const localDomain = new URL(fedCtx.canonicalOrigin).host;
-  const tmpMd = createMarkdownIt().use(mention, {
+  const tmpMd = MarkdownItAsync().use(mention, {
     localDomain() {
       return localDomain;
     },
   });
   const tmpEnv: { mentions: string[] } = { mentions: [] };
-  tmpMd.render(markup, tmpEnv);
+  await tmpMd.renderAsync(markup, tmpEnv);
   const mentions = new Set(tmpEnv.mentions);
   const mentionedActors = await persistActorsByHandles(db, fedCtx, [
     ...mentions,
   ]);
-  if (!shikiLoaded) await loadingShiki;
   const env: Env = {
     docId: options.docId,
     title: "",
     localDomain,
     mentionedActors,
   };
-  const rawHtml = md.render(markup, env)
+  const rawHtml = (await md.renderAsync(markup, env))
     .replaceAll('<?xml version="1.0" encoding="UTF-8" standalone="no"?>', "")
     .replaceAll(
       '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"\n' +
