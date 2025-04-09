@@ -1,4 +1,4 @@
-import { PostControls, toReactionStates } from "../islands/PostControls.tsx";
+import { PostControls } from "../islands/PostControls.tsx";
 import { getAvatarUrl } from "../models/actor.ts";
 import { isArticleLike, isPostVisibleTo } from "../models/post.ts";
 import type {
@@ -87,9 +87,6 @@ export function PostExcerpt(props: PostExcerptProps) {
       emojis: props.lastSharer.emojis,
       avatarUrl: getAvatarUrl(props.lastSharer),
     };
-  const localPostUrl = post.articleSourceId == null && post.noteSourceId == null
-    ? `/${post.actor.handle}/${post.id}`
-    : `/@${post.actor.username}/${post.articleSourceId ?? post.noteSourceId}`;
   const replyTarget = post.replyTarget != null &&
       isPostVisibleTo(
         post.replyTarget,
@@ -151,47 +148,9 @@ export function PostExcerpt(props: PostExcerptProps) {
                     post.actorId !== props.signedAccount?.actor.id
                   ? undefined
                   : `${post.url}/delete`}
-                controls={props.replier ? undefined : {
-                  repliesCount: post.repliesCount,
-                  replyUrl: post.articleSourceId == null
-                    ? undefined
-                    : `${post.url}#replies`,
-                  sharesCount: post.sharesCount,
-                  shared: props.signedAccount == null
-                    ? false
-                    : post.shares.some((s) =>
-                      s.actorId === props.signedAccount!.actor.id
-                    ),
-                  shareUrl: props.signedAccount == null
-                    ? undefined
-                    : post.articleSourceId == null
-                    ? `/${post.actor.handle}/${post.id}/share`
-                    : `${post.url}/share`,
-                  unshareUrl: props.signedAccount == null
-                    ? undefined
-                    : post.articleSourceId == null
-                    ? `/${post.actor.handle}/${post.id}/unshare`
-                    : `${post.url}/unshare`,
-                  quotesCount: post.quotesCount,
-                  reactUrl: props.signedAccount == null
-                    ? undefined
-                    : post.articleSourceId == null
-                    ? `/${post.actor.handle}/${post.id}/react`
-                    : `${post.url}/react`,
-                  reactionStates: toReactionStates(
-                    props.signedAccount,
-                    post.reactions,
-                  ),
-                  reactionsCounts: post.reactionsCounts,
-                  reactionsUrl: post.articleSourceId == null
-                    ? undefined
-                    : `${post.url}/reactions`,
-                  quoteUrl: props.signedAccount == null
-                    ? undefined
-                    : post.articleSourceId == null
-                    ? `/${post.actor.handle}/${post.id}/quotes`
-                    : `${post.url}/quotes`,
-                }}
+                post={post}
+                controls
+                signedAccount={props.signedAccount}
               />
             )
             : (
@@ -254,39 +213,9 @@ export function PostExcerpt(props: PostExcerptProps) {
                   {!props.replier && !props.noControls && (
                     <PostControls
                       language={language}
-                      visibility={post.visibility}
+                      post={post}
                       class="mt-4 ml-14"
-                      replies={post.repliesCount}
-                      replyUrl={`${localPostUrl}#reply`}
-                      shares={post.sharesCount}
-                      shareUrl={props.signedAccount == null
-                        ? undefined
-                        : `${localPostUrl}/share`}
-                      unshareUrl={props.signedAccount == null
-                        ? undefined
-                        : `${localPostUrl}/unshare`}
-                      shared={post.shares.some((share) =>
-                        share.actorId === props.signedAccount?.actor.id
-                      )}
-                      quotesCount={post.quotesCount}
-                      quoteUrl={props.signedAccount == null
-                        ? undefined
-                        : `${localPostUrl}/quotes`}
-                      reactUrl={props.signedAccount == null
-                        ? undefined
-                        : `${localPostUrl}/react`}
-                      reactionStates={toReactionStates(
-                        props.signedAccount,
-                        post.reactions,
-                      )}
-                      reactionsCounts={post.reactionsCounts}
-                      reactionsUrl={post.noteSourceId == null
-                        ? undefined
-                        : `${localPostUrl}/reactions`}
-                      deleteUrl={post.actor.accountId == null ||
-                          post.actor.accountId !== props.signedAccount?.id
-                        ? undefined
-                        : localPostUrl}
+                      signedAccount={props.signedAccount}
                     />
                   )}
                 </div>

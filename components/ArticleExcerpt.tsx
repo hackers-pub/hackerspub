@@ -4,9 +4,15 @@ import {
   type ArticleMetadataProps,
 } from "../islands/ArticleMetadata.tsx";
 import { Link } from "../islands/Link.tsx";
-import { PostControls, type ReactionState } from "../islands/PostControls.tsx";
-import { type ReactionEmoji, renderCustomEmojis } from "../models/emoji.ts";
-import type { PostVisibility } from "../models/schema.ts";
+import { PostControls } from "../islands/PostControls.tsx";
+import { renderCustomEmojis } from "../models/emoji.ts";
+import type {
+  Account,
+  Actor,
+  Post,
+  PostVisibility,
+  Reaction,
+} from "../models/schema.ts";
 import { Excerpt } from "./Excerpt.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 
@@ -32,20 +38,9 @@ export type ArticleExcerptProps = Omit<ArticleMetadataProps, "language"> & {
     emojis: Record<string, string>;
     avatarUrl: string;
   };
-  controls?: {
-    repliesCount: number;
-    replyUrl?: string;
-    sharesCount: number;
-    shared: boolean;
-    shareUrl?: string;
-    unshareUrl?: string;
-    reactUrl?: string;
-    reactionStates: Record<ReactionEmoji, ReactionState>;
-    reactionsCounts: Record<string, number>;
-    reactionsUrl?: string;
-    quoteUrl?: string;
-    quotesCount?: number;
-  };
+  post: Post & { actor: Actor; reactions: Reaction[]; shares: Post[] };
+  controls?: boolean;
+  signedAccount: Account & { actor: Actor } | undefined | null;
 };
 
 export function ArticleExcerpt(props: ArticleExcerptProps) {
@@ -150,22 +145,9 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
           {props.controls && (
             <PostControls
               language={language}
-              visibility={props.visibility}
+              post={props.post}
               class="mt-4"
-              replies={props.controls.repliesCount}
-              replyUrl={props.controls.replyUrl}
-              shares={props.controls.sharesCount}
-              shared={props.controls.shared}
-              shareUrl={props.controls.shareUrl}
-              unshareUrl={props.controls.unshareUrl}
-              quoteUrl={props.controls.quoteUrl}
-              quotesCount={props.controls.quotesCount}
-              reactUrl={props.controls.reactUrl}
-              reactionStates={props.controls.reactionStates}
-              reactionsCounts={props.controls.reactionsCounts}
-              reactionsUrl={props.controls.reactionsUrl}
-              deleteUrl={props.deleteUrl ?? undefined}
-              deleteMethod="post"
+              signedAccount={props.signedAccount}
             />
           )}
         </article>

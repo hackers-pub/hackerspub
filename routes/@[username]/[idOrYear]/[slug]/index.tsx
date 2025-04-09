@@ -9,17 +9,14 @@ import { db } from "../../../../db.ts";
 import { drive } from "../../../../drive.ts";
 import { ArticleMetadata } from "../../../../islands/ArticleMetadata.tsx";
 import { Composer } from "../../../../islands/Composer.tsx";
-import {
-  PostControls,
-  toReactionStates,
-} from "../../../../islands/PostControls.tsx";
+import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource, updateArticle } from "../../../../models/article.ts";
 import { preprocessContentHtml } from "../../../../models/html.ts";
 import { renderMarkup, type Toc } from "../../../../models/markup.ts";
 import { createNote } from "../../../../models/note.ts";
-import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
+import { isPostVisibleTo } from "../../../../models/post.ts";
 import type {
   Actor,
   Instance,
@@ -143,7 +140,6 @@ export const handler = define.handlers({
     return page<ArticlePageProps>({
       article,
       articleIri: articleUri.href,
-      shared: await isPostSharedBy(db, article.post, ctx.state.account),
       comments,
       avatarUrl: await getAvatarUrl(article.account),
       contentHtml: preprocessContentHtml(
@@ -212,7 +208,6 @@ export const handler = define.handlers({
 interface ArticlePageProps {
   article: NonNullable<Awaited<ReturnType<typeof getArticleSource>>>;
   articleIri: string;
-  shared: boolean;
   comments: (Post & {
     actor: Actor & { instance: Instance };
     link: PostLink & { creator?: Actor | null } | null;
@@ -251,21 +246,13 @@ function TableOfContents({ toc, class: cls }: TableOfContentsProps) {
 }
 
 export default define.page<typeof handler, ArticlePageProps>(
-  function ArticlePage(
+  (
     {
       url,
       state,
-      data: {
-        article,
-        articleIri,
-        shared,
-        comments,
-        avatarUrl,
-        contentHtml,
-        toc,
-      },
+      data: { article, articleIri, comments, avatarUrl, contentHtml, toc },
     },
-  ) {
+  ) => {
     const authorHandle = `@${article.account.username}@${url.host}`;
     const commentTargets = article.post.mentions
       .filter((m) =>
@@ -324,29 +311,10 @@ export default define.page<typeof handler, ArticlePageProps>(
           />
           <PostControls
             language={state.language}
-            visibility={article.post.visibility}
+            post={article.post}
             class="mt-8"
             active="reply"
-            replies={comments.length}
-            shares={article.post.sharesCount}
-            shared={shared}
-            shareUrl={state.account == null ? undefined : `${postUrl}/share`}
-            unshareUrl={state.account == null
-              ? undefined
-              : `${postUrl}/unshare`}
-            quoteUrl={`${postUrl}/quotes`}
-            quotesCount={article.post.quotesCount}
-            reactUrl={state.account == null ? undefined : `${postUrl}/react`}
-            reactionStates={toReactionStates(
-              state.account,
-              article.post.reactions,
-            )}
-            reactionsCounts={article.post.reactionsCounts}
-            reactionsUrl={`${postUrl}/reactions`}
-            deleteUrl={state.account?.id === article.accountId
-              ? `${postUrl}/delete`
-              : undefined}
-            deleteMethod="post"
+            signedAccount={state.account}
           />
         </article>
         <div id="replies">

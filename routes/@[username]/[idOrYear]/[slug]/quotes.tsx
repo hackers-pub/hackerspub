@@ -7,15 +7,12 @@ import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
 import { drive } from "../../../../drive.ts";
 import { Composer } from "../../../../islands/Composer.tsx";
-import {
-  PostControls,
-  toReactionStates,
-} from "../../../../islands/PostControls.tsx";
+import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
 import { createNote } from "../../../../models/note.ts";
-import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
+import { isPostVisibleTo } from "../../../../models/post.ts";
 import type {
   Actor,
   Instance,
@@ -73,11 +70,9 @@ export const handler = define.handlers({
       },
       orderBy: { published: "desc" },
     });
-    const shared = await isPostSharedBy(db, article.post, ctx.state.account);
     return page<ArticleQuotesProps>({
       article,
       quotes,
-      shared,
     });
   },
 
@@ -130,13 +125,10 @@ interface ArticleQuotesProps {
       reactions: Reaction[];
     }
   )[];
-  shared: boolean;
 }
 
 export default define.page<typeof handler, ArticleQuotesProps>(
-  async function ArticleQuotes(
-    { data: { article, quotes, shared }, state },
-  ) {
+  async ({ data: { article, quotes }, state }) => {
     const postUrl =
       `/@${article.account.username}/${article.publishedYear}/${article.slug}`;
     const avatarUrl = await getAvatarUrl(article.account);
@@ -159,31 +151,15 @@ export default define.page<typeof handler, ArticleQuotesProps>(
           deleteUrl={state.account?.id === article.accountId
             ? `${postUrl}/delete`
             : null}
+          post={article.post}
+          signedAccount={state.account}
         />
         <PostControls
           language={state.language}
-          visibility={article.post.visibility}
+          post={article.post}
           class="mt-8"
           active="quote"
-          replies={article.post.repliesCount}
-          replyUrl={`${postUrl}#replies`}
-          shares={article.post.sharesCount}
-          shared={shared}
-          shareUrl={state.account == null ? undefined : `${postUrl}/share`}
-          unshareUrl={state.account == null ? undefined : `${postUrl}/unshare`}
-          quoteUrl=""
-          quotesCount={quotes.length}
-          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
-          reactionStates={toReactionStates(
-            state.account,
-            article.post.reactions,
-          )}
-          reactionsCounts={article.post.reactionsCounts}
-          reactionsUrl={`${postUrl}/reactions`}
-          deleteUrl={state.account?.id === article.accountId
-            ? `${postUrl}/delete`
-            : undefined}
-          deleteMethod="post"
+          signedAccount={state.account}
         />
         <div class="mt-8">
           {state.account == null

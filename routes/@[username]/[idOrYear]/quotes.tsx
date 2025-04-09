@@ -6,10 +6,7 @@ import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
 import { drive } from "../../../drive.ts";
 import { Composer } from "../../../islands/Composer.tsx";
-import {
-  PostControls,
-  toReactionStates,
-} from "../../../islands/PostControls.tsx";
+import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { createNote, getNoteSource } from "../../../models/note.ts";
 import {
@@ -192,83 +189,53 @@ interface NoteQuotesProps {
 }
 
 export default define.page<typeof handler, NoteQuotesProps>(
-  function NoteQuotes(
-    { data: { post, quotes }, state },
-  ) {
-    const postUrl = post.noteSourceId == null
-      ? `/${post.actor.handle}/${post.id}`
-      : `/@${post.actor.username}/${post.noteSourceId}`;
-    return (
-      <>
-        <PostExcerpt
-          post={post}
-          noControls
-          signedAccount={state.account}
-        />
-        <PostControls
-          class="mt-4 ml-14"
-          language={state.language}
-          visibility={post.visibility}
-          active="quote"
-          replies={post.repliesCount}
-          replyUrl={`${postUrl}#replies`}
-          shares={post.sharesCount}
-          shareUrl={state.account == null ||
-              !["public", "unlisted"].includes(post.visibility)
-            ? undefined
-            : `${postUrl}/share`}
-          unshareUrl={state.account == null ||
-              !["public", "unlisted"].includes(post.visibility)
-            ? undefined
-            : `${postUrl}/unshare`}
-          shared={post.shares.some((share) =>
-            share.actorId === state.account?.actor.id
-          )}
-          quoteUrl=""
-          quotesCount={quotes.length}
-          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
-          reactionStates={toReactionStates(state.account, post.reactions)}
-          reactionsCounts={post.reactionsCounts}
-          reactionsUrl={`${postUrl}/reactions`}
-          deleteUrl={state.account == null ||
-              state.account.actor.id !== post.actorId
-            ? undefined
-            : postUrl}
-        />
-        <div class="mt-8">
-          {state.account == null
-            ? (
-              <>
-                <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
-                <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400">
-                  <Msg
-                    $key="note.remoteQuoteDescription"
-                    permalink={
-                      <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
-                        {post.iri}
-                      </span>
-                    }
-                  />
-                </p>
-              </>
-            )
-            : (
-              <Composer
-                language={state.language}
-                postUrl=""
-                noQuoteOnPaste
-                onPost="post.url"
-              />
-            )}
-          {quotes.map((quote) => (
-            <PostExcerpt
-              key={quote.id}
-              post={{ ...quote, sharedPost: null, replyTarget: null }}
-              noQuote
+  ({ data: { post, quotes }, state }) => (
+    <>
+      <PostExcerpt
+        post={post}
+        noControls
+        signedAccount={state.account}
+      />
+      <PostControls
+        class="mt-4 ml-14"
+        language={state.language}
+        post={post}
+        active="quote"
+        signedAccount={state.account}
+      />
+      <div class="mt-8">
+        {state.account == null
+          ? (
+            <>
+              <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
+              <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400">
+                <Msg
+                  $key="note.remoteQuoteDescription"
+                  permalink={
+                    <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
+                      {post.iri}
+                    </span>
+                  }
+                />
+              </p>
+            </>
+          )
+          : (
+            <Composer
+              language={state.language}
+              postUrl=""
+              noQuoteOnPaste
+              onPost="post.url"
             />
-          ))}
-        </div>
-      </>
-    );
-  },
+          )}
+        {quotes.map((quote) => (
+          <PostExcerpt
+            key={quote.id}
+            post={{ ...quote, sharedPost: null, replyTarget: null }}
+            noQuote
+          />
+        ))}
+      </div>
+    </>
+  ),
 );

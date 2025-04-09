@@ -7,48 +7,41 @@ import {
   REACTION_EMOJIS,
   type ReactionEmoji,
 } from "../models/emoji.ts";
-import type {
-  Account,
-  Actor,
-  PostVisibility,
-  Reaction,
-} from "../models/schema.ts";
+import type { Account, Actor, Post, Reaction } from "../models/schema.ts";
 
 export interface PostControlsProps {
   language: Language;
-  visibility: PostVisibility;
   active?: "reply" | "quote" | "reactions";
+  signedAccount: Account & { actor: Actor } | undefined | null;
+  post: Post & { actor: Actor; reactions: Reaction[]; shares: Post[] };
   class?: string;
-  replies: number;
-  replyUrl?: string;
-  shares: number;
-  shared: boolean;
-  shareUrl?: string;
-  unshareUrl?: string;
-  quoteUrl?: string;
-  quotesCount?: number;
-  reactUrl?: string;
-  reactionStates: Record<ReactionEmoji, ReactionState>;
-  reactionsCounts: Record<string, number>;
-  reactionsUrl?: string;
-  deleteUrl?: string;
-  deleteMethod?: "DELETE" | "POST" | "delete" | "post";
 }
 
 export type ReactionState = "reacted" | "reacting" | "undoing" | undefined;
 
 export function PostControls(props: PostControlsProps) {
+  const { post, signedAccount } = props;
   const t = getFixedT(props.language);
   const [reactionsOpen, setReactionsOpen] = useState(false);
-  const [reactionStates, setReactionStates] = useState(props.reactionStates);
-  const [reactionsCounts, setReactionsCounts] = useState(props.reactionsCounts);
-  const [shares, setShares] = useState(props.shares);
-  const [shared, setShared] = useState(props.shared);
+  const [reactionStates, setReactionStates] = useState(
+    toReactionStates(signedAccount, post.reactions),
+  );
+  const [reactionsCounts, setReactionsCounts] = useState(post.reactionsCounts);
+  const [shares, setShares] = useState(post.sharesCount);
+  const [shared, setShared] = useState(
+    signedAccount != null &&
+      post.shares.some((share) => share.actorId === signedAccount?.actor.id),
+  );
   const [shareSubmitting, setShareSubmitting] = useState(false);
   const [shareFocused, setShareFocused] = useState(false);
   const [deleted, setDeleted] = useState<null | "deleting" | "deleted">(null);
-  const nonPrivate = props.visibility === "public" ||
-    props.visibility === "unlisted";
+  const nonPrivate = post.visibility === "public" ||
+    post.visibility === "unlisted";
+  const remotePost = post.articleSourceId == null && post.noteSourceId == null;
+  const localPostUrl = remotePost
+    ? `/@${post.actor.handle}/${post.id}`
+    : `${post.url}`;
+
   let anyReacted = false;
   for (const emoji of REACTION_EMOJIS) {
     if (reactionStates[emoji] === "reacted") {
@@ -72,7 +65,6 @@ export function PostControls(props: PostControlsProps) {
 
   function onEmojiReactionClick(event: MouseEvent) {
     event.preventDefault();
-    if (props.reactUrl == null) return;
     const span = event.currentTarget;
     if (!(span instanceof HTMLElement)) return;
     const emoji = span.dataset.emoji as ReactionEmoji;
@@ -86,7 +78,7 @@ export function PostControls(props: PostControlsProps) {
       ...prev,
       emoji: prev[emoji] == null ? "reacting" : "undoing",
     }));
-    fetch(props.reactUrl, {
+    fetch(`${localPostUrl}/react`, {
       method: "post",
       body: JSON.stringify({
         mode: reactionStates[emoji] == null ? "react" : "undo",
@@ -114,7 +106,7 @@ export function PostControls(props: PostControlsProps) {
 
   function onShareSubmit(event: SubmitEvent) {
     event.preventDefault();
-    if (!nonPrivate || props.shareUrl == null) return;
+    if (!nonPrivate) return;
     if (event.currentTarget instanceof HTMLFormElement) {
       setShareSubmitting(true);
       const form = event.currentTarget;
@@ -138,9 +130,17 @@ export function PostControls(props: PostControlsProps) {
   }
 
   function onDelete(this: HTMLButtonElement, _event: MouseEvent) {
-    if (props.deleteUrl == null || !confirm(t("post.deleteConfirm"))) return;
+    if (
+      post.actorId !== signedAccount?.actor.id ||
+      !confirm(t("post.deleteConfirm"))
+    ) {
+      return;
+    }
     setDeleted("deleting");
-    fetch(props.deleteUrl, { method: props.deleteMethod ?? "delete" })
+    fetch(
+      post.articleSourceId == null ? localPostUrl : `${localPostUrl}/delete`,
+      { method: post.articleSourceId == null ? "delete" : "post" },
+    )
       .then((response) => {
         if (response.status >= 200 && response.status < 400) {
           setDeleted("deleted");
@@ -156,7 +156,7 @@ export function PostControls(props: PostControlsProps) {
             h-5 mr-3 flex hover:opacity-100 cursor-pointer
             ${reactionsOpen ? "opacity-100" : "opacity-50"}
           `}
-          href={props.reactionsUrl}
+          href={remotePost ? undefined : `${localPostUrl}/reactions`}
           title={t("post.reactions.title")}
           onClick={onReactionsClick}
         >
@@ -197,9 +197,7 @@ export function PostControls(props: PostControlsProps) {
               key={emoji}
               data-emoji={emoji}
               onClick={onEmojiReactionClick}
-              class={`text-xs my-auto group ${
-                props.reactUrl == null ? "" : "cursor-pointer"
-              }`}
+              class="text-xs my-auto group cursor-pointer"
             >
               <span class="grayscale-[75%] group-hover:grayscale-0">
                 {emoji}
@@ -229,10 +227,10 @@ export function PostControls(props: PostControlsProps) {
             </span>
           ))}
         </div>
-        {props.reactionsUrl &&
+        {!remotePost &&
           (
             <a
-              href={props.reactionsUrl}
+              href={`${localPostUrl}/reactions`}
               class={`
             ${reactionsOpen ? "flex" : "hidden"}
             h-5 ml-1 opacity-50 hover:opacity-100 cursor-pointer
@@ -264,13 +262,9 @@ export function PostControls(props: PostControlsProps) {
             class={`
               h-5 flex
               ${props.active === "reply" ? "opacity-100" : "opacity-50"}
-              ${
-              deleted != null || props.replyUrl == null
-                ? ""
-                : "hover:opacity-100"
-            }
+              ${deleted != null ? "" : "hover:opacity-100"}
             `}
-            href={props.replyUrl}
+            href={localPostUrl}
             title={t("note.replies")}
           >
             <svg
@@ -289,23 +283,22 @@ export function PostControls(props: PostControlsProps) {
                 props.active === "reply" ? "font-bold" : ""
               }`}
             >
-              {props.replies.toLocaleString(props.language)}
+              {post.repliesCount.toLocaleString(props.language)}
             </span>
           </a>
           <form
             method="post"
             action={nonPrivate
-              ? shared ? props.unshareUrl : props.shareUrl
+              ? shared ? `${localPostUrl}/unshare` : `${localPostUrl}/share`
               : undefined}
             onSubmit={onShareSubmit}
           >
             <button
               type="submit"
-              class={`h-5 flex opacity-50 ${
-                deleted != null || props.shareUrl == null
-                  ? "cursor-default"
-                  : "hover:opacity-100"
-              }`}
+              class={`
+                h-5 flex opacity-50
+                ${deleted != null ? "cursor-default" : "hover:opacity-100"}
+              `}
               onMouseOver={onShareFocus}
               onFocus={onShareFocus}
               onMouseOut={onShareFocusOut}
@@ -344,9 +337,9 @@ export function PostControls(props: PostControlsProps) {
               </span>
             </button>
           </form>
-          {props.quotesCount != null && nonPrivate && (
+          {nonPrivate && (
             <a
-              href={props.quoteUrl}
+              href={`${localPostUrl}/quotes`}
               class={`
                 h-5 flex hover:opacity-100
                 ${props.active === "quote" ? "opacity-100" : "opacity-50"}
@@ -371,18 +364,18 @@ export function PostControls(props: PostControlsProps) {
                   props.active === "quote" ? "font-bold" : ""
                 }`}
               >
-                {props.quotesCount.toLocaleString(props.language)}
+                {post.quotesCount.toLocaleString(props.language)}
               </span>
             </a>
           )}
-          {props.reactionsUrl != null && (
+          {!remotePost && (
             <a
               class={`
                 h-5 flex
                 ${props.active === "reactions" ? "opacity-100" : "opacity-50"}
                 ${deleted != null ? "" : "hover:opacity-100"}
               `}
-              href={props.reactionsUrl}
+              href={`${localPostUrl}/reactions`}
               title={t("post.reactions.stats")}
             >
               <svg
@@ -400,17 +393,13 @@ export function PostControls(props: PostControlsProps) {
               </svg>
             </a>
           )}
-          {props.deleteUrl != null &&
+          {signedAccount?.actor.id === post.actorId &&
             (
               <button
                 type="button"
                 class={`
                   h-5 flex opacity-50
-                  ${
-                  deleted != null || props.deleteUrl == null
-                    ? "cursor-default"
-                    : "hover:opacity-100"
-                }
+                  ${deleted != null ? "cursor-default" : "hover:opacity-100"}
                 `}
                 title={t("post.delete")}
                 onClick={onDelete}
@@ -451,7 +440,7 @@ export function PostControls(props: PostControlsProps) {
   );
 }
 
-export function toReactionStates(
+function toReactionStates(
   account: Account & { actor: Actor } | undefined | null,
   reactions: Reaction[],
 ): Record<ReactionEmoji, ReactionState> {

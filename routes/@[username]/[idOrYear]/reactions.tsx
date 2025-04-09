@@ -5,10 +5,7 @@ import { PageTitle } from "../../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { PostReactionsNav } from "../../../components/PostReactionsNav.tsx";
 import { db } from "../../../db.ts";
-import {
-  PostControls,
-  toReactionStates,
-} from "../../../islands/PostControls.tsx";
+import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { extractMentionsFromHtml } from "../../../models/markup.ts";
 import { getNoteSource } from "../../../models/note.ts";
@@ -98,79 +95,53 @@ interface NoteReactionsProps {
 }
 
 export default define.page<typeof handler, NoteReactionsProps>(
-  ({ data: { note, reactions, reactorsMentions, total }, state }) => {
-    const postUrl = `/@${note.account.username}/${note.id}`;
-    return (
-      <div>
-        <PostExcerpt
-          post={note.post}
-          noControls
-          signedAccount={state.account}
-        />
-        <PostControls
-          class="mt-4 ml-14"
-          language={state.language}
-          visibility={note.post.visibility}
+  ({ data: { note, reactions, reactorsMentions, total }, state }) => (
+    <div>
+      <PostExcerpt
+        post={note.post}
+        noControls
+        signedAccount={state.account}
+      />
+      <PostControls
+        class="mt-4 ml-14"
+        language={state.language}
+        post={note.post}
+        active="reactions"
+        signedAccount={state.account}
+      />
+      <div class="mt-4 ml-14">
+        <PostReactionsNav
           active="reactions"
-          replies={note.post.repliesCount}
-          replyUrl={`${postUrl}#replies`}
-          shares={note.post.sharesCount}
-          shareUrl={state.account == null ||
-              !["public", "unlisted"].includes(note.post.visibility)
-            ? undefined
-            : `${postUrl}/share`}
-          unshareUrl={state.account == null ||
-              !["public", "unlisted"].includes(note.post.visibility)
-            ? undefined
-            : `${postUrl}/unshare`}
-          shared={note.post.shares.some((share) =>
-            share.actorId === state.account?.actor.id
-          )}
-          quoteUrl={`${postUrl}/quotes`}
-          quotesCount={note.post.quotesCount}
-          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
-          reactionStates={toReactionStates(state.account, note.post.reactions)}
-          reactionsCounts={note.post.reactionsCounts}
-          reactionsUrl={`${postUrl}/reactions`}
-          deleteUrl={state.account == null ||
-              state.account.id !== note.accountId
-            ? undefined
-            : postUrl}
+          hrefs={{ reactions: "", sharers: "./shares" }}
+          stats={{ reactions: total, sharers: note.post.sharesCount }}
         />
-        <div class="mt-4 ml-14">
-          <PostReactionsNav
-            active="reactions"
-            hrefs={{ reactions: "", sharers: "./shares" }}
-            stats={{ reactions: total, sharers: note.post.sharesCount }}
-          />
-          {reactions.map(([emoji, actors]) => (
-            <div
-              key={typeof emoji === "string" ? emoji : emoji.id}
-              class="mt-4"
+        {reactions.map(([emoji, actors]) => (
+          <div
+            key={typeof emoji === "string" ? emoji : emoji.id}
+            class="mt-4"
+          >
+            <PageTitle
+              subtitle={{
+                text: (
+                  <Msg
+                    $key="post.reactions.reactedPeople"
+                    count={actors.length}
+                  />
+                ),
+              }}
             >
-              <PageTitle
-                subtitle={{
-                  text: (
-                    <Msg
-                      $key="post.reactions.reactedPeople"
-                      count={actors.length}
-                    />
-                  ),
-                }}
-              >
-                {typeof emoji === "string"
-                  ? emoji
-                  : <img src={emoji.imageUrl} alt={emoji.name} class="h-4" />}
-              </PageTitle>
-              <ActorList
-                actors={actors}
-                actorMentions={reactorsMentions}
-                class="mt-4"
-              />
-            </div>
-          ))}
-        </div>
+              {typeof emoji === "string"
+                ? emoji
+                : <img src={emoji.imageUrl} alt={emoji.name} class="h-4" />}
+            </PageTitle>
+            <ActorList
+              actors={actors}
+              actorMentions={reactorsMentions}
+              class="mt-4"
+            />
+          </div>
+        ))}
       </div>
-    );
-  },
+    </div>
+  ),
 );

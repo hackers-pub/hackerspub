@@ -5,10 +5,7 @@ import { Msg } from "../../../../components/Msg.tsx";
 import { PageTitle } from "../../../../components/PageTitle.tsx";
 import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
-import {
-  PostControls,
-  toReactionStates,
-} from "../../../../islands/PostControls.tsx";
+import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
@@ -128,33 +125,15 @@ export default define.page<typeof handler, ArticleReactionsProps>(
           deleteUrl={state.account?.id === article.accountId
             ? `${postUrl}/delete`
             : null}
+          post={article.post}
+          signedAccount={state.account}
         />
         <PostControls
           language={state.language}
-          visibility={article.post.visibility}
+          post={article.post}
           class="mt-8"
           active="reactions"
-          replies={article.post.repliesCount}
-          replyUrl={`${postUrl}#replies`}
-          shares={article.post.sharesCount}
-          shared={article.post.shares.some((share) =>
-            share.actorId === state.account?.actor.id
-          )}
-          shareUrl={state.account == null ? undefined : `${postUrl}/share`}
-          unshareUrl={state.account == null ? undefined : `${postUrl}/unshare`}
-          quoteUrl={`${postUrl}/quotes`}
-          quotesCount={article.post.quotesCount}
-          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
-          reactionStates={toReactionStates(
-            state.account,
-            article.post.reactions,
-          )}
-          reactionsCounts={article.post.reactionsCounts}
-          reactionsUrl={`${postUrl}/reactions`}
-          deleteUrl={state.account?.id === article.accountId
-            ? `${postUrl}/delete`
-            : undefined}
-          deleteMethod="post"
+          signedAccount={state.account}
         />
         <PostReactionsNav
           active="reactions"

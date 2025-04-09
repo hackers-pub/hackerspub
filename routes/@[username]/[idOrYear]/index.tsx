@@ -8,10 +8,7 @@ import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
 import { drive } from "../../../drive.ts";
 import { Composer } from "../../../islands/Composer.tsx";
-import {
-  PostControls,
-  toReactionStates,
-} from "../../../islands/PostControls.tsx";
+import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { getAvatarUrl } from "../../../models/actor.ts";
 import { renderMarkup } from "../../../models/markup.ts";
@@ -455,12 +452,7 @@ type NotePageProps = {
 };
 
 export default define.page<typeof handler, NotePageProps>(
-  function NotePage(
-    {
-      state,
-      data: { post, postUrl, replies },
-    },
-  ) {
+  ({ state, data: { post, postUrl, replies } }) => {
     const commentTargets = post.mentions
       .filter((m) =>
         m.actorId !== post.actorId && m.actorId !== state.account?.actor.id
@@ -478,33 +470,9 @@ export default define.page<typeof handler, NotePageProps>(
         <PostControls
           class="mt-4 ml-14"
           language={state.language}
-          visibility={post.visibility}
+          post={post}
           active="reply"
-          replies={replies.length}
-          shares={(post.sharedPost ?? post).sharesCount}
-          shareUrl={state.account == null ||
-              !["public", "unlisted"].includes(post.visibility)
-            ? undefined
-            : `${postUrl}/share`}
-          unshareUrl={state.account == null ||
-              !["public", "unlisted"].includes(post.visibility)
-            ? undefined
-            : `${postUrl}/unshare`}
-          shared={(post.sharedPost ?? post).shares.some((share) =>
-            share.actorId === state.account?.actor.id
-          )}
-          quoteUrl={`${postUrl}/quotes`}
-          quotesCount={(post.sharedPost ?? post).quotesCount}
-          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
-          reactionStates={toReactionStates(state.account, post.reactions)}
-          reactionsCounts={post.reactionsCounts}
-          reactionsUrl={post.noteSourceId == null
-            ? undefined
-            : `${postUrl}/reactions`}
-          deleteUrl={state.account == null ||
-              state.account.id !== post.actor.accountId
-            ? undefined
-            : postUrl}
+          signedAccount={state.account}
         />
         {state.account == null
           ? (
@@ -533,78 +501,42 @@ export default define.page<typeof handler, NotePageProps>(
               defaultVisibility={post.visibility}
             />
           )}
-        {replies.map((reply) => {
-          const replyUrl =
-            reply.noteSourceId == null && reply.sharedPostId == null
-              ? `/${reply.actor.handle}/${reply.id}`
-              : reply.url ?? reply.iri;
-          return (
-            <>
-              <NoteExcerpt
-                url={reply.url ?? reply.iri}
-                internalUrl={reply.noteSourceId == null
-                  ? `/${reply.actor.handle}/${reply.id}`
-                  : `/@${reply.actor.username}/${reply.noteSourceId}`}
-                sensitive={reply.sensitive}
-                summary={reply.summary ?? undefined}
-                contentHtml={reply.contentHtml}
-                emojis={reply.emojis}
-                mentions={reply.mentions}
-                lang={reply.language ?? undefined}
-                visibility={reply.visibility}
-                link={reply.link ?? undefined}
-                linkUrl={reply.linkUrl ?? undefined}
-                authorUrl={reply.actor.url ?? reply.actor.iri}
-                authorInternalUrl={reply.actor.accountId == null
-                  ? `/${reply.actor.handle}`
-                  : `/@${reply.actor.username}`}
-                authorName={reply.actor.name ?? reply.actor.username}
-                authorHandle={reply.actor.handle}
-                authorAvatarUrl={getAvatarUrl(reply.actor)}
-                authorEmojis={reply.actor.emojis}
-                quotedPostId={reply.quotedPostId ?? undefined}
-                media={reply.media}
-                published={reply.published}
-              />
-              <PostControls
-                class="mt-4 ml-14"
-                language={state.language}
-                visibility={reply.visibility}
-                replyUrl={replyUrl}
-                replies={reply.repliesCount}
-                shares={reply.sharesCount}
-                shareUrl={state.account == null ||
-                    !["public", "unlisted"].includes(reply.visibility)
-                  ? undefined
-                  : `${replyUrl}/share`}
-                unshareUrl={state.account == null ||
-                    !["public", "unlisted"].includes(reply.visibility)
-                  ? undefined
-                  : `${replyUrl}/unshare`}
-                shared={reply.shares.some((share) =>
-                  share.actorId === state.account?.actor.id
-                )}
-                quoteUrl={`${replyUrl}/quotes`}
-                quotesCount={reply.quotesCount}
-                reactUrl={state.account == null
-                  ? undefined
-                  : `${replyUrl}/react`}
-                reactionStates={toReactionStates(
-                  state.account,
-                  reply.reactions,
-                )}
-                reactionsCounts={reply.reactionsCounts}
-                reactionsUrl={reply.noteSourceId == null
-                  ? undefined
-                  : `${replyUrl}/reactions`}
-                deleteUrl={state.account == null ||
-                    state.account.id !== reply.actor.accountId
-                  ? undefined
-                  : replyUrl}
-              />
-            </>
-          );
-        })}
+        {replies.map((reply) => (
+          <>
+            <NoteExcerpt
+              url={reply.url ?? reply.iri}
+              internalUrl={reply.noteSourceId == null
+                ? `/${reply.actor.handle}/${reply.id}`
+                : `/@${reply.actor.username}/${reply.noteSourceId}`}
+              sensitive={reply.sensitive}
+              summary={reply.summary ?? undefined}
+              contentHtml={reply.contentHtml}
+              emojis={reply.emojis}
+              mentions={reply.mentions}
+              lang={reply.language ?? undefined}
+              visibility={reply.visibility}
+              link={reply.link ?? undefined}
+              linkUrl={reply.linkUrl ?? undefined}
+              authorUrl={reply.actor.url ?? reply.actor.iri}
+              authorInternalUrl={reply.actor.accountId == null
+                ? `/${reply.actor.handle}`
+                : `/@${reply.actor.username}`}
+              authorName={reply.actor.name ?? reply.actor.username}
+              authorHandle={reply.actor.handle}
+              authorAvatarUrl={getAvatarUrl(reply.actor)}
+              authorEmojis={reply.actor.emojis}
+              quotedPostId={reply.quotedPostId ?? undefined}
+              media={reply.media}
+              published={reply.published}
+            />
+            <PostControls
+              class="mt-4 ml-14"
+              language={state.language}
+              post={reply}
+              signedAccount={state.account}
+            />
+          </>
+        ))}
       </>
     );
   },

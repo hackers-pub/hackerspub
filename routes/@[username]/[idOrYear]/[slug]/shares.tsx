@@ -3,83 +3,72 @@ import { ActorList } from "../../../../components/ActorList.tsx";
 import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
 import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
-import {
-  PostControls,
-  toReactionStates,
-} from "../../../../islands/PostControls.tsx";
+import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
 import { extractMentionsFromHtml } from "../../../../models/markup.ts";
-import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
+import { isPostVisibleTo } from "../../../../models/post.ts";
 import type { Account, Actor } from "../../../../models/schema.ts";
 import { define } from "../../../../utils.ts";
 
-export const handler = define.handlers({
-  async GET(ctx) {
-    if (!ctx.params.idOrYear.match(/^\d+$/)) return ctx.next();
-    const username = ctx.params.username;
-    const year = parseInt(ctx.params.idOrYear);
-    const slug = ctx.params.slug;
-    const article = await getArticleSource(
-      db,
-      username,
-      year,
-      slug,
-      ctx.state.account,
-    );
-    if (article == null) return ctx.next();
-    const post = article.post;
-    if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
-      return ctx.next();
-    }
-    const shares = await db.query.postTable.findMany({
-      with: {
-        actor: {
-          with: { account: true, followers: true },
-        },
-        mentions: true,
+export const handler = define.handlers(async (ctx) => {
+  if (!ctx.params.idOrYear.match(/^\d+$/)) return ctx.next();
+  const username = ctx.params.username;
+  const year = parseInt(ctx.params.idOrYear);
+  const slug = ctx.params.slug;
+  const article = await getArticleSource(
+    db,
+    username,
+    year,
+    slug,
+    ctx.state.account,
+  );
+  if (article == null) return ctx.next();
+  const post = article.post;
+  if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
+    return ctx.next();
+  }
+  const shares = await db.query.postTable.findMany({
+    with: {
+      actor: {
+        with: { account: true, followers: true },
       },
-      where: { sharedPostId: post.id },
-      orderBy: { published: "desc" },
-    });
-    const sharers = shares
-      .filter((s) => isPostVisibleTo(s, ctx.state.account?.actor))
-      .map((s) => s.actor);
-    const sharersMentions = await extractMentionsFromHtml(
-      db,
-      ctx.state.fedCtx,
-      sharers.map((s) => s.bioHtml).join("\n"),
-      {
-        documentLoader: await ctx.state.fedCtx.getDocumentLoader(
-          article.account,
-        ),
-        kv,
-      },
-    );
-    return page<ArticleSharesProps>({
-      article,
-      sharers,
-      sharersMentions,
-      shared: ctx.state.account == null
-        ? false
-        : shares.some((share) =>
-          share.actorId === ctx.state.account?.actor.id
-        ) || await isPostSharedBy(db, article.post, ctx.state.account),
-    });
-  },
+      mentions: true,
+    },
+    where: { sharedPostId: post.id },
+    orderBy: { published: "desc" },
+  });
+  const sharers = shares
+    .filter((s) => isPostVisibleTo(s, ctx.state.account?.actor))
+    .map((s) => s.actor);
+  const sharersMentions = await extractMentionsFromHtml(
+    db,
+    ctx.state.fedCtx,
+    sharers.map((s) => s.bioHtml).join("\n"),
+    {
+      documentLoader: await ctx.state.fedCtx.getDocumentLoader(
+        article.account,
+      ),
+      kv,
+    },
+  );
+  return page<ArticleSharesProps>({
+    article,
+    sharers,
+    sharersMentions,
+  });
 });
 
 interface ArticleSharesProps {
   article: NonNullable<Awaited<ReturnType<typeof getArticleSource>>>;
   sharers: (Actor & { account?: Account | null })[];
   sharersMentions: { actor: Actor }[];
-  shared: boolean;
 }
 
 export default define.page<typeof handler, ArticleSharesProps>(
   async function ArticleShares(
-    { data: { article, sharers, sharersMentions, shared }, state },
+    { data: { article, sharers, sharersMentions }, state },
   ) {
     const postUrl =
       `/@${article.account.username}/${article.publishedYear}/${article.slug}`;
@@ -103,31 +92,15 @@ export default define.page<typeof handler, ArticleSharesProps>(
           deleteUrl={state.account?.id === article.accountId
             ? `${postUrl}/delete`
             : null}
+          post={article.post}
+          signedAccount={state.account}
         />
         <PostControls
           language={state.language}
-          visibility={article.post.visibility}
+          post={article.post}
           class="mt-8"
           active="reactions"
-          replies={article.post.repliesCount}
-          replyUrl={`${postUrl}#replies`}
-          shares={article.post.sharesCount}
-          shared={shared}
-          shareUrl={state.account == null ? undefined : `${postUrl}/share`}
-          unshareUrl={state.account == null ? undefined : `${postUrl}/unshare`}
-          quoteUrl={`${postUrl}/quotes`}
-          quotesCount={article.post.quotesCount}
-          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
-          reactionStates={toReactionStates(
-            state.account,
-            article.post.reactions,
-          )}
-          reactionsCounts={article.post.reactionsCounts}
-          reactionsUrl={`${postUrl}/reactions`}
-          deleteUrl={state.account?.id === article.accountId
-            ? `${postUrl}/delete`
-            : undefined}
-          deleteMethod="post"
+          signedAccount={state.account}
         />
         <PostReactionsNav
           active="sharers"
