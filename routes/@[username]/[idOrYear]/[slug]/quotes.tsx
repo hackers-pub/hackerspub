@@ -9,7 +9,6 @@ import { drive } from "../../../../drive.ts";
 import { Composer } from "../../../../islands/Composer.tsx";
 import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
-import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
 import { createNote } from "../../../../models/note.ts";
 import { isPostVisibleTo } from "../../../../models/post.ts";
@@ -128,72 +127,51 @@ interface ArticleQuotesProps {
 }
 
 export default define.page<typeof handler, ArticleQuotesProps>(
-  async ({ data: { article, quotes }, state }) => {
-    const postUrl =
-      `/@${article.account.username}/${article.publishedYear}/${article.slug}`;
-    const avatarUrl = await getAvatarUrl(article.account);
-    return (
-      <div>
-        <ArticleExcerpt
-          url={postUrl}
-          visibility={article.post.visibility}
-          title={article.title}
-          contentHtml={article.post.contentHtml}
-          published={article.published}
-          authorName={article.account.name}
-          authorHandle={article.post.actor.handle}
-          authorUrl={`/@${article.account.username}`}
-          authorAvatarUrl={avatarUrl}
-          lang={article.language}
-          editUrl={state.account?.id === article.accountId
-            ? `${postUrl}/edit`
-            : null}
-          deleteUrl={state.account?.id === article.accountId
-            ? `${postUrl}/delete`
-            : null}
-          post={article.post}
-          signedAccount={state.account}
-        />
-        <PostControls
-          language={state.language}
-          post={article.post}
-          class="mt-8"
-          active="quote"
-          signedAccount={state.account}
-        />
-        <div class="mt-8">
-          {state.account == null
-            ? (
-              <>
-                <p class="mb-8 leading-7 text-stone-500 dark:text-stone-400">
-                  <Msg
-                    $key="article.remoteQuoteDescription"
-                    permalink={
-                      <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
-                        {article.post.iri}
-                      </span>
-                    }
-                  />
-                </p>
-              </>
-            )
-            : (
-              <Composer
-                language={state.language}
-                postUrl=""
-                noQuoteOnPaste
-                onPost="post.url"
-              />
-            )}
-          {quotes.map((quote) => (
-            <PostExcerpt
-              key={quote.id}
-              post={{ ...quote, sharedPost: null, replyTarget: null }}
-              noQuote
+  ({ data: { article, quotes }, state }) => (
+    <div>
+      <ArticleExcerpt
+        post={article.post}
+        signedAccount={state.account}
+      />
+      <PostControls
+        language={state.language}
+        post={article.post}
+        class="mt-8"
+        active="quote"
+        signedAccount={state.account}
+      />
+      <div class="mt-8">
+        {state.account == null
+          ? (
+            <>
+              <p class="mb-8 leading-7 text-stone-500 dark:text-stone-400">
+                <Msg
+                  $key="article.remoteQuoteDescription"
+                  permalink={
+                    <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
+                      {article.post.iri}
+                    </span>
+                  }
+                />
+              </p>
+            </>
+          )
+          : (
+            <Composer
+              language={state.language}
+              postUrl=""
+              noQuoteOnPaste
+              onPost="post.url"
             />
-          ))}
-        </div>
+          )}
+        {quotes.map((quote) => (
+          <PostExcerpt
+            key={quote.id}
+            post={{ ...quote, sharedPost: null, replyTarget: null }}
+            noQuote
+          />
+        ))}
       </div>
-    );
-  },
+    </div>
+  ),
 );

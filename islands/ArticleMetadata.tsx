@@ -1,3 +1,4 @@
+import type { ComponentChildren } from "preact";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import type { Language } from "../i18n.ts";
 import getFixedT from "../i18n.ts";
@@ -9,7 +10,7 @@ export interface ArticleMetadataProps {
   class?: string;
   authorUrl: string;
   authorInternalUrl?: string | null;
-  authorName: string;
+  authorName: ComponentChildren;
   authorHandle: string;
   authorAvatarUrl?: string | null;
   published: Date;

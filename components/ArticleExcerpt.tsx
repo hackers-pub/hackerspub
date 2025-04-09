@@ -1,49 +1,34 @@
 import { escape } from "@std/html/entities";
-import {
-  ArticleMetadata,
-  type ArticleMetadataProps,
-} from "../islands/ArticleMetadata.tsx";
+import { ArticleMetadata } from "../islands/ArticleMetadata.tsx";
 import { Link } from "../islands/Link.tsx";
 import { PostControls } from "../islands/PostControls.tsx";
+import { getAvatarUrl } from "../models/avatar.ts";
 import { renderCustomEmojis } from "../models/emoji.ts";
-import type {
-  Account,
-  Actor,
-  Post,
-  PostVisibility,
-  Reaction,
-} from "../models/schema.ts";
+import type { Account, Actor, Post, Reaction } from "../models/schema.ts";
 import { Excerpt } from "./Excerpt.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 
-export type ArticleExcerptProps = Omit<ArticleMetadataProps, "language"> & {
-  url: string | URL;
-  visibility: PostVisibility;
-  target?: string;
-  title?: string | null;
-  contentHtml: string;
-  emojis?: Record<string, string>;
-  lang?: string;
-  replier?: {
-    url: string;
-    internalUrl?: string;
-    name: string;
-    emojis: Record<string, string>;
-    avatarUrl: string;
+interface ArticleExcerptProps {
+  post: Post & {
+    actor: Actor;
+    reactions: Reaction[];
+    shares: Post[];
   };
-  sharer?: {
-    url: string;
-    internalUrl?: string;
-    name: string;
-    emojis: Record<string, string>;
-    avatarUrl: string;
-  };
-  post: Post & { actor: Actor; reactions: Reaction[]; shares: Post[] };
+  replier?: Actor | null;
+  sharer?: Actor | null;
   controls?: boolean;
-  signedAccount: Account & { actor: Actor } | undefined | null;
-};
+  class?: string;
+  signedAccount:
+    | Account & {
+      actor: Actor;
+    }
+    | undefined
+    | null;
+}
 
 export function ArticleExcerpt(props: ArticleExcerptProps) {
+  const { post, replier, sharer } = props;
+  const remotePost = post.articleSourceId == null && post.noteSourceId == null;
   return (
     <Translation>
       {(_, language) => (
@@ -53,92 +38,125 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
             ${props.class}
           `}
         >
-          {props.replier && (
+          {replier != null && (
             <p class="text-stone-500 dark:text-stone-400 mb-2">
               <Msg
                 $key="article.replied"
                 name={
                   <Link
-                    href={props.replier.url}
-                    internalHref={props.replier.internalUrl}
+                    href={replier.url ?? replier.iri}
+                    internalHref={replier.accountId == null
+                      ? `/${replier.handle}`
+                      : `/@${replier.username}`}
                     class="font-bold"
                   >
                     <img
-                      src={props.replier.avatarUrl}
+                      src={getAvatarUrl(replier)}
                       width={16}
                       height={16}
                       class="inline-block mr-1 mt-[2px] align-text-top"
                     />
-                    <strong
-                      dangerouslySetInnerHTML={{
-                        __html: renderCustomEmojis(
-                          escape(props.replier.name),
-                          props.replier.emojis,
-                        ),
-                      }}
-                    />
+                    {replier.name == null
+                      ? <strong>{replier.username}</strong>
+                      : (
+                        <strong
+                          dangerouslySetInnerHTML={{
+                            __html: renderCustomEmojis(
+                              escape(replier.name),
+                              replier.emojis,
+                            ),
+                          }}
+                        />
+                      )}
                   </Link>
                 }
               />
             </p>
           )}
-          {props.sharer && (
+          {sharer != null && (
             <p class="text-stone-500 dark:text-stone-400 mb-2">
               <Msg
                 $key="article.shared"
                 name={
                   <Link
-                    href={props.sharer.url}
-                    internalHref={props.sharer.internalUrl}
+                    href={sharer.url ?? sharer.iri}
+                    internalHref={sharer.accountId == null
+                      ? `/${sharer.handle}`
+                      : `/@${sharer.username}`}
                     class="font-bold"
                   >
                     <img
-                      src={props.sharer.avatarUrl}
+                      src={getAvatarUrl(sharer)}
                       width={16}
                       height={16}
                       class="inline-block mr-1 mt-[2px] align-text-top"
                     />
-                    <strong
-                      dangerouslySetInnerHTML={{
-                        __html: renderCustomEmojis(
-                          escape(props.sharer.name),
-                          props.sharer.emojis,
-                        ),
-                      }}
-                    />
+                    {sharer.name == null
+                      ? <strong>{sharer.username}</strong>
+                      : (
+                        <strong
+                          dangerouslySetInnerHTML={{
+                            __html: renderCustomEmojis(
+                              escape(sharer.name),
+                              sharer.emojis,
+                            ),
+                          }}
+                        />
+                      )}
                   </Link>
                 }
               />
             </p>
           )}
-          {props.title &&
+          {post.name != null &&
             (
               <h1
                 class="text-3xl font-bold mb-2"
-                lang={props.lang}
+                lang={post.language ?? undefined}
               >
-                <a href={props.url.toString()} target={props.target}>
-                  {props.title}
+                <a
+                  href={post.url ?? post.iri}
+                  target={remotePost ? "_blank" : undefined}
+                >
+                  {post.name}
                 </a>
               </h1>
             )}
           <ArticleMetadata
             language={language}
             class="mt-4 mb-2"
-            authorUrl={props.authorUrl}
-            authorInternalUrl={props.authorInternalUrl}
-            authorName={props.authorName}
-            authorHandle={props.authorHandle}
-            authorAvatarUrl={props.authorAvatarUrl}
-            published={props.published}
-            editUrl={props.editUrl}
-            deleteUrl={props.deleteUrl}
+            authorUrl={post.actor.url ?? post.actor.iri}
+            authorInternalUrl={post.actor.accountId == null
+              ? `/${post.actor.handle}`
+              : `/@${post.actor.username}`}
+            authorName={post.actor.name == null ? post.actor.username : (
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: renderCustomEmojis(
+                    escape(post.actor.name),
+                    post.actor.emojis,
+                  ),
+                }}
+              />
+            )}
+            authorHandle={post.actor.handle}
+            authorAvatarUrl={getAvatarUrl(post.actor)}
+            published={post.published}
+            editUrl={post.actorId === props.signedAccount?.actor.id
+              ? `${post.url}/edit`
+              : null}
+            deleteUrl={post.actorId === props.signedAccount?.actor.id
+              ? `${post.url}/delete`
+              : null}
           />
-          <a href={props.url.toString()} target={props.target}>
+          <a
+            href={post.url ?? post.iri}
+            target={remotePost ? "_blank" : undefined}
+          >
             <Excerpt
-              lang={props.lang}
-              html={props.contentHtml}
-              emojis={props.emojis}
+              lang={post.language}
+              html={post.contentHtml}
+              emojis={post.emojis}
             />
             <Msg $key="article.readMore" />
           </a>

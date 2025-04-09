@@ -7,7 +7,6 @@ import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
 import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
-import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
 import { extractMentionsFromHtml } from "../../../../models/markup.ts";
 import { isPostVisibleTo } from "../../../../models/post.ts";
@@ -102,68 +101,47 @@ interface ArticleReactionsProps {
 }
 
 export default define.page<typeof handler, ArticleReactionsProps>(
-  async ({ data: { article, reactions, reactorsMentions, total }, state }) => {
-    const postUrl =
-      `/@${article.account.username}/${article.publishedYear}/${article.slug}`;
-    const avatarUrl = await getAvatarUrl(article.account);
-    return (
-      <div>
-        <ArticleExcerpt
-          url={postUrl}
-          visibility={article.post.visibility}
-          title={article.title}
-          contentHtml={article.post.contentHtml}
-          published={article.published}
-          authorName={article.account.name}
-          authorHandle={article.post.actor.handle}
-          authorUrl={`/@${article.account.username}`}
-          authorAvatarUrl={avatarUrl}
-          lang={article.language}
-          editUrl={state.account?.id === article.accountId
-            ? `${postUrl}/edit`
-            : null}
-          deleteUrl={state.account?.id === article.accountId
-            ? `${postUrl}/delete`
-            : null}
-          post={article.post}
-          signedAccount={state.account}
-        />
-        <PostControls
-          language={state.language}
-          post={article.post}
-          class="mt-8"
-          active="reactions"
-          signedAccount={state.account}
-        />
-        <PostReactionsNav
-          active="reactions"
-          hrefs={{ reactions: "", sharers: "./shares" }}
-          stats={{ reactions: total, sharers: article.post.sharesCount }}
-        />
-        {reactions.map(([emoji, actors]) => (
-          <div key={typeof emoji === "string" ? emoji : emoji.id} class="mt-4">
-            <PageTitle
-              subtitle={{
-                text: (
-                  <Msg
-                    $key="post.reactions.reactedPeople"
-                    count={actors.length}
-                  />
-                ),
-              }}
-            >
-              {typeof emoji === "string"
-                ? emoji
-                : <img src={emoji.imageUrl} alt={emoji.name} class="h-4" />}
-            </PageTitle>
-            <ActorList
-              actors={actors}
-              actorMentions={reactorsMentions}
-              class="mt-4"
-            />
-          </div>
-        ))}
-      </div>
-    );
-  },
+  ({ data: { article, reactions, reactorsMentions, total }, state }) => (
+    <div>
+      <ArticleExcerpt
+        post={article.post}
+        signedAccount={state.account}
+      />
+      <PostControls
+        language={state.language}
+        post={article.post}
+        class="mt-8"
+        active="reactions"
+        signedAccount={state.account}
+      />
+      <PostReactionsNav
+        active="reactions"
+        hrefs={{ reactions: "", sharers: "./shares" }}
+        stats={{ reactions: total, sharers: article.post.sharesCount }}
+      />
+      {reactions.map(([emoji, actors]) => (
+        <div key={typeof emoji === "string" ? emoji : emoji.id} class="mt-4">
+          <PageTitle
+            subtitle={{
+              text: (
+                <Msg
+                  $key="post.reactions.reactedPeople"
+                  count={actors.length}
+                />
+              ),
+            }}
+          >
+            {typeof emoji === "string"
+              ? emoji
+              : <img src={emoji.imageUrl} alt={emoji.name} class="h-4" />}
+          </PageTitle>
+          <ActorList
+            actors={actors}
+            actorMentions={reactorsMentions}
+            class="mt-4"
+          />
+        </div>
+      ))}
+    </div>
+  ),
 );

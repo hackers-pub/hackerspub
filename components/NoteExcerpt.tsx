@@ -3,6 +3,7 @@ import { Link } from "../islands/Link.tsx";
 import { MediumThumbnail } from "../islands/MediumThumbnail.tsx";
 import { QuotedPostCard } from "../islands/QuotedPostCard.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
+import { getAvatarUrl } from "../models/avatar.ts";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import { preprocessContentHtml } from "../models/html.ts";
 import type {
@@ -37,13 +38,7 @@ export interface NoteExcerptProps {
   authorAvatarUrl: string;
   authorEmojis: Record<string, string>;
   quotedPostId?: Uuid;
-  sharer?: {
-    url: string;
-    internalUrl?: string;
-    avatarUrl: string;
-    name: string;
-    emojis: Record<string, string>;
-  };
+  sharer?: Actor | null;
   media: PostMedium[];
   published: Date;
   replyTarget?: boolean;
@@ -108,23 +103,29 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                       $key="note.sharedBy"
                       name={
                         <Link
-                          href={props.sharer.url}
-                          internalHref={props.sharer.internalUrl}
+                          href={props.sharer.url ?? props.sharer.iri}
+                          internalHref={props.sharer.accountId == null
+                            ? `/${props.sharer.handle}`
+                            : `/@${props.sharer.username}`}
                         >
                           <img
-                            src={props.sharer.avatarUrl}
+                            src={getAvatarUrl(props.sharer)}
                             width={16}
                             height={16}
                             class="inline-block mr-1 mt-[2px] align-text-top"
                           />
-                          <strong
-                            dangerouslySetInnerHTML={{
-                              __html: renderCustomEmojis(
-                                escape(props.sharer.name),
-                                props.sharer.emojis,
-                              ),
-                            }}
-                          />
+                          {props.sharer.name == null
+                            ? <strong>{props.sharer.username}</strong>
+                            : (
+                              <strong
+                                dangerouslySetInnerHTML={{
+                                  __html: renderCustomEmojis(
+                                    escape(props.sharer.name),
+                                    props.sharer.emojis,
+                                  ),
+                                }}
+                              />
+                            )}
                         </Link>
                       }
                     />

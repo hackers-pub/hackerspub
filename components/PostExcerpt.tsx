@@ -52,13 +52,7 @@ export interface PostExcerptProps {
     shares: Post[];
     reactions: Reaction[];
   };
-  replier?: {
-    url: string;
-    internalUrl?: string;
-    name: string;
-    emojis: Record<string, string>;
-    avatarUrl: string;
-  };
+  replier?: Actor | null;
   lastSharer?: Actor | null;
   sharersCount?: number;
   noControls?: boolean;
@@ -69,24 +63,8 @@ export interface PostExcerptProps {
 export function PostExcerpt(props: PostExcerptProps) {
   const post = props.post.sharedPost ?? props.post;
   const sharer = props.lastSharer == null
-    ? props.post.sharedPost == null ? undefined : {
-      url: props.post.actor.url ?? props.post.actor.iri,
-      internalUrl: props.post.actor.accountId == null
-        ? `/${props.post.actor.handle}`
-        : `/@${props.post.actor.username}`,
-      name: props.post.actor.name ?? props.post.actor.username,
-      emojis: props.post.actor.emojis,
-      avatarUrl: getAvatarUrl(props.post.actor),
-    }
-    : {
-      url: props.lastSharer.url ?? props.lastSharer.iri,
-      internalUrl: props.lastSharer.accountId == null
-        ? `/${props.lastSharer.handle}`
-        : `/@${props.lastSharer.username}`,
-      name: props.lastSharer.name ?? props.lastSharer.username,
-      emojis: props.lastSharer.emojis,
-      avatarUrl: getAvatarUrl(props.lastSharer),
-    };
+    ? props.post.sharedPost == null ? undefined : props.post.actor
+    : props.lastSharer;
   const replyTarget = post.replyTarget != null &&
       isPostVisibleTo(
         post.replyTarget,
@@ -108,47 +86,16 @@ export function PostExcerpt(props: PostExcerptProps) {
                 shares: [], // TODO: extract PostExcerpt from Post
                 reactions: [],
               }}
-              replier={{
-                url: post.actor.url ?? post.actor.iri,
-                internalUrl: post.actor.accountId == null
-                  ? `/${post.actor.handle}`
-                  : `/@${post.actor.username}`,
-                name: post.actor.name ?? post.actor.username,
-                emojis: post.actor.emojis,
-                avatarUrl: getAvatarUrl(post.actor),
-              }}
+              replier={post.actor}
             />
           )}
           {isArticleLike(post)
             ? (
               <ArticleExcerpt
                 class={props.class}
-                url={post.url ?? post.iri}
-                visibility={post.visibility}
-                target={post.actor.accountId == null ? "_blank" : undefined}
-                title={post.name}
-                contentHtml={post.contentHtml}
-                emojis={post.emojis}
-                lang={post.language ?? undefined}
-                authorUrl={post.actor.url ?? post.actor.iri}
-                authorInternalUrl={post.actor.accountId == null
-                  ? `/${post.actor.handle}`
-                  : `/@${post.actor.username}`}
-                authorName={post.actor.name ?? post.actor.username}
-                authorHandle={post.actor.handle}
-                authorAvatarUrl={post.actor.avatarUrl}
-                sharer={sharer}
-                published={post.published}
-                replier={props.replier}
-                editUrl={post.articleSourceId == null ||
-                    post.actorId !== props.signedAccount?.actor.id
-                  ? null
-                  : `${post.url}/edit`}
-                deleteUrl={post.articleSourceId == null ||
-                    post.actorId !== props.signedAccount?.actor.id
-                  ? undefined
-                  : `${post.url}/delete`}
                 post={post}
+                sharer={sharer}
+                replier={props.replier}
                 controls
                 signedAccount={props.signedAccount}
               />
