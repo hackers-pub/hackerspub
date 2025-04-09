@@ -222,5 +222,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.notificationTable.postId,
       to: r.postTable.id,
     }),
+    customEmoji: r.one.customEmojiTable({
+      from: r.notificationTable.customEmojiId,
+      to: r.customEmojiTable.id,
+      optional: true,
+    }),
   },
 }));

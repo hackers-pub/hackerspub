@@ -1,9 +1,11 @@
 import { getLogger } from "@logtape/logtape";
 import { and, eq, isNull, sql } from "drizzle-orm";
+import postgres from "postgres";
 import type { Database } from "../db.ts";
 import {
   type Account,
   type Actor,
+  type CustomEmoji,
   type Instance,
   type Notification,
   notificationTable,
@@ -30,6 +32,7 @@ export async function createNotification(
   post: Post | null,
   actorId: Uuid,
   created?: Date | null,
+  emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
   try {
     const postId = post?.id;
@@ -41,25 +44,40 @@ export async function createNotification(
         type,
         postId,
         actorIds: [actorId],
+        emoji: typeof emoji === "string" ? emoji : null,
+        customEmojiId: typeof emoji === "string" || emoji == null
+          ? null
+          : emoji.id,
         created: created ?? sql`CURRENT_TIMESTAMP`,
-      })
-      .onConflictDoUpdate({
-        target: [
-          notificationTable.accountId,
-          notificationTable.type,
-          notificationTable.postId,
-        ],
-        set: {
-          actorIds:
-            sql`array_append(${notificationTable.actorIds}, ${actorId})`,
-          created: created ?? sql`CURRENT_TIMESTAMP`,
-        },
       })
       .returning();
     return notification[0];
   } catch (error) {
-    logger.error("Failed to create notification: {error}", { error });
-    return undefined;
+    if (error instanceof postgres.PostgresError && error.code === "23505") {
+      await db.update(notificationTable)
+        .set({
+          actorIds:
+            sql`array_append(${notificationTable.actorIds}, ${actorId})`,
+          created: created ?? sql`CURRENT_TIMESTAMP`,
+        })
+        .where(
+          and(
+            eq(notificationTable.accountId, accountId),
+            eq(notificationTable.type, type),
+            post == null
+              ? isNull(notificationTable.postId)
+              : eq(notificationTable.postId, post.id),
+            emoji == null
+              ? undefined
+              : typeof emoji === "string"
+              ? eq(notificationTable.emoji, emoji)
+              : eq(notificationTable.customEmojiId, emoji.id),
+          ),
+        );
+    } else {
+      logger.error("Failed to create notification: {error}", { error });
+      return undefined;
+    }
   }
 }
 
@@ -183,12 +201,31 @@ export function createQuoteNotification(
   );
 }
 
+export function createReactNotification(
+  db: Database,
+  postAuthorAccountId: Uuid,
+  post: Post,
+  reactingActor: Actor,
+  emoji: string | CustomEmoji,
+): Promise<Notification | undefined> {
+  return createNotification(
+    db,
+    postAuthorAccountId,
+    "react",
+    post,
+    reactingActor.id,
+    null,
+    emoji,
+  );
+}
+
 export async function deleteNotification(
   db: Database,
   accountId: Uuid,
   type: NotificationType,
   postId: Uuid | null,
   actorId: Uuid,
+  emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
   try {
     const updated = await db.update(notificationTable)
@@ -202,6 +239,11 @@ export async function deleteNotification(
           postId == null
             ? isNull(notificationTable.postId)
             : eq(notificationTable.postId, postId),
+          emoji == null
+            ? undefined
+            : typeof emoji === "string"
+            ? eq(notificationTable.emoji, emoji)
+            : eq(notificationTable.customEmojiId, emoji.id),
         ),
       )
       .returning();
@@ -213,6 +255,11 @@ export async function deleteNotification(
           postId == null
             ? isNull(notificationTable.postId)
             : eq(notificationTable.postId, postId),
+          emoji == null
+            ? undefined
+            : typeof emoji === "string"
+            ? eq(notificationTable.emoji, emoji)
+            : eq(notificationTable.customEmojiId, emoji.id),
           eq(sql`array_length(${notificationTable.actorIds}, 1)`, 0),
         ),
       )
@@ -250,6 +297,23 @@ export function deleteShareNotification(
     "share",
     sharedPost.id,
     sharingActor.id,
+  );
+}
+
+export function deleteReactNotification(
+  db: Database,
+  postAuthorAccountId: Uuid,
+  post: Post,
+  reactingActor: Actor,
+  emoji: string | CustomEmoji,
+): Promise<Notification | undefined> {
+  return deleteNotification(
+    db,
+    postAuthorAccountId,
+    "react",
+    post.id,
+    reactingActor.id,
+    emoji,
   );
 }
 

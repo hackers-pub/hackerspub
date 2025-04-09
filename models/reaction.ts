@@ -5,6 +5,10 @@ import type { Database } from "../db.ts";
 import { getEmojiReact, getEmojiReactId } from "../federation/objects.ts";
 import { getPersistedActor, persistActor } from "./actor.ts";
 import { DEFAULT_REACTION_EMOJI, type ReactionEmoji } from "./emoji.ts";
+import {
+  createReactNotification,
+  deleteReactNotification,
+} from "./notification.ts";
 import { getPersistedPost, isPostObject, persistPost } from "./post.ts";
 import {
   type Account,
@@ -106,6 +110,15 @@ export async function persistReaction(
     .onConflictDoNothing()
     .returning();
   if (rows.length < 1) return undefined;
+  if (post.actor.accountId != null && post.actorId !== actor.id) {
+    await createReactNotification(
+      db,
+      post.actor.accountId,
+      post,
+      actor,
+      emoji in customEmojis ? customEmojis[emoji] : emoji,
+    );
+  }
   return rows[0];
 }
 
@@ -121,7 +134,30 @@ export async function deleteReaction(
   const rows = await db.delete(reactionTable)
     .where(eq(reactionTable.iri, reaction.id.href))
     .returning();
-  if (rows.length > 0) return rows[0];
+  if (rows.length > 0) {
+    const post = await db.query.postTable.findFirst({
+      where: { id: rows[0].postId },
+      with: { actor: true },
+    });
+    const actor = await db.query.actorTable.findFirst({
+      where: { id: rows[0].actorId },
+    });
+    if (
+      post?.actor.accountId != null && actor != null &&
+      post.actorId !== actor.id
+    ) {
+      await deleteReactNotification(
+        db,
+        post.actor.accountId,
+        post,
+        actor,
+        rows[0].emoji ?? (await db.query.customEmojiTable.findFirst({
+          where: { id: rows[0].customEmojiId! },
+        }))!,
+      );
+    }
+    return rows[0];
+  }
   if (reaction.actorId == null || reaction.objectId == null) return undefined;
   const actor = await getPersistedActor(db, reaction.actorId);
   if (actor == null) return undefined;
@@ -148,7 +184,17 @@ export async function deleteReaction(
       ),
     )
     .returning();
-  return deleted.length > 0 ? deleted[0] : undefined;
+  if (deleted.length < 1) return undefined;
+  if (post?.actor.accountId != null && post.actorId !== actor.id) {
+    await deleteReactNotification(
+      db,
+      post.actor.accountId,
+      post,
+      actor,
+      emoji in customEmojis ? customEmojis[emoji] : emoji,
+    );
+  }
+  return deleted[0];
 }
 
 export async function react(
@@ -170,6 +216,17 @@ export async function react(
     .returning();
   if (rows.length < 1) return undefined;
   await updateReactionsCounts(db, post.id);
+  if (
+    post.actor.accountId != null && post.actorId !== account.actor.id
+  ) {
+    await createReactNotification(
+      db,
+      post.actor.accountId,
+      post,
+      account.actor,
+      emoji,
+    );
+  }
   const activity = getEmojiReact(ctx, {
     ...rows[0],
     actor: account.actor,
@@ -218,6 +275,15 @@ export async function undoReaction(
     .returning();
   if (rows.length < 1) return undefined;
   await updateReactionsCounts(db, post.id);
+  if (post.actor.accountId != null && post.actorId !== account.actor.id) {
+    await deleteReactNotification(
+      db,
+      post.actor.accountId,
+      post,
+      account.actor,
+      emoji,
+    );
+  }
   const activity = getEmojiReact(ctx, {
     ...rows[0],
     actor: account.actor,

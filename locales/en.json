@@ -29,7 +29,10 @@
     "sharedYourPost_zero": "{{actor}} shared your post",
     "sharedYourPost_one": "{{actor}} and 1 other shared your post",
     "sharedYourPost_other": "{{actor}} and {{count}} others shared your post",
-    "quotedYourPost": "{{actor}} quoted your post"
+    "quotedYourPost": "{{actor}} quoted your post",
+    "reactedToYourPost_zero": "{{actor}} reacted to your post with {{emoji}}",
+    "reactedToYourPost_one": "{{actor}} and 1 other reacted to your post with {{emoji}}",
+    "reactedToYourPost_other": "{{actor}} and {{count}} others reacted to your post with {{emoji}}"
   },
   "home": {
     "intro": {

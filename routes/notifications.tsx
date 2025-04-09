@@ -18,6 +18,7 @@ import { isArticleLike } from "../models/post.ts";
 import {
   accountTable,
   type Actor,
+  type CustomEmoji,
   notificationTable,
 } from "../models/schema.ts";
 import type { Uuid } from "../models/uuid.ts";
@@ -90,10 +91,24 @@ export const handler = define.handlers(async (ctx) => {
     ? `${ctx.url.pathname}?page=${pageNum + 1}`
     : undefined;
 
+  const customEmojiIds = new Set<Uuid>();
+  for (const noti of notifications) {
+    if (noti.customEmojiId != null) customEmojiIds.add(noti.customEmojiId);
+  }
+
+  const customEmojis = customEmojiIds.size > 0
+    ? await db.query.customEmojiTable.findMany({
+      where: { id: { in: [...customEmojiIds] } },
+    })
+    : [];
+
   return page<NotificationsProps>({
     lastRead,
     notifications,
     actorsById,
+    customEmojis: Object.fromEntries(
+      customEmojis.map((emoji) => [emoji.id, emoji]),
+    ),
     nextHref,
   });
 });
@@ -102,6 +117,7 @@ interface NotificationsProps {
   lastRead: Date | null;
   notifications: Awaited<ReturnType<typeof getNotifications>>;
   actorsById: Record<Uuid, Actor>;
+  customEmojis: Record<Uuid, CustomEmoji>;
   nextHref?: string;
 }
 
@@ -109,7 +125,7 @@ export default define.page<typeof handler, NotificationsProps>(
   (
     {
       state: { language },
-      data: { lastRead, notifications, actorsById, nextHref },
+      data: { lastRead, notifications, actorsById, customEmojis, nextHref },
     },
   ) => {
     return (
@@ -171,8 +187,9 @@ export default define.page<typeof handler, NotificationsProps>(
                   case "mention":
                   case "reply":
                   case "share":
-                  // deno-lint-ignore no-case-declarations
                   case "quote":
+                  // deno-lint-ignore no-case-declarations
+                  case "react":
                     // These notifications have an associated post
                     if (!notification.post) return null;
                     const { post } = notification;
@@ -191,17 +208,44 @@ export default define.page<typeof handler, NotificationsProps>(
                       >
                         <div class="flex items-center">
                           <p>
-                            <Msg
-                              $key={notification.type === "mention"
-                                ? "notification.mentionedYou"
-                                : notification.type === "reply"
-                                ? "notification.repliedToYourPost"
-                                : notification.type === "share"
-                                ? "notification.sharedYourPost"
-                                : "notification.quotedYourPost"}
-                              count={notificationActors.length}
-                              actor={<NotificationActor actor={lastActor} />}
-                            />
+                            {notification.type === "react"
+                              ? (
+                                <Msg
+                                  $key="notification.reactedToYourPost"
+                                  count={notificationActors.length}
+                                  actor={
+                                    <NotificationActor actor={lastActor} />
+                                  }
+                                  emoji={notification.customEmojiId == null
+                                    ? notification.emoji
+                                    : (
+                                      <img
+                                        src={customEmojis[
+                                          notification.customEmojiId
+                                        ].imageUrl}
+                                        alt={customEmojis[
+                                          notification.customEmojiId
+                                        ].name}
+                                        class="inline-block h-4"
+                                      />
+                                    )}
+                                />
+                              )
+                              : (
+                                <Msg
+                                  $key={notification.type === "mention"
+                                    ? "notification.mentionedYou"
+                                    : notification.type === "reply"
+                                    ? "notification.repliedToYourPost"
+                                    : notification.type === "share"
+                                    ? "notification.sharedYourPost"
+                                    : "notification.quotedYourPost"}
+                                  count={notificationActors.length}
+                                  actor={
+                                    <NotificationActor actor={lastActor} />
+                                  }
+                                />
+                              )}
                           </p>
                           <Timestamp
                             value={notification.created}

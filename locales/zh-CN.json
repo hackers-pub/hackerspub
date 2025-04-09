@@ -27,7 +27,9 @@
     "repliedToYourPost": "{{actor}} 回复了你的内容",
     "sharedYourPost_zero": "{{actor}} 转发了你的内容",
     "sharedYourPost_other": "{{actor}} 和其他 {{count}} 人转发了你的内容",
-    "quotedYourPost": "{{actor}} 引用了你的内容"
+    "quotedYourPost": "{{actor}} 引用了你的内容",
+    "reactedToYourPost_zero": "{{actor}} 用 {{emoji}} 对你的内容做出了反应",
+    "reactedToYourPost_other": "{{actor}} 和其他 {{count}} 人用 {{emoji}} 对你的内容做出了反应"
   },
   "home": {
     "intro": {

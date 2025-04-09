@@ -28,7 +28,9 @@
     "repliedToYourPost": "{{actor}} 님이 회원님의 콘텐츠에 댓글을 달았습니다",
     "sharedYourPost_zero": "{{actor}} 님이 회원님의 콘텐츠를 공유했습니다",
     "sharedYourPost_other": "{{actor}} 님 외 {{count}}명이 회원님의 콘텐츠를 공유했습니다",
-    "quotedYourPost": "{{actor}} 님이 회원님의 콘텐츠를 인용했습니다"
+    "quotedYourPost": "{{actor}} 님이 회원님의 콘텐츠를 인용했습니다",
+    "reactedToYourPost_zero": "{{actor}} 님이 회원님의 콘텐츠에 {{emoji}}(으)로 반응했습니다",
+    "reactedToYourPost_other": "{{actor}} 님 외 {{count}}명이 회원님의 콘텐츠에 {{emoji}}(으)로 반응했습니다"
   },
   "home": {
     "intro": {

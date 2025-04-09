@@ -815,6 +815,7 @@ export const notificationTable = pgTable(
     // - When type is 'reply', this is the ID of the reply post
     // - When type is 'share', this is the ID of the shared post
     // - When type is 'quote', this is the ID of the post doing the quoting
+    // - When type is 'react', this is the ID of the post being reacted to
     postId: uuid("post_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
@@ -823,6 +824,12 @@ export const notificationTable = pgTable(
       .$type<Uuid[]>()
       .notNull()
       .default(sql`(ARRAY[]::uuid[])`),
+    emoji: text(),
+    customEmojiId: uuid("custom_emoji_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => customEmojiTable.id, {
+        onDelete: "cascade",
+      }),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -841,7 +848,29 @@ export const notificationTable = pgTable(
         END
       `,
     ),
-    unique().on(table.accountId, table.type, table.postId),
+    check(
+      "notification_emoji_check",
+      sql`
+        CASE ${table.type}
+          WHEN 'react'
+          THEN ${table.emoji} IS NOT NULL AND ${table.customEmojiId} IS NULL
+            OR ${table.emoji} IS NULL AND ${table.customEmojiId} IS NOT NULL
+          ELSE ${table.emoji} IS NULL AND ${table.customEmojiId} IS NULL
+        END
+      `,
+    ),
+    uniqueIndex()
+      .on(table.accountId, table.actorIds)
+      .where(sql`${table.type} = 'follow'`),
+    uniqueIndex()
+      .on(table.accountId, table.postId)
+      .where(sql`${table.type} NOT IN ('follow', 'react')`),
+    uniqueIndex()
+      .on(table.accountId, table.postId, table.emoji)
+      .where(sql`${table.type} = 'react' AND ${table.customEmojiId} IS NULL`),
+    uniqueIndex()
+      .on(table.accountId, table.postId, table.customEmojiId)
+      .where(sql`${table.type} = 'react' AND ${table.emoji} IS NULL`),
   ],
 );
 
