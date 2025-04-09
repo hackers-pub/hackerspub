@@ -42,11 +42,10 @@ const linkMetadata: Record<string, LinkMetadata> = {
     handle: "@hong_minhee",
   },
   "https://keybase.io/hongminhee": { icon: "keybase", handle: "hongminhee" },
-  // FIXME: join-lemmy.org seems down for a while?
-  // "https://lemmy.ml/u/hongminhee": {
-  //   icon: "lemmy",
-  //   handle: "@hongminhee@lemmy.ml",
-  // },
+  "https://lemmy.ml/u/hongminhee": {
+    icon: "lemmy",
+    handle: "@hongminhee@lemmy.ml",
+  },
   "https://www.linkedin.com/in/simnalamburt": {
     icon: "linkedin",
     handle: "simnalamburt",
@@ -72,10 +71,11 @@ const linkMetadata: Record<string, LinkMetadata> = {
     icon: "pixelfed",
     handle: "@dansup@pixelfed.social",
   },
-  "https://stereophonic.space/users/karolat": {
-    icon: "pleroma",
-    handle: "@karolat@stereophonic.space",
-  },
+  // FIXME: stereophonic.space seems down for a while?
+  // "https://stereophonic.space/users/karolat": {
+  //   icon: "pleroma",
+  //   handle: "@karolat@stereophonic.space",
+  // },
   "https://qiita.com/hongminhee": { icon: "qiita", handle: "@hongminhee" },
   "https://www.reddit.com/r/fediverse/": {
     icon: "reddit",
