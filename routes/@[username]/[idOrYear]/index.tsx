@@ -10,7 +10,6 @@ import { drive } from "../../../drive.ts";
 import { Composer } from "../../../islands/Composer.tsx";
 import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
-import { getAvatarUrl } from "../../../models/actor.ts";
 import { renderMarkup } from "../../../models/markup.ts";
 import { createNote, getNoteSource, updateNote } from "../../../models/note.ts";
 import {
@@ -443,7 +442,7 @@ type NotePageProps = {
   postUrl: string;
   replies: (Post & {
     actor: Actor;
-    link?: PostLink & { creator?: Actor | null } | null;
+    link: PostLink & { creator?: Actor | null } | null;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
@@ -503,32 +502,7 @@ export default define.page<typeof handler, NotePageProps>(
           )}
         {replies.map((reply) => (
           <>
-            <NoteExcerpt
-              url={reply.url ?? reply.iri}
-              internalUrl={reply.noteSourceId == null
-                ? `/${reply.actor.handle}/${reply.id}`
-                : `/@${reply.actor.username}/${reply.noteSourceId}`}
-              sensitive={reply.sensitive}
-              summary={reply.summary ?? undefined}
-              contentHtml={reply.contentHtml}
-              emojis={reply.emojis}
-              mentions={reply.mentions}
-              lang={reply.language ?? undefined}
-              visibility={reply.visibility}
-              link={reply.link ?? undefined}
-              linkUrl={reply.linkUrl ?? undefined}
-              authorUrl={reply.actor.url ?? reply.actor.iri}
-              authorInternalUrl={reply.actor.accountId == null
-                ? `/${reply.actor.handle}`
-                : `/@${reply.actor.username}`}
-              authorName={reply.actor.name ?? reply.actor.username}
-              authorHandle={reply.actor.handle}
-              authorAvatarUrl={getAvatarUrl(reply.actor)}
-              authorEmojis={reply.actor.emojis}
-              quotedPostId={reply.quotedPostId ?? undefined}
-              media={reply.media}
-              published={reply.published}
-            />
+            <NoteExcerpt post={reply} />
             <PostControls
               class="mt-4 ml-14"
               language={state.language}

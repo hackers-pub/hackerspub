@@ -1,5 +1,4 @@
 import { PostControls } from "../islands/PostControls.tsx";
-import { getAvatarUrl } from "../models/actor.ts";
 import { isArticleLike, isPostVisibleTo } from "../models/post.ts";
 import type {
   Account,
@@ -127,33 +126,8 @@ export function PostExcerpt(props: PostExcerptProps) {
                     class={replyTarget?.type != "Article"
                       ? `${props.class} mt-2`
                       : props.class}
-                    url={post.url ?? post.iri}
-                    internalUrl={post.noteSourceId == null
-                      ? `/${post.actor.handle}/${post.id}`
-                      : `/@${post.actor.username}/${post.noteSourceId}`}
-                    sensitive={post.sensitive}
-                    summary={post.summary ?? undefined}
-                    contentHtml={post.contentHtml}
-                    emojis={post.emojis}
-                    mentions={post.mentions}
-                    lang={post.language ?? undefined}
-                    visibility={post.visibility}
-                    link={post.link ?? undefined}
-                    linkUrl={post.linkUrl ?? undefined}
-                    authorUrl={post.actor.url ?? post.actor.iri}
-                    authorInternalUrl={post.actor.accountId == null
-                      ? `/${post.actor.handle}`
-                      : `/@${post.actor.username}`}
-                    authorName={post.actor.name ?? post.actor.username}
-                    authorHandle={post.actor.handle}
-                    authorAvatarUrl={getAvatarUrl(post.actor)}
-                    authorEmojis={post.actor.emojis}
-                    quotedPostId={props.noQuote
-                      ? undefined
-                      : (post.quotedPostId ?? undefined)}
+                    post={post}
                     sharer={sharer}
-                    media={post.media}
-                    published={post.published}
                     replyTarget={props.replier != null}
                     reply={replyTarget != null}
                   />
