@@ -18,7 +18,6 @@ import { isArticleLike } from "../models/post.ts";
 import {
   accountTable,
   type Actor,
-  type CustomEmoji,
   notificationTable,
 } from "../models/schema.ts";
 import type { Uuid } from "../models/uuid.ts";
@@ -91,24 +90,10 @@ export const handler = define.handlers(async (ctx) => {
     ? `${ctx.url.pathname}?page=${pageNum + 1}`
     : undefined;
 
-  const customEmojiIds = new Set<Uuid>();
-  for (const noti of notifications) {
-    if (noti.customEmojiId != null) customEmojiIds.add(noti.customEmojiId);
-  }
-
-  const customEmojis = customEmojiIds.size > 0
-    ? await db.query.customEmojiTable.findMany({
-      where: { id: { in: [...customEmojiIds] } },
-    })
-    : [];
-
   return page<NotificationsProps>({
     lastRead,
     notifications,
     actorsById,
-    customEmojis: Object.fromEntries(
-      customEmojis.map((emoji) => [emoji.id, emoji]),
-    ),
     nextHref,
   });
 });
@@ -117,7 +102,6 @@ interface NotificationsProps {
   lastRead: Date | null;
   notifications: Awaited<ReturnType<typeof getNotifications>>;
   actorsById: Record<Uuid, Actor>;
-  customEmojis: Record<Uuid, CustomEmoji>;
   nextHref?: string;
 }
 
@@ -125,7 +109,7 @@ export default define.page<typeof handler, NotificationsProps>(
   (
     {
       state: { language },
-      data: { lastRead, notifications, actorsById, customEmojis, nextHref },
+      data: { lastRead, notifications, actorsById, nextHref },
     },
   ) => {
     return (
@@ -216,16 +200,12 @@ export default define.page<typeof handler, NotificationsProps>(
                                   actor={
                                     <NotificationActor actor={lastActor} />
                                   }
-                                  emoji={notification.customEmojiId == null
+                                  emoji={notification.customEmoji == null
                                     ? notification.emoji
                                     : (
                                       <img
-                                        src={customEmojis[
-                                          notification.customEmojiId
-                                        ].imageUrl}
-                                        alt={customEmojis[
-                                          notification.customEmojiId
-                                        ].name}
+                                        src={notification.customEmoji.imageUrl}
+                                        alt={notification.customEmoji.name}
                                         class="inline-block h-4"
                                       />
                                     )}

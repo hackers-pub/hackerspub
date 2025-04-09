@@ -336,6 +336,7 @@ export function getNotifications(
   (Notification & {
     post: Post & { actor: Actor & { instance: Instance } } | null;
     account: Account;
+    customEmoji: CustomEmoji | null;
   })[]
 > {
   return db.query.notificationTable.findMany({
@@ -355,6 +356,7 @@ export function getNotifications(
         },
       },
       account: true,
+      customEmoji: true,
     },
   });
 }
