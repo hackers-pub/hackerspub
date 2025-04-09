@@ -1,0 +1,1 @@
+ALTER TABLE "post" RENAME COLUMN "reactionsCount" TO "reactions_count";

@@ -435,6 +435,20 @@
       "when": 1744178633163,
       "tag": "0061_add-react-to-notification_type",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1744198922847,
+      "tag": "0062_post.reactions_count",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1744199187559,
+      "tag": "0063_post.reactions_count",
+      "breakpoints": true
     }
   ]
 }

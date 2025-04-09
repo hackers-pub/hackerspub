@@ -478,13 +478,15 @@ export const postTable = pgTable(
     emojis: jsonb().$type<Record<string, string>>().notNull().default({}),
     sensitive: boolean().notNull().default(false),
     repliesCount: integer("replies_count").notNull().default(0),
-    likesCount: integer("likes_count").notNull().default(0),
     sharesCount: integer("shares_count").notNull().default(0),
     quotesCount: integer("quotes_count").notNull().default(0),
     reactionsCounts: jsonb("reactions_counts")
       .$type<Record<Emoji | Uuid, number>>()
       .notNull()
       .default({}),
+    reactionsCount: integer("reactions_count").notNull().generatedAlwaysAs(
+      (): SQL => sql`json_sum_object_values(${postTable.reactionsCounts})`,
+    ),
     linkId: uuid("link_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postLinkTable.id, {
@@ -512,6 +514,10 @@ export const postTable = pgTable(
     check(
       "post_shared_post_id_reply_target_id_check",
       sql`${table.sharedPostId} IS NULL OR ${table.replyTargetId} IS NULL`,
+    ),
+    check(
+      "post_reactions_acounts_check",
+      sql`${table.reactionsCounts} IS JSON OBJECT`,
     ),
     check(
       "post_link_id_check",

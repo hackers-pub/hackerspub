@@ -83,10 +83,7 @@ export default define.page<typeof handler, ArticleSharesProps>(
         active="sharers"
         hrefs={{ reactions: "./reactions", sharers: "" }}
         stats={{
-          reactions: Object.values(article.post.reactionsCounts).reduce(
-            (a, b) => a + b,
-            0,
-          ),
+          reactions: article.post.reactionsCount,
           sharers: sharers.length,
         }}
       />

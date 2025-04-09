@@ -431,7 +431,6 @@ export async function persistPost(
   }
   const replies = options.replies ? await post.getReplies(opts) : null;
   const shares = await post.getShares(opts);
-  const likes = await post.getLikes(opts);
   const to = new Set(post.toIds.map((u) => u.href));
   const cc = new Set(post.ccIds.map((u) => u.href));
   const recipients = to.union(cc);
@@ -495,7 +494,6 @@ export async function persistPost(
     quotedPostId: quotedPost?.id,
     repliesCount: replies?.totalItems ?? 0,
     sharesCount: shares?.totalItems ?? 0,
-    likesCount: likes?.totalItems ?? 0,
     updated: toDate(post.updated ?? post.published) ?? undefined,
     published: toDate(post.published) ?? undefined,
   };

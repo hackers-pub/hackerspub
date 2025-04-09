@@ -447,7 +447,7 @@ export async function recommendActors(
           ELSE 1
         END`.as("local"),
       followersCount: actorTable.followersCount,
-      likesCount: sql<number>`coalesce(sum(${postTable.likesCount}), 0)`
+      reactionsCount: sql<number>`coalesce(sum(${postTable.reactionsCount}), 0)`
         .as("likesCount"),
       repliesCount: sql<number>`coalesce(sum(${postTable.repliesCount}), 0)`
         .as("repliesCount"),
@@ -510,7 +510,7 @@ export async function recommendActors(
     .orderBy(
       desc(
         sql`
-          ${statsCte.likesCount} / (${statsCte.likesCount} + 15.0) +
+          ${statsCte.reactionsCount} / (${statsCte.reactionsCount} + 15.0) +
           ${statsCte.repliesCount} / (${statsCte.repliesCount} + 5.0) +
           ${statsCte.sharesCount} / (${statsCte.sharesCount} + 10.0) +
           ${statsCte.followersCount} / (${statsCte.followersCount} + 50.0) +

@@ -78,10 +78,7 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
           active="sharers"
           hrefs={{ reactions: "./reactions", sharers: "" }}
           stats={{
-            reactions: Object.values(note.post.reactionsCounts).reduce(
-              (a, b) => a + b,
-              0,
-            ),
+            reactions: note.post.reactionsCount,
             sharers: sharers.length,
           }}
         />
