@@ -10,7 +10,13 @@ export const handler = define.handlers({
     const username = ctx.params.username;
     const year = parseInt(ctx.params.idOrYear);
     const slug = ctx.params.slug;
-    const article = await getArticleSource(db, username, year, slug);
+    const article = await getArticleSource(
+      db,
+      username,
+      year,
+      slug,
+      ctx.state.account,
+    );
     if (article == null) return ctx.next();
     const post = article.post;
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {

@@ -5,6 +5,7 @@
     "article": "게시글",
     "tag": "태그",
     "draft": "임시 보관",
+    "react": "반응",
     "reply": "댓글",
     "comment": "댓글",
     "share": "공유",
@@ -202,6 +203,9 @@
     "remoteQuoteDescription": "연합우주(fediverse) 계정이 있으시다면, 이 단문을 인용할 수 있습니다. 사용하시는 인스턴스의 검색창에 {{permalink}}로 검색하신 뒤, 해당 단문을 인용하시면 됩니다. (Mastodon에서는 인용 기능이 지원되지 않습니다.)"
   },
   "post": {
+    "reacting": "반응하는 중…",
+    "undoingReaction": "취소하는 중…",
+    "reacted": "이미 반응함",
     "delete": "삭제",
     "deleteConfirm": "이 콘텐츠를 삭제하시겠습니까?",
     "deleting": "삭제중…",
@@ -209,6 +213,8 @@
     "quotes": "인용",
     "reactions": {
       "title": "반응",
+      "stats": "반응 통계",
+      "reactedPeople": "{{count}}명이 반응했습니다.",
       "sharers": "공유한 사람들"
     }
   },

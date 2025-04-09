@@ -26,6 +26,7 @@ import type {
   Post,
   PostLink,
   PostMedium,
+  Reaction,
 } from "../models/schema.ts";
 import { define } from "../utils.ts";
 
@@ -75,6 +76,7 @@ export const handler = define.handlers({
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
             shares: Post[];
+            reactions: Reaction[];
           }
           | null;
         replyTarget:
@@ -88,6 +90,7 @@ export const handler = define.handlers({
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
+        reactions: Reaction[];
       };
       lastSharer: Actor | null;
       sharersCount: number;
@@ -128,6 +131,7 @@ export const handler = define.handlers({
               },
               media: true,
               shares: { where: { RAW: sql`false` } },
+              reactions: { where: { RAW: sql`false` } },
             },
           },
           replyTarget: {
@@ -150,6 +154,7 @@ export const handler = define.handlers({
           },
           media: true,
           shares: { where: { RAW: sql`false` } },
+          reactions: { where: { RAW: sql`false` } },
         },
         where: {
           visibility: "public",
@@ -229,6 +234,9 @@ export const handler = define.handlers({
                     shares: {
                       where: { actorId: ctx.state.account.actor.id },
                     },
+                    reactions: {
+                      where: { actorId: ctx.state.account.actor.id },
+                    },
                   },
                 },
                 replyTarget: {
@@ -253,6 +261,9 @@ export const handler = define.handlers({
                 },
                 media: true,
                 shares: {
+                  where: { actorId: ctx.state.account.actor.id },
+                },
+                reactions: {
                   where: { actorId: ctx.state.account.actor.id },
                 },
               },
@@ -394,6 +405,7 @@ interface HomeProps {
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
           shares: Post[];
+          reactions: Reaction[];
         }
         | null;
       replyTarget:
@@ -407,6 +419,7 @@ interface HomeProps {
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
       shares: Post[];
+      reactions: Reaction[];
     };
     lastSharer: Actor | null;
     sharersCount: number;

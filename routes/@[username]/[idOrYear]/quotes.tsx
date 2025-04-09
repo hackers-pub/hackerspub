@@ -6,7 +6,10 @@ import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
 import { drive } from "../../../drive.ts";
 import { Composer } from "../../../islands/Composer.tsx";
-import { PostControls } from "../../../islands/PostControls.tsx";
+import {
+  PostControls,
+  toReactionStates,
+} from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { createNote, getNoteSource } from "../../../models/note.ts";
 import {
@@ -21,6 +24,7 @@ import type {
   Post,
   PostLink,
   PostMedium,
+  Reaction,
 } from "../../../models/schema.ts";
 import { validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
@@ -44,6 +48,7 @@ type EnrichedPost = Post & {
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
       shares: Post[];
+      reactions: Reaction[];
     }
     | null;
   replyTarget:
@@ -57,6 +62,7 @@ type EnrichedPost = Post & {
   mentions: (Mention & { actor: Actor })[];
   media: PostMedium[];
   shares: Post[];
+  reactions: Reaction[];
 };
 
 export const handler = define.handlers({
@@ -97,6 +103,11 @@ export const handler = define.handlers({
         },
         media: true,
         shares: {
+          where: ctx.state.account == null
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
+        },
+        reactions: {
           where: ctx.state.account == null
             ? { RAW: sql`false` }
             : { actorId: ctx.state.account.actor.id },
@@ -175,6 +186,7 @@ interface NoteQuotesProps {
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
       shares: Post[];
+      reactions: Reaction[];
     }
   )[];
 }
@@ -214,7 +226,10 @@ export default define.page<typeof handler, NoteQuotesProps>(
           )}
           quoteUrl=""
           quotesCount={quotes.length}
-          reactionsUrl={`${postUrl}/shares`}
+          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
+          reactionStates={toReactionStates(state.account, post.reactions)}
+          reactionsCounts={post.reactionsCounts}
+          reactionsUrl={`${postUrl}/reactions`}
           deleteUrl={state.account == null ||
               state.account.actor.id !== post.actorId
             ? undefined

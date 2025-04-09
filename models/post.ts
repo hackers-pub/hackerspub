@@ -72,6 +72,7 @@ import {
   postMediumTable,
   postTable,
   type PostVisibility,
+  type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline, removeFromTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
@@ -876,6 +877,7 @@ export function getPostByUsernameAndId(
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
+        reactions: Reaction[];
       }
       | null;
     replyTarget:
@@ -892,6 +894,7 @@ export function getPostByUsernameAndId(
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
+    reactions: Reaction[];
   }
   | undefined
 > {
@@ -937,6 +940,11 @@ export function getPostByUsernameAndId(
               ? { RAW: sql`false` }
               : { actorId: signedAccount.actor.id },
           },
+          reactions: {
+            where: signedAccount == null
+              ? { RAW: sql`false` }
+              : { actorId: signedAccount.actor.id },
+          },
         },
       },
       replyTarget: {
@@ -964,6 +972,11 @@ export function getPostByUsernameAndId(
       },
       media: true,
       shares: {
+        where: signedAccount == null
+          ? { RAW: sql`false` }
+          : { actorId: signedAccount.actor.id },
+      },
+      reactions: {
         where: signedAccount == null
           ? { RAW: sql`false` }
           : { actorId: signedAccount.actor.id },

@@ -5,6 +5,7 @@
     "article": "文章",
     "tag": "标签",
     "draft": "草稿",
+    "react": "反应",
     "reply": "回复",
     "comment": "评论",
     "share": "转帖",
@@ -205,6 +206,9 @@
     "remoteQuoteDescription": "如果你在联邦宇宙有个账户，你可以在你自己的实例里引用此帖子。在你的实例搜索 {{permalink}} 后进行引用。（请注意，Mastodon不支持引用功能）"
   },
   "post": {
+    "reacting": "正在反应……",
+    "undoingReaction": "正在撤销……",
+    "reacted": "已反应",
     "delete": "删除",
     "deleteConfirm": "你确定要删除此内容吗？",
     "deleting": "正在删除……",
@@ -212,6 +216,8 @@
     "quotes": "引用",
     "reactions": {
       "title": "反应",
+      "stats": "反应统计",
+      "reactedPeople": "{{count}}人做出了反应。",
       "sharers": "转帖此内容的人"
     }
   },

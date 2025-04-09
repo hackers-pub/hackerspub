@@ -5,6 +5,7 @@
     "article": "article",
     "tag": "tag",
     "draft": "draft",
+    "react": "react",
     "reply": "reply",
     "comment": "comment",
     "share": "share",
@@ -208,6 +209,9 @@
     "remoteQuoteDescription": "If you have a fediverse account, you can quote this note from your own instance. Search {{permalink}} on your instance and quote it. (Note that quoting is not supported in Mastodon.)"
   },
   "post": {
+    "reacting": "Reacting…",
+    "undoingReaction": "Undoing…",
+    "reacted": "Already reacted",
     "delete": "Delete",
     "deleteConfirm": "Are you sure you want to delete this post?",
     "deleting": "Deleting…",
@@ -215,6 +219,9 @@
     "quotes": "Quotes",
     "reactions": {
       "title": "Reactions",
+      "stats": "Reaction statistics",
+      "reactedPeople_one": "{{count}} person reacted.",
+      "reactedPeople_other": "{{count}} people reacted.",
       "sharers": "Who shared this"
     }
   },

@@ -5,6 +5,7 @@
     "jsr:@david/which-runtime@~0.2.1": "0.2.1",
     "jsr:@fedify/fedify@1.5.0": "1.5.0",
     "jsr:@fedify/fedify@^1.5.0": "1.5.0",
+    "jsr:@fedify/fedify@^1.5.1": "1.5.1",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
     "jsr:@fedify/postgres@0.3": "0.3.0",
     "jsr:@fedify/redis@0.4": "0.4.0",
@@ -154,6 +155,30 @@
     },
     "@fedify/fedify@1.5.0": {
       "integrity": "1060187549eaefc36f6fbb71bce725894199fcf73a231e785b9213b101f55504",
+      "dependencies": [
+        "jsr:@david/which-runtime",
+        "jsr:@hugoalh/http-header-link",
+        "jsr:@logtape/logtape@~0.8.2",
+        "jsr:@std/async@^1.0.5",
+        "jsr:@std/bytes@^1.0.2",
+        "jsr:@std/encoding@1.0.7",
+        "jsr:@std/http@^1.0.6",
+        "jsr:@std/semver@^1.0.3",
+        "npm:@multiformats/base-x",
+        "npm:@opentelemetry/api",
+        "npm:@opentelemetry/semantic-conventions@^1.27.0",
+        "npm:@phensley/language-tag",
+        "npm:asn1js",
+        "npm:json-canon",
+        "npm:jsonld",
+        "npm:multicodec",
+        "npm:pkijs",
+        "npm:uri-template-router",
+        "npm:url-template"
+      ]
+    },
+    "@fedify/fedify@1.5.1": {
+      "integrity": "1034b476f0f92a3a2a42f39f85c087742e1a859804698785705afa81aeb2e742",
       "dependencies": [
         "jsr:@david/which-runtime",
         "jsr:@hugoalh/http-header-link",
@@ -4301,7 +4326,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@^1.5.0",
+      "jsr:@fedify/fedify@^1.5.1",
       "jsr:@fedify/markdown-it-mention@0.3",
       "jsr:@fedify/postgres@0.3",
       "jsr:@fedify/redis@0.4",

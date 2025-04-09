@@ -142,6 +142,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     replies: r.many.postTable({ alias: "replyTarget" }),
     shares: r.many.postTable({ alias: "sharedPost" }),
+    reactions: r.many.reactionTable(),
     quotes: r.many.postTable({ alias: "quotedPost" }),
     mentions: r.many.mentionTable(),
     media: r.many.postMediumTable(),
@@ -174,6 +175,26 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.postLinkTable.creatorId,
       to: r.actorTable.id,
     }),
+  },
+  reactionTable: {
+    post: r.one.postTable({
+      from: r.reactionTable.postId,
+      to: r.postTable.id,
+      optional: false,
+    }),
+    actor: r.one.actorTable({
+      from: r.reactionTable.actorId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+    customEmoji: r.one.customEmojiTable({
+      from: r.reactionTable.customEmojiId,
+      to: r.customEmojiTable.id,
+      optional: true,
+    }),
+  },
+  customEmojiTable: {
+    reactions: r.many.reactionTable(),
   },
   timelineItemTable: {
     account: r.one.accountTable({

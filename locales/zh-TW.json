@@ -5,6 +5,7 @@
     "article": "文章",
     "tag": "標籤",
     "draft": "草稿",
+    "react": "反應",
     "reply": "回覆",
     "comment": "評論",
     "share": "轉貼",
@@ -205,6 +206,9 @@
     "remoteQuoteDescription": "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡引用此貼文。在你的實例搜尋 {{permalink}} 後進行引用。（請注意，Mastodon不支援引用功能）"
   },
   "post": {
+    "reacting": "正在反應……",
+    "undoingReaction": "正在撤銷……",
+    "reacted": "已反應",
     "delete": "刪除",
     "deleteConfirm": "你確定要刪除此內容嗎？",
     "deleting": "正在刪除……",
@@ -212,6 +216,8 @@
     "quotes": "引用",
     "reactions": {
       "title": "反應",
+      "stats": "反應統計",
+      "reactedPeople": "{{count}}人做出了反應。",
       "sharers": "轉貼此內容的人"
     }
   },

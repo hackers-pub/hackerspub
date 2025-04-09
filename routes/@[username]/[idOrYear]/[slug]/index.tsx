@@ -9,7 +9,10 @@ import { db } from "../../../../db.ts";
 import { drive } from "../../../../drive.ts";
 import { ArticleMetadata } from "../../../../islands/ArticleMetadata.tsx";
 import { Composer } from "../../../../islands/Composer.tsx";
-import { PostControls } from "../../../../islands/PostControls.tsx";
+import {
+  PostControls,
+  toReactionStates,
+} from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource, updateArticle } from "../../../../models/article.ts";
@@ -18,14 +21,13 @@ import { renderMarkup, type Toc } from "../../../../models/markup.ts";
 import { createNote } from "../../../../models/note.ts";
 import { isPostSharedBy, isPostVisibleTo } from "../../../../models/post.ts";
 import type {
-  Account,
   Actor,
-  ArticleSource,
   Instance,
   Mention,
   Post,
   PostLink,
   PostMedium,
+  Reaction,
 } from "../../../../models/schema.ts";
 import type { Uuid } from "../../../../models/uuid.ts";
 import { define } from "../../../../utils.ts";
@@ -40,6 +42,7 @@ export const handler = define.handlers({
       ctx.params.username,
       year,
       ctx.params.slug,
+      ctx.state.account,
     );
     if (article == null) return ctx.next();
     if (!isPostVisibleTo(article.post, ctx.state.account?.actor)) {
@@ -128,6 +131,11 @@ export const handler = define.handlers({
             ? { RAW: sql`false` }
             : { actorId: ctx.state.account.actor.id },
         },
+        reactions: {
+          where: ctx.state.account == null
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
+        },
       },
       where: { replyTargetId: article.post.id },
       orderBy: { published: "asc" },
@@ -202,10 +210,7 @@ export const handler = define.handlers({
 });
 
 interface ArticlePageProps {
-  article: ArticleSource & {
-    account: Account;
-    post: Post & { mentions: (Mention & { actor: Actor })[] };
-  };
+  article: NonNullable<Awaited<ReturnType<typeof getArticleSource>>>;
   articleIri: string;
   shared: boolean;
   comments: (Post & {
@@ -214,6 +219,7 @@ interface ArticlePageProps {
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
+    reactions: Reaction[];
   })[];
   avatarUrl: string;
   contentHtml: string;
@@ -330,7 +336,13 @@ export default define.page<typeof handler, ArticlePageProps>(
               : `${postUrl}/unshare`}
             quoteUrl={`${postUrl}/quotes`}
             quotesCount={article.post.quotesCount}
-            reactionsUrl={`${postUrl}/shares`}
+            reactUrl={state.account == null ? undefined : `${postUrl}/react`}
+            reactionStates={toReactionStates(
+              state.account,
+              article.post.reactions,
+            )}
+            reactionsCounts={article.post.reactionsCounts}
+            reactionsUrl={`${postUrl}/reactions`}
             deleteUrl={state.account?.id === article.accountId
               ? `${postUrl}/delete`
               : undefined}

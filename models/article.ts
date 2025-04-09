@@ -20,6 +20,7 @@ import {
   type NewArticleDraft,
   type NewArticleSource,
   type Post,
+  type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
@@ -74,6 +75,7 @@ export async function getArticleSource(
   username: string,
   publishedYear: number,
   slug: string,
+  signedAccount?: Account & { actor: Actor },
 ): Promise<
   ArticleSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
@@ -81,6 +83,8 @@ export async function getArticleSource(
       actor: Actor & { followers: Following[] };
       replyTarget: Post | null;
       mentions: (Mention & { actor: Actor })[];
+      shares: Post[];
+      reactions: Reaction[];
     };
   } | undefined
 > {
@@ -110,6 +114,16 @@ export async function getArticleSource(
           replyTarget: true,
           mentions: {
             with: { actor: true },
+          },
+          shares: {
+            where: signedAccount == null
+              ? { RAW: sql`false` }
+              : { actorId: signedAccount.actor.id },
+          },
+          reactions: {
+            where: signedAccount == null
+              ? { RAW: sql`false` }
+              : { actorId: signedAccount.actor.id },
           },
         },
       },

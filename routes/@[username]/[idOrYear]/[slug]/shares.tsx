@@ -3,7 +3,10 @@ import { ActorList } from "../../../../components/ActorList.tsx";
 import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
 import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
-import { PostControls } from "../../../../islands/PostControls.tsx";
+import {
+  PostControls,
+  toReactionStates,
+} from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
@@ -18,7 +21,13 @@ export const handler = define.handlers({
     const username = ctx.params.username;
     const year = parseInt(ctx.params.idOrYear);
     const slug = ctx.params.slug;
-    const article = await getArticleSource(db, username, year, slug);
+    const article = await getArticleSource(
+      db,
+      username,
+      year,
+      slug,
+      ctx.state.account,
+    );
     if (article == null) return ctx.next();
     const post = article.post;
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
@@ -108,7 +117,13 @@ export default define.page<typeof handler, ArticleSharesProps>(
           unshareUrl={state.account == null ? undefined : `${postUrl}/unshare`}
           quoteUrl={`${postUrl}/quotes`}
           quotesCount={article.post.quotesCount}
-          reactionsUrl={`${postUrl}/shares`}
+          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
+          reactionStates={toReactionStates(
+            state.account,
+            article.post.reactions,
+          )}
+          reactionsCounts={article.post.reactionsCounts}
+          reactionsUrl={`${postUrl}/reactions`}
           deleteUrl={state.account?.id === article.accountId
             ? `${postUrl}/delete`
             : undefined}
@@ -116,8 +131,14 @@ export default define.page<typeof handler, ArticleSharesProps>(
         />
         <PostReactionsNav
           active="sharers"
-          hrefs={{ sharers: "" }}
-          stats={{ sharers: sharers.length }}
+          hrefs={{ reactions: "./reactions", sharers: "" }}
+          stats={{
+            reactions: Object.values(article.post.reactionsCounts).reduce(
+              (a, b) => a + b,
+              0,
+            ),
+            sharers: sharers.length,
+          }}
         />
         <ActorList
           actors={sharers}

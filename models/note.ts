@@ -28,6 +28,7 @@ import {
   type Post,
   type PostLink,
   type PostMedium,
+  type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
@@ -69,6 +70,7 @@ export async function getNoteSource(
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
           shares: Post[];
+          reactions: Reaction[];
         }
         | null;
       replyTarget:
@@ -82,6 +84,7 @@ export async function getNoteSource(
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
       shares: Post[];
+      reactions: Reaction[];
     };
     media: NoteMedium[];
   } | undefined
@@ -145,6 +148,11 @@ export async function getNoteSource(
                   ? { RAW: sql`false` }
                   : { actorId: signedAccount.actor.id },
               },
+              reactions: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { actorId: signedAccount.actor.id },
+              },
             },
           },
           replyTarget: {
@@ -168,6 +176,11 @@ export async function getNoteSource(
           },
           media: true,
           shares: {
+            where: signedAccount == null
+              ? { RAW: sql`false` }
+              : { actorId: signedAccount.actor.id },
+          },
+          reactions: {
             where: signedAccount == null
               ? { RAW: sql`false` }
               : { actorId: signedAccount.actor.id },

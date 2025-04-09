@@ -22,6 +22,7 @@ import type {
   Post,
   PostLink,
   PostMedium,
+  Reaction,
 } from "../../models/schema.ts";
 import { define } from "../../utils.ts";
 
@@ -117,6 +118,11 @@ export const handler = define.handlers({
                 ? { RAW: sql`false` }
                 : { actorId: ctx.state.account.actor.id },
             },
+            reactions: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { actorId: ctx.state.account.actor.id },
+            },
           },
         },
         replyTarget: {
@@ -143,6 +149,11 @@ export const handler = define.handlers({
         },
         media: true,
         shares: {
+          where: ctx.state.account == null
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
+        },
+        reactions: {
           where: ctx.state.account == null
             ? { RAW: sql`false` }
             : { actorId: ctx.state.account.actor.id },
@@ -216,6 +227,7 @@ interface ProfileArticleListProps {
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
+        reactions: Reaction[];
       }
       | null;
     replyTarget:
@@ -229,6 +241,7 @@ interface ProfileArticleListProps {
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
+    reactions: Reaction[];
   })[];
   nextHref?: string;
 }

@@ -2,6 +2,7 @@ import {
   type Context,
   LanguageString,
   PUBLIC_COLLECTION,
+  type RequestContext,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { escape } from "@std/html/entities";
@@ -9,6 +10,11 @@ import type { Disk } from "flydrive";
 import { type Database, db } from "../db.ts";
 import { drive } from "../drive.ts";
 import { kv } from "../kv.ts";
+import {
+  DEFAULT_REACTION_EMOJI,
+  isReactionEmoji,
+  type ReactionEmoji,
+} from "../models/emoji.ts";
 import { renderMarkup } from "../models/markup.ts";
 import { isPostVisibleTo } from "../models/post.ts";
 import type {
@@ -20,6 +26,7 @@ import type {
   NoteSource,
   Post,
   PostVisibility,
+  Reaction,
 } from "../models/schema.ts";
 import { type Uuid, validateUuid } from "../models/uuid.ts";
 import { federation } from "./federation.ts";
@@ -299,4 +306,87 @@ federation.setObjectDispatcher(
       actor: { ...share.actor, account: share.actor.account },
     });
   },
+);
+
+function getEmojiReactType(
+  emoji: ReactionEmoji,
+): typeof vocab.Like | typeof vocab.EmojiReact {
+  return emoji === DEFAULT_REACTION_EMOJI ? vocab.Like : vocab.EmojiReact;
+}
+
+export function getEmojiReactId(
+  ctx: Context<void>,
+  accountId: Uuid,
+  postId: Uuid,
+  emoji: ReactionEmoji,
+): URL {
+  const activityType = getEmojiReactType(emoji);
+  return ctx.getObjectUri<vocab.Like | vocab.EmojiReact>(activityType, {
+    accountId,
+    postId,
+    emoji,
+  });
+}
+
+export function getEmojiReact(
+  ctx: Context<void>,
+  reaction: Reaction & { actor: Actor; post: Post & { actor: Actor } },
+): vocab.Like | vocab.EmojiReact | null {
+  if (
+    reaction.actor.accountId == null || reaction.emoji == null ||
+    !isReactionEmoji(reaction.emoji)
+  ) {
+    return null;
+  }
+  const activityType = getEmojiReactType(reaction.emoji);
+  return new activityType({
+    id: getEmojiReactId(
+      ctx,
+      reaction.actor.accountId,
+      reaction.post.id,
+      reaction.emoji,
+    ),
+    actor: ctx.getActorUri(reaction.actor.accountId),
+    tos: [
+      new URL(reaction.post.actor.iri),
+      ctx.getFollowersUri(reaction.actor.accountId),
+    ],
+    cc: PUBLIC_COLLECTION,
+    object: new URL(reaction.post.iri),
+    content: reaction.emoji,
+  });
+}
+
+async function getEmojiReactOrLike(
+  ctx: RequestContext<void>,
+  values: Record<"accountId" | "postId" | "emoji", string>,
+): Promise<vocab.Like | vocab.EmojiReact | null> {
+  if (
+    !validateUuid(values.accountId) || !validateUuid(values.postId) ||
+    !isReactionEmoji(values.emoji)
+  ) {
+    return null;
+  }
+  const reaction = await db.query.reactionTable.findFirst({
+    with: { actor: true, post: { with: { actor: true } } },
+    where: {
+      actor: { accountId: values.accountId },
+      postId: values.postId,
+      emoji: values.emoji,
+    },
+  });
+  if (reaction == null) return null;
+  return getEmojiReact(ctx, reaction);
+}
+
+federation.setObjectDispatcher(
+  vocab.Like,
+  "/ap/likes/{accountId}/{postId}/{emoji}",
+  getEmojiReactOrLike,
+);
+
+federation.setObjectDispatcher(
+  vocab.EmojiReact,
+  "/ap/emojireacts/{accountId}/{postId}/{emoji}",
+  getEmojiReactOrLike,
 );

@@ -23,6 +23,7 @@ export const handler = define.handlers({
       ctx.params.username,
       year,
       ctx.params.slug,
+      ctx.state.account,
     );
     if (article == null) return ctx.next();
     else if (article.accountId !== ctx.state.account.id) return ctx.next();

@@ -4,8 +4,8 @@ import {
   type ArticleMetadataProps,
 } from "../islands/ArticleMetadata.tsx";
 import { Link } from "../islands/Link.tsx";
-import { PostControls } from "../islands/PostControls.tsx";
-import { renderCustomEmojis } from "../models/emoji.ts";
+import { PostControls, type ReactionState } from "../islands/PostControls.tsx";
+import { type ReactionEmoji, renderCustomEmojis } from "../models/emoji.ts";
 import type { PostVisibility } from "../models/schema.ts";
 import { Excerpt } from "./Excerpt.tsx";
 import { Msg, Translation } from "./Msg.tsx";
@@ -39,7 +39,10 @@ export type ArticleExcerptProps = Omit<ArticleMetadataProps, "language"> & {
     shared: boolean;
     shareUrl?: string;
     unshareUrl?: string;
-    sharedPeopleUrl?: string;
+    reactUrl?: string;
+    reactionStates: Record<ReactionEmoji, ReactionState>;
+    reactionsCounts: Record<string, number>;
+    reactionsUrl?: string;
     quoteUrl?: string;
     quotesCount?: number;
   };
@@ -157,7 +160,10 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
               unshareUrl={props.controls.unshareUrl}
               quoteUrl={props.controls.quoteUrl}
               quotesCount={props.controls.quotesCount}
-              reactionsUrl={props.controls.sharedPeopleUrl}
+              reactUrl={props.controls.reactUrl}
+              reactionStates={props.controls.reactionStates}
+              reactionsCounts={props.controls.reactionsCounts}
+              reactionsUrl={props.controls.reactionsUrl}
               deleteUrl={props.deleteUrl ?? undefined}
               deleteMethod="post"
             />

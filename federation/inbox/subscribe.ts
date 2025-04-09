@@ -2,12 +2,15 @@ import {
   type Announce,
   type Create,
   type Delete,
+  EmojiReact,
   type InboxContext,
+  Like,
   Tombstone,
   type Undo,
   type Update,
 } from "@fedify/fedify";
 import { getLogger } from "@logtape/logtape";
+import { eq } from "drizzle-orm";
 import { db } from "../../db.ts";
 import {
   createMentionNotification,
@@ -23,6 +26,12 @@ import {
   persistPost,
   persistSharedPost,
 } from "../../models/post.ts";
+import {
+  deleteReaction,
+  persistReaction,
+  updateReactionsCounts,
+} from "../../models/reaction.ts";
+import { reactionTable } from "../../models/schema.ts";
 import {
   addPostToTimeline,
   removeFromTimeline,
@@ -134,26 +143,60 @@ export async function onPostShared(
 export async function onPostUnshared(
   _fedCtx: InboxContext<void>,
   undo: Undo,
-): Promise<void> {
+): Promise<boolean> {
   logger.debug("On post unshared: {undo}", { undo });
-  if (undo.objectId == null || undo.actorId == null) return;
-  if (undo.objectId?.origin !== undo.actorId?.origin) return;
+  if (undo.objectId == null || undo.actorId == null) return false;
+  if (undo.objectId?.origin !== undo.actorId?.origin) return false;
   const post = await deleteSharedPost(db, undo.objectId, undo.actorId);
-  if (post != null) {
-    await removeFromTimeline(db, post);
-    if (post.sharedPostId != null) {
-      const sharedPost = await db.query.postTable.findFirst({
-        where: { id: post.sharedPostId },
-        with: { actor: true },
-      });
-      if (sharedPost?.actor.accountId != null) {
-        await deleteShareNotification(
-          db,
-          sharedPost.actor.accountId,
-          sharedPost,
-          post.actor,
-        );
-      }
+  if (post == null) return false;
+  await removeFromTimeline(db, post);
+  if (post.sharedPostId != null) {
+    const sharedPost = await db.query.postTable.findFirst({
+      where: { id: post.sharedPostId },
+      with: { actor: true },
+    });
+    if (sharedPost?.actor.accountId != null) {
+      await deleteShareNotification(
+        db,
+        sharedPost.actor.accountId,
+        sharedPost,
+        post.actor,
+      );
     }
   }
+  return true;
+}
+
+export async function onReactedOnPost(
+  fedCtx: InboxContext<void>,
+  reaction: Like | EmojiReact,
+): Promise<void> {
+  logger.debug("On post reacted: {reaction}", { reaction });
+  const reactionObject = await persistReaction(db, fedCtx, reaction, fedCtx);
+  if (reactionObject == null) return;
+  await updateReactionsCounts(db, reactionObject.postId);
+}
+
+export async function onReactionUndoneOnPost(
+  fedCtx: InboxContext<void>,
+  undo: Undo,
+): Promise<boolean> {
+  logger.debug("On reaction undone: {undo}", { undo });
+  if (undo.objectId == null || undo.actorId == null) return false;
+  if (undo.objectId?.origin !== undo.actorId?.origin) return false;
+  const object = await undo.getObject({ ...fedCtx, suppressError: true });
+  if (object == null) {
+    const rows = await db.delete(reactionTable)
+      .where(eq(reactionTable.iri, undo.objectId.href))
+      .returning();
+    if (rows.length < 1) return false;
+    await updateReactionsCounts(db, rows[0].postId);
+    return true;
+  } else if (object instanceof Like || object instanceof EmojiReact) {
+    const reaction = await deleteReaction(db, object, fedCtx);
+    if (reaction == null) return false;
+    await updateReactionsCounts(db, reaction.postId);
+    return true;
+  }
+  return false;
 }

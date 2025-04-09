@@ -1,3 +1,20 @@
+export const REACTION_EMOJIS = [
+  "❤️",
+  "🎉",
+  "😂",
+  "😲",
+  "🤔",
+  "😢",
+  "👀",
+] as const;
+export type ReactionEmoji = (typeof REACTION_EMOJIS)[number];
+
+export function isReactionEmoji(value: unknown): value is ReactionEmoji {
+  return REACTION_EMOJIS.includes(value as ReactionEmoji);
+}
+
+export const DEFAULT_REACTION_EMOJI = REACTION_EMOJIS[0];
+
 const CUSTOM_EMOJI_REGEXP = /:([a-z0-9_-]+):/gi;
 const HTML_ELEMENT_REGEXP = /<\/?[^>]+>/g;
 

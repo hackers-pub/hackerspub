@@ -3,7 +3,10 @@ import { ActorList } from "../../../components/ActorList.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { PostReactionsNav } from "../../../components/PostReactionsNav.tsx";
 import { db } from "../../../db.ts";
-import { PostControls } from "../../../islands/PostControls.tsx";
+import {
+  PostControls,
+  toReactionStates,
+} from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { extractMentionsFromHtml } from "../../../models/markup.ts";
 import { getNoteSource } from "../../../models/note.ts";
@@ -93,7 +96,10 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
           )}
           quoteUrl={`${postUrl}/quotes`}
           quotesCount={note.post.quotesCount}
-          reactionsUrl={`${postUrl}/shares`}
+          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
+          reactionStates={toReactionStates(state.account, note.post.reactions)}
+          reactionsCounts={note.post.reactionsCounts}
+          reactionsUrl={`${postUrl}/reactions`}
           deleteUrl={state.account == null ||
               state.account.id !== note.accountId
             ? undefined
@@ -102,8 +108,14 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
         <div class="mt-4 ml-14">
           <PostReactionsNav
             active="sharers"
-            hrefs={{ sharers: "" }}
-            stats={{ sharers: sharers.length }}
+            hrefs={{ reactions: "./reactions", sharers: "" }}
+            stats={{
+              reactions: Object.values(note.post.reactionsCounts).reduce(
+                (a, b) => a + b,
+                0,
+              ),
+              sharers: sharers.length,
+            }}
           />
           <ActorList
             actors={sharers}

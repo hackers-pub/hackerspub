@@ -5,6 +5,7 @@
     "article": "記事",
     "tag": "タグ",
     "draft": "下書き",
+    "react": "リアクション",
     "reply": "返信",
     "comment": "コメント",
     "share": "共有",
@@ -203,13 +204,18 @@
     "remoteQuoteDescription": "フェディバース（fediverse）アカウントをお持ちの場合、この投稿を引用することができます。ご利用のインスタンスの検索バーに{{permalink}}を検索し、該当投稿を引用してください。（Mastodonでは引用機能がサポートされていません）"
   },
   "post": {
+    "reacting": "リアクション中…",
+    "undoingReaction": "取り消し中…",
+    "reacted": "リアクション済み",
     "delete": "削除",
     "deleteConfirm": "このコンテンツを削除してもよろしいですか？",
     "deleting": "削除中…",
     "deleted": "削除済み",
     "quotes": "引用",
     "reactions": {
-      "title": "反応",
+      "title": "リアクション",
+      "stats": "リアクション統計",
+      "reactedPeople": "{{count}}人がリアクションしました。",
       "sharers": "共有した人々"
     }
   },

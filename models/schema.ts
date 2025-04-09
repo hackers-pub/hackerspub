@@ -1,4 +1,4 @@
-import { desc, type SQL, sql } from "drizzle-orm";
+import { desc, isNull, type SQL, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   boolean,
@@ -14,6 +14,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -439,6 +440,8 @@ export const postTypeEnum = pgEnum("post_type", [
 
 export type PostType = (typeof postTypeEnum.enumValues)[number];
 
+export type Emoji = string; // TODO: use a better type
+
 export const postTable = pgTable(
   "post",
   {
@@ -478,8 +481,8 @@ export const postTable = pgTable(
     likesCount: integer("likes_count").notNull().default(0),
     sharesCount: integer("shares_count").notNull().default(0),
     quotesCount: integer("quotes_count").notNull().default(0),
-    reactionsCount: jsonb()
-      .$type<Record<string, number>>()
+    reactionsCounts: jsonb("reactions_counts")
+      .$type<Record<Emoji | Uuid, number>>()
       .notNull()
       .default({}),
     linkId: uuid("link_id")
@@ -667,6 +670,89 @@ export const postLinkTable = pgTable(
 
 export type PostLink = typeof postLinkTable.$inferSelect;
 export type NewPostLink = typeof postLinkTable.$inferInsert;
+
+export const reactionTable = pgTable(
+  "reaction",
+  {
+    iri: text().notNull().primaryKey(),
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => postTable.id, { onDelete: "cascade" }),
+    actorId: uuid("actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    emoji: text(),
+    customEmojiId: uuid("custom_emoji_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => customEmojiTable.id, {
+        onDelete: "cascade",
+      }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    uniqueIndex()
+      .on(table.postId, table.actorId, table.emoji)
+      .where(isNull(table.customEmojiId)),
+    uniqueIndex()
+      .on(table.postId, table.actorId, table.customEmojiId)
+      .where(isNull(table.emoji)),
+    index().on(table.postId),
+    check(
+      "reaction_emoji_check",
+      sql`
+        ${table.emoji} IS NOT NULL
+          AND length(${table.emoji}) > 0
+          AND ${table.emoji} !~ '^[[:space:]:]+|[[:space:]:]+$'
+          AND ${table.customEmojiId} IS NULL
+        OR
+          ${table.emoji} IS NULL AND ${table.customEmojiId} IS NOT NULL
+      `,
+    ),
+  ],
+);
+
+export type Reaction = typeof reactionTable.$inferSelect;
+export type NewReaction = typeof reactionTable.$inferInsert;
+
+export const customEmojiTable = pgTable(
+  "custom_emoji",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    iri: text().notNull().unique(),
+    name: text().notNull(),
+    imageType: text("image_type"),
+    imageUrl: text("image_url").notNull(),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "custom_emoji_name_check",
+      sql`${table.name} ~ '^:[^:[:space:]]+:$'`,
+    ),
+    check(
+      "custom_emoji_image_type_check",
+      sql`
+        CASE
+          WHEN ${table.imageType} IS NULL THEN true
+          ELSE ${table.imageType} ~ '^image/'
+        END
+      `,
+    ),
+    check(
+      "custom_emoji_image_url_check",
+      sql`${table.imageUrl} ~ '^https?://'`,
+    ),
+  ],
+);
+
+export type CustomEmoji = typeof customEmojiTable.$inferSelect;
+export type NewCustomEmoji = typeof customEmojiTable.$inferInsert;
 
 export const timelineItemTable = pgTable(
   "timeline_item",

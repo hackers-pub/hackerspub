@@ -7,7 +7,10 @@ import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
 import { drive } from "../../../../drive.ts";
 import { Composer } from "../../../../islands/Composer.tsx";
-import { PostControls } from "../../../../islands/PostControls.tsx";
+import {
+  PostControls,
+  toReactionStates,
+} from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { getAvatarUrl } from "../../../../models/account.ts";
 import { getArticleSource } from "../../../../models/article.ts";
@@ -20,6 +23,7 @@ import type {
   Post,
   PostLink,
   PostMedium,
+  Reaction,
 } from "../../../../models/schema.ts";
 import { define } from "../../../../utils.ts";
 import { NoteSourceSchema } from "../../index.tsx";
@@ -30,7 +34,13 @@ export const handler = define.handlers({
     const username = ctx.params.username;
     const year = parseInt(ctx.params.idOrYear);
     const slug = ctx.params.slug;
-    const article = await getArticleSource(db, username, year, slug);
+    const article = await getArticleSource(
+      db,
+      username,
+      year,
+      slug,
+      ctx.state.account,
+    );
     if (article == null) return ctx.next();
     const post = article.post;
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
@@ -47,6 +57,11 @@ export const handler = define.handlers({
         },
         media: true,
         shares: {
+          where: ctx.state.account == null
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
+        },
+        reactions: {
           where: ctx.state.account == null
             ? { RAW: sql`false` }
             : { actorId: ctx.state.account.actor.id },
@@ -112,6 +127,7 @@ interface ArticleQuotesProps {
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
       shares: Post[];
+      reactions: Reaction[];
     }
   )[];
   shared: boolean;
@@ -157,7 +173,13 @@ export default define.page<typeof handler, ArticleQuotesProps>(
           unshareUrl={state.account == null ? undefined : `${postUrl}/unshare`}
           quoteUrl=""
           quotesCount={quotes.length}
-          reactionsUrl={`${postUrl}/shares`}
+          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
+          reactionStates={toReactionStates(
+            state.account,
+            article.post.reactions,
+          )}
+          reactionsCounts={article.post.reactionsCounts}
+          reactionsUrl={`${postUrl}/reactions`}
           deleteUrl={state.account?.id === article.accountId
             ? `${postUrl}/delete`
             : undefined}

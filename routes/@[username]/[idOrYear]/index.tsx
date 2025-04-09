@@ -8,7 +8,10 @@ import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
 import { drive } from "../../../drive.ts";
 import { Composer } from "../../../islands/Composer.tsx";
-import { PostControls } from "../../../islands/PostControls.tsx";
+import {
+  PostControls,
+  toReactionStates,
+} from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { getAvatarUrl } from "../../../models/actor.ts";
 import { renderMarkup } from "../../../models/markup.ts";
@@ -29,6 +32,7 @@ import type {
   Post,
   PostLink,
   PostMedium,
+  Reaction,
 } from "../../../models/schema.ts";
 import { type Uuid, validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
@@ -56,6 +60,7 @@ export const handler = define.handlers({
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
           shares: Post[];
+          reactions: Reaction[];
         }
         | null;
       replyTarget:
@@ -69,6 +74,7 @@ export const handler = define.handlers({
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];
       shares: Post[];
+      reactions: Reaction[];
     };
     let postUrl: string;
     let noteUri: URL | undefined;
@@ -141,6 +147,11 @@ export const handler = define.handlers({
                 ? { RAW: sql`false` }
                 : { actorId: ctx.state.account.actor.id },
             },
+            reactions: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { actorId: ctx.state.account.actor.id },
+            },
             sharedPost: {
               with: {
                 actor: { with: { instance: true, followers: true } },
@@ -169,6 +180,11 @@ export const handler = define.handlers({
                 },
                 media: true,
                 shares: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { actorId: ctx.state.account.actor.id },
+                },
+                reactions: {
                   where: ctx.state.account == null
                     ? { RAW: sql`false` }
                     : { actorId: ctx.state.account.actor.id },
@@ -250,6 +266,11 @@ export const handler = define.handlers({
         },
         media: true,
         shares: {
+          where: ctx.state.account == null
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
+        },
+        reactions: {
           where: ctx.state.account == null
             ? { RAW: sql`false` }
             : { actorId: ctx.state.account.actor.id },
@@ -406,6 +427,7 @@ type NotePageProps = {
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
+        reactions: Reaction[];
       }
       | null;
     replyTarget:
@@ -419,6 +441,7 @@ type NotePageProps = {
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
+    reactions: Reaction[];
   };
   postUrl: string;
   replies: (Post & {
@@ -427,6 +450,7 @@ type NotePageProps = {
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
+    reactions: Reaction[];
   })[];
 };
 
@@ -471,9 +495,12 @@ export default define.page<typeof handler, NotePageProps>(
           )}
           quoteUrl={`${postUrl}/quotes`}
           quotesCount={(post.sharedPost ?? post).quotesCount}
+          reactUrl={state.account == null ? undefined : `${postUrl}/react`}
+          reactionStates={toReactionStates(state.account, post.reactions)}
+          reactionsCounts={post.reactionsCounts}
           reactionsUrl={post.noteSourceId == null
             ? undefined
-            : `${postUrl}/shares`}
+            : `${postUrl}/reactions`}
           deleteUrl={state.account == null ||
               state.account.id !== post.actor.accountId
             ? undefined
@@ -559,9 +586,17 @@ export default define.page<typeof handler, NotePageProps>(
                 )}
                 quoteUrl={`${replyUrl}/quotes`}
                 quotesCount={reply.quotesCount}
+                reactUrl={state.account == null
+                  ? undefined
+                  : `${replyUrl}/react`}
+                reactionStates={toReactionStates(
+                  state.account,
+                  reply.reactions,
+                )}
+                reactionsCounts={reply.reactionsCounts}
                 reactionsUrl={reply.noteSourceId == null
                   ? undefined
-                  : `${replyUrl}/shares`}
+                  : `${replyUrl}/reactions`}
                 deleteUrl={state.account == null ||
                     state.account.id !== reply.actor.accountId
                   ? undefined

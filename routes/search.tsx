@@ -22,6 +22,7 @@ import type {
   Post,
   PostLink,
   PostMedium,
+  Reaction,
 } from "../models/schema.ts";
 import { compileQuery, parseQuery } from "../models/search.ts";
 import { addPostToTimeline } from "../models/timeline.ts";
@@ -150,6 +151,11 @@ export const handler = define.handlers({
             ? { RAW: sql`false` }
             : { actorId: ctx.state.account.actor.id },
         },
+        reactions: {
+          where: ctx.state.account == null
+            ? { RAW: sql`false` }
+            : { actorId: ctx.state.account.actor.id },
+        },
         replyTarget: {
           with: {
             actor: {
@@ -178,6 +184,11 @@ export const handler = define.handlers({
             },
             media: true,
             shares: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { actorId: ctx.state.account.actor.id },
+            },
+            reactions: {
               where: ctx.state.account == null
                 ? { RAW: sql`false` }
                 : { actorId: ctx.state.account.actor.id },
@@ -232,6 +243,7 @@ interface SearchResultsProps {
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
+        reactions: Reaction[];
       }
       | null;
     replyTarget:
@@ -248,6 +260,7 @@ interface SearchResultsProps {
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
     shares: Post[];
+    reactions: Reaction[];
   })[];
 }
 

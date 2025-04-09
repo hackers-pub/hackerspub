@@ -3,8 +3,10 @@ import {
   Announce,
   Create,
   Delete,
+  EmojiReact,
   Follow,
   isActor,
+  Like,
   Move,
   Undo,
   Update,
@@ -21,6 +23,8 @@ import {
   onPostShared,
   onPostUnshared,
   onPostUpdated,
+  onReactedOnPost,
+  onReactionUndoneOnPost,
 } from "./subscribe.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox"]);
@@ -33,18 +37,22 @@ federation
   .on(Accept, onFollowAccepted)
   .on(Follow, onFollowed)
   .on(Undo, async (fedCtx, undo) => {
-    const object = await undo.getObject(fedCtx);
+    const object = await undo.getObject({ ...fedCtx, suppressError: true });
     if (object instanceof Follow) await onUnfollowed(fedCtx, undo);
-    else await onPostUnshared(fedCtx, undo);
+    await onPostUnshared(fedCtx, undo) ||
+      await onReactionUndoneOnPost(fedCtx, undo) ||
+      logger.warn("Unhandled Undo object: {undo}", { undo });
   })
   .on(Create, onPostCreated)
   .on(Announce, onPostShared)
   .on(Update, async (fedCtx, update) => {
-    const object = await update.getObject(fedCtx);
+    const object = await update.getObject({ ...fedCtx, suppressError: true });
     if (isActor(object)) await onActorUpdated(fedCtx, update);
     else if (isPostObject(object)) await onPostUpdated(fedCtx, update);
     else logger.warn("Unhandled Update object: {update}", { update });
   })
+  .on(Like, onReactedOnPost)
+  .on(EmojiReact, onReactedOnPost)
   .on(Delete, async (fedCtx, del) => {
     await onPostDeleted(fedCtx, del) ||
       await onActorDeleted(fedCtx, del) ||
