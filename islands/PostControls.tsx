@@ -39,7 +39,7 @@ export function PostControls(props: PostControlsProps) {
     post.visibility === "unlisted";
   const remotePost = post.articleSourceId == null && post.noteSourceId == null;
   const localPostUrl = remotePost
-    ? `/@${post.actor.handle}/${post.id}`
+    ? `/${post.actor.handle}/${post.id}`
     : `${post.url}`;
 
   let anyReacted = false;
