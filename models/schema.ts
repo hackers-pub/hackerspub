@@ -795,6 +795,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "reply",
   "share",
   "quote",
+  "react",
 ]);
 
 export type NotificationType = (typeof notificationTypeEnum.enumValues)[number];

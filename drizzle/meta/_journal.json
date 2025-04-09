@@ -421,6 +421,13 @@
       "when": 1744017770799,
       "tag": "0059_reaction",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1744178468679,
+      "tag": "0060_add-react-to-notification_type",
+      "breakpoints": true
     }
   ]
 }
