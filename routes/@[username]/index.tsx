@@ -24,6 +24,7 @@ import {
 } from "../../models/following.ts";
 import { extractMentionsFromHtml, renderMarkup } from "../../models/markup.ts";
 import { createNote } from "../../models/note.ts";
+import { getPostVisibilityFilter } from "../../models/post.ts";
 import {
   type AccountLink,
   type Actor,
@@ -213,9 +214,10 @@ export const handler = define.handlers({
           },
         },
         where: {
-          actorId: actor.id,
-          visibility: { in: ["public", "unlisted"] }, // FIXME
-          published: { lte: until },
+          AND: [
+            { actorId: actor.id, published: { lte: until } },
+            getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+          ],
         },
         orderBy: { published: "desc" },
         limit: window + 1,
@@ -383,9 +385,10 @@ export const handler = define.handlers({
         },
       },
       where: {
-        actorId: account.actor.id,
-        visibility: { in: ["public", "unlisted"] }, // FIXME
-        published: { lte: until },
+        AND: [
+          { actorId: account.actor.id, published: { lte: until } },
+          getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+        ],
       },
       orderBy: { published: "desc" },
       limit: window + 1,

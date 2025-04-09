@@ -12,6 +12,7 @@ import {
   getFollowingState,
 } from "../../models/following.ts";
 import { extractMentionsFromHtml } from "../../models/markup.ts";
+import { getPostVisibilityFilter } from "../../models/post.ts";
 import type {
   Account,
   AccountLink,
@@ -161,12 +162,16 @@ export const handler = define.handlers({
         },
       },
       where: {
-        actorId: actor.id,
-        visibility: { in: ["public", "unlisted"] }, // FIXME
-        type: "Note",
-        sharedPostId: { isNull: true },
-        ...(withReplies ? undefined : { replyTargetId: { isNull: true } }),
-        published: { lte: until },
+        AND: [
+          {
+            actorId: actor.id,
+            type: "Note",
+            sharedPostId: { isNull: true },
+            ...(withReplies ? undefined : { replyTargetId: { isNull: true } }),
+            published: { lte: until },
+          },
+          getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+        ],
       },
       orderBy: { published: "desc" },
       limit: window + 1,
