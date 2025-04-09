@@ -27,6 +27,10 @@
   text-decoration: none;
   font-weight: bolder;
   white-space: nowrap;
+  padding: 0 0.15em;
+  background-color: color-mix(in srgb, var(--tw-prose-links) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tw-prose-links) 10%, transparent);
+  border-radius: 0.25em;
 }
 
 .prose a.mention:not(.hashtag):hover {
