@@ -98,10 +98,16 @@ const md = MarkdownItAsync({ html: true, linkify: true })
   })
   .use(
     fromAsyncCodeToHtml(
-      (code, options) =>
-        codeToHtml(code, options).catch((_) =>
-          codeToHtml(code, { ...options, lang: "text" })
-        ),
+      async (code, options) => {
+        try {
+          return await codeToHtml(code, {
+            ...options,
+            lang: options.lang.toLowerCase(),
+          });
+        } catch {
+          return await codeToHtml(code, { ...options, lang: "text" });
+        }
+      },
       {
         themes: {
           light: "vitesse-light",
@@ -120,6 +126,10 @@ const md = MarkdownItAsync({ html: true, linkify: true })
       },
     ),
   );
+
+// This is a workaround for the fact that shiki turns into a strange state
+// when the first invocation of codeToHtml is with a wrong lang name:
+await codeToHtml("", { lang: "javascript", theme: "vitesse-light" });
 
 export interface RenderedMarkup {
   html: string;
