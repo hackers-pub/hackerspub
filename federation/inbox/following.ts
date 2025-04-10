@@ -1,5 +1,6 @@
 import {
   Accept,
+  Block,
   Follow,
   type InboxContext,
   type Reject,
@@ -9,6 +10,7 @@ import { getLogger } from "@logtape/logtape";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db.ts";
 import { persistActor } from "../../models/actor.ts";
+import { persistBlocking } from "../../models/blocking.ts";
 import {
   acceptFollowing,
   updateFolloweesCount,
@@ -18,7 +20,11 @@ import {
   createFollowNotification,
   deleteFollowNotification,
 } from "../../models/notification.ts";
-import { actorTable, followingTable } from "../../models/schema.ts";
+import {
+  actorTable,
+  blockingTable,
+  followingTable,
+} from "../../models/schema.ts";
 import { validateUuid } from "../../models/uuid.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "following"]);
@@ -153,4 +159,38 @@ export async function onUnfollowed(
       actor,
     );
   }
+}
+
+export async function onBlocked(
+  fedCtx: InboxContext<void>,
+  block: Block,
+): Promise<void> {
+  await persistBlocking(db, fedCtx, block, fedCtx);
+}
+
+export async function onUnblocked(
+  fedCtx: InboxContext<void>,
+  undo: Undo,
+): Promise<boolean> {
+  if (undo.actorId == null) return false;
+  const getterOpts = { ...fedCtx, suppressError: true };
+  const block = await undo.getObject(getterOpts);
+  if (!(block instanceof Block)) return false;
+  if (block.id == null || block.actorId?.href !== undo.actorId.href) {
+    return false;
+  }
+  const rows = await db.delete(blockingTable)
+    .where(
+      and(
+        eq(blockingTable.iri, block.id.href),
+        eq(
+          blockingTable.blockerId,
+          db.select({ id: actorTable.id })
+            .from(actorTable)
+            .where(eq(actorTable.iri, undo.actorId.href)),
+        ),
+      ),
+    )
+    .returning();
+  return rows.length > 0;
 }

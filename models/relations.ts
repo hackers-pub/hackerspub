@@ -57,6 +57,8 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     followers: r.many.followingTable({ alias: "followee" }),
     followees: r.many.followingTable({ alias: "follower" }),
+    blockers: r.many.blockingTable({ alias: "blockee" }),
+    blockees: r.many.blockingTable({ alias: "blocker" }),
     mentions: r.many.mentionTable(),
     posts: r.many.postTable(),
   },
@@ -70,6 +72,20 @@ export const relations = defineRelations(schema, (r) => ({
     followee: r.one.actorTable({
       alias: "followee",
       from: r.followingTable.followeeId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+  },
+  blockingTable: {
+    blocker: r.one.actorTable({
+      alias: "blocker",
+      from: r.blockingTable.blockerId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+    blockee: r.one.actorTable({
+      alias: "blockee",
+      from: r.blockingTable.blockeeId,
       to: r.actorTable.id,
       optional: false,
     }),

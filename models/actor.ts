@@ -124,7 +124,11 @@ export async function persistActor(
     outbox?: boolean;
   } = {},
 ): Promise<
-  Actor & { instance: Instance; successor: Actor | null } | undefined
+  Actor & {
+    instance: Instance;
+    account: Account | null;
+    successor: Actor | null;
+  } | undefined
 > {
   if (actor.id == null) return undefined;
   else if (actor.inboxId == null) {
@@ -265,15 +269,17 @@ export async function persistActor(
       if (i >= 10) break;
     }
   }
-  return { ...result, successor: successorActor ?? null };
+  return { ...result, account: null, successor: successorActor ?? null };
 }
 
 export function getPersistedActor(
   db: Database,
   iri: string | URL,
-): Promise<Actor & { instance: Instance } | undefined> {
+): Promise<
+  Actor & { instance: Instance; account: Account | null } | undefined
+> {
   return db.query.actorTable.findFirst({
-    with: { instance: true },
+    with: { instance: true, account: true },
     where: { iri: iri.toString() },
   });
 }

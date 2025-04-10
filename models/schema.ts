@@ -293,6 +293,35 @@ export const followingTable = pgTable(
 export type Following = typeof followingTable.$inferSelect;
 export type NewFollowing = typeof followingTable.$inferInsert;
 
+export const blockingTable = pgTable(
+  "blocking",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    iri: text().notNull().unique(),
+    blockerId: uuid("blocker_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    blockeeId: uuid("blockee_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    unique().on(table.blockerId, table.blockeeId),
+    check(
+      "blocking_blocker_blockee_check",
+      sql`${table.blockerId} != ${table.blockeeId}`,
+    ),
+  ],
+);
+
+export type Blocking = typeof blockingTable.$inferSelect;
+export type NewBlocking = typeof blockingTable.$inferInsert;
+
 export const instanceTable = pgTable(
   "instance",
   {

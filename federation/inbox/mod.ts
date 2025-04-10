@@ -1,6 +1,7 @@
 import {
   Accept,
   Announce,
+  Block,
   Create,
   Delete,
   EmojiReact,
@@ -18,9 +19,11 @@ import { isPostObject } from "../../models/post.ts";
 import { federation } from "../federation.ts";
 import { onActorDeleted, onActorMoved, onActorUpdated } from "./actor.ts";
 import {
+  onBlocked,
   onFollowAccepted,
   onFollowed,
   onFollowRejected,
+  onUnblocked,
   onUnfollowed,
 } from "./following.ts";
 import {
@@ -48,6 +51,7 @@ federation
     if (object instanceof Follow) await onUnfollowed(fedCtx, undo);
     await onPostUnshared(fedCtx, undo) ||
       await onReactionUndoneOnPost(fedCtx, undo) ||
+      await onUnblocked(fedCtx, undo) ||
       logger.warn("Unhandled Undo object: {undo}", { undo });
   })
   .on(Create, onPostCreated)
@@ -66,4 +70,5 @@ federation
       logger.warn("Unhandled Delete object: {delete}", { delete: del });
   })
   .on(Move, onActorMoved)
+  .on(Block, onBlocked)
   .onError((_, error) => void captureException(error));
