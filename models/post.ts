@@ -56,6 +56,7 @@ import {
   actorTable,
   type ArticleSource,
   articleSourceTable,
+  type Blocking,
   type Following,
   type Instance,
   type Mention,
@@ -855,17 +856,29 @@ export function getPostByUsernameAndId(
   signedAccount?: Account & { actor: Actor },
 ): Promise<
   | Post & {
-    actor: Actor & { instance: Instance; followers: Following[] };
+    actor: Actor & {
+      instance: Instance;
+      followers: Following[];
+      blockees: Blocking[];
+      blockers: Blocking[];
+    };
     link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
-        actor: Actor & { instance: Instance };
+        actor: Actor & {
+          instance: Instance;
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
             actor: Actor & {
               instance: Instance;
               followers: (Following & { follower: Actor })[];
+              blockees: Blocking[];
+              blockers: Blocking[];
             };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
@@ -883,6 +896,8 @@ export function getPostByUsernameAndId(
         actor: Actor & {
           instance: Instance;
           followers: (Following & { follower: Actor })[];
+          blockees: Blocking[];
+          blockers: Blocking[];
         };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
@@ -902,12 +917,36 @@ export function getPostByUsernameAndId(
   return db.query.postTable.findFirst({
     with: {
       actor: {
-        with: { instance: true, followers: true },
+        with: {
+          instance: true,
+          followers: true,
+          blockees: true,
+          blockers: true,
+        },
       },
       link: { with: { creator: true } },
       sharedPost: {
         with: {
-          actor: { with: { instance: true } },
+          actor: {
+            with: {
+              instance: true,
+              followers: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { followerId: signedAccount.actor.id },
+              },
+              blockees: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockeeId: signedAccount.actor.id },
+              },
+              blockers: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockerId: signedAccount.actor.id },
+              },
+            },
+          },
           link: { with: { creator: true } },
           replyTarget: {
             with: {
@@ -919,6 +958,16 @@ export function getPostByUsernameAndId(
                       ? { RAW: sql`false` }
                       : { followerId: signedAccount.actor.id },
                     with: { follower: true },
+                  },
+                  blockees: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { blockeeId: signedAccount.actor.id },
+                  },
+                  blockers: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { blockerId: signedAccount.actor.id },
                   },
                 },
               },
@@ -955,6 +1004,16 @@ export function getPostByUsernameAndId(
                   ? { RAW: sql`false` }
                   : { followerId: signedAccount.actor.id },
                 with: { follower: true },
+              },
+              blockees: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockeeId: signedAccount.actor.id },
+              },
+              blockers: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockerId: signedAccount.actor.id },
               },
             },
           },
@@ -1050,35 +1109,55 @@ export async function deleteSharedPost(
 
 export function isPostVisibleTo(
   post: Post & {
-    actor: Actor & { followers: Following[] };
+    actor: Actor & {
+      followers: Following[];
+      blockees: Blocking[];
+      blockers: Blocking[];
+    };
     mentions: Mention[];
   },
   actor?: Actor,
 ): boolean;
 export function isPostVisibleTo(
   post: Post & {
-    actor: Actor & { followers: (Following & { follower: Actor })[] };
+    actor: Actor & {
+      followers: (Following & { follower: Actor })[];
+      blockees: (Blocking & { blockee: Actor })[];
+      blockers: (Blocking & { blocker: Actor })[];
+    };
     mentions: (Mention & { actor: Actor })[];
   },
   actor?: { iri: string },
 ): boolean;
 export function isPostVisibleTo(
   post: Post & {
-    actor: Actor & { followers: (Following & { follower?: Actor })[] };
+    actor: Actor & {
+      followers: (Following & { follower?: Actor })[];
+      blockees: (Blocking & { blockee?: Actor })[];
+      blockers: (Blocking & { blocker?: Actor })[];
+    };
     mentions: (Mention & { actor?: Actor })[];
   },
   actor?: Actor | { iri: string },
 ): boolean {
+  if (actor != null) {
+    if (
+      "id" in actor && post.actor.id === actor.id ||
+      "iri" in actor && post.actor.iri === actor.iri
+    ) {
+      return true;
+    }
+    const blocked = "id" in actor
+      ? post.actor.blockees.some((b) => b.blockeeId === actor.id) ||
+        post.actor.blockers.some((b) => b.blockerId === actor.id)
+      : post.actor.blockees.some((b) => b.blockee?.iri === actor.iri) ||
+        post.actor.blockers.some((b) => b.blocker?.iri === actor.iri);
+    if (blocked) return false;
+  }
   if (post.visibility === "public" || post.visibility === "unlisted") {
     return true;
   }
   if (actor == null) return false;
-  if (
-    "id" in actor && post.actor.id === actor.id ||
-    "iri" in actor && post.actor.iri === actor.iri
-  ) {
-    return true;
-  }
   if (post.visibility === "followers") {
     if ("id" in actor) {
       return post.actor.followers.some((follower) =>
@@ -1111,10 +1190,20 @@ export function getPostVisibilityFilter(
   actorOrPost: Actor | Post | null,
 ): RelationsFilter<"postTable"> | RelationsFilter<"actorTable"> {
   if (actorOrPost == null) {
-    return { visibility: { in: ["public", "unlisted"] } };
+    return {
+      visibility: { in: ["public", "unlisted"] },
+    } satisfies RelationsFilter<"postTable">;
   }
   if ("accountId" in actorOrPost) {
     return {
+      actor: {
+        NOT: {
+          OR: [
+            { blockees: { blockeeId: actorOrPost.id } },
+            { blockers: { blockerId: actorOrPost.id } },
+          ],
+        },
+      },
       OR: [
         { actorId: actorOrPost.id },
         { visibility: { in: ["public", "unlisted"] } },
@@ -1129,28 +1218,47 @@ export function getPostVisibilityFilter(
           },
         },
       ],
-    };
+    } satisfies RelationsFilter<"postTable">;
   } else {
     if (
       actorOrPost.visibility === "public" ||
       actorOrPost.visibility === "unlisted"
     ) {
-      return {};
+      return {
+        NOT: {
+          OR: [
+            { blockees: { blockeeId: actorOrPost.actorId } },
+            { blockers: { blockerId: actorOrPost.actorId } },
+          ],
+        },
+      } satisfies RelationsFilter<"actorTable">;
     }
     return {
-      OR: [
-        { id: actorOrPost.actorId },
-        { mentions: { postId: actorOrPost.id } },
-        ...(actorOrPost.visibility === "followers"
-          ? [{
-            followees: {
-              followeeId: actorOrPost.actorId,
-              accepted: { isNotNull: true },
-            } satisfies RelationsFilter<"followingTable">,
-          }]
-          : []),
+      AND: [
+        {
+          NOT: {
+            OR: [
+              { blockees: { blockeeId: actorOrPost.actorId } },
+              { blockers: { blockerId: actorOrPost.actorId } },
+            ],
+          },
+        },
+        {
+          OR: [
+            { id: actorOrPost.actorId },
+            { mentions: { postId: actorOrPost.id } },
+            ...(actorOrPost.visibility === "followers"
+              ? [{
+                followees: {
+                  followeeId: actorOrPost.actorId,
+                  accepted: { isNotNull: true },
+                } satisfies RelationsFilter<"followingTable">,
+              }]
+              : []),
+          ],
+        },
       ],
-    };
+    } satisfies RelationsFilter<"actorTable">;
   }
 }
 

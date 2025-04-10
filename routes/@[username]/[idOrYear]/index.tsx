@@ -22,6 +22,7 @@ import {
 } from "../../../models/post.ts";
 import type {
   Actor,
+  Blocking,
   Following,
   Instance,
   Mention,
@@ -39,7 +40,12 @@ export const handler = define.handlers({
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
     const id = ctx.params.idOrYear;
     let post: Post & {
-      actor: Actor & { instance: Instance; followers: Following[] };
+      actor: Actor & {
+        instance: Instance;
+        followers: Following[];
+        blockees: Blocking[];
+        blockers: Blocking[];
+      };
       link: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
@@ -61,7 +67,12 @@ export const handler = define.handlers({
         | null;
       replyTarget:
         | Post & {
-          actor: Actor & { instance: Instance; followers: Following[] };
+          actor: Actor & {
+            instance: Instance;
+            followers: Following[];
+            blockees: Blocking[];
+            blockers: Blocking[];
+          };
           link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
@@ -113,7 +124,26 @@ export const handler = define.handlers({
       if (note == null) {
         const share = await db.query.postTable.findFirst({
           with: {
-            actor: { with: { instance: true, followers: true } },
+            actor: {
+              with: {
+                instance: true,
+                followers: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { followerId: ctx.state.account.actor.id },
+                },
+                blockees: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockeeId: ctx.state.account.actor.id },
+                },
+                blockers: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockerId: ctx.state.account.actor.id },
+                },
+              },
+            },
             link: { with: { creator: true } },
             replyTarget: {
               with: {
@@ -124,6 +154,16 @@ export const handler = define.handlers({
                       where: ctx.state.account == null
                         ? { RAW: sql`false` }
                         : { followerId: ctx.state.account.actor.id },
+                    },
+                    blockees: {
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { blockeeId: ctx.state.account.actor.id },
+                    },
+                    blockers: {
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { blockerId: ctx.state.account.actor.id },
                     },
                   },
                 },
@@ -254,6 +294,16 @@ export const handler = define.handlers({
                 ? { RAW: sql`false` }
                 : { followerId: ctx.state.account.actor.id },
             },
+            blockees: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { blockeeId: ctx.state.account.actor.id },
+            },
+            blockers: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { blockerId: ctx.state.account.actor.id },
+            },
           },
         },
         link: { with: { creator: true } },
@@ -333,7 +383,11 @@ export const handler = define.handlers({
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
     const id = ctx.params.idOrYear;
     let post: Post & {
-      actor: Actor & { followers: Following[] };
+      actor: Actor & {
+        followers: Following[];
+        blockees: Blocking[];
+        blockers: Blocking[];
+      };
       replyTarget: Post & { actor: Actor } | null;
       mentions: Mention[];
     };
@@ -414,7 +468,12 @@ type NotePageProps = {
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { instance: Instance; followers: Following[] };
+            actor: Actor & {
+              instance: Instance;
+              followers: Following[];
+              blockees: Blocking[];
+              blockers: Blocking[];
+            };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -428,7 +487,12 @@ type NotePageProps = {
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { instance: Instance; followers: Following[] };
+        actor: Actor & {
+          instance: Instance;
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];

@@ -31,7 +31,12 @@ export const handler = define.handlers(async (ctx) => {
   const shares = await db.query.postTable.findMany({
     with: {
       actor: {
-        with: { account: true, followers: true },
+        with: {
+          account: true,
+          followers: true,
+          blockees: true,
+          blockers: true,
+        },
       },
       mentions: true,
     },

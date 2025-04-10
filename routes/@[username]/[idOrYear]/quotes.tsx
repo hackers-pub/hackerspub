@@ -15,6 +15,7 @@ import {
 } from "../../../models/post.ts";
 import type {
   Actor,
+  Blocking,
   Following,
   Instance,
   Mention,
@@ -28,15 +29,30 @@ import { define } from "../../../utils.ts";
 import { NoteSourceSchema } from "../index.tsx";
 
 type EnrichedPost = Post & {
-  actor: Actor & { instance: Instance; followers: Following[] };
+  actor: Actor & {
+    instance: Instance;
+    followers: Following[];
+    blockees: Blocking[];
+    blockers: Blocking[];
+  };
   link: PostLink & { creator?: Actor | null } | null;
   sharedPost:
     | Post & {
-      actor: Actor & { instance: Instance };
+      actor: Actor & {
+        instance: Instance;
+        followers: Following[];
+        blockees: Blocking[];
+        blockers: Blocking[];
+      };
       link: PostLink & { creator?: Actor | null } | null;
       replyTarget:
         | Post & {
-          actor: Actor & { instance: Instance; followers: Following[] };
+          actor: Actor & {
+            instance: Instance;
+            followers: Following[];
+            blockees: Blocking[];
+            blockers: Blocking[];
+          };
           link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
@@ -50,7 +66,12 @@ type EnrichedPost = Post & {
     | null;
   replyTarget:
     | Post & {
-      actor: Actor & { instance: Instance; followers: Following[] };
+      actor: Actor & {
+        instance: Instance;
+        followers: Following[];
+        blockees: Blocking[];
+        blockers: Blocking[];
+      };
       link: PostLink & { creator?: Actor | null } | null;
       mentions: (Mention & { actor: Actor })[];
       media: PostMedium[];

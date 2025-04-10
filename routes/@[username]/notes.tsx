@@ -17,6 +17,7 @@ import type {
   Account,
   AccountLink,
   Actor,
+  Blocking,
   Following,
   Instance,
   Mention,
@@ -102,6 +103,16 @@ export const handler = define.handlers({
                         ? { RAW: sql`false` }
                         : { followerId: ctx.state.account.actor.id },
                     },
+                    blockees: {
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { blockeeId: ctx.state.account.actor.id },
+                    },
+                    blockers: {
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { blockerId: ctx.state.account.actor.id },
+                    },
                   },
                 },
                 link: { with: { creator: true } },
@@ -136,6 +147,16 @@ export const handler = define.handlers({
                   where: ctx.state.account == null
                     ? { RAW: sql`false` }
                     : { followerId: ctx.state.account.actor.id },
+                },
+                blockees: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockeeId: ctx.state.account.actor.id },
+                },
+                blockers: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockerId: ctx.state.account.actor.id },
                 },
               },
             },
@@ -226,7 +247,12 @@ interface ProfileNoteListProps {
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { instance: Instance; followers: Following[] };
+            actor: Actor & {
+              instance: Instance;
+              followers: Following[];
+              blockees: Blocking[];
+              blockers: Blocking[];
+            };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -240,7 +266,12 @@ interface ProfileNoteListProps {
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { instance: Instance; followers: Following[] };
+        actor: Actor & {
+          instance: Instance;
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];

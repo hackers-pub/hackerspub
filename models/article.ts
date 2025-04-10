@@ -14,6 +14,7 @@ import {
   articleDraftTable,
   type ArticleSource,
   articleSourceTable,
+  type Blocking,
   type Following,
   type Instance,
   type Mention,
@@ -80,7 +81,11 @@ export async function getArticleSource(
   ArticleSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     post: Post & {
-      actor: Actor & { followers: Following[] };
+      actor: Actor & {
+        followers: Following[];
+        blockees: Blocking[];
+        blockers: Blocking[];
+      };
       replyTarget: Post | null;
       mentions: (Mention & { actor: Actor })[];
       shares: Post[];
@@ -109,7 +114,11 @@ export async function getArticleSource(
       post: {
         with: {
           actor: {
-            with: { followers: true },
+            with: {
+              followers: true,
+              blockees: true,
+              blockers: true,
+            },
           },
           replyTarget: true,
           mentions: {

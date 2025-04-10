@@ -28,6 +28,7 @@ import { getPostVisibilityFilter } from "../../models/post.ts";
 import {
   type AccountLink,
   type Actor,
+  type Blocking,
   type Following,
   type Instance,
   type Mention,
@@ -154,6 +155,16 @@ export const handler = define.handlers({
                           ? { RAW: sql`false` }
                           : { followerId: ctx.state.account.actor.id },
                       },
+                      blockees: {
+                        where: ctx.state.account == null
+                          ? { RAW: sql`false` }
+                          : { blockeeId: ctx.state.account.actor.id },
+                      },
+                      blockers: {
+                        where: ctx.state.account == null
+                          ? { RAW: sql`false` }
+                          : { blockerId: ctx.state.account.actor.id },
+                      },
                     },
                   },
                   link: { with: { creator: true } },
@@ -188,6 +199,16 @@ export const handler = define.handlers({
                     where: ctx.state.account == null
                       ? { RAW: sql`false` }
                       : { followerId: ctx.state.account.actor.id },
+                  },
+                  blockees: {
+                    where: ctx.state.account == null
+                      ? { RAW: sql`false` }
+                      : { blockeeId: ctx.state.account.actor.id },
+                  },
+                  blockers: {
+                    where: ctx.state.account == null
+                      ? { RAW: sql`false` }
+                      : { blockerId: ctx.state.account.actor.id },
                   },
                 },
               },
@@ -325,6 +346,16 @@ export const handler = define.handlers({
                         ? { RAW: sql`false` }
                         : { followerId: ctx.state.account.actor.id },
                     },
+                    blockees: {
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { blockeeId: ctx.state.account.actor.id },
+                    },
+                    blockers: {
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { blockerId: ctx.state.account.actor.id },
+                    },
                   },
                 },
                 link: { with: { creator: true } },
@@ -359,6 +390,16 @@ export const handler = define.handlers({
                   where: ctx.state.account == null
                     ? { RAW: sql`false` }
                     : { followerId: ctx.state.account.actor.id },
+                },
+                blockees: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockeeId: ctx.state.account.actor.id },
+                },
+                blockers: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockerId: ctx.state.account.actor.id },
                 },
               },
             },
@@ -485,7 +526,12 @@ interface ProfilePageProps {
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { instance: Instance; followers: Following[] };
+            actor: Actor & {
+              instance: Instance;
+              followers: Following[];
+              blockees: Blocking[];
+              blockers: Blocking[];
+            };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -499,7 +545,12 @@ interface ProfilePageProps {
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { instance: Instance; followers: Following[] };
+        actor: Actor & {
+          instance: Instance;
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];

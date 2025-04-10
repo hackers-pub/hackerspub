@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { db } from "../../../db.ts";
 import {
   isPostObject,
@@ -15,11 +16,47 @@ export const handler = define.handlers(async (ctx) => {
   let post = await db.query.postTable
     .findFirst({
       with: {
-        actor: { with: { followers: true } },
+        actor: {
+          with: {
+            followers: {
+              where: account == null
+                ? { RAW: sql`false` }
+                : { followerId: account.actor.id },
+            },
+            blockees: {
+              where: account == null
+                ? { RAW: sql`false` }
+                : { blockeeId: account.actor.id },
+            },
+            blockers: {
+              where: account == null
+                ? { RAW: sql`false` }
+                : { blockerId: account.actor.id },
+            },
+          },
+        },
         mentions: { with: { actor: true } },
         sharedPost: {
           with: {
-            actor: { with: { followers: true } },
+            actor: {
+              with: {
+                followers: {
+                  where: account == null
+                    ? { RAW: sql`false` }
+                    : { followerId: account.actor.id },
+                },
+                blockees: {
+                  where: account == null
+                    ? { RAW: sql`false` }
+                    : { blockeeId: account.actor.id },
+                },
+                blockers: {
+                  where: account == null
+                    ? { RAW: sql`false` }
+                    : { blockerId: account.actor.id },
+                },
+              },
+            },
             mentions: { with: { actor: true } },
           },
         },
@@ -35,7 +72,23 @@ export const handler = define.handlers(async (ctx) => {
     const p = await persistPost(db, fedCtx, object, { documentLoader });
     if (p == null) return ctx.next();
     const actor = await db.query.actorTable.findFirst({
-      with: { followers: true },
+      with: {
+        followers: {
+          where: account == null
+            ? { RAW: sql`false` }
+            : { followerId: account.actor.id },
+        },
+        blockees: {
+          where: account == null
+            ? { RAW: sql`false` }
+            : { blockeeId: account.actor.id },
+        },
+        blockers: {
+          where: account == null
+            ? { RAW: sql`false` }
+            : { blockerId: account.actor.id },
+        },
+      },
       where: { id: p.actorId },
     });
     if (actor == null) return ctx.next();

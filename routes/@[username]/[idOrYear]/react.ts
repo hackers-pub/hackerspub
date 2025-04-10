@@ -8,6 +8,7 @@ import {
 import { react, undoReaction } from "../../../models/reaction.ts";
 import type {
   Actor,
+  Blocking,
   Following,
   Mention,
   Post,
@@ -21,7 +22,11 @@ export const handler = define.handlers({
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
     const id = ctx.params.idOrYear;
     let post: Post & {
-      actor: Actor & { followers: Following[] };
+      actor: Actor & {
+        followers: Following[];
+        blockees: Blocking[];
+        blockers: Blocking[];
+      };
       replyTarget: Post & { actor: Actor } | null;
       mentions: Mention[];
     };

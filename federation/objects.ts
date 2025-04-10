@@ -238,6 +238,12 @@ federation
             followers: {
               with: { follower: true },
             },
+            blockees: {
+              with: { blockee: true },
+            },
+            blockers: {
+              with: { blocker: true },
+            },
           },
         },
         mentions: {

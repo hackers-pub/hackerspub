@@ -7,7 +7,7 @@ import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { extractMentionsFromHtml } from "../../../models/markup.ts";
 import { getNoteSource } from "../../../models/note.ts";
-import { isPostVisibleTo } from "../../../models/post.ts";
+import { getPostVisibilityFilter } from "../../../models/post.ts";
 import type { Account, Actor } from "../../../models/schema.ts";
 import { validateUuid } from "../../../models/uuid.ts";
 import { define } from "../../../utils.ts";
@@ -24,18 +24,16 @@ export const handler = define.handlers(async (ctx) => {
   );
   if (note == null) return ctx.next();
   const shares = await db.query.postTable.findMany({
-    with: {
-      actor: {
-        with: { account: true, followers: true },
-      },
-      mentions: true,
+    with: { actor: { with: { account: true } } },
+    where: {
+      AND: [
+        { sharedPostId: note.post.id },
+        getPostVisibilityFilter(ctx.state.account?.actor ?? null),
+      ],
     },
-    where: { sharedPostId: note.post.id },
     orderBy: { published: "desc" },
   });
-  const sharers = shares
-    .filter((s) => isPostVisibleTo(s, ctx.state.account?.actor))
-    .map((s) => s.actor);
+  const sharers = shares.map((s) => s.actor);
   const sharersMentions = await extractMentionsFromHtml(
     db,
     ctx.state.fedCtx,

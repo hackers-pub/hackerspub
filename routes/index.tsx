@@ -16,10 +16,11 @@ import { RecommendedActors } from "../islands/RecommendedActors.tsx";
 import { kv } from "../kv.ts";
 import { recommendActors } from "../models/actor.ts";
 import { extractMentionsFromHtml } from "../models/markup.ts";
-import { getPostVisibilityFilter, isPostVisibleTo } from "../models/post.ts";
+import { getPostVisibilityFilter } from "../models/post.ts";
 import type {
   Account,
   Actor,
+  Blocking,
   Following,
   Instance,
   Mention,
@@ -59,15 +60,30 @@ export const handler = define.handlers({
       : parseInt(windowString);
     let timeline: ({
       post: Post & {
-        actor: Actor & { instance: Instance; followers: Following[] };
+        actor: Actor & {
+          instance: Instance;
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
         link: PostLink & { creator?: Actor | null } | null;
         sharedPost:
           | Post & {
-            actor: Actor & { instance: Instance };
+            actor: Actor & {
+              instance: Instance;
+              followers: Following[];
+              blockees: Blocking[];
+              blockers: Blocking[];
+            };
             link: PostLink & { creator?: Actor | null } | null;
             replyTarget:
               | Post & {
-                actor: Actor & { instance: Instance; followers: Following[] };
+                actor: Actor & {
+                  instance: Instance;
+                  followers: Following[];
+                  blockees: Blocking[];
+                  blockers: Blocking[];
+                };
                 link: PostLink & { creator?: Actor | null } | null;
                 mentions: (Mention & { actor: Actor })[];
                 media: PostMedium[];
@@ -81,7 +97,12 @@ export const handler = define.handlers({
           | null;
         replyTarget:
           | Post & {
-            actor: Actor & { instance: Instance; followers: Following[] };
+            actor: Actor & {
+              instance: Instance;
+              followers: Following[];
+              blockees: Blocking[];
+              blockers: Blocking[];
+            };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -105,11 +126,25 @@ export const handler = define.handlers({
     if (ctx.state.account == null) {
       const posts = await db.query.postTable.findMany({
         with: {
-          actor: { with: { instance: true, followers: true } },
+          actor: {
+            with: {
+              instance: true,
+              followers: { where: { RAW: sql`false` } },
+              blockees: { where: { RAW: sql`false` } },
+              blockers: { where: { RAW: sql`false` } },
+            },
+          },
           link: { with: { creator: true } },
           sharedPost: {
             with: {
-              actor: { with: { instance: true } },
+              actor: {
+                with: {
+                  instance: true,
+                  followers: { where: { RAW: sql`false` } },
+                  blockees: { where: { RAW: sql`false` } },
+                  blockers: { where: { RAW: sql`false` } },
+                },
+              },
               link: { with: { creator: true } },
               replyTarget: {
                 with: {
@@ -117,6 +152,8 @@ export const handler = define.handlers({
                     with: {
                       instance: true,
                       followers: { where: { RAW: sql`false` } },
+                      blockees: { where: { RAW: sql`false` } },
+                      blockers: { where: { RAW: sql`false` } },
                     },
                   },
                   link: { with: { creator: true } },
@@ -140,6 +177,8 @@ export const handler = define.handlers({
                 with: {
                   instance: true,
                   followers: { where: { RAW: sql`false` } },
+                  blockees: { where: { RAW: sql`false` } },
+                  blockers: { where: { RAW: sql`false` } },
                 },
               },
               link: { with: { creator: true } },
@@ -202,11 +241,39 @@ export const handler = define.handlers({
           with: {
             post: {
               with: {
-                actor: { with: { instance: true, followers: true } },
+                actor: {
+                  with: {
+                    instance: true,
+                    followers: {
+                      where: { followerId: ctx.state.account.actor.id },
+                    },
+                    blockees: {
+                      where: { blockeeId: ctx.state.account.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: ctx.state.account.actor.id },
+                    },
+                  },
+                },
                 link: { with: { creator: true } },
                 sharedPost: {
                   with: {
-                    actor: { with: { instance: true } },
+                    actor: {
+                      with: {
+                        instance: true,
+                        followers: {
+                          where: {
+                            followerId: ctx.state.account.actor.id,
+                          },
+                        },
+                        blockees: {
+                          where: { blockeeId: ctx.state.account.actor.id },
+                        },
+                        blockers: {
+                          where: { blockerId: ctx.state.account.actor.id },
+                        },
+                      },
+                    },
                     link: { with: { creator: true } },
                     replyTarget: {
                       with: {
@@ -217,6 +284,12 @@ export const handler = define.handlers({
                               where: {
                                 followerId: ctx.state.account.actor.id,
                               },
+                            },
+                            blockees: {
+                              where: { blockeeId: ctx.state.account.actor.id },
+                            },
+                            blockers: {
+                              where: { blockerId: ctx.state.account.actor.id },
                             },
                           },
                         },
@@ -246,6 +319,12 @@ export const handler = define.handlers({
                         instance: true,
                         followers: {
                           where: { followerId: ctx.state.account.actor.id },
+                        },
+                        blockees: {
+                          where: { blockeeId: ctx.state.account.actor.id },
+                        },
+                        blockers: {
+                          where: { blockerId: ctx.state.account.actor.id },
                         },
                       },
                     },
@@ -371,9 +450,7 @@ export const handler = define.handlers({
         (ctx.state.account == null || timeline.length < 1),
       composer: ctx.state.account != null,
       filter,
-      timeline: timeline.filter((item) =>
-        isPostVisibleTo(item.post, ctx.state.account?.actor)
-      ),
+      timeline,
       next,
       window,
       recommendedActors,
@@ -388,15 +465,31 @@ interface HomeProps {
   filter: TimelineNavItem;
   timeline: ({
     post: Post & {
-      actor: Actor & { instance: Instance };
+      actor: Actor & {
+        instance: Instance;
+        followers: Following[];
+        blockees: Blocking[];
+        blockers: Blocking[];
+      };
       link: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
-          actor: Actor & { instance: Instance };
+          actor: Actor & {
+            instance: Instance;
+
+            followers: Following[];
+            blockees: Blocking[];
+            blockers: Blocking[];
+          };
           link: PostLink & { creator?: Actor | null } | null;
           replyTarget:
             | Post & {
-              actor: Actor & { instance: Instance; followers: Following[] };
+              actor: Actor & {
+                instance: Instance;
+                followers: Following[];
+                blockees: Blocking[];
+                blockers: Blocking[];
+              };
               link: PostLink & { creator?: Actor | null } | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
@@ -410,7 +503,12 @@ interface HomeProps {
         | null;
       replyTarget:
         | Post & {
-          actor: Actor & { instance: Instance; followers: Following[] };
+          actor: Actor & {
+            instance: Instance;
+            followers: Following[];
+            blockees: Blocking[];
+            blockers: Blocking[];
+          };
           link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];

@@ -17,6 +17,7 @@ import {
   type AccountEmail,
   type AccountLink,
   type Actor,
+  type Blocking,
   type Following,
   type Instance,
   type Mention,
@@ -53,15 +54,30 @@ export async function getNoteSource(
   NoteSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     post: Post & {
-      actor: Actor & { instance: Instance; followers: Following[] };
+      actor: Actor & {
+        instance: Instance;
+        followers: Following[];
+        blockees: Blocking[];
+        blockers: Blocking[];
+      };
       link: PostLink & { creator?: Actor | null } | null;
       sharedPost:
         | Post & {
-          actor: Actor & { instance: Instance };
+          actor: Actor & {
+            instance: Instance;
+            followers: Following[];
+            blockees: Blocking[];
+            blockers: Blocking[];
+          };
           link: PostLink & { creator?: Actor | null } | null;
           replyTarget:
             | Post & {
-              actor: Actor & { instance: Instance; followers: Following[] };
+              actor: Actor & {
+                instance: Instance;
+                followers: Following[];
+                blockees: Blocking[];
+                blockers: Blocking[];
+              };
               link: PostLink & { creator?: Actor | null } | null;
               mentions: (Mention & { actor: Actor })[];
               media: PostMedium[];
@@ -75,7 +91,12 @@ export async function getNoteSource(
         | null;
       replyTarget:
         | Post & {
-          actor: Actor & { instance: Instance; followers: Following[] };
+          actor: Actor & {
+            instance: Instance;
+            followers: Following[];
+            blockees: Blocking[];
+            blockers: Blocking[];
+          };
           link: PostLink & { creator?: Actor | null } | null;
           mentions: (Mention & { actor: Actor })[];
           media: PostMedium[];
@@ -110,7 +131,24 @@ export async function getNoteSource(
       post: {
         with: {
           actor: {
-            with: { instance: true, followers: true },
+            with: {
+              instance: true,
+              followers: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { followerId: signedAccount.actor.id },
+              },
+              blockees: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockeeId: signedAccount.actor.id },
+              },
+              blockers: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockerId: signedAccount.actor.id },
+              },
+            },
           },
           link: { with: { creator: true } },
           mentions: {
@@ -118,7 +156,26 @@ export async function getNoteSource(
           },
           sharedPost: {
             with: {
-              actor: { with: { instance: true } },
+              actor: {
+                with: {
+                  instance: true,
+                  followers: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { followerId: signedAccount.actor.id },
+                  },
+                  blockees: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { blockeeId: signedAccount.actor.id },
+                  },
+                  blockers: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { blockerId: signedAccount.actor.id },
+                  },
+                },
+              },
               link: { with: { creator: true } },
               replyTarget: {
                 with: {
@@ -129,6 +186,16 @@ export async function getNoteSource(
                         where: signedAccount == null ? { RAW: sql`false` } : {
                           followerId: signedAccount.actor.id,
                         },
+                      },
+                      blockees: {
+                        where: signedAccount == null
+                          ? { RAW: sql`false` }
+                          : { blockeeId: signedAccount.actor.id },
+                      },
+                      blockers: {
+                        where: signedAccount == null
+                          ? { RAW: sql`false` }
+                          : { blockerId: signedAccount.actor.id },
                       },
                     },
                   },
@@ -164,6 +231,16 @@ export async function getNoteSource(
                     where: signedAccount == null
                       ? { RAW: sql`false` }
                       : { followerId: signedAccount.actor.id },
+                  },
+                  blockees: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { blockeeId: signedAccount.actor.id },
+                  },
+                  blockers: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { blockerId: signedAccount.actor.id },
                   },
                 },
               },

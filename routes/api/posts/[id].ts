@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { db } from "../../../db.ts";
 import { isPostVisibleTo } from "../../../models/post.ts";
 import { validateUuid } from "../../../models/uuid.ts";
@@ -9,7 +10,25 @@ export const handler = define.handlers(async (ctx) => {
   const { account } = ctx.state;
   let post = await db.query.postTable.findFirst({
     with: {
-      actor: { with: { followers: true } },
+      actor: {
+        with: {
+          followers: {
+            where: account == null
+              ? { RAW: sql`false` }
+              : { followerId: account.actor.id },
+          },
+          blockees: {
+            where: account == null
+              ? { RAW: sql`false` }
+              : { blockeeId: account.actor.id },
+          },
+          blockers: {
+            where: account == null
+              ? { RAW: sql`false` }
+              : { blockerId: account.actor.id },
+          },
+        },
+      },
       articleSource: true,
       mentions: { with: { actor: true } },
       media: {
@@ -17,7 +36,25 @@ export const handler = define.handlers(async (ctx) => {
       },
       sharedPost: {
         with: {
-          actor: { with: { followers: true } },
+          actor: {
+            with: {
+              followers: {
+                where: account == null
+                  ? { RAW: sql`false` }
+                  : { followerId: account.actor.id },
+              },
+              blockees: {
+                where: account == null
+                  ? { RAW: sql`false` }
+                  : { blockeeId: account.actor.id },
+              },
+              blockers: {
+                where: account == null
+                  ? { RAW: sql`false` }
+                  : { blockerId: account.actor.id },
+              },
+            },
+          },
           articleSource: true,
           mentions: { with: { actor: true } },
           media: {

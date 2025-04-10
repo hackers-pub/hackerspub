@@ -10,12 +10,12 @@ import { persistActor } from "../models/actor.ts";
 import {
   getPostVisibilityFilter,
   isPostObject,
-  isPostVisibleTo,
   persistPost,
 } from "../models/post.ts";
 import type {
   Account,
   Actor,
+  Blocking,
   Following,
   Instance,
   Mention,
@@ -140,7 +140,26 @@ export const handler = define.handlers({
         ],
       },
       with: {
-        actor: { with: { instance: true, followers: true } },
+        actor: {
+          with: {
+            instance: true,
+            followers: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { followerId: ctx.state.account.actor.id },
+            },
+            blockees: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { blockeeId: ctx.state.account.actor.id },
+            },
+            blockers: {
+              where: ctx.state.account == null
+                ? { RAW: sql`false` }
+                : { blockerId: ctx.state.account.actor.id },
+            },
+          },
+        },
         link: { with: { creator: true } },
         mentions: {
           with: { actor: true },
@@ -166,6 +185,16 @@ export const handler = define.handlers({
                     ? { RAW: sql`false` }
                     : { followerId: ctx.state.account.actor.id },
                 },
+                blockees: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockeeId: ctx.state.account.actor.id },
+                },
+                blockers: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockerId: ctx.state.account.actor.id },
+                },
               },
             },
             link: { with: { creator: true } },
@@ -177,7 +206,26 @@ export const handler = define.handlers({
         },
         sharedPost: {
           with: {
-            actor: { with: { instance: true } },
+            actor: {
+              with: {
+                instance: true,
+                followers: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { followerId: ctx.state.account.actor.id },
+                },
+                blockees: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockeeId: ctx.state.account.actor.id },
+                },
+                blockers: {
+                  where: ctx.state.account == null
+                    ? { RAW: sql`false` }
+                    : { blockerId: ctx.state.account.actor.id },
+                },
+              },
+            },
             link: { with: { creator: true } },
             mentions: {
               with: { actor: true },
@@ -203,6 +251,16 @@ export const handler = define.handlers({
                         ? { RAW: sql`false` }
                         : { followerId: ctx.state.account.actor.id },
                     },
+                    blockees: {
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { blockeeId: ctx.state.account.actor.id },
+                    },
+                    blockers: {
+                      where: ctx.state.account == null
+                        ? { RAW: sql`false` }
+                        : { blockerId: ctx.state.account.actor.id },
+                    },
                   },
                 },
                 link: { with: { creator: true } },
@@ -218,23 +276,36 @@ export const handler = define.handlers({
       orderBy: { published: "desc" },
     });
     ctx.state.searchQuery = query ?? undefined;
-    return page<SearchResultsProps>({
-      posts: posts.filter((p) => isPostVisibleTo(p, ctx.state.account?.actor)),
-    });
+    return page<SearchResultsProps>({ posts });
   },
 });
 
 interface SearchResultsProps {
   posts: (Post & {
-    actor: Actor & { instance: Instance };
+    actor: Actor & {
+      instance: Instance;
+      followers: Following[];
+      blockees: Blocking[];
+      blockers: Blocking[];
+    };
     link: PostLink & { creator?: Actor | null } | null;
     sharedPost:
       | Post & {
-        actor: Actor & { instance: Instance };
+        actor: Actor & {
+          instance: Instance;
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { instance: Instance; followers: Following[] };
+            actor: Actor & {
+              instance: Instance;
+              followers: Following[];
+              blockees: Blocking[];
+              blockers: Blocking[];
+            };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -250,7 +321,9 @@ interface SearchResultsProps {
       | Post & {
         actor: Actor & {
           instance: Instance;
-          followers: (Following & { follower?: Actor })[];
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
         };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];

@@ -3,6 +3,7 @@ import { isArticleLike, isPostVisibleTo } from "../models/post.ts";
 import type {
   Account,
   Actor,
+  Blocking,
   Following,
   Instance,
   Mention,
@@ -26,7 +27,12 @@ export interface PostExcerptProps {
         link: PostLink & { creator?: Actor | null } | null;
         replyTarget:
           | Post & {
-            actor: Actor & { instance: Instance; followers: Following[] };
+            actor: Actor & {
+              instance: Instance;
+              followers: Following[];
+              blockees: Blocking[];
+              blockers: Blocking[];
+            };
             link: PostLink & { creator?: Actor | null } | null;
             mentions: (Mention & { actor: Actor })[];
             media: PostMedium[];
@@ -40,7 +46,12 @@ export interface PostExcerptProps {
       | null;
     replyTarget:
       | Post & {
-        actor: Actor & { instance: Instance; followers: Following[] };
+        actor: Actor & {
+          instance: Instance;
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
         link: PostLink & { creator?: Actor | null } | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
