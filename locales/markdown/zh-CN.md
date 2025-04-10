@@ -611,10 +611,20 @@ const message = "在这行中，'高亮文本'将被高亮";
 
 > <kbd>Ctrl</kbd> + <kbd>C</kbd>
 
-## 提示
+
+提示
+----
 
 - 在 Markdown 中，使用纯文本编写，并使用特殊字符进行格式化。
 - 段落由空白行分隔。单次按 <kbd>Enter</kbd> 键会被忽略。
 - 要强制换行，请在行尾添加两个或更多空格。
 - 在编辑器中检查预览，确保它按预期显示。
 - 虽然 Markdown 支持直接使用 HTML，但最好尽可能使用 Markdown 语法。
+
+
+源代码
+------
+
+如果您对 Hackers' Pub 的 Markdown 实现的具体行为感兴趣，可以查看[源代码]。
+
+[源代码]: https://github.com/hackers-pub/hackerspub/blob/main/models/markup.ts

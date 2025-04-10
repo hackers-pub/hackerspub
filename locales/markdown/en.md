@@ -611,10 +611,21 @@ Preview:
 
 > <kbd>Ctrl</kbd> + <kbd>C</kbd>
 
-## Tips
+
+Tips
+----
 
 - In Markdown, write in plain text and use special characters for formatting.
 - Paragraphs are separated by blank lines. A single <kbd>Enter</kbd> press is ignored.
 - To force a line break, add two or more spaces at the end of a line.
 - Check the preview in the editor to ensure it displays as expected.
 - While Markdown supports direct HTML usage, it's best to use Markdown syntax when possible.
+
+
+Source Code
+-----------
+
+If you are interested in the specific behavior of Hackers' Pub's Markdown
+implementation, feel free to check the [source code].
+
+[source code]: https://github.com/hackers-pub/hackerspub/blob/main/models/markup.ts

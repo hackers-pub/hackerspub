@@ -611,10 +611,20 @@ const message = "在這行中，'highlightText' 將被高亮";
 
 > <kbd>Ctrl</kbd> + <kbd>C</kbd>
 
-## 提示
+
+提示
+----
 
 - 在 Markdown 中，以純文本撰寫並使用特殊字符進行格式化。
 - 段落由空行分隔。單個 <kbd>Enter</kbd> 按鍵會被忽略。
 - 要強制換行，在行尾添加兩個或更多空格。
 - 在編輯器中檢查預覽，確保其按預期顯示。
 - 雖然 Markdown 支援直接使用 HTML，但最好儘可能使用 Markdown 語法。
+
+
+原始碼
+------
+
+如果你對 Hackers' Pub 的 Markdown 實現的具體行為感興趣，可以查看[原始碼]。
+
+[原始碼]: https://github.com/hackers-pub/hackerspub/blob/main/models/markup.ts
