@@ -1082,11 +1082,11 @@ export function isPostVisibleTo(
   if (post.visibility === "followers") {
     if ("id" in actor) {
       return post.actor.followers.some((follower) =>
-        follower.followerId === actor.id
+        follower.followerId === actor.id && follower.accepted != null
       ) || post.mentions.some((mention) => mention.actorId === actor.id);
     } else {
       return post.actor.followers.some((follower) =>
-        follower.follower?.iri === actor.iri
+        follower.follower?.iri === actor.iri && follower.accepted != null
       ) || post.mentions.some((mention) => mention.actor?.iri === actor.iri);
     }
   }
@@ -1121,7 +1121,12 @@ export function getPostVisibilityFilter(
         { mentions: { actorId: actorOrPost.id } },
         {
           visibility: "followers",
-          actor: { followers: { followerId: actorOrPost.id } },
+          actor: {
+            followers: {
+              followerId: actorOrPost.id,
+              accepted: { isNotNull: true },
+            },
+          },
         },
       ],
     };
@@ -1137,7 +1142,12 @@ export function getPostVisibilityFilter(
         { id: actorOrPost.actorId },
         { mentions: { postId: actorOrPost.id } },
         ...(actorOrPost.visibility === "followers"
-          ? [{ followees: { followeeId: actorOrPost.actorId } }]
+          ? [{
+            followees: {
+              followeeId: actorOrPost.actorId,
+              accepted: { isNotNull: true },
+            } satisfies RelationsFilter<"followingTable">,
+          }]
           : []),
       ],
     };
