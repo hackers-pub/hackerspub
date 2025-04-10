@@ -156,7 +156,8 @@
     "unfollow": "取消关注",
     "cancelRequest": "取消关注请求",
     "followerList": {
-      "title": "{{name}} 的粉丝"
+      "title": "{{name}} 的粉丝",
+      "removeConfirm": "你确定要从粉丝中移除 {{name}}（{{handle}}）吗？"
     },
     "followeeList": {
       "title": "{{name}} 正在关注"

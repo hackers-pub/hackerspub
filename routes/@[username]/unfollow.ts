@@ -31,6 +31,8 @@ export const handler = define.handlers({
       }
       await unfollow(db, ctx.state.fedCtx, ctx.state.account, followee.actor);
     }
-    return ctx.redirect(`/@${handle}`);
+    const form = await ctx.req.formData();
+    const returnUrl = form.get("return")?.toString();
+    return ctx.redirect(returnUrl == null ? `/@${handle}` : returnUrl);
   },
 });

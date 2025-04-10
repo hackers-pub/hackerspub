@@ -1,4 +1,5 @@
 import { escape } from "@std/html/entities";
+import type { ComponentChildren } from "preact";
 import { Link } from "../islands/Link.tsx";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import { preprocessContentHtml } from "../models/html.ts";
@@ -9,11 +10,15 @@ export interface ActorListProps {
   actors: (Actor & { account?: Account | null })[];
   actorMentions: { actor: Actor }[];
   nextUrl?: string;
+  rightTopButton?: (
+    actor: Actor & { account?: Account | null },
+  ) => ComponentChildren;
   class?: string;
 }
 
 export function ActorList(
-  { actors, actorMentions, nextUrl, class: cls }: ActorListProps,
+  { actors, actorMentions, nextUrl, rightTopButton, class: cls }:
+    ActorListProps,
 ) {
   return (
     <div
@@ -27,14 +32,14 @@ export function ActorList(
           key={actor.id}
           class="bg-stone-100 dark:bg-stone-800 p-4 flex flex-col h-full"
         >
-          <div class="flex items-center space-x-4">
+          <div class="flex space-x-4">
             <img
               src={actor.avatarUrl ??
                 "https://gravatar.com/avatar/?d=mp&s=128"}
               alt={actor.name ?? undefined}
-              class="w-12 h-12"
+              class="w-12 h-12 shrink-0"
             />
-            <div>
+            <div class="grow">
               <h2 class="text-lg font-semibold">
                 <Link
                   internalHref={actor.accountId == null
@@ -66,6 +71,7 @@ export function ActorList(
                 </Link>
               </p>
             </div>
+            {rightTopButton && rightTopButton(actor)}
           </div>
           <div
             class="mt-4 prose dark:prose-invert"

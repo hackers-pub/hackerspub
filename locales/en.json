@@ -160,7 +160,8 @@
     "unfollow": "Unfollow",
     "cancelRequest": "Cancel request",
     "followerList": {
-      "title": "{{name}}'s followers"
+      "title": "{{name}}'s followers",
+      "removeConfirm": "Are you sure you want to remove {{name}} ({{handle}}) from your followers?"
     },
     "followeeList": {
       "title": "{{name}} is following"

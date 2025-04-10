@@ -155,7 +155,8 @@
     "unfollow": "フォロー解除",
     "cancelRequest": "リクエストをキャンセル",
     "followerList": {
-      "title": "{{name}}さんのフォロワー"
+      "title": "{{name}}さんのフォロワー",
+      "removeConfirm": "{{name}}さん（{{handle}}）をフォロワーから削除してもよろしいですか？"
     },
     "followeeList": {
       "title": "{{name}}さんのフォロー"

@@ -154,7 +154,8 @@
     "unfollow": "언팔로",
     "cancelRequest": "요청 취소",
     "followerList": {
-      "title": "{{name}} 님의 팔로워"
+      "title": "{{name}} 님의 팔로워",
+      "removeConfirm": "정말로 {{name}} 님({{handle}})을 팔로워에서 삭제하시겠습니까?"
     },
     "followeeList": {
       "title": "{{name}} 님의 팔로잉"

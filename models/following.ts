@@ -1,4 +1,4 @@
-import { type Context, Follow, Undo } from "@fedify/fedify";
+import { type Context, Follow, Reject, Undo } from "@fedify/fedify";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Database } from "../db.ts";
 import { toRecipient } from "./actor.ts";
@@ -142,6 +142,43 @@ export async function unfollow(
         follower.actor,
       );
     }
+  }
+  return rows[0];
+}
+
+export async function removeFollower(
+  db: Database,
+  fedCtx: Context<void>,
+  followee: Account & { actor: Actor },
+  follower: Actor,
+): Promise<Following | undefined> {
+  const rows = await db.delete(followingTable).where(
+    and(
+      eq(followingTable.followerId, follower.id),
+      eq(followingTable.followeeId, followee.actor.id),
+    ),
+  ).returning();
+  if (rows.length < 1) return undefined;
+  await updateFolloweesCount(db, rows[0].followerId, -1);
+  await updateFollowersCount(db, rows[0].followeeId, -1);
+  await deleteFollowNotification(db, followee.id, follower);
+  if (follower.accountId == null) {
+    await fedCtx.sendActivity(
+      { identifier: followee.id },
+      toRecipient(follower),
+      new Reject({
+        id: new URL(
+          `/#reject/${followee.id}/${follower.id}/${rows[0].iri}`,
+          fedCtx.getActorUri(followee.id),
+        ),
+        actor: fedCtx.getActorUri(followee.id),
+        object: new Follow({
+          id: new URL(rows[0].iri),
+          actor: new URL(follower.iri),
+          object: fedCtx.getActorUri(followee.id),
+        }),
+      }),
+    );
   }
   return rows[0];
 }
