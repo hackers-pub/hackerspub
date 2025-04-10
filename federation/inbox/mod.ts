@@ -8,6 +8,7 @@ import {
   isActor,
   Like,
   Move,
+  Reject,
   Undo,
   Update,
 } from "@fedify/fedify";
@@ -16,7 +17,12 @@ import { captureException } from "@sentry/deno";
 import { isPostObject } from "../../models/post.ts";
 import { federation } from "../federation.ts";
 import { onActorDeleted, onActorMoved, onActorUpdated } from "./actor.ts";
-import { onFollowAccepted, onFollowed, onUnfollowed } from "./following.ts";
+import {
+  onFollowAccepted,
+  onFollowed,
+  onFollowRejected,
+  onUnfollowed,
+} from "./following.ts";
 import {
   onPostCreated,
   onPostDeleted,
@@ -35,6 +41,7 @@ federation
     identifier: new URL(ctx.canonicalOrigin).hostname,
   }))
   .on(Accept, onFollowAccepted)
+  .on(Reject, onFollowRejected)
   .on(Follow, onFollowed)
   .on(Undo, async (fedCtx, undo) => {
     const object = await undo.getObject({ ...fedCtx, suppressError: true });

@@ -1,4 +1,10 @@
-import { Accept, Follow, type InboxContext, type Undo } from "@fedify/fedify";
+import {
+  Accept,
+  Follow,
+  type InboxContext,
+  type Reject,
+  type Undo,
+} from "@fedify/fedify";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db.ts";
@@ -12,7 +18,7 @@ import {
   createFollowNotification,
   deleteFollowNotification,
 } from "../../models/notification.ts";
-import { followingTable } from "../../models/schema.ts";
+import { actorTable, followingTable } from "../../models/schema.ts";
 import { validateUuid } from "../../models/uuid.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "following"]);
@@ -41,7 +47,28 @@ export async function onFollowAccepted(
   else await acceptFollowing(db, follow.id);
 }
 
-// TODO: onFollowRejected
+export async function onFollowRejected(
+  fedCtx: InboxContext<void>,
+  reject: Reject,
+): Promise<void> {
+  const follow = await reject.getObject(fedCtx);
+  if (reject.actorId == null) return;
+  if (!(follow instanceof Follow) || follow.id == null) return;
+  if (follow.objectId?.href !== reject.actorId?.href) return;
+  await db
+    .delete(followingTable)
+    .where(
+      and(
+        eq(followingTable.iri, follow.id.href),
+        eq(
+          followingTable.followeeId,
+          db.select({ id: actorTable.id })
+            .from(actorTable)
+            .where(eq(actorTable.iri, reject.actorId.href)),
+        ),
+      ),
+    );
+}
 
 export async function onFollowed(
   fedCtx: InboxContext<void>,
