@@ -139,7 +139,10 @@ export async function syncPostFromArticleSource(
     tags: Object.fromEntries(
       articleSource.tags.map((
         tag,
-      ) => [tag, `${fedCtx.origin}/tags/${encodeURIComponent(tag)}`]),
+      ) => [
+        tag.toLowerCase(),
+        `${fedCtx.origin}/tags/${encodeURIComponent(tag)}`,
+      ]),
     ),
     url,
     updated: articleSource.updated,
@@ -339,7 +342,7 @@ export async function persistPost(
   for await (const tag of post.getTags(opts)) {
     if (tag instanceof vocab.Hashtag) {
       if (tag.name == null || tag.href == null) continue;
-      tags[tag.name.toString().replace(/^#/, "")] = tag.href.href;
+      tags[tag.name.toString().replace(/^#/, "").toLowerCase()] = tag.href.href;
     } else if (tag instanceof vocab.Mention) {
       if (tag.href == null) continue;
       mentions.add(tag.href.href);

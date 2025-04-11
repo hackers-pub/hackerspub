@@ -134,7 +134,7 @@ export const handler = define.handlers({
     const posts = expr == null ? [] : await db.query.postTable.findMany({
       where: {
         AND: [
-          compileQuery(db, expr),
+          compileQuery(expr),
           getPostVisibilityFilter(ctx.state.account?.actor ?? null),
           { sharedPostId: { isNull: true } },
         ],

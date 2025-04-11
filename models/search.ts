@@ -15,12 +15,14 @@ import {
   str,
   whitespace,
 } from "arcsecond";
-import type { Database, RelationsFilter } from "../db.ts";
+import { sql } from "drizzle-orm";
+import type { RelationsFilter } from "../db.ts";
 
 export type Term =
   | { type: "keyword"; keyword: string }
   | { type: "language"; language: string }
-  | { type: "actor"; username: string; host?: string };
+  | { type: "actor"; username: string; host?: string }
+  | { type: "hashtag"; hashtag: string };
 
 export type Expr =
   | Term
@@ -53,6 +55,10 @@ export const term: Parser<Term> = choice([
     type: "actor",
     username,
     host: host?.[1],
+  })),
+  regex(/^#[\w_-]+/).map<Term>((s) => ({
+    type: "hashtag" as const,
+    hashtag: s.substring(1),
   })),
   regex(/^[^ \t\v\r\n()]+/).map<Term>((s) => ({
     type: "keyword",
@@ -116,7 +122,6 @@ export function parseQuery(input: string): Expr | undefined {
 }
 
 export function compileQuery(
-  db: Database,
   expr: Expr,
 ): RelationsFilter<"postTable"> {
   switch (expr.type) {
@@ -136,21 +141,27 @@ export function compileQuery(
           }),
         },
       };
+    case "hashtag":
+      return {
+        RAW(t) {
+          return sql`${t.tags} ? ${expr.hashtag.toLowerCase()}`;
+        },
+      };
     case "and":
       return {
         AND: [
-          compileQuery(db, expr.left),
-          compileQuery(db, expr.right),
+          compileQuery(expr.left),
+          compileQuery(expr.right),
         ],
       };
     case "or":
       return {
         OR: [
-          compileQuery(db, expr.left),
-          compileQuery(db, expr.right),
+          compileQuery(expr.left),
+          compileQuery(expr.right),
         ],
       };
     case "not":
-      return { NOT: compileQuery(db, expr.expr) };
+      return { NOT: compileQuery(expr.expr) };
   }
 }
