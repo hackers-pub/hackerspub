@@ -49,8 +49,10 @@ export function PostControls(props: PostControlsProps) {
       break;
     }
   }
+  let totalReactions = 0;
   let etcReactions = 0;
   for (const emoji in reactionsCounts) {
+    totalReactions += reactionsCounts[emoji];
     if (!isReactionEmoji(emoji)) etcReactions += reactionsCounts[emoji];
   }
 
@@ -179,7 +181,7 @@ export function PostControls(props: PostControlsProps) {
               ${reactionsOpen || anyReacted ? "font-bold" : ""}
             `}
           >
-            {post.reactionsCount.toLocaleString(props.language)}
+            {totalReactions.toLocaleString(props.language)}
             {!reactionsOpen && anyReacted && (
               <>
                 {" "}&mdash; <Msg $key="post.reacted" />
