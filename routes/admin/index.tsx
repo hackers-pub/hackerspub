@@ -73,6 +73,7 @@ export default define.page<typeof handler, AccountListProps>(
     return (
       <div>
         <AdminNav active="accounts" />
+        <p class="mb-4">Total: {accounts.length}</p>
         <table class="table table-auto border-collapse border border-stone-300 dark:border-stone-500 w-full">
           <thead>
             <tr>
