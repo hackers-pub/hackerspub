@@ -5,7 +5,7 @@ import { page } from "fresh";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
-import { db } from "../db.ts";
+import { db, type RelationsFilter } from "../db.ts";
 import { persistActor } from "../models/actor.ts";
 import {
   getPostVisibilityFilter,
@@ -119,168 +119,178 @@ async function searchUrl(
   return undefined;
 }
 
-export const handler = define.handlers({
-  async GET(ctx) {
-    const query = ctx.url.searchParams.get("query");
-    let redirect = await searchUrl(ctx.state.fedCtx, ctx.state.account, query);
-    if (redirect != null) return ctx.redirect(redirect);
-    redirect = await searchHandle(
-      ctx.state.fedCtx,
-      ctx.state.account,
-      query,
-    );
-    if (redirect != null) return ctx.redirect(redirect);
-    const expr = query == null ? undefined : parseQuery(query);
-    const posts = expr == null ? [] : await db.query.postTable.findMany({
-      where: {
-        AND: [
-          compileQuery(expr),
-          getPostVisibilityFilter(ctx.state.account?.actor ?? null),
-          { sharedPostId: { isNull: true } },
-        ],
-      },
-      with: {
-        actor: {
-          with: {
-            instance: true,
-            followers: {
-              where: ctx.state.account == null
-                ? { RAW: sql`false` }
-                : { followerId: ctx.state.account.actor.id },
-            },
-            blockees: {
-              where: ctx.state.account == null
-                ? { RAW: sql`false` }
-                : { blockeeId: ctx.state.account.actor.id },
-            },
-            blockers: {
-              where: ctx.state.account == null
-                ? { RAW: sql`false` }
-                : { blockerId: ctx.state.account.actor.id },
-            },
-          },
-        },
-        link: { with: { creator: true } },
-        mentions: {
-          with: { actor: true },
-        },
-        media: true,
-        shares: {
-          where: ctx.state.account == null
-            ? { RAW: sql`false` }
-            : { actorId: ctx.state.account.actor.id },
-        },
-        reactions: {
-          where: ctx.state.account == null
-            ? { RAW: sql`false` }
-            : { actorId: ctx.state.account.actor.id },
-        },
-        replyTarget: {
-          with: {
-            actor: {
-              with: {
-                instance: true,
-                followers: {
-                  where: ctx.state.account == null
-                    ? { RAW: sql`false` }
-                    : { followerId: ctx.state.account.actor.id },
-                },
-                blockees: {
-                  where: ctx.state.account == null
-                    ? { RAW: sql`false` }
-                    : { blockeeId: ctx.state.account.actor.id },
-                },
-                blockers: {
-                  where: ctx.state.account == null
-                    ? { RAW: sql`false` }
-                    : { blockerId: ctx.state.account.actor.id },
-                },
-              },
-            },
-            link: { with: { creator: true } },
-            mentions: {
-              with: { actor: true },
-            },
-            media: true,
-          },
-        },
-        sharedPost: {
-          with: {
-            actor: {
-              with: {
-                instance: true,
-                followers: {
-                  where: ctx.state.account == null
-                    ? { RAW: sql`false` }
-                    : { followerId: ctx.state.account.actor.id },
-                },
-                blockees: {
-                  where: ctx.state.account == null
-                    ? { RAW: sql`false` }
-                    : { blockeeId: ctx.state.account.actor.id },
-                },
-                blockers: {
-                  where: ctx.state.account == null
-                    ? { RAW: sql`false` }
-                    : { blockerId: ctx.state.account.actor.id },
-                },
-              },
-            },
-            link: { with: { creator: true } },
-            mentions: {
-              with: { actor: true },
-            },
-            media: true,
-            shares: {
-              where: ctx.state.account == null
-                ? { RAW: sql`false` }
-                : { actorId: ctx.state.account.actor.id },
-            },
-            reactions: {
-              where: ctx.state.account == null
-                ? { RAW: sql`false` }
-                : { actorId: ctx.state.account.actor.id },
-            },
-            replyTarget: {
-              with: {
-                actor: {
-                  with: {
-                    instance: true,
-                    followers: {
-                      where: ctx.state.account == null
-                        ? { RAW: sql`false` }
-                        : { followerId: ctx.state.account.actor.id },
-                    },
-                    blockees: {
-                      where: ctx.state.account == null
-                        ? { RAW: sql`false` }
-                        : { blockeeId: ctx.state.account.actor.id },
-                    },
-                    blockers: {
-                      where: ctx.state.account == null
-                        ? { RAW: sql`false` }
-                        : { blockerId: ctx.state.account.actor.id },
-                    },
-                  },
-                },
-                link: { with: { creator: true } },
-                mentions: {
-                  with: { actor: true },
-                },
-                media: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: { published: "desc" },
-    });
-    ctx.state.searchQuery = query ?? undefined;
-    return page<SearchResultsProps>({ posts });
-  },
+export const handler = define.handlers(async (ctx) => {
+  const query = ctx.url.searchParams.get("query");
+  let redirect = await searchUrl(ctx.state.fedCtx, ctx.state.account, query);
+  if (redirect != null) return ctx.redirect(redirect);
+  redirect = await searchHandle(
+    ctx.state.fedCtx,
+    ctx.state.account,
+    query,
+  );
+  if (redirect != null) return ctx.redirect(redirect);
+  const expr = query == null ? undefined : parseQuery(query);
+  if (expr != null && expr.type === "hashtag") {
+    return ctx.redirect(`/tags/${encodeURIComponent(expr.hashtag)}`);
+  }
+  const posts = expr == null
+    ? []
+    : await search(ctx.state.account, compileQuery(expr));
+  ctx.state.searchQuery = query ?? undefined;
+  return page<SearchResultsProps>({ posts });
 });
 
-interface SearchResultsProps {
+export function search(
+  signedAccount: Account & { actor: Actor } | null | undefined,
+  filter: RelationsFilter<"postTable">,
+): Promise<SearchResultsProps["posts"]> {
+  return db.query.postTable.findMany({
+    where: {
+      AND: [
+        filter,
+        getPostVisibilityFilter(signedAccount?.actor ?? null),
+        { sharedPostId: { isNull: true } },
+      ],
+    },
+    with: {
+      actor: {
+        with: {
+          instance: true,
+          followers: {
+            where: signedAccount == null
+              ? { RAW: sql`false` }
+              : { followerId: signedAccount.actor.id },
+          },
+          blockees: {
+            where: signedAccount == null
+              ? { RAW: sql`false` }
+              : { blockeeId: signedAccount.actor.id },
+          },
+          blockers: {
+            where: signedAccount == null
+              ? { RAW: sql`false` }
+              : { blockerId: signedAccount.actor.id },
+          },
+        },
+      },
+      link: { with: { creator: true } },
+      mentions: {
+        with: { actor: true },
+      },
+      media: true,
+      shares: {
+        where: signedAccount == null
+          ? { RAW: sql`false` }
+          : { actorId: signedAccount.actor.id },
+      },
+      reactions: {
+        where: signedAccount == null
+          ? { RAW: sql`false` }
+          : { actorId: signedAccount.actor.id },
+      },
+      replyTarget: {
+        with: {
+          actor: {
+            with: {
+              instance: true,
+              followers: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { followerId: signedAccount.actor.id },
+              },
+              blockees: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockeeId: signedAccount.actor.id },
+              },
+              blockers: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockerId: signedAccount.actor.id },
+              },
+            },
+          },
+          link: { with: { creator: true } },
+          mentions: {
+            with: { actor: true },
+          },
+          media: true,
+        },
+      },
+      sharedPost: {
+        with: {
+          actor: {
+            with: {
+              instance: true,
+              followers: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { followerId: signedAccount.actor.id },
+              },
+              blockees: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockeeId: signedAccount.actor.id },
+              },
+              blockers: {
+                where: signedAccount == null
+                  ? { RAW: sql`false` }
+                  : { blockerId: signedAccount.actor.id },
+              },
+            },
+          },
+          link: { with: { creator: true } },
+          mentions: {
+            with: { actor: true },
+          },
+          media: true,
+          shares: {
+            where: signedAccount == null
+              ? { RAW: sql`false` }
+              : { actorId: signedAccount.actor.id },
+          },
+          reactions: {
+            where: signedAccount == null
+              ? { RAW: sql`false` }
+              : { actorId: signedAccount.actor.id },
+          },
+          replyTarget: {
+            with: {
+              actor: {
+                with: {
+                  instance: true,
+                  followers: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { followerId: signedAccount.actor.id },
+                  },
+                  blockees: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { blockeeId: signedAccount.actor.id },
+                  },
+                  blockers: {
+                    where: signedAccount == null
+                      ? { RAW: sql`false` }
+                      : { blockerId: signedAccount.actor.id },
+                  },
+                },
+              },
+              link: { with: { creator: true } },
+              mentions: {
+                with: { actor: true },
+              },
+              media: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { published: "desc" },
+  });
+}
+
+export interface SearchResultsProps {
   posts: (Post & {
     actor: Actor & {
       instance: Instance;
