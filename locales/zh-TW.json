@@ -17,7 +17,9 @@
     "follow": "關注",
     "followee": "關注",
     "follower": "粉絲",
-    "fediverse": "聯邦宇宙"
+    "block": "封鎖",
+    "fediverse": "聯邦宇宙",
+    "timeline": "時間軸"
   },
   "notification": {
     "title": "通知",
@@ -157,6 +159,7 @@
     "cancelRequest": "取消關注請求",
     "followerList": {
       "title": "{{name}} 的粉絲",
+      "remove": "從粉絲中移除",
       "removeConfirm": "你確定要從粉絲中移除 {{name}}（{{handle}}）嗎？"
     },
     "followeeList": {
@@ -171,6 +174,12 @@
     "articles": "文章：{{articles}}",
     "feed": "{{name}} 的訂閱流（貼文和文章）",
     "articlesFeed": "{{name}} 的訂閱流（僅文章）",
+    "block": "$t(glossary.block)",
+    "blockConfirm": "你確定要封鎖 {{name}}（{{handle}}）嗎？該使用者將無法關注你或查看你的內容。",
+    "unblock": "解除$t(glossary.block)",
+    "unblockConfirm": "你確定要解除封鎖 {{name}}（{{handle}}）嗎？該使用者將能夠關注你並查看你的內容。",
+    "blockedDescription": "你被此使用者封鎖。你無法關注該使用者或查看該使用者的內容。",
+    "blockingDescription": "你正在封鎖此使用者。該使用者無法關注你或查看你的內容。",
     "successorDescription": "此帳戶已遷移至 {{successor}}。此帳戶不再使用。"
   },
   "articleDrafts": {

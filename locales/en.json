@@ -17,6 +17,7 @@
     "follow": "follow",
     "followee": "following",
     "follower": "follower",
+    "block": "block",
     "fediverse": "fediverse",
     "timeline": "timeline"
   },
@@ -161,6 +162,7 @@
     "cancelRequest": "Cancel request",
     "followerList": {
       "title": "{{name}}'s followers",
+      "remove": "Remove from followers",
       "removeConfirm": "Are you sure you want to remove {{name}} ({{handle}}) from your followers?"
     },
     "followeeList": {
@@ -175,6 +177,12 @@
     "articles": "Articles: {{articles}}",
     "feed": "{{name}}'s feed (notes and articles)",
     "articlesFeed": "{{name}}'s feed (articles only)",
+    "block": "Block",
+    "blockConfirm": "Are you sure you want to block {{name}} ({{handle}})? They won't be able to follow you or see your posts.",
+    "unblock": "Unblock",
+    "unblockConfirm": "Are you sure you want to unblock {{name}} ({{handle}})? They will be able to follow you and see your posts.",
+    "blockedDescription": "You are blocked by this user. You can't follow them or see their posts.",
+    "blockingDescription": "You are blocking this user. They can't follow you or see your posts.",
     "successorDescription": "This account has moved to {{successor}}. This account is no longer in use."
   },
   "articleDrafts": {

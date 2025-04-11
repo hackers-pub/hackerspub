@@ -183,26 +183,6 @@ export async function removeFollower(
   return rows[0];
 }
 
-export type FollowingState = "following" | "sentRequest" | "none";
-
-export async function getFollowingState(
-  db: Database,
-  follower: Actor,
-  followee: Actor,
-): Promise<FollowingState> {
-  const row = await db.query.followingTable.findFirst({
-    where: {
-      followerId: follower.id,
-      followeeId: followee.id,
-    },
-  });
-  return row == null
-    ? "none"
-    : row.accepted == null
-    ? "sentRequest"
-    : "following";
-}
-
 export async function updateFolloweesCount(
   db: Database,
   followerId: Uuid,

@@ -17,6 +17,7 @@
     "follow": "팔로",
     "followee": "팔로잉",
     "follower": "팔로워",
+    "block": "차단",
     "fediverse": "연합우주",
     "timeline": "타임라인"
   },
@@ -155,6 +156,7 @@
     "cancelRequest": "요청 취소",
     "followerList": {
       "title": "{{name}} 님의 팔로워",
+      "remove": "팔로워 삭제",
       "removeConfirm": "정말로 {{name}} 님({{handle}})을 팔로워에서 삭제하시겠습니까?"
     },
     "followeeList": {
@@ -169,6 +171,12 @@
     "articles": "게시글: {{articles}}",
     "feed": "{{name}} 님의 피드 (단문과 게시글)",
     "articlesFeed": "{{name}} 님의 피드 (게시글만)",
+    "block": "$t(glossary.block)",
+    "blockConfirm": "정말로 {{name}} 님({{handle}})을 차단하시겠습니까? 상대방은 회원님을 팔로하거나 콘텐츠를 볼 수 없게 됩니다.",
+    "unblock": "$t(glossary.block) 해제",
+    "unblockConfirm": "정말로 {{name}} 님({{handle}})의 차단을 해제하시겠습니까? 상대방은 회원님을 팔로하고 콘텐츠를 볼 수 있게 됩니다.",
+    "blockedDescription": "이 사용자에게서 차단당했습니다. 팔로하거나 콘텐츠를 볼 수 없습니다.",
+    "blockingDescription": "이 사용자를 차단했습니다. 사용자는 회원님을 팔로하거나 콘텐츠를 볼 수 없습니다.",
     "successorDescription": "이 계정은 {{successor}}로 이전되었습니다. 이 계정은 더 이상 사용되지 않습니다."
   },
   "articleDrafts": {

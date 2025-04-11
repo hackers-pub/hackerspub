@@ -17,7 +17,9 @@
     "follow": "关注",
     "followee": "关注",
     "follower": "粉丝",
-    "fediverse": "联邦宇宙"
+    "block": "屏蔽",
+    "fediverse": "联邦宇宙",
+    "timeline": "时间线"
   },
   "notification": {
     "title": "通知",
@@ -157,6 +159,7 @@
     "cancelRequest": "取消关注请求",
     "followerList": {
       "title": "{{name}} 的粉丝",
+      "remove": "从粉丝中移除",
       "removeConfirm": "你确定要从粉丝中移除 {{name}}（{{handle}}）吗？"
     },
     "followeeList": {
@@ -171,6 +174,12 @@
     "articles": "文章：{{articles}}",
     "feed": "{{name}} 的订阅流（帖子和文章）",
     "articlesFeed": "{{name}} 的订阅流（仅文章）",
+    "block": "$t(glossary.block)",
+    "blockConfirm": "你确定要屏蔽 {{name}}（{{handle}}）吗？该用户将无法关注你或查看你的内容。",
+    "unblock": "取消$t(glossary.block)",
+    "unblockConfirm": "你确定要取消屏蔽 {{name}}（{{handle}}）吗？该用户将能够关注你并查看你的内容。",
+    "blockedDescription": "你被此用户屏蔽。你无法关注该用户或查看该用户的内容。",
+    "blockingDescription": "你正在屏蔽此用户。该用户无法关注你或查看你的内容。",
     "successorDescription": "此账户已迁移至 {{successor}}。此账户不再使用。"
   },
   "articleDrafts": {

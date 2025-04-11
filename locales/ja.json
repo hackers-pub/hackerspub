@@ -17,7 +17,9 @@
     "follow": "フォロー",
     "followee": "フォロー中",
     "follower": "フォロワー",
-    "fediverse": "フェディバース"
+    "block": "ブロック",
+    "fediverse": "フェディバース",
+    "timeline": "タイムライン"
   },
   "notification": {
     "title": "通知",
@@ -156,6 +158,7 @@
     "cancelRequest": "リクエストをキャンセル",
     "followerList": {
       "title": "{{name}}さんのフォロワー",
+      "remove": "フォロワーから削除",
       "removeConfirm": "{{name}}さん（{{handle}}）をフォロワーから削除してもよろしいですか？"
     },
     "followeeList": {
@@ -170,6 +173,12 @@
     "articles": "記事：{{articles}}",
     "feed": "{{name}}さんのフィード（投稿と記事）",
     "articlesFeed": "{{name}}さんのフィード（記事のみ）",
+    "block": "$t(glossary.block)",
+    "blockConfirm": "{{name}}さん（{{handle}}）をブロックしてもよろしいですか？彼らはあなたをフォローしたり、あなたのコンテンツを見ることができなくなります。",
+    "unblock": "$t(glossary.block)解除",
+    "unblockConfirm": "{{name}}さん（{{handle}}）のブロックを解除してもよろしいですか？彼らはあなたをフォローしたり、あなたのコンテンツを見ることができるようになります。",
+    "blockedDescription": "このユーザーからブロックされています。フォローしたり、コンテンツを見ることができません。",
+    "blockingDescription": "このユーザーをブロックしています。ユーザーはあなたをフォローしたり、コンテンツを見ることができません。",
     "successorDescription": "このアカウントは{{successor}}に移行しました。このアカウントは使用されていません。"
   },
   "articleDrafts": {

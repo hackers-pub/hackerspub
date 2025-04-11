@@ -1,9 +1,15 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
-import type * as vocab from "@fedify/fedify/vocab";
+import * as vocab from "@fedify/fedify/vocab";
+import { and, eq } from "drizzle-orm";
 import type { Database } from "../db.ts";
-import { getPersistedActor, persistActor } from "./actor.ts";
+import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
 import { removeFollower, unfollow } from "./following.ts";
-import { type Blocking, blockingTable } from "./schema.ts";
+import {
+  type Account,
+  type Actor,
+  type Blocking,
+  blockingTable,
+} from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 
 export async function persistBlocking(
@@ -56,5 +62,79 @@ export async function persistBlocking(
     { ...blockee.account, actor: blockee },
     blocker,
   );
+  return rows[0];
+}
+
+export async function block(
+  db: Database,
+  fedCtx: Context<void>,
+  blocker: Account & { actor: Actor },
+  blockee: Actor,
+): Promise<Blocking | undefined> {
+  const id = generateUuidV7();
+  const rows = await db.insert(blockingTable)
+    .values({
+      id,
+      iri: new URL(
+        `#blocks/${blockee.id}/${id}`,
+        fedCtx.getActorUri(blocker.id),
+      ).href,
+      blockerId: blocker.actor.id,
+      blockeeId: blockee.id,
+    })
+    .returning();
+  if (rows.length < 1) return undefined;
+  if (blockee.accountId == null) {
+    const block = new vocab.Block({
+      id: new URL(rows[0].iri),
+      actor: fedCtx.getActorUri(blocker.id),
+      object: new URL(blockee.iri),
+    });
+    await fedCtx.sendActivity(
+      { identifier: blocker.id },
+      toRecipient(blockee),
+      block,
+      {
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+        fanout: "skip",
+        preferSharedInbox: false,
+      },
+    );
+  }
+  return rows[0];
+}
+
+export async function unblock(
+  db: Database,
+  fedCtx: Context<void>,
+  blocker: Account & { actor: Actor },
+  blockee: Actor,
+): Promise<Blocking | undefined> {
+  const rows = await db.delete(blockingTable).where(
+    and(
+      eq(blockingTable.blockerId, blocker.actor.id),
+      eq(blockingTable.blockeeId, blockee.id),
+    ),
+  ).returning();
+  if (rows.length < 1) return undefined;
+  if (blockee.accountId == null) {
+    await fedCtx.sendActivity(
+      { identifier: blocker.id },
+      toRecipient(blockee),
+      new vocab.Undo({
+        id: new URL(
+          `#unblock/${blockee.id}/${rows[0].iri}`,
+          fedCtx.getActorUri(blocker.id),
+        ),
+        actor: fedCtx.getActorUri(blocker.id),
+        object: new vocab.Block({
+          id: new URL(rows[0].iri),
+          actor: fedCtx.getActorUri(blocker.id),
+          object: new URL(blockee.iri),
+        }),
+      }),
+      { excludeBaseUris: [new URL(fedCtx.origin)] },
+    );
+  }
   return rows[0];
 }

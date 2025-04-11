@@ -1,8 +1,9 @@
 import { escape } from "@std/html/entities";
+import { ConfirmForm } from "../islands/ConfirmForm.tsx";
 import { Link } from "../islands/Link.tsx";
+import type { Relationship } from "../models/account.ts";
 import { getAvatarUrl } from "../models/avatar.ts";
 import { renderCustomEmojis } from "../models/emoji.ts";
-import type { FollowingState } from "../models/following.ts";
 import { preprocessContentHtml, sanitizeHtml } from "../models/html.ts";
 import type { AccountLink, Actor } from "../models/schema.ts";
 import { compactUrl } from "../utils.ts";
@@ -13,15 +14,13 @@ import { PageTitle } from "./PageTitle.tsx";
 export interface ProfileProps {
   actor: Actor & { successor: Actor | null };
   actorMentions: { actor: Actor }[];
-  followingState?: FollowingState;
-  followedState?: FollowingState;
+  relationship: Relationship | null;
   links?: AccountLink[];
   profileHref: string;
 }
 
 export function Profile(
-  { actor, actorMentions, profileHref, followingState, followedState, links }:
-    ProfileProps,
+  { actor, actorMentions, profileHref, relationship, links }: ProfileProps,
 ) {
   const bioHtml = preprocessContentHtml(
     actor.bioHtml ?? "",
@@ -34,46 +33,60 @@ export function Profile(
     <Translation>
       {(t) => (
         <>
-          {actor.successor != null && (
-            <div class="mb-4 p-4 bg-stone-100 dark:bg-stone-800">
-              <Msg
-                $key="profile.successorDescription"
-                successor={
-                  <Link
-                    href={actor.successor.url ?? actor.successor.iri}
-                    internalHref={actor.accountId == null
-                      ? `/${actor.successor.handle}`
-                      : `/@${actor.successor.username}`}
-                    class="font-bold"
-                  >
-                    <img
-                      src={getAvatarUrl(actor.successor)}
-                      width={18}
-                      height={18}
-                      class="inline-block align-top mt-0.5 mr-1"
-                    />
-                    {actor.successor.name == null
-                      ? actor.successor.username
-                      : (
-                        <span
-                          dangerouslySetInnerHTML={{
-                            __html: renderCustomEmojis(
-                              escape(actor.successor.name),
-                              actor.successor.emojis,
-                            ),
-                          }}
-                        />
-                      )}
-                    <span class="opacity-50 before:content-['('] after:content-[')'] font-normal ml-1">
-                      {actor.successor.handle}
-                    </span>
-                  </Link>
-                }
-              />
-            </div>
-          )}
+          {relationship?.incoming === "block"
+            ? (
+              <div class="mb-4 p-4 bg-stone-100 dark:bg-stone-800">
+                <Msg $key="profile.blockedDescription" />
+              </div>
+            )
+            : relationship?.outgoing === "block"
+            ? (
+              <div class="mb-4 p-4 bg-stone-100 dark:bg-stone-800">
+                <Msg $key="profile.blockingDescription" />
+              </div>
+            )
+            : actor.successor != null
+            ? (
+              <div class="mb-4 p-4 bg-stone-100 dark:bg-stone-800">
+                <Msg
+                  $key="profile.successorDescription"
+                  successor={
+                    <Link
+                      href={actor.successor.url ?? actor.successor.iri}
+                      internalHref={actor.accountId == null
+                        ? `/${actor.successor.handle}`
+                        : `/@${actor.successor.username}`}
+                      class="font-bold"
+                    >
+                      <img
+                        src={getAvatarUrl(actor.successor)}
+                        width={18}
+                        height={18}
+                        class="inline-block align-top mt-0.5 mr-1"
+                      />
+                      {actor.successor.name == null
+                        ? actor.successor.username
+                        : (
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: renderCustomEmojis(
+                                escape(actor.successor.name),
+                                actor.successor.emojis,
+                              ),
+                            }}
+                          />
+                        )}
+                      <span class="opacity-50 before:content-['('] after:content-[')'] font-normal ml-1">
+                        {actor.successor.handle}
+                      </span>
+                    </Link>
+                  }
+                />
+              </div>
+            )
+            : undefined}
           <div class="flex">
-            {actor.avatarUrl && (
+            {actor.avatarUrl && relationship?.incoming !== "block" && (
               <a
                 href={actor.url ?? actor.iri}
                 target={actor.accountId == null ? "_blank" : undefined}
@@ -122,7 +135,7 @@ export function Profile(
                           />
                         </a>
                       )}
-                    {followedState === "following" &&
+                    {relationship?.incoming === "follow" &&
                       (
                         <>
                           {" "}&middot; <Msg $key="profile.followsYou" />
@@ -156,26 +169,119 @@ export function Profile(
                   />
                 )}
             </PageTitle>
-            {followingState === "none"
+            {relationship?.outgoing === "none"
               ? (
                 <form method="post" action={`${profileHref}/follow`}>
-                  <Button class="ml-4 mt-2 h-9">
-                    {followedState === "following"
+                  <Button
+                    disabled={relationship?.incoming === "block"}
+                    class="ml-4 mt-2 h-9"
+                  >
+                    {relationship.incoming === "follow"
                       ? <Msg $key="profile.followBack" />
                       : <Msg $key="profile.follow" />}
                   </Button>
                 </form>
               )
-              : followingState != null &&
+              : relationship != null && relationship.incoming !== "block" &&
+                relationship.outgoing !== "block" &&
                 (
                   <form method="post" action={`${profileHref}/unfollow`}>
                     <Button class="ml-4 mt-2 h-9">
-                      {followingState === "following"
+                      {relationship.outgoing === "follow"
                         ? <Msg $key="profile.unfollow" />
                         : <Msg $key="profile.cancelRequest" />}
                     </Button>
                   </form>
                 )}
+            {relationship != null &&
+              (
+                <div class="pl-3 pt-3.5">
+                  <div class="w-6 h-8 group">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="size-6 opacity-50 group-hover:opacity-100"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                      />
+                    </svg>
+                    <div class="
+                      hidden group-hover:flex group-active:flex absolute z-50
+                      mt-2 p-4
+                      bg-stone-200 dark:bg-stone-700
+                      border border-stone-400 dark:border-stone-500
+                      text-stone-800 dark:text-stone-100
+                      flex-col gap-4
+                    ">
+                      {relationship.incoming === "follow" &&
+                        (
+                          <ConfirmForm
+                            method="post"
+                            action={`@${relationship.account.username}/followers`}
+                            confirm={t("profile.followerList.removeConfirm", {
+                              name: actor.name ?? actor.username,
+                              handle: actor.handle,
+                            })}
+                          >
+                            <button
+                              type="submit"
+                              name="followerId"
+                              value={actor.id}
+                            >
+                              <Msg $key="profile.followerList.remove" />
+                            </button>
+                            <input
+                              type="hidden"
+                              name="return"
+                              value={relationship.target.accountId == null
+                                ? `/${relationship.target.handle}`
+                                : `/@${relationship.target.username}`}
+                            />
+                          </ConfirmForm>
+                        )}
+                      {relationship.outgoing === "block"
+                        ? (
+                          <ConfirmForm
+                            method="post"
+                            action={relationship.target.accountId == null
+                              ? `/${relationship.target.handle}/unblock`
+                              : `/@${relationship.target.username}/unblock`}
+                            confirm={t("profile.unblockConfirm", {
+                              name: actor.name ?? actor.username,
+                              handle: actor.handle,
+                            })}
+                          >
+                            <button type="submit">
+                              <Msg $key="profile.unblock" />
+                            </button>
+                          </ConfirmForm>
+                        )
+                        : (
+                          <ConfirmForm
+                            method="post"
+                            action={relationship.target.accountId == null
+                              ? `/${relationship.target.handle}/block`
+                              : `/@${relationship.target.username}/block`}
+                            confirm={t("profile.blockConfirm", {
+                              name: actor.name ?? actor.username,
+                              handle: actor.handle,
+                            })}
+                          >
+                            <button type="submit">
+                              <Msg $key="profile.block" />
+                            </button>
+                          </ConfirmForm>
+                        )}
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
           <div
             class="prose dark:prose-invert"

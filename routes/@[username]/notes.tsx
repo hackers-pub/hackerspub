@@ -6,11 +6,8 @@ import { Profile } from "../../components/Profile.tsx";
 import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
 import { kv } from "../../kv.ts";
+import { getRelationship, type Relationship } from "../../models/account.ts";
 import { type ActorStats, getActorStats } from "../../models/actor.ts";
-import {
-  type FollowingState,
-  getFollowingState,
-} from "../../models/following.ts";
 import { extractMentionsFromHtml } from "../../models/markup.ts";
 import { getPostVisibilityFilter } from "../../models/post.ts";
 import type {
@@ -76,14 +73,6 @@ export const handler = define.handlers({
       actor = acct.actor;
       links = acct.links;
     }
-    const followingState =
-      ctx.state.account == null || ctx.state.account.actor.id === actor.id
-        ? undefined
-        : await getFollowingState(db, ctx.state.account.actor, actor);
-    const followedState =
-      ctx.state.account == null || ctx.state.account.actor.id === actor.id
-        ? undefined
-        : await getFollowingState(db, actor, ctx.state.account.actor);
     const stats = await getActorStats(db, actor.id);
     const posts = await db.query.postTable.findMany({
       with: {
@@ -216,8 +205,7 @@ export const handler = define.handlers({
         },
       ),
       links,
-      followingState,
-      followedState,
+      relationship: await getRelationship(db, ctx.state.account, actor),
       stats,
       posts: posts.slice(0, window),
       withReplies,
@@ -234,8 +222,7 @@ interface ProfileNoteListProps {
   profileHref: string;
   actor: Actor & { successor: Actor | null };
   actorMentions: { actor: Actor }[];
-  followingState?: FollowingState;
-  followedState?: FollowingState;
+  relationship: Relationship | null;
   links?: AccountLink[];
   stats: ActorStats;
   posts: (Post & {
@@ -294,8 +281,7 @@ export default define.page<typeof handler, ProfileNoteListProps>(
           actor={data.actor}
           actorMentions={data.actorMentions}
           profileHref={data.profileHref}
-          followingState={data.followingState}
-          followedState={data.followedState}
+          relationship={data.relationship}
           links={data.links}
         />
         <ProfileNav

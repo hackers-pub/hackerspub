@@ -77,7 +77,8 @@ export const handler = define.handlers({
     });
     if (follower == null) return ctx.next();
     await removeFollower(db, ctx.state.fedCtx, ctx.state.account, follower);
-    return ctx.redirect(`/@${username}/followers`);
+    const returnUrl = form.get("return")?.toString();
+    return ctx.redirect(returnUrl ?? `/@${username}/followers`);
   },
 });
 
@@ -121,6 +122,7 @@ export default define.page<typeof handler, FollowerListProps>(
                   name="followerId"
                   value={actor.id}
                   class="size-6"
+                  title={t("profile.followerList.remove")}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -129,6 +131,7 @@ export default define.page<typeof handler, FollowerListProps>(
                     strokeWidth={1.5}
                     stroke="currentColor"
                     className="size-6 stroke-stone-400 hover:stroke-stone-800 dark:stroke-stone-500 dark:hover:stroke-stone-100 hover:stroke-2"
+                    aria-label={t("profile.followerList.remove")}
                   >
                     <path
                       strokeLinecap="round"

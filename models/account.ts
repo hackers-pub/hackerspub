@@ -407,3 +407,62 @@ export function renderAccountLinks(links: AccountLink[]): PropertyValue[] {
     })
   );
 }
+
+export type RelationshipState =
+  | "block"
+  | "follow"
+  | "request"
+  | "none";
+
+export interface Relationship {
+  account: Account & { actor: Actor };
+  target: Actor;
+  outgoing: RelationshipState;
+  incoming: RelationshipState;
+}
+
+export async function getRelationship(
+  db: Database,
+  account: Account & { actor: Actor } | null | undefined,
+  target: Actor,
+): Promise<Relationship | null> {
+  if (account == null || account.actor.id === target.id) return null;
+  const row = await db.query.actorTable.findFirst({
+    where: {
+      id: account.actor.id,
+    },
+    columns: {},
+    with: {
+      blockees: { where: { blockeeId: target.id } },
+      blockers: { where: { blockerId: target.id } },
+      followees: { where: { followeeId: target.id } },
+      followers: { where: { followerId: target.id } },
+    },
+  });
+  return {
+    account,
+    target,
+    outgoing: row == null
+      ? "none"
+      : row.blockees.some((b) => b.blockeeId === target.id)
+      ? "block"
+      : row.followees.some((f) =>
+          f.followeeId === target.id && f.accepted != null
+        )
+      ? "follow"
+      : row.followees.some((f) => f.followeeId === target.id)
+      ? "request"
+      : "none",
+    incoming: row == null
+      ? "none"
+      : row.blockers.some((b) => b.blockerId === target.id)
+      ? "block"
+      : row.followers.some((f) =>
+          f.followerId === target.id && f.accepted != null
+        )
+      ? "follow"
+      : row.followers.some((f) => f.followerId === target.id)
+      ? "request"
+      : "none",
+  };
+}

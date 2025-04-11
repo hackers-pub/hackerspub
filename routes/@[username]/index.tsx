@@ -12,16 +12,16 @@ import { db } from "../../db.ts";
 import { drive } from "../../drive.ts";
 import { POSSIBLE_LOCALES } from "../../i18n.ts";
 import { kv } from "../../kv.ts";
-import { getAccountByUsername } from "../../models/account.ts";
+import {
+  getAccountByUsername,
+  getRelationship,
+  type Relationship,
+} from "../../models/account.ts";
 import {
   type ActorStats,
   getActorStats,
   persistActor,
 } from "../../models/actor.ts";
-import {
-  type FollowingState,
-  getFollowingState,
-} from "../../models/following.ts";
 import { extractMentionsFromHtml, renderMarkup } from "../../models/markup.ts";
 import { createNote } from "../../models/note.ts";
 import { getPostVisibilityFilter } from "../../models/post.ts";
@@ -129,14 +129,6 @@ export const handler = define.handlers({
       if (ctx.state.session == null) {
         return ctx.redirect(actor.url ?? actor.iri);
       }
-      const followingState =
-        ctx.state.account == null || ctx.state.account.actor.id === actor.id
-          ? undefined
-          : await getFollowingState(db, ctx.state.account.actor, actor);
-      const followedState =
-        ctx.state.account == null || ctx.state.account.actor.id === actor.id
-          ? undefined
-          : await getFollowingState(db, actor, ctx.state.account.actor);
       const posts = await db.query.postTable.findMany({
         with: {
           actor: { with: { instance: true } },
@@ -255,8 +247,7 @@ export const handler = define.handlers({
           actor.bioHtml ?? "",
           { kv },
         ),
-        followingState,
-        followedState,
+        relationship: await getRelationship(db, ctx.state.account, actor),
         stats: await getActorStats(db, actor.id),
         posts: posts.slice(0, window),
         nextHref: next == null
@@ -434,14 +425,6 @@ export const handler = define.handlers({
       orderBy: { published: "desc" },
       limit: window + 1,
     });
-    const followingState =
-      ctx.state.account == null || ctx.state.account.id === account.id
-        ? undefined
-        : await getFollowingState(db, ctx.state.account.actor, account.actor);
-    const followedState =
-      ctx.state.account == null || ctx.state.account.id === account.id
-        ? undefined
-        : await getFollowingState(db, account.actor, ctx.state.account.actor);
     const next = posts.length > window ? posts[window].published : undefined;
     return page<ProfilePageProps>({
       profileHref: permalink.href,
@@ -456,8 +439,7 @@ export const handler = define.handlers({
         },
       ),
       links: account.links,
-      followingState,
-      followedState,
+      relationship: await getRelationship(db, ctx.state.account, account.actor),
       stats: await getActorStats(db, account.actor.id),
       posts: posts.slice(0, window),
       nextHref: next == null
@@ -513,8 +495,7 @@ interface ProfilePageProps {
   profileHref: string;
   actor: Actor & { successor: Actor | null };
   actorMentions: { actor: Actor }[];
-  followingState?: FollowingState;
-  followedState?: FollowingState;
+  relationship: Relationship | null;
   links?: AccountLink[];
   stats: ActorStats;
   posts: (Post & {
@@ -571,8 +552,7 @@ export default define.page<typeof handler, ProfilePageProps>(
         <Profile
           actor={data.actor}
           actorMentions={data.actorMentions}
-          followingState={data.followingState}
-          followedState={data.followedState}
+          relationship={data.relationship}
           links={data.links}
           profileHref={data.profileHref}
         />
