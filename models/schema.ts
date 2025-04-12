@@ -241,6 +241,7 @@ export const actorTable = pgTable(
       .notNull()
       .default({}),
     emojis: jsonb().$type<Record<string, string>>().notNull().default({}),
+    tags: jsonb().$type<Record<string, string>>().notNull().default({}),
     sensitive: boolean().notNull().default(false),
     successorId: uuid("successor_id")
       .$type<Uuid>()

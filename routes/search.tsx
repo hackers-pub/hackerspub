@@ -163,6 +163,12 @@ export async function search(
       AND: [
         filter,
         getPostVisibilityFilter(signedAccount?.actor ?? null),
+        signedAccount == null ? { visibility: "public" } : {
+          OR: [
+            { visibility: "public" },
+            { actorId: signedAccount.actor.id },
+          ],
+        },
         { sharedPostId: { isNull: true } },
         continuation == null ? {} : { id: { lte: continuation } },
       ],

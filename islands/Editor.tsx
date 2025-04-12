@@ -36,8 +36,13 @@ export function Editor(props: EditorProps) {
   const t = getFixedT(props.language);
 
   const [preview, setPreview] = useState<
-    { html: string; mentions: { actor: Actor }[]; version: number }
-  >({ html: "", mentions: [], version: 0 });
+    {
+      html: string;
+      mentions: { actor: Actor }[];
+      hashtags: string[];
+      version: number;
+    }
+  >({ html: "", mentions: [], hashtags: [], version: 0 });
   const [title, setTitle] = useState(props.defaultTitle ?? "");
   const [content, setContent] = useState(props.defaultContent ?? "");
   const [tags, setTags] = useState<string[]>(props.defaultTags ?? []);
@@ -75,7 +80,8 @@ export function Editor(props: EditorProps) {
     });
     const nonce = response.headers.get("Echo-Nonce");
     if (nonce != null) {
-      const { html, mentions }: RenderedMarkup = await response.json();
+      const { html, mentions, hashtags }: RenderedMarkup = await response
+        .json();
       setPreview((existingPreview) => {
         const version = parseInt(nonce);
         if (existingPreview.version < version) {
@@ -83,6 +89,7 @@ export function Editor(props: EditorProps) {
             html,
             version,
             mentions: Object.values(mentions).map((actor) => ({ actor })),
+            hashtags,
           };
         }
         return existingPreview;
@@ -276,7 +283,18 @@ export function Editor(props: EditorProps) {
               dangerouslySetInnerHTML={{
                 __html: preprocessContentHtml(
                   preview.html,
-                  { ...preview, emojis: {} },
+                  {
+                    ...preview,
+                    emojis: {},
+                    tags: Object.fromEntries(
+                      preview.hashtags.map(
+                        (tag) => [
+                          `#${tag.replace(/^#/, "")}`,
+                          `/tags/${encodeURIComponent(tag.replace(/^#/, ""))}`,
+                        ],
+                      ),
+                    ),
+                  },
                 ),
               }}
             />

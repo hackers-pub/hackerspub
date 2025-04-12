@@ -1,0 +1,1 @@
+ALTER TABLE "actor" ADD COLUMN "tags" jsonb DEFAULT '{}'::jsonb NOT NULL;

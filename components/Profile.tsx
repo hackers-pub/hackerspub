@@ -27,6 +27,7 @@ export function Profile(
     {
       mentions: actorMentions,
       emojis: actor.emojis,
+      tags: actor.tags,
     },
   );
   return (

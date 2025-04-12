@@ -137,11 +137,11 @@ export async function syncPostFromArticleSource(
     contentHtml: rendered.html,
     language: articleSource.language,
     tags: Object.fromEntries(
-      articleSource.tags.map((
-        tag,
-      ) => [
-        tag.toLowerCase(),
-        `${fedCtx.origin}/tags/${encodeURIComponent(tag)}`,
+      [...articleSource.tags, ...rendered.hashtags].map((tag) => [
+        tag.toLowerCase().replace(/^#/, ""),
+        `${fedCtx.canonicalOrigin}/tags/${
+          encodeURIComponent(tag.replace(/^#/, ""))
+        }`,
       ]),
     ),
     url,
@@ -227,7 +227,14 @@ export async function syncPostFromNoteSource(
       relations.quotedPost?.id,
     contentHtml: rendered.html,
     language: noteSource.language,
-    tags: {}, // TODO
+    tags: Object.fromEntries(
+      rendered.hashtags.map((tag) => [
+        tag.toLowerCase().replace(/^#/, ""),
+        `${fedCtx.canonicalOrigin}/tags/${
+          encodeURIComponent(tag.replace(/^#/, ""))
+        }`,
+      ]),
+    ),
     linkId: link?.id,
     linkUrl: link == null
       ? undefined

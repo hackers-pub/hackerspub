@@ -22,6 +22,7 @@ export const handler = define.handlers({
     let html = transformMentions(
       rendered.html,
       Object.values(rendered.mentions).map((actor) => ({ actor })),
+      {},
     );
     const $ = load(html);
     $("h1:first-child").remove();

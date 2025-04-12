@@ -1,5 +1,6 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import type * as vocab from "@fedify/fedify/vocab";
+import { hashtag, spanHashAndTag } from "@fedify/markdown-it-hashtag";
 import { mention } from "@fedify/markdown-it-mention";
 import { getLogger } from "@logtape/logtape";
 import { titlePlugin as title } from "@mdit-vue/plugin-title";
@@ -60,6 +61,18 @@ const md = MarkdownItAsync({ html: true, linkify: true })
   .use(deflist)
   .use(footnote)
   .use(graphviz)
+  .use(hashtag, {
+    link(tag: string, env: Env) {
+      return new URL(
+        `/tags/${encodeURIComponent(tag.replace(/^#/, ""))}`,
+        env.origin,
+      ).href;
+    },
+    linkAttributes() {
+      return { class: "mention hashtag", rel: "tag" };
+    },
+    label: spanHashAndTag,
+  })
   .use(mention, {
     localDomain(_bareHandle: string, env: Env) {
       return env.localDomain;
@@ -138,13 +151,16 @@ export interface RenderedMarkup {
   title: string;
   toc: Toc[];
   mentions: Record<string, Actor>;
+  hashtags: string[];
 }
 
 interface Env {
   docId?: string | null;
   title: string;
   localDomain: string;
+  origin: string;
   mentionedActors: Record<string, Actor>;
+  hashtags: string[];
 }
 
 export interface RenderMarkupOptions {
@@ -191,7 +207,9 @@ export async function renderMarkup(
     docId: options.docId,
     title: "",
     localDomain,
+    origin: fedCtx.canonicalOrigin,
     mentionedActors,
+    hashtags: [],
   };
   const rawHtml = (await md.renderAsync(markup, env))
     .replaceAll('<?xml version="1.0" encoding="UTF-8" standalone="no"?>', "")
@@ -211,6 +229,7 @@ export async function renderMarkup(
     title: env.title,
     toc: toc.level < 1 ? toc.children : [toc],
     mentions: mentionedActors,
+    hashtags: env.hashtags ?? [],
   };
   if (options.kv != null && cacheKey != null) {
     await options.kv.set(cacheKey, rendered);

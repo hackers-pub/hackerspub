@@ -1,3 +1,4 @@
+import { invert } from "@std/collections/invert";
 import { escape, unescape } from "@std/html/entities";
 import { load } from "cheerio";
 import * as cssfilter from "cssfilter";
@@ -317,6 +318,7 @@ export function stripHtml(html: string): string {
 export function transformMentions(
   html: string,
   mentions: { actor: Actor }[],
+  tags: Record<string, string>,
 ): string {
   const $ = load(html, null, false);
   $("a.mention[href]:not(.hashtag)").each((_, el) => {
@@ -355,6 +357,21 @@ export function transformMentions(
       }
     }
   });
+  const invertedTags = invert(tags);
+  $("a.mention.hashtag[href], a[rel=tag]").each((_, el) => {
+    const $el = $(el);
+    const href = $el.attr("href");
+    if (href == null) return;
+    let tag = invertedTags[href]?.replace(/^#/, "");
+    if (tag == null) {
+      tag = $el.text().replace(/^#/, "");
+      if (href.toLowerCase() !== tags[tag.toLowerCase()]) return;
+    }
+    $el.attr(
+      "data-internal-href",
+      `/tags/${encodeURIComponent(tag)}`,
+    );
+  });
   $("a.mention[data-internal-href]").attr(
     "onclick",
     "location.href = this.dataset.internalHref; return false;",
@@ -390,16 +407,17 @@ export function transformMisskeyInlineQuote(html: string): string {
 
 export interface PreprocessContentHtmlOptions {
   mentions: { actor: Actor }[];
+  tags: Record<string, string>;
   emojis?: Record<string, string>;
   quote?: boolean;
 }
 
 export function preprocessContentHtml(
   html: string,
-  { mentions, emojis = {}, quote }: PreprocessContentHtmlOptions,
+  { mentions, tags, emojis = {}, quote }: PreprocessContentHtmlOptions,
 ) {
   html = sanitizeHtml(html);
-  html = transformMentions(html, mentions);
+  html = transformMentions(html, mentions, tags);
   html = renderCustomEmojis(html, emojis);
   if (quote) html = transformMisskeyInlineQuote(html);
   return html;

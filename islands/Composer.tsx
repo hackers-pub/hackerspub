@@ -58,6 +58,7 @@ export function Composer(props: ComposerProps) {
   );
   const [contentHtml, setContentHtml] = useState("");
   const [mentions, setMentions] = useState<{ actor: Actor }[]>([]);
+  const [hashtags, setHashtags] = useState<string[]>([]);
   const [contentLanguage, setContentLanguage] = useState<string>(
     props.language,
   );
@@ -105,10 +106,11 @@ export function Composer(props: ComposerProps) {
       credentials: "include",
     })
       .then((response) => response.json())
-      .then(({ html, mentions }: RenderedMarkup) => {
+      .then(({ html, mentions, hashtags }: RenderedMarkup) => {
         setMode("preview");
         setContentHtml(html);
         setMentions(Object.values(mentions).map((actor) => ({ actor })));
+        setHashtags(hashtags);
       });
   }
 
@@ -269,6 +271,12 @@ export function Composer(props: ComposerProps) {
                 __html: preprocessContentHtml(contentHtml, {
                   mentions,
                   emojis: {},
+                  tags: Object.fromEntries(
+                    hashtags.map((tag) => [
+                      `#${tag.replace(/^#/, "")}`,
+                      `/tags/${encodeURIComponent(tag.replace(/^#/, ""))}`,
+                    ]),
+                  ),
                 }),
               }}
             />

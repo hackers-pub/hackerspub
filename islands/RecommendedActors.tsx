@@ -126,6 +126,7 @@ export function RecommendedActors(
                           {
                             mentions: actorMentions,
                             emojis: actor.emojis,
+                            tags: actor.tags,
                           },
                         ),
                       }}

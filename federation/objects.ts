@@ -57,10 +57,13 @@ export async function getArticle(
       content: articleSource.content,
       mediaType: "text/markdown",
     }),
-    tags: articleSource.tags.map((tag) =>
+    tags: [...articleSource.tags, ...rendered.hashtags].map((tag) =>
       new vocab.Hashtag({
-        name: tag,
-        href: new URL(`/tags/${encodeURIComponent(tag)}`, ctx.canonicalOrigin),
+        name: `#${tag.replace(/^#/, "")}`,
+        href: new URL(
+          `/tags/${encodeURIComponent(tag.replace(/^#/, ""))}`,
+          ctx.canonicalOrigin,
+        ),
       })
     ),
     url: new URL(
@@ -151,6 +154,17 @@ export async function getNote(
         name: handle,
       })
     );
+  for (const tag of rendered.hashtags) {
+    tags.push(
+      new vocab.Hashtag({
+        name: `#${tag.replace(/^#/, "")}`,
+        href: new URL(
+          `/tags/${encodeURIComponent(tag.replace(/^#/, ""))}`,
+          ctx.canonicalOrigin,
+        ),
+      }),
+    );
+  }
   let contentHtml = rendered.html;
   if (relations.quotedPost != null) {
     const quoteUrl = relations.quotedPost.url ?? relations.quotedPost.iri;
