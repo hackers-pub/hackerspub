@@ -5,6 +5,7 @@ import { page } from "fresh";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
+import { PostPagination } from "../components/PostPagination.tsx";
 import { db, type RelationsFilter } from "../db.ts";
 import { persistActor } from "../models/actor.ts";
 import {
@@ -26,6 +27,7 @@ import type {
 } from "../models/schema.ts";
 import { compileQuery, parseQuery } from "../models/search.ts";
 import { addPostToTimeline } from "../models/timeline.ts";
+import { type Uuid, validateUuid } from "../models/uuid.ts";
 import { define } from "../utils.ts";
 
 const HANDLE_REGEXP = /@([a-z0-9_]{1,50})$/i;
@@ -121,6 +123,7 @@ async function searchUrl(
 
 export const handler = define.handlers(async (ctx) => {
   const query = ctx.url.searchParams.get("query");
+  const continuation = ctx.url.searchParams.get("cont");
   let redirect = await searchUrl(ctx.state.fedCtx, ctx.state.account, query);
   if (redirect != null) return ctx.redirect(redirect);
   redirect = await searchHandle(
@@ -133,23 +136,35 @@ export const handler = define.handlers(async (ctx) => {
   if (expr != null && expr.type === "hashtag") {
     return ctx.redirect(`/tags/${encodeURIComponent(expr.hashtag)}`);
   }
-  const posts = expr == null
-    ? []
-    : await search(ctx.state.account, compileQuery(expr));
+  const { posts, continuation: next } = expr == null
+    ? { posts: [] }
+    : await search(
+      ctx.state.account,
+      compileQuery(expr),
+      validateUuid(continuation) ? continuation : null,
+    );
   ctx.state.searchQuery = query ?? undefined;
-  return page<SearchResultsProps>({ posts });
+  let nextHref: URL | undefined;
+  if (next != null) {
+    nextHref = new URL(ctx.url);
+    nextHref.searchParams.set("cont", next);
+  }
+  return page<SearchResultsProps>({ posts, nextHref });
 });
 
-export function search(
+export async function search(
   signedAccount: Account & { actor: Actor } | null | undefined,
   filter: RelationsFilter<"postTable">,
-): Promise<SearchResultsProps["posts"]> {
-  return db.query.postTable.findMany({
+  continuation?: Uuid | null,
+  window = 50,
+): Promise<{ posts: SearchResultsProps["posts"]; continuation?: Uuid }> {
+  const posts = await db.query.postTable.findMany({
     where: {
       AND: [
         filter,
         getPostVisibilityFilter(signedAccount?.actor ?? null),
         { sharedPostId: { isNull: true } },
+        continuation == null ? {} : { id: { lte: continuation } },
       ],
     },
     with: {
@@ -286,8 +301,13 @@ export function search(
         },
       },
     },
-    orderBy: { published: "desc" },
+    orderBy: { id: "desc" },
+    limit: window + 1,
   });
+  return {
+    posts: posts.slice(0, window),
+    continuation: posts.length > window ? posts[window].id : undefined,
+  };
 }
 
 export interface SearchResultsProps {
@@ -345,10 +365,11 @@ export interface SearchResultsProps {
     shares: Post[];
     reactions: Reaction[];
   })[];
+  nextHref?: string | URL;
 }
 
 export default define.page<typeof handler, SearchResultsProps>(
-  function SearchResults({ state: { account }, data: { posts } }) {
+  function SearchResults({ state: { account }, data: { posts, nextHref } }) {
     return (
       <div>
         <PageTitle>
@@ -381,6 +402,7 @@ export default define.page<typeof handler, SearchResultsProps>(
               ))}
             </div>
           )}
+        {nextHref != null && <PostPagination nextHref={nextHref} />}
       </div>
     );
   },
