@@ -1,4 +1,4 @@
-FROM docker.io/denoland/deno:2.2.8
+FROM docker.io/denoland/deno:2.2.9
 
 RUN apt-get update && apt-get install -y build-essential jq && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
