@@ -1,9 +1,13 @@
+import { dirname } from "@std/path/dirname";
+import { join } from "@std/path/join";
 import { count, eq } from "drizzle-orm";
 import type { PageProps } from "fresh";
 import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
 import { db } from "../db.ts";
 import { NotificationIcon } from "../islands/NotificationIcon.tsx";
+import { kv } from "../kv.ts";
 import { getAvatarUrl } from "../models/account.ts";
+import { renderMarkup } from "../models/markup.ts";
 import {
   type Account,
   type AccountEmail,
@@ -29,6 +33,17 @@ export default async function App(
       .where(eq(articleDraftTable.accountId, state.session.accountId)))[0].cnt;
     avatarUrl = account == null ? undefined : await getAvatarUrl(account);
   }
+  const searchGuideText = await Deno.readTextFile(
+    join(
+      dirname(import.meta.dirname!),
+      "locales",
+      "search",
+      `${state.language}.md`,
+    ),
+  );
+  const searchGuide = await renderMarkup(db, state.fedCtx, searchGuideText, {
+    kv,
+  });
   return (
     <TranslationSetup language={state.language}>
       <Translation>
@@ -102,7 +117,22 @@ export default async function App(
                       name="query"
                       placeholder={t("nav.search")}
                       value={state.searchQuery}
-                      class="w-full h-[calc(100%-2px)] bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700 border-none text-center"
+                      class="
+                        peer w-full h-[calc(100%-2px)]
+                        bg-black text-gray-300 dark:bg-stone-100 dark:text-stone-700
+                        border-none text-center
+                      "
+                    />
+                    <div
+                      class="
+                        hidden peer-focus:block absolute z-50
+                        top-14 left-1/2 -translate-x-1/2 max-w-fit p-4
+                        bg-stone-200 dark:bg-stone-700
+                        border border-stone-400 dark:border-stone-500
+                        text-stone-800 dark:text-stone-100
+                        prose dark:prose-invert
+                      "
+                      dangerouslySetInnerHTML={{ __html: searchGuide.html }}
                     />
                   </form>
                   <div class="grow lg:basis-1/3 text-right">

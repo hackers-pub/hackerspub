@@ -27,6 +27,11 @@ Getting started
  -  Add a translated version of the Markdown guide as
     *locales/markdown/`language-code`.md*.
 
+### Create search guide translation
+
+ -  Add a translated version of the search guide as
+    *locales/search/`language-code`.md*.
+
 
 Translation guidelines
 ----------------------
