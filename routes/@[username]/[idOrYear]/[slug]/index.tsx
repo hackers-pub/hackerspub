@@ -292,7 +292,7 @@ export default define.page<typeof handler, ArticlePageProps>(
           {toc.length > 0 &&
             (
               <nav class="
-                mt-4 p-4 bg-stone-100 dark:bg-stone-800 w-fit
+                mt-4 p-4 bg-stone-100 dark:bg-stone-800 w-fit xl:max-w-md
                 xl:absolute right-[calc((100%-1280px)/2)]
               ">
                 <p class="
