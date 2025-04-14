@@ -33,17 +33,19 @@ export default async function App(
       .where(eq(articleDraftTable.accountId, state.session.accountId)))[0].cnt;
     avatarUrl = account == null ? undefined : await getAvatarUrl(account);
   }
-  const searchGuideText = await Deno.readTextFile(
-    join(
-      dirname(import.meta.dirname!),
-      "locales",
-      "search",
-      `${state.language}.md`,
-    ),
-  );
-  const searchGuide = await renderMarkup(db, state.fedCtx, searchGuideText, {
-    kv,
-  });
+  const searchGuideText = state.language == null
+    ? null
+    : await Deno.readTextFile(
+      join(
+        dirname(import.meta.dirname!),
+        "locales",
+        "search",
+        `${state.language}.md`,
+      ),
+    );
+  const searchGuide = searchGuideText == null
+    ? null
+    : await renderMarkup(db, state.fedCtx, searchGuideText, { kv });
   return (
     <TranslationSetup language={state.language}>
       <Translation>
@@ -123,17 +125,20 @@ export default async function App(
                         border-none text-center
                       "
                     />
-                    <div
-                      class="
-                        hidden peer-focus:block absolute z-50
-                        top-14 left-1/2 -translate-x-1/2 max-w-fit p-4
-                        bg-stone-200 dark:bg-stone-700
-                        border border-stone-400 dark:border-stone-500
-                        text-stone-800 dark:text-stone-100
-                        prose dark:prose-invert
-                      "
-                      dangerouslySetInnerHTML={{ __html: searchGuide.html }}
-                    />
+                    {searchGuide &&
+                      (
+                        <div
+                          class="
+                            hidden peer-focus:block absolute z-50
+                            top-14 left-1/2 -translate-x-1/2 max-w-fit p-4
+                            bg-stone-200 dark:bg-stone-700
+                            border border-stone-400 dark:border-stone-500
+                            text-stone-800 dark:text-stone-100
+                            prose dark:prose-invert
+                          "
+                          dangerouslySetInnerHTML={{ __html: searchGuide.html }}
+                        />
+                      )}
                   </form>
                   <div class="grow lg:basis-1/3 text-right">
                     {account == null
