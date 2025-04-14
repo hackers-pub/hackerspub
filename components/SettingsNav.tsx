@@ -1,7 +1,7 @@
 import { Msg } from "./Msg.tsx";
 import { Tab, TabNav } from "./TabNav.tsx";
 
-export type SettingsNavItem = "profile" | "language" | "invite";
+export type SettingsNavItem = "profile" | "language" | "invite" | "passkeys";
 
 export interface SettingsNavProps {
   active: SettingsNavItem;
@@ -23,6 +23,9 @@ export function SettingsNav(
       <Tab selected={active === "invite"} href={`${settingsHref}/invite`}>
         <Msg $key="settings.invite.title" />
         <span class="opacity-50 ml-1 font-normal">({leftInvitations})</span>
+      </Tab>
+      <Tab selected={active === "passkeys"} href={`${settingsHref}/passkeys`}>
+        <Msg $key="settings.passkeys.title" />
       </Tab>
     </TabNav>
   );

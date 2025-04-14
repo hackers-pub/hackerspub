@@ -1,0 +1,1 @@
+ALTER TABLE "passkey" ADD COLUMN "created" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL;

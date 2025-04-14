@@ -55,15 +55,19 @@
   },
   "signInUp": {
     "title": "ログイン",
-    "description": "アカウントをお持ちの場合はログインリンクを送信します。アカウントをお持ちでない場合は、既存のHackers' Pubメンバーからの招待が必要です。",
+    "description": "アカウントをお持ちの場合はログインリンクを送信します。パスキーを登録している場合は、代わりにそれを使用してログインできます。アカウントをお持ちでない場合は、既存のHackers' Pubメンバーからの招待が必要です。",
+    "emailOrUsername": "メールアドレスまたはユーザー名",
     "submit": "$t(signInUp.title)",
-    "invalidEmail": "無効なメールアドレスです。",
-    "noSuchEmail": "このメールアドレスはHackers' Pubに登録されていません。",
+    "invalidEmailOrUsername": "無効なメールアドレスまたはユーザー名です。入力を確認してください。",
+    "noSuchEmailOrUsername": "このメールアドレスまたはユーザー名はHackers' Pubに登録されていません。",
     "signInEmailSubject": "Hackers' Pubへのログイン",
     "signInEmailText": "Hackers' Pubへお帰りなさい！ログインするには以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n\nこのメールに心当たりがない場合は、無視していただいて構いません。\n",
     "emailSentDescription": "{{email}}にログインリンクを送信しました。受信トレイをご確認ください。見当たらない場合は、迷惑メールフォルダもご確認ください。",
+    "emailSentToUsernameDescription": "{{username}}さんのメールアドレスにログインリンクを送信しました。受信トレイをご確認ください。見当たらない場合は、迷惑メールフォルダもご確認ください。",
     "emailSentExpires": "リンクの有効期限は{{expiration}}です。",
-    "emailSentResend": "いつでもログインを再度リクエストして、新しいリンクを受け取ることができます。"
+    "emailSentResend": "いつでもログインを再度リクエストして、新しいリンクを受け取ることができます。",
+    "passkeyCanceled": "パスキーでの認証がキャンセルされたか、失敗しました。もう一度お試しください。",
+    "passkeyFailed": "パスキーでの認証に失敗しました。ページを更新してもう一度お試しください。"
   },
   "signUp": {
     "title": "登録",
@@ -146,6 +150,23 @@
       "invitees": "招待された人々",
       "tree": "$t(invitationTree.title)",
       "viewTree": "ツリーを表示"
+    },
+    "passkeys": {
+      "title": "パスキー",
+      "register": "パスキーを登録",
+      "registerDescription": "アカウントにパスキーを登録してください。メールでログインリンクを受け取る代わりにパスキーを使用できます。",
+      "registerFailed": "パスキーの登録に失敗しました。後でもう一度お試しください。",
+      "name": "パスキー名",
+      "nameDescription": "パスキーの名前です。これは下のリストに表示されます。",
+      "nameRequired": "パスキー名は必須です。",
+      "registerButton": "登録",
+      "list": "登録済みパスキー",
+      "listDescription": "以下のパスキーがあなたのアカウントに登録されています。これらを使用してアカウントにログインできます。",
+      "lastUsed": "最終使用",
+      "created": "作成日",
+      "neverUsed": "使用履歴なし",
+      "revoke": "取り消し",
+      "revokeConfirm": "このパスキーを取り消しますか？このパスキーを使用してアカウントにログインできなくなります。"
     }
   },
   "profile": {

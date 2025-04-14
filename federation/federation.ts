@@ -13,6 +13,8 @@ const logger = getLogger(["hackerspub", "federation"]);
 const origin = Deno.env.get("ORIGIN");
 if (origin == null) {
   throw new Error("Missing ORIGIN environment variable.");
+} else if (!origin.startsWith("https://") && !origin.startsWith("http://")) {
+  throw new Error("ORIGIN must start with http:// or https://");
 }
 export const ORIGIN = origin;
 

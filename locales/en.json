@@ -57,15 +57,19 @@
   },
   "signInUp": {
     "title": "Sign in",
-    "description": "If you have an account, we'll send you a sign-in link. If you don't have an account, you need to be invited by an existing Hackers' Pub member.",
+    "description": "If you have an account, we'll send you a sign-in link. If you have a passkey registered, you can use it to sign in instead. If you don't have an account, you need to be invited by an existing Hackers' Pub member.",
+    "emailOrUsername": "Email address or username",
     "submit": "$t(signInUp.title)",
-    "invalidEmail": "Invalid email address.",
-    "noSuchEmail": "This email address is not registered with Hackers' Pub.",
+    "invalidEmailOrUsername": "Invalid email address or username. Please check your input.",
+    "noSuchEmailOrUsername": "This email address or username is not registered with Hackers' Pub.",
     "signInEmailSubject": "Sign in to Hackers' Pub",
     "signInEmailText": "Welcome back to Hackers' Pub! To sign in, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n\nIf you didn't request this email, you can safely ignore it.\n",
     "emailSentDescription": "An email has been sent to {{email}} with a sign-in link. Please check your inbox. If you don't see it, check your spam folder.",
+    "emailSentToUsernameDescription": "An email has been sent to {{username}}'s email address with a sign-in link. Please check your inbox. If you don't see it, check your spam folder.",
     "emailSentExpires": "Note that the link will expire in {{expiration}}.",
-    "emailSentResend": "You can always request a new link by signing in again."
+    "emailSentResend": "You can always request a new link by signing in again.",
+    "passkeyCanceled": "Authenticating with passkey was canceled or failed. Please try again.",
+    "passkeyFailed": "Failed to authenticate with passkey. Refresh the page and try again."
   },
   "signUp": {
     "title": "Sign up",
@@ -149,6 +153,23 @@
       "invitees": "Users invited by you",
       "tree": "$t(invitationTree.title)",
       "viewTree": "View tree"
+    },
+    "passkeys": {
+      "title": "Passkeys",
+      "register": "Register a passkey",
+      "registerDescription": "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email.",
+      "registerFailed": "Failed to register a passkey. Please try again later.",
+      "name": "Passkey name",
+      "nameDescription": "A name for the passkey. This will be displayed on the below list.",
+      "nameRequired": "Passkey name is required.",
+      "registerButton": "Register",
+      "list": "Registered passkeys",
+      "listDescription": "The following passkeys are registered to your account. You can use them to sign in to your account.",
+      "lastUsed": "Last used",
+      "created": "Created",
+      "neverUsed": "Never used",
+      "revoke": "Revoke",
+      "revokeConfirm": "Are you sure you want to revoke this passkey? You won't be able to use it to sign in to your account anymore."
     }
   },
   "profile": {

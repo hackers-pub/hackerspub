@@ -1,7 +1,9 @@
 import { desc, isNull, type SQL, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
+  bigint,
   boolean,
+  bytea,
   check,
   index,
   integer,
@@ -92,6 +94,59 @@ export const accountEmailTable = pgTable(
 
 export type AccountEmail = typeof accountEmailTable.$inferSelect;
 export type NewAccountEmail = typeof accountEmailTable.$inferInsert;
+
+export const passkeyDeviceTypeEnum = pgEnum("passkey_device_type", [
+  "singleDevice",
+  "multiDevice",
+]);
+
+export type PasskeyDeviceType =
+  (typeof passkeyDeviceTypeEnum.enumValues)[number];
+
+export const passkeyTransportEnum = pgEnum("passkey_transport", [
+  "ble",
+  "cable",
+  "hybrid",
+  "internal",
+  "nfc",
+  "smart-card",
+  "usb",
+]);
+
+export type PasskeyTransport = (typeof passkeyTransportEnum.enumValues)[number];
+
+export const passkeyTable = pgTable(
+  "passkey",
+  {
+    id: text().notNull().primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    publicKey: bytea("public_key").notNull(),
+    webauthnUserId: text("webauthn_user_id").notNull(),
+    counter: bigint({ mode: "bigint" }).notNull(),
+    deviceType: passkeyDeviceTypeEnum("device_type").notNull(),
+    backedUp: boolean("backed_up").notNull(),
+    transports: passkeyTransportEnum("transports")
+      .array()
+      .$type<PasskeyTransport[]>(),
+    lastUsed: timestamp("last_used", { withTimezone: true }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.accountId),
+    index().on(table.webauthnUserId),
+    unique().on(table.accountId, table.webauthnUserId),
+    check("passkey_name_check", sql`${table.name} !~ '^[[:space:]]*$'`),
+  ],
+);
+
+export type Passkey = typeof passkeyTable.$inferSelect;
+export type NewPasskey = typeof passkeyTable.$inferInsert;
 
 export const accountKeyTypeEnum = pgEnum("account_key_type", [
   "Ed25519",

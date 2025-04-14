@@ -1,15 +1,15 @@
 import { isEmail } from "@onisaint/validate-email";
 import { page } from "fresh";
-import { Button } from "../../components/Button.tsx";
-import { Input } from "../../components/Input.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
 import { sendEmail } from "../../email.ts";
+import { SignForm, type SignFormProps } from "../../islands/SignForm.tsx";
 import { kv } from "../../kv.ts";
 import {
   createSigninToken,
   EXPIRATION as SIGNIN_EXPIRATION,
+  USERNAME_REGEXP,
 } from "../../models/signin.ts";
 import { define } from "../../utils.ts";
 
@@ -22,39 +22,50 @@ export const handler = define.handlers({
     const { t } = ctx.state;
     const form = await ctx.req.formData();
     const email = form.get("email");
-    if (typeof email !== "string" || !isEmail(email)) {
+    if (
+      typeof email !== "string" ||
+      !isEmail(email) && !USERNAME_REGEXP.test(email)
+    ) {
       return page<SignPageProps>({
         success: false,
         values: { email: email?.toString() },
-        errors: { email: t("signInUp.invalidEmail") },
+        errors: { email: t("signInUp.invalidEmailOrUsername") },
       });
     }
-    const accountEmail = await db.query.accountEmailTable.findFirst({
-      where: { email },
+    const account = await db.query.accountTable.findFirst({
+      where: {
+        OR: [
+          { username: email },
+          { emails: { email } },
+        ],
+      },
+      with: { emails: true },
     });
     let expiration: Temporal.Duration;
-    if (accountEmail == null) {
+    if (account == null) {
       return page<SignPageProps>({
         success: false,
         values: { email },
-        errors: { email: t("signInUp.noSuchEmail") },
+        errors: { email: t("signInUp.noSuchEmailOrUsername") },
       });
     } else {
-      const token = await createSigninToken(kv, accountEmail.accountId);
+      const token = await createSigninToken(kv, account.id);
       const verifyUrl = new URL(`/sign/in/${token.token}`, ctx.url);
       verifyUrl.searchParams.set("code", token.code);
       expiration = SIGNIN_EXPIRATION;
-      await sendEmail({
-        to: email,
-        subject: t("signInUp.signInEmailSubject"),
-        text: t("signInUp.signInEmailText", {
-          verifyUrl: verifyUrl.href,
-          expiration: expiration.toLocaleString(ctx.state.language, {
-            // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
-            style: "long",
+      for (const { email } of account.emails) {
+        await sendEmail({
+          to: email,
+          subject: t("signInUp.signInEmailSubject"),
+          text: t("signInUp.signInEmailText", {
+            verifyUrl: verifyUrl.href,
+            expiration: expiration.toLocaleString(ctx.state.language, {
+              // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
+              style: "long",
+            }),
           }),
-        }),
-      });
+        });
+      }
     }
     return page<SignPageProps>({ success: true, email, expiration });
   },
@@ -62,7 +73,7 @@ export const handler = define.handlers({
 
 type SignPageProps =
   | { success?: undefined }
-  | { success: false } & SignFormProps
+  | { success: false } & Omit<SignFormProps, "language">
   | { success: true; email: string; expiration: Temporal.Duration };
 
 export default define.page<typeof handler, SignPageProps>(
@@ -73,16 +84,31 @@ export default define.page<typeof handler, SignPageProps>(
           <Msg $key="signInUp.title" />
         </PageTitle>
         {data?.success == null
-          ? <SignForm />
+          ? <SignForm language={state.language} />
           : data?.success === false
-          ? <SignForm values={data?.values} errors={data?.errors} />
+          ? (
+            <SignForm
+              language={state.language}
+              values={data?.values}
+              errors={data?.errors}
+            />
+          )
           : (
             <div class="prose dark:prose-invert">
               <p>
-                <Msg
-                  $key="signInUp.emailSentDescription"
-                  email={<strong>{data.email}</strong>}
-                />
+                {isEmail(data.email)
+                  ? (
+                    <Msg
+                      $key="signInUp.emailSentDescription"
+                      email={<strong>{data.email}</strong>}
+                    />
+                  )
+                  : (
+                    <Msg
+                      $key="signInUp.emailSentToUsernameDescription"
+                      username={<strong>{data.email}</strong>}
+                    />
+                  )}
               </p>
               <p>
                 <Msg
@@ -102,41 +128,3 @@ export default define.page<typeof handler, SignPageProps>(
     );
   },
 );
-
-interface SignFormProps {
-  values?: {
-    email?: string;
-  };
-  errors?: {
-    email?: string;
-  };
-}
-
-function SignForm({ values, errors }: SignFormProps) {
-  return (
-    <>
-      <form method="post" class="flex flex-row gap-x-3">
-        <Input
-          type="email"
-          name="email"
-          class="grow lg:text-xl"
-          placeholder="your@email.com"
-          required
-          aria-invalid={errors?.email ? true : false}
-          value={values?.email}
-        />
-        <Button
-          type="submit"
-          class="basis-1/7 lg:text-xl"
-        >
-          <Msg $key="signInUp.submit" />
-        </Button>
-      </form>
-      <div class="prose dark:prose-invert mt-5">
-        <p>
-          {errors?.email ?? <Msg $key="signInUp.description" />}
-        </p>
-      </div>
-    </>
-  );
-}

@@ -1,0 +1,1 @@
+ALTER TABLE "passkey" ADD COLUMN "last_used" timestamp with time zone;

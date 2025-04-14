@@ -14,6 +14,7 @@ import { syncActorFromAccount } from "../../../models/actor.ts";
 import { follow } from "../../../models/following.ts";
 import { renderMarkup } from "../../../models/markup.ts";
 import { createSession, EXPIRATION } from "../../../models/session.ts";
+import { USERNAME_REGEXP } from "../../../models/signin.ts";
 import {
   createAccount,
   deleteSignupToken,
@@ -58,7 +59,7 @@ export const handler = define.handlers({
         ? t("signUp.usernameRequired")
         : username.length > 50
         ? t("signUp.usernameTooLong")
-        : !username.match(/^[a-z0-9_]{1,15}$/)
+        : !username.match(USERNAME_REGEXP)
         ? t("signUp.usernameInvalidChars")
         : await db.query.accountTable.findFirst({
             where: { username },

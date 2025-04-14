@@ -55,15 +55,19 @@
   },
   "signInUp": {
     "title": "登录",
-    "description": "如果你有了账户，我们将发送一个登录链接；如果你没有账号，你需要被现有的 Hackers' Pub 成员邀请。",
+    "description": "如果你有了账户，我们将发送一个登录链接。如果你已经注册了通行密钥，可以使用它来登录。如果你没有账号，你需要被现有的 Hackers' Pub 成员邀请。",
+    "emailOrUsername": "电子邮件地址或用户名",
     "submit": "$t(signInUp.title)",
-    "invalidEmail": "电子邮件地址无效。",
-    "noSuchEmail": "此电子邮件地址未在 Hackers' Pub 注册。",
+    "invalidEmailOrUsername": "电子邮件地址或用户名无效。请检查您的输入。",
+    "noSuchEmailOrUsername": "此电子邮件地址或用户名未在 Hackers' Pub 注册。",
     "signInEmailSubject": "登录 Hackers' Pub",
     "signInEmailText": "欢迎回到 Hackers' Pub！要登录，点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n\n如果你并没申请这个电子邮件，可以安全地忽略它。\n",
     "emailSentDescription": "一封带登录链接的邮件已经送至 {{email}}。请查看你的收件箱，如果你没看到，检查一下垃圾邮件文件夹。",
+    "emailSentToUsernameDescription": "一封带登录链接的邮件已经送至 {{username}} 的电子邮件地址。请查看你的收件箱，如果你没看到，检查一下垃圾邮件文件夹。",
     "emailSentExpires": "注意到链接会于 {{expiration}} 失效。",
-    "emailSentResend": "你仍然可以请求一个新链接，只需要再进行登录操作。"
+    "emailSentResend": "你仍然可以请求一个新链接，只需要再进行登录操作。",
+    "passkeyCanceled": "通过通行密钥认证已取消或失败。请重试。",
+    "passkeyFailed": "通过通行密钥认证失败。请刷新页面后重试。"
   },
   "signUp": {
     "title": "注册",
@@ -146,6 +150,23 @@
       "invitees": "被邀请人",
       "tree": "$t(invitationTree.title)",
       "viewTree": "查看树"
+    },
+    "passkeys": {
+      "title": "通行密钥",
+      "register": "注册通行密钥",
+      "registerDescription": "为你的账户注册通行密钥。你可以使用通行密钥登录，而不是通过电子邮件接收登录链接。",
+      "registerFailed": "注册通行密钥失败。请稍后再试。",
+      "name": "通行密钥名称",
+      "nameDescription": "通行密钥的名称。这将显示在下面的列表中。",
+      "nameRequired": "通行密钥名称为必填项。",
+      "registerButton": "注册",
+      "list": "已注册的通行密钥",
+      "listDescription": "以下通行密钥已注册到你的账户。你可以使用它们登录你的账户。",
+      "lastUsed": "最后使用时间",
+      "created": "创建时间",
+      "neverUsed": "从未使用过",
+      "revoke": "撤销",
+      "revokeConfirm": "你确定要撤销这个通行密钥吗？你将无法再使用它登录你的账户。"
     }
   },
   "profile": {
