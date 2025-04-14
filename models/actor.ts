@@ -30,6 +30,7 @@ import {
   getAvatarUrl as getAccountAvatarUrl,
   renderAccountLinks,
 } from "./account.ts";
+import { toDate } from "./date.ts";
 import { persistInstance } from "./instance.ts";
 import { renderMarkup } from "./markup.ts";
 import { isPostObject, persistPost, persistSharedPost } from "./post.ts";
@@ -213,12 +214,8 @@ export async function persistActor(
       successorActor == null || !successorActor.aliases.includes(actor.id.href)
         ? null
         : successorActor.id,
-    updated: actor.updated == null
-      ? undefined
-      : new Date(actor.updated.toString()),
-    published: actor.published == null
-      ? null
-      : new Date(actor.published.toString()),
+    updated: toDate(actor.updated) ?? undefined,
+    published: toDate(actor.published),
   };
   const rows = await db.insert(actorTable)
     .values({ ...values, id: generateUuidV7() })

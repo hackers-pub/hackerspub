@@ -498,6 +498,13 @@
       "when": 1744617903077,
       "tag": "0070_passkey.last_used",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1744673397898,
+      "tag": "0071_normalize_invalid_timestamps",
+      "breakpoints": true
     }
   ]
 }
