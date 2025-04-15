@@ -19,13 +19,20 @@
     "follower": "フォロワー",
     "block": "ブロック",
     "fediverse": "フェディバース",
-    "timeline": "タイムライン"
+    "timeline": "タイムライン",
+    "passkey": "パスキー",
+    "postVisibility": "公開範囲",
+    "instance": "インスタンス",
+    "mention": "メンション",
+    "handle": "ハンドル",
+    "invitation": "招待",
+    "medium": "メディア"
   },
   "notification": {
     "title": "通知",
     "empty": "通知はまだありません",
     "followedYou": "{{actor}}さんがあなたをフォローしました",
-    "mentionedYou": "{{actor}}さんがあなたに言及しました",
+    "mentionedYou": "{{actor}}さんがあなたにメンションしました",
     "repliedToYourPost": "{{actor}}さんがあなたのコンテンツに返信しました",
     "sharedYourPost_zero": "{{actor}}さんがあなたのコンテンツを共有しました",
     "sharedYourPost_other": "{{actor}}さん外{{count}}人があなたのコンテンツを共有しました",
@@ -301,14 +308,14 @@
     "public": "公開",
     "unlisted": "ひかえめな公開",
     "followers": "フォロワーのみ",
-    "direct": "言及されたユーザーのみ"
+    "direct": "メンションされたユーザーのみ"
   },
   "timeline": {
     "fediverse": "フェディバース",
     "local": "Hackers' Pub",
     "withoutShares": "共有除外",
     "articlesOnly": "記事のみ",
-    "mentionsAndQuotes": "言及と引用",
+    "mentionsAndQuotes": "メンションと引用",
     "recommendations": "$t(recommendedActors.title)"
   },
   "postPagination": {

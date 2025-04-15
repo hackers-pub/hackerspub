@@ -19,7 +19,14 @@
     "follower": "follower",
     "block": "block",
     "fediverse": "fediverse",
-    "timeline": "timeline"
+    "timeline": "timeline",
+    "passkey": "passkey",
+    "postVisibility": "post privacy",
+    "instance": "instance",
+    "mention": "mention",
+    "handle": "handle",
+    "invitation": "invitation",
+    "medium": "medium"
   },
   "notification": {
     "title": "Notifications",

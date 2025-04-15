@@ -19,7 +19,14 @@
     "follower": "粉絲",
     "block": "封鎖",
     "fediverse": "聯邦宇宙",
-    "timeline": "時間軸"
+    "timeline": "時間軸",
+    "passkey": "通行金鑰",
+    "postVisibility": "內容隱私度",
+    "instance": "站台",
+    "mention": "提及",
+    "handle": "識別碼",
+    "invitation": "邀請",
+    "medium": "媒體"
   },
   "notification": {
     "title": "通知",

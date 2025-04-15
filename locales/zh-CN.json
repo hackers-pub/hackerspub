@@ -19,7 +19,14 @@
     "follower": "粉丝",
     "block": "屏蔽",
     "fediverse": "联邦宇宙",
-    "timeline": "时间线"
+    "timeline": "时间线",
+    "passkey": "通行密钥",
+    "postVisibility": "内容隐私度",
+    "instance": "实例",
+    "mention": "提及",
+    "handle": "handle",
+    "invitation": "邀请",
+    "medium": "媒体"
   },
   "notification": {
     "title": "通知",
