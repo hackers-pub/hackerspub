@@ -1,0 +1,1 @@
+ALTER TYPE "public"."post_medium_type" ADD VALUE 'video/quicktime';

@@ -512,6 +512,13 @@
       "when": 1744689800069,
       "tag": "0072_post_medium.thumbnail_key",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1744697101577,
+      "tag": "0073_add-video-quicktime-to-post_medium_type",
+      "breakpoints": true
     }
   ]
 }

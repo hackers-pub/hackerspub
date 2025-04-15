@@ -1,6 +1,6 @@
 {
-  "id": "d09209ad-c3ab-4249-b2d0-829be03081f6",
-  "prevId": "f8085a40-63e4-43fa-9a96-0f5b8adfab78",
+  "id": "3be20260-7ed3-41f6-a9c2-549e651ed605",
+  "prevId": "d09209ad-c3ab-4249-b2d0-829be03081f6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -2870,7 +2870,8 @@
         "image/svg+xml",
         "image/webp",
         "video/mp4",
-        "video/webm"
+        "video/webm",
+        "video/quicktime"
       ]
     },
     "public.post_type": {

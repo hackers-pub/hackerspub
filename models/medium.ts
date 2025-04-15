@@ -25,6 +25,8 @@ const mediaTypes: Record<string, PostMediumType> = {
   "mp4": "video/mp4",
   "m4v": "video/mp4",
   "webm": "video/webm",
+  "mov": "video/quicktime",
+  "qt": "video/quicktime",
 };
 
 export async function persistPostMedium(

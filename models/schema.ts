@@ -648,6 +648,7 @@ export const postMediumTypeEnum = pgEnum("post_medium_type", [
   "image/webp",
   "video/mp4",
   "video/webm",
+  "video/quicktime",
 ]);
 
 export type PostMediumType = (typeof postMediumTypeEnum.enumValues)[number];
