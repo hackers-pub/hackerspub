@@ -32,15 +32,39 @@ type PostObject = Post & {
   media: PostMedium[];
 };
 
+type EnrichedPostMedium = PostMedium & {
+  thumbnailUrl: string | null;
+};
+
 export function QuotedPostCard(props: QuotedPostCardProps) {
   const [post, setPost] = useState<PostObject | null>(null);
+  const [media, setMedia] = useState<Map<number, EnrichedPostMedium>>(
+    new Map(),
+  );
   useEffect(() => {
     if (post != null) return;
     fetch(`/api/posts/${props.id}`)
       .then((response) => response.text())
-      .then((data) =>
-        setPost(JSON.parse(data, (k, v) => k === "published" ? new Date(v) : v))
-      );
+      .then((data) => {
+        const post = JSON.parse(
+          data,
+          (k, v) => k === "published" ? new Date(v) : v,
+        );
+        setPost(post);
+        for (const medium of post.media) {
+          if (medium.thumbnailKey != null) {
+            fetch(`/api/posts/${props.id}/media/${medium.index}`)
+              .then((response) => response.json())
+              .then((data: EnrichedPostMedium) => {
+                setMedia((prev) => {
+                  const newMap = new Map(prev);
+                  newMap.set(medium.index, data);
+                  return newMap;
+                });
+              });
+          }
+        }
+      });
   }, [post]);
   return (
     <TranslationSetup language={props.language}>
@@ -179,23 +203,28 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                     />
                     {post.media.length > 0 && (
                       <div class="flex justify-center w-full overflow-x-auto">
-                        {post.media.map((medium) => (
-                          <img
-                            key={medium.index}
-                            src={medium.url}
-                            width={medium.width ?? undefined}
-                            height={medium.height ?? undefined}
-                            alt={medium.alt ?? undefined}
-                            class={`
+                        {post.media.map((medium) => {
+                          const enriched = media.get(medium.index);
+                          return (
+                            <img
+                              key={medium.index}
+                              src={enriched == null
+                                ? medium.url
+                                : enriched.thumbnailUrl ?? medium.url}
+                              width={medium.width ?? undefined}
+                              height={medium.height ?? undefined}
+                              alt={medium.alt ?? undefined}
+                              class={`
                               mt-2 object-contain max-w-96 max-h-96
                               ${
-                              post.sensitive || medium.sensitive
-                                ? "my-20 blur-2xl hover:blur-0 transition-all"
-                                : ""
-                            }
+                                post.sensitive || medium.sensitive
+                                  ? "my-20 blur-2xl hover:blur-0 transition-all"
+                                  : ""
+                              }
                             `}
-                          />
-                        ))}
+                            />
+                          );
+                        })}
                       </div>
                     )}
                     {post.quotedPostId && (
