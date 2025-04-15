@@ -4,6 +4,7 @@ import { count, eq } from "drizzle-orm";
 import type { PageProps } from "fresh";
 import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
 import { db } from "../db.ts";
+import { drive } from "../drive.ts";
 import { NotificationIcon } from "../islands/NotificationIcon.tsx";
 import { kv } from "../kv.ts";
 import { getAvatarUrl } from "../models/account.ts";
@@ -43,9 +44,10 @@ export default async function App(
         `${state.language}.md`,
       ),
     );
+  const disk = drive.use();
   const searchGuide = searchGuideText == null
     ? null
-    : await renderMarkup(db, state.fedCtx, searchGuideText, { kv });
+    : await renderMarkup(db, disk, state.fedCtx, searchGuideText, { kv });
   return (
     <TranslationSetup language={state.language}>
       <Translation>

@@ -1,4 +1,5 @@
 import { db } from "../../../../db.ts";
+import { drive } from "../../../../drive.ts";
 import { kv } from "../../../../kv.ts";
 import { getArticleSource } from "../../../../models/article.ts";
 import { isPostVisibleTo, sharePost } from "../../../../models/post.ts";
@@ -28,6 +29,7 @@ export const handler = define.handlers({
     const share = await sharePost(
       db,
       kv,
+      drive.use(),
       ctx.state.fedCtx,
       ctx.state.account,
       post,

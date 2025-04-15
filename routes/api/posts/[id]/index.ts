@@ -1,8 +1,8 @@
 import { sql } from "drizzle-orm";
-import { db } from "../../../db.ts";
-import { isPostVisibleTo } from "../../../models/post.ts";
-import { validateUuid } from "../../../models/uuid.ts";
-import { define } from "../../../utils.ts";
+import { db } from "../../../../db.ts";
+import { isPostVisibleTo } from "../../../../models/post.ts";
+import { validateUuid } from "../../../../models/uuid.ts";
+import { define } from "../../../../utils.ts";
 
 export const handler = define.handlers(async (ctx) => {
   const postId = ctx.params.id;

@@ -5,6 +5,7 @@ import { PageTitle } from "../../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { PostReactionsNav } from "../../../components/PostReactionsNav.tsx";
 import { db } from "../../../db.ts";
+import { drive } from "../../../drive.ts";
 import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { extractMentionsFromHtml } from "../../../models/markup.ts";
@@ -68,8 +69,10 @@ export const handler = define.handlers(async (ctx) => {
     }
     return bCount - aCount;
   });
+  const disk = drive.use();
   const reactorsMentions = await extractMentionsFromHtml(
     db,
+    disk,
     ctx.state.fedCtx,
     pairs.flatMap(([_, s]) => s.map((a) => a.bioHtml)).join("\n"),
     {

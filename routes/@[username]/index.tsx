@@ -76,6 +76,7 @@ export const handler = define.handlers({
         301,
       );
     }
+    const disk = drive.use();
     const untilString = ctx.url.searchParams.get("until");
     const until = untilString == null || !untilString.match(/^\d+(\.\d+)?$/)
       ? undefined
@@ -123,7 +124,8 @@ export const handler = define.handlers({
           return ctx.next();
         }
         if (!isActor(apActor)) return ctx.next();
-        actor = await persistActor(db, ctx.state.fedCtx, apActor);
+        const disk = drive.use();
+        actor = await persistActor(db, disk, ctx.state.fedCtx, apActor);
         if (actor == null) return ctx.next();
       }
       if (ctx.state.session == null) {
@@ -243,6 +245,7 @@ export const handler = define.handlers({
         actor,
         actorMentions: await extractMentionsFromHtml(
           db,
+          disk,
           ctx.state.fedCtx,
           actor.bioHtml ?? "",
           { kv },
@@ -262,7 +265,7 @@ export const handler = define.handlers({
     if (account.username !== ctx.params.username) {
       return ctx.redirect(`/@${account.username}`, 301);
     }
-    const bio = await renderMarkup(db, ctx.state.fedCtx, account.bio, {
+    const bio = await renderMarkup(db, disk, ctx.state.fedCtx, account.bio, {
       docId: account.id,
       kv,
     });
@@ -431,6 +434,7 @@ export const handler = define.handlers({
       actor: account.actor,
       actorMentions: await extractMentionsFromHtml(
         db,
+        disk,
         ctx.state.fedCtx,
         account.actor.bioHtml ?? "",
         {
@@ -563,7 +567,10 @@ export default define.page<typeof handler, ProfilePageProps>(
         />
         <div>
           {data.posts.map((post) => (
-            <PostExcerpt post={post} signedAccount={state.account} />
+            <PostExcerpt
+              post={post}
+              signedAccount={state.account}
+            />
           ))}
           <PostPagination nextHref={data.nextHref} />
         </div>

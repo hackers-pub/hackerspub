@@ -49,24 +49,31 @@ export const handler = define.handlers({
       `/@${article.account.username}/${article.publishedYear}/${article.slug}`,
       ctx.state.canonicalOrigin,
     );
+    const disk = drive.use();
     if (
       ctx.state.account?.moderator &&
         ctx.url.searchParams.has("refresh") ||
       ctx.params.username !== article.account.username &&
         article.post.url !== permalink.href
     ) {
-      await updateArticle(db, kv, ctx.state.fedCtx, article.id, {});
+      await updateArticle(db, kv, disk, ctx.state.fedCtx, article.id, {});
     }
     const articleUri = ctx.state.fedCtx.getObjectUri(
       vocab.Article,
       { id: article.id },
     );
-    const content = await renderMarkup(db, ctx.state.fedCtx, article.content, {
-      docId: article.id,
-      kv,
-      refresh: ctx.url.searchParams.has("refresh") &&
-        ctx.state.account?.moderator,
-    });
+    const content = await renderMarkup(
+      db,
+      disk,
+      ctx.state.fedCtx,
+      article.content,
+      {
+        docId: article.id,
+        kv,
+        refresh: ctx.url.searchParams.has("refresh") &&
+          ctx.state.account?.moderator,
+      },
+    );
     ctx.state.title = article.title;
     ctx.state.links.push(
       { rel: "canonical", href: permalink },

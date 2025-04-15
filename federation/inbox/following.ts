@@ -9,6 +9,7 @@ import {
 import { getLogger } from "@logtape/logtape";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "../../db.ts";
+import { drive } from "../../drive.ts";
 import { persistActor } from "../../models/actor.ts";
 import { persistBlocking } from "../../models/blocking.ts";
 import {
@@ -91,7 +92,8 @@ export async function onFollowed(
   if (followee == null) return;
   const followActor = await follow.getActor(fedCtx);
   if (followActor == null) return;
-  const follower = await persistActor(db, fedCtx, followActor, {
+  const disk = drive.use();
+  const follower = await persistActor(db, disk, fedCtx, followActor, {
     ...fedCtx,
     outbox: false,
   });
@@ -130,7 +132,8 @@ export async function onUnfollowed(
   if (follow.id == null || follow.actorId?.href !== undo.actorId?.href) return;
   const actorObject = await undo.getActor(fedCtx);
   if (actorObject == null) return;
-  const actor = await persistActor(db, fedCtx, actorObject, {
+  const disk = drive.use();
+  const actor = await persistActor(db, disk, fedCtx, actorObject, {
     ...fedCtx,
     outbox: false,
   });
@@ -165,7 +168,8 @@ export async function onBlocked(
   fedCtx: InboxContext<void>,
   block: Block,
 ): Promise<void> {
-  await persistBlocking(db, fedCtx, block, fedCtx);
+  const disk = drive.use();
+  await persistBlocking(db, disk, fedCtx, block, fedCtx);
 }
 
 export async function onUnblocked(

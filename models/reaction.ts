@@ -1,6 +1,7 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, sql } from "drizzle-orm";
+import type { Disk } from "flydrive";
 import type { Database } from "../db.ts";
 import { getEmojiReact, getEmojiReactId } from "../federation/objects.ts";
 import { getPersistedActor, persistActor } from "./actor.ts";
@@ -60,6 +61,7 @@ export async function persistCustomEmoji(
 
 export async function persistReaction(
   db: Database,
+  disk: Disk,
   ctx: Context<void>,
   reaction: vocab.Like | vocab.EmojiReact,
   options: {
@@ -77,14 +79,14 @@ export async function persistReaction(
   if (actor == null) {
     const actorObject = await reaction.getActor(opts);
     if (!isActor(actorObject)) return undefined;
-    actor = await persistActor(db, ctx, actorObject, options);
+    actor = await persistActor(db, disk, ctx, actorObject, options);
   }
   if (actor == null) return undefined;
   let post = await getPersistedPost(db, reaction.objectId);
   if (post == null) {
     const object = await reaction.getObject(opts);
     if (!isPostObject(object)) return undefined;
-    post = await persistPost(db, ctx, object, options);
+    post = await persistPost(db, disk, ctx, object, options);
   }
   if (post == null) return undefined;
   const customEmojis: Record<string, CustomEmoji> = {};

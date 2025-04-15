@@ -1,6 +1,7 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, sql } from "drizzle-orm";
+import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import type { Database } from "../db.ts";
 import { getArticle } from "../federation/objects.ts";
@@ -159,6 +160,7 @@ export async function createArticleSource(
 export async function createArticle(
   db: Database,
   kv: Keyv,
+  disk: Disk,
   fedCtx: Context<void>,
   source: Omit<NewArticleSource, "id"> & { id?: Uuid },
 ): Promise<
@@ -179,12 +181,12 @@ export async function createArticle(
     with: { emails: true, links: true },
   });
   if (account == undefined) return undefined;
-  const post = await syncPostFromArticleSource(db, kv, fedCtx, {
+  const post = await syncPostFromArticleSource(db, kv, disk, fedCtx, {
     ...articleSource,
     account,
   });
   await addPostToTimeline(db, post);
-  const articleObject = await getArticle(db, fedCtx, {
+  const articleObject = await getArticle(db, disk, fedCtx, {
     ...articleSource,
     account,
   });
@@ -218,6 +220,7 @@ export async function updateArticleSource(
 export async function updateArticle(
   db: Database,
   kv: Keyv,
+  disk: Disk,
   fedCtx: Context<void>,
   articleSourceId: Uuid,
   source: Partial<NewArticleSource>,
@@ -239,11 +242,11 @@ export async function updateArticle(
     with: { emails: true, links: true },
   });
   if (account == null) return undefined;
-  const post = await syncPostFromArticleSource(db, kv, fedCtx, {
+  const post = await syncPostFromArticleSource(db, kv, disk, fedCtx, {
     ...articleSource,
     account,
   });
-  const articleObject = await getArticle(db, fedCtx, {
+  const articleObject = await getArticle(db, disk, fedCtx, {
     ...articleSource,
     account,
   });

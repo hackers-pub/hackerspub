@@ -5,6 +5,7 @@ import { PostPagination } from "../../components/PostPagination.tsx";
 import { Profile } from "../../components/Profile.tsx";
 import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
+import { drive } from "../../drive.ts";
 import { kv } from "../../kv.ts";
 import { getRelationship, type Relationship } from "../../models/account.ts";
 import { type ActorStats, getActorStats } from "../../models/actor.ts";
@@ -186,6 +187,7 @@ export const handler = define.handlers({
     });
     const next = posts.length > window ? posts[window].published : undefined;
     ctx.state.title = actor.name ?? actor.username;
+    const disk = drive.use();
     return page<ProfileArticleListProps>({
       profileHref: account == null
         ? `/${actor.handle}`
@@ -193,6 +195,7 @@ export const handler = define.handlers({
       actor,
       actorMentions: await extractMentionsFromHtml(
         db,
+        disk,
         ctx.state.fedCtx,
         actor.bioHtml ?? "",
         actor.accountId == null ? { kv } : {
@@ -287,7 +290,10 @@ export default define.page<typeof handler, ProfileArticleListProps>(
         />
         <div>
           {data.posts.map((post) => (
-            <PostExcerpt post={post} signedAccount={state.account} />
+            <PostExcerpt
+              post={post}
+              signedAccount={state.account}
+            />
           ))}
           <PostPagination nextHref={data.nextHref} />
         </div>

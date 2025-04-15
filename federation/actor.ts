@@ -8,6 +8,7 @@ import {
   Person,
 } from "@fedify/fedify";
 import { db } from "../db.ts";
+import { drive } from "../drive.ts";
 import { kv } from "../kv.ts";
 import { getAvatarUrl, renderAccountLinks } from "../models/account.ts";
 import { renderMarkup } from "../models/markup.ts";
@@ -71,7 +72,8 @@ federation
         },
       });
       if (account == null) return null;
-      const bio = await renderMarkup(db, ctx, account.bio, {
+      const disk = drive.use();
+      const bio = await renderMarkup(db, disk, ctx, account.bio, {
         docId: account.id,
         kv,
       });

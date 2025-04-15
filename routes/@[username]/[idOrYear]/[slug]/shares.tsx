@@ -3,6 +3,7 @@ import { ActorList } from "../../../../components/ActorList.tsx";
 import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
 import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
+import { drive } from "../../../../drive.ts";
 import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { getArticleSource } from "../../../../models/article.ts";
@@ -46,8 +47,10 @@ export const handler = define.handlers(async (ctx) => {
   const sharers = shares
     .filter((s) => isPostVisibleTo(s, ctx.state.account?.actor))
     .map((s) => s.actor);
+  const disk = drive.use();
   const sharersMentions = await extractMentionsFromHtml(
     db,
+    disk,
     ctx.state.fedCtx,
     sharers.map((s) => s.bioHtml).join("\n"),
     {

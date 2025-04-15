@@ -1,4 +1,5 @@
 import { db } from "../../../db.ts";
+import { drive } from "../../../drive.ts";
 import { kv } from "../../../kv.ts";
 import { getNoteSource } from "../../../models/note.ts";
 import {
@@ -50,6 +51,7 @@ export const handler = define.handlers({
     const unshared = await unsharePost(
       db,
       kv,
+      drive.use(),
       ctx.state.fedCtx,
       ctx.state.account,
       post,

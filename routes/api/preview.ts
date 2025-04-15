@@ -1,4 +1,5 @@
 import { db } from "../../db.ts";
+import { drive } from "../../drive.ts";
 import { renderMarkup } from "../../models/markup.ts";
 import { define } from "../../utils.ts";
 
@@ -7,7 +8,8 @@ export const handler = define.handlers({
     if (ctx.state.session == null) return ctx.next();
     const nonce = ctx.req.headers.get("Echo-Nonce");
     const markup = await ctx.req.text();
-    const rendered = await renderMarkup(db, ctx.state.fedCtx, markup);
+    const disk = drive.use();
+    const rendered = await renderMarkup(db, disk, ctx.state.fedCtx, markup);
     if (ctx.req.headers.get("Accept") === "application/json") {
       return new Response(JSON.stringify(rendered), {
         headers: {

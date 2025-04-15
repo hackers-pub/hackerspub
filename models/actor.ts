@@ -23,6 +23,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
+import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import type { Database, RelationsFilter } from "../db.ts";
 import metadata from "../deno.json" with { type: "json" };
@@ -55,6 +56,7 @@ const logger = getLogger(["hackerspub", "models", "actor"]);
 export async function syncActorFromAccount(
   db: Database,
   kv: Keyv,
+  disk: Disk,
   fedCtx: Context<void>,
   account: Account & { emails: AccountEmail[]; links: AccountLink[] },
 ): Promise<
@@ -86,7 +88,7 @@ export async function syncActorFromAccount(
     handleHost: instance.host,
     accountId: account.id,
     name: account.name,
-    bioHtml: (await renderMarkup(db, fedCtx, account.bio, {
+    bioHtml: (await renderMarkup(db, disk, fedCtx, account.bio, {
       docId: account.id,
       kv,
     })).html,
@@ -117,6 +119,7 @@ export async function syncActorFromAccount(
 
 export async function persistActor(
   db: Database,
+  disk: Disk,
   ctx: Context<void>,
   actor: vocab.Actor,
   options: {
@@ -179,7 +182,7 @@ export async function persistActor(
   }
   const successor = await actor.getSuccessor(getterOpts);
   const successorActor = isActor(successor)
-    ? await persistActor(db, ctx, successor, options)
+    ? await persistActor(db, disk, ctx, successor, options)
     : null;
   const values: Omit<NewActor, "id"> = {
     iri: actor.id.href,
@@ -230,7 +233,7 @@ export async function persistActor(
   if (featured != null) {
     for await (const object of traverseCollection(featured, getterOpts)) {
       if (!isPostObject(object)) continue;
-      await persistPost(db, ctx, object, {
+      await persistPost(db, disk, ctx, object, {
         ...options,
         actor: result,
         replies: true,
@@ -255,14 +258,14 @@ export async function persistActor(
           continue;
         }
         if (!isPostObject(object)) continue;
-        const persisted = await persistPost(db, ctx, object, {
+        const persisted = await persistPost(db, disk, ctx, object, {
           ...options,
           actor: result,
           replies: true,
         });
         if (persisted != null) i++;
       } else if (activity instanceof vocab.Announce) {
-        const persisted = await persistSharedPost(db, ctx, activity, {
+        const persisted = await persistSharedPost(db, disk, ctx, activity, {
           ...options,
           actor: result,
         });
@@ -288,6 +291,7 @@ export function getPersistedActor(
 
 export async function persistActorsByHandles(
   db: Database,
+  disk: Disk,
   ctx: Context<void>,
   handles: string[],
 ): Promise<Record<string, Actor & { instance: Instance }>> {
@@ -342,7 +346,7 @@ export async function persistActorsByHandles(
   const apActors = await Promise.all(promises);
   for (const apActor of apActors) {
     if (!isActor(apActor)) continue;
-    const actor = await persistActor(db, ctx, apActor, {
+    const actor = await persistActor(db, disk, ctx, apActor, {
       ...ctx,
       documentLoader,
       outbox: false,

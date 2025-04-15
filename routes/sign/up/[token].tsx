@@ -9,6 +9,7 @@ import { Msg, Translation } from "../../../components/Msg.tsx";
 import { PageTitle } from "../../../components/PageTitle.tsx";
 import { TextArea } from "../../../components/TextArea.tsx";
 import { db } from "../../../db.ts";
+import { drive } from "../../../drive.ts";
 import { kv } from "../../../kv.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
 import { follow } from "../../../models/following.ts";
@@ -97,7 +98,8 @@ export const handler = define.handlers({
         errors,
       });
     }
-    const actor = await syncActorFromAccount(db, kv, ctx.state.fedCtx, {
+    const disk = drive.use();
+    const actor = await syncActorFromAccount(db, kv, disk, ctx.state.fedCtx, {
       ...account,
       links: [],
     });
@@ -160,7 +162,8 @@ export default define.page<typeof handler, SignupPageProps>(
         `CODE_OF_CONDUCT.${language}.md`,
       ),
     );
-    const rendered = await renderMarkup(db, fedCtx, coc, { kv });
+    const disk = drive.use();
+    const rendered = await renderMarkup(db, disk, fedCtx, coc, { kv });
     const cocHtml = rendered.html;
     return (
       <div>

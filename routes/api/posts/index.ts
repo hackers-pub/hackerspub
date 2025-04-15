@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { db } from "../../../db.ts";
+import { drive } from "../../../drive.ts";
 import {
   isPostObject,
   isPostVisibleTo,
@@ -69,7 +70,8 @@ export const handler = define.handlers(async (ctx) => {
       : await fedCtx.getDocumentLoader({ identifier: account.id });
     const object = await fedCtx.lookupObject(iri, { documentLoader });
     if (!isPostObject(object)) return ctx.next();
-    const p = await persistPost(db, fedCtx, object, { documentLoader });
+    const disk = drive.use();
+    const p = await persistPost(db, disk, fedCtx, object, { documentLoader });
     if (p == null) return ctx.next();
     const actor = await db.query.actorTable.findFirst({
       with: {

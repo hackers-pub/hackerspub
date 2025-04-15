@@ -4,6 +4,7 @@ import { load } from "cheerio";
 import { page } from "fresh";
 import { Msg } from "../components/Msg.tsx";
 import { db } from "../db.ts";
+import { drive } from "../drive.ts";
 import { kv } from "../kv.ts";
 import { transformMentions } from "../models/html.ts";
 import { renderMarkup, type Toc } from "../models/markup.ts";
@@ -17,7 +18,10 @@ export const handler = define.handlers({
         `locales/markdown/${ctx.state.language}.md`,
       ),
     );
-    const rendered = await renderMarkup(db, ctx.state.fedCtx, markdown, { kv });
+    const disk = drive.use();
+    const rendered = await renderMarkup(db, disk, ctx.state.fedCtx, markdown, {
+      kv,
+    });
     ctx.state.title = rendered.title;
     let html = transformMentions(
       rendered.html,

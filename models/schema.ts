@@ -646,6 +646,8 @@ export const postMediumTypeEnum = pgEnum("post_medium_type", [
   "image/png",
   "image/svg+xml",
   "image/webp",
+  "video/mp4",
+  "video/webm",
 ]);
 
 export type PostMediumType = (typeof postMediumTypeEnum.enumValues)[number];
@@ -667,6 +669,7 @@ export const postMediumTable = pgTable(
     alt: text(),
     width: integer(),
     height: integer(),
+    thumbnailKey: text("thumbnail_key").unique(),
     sensitive: boolean().notNull().default(false),
   },
   (table) => [

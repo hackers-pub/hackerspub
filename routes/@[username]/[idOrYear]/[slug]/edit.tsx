@@ -1,6 +1,7 @@
 import * as v from "@valibot/valibot";
 import { page } from "fresh";
 import { db } from "../../../../db.ts";
+import { drive } from "../../../../drive.ts";
 import { Editor } from "../../../../islands/Editor.tsx";
 import { kv } from "../../../../kv.ts";
 import { getArticleSource, updateArticle } from "../../../../models/article.ts";
@@ -60,6 +61,7 @@ export const handler = define.handlers({
     const post = await updateArticle(
       db,
       kv,
+      drive.use(),
       ctx.state.fedCtx,
       article.id,
       result.output,

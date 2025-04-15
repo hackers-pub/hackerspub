@@ -1,5 +1,11 @@
+import { getUserAgent } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import { join } from "@std/path/join";
+import ffmpeg from "fluent-ffmpeg";
+import type { Disk } from "flydrive";
 import type { Database } from "../db.ts";
+import metadata from "../deno.json" with { type: "json" };
+import { ORIGIN } from "../federation/federation.ts";
 import {
   isPostMediumType,
   type NewPostMedium,
@@ -16,10 +22,14 @@ const mediaTypes: Record<string, PostMediumType> = {
   "png": "image/png",
   "svg": "image/svg+xml",
   "webp": "image/webp",
+  "mp4": "video/mp4",
+  "m4v": "video/mp4",
+  "webm": "video/webm",
 };
 
-export async function postMedium(
+export async function persistPostMedium(
   db: Database,
+  disk: Disk,
   document: vocab.Document,
   postId: Uuid,
   index: number,
@@ -32,8 +42,10 @@ export async function postMedium(
   if (isPostMediumType(document.mediaType)) {
     mediumType = document.mediaType;
   } else if (
-    document instanceof vocab.Image &&
-    url.pathname.match(/\.(gif|jpe?g|png|svg|webp)$/i)
+    (document instanceof vocab.Image || document instanceof vocab.Video) &&
+    Object.keys(mediaTypes).map((ext) => `.${ext}`).some((ext) =>
+      url.pathname.toLowerCase().endsWith(ext)
+    )
   ) {
     const m = /\.([^.]+)$/.exec(url.pathname);
     if (!m) return undefined;
@@ -43,6 +55,51 @@ export async function postMedium(
   } else {
     return undefined;
   }
+  const response = await fetch(url, {
+    headers: {
+      "User-Agent": getUserAgent({
+        software: `HackersPub/${metadata.version}`,
+        url: new URL(ORIGIN),
+      }),
+    },
+  });
+  if (response.body == null) return undefined;
+  let width: number | null = document.width;
+  let height: number | null = document.height;
+  let thumbnailKey: string | null = null;
+  if (mediumType.startsWith("video/")) {
+    const tmp = await Deno.makeTempFile({ prefix: "hackerspub" });
+    const tmpFile = await Deno.open(tmp, { write: true });
+    await response.body.pipeTo(tmpFile.writable);
+    const tmpDir = await Deno.makeTempDir({ prefix: "hackerspub" });
+    if (width == null || height == null) {
+      let metadata: ffmpeg.FfprobeData;
+      try {
+        metadata = await new Promise((resolve, reject) =>
+          ffmpeg(tmp)
+            .ffprobe((err, data) => err ? reject(err) : resolve(data))
+        );
+      } catch {
+        return undefined;
+      }
+      width = metadata.streams[0].width ?? null;
+      height = metadata.streams[0].height ?? null;
+    }
+    await new Promise((resolve) =>
+      ffmpeg(tmp)
+        .on("end", resolve)
+        .screenshots({
+          timestamps: [0],
+          filename: "screenshot.png",
+          folder: tmpDir,
+        })
+    );
+    const screenshot = join(tmpDir, "screenshot.png");
+    await disk.put(
+      thumbnailKey = `videos/${crypto.randomUUID()}.png`,
+      await Deno.readFile(screenshot),
+    );
+  }
   const result = await db.insert(postMediumTable).values(
     {
       postId,
@@ -50,8 +107,9 @@ export async function postMedium(
       type: mediumType,
       url: url.href,
       alt: document.name?.toString(),
-      width: document.width,
-      height: document.height,
+      width,
+      height,
+      thumbnailKey,
       sensitive: document.sensitive ?? false,
     } satisfies NewPostMedium,
   ).returning();

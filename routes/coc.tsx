@@ -2,6 +2,7 @@ import { dirname } from "@std/path/dirname";
 import { join } from "@std/path/join";
 import { page } from "fresh";
 import { db } from "../db.ts";
+import { drive } from "../drive.ts";
 import { kv } from "../kv.ts";
 import { renderMarkup } from "../models/markup.ts";
 import { define } from "../utils.ts";
@@ -14,7 +15,10 @@ export const handler = define.handlers({
         `CODE_OF_CONDUCT.${ctx.state.language}.md`,
       ),
     );
-    const rendered = await renderMarkup(db, ctx.state.fedCtx, coc, { kv });
+    const disk = drive.use();
+    const rendered = await renderMarkup(db, disk, ctx.state.fedCtx, coc, {
+      kv,
+    });
     ctx.state.title = rendered.title;
     return page<CocProps>({ html: rendered.html });
   },

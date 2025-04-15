@@ -505,6 +505,13 @@
       "when": 1744673397898,
       "tag": "0071_normalize_invalid_timestamps",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1744689800069,
+      "tag": "0072_post_medium.thumbnail_key",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ import {
 } from "@fedify/fedify";
 import { eq } from "drizzle-orm";
 import { db } from "../../db.ts";
+import { drive } from "../../drive.ts";
 import { persistActor } from "../../models/actor.ts";
 import { follow } from "../../models/following.ts";
 import { actorTable } from "../../models/schema.ts";
@@ -17,7 +18,8 @@ export async function onActorUpdated(
 ): Promise<void> {
   const actor = await update.getObject(fedCtx);
   if (!isActor(actor) || update.actorId?.href !== actor.id?.href) return;
-  await persistActor(db, fedCtx, actor, { ...fedCtx, outbox: false });
+  const disk = drive.use();
+  await persistActor(db, disk, fedCtx, actor, { ...fedCtx, outbox: false });
 }
 
 export async function onActorDeleted(
@@ -46,9 +48,10 @@ export async function onActorMoved(
   ) {
     return;
   }
-  const oldActor = await persistActor(db, fedCtx, object, fedCtx);
+  const disk = drive.use();
+  const oldActor = await persistActor(db, disk, fedCtx, object, fedCtx);
   if (oldActor == null) return;
-  const newActor = await persistActor(db, fedCtx, target, fedCtx);
+  const newActor = await persistActor(db, disk, fedCtx, target, fedCtx);
   if (newActor == null) return;
   await db.update(actorTable)
     .set({ successorId: newActor.id })

@@ -38,6 +38,7 @@ import { NoteSourceSchema } from "../index.tsx";
 export const handler = define.handlers({
   async GET(ctx) {
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
+    const disk = drive.use();
     const id = ctx.params.idOrYear;
     let post: Post & {
       actor: Actor & {
@@ -110,7 +111,9 @@ export const handler = define.handlers({
           { documentLoader },
         );
         if (isPostObject(object)) {
-          await persistPost(db, ctx.state.fedCtx, object, { documentLoader });
+          await persistPost(db, disk, ctx.state.fedCtx, object, {
+            documentLoader,
+          });
         }
       }
       postUrl = `/@${ctx.params.username}/${post.id}`;
@@ -328,10 +331,16 @@ export const handler = define.handlers({
     replies = replies.filter((reply) =>
       isPostVisibleTo(reply, ctx.state.account?.actor)
     );
-    const content = await renderMarkup(db, ctx.state.fedCtx, post.contentHtml, {
-      kv,
-      docId: post.id,
-    });
+    const content = await renderMarkup(
+      db,
+      disk,
+      ctx.state.fedCtx,
+      post.contentHtml,
+      {
+        kv,
+        docId: post.id,
+      },
+    );
     const author = post.actor.name ?? post.actor.handle;
     ctx.state.title = ctx.state.t("note.title", {
       name: author,

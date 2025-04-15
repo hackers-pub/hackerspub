@@ -2,6 +2,7 @@ import { setCookie } from "@std/http/cookie";
 import { page } from "fresh";
 import { PageTitle } from "../../../components/PageTitle.tsx";
 import { db } from "../../../db.ts";
+import { drive } from "../../../drive.ts";
 import { kv } from "../../../kv.ts";
 import { syncActorFromAccount } from "../../../models/actor.ts";
 import { createSession, EXPIRATION } from "../../../models/session.ts";
@@ -24,7 +25,8 @@ export const handler = define.handlers({
       },
     });
     if (account == null) return page();
-    await syncActorFromAccount(db, kv, ctx.state.fedCtx, account);
+    const disk = drive.use();
+    await syncActorFromAccount(db, kv, disk, ctx.state.fedCtx, account);
     const session = await createSession(kv, {
       accountId: token.accountId,
       ipAddress: ctx.info.remoteAddr.transport === "tcp"

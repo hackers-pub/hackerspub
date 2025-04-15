@@ -22,6 +22,7 @@ Hackers' Pub uses the following technologies:
  -  [Preact] for web frontend
  -  [Tailwind CSS] for styling
  -  [i18next] for internationalization
+ -  [ffmpeg] for video processing
 
 If you are not familiar with these technologies, we recommend reading the
 documentation of these technologies to understand how they work.
@@ -41,6 +42,7 @@ documentation of these technologies to understand how they work.
 [Preact]: https://preactjs.com/
 [Tailwind CSS]: https://tailwindcss.com/
 [i18next]: https://www.i18next.com/
+[ffmpeg]: https://ffmpeg.org/
 
 
 Prerequisites
@@ -49,7 +51,8 @@ Prerequisites
 To build the project, you need to have the following tools installed:
 
  -  [Deno] 2.0 or higher
- -  [PostgreSQL] 17 op higher
+ -  [PostgreSQL] 17 or higher
+ -  [ffmpeg] 5.0 or higher
  -  [Mailgun] account
 
 Any other dependencies can be installed using Deno:

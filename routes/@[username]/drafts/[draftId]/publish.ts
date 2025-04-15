@@ -1,5 +1,6 @@
 import * as v from "@valibot/valibot";
 import { db } from "../../../../db.ts";
+import { drive } from "../../../../drive.ts";
 import { POSSIBLE_LOCALES } from "../../../../i18n.ts";
 import { kv } from "../../../../kv.ts";
 import {
@@ -37,7 +38,8 @@ export const handler = define.handlers({
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
-    const post = await createArticle(db, kv, ctx.state.fedCtx, {
+    const disk = drive.use();
+    const post = await createArticle(db, kv, disk, ctx.state.fedCtx, {
       accountId: ctx.state.session.accountId,
       title: draft.title,
       content: draft.content,

@@ -12,6 +12,7 @@ import {
 import { getLogger } from "@logtape/logtape";
 import { eq } from "drizzle-orm";
 import { db } from "../../db.ts";
+import { drive } from "../../drive.ts";
 import {
   createMentionNotification,
   createQuoteNotification,
@@ -48,7 +49,8 @@ export async function onPostCreated(
   const object = await create.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;
-  const post = await persistPost(db, fedCtx, object, {
+  const disk = drive.use();
+  const post = await persistPost(db, disk, fedCtx, object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
@@ -94,7 +96,8 @@ export async function onPostUpdated(
   const object = await update.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== update.actorId?.href) return;
-  await persistPost(db, fedCtx, object, {
+  const disk = drive.use();
+  await persistPost(db, disk, fedCtx, object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
@@ -125,7 +128,8 @@ export async function onPostShared(
   if (announce.id?.origin !== announce.actorId?.origin) return;
   const object = await announce.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
-  const post = await persistSharedPost(db, fedCtx, announce, fedCtx);
+  const disk = drive.use();
+  const post = await persistSharedPost(db, disk, fedCtx, announce, fedCtx);
   if (post != null) {
     await addPostToTimeline(db, post);
     if (post.sharedPost.actor.accountId != null) {
@@ -172,7 +176,14 @@ export async function onReactedOnPost(
   reaction: Like | EmojiReact,
 ): Promise<void> {
   logger.debug("On post reacted: {reaction}", { reaction });
-  const reactionObject = await persistReaction(db, fedCtx, reaction, fedCtx);
+  const disk = drive.use();
+  const reactionObject = await persistReaction(
+    db,
+    disk,
+    fedCtx,
+    reaction,
+    fedCtx,
+  );
   if (reactionObject == null) return;
   await updateReactionsCounts(db, reactionObject.postId);
 }

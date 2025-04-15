@@ -21,6 +21,7 @@ import { encodeAscii85 } from "@std/encoding/ascii85";
 import { ASCII_DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
 import { arrayOverlaps, eq } from "drizzle-orm";
+import type { Disk } from "flydrive";
 import katex from "katex";
 import type Keyv from "keyv";
 import abbr from "markdown-it-abbr";
@@ -171,6 +172,7 @@ export interface RenderMarkupOptions {
 
 export async function renderMarkup(
   db: Database,
+  disk: Disk,
   fedCtx: Context<void>,
   markup: string,
   options: RenderMarkupOptions = {},
@@ -200,7 +202,7 @@ export async function renderMarkup(
   const tmpEnv: { mentions: string[] } = { mentions: [] };
   await tmpMd.renderAsync(markup, tmpEnv);
   const mentions = new Set(tmpEnv.mentions);
-  const mentionedActors = await persistActorsByHandles(db, fedCtx, [
+  const mentionedActors = await persistActorsByHandles(db, disk, fedCtx, [
     ...mentions,
   ]);
   const env: Env = {
@@ -272,6 +274,7 @@ export interface ExtractMentionsFromHtmlOptions {
 
 export async function extractMentionsFromHtml(
   db: Database,
+  disk: Disk,
   fedCtx: Context<void>,
   html: string,
   options: ExtractMentionsFromHtmlOptions = {},
@@ -332,7 +335,7 @@ export async function extractMentionsFromHtml(
     if (pair == null) continue;
     const [href, object] = pair;
     if (!isActor(object)) continue;
-    let actor = await persistActor(db, fedCtx, object, {
+    let actor = await persistActor(db, disk, fedCtx, object, {
       ...options,
       outbox: false,
     });

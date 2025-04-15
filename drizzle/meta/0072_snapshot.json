@@ -1,5 +1,5 @@
 {
-  "id": "f8085a40-63e4-43fa-9a96-0f5b8adfab78",
+  "id": "d09209ad-c3ab-4249-b2d0-829be03081f6",
   "prevId": "f8ef8c5d-4db8-4984-b6a2-494a2dc7ba41",
   "version": "7",
   "dialect": "postgresql",
@@ -46,15 +46,15 @@
         "account_email_account_id_account_id_fk": {
           "name": "account_email_account_id_account_id_fk",
           "tableFrom": "account_email",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -105,15 +105,15 @@
         "account_key_account_id_account_id_fk": {
           "name": "account_key_account_id_account_id_fk",
           "tableFrom": "account_key",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -200,15 +200,15 @@
         "account_link_account_id_account_id_fk": {
           "name": "account_link_account_id_account_id_fk",
           "tableFrom": "account_link",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -347,39 +347,39 @@
         "account_inviter_id_account_id_fk": {
           "name": "account_inviter_id_account_id_fk",
           "tableFrom": "account",
+          "tableTo": "account",
           "columnsFrom": [
             "inviter_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "account_username_unique": {
           "name": "account_username_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "username"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "account_avatar_key_unique": {
           "name": "account_avatar_key_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "avatar_key"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "account_og_image_key_unique": {
           "name": "account_og_image_key_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "og_image_key"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -442,8 +442,8 @@
           "primaryKey": false,
           "notNull": true,
           "generated": {
-            "type": "stored",
-            "as": "'@' || \"actor\".\"username\" || '@' || \"actor\".\"handle_host\""
+            "as": "'@' || \"actor\".\"username\" || '@' || \"actor\".\"handle_host\"",
+            "type": "stored"
           }
         },
         "account_id": {
@@ -601,66 +601,66 @@
         "actor_instance_host_instance_host_fk": {
           "name": "actor_instance_host_instance_host_fk",
           "tableFrom": "actor",
+          "tableTo": "instance",
           "columnsFrom": [
             "instance_host"
           ],
-          "tableTo": "instance",
           "columnsTo": [
             "host"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "actor_account_id_account_id_fk": {
           "name": "actor_account_id_account_id_fk",
           "tableFrom": "actor",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "actor_successor_id_actor_id_fk": {
           "name": "actor_successor_id_actor_id_fk",
           "tableFrom": "actor",
+          "tableTo": "actor",
           "columnsFrom": [
             "successor_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "actor_iri_unique": {
           "name": "actor_iri_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "iri"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "actor_account_id_unique": {
           "name": "actor_account_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "account_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "actor_username_instance_host_unique": {
           "name": "actor_username_instance_host_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "username",
             "instance_host"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -733,28 +733,28 @@
         "article_draft_account_id_account_id_fk": {
           "name": "article_draft_account_id_account_id_fk",
           "tableFrom": "article_draft",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "article_draft_article_source_id_article_source_id_fk": {
           "name": "article_draft_article_source_id_article_source_id_fk",
           "tableFrom": "article_draft",
+          "tableTo": "article_source",
           "columnsFrom": [
             "article_source_id"
           ],
-          "tableTo": "article_source",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -843,34 +843,34 @@
         "article_source_account_id_account_id_fk": {
           "name": "article_source_account_id_account_id_fk",
           "tableFrom": "article_source",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "article_source_og_image_key_unique": {
           "name": "article_source_og_image_key_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "og_image_key"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "article_source_account_id_published_year_slug_unique": {
           "name": "article_source_account_id_published_year_slug_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "account_id",
             "published_year",
             "slug"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -923,46 +923,46 @@
         "blocking_blocker_id_actor_id_fk": {
           "name": "blocking_blocker_id_actor_id_fk",
           "tableFrom": "blocking",
+          "tableTo": "actor",
           "columnsFrom": [
             "blocker_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "blocking_blockee_id_actor_id_fk": {
           "name": "blocking_blockee_id_actor_id_fk",
           "tableFrom": "blocking",
+          "tableTo": "actor",
           "columnsFrom": [
             "blockee_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "blocking_iri_unique": {
           "name": "blocking_iri_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "iri"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "blocking_blocker_id_blockee_id_unique": {
           "name": "blocking_blocker_id_blockee_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "blocker_id",
             "blockee_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -1022,10 +1022,10 @@
       "uniqueConstraints": {
         "custom_emoji_iri_unique": {
           "name": "custom_emoji_iri_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "iri"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -1093,48 +1093,48 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "following_follower_id_actor_id_fk": {
           "name": "following_follower_id_actor_id_fk",
           "tableFrom": "following",
+          "tableTo": "actor",
           "columnsFrom": [
             "follower_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "following_followee_id_actor_id_fk": {
           "name": "following_followee_id_actor_id_fk",
           "tableFrom": "following",
+          "tableTo": "actor",
           "columnsFrom": [
             "followee_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "following_follower_id_followee_id_unique": {
           "name": "following_follower_id_followee_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "follower_id",
             "followee_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -1220,37 +1220,37 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "mention_post_id_post_id_fk": {
           "name": "mention_post_id_post_id_fk",
           "tableFrom": "mention",
+          "tableTo": "post",
           "columnsFrom": [
             "post_id"
           ],
-          "tableTo": "post",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "mention_actor_id_actor_id_fk": {
           "name": "mention_actor_id_actor_id_fk",
           "tableFrom": "mention",
+          "tableTo": "actor",
           "columnsFrom": [
             "actor_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -1313,15 +1313,15 @@
         "note_medium_note_source_id_note_source_id_fk": {
           "name": "note_medium_note_source_id_note_source_id_fk",
           "tableFrom": "note_medium",
+          "tableTo": "note_source",
           "columnsFrom": [
             "note_source_id"
           ],
-          "tableTo": "note_source",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -1336,10 +1336,10 @@
       "uniqueConstraints": {
         "note_medium_key_unique": {
           "name": "note_medium_key_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "key"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -1402,15 +1402,15 @@
         "note_source_account_id_account_id_fk": {
           "name": "note_source_account_id_account_id_fk",
           "tableFrom": "note_source",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1487,15 +1487,15 @@
             },
             {
               "expression": "\"created\" desc",
-              "isExpression": true,
               "asc": true,
+              "isExpression": true,
               "nulls": "last"
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "notification_account_id_actor_ids_index": {
           "name": "notification_account_id_actor_ids_index",
@@ -1514,10 +1514,10 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "\"notification\".\"type\" = 'follow'",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
         "notification_account_id_post_id_index": {
           "name": "notification_account_id_post_id_index",
@@ -1536,10 +1536,10 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "\"notification\".\"type\" NOT IN ('follow', 'react')",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
         "notification_account_id_post_id_emoji_index": {
           "name": "notification_account_id_post_id_emoji_index",
@@ -1564,10 +1564,10 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "\"notification\".\"type\" = 'react' AND \"notification\".\"custom_emoji_id\" IS NULL",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
         "notification_account_id_post_id_custom_emoji_id_index": {
           "name": "notification_account_id_post_id_custom_emoji_id_index",
@@ -1592,51 +1592,51 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "\"notification\".\"type\" = 'react' AND \"notification\".\"emoji\" IS NULL",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
         "notification_account_id_account_id_fk": {
           "name": "notification_account_id_account_id_fk",
           "tableFrom": "notification",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "notification_post_id_post_id_fk": {
           "name": "notification_post_id_post_id_fk",
           "tableFrom": "notification",
+          "tableTo": "post",
           "columnsFrom": [
             "post_id"
           ],
-          "tableTo": "post",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "notification_custom_emoji_id_custom_emoji_id_fk": {
           "name": "notification_custom_emoji_id_custom_emoji_id_fk",
           "tableFrom": "notification",
+          "tableTo": "custom_emoji",
           "columnsFrom": [
             "custom_emoji_id"
           ],
-          "tableTo": "custom_emoji",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1739,9 +1739,9 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "passkey_webauthn_user_id_index": {
           "name": "passkey_webauthn_user_id_index",
@@ -1754,35 +1754,35 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "passkey_account_id_account_id_fk": {
           "name": "passkey_account_id_account_id_fk",
           "tableFrom": "passkey",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "passkey_account_id_webauthn_user_id_unique": {
           "name": "passkey_account_id_webauthn_user_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "account_id",
             "webauthn_user_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -1903,34 +1903,34 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "post_link_creator_id_actor_id_fk": {
           "name": "post_link_creator_id_actor_id_fk",
           "tableFrom": "post_link",
+          "tableTo": "actor",
           "columnsFrom": [
             "creator_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "post_link_url_unique": {
           "name": "post_link_url_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "url"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -2005,6 +2005,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "thumbnail_key": {
+          "name": "thumbnail_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "sensitive": {
           "name": "sensitive",
           "type": "boolean",
@@ -2018,15 +2024,15 @@
         "post_medium_post_id_post_id_fk": {
           "name": "post_medium_post_id_post_id_fk",
           "tableFrom": "post_medium",
+          "tableTo": "post",
           "columnsFrom": [
             "post_id"
           ],
-          "tableTo": "post",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -2038,7 +2044,15 @@
           ]
         }
       },
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "post_medium_thumbnail_key_unique": {
+          "name": "post_medium_thumbnail_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "thumbnail_key"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {
         "post_medium_index_check": {
@@ -2202,8 +2216,8 @@
           "primaryKey": false,
           "notNull": true,
           "generated": {
-            "type": "stored",
-            "as": "json_sum_object_values(\"post\".\"reactions_counts\")"
+            "as": "json_sum_object_values(\"post\".\"reactions_counts\")",
+            "type": "stored"
           }
         },
         "link_id": {
@@ -2251,15 +2265,15 @@
             },
             {
               "expression": "\"published\" desc",
-              "isExpression": true,
               "asc": true,
+              "isExpression": true,
               "nulls": "last"
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "idx_post_actor_id_published": {
           "name": "idx_post_actor_id_published",
@@ -2272,15 +2286,15 @@
             },
             {
               "expression": "\"published\" desc",
-              "isExpression": true,
               "asc": true,
+              "isExpression": true,
               "nulls": "last"
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         },
         "post_reply_target_id_index": {
           "name": "post_reply_target_id_index",
@@ -2293,134 +2307,134 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "post_actor_id_actor_id_fk": {
           "name": "post_actor_id_actor_id_fk",
           "tableFrom": "post",
+          "tableTo": "actor",
           "columnsFrom": [
             "actor_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "post_article_source_id_article_source_id_fk": {
           "name": "post_article_source_id_article_source_id_fk",
           "tableFrom": "post",
+          "tableTo": "article_source",
           "columnsFrom": [
             "article_source_id"
           ],
-          "tableTo": "article_source",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "post_note_source_id_note_source_id_fk": {
           "name": "post_note_source_id_note_source_id_fk",
           "tableFrom": "post",
+          "tableTo": "note_source",
           "columnsFrom": [
             "note_source_id"
           ],
-          "tableTo": "note_source",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "post_shared_post_id_post_id_fk": {
           "name": "post_shared_post_id_post_id_fk",
           "tableFrom": "post",
+          "tableTo": "post",
           "columnsFrom": [
             "shared_post_id"
           ],
-          "tableTo": "post",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "post_reply_target_id_post_id_fk": {
           "name": "post_reply_target_id_post_id_fk",
           "tableFrom": "post",
+          "tableTo": "post",
           "columnsFrom": [
             "reply_target_id"
           ],
-          "tableTo": "post",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         },
         "post_quoted_post_id_post_id_fk": {
           "name": "post_quoted_post_id_post_id_fk",
           "tableFrom": "post",
+          "tableTo": "post",
           "columnsFrom": [
             "quoted_post_id"
           ],
-          "tableTo": "post",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         },
         "post_link_id_post_link_id_fk": {
           "name": "post_link_id_post_link_id_fk",
           "tableFrom": "post",
+          "tableTo": "post_link",
           "columnsFrom": [
             "link_id"
           ],
-          "tableTo": "post_link",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "restrict"
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "post_iri_unique": {
           "name": "post_iri_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "iri"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "post_article_source_id_unique": {
           "name": "post_article_source_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "article_source_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "post_note_source_id_unique": {
           "name": "post_note_source_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "note_source_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "post_actor_id_shared_post_id_unique": {
           "name": "post_actor_id_shared_post_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "actor_id",
             "shared_post_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       },
       "policies": {},
@@ -2514,10 +2528,10 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "\"reaction\".\"custom_emoji_id\" is null",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
         "reaction_post_id_actor_id_custom_emoji_id_index": {
           "name": "reaction_post_id_actor_id_custom_emoji_id_index",
@@ -2542,10 +2556,10 @@
             }
           ],
           "isUnique": true,
-          "with": {},
-          "method": "btree",
           "where": "\"reaction\".\"emoji\" is null",
-          "concurrently": false
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         },
         "reaction_post_id_index": {
           "name": "reaction_post_id_index",
@@ -2558,50 +2572,50 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "reaction_post_id_post_id_fk": {
           "name": "reaction_post_id_post_id_fk",
           "tableFrom": "reaction",
+          "tableTo": "post",
           "columnsFrom": [
             "post_id"
           ],
-          "tableTo": "post",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "reaction_actor_id_actor_id_fk": {
           "name": "reaction_actor_id_actor_id_fk",
           "tableFrom": "reaction",
+          "tableTo": "actor",
           "columnsFrom": [
             "actor_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "reaction_custom_emoji_id_custom_emoji_id_fk": {
           "name": "reaction_custom_emoji_id_custom_emoji_id_fk",
           "tableFrom": "reaction",
+          "tableTo": "custom_emoji",
           "columnsFrom": [
             "custom_emoji_id"
           ],
-          "tableTo": "custom_emoji",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -2677,69 +2691,69 @@
             },
             {
               "expression": "\"added\" desc",
-              "isExpression": true,
               "asc": true,
+              "isExpression": true,
               "nulls": "last"
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "timeline_item_account_id_account_id_fk": {
           "name": "timeline_item_account_id_account_id_fk",
           "tableFrom": "timeline_item",
+          "tableTo": "account",
           "columnsFrom": [
             "account_id"
           ],
-          "tableTo": "account",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "timeline_item_post_id_post_id_fk": {
           "name": "timeline_item_post_id_post_id_fk",
           "tableFrom": "timeline_item",
+          "tableTo": "post",
           "columnsFrom": [
             "post_id"
           ],
-          "tableTo": "post",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "timeline_item_original_author_id_actor_id_fk": {
           "name": "timeline_item_original_author_id_actor_id_fk",
           "tableFrom": "timeline_item",
+          "tableTo": "actor",
           "columnsFrom": [
             "original_author_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "timeline_item_last_sharer_id_actor_id_fk": {
           "name": "timeline_item_last_sharer_id_actor_id_fk",
           "tableFrom": "timeline_item",
+          "tableTo": "actor",
           "columnsFrom": [
             "last_sharer_id"
           ],
-          "tableTo": "actor",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "set null"
+          "onDelete": "set null",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -2854,7 +2868,9 @@
         "image/jpeg",
         "image/png",
         "image/svg+xml",
-        "image/webp"
+        "image/webp",
+        "video/mp4",
+        "video/webm"
       ]
     },
     "public.post_type": {
@@ -2879,10 +2895,10 @@
     }
   },
   "schemas": {},
-  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
+  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

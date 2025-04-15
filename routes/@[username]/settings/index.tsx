@@ -167,7 +167,8 @@ export const handler = define.handlers({
     const emails = await db.query.accountEmailTable.findMany({
       where: { accountId: updatedAccount.id },
     });
-    await syncActorFromAccount(db, kv, ctx.state.fedCtx, {
+    const disk = drive.use();
+    await syncActorFromAccount(db, kv, disk, ctx.state.fedCtx, {
       ...updatedAccount,
       emails,
     });

@@ -17,7 +17,9 @@ export const handler = define.handlers({
     });
     if (account == null) return ctx.next();
     const disk = drive.use();
-    const bio = await renderMarkup(db, ctx.state.fedCtx, account.bio, { kv });
+    const bio = await renderMarkup(db, disk, ctx.state.fedCtx, account.bio, {
+      kv,
+    });
     const emptyBio = bio.text == null || bio.text.trim() === "";
     const ogImageKey = await drawOgImage(
       disk,

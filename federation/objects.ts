@@ -33,10 +33,11 @@ import { federation } from "./federation.ts";
 
 export async function getArticle(
   db: Database,
+  disk: Disk,
   ctx: Context<void>,
   articleSource: ArticleSource & { account: Account },
 ): Promise<vocab.Article> {
-  const rendered = await renderMarkup(db, ctx, articleSource.content, {
+  const rendered = await renderMarkup(db, disk, ctx, articleSource.content, {
     docId: articleSource.id,
     kv,
   });
@@ -89,7 +90,8 @@ federation.setObjectDispatcher(
       where: { id: values.id },
     });
     if (articleSource == null) return null;
-    return await getArticle(db, ctx, articleSource);
+    const disk = drive.use();
+    return await getArticle(db, disk, ctx, articleSource);
   },
 );
 
@@ -131,7 +133,7 @@ export async function getNote(
     quotedPost?: Post;
   } = {},
 ): Promise<vocab.Note> {
-  const rendered = await renderMarkup(db, ctx, note.content, {
+  const rendered = await renderMarkup(db, disk, ctx, note.content, {
     docId: note.id,
     kv,
   });
