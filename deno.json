@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "tasks": {
     "check": "deno fmt --check && deno lint && deno check .",
-    "test": "deno test --env-file=.env.test --allow-env --allow-net --parallel",
+    "test": "deno test --env-file=.env.test --allow-all --parallel",
     "dev": "deno run -A --watch=static/,routes/ dev.ts",
     "build": "deno run -A dev.ts build",
     "start": "deno run -A main.ts",

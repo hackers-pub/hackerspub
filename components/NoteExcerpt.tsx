@@ -179,9 +179,23 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   href={post.linkUrl ?? post.link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="block border border-stone-300 bg-stone-100 dark:border-stone-700 dark:bg-stone-800 max-w-prose"
+                  class={`
+                    border border-stone-300
+                    bg-stone-100 dark:border-stone-700 dark:bg-stone-800
+                    max-w-prose
+                    ${
+                    post.link.imageUrl == null ||
+                      post.link.imageWidth != null &&
+                        post.link.imageHeight != null &&
+                        post.link.imageWidth / post.link.imageHeight > 1.5
+                      ? "block"
+                      : "flex items-center"
+                  }
+                  `}
                 >
-                  {post.link.imageUrl &&
+                  {post.link.imageUrl && post.link.imageWidth != null &&
+                    post.link.imageHeight != null &&
+                    post.link.imageWidth / post.link.imageHeight > 1.5 &&
                     (
                       <img
                         src={post.link.imageUrl}
@@ -191,34 +205,48 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                         class="w-full h-auto"
                       />
                     )}
-                  <p class="m-4 font-bold">{post.link.title}</p>
-                  {(post.link.description ||
-                    post.link.author && !URL.canParse(post.link.author)) && (
-                    <p class="m-4 text-stone-500 dark:text-stone-400 line-clamp-2">
-                      {post.link.author && (
+                  {post.link.imageUrl && (post.link.imageWidth == null ||
+                    post.link.imageHeight == null ||
+                    post.link.imageWidth / post.link.imageHeight <= 1.5) &&
+                    (
+                      <img
+                        src={post.link.imageUrl}
+                        alt={post.link.imageAlt ?? undefined}
+                        width={post.link.imageWidth ?? undefined}
+                        height={post.link.imageHeight ?? undefined}
+                        class="max-h-40 w-auto"
+                      />
+                    )}
+                  <div>
+                    <p class="m-4 font-bold">{post.link.title}</p>
+                    {(post.link.description ||
+                      post.link.author && !URL.canParse(post.link.author)) && (
+                      <p class="m-4 text-stone-500 dark:text-stone-400 line-clamp-2">
+                        {post.link.author && (
+                          <>
+                            <span class="font-bold">{post.link.author}</span>
+                            {post.link.description && " · "}
+                          </>
+                        )}
+                        {post.link.description}
+                      </p>
+                    )}
+                    <p class="m-4">
+                      <span class="text-stone-500 dark:text-stone-400 uppercase">
+                        {new URL(post.link.url).host}
+                      </span>
+                      {post.link.siteName && (
                         <>
-                          <span class="font-bold">{post.link.author}</span>
-                          {post.link.description && " · "}
+                          <span class="text-stone-500 dark:text-stone-400">
+                            {" · "}
+                          </span>
+                          <span class="text-stone-500 dark:text-stone-400 font-bold">
+                            {post.link.siteName}
+                          </span>
                         </>
                       )}
-                      {post.link.description}
                     </p>
-                  )}
-                  <p class="m-4">
-                    <span class="text-stone-500 dark:text-stone-400 uppercase">
-                      {new URL(post.link.url).host}
-                    </span>
-                    {post.link.siteName && (
-                      <>
-                        <span class="text-stone-500 dark:text-stone-400">
-                          {" · "}
-                        </span>
-                        <span class="text-stone-500 dark:text-stone-400 font-bold">
-                          {post.link.siteName}
-                        </span>
-                      </>
-                    )}
-                  </p>
+                  </div>
                 </a>
                 {post.link.creator && (
                   <p class="max-w-prose p-4 bg-stone-300 dark:bg-stone-700 text-stone-700 dark:text-stone-300">

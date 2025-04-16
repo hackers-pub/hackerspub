@@ -28,6 +28,7 @@ import { Buffer } from "node:buffer";
 import ogs from "open-graph-scraper";
 import { PDFDocument } from "pdf-lib";
 import postgres from "postgres";
+import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
 import type { Database, RelationsFilter } from "../db.ts";
 import { ORIGIN } from "../federation/federation.ts";
@@ -1577,6 +1578,38 @@ export async function scrapePostLink(
         : twitterImage[0].height,
     }
     : {};
+  if (
+    image.imageUrl != null &&
+    (image.imageWidth == null || image.imageHeight == null)
+  ) {
+    const response = await fetch(image.imageUrl, {
+      headers: {
+        "User-Agent": getUserAgent({
+          software: "HackersPub",
+          url: new URL(ORIGIN),
+        }),
+        "Accept": "image/*",
+      },
+      redirect: "follow",
+    });
+    if (response.ok) {
+      const body = await response.arrayBuffer();
+      const metadata = await sharp(body).metadata();
+      switch (metadata.orientation) {
+        case 6:
+        case 8:
+          image.imageWidth = metadata.height;
+          image.imageHeight = metadata.width;
+          break;
+        case 1:
+        case 3:
+        default:
+          image.imageWidth = metadata.width;
+          image.imageHeight = metadata.height;
+          break;
+      }
+    }
+  }
   const creatorHandle = result.customMetaTags?.fediverseCreator == null
     ? undefined
     : Array.isArray(result.customMetaTags.fediverseCreator)
