@@ -55,6 +55,7 @@ export function Editor(props: EditorProps) {
   const [draftSaved, setDraftSaved] = useState(false);
   const titleInput = useRef<HTMLInputElement | null>(null);
   const contentTextArea = useRef<HTMLTextAreaElement | null>(null);
+  const [previewMode, setPreviewMode] = useState(false);
   const [publishMode, setPublishMode] = useState(false);
   const [slug, setSlug] = useState<string | null>(
     "slug" in props ? props.slug : null,
@@ -164,6 +165,7 @@ export function Editor(props: EditorProps) {
   }
 
   function switchToPublishMode() {
+    setPreviewMode(false);
     if ("draftUrl" in props) {
       saveDraft(props.draftUrl, Date.now()).then((data) => {
         validateAndSetPublishMode(data);
@@ -221,7 +223,13 @@ export function Editor(props: EditorProps) {
   return (
     <TranslationSetup language={props.language}>
       <div class={`flex ${props.class}`}>
-        <div class={`basis-1/2 flex flex-col ${publishMode ? "hidden" : ""}`}>
+        <div
+          class={`
+            basis-full lg:basis-1/2 flex-col
+            ${previewMode ? "hidden lg:flex" : "flex"}
+            ${publishMode ? "hidden" : ""}
+          `}
+        >
           <div class="border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
             <input
               ref={titleInput}
@@ -251,13 +259,30 @@ export function Editor(props: EditorProps) {
               value={content}
             />
           </div>
+          <div class="flex lg:hidden border-t border-t-stone-300 dark:border-t-stone-600">
+            <Button onClick={switchToPublishMode}>
+              <Msg $key="editor.publish" />
+            </Button>
+            <TagInput
+              class="grow"
+              tags={tags}
+              onTagsChange={setTags}
+            />
+            <Button onClick={() => setPreviewMode(true)}>
+              <Msg $key="editor.preview" />
+            </Button>
+          </div>
         </div>
         <div
-          class={`basis-1/2 flex flex-col ${
+          class={`
+            basis-full lg:basis-1/2 flex-col
+            ${previewMode ? "flex" : "hidden lg:flex"}
+            ${
             publishMode
               ? ""
-              : "border-l-[1px] border-l-stone-300 dark:border-l-stone-600"
-          }`}
+              : "lg:border-l-[1px] lg:border-l-stone-300 lg:dark:border-l-stone-600"
+          }
+          `}
         >
           {publishMode
             ? (
@@ -266,16 +291,23 @@ export function Editor(props: EditorProps) {
               </h1>
             )
             : (
-              <div class="flex border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
-                <TagInput
-                  class="grow"
-                  defaultTags={tags}
-                  onTagsChange={setTags}
-                />
-                <Button onClick={switchToPublishMode}>
-                  <Msg $key="editor.publish" />
-                </Button>
-              </div>
+              <>
+                {previewMode && (
+                  <h1 class="lg:hidden text-2xl p-4 border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
+                    {draftTitle}
+                  </h1>
+                )}
+                <div class="hidden lg:flex border-b-[1px] border-b-stone-300 dark:border-b-stone-600">
+                  <TagInput
+                    class="grow"
+                    tags={tags}
+                    onTagsChange={setTags}
+                  />
+                  <Button onClick={switchToPublishMode}>
+                    <Msg $key="editor.publish" />
+                  </Button>
+                </div>
+              </>
             )}
           <div class="grow overflow-y-scroll p-4 text-xl">
             <div
@@ -299,10 +331,26 @@ export function Editor(props: EditorProps) {
               }}
             />
           </div>
+          {previewMode &&
+            (
+              <div class="flex lg:hidden border-t border-t-stone-300 dark:border-t-stone-600">
+                <Button onClick={switchToPublishMode} class="lg:hidden">
+                  <Msg $key="editor.publish" />
+                </Button>
+                <TagInput
+                  class="grow"
+                  tags={tags}
+                  onTagsChange={setTags}
+                />
+                <Button onClick={() => setPreviewMode(false)}>
+                  <Msg $key="editor.edit" />
+                </Button>
+              </div>
+            )}
         </div>
         {publishMode &&
           (
-            <div class="basis-1/2 flex flex-col border-l-[1px] border-l-stone-300 dark:border-l-stone-600">
+            <div class="basis-full lg:basis-1/2 flex flex-col lg:border-l lg:border-l-stone-300 lg:dark:border-l-stone-600">
               <div class="p-4">
                 <PageTitle>
                   <Msg $key="editor.publishMode.title" />
@@ -398,8 +446,8 @@ export function Editor(props: EditorProps) {
             </div>
           )}
       </div>
-      {draftSaved && (
-        <div class="fixed bottom-6 right-6 bg-stone-300 text-white px-4 py-2 rounded-lg text-sm shadow-lg bg-opacity-60">
+      {draftSaved && !publishMode && (
+        <div class="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 bg-stone-300 text-white px-4 py-2 rounded-lg text-sm shadow-lg bg-opacity-60">
           <Msg
             $key="editor.draftSaved"
             saved={new Date(draftUpdated).toLocaleTimeString(props.language, {

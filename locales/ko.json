@@ -271,6 +271,8 @@
     "tagsPlaceholder": "태그를 공백으로 구분하여 입력하세요.",
     "tagsRequired": "게시글에는 최소한 하나의 태그를 붙여야 합니다.",
     "removeTag": "태그 지우기",
+    "edit": "편집",
+    "preview": "미리보기",
     "publish": "게시글 공개",
     "publishMode": {
       "title": "$t(editor.publish)",

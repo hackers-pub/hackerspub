@@ -3,14 +3,13 @@ import { Translation } from "../components/Msg.tsx";
 
 export interface TagInputProps {
   class?: string;
-  defaultTags?: string[];
+  tags: string[];
   onTagsChange?: (tags: string[]) => void;
 }
 
 export function TagInput(
-  { class: className, defaultTags, onTagsChange }: TagInputProps,
+  { class: className, tags, onTagsChange }: TagInputProps,
 ) {
-  const [tags, setTags] = useState<string[]>(defaultTags ?? []);
   const [input, setInput] = useState<string>("");
 
   function commitTag() {
@@ -23,7 +22,6 @@ export function TagInput(
     let newTags: string[] | undefined;
     if (!dup) {
       newTags = [...tags, newTag];
-      setTags(newTags);
     }
     setInput("");
     if (newTags != null) onTagsChange?.(newTags);
@@ -35,14 +33,12 @@ export function TagInput(
       commitTag();
     } else if (e.key === "Backspace" && !input && tags.length > 0) {
       const newTags = tags.slice(0, -1);
-      setTags(newTags);
       onTagsChange?.(newTags);
     }
   };
 
   const removeTag = (indexToRemove: number) => {
     const newTags = tags.filter((_, index) => index !== indexToRemove);
-    setTags(newTags);
     onTagsChange?.(newTags);
   };
 

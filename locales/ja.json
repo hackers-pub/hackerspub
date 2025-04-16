@@ -273,6 +273,8 @@
     "tagsPlaceholder": "タグをスペースで区切って入力",
     "tagsRequired": "最低1つのタグを入力してください。",
     "removeTag": "タグを削除",
+    "edit": "編集",
+    "preview": "プレビュー",
     "publish": "公開する",
     "publishMode": {
       "title": "記事の公開",

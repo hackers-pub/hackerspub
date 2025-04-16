@@ -279,6 +279,8 @@
     "tagsPlaceholder": "Type tags separated by spaces",
     "tagsRequired": "Please enter at least one tag for your article.",
     "removeTag": "Remove tag",
+    "edit": "Edit",
+    "preview": "Preview",
     "publish": "Publish",
     "publishMode": {
       "title": "$t(editor.publish)",

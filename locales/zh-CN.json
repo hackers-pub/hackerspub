@@ -275,6 +275,8 @@
     "tagsPlaceholder": "输入标签，用空格分割。",
     "tagsRequired": "请在文章中至少用一个标签。",
     "removeTag": "删除标签",
+    "edit": "编辑",
+    "preview": "预览",
     "publish": "发布",
     "publishMode": {
       "title": "$t(editor.publish)",

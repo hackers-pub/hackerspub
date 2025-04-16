@@ -275,6 +275,8 @@
     "tagsPlaceholder": "輸入標籤，用空格分隔。",
     "tagsRequired": "請在文章中至少用一個標籤。",
     "removeTag": "刪除標籤",
+    "edit": "編輯",
+    "preview": "預覽",
     "publish": "發佈",
     "publishMode": {
       "title": "$t(editor.publish)",
