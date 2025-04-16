@@ -1,0 +1,1 @@
+ALTER TABLE "poll_option" ADD CONSTRAINT "poll_option_post_id_title_unique" UNIQUE("post_id","title");

@@ -265,6 +265,12 @@
       "sharers": "Who shared this"
     }
   },
+  "poll": {
+    "totalVoters": "Total voters: {{voters}}",
+    "submitVote": "Vote",
+    "submittingVote": "Submitting vote…",
+    "voted": "Voted"
+  },
   "editor": {
     "titlePlaceholder": "Article title",
     "titleRequired": "Please enter a title for your article.",

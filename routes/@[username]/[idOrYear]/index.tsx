@@ -585,7 +585,7 @@ export default define.page<typeof handler, NotePageProps>(
           )}
         {replies.map((reply) => (
           <>
-            <NoteExcerpt post={reply} />
+            <NoteExcerpt post={reply} signedAccount={state.account} />
             <PostControls
               class="mt-4 ml-14"
               language={state.language}

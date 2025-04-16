@@ -174,6 +174,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.postTable.linkId,
       to: r.postLinkTable.id,
     }),
+    poll: r.one.pollTable({
+      from: r.postTable.id,
+      to: r.pollTable.postId,
+    }),
   },
   mentionTable: {
     post: r.one.postTable({
@@ -198,6 +202,39 @@ export const relations = defineRelations(schema, (r) => ({
     creator: r.one.actorTable({
       from: r.postLinkTable.creatorId,
       to: r.actorTable.id,
+    }),
+  },
+  pollTable: {
+    post: r.one.postTable({
+      from: r.pollTable.postId,
+      to: r.postTable.id,
+      optional: false,
+    }),
+    options: r.many.pollOptionTable(),
+    votes: r.many.pollVoteTable(),
+  },
+  pollOptionTable: {
+    poll: r.one.pollTable({
+      from: r.pollOptionTable.postId,
+      to: r.pollTable.postId,
+      optional: false,
+    }),
+    votes: r.many.pollVoteTable(),
+  },
+  pollVoteTable: {
+    poll: r.one.pollTable({
+      from: r.pollVoteTable.postId,
+      to: r.pollTable.postId,
+      optional: false,
+    }),
+    option: r.one.pollOptionTable({
+      from: [r.pollVoteTable.postId, r.pollVoteTable.optionIndex],
+      to: [r.pollOptionTable.postId, r.pollOptionTable.index],
+    }),
+    actor: r.one.actorTable({
+      from: r.pollVoteTable.actorId,
+      to: r.actorTable.id,
+      optional: false,
     }),
   },
   reactionTable: {

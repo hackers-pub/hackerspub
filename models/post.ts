@@ -48,6 +48,7 @@ import {
   createShareNotification,
   deleteShareNotification,
 } from "./notification.ts";
+import { persistPoll } from "./poll.ts";
 import {
   type Account,
   type AccountEmail,
@@ -66,6 +67,7 @@ import {
   type NoteMedium,
   type NoteSource,
   noteSourceTable,
+  type Poll,
   type Post,
   type PostLink,
   postLinkTable,
@@ -318,6 +320,7 @@ export async function persistPost(
     mentions: (Mention & { actor: Actor })[];
     replyTarget: Post & { actor: Actor } | null;
     quotedPost: Post & { actor: Actor } | null;
+    poll: Poll | null;
   }
   | undefined
 > {
@@ -591,11 +594,16 @@ export async function persistPost(
       }
     }
   }
+  let poll: Poll | undefined;
+  if (post instanceof vocab.Question) {
+    poll = await persistPoll(db, post, persistedPost.id);
+  }
   return {
     ...persistedPost,
     replyTarget: replyTarget ?? null,
     quotedPost: quotedPost ?? null,
     mentions: mentionList,
+    poll: poll ?? null,
   };
 }
 

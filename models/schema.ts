@@ -5,6 +5,7 @@ import {
   boolean,
   bytea,
   check,
+  foreignKey,
   index,
   integer,
   json,
@@ -765,6 +766,76 @@ export const postLinkTable = pgTable(
 
 export type PostLink = typeof postLinkTable.$inferSelect;
 export type NewPostLink = typeof postLinkTable.$inferInsert;
+
+export const pollTable = pgTable(
+  "poll",
+  {
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .primaryKey()
+      .references(() => postTable.id, { onDelete: "cascade" }),
+    multiple: boolean().notNull(),
+    votersCount: integer("voters_count").notNull().default(0),
+    ends: timestamp({ withTimezone: true }).notNull(),
+  },
+  (table) => [
+    check("poll_voters_count_check", sql`${table.votersCount} >= 0`),
+  ],
+);
+
+export type Poll = typeof pollTable.$inferSelect;
+export type NewPoll = typeof pollTable.$inferInsert;
+
+export const pollOptionTable = pgTable(
+  "poll_option",
+  {
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => pollTable.postId, { onDelete: "cascade" }),
+    index: smallint().notNull(),
+    title: text().notNull(),
+    votesCount: integer("votes_count").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({ columns: [table.postId, table.index] }),
+    unique().on(table.postId, table.title),
+    check("poll_option_index_check", sql`${table.index} >= 0`),
+    check("poll_option_votes_count_check", sql`${table.votesCount} >= 0`),
+  ],
+);
+
+export type PollOption = typeof pollOptionTable.$inferSelect;
+export type NewPollOption = typeof pollOptionTable.$inferInsert;
+
+export const pollVoteTable = pgTable(
+  "poll_vote",
+  {
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => pollTable.postId, { onDelete: "cascade" }),
+    optionIndex: smallint("option_index").notNull(),
+    actorId: uuid("actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => actorTable.id, { onDelete: "cascade" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.postId, table.optionIndex, table.actorId] }),
+    foreignKey({
+      columns: [table.postId, table.optionIndex],
+      foreignColumns: [pollOptionTable.postId, pollOptionTable.index],
+    }),
+  ],
+);
+
+export type PollVote = typeof pollVoteTable.$inferSelect;
+export type NewPollVote = typeof pollVoteTable.$inferInsert;
 
 export const reactionTable = pgTable(
   "reaction",

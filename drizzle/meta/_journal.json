@@ -519,6 +519,20 @@
       "when": 1744697101577,
       "tag": "0073_add-video-quicktime-to-post_medium_type",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1744716036181,
+      "tag": "0074_poll",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1744776926997,
+      "tag": "0075_unique-constraint-poll_option.title",
+      "breakpoints": true
     }
   ]
 }

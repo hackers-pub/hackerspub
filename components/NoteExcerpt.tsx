@@ -1,12 +1,14 @@
 import { escape } from "@std/html/entities";
 import { Link } from "../islands/Link.tsx";
 import { MediumThumbnail } from "../islands/MediumThumbnail.tsx";
+import { PollCard } from "../islands/PollCard.tsx";
 import { QuotedPostCard } from "../islands/QuotedPostCard.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
 import { getAvatarUrl } from "../models/avatar.ts";
 import { renderCustomEmojis } from "../models/emoji.ts";
 import { preprocessContentHtml } from "../models/html.ts";
 import type {
+  Account,
   Actor,
   Mention,
   Post,
@@ -30,6 +32,7 @@ export interface NoteExcerptProps {
   sharer?: Actor | null;
   replyTarget?: boolean;
   reply?: boolean;
+  signedAccount?: Account & { actor: Actor };
 }
 
 export function NoteExcerpt(props: NoteExcerptProps) {
@@ -160,6 +163,15 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 ),
               }}
             />
+            {post.type === "Question" &&
+              (
+                <PollCard
+                  language={lang}
+                  postId={post.id}
+                  signedAccount={props.signedAccount}
+                  class="mt-4"
+                />
+              )}
             {post.media.length < 1 && post.quotedPostId == null &&
               post.link && (
               <div class="mt-4">

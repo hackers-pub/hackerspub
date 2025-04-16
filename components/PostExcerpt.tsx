@@ -141,6 +141,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                     sharer={sharer}
                     replyTarget={props.replier != null}
                     reply={replyTarget != null}
+                    signedAccount={props.signedAccount}
                   />
                   {!props.replier && !props.noControls && (
                     <PostControls

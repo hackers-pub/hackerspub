@@ -16,6 +16,7 @@ import type {
 } from "../models/schema.ts";
 import type { Uuid } from "../models/uuid.ts";
 import { Link } from "./Link.tsx";
+import { PollCard } from "./PollCard.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 
 export interface QuotedPostCardProps {
@@ -201,6 +202,13 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                         ),
                       }}
                     />
+                    {post.type === "Question" && (
+                      <PollCard
+                        language={props.language}
+                        postId={post.id}
+                        class="ml-14 mt-2 border border-stone-300 dark:border-stone-700"
+                      />
+                    )}
                     {post.media.length > 0 && (
                       <div class="flex justify-center w-full overflow-x-auto">
                         {post.media.map((medium) => {

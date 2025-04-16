@@ -31,7 +31,8 @@
   },
   "fmt": {
     "exclude": [
-      "*.md"
+      "*.md",
+      "*.yaml"
     ]
   },
   "exclude": [
