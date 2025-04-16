@@ -259,6 +259,12 @@
       "sharers": "共有した人々"
     }
   },
+  "poll": {
+    "totalVoters": "投票者数：{{voters}}",
+    "submitVote": "投票する",
+    "submittingVote": "投票中…",
+    "voted": "投票済み"
+  },
   "editor": {
     "titlePlaceholder": "記事のタイトル",
     "titleRequired": "記事のタイトルを入力してください。",

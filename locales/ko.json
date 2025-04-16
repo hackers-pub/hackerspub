@@ -257,6 +257,12 @@
       "sharers": "공유한 사람들"
     }
   },
+  "poll": {
+    "totalVoters": "총 투표자: {{voters}}",
+    "submitVote": "투표",
+    "submittingVote": "투표 중…",
+    "voted": "투표함"
+  },
   "editor": {
     "titlePlaceholder": "게시글 제목",
     "titleRequired": "게시글 제목을 입력하세요.",

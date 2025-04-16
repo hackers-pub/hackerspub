@@ -261,6 +261,12 @@
       "sharers": "轉貼此內容的人"
     }
   },
+  "poll": {
+    "totalVoters": "總投票人數：{{voters}}",
+    "submitVote": "投票",
+    "submittingVote": "正在提交投票……",
+    "voted": "已投票"
+  },
   "editor": {
     "titlePlaceholder": "文章標題",
     "titleRequired": "請給文章取個標題。",
