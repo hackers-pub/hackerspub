@@ -50,7 +50,7 @@ Prerequisites
 
 To build the project, you need to have the following tools installed:
 
- -  [Deno] 2.0 or higher
+ -  [Deno] 2.2 or higher
  -  [PostgreSQL] 17 or higher
  -  [ffmpeg] 5.0 or higher
  -  [Mailgun] account
@@ -258,7 +258,7 @@ deno task check
 > [!TIP]
 > Or, you can use the following command to install a *pre-commit* hook that
 > checks the code formatting and runs lint checks before committing:
-> 
+>
 > ~~~~ sh
 > deno task hooks:install
 > ~~~~
