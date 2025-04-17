@@ -136,6 +136,20 @@ deno task migrate
 ~~~~
 
 
+Creating the first account
+--------------------------
+
+To create the first account, you need to run the following command:
+
+~~~~ sh
+deno task addaccount your@email.com
+~~~~
+
+This command creates a sign up token for the first account.  You can use any
+email address you want.  The command will print a link to the console.
+You can use this link to sign up for the first account after running the server.
+
+
 Running the server
 ------------------
 

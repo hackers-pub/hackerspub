@@ -13,6 +13,7 @@
     "migrate:generate": "deno run -A npm:drizzle-kit@beta generate",
     "migrate:test": "deno run --env-file=.env.test -A npm:drizzle-kit@beta migrate",
     "keygen": "deno run --allow-read --allow-env scripts/keygen.ts",
+    "addaccount": "deno run --allow-all --env-file=.env scripts/addaccount.ts",
     "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",
     "hooks:pre-commit": "deno task check"
   },
