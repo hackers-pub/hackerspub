@@ -6,7 +6,7 @@
     "test": "deno test --env-file=.env.test --allow-all --parallel",
     "dev": "deno run -A --watch=static/,routes/ dev.ts",
     "build": "deno run -A dev.ts build",
-    "start": "deno run -A main.ts",
+    "start": "deno run -A --unstable-otel main.ts",
     "update": "deno run -A -r jsr:@fresh/update .",
     "drizzle-kit": "deno run -A npm:drizzle-kit@beta",
     "migrate": "deno run -A npm:drizzle-kit@beta migrate",
@@ -135,6 +135,7 @@
   },
   "unstable": [
     "kv",
+    "otel",
     "temporal"
   ],
   "compilerOptions": {
