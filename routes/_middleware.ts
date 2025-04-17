@@ -1,4 +1,3 @@
-import { setUser } from "@sentry/deno";
 import { getCookies } from "@std/http/cookie";
 import { acceptsLanguages } from "@std/http/negotiation";
 import { db } from "../db.ts";
@@ -34,30 +33,9 @@ export const handler = define.middleware([
         });
         ctx.state.account = account;
         ctx.state.session = account == null ? undefined : session;
-        if (account != null) {
-          setUser({
-            id: account.id,
-            username: account.username,
-            email: account.emails[0]?.email,
-            ip_address: ctx.info.remoteAddr.transport === "tcp"
-              ? ctx.info.remoteAddr.hostname
-              : undefined,
-          });
-        }
       }
     }
-    if (ctx.state.account == null) {
-      setUser({
-        ip_address: ctx.info.remoteAddr.transport === "tcp"
-          ? ctx.info.remoteAddr.hostname
-          : undefined,
-      });
-    }
-    try {
-      return await ctx.next();
-    } finally {
-      setUser(null);
-    }
+    return await ctx.next();
   },
   (ctx) => {
     const lang = normalizeLanguage(ctx.url.searchParams.get("lang"));

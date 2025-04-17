@@ -14,7 +14,6 @@ import {
   Update,
 } from "@fedify/fedify";
 import { getLogger } from "@logtape/logtape";
-import { captureException } from "@sentry/deno";
 import { isPostObject } from "../../models/post.ts";
 import { federation } from "../federation.ts";
 import { onActorDeleted, onActorMoved, onActorUpdated } from "./actor.ts";
@@ -70,5 +69,4 @@ federation
       logger.warn("Unhandled Delete object: {delete}", { delete: del });
   })
   .on(Move, onActorMoved)
-  .on(Block, onBlocked)
-  .onError((_, error) => void captureException(error));
+  .on(Block, onBlocked);

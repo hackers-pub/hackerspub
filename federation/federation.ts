@@ -6,7 +6,6 @@ import { Redis } from "ioredis";
 import { postgres } from "../db.ts";
 import metadata from "../deno.json" with { type: "json" };
 import { kvUrl } from "../kv.ts";
-import { tracerProvider } from "../sentry.ts";
 
 const logger = getLogger(["hackerspub", "federation"]);
 
@@ -38,5 +37,4 @@ export const federation = createFederation<void>({
     software: `HackersPup/${metadata.version}`,
     url: new URL(ORIGIN),
   },
-  tracerProvider,
 });

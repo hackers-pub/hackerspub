@@ -8,13 +8,11 @@ import {
   ATTR_HTTP_RESPONSE_STATUS_CODE,
   ATTR_URL_FULL,
 } from "@opentelemetry/semantic-conventions";
-import { captureException } from "@sentry/deno";
 import "@std/dotenv/load";
 import { serveDir } from "@std/http/file-server";
 import { App, fsRoutes, HttpError, staticFiles, trailingSlashes } from "fresh";
 import { federation } from "./federation/mod.ts";
 import "./logging.ts";
-import "./sentry.ts";
 import type { State } from "./utils.ts";
 
 export const app = new App<State>();
@@ -85,7 +83,6 @@ app.use(async (ctx) => {
         code: SpanStatusCode.ERROR,
         message: `${error}`,
       });
-      captureException(error);
       throw error;
     } finally {
       span.end();
