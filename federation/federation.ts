@@ -34,7 +34,7 @@ export const federation = createFederation<void>({
   queue,
   origin: ORIGIN,
   userAgent: {
-    software: `HackersPup/${metadata.version}`,
+    software: `HackersPub/${metadata.version}`,
     url: new URL(ORIGIN),
   },
 });
