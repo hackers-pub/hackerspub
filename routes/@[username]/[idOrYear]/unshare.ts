@@ -34,11 +34,21 @@ export const handler = define.handlers({
       if (ctx.params.username.endsWith(`@${ctx.url.host}`)) {
         return ctx.redirect(`/@${ctx.params.username}/${id}`);
       }
-      const result = await getPostByUsernameAndId(db, ctx.params.username, id);
+      const result = await getPostByUsernameAndId(
+        db,
+        ctx.params.username,
+        id,
+        ctx.state.account,
+      );
       if (result == null) return ctx.next();
       post = result;
     } else {
-      const note = await getNoteSource(db, ctx.params.username, id);
+      const note = await getNoteSource(
+        db,
+        ctx.params.username,
+        id,
+        ctx.state.account,
+      );
       if (note == null) return ctx.next();
       post = note.post;
     }

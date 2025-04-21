@@ -879,7 +879,7 @@ export function getPostByUsernameAndId(
   db: Database,
   username: string,
   id: Uuid,
-  signedAccount?: Account & { actor: Actor },
+  signedAccount: Account & { actor: Actor } | undefined,
 ): Promise<
   | Post & {
     actor: Actor & {

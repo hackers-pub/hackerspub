@@ -464,7 +464,12 @@ export const handler = define.handlers({
     if (ctx.params.username.includes("@")) return ctx.next();
     if (ctx.state.account == null) return ctx.next();
     const id = ctx.params.idOrYear;
-    const note = await getNoteSource(db, ctx.params.username, id);
+    const note = await getNoteSource(
+      db,
+      ctx.params.username,
+      id,
+      ctx.state.account,
+    );
     if (note == null || note.accountId !== ctx.state.account.id) {
       return ctx.next();
     }

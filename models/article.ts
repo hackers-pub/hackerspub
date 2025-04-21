@@ -77,7 +77,7 @@ export async function getArticleSource(
   username: string,
   publishedYear: number,
   slug: string,
-  signedAccount?: Account & { actor: Actor },
+  signedAccount: Account & { actor: Actor } | undefined,
 ): Promise<
   ArticleSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };

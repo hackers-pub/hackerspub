@@ -49,7 +49,7 @@ export async function getNoteSource(
   db: Database,
   username: string,
   id: Uuid,
-  signedAccount?: Account & { actor: Actor },
+  signedAccount: Account & { actor: Actor } | undefined,
 ): Promise<
   NoteSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
