@@ -68,10 +68,10 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   : `/@${post.actor.username}`}
               >
                 {post.actor.name == null
-                  ? <strong>{post.actor.username}</strong>
+                  ? <strong class="break-keep">{post.actor.username}</strong>
                   : (
                     <strong
-                      class="text-black dark:text-white"
+                      class="text-black dark:text-white break-keep"
                       dangerouslySetInnerHTML={{
                         __html: renderCustomEmojis(
                           escape(post.actor.name),
