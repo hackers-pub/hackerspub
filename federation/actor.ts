@@ -7,14 +7,11 @@ import {
   importJwk,
   Person,
 } from "@fedify/fedify";
-import { db } from "../db.ts";
-import { drive } from "../drive.ts";
-import { kv } from "../kv.ts";
 import { getAvatarUrl, renderAccountLinks } from "../models/account.ts";
 import { renderMarkup } from "../models/markup.ts";
 import { accountKeyTable, type NewAccountKey } from "../models/schema.ts";
 import { validateUuid } from "../models/uuid.ts";
-import { federation } from "./federation.ts";
+import { builder } from "./builder.ts";
 
 const INSTANCE_ACTOR_KEY = Deno.env.get("INSTANCE_ACTOR_KEY");
 if (INSTANCE_ACTOR_KEY == null) {
@@ -35,7 +32,7 @@ const INSTANCE_ACTOR_KEY_PAIR: CryptoKeyPair = {
   }, "public"),
 };
 
-federation
+builder
   .setActorDispatcher(
     "/ap/actors/{identifier}",
     async (ctx, identifier) => {
@@ -64,7 +61,7 @@ federation
       }
 
       if (!validateUuid(identifier)) return null;
-      const account = await db.query.accountTable.findFirst({
+      const account = await ctx.data.db.query.accountTable.findFirst({
         where: { id: identifier },
         with: {
           emails: true,
@@ -72,11 +69,16 @@ federation
         },
       });
       if (account == null) return null;
-      const disk = drive.use();
-      const bio = await renderMarkup(db, disk, ctx, account.bio, {
-        docId: account.id,
-        kv,
-      });
+      const bio = await renderMarkup(
+        ctx.data.db,
+        ctx.data.disk,
+        ctx,
+        account.bio,
+        {
+          docId: account.id,
+          kv: ctx.data.kv,
+        },
+      );
       const keys = await ctx.getActorKeyPairs(identifier);
       return new Person({
         id: ctx.getActorUri(identifier),
@@ -93,7 +95,7 @@ federation
           sharedInbox: ctx.getInboxUri(),
         }),
         icon: new Image({
-          url: new URL(await getAvatarUrl(account)),
+          url: new URL(await getAvatarUrl(ctx.data.disk, account)),
         }),
         attachments: renderAccountLinks(account.links),
         following: ctx.getFollowingUri(identifier),
@@ -104,7 +106,7 @@ federation
   )
   .mapHandle(async (ctx, handle) => {
     if (handle === new URL(ctx.canonicalOrigin).hostname) return handle;
-    const account = await db.query.accountTable.findFirst({
+    const account = await ctx.data.db.query.accountTable.findFirst({
       where: { username: handle },
     });
     return account == null ? null : account.id;
@@ -116,7 +118,7 @@ federation
     }
 
     if (!validateUuid(identifier)) return [];
-    const keyRecords = await db.query.accountKeyTable.findMany({
+    const keyRecords = await ctx.data.db.query.accountKeyTable.findMany({
       where: { accountId: identifier },
     });
     const keys = new Map(keyRecords.map((r) => [r.type, r]));
@@ -124,7 +126,7 @@ federation
       const { publicKey, privateKey } = await generateCryptoKeyPair(
         "RSASSA-PKCS1-v1_5",
       );
-      const records = await db.insert(accountKeyTable).values(
+      const records = await ctx.data.db.insert(accountKeyTable).values(
         {
           accountId: identifier,
           type: "RSASSA-PKCS1-v1_5",
@@ -136,7 +138,7 @@ federation
     }
     if (!keys.has("Ed25519")) {
       const { publicKey, privateKey } = await generateCryptoKeyPair("Ed25519");
-      const records = await db.insert(accountKeyTable).values(
+      const records = await ctx.data.db.insert(accountKeyTable).values(
         {
           accountId: identifier,
           type: "Ed25519",

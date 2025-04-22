@@ -5,37 +5,38 @@ import {
   type Move,
   type Update,
 } from "@fedify/fedify";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { eq } from "drizzle-orm";
-import { db } from "../../db.ts";
-import { drive } from "../../drive.ts";
 import { persistActor } from "../../models/actor.ts";
 import { follow } from "../../models/following.ts";
 import { actorTable } from "../../models/schema.ts";
 
 export async function onActorUpdated(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   update: Update,
 ): Promise<void> {
   const actor = await update.getObject(fedCtx);
   if (!isActor(actor) || update.actorId?.href !== actor.id?.href) return;
-  const disk = drive.use();
-  await persistActor(db, disk, fedCtx, actor, { ...fedCtx, outbox: false });
+  await persistActor(fedCtx.data.db, fedCtx.data.disk, fedCtx, actor, {
+    ...fedCtx,
+    outbox: false,
+  });
 }
 
 export async function onActorDeleted(
-  _fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   del: Delete,
 ): Promise<boolean> {
   const actorId = del.actorId;
   if (actorId == null || del.objectId?.href !== actorId.href) return false;
-  const deletedRows = await db.delete(actorTable)
+  const deletedRows = await fedCtx.data.db.delete(actorTable)
     .where(eq(actorTable.iri, actorId.href))
     .returning();
   return deletedRows.length > 0;
 }
 
 export async function onActorMoved(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   move: Move,
 ): Promise<void> {
   const actorId = move.actorId;
@@ -48,7 +49,7 @@ export async function onActorMoved(
   ) {
     return;
   }
-  const disk = drive.use();
+  const { db, disk } = fedCtx.data;
   const oldActor = await persistActor(db, disk, fedCtx, object, fedCtx);
   if (oldActor == null) return;
   const newActor = await persistActor(db, disk, fedCtx, target, fedCtx);

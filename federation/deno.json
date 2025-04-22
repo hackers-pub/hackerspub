@@ -1,0 +1,13 @@
+{
+  "name": "@hackerspub/federation",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./mod.ts",
+    "./actor": "./actor.ts",
+    "./builder": "./builder.ts",
+    "./collections": "./collections.ts",
+    "./inbox": "./inbox/mod.ts",
+    "./nodeinfo": "./nodeinfo.ts",
+    "./objects": "./objects.ts"
+  }
+}

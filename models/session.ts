@@ -3,7 +3,9 @@ import type { Uuid } from "./uuid.ts";
 
 const KV_NAMESPACE = "session";
 
-export const EXPIRATION = Temporal.Duration.from({ hours: 24 * 365 });
+export const EXPIRATION: Temporal.Duration = Temporal.Duration.from({
+  hours: 24 * 365,
+});
 
 export interface Session {
   id: Uuid;

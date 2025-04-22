@@ -1,9 +1,10 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { and, eq } from "drizzle-orm";
 import type { Disk } from "flydrive";
-import type { Database } from "../db.ts";
 import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
+import type { Database } from "./db.ts";
 import { removeFollower, unfollow } from "./following.ts";
 import {
   type Account,
@@ -16,7 +17,7 @@ import { generateUuidV7 } from "./uuid.ts";
 export async function persistBlocking(
   db: Database,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   block: vocab.Block,
   options: {
     contextLoader?: DocumentLoader;
@@ -69,7 +70,7 @@ export async function persistBlocking(
 
 export async function block(
   db: Database,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   blocker: Account & { actor: Actor },
   blockee: Actor,
 ): Promise<Blocking | undefined> {
@@ -108,7 +109,7 @@ export async function block(
 
 export async function unblock(
   db: Database,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   blocker: Account & { actor: Actor },
   blockee: Actor,
 ): Promise<Blocking | undefined> {

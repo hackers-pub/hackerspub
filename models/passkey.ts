@@ -3,6 +3,7 @@ import {
   generateAuthenticationOptions,
   generateRegistrationOptions,
   type PublicKeyCredentialCreationOptionsJSON,
+  type PublicKeyCredentialRequestOptionsJSON,
   type RegistrationResponseJSON,
   type VerifiedAuthenticationResponse,
   type VerifiedRegistrationResponse,
@@ -12,8 +13,8 @@ import {
 import { eq, sql } from "drizzle-orm";
 import type Keyv from "keyv";
 import { Buffer } from "node:buffer";
-import type { Database } from "../db.ts";
-import { ORIGIN } from "../federation/federation.ts";
+import { ORIGIN } from "../web/federation.ts";
+import type { Database } from "./db.ts";
 import {
   type Account,
   type NewPasskey,

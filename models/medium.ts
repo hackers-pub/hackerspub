@@ -3,9 +3,9 @@ import * as vocab from "@fedify/fedify/vocab";
 import { join } from "@std/path/join";
 import ffmpeg from "fluent-ffmpeg";
 import type { Disk } from "flydrive";
-import type { Database } from "../db.ts";
-import metadata from "../deno.json" with { type: "json" };
-import { ORIGIN } from "../federation/federation.ts";
+import { ORIGIN } from "../web/federation.ts";
+import type { Database } from "./db.ts";
+import metadata from "./deno.json" with { type: "json" };
 import {
   isPostMediumType,
   type NewPostMedium,

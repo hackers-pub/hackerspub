@@ -1,7 +1,8 @@
 import { type Context, Follow, Reject, Undo } from "@fedify/fedify";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { and, eq, isNull, sql } from "drizzle-orm";
-import type { Database } from "../db.ts";
 import { toRecipient } from "./actor.ts";
+import type { Database } from "./db.ts";
 import {
   createFollowNotification,
   deleteFollowNotification,
@@ -16,7 +17,7 @@ import {
 import type { Uuid } from "./uuid.ts";
 
 export function createFollowingIri(
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   follower: Account,
 ): URL {
   return new URL(
@@ -27,7 +28,7 @@ export function createFollowingIri(
 
 export async function follow(
   db: Database,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   follower: Account & { actor: Actor },
   followee: Actor,
 ): Promise<Following | undefined> {
@@ -107,7 +108,7 @@ export async function acceptFollowing(
 
 export async function unfollow(
   db: Database,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   follower: Account & { actor: Actor },
   followee: Actor,
 ): Promise<Following | undefined> {
@@ -148,7 +149,7 @@ export async function unfollow(
 
 export async function removeFollower(
   db: Database,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   followee: Account & { actor: Actor },
   follower: Actor,
 ): Promise<Following | undefined> {

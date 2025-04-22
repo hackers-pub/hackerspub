@@ -1,15 +1,14 @@
 import * as vocab from "@fedify/fedify/vocab";
 import { and, count, eq, inArray, isNotNull, like, or } from "drizzle-orm";
-import { db } from "../db.ts";
 import { toRecipient } from "../models/actor.ts";
 import { actorTable, followingTable, postTable } from "../models/schema.ts";
 import { validateUuid } from "../models/uuid.ts";
-import { federation } from "./federation.ts";
+import { builder } from "./builder.ts";
 import { getPostRecipients } from "./objects.ts";
 
 const FOLLOWERS_WINDOW = 50;
 
-federation
+builder
   .setFollowersDispatcher(
     "/ap/actors/{identifier}/followers",
     async (ctx, identifier, cursor, filter) => {
@@ -17,6 +16,7 @@ federation
         return { items: [] };
       }
       if (!validateUuid(identifier)) return null;
+      const { db } = ctx.data;
       const account = await db.query.accountTable.findFirst({
         with: { actor: true },
         where: { id: identifier },
@@ -50,8 +50,9 @@ federation
     },
   )
   .setFirstCursor((_ctx, _identifier) => "")
-  .setCounter(async (_ctx, identifier, filter) => {
+  .setCounter(async (ctx, identifier, filter) => {
     if (!validateUuid(identifier)) return null;
+    const { db } = ctx.data;
     const [{ cnt }] = await db.select({ cnt: count() })
       .from(followingTable)
       .innerJoin(actorTable, eq(followingTable.followeeId, actorTable.id))
@@ -70,7 +71,7 @@ federation
 
 const FOLLOWEES_WINDOW = 50;
 
-federation
+builder
   .setFollowingDispatcher(
     "/ap/actors/{identifier}/followees",
     async (ctx, identifier, cursor) => {
@@ -78,6 +79,7 @@ federation
         return { items: [] };
       }
       if (!validateUuid(identifier)) return null;
+      const { db } = ctx.data;
       const account = await db.query.accountTable.findFirst({
         with: { actor: true },
         where: { id: identifier },
@@ -106,9 +108,9 @@ federation
     },
   )
   .setFirstCursor((_ctx, _identifier) => "")
-  .setCounter(async (_ctx, identifier) => {
+  .setCounter(async (ctx, identifier) => {
     if (!validateUuid(identifier)) return null;
-    const [{ cnt }] = await db.select({ cnt: count() })
+    const [{ cnt }] = await ctx.data.db.select({ cnt: count() })
       .from(followingTable)
       .innerJoin(actorTable, eq(followingTable.followerId, actorTable.id))
       .where(and(
@@ -120,7 +122,7 @@ federation
 
 const OUTBOX_WINDOW = 50;
 
-federation
+builder
   .setOutboxDispatcher(
     "/ap/actors/{identifier}/outbox",
     async (ctx, identifier, cursor) => {
@@ -128,6 +130,7 @@ federation
         return { items: [] };
       }
       if (cursor == null || !validateUuid(identifier)) return null;
+      const { db } = ctx.data;
       const account = await db.query.accountTable.findFirst({
         with: { actor: true },
         where: { id: identifier },
@@ -178,8 +181,9 @@ federation
     },
   )
   .setFirstCursor((_ctx, _identifier) => "")
-  .setCounter(async (_ctx, identifier) => {
+  .setCounter(async (ctx, identifier) => {
     if (!validateUuid(identifier)) return null;
+    const { db } = ctx.data;
     const account = await db.query.accountTable.findFirst({
       with: { actor: true },
       where: { id: identifier },

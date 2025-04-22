@@ -1,10 +1,11 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { and, eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
-import type { Database } from "../db.ts";
 import { getEmojiReact, getEmojiReactId } from "../federation/objects.ts";
 import { getPersistedActor, persistActor } from "./actor.ts";
+import type { Database } from "./db.ts";
 import { DEFAULT_REACTION_EMOJI, type ReactionEmoji } from "./emoji.ts";
 import {
   createReactNotification,
@@ -62,7 +63,7 @@ export async function persistCustomEmoji(
 export async function persistReaction(
   db: Database,
   disk: Disk,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   reaction: vocab.Like | vocab.EmojiReact,
   options: {
     contextLoader?: DocumentLoader;
@@ -201,7 +202,7 @@ export async function deleteReaction(
 
 export async function react(
   db: Database,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
   emoji: ReactionEmoji,
@@ -261,7 +262,7 @@ export async function react(
 
 export async function undoReaction(
   db: Database,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
   emoji: ReactionEmoji,

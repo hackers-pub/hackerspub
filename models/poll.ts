@@ -1,10 +1,11 @@
 import type { Context, DocumentLoader } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
-import type { Database } from "../db.ts";
 import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
 import { toDate } from "./date.ts";
+import type { Database } from "./db.ts";
 import { getPersistedPost, persistPost } from "./post.ts";
 import {
   type Account,
@@ -86,7 +87,7 @@ export async function persistPollOption(
 export async function persistPollVote(
   db: Database,
   disk: Disk,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   note: vocab.Note,
   options: {
     contextLoader?: DocumentLoader;
@@ -143,7 +144,7 @@ export async function persistPollVote(
 
 export async function vote(
   db: Database,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   voter: Account & { actor: Actor },
   poll: Poll & { options: PollOption[] },
   optionIndices: Set<number>,

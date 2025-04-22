@@ -1,0 +1,33 @@
+{
+  "name": "@hackerspub/web",
+  "version": "0.1.0",
+  "tasks": {
+    "dev": "deno run -A --watch=static/,routes/ --env-file=../.env dev.ts",
+    "build": "ln -s ../node_modules node_modules && deno run -A --env-file=../.env dev.ts build",
+    "start": "deno run -A --unstable-otel --env-file=../.env main.ts",
+    "update": "deno run -A -r jsr:@fresh/update ."
+  },
+  "lint": {
+    "rules": {
+      "tags": [
+        "fresh",
+        "jsr",
+        "recommended"
+      ],
+      "exclude": [
+        "no-slow-types",
+        "react-no-danger"
+      ]
+    }
+  },
+  "exclude": [
+    "**/_fresh/*",
+    "locales/*.md",
+    "locales/*/*.md",
+    "static/"
+  ],
+  "exports": {
+    ".": "./main.ts",
+    "./kv": "./kv.ts"
+  }
+}

@@ -1,5 +1,5 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
-import type { Database } from "../db.ts";
+import type { Database } from "./db.ts";
 import { getPostVisibilityFilter } from "./post.ts";
 import {
   actorTable,

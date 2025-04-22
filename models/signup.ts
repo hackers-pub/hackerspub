@@ -2,7 +2,7 @@ import { getLogger } from "@logtape/logtape";
 import { encodeBase64Url } from "@std/encoding/base64url";
 import { sql } from "drizzle-orm";
 import type Keyv from "keyv";
-import type { Database } from "../db.ts";
+import type { Database } from "./db.ts";
 import {
   type Account,
   type AccountEmail,
@@ -16,7 +16,9 @@ const logger = getLogger(["hackerspub", "models", "signup"]);
 
 const KV_NAMESPACE = "signup";
 
-export const EXPIRATION = Temporal.Duration.from({ hours: 12 });
+export const EXPIRATION: Temporal.Duration = Temporal.Duration.from({
+  hours: 12,
+});
 
 export interface SignupToken {
   email: string;

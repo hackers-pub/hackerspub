@@ -7,14 +7,14 @@ import {
   type RequestContext,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
 import { escape, unescape } from "@std/html/entities";
 import { eq, sql } from "drizzle-orm";
-import type { Database } from "../db.ts";
-import { drive } from "../drive.ts";
-import { compactUrl } from "../utils.ts";
+import type { Disk } from "flydrive";
+import type { Database } from "./db.ts";
 import {
   type Account,
   type AccountEmail,
@@ -25,17 +25,16 @@ import {
   type Actor,
   type NewAccount,
 } from "./schema.ts";
+import { compactUrl } from "./url.ts";
 import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "account"]);
 
 export async function getAvatarUrl(
+  disk: Disk,
   account: Account & { emails: AccountEmail[] },
 ): Promise<string> {
-  if (account.avatarKey != null) {
-    const disk = drive.use();
-    return await disk.getUrl(account.avatarKey);
-  }
+  if (account.avatarKey != null) return await disk.getUrl(account.avatarKey);
   const emails = account.emails
     .filter((e) => e.verified != null);
   emails.sort((a, b) => a.public ? 1 : b.public ? -1 : 0);
@@ -89,7 +88,7 @@ export async function getAccountByUsername(
 
 export async function updateAccount(
   db: Database,
-  fedCtx: RequestContext<void>,
+  fedCtx: RequestContext<ContextData>,
   account: NewAccount & { links: Link[] },
 ): Promise<Account & { links: AccountLink[] } | undefined> {
   const result = await updateAccountData(db, account);

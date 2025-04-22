@@ -7,7 +7,9 @@ const logger = getLogger(["hackerspub", "models", "signin"]);
 
 const KV_NAMESPACE = "signin";
 
-export const EXPIRATION = Temporal.Duration.from({ hours: 12 });
+export const EXPIRATION: Temporal.Duration = Temporal.Duration.from({
+  hours: 12,
+});
 
 export const USERNAME_REGEXP = /^[a-z0-9_]{1,15}$/;
 

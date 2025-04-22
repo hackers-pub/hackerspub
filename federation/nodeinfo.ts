@@ -1,11 +1,11 @@
 import { parseSemVer } from "@fedify/fedify";
 import { count, countDistinct, gt, sql } from "drizzle-orm";
-import metadata from "../deno.json" with { type: "json" };
-import { federation } from "./federation.ts";
-import { db } from "../db.ts";
 import { accountTable, articleSourceTable } from "../models/schema.ts";
+import { builder } from "./builder.ts";
+import metadata from "./deno.json" with { type: "json" };
 
-federation.setNodeInfoDispatcher("/nodeinfo/2.1", async (_ctx) => {
+builder.setNodeInfoDispatcher("/nodeinfo/2.1", async (ctx) => {
+  const { db } = ctx.data;
   const [{ total }] = await db.select({ total: count() }).from(accountTable);
   const [{ activeMonth }] = await db.select({
     activeMonth: countDistinct(articleSourceTable.accountId),

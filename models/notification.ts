@@ -1,7 +1,7 @@
 import { getLogger } from "@logtape/logtape";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import postgres from "postgres";
-import type { Database } from "../db.ts";
+import type { Database } from "./db.ts";
 import {
   type Account,
   type Actor,

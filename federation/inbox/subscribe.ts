@@ -9,10 +9,9 @@ import {
   type Undo,
   type Update,
 } from "@fedify/fedify";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { getLogger } from "@logtape/logtape";
 import { eq } from "drizzle-orm";
-import { db } from "../../db.ts";
-import { drive } from "../../drive.ts";
 import {
   createMentionNotification,
   createQuoteNotification,
@@ -41,7 +40,7 @@ import {
 const logger = getLogger(["hackerspub", "federation", "inbox", "subscribe"]);
 
 export async function onPostCreated(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   create: Create,
 ): Promise<void> {
   logger.debug("On post created: {create}", { create });
@@ -49,7 +48,7 @@ export async function onPostCreated(
   const object = await create.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;
-  const disk = drive.use();
+  const { db, disk } = fedCtx.data;
   const post = await persistPost(db, disk, fedCtx, object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
@@ -88,7 +87,7 @@ export async function onPostCreated(
 }
 
 export async function onPostUpdated(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   update: Update,
 ): Promise<void> {
   logger.debug("On post updated: {update}", { update });
@@ -96,8 +95,7 @@ export async function onPostUpdated(
   const object = await update.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== update.actorId?.href) return;
-  const disk = drive.use();
-  await persistPost(db, disk, fedCtx, object, {
+  await persistPost(fedCtx.data.db, fedCtx.data.disk, fedCtx, object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
@@ -105,7 +103,7 @@ export async function onPostUpdated(
 }
 
 export async function onPostDeleted(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   del: Delete,
 ): Promise<boolean> {
   logger.debug("On post deleted: {delete}", { delete: del });
@@ -117,18 +115,18 @@ export async function onPostDeleted(
   ) {
     return false;
   }
-  return await deletePersistedPost(db, object.id, del.actorId);
+  return await deletePersistedPost(fedCtx.data.db, object.id, del.actorId);
 }
 
 export async function onPostShared(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   announce: Announce,
 ): Promise<void> {
   logger.debug("On post shared: {announce}", { announce });
   if (announce.id?.origin !== announce.actorId?.origin) return;
   const object = await announce.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
-  const disk = drive.use();
+  const { db, disk } = fedCtx.data;
   const post = await persistSharedPost(db, disk, fedCtx, announce, fedCtx);
   if (post != null) {
     await addPostToTimeline(db, post);
@@ -145,12 +143,13 @@ export async function onPostShared(
 }
 
 export async function onPostUnshared(
-  _fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   undo: Undo,
 ): Promise<boolean> {
   logger.debug("On post unshared: {undo}", { undo });
   if (undo.objectId == null || undo.actorId == null) return false;
   if (undo.objectId?.origin !== undo.actorId?.origin) return false;
+  const { db } = fedCtx.data;
   const post = await deleteSharedPost(db, undo.objectId, undo.actorId);
   if (post == null) return false;
   await removeFromTimeline(db, post);
@@ -172,30 +171,30 @@ export async function onPostUnshared(
 }
 
 export async function onReactedOnPost(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   reaction: Like | EmojiReact,
 ): Promise<void> {
   logger.debug("On post reacted: {reaction}", { reaction });
-  const disk = drive.use();
   const reactionObject = await persistReaction(
-    db,
-    disk,
+    fedCtx.data.db,
+    fedCtx.data.disk,
     fedCtx,
     reaction,
     fedCtx,
   );
   if (reactionObject == null) return;
-  await updateReactionsCounts(db, reactionObject.postId);
+  await updateReactionsCounts(fedCtx.data.db, reactionObject.postId);
 }
 
 export async function onReactionUndoneOnPost(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   undo: Undo,
 ): Promise<boolean> {
   logger.debug("On reaction undone: {undo}", { undo });
   if (undo.objectId == null || undo.actorId == null) return false;
   if (undo.objectId?.origin !== undo.actorId?.origin) return false;
   const object = await undo.getObject({ ...fedCtx, suppressError: true });
+  const { db } = fedCtx.data;
   if (object == null) {
     const rows = await db.delete(reactionTable)
       .where(eq(reactionTable.iri, undo.objectId.href))

@@ -9,6 +9,8 @@ import {
   traverseCollection,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import type { ContextData } from "@hackerspub/federation/builder";
+import type { Database, RelationsFilter } from "@hackerspub/models/db";
 import { getLogger } from "@logtape/logtape";
 import {
   aliasedTable,
@@ -25,13 +27,12 @@ import {
 } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import type Keyv from "keyv";
-import type { Database, RelationsFilter } from "../db.ts";
-import metadata from "../deno.json" with { type: "json" };
 import {
   getAvatarUrl as getAccountAvatarUrl,
   renderAccountLinks,
 } from "./account.ts";
 import { toDate } from "./date.ts";
+import metadata from "./deno.json" with { type: "json" };
 import { persistInstance } from "./instance.ts";
 import { renderMarkup } from "./markup.ts";
 import { isPostObject, persistPost, persistSharedPost } from "./post.ts";
@@ -57,7 +58,7 @@ export async function syncActorFromAccount(
   db: Database,
   kv: Keyv,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   account: Account & { emails: AccountEmail[]; links: AccountLink[] },
 ): Promise<
   Actor & {
@@ -95,7 +96,7 @@ export async function syncActorFromAccount(
     automaticallyApprovesFollowers: true,
     inboxUrl: fedCtx.getInboxUri(account.id).href,
     sharedInboxUrl: fedCtx.getInboxUri().href,
-    avatarUrl: await getAccountAvatarUrl(account),
+    avatarUrl: await getAccountAvatarUrl(disk, account),
     fieldHtmls: Object.fromEntries(
       renderAccountLinks(account.links).map((
         pair,
@@ -120,7 +121,7 @@ export async function syncActorFromAccount(
 export async function persistActor(
   db: Database,
   disk: Disk,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   actor: vocab.Actor,
   options: {
     contextLoader?: DocumentLoader;
@@ -292,7 +293,7 @@ export function getPersistedActor(
 export async function persistActorsByHandles(
   db: Database,
   disk: Disk,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   handles: string[],
 ): Promise<Record<string, Actor & { instance: Instance }>> {
   const filter: RelationsFilter<"actorTable">[] = [];

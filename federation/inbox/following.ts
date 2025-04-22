@@ -6,10 +6,9 @@ import {
   type Reject,
   type Undo,
 } from "@fedify/fedify";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, sql } from "drizzle-orm";
-import { db } from "../../db.ts";
-import { drive } from "../../drive.ts";
 import { persistActor } from "../../models/actor.ts";
 import { persistBlocking } from "../../models/blocking.ts";
 import {
@@ -31,7 +30,7 @@ import { validateUuid } from "../../models/uuid.ts";
 const logger = getLogger(["hackerspub", "federation", "inbox", "following"]);
 
 export async function onFollowAccepted(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   accept: Accept,
 ): Promise<void> {
   const follow = await accept.getObject(fedCtx);
@@ -41,6 +40,7 @@ export async function onFollowAccepted(
   const followActor = fedCtx.parseUri(follow.actorId);
   if (followActor?.type !== "actor") return;
   else if (!validateUuid(followActor.identifier)) return;
+  const { db } = fedCtx.data;
   const follower = await db.query.accountTable.findFirst({
     with: { actor: true },
     where: { id: followActor.identifier },
@@ -55,13 +55,14 @@ export async function onFollowAccepted(
 }
 
 export async function onFollowRejected(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   reject: Reject,
 ): Promise<void> {
   const follow = await reject.getObject(fedCtx);
   if (reject.actorId == null) return;
   if (!(follow instanceof Follow) || follow.id == null) return;
   if (follow.objectId?.href !== reject.actorId?.href) return;
+  const { db } = fedCtx.data;
   await db
     .delete(followingTable)
     .where(
@@ -78,13 +79,14 @@ export async function onFollowRejected(
 }
 
 export async function onFollowed(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   follow: Follow,
 ) {
   if (follow.id == null || follow.objectId == null) return;
   const followObject = fedCtx.parseUri(follow.objectId);
   if (followObject?.type !== "actor") return;
   else if (!validateUuid(followObject.identifier)) return;
+  const { db, disk } = fedCtx.data;
   const followee = await db.query.accountTable.findFirst({
     with: { actor: true },
     where: { id: followObject.identifier },
@@ -92,7 +94,6 @@ export async function onFollowed(
   if (followee == null) return;
   const followActor = await follow.getActor(fedCtx);
   if (followActor == null) return;
-  const disk = drive.use();
   const follower = await persistActor(db, disk, fedCtx, followActor, {
     ...fedCtx,
     outbox: false,
@@ -124,7 +125,7 @@ export async function onFollowed(
 }
 
 export async function onUnfollowed(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   undo: Undo,
 ) {
   const follow = await undo.getObject(fedCtx);
@@ -132,7 +133,7 @@ export async function onUnfollowed(
   if (follow.id == null || follow.actorId?.href !== undo.actorId?.href) return;
   const actorObject = await undo.getActor(fedCtx);
   if (actorObject == null) return;
-  const disk = drive.use();
+  const { db, disk } = fedCtx.data;
   const actor = await persistActor(db, disk, fedCtx, actorObject, {
     ...fedCtx,
     outbox: false,
@@ -165,15 +166,20 @@ export async function onUnfollowed(
 }
 
 export async function onBlocked(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   block: Block,
 ): Promise<void> {
-  const disk = drive.use();
-  await persistBlocking(db, disk, fedCtx, block, fedCtx);
+  await persistBlocking(
+    fedCtx.data.db,
+    fedCtx.data.disk,
+    fedCtx,
+    block,
+    fedCtx,
+  );
 }
 
 export async function onUnblocked(
-  fedCtx: InboxContext<void>,
+  fedCtx: InboxContext<ContextData>,
   undo: Undo,
 ): Promise<boolean> {
   if (undo.actorId == null) return false;
@@ -183,6 +189,7 @@ export async function onUnblocked(
   if (block.id == null || block.actorId?.href !== undo.actorId.href) {
     return false;
   }
+  const { db } = fedCtx.data;
   const rows = await db.delete(blockingTable)
     .where(
       and(

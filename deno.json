@@ -1,62 +1,20 @@
 {
-  "name": "@hongminhee/hackerspub",
-  "version": "0.1.0",
-  "tasks": {
-    "check": "deno fmt --check && deno lint && deno check .",
-    "test": "deno test --env-file=.env.test --allow-all --parallel",
-    "dev": "deno run -A --watch=static/,routes/ dev.ts",
-    "build": "deno run -A dev.ts build",
-    "start": "deno run -A --unstable-otel main.ts",
-    "update": "deno run -A -r jsr:@fresh/update .",
-    "drizzle-kit": "deno run -A npm:drizzle-kit@beta",
-    "migrate": "deno run -A npm:drizzle-kit@beta migrate",
-    "migrate:generate": "deno run -A npm:drizzle-kit@beta generate",
-    "migrate:test": "deno run --env-file=.env.test -A npm:drizzle-kit@beta migrate",
-    "keygen": "deno run --allow-read --allow-env scripts/keygen.ts",
-    "addaccount": "deno run --allow-all --env-file=.env scripts/addaccount.ts",
-    "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",
-    "hooks:pre-commit": "deno task check"
-  },
-  "lint": {
-    "rules": {
-      "tags": [
-        "fresh",
-        "jsr",
-        "recommended"
-      ],
-      "exclude": [
-        "no-slow-types",
-        "react-no-danger"
-      ]
-    }
-  },
-  "fmt": {
-    "exclude": [
-      "*.md",
-      "*.yaml"
-    ]
-  },
-  "exclude": [
-    "**/_fresh/*",
-    ".github/",
-    "drizzle/",
-    "locales/*.md",
-    "locales/*/*.md",
-    "node_modules/",
-    "static/"
+  "workspace": [
+    "./federation",
+    "./models",
+    "./web"
   ],
-  "exports": {
-    ".": "./main.ts"
-  },
   "imports": {
     "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@^3.750.0",
     "@aws-sdk/s3-request-presigner": "npm:@aws-sdk/s3-request-presigner@^3.750.0",
     "@c4spar/mock-fetch": "jsr:@c4spar/mock-fetch@^1.0.0",
-    "@fedify/fedify": "jsr:@fedify/fedify@^1.5.1",
+    "@fedify/fedify": "jsr:@fedify/fedify@1.6.0-dev.777+1206cb01",
     "@fedify/markdown-it-hashtag": "jsr:@fedify/markdown-it-hashtag@^0.3.0",
     "@fedify/markdown-it-mention": "jsr:@fedify/markdown-it-mention@^0.3.0",
     "@fedify/postgres": "jsr:@fedify/postgres@^0.3.0",
     "@fedify/redis": "jsr:@fedify/redis@^0.4.0",
+    "@fresh/core": "jsr:@fresh/core@^2.0.0-alpha.29",
+    "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
     "@hongminhee/x-forwarded-fetch": "jsr:@hongminhee/x-forwarded-fetch@^0.2.0",
     "@keyv/redis": "npm:@keyv/redis@^4.0.2",
     "@logtape/logtape": "jsr:@logtape/logtape@^0.9.0",
@@ -70,6 +28,7 @@
     "@opentelemetry/resources": "npm:@opentelemetry/resources@^1.28.0",
     "@opentelemetry/sdk-trace-base": "npm:@opentelemetry/sdk-trace-base@^1.28.0",
     "@opentelemetry/semantic-conventions": "npm:@opentelemetry/semantic-conventions@^1.28.0",
+    "@preact/signals": "npm:@preact/signals@^1.3.1",
     "@resvg/resvg-js": "npm:@resvg/resvg-js@^2.6.2",
     "@schotsl/mailgun": "jsr:@schotsl/mailgun@^1.3.0",
     "@searking/markdown-it-cjk-breaks": "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0",
@@ -98,8 +57,6 @@
     "feed": "npm:feed@^4.2.2",
     "fluent-ffmpeg": "npm:fluent-ffmpeg@^2.1.3",
     "flydrive": "npm:flydrive@^1.1.0",
-    "fresh": "jsr:@fresh/core@^2.0.0-alpha.29",
-    "@fresh/plugin-tailwind": "jsr:@fresh/plugin-tailwind@^0.0.1-alpha.7",
     "i18next": "npm:i18next@^24.0.5",
     "iconv-lite": "npm:iconv-lite@^0.6.3",
     "ioredis": "npm:ioredis@^5.4.1",
@@ -120,7 +77,6 @@
     "pdf-lib": "npm:pdf-lib@^1.17.1",
     "postgres": "npm:postgres@^3.4.5",
     "preact": "npm:preact@^10.25.2",
-    "@preact/signals": "npm:@preact/signals@^1.3.1",
     "satori": "npm:satori@^0.11.3",
     "satori-html": "npm:satori-html@^0.3.2",
     "sharp": "npm:sharp@^0.33.5",
@@ -133,11 +89,6 @@
     "xmlbuilder2": "npm:xmlbuilder2@^3.1.1",
     "xss": "npm:xss@^1.0.15"
   },
-  "unstable": [
-    "kv",
-    "otel",
-    "temporal"
-  ],
   "compilerOptions": {
     "lib": [
       "dom",
@@ -157,5 +108,36 @@
       "head"
     ]
   },
-  "nodeModulesDir": "auto"
+  "unstable": [
+    "kv",
+    "otel",
+    "temporal"
+  ],
+  "nodeModulesDir": "auto",
+  "exclude": [
+    ".github/",
+    "drizzle/",
+    "node_modules/"
+  ],
+  "fmt": {
+    "exclude": [
+      "*.md",
+      "*.yaml"
+    ]
+  },
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno check .",
+    "test": "deno test --env-file=.env.test --allow-all --parallel",
+    "dev": "deno task -f @hackerspub/web dev",
+    "build": "deno task -f @hackerspub/web build",
+    "start": "deno task -f @hackerspub/web start",
+    "drizzle-kit": "deno run -A npm:drizzle-kit@beta",
+    "migrate": "deno run -A npm:drizzle-kit@beta migrate",
+    "migrate:generate": "deno run -A npm:drizzle-kit@beta generate",
+    "migrate:test": "deno run --env-file=.env.test -A npm:drizzle-kit@beta migrate",
+    "keygen": "deno run --allow-read --allow-env scripts/keygen.ts",
+    "addaccount": "deno run --allow-all --env-file=.env scripts/addaccount.ts",
+    "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",
+    "hooks:pre-commit": "deno task check"
+  }
 }

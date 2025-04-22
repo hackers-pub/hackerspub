@@ -1,10 +1,11 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { and, eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import type Keyv from "keyv";
-import type { Database } from "../db.ts";
 import { getArticle } from "../federation/objects.ts";
+import type { Database } from "./db.ts";
 import { syncPostFromArticleSource } from "./post.ts";
 import {
   type Account,
@@ -161,7 +162,7 @@ export async function createArticle(
   db: Database,
   kv: Keyv,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   source: Omit<NewArticleSource, "id"> & { id?: Uuid },
 ): Promise<
   Post & {
@@ -221,7 +222,7 @@ export async function updateArticle(
   db: Database,
   kv: Keyv,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   articleSourceId: Uuid,
   source: Partial<NewArticleSource>,
 ): Promise<

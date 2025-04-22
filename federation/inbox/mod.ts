@@ -15,7 +15,7 @@ import {
 } from "@fedify/fedify";
 import { getLogger } from "@logtape/logtape";
 import { isPostObject } from "../../models/post.ts";
-import { federation } from "../federation.ts";
+import { builder } from "../builder.ts";
 import { onActorDeleted, onActorMoved, onActorUpdated } from "./actor.ts";
 import {
   onBlocked,
@@ -37,7 +37,7 @@ import {
 
 const logger = getLogger(["hackerspub", "federation", "inbox"]);
 
-federation
+builder
   .setInboxListeners("/ap/actors/{identifier}/inbox", "/ap/inbox")
   .setSharedKeyDispatcher((ctx) => ({
     identifier: new URL(ctx.canonicalOrigin).hostname,

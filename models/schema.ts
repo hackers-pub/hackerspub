@@ -21,7 +21,7 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
-import type { Locale } from "../i18n.ts";
+import type { Locale } from "./i18n.ts";
 import type { Uuid } from "./uuid.ts";
 
 const currentTimestamp = sql`CURRENT_TIMESTAMP`;

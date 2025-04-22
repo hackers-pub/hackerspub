@@ -1,0 +1,43 @@
+{
+  "name": "@hackerspub/models",
+  "version": "0.1.0",
+  "exports": {
+    "./account": "./account.ts",
+    "./actor": "./actor.ts",
+    "./article": "./article.ts",
+    "./avatar": "./avatar.ts",
+    "./blocking": "./blocking.ts",
+    "./date": "./date.ts",
+    "./db": "./db.ts",
+    "./emoji": "./emoji.ts",
+    "./following": "./following.ts",
+    "./html": "./html.ts",
+    "./i18n": "./i18n.ts",
+    "./instance": "./instance.ts",
+    "./langdet": "./langdet.ts",
+    "./markup": "./markup.ts",
+    "./medium": "./medium.ts",
+    "./note": "./note.ts",
+    "./notification": "./notification.ts",
+    "./passkey": "./passkey.ts",
+    "./poll": "./poll.ts",
+    "./post": "./post.ts",
+    "./reaction": "./reaction.ts",
+    "./relations": "./relations.ts",
+    "./schema": "./schema.ts",
+    "./search": "./search.ts",
+    "./session": "./session.ts",
+    "./signin": "./signin.ts",
+    "./signup": "./signup.ts",
+    "./timeline": "./timeline.ts",
+    "./url": "./url.ts",
+    "./uuid": "./uuid.ts"
+  },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "no-slow-types"
+      ]
+    }
+  }
+}

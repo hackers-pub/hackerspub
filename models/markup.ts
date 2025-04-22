@@ -2,6 +2,7 @@ import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import type * as vocab from "@fedify/fedify/vocab";
 import { hashtag, spanHashAndTag } from "@fedify/markdown-it-hashtag";
 import { mention } from "@fedify/markdown-it-mention";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { getLogger } from "@logtape/logtape";
 import { titlePlugin as title } from "@mdit-vue/plugin-title";
 import cjkBreaks from "@searking/markdown-it-cjk-breaks";
@@ -34,8 +35,8 @@ import graphviz from "markdown-it-graphviz";
 import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
 import { codeToHtml } from "shiki";
-import type { Database } from "../db.ts";
 import { persistActor, persistActorsByHandles } from "./actor.ts";
+import type { Database } from "./db.ts";
 import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./html.ts";
 import { type Actor, actorTable } from "./schema.ts";
 
@@ -173,7 +174,7 @@ export interface RenderMarkupOptions {
 export async function renderMarkup(
   db: Database,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   markup: string,
   options: RenderMarkupOptions = {},
 ): Promise<RenderedMarkup> {
@@ -275,7 +276,7 @@ export interface ExtractMentionsFromHtmlOptions {
 export async function extractMentionsFromHtml(
   db: Database,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   html: string,
   options: ExtractMentionsFromHtmlOptions = {},
 ): Promise<{ actor: Actor }[]> {

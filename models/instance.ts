@@ -1,6 +1,6 @@
 import { formatSemVer, getNodeInfo } from "@fedify/fedify";
 import { eq, sql } from "drizzle-orm";
-import type { Database } from "../db.ts";
+import type { Database } from "./db.ts";
 import { type Instance, instanceTable, type NewInstance } from "./schema.ts";
 
 export interface PersistInstanceOptions {

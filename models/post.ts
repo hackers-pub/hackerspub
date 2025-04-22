@@ -10,6 +10,7 @@ import {
   traverseCollection,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import type { ContextData } from "@hackerspub/federation/builder";
 import { getLogger } from "@logtape/logtape";
 import {
   and,
@@ -30,10 +31,8 @@ import { PDFDocument } from "pdf-lib";
 import postgres from "postgres";
 import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
-import type { Database, RelationsFilter } from "../db.ts";
-import { ORIGIN } from "../federation/federation.ts";
 import { getAnnounce } from "../federation/objects.ts";
-import { MODE } from "../utils.ts";
+import { ORIGIN } from "../web/federation.ts";
 import {
   getPersistedActor,
   persistActor,
@@ -42,6 +41,7 @@ import {
   toRecipient,
 } from "./actor.ts";
 import { toDate } from "./date.ts";
+import type { Database, RelationsFilter } from "./db.ts";
 import { extractExternalLinks } from "./html.ts";
 import { renderMarkup } from "./markup.ts";
 import { persistPostMedium } from "./medium.ts";
@@ -101,7 +101,7 @@ export async function syncPostFromArticleSource(
   db: Database,
   kv: Keyv,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   articleSource: ArticleSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
   },
@@ -179,7 +179,7 @@ export async function syncPostFromNoteSource(
   db: Database,
   kv: Keyv,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   noteSource: NoteSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
     media: NoteMedium[];
@@ -306,7 +306,7 @@ export async function syncPostFromNoteSource(
 export async function persistPost(
   db: Database,
   disk: Disk,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   post: PostObject,
   options: {
     actor?: Actor & { instance: Instance };
@@ -611,7 +611,7 @@ export async function persistPost(
 export async function persistSharedPost(
   db: Database,
   disk: Disk,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   announce: vocab.Announce,
   options: {
     actor?: Actor & { instance: Instance };
@@ -717,7 +717,7 @@ export async function sharePost(
   db: Database,
   kv: Keyv,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   account: Account & {
     emails: AccountEmail[];
     links: AccountLink[];
@@ -794,7 +794,7 @@ export async function unsharePost(
   db: Database,
   kv: Keyv,
   disk: Disk,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   account: Account & {
     emails: AccountEmail[];
     links: AccountLink[];
@@ -1347,7 +1347,7 @@ export async function updateQuotesCount(
 
 export async function deletePost(
   db: Database,
-  fedCtx: Context<void>,
+  fedCtx: Context<ContextData>,
   post: Post & { actor: Actor; replyTarget: Post | null },
 ): Promise<void> {
   const replies = await db.query.postTable.findMany({
@@ -1639,14 +1639,12 @@ export async function scrapePostLink(
   };
 }
 
-const POST_LINK_CACHE_TTL = Temporal.Duration.from(
-  MODE === "development" ? { minutes: 1 } : { hours: 24 },
-);
+const POST_LINK_CACHE_TTL = Temporal.Duration.from({ hours: 24 });
 
 export async function persistPostLink(
   db: Database,
   disk: Disk,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   url: string | URL,
 ): Promise<PostLink | undefined> {
   if (typeof url === "string") url = new URL(url);

@@ -16,7 +16,7 @@ import {
   whitespace,
 } from "arcsecond";
 import { sql } from "drizzle-orm";
-import type { RelationsFilter } from "../db.ts";
+import type { RelationsFilter } from "./db.ts";
 
 export type Term =
   | { type: "keyword"; keyword: string }

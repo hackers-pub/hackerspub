@@ -5,11 +5,9 @@ import {
   type RequestContext,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import type { Database } from "@hackerspub/models/db";
 import { escape } from "@std/html/entities";
 import type { Disk } from "flydrive";
-import { type Database, db } from "../db.ts";
-import { drive } from "../drive.ts";
-import { kv } from "../kv.ts";
 import {
   DEFAULT_REACTION_EMOJI,
   isReactionEmoji,
@@ -29,17 +27,17 @@ import type {
   Reaction,
 } from "../models/schema.ts";
 import { type Uuid, validateUuid } from "../models/uuid.ts";
-import { federation } from "./federation.ts";
+import { builder, type ContextData } from "./builder.ts";
 
 export async function getArticle(
   db: Database,
   disk: Disk,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   articleSource: ArticleSource & { account: Account },
 ): Promise<vocab.Article> {
   const rendered = await renderMarkup(db, disk, ctx, articleSource.content, {
     docId: articleSource.id,
-    kv,
+    kv: ctx.data.kv,
   });
   return new vocab.Article({
     id: ctx.getObjectUri(vocab.Article, { id: articleSource.id }),
@@ -80,18 +78,17 @@ export async function getArticle(
   });
 }
 
-federation.setObjectDispatcher(
+builder.setObjectDispatcher(
   vocab.Article,
   "/ap/articles/{id}",
   async (ctx, values) => {
     if (!validateUuid(values.id)) return null;
-    const articleSource = await db.query.articleSourceTable.findFirst({
+    const articleSource = await ctx.data.db.query.articleSourceTable.findFirst({
       with: { account: true },
       where: { id: values.id },
     });
     if (articleSource == null) return null;
-    const disk = drive.use();
-    return await getArticle(db, disk, ctx, articleSource);
+    return await getArticle(ctx.data.db, ctx.data.disk, ctx, articleSource);
   },
 );
 
@@ -101,7 +98,7 @@ export interface RecipientSet {
 }
 
 export function getPostRecipients(
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   accountId: Uuid,
   mentionedActorIds: URL[],
   visibility: PostVisibility,
@@ -126,7 +123,7 @@ export function getPostRecipients(
 export async function getNote(
   db: Database,
   disk: Disk,
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   note: NoteSource & { account: Account; media: NoteMedium[] },
   relations: {
     replyTargetId?: URL;
@@ -135,7 +132,7 @@ export async function getNote(
 ): Promise<vocab.Note> {
   const rendered = await renderMarkup(db, disk, ctx, note.content, {
     docId: note.id,
-    kv,
+    kv: ctx.data.kv,
   });
   const attachments: vocab.Document[] = [];
   for (const medium of note.media) {
@@ -215,13 +212,13 @@ export async function getNote(
   });
 }
 
-federation
+builder
   .setObjectDispatcher(
     vocab.Note,
     "/ap/notes/{id}",
     async (ctx, values) => {
       if (!validateUuid(values.id)) return null;
-      const note = await db.query.noteSourceTable.findFirst({
+      const note = await ctx.data.db.query.noteSourceTable.findFirst({
         with: {
           account: true,
           media: true,
@@ -230,10 +227,9 @@ federation
         where: { id: values.id },
       });
       if (note == null) return null;
-      const disk = drive.use();
       return await getNote(
-        db,
-        disk,
+        ctx.data.db,
+        ctx.data.disk,
         ctx,
         note,
         {
@@ -247,7 +243,7 @@ federation
   )
   .authorize(async (ctx, values) => {
     if (!validateUuid(values.id)) return false;
-    const post = await db.query.postTable.findFirst({
+    const post = await ctx.data.db.query.postTable.findFirst({
       with: {
         actor: {
           with: {
@@ -280,7 +276,7 @@ federation
   });
 
 export function getAnnounce(
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   share: Post & {
     actor: Actor & { account: Account };
     sharedPost: Post;
@@ -301,12 +297,12 @@ export function getAnnounce(
   });
 }
 
-federation.setObjectDispatcher(
+builder.setObjectDispatcher(
   vocab.Announce,
   "/ap/announces/{id}",
   async (ctx, values) => {
     if (!validateUuid(values.id)) return null;
-    const share = await db.query.postTable.findFirst({
+    const share = await ctx.data.db.query.postTable.findFirst({
       with: {
         actor: { with: { account: true } },
         sharedPost: true,
@@ -337,7 +333,7 @@ function getEmojiReactType(
 }
 
 export function getEmojiReactId(
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   accountId: Uuid,
   postId: Uuid,
   emoji: ReactionEmoji,
@@ -351,7 +347,7 @@ export function getEmojiReactId(
 }
 
 export function getEmojiReact(
-  ctx: Context<void>,
+  ctx: Context<ContextData>,
   reaction: Reaction & { actor: Actor; post: Post & { actor: Actor } },
 ): vocab.Like | vocab.EmojiReact | null {
   if (
@@ -380,7 +376,7 @@ export function getEmojiReact(
 }
 
 async function getEmojiReactOrLike(
-  ctx: RequestContext<void>,
+  ctx: RequestContext<ContextData>,
   values: Record<"accountId" | "postId" | "emoji", string>,
 ): Promise<vocab.Like | vocab.EmojiReact | null> {
   if (
@@ -389,7 +385,7 @@ async function getEmojiReactOrLike(
   ) {
     return null;
   }
-  const reaction = await db.query.reactionTable.findFirst({
+  const reaction = await ctx.data.db.query.reactionTable.findFirst({
     with: { actor: true, post: { with: { actor: true } } },
     where: {
       actor: { accountId: values.accountId },
@@ -401,13 +397,13 @@ async function getEmojiReactOrLike(
   return getEmojiReact(ctx, reaction);
 }
 
-federation.setObjectDispatcher(
+builder.setObjectDispatcher(
   vocab.Like,
   "/ap/likes/{accountId}/{postId}/{emoji}",
   getEmojiReactOrLike,
 );
 
-federation.setObjectDispatcher(
+builder.setObjectDispatcher(
   vocab.EmojiReact,
   "/ap/emojireacts/{accountId}/{postId}/{emoji}",
   getEmojiReactOrLike,
