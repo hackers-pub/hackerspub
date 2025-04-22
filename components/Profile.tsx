@@ -91,6 +91,7 @@ export function Profile(
               <a
                 href={actor.url ?? actor.iri}
                 target={actor.accountId == null ? "_blank" : undefined}
+                class="shrink-0"
               >
                 <img
                   src={actor.avatarUrl}
@@ -172,7 +173,11 @@ export function Profile(
             </PageTitle>
             {relationship?.outgoing === "none"
               ? (
-                <form method="post" action={`${profileHref}/follow`}>
+                <form
+                  method="post"
+                  action={`${profileHref}/follow`}
+                  class="shrink-0"
+                >
                   <Button
                     disabled={relationship?.incoming === "block"}
                     class="ml-4 mt-2 h-9"
@@ -186,7 +191,11 @@ export function Profile(
               : relationship != null && relationship.incoming !== "block" &&
                 relationship.outgoing !== "block" &&
                 (
-                  <form method="post" action={`${profileHref}/unfollow`}>
+                  <form
+                    method="post"
+                    action={`${profileHref}/unfollow`}
+                    class="shrink-0"
+                  >
                     <Button class="ml-4 mt-2 h-9">
                       {relationship.outgoing === "follow"
                         ? <Msg $key="profile.unfollow" />

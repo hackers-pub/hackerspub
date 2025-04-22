@@ -51,7 +51,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
               internalHref={post.actor.accountId == null
                 ? `/${post.actor.handle}`
                 : `/@${post.actor.username}`}
-              class="w-12 h-12"
+              class="w-12 h-12 shrink-0"
             >
               <img
                 src={getAvatarUrl(post.actor)}
