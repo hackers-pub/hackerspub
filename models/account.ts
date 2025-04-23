@@ -7,13 +7,13 @@ import {
   type RequestContext,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import type { ContextData } from "@hackerspub/federation/builder";
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";
 import { escape, unescape } from "@std/html/entities";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
+import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import {
   type Account,

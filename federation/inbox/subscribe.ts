@@ -9,7 +9,7 @@ import {
   type Undo,
   type Update,
 } from "@fedify/fedify";
-import type { ContextData } from "@hackerspub/federation/builder";
+import type { ContextData } from "@hackerspub/models/context";
 import { getLogger } from "@logtape/logtape";
 import { eq } from "drizzle-orm";
 import {

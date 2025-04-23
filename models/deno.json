@@ -7,6 +7,7 @@
     "./article": "./article.ts",
     "./avatar": "./avatar.ts",
     "./blocking": "./blocking.ts",
+    "./context": "./context.ts",
     "./date": "./date.ts",
     "./db": "./db.ts",
     "./emoji": "./emoji.ts",

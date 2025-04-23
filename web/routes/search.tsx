@@ -1,8 +1,8 @@
 import { type Context, isActor } from "@fedify/fedify";
 import type * as vocab from "@fedify/fedify/vocab";
 import { page } from "@fresh/core";
-import type { ContextData } from "@hackerspub/federation/builder";
 import { persistActor } from "@hackerspub/models/actor";
+import type { ContextData } from "@hackerspub/models/context";
 import type { RelationsFilter } from "@hackerspub/models/db";
 import {
   getPostVisibilityFilter,

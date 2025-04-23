@@ -1,7 +1,7 @@
 /// <reference lib="deno.unstable" />
 import type { RequestContext } from "@fedify/fedify";
 import { createDefine } from "@fresh/core";
-import type { ContextData } from "@hackerspub/federation/builder";
+import type { ContextData } from "@hackerspub/models/context";
 import type { Locale } from "@hackerspub/models/i18n";
 import type {
   Account,

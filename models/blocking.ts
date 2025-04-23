@@ -1,9 +1,9 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import type { ContextData } from "@hackerspub/federation/builder";
 import { and, eq } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
+import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import { removeFollower, unfollow } from "./following.ts";
 import {

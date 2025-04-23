@@ -1,10 +1,10 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import type { ContextData } from "@hackerspub/federation/builder";
 import { and, eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import { getArticle } from "../federation/objects.ts";
+import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import { syncPostFromArticleSource } from "./post.ts";
 import {

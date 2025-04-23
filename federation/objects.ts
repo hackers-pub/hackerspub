@@ -5,6 +5,7 @@ import {
   type RequestContext,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import type { ContextData } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
 import { escape } from "@std/html/entities";
 import type { Disk } from "flydrive";
@@ -27,7 +28,7 @@ import type {
   Reaction,
 } from "../models/schema.ts";
 import { type Uuid, validateUuid } from "../models/uuid.ts";
-import { builder, type ContextData } from "./builder.ts";
+import { builder } from "./builder.ts";
 
 export async function getArticle(
   db: Database,

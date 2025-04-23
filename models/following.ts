@@ -1,7 +1,7 @@
 import { type Context, Follow, Reject, Undo } from "@fedify/fedify";
-import type { ContextData } from "@hackerspub/federation/builder";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { toRecipient } from "./actor.ts";
+import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import {
   createFollowNotification,

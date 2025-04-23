@@ -10,7 +10,6 @@ import {
   traverseCollection,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import type { ContextData } from "@hackerspub/federation/builder";
 import { getLogger } from "@logtape/logtape";
 import {
   and,
@@ -40,6 +39,7 @@ import {
   syncActorFromAccount,
   toRecipient,
 } from "./actor.ts";
+import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, RelationsFilter } from "./db.ts";
 import { extractExternalLinks } from "./html.ts";

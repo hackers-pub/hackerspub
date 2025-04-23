@@ -95,6 +95,7 @@
     "npm:@tailwindcss/typography@~0.5.15": "0.5.16_tailwindcss@3.4.3__postcss@8.5.3",
     "npm:@types/fluent-ffmpeg@^2.1.27": "2.1.27",
     "npm:@types/markdown-it@^14.1.1": "14.1.2",
+    "npm:@types/node@*": "22.12.0",
     "npm:arcsecond@5": "5.0.0",
     "npm:asn1js@^3.0.5": "3.0.6",
     "npm:autoprefixer@10.4.17": "10.4.17_postcss@8.4.35",

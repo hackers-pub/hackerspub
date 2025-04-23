@@ -6,7 +6,7 @@ import {
   type Reject,
   type Undo,
 } from "@fedify/fedify";
-import type { ContextData } from "@hackerspub/federation/builder";
+import type { ContextData } from "@hackerspub/models/context";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, sql } from "drizzle-orm";
 import { persistActor } from "../../models/actor.ts";

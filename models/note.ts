@@ -1,11 +1,11 @@
 import type { Context, Recipient } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
-import type { ContextData } from "@hackerspub/federation/builder";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 import sharp from "sharp";
 import { getNote } from "../federation/objects.ts";
+import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import {
   createMentionNotification,
