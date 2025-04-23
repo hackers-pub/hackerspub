@@ -21,7 +21,6 @@ import { encodeAscii85 } from "@std/encoding/ascii85";
 import { ASCII_DIACRITICS, slugify } from "@std/text/unstable-slugify";
 import { load } from "cheerio";
 import { arrayOverlaps, eq } from "drizzle-orm";
-import type { Disk } from "flydrive";
 import katex from "katex";
 import type Keyv from "keyv";
 import abbr from "markdown-it-abbr";
@@ -36,7 +35,6 @@ import toc from "markdown-it-toc-done-right";
 import { codeToHtml } from "shiki";
 import { persistActor, persistActorsByHandles } from "./actor.ts";
 import type { ContextData } from "./context.ts";
-import type { Database } from "./db.ts";
 import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./html.ts";
 import { type Actor, actorTable } from "./schema.ts";
 
@@ -172,8 +170,6 @@ export interface RenderMarkupOptions {
 }
 
 export async function renderMarkup(
-  db: Database,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   markup: string,
   options: RenderMarkupOptions = {},
@@ -203,9 +199,7 @@ export async function renderMarkup(
   const tmpEnv: { mentions: string[] } = { mentions: [] };
   await tmpMd.renderAsync(markup, tmpEnv);
   const mentions = new Set(tmpEnv.mentions);
-  const mentionedActors = await persistActorsByHandles(db, disk, fedCtx, [
-    ...mentions,
-  ]);
+  const mentionedActors = await persistActorsByHandles(fedCtx, [...mentions]);
   const env: Env = {
     docId: options.docId,
     title: "",
@@ -274,8 +268,6 @@ export interface ExtractMentionsFromHtmlOptions {
 }
 
 export async function extractMentionsFromHtml(
-  db: Database,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   html: string,
   options: ExtractMentionsFromHtmlOptions = {},
@@ -299,6 +291,7 @@ export async function extractMentionsFromHtml(
     if (href != null) mentionHrefs.add(href);
   });
   if (mentionHrefs.size < 1) return [];
+  const { db } = fedCtx.data;
   const actors = await db.query.actorTable.findMany({
     where: {
       OR: [
@@ -336,7 +329,7 @@ export async function extractMentionsFromHtml(
     if (pair == null) continue;
     const [href, object] = pair;
     if (!isActor(object)) continue;
-    let actor = await persistActor(db, disk, fedCtx, object, {
+    let actor = await persistActor(fedCtx, object, {
       ...options,
       outbox: false,
     });

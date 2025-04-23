@@ -1,7 +1,6 @@
 import type { Context, DocumentLoader } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import type { Disk } from "flydrive";
 import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
@@ -85,8 +84,6 @@ export async function persistPollOption(
 }
 
 export async function persistPollVote(
-  db: Database,
-  disk: Disk,
   ctx: Context<ContextData>,
   note: vocab.Note,
   options: {
@@ -100,18 +97,19 @@ export async function persistPollVote(
   ) {
     return undefined;
   }
+  const { db } = ctx.data;
   let post = await getPersistedPost(db, note.replyTargetId);
   if (post == null) {
     const question = await note.getReplyTarget(options);
     if (!(question instanceof vocab.Question)) return undefined;
-    post = await persistPost(db, disk, ctx, question, options);
+    post = await persistPost(ctx, question, options);
     if (post == null) return undefined;
   }
   let actor = await getPersistedActor(db, note.attributionId);
   if (actor == null) {
     const actorObject = await note.getAttribution(options);
     if (actorObject == null) return undefined;
-    actor = await persistActor(db, disk, ctx, actorObject, options);
+    actor = await persistActor(ctx, actorObject, options);
     if (actor == null) return undefined;
   }
   const poll = await db.query.pollTable.findFirst({
@@ -143,7 +141,6 @@ export async function persistPollVote(
 }
 
 export async function vote(
-  db: Database,
   fedCtx: Context<ContextData>,
   voter: Account & { actor: Actor },
   poll: Poll & { options: PollOption[] },
@@ -155,6 +152,7 @@ export async function vote(
   ) {
     return [];
   }
+  const { db } = fedCtx.data;
   const post = await db.query.postTable.findFirst({
     where: { id: poll.postId },
     with: {

@@ -30,7 +30,7 @@ export const handler = define.handlers({
     if (ctx.state.account == null || ctx.state.account.actor.id === actor.id) {
       return new Response("Forbidden", { status: 403 });
     }
-    await block(db, ctx.state.fedCtx, ctx.state.account, actor);
+    await block(ctx.state.fedCtx, ctx.state.account, actor);
     return ctx.redirect(`/@${ctx.params.username}`, 303);
   },
 });

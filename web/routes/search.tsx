@@ -25,20 +25,17 @@ import { compileQuery, parseQuery } from "@hackerspub/models/search";
 import { addPostToTimeline } from "@hackerspub/models/timeline";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { sql } from "drizzle-orm";
-import type { Disk } from "flydrive";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
 import { PostPagination } from "../components/PostPagination.tsx";
 import { db } from "../db.ts";
-import { drive } from "../drive.ts";
 import { define } from "../utils.ts";
 
 const HANDLE_REGEXP = /@([a-z0-9_]{1,50})$/i;
 const FULL_HANDLE_REGEXP = /^@?([^@]+)@([^@]+)$/;
 
 async function searchHandle(
-  disk: Disk,
   fedCtx: Context<ContextData>,
   account?: Account,
   keyword?: string | null,
@@ -79,7 +76,7 @@ async function searchHandle(
     return undefined;
   }
   if (!isActor(object)) return undefined;
-  actor = await persistActor(db, disk, fedCtx, object, {
+  actor = await persistActor(fedCtx, object, {
     contextLoader: fedCtx.contextLoader,
     documentLoader,
     outbox: false,
@@ -89,7 +86,6 @@ async function searchHandle(
 }
 
 async function searchUrl(
-  disk: Disk,
   fedCtx: Context<ContextData>,
   account?: Account,
   keyword?: string | null,
@@ -112,7 +108,7 @@ async function searchUrl(
       return undefined;
     }
     if (!isPostObject(object)) return undefined;
-    post = await persistPost(db, disk, fedCtx, object, {
+    post = await persistPost(fedCtx, object, {
       contextLoader: fedCtx.contextLoader,
       documentLoader,
     });
@@ -130,16 +126,13 @@ async function searchUrl(
 export const handler = define.handlers(async (ctx) => {
   const query = ctx.url.searchParams.get("query");
   const continuation = ctx.url.searchParams.get("cont");
-  const disk = drive.use();
   let redirect = await searchUrl(
-    disk,
     ctx.state.fedCtx,
     ctx.state.account,
     query,
   );
   if (redirect != null) return ctx.redirect(redirect);
   redirect = await searchHandle(
-    disk,
     ctx.state.fedCtx,
     ctx.state.account,
     query,

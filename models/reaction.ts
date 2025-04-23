@@ -1,7 +1,6 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, sql } from "drizzle-orm";
-import type { Disk } from "flydrive";
 import { getEmojiReact, getEmojiReactId } from "../federation/objects.ts";
 import { getPersistedActor, persistActor } from "./actor.ts";
 import type { ContextData } from "./context.ts";
@@ -61,8 +60,6 @@ export async function persistCustomEmoji(
 }
 
 export async function persistReaction(
-  db: Database,
-  disk: Disk,
   ctx: Context<ContextData>,
   reaction: vocab.Like | vocab.EmojiReact,
   options: {
@@ -75,19 +72,20 @@ export async function persistReaction(
   ) {
     return undefined;
   }
+  const { db } = ctx.data;
   let actor = await getPersistedActor(db, reaction.actorId);
   const opts = { ...options, suppressError: true };
   if (actor == null) {
     const actorObject = await reaction.getActor(opts);
     if (!isActor(actorObject)) return undefined;
-    actor = await persistActor(db, disk, ctx, actorObject, options);
+    actor = await persistActor(ctx, actorObject, options);
   }
   if (actor == null) return undefined;
   let post = await getPersistedPost(db, reaction.objectId);
   if (post == null) {
     const object = await reaction.getObject(opts);
     if (!isPostObject(object)) return undefined;
-    post = await persistPost(db, disk, ctx, object, options);
+    post = await persistPost(ctx, object, options);
   }
   if (post == null) return undefined;
   const customEmojis: Record<string, CustomEmoji> = {};
@@ -201,13 +199,13 @@ export async function deleteReaction(
 }
 
 export async function react(
-  db: Database,
   ctx: Context<ContextData>,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
   emoji: ReactionEmoji,
 ): Promise<Reaction | undefined> {
   const id = getEmojiReactId(ctx, account.id, post.id, emoji);
+  const { db } = ctx.data;
   const rows = await db.insert(reactionTable)
     .values({
       iri: id.href,
@@ -261,12 +259,12 @@ export async function react(
 }
 
 export async function undoReaction(
-  db: Database,
   ctx: Context<ContextData>,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
   emoji: ReactionEmoji,
 ): Promise<Reaction | undefined> {
+  const { db } = ctx.data;
   const rows = await db.delete(reactionTable)
     .where(
       and(

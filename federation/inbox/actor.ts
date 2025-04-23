@@ -17,10 +17,7 @@ export async function onActorUpdated(
 ): Promise<void> {
   const actor = await update.getObject(fedCtx);
   if (!isActor(actor) || update.actorId?.href !== actor.id?.href) return;
-  await persistActor(fedCtx.data.db, fedCtx.data.disk, fedCtx, actor, {
-    ...fedCtx,
-    outbox: false,
-  });
+  await persistActor(fedCtx, actor, { ...fedCtx, outbox: false });
 }
 
 export async function onActorDeleted(
@@ -49,11 +46,11 @@ export async function onActorMoved(
   ) {
     return;
   }
-  const { db, disk } = fedCtx.data;
-  const oldActor = await persistActor(db, disk, fedCtx, object, fedCtx);
+  const oldActor = await persistActor(fedCtx, object, fedCtx);
   if (oldActor == null) return;
-  const newActor = await persistActor(db, disk, fedCtx, target, fedCtx);
+  const newActor = await persistActor(fedCtx, target, fedCtx);
   if (newActor == null) return;
+  const { db } = fedCtx.data;
   await db.update(actorTable)
     .set({ successorId: newActor.id })
     .where(eq(actorTable.id, oldActor.id));
@@ -67,7 +64,6 @@ export async function onActorMoved(
   for (const follower of followers) {
     if (follower.account == null) continue;
     await follow(
-      db,
       fedCtx,
       { ...follower.account, actor: follower },
       newActor,

@@ -17,10 +17,8 @@ import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
-import { drive } from "../../../../drive.ts";
 import { Composer } from "../../../../islands/Composer.tsx";
 import { PostControls } from "../../../../islands/PostControls.tsx";
-import { kv } from "../../../../kv.ts";
 import { define } from "../../../../utils.ts";
 import { NoteSourceSchema } from "../../index.tsx";
 
@@ -103,8 +101,7 @@ export const handler = define.handlers({
         headers: { "Content-Type": "application/json" },
       });
     }
-    const disk = drive.use();
-    const quote = await createNote(db, kv, disk, ctx.state.fedCtx, {
+    const quote = await createNote(ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
     }, { quotedPost: article.post });

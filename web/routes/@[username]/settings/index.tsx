@@ -17,7 +17,6 @@ import {
   AccountLinkFieldSet,
 } from "../../../islands/AccountLinkFieldSet.tsx";
 import { Timestamp } from "../../../islands/Timestamp.tsx";
-import { kv } from "../../../kv.ts";
 import { define } from "../../../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "@[username]", "settings"]);
@@ -161,7 +160,7 @@ export const handler = define.handlers({
       promises.push(disk.put(key, new Uint8Array(buffer.buffer)));
       values.avatarKey = key;
     }
-    const updatedAccount = await updateAccount(db, ctx.state.fedCtx, values);
+    const updatedAccount = await updateAccount(ctx.state.fedCtx, values);
     if (updatedAccount == null) {
       logger.error("Failed to update account: {values}", { values });
       return ctx.next();
@@ -169,10 +168,7 @@ export const handler = define.handlers({
     const emails = await db.query.accountEmailTable.findMany({
       where: { accountId: updatedAccount.id },
     });
-    await syncActorFromAccount(db, kv, disk, ctx.state.fedCtx, {
-      ...updatedAccount,
-      emails,
-    });
+    await syncActorFromAccount(ctx.state.fedCtx, { ...updatedAccount, emails });
     await Promise.all(promises);
     if (account.username !== updatedAccount.username) {
       return Response.redirect(

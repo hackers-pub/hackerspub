@@ -45,10 +45,9 @@ export default async function App(
         `${state.language}.md`,
       ),
     );
-  const disk = drive.use();
   const searchGuide = searchGuideText == null
     ? null
-    : await renderMarkup(db, disk, state.fedCtx, searchGuideText, { kv });
+    : await renderMarkup(state.fedCtx, searchGuideText, { kv });
   return (
     <TranslationSetup language={state.language}>
       <Translation>

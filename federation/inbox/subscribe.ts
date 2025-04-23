@@ -48,8 +48,8 @@ export async function onPostCreated(
   const object = await create.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== create.actorId?.href) return;
-  const { db, disk } = fedCtx.data;
-  const post = await persistPost(db, disk, fedCtx, object, {
+  const { db } = fedCtx.data;
+  const post = await persistPost(fedCtx, object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
@@ -95,7 +95,7 @@ export async function onPostUpdated(
   const object = await update.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
   if (object.attributionId?.href !== update.actorId?.href) return;
-  await persistPost(fedCtx.data.db, fedCtx.data.disk, fedCtx, object, {
+  await persistPost(fedCtx, object, {
     replies: true,
     documentLoader: fedCtx.documentLoader,
     contextLoader: fedCtx.contextLoader,
@@ -126,9 +126,9 @@ export async function onPostShared(
   if (announce.id?.origin !== announce.actorId?.origin) return;
   const object = await announce.getObject({ ...fedCtx, suppressError: true });
   if (!isPostObject(object)) return;
-  const { db, disk } = fedCtx.data;
-  const post = await persistSharedPost(db, disk, fedCtx, announce, fedCtx);
+  const post = await persistSharedPost(fedCtx, announce, fedCtx);
   if (post != null) {
+    const { db } = fedCtx.data;
     await addPostToTimeline(db, post);
     if (post.sharedPost.actor.accountId != null) {
       await createShareNotification(
@@ -176,8 +176,6 @@ export async function onReactedOnPost(
 ): Promise<void> {
   logger.debug("On post reacted: {reaction}", { reaction });
   const reactionObject = await persistReaction(
-    fedCtx.data.db,
-    fedCtx.data.disk,
     fedCtx,
     reaction,
     fedCtx,

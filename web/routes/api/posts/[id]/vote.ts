@@ -1,7 +1,6 @@
 import { vote } from "@hackerspub/models/poll";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import { validateUuid } from "@hackerspub/models/uuid";
-import { db } from "../../../../db.ts";
 import { define } from "../../../../utils.ts";
 import { getPost } from "./poll.ts";
 
@@ -22,7 +21,6 @@ export const handler = define.handlers(async (ctx) => {
   }
   const optionIndices = new Set(indices);
   await vote(
-    db,
     ctx.state.fedCtx,
     ctx.state.account,
     post.poll,

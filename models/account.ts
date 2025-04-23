@@ -87,10 +87,10 @@ export async function getAccountByUsername(
 }
 
 export async function updateAccount(
-  db: Database,
   fedCtx: RequestContext<ContextData>,
   account: NewAccount & { links: Link[] },
 ): Promise<Account & { links: AccountLink[] } | undefined> {
+  const { db } = fedCtx.data;
   const result = await updateAccountData(db, account);
   if (result == null) return undefined;
   const links = await updateAccountLinks(

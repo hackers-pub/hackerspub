@@ -34,7 +34,6 @@ export const handler = define.handlers({
     let reaction: Reaction | undefined;
     if (mode === "undo") {
       reaction = await undoReaction(
-        db,
         ctx.state.fedCtx,
         ctx.state.account,
         post,
@@ -42,7 +41,6 @@ export const handler = define.handlers({
       );
     } else {
       reaction = await react(
-        db,
         ctx.state.fedCtx,
         ctx.state.account,
         post,

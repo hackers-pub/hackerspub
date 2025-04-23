@@ -21,7 +21,6 @@ import { Msg, Translation } from "../../../components/Msg.tsx";
 import { PageTitle } from "../../../components/PageTitle.tsx";
 import { TextArea } from "../../../components/TextArea.tsx";
 import { db } from "../../../db.ts";
-import { drive } from "../../../drive.ts";
 import { kv } from "../../../kv.ts";
 import { define } from "../../../utils.ts";
 
@@ -98,8 +97,7 @@ export const handler = define.handlers({
         errors,
       });
     }
-    const disk = drive.use();
-    const actor = await syncActorFromAccount(db, kv, disk, ctx.state.fedCtx, {
+    const actor = await syncActorFromAccount(ctx.state.fedCtx, {
       ...account,
       links: [],
     });
@@ -111,8 +109,8 @@ export const handler = define.handlers({
         with: { actor: true },
       });
     if (inviter != null) {
-      await follow(db, ctx.state.fedCtx, { ...account, actor }, inviter.actor);
-      await follow(db, ctx.state.fedCtx, inviter, actor);
+      await follow(ctx.state.fedCtx, { ...account, actor }, inviter.actor);
+      await follow(ctx.state.fedCtx, inviter, actor);
     }
     const session = await createSession(kv, {
       accountId: account.id,
@@ -162,8 +160,7 @@ export default define.page<typeof handler, SignupPageProps>(
         `CODE_OF_CONDUCT.${language}.md`,
       ),
     );
-    const disk = drive.use();
-    const rendered = await renderMarkup(db, disk, fedCtx, coc, { kv });
+    const rendered = await renderMarkup(fedCtx, coc, { kv });
     const cocHtml = rendered.html;
     return (
       <div>

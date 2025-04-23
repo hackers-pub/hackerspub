@@ -40,7 +40,6 @@ import { PostPagination } from "../../components/PostPagination.tsx";
 import { Profile } from "../../components/Profile.tsx";
 import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
-import { drive } from "../../drive.ts";
 import { kv } from "../../kv.ts";
 import { define } from "../../utils.ts";
 
@@ -79,7 +78,6 @@ export const handler = define.handlers({
         301,
       );
     }
-    const disk = drive.use();
     const untilString = ctx.url.searchParams.get("until");
     const until = untilString == null || !untilString.match(/^\d+(\.\d+)?$/)
       ? undefined
@@ -127,8 +125,7 @@ export const handler = define.handlers({
           return ctx.next();
         }
         if (!isActor(apActor)) return ctx.next();
-        const disk = drive.use();
-        actor = await persistActor(db, disk, ctx.state.fedCtx, apActor);
+        actor = await persistActor(ctx.state.fedCtx, apActor);
         if (actor == null) return ctx.next();
       }
       if (ctx.state.session == null) {
@@ -247,8 +244,6 @@ export const handler = define.handlers({
         profileHref: `/${actor.handle}`,
         actor,
         actorMentions: await extractMentionsFromHtml(
-          db,
-          disk,
           ctx.state.fedCtx,
           actor.bioHtml ?? "",
           { kv },
@@ -268,7 +263,7 @@ export const handler = define.handlers({
     if (account.username !== ctx.params.username) {
       return ctx.redirect(`/@${account.username}`, 301);
     }
-    const bio = await renderMarkup(db, disk, ctx.state.fedCtx, account.bio, {
+    const bio = await renderMarkup(ctx.state.fedCtx, account.bio, {
       docId: account.id,
       kv,
     });
@@ -436,8 +431,6 @@ export const handler = define.handlers({
       profileHref: permalink.href,
       actor: account.actor,
       actorMentions: await extractMentionsFromHtml(
-        db,
-        disk,
         ctx.state.fedCtx,
         account.actor.bioHtml ?? "",
         {
@@ -474,7 +467,6 @@ export const handler = define.handlers({
         headers: { "Content-Type": "application/json" },
       });
     }
-    const disk = drive.use();
     const quotedPost = parsed.output.quotedPostId == null
       ? undefined
       : await db.query.postTable.findFirst({
@@ -484,7 +476,7 @@ export const handler = define.handlers({
         },
         with: { actor: true },
       });
-    const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
+    const post = await createNote(ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
     }, { quotedPost });

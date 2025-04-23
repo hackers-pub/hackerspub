@@ -86,7 +86,7 @@ export async function onFollowed(
   const followObject = fedCtx.parseUri(follow.objectId);
   if (followObject?.type !== "actor") return;
   else if (!validateUuid(followObject.identifier)) return;
-  const { db, disk } = fedCtx.data;
+  const { db } = fedCtx.data;
   const followee = await db.query.accountTable.findFirst({
     with: { actor: true },
     where: { id: followObject.identifier },
@@ -94,7 +94,7 @@ export async function onFollowed(
   if (followee == null) return;
   const followActor = await follow.getActor(fedCtx);
   if (followActor == null) return;
-  const follower = await persistActor(db, disk, fedCtx, followActor, {
+  const follower = await persistActor(fedCtx, followActor, {
     ...fedCtx,
     outbox: false,
   });
@@ -133,12 +133,12 @@ export async function onUnfollowed(
   if (follow.id == null || follow.actorId?.href !== undo.actorId?.href) return;
   const actorObject = await undo.getActor(fedCtx);
   if (actorObject == null) return;
-  const { db, disk } = fedCtx.data;
-  const actor = await persistActor(db, disk, fedCtx, actorObject, {
+  const actor = await persistActor(fedCtx, actorObject, {
     ...fedCtx,
     outbox: false,
   });
   if (actor == null) return;
+  const { db } = fedCtx.data;
   const rows = await db.delete(followingTable)
     .where(
       and(
@@ -169,13 +169,7 @@ export async function onBlocked(
   fedCtx: InboxContext<ContextData>,
   block: Block,
 ): Promise<void> {
-  await persistBlocking(
-    fedCtx.data.db,
-    fedCtx.data.disk,
-    fedCtx,
-    block,
-    fedCtx,
-  );
+  await persistBlocking(fedCtx, block, fedCtx);
 }
 
 export async function onUnblocked(

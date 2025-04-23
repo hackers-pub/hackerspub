@@ -1,8 +1,6 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { and, eq, sql } from "drizzle-orm";
-import type { Disk } from "flydrive";
-import type Keyv from "keyv";
 import { getArticle } from "../federation/objects.ts";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
@@ -159,9 +157,6 @@ export async function createArticleSource(
 }
 
 export async function createArticle(
-  db: Database,
-  kv: Keyv,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   source: Omit<NewArticleSource, "id"> & { id?: Uuid },
 ): Promise<
@@ -175,6 +170,7 @@ export async function createArticle(
     };
   } | undefined
 > {
+  const { db } = fedCtx.data;
   const articleSource = await createArticleSource(db, source);
   if (articleSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
@@ -182,15 +178,12 @@ export async function createArticle(
     with: { emails: true, links: true },
   });
   if (account == undefined) return undefined;
-  const post = await syncPostFromArticleSource(db, kv, disk, fedCtx, {
+  const post = await syncPostFromArticleSource(fedCtx, {
     ...articleSource,
     account,
   });
   await addPostToTimeline(db, post);
-  const articleObject = await getArticle(db, disk, fedCtx, {
-    ...articleSource,
-    account,
-  });
+  const articleObject = await getArticle(fedCtx, { ...articleSource, account });
   await fedCtx.sendActivity(
     { identifier: source.accountId },
     "followers",
@@ -219,9 +212,6 @@ export async function updateArticleSource(
 }
 
 export async function updateArticle(
-  db: Database,
-  kv: Keyv,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   articleSourceId: Uuid,
   source: Partial<NewArticleSource>,
@@ -236,6 +226,7 @@ export async function updateArticle(
     };
   } | undefined
 > {
+  const { db } = fedCtx.data;
   const articleSource = await updateArticleSource(db, articleSourceId, source);
   if (articleSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
@@ -243,14 +234,11 @@ export async function updateArticle(
     with: { emails: true, links: true },
   });
   if (account == null) return undefined;
-  const post = await syncPostFromArticleSource(db, kv, disk, fedCtx, {
+  const post = await syncPostFromArticleSource(fedCtx, {
     ...articleSource,
     account,
   });
-  const articleObject = await getArticle(db, disk, fedCtx, {
-    ...articleSource,
-    account,
-  });
+  const articleObject = await getArticle(fedCtx, { ...articleSource, account });
   await fedCtx.sendActivity(
     { identifier: articleSource.accountId },
     "followers",

@@ -5,8 +5,6 @@ import { dirname } from "@std/path/dirname";
 import { join } from "@std/path/join";
 import { load } from "cheerio";
 import { Msg } from "../components/Msg.tsx";
-import { db } from "../db.ts";
-import { drive } from "../drive.ts";
 import { kv } from "../kv.ts";
 import { define } from "../utils.ts";
 
@@ -18,10 +16,7 @@ export const handler = define.handlers({
         `locales/markdown/${ctx.state.language}.md`,
       ),
     );
-    const disk = drive.use();
-    const rendered = await renderMarkup(db, disk, ctx.state.fedCtx, markdown, {
-      kv,
-    });
+    const rendered = await renderMarkup(ctx.state.fedCtx, markdown, { kv });
     ctx.state.title = rendered.title;
     let html = transformMentions(
       rendered.html,

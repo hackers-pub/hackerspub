@@ -7,7 +7,6 @@ import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
-import { drive } from "../../drive.ts";
 import { ConfirmForm } from "../../islands/ConfirmForm.tsx";
 import { kv } from "../../kv.ts";
 import { define } from "../../utils.ts";
@@ -46,10 +45,7 @@ export const handler = define.handlers({
     if (followers.length > WINDOW) {
       nextUrl = `?until=${followers[WINDOW - 1].accepted!.getTime()}`;
     }
-    const disk = drive.use();
     const followersMentions = await extractMentionsFromHtml(
-      db,
-      disk,
       ctx.state.fedCtx,
       followers.slice(0, WINDOW).map((f) => f.follower.bioHtml).join("\n"),
       {
@@ -79,7 +75,7 @@ export const handler = define.handlers({
       where: { id: followerId },
     });
     if (follower == null) return ctx.next();
-    await removeFollower(db, ctx.state.fedCtx, ctx.state.account, follower);
+    await removeFollower(ctx.state.fedCtx, ctx.state.account, follower);
     const returnUrl = form.get("return")?.toString();
     return ctx.redirect(returnUrl ?? `/@${username}/followers`);
   },

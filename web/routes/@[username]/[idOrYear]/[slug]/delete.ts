@@ -17,7 +17,7 @@ export const handler = define.handlers({
     if (article == null || article.accountId !== ctx.state.account?.id) {
       return ctx.next();
     }
-    await deletePost(db, ctx.state.fedCtx, article.post);
+    await deletePost(ctx.state.fedCtx, article.post);
     return ctx.redirect(`/@${article.account.username}`, 303);
   },
 });

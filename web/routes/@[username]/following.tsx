@@ -5,7 +5,6 @@ import { ActorList } from "../../components/ActorList.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
-import { drive } from "../../drive.ts";
 import { kv } from "../../kv.ts";
 import { define } from "../../utils.ts";
 
@@ -45,10 +44,7 @@ export const handler = define.handlers({
     if (followees.length > WINDOW) {
       nextUrl = `?until=${followees[WINDOW - 1].accepted!.getTime()}`;
     }
-    const disk = drive.use();
     const followeesMentions = await extractMentionsFromHtml(
-      db,
-      disk,
       ctx.state.fedCtx,
       followees.slice(0, WINDOW).map((f) => f.followee.bioHtml).join("\n"),
       {

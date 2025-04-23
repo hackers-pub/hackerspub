@@ -20,7 +20,7 @@ export const handler = define.handlers({
         },
       });
       if (followee == null) return ctx.next();
-      await unfollow(db, ctx.state.fedCtx, ctx.state.account, followee);
+      await unfollow(ctx.state.fedCtx, ctx.state.account, followee);
     } else {
       const followee = await db.query.accountTable.findFirst({
         with: { actor: true },
@@ -29,7 +29,7 @@ export const handler = define.handlers({
       if (followee == null || followee.id === ctx.state.session.accountId) {
         return ctx.next();
       }
-      await unfollow(db, ctx.state.fedCtx, ctx.state.account, followee.actor);
+      await unfollow(ctx.state.fedCtx, ctx.state.account, followee.actor);
     }
     const form = await ctx.req.formData();
     const returnUrl = form.get("return")?.toString();

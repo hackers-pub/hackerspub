@@ -26,7 +26,6 @@ import {
   type TimelineNavItem,
 } from "../components/TimelineNav.tsx";
 import { db } from "../db.ts";
-import { drive } from "../drive.ts";
 import { Composer } from "../islands/Composer.tsx";
 import { RecommendedActors } from "../islands/RecommendedActors.tsx";
 import { kv } from "../kv.ts";
@@ -413,10 +412,7 @@ export const handler = define.handlers({
     logger.debug("Recommended actors: {recommendedActors}", {
       recommendedActors,
     });
-    const disk = drive.use();
     const recommendedActorMentions = await extractMentionsFromHtml(
-      db,
-      disk,
       ctx.state.fedCtx,
       recommendedActors.map((actor) => actor.bioHtml).join("\n"),
       ctx.state.account == null ? { kv } : {

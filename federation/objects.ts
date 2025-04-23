@@ -6,9 +6,7 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
-import type { Database } from "@hackerspub/models/db";
 import { escape } from "@std/html/entities";
-import type { Disk } from "flydrive";
 import {
   DEFAULT_REACTION_EMOJI,
   isReactionEmoji,
@@ -31,12 +29,10 @@ import { type Uuid, validateUuid } from "../models/uuid.ts";
 import { builder } from "./builder.ts";
 
 export async function getArticle(
-  db: Database,
-  disk: Disk,
   ctx: Context<ContextData>,
   articleSource: ArticleSource & { account: Account },
 ): Promise<vocab.Article> {
-  const rendered = await renderMarkup(db, disk, ctx, articleSource.content, {
+  const rendered = await renderMarkup(ctx, articleSource.content, {
     docId: articleSource.id,
     kv: ctx.data.kv,
   });
@@ -89,7 +85,7 @@ builder.setObjectDispatcher(
       where: { id: values.id },
     });
     if (articleSource == null) return null;
-    return await getArticle(ctx.data.db, ctx.data.disk, ctx, articleSource);
+    return await getArticle(ctx, articleSource);
   },
 );
 
@@ -122,8 +118,6 @@ export function getPostRecipients(
 }
 
 export async function getNote(
-  db: Database,
-  disk: Disk,
   ctx: Context<ContextData>,
   note: NoteSource & { account: Account; media: NoteMedium[] },
   relations: {
@@ -131,10 +125,11 @@ export async function getNote(
     quotedPost?: Post;
   } = {},
 ): Promise<vocab.Note> {
-  const rendered = await renderMarkup(db, disk, ctx, note.content, {
+  const rendered = await renderMarkup(ctx, note.content, {
     docId: note.id,
     kv: ctx.data.kv,
   });
+  const { disk } = ctx.data;
   const attachments: vocab.Document[] = [];
   for (const medium of note.media) {
     attachments.push(
@@ -229,8 +224,6 @@ builder
       });
       if (note == null) return null;
       return await getNote(
-        ctx.data.db,
-        ctx.data.disk,
         ctx,
         note,
         {

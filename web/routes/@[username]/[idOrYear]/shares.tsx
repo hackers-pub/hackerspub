@@ -8,7 +8,6 @@ import { ActorList } from "../../../components/ActorList.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { PostReactionsNav } from "../../../components/PostReactionsNav.tsx";
 import { db } from "../../../db.ts";
-import { drive } from "../../../drive.ts";
 import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
 import { define } from "../../../utils.ts";
@@ -35,10 +34,7 @@ export const handler = define.handlers(async (ctx) => {
     orderBy: { published: "desc" },
   });
   const sharers = shares.map((s) => s.actor);
-  const disk = drive.use();
   const sharersMentions = await extractMentionsFromHtml(
-    db,
-    disk,
     ctx.state.fedCtx,
     sharers.map((s) => s.bioHtml).join("\n"),
     {

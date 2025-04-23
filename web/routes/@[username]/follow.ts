@@ -20,7 +20,7 @@ export const handler = define.handlers({
         },
       });
       if (followee == null) return ctx.next();
-      await follow(db, ctx.state.fedCtx, ctx.state.account, followee);
+      await follow(ctx.state.fedCtx, ctx.state.account, followee);
     } else {
       const followee = await db.query.accountTable.findFirst({
         with: { actor: true },
@@ -29,7 +29,7 @@ export const handler = define.handlers({
       if (followee == null || followee.id === ctx.state.session.accountId) {
         return ctx.next();
       }
-      await follow(db, ctx.state.fedCtx, ctx.state.account, followee.actor);
+      await follow(ctx.state.fedCtx, ctx.state.account, followee.actor);
     }
     return ctx.redirect(`/@${handle}`);
   },

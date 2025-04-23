@@ -22,7 +22,6 @@ import { PostPagination } from "../../components/PostPagination.tsx";
 import { Profile } from "../../components/Profile.tsx";
 import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
-import { drive } from "../../drive.ts";
 import { kv } from "../../kv.ts";
 import { define } from "../../utils.ts";
 
@@ -189,15 +188,12 @@ export const handler = define.handlers({
     });
     const next = posts.length > window ? posts[window].published : undefined;
     ctx.state.title = actor.name ?? actor.username;
-    const disk = drive.use();
     return page<ProfileNoteListProps>({
       profileHref: account == null
         ? `/${actor.handle}`
         : `/@${account.username}`,
       actor,
       actorMentions: await extractMentionsFromHtml(
-        db,
-        disk,
         ctx.state.fedCtx,
         actor.bioHtml ?? "",
         actor.accountId == null ? { kv } : {

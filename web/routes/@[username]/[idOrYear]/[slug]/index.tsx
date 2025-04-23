@@ -56,15 +56,13 @@ export const handler = define.handlers({
       ctx.params.username !== article.account.username &&
         article.post.url !== permalink.href
     ) {
-      await updateArticle(db, kv, disk, ctx.state.fedCtx, article.id, {});
+      await updateArticle(ctx.state.fedCtx, article.id, {});
     }
     const articleUri = ctx.state.fedCtx.getObjectUri(
       vocab.Article,
       { id: article.id },
     );
     const content = await renderMarkup(
-      db,
-      disk,
       ctx.state.fedCtx,
       article.content,
       {
@@ -189,7 +187,6 @@ export const handler = define.handlers({
         headers: { "Content-Type": "application/json" },
       });
     }
-    const disk = drive.use();
     const quotedPost = parsed.output.quotedPostId == null
       ? undefined
       : await db.query.postTable.findFirst({
@@ -199,7 +196,7 @@ export const handler = define.handlers({
         },
         with: { actor: true },
       });
-    const post = await createNote(db, kv, disk, ctx.state.fedCtx, {
+    const post = await createNote(ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
     }, { replyTarget: article.post, quotedPost });

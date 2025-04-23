@@ -70,8 +70,6 @@ builder
       });
       if (account == null) return null;
       const bio = await renderMarkup(
-        ctx.data.db,
-        ctx.data.disk,
         ctx,
         account.bio,
         {

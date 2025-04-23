@@ -17,7 +17,6 @@ import type {
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { sql } from "drizzle-orm";
 import { db } from "../../../../db.ts";
-import { drive } from "../../../../drive.ts";
 import { define } from "../../../../utils.ts";
 
 export function getPost(
@@ -93,8 +92,7 @@ export const handler = define.handlers(async (ctx) => {
       documentLoader,
     });
     if (!isPostObject(postObject)) return ctx.next();
-    const disk = drive.use();
-    await persistPost(db, disk, ctx.state.fedCtx, postObject);
+    await persistPost(ctx.state.fedCtx, postObject);
     post = await getPost(post.id, ctx.state.account);
     if (post?.poll == null) return ctx.next();
   }

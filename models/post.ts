@@ -21,9 +21,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Disk } from "flydrive";
 import iconv from "iconv-lite";
-import type Keyv from "keyv";
 import { Buffer } from "node:buffer";
 import ogs from "open-graph-scraper";
 import { PDFDocument } from "pdf-lib";
@@ -98,9 +96,6 @@ export function isArticleLike(
 }
 
 export async function syncPostFromArticleSource(
-  db: Database,
-  kv: Keyv,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   articleSource: ArticleSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
@@ -117,14 +112,9 @@ export async function syncPostFromArticleSource(
     mentions: Mention[];
   }
 > {
-  const actor = await syncActorFromAccount(
-    db,
-    kv,
-    disk,
-    fedCtx,
-    articleSource.account,
-  );
-  const rendered = await renderMarkup(db, disk, fedCtx, articleSource.content, {
+  const { db, kv } = fedCtx.data;
+  const actor = await syncActorFromAccount(fedCtx, articleSource.account);
+  const rendered = await renderMarkup(fedCtx, articleSource.content, {
     docId: articleSource.id,
     kv,
   });
@@ -176,9 +166,6 @@ export async function syncPostFromArticleSource(
 }
 
 export async function syncPostFromNoteSource(
-  db: Database,
-  kv: Keyv,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   noteSource: NoteSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
@@ -204,21 +191,16 @@ export async function syncPostFromNoteSource(
     media: PostMedium[];
   }
 > {
-  const actor = await syncActorFromAccount(
-    db,
-    kv,
-    disk,
-    fedCtx,
-    noteSource.account,
-  );
+  const { db, kv, disk } = fedCtx.data;
+  const actor = await syncActorFromAccount(fedCtx, noteSource.account);
   // FIXME: Note should be rendered in a different way
-  const rendered = await renderMarkup(db, disk, fedCtx, noteSource.content, {
+  const rendered = await renderMarkup(fedCtx, noteSource.content, {
     docId: noteSource.id,
     kv,
   });
   const externalLinks = extractExternalLinks(rendered.html);
   const link = externalLinks.length > 0
-    ? await persistPostLink(db, disk, fedCtx, externalLinks[0])
+    ? await persistPostLink(fedCtx, externalLinks[0])
     : undefined;
   const url =
     `${fedCtx.canonicalOrigin}/@${noteSource.account.username}/${noteSource.id}`;
@@ -304,8 +286,6 @@ export async function syncPostFromNoteSource(
 }
 
 export async function persistPost(
-  db: Database,
-  disk: Disk,
   ctx: Context<ContextData>,
   post: PostObject,
   options: {
@@ -332,6 +312,7 @@ export async function persistPost(
     );
     return;
   }
+  const { db, disk } = ctx.data;
   let actor =
     options.actor == null || options.actor.iri !== post.attributionId.href
       ? await getPersistedActor(db, post.attributionId)
@@ -344,7 +325,7 @@ export async function persistPost(
   if (actor == null) {
     const apActor = await post.getAttribution(opts);
     if (apActor == null) return;
-    actor = await persistActor(db, disk, ctx, apActor, options);
+    actor = await persistActor(ctx, apActor, options);
     if (actor == null) {
       logger.debug("Failed to persist actor: {actor}", { actor: apActor });
       return;
@@ -424,7 +405,7 @@ export async function persistPost(
           continue;
         }
         if (!isPostObject(obj)) continue;
-        quotedPost = await persistPost(db, disk, ctx, obj, {
+        quotedPost = await persistPost(ctx, obj, {
           replies: false,
           contextLoader: options.contextLoader,
           documentLoader: options.documentLoader,
@@ -444,7 +425,7 @@ export async function persistPost(
     if (replyTarget == null) {
       const apReplyTarget = await post.getReplyTarget(opts);
       if (!isPostObject(apReplyTarget)) return;
-      replyTarget = await persistPost(db, disk, ctx, apReplyTarget, options);
+      replyTarget = await persistPost(ctx, apReplyTarget, options);
       if (replyTarget == null) return;
     }
   }
@@ -478,7 +459,7 @@ export async function persistPost(
     );
   }
   const link = externalLinks.length > 0
-    ? await persistPostLink(db, disk, ctx, externalLinks[0])
+    ? await persistPostLink(ctx, externalLinks[0])
     : undefined;
   const values: Omit<NewPost, "id"> = {
     iri: post.id.href,
@@ -545,7 +526,7 @@ export async function persistPost(
       for (const iri of mentions) {
         const apActor = await lookupObject(iri, options);
         if (!isActor(apActor)) continue;
-        const actor = await persistActor(db, disk, ctx, apActor, options);
+        const actor = await persistActor(ctx, apActor, options);
         if (actor == null) continue;
         mentionedActors.push(actor);
       }
@@ -580,7 +561,7 @@ export async function persistPost(
       let repliesCount = 0;
       for await (const reply of traverseCollection(replies, opts)) {
         if (!isPostObject(reply)) continue;
-        await persistPost(db, disk, ctx, reply, {
+        await persistPost(ctx, reply, {
           ...options,
           actor,
           replyTarget: persistedPost,
@@ -609,8 +590,6 @@ export async function persistPost(
 }
 
 export async function persistSharedPost(
-  db: Database,
-  disk: Disk,
   ctx: Context<ContextData>,
   announce: vocab.Announce,
   options: {
@@ -631,6 +610,7 @@ export async function persistSharedPost(
     );
     return;
   }
+  const { db } = ctx.data;
   let actor: Actor & { instance: Instance } | undefined =
     options.actor == null || options.actor.iri !== announce.actorId.href
       ? await getPersistedActor(db, announce.actorId)
@@ -638,12 +618,12 @@ export async function persistSharedPost(
   if (actor == null) {
     const apActor = await announce.getActor(options);
     if (apActor == null) return;
-    actor = await persistActor(db, disk, ctx, apActor, options);
+    actor = await persistActor(ctx, apActor, options);
     if (actor == null) return;
   }
   const object = await announce.getObject(options);
   if (!isPostObject(object)) return;
-  const post = await persistPost(db, disk, ctx, object, {
+  const post = await persistPost(ctx, object, {
     ...options,
     replies: true,
   });
@@ -714,9 +694,6 @@ export async function persistSharedPost(
 }
 
 export async function sharePost(
-  db: Database,
-  kv: Keyv,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   account: Account & {
     emails: AccountEmail[];
@@ -724,7 +701,8 @@ export async function sharePost(
   },
   post: Post & { actor: Actor },
 ): Promise<Post> {
-  const actor = await syncActorFromAccount(db, kv, disk, fedCtx, account);
+  const { db } = fedCtx.data;
+  const actor = await syncActorFromAccount(fedCtx, account);
   const id = generateUuidV7();
   const posts = await db.insert(postTable).values({
     id,
@@ -791,9 +769,6 @@ export async function sharePost(
 }
 
 export async function unsharePost(
-  db: Database,
-  kv: Keyv,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   account: Account & {
     emails: AccountEmail[];
@@ -802,7 +777,8 @@ export async function unsharePost(
   sharedPost: Post & { actor: Actor },
 ): Promise<Post | undefined> {
   if (sharedPost.sharedPostId != null) return;
-  const actor = await syncActorFromAccount(db, kv, disk, fedCtx, account);
+  const { db } = fedCtx.data;
+  const actor = await syncActorFromAccount(fedCtx, account);
   const unshared = await db.delete(postTable).where(
     and(
       eq(postTable.actorId, actor.id),
@@ -1346,10 +1322,10 @@ export async function updateQuotesCount(
 }
 
 export async function deletePost(
-  db: Database,
   fedCtx: Context<ContextData>,
   post: Post & { actor: Actor; replyTarget: Post | null },
 ): Promise<void> {
+  const { db } = fedCtx.data;
   const replies = await db.query.postTable.findMany({
     with: { actor: true },
     where: {
@@ -1361,7 +1337,7 @@ export async function deletePost(
     },
   });
   for (const reply of replies) {
-    await deletePost(db, fedCtx, { ...reply, replyTarget: post });
+    await deletePost(fedCtx, { ...reply, replyTarget: post });
   }
   if (post.replyTarget != null) {
     await updateRepliesCount(db, post.replyTarget, -1);
@@ -1642,8 +1618,6 @@ export async function scrapePostLink(
 const POST_LINK_CACHE_TTL = Temporal.Duration.from({ hours: 24 });
 
 export async function persistPostLink(
-  db: Database,
-  disk: Disk,
   ctx: Context<ContextData>,
   url: string | URL,
 ): Promise<PostLink | undefined> {
@@ -1652,6 +1626,7 @@ export async function persistPostLink(
     logger.error("Unsafe URL: {url}", { url: url.href });
     return undefined;
   }
+  const { db } = ctx.data;
   const link = await db.query.postLinkTable.findFirst({
     where: { url: url.href },
   });
@@ -1669,7 +1644,7 @@ export async function persistPostLink(
   }
   let scrapedLink = await scrapePostLink(url, async (handle) => {
     if (!handle.startsWith("@")) handle = `@${handle}`;
-    const actors = await persistActorsByHandles(db, disk, ctx, [handle]);
+    const actors = await persistActorsByHandles(ctx, [handle]);
     return actors[handle]?.id;
   });
   logger.debug("Scraped link {url}: {link}", {

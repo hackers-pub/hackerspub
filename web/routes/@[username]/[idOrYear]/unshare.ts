@@ -13,8 +13,6 @@ import type {
 } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { db } from "../../../db.ts";
-import { drive } from "../../../drive.ts";
-import { kv } from "../../../kv.ts";
 import { define } from "../../../utils.ts";
 
 export const handler = define.handlers({
@@ -59,9 +57,6 @@ export const handler = define.handlers({
       return new Response("Forbidden", { status: 403 });
     }
     const unshared = await unsharePost(
-      db,
-      kv,
-      drive.use(),
       ctx.state.fedCtx,
       ctx.state.account,
       post,

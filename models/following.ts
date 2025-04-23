@@ -27,11 +27,11 @@ export function createFollowingIri(
 }
 
 export async function follow(
-  db: Database,
   fedCtx: Context<ContextData>,
   follower: Account & { actor: Actor },
   followee: Actor,
 ): Promise<Following | undefined> {
+  const { db } = fedCtx.data;
   const rows = await db.insert(followingTable).values({
     iri: createFollowingIri(fedCtx, follower).href,
     followerId: follower.actor.id,
@@ -107,11 +107,11 @@ export async function acceptFollowing(
 }
 
 export async function unfollow(
-  db: Database,
   fedCtx: Context<ContextData>,
   follower: Account & { actor: Actor },
   followee: Actor,
 ): Promise<Following | undefined> {
+  const { db } = fedCtx.data;
   const rows = await db.delete(followingTable).where(
     and(
       eq(followingTable.followerId, follower.actor.id),
@@ -148,11 +148,11 @@ export async function unfollow(
 }
 
 export async function removeFollower(
-  db: Database,
   fedCtx: Context<ContextData>,
   followee: Account & { actor: Actor },
   follower: Actor,
 ): Promise<Following | undefined> {
+  const { db } = fedCtx.data;
   const rows = await db.delete(followingTable).where(
     and(
       eq(followingTable.followerId, follower.id),

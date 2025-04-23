@@ -1,10 +1,8 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { and, eq } from "drizzle-orm";
-import type { Disk } from "flydrive";
 import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";
-import type { Database } from "./db.ts";
 import { removeFollower, unfollow } from "./following.ts";
 import {
   type Account,
@@ -15,8 +13,6 @@ import {
 import { generateUuidV7 } from "./uuid.ts";
 
 export async function persistBlocking(
-  db: Database,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   block: vocab.Block,
   options: {
@@ -28,18 +24,19 @@ export async function persistBlocking(
     return undefined;
   }
   const getterOpts = { ...options, suppressError: true };
+  const { db } = fedCtx.data;
   let blocker = await getPersistedActor(db, block.actorId);
   if (blocker == null) {
     const actor = await block.getActor(getterOpts);
     if (actor == null) return undefined;
-    blocker = await persistActor(db, disk, fedCtx, actor, options);
+    blocker = await persistActor(fedCtx, actor, options);
     if (blocker == null) return undefined;
   }
   let blockee = await getPersistedActor(db, block.objectId);
   if (blockee == null) {
     const object = await block.getObject(getterOpts);
     if (!isActor(object)) return undefined;
-    blockee = await persistActor(db, disk, fedCtx, object, options);
+    blockee = await persistActor(fedCtx, object, options);
     if (blockee == null) return undefined;
   }
   const rows = await db.insert(blockingTable)
@@ -54,13 +51,11 @@ export async function persistBlocking(
   if (rows.length < 1) return undefined;
   if (blockee.account == null) return undefined;
   await removeFollower(
-    db,
     fedCtx,
     { ...blockee.account, actor: blockee },
     blocker,
   );
   await unfollow(
-    db,
     fedCtx,
     { ...blockee.account, actor: blockee },
     blocker,
@@ -69,12 +64,12 @@ export async function persistBlocking(
 }
 
 export async function block(
-  db: Database,
   fedCtx: Context<ContextData>,
   blocker: Account & { actor: Actor },
   blockee: Actor,
 ): Promise<Blocking | undefined> {
   const id = generateUuidV7();
+  const { db } = fedCtx.data;
   const rows = await db.insert(blockingTable)
     .values({
       id,
@@ -108,11 +103,11 @@ export async function block(
 }
 
 export async function unblock(
-  db: Database,
   fedCtx: Context<ContextData>,
   blocker: Account & { actor: Actor },
   blockee: Actor,
 ): Promise<Blocking | undefined> {
+  const { db } = fedCtx.data;
   const rows = await db.delete(blockingTable).where(
     and(
       eq(blockingTable.blockerId, blocker.actor.id),

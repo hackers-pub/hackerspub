@@ -29,8 +29,6 @@ export const handler = define.handlers({
     const { account } = article;
     const disk = drive.use();
     const content = await renderMarkup(
-      db,
-      disk,
       ctx.state.fedCtx,
       article.content,
       { kv },

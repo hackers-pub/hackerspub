@@ -3,8 +3,6 @@ import { POSSIBLE_LOCALES } from "@hackerspub/models/i18n";
 import { validateUuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { db } from "../../../../db.ts";
-import { drive } from "../../../../drive.ts";
-import { kv } from "../../../../kv.ts";
 import { define } from "../../../../utils.ts";
 
 const ArticleSourceSchema = v.object({
@@ -35,8 +33,7 @@ export const handler = define.handlers({
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
-    const disk = drive.use();
-    const post = await createArticle(db, kv, disk, ctx.state.fedCtx, {
+    const post = await createArticle(ctx.state.fedCtx, {
       accountId: ctx.state.session.accountId,
       title: draft.title,
       content: draft.content,

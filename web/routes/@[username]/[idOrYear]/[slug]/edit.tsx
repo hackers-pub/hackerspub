@@ -3,9 +3,7 @@ import { getArticleSource, updateArticle } from "@hackerspub/models/article";
 import type { Account } from "@hackerspub/models/schema";
 import * as v from "@valibot/valibot";
 import { db } from "../../../../db.ts";
-import { drive } from "../../../../drive.ts";
 import { Editor } from "../../../../islands/Editor.tsx";
-import { kv } from "../../../../kv.ts";
 import { define } from "../../../../utils.ts";
 
 const ArticleSourceSchema = v.object({
@@ -60,9 +58,6 @@ export const handler = define.handlers({
       );
     }
     const post = await updateArticle(
-      db,
-      kv,
-      drive.use(),
       ctx.state.fedCtx,
       article.id,
       result.output,

@@ -2,7 +2,6 @@ import type { Context, Recipient } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
-import type Keyv from "keyv";
 import sharp from "sharp";
 import { getNote } from "../federation/objects.ts";
 import type { ContextData } from "./context.ts";
@@ -296,9 +295,6 @@ export async function createNoteMedium(
 }
 
 export async function createNote(
-  db: Database,
-  kv: Keyv,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   source: Omit<NewNoteSource, "id"> & {
     id?: Uuid;
@@ -321,6 +317,7 @@ export async function createNote(
     media: PostMedium[];
   } | undefined
 > {
+  const { db, disk } = fedCtx.data;
   const noteSource = await createNoteSource(db, source);
   if (noteSource == null) return undefined;
   let index = 0;
@@ -335,7 +332,7 @@ export async function createNote(
     with: { emails: true, links: true },
   });
   if (account == undefined) return undefined;
-  const post = await syncPostFromNoteSource(db, kv, disk, fedCtx, {
+  const post = await syncPostFromNoteSource(fedCtx, {
     ...noteSource,
     media,
     account,
@@ -345,8 +342,6 @@ export async function createNote(
   }
   await addPostToTimeline(db, post);
   const noteObject = await getNote(
-    db,
-    disk,
     fedCtx,
     { ...noteSource, media, account },
     {
@@ -436,9 +431,6 @@ export async function updateNoteSource(
 }
 
 export async function updateNote(
-  db: Database,
-  kv: Keyv,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   noteSourceId: Uuid,
   source: Partial<NewNoteSource>,
@@ -456,6 +448,7 @@ export async function updateNote(
     media: PostMedium[];
   } | undefined
 > {
+  const { db } = fedCtx.data;
   const noteSource = await updateNoteSource(db, noteSourceId, source);
   if (noteSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
@@ -466,14 +459,12 @@ export async function updateNote(
     where: { sourceId: noteSourceId },
   });
   if (account == null) return undefined;
-  const post = await syncPostFromNoteSource(db, kv, disk, fedCtx, {
+  const post = await syncPostFromNoteSource(fedCtx, {
     ...noteSource,
     account,
     media,
   });
   const noteObject = await getNote(
-    db,
-    disk,
     fedCtx,
     { ...noteSource, media, account },
     {

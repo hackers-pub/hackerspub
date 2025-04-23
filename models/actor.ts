@@ -24,8 +24,6 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { Disk } from "flydrive";
-import type Keyv from "keyv";
 import {
   getAvatarUrl as getAccountAvatarUrl,
   renderAccountLinks,
@@ -55,9 +53,6 @@ export { getAvatarUrl } from "./avatar.ts";
 const logger = getLogger(["hackerspub", "models", "actor"]);
 
 export async function syncActorFromAccount(
-  db: Database,
-  kv: Keyv,
-  disk: Disk,
   fedCtx: Context<ContextData>,
   account: Account & { emails: AccountEmail[]; links: AccountLink[] },
 ): Promise<
@@ -71,6 +66,7 @@ export async function syncActorFromAccount(
     software: "hackerspub",
     softwareVersion: metadata.version,
   };
+  const { db, kv, disk } = fedCtx.data;
   const instances = await db.insert(instanceTable)
     .values(instance)
     .onConflictDoUpdate({
@@ -89,10 +85,8 @@ export async function syncActorFromAccount(
     handleHost: instance.host,
     accountId: account.id,
     name: account.name,
-    bioHtml: (await renderMarkup(db, disk, fedCtx, account.bio, {
-      docId: account.id,
-      kv,
-    })).html,
+    bioHtml:
+      (await renderMarkup(fedCtx, account.bio, { docId: account.id, kv })).html,
     automaticallyApprovesFollowers: true,
     inboxUrl: fedCtx.getInboxUri(account.id).href,
     sharedInboxUrl: fedCtx.getInboxUri().href,
@@ -119,8 +113,6 @@ export async function syncActorFromAccount(
 }
 
 export async function persistActor(
-  db: Database,
-  disk: Disk,
   ctx: Context<ContextData>,
   actor: vocab.Actor,
   options: {
@@ -140,6 +132,7 @@ export async function persistActor(
     logger.warn("Actor {actorId} has no inbox.", { actorId: actor.id.href });
     return undefined;
   }
+  const { db } = ctx.data;
   const instance = await persistInstance(db, actor.id.host);
   let handle: string;
   try {
@@ -183,7 +176,7 @@ export async function persistActor(
   }
   const successor = await actor.getSuccessor(getterOpts);
   const successorActor = isActor(successor)
-    ? await persistActor(db, disk, ctx, successor, options)
+    ? await persistActor(ctx, successor, options)
     : null;
   const values: Omit<NewActor, "id"> = {
     iri: actor.id.href,
@@ -234,7 +227,7 @@ export async function persistActor(
   if (featured != null) {
     for await (const object of traverseCollection(featured, getterOpts)) {
       if (!isPostObject(object)) continue;
-      await persistPost(db, disk, ctx, object, {
+      await persistPost(ctx, object, {
         ...options,
         actor: result,
         replies: true,
@@ -259,14 +252,14 @@ export async function persistActor(
           continue;
         }
         if (!isPostObject(object)) continue;
-        const persisted = await persistPost(db, disk, ctx, object, {
+        const persisted = await persistPost(ctx, object, {
           ...options,
           actor: result,
           replies: true,
         });
         if (persisted != null) i++;
       } else if (activity instanceof vocab.Announce) {
-        const persisted = await persistSharedPost(db, disk, ctx, activity, {
+        const persisted = await persistSharedPost(ctx, activity, {
           ...options,
           actor: result,
         });
@@ -291,8 +284,6 @@ export function getPersistedActor(
 }
 
 export async function persistActorsByHandles(
-  db: Database,
-  disk: Disk,
   ctx: Context<ContextData>,
   handles: string[],
 ): Promise<Record<string, Actor & { instance: Instance }>> {
@@ -315,6 +306,7 @@ export async function persistActorsByHandles(
     });
   }
   if (filter.length < 1) return {};
+  const { db } = ctx.data;
   const existingActors = await db.query.actorTable.findMany({
     with: { instance: true },
     where: { OR: [...filter] },
@@ -347,7 +339,7 @@ export async function persistActorsByHandles(
   const apActors = await Promise.all(promises);
   for (const apActor of apActors) {
     if (!isActor(apActor)) continue;
-    const actor = await persistActor(db, disk, ctx, apActor, {
+    const actor = await persistActor(ctx, apActor, {
       ...ctx,
       documentLoader,
       outbox: false,

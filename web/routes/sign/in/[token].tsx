@@ -6,7 +6,6 @@ import { validateUuid } from "@hackerspub/models/uuid";
 import { setCookie } from "@std/http/cookie";
 import { PageTitle } from "../../../components/PageTitle.tsx";
 import { db } from "../../../db.ts";
-import { drive } from "../../../drive.ts";
 import { kv } from "../../../kv.ts";
 import { define } from "../../../utils.ts";
 
@@ -25,8 +24,7 @@ export const handler = define.handlers({
       },
     });
     if (account == null) return page();
-    const disk = drive.use();
-    await syncActorFromAccount(db, kv, disk, ctx.state.fedCtx, account);
+    await syncActorFromAccount(ctx.state.fedCtx, account);
     const session = await createSession(kv, {
       accountId: token.accountId,
       ipAddress: ctx.info.remoteAddr.transport === "tcp"

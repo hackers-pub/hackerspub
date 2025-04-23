@@ -5,7 +5,6 @@ import {
 } from "@hackerspub/models/post";
 import { sql } from "drizzle-orm";
 import { db } from "../../../db.ts";
-import { drive } from "../../../drive.ts";
 import { define } from "../../../utils.ts";
 
 export const handler = define.handlers(async (ctx) => {
@@ -70,8 +69,7 @@ export const handler = define.handlers(async (ctx) => {
       : await fedCtx.getDocumentLoader({ identifier: account.id });
     const object = await fedCtx.lookupObject(iri, { documentLoader });
     if (!isPostObject(object)) return ctx.next();
-    const disk = drive.use();
-    const p = await persistPost(db, disk, fedCtx, object, { documentLoader });
+    const p = await persistPost(fedCtx, object, { documentLoader });
     if (p == null) return ctx.next();
     const actor = await db.query.actorTable.findFirst({
       with: {

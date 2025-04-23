@@ -28,7 +28,6 @@ import { Msg } from "../../../components/Msg.tsx";
 import { NoteExcerpt } from "../../../components/NoteExcerpt.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
-import { drive } from "../../../drive.ts";
 import { Composer } from "../../../islands/Composer.tsx";
 import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";
@@ -38,7 +37,6 @@ import { NoteSourceSchema } from "../index.tsx";
 export const handler = define.handlers({
   async GET(ctx) {
     if (!validateUuid(ctx.params.idOrYear)) return ctx.next();
-    const disk = drive.use();
     const id = ctx.params.idOrYear;
     let post: Post & {
       actor: Actor & {
@@ -111,9 +109,7 @@ export const handler = define.handlers({
           { documentLoader },
         );
         if (isPostObject(object)) {
-          await persistPost(db, disk, ctx.state.fedCtx, object, {
-            documentLoader,
-          });
+          await persistPost(ctx.state.fedCtx, object, { documentLoader });
         }
       }
       postUrl = `/@${ctx.params.username}/${post.id}`;
@@ -259,8 +255,7 @@ export const handler = define.handlers({
           note.account.username !== ctx.params.username &&
             post.url !== permalink.href
         ) {
-          const disk = drive.use();
-          await updateNote(db, kv, disk, ctx.state.fedCtx, note.id, {});
+          await updateNote(ctx.state.fedCtx, note.id, {});
         }
         noteUri = ctx.state.fedCtx.getObjectUri(vocab.Note, {
           id: note.id,
@@ -332,8 +327,6 @@ export const handler = define.handlers({
       isPostVisibleTo(reply, ctx.state.account?.actor)
     );
     const content = await renderMarkup(
-      db,
-      disk,
       ctx.state.fedCtx,
       post.contentHtml,
       {
@@ -436,7 +429,6 @@ export const handler = define.handlers({
         headers: { "Content-Type": "application/json" },
       });
     }
-    const disk = drive.use();
     const quotedPost = parsed.output.quotedPostId == null
       ? undefined
       : await db.query.postTable.findFirst({
@@ -446,7 +438,7 @@ export const handler = define.handlers({
         },
         with: { actor: true },
       });
-    const reply = await createNote(db, kv, disk, ctx.state.fedCtx, {
+    const reply = await createNote(ctx.state.fedCtx, {
       ...parsed.output,
       accountId: ctx.state.account.id,
     }, { replyTarget: post, quotedPost });
@@ -477,7 +469,7 @@ export const handler = define.handlers({
       ...note.post,
       actor: ctx.state.account.actor,
     };
-    await deletePost(db, ctx.state.fedCtx, post);
+    await deletePost(ctx.state.fedCtx, post);
     return new Response(null, { status: 202 });
   },
 });

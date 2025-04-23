@@ -5,7 +5,6 @@ import { Excerpt } from "../../../components/Excerpt.tsx";
 import { Msg } from "../../../components/Msg.tsx";
 import { PageTitle } from "../../../components/PageTitle.tsx";
 import { db } from "../../../db.ts";
-import { drive } from "../../../drive.ts";
 import { ConfirmForm } from "../../../islands/ConfirmForm.tsx";
 import { Timestamp } from "../../../islands/Timestamp.tsx";
 import { kv } from "../../../kv.ts";
@@ -23,7 +22,6 @@ export const handler = define.handlers({
       where: { id: ctx.state.session.accountId },
     });
     if (account?.id !== ctx.state.session.accountId) return ctx.next();
-    const disk = drive.use();
     return page<DraftsPageProps>({
       drafts: await Promise.all(account.articleDrafts.map(async (draft) => ({
         url: `/@${account.username}/drafts/${draft.id}`,
@@ -31,11 +29,10 @@ export const handler = define.handlers({
         title: draft.title,
         created: draft.created,
         updated: draft.updated,
-        excerptHtml:
-          (await renderMarkup(db, disk, ctx.state.fedCtx, draft.content, {
-            docId: draft.id,
-            kv,
-          })).excerptHtml,
+        excerptHtml: (await renderMarkup(ctx.state.fedCtx, draft.content, {
+          docId: draft.id,
+          kv,
+        })).excerptHtml,
       }))),
     });
   },
