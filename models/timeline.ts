@@ -24,7 +24,12 @@ export async function addPostToTimeline(
           accountId: { isNotNull: true },
           OR: [
             { id: post.actorId },
-            { followees: { followeeId: post.actorId } },
+            {
+              followees: {
+                followeeId: post.actorId,
+                accepted: { isNotNull: true },
+              },
+            },
             { mentions: { postId: post.id } },
             { posts: { quotes: { id: post.id } } },
           ],
