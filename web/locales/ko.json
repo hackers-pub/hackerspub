@@ -197,6 +197,7 @@
     "notesWithReplies": "단문과 댓글: {{notesWithReplies}}",
     "shares": "공유: {{shares}}",
     "articles": "게시글: {{articles}}",
+    "pinnedPosts": "고정된 콘텐츠",
     "feed": "{{name}} 님의 피드 (단문과 게시글)",
     "articlesFeed": "{{name}} 님의 피드 (게시글만)",
     "block": "$t(glossary.block)",

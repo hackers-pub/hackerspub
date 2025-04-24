@@ -200,6 +200,7 @@
     "notesWithReplies": "含回覆貼文：{{notesWithReplies}}",
     "shares": "轉貼：{{shares}}",
     "articles": "文章：{{articles}}",
+    "pinnedPosts": "釘選內容",
     "feed": "{{name}} 的訂閱流（貼文和文章）",
     "articlesFeed": "{{name}} 的訂閱流（僅文章）",
     "block": "$t(glossary.block)",

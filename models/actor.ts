@@ -45,6 +45,8 @@ import {
   instanceTable,
   type NewActor,
   type NewInstance,
+  pinTable,
+  type Post,
   postTable,
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
@@ -190,6 +192,7 @@ export async function persistActor(
     inboxUrl: actor.inboxId.href,
     sharedInboxUrl: actor.endpoints?.sharedInbox?.href,
     followersUrl: actor.followersId?.href,
+    featuredUrl: actor.featuredId?.href,
     avatarUrl: avatar?.url instanceof Link
       ? avatar.url.href?.href
       : avatar?.url?.href,
@@ -225,13 +228,20 @@ export async function persistActor(
   const result = { ...rows[0], instance };
   const featured = await actor.getFeatured(getterOpts);
   if (featured != null) {
+    const featuredPosts: Post[] = [];
     for await (const object of traverseCollection(featured, getterOpts)) {
       if (!isPostObject(object)) continue;
-      await persistPost(ctx, object, {
+      const p = await persistPost(ctx, object, {
         ...options,
         actor: result,
         replies: true,
       });
+      if (p != null) featuredPosts.push(p);
+    }
+    featuredPosts.reverse();
+    await db.delete(pinTable).where(eq(pinTable.actorId, result.id));
+    for (const p of featuredPosts) {
+      await db.insert(pinTable).values({ postId: p.id, actorId: result.id });
     }
   }
   const outbox = options.outbox ? await actor.getOutbox(getterOpts) : null;

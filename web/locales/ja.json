@@ -199,6 +199,7 @@
     "notesWithReplies": "投稿と返信：{{notesWithReplies}}",
     "shares": "共有：{{shares}}",
     "articles": "記事：{{articles}}",
+    "pinnedPosts": "固定されたコンテンツ",
     "feed": "{{name}}さんのフィード（投稿と記事）",
     "articlesFeed": "{{name}}さんのフィード（記事のみ）",
     "block": "$t(glossary.block)",

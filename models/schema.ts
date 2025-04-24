@@ -588,6 +588,7 @@ export const postTable = pgTable(
       .default(currentTimestamp),
   },
   (table) => [
+    unique().on(table.id, table.actorId),
     unique().on(table.actorId, table.sharedPostId),
     check(
       "post_article_source_id_check",
@@ -619,6 +620,33 @@ export const postTable = pgTable(
 
 export type Post = typeof postTable.$inferSelect;
 export type NewPost = typeof postTable.$inferInsert;
+
+export const pinTable = pgTable(
+  "pin",
+  {
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull(),
+    actorId: uuid("actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.postId, table.actorId] }),
+    foreignKey({
+      columns: [table.postId, table.actorId],
+      foreignColumns: [postTable.id, postTable.actorId],
+    }).onDelete("cascade"),
+    index().on(table.actorId),
+  ],
+);
+
+export type Pin = typeof pinTable.$inferSelect;
+export type NewPin = typeof pinTable.$inferInsert;
 
 export const mentionTable = pgTable(
   "mention",

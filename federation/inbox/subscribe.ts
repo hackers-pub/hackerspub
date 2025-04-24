@@ -1,17 +1,20 @@
 import {
+  type Add,
   type Announce,
   type Create,
   type Delete,
   EmojiReact,
   type InboxContext,
   Like,
+  type Remove,
   Tombstone,
   type Undo,
   type Update,
 } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
 import { getLogger } from "@logtape/logtape";
-import { eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
+import { getPersistedActor, persistActor } from "../../models/actor.ts";
 import {
   createMentionNotification,
   createQuoteNotification,
@@ -31,7 +34,7 @@ import {
   persistReaction,
   updateReactionsCounts,
 } from "../../models/reaction.ts";
-import { reactionTable } from "../../models/schema.ts";
+import { pinTable, type Post, reactionTable } from "../../models/schema.ts";
 import {
   addPostToTimeline,
   removeFromTimeline,
@@ -207,4 +210,83 @@ export async function onReactionUndoneOnPost(
     return true;
   }
   return false;
+}
+
+export async function onPostPinned(
+  fedCtx: InboxContext<ContextData>,
+  add: Add,
+): Promise<void> {
+  logger.debug("On post pinned: {add}", { add });
+  if (add.actorId == null || add.targetId == null || add.objectId == null) {
+    return;
+  }
+  let actor = await getPersistedActor(fedCtx.data.db, add.actorId);
+  if (actor?.featuredUrl == null) {
+    const actorObject = await add.getActor({ ...fedCtx, suppressError: true });
+    if (actorObject == null) return;
+    actor = await persistActor(fedCtx, actorObject, fedCtx);
+    if (actor?.featuredUrl == null) return;
+  }
+  if (add.targetIds.find((tid) => tid.href === actor.featuredUrl) == null) {
+    return;
+  }
+  const pinnedPosts: Post[] = [];
+  for await (const obj of add.getObjects({ ...fedCtx, suppressError: true })) {
+    if (!isPostObject(obj)) continue;
+    const post = await persistPost(fedCtx, obj, fedCtx);
+    if (post != null) pinnedPosts.push(post);
+  }
+  if (pinnedPosts.length > 0) {
+    await fedCtx.data.db.insert(pinTable).values(
+      pinnedPosts.map((post) => ({
+        postId: post.id,
+        actorId: actor.id,
+      })),
+    ).onConflictDoNothing();
+  }
+}
+
+export async function onPostUnpinned(
+  fedCtx: InboxContext<ContextData>,
+  remove: Remove,
+): Promise<void> {
+  logger.debug("On post unpinned: {remove}", { remove });
+  if (
+    remove.actorId == null || remove.targetId == null || remove.objectId == null
+  ) {
+    return;
+  }
+  let actor = await getPersistedActor(fedCtx.data.db, remove.actorId);
+  if (actor?.featuredUrl == null) {
+    const actorObject = await remove.getActor({
+      ...fedCtx,
+      suppressError: true,
+    });
+    if (actorObject == null) return;
+    actor = await persistActor(fedCtx, actorObject, fedCtx);
+    if (actor?.featuredUrl == null) return;
+  }
+  if (remove.targetIds.find((tid) => tid.href === actor.featuredUrl) == null) {
+    return;
+  }
+  const unpinnedPosts: Post[] = [];
+  for await (
+    const obj of remove.getObjects({ ...fedCtx, suppressError: true })
+  ) {
+    if (!isPostObject(obj)) continue;
+    const post = await persistPost(fedCtx, obj, fedCtx);
+    if (post != null) unpinnedPosts.push(post);
+  }
+  if (unpinnedPosts.length > 0) {
+    await fedCtx.data.db.delete(pinTable).where(
+      or(
+        ...unpinnedPosts.map((post) =>
+          and(
+            eq(pinTable.postId, post.id),
+            eq(pinTable.actorId, actor.id),
+          )
+        ),
+      ),
+    );
+  }
 }

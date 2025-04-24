@@ -1,5 +1,6 @@
 import {
   Accept,
+  Add,
   Announce,
   Block,
   Create,
@@ -10,6 +11,7 @@ import {
   Like,
   Move,
   Reject,
+  Remove,
   Undo,
   Update,
 } from "@fedify/fedify";
@@ -28,7 +30,9 @@ import {
 import {
   onPostCreated,
   onPostDeleted,
+  onPostPinned,
   onPostShared,
+  onPostUnpinned,
   onPostUnshared,
   onPostUpdated,
   onReactedOnPost,
@@ -69,4 +73,6 @@ builder
       logger.warn("Unhandled Delete object: {delete}", { delete: del });
   })
   .on(Move, onActorMoved)
-  .on(Block, onBlocked);
+  .on(Block, onBlocked)
+  .on(Add, onPostPinned)
+  .on(Remove, onPostUnpinned);

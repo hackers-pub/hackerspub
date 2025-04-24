@@ -533,6 +533,13 @@
       "when": 1744776926997,
       "tag": "0075_unique-constraint-poll_option.title",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1745476726757,
+      "tag": "0076_pin",
+      "breakpoints": true
     }
   ]
 }

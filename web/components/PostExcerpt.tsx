@@ -67,6 +67,7 @@ export interface PostExcerptProps {
   sharersCount?: number;
   noControls?: boolean;
   noQuote?: boolean;
+  noReplyTarget?: boolean;
   signedAccount?: Account & { actor: Actor };
 }
 
@@ -86,7 +87,7 @@ export function PostExcerpt(props: PostExcerptProps) {
     <Translation>
       {(_, language) => (
         <>
-          {replyTarget != null &&
+          {!props.noReplyTarget && replyTarget != null &&
             isPostVisibleTo(replyTarget, props.signedAccount?.actor) && (
             <PostExcerpt
               post={{

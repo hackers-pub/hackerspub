@@ -69,6 +69,7 @@ export const relations = defineRelations(schema, (r) => ({
     blockees: r.many.blockingTable({ alias: "blocker" }),
     mentions: r.many.mentionTable(),
     posts: r.many.postTable(),
+    pins: r.many.pinTable(),
   },
   followingTable: {
     follower: r.one.actorTable({
@@ -166,6 +167,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     replies: r.many.postTable({ alias: "replyTarget" }),
     shares: r.many.postTable({ alias: "sharedPost" }),
+    pins: r.many.pinTable(),
     reactions: r.many.reactionTable(),
     quotes: r.many.postTable({ alias: "quotedPost" }),
     mentions: r.many.mentionTable(),
@@ -177,6 +179,18 @@ export const relations = defineRelations(schema, (r) => ({
     poll: r.one.pollTable({
       from: r.postTable.id,
       to: r.pollTable.postId,
+    }),
+  },
+  pinTable: {
+    post: r.one.postTable({
+      from: r.pinTable.postId,
+      to: r.postTable.id,
+      optional: false,
+    }),
+    actor: r.one.actorTable({
+      from: r.pinTable.actorId,
+      to: r.actorTable.id,
+      optional: false,
     }),
   },
   mentionTable: {

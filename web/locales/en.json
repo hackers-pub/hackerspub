@@ -203,6 +203,7 @@
     "notesWithReplies": "Notes with replies: {{notesWithReplies}}",
     "shares": "Shares: {{shares}}",
     "articles": "Articles: {{articles}}",
+    "pinnedPosts": "Pinned posts",
     "feed": "{{name}}'s feed (notes and articles)",
     "articlesFeed": "{{name}}'s feed (articles only)",
     "block": "Block",

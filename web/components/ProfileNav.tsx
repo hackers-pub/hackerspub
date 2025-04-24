@@ -12,13 +12,16 @@ export interface ProfileNavProps {
   active: ProfileNavItem;
   stats: Record<ProfileNavItem, number>;
   profileHref: string;
+  class?: string;
 }
 
-export function ProfileNav({ active, stats, profileHref }: ProfileNavProps) {
+export function ProfileNav(
+  { active, stats, profileHref, class: cls }: ProfileNavProps,
+) {
   return (
     <Translation>
       {(_, lang) => (
-        <TabNav>
+        <TabNav class={cls}>
           <Tab selected={active === "total"} href={profileHref}>
             <Msg
               $key="profile.total"
