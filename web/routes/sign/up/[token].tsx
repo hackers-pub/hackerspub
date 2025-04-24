@@ -156,7 +156,7 @@ export default define.page<typeof handler, SignupPageProps>(
   ) {
     const coc = await Deno.readTextFile(
       join(
-        dirname(dirname(dirname(import.meta.dirname!))),
+        dirname(dirname(dirname(dirname(import.meta.dirname!)))),
         `CODE_OF_CONDUCT.${language}.md`,
       ),
     );
