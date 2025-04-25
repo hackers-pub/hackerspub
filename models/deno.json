@@ -10,6 +10,7 @@
     "./context": "./context.ts",
     "./date": "./date.ts",
     "./db": "./db.ts",
+    "./dblogger": "./dblogger.ts",
     "./emoji": "./emoji.ts",
     "./following": "./following.ts",
     "./html": "./html.ts",
