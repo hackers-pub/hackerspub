@@ -3,10 +3,26 @@
   "configurations": [
     {
       "request": "launch",
-      "name": "deno task dev",
+      "name": "web",
       "type": "node",
       "program": "${workspaceFolder}/web/dev.ts",
       "cwd": "${workspaceFolder}/web/",
+      "env": {},
+      "runtimeExecutable": "deno",
+      "runtimeArgs": [
+        "run",
+        "-A",
+        "--env-file=../.env",
+        "--inspect-wait"
+      ],
+      "attachSimplePort": 9229
+    },
+    {
+      "request": "launch",
+      "name": "graphql",
+      "type": "node",
+      "program": "${workspaceFolder}/graphql/dev.ts",
+      "cwd": "${workspaceFolder}/graphql/",
       "env": {},
       "runtimeExecutable": "deno",
       "runtimeArgs": [
