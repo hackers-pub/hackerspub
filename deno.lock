@@ -86,12 +86,19 @@
     "npm:@peculiar/asn1-schema@^2.3.8": "2.3.15",
     "npm:@peculiar/asn1-x509@^2.3.8": "2.3.15",
     "npm:@phensley/language-tag@^1.9.0": "1.12.0",
+    "npm:@pothos/core@^4.6.0": "4.6.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-drizzle@0.8": "0.8.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-relay@^4.4.1": "4.4.1_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-scope-auth@^4.1.2": "4.1.2_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-tracing@^1.1.0": "1.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-with-input@^4.1.0": "4.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/tracing-opentelemetry@^1.1.0": "1.1.0_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.32.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@pothos+plugin-tracing@1.1.0__@pothos+core@4.6.0___graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
     "npm:@preact/signals@^1.2.3": "1.3.2_preact@10.26.5",
     "npm:@preact/signals@^1.3.1": "1.3.2_preact@10.26.5",
     "npm:@resvg/resvg-js@^2.6.2": "2.6.2",
     "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0": "2.0.1-0",
-    "npm:@shikijs/markdown-it@^3.2.1": "3.2.2_markdown-it-async@2.2.0",
-    "npm:@shikijs/transformers@^3.2.1": "3.2.2",
+    "npm:@shikijs/markdown-it@^3.2.1": "3.3.0_markdown-it-async@2.2.0",
+    "npm:@shikijs/transformers@^3.2.1": "3.3.0",
     "npm:@tailwindcss/typography@~0.5.15": "0.5.16_tailwindcss@3.4.3__postcss@8.5.3",
     "npm:@types/fluent-ffmpeg@^2.1.27": "2.1.27",
     "npm:@types/markdown-it@^14.1.1": "14.1.2",
@@ -102,13 +109,15 @@
     "npm:cheerio@1": "1.0.0",
     "npm:cssfilter@^0.0.11": "0.0.11",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
-    "npm:drizzle-kit@beta": "1.0.0-beta.1-5e64efc_esbuild@0.19.12",
-    "npm:drizzle-orm@beta": "1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.5",
+    "npm:drizzle-kit@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_esbuild@0.19.12",
+    "npm:drizzle-orm@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.5",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
     "npm:feed@^4.2.2": "4.2.2",
     "npm:fluent-ffmpeg@^2.1.3": "2.1.3",
     "npm:flydrive@^1.1.0": "1.1.1_@aws-sdk+client-s3@3.787.0_@aws-sdk+s3-request-presigner@3.787.0",
+    "npm:graphql-yoga@^5.13.4": "5.13.4_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:graphql@canary-pr-4364": "16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
     "npm:i18next@^24.0.5": "24.2.3",
     "npm:iconv-lite@~0.6.3": "0.6.3",
     "npm:ioredis@^5.4.1": "5.6.1",
@@ -128,7 +137,7 @@
     "npm:markdown-it-texmath@1": "1.0.0",
     "npm:markdown-it-toc-done-right@^4.2.0": "4.2.0",
     "npm:multicodec@^3.2.1": "3.2.1",
-    "npm:open-graph-scraper@^6.9.0": "6.9.0",
+    "npm:open-graph-scraper@^6.9.0": "6.10.0",
     "npm:pdf-lib@^1.17.1": "1.17.1",
     "npm:pkijs@^3.2.4": "3.2.5",
     "npm:postcss@8.4.35": "8.4.35",
@@ -139,7 +148,7 @@
     "npm:satori-html@~0.3.2": "0.3.2",
     "npm:satori@~0.11.3": "0.11.3",
     "npm:sharp@~0.33.5": "0.33.5",
-    "npm:shiki@^3.2.1": "3.2.2",
+    "npm:shiki@^3.2.1": "3.3.0",
     "npm:ssrfcheck@^1.1.1": "1.1.1",
     "npm:tailwindcss@3.4.3": "3.4.3_postcss@8.5.3",
     "npm:tailwindcss@^3.4.1": "3.4.3_postcss@8.5.3",
@@ -999,6 +1008,29 @@
         "tslib@2.8.1"
       ]
     },
+    "@envelop/core@5.2.3": {
+      "integrity": "sha512-KfoGlYD/XXQSc3BkM1/k15+JQbkQ4ateHazeZoWl9P71FsLTDXSjGy6j7QqfhpIDSbxNISqhPMfZHYSbDFOofQ==",
+      "dependencies": [
+        "@envelop/instrumentation",
+        "@envelop/types",
+        "@whatwg-node/promise-helpers",
+        "tslib@2.8.1"
+      ]
+    },
+    "@envelop/instrumentation@1.0.0": {
+      "integrity": "sha512-cxgkB66RQB95H3X27jlnxCRNTmPuSTgmBAq6/4n2Dtv4hsk4yz8FadA1ggmd0uZzvKqWD6CR+WFgTjhDqg7eyw==",
+      "dependencies": [
+        "@whatwg-node/promise-helpers",
+        "tslib@2.8.1"
+      ]
+    },
+    "@envelop/types@5.2.1": {
+      "integrity": "sha512-CsFmA3u3c2QoLDTfEpGr4t25fjMU31nyvse7IzWTvb0ZycuPjMjb0fjlheh+PbhBYb9YLugnT2uY6Mwcg1o+Zg==",
+      "dependencies": [
+        "@whatwg-node/promise-helpers",
+        "tslib@2.8.1"
+      ]
+    },
     "@esbuild-kit/core-utils@3.3.2": {
       "integrity": "sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==",
       "dependencies": [
@@ -1223,6 +1255,77 @@
     "@fastify/busboy@2.1.1": {
       "integrity": "sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA=="
     },
+    "@fastify/busboy@3.1.1": {
+      "integrity": "sha512-5DGmA8FTdB2XbDeEwc/5ZXBl6UbBAyBOOLlPuBnZ/N1SwdH9Ii+cOX3tBROlDgcTXxjOYnLMVoKk9+FXAw0CJw=="
+    },
+    "@graphql-tools/executor@1.4.7_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-U0nK9jzJRP9/9Izf1+0Gggd6K6RNRsheFo1gC/VWzfnsr0qjcOSS9qTjY0OTC5iTPt4tQ+W5Zpw/uc7mebI6aA==",
+      "dependencies": [
+        "@graphql-tools/utils",
+        "@graphql-typed-document-node/core",
+        "@repeaterjs/repeater",
+        "@whatwg-node/disposablestack",
+        "@whatwg-node/promise-helpers",
+        "graphql",
+        "tslib@2.8.1"
+      ]
+    },
+    "@graphql-tools/merge@9.0.24_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-NzWx/Afl/1qHT3Nm1bghGG2l4jub28AdvtG11PoUlmjcIjnFBJMv4vqL0qnxWe8A82peWo4/TkVdjJRLXwgGEw==",
+      "dependencies": [
+        "@graphql-tools/utils",
+        "graphql",
+        "tslib@2.8.1"
+      ]
+    },
+    "@graphql-tools/schema@10.0.23_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-aEGVpd1PCuGEwqTXCStpEkmheTHNdMayiIKH1xDWqYp9i8yKv9FRDgkGrY4RD8TNxnf7iII+6KOBGaJ3ygH95A==",
+      "dependencies": [
+        "@graphql-tools/merge",
+        "@graphql-tools/utils",
+        "graphql",
+        "tslib@2.8.1"
+      ]
+    },
+    "@graphql-tools/utils@10.8.6_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-Alc9Vyg0oOsGhRapfL3xvqh1zV8nKoFUdtLhXX7Ki4nClaIJXckrA86j+uxEuG3ic6j4jlM1nvcWXRn/71AVLQ==",
+      "dependencies": [
+        "@graphql-typed-document-node/core",
+        "@whatwg-node/promise-helpers",
+        "cross-inspect",
+        "dset",
+        "graphql",
+        "tslib@2.8.1"
+      ]
+    },
+    "@graphql-typed-document-node/core@3.2.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==",
+      "dependencies": [
+        "graphql"
+      ]
+    },
+    "@graphql-yoga/logger@2.0.1": {
+      "integrity": "sha512-Nv0BoDGLMg9QBKy9cIswQ3/6aKaKjlTh87x3GiBg2Z4RrjyrM48DvOOK0pJh1C1At+b0mUIM67cwZcFTDLN4sA==",
+      "dependencies": [
+        "tslib@2.8.1"
+      ]
+    },
+    "@graphql-yoga/subscription@5.0.5": {
+      "integrity": "sha512-oCMWOqFs6QV96/NZRt/ZhTQvzjkGB4YohBOpKM4jH/lDT4qb7Lex/aGCxpi/JD9njw3zBBtMqxbaC22+tFHVvw==",
+      "dependencies": [
+        "@graphql-yoga/typed-event-target",
+        "@repeaterjs/repeater",
+        "@whatwg-node/events",
+        "tslib@2.8.1"
+      ]
+    },
+    "@graphql-yoga/typed-event-target@3.0.2": {
+      "integrity": "sha512-ZpJxMqB+Qfe3rp6uszCQoag4nSw42icURnBRfFYSOmTgEeOe4rD0vYlbA8spvCu2TlCesNTlEN9BLWtQqLxabA==",
+      "dependencies": [
+        "@repeaterjs/repeater",
+        "tslib@2.8.1"
+      ]
+    },
     "@hexagon/base64@1.1.28": {
       "integrity": "sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw=="
     },
@@ -1394,8 +1497,8 @@
     "@multiformats/base-x@4.0.1": {
       "integrity": "sha512-eMk0b9ReBbV23xXU693TAIrLyeO5iTgBZGSJfpqriG8UkYvr/hC9u9pyMlAakDNHWmbhMZCDs6KQO0jzKD8OTw=="
     },
-    "@noble/hashes@1.7.2": {
-      "integrity": "sha512-biZ0NUSxyjLLqo6KxEJ1b+C2NAx0wtDoFvCaXHGgUkeHzf3Xc1xKumFKREuT7f7DARNZ/slvYUwFG6B0f2b6hQ=="
+    "@noble/hashes@1.8.0": {
+      "integrity": "sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A=="
     },
     "@nodelib/fs.scandir@2.1.5": {
       "integrity": "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==",
@@ -1613,6 +1716,57 @@
         "secure-json-parse"
       ]
     },
+    "@pothos/core@4.6.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-l3uLPCZG6weomhlx1VmYSMi32dm4jMJ51BUOdhBCKB15E/YAHkzf4dxqXDhyCj63jMxwt5Zz72ITR3AwA9bJqA==",
+      "dependencies": [
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-drizzle@0.8.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-OjpTAZDPPW5BTCQJ87ZccnohmBghvkrXoV283tNzlrmr9pxtBApGr4GB3DwRjqop/AgFBU8vLvGfDnPetIiVxg==",
+      "dependencies": [
+        "@pothos/core",
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-relay@4.4.1_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-X0vEtRvd+8RH/ZEvQqkaMFChQg+HunxCJSHRiaLzMNjs9E1buZtSFHYCun6C2a/Njgv6tWz1s8xvR+B98xMFOQ==",
+      "dependencies": [
+        "@pothos/core",
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-scope-auth@4.1.2_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-3vGaIpWPA9tryoGxNciPtfwfqHFSsPDskMFqGG+Q13s/WO81su7x6kwnzZM+zHv3RIW2/v8hoZMgZHzzDkuZow==",
+      "dependencies": [
+        "@pothos/core",
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-tracing@1.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-htJsClnb1N8I89wHsJdebppQ8ucsCuBiuW4Ac++6ei/CdflyatNdnEKCLxeZLw9Ux0SOPhZH/zotaWVnY2sdPA==",
+      "dependencies": [
+        "@pothos/core",
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-with-input@4.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-sWjB7W16A8em/qSx1/9ZeCf59OpCp/rih5i2U7x2UkQWXcqeUHyI4ThezwZcq+z66ty2tJexkAZl1+lCNJBEMg==",
+      "dependencies": [
+        "@pothos/core",
+        "graphql"
+      ]
+    },
+    "@pothos/tracing-opentelemetry@1.1.0_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.32.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@pothos+plugin-tracing@1.1.0__@pothos+core@4.6.0___graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-eK1N7jXUFkmHdey2SlgX+rNciq0LCkW1uhIYv2hw2Ly+hHRyV/3Ui3Wkyc3w37r5FVcltSkEAzVMYXegemnrSw==",
+      "dependencies": [
+        "@opentelemetry/api",
+        "@opentelemetry/semantic-conventions@1.32.0",
+        "@pothos/core",
+        "@pothos/plugin-tracing",
+        "graphql"
+      ]
+    },
     "@preact/signals-core@1.8.0": {
       "integrity": "sha512-OBvUsRZqNmjzCZXWLxkZfhcgT+Fk8DDcT/8vD6a1xhDemodyy87UJRJfASMuSD8FaAIeGgGm85ydXhm7lr4fyA=="
     },
@@ -1660,6 +1814,9 @@
       "dependencies": [
         "@redis/client"
       ]
+    },
+    "@repeaterjs/repeater@3.0.6": {
+      "integrity": "sha512-Javneu5lsuhwNCryN+pXH93VPQ8g0dBX7wItHFgYiwQmzE1sVdg5tWHiOgHywzL2W21XQopa7IwIEnNbmeUJYA=="
     },
     "@resvg/resvg-js-android-arm-eabi@2.6.2": {
       "integrity": "sha512-FrJibrAk6v29eabIPgcTUMPXiEz8ssrAk7TXxsiZzww9UTQ1Z5KAbFJs+Z0Ez+VZTYgnE5IQJqBcoSiMebtPHA=="
@@ -1720,8 +1877,8 @@
         "get-east-asian-width"
       ]
     },
-    "@shikijs/core@3.2.2": {
-      "integrity": "sha512-yvlSKVMLjddAGBa2Yu+vUZxuu3sClOWW1AG+UtJkvejYuGM5BVL35s6Ijiwb75O9QdEx6IkMxinHZSi8ZyrBaA==",
+    "@shikijs/core@3.3.0": {
+      "integrity": "sha512-CovkFL2WVaHk6PCrwv6ctlmD4SS1qtIfN8yEyDXDYWh4ONvomdM9MaFw20qHuqJOcb8/xrkqoWQRJ//X10phOQ==",
       "dependencies": [
         "@shikijs/types",
         "@shikijs/vscode-textmate",
@@ -1729,50 +1886,50 @@
         "hast-util-to-html"
       ]
     },
-    "@shikijs/engine-javascript@3.2.2": {
-      "integrity": "sha512-tlDKfhWpF4jKLUyVAnmL+ggIC+0VyteNsUpBzh1iwWLZu4i+PelIRr0TNur6pRRo5UZIv3ss/PLMuwahg9S2hg==",
+    "@shikijs/engine-javascript@3.3.0": {
+      "integrity": "sha512-XlhnFGv0glq7pfsoN0KyBCz9FJU678LZdQ2LqlIdAj6JKsg5xpYKay3DkazXWExp3DTJJK9rMOuGzU2911pg7Q==",
       "dependencies": [
         "@shikijs/types",
         "@shikijs/vscode-textmate",
         "oniguruma-to-es"
       ]
     },
-    "@shikijs/engine-oniguruma@3.2.2": {
-      "integrity": "sha512-vyXRnWVCSvokwbaUD/8uPn6Gqsf5Hv7XwcW4AgiU4Z2qwy19sdr6VGzMdheKKN58tJOOe5MIKiNb901bgcUXYQ==",
+    "@shikijs/engine-oniguruma@3.3.0": {
+      "integrity": "sha512-l0vIw+GxeNU7uGnsu6B+Crpeqf+WTQ2Va71cHb5ZYWEVEPdfYwY5kXwYqRJwHrxz9WH+pjSpXQz+TJgAsrkA5A==",
       "dependencies": [
         "@shikijs/types",
         "@shikijs/vscode-textmate"
       ]
     },
-    "@shikijs/langs@3.2.2": {
-      "integrity": "sha512-NY0Urg2dV9ETt3JIOWoMPuoDNwte3geLZ4M1nrPHbkDS8dWMpKcEwlqiEIGqtwZNmt5gKyWpR26ln2Bg2ecPgw==",
+    "@shikijs/langs@3.3.0": {
+      "integrity": "sha512-zt6Kf/7XpBQKSI9eqku+arLkAcDQ3NHJO6zFjiChI8w0Oz6Jjjay7pToottjQGjSDCFk++R85643WbyINcuL+g==",
       "dependencies": [
         "@shikijs/types"
       ]
     },
-    "@shikijs/markdown-it@3.2.2_markdown-it-async@2.2.0": {
-      "integrity": "sha512-abxppHBxksFKhAHn/nM/VAktZVMOtigPgWFuokENJ0jPAoqMs4Xn7zMCjizftgld0B+JbM7IGGJsC2qaP4j0OQ==",
+    "@shikijs/markdown-it@3.3.0_markdown-it-async@2.2.0": {
+      "integrity": "sha512-8cBI+tmDwIOAL+mSI3nU0rhyyvf4Qy3WoPIyZXVnRm1UJNyybxK+h+b0Zwa58UylBGXlw/eMLhKaYVztlgvkYw==",
       "dependencies": [
         "markdown-it",
         "markdown-it-async",
         "shiki"
       ]
     },
-    "@shikijs/themes@3.2.2": {
-      "integrity": "sha512-Zuq4lgAxVKkb0FFdhHSdDkALuRpsj1so1JdihjKNQfgM78EHxV2JhO10qPsMrm01FkE3mDRTdF68wfmsqjt6HA==",
+    "@shikijs/themes@3.3.0": {
+      "integrity": "sha512-tXeCvLXBnqq34B0YZUEaAD1lD4lmN6TOHAhnHacj4Owh7Ptb/rf5XCDeROZt2rEOk5yuka3OOW2zLqClV7/SOg==",
       "dependencies": [
         "@shikijs/types"
       ]
     },
-    "@shikijs/transformers@3.2.2": {
-      "integrity": "sha512-DQvrPdygc6NNdbfeOZoO1+KiRnnjUQuuPLwsAbUuSKq4QFLD0Ik15FbHojmot5NbgCQRbVr8ufRg8U6X5rGWuQ==",
+    "@shikijs/transformers@3.3.0": {
+      "integrity": "sha512-PIknEyxfkT7i7at/78ynVmuZEv4+7IcS37f6abxMjQ0pVIPEya8n+KNl7XtfbhNL+U9ElR3UzfSzuD5l5Iu+nw==",
       "dependencies": [
         "@shikijs/core",
         "@shikijs/types"
       ]
     },
-    "@shikijs/types@3.2.2": {
-      "integrity": "sha512-a5TiHk7EH5Lso8sHcLHbVNNhWKP0Wi3yVnXnu73g86n3WoDgEra7n3KszyeCGuyoagspQ2fzvy4cpSc8pKhb0A==",
+    "@shikijs/types@3.3.0": {
+      "integrity": "sha512-KPCGnHG6k06QG/2pnYGbFtFvpVJmC3uIpXrAiPrawETifujPBv0Se2oUxm5qYgjCvGJS9InKvjytOdN+bGuX+Q==",
       "dependencies": [
         "@shikijs/vscode-textmate",
         "@types/hast"
@@ -2054,8 +2211,8 @@
         "tslib@2.8.1"
       ]
     },
-    "@smithy/signature-v4@5.0.2": {
-      "integrity": "sha512-Mz+mc7okA73Lyz8zQKJNyr7lIcHLiPYp0+oiqiMNc/t7/Kf2BENs5d63pEj7oPqdjaum6g0Fc8wC78dY1TgtXw==",
+    "@smithy/signature-v4@5.1.0": {
+      "integrity": "sha512-4t5WX60sL3zGJF/CtZsUQTs3UrZEDO2P7pEaElrekbLqkWPYkgqNW1oeiNYC6xXifBnT9dVBOnNQRvOE9riU9w==",
       "dependencies": [
         "@smithy/is-array-buffer@4.0.0",
         "@smithy/protocol-http",
@@ -2289,6 +2446,51 @@
     },
     "@ungap/structured-clone@1.3.0": {
       "integrity": "sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g=="
+    },
+    "@whatwg-node/disposablestack@0.0.6": {
+      "integrity": "sha512-LOtTn+JgJvX8WfBVJtF08TGrdjuFzGJc4mkP8EdDI8ADbvO7kiexYep1o8dwnt0okb0jYclCDXF13xU7Ge4zSw==",
+      "dependencies": [
+        "@whatwg-node/promise-helpers",
+        "tslib@2.8.1"
+      ]
+    },
+    "@whatwg-node/events@0.1.2": {
+      "integrity": "sha512-ApcWxkrs1WmEMS2CaLLFUEem/49erT3sxIVjpzU5f6zmVcnijtDSrhoK2zVobOIikZJdH63jdAXOrvjf6eOUNQ==",
+      "dependencies": [
+        "tslib@2.8.1"
+      ]
+    },
+    "@whatwg-node/fetch@0.10.6": {
+      "integrity": "sha512-6uzhO2aQ757p3bSHcemA8C4pqEXuyBqyGAM7cYpO0c6/igRMV9As9XL0W12h5EPYMclgr7FgjmbVQBoWEdJ/yA==",
+      "dependencies": [
+        "@whatwg-node/node-fetch",
+        "urlpattern-polyfill"
+      ]
+    },
+    "@whatwg-node/node-fetch@0.7.18": {
+      "integrity": "sha512-IxKdVWfZYasGiyxBcsROxq6FmDQu3MNNiOYJ/yqLKhe+Qq27IIWsK7ItbjS2M9L5aM5JxjWkIS7JDh7wnsn+CQ==",
+      "dependencies": [
+        "@fastify/busboy@3.1.1",
+        "@whatwg-node/disposablestack",
+        "@whatwg-node/promise-helpers",
+        "tslib@2.8.1"
+      ]
+    },
+    "@whatwg-node/promise-helpers@1.3.1": {
+      "integrity": "sha512-D+OwTEunoQhVHVToD80dPhfz9xgPLqJyEA3F5jCRM14A2u8tBBQVdZekqfqx6ZAfZ+POT4Hb0dn601UKMsvADw==",
+      "dependencies": [
+        "tslib@2.8.1"
+      ]
+    },
+    "@whatwg-node/server@0.10.5": {
+      "integrity": "sha512-ydxzH1iox9AzLe+uaX9jjyVFkQO+h15j+JClropw0P4Vz+ES4+xTZVu5leUsWW8AYTVZBFkiC0iHl/PwFZ+Q1Q==",
+      "dependencies": [
+        "@envelop/instrumentation",
+        "@whatwg-node/disposablestack",
+        "@whatwg-node/fetch",
+        "@whatwg-node/promise-helpers",
+        "tslib@2.8.1"
+      ]
     },
     "abort-controller@3.0.0": {
       "integrity": "sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==",
@@ -2546,6 +2748,12 @@
     "commander@8.3.0": {
       "integrity": "sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww=="
     },
+    "cross-inspect@1.0.1": {
+      "integrity": "sha512-Pcw1JTvZLSJH83iiGWt6fRcT+BjZlCDRVwYLbUcHzv/CRpB7r0MlSrGbIyQvVSNyGnbt7G4AXuyCiDR3POvZ1A==",
+      "dependencies": [
+        "tslib@2.8.1"
+      ]
+    },
     "cross-spawn@7.0.6": {
       "integrity": "sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==",
       "dependencies": [
@@ -2687,8 +2895,8 @@
     "dequal@2.0.3": {
       "integrity": "sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA=="
     },
-    "detect-libc@2.0.3": {
-      "integrity": "sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw=="
+    "detect-libc@2.0.4": {
+      "integrity": "sha512-3UDv+G9CsCKO1WKMGw9fwq/SWJYbI0c5Y7LU1AXYoDdbhE2AHQ6N6Nb34sG8Fj7T5APy8qXDCKuuIHd1BR0tVA=="
     },
     "devlop@1.1.0": {
       "integrity": "sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==",
@@ -2707,7 +2915,7 @@
       "dependencies": [
         "domelementtype",
         "domhandler",
-        "entities"
+        "entities@4.5.0"
       ]
     },
     "domelementtype@2.3.0": {
@@ -2744,11 +2952,14 @@
         "postgres"
       ]
     },
+    "dset@3.1.4": {
+      "integrity": "sha512-2QF/g9/zTaPDc3BjNcVTGoBbXBgYfMTTceLaYcFJ/W9kggFUkhxD/hMEeuLKbugyef9SqAx8cpgwlIP/jinUTA=="
+    },
     "eastasianwidth@0.2.0": {
       "integrity": "sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA=="
     },
-    "electron-to-chromium@1.5.139": {
-      "integrity": "sha512-GGnRYOTdN5LYpwbIr0rwP/ZHOQSvAF6TG0LSzp28uCBb9JiXHJGmaaKw29qjNJc5bGnnp6kXJqRnGMQoELwi5w=="
+    "electron-to-chromium@1.5.141": {
+      "integrity": "sha512-qS+qH9oqVYc1ooubTiB9l904WVyM6qNYxtOEEGReoZXw3xlqeYdFr5GclNzbkAufWgwWLEPoDi3d9MoRwwIjGw=="
     },
     "emoji-regex-xs@1.0.0": {
       "integrity": "sha512-LRlerrMYoIDrT6jgpeZ2YYl/L8EulRTt5hQcYjy5AInh7HWXKimpqx68aknBFpGL2+/IcogTcaydJEgaTmOpDg=="
@@ -2771,6 +2982,9 @@
     },
     "entities@4.5.0": {
       "integrity": "sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw=="
+    },
+    "entities@6.0.0": {
+      "integrity": "sha512-aKstq2TDOndCn4diEyp9Uq/Flu2i1GlLkc6XIDQSDMuaFE3OPW5OphLCyQ5SpSJZTb4reN+kTcYru5yIfXoRPw=="
     },
     "env-paths@3.0.0": {
       "integrity": "sha512-dtJUTepzMW3Lm/NPxRf3wP4642UWhjL2sQxc+ym2YMj1m/H2zDNQOlezafzkHwn6sMstjHTwG6iQQsctDW/b1A=="
@@ -3028,6 +3242,28 @@
     "graceful-fs@4.2.11": {
       "integrity": "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="
     },
+    "graphql-yoga@5.13.4_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-q5l3HEvgXnZCKG6K38fz3XNBX41GkHkIYspJbdVl9QVsm5Ah0EFUkY303tEOx8IucyB0h2hb8OfbYXEcoNCLMw==",
+      "dependencies": [
+        "@envelop/core",
+        "@envelop/instrumentation",
+        "@graphql-tools/executor",
+        "@graphql-tools/schema",
+        "@graphql-tools/utils",
+        "@graphql-yoga/logger",
+        "@graphql-yoga/subscription",
+        "@whatwg-node/fetch",
+        "@whatwg-node/promise-helpers",
+        "@whatwg-node/server",
+        "dset",
+        "graphql",
+        "lru-cache@10.4.3",
+        "tslib@2.8.1"
+      ]
+    },
+    "graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-45TUCUSpbrNWv9dDiW/kMce+4OKsNDAOR7mMPu1U9inUUemYhJgQ2wxLMlbr4NYh34+OwkZWXPLJoBU4KgFdIQ=="
+    },
     "hasown@2.0.2": {
       "integrity": "sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==",
       "dependencies": [
@@ -3068,7 +3304,7 @@
         "domelementtype",
         "domhandler",
         "domutils",
-        "entities"
+        "entities@4.5.0"
       ]
     },
     "i18next@24.2.3": {
@@ -3308,7 +3544,7 @@
       "integrity": "sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==",
       "dependencies": [
         "argparse@2.0.1",
-        "entities",
+        "entities@4.5.0",
         "linkify-it",
         "mdurl",
         "punycode.js",
@@ -3461,8 +3697,8 @@
         "regex-recursion"
       ]
     },
-    "open-graph-scraper@6.9.0": {
-      "integrity": "sha512-1KoV5v6GT0/MqlryrVGQROhEAD4u8wC3VjYOxsnhj3mWeGJ6N6nF/rbrcZREFr+kiYm9I5LMrzdK9t9hBMbL2Q==",
+    "open-graph-scraper@6.10.0": {
+      "integrity": "sha512-JTuaO/mWUPduYCIQvunmsQnfGpSRFUTEh4k5cW2KOafJxTm3Z99z25/c1oO9QnIh2DK7ol5plJAq3EUVy+5xyw==",
       "dependencies": [
         "chardet",
         "cheerio",
@@ -3499,10 +3735,10 @@
         "parse5"
       ]
     },
-    "parse5@7.2.1": {
-      "integrity": "sha512-BuBYQYlv1ckiPdQi/ohiivi9Sagc9JG+Ozs0r7b/0iK3sKmrb0b9FdWdBbOdx6hBCM/F9Ir82ofnBhtZOjCRPQ==",
+    "parse5@7.3.0": {
+      "integrity": "sha512-IInvU7fabl34qmi9gY8XOVxhYyMyuH2xUNpb2q8/Y+7552KlejkRvqvD19nMoUW/uQGGbqNpA6Tufu5FL5BZgw==",
       "dependencies": [
-        "entities"
+        "entities@6.0.0"
       ]
     },
     "path-key@3.1.1": {
@@ -4011,8 +4247,8 @@
     "shell-quote@1.8.2": {
       "integrity": "sha512-AzqKpGKjrj7EM6rKVQEPpB288oCfnrEIuyoT9cyF4nmGa7V8Zk6f7RRqYisX8X9m+Q7bd632aZW4ky7EhbQztA=="
     },
-    "shiki@3.2.2": {
-      "integrity": "sha512-0qWBkM2t/0NXPRcVgtLhtHv6Ak3Q5yI4K/ggMqcgLRKm4+pCs3namgZlhlat/7u2CuqNtlShNs9lENOG6n7UaQ==",
+    "shiki@3.3.0": {
+      "integrity": "sha512-j0Z1tG5vlOFGW8JVj0Cpuatzvshes7VJy5ncDmmMaYcmnGW0Js1N81TOW98ivTFNZfKRn9uwEg/aIm638o368g==",
       "dependencies": [
         "@shikijs/core",
         "@shikijs/engine-javascript",
@@ -4224,7 +4460,7 @@
     "undici@5.29.0": {
       "integrity": "sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==",
       "dependencies": [
-        "@fastify/busboy"
+        "@fastify/busboy@2.1.1"
       ]
     },
     "undici@6.21.2": {
@@ -4286,6 +4522,9 @@
     },
     "url-template@3.1.1": {
       "integrity": "sha512-4oszoaEKE/mQOtAmdMWqIRHmkxWkUZMnXFnjQ5i01CuRSK3uluxcH1MRVVVWmhlnzT1SCDfKxxficm2G37qzCA=="
+    },
+    "urlpattern-polyfill@10.0.0": {
+      "integrity": "sha512-H/A06tKD7sS1O1X2SshBVeA5FLycRpjqiBeqGKmBwBDBy28EnRjORxTNe269KSSr5un5qyWi1iL61wLxpd+ZOg=="
     },
     "util-deprecate@1.0.2": {
       "integrity": "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw=="
@@ -4433,6 +4672,13 @@
       "npm:@opentelemetry/resources@^1.28.0",
       "npm:@opentelemetry/sdk-trace-base@^1.28.0",
       "npm:@opentelemetry/semantic-conventions@^1.28.0",
+      "npm:@pothos/core@^4.6.0",
+      "npm:@pothos/plugin-drizzle@0.8",
+      "npm:@pothos/plugin-relay@^4.4.1",
+      "npm:@pothos/plugin-scope-auth@^4.1.2",
+      "npm:@pothos/plugin-tracing@^1.1.0",
+      "npm:@pothos/plugin-with-input@^4.1.0",
+      "npm:@pothos/tracing-opentelemetry@^1.1.0",
       "npm:@preact/signals@^1.3.1",
       "npm:@resvg/resvg-js@^2.6.2",
       "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0",
@@ -4443,11 +4689,13 @@
       "npm:arcsecond@5",
       "npm:cheerio@1",
       "npm:cssfilter@^0.0.11",
-      "npm:drizzle-kit@beta",
-      "npm:drizzle-orm@beta",
+      "npm:drizzle-kit@1.0.0-beta.1-5e64efc",
+      "npm:drizzle-orm@1.0.0-beta.1-5e64efc",
       "npm:feed@^4.2.2",
       "npm:fluent-ffmpeg@^2.1.3",
       "npm:flydrive@^1.1.0",
+      "npm:graphql-yoga@^5.13.4",
+      "npm:graphql@canary-pr-4364",
       "npm:i18next@^24.0.5",
       "npm:iconv-lite@~0.6.3",
       "npm:ioredis@^5.4.1",

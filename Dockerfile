@@ -6,8 +6,10 @@ RUN apt-get update && apt-get install -y build-essential ffmpeg jq && \
 WORKDIR /app
 COPY web/fonts /app/web/fonts
 
+COPY .npmrc /app/.npmrc
 COPY deno.json /app/deno.json
 COPY federation/deno.json /app/federation/deno.json
+COPY graphql/deno.json /app/graphql/deno.json
 COPY models/deno.json /app/models/deno.json
 COPY web/deno.json /app/web/deno.json
 COPY deno.lock /app/deno.lock
@@ -27,6 +29,8 @@ ENV GIT_COMMIT=${GIT_COMMIT}
 
 RUN jq '.version += "+" + $git_commit' --arg git_commit $GIT_COMMIT federation/deno.json > /tmp/deno.json && \
   mv /tmp/deno.json federation/deno.json && \
+  jq '.version += "+" + $git_commit' --arg git_commit $GIT_COMMIT graphql/deno.json > /tmp/deno.json && \
+  mv /tmp/deno.json graphql/deno.json && \
   jq '.version += "+" + $git_commit' --arg git_commit $GIT_COMMIT models/deno.json > /tmp/deno.json && \
   mv /tmp/deno.json models/deno.json && \
   jq '.version += "+" + $git_commit' --arg git_commit $GIT_COMMIT web/deno.json > /tmp/deno.json && \
