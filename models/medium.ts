@@ -1,10 +1,8 @@
-import { getUserAgent } from "@fedify/fedify";
+import { type Context, getUserAgent } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { join } from "@std/path/join";
 import ffmpeg from "fluent-ffmpeg";
-import type { Disk } from "flydrive";
-import { ORIGIN } from "../web/federation.ts";
-import type { Database } from "./db.ts";
+import type { ContextData } from "./context.ts";
 import metadata from "./deno.json" with { type: "json" };
 import {
   isPostMediumType,
@@ -30,8 +28,7 @@ const mediaTypes: Record<string, PostMediumType> = {
 };
 
 export async function persistPostMedium(
-  db: Database,
-  disk: Disk,
+  fedCtx: Context<ContextData>,
   document: vocab.Document,
   postId: Uuid,
   index: number,
@@ -61,7 +58,7 @@ export async function persistPostMedium(
     headers: {
       "User-Agent": getUserAgent({
         software: `HackersPub/${metadata.version}`,
-        url: new URL(ORIGIN),
+        url: new URL(fedCtx.canonicalOrigin),
       }),
     },
   });
@@ -97,12 +94,12 @@ export async function persistPostMedium(
         })
     );
     const screenshot = join(tmpDir, "screenshot.png");
-    await disk.put(
+    await fedCtx.data.disk.put(
       thumbnailKey = `videos/${crypto.randomUUID()}.png`,
       await Deno.readFile(screenshot),
     );
   }
-  const result = await db.insert(postMediumTable).values(
+  const result = await fedCtx.data.db.insert(postMediumTable).values(
     {
       postId,
       index,

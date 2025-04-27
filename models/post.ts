@@ -312,7 +312,7 @@ export async function persistPost(
     );
     return;
   }
-  const { db, disk } = ctx.data;
+  const { db } = ctx.data;
   let actor =
     options.actor == null || options.actor.iri !== post.attributionId.href
       ? await getPersistedActor(db, post.attributionId)
@@ -553,7 +553,7 @@ export async function persistPost(
   );
   let i = 0;
   for (const attachment of attachments) {
-    await persistPostMedium(db, disk, attachment, persistedPost.id, i);
+    await persistPostMedium(ctx, attachment, persistedPost.id, i);
     i++;
   }
   if (options.replies) {
