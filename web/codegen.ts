@@ -29,6 +29,7 @@ const config: CodegenConfig = {
   },
   hooks: {
     beforeOneFileWrite: (_, content: string) =>
+      "//@ts-nocheck\n" +
       content.replaceAll(/(from\s+['"].+)\.js(['"])/g, "$1.ts$2"),
   },
 };
