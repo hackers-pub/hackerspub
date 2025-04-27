@@ -10,6 +10,7 @@ import type {
   Actor,
 } from "@hackerspub/models/schema";
 import type { Session } from "@hackerspub/models/session";
+import type { QueryGraphQL } from "./graphql/gql.ts";
 import type getFixedT from "./i18n.ts";
 import type { Language } from "./i18n.ts";
 
@@ -48,6 +49,7 @@ export interface State {
   links: Link[];
   withoutMain?: boolean;
   searchQuery?: string;
+  queryGraphQL: QueryGraphQL;
 }
 
 export const define = createDefine<State>();

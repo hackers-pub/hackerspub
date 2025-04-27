@@ -21,6 +21,7 @@ import { serveDir } from "@std/http/file-server";
 import { db } from "./db.ts";
 import { drive } from "./drive.ts";
 import { federation } from "./federation.ts";
+import { makeQueryGraphQL } from "./graphql/gql.ts";
 import { kv } from "./kv.ts";
 import "./logging.ts";
 import type { State } from "./utils.ts";
@@ -109,17 +110,23 @@ app.use(async (ctx) => {
   ) {
     const disk = drive.use();
     return await federation.fetch(ctx.req, { contextData: { db, kv, disk } });
-  } else if (
+  }
+
+  const disk = drive.use();
+  const graphqlContext = {
+    db,
+    kv,
+    disk,
+    fedCtx: federation.createContext(ctx.req, { db, kv, disk }),
+    moderator: false,
+  };
+
+  if (
     ctx.url.pathname === "/graphql" || ctx.url.pathname.startsWith("/graphql/")
   ) {
-    const disk = drive.use();
-    return yogaServer.fetch(ctx.req, {
-      db,
-      kv,
-      disk,
-      fedCtx: federation.createContext(ctx.req, { db, kv, disk }),
-      moderator: false,
-    });
+    return yogaServer.fetch(ctx.req, graphqlContext);
+  } else {
+    ctx.state.queryGraphQL = makeQueryGraphQL(graphqlContext);
   }
   return ctx.next();
 });
