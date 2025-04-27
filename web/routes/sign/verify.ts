@@ -12,7 +12,13 @@ export const handler = define.handlers({
     const sessionId = ctx.url.searchParams.get("sessionId");
     if (!validateUuid(sessionId)) return ctx.next();
     const authResponse: AuthenticationResponseJSON = await ctx.req.json();
-    const result = await verifyAuthentication(db, kv, sessionId, authResponse);
+    const result = await verifyAuthentication(
+      db,
+      kv,
+      ctx.state.fedCtx.canonicalOrigin,
+      sessionId,
+      authResponse,
+    );
     if (result == null) return new Response("null", { status: 404 });
     const { response, account } = result;
     const headers = new Headers();

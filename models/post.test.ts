@@ -4,6 +4,7 @@ import {
   resetFetch,
   resetGlobalFetch,
 } from "@c4spar/mock-fetch";
+import { createFederation, MemoryKvStore } from "@fedify/fedify";
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { validate } from "@std/uuid/unstable-v7";
@@ -11,6 +12,14 @@ import { scrapePostLink } from "./post.ts";
 
 Deno.test("scrapePostLink()", async (t) => {
   mockGlobalFetch();
+
+  const federation = createFederation<void>({
+    kv: new MemoryKvStore(),
+  });
+  const ctx = federation.createContext(
+    new URL("https://hackers.pub/"),
+    undefined,
+  );
 
   await t.step("", async () => {
     mockFetch("https://example.internal/index.html", {
@@ -34,6 +43,7 @@ Deno.test("scrapePostLink()", async (t) => {
       </html>`,
     });
     const link = await scrapePostLink(
+      ctx,
       "https://example.internal/index.html",
       (handle) =>
         Promise.resolve(

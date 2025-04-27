@@ -1,7 +1,7 @@
 import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import { getEmojiReact, getEmojiReactId } from "@hackerspub/federation/objects";
 import { and, eq, sql } from "drizzle-orm";
-import { getEmojiReact, getEmojiReactId } from "../federation/objects.ts";
 import { getPersistedActor, persistActor } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";

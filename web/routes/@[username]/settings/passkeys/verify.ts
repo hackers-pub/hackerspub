@@ -19,6 +19,7 @@ export const handler = define.handlers({
     const verifyResponse = await verifyRegistration(
       db,
       kv,
+      ctx.state.fedCtx.canonicalOrigin,
       account,
       registerResponse.name,
       registerResponse.registrationResponse,

@@ -10,6 +10,7 @@ import {
   traverseCollection,
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import { getAnnounce } from "@hackerspub/federation/objects";
 import { getLogger } from "@logtape/logtape";
 import {
   and,
@@ -28,8 +29,6 @@ import { PDFDocument } from "pdf-lib";
 import postgres from "postgres";
 import sharp from "sharp";
 import { isSSRFSafeURL } from "ssrfcheck";
-import { getAnnounce } from "../federation/objects.ts";
-import { ORIGIN } from "../web/federation.ts";
 import {
   getPersistedActor,
   persistActor,
@@ -1426,7 +1425,8 @@ export async function deletePost(
   );
 }
 
-export async function scrapePostLink(
+export async function scrapePostLink<TContextData>(
+  fedCtx: Context<TContextData>,
   url: string | URL,
   handleToActorId: (handle: string) => Promise<Uuid | undefined>,
 ): Promise<NewPostLink | undefined> {
@@ -1442,7 +1442,7 @@ export async function scrapePostLink(
       headers: {
         "User-Agent": getUserAgent({
           software: "HackersPub",
-          url: new URL(ORIGIN),
+          url: new URL(fedCtx.canonicalOrigin),
         }),
       },
       redirect: "follow",
@@ -1562,7 +1562,7 @@ export async function scrapePostLink(
       headers: {
         "User-Agent": getUserAgent({
           software: "HackersPub",
-          url: new URL(ORIGIN),
+          url: new URL(fedCtx.canonicalOrigin),
         }),
         "Accept": "image/*",
       },
@@ -1642,7 +1642,7 @@ export async function persistPostLink(
       return link;
     }
   }
-  let scrapedLink = await scrapePostLink(url, async (handle) => {
+  let scrapedLink = await scrapePostLink(ctx, url, async (handle) => {
     if (!handle.startsWith("@")) handle = `@${handle}`;
     const actors = await persistActorsByHandles(ctx, [handle]);
     return actors[handle]?.id;

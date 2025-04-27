@@ -6,7 +6,11 @@ import { define } from "../../utils.ts";
 export const handler = define.handlers(async (ctx) => {
   const sessionId = ctx.url.searchParams.get("sessionId")?.trim();
   if (!validateUuid(sessionId)) return ctx.next();
-  const options = await getAuthenticationOptions(kv, sessionId);
+  const options = await getAuthenticationOptions(
+    kv,
+    ctx.state.fedCtx.canonicalOrigin,
+    sessionId,
+  );
   return new Response(
     JSON.stringify(options),
     {

@@ -10,7 +10,11 @@ export const handler = define.handlers(async (ctx) => {
   });
   if (account == null) return ctx.next();
   if (account.id !== ctx.state.account?.id) return ctx.next();
-  const options = await getRegistrationOptions(kv, account);
+  const options = await getRegistrationOptions(
+    kv,
+    ctx.state.fedCtx.canonicalOrigin,
+    account,
+  );
   return new Response(
     JSON.stringify(options),
     {

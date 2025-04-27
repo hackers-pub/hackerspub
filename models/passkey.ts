@@ -13,7 +13,6 @@ import {
 import { eq, sql } from "drizzle-orm";
 import type Keyv from "keyv";
 import { Buffer } from "node:buffer";
-import { ORIGIN } from "../web/federation.ts";
 import type { Database } from "./db.ts";
 import {
   type Account,
@@ -24,16 +23,16 @@ import {
 import type { Uuid } from "./uuid.ts";
 
 const RP_NAME = "Hackers' Pub";
-const RP_ID = new URL(ORIGIN).hostname;
 const KV_NAMESPACE = "passkey";
 
 export async function getRegistrationOptions(
   kv: Keyv,
+  origin: string,
   account: Account & { passkeys: Passkey[] },
 ): Promise<PublicKeyCredentialCreationOptionsJSON> {
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
-    rpID: RP_ID,
+    rpID: new URL(origin).hostname,
     userName: account.username,
     attestationType: "none",
     excludeCredentials: account.passkeys.map((passkey) => ({
@@ -48,6 +47,7 @@ export async function getRegistrationOptions(
 export async function verifyRegistration(
   db: Database,
   kv: Keyv,
+  origin: string,
   account: Account,
   name: string,
   response: RegistrationResponseJSON,
@@ -61,8 +61,8 @@ export async function verifyRegistration(
   const result = await verifyRegistrationResponse({
     response,
     expectedChallenge: options.challenge,
-    expectedOrigin: ORIGIN,
-    expectedRPID: RP_ID,
+    expectedOrigin: new URL(origin).origin,
+    expectedRPID: new URL(origin).hostname,
   });
   if (result.verified && result.registrationInfo != null) {
     const { credential, credentialDeviceType, credentialBackedUp } =
@@ -86,9 +86,12 @@ export async function verifyRegistration(
 
 export async function getAuthenticationOptions(
   kv: Keyv,
+  origin: string,
   sessionId: Uuid,
 ): Promise<PublicKeyCredentialRequestOptionsJSON> {
-  const options = await generateAuthenticationOptions({ rpID: RP_ID });
+  const options = await generateAuthenticationOptions({
+    rpID: new URL(origin).hostname,
+  });
   await kv.set(
     `${KV_NAMESPACE}/authentication/${sessionId}`,
     options,
@@ -100,6 +103,7 @@ export async function getAuthenticationOptions(
 export async function verifyAuthentication(
   db: Database,
   kv: Keyv,
+  origin: string,
   sessionId: Uuid,
   response: AuthenticationResponseJSON,
 ): Promise<
@@ -123,8 +127,8 @@ export async function verifyAuthentication(
   const result = await verifyAuthenticationResponse({
     response,
     expectedChallenge: options.challenge,
-    expectedOrigin: ORIGIN,
-    expectedRPID: RP_ID,
+    expectedOrigin: new URL(origin).origin,
+    expectedRPID: new URL(origin).hostname,
     credential: {
       id: response.id,
       publicKey: passkey.publicKey,
