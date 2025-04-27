@@ -1,30 +1,50 @@
+import { getAvatarUrl } from "@hackerspub/models/account";
+import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 
-const Account = builder.drizzleNode("accountTable", {
+export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
   id: {
     column: (account) => account.id,
   },
   fields: (t) => ({
+    uuid: t.expose("id", { type: "UUID" }),
     username: t.exposeString("username"),
-    oldUsername: t.exposeString("oldUsername", { nullable: true }),
     name: t.exposeString("name"),
+    bio: t.expose("bio", { type: "Markdown" }),
+    avatarUrl: t.field({
+      type: "URL",
+      async resolve(account, _, ctx) {
+        const emails = await ctx.db.query.accountEmailTable.findMany({
+          where: { accountId: account.id },
+        });
+        const url = await getAvatarUrl(ctx.disk, { ...account, emails });
+        return new URL(url);
+      },
+    }),
+    locales: t.exposeStringList("locales", { nullable: true }),
+    moderator: t.exposeBoolean("moderator"),
+    leftInvitations: t.exposeInt("leftInvitations"),
+    updated: t.expose("updated", { type: "DateTime" }),
+    created: t.expose("created", { type: "DateTime" }),
+    actor: t.relation("actor", { type: Actor }),
+    inviter: t.relation("inviter"),
   }),
 });
 
 builder.queryFields((t) => ({
-  account: t.drizzleField({
+  accountByUsername: t.drizzleField({
     type: Account,
-    authScopes: {
-      moderator: true,
-    },
+    // authScopes: {
+    //   moderator: true,
+    // },
     args: {
-      id: t.arg.globalID({ required: true, for: Account }),
+      username: t.arg.string({ required: true }),
     },
     nullable: true,
-    resolve: (query, _, { id }, ctx) => {
-      return ctx.drizzle.query.accountTable.findFirst(
-        query({ where: { id: id.id.id } }),
+    resolve(query, _, { username }, ctx) {
+      return ctx.db.query.accountTable.findFirst(
+        query({ where: { username } }),
       );
     },
   }),

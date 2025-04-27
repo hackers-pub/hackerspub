@@ -66,6 +66,7 @@
     "fluent-ffmpeg": "npm:fluent-ffmpeg@^2.1.3",
     "flydrive": "npm:flydrive@^1.1.0",
     "graphql": "npm:graphql@canary-pr-4364",
+    "graphql-scalars": "npm:graphql-scalars@^1.24.2",
     "graphql-yoga": "npm:graphql-yoga@^5.13.4",
     "i18next": "npm:i18next@^24.0.5",
     "iconv-lite": "npm:iconv-lite@^0.6.3",

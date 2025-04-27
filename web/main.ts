@@ -6,6 +6,7 @@ import {
   staticFiles,
   trailingSlashes,
 } from "@fresh/core";
+import { createYogaServer } from "@hackerspub/graphql";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
 import {
@@ -26,6 +27,7 @@ import type { State } from "./utils.ts";
 
 export const app = new App<State>();
 const staticHandler = staticFiles();
+const yogaServer = createYogaServer();
 app.use(async (ctx) => {
   // Work around a bug of Fresh's staticFiles middleware:
   if (ctx.url.pathname.startsWith("/.well-known/")) return await ctx.next();
@@ -107,6 +109,17 @@ app.use(async (ctx) => {
   ) {
     const disk = drive.use();
     return await federation.fetch(ctx.req, { contextData: { db, kv, disk } });
+  } else if (
+    ctx.url.pathname === "/graphql" || ctx.url.pathname.startsWith("/graphql/")
+  ) {
+    const disk = drive.use();
+    return yogaServer.fetch(ctx.req, {
+      db,
+      kv,
+      disk,
+      fedCtx: federation.createContext(ctx.req, { db, kv, disk }),
+      moderator: false,
+    });
   }
   return ctx.next();
 });

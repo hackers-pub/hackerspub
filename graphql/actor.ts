@@ -1,0 +1,179 @@
+import { isActor } from "@fedify/fedify";
+import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
+import { renderCustomEmojis } from "@hackerspub/models/emoji";
+import { escape } from "@std/html/entities";
+import { builder } from "./builder.ts";
+
+export const ActorType = builder.enumType("ActorType", {
+  values: [
+    "APPLICATION",
+    "GROUP",
+    "ORGANIZATION",
+    "PERSON",
+    "SERVICE",
+  ] as const,
+});
+
+export const Actor = builder.drizzleNode("actorTable", {
+  name: "Actor",
+  id: {
+    column: (actor) => actor.id,
+  },
+  fields: (t) => ({
+    uuid: t.expose("id", { type: "UUID" }),
+    iri: t.field({
+      type: "URL",
+      resolve(actor) {
+        return new URL(actor.iri);
+      },
+    }),
+    type: t.field({
+      type: ActorType,
+      resolve(actor) {
+        return actor.type === "Application"
+          ? "APPLICATION"
+          : actor.type === "Group"
+          ? "GROUP"
+          : actor.type === "Organization"
+          ? "ORGANIZATION"
+          : actor.type === "Person"
+          ? "PERSON"
+          : actor.type === "Service"
+          ? "SERVICE"
+          : UNREACHABLE;
+      },
+    }),
+    username: t.exposeString("username"),
+    instanceHost: t.exposeString("instanceHost"),
+    handleHost: t.exposeString("handleHost"),
+    handle: t.exposeString("handle"),
+    rawName: t.exposeString("name", { nullable: true }),
+    name: t.field({
+      type: "HTML",
+      nullable: true,
+      resolve(actor) {
+        return actor.name
+          ? renderCustomEmojis(escape(actor.name), actor.emojis)
+          : null;
+      },
+    }),
+    bio: t.field({
+      type: "HTML",
+      nullable: true,
+      resolve(actor) {
+        return actor.bioHtml
+          ? renderCustomEmojis(actor.bioHtml, actor.emojis)
+          : null;
+      },
+    }),
+    automaticallyApprovesFollowers: t.exposeBoolean(
+      "automaticallyApprovesFollowers",
+    ),
+    avatarUrl: t.field({
+      type: "URL",
+      resolve(actor) {
+        const url = getAvatarUrl(actor);
+        return new URL(url);
+      },
+    }),
+    headerUrl: t.field({
+      type: "URL",
+      nullable: true,
+      resolve(actor) {
+        return actor.headerUrl ? new URL(actor.headerUrl) : null;
+      },
+    }),
+    sensitive: t.exposeBoolean("sensitive"),
+    url: t.field({
+      type: "URL",
+      nullable: true,
+      resolve(actor) {
+        return actor.url ? new URL(actor.url) : null;
+      },
+    }),
+    updated: t.expose("updated", { type: "DateTime" }),
+    published: t.expose("published", { type: "DateTime", nullable: true }),
+    created: t.expose("created", { type: "DateTime" }),
+    account: t.relation("account", { nullable: true }),
+    instance: t.relation("instance", { type: Instance, nullable: true }),
+    successor: t.relation("successor", { nullable: true }),
+  }),
+});
+
+export const Instance = builder.drizzleNode("instanceTable", {
+  name: "Instance",
+  id: {
+    column: (instance) => instance.host,
+  },
+  fields: (t) => ({
+    host: t.exposeString("host"),
+    software: t.exposeString("software", { nullable: true }),
+    softwareVersion: t.exposeString("softwareVersion", {
+      nullable: true,
+    }),
+    updated: t.expose("updated", { type: "DateTime" }),
+    created: t.expose("created", { type: "DateTime" }),
+  }),
+});
+
+builder.queryFields((t) => ({
+  actorByUuid: t.drizzleField({
+    type: Actor,
+    args: {
+      uuid: t.arg({
+        type: "UUID",
+        required: true,
+      }),
+    },
+    nullable: true,
+    resolve(query, _, { uuid }, ctx) {
+      return ctx.db.query.actorTable.findFirst(
+        query({ where: { id: uuid } }),
+      );
+    },
+  }),
+  actorByHandle: t.drizzleField({
+    type: Actor,
+    args: {
+      handle: t.arg.string({ required: true }),
+    },
+    nullable: true,
+    async resolve(query, _, { handle }, ctx) {
+      if (handle.startsWith("@")) handle = handle.substring(1);
+      const split = handle.split("@");
+      if (split.length !== 2) return null;
+      const [username, host] = split;
+      const actor = await ctx.db.query.actorTable.findFirst(
+        query({
+          where: {
+            username,
+            OR: [{ instanceHost: host }, { handleHost: host }],
+          },
+        }),
+      );
+      if (actor) return actor;
+      // FIXME: documentLoader
+      const documentLoader = ctx.fedCtx.documentLoader;
+      const actorObject = await ctx.fedCtx.lookupObject(
+        handle,
+        { documentLoader },
+      );
+      if (!isActor(actorObject)) return null;
+      return await persistActor(ctx.fedCtx, actorObject, { documentLoader });
+    },
+  }),
+  instanceByHost: t.drizzleField({
+    type: Instance,
+    args: {
+      host: t.arg.string({ required: true }),
+    },
+    nullable: true,
+    resolve(query, _, { host }, ctx) {
+      return ctx.db.query.instanceTable.findFirst(
+        query({ where: { host } }),
+      );
+    },
+  }),
+}));
+
+const UNREACHABLE: never = null as never;
