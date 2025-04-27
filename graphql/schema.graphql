@@ -1,0 +1,96 @@
+type Account implements Node {
+  actor: Actor!
+  avatarUrl: URL!
+  bio: Markdown!
+  created: DateTime!
+  id: ID!
+  inviter: Account!
+  leftInvitations: Int!
+  locales: [String!]
+  moderator: Boolean!
+  name: String!
+  updated: DateTime!
+  username: String!
+  uuid: UUID!
+}
+
+type Actor implements Node {
+  account: Account
+  automaticallyApprovesFollowers: Boolean!
+  avatarUrl: URL!
+  bio: HTML
+  created: DateTime!
+  handle: String!
+  handleHost: String!
+  headerUrl: URL
+  id: ID!
+  instance: Instance
+  instanceHost: String!
+  iri: URL!
+  name: HTML
+  published: DateTime
+  rawName: String
+  sensitive: Boolean!
+  successor: Actor
+  type: ActorType!
+  updated: DateTime!
+  url: URL
+  username: String!
+  uuid: UUID!
+}
+
+enum ActorType {
+  APPLICATION
+  GROUP
+  ORGANIZATION
+  PERSON
+  SERVICE
+}
+
+"""
+A date string, such as 2007-12-03, compliant with the `full-date` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar Date
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar DateTime
+
+"""An HTML string."""
+scalar HTML
+
+type Instance implements Node {
+  created: DateTime!
+  host: String!
+  id: ID!
+  software: String
+  softwareVersion: String
+  updated: DateTime!
+}
+
+"""A Hackers' Pub-flavored Markdown text."""
+scalar Markdown
+
+interface Node {
+  id: ID!
+}
+
+type Query {
+  accountByUsername(username: String!): Account
+  actorByHandle(handle: String!): Actor
+  actorByUuid(uuid: UUID!): Actor
+  instanceByHost(host: String!): Instance
+  node(id: ID!): Node
+  nodes(ids: [ID!]!): [Node]!
+}
+
+"""
+A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
+"""
+scalar URL
+
+"""
+A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier.
+"""
+scalar UUID

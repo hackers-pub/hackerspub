@@ -2,10 +2,18 @@
   "name": "@hackerspub/web",
   "version": "0.1.0",
   "tasks": {
-    "dev": "ln -fs ../node_modules node_modules && deno run -A --watch=static/,routes/ --env-file=../.env dev.ts",
+    "dev": {
+      "dependencies": [
+        "dev:fresh",
+        "dev:codegen"
+      ]
+    },
+    "dev:fresh": "ln -fs ../node_modules node_modules && deno run -A --watch=static/,routes/ --env-file=../.env dev.ts",
+    "dev:codegen": "deno task codegen --watch",
     "build": "ln -fs ../node_modules node_modules && deno run -A --env-file=../.env dev.ts build",
     "start": "deno run -A --unstable-otel --env-file=../.env main.ts",
-    "update": "deno run -A -r jsr:@fresh/update ."
+    "update": "deno run -A -r jsr:@fresh/update .",
+    "codegen": "deno run -A npm:@graphql-codegen/cli/graphql-codegen --config codegen.ts"
   },
   "lint": {
     "rules": {
