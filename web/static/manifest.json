@@ -1,0 +1,17 @@
+{
+  "name": "Hackers' Pub",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48 256x256",
+      "type": "image/x-icon"
+    }
+  ],
+  "theme_color": "#000000"
+}
