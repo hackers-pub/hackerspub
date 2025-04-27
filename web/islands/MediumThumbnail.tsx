@@ -15,6 +15,7 @@ export function MediumThumbnail(
   { medium, class: klass }: MediumThumbnailProps,
 ) {
   const [zoomed, setZoomed] = useState(false);
+  const [showingFullAltText, setShowingFullAltText] = useState(false);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | undefined>(
     medium.type.startsWith("image/") ? medium.url : undefined,
   );
@@ -47,6 +48,38 @@ export function MediumThumbnail(
     event.preventDefault();
     if ((event.target as HTMLElement).tagName === "DIV") {
       setZoomed(false);
+    }
+  }
+
+  function isTextInNodeSelected(node: HTMLElement): boolean {
+    const selection = getSelection();
+    if (!selection) {
+      return false;
+    }
+    if (selection.type != "Range") {
+      return false;
+    }
+    return selection.containsNode(node, true);
+  }
+
+  function onShowFullAltText(event: JSX.TargetedMouseEvent<HTMLDivElement>) {
+    event.preventDefault();
+    const eventTarget = event.target as HTMLElement;
+    if (eventTarget.offsetHeight >= eventTarget.scrollHeight) {
+      // `text-overflow: ellipsis` is not applied.
+      return;
+    }
+    if (!isTextInNodeSelected(event.target as HTMLElement)) {
+      setShowingFullAltText(true);
+    }
+  }
+
+  function onShowCollapsedAltText(
+    event: JSX.TargetedMouseEvent<HTMLDivElement>,
+  ) {
+    event.preventDefault();
+    if (!isTextInNodeSelected(event.target as HTMLElement)) {
+      setShowingFullAltText(false);
     }
   }
 
@@ -108,9 +141,7 @@ export function MediumThumbnail(
                 width={sizeProvided ? width : undefined}
                 height={sizeProvided ? height : undefined}
                 style={{
-                  maxHeight: `calc(100% - ${
-                    altLines == null ? 2 : altLines.length * 2 + 2
-                  }rem)`,
+                  maxHeight: `calc(100% - ${altLines == null ? 2 : 10}rem)`,
                 }}
                 class="w-auto"
               />
@@ -122,24 +153,52 @@ export function MediumThumbnail(
                 width={sizeProvided ? width : undefined}
                 height={sizeProvided ? height : undefined}
                 style={{
-                  maxHeight: `calc(100% - ${
-                    altLines == null ? 2 : altLines.length * 2 + 2
-                  }rem)`,
+                  maxHeight: `calc(100% - ${altLines == null ? 2 : 10}rem)`,
                 }}
                 class="w-auto"
               />
             )}
           {altLines && (
-            <p class="mt-4 text-center">
-              {altLines.map((line, i) =>
-                i < 1 ? line : (
-                  <>
-                    <br />
-                    {line}
-                  </>
-                )
-              )}
-            </p>
+            showingFullAltText
+              ? (
+                <div
+                  key="fullAltText"
+                  class="fixed p-4 w-full h-full bottom-0 bg-[rgba(0,0,0,0.75)] overflow-y-scroll"
+                  onClick={onShowCollapsedAltText}
+                >
+                  <p>
+                    {altLines.map((line, i) =>
+                      i < 1 ? line : (
+                        <>
+                          <br />
+                          {line}
+                        </>
+                      )
+                    )}
+                  </p>
+                </div>
+              )
+              : (
+                <div
+                  key="collapsedAltText"
+                  class="mt-4 px-4 w-full line-clamp-4 text-ellipsis overflow-hidden"
+                  style={{
+                    maxHeight: "8rem",
+                  }}
+                  onClick={onShowFullAltText}
+                >
+                  <p>
+                    {altLines.map((line, i) =>
+                      i < 1 ? line : (
+                        <>
+                          <br />
+                          {line}
+                        </>
+                      )
+                    )}
+                  </p>
+                </div>
+              )
           )}
         </div>
       )}
