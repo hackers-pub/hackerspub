@@ -3,5 +3,8 @@
   "version": "0.1.0",
   "exports": {
     ".": "./mod.ts"
+  },
+  "tasks": {
+    "codegen": "deno run -A --env-file=../.env mod.ts"
   }
 }

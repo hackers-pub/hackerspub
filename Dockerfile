@@ -21,6 +21,7 @@ RUN cp .env.sample .env && \
   sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \
   echo >> .env && \
   echo "INSTANCE_ACTOR_KEY='$(deno task keygen)'" >> .env && \
+  deno task -r codegen && \
   deno task build && \
   rm .env
 
