@@ -88,6 +88,7 @@
     "npm:@peculiar/asn1-x509@^2.3.8": "2.3.15",
     "npm:@phensley/language-tag@^1.9.0": "1.12.0",
     "npm:@pothos/core@^4.6.0": "4.6.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-complexity@4.1.0": "4.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
     "npm:@pothos/plugin-drizzle@0.8": "0.8.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
     "npm:@pothos/plugin-relay@^4.4.1": "4.4.1_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
     "npm:@pothos/plugin-scope-auth@^4.1.2": "4.1.2_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
@@ -1797,6 +1798,13 @@
     "@pothos/core@4.6.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
       "integrity": "sha512-l3uLPCZG6weomhlx1VmYSMi32dm4jMJ51BUOdhBCKB15E/YAHkzf4dxqXDhyCj63jMxwt5Zz72ITR3AwA9bJqA==",
       "dependencies": [
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-complexity@4.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-Jwtvqh4J6PEvfAEL/1uY7eVdX/voUNqQbBG2XKb2lTz9xwZ5sjRQRVDFag5ywAC9+K1VaNlA5d0uXQlm6maIMA==",
+      "dependencies": [
+        "@pothos/core",
         "graphql"
       ]
     },
@@ -4800,6 +4808,7 @@
       "npm:@opentelemetry/sdk-trace-base@^1.28.0",
       "npm:@opentelemetry/semantic-conventions@^1.28.0",
       "npm:@pothos/core@^4.6.0",
+      "npm:@pothos/plugin-complexity@4.1.0",
       "npm:@pothos/plugin-drizzle@0.8",
       "npm:@pothos/plugin-relay@^4.4.1",
       "npm:@pothos/plugin-scope-auth@^4.1.2",

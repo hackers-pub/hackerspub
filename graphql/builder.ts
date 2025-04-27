@@ -4,6 +4,7 @@ import type { Database } from "@hackerspub/models/db";
 import { relations } from "@hackerspub/models/relations";
 import type { Uuid } from "@hackerspub/models/uuid";
 import SchemaBuilder from "@pothos/core";
+import ComplexityPlugin from "@pothos/plugin-complexity";
 import DrizzlePlugin from "@pothos/plugin-drizzle";
 import RelayPlugin from "@pothos/plugin-relay";
 import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
@@ -66,12 +67,31 @@ export interface PothosTypes {
 
 export const builder = new SchemaBuilder<PothosTypes>({
   plugins: [
+    ComplexityPlugin,
     RelayPlugin,
     ScopeAuthPlugin,
     DrizzlePlugin,
     TracingPlugin,
     WithInputPlugin,
   ],
+  complexity: {
+    defaultComplexity: 1,
+    defaultListMultiplier: 10,
+    limit(ctx) {
+      if (ctx.moderator) {
+        return {
+          complexity: 1000,
+          depth: 20,
+          breadth: 200,
+        };
+      }
+      return {
+        complexity: 500,
+        depth: 10,
+        breadth: 100,
+      };
+    },
+  },
   defaultFieldNullability: false,
   drizzle: {
     client: (ctx) => ctx.db,
