@@ -189,34 +189,25 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                         post.link.imageHeight != null &&
                         post.link.imageWidth / post.link.imageHeight > 1.5
                       ? "block"
-                      : "flex items-center"
+                      : "flex flex-wrap items-center"
                   }
                   `}
                 >
-                  {post.link.imageUrl && post.link.imageWidth != null &&
-                    post.link.imageHeight != null &&
-                    post.link.imageWidth / post.link.imageHeight > 1.5 &&
-                    (
+                  {post.link.imageUrl && (
+                    <div class="grow">
                       <img
                         src={post.link.imageUrl}
                         alt={post.link.imageAlt ?? undefined}
                         width={post.link.imageWidth ?? undefined}
                         height={post.link.imageHeight ?? undefined}
-                        class="w-full h-auto"
+                        class={post.link.imageWidth != null &&
+                            post.link.imageHeight != null &&
+                            post.link.imageWidth / post.link.imageHeight > 1.5
+                          ? "w-full h-auto m-auto"
+                          : "max-h-40 w-auto m-auto"}
                       />
-                    )}
-                  {post.link.imageUrl && (post.link.imageWidth == null ||
-                    post.link.imageHeight == null ||
-                    post.link.imageWidth / post.link.imageHeight <= 1.5) &&
-                    (
-                      <img
-                        src={post.link.imageUrl}
-                        alt={post.link.imageAlt ?? undefined}
-                        width={post.link.imageWidth ?? undefined}
-                        height={post.link.imageHeight ?? undefined}
-                        class="max-h-40 w-auto"
-                      />
-                    )}
+                    </div>
+                  )}
                   <div>
                     <p class="m-4 font-bold">{post.link.title}</p>
                     {(post.link.description ||
