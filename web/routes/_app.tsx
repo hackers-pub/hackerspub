@@ -95,7 +95,7 @@ export default async function App(
               )}
             </head>
             <body
-              class={`font-sans dark:bg-stone-900 dark:text-white ${
+              class={`font-sans dark:bg-stone-900 dark:text-white w-full h-full flex flex-col absolute ${
                 MODE === "development"
                   ? "bg-[url(/dev-bg-light.svg)] dark:bg-[url(/dev-bg-dark.svg)]"
                   : ""
@@ -295,10 +295,12 @@ export default async function App(
               </header>
               {state.withoutMain ? <Component /> : (
                 <>
-                  <main class="m-auto max-w-screen-xl min-h-[calc(100vh_-_120px)] p-4">
-                    <Component />
+                  <main class="w-full grow">
+                    <div class="m-auto max-w-screen-xl p-4">
+                      <Component />
+                    </div>
                   </main>
-                  <footer class="left-0 w-full min-h-[60px] bg-stone-100 dark:bg-stone-800">
+                  <footer class="left-0 w-full bg-stone-100 dark:bg-stone-800">
                     <nav class="m-auto max-w-screen-xl p-4 pb-5 text-stone-400">
                       <a
                         href="/coc"
