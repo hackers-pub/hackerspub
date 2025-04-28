@@ -62,7 +62,9 @@ export const handler = define.middleware([
             | Language
             | undefined) ??
             DEFAULT_LANGUAGE;
-          ctx.state.language = language;
+          ctx.state.language = isLanguage(language)
+            ? language
+            : normalizeLanguage(language) ?? DEFAULT_LANGUAGE;
           locales.push(language);
         }
       } else {
