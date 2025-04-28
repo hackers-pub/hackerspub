@@ -97,6 +97,8 @@ export const Actor = builder.drizzleNode("actorTable", {
     account: t.relation("account", { nullable: true }),
     instance: t.relation("instance", { type: Instance, nullable: true }),
     successor: t.relation("successor", { nullable: true }),
+    followers: t.relatedConnection("followers"),
+    followees: t.relatedConnection("followees"),
   }),
 });
 
@@ -112,6 +114,25 @@ export const Instance = builder.drizzleNode("instanceTable", {
       nullable: true,
     }),
     updated: t.expose("updated", { type: "DateTime" }),
+    created: t.expose("created", { type: "DateTime" }),
+  }),
+});
+
+export const Following = builder.drizzleNode("followingTable", {
+  name: "Following",
+  id: {
+    column: (following) => following.iri,
+  },
+  fields: (t) => ({
+    iri: t.field({
+      type: "URL",
+      resolve(following) {
+        return new URL(following.iri);
+      },
+    }),
+    followee: t.relation("followee", { type: Actor }),
+    follower: t.relation("follower", { type: Actor }),
+    accepted: t.expose("accepted", { type: "DateTime", nullable: true }),
     created: t.expose("created", { type: "DateTime" }),
   }),
 });

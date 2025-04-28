@@ -7,6 +7,11 @@ export const Account = builder.drizzleNode("accountTable", {
   id: {
     column: (account) => account.id,
   },
+  select: {
+    with: {
+      emails: true,
+    },
+  },
   fields: (t) => ({
     uuid: t.expose("id", { type: "UUID" }),
     username: t.exposeString("username"),
@@ -15,10 +20,7 @@ export const Account = builder.drizzleNode("accountTable", {
     avatarUrl: t.field({
       type: "URL",
       async resolve(account, _, ctx) {
-        const emails = await ctx.db.query.accountEmailTable.findMany({
-          where: { accountId: account.id },
-        });
-        const url = await getAvatarUrl(ctx.disk, { ...account, emails });
+        const url = await getAvatarUrl(ctx.disk, account);
         return new URL(url);
       },
     }),
@@ -28,7 +30,30 @@ export const Account = builder.drizzleNode("accountTable", {
     updated: t.expose("updated", { type: "DateTime" }),
     created: t.expose("created", { type: "DateTime" }),
     actor: t.relation("actor", { type: Actor }),
+    links: t.relation("links", { type: AccountLink }),
     inviter: t.relation("inviter", { nullable: true }),
+    invitees: t.relatedConnection("invitees"),
+  }),
+});
+
+export const AccountLink = builder.drizzleNode("accountLinkTable", {
+  name: "AccountLink",
+  id: {
+    column: (link) => [link.accountId, link.index],
+  },
+  fields: (t) => ({
+    index: t.exposeInt("index"),
+    name: t.exposeString("name"),
+    url: t.field({
+      type: "URL",
+      resolve(link) {
+        return new URL(link.url);
+      },
+    }),
+    handle: t.exposeString("handle", { nullable: true }),
+    icon: t.exposeString("icon"),
+    verified: t.expose("verified", { type: "DateTime", nullable: true }),
+    created: t.expose("created", { type: "DateTime" }),
   }),
 });
 

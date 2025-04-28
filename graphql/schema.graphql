@@ -4,8 +4,10 @@ type Account implements Node {
   bio: Markdown!
   created: DateTime!
   id: ID!
-  inviter: Account!
+  invitees(after: String, before: String, first: Int, last: Int): AccountInviteesConnection!
+  inviter: Account
   leftInvitations: Int!
+  links: [AccountLink!]!
   locales: [String!]
   moderator: Boolean!
   name: String!
@@ -14,12 +16,35 @@ type Account implements Node {
   uuid: UUID!
 }
 
+type AccountInviteesConnection {
+  edges: [AccountInviteesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type AccountInviteesConnectionEdge {
+  cursor: String!
+  node: Account!
+}
+
+type AccountLink implements Node {
+  created: DateTime!
+  handle: String
+  icon: String!
+  id: ID!
+  index: Int!
+  name: String!
+  url: URL!
+  verified: DateTime
+}
+
 type Actor implements Node {
   account: Account
   automaticallyApprovesFollowers: Boolean!
   avatarUrl: URL!
   bio: HTML
   created: DateTime!
+  followees(after: String, before: String, first: Int, last: Int): ActorFolloweesConnection!
+  followers(after: String, before: String, first: Int, last: Int): ActorFollowersConnection!
   handle: String!
   handleHost: String!
   headerUrl: URL
@@ -37,6 +62,26 @@ type Actor implements Node {
   url: URL
   username: String!
   uuid: UUID!
+}
+
+type ActorFolloweesConnection {
+  edges: [ActorFolloweesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorFolloweesConnectionEdge {
+  cursor: String!
+  node: Following!
+}
+
+type ActorFollowersConnection {
+  edges: [ActorFollowersConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorFollowersConnectionEdge {
+  cursor: String!
+  node: Following!
 }
 
 enum ActorType {
@@ -57,6 +102,15 @@ A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `dat
 """
 scalar DateTime
 
+type Following implements Node {
+  accepted: DateTime
+  created: DateTime!
+  followee: Actor!
+  follower: Actor!
+  id: ID!
+  iri: URL!
+}
+
 """An HTML string."""
 scalar HTML
 
@@ -74,6 +128,13 @@ scalar Markdown
 
 interface Node {
   id: ID!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
 }
 
 type Query {
