@@ -126,7 +126,13 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                   height={48}
                   class="shrink-0 size-12"
                 />
-                <div class="flex flex-col wrap-anywhere">
+                <div
+                  style={{
+                    // TODO: use wrap-anywhere class when using Tailwind CSS v4
+                    overflowWrap: "anywhere",
+                  }}
+                  class="flex flex-col"
+                >
                   <p>
                     {post.actor.name == null
                       ? <strong>{post.actor.username}</strong>
