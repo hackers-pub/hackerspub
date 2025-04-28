@@ -63,6 +63,10 @@ export function RecommendedActors(
                               ? `/${actor.handle}`
                               : `/@${actor.username}`}
                             href={actor.url ?? actor.iri}
+                            style={{
+                              // TODO: use wrap-anywhere class when using Tailwind CSS v4
+                              overflowWrap: "anywhere",
+                            }}
                           >
                             {actor.name == null ? actor.username : (
                               <span
