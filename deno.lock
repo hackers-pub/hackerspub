@@ -67,8 +67,8 @@
     "jsr:@valibot/valibot@1": "1.0.0",
     "npm:@aws-sdk/client-s3@^3.750.0": "3.797.0",
     "npm:@aws-sdk/s3-request-presigner@^3.750.0": "3.797.0",
-    "npm:@graphql-codegen/cli@*": "5.0.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@types+node@22.12.0",
-    "npm:@graphql-codegen/cli@^5.0.5": "5.0.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@types+node@22.12.0",
+    "npm:@graphql-codegen/cli@*": "5.0.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@types+node@22.12.0_@parcel+watcher@2.5.1",
+    "npm:@graphql-codegen/cli@^5.0.5": "5.0.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@types+node@22.12.0_@parcel+watcher@2.5.1",
     "npm:@graphql-codegen/client-preset@^4.8.0": "4.8.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql-sock@1.0.1__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
     "npm:@graphql-typed-document-node/core@^3.2.0": "3.2.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
     "npm:@hexagon/base64@^1.1.27": "1.1.28",
@@ -85,6 +85,7 @@
     "npm:@opentelemetry/sdk-trace-base@^1.28.0": "1.30.1_@opentelemetry+api@1.9.0",
     "npm:@opentelemetry/semantic-conventions@^1.27.0": "1.32.0",
     "npm:@opentelemetry/semantic-conventions@^1.28.0": "1.32.0",
+    "npm:@parcel/watcher@^2.5.1": "2.5.1",
     "npm:@peculiar/asn1-android@^2.3.10": "2.3.16",
     "npm:@peculiar/asn1-ecc@^2.3.8": "2.3.15",
     "npm:@peculiar/asn1-rsa@^2.3.8": "2.3.15",
@@ -1540,6 +1541,48 @@
         "yargs"
       ]
     },
+    "@graphql-codegen/cli@5.0.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@types+node@22.12.0_@parcel+watcher@2.5.1": {
+      "integrity": "sha512-9p9SI5dPhJdyU+O6p1LUqi5ajDwpm6pUhutb1fBONd0GZltLFwkgWFiFtM6smxkYXlYVzw61p1kTtwqsuXO16w==",
+      "dependencies": [
+        "@babel/generator",
+        "@babel/template",
+        "@babel/types",
+        "@graphql-codegen/client-preset",
+        "@graphql-codegen/core",
+        "@graphql-codegen/plugin-helpers",
+        "@graphql-tools/apollo-engine-loader",
+        "@graphql-tools/code-file-loader",
+        "@graphql-tools/git-loader",
+        "@graphql-tools/github-loader",
+        "@graphql-tools/graphql-file-loader",
+        "@graphql-tools/json-file-loader",
+        "@graphql-tools/load",
+        "@graphql-tools/prisma-loader",
+        "@graphql-tools/url-loader",
+        "@graphql-tools/utils",
+        "@parcel/watcher",
+        "@whatwg-node/fetch",
+        "chalk",
+        "cosmiconfig@8.3.6",
+        "debounce",
+        "detect-indent",
+        "graphql",
+        "graphql-config",
+        "inquirer",
+        "is-glob",
+        "jiti@1.21.7",
+        "json-to-pretty-yaml",
+        "listr2",
+        "log-symbols",
+        "micromatch",
+        "shell-quote",
+        "string-env-interpolation",
+        "ts-log",
+        "tslib@2.8.1",
+        "yaml",
+        "yargs"
+      ]
+    },
     "@graphql-codegen/client-preset@4.8.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql-sock@1.0.1__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
       "integrity": "sha512-IVtTl7GsPMbQihk5+l5fDYksnPPOoC52sKxzquyIyuecZLEB7W3nNLV29r6+y+tjXTRPA774FR7CHGA2adzhjw==",
       "dependencies": [
@@ -2261,6 +2304,67 @@
     },
     "@opentelemetry/semantic-conventions@1.32.0": {
       "integrity": "sha512-s0OpmpQFSfMrmedAn9Lhg4KWJELHCU6uU9dtIJ28N8UGhf9Y55im5X8fEzwhwDwiSqN+ZPSNrDJF7ivf/AuRPQ=="
+    },
+    "@parcel/watcher-android-arm64@2.5.1": {
+      "integrity": "sha512-KF8+j9nNbUN8vzOFDpRMsaKBHZ/mcjEjMToVMJOhTozkDonQFFrRcfdLWn6yWKCmJKmdVxSgHiYvTCef4/qcBA=="
+    },
+    "@parcel/watcher-darwin-arm64@2.5.1": {
+      "integrity": "sha512-eAzPv5osDmZyBhou8PoF4i6RQXAfeKL9tjb3QzYuccXFMQU0ruIc/POh30ePnaOyD1UXdlKguHBmsTs53tVoPw=="
+    },
+    "@parcel/watcher-darwin-x64@2.5.1": {
+      "integrity": "sha512-1ZXDthrnNmwv10A0/3AJNZ9JGlzrF82i3gNQcWOzd7nJ8aj+ILyW1MTxVk35Db0u91oD5Nlk9MBiujMlwmeXZg=="
+    },
+    "@parcel/watcher-freebsd-x64@2.5.1": {
+      "integrity": "sha512-SI4eljM7Flp9yPuKi8W0ird8TI/JK6CSxju3NojVI6BjHsTyK7zxA9urjVjEKJ5MBYC+bLmMcbAWlZ+rFkLpJQ=="
+    },
+    "@parcel/watcher-linux-arm-glibc@2.5.1": {
+      "integrity": "sha512-RCdZlEyTs8geyBkkcnPWvtXLY44BCeZKmGYRtSgtwwnHR4dxfHRG3gR99XdMEdQ7KeiDdasJwwvNSF5jKtDwdA=="
+    },
+    "@parcel/watcher-linux-arm-musl@2.5.1": {
+      "integrity": "sha512-6E+m/Mm1t1yhB8X412stiKFG3XykmgdIOqhjWj+VL8oHkKABfu/gjFj8DvLrYVHSBNC+/u5PeNrujiSQ1zwd1Q=="
+    },
+    "@parcel/watcher-linux-arm64-glibc@2.5.1": {
+      "integrity": "sha512-LrGp+f02yU3BN9A+DGuY3v3bmnFUggAITBGriZHUREfNEzZh/GO06FF5u2kx8x+GBEUYfyTGamol4j3m9ANe8w=="
+    },
+    "@parcel/watcher-linux-arm64-musl@2.5.1": {
+      "integrity": "sha512-cFOjABi92pMYRXS7AcQv9/M1YuKRw8SZniCDw0ssQb/noPkRzA+HBDkwmyOJYp5wXcsTrhxO0zq1U11cK9jsFg=="
+    },
+    "@parcel/watcher-linux-x64-glibc@2.5.1": {
+      "integrity": "sha512-GcESn8NZySmfwlTsIur+49yDqSny2IhPeZfXunQi48DMugKeZ7uy1FX83pO0X22sHntJ4Ub+9k34XQCX+oHt2A=="
+    },
+    "@parcel/watcher-linux-x64-musl@2.5.1": {
+      "integrity": "sha512-n0E2EQbatQ3bXhcH2D1XIAANAcTZkQICBPVaxMeaCVBtOpBZpWJuf7LwyWPSBDITb7In8mqQgJ7gH8CILCURXg=="
+    },
+    "@parcel/watcher-win32-arm64@2.5.1": {
+      "integrity": "sha512-RFzklRvmc3PkjKjry3hLF9wD7ppR4AKcWNzH7kXR7GUe0Igb3Nz8fyPwtZCSquGrhU5HhUNDr/mKBqj7tqA2Vw=="
+    },
+    "@parcel/watcher-win32-ia32@2.5.1": {
+      "integrity": "sha512-c2KkcVN+NJmuA7CGlaGD1qJh1cLfDnQsHjE89E60vUEMlqduHGCdCLJCID5geFVM0dOtA3ZiIO8BoEQmzQVfpQ=="
+    },
+    "@parcel/watcher-win32-x64@2.5.1": {
+      "integrity": "sha512-9lHBdJITeNR++EvSQVUcaZoWupyHfXe1jZvGZ06O/5MflPcuPLtEphScIBL+AiCWBO46tDSHzWyD0uDmmZqsgA=="
+    },
+    "@parcel/watcher@2.5.1": {
+      "integrity": "sha512-dfUnCxiN9H4ap84DvD2ubjw+3vUNpstxa0TneY/Paat8a3R4uQZDLSvWjmznAY/DoahqTHl9V46HF/Zs3F29pg==",
+      "dependencies": [
+        "@parcel/watcher-android-arm64",
+        "@parcel/watcher-darwin-arm64",
+        "@parcel/watcher-darwin-x64",
+        "@parcel/watcher-freebsd-x64",
+        "@parcel/watcher-linux-arm-glibc",
+        "@parcel/watcher-linux-arm-musl",
+        "@parcel/watcher-linux-arm64-glibc",
+        "@parcel/watcher-linux-arm64-musl",
+        "@parcel/watcher-linux-x64-glibc",
+        "@parcel/watcher-linux-x64-musl",
+        "@parcel/watcher-win32-arm64",
+        "@parcel/watcher-win32-ia32",
+        "@parcel/watcher-win32-x64",
+        "detect-libc@1.0.3",
+        "is-glob",
+        "micromatch",
+        "node-addon-api"
+      ]
     },
     "@pdf-lib/standard-fonts@1.0.0": {
       "integrity": "sha512-hU30BK9IUN/su0Mn9VdlVKsWBS6GyhVfqjwl1FjZN4TxP6cCw0jP2w7V3Hf5uX7M0AZJ16vey9yE0ny7Sa59ZA==",
@@ -3755,6 +3859,9 @@
     "detect-indent@6.1.0": {
       "integrity": "sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA=="
     },
+    "detect-libc@1.0.3": {
+      "integrity": "sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg=="
+    },
     "detect-libc@2.0.4": {
       "integrity": "sha512-3UDv+G9CsCKO1WKMGw9fwq/SWJYbI0c5Y7LU1AXYoDdbhE2AHQ6N6Nb34sG8Fj7T5APy8qXDCKuuIHd1BR0tVA=="
     },
@@ -4939,6 +5046,9 @@
         "tslib@2.8.1"
       ]
     },
+    "node-addon-api@7.1.1": {
+      "integrity": "sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ=="
+    },
     "node-domexception@1.0.0": {
       "integrity": "sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ=="
     },
@@ -5701,7 +5811,7 @@
         "@img/sharp-win32-ia32",
         "@img/sharp-win32-x64",
         "color",
-        "detect-libc",
+        "detect-libc@2.0.4",
         "semver@7.7.1"
       ]
     },
@@ -6320,6 +6430,7 @@
       "npm:@opentelemetry/resources@^1.28.0",
       "npm:@opentelemetry/sdk-trace-base@^1.28.0",
       "npm:@opentelemetry/semantic-conventions@^1.28.0",
+      "npm:@parcel/watcher@^2.5.1",
       "npm:@pothos/core@^4.6.0",
       "npm:@pothos/plugin-complexity@4.1.0",
       "npm:@pothos/plugin-drizzle@0.8",

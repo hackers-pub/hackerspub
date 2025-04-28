@@ -32,6 +32,7 @@
     "@opentelemetry/resources": "npm:@opentelemetry/resources@^1.28.0",
     "@opentelemetry/sdk-trace-base": "npm:@opentelemetry/sdk-trace-base@^1.28.0",
     "@opentelemetry/semantic-conventions": "npm:@opentelemetry/semantic-conventions@^1.28.0",
+    "@parcel/watcher": "npm:@parcel/watcher@^2.5.1",
     "@pothos/core": "npm:@pothos/core@^4.6.0",
     "@pothos/plugin-complexity": "npm:@pothos/plugin-complexity@4.1.0",
     "@pothos/plugin-drizzle": "npm:@pothos/plugin-drizzle@^0.8.0",
