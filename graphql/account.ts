@@ -28,7 +28,7 @@ export const Account = builder.drizzleNode("accountTable", {
     updated: t.expose("updated", { type: "DateTime" }),
     created: t.expose("created", { type: "DateTime" }),
     actor: t.relation("actor", { type: Actor }),
-    inviter: t.relation("inviter"),
+    inviter: t.relation("inviter", { nullable: true }),
   }),
 });
 
