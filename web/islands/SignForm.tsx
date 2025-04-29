@@ -1,5 +1,6 @@
 import {
   type AuthenticationResponseJSON,
+  browserSupportsWebAuthn,
   type PublicKeyCredentialRequestOptionsJSON,
   startAuthentication,
 } from "@simplewebauthn/browser";
@@ -28,47 +29,53 @@ export function SignForm({ language, values, errors }: SignFormProps) {
   const [email, setEmail] = useState(values?.email);
   const [error, setError] = useState(errors?.email);
 
-  useEffect(() => {
-    fetch(`/sign/options?sessionId=${sessionId}`).then(
-      async (optionsResponse) => {
-        if (!optionsResponse.ok) {
-          return;
-        }
-        const optionsJSON: PublicKeyCredentialRequestOptionsJSON =
-          await optionsResponse.json();
-        let authResponse: AuthenticationResponseJSON;
-        try {
-          authResponse = await startAuthentication({
-            optionsJSON,
-            useBrowserAutofill: true,
-          });
-        } catch {
-          setError(t("signInUp.passkeyCanceled"));
-          return;
-        }
-        const verifyResponse = await fetch(
-          `/sign/verify?sessionId=${sessionId}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(authResponse),
-          },
-        );
-        if (!verifyResponse.ok) {
-          setError(t("signInUp.passkeyFailed"));
-          return;
-        }
-        const result: VerifiedAuthenticationResponse = await verifyResponse
-          .json();
-        if (!result.verified) {
-          setError(t("signInUp.passkeyFailed"));
-          return;
-        }
-        location.href = "/";
+  async function startPasskeyAuthentication(useBrowserAutofill: boolean) {
+    const optionsResponse = await fetch(`/sign/options?sessionId=${sessionId}`);
+    if (!optionsResponse.ok) {
+      return;
+    }
+    const optionsJSON: PublicKeyCredentialRequestOptionsJSON =
+      await optionsResponse.json();
+    let authResponse: AuthenticationResponseJSON;
+    try {
+      authResponse = await startAuthentication({
+        optionsJSON,
+        useBrowserAutofill,
+      });
+    } catch (e) {
+      console.error(e);
+      setError(t("signInUp.passkeyCanceled"));
+      return;
+    }
+    const verifyResponse = await fetch(
+      `/sign/verify?sessionId=${sessionId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(authResponse),
       },
     );
+    if (!verifyResponse.ok) {
+      setError(t("signInUp.passkeyFailed"));
+      return;
+    }
+    const result: VerifiedAuthenticationResponse = await verifyResponse
+      .json();
+    if (!result.verified) {
+      setError(t("signInUp.passkeyFailed"));
+      return;
+    }
+    location.href = "/";
+  }
+
+  function onStartPasskeyAuthenticationManually() {
+    startPasskeyAuthentication(false);
+  }
+
+  useEffect(() => {
+    startPasskeyAuthentication(true);
   }, [sessionId]);
 
   return (
@@ -86,9 +93,20 @@ export function SignForm({ language, values, errors }: SignFormProps) {
             onInput={(e) => setEmail(e.currentTarget.value)}
           />
         </Label>
-        <Button type="submit" class="lg:text-xl mt-4">
-          <Msg $key="signInUp.submit" />
-        </Button>
+        <div class="flex flex-row gap-2">
+          <Button type="submit" class="lg:text-xl mt-4">
+            <Msg $key="signInUp.submit" />
+          </Button>
+          {browserSupportsWebAuthn() && (
+            <Button
+              type="button"
+              class="lg:text-xl mt-4"
+              onClick={onStartPasskeyAuthenticationManually}
+            >
+              <Msg $key="signInUp.withPasskey" />
+            </Button>
+          )}
+        </div>
       </form>
       <div class="prose dark:prose-invert mt-5">
         <p>

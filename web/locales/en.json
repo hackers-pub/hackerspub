@@ -67,6 +67,7 @@
     "description": "If you have an account, we'll send you a sign-in link. If you have a passkey registered, you can use it to sign in instead. If you don't have an account, you need to be invited by an existing Hackers' Pub member.",
     "emailOrUsername": "Email address or username",
     "submit": "$t(signInUp.title)",
+    "withPasskey": "$t(signInUp.title) with passkey",
     "invalidEmailOrUsername": "Invalid email address or username. Please check your input.",
     "noSuchEmailOrUsername": "This email address or username is not registered with Hackers' Pub.",
     "signInEmailSubject": "Sign in to Hackers' Pub",
