@@ -152,7 +152,13 @@ export default define.page<typeof handler, NotificationsProps>(
                         }
                         `}
                       >
-                        <div class="flex items-center gap-2">
+                        <div
+                          style={{
+                            // TODO: use wrap-anywhere class when using Tailwind CSS v4
+                            overflowWrap: "anywhere",
+                          }}
+                          class="flex items-center gap-2"
+                        >
                           <p>
                             <Msg
                               $key="notification.followedYou"
@@ -190,7 +196,13 @@ export default define.page<typeof handler, NotificationsProps>(
                         }
                         `}
                       >
-                        <div class="flex items-center">
+                        <div
+                          style={{
+                            // TODO: use wrap-anywhere class when using Tailwind CSS v4
+                            overflowWrap: "anywhere",
+                          }}
+                          class="flex items-center"
+                        >
                           <p>
                             {notification.type === "react"
                               ? (
