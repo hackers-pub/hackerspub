@@ -65,6 +65,7 @@
     "description": "이미 계정이 있으면 로그인 링크를 보내드립니다. 패스키를 등록했다면 대신 그것을 사용하여 로그인할 수 있습니다. 계정이 없으시면 다른 Hackers' Pub 회원에게 초대를 받으셔야 합니다.",
     "emailOrUsername": "이메일 주소 또는 아이디",
     "submit": "$t(signInUp.title)",
+    "withPasskey": "패스키로 $t(signInUp.title)",
     "invalidEmailOrUsername": "유효하지 않은 이메일 주소 또는 아이디입니다. 입력값을 확인해주세요.",
     "noSuchEmailOrUsername": "이 이메일 주소 또는 아이디는 Hackers' Pub에 등록되어 있지 않습니다.",
     "signInEmailSubject": "Hackers' Pub 로그인",

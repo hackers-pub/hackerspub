@@ -65,6 +65,7 @@
     "description": "アカウントをお持ちの場合はログインリンクを送信します。パスキーを登録している場合は、代わりにそれを使用してログインできます。アカウントをお持ちでない場合は、既存のHackers' Pubメンバーからの招待が必要です。",
     "emailOrUsername": "メールアドレスまたはユーザー名",
     "submit": "$t(signInUp.title)",
+    "withPasskey": "パスキーを使用して$t(signInUp.title)",
     "invalidEmailOrUsername": "無効なメールアドレスまたはユーザー名です。入力を確認してください。",
     "noSuchEmailOrUsername": "このメールアドレスまたはユーザー名はHackers' Pubに登録されていません。",
     "signInEmailSubject": "Hackers' Pubへのログイン",
