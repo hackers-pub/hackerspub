@@ -65,6 +65,7 @@
     "description": "如果你有了帳戶，我們將發送一個登入連結。如果你已經註冊了通行密鑰，可以使用它來登入。如果你沒有帳號，你需要被現有的 Hackers' Pub 成員邀請。",
     "emailOrUsername": "電子郵件地址或使用者名稱",
     "submit": "$t(signInUp.title)",
+    "withPasskey": "使用$t(glossary.passkey)$t(signInUp.title)",
     "invalidEmailOrUsername": "電子郵件地址或使用者名稱無效。請檢查您的輸入。",
     "noSuchEmailOrUsername": "此電子郵件地址或使用者名稱未在 Hackers' Pub 註冊。",
     "signInEmailSubject": "登入 Hackers' Pub",
