@@ -78,6 +78,7 @@ export default async function App(
                 href="/favicon.ico"
                 sizes="16x16 32x32 48x48 256x256"
               />
+              <link rel="manifest" href="/manifest.json" />
               {state.links.map((link) => (
                 <link
                   rel={link.rel}
