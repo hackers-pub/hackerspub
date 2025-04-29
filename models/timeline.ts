@@ -25,10 +25,29 @@ export async function addPostToTimeline(
           OR: [
             { id: post.actorId },
             {
-              followees: {
-                followeeId: post.actorId,
-                accepted: { isNotNull: true },
-              },
+              AND: [
+                {
+                  followees: {
+                    followeeId: post.actorId,
+                    accepted: { isNotNull: true },
+                  },
+                },
+                post.replyTargetId
+                  ? {
+                    OR: [
+                      { posts: { id: post.replyTargetId } },
+                      {
+                        followees: {
+                          followee: {
+                            posts: { id: post.replyTargetId },
+                          },
+                          accepted: { isNotNull: true },
+                        },
+                      },
+                    ],
+                  }
+                  : {},
+              ],
             },
             { mentions: { postId: post.id } },
             { posts: { quotes: { id: post.id } } },
