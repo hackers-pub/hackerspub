@@ -4,6 +4,7 @@ import { getAvatarUrl } from "@hackerspub/models/account";
 import {
   getArticleSource,
   getOriginalArticleContent,
+  startArticleContentSummary,
   updateArticle,
 } from "@hackerspub/models/article";
 import { preprocessContentHtml } from "@hackerspub/models/html";
@@ -23,6 +24,7 @@ import type {
 import type { Uuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
+import { summarizer } from "../../../../ai.ts";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PageTitle } from "../../../../components/PageTitle.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
@@ -149,7 +151,10 @@ export async function handleArticle(
       href: articleUri,
     },
   );
-  const description = rendered.text; // FIXME: Summarize content
+  const description = content.summary ?? rendered.text;
+  if (content.summary == null) {
+    await startArticleContentSummary(db, summarizer, content);
+  }
   ctx.state.metas.push(
     { name: "description", content: description },
     { property: "og:title", content: content.title },

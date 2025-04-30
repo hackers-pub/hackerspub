@@ -1,9 +1,12 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import { summarize } from "@hackerspub/ai/summary";
+import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
-import { and, eq, sql } from "drizzle-orm";
+import type { LanguageModelV1 } from "ai";
+import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
 import { getArticle } from "../federation/objects.ts";
-import type { ContextData } from "./context.ts";
+import type { ContextData, Models } from "./context.ts";
 import type { Database } from "./db.ts";
 import { syncPostFromArticleSource } from "./post.ts";
 import {
@@ -28,6 +31,8 @@ import {
 } from "./schema.ts";
 import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+
+const logger = getLogger(["hackerspub", "models", "article"]);
 
 export async function updateArticleDraft(
   db: Database,
@@ -154,6 +159,7 @@ export async function getArticleSource(
 
 export async function createArticleSource(
   db: Database,
+  models: Models,
   source: Omit<NewArticleSource, "id"> & {
     id?: Uuid;
     title: string;
@@ -174,6 +180,7 @@ export async function createArticleSource(
       content: source.content,
     })
     .returning();
+  await startArticleContentSummary(db, models.summarizer, contents[0]);
   return { ...sources[0], contents };
 }
 
@@ -198,7 +205,11 @@ export async function createArticle(
   } | undefined
 > {
   const { db } = fedCtx.data;
-  const articleSource = await createArticleSource(db, source);
+  const articleSource = await createArticleSource(
+    db,
+    fedCtx.data.models,
+    source,
+  );
   if (articleSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
     where: { id: source.accountId },
@@ -360,4 +371,47 @@ export function getOriginalArticleContent(
     },
     orderBy: { published: "asc" },
   });
+}
+
+export async function startArticleContentSummary(
+  db: Database,
+  model: LanguageModelV1,
+  content: ArticleContent,
+): Promise<void> {
+  const updated = await db.update(articleContentTable)
+    .set({ summaryStarted: sql`CURRENT_TIMESTAMP` })
+    .where(
+      and(
+        eq(articleContentTable.sourceId, content.sourceId),
+        eq(articleContentTable.language, content.language),
+        or(
+          isNull(articleContentTable.summaryStarted),
+          lt(
+            articleContentTable.summaryStarted,
+            sql`CURRENT_TIMESTAMP - INTERVAL '30 minutes'`,
+          ),
+        ),
+      ),
+    )
+    .returning();
+  if (updated.length < 1) {
+    logger.debug("Summary already started or not needed.");
+    return;
+  }
+  logger.debug("Starting summary for content: {sourceId} {language}", content);
+  summarize({
+    model,
+    sourceLanguage: content.language,
+    targetLanguage: content.language,
+    text: content.content,
+  }).then((summary) =>
+    db.update(articleContentTable)
+      .set({ summary })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, content.sourceId),
+          eq(articleContentTable.language, content.language),
+        ),
+      )
+  );
 }

@@ -554,6 +554,13 @@
       "when": 1745990027894,
       "tag": "0078_article_content_original_language_check",
       "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1746007839295,
+      "tag": "0079_article_content.summary",
+      "breakpoints": true
     }
   ]
 }

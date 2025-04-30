@@ -19,8 +19,9 @@ import {
   ATTR_URL_FULL,
 } from "@opentelemetry/semantic-conventions";
 import "@std/dotenv/load";
-import { serveDir } from "@std/http/file-server";
 import { getCookies } from "@std/http/cookie";
+import { serveDir } from "@std/http/file-server";
+import * as models from "./ai.ts";
 import { db } from "./db.ts";
 import { drive } from "./drive.ts";
 import { federation } from "./federation.ts";
@@ -132,7 +133,9 @@ app.use(async (ctx) => {
     ctx.url.pathname.startsWith("/nodeinfo/")
   ) {
     const disk = drive.use();
-    return await federation.fetch(ctx.req, { contextData: { db, kv, disk } });
+    return await federation.fetch(ctx.req, {
+      contextData: { db, kv, disk, models },
+    });
   }
 
   const disk = drive.use();
@@ -140,7 +143,7 @@ app.use(async (ctx) => {
     db,
     kv,
     disk,
-    fedCtx: federation.createContext(ctx.req, { db, kv, disk }),
+    fedCtx: federation.createContext(ctx.req, { db, kv, disk, models }),
     moderator: false,
     session: ctx.state.sessionPromise?.then(({ session }) => session),
   };

@@ -470,6 +470,8 @@ export const articleContentTable = pgTable(
       .references(() => articleSourceTable.id, { onDelete: "cascade" }),
     language: varchar().notNull(),
     title: text().notNull(),
+    summary: text(),
+    summaryStarted: timestamp("summary_started", { withTimezone: true }),
     content: text().notNull(),
     ogImageKey: text("og_image_key").unique(),
     originalLanguage: varchar("original_language"),

@@ -1,5 +1,6 @@
 import { isLocale } from "@hackerspub/models/i18n";
 import { acceptsLanguages } from "@std/http/negotiation";
+import * as models from "../ai.ts";
 import { db } from "../db.ts";
 import { drive } from "../drive.ts";
 import { federation } from "../federation.ts";
@@ -19,6 +20,7 @@ export const handler = define.middleware([
       db,
       kv,
       disk: drive.use(),
+      models,
     });
     ctx.state.fedCtx = fedCtx;
     ctx.state.canonicalOrigin = fedCtx.canonicalOrigin;
