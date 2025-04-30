@@ -70,8 +70,11 @@ type ActorFolloweesConnection {
 }
 
 type ActorFolloweesConnectionEdge {
+  accepted: DateTime
+  created: DateTime!
   cursor: String!
-  node: Following!
+  iri: URL!
+  node: Actor!
 }
 
 type ActorFollowersConnection {
@@ -80,8 +83,11 @@ type ActorFollowersConnection {
 }
 
 type ActorFollowersConnectionEdge {
+  accepted: DateTime
+  created: DateTime!
   cursor: String!
-  node: Following!
+  iri: URL!
+  node: Actor!
 }
 
 enum ActorType {
@@ -101,15 +107,6 @@ scalar Date
 A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
 """
 scalar DateTime
-
-type Following implements Node {
-  accepted: DateTime
-  created: DateTime!
-  followee: Actor!
-  follower: Actor!
-  id: ID!
-  iri: URL!
-}
 
 """An HTML string."""
 scalar HTML
