@@ -60,13 +60,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 class="inline-block mr-2 align-text-bottom"
               />
             </Link>
-            <div
-              style={{
-                // TODO: use wrap-anywhere class when using Tailwind CSS v4
-                overflowWrap: "anywhere",
-              }}
-              class="flex flex-col"
-            >
+            <div class="flex flex-col wrap-anywhere">
               <Link
                 href={post.actor.url ?? post.actor.iri}
                 internalHref={post.actor.accountId == null
