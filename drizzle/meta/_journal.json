@@ -540,6 +540,20 @@
       "when": 1745476726757,
       "tag": "0076_pin",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1745935396773,
+      "tag": "0077_article_content",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1745990027894,
+      "tag": "0078_article_content_original_language_check",
+      "breakpoints": true
     }
   ]
 }

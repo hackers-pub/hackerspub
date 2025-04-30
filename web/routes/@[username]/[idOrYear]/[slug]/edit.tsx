@@ -1,5 +1,9 @@
 import { page } from "@fresh/core";
-import { getArticleSource, updateArticle } from "@hackerspub/models/article";
+import {
+  getArticleSource,
+  getOriginalArticleContent,
+  updateArticle,
+} from "@hackerspub/models/article";
 import type { Account } from "@hackerspub/models/schema";
 import * as v from "@valibot/valibot";
 import { db } from "../../../../db.ts";
@@ -27,8 +31,15 @@ export const handler = define.handlers({
     if (article == null) return ctx.next();
     else if (article.accountId !== ctx.state.account.id) return ctx.next();
     ctx.state.withoutMain = true;
+    const content = getOriginalArticleContent(article);
+    if (content == null) return ctx.next();
     return page<ArticleEditPageProps>({
-      ...article,
+      account: article.account,
+      tags: article.tags,
+      slug: article.slug,
+      title: content.title,
+      content: content.content,
+      language: content.language,
       permalink: new URL(
         `/@${article.account.username}/${article.publishedYear}/${article.slug}`,
         ctx.url,

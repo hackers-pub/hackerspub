@@ -120,6 +120,32 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.postTable.articleSourceId,
       optional: false,
     }),
+    contents: r.many.articleContentTable(),
+  },
+  articleContentTable: {
+    source: r.one.articleSourceTable({
+      from: r.articleContentTable.sourceId,
+      to: r.articleSourceTable.id,
+      optional: false,
+    }),
+    original: r.one.articleContentTable({
+      from: [
+        r.articleContentTable.sourceId,
+        r.articleContentTable.originalLanguage,
+      ],
+      to: [r.articleContentTable.sourceId, r.articleContentTable.language],
+      optional: true,
+    }),
+    translator: r.one.accountTable({
+      from: r.articleContentTable.translatorId,
+      to: r.accountTable.id,
+      optional: true,
+    }),
+    translationRequester: r.one.accountTable({
+      from: r.articleContentTable.translationRequesterId,
+      to: r.accountTable.id,
+      optional: true,
+    }),
   },
   noteSourceTable: {
     account: r.one.accountTable({

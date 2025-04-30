@@ -17,6 +17,7 @@ import { isPostVisibleTo } from "../models/post.ts";
 import type {
   Account,
   Actor,
+  ArticleContent,
   ArticleSource,
   Mention,
   NoteMedium,
@@ -30,30 +31,69 @@ import { builder } from "./builder.ts";
 
 export async function getArticle(
   ctx: Context<ContextData>,
-  articleSource: ArticleSource & { account: Account },
+  articleSource: ArticleSource & {
+    account: Account;
+    contents: ArticleContent[];
+  },
 ): Promise<vocab.Article> {
-  const rendered = await renderMarkup(ctx, articleSource.content, {
-    docId: articleSource.id,
-    kv: ctx.data.kv,
-  });
+  const url = new URL(
+    `/@${articleSource.account.username}/${articleSource.publishedYear}/${
+      encodeURIComponent(articleSource.slug)
+    }`,
+    ctx.canonicalOrigin,
+  );
+  const contents = await Promise.all(
+    articleSource.contents.map(async (content) => ({
+      ...content,
+      ...(await renderMarkup(ctx, content.content, {
+        docId: articleSource.id,
+        kv: ctx.data.kv,
+      })),
+    })),
+  );
+  const hashtags = contents.flatMap((c) => c.hashtags);
+  contents.sort((a, b) => a.published.valueOf() - b.published.valueOf());
+  let content: string | null = null;
+  if (contents.length > 1) {
+    content = "<nav><ul>";
+    const displayNames = new Intl.DisplayNames(contents[0].language, {
+      type: "language",
+    });
+    for (const c of contents.slice(1)) {
+      const nativeLangName =
+        new Intl.DisplayNames(c.language, { type: "language" })
+          .of(c.language) ?? "";
+      const langName = displayNames.of(c.language) ?? "";
+      content += `<li lang="${escape(c.language)}">${escape(nativeLangName)} (${
+        escape(langName)
+      }): <a hreflang="${escape(c.language)}" href="${escape(url.href)}/${
+        escape(encodeURIComponent(c.language))
+      }">${escape(c.title)}</a></li>\n`;
+    }
+    content += `</ul></nav>\n<hr>\n${contents[0].html}`;
+  } else if (contents.length > 0) {
+    content = contents[0].html;
+  }
   return new vocab.Article({
     id: ctx.getObjectUri(vocab.Article, { id: articleSource.id }),
     attribution: ctx.getActorUri(articleSource.accountId),
     to: PUBLIC_COLLECTION,
     cc: ctx.getFollowersUri(articleSource.accountId),
     names: [
-      articleSource.title,
-      new LanguageString(articleSource.title, articleSource.language),
+      ...(contents.length > 0 ? [contents[0].title] : []),
+      ...contents.map((c) => new LanguageString(c.title, c.language)),
     ],
     contents: [
-      rendered.html,
-      new LanguageString(rendered.html, articleSource.language),
+      ...(content ? [content] : []),
+      ...contents.map((c) => new LanguageString(c.html, c.language)),
     ],
-    source: new vocab.Source({
-      content: articleSource.content,
-      mediaType: "text/markdown",
-    }),
-    tags: [...articleSource.tags, ...rendered.hashtags].map((tag) =>
+    source: contents.length > 0
+      ? new vocab.Source({
+        content: contents[0].content,
+        mediaType: "text/markdown",
+      })
+      : null,
+    tags: [...articleSource.tags, ...hashtags].map((tag) =>
       new vocab.Hashtag({
         name: `#${tag.replace(/^#/, "")}`,
         href: new URL(
@@ -62,12 +102,7 @@ export async function getArticle(
         ),
       })
     ),
-    url: new URL(
-      `/@${articleSource.account.username}/${articleSource.publishedYear}/${
-        encodeURIComponent(articleSource.slug)
-      }`,
-      ctx.canonicalOrigin,
-    ),
+    url,
     published: articleSource.published.toTemporalInstant(),
     updated: +articleSource.updated > +articleSource.published
       ? articleSource.updated.toTemporalInstant()
@@ -81,7 +116,7 @@ builder.setObjectDispatcher(
   async (ctx, values) => {
     if (!validateUuid(values.id)) return null;
     const articleSource = await ctx.data.db.query.articleSourceTable.findFirst({
-      with: { account: true },
+      with: { account: true, contents: true },
       where: { id: values.id },
     });
     if (articleSource == null) return null;

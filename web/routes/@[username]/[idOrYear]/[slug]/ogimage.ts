@@ -1,9 +1,15 @@
 import { getAvatarUrl } from "@hackerspub/models/account";
-import { getArticleSource } from "@hackerspub/models/article";
+import {
+  getArticleSource,
+  getOriginalArticleContent,
+} from "@hackerspub/models/article";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { isPostVisibleTo } from "@hackerspub/models/post";
-import { articleSourceTable } from "@hackerspub/models/schema";
-import { eq } from "drizzle-orm/expressions";
+import {
+  type ArticleContent,
+  articleContentTable,
+} from "@hackerspub/models/schema";
+import { and, eq } from "drizzle-orm";
 import { html } from "satori-html";
 import { db } from "../../../../db.ts";
 import { drive } from "../../../../drive.ts";
@@ -27,15 +33,25 @@ export const handler = define.handlers({
       return ctx.next();
     }
     const { account } = article;
+    const language = ctx.url.searchParams.get("l");
+    let content: ArticleContent | undefined;
+    if (language == null) {
+      content = getOriginalArticleContent(article);
+    } else {
+      content = article.contents.find((c) =>
+        c.language.toLowerCase() === language.toLowerCase()
+      );
+    }
+    if (content == null) return ctx.next();
     const disk = drive.use();
-    const content = await renderMarkup(
+    const rendered = await renderMarkup(
       ctx.state.fedCtx,
-      article.content,
+      content.content,
       { kv },
     );
     const ogImageKey = await drawOgImage(
       disk,
-      article.ogImageKey,
+      content.ogImageKey,
       html`
         <div style="
           display: flex; flex-direction: column;
@@ -52,17 +68,23 @@ export const handler = define.handlers({
               height="125"
             >
             <div style="display: flex; flex-direction: column;">
-              <div style="font-size: 42px; margin-top: -12px; width: 1000px;">
-                ${article.title}
+              <div
+                lang="${content.language}"
+                style="font-size: 42px; margin-top: -12px; width: 1000px;"
+              >
+                ${content.title}
               </div>
               <div style="font-size: 32px; margin-top: 25px; color: gray;">
                 ${account.name}
               </div>
-              <div style="
-                width: 1000px; height: 355px; margin-top: 25px; font-size: 32px;
-                overflow: hidden; text-overflow: ellipsis;
-              ">
-                ${content.text}
+              <div
+                lang="${content.language}"
+                style="
+                  width: 1000px; height: 355px; margin-top: 25px; font-size: 32px;
+                  overflow: hidden; text-overflow: ellipsis;
+                "
+              >
+                ${rendered.text}
               </div>
             </div>
           </div>
@@ -76,10 +98,15 @@ export const handler = define.handlers({
         </div>
       `,
     );
-    if (ogImageKey !== article.ogImageKey) {
-      await db.update(articleSourceTable)
+    if (ogImageKey !== content.ogImageKey) {
+      await db.update(articleContentTable)
         .set({ ogImageKey })
-        .where(eq(articleSourceTable.id, article.id));
+        .where(
+          and(
+            eq(articleContentTable.sourceId, content.sourceId),
+            eq(articleContentTable.language, content.language),
+          ),
+        );
     }
     return ctx.redirect(await disk.getUrl(ogImageKey));
   },

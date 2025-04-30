@@ -36,6 +36,7 @@ import {
   syncActorFromAccount,
   toRecipient,
 } from "./actor.ts";
+import { getOriginalArticleContent } from "./article.ts";
 import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, RelationsFilter } from "./db.ts";
@@ -53,6 +54,7 @@ import {
   type AccountLink,
   type Actor,
   actorTable,
+  type ArticleContent,
   type ArticleSource,
   articleSourceTable,
   type Blocking,
@@ -98,6 +100,7 @@ export async function syncPostFromArticleSource(
   fedCtx: Context<ContextData>,
   articleSource: ArticleSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    contents: ArticleContent[];
   },
 ): Promise<
   Post & {
@@ -107,13 +110,18 @@ export async function syncPostFromArticleSource(
     };
     articleSource: ArticleSource & {
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      contents: ArticleContent[];
     };
     mentions: Mention[];
   }
 > {
   const { db, kv } = fedCtx.data;
   const actor = await syncActorFromAccount(fedCtx, articleSource.account);
-  const rendered = await renderMarkup(fedCtx, articleSource.content, {
+  const content = getOriginalArticleContent(articleSource);
+  if (content == null) {
+    throw new Error("No content.");
+  }
+  const rendered = await renderMarkup(fedCtx, content.content, {
     docId: articleSource.id,
     kv,
   });
@@ -127,9 +135,9 @@ export async function syncPostFromArticleSource(
     visibility: "public",
     actorId: actor.id,
     articleSourceId: articleSource.id,
-    name: articleSource.title,
+    name: content.title,
     contentHtml: rendered.html,
-    language: articleSource.language,
+    language: content.language,
     tags: Object.fromEntries(
       [...articleSource.tags, ...rendered.hashtags].map((tag) => [
         tag.toLowerCase().replace(/^#/, ""),

@@ -1,5 +1,6 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import { minBy } from "@std/collections/min-by";
 import { and, eq, sql } from "drizzle-orm";
 import { getArticle } from "../federation/objects.ts";
 import type { ContextData } from "./context.ts";
@@ -10,6 +11,8 @@ import {
   type AccountEmail,
   type AccountLink,
   type Actor,
+  type ArticleContent,
+  articleContentTable,
   type ArticleDraft,
   articleDraftTable,
   type ArticleSource,
@@ -80,6 +83,7 @@ export async function getArticleSource(
 ): Promise<
   ArticleSource & {
     account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    contents: ArticleContent[];
     post: Post & {
       actor: Actor & {
         followers: Following[];
@@ -110,6 +114,9 @@ export async function getArticleSource(
     with: {
       account: {
         with: { emails: true, links: true },
+      },
+      contents: {
+        orderBy: { published: "asc" },
       },
       post: {
         with: {
@@ -147,18 +154,37 @@ export async function getArticleSource(
 
 export async function createArticleSource(
   db: Database,
-  source: Omit<NewArticleSource, "id"> & { id?: Uuid },
-): Promise<ArticleSource | undefined> {
-  const rows = await db.insert(articleSourceTable)
+  source: Omit<NewArticleSource, "id"> & {
+    id?: Uuid;
+    title: string;
+    content: string;
+    language: string;
+  },
+): Promise<ArticleSource & { contents: ArticleContent[] } | undefined> {
+  const sources = await db.insert(articleSourceTable)
     .values({ id: generateUuidV7(), ...source })
     .onConflictDoNothing()
     .returning();
-  return rows[0];
+  if (sources.length < 1) return undefined;
+  const contents = await db.insert(articleContentTable)
+    .values({
+      sourceId: sources[0].id,
+      language: source.language,
+      title: source.title,
+      content: source.content,
+    })
+    .returning();
+  return { ...sources[0], contents };
 }
 
 export async function createArticle(
   fedCtx: Context<ContextData>,
-  source: Omit<NewArticleSource, "id"> & { id?: Uuid },
+  source: Omit<NewArticleSource, "id"> & {
+    id?: Uuid;
+    title: string;
+    content: string;
+    language: string;
+  },
 ): Promise<
   Post & {
     actor: Actor & {
@@ -167,6 +193,7 @@ export async function createArticle(
     };
     articleSource: ArticleSource & {
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      contents: ArticleContent[];
     };
   } | undefined
 > {
@@ -202,19 +229,60 @@ export async function createArticle(
 export async function updateArticleSource(
   db: Database,
   id: Uuid,
-  source: Partial<NewArticleSource>,
-): Promise<ArticleSource | undefined> {
-  const rows = await db.update(articleSourceTable)
+  source: Partial<NewArticleSource> & {
+    title?: string;
+    content?: string;
+    language?: string;
+  },
+): Promise<ArticleSource & { contents: ArticleContent[] } | undefined> {
+  const sources = await db.update(articleSourceTable)
     .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
     .where(eq(articleSourceTable.id, id))
     .returning();
-  return rows[0];
+  if (sources.length < 1) return undefined;
+  const originalContent = await getOriginalArticleContent(db, sources[0]);
+  if (originalContent == null) {
+    if (
+      source.language == null || source.title == null || source.content == null
+    ) {
+      return undefined;
+    }
+    await db.insert(articleContentTable).values({
+      sourceId: id,
+      language: source.language,
+      title: source.title,
+      content: source.content,
+    });
+  } else {
+    await db.update(articleContentTable)
+      .set({
+        language: source.language ?? originalContent.language,
+        title: source.title ?? originalContent.title,
+        content: source.content ?? originalContent.content,
+        updated: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, id),
+          eq(articleContentTable.language, originalContent.language),
+        ),
+      );
+  }
+  const contents = await db.query.articleContentTable.findMany({
+    where: { sourceId: id },
+    orderBy: { published: "asc" },
+  });
+  return { ...sources[0], contents };
 }
 
 export async function updateArticle(
   fedCtx: Context<ContextData>,
   articleSourceId: Uuid,
-  source: Partial<NewArticleSource>,
+  source: Partial<NewArticleSource> & {
+    title?: string;
+    content?: string;
+    language?: string;
+  },
 ): Promise<
   Post & {
     actor: Actor & {
@@ -261,4 +329,35 @@ export async function updateArticle(
     },
   );
   return post;
+}
+
+export function getOriginalArticleContent(
+  source: ArticleSource & { contents: ArticleContent[] },
+): ArticleContent | undefined;
+export function getOriginalArticleContent(
+  db: Database,
+  source: ArticleSource,
+): Promise<ArticleContent | undefined>;
+export function getOriginalArticleContent(
+  dbOrSrc: ArticleSource & { contents: ArticleContent[] } | Database,
+  source?: ArticleSource,
+): ArticleContent | undefined | Promise<ArticleContent | undefined> {
+  if ("contents" in dbOrSrc) {
+    const contents = dbOrSrc.contents.filter((content) =>
+      content.originalLanguage == null &&
+      content.translatorId == null &&
+      content.translationRequesterId == null
+    );
+    return minBy(contents, (content) => +content.published);
+  }
+  if (source == null) return Promise.resolve(undefined);
+  return dbOrSrc.query.articleContentTable.findFirst({
+    where: {
+      sourceId: source.id,
+      originalLanguage: { isNull: true },
+      translatorId: { isNull: true },
+      translationRequesterId: { isNull: true },
+    },
+    orderBy: { published: "asc" },
+  });
 }

@@ -441,11 +441,7 @@ export const articleSourceTable = pgTable(
       .notNull()
       .default(sql`EXTRACT(year FROM CURRENT_TIMESTAMP)`),
     slug: varchar({ length: 128 }).notNull(),
-    title: text().notNull(),
-    content: text().notNull(),
-    language: varchar().notNull(),
     tags: text().array().notNull().default(sql`(ARRAY[]::text[])`),
-    ogImageKey: text("og_image_key").unique(),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -464,6 +460,54 @@ export const articleSourceTable = pgTable(
 
 export type ArticleSource = typeof articleSourceTable.$inferSelect;
 export type NewArticleSource = typeof articleSourceTable.$inferInsert;
+
+export const articleContentTable = pgTable(
+  "article_content",
+  {
+    sourceId: uuid("source_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    language: varchar().notNull(),
+    title: text().notNull(),
+    content: text().notNull(),
+    ogImageKey: text("og_image_key").unique(),
+    originalLanguage: varchar("original_language"),
+    translatorId: uuid("translator_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    translationRequesterId: uuid("translation_requester_id")
+      .$type<Uuid>()
+      .references(() => accountTable.id, { onDelete: "set null" }),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    published: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.sourceId, table.language] }),
+    foreignKey({
+      columns: [table.sourceId, table.originalLanguage],
+      foreignColumns: [table.sourceId, table.language],
+    }).onDelete("cascade"),
+    check(
+      "article_content_original_language_check",
+      sql`(
+        ${table.translatorId} IS NULL AND
+        ${table.translationRequesterId} IS NULL
+      ) = (${table.originalLanguage} IS NULL)`,
+    ),
+    check(
+      "article_content_translator_translation_requester_id_check",
+      sql`${table.translatorId} IS NULL OR ${table.translationRequesterId} IS NULL`,
+    ),
+  ],
+);
+
+export type ArticleContent = typeof articleContentTable.$inferSelect;
+export type NewArticleContent = typeof articleContentTable.$inferInsert;
 
 export const POST_VISIBILITIES = [
   "public",
