@@ -304,3 +304,8 @@
 .prose > p:last-child > a.quote-inline:last-child {
   display: none;
 }
+
+/* TODO: remove this when using Tailwind CSS v4 */
+.wrap-anywhere {
+  overflow-wrap: anywhere;
+}

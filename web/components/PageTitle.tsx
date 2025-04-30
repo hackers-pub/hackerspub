@@ -12,11 +12,7 @@ export interface PageTitleProps {
 export function PageTitle(props: PageTitleProps) {
   return (
     <div
-      style={{
-        // TODO: use wrap-anywhere class when using Tailwind CSS v4
-        overflowWrap: "anywhere",
-      }}
-      class={`break-keep ${props.class}`}
+      class={`break-keep wrap-anywhere ${props.class}`}
     >
       <h1
         class={`text-xl font-bold ${props.subtitle == null ? "mb-5" : "mb-1"}`}
