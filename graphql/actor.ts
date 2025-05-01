@@ -1,6 +1,7 @@
 import { isActor } from "@fedify/fedify";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
+import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { escape } from "@std/html/entities";
 import { builder } from "./builder.ts";
 
@@ -97,10 +98,83 @@ export const Actor = builder.drizzleNode("actorTable", {
     account: t.relation("account", { nullable: true }),
     instance: t.relation("instance", { type: Instance, nullable: true }),
     successor: t.relation("successor", { nullable: true }),
-    followers: t.relatedConnection("followers"),
-    followees: t.relatedConnection("followees"),
   }),
 });
+
+builder.drizzleObjectFields(Actor, (t) => ({
+  followers: t.connection(
+    {
+      type: Actor,
+      select: (args, ctx, select) => ({
+        with: {
+          followers: followerConnectionHelpers.getQuery(args, ctx, select),
+        },
+      }),
+      resolve: (actor, args, ctx) =>
+        followerConnectionHelpers.resolve(actor.followers, args, ctx),
+    },
+    {},
+    {
+      fields: (t) => ({
+        iri: t.field({
+          type: "URL",
+          resolve: (edge) => new URL(edge.iri),
+        }),
+        accepted: t.expose("accepted", { type: "DateTime", nullable: true }),
+        created: t.expose("created", { type: "DateTime" }),
+      }),
+    },
+  ),
+  followees: t.connection(
+    {
+      type: Actor,
+      select: (args, ctx, select) => ({
+        with: {
+          followees: followeeConnectionHelpers.getQuery(args, ctx, select),
+        },
+      }),
+      resolve: (actor, args, ctx) =>
+        followeeConnectionHelpers.resolve(actor.followees, args, ctx),
+    },
+    {},
+    {
+      fields: (t) => ({
+        iri: t.field({
+          type: "URL",
+          resolve: (edge) => new URL(edge.iri),
+        }),
+        accepted: t.expose("accepted", { type: "DateTime", nullable: true }),
+        created: t.expose("created", { type: "DateTime" }),
+      }),
+    },
+  ),
+}));
+
+const followerConnectionHelpers = drizzleConnectionHelpers(
+  builder,
+  "followingTable",
+  {
+    select: (nodeSelection) => ({
+      with: {
+        follower: nodeSelection({}),
+      },
+    }),
+    resolveNode: (following) => following.follower,
+  },
+);
+
+const followeeConnectionHelpers = drizzleConnectionHelpers(
+  builder,
+  "followingTable",
+  {
+    select: (nodeSelection) => ({
+      with: {
+        followee: nodeSelection({}),
+      },
+    }),
+    resolveNode: (following) => following.followee,
+  },
+);
 
 export const Instance = builder.drizzleNode("instanceTable", {
   name: "Instance",
@@ -114,25 +188,6 @@ export const Instance = builder.drizzleNode("instanceTable", {
       nullable: true,
     }),
     updated: t.expose("updated", { type: "DateTime" }),
-    created: t.expose("created", { type: "DateTime" }),
-  }),
-});
-
-export const Following = builder.drizzleNode("followingTable", {
-  name: "Following",
-  id: {
-    column: (following) => following.iri,
-  },
-  fields: (t) => ({
-    iri: t.field({
-      type: "URL",
-      resolve(following) {
-        return new URL(following.iri);
-      },
-    }),
-    followee: t.relation("followee", { type: Actor }),
-    follower: t.relation("follower", { type: Actor }),
-    accepted: t.expose("accepted", { type: "DateTime", nullable: true }),
     created: t.expose("created", { type: "DateTime" }),
   }),
 });
