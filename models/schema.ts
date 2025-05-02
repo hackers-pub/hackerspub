@@ -442,6 +442,9 @@ export const articleSourceTable = pgTable(
       .default(sql`EXTRACT(year FROM CURRENT_TIMESTAMP)`),
     slug: varchar({ length: 128 }).notNull(),
     tags: text().array().notNull().default(sql`(ARRAY[]::text[])`),
+    allowLlmTranslation: boolean("allow_llm_translation")
+      .notNull()
+      .default(false),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -481,6 +484,7 @@ export const articleContentTable = pgTable(
     translationRequesterId: uuid("translation_requester_id")
       .$type<Uuid>()
       .references(() => accountTable.id, { onDelete: "set null" }),
+    beingTranslated: boolean("being_translated").notNull().default(false),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -504,6 +508,10 @@ export const articleContentTable = pgTable(
     check(
       "article_content_translator_translation_requester_id_check",
       sql`${table.translatorId} IS NULL OR ${table.translationRequesterId} IS NULL`,
+    ),
+    check(
+      "article_content_being_translated_check",
+      sql`NOT ${table.beingTranslated} OR (${table.originalLanguage} IS NOT NULL)`,
     ),
   ],
 );

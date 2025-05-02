@@ -232,7 +232,9 @@
     "edit": "编辑",
     "delete": "删除",
     "deleteConfirm": "你确定要删除此文章吗？",
-    "tableOfContents": "目录"
+    "tableOfContents": "目录",
+    "beingTranslated": "正在翻译为{{targetLanguage}}",
+    "beingTranslatedDescription": "此文章正在从{{sourceLanguage}}翻译为{{targetLanguage}}。请等待翻译完成。"
   },
   "note": {
     "title": "{{name}}：{{content}}",

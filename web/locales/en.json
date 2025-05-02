@@ -235,7 +235,9 @@
     "edit": "Edit",
     "delete": "Delete",
     "deleteConfirm": "Are you sure you want to delete this article?",
-    "tableOfContents": "Table of Contents"
+    "tableOfContents": "Table of Contents",
+    "beingTranslated": "Being translated to {{targetLanguage}}",
+    "beingTranslatedDescription": "This article is being translated from {{sourceLanguage}} to {{targetLanguage}}. Please wait until the translation is complete."
   },
   "note": {
     "title": "{{name}}: {{content}}",

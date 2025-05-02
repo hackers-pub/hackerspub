@@ -6,16 +6,16 @@ This document provides guidance for contributing translations to Hackers' Pub.
 Getting started
 ----------------
 
-### Add language to *i18n.ts*
+### Add language to *web/i18n.ts*
 
- -  Import your JSON translation file in *i18n.ts*.
+ -  Import your JSON translation file in *web/i18n.ts*.
  -  Add the language to the `resources` object.
  -  Update type definitions if necessary.
 
 ### Add language code to `POSSIBLE_LOCALES`
 
  -  If your language code isn't already in the `POSSIBLE_LOCALES` array in
-    *i18n.ts*, please add it first.
+    *web/i18n.ts*, please add it first.
 
 ### Create code of conduct translation
 
@@ -25,12 +25,22 @@ Getting started
 ### Create Markdown guide translation
 
  -  Add a translated version of the Markdown guide as
-    *locales/markdown/`language-code`.md*.
+    *web/locales/markdown/`language-code`.md*.
 
 ### Create search guide translation
 
  -  Add a translated version of the search guide as
-    *locales/search/`language-code`.md*.
+    *web/locales/search/`language-code`.md*.
+
+### Create summarization prompt translation
+
+ -  Add a translated version of the summarization prompt as
+    *ai/prompts/summary/`language-code`.md*.
+
+### Create translation prompt translation
+
+ -  Add a translated version of the translation prompt as
+    *ai/prompts/translate/`language-code`.md*.
 
 
 Translation guidelines
@@ -40,7 +50,8 @@ Translation guidelines
 
  -  Before translating the entire file, establish translations for key terms
     in the `glossary` section.
- -  Reference the English glossary in *locales/en.json* to understand the terms.
+ -  Reference the English glossary in *web/locales/en.json* to understand
+    the terms.
  -  If you're unsure about any concept, ask the maintainers instead of guessing.
 
 ### Maintain consistency

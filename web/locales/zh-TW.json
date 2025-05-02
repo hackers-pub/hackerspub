@@ -232,7 +232,9 @@
     "edit": "編輯",
     "delete": "刪除",
     "deleteConfirm": "你確定要刪除此文章嗎？",
-    "tableOfContents": "目錄"
+    "tableOfContents": "目錄",
+    "beingTranslated": "正在翻譯為{{targetLanguage}}",
+    "beingTranslatedDescription": "此文章正在從{{sourceLanguage}}翻譯為{{targetLanguage}}。請等待翻譯完成。"
   },
   "note": {
     "title": "{{name}}：{{content}}",

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "exports": {
     ".": "./mod.ts",
-    "./summary": "./summary.ts"
+    "./summary": "./summary.ts",
+    "./translate": "./translate.ts"
   }
 }

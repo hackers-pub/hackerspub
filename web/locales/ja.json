@@ -230,7 +230,9 @@
     "edit": "編集",
     "delete": "削除",
     "deleteConfirm": "この記事を削除してもよろしいですか？",
-    "tableOfContents": "目次"
+    "tableOfContents": "目次",
+    "beingTranslated": "{{targetLanguage}}に翻訳中",
+    "beingTranslatedDescription": "この記事は{{sourceLanguage}}から{{targetLanguage}}に翻訳中です。翻訳が完了するまでお待ちください。"
   },
   "note": {
     "title": "{{name}}：{{content}}",

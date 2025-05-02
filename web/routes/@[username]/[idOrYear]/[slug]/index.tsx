@@ -313,12 +313,26 @@ export function ArticlePage(
   }
   const postUrl =
     `/@${article.account.username}/${article.publishedYear}/${article.slug}`;
+  const displayNames = new Intl.DisplayNames(state.language, {
+    type: "language",
+  });
   return (
     <>
       <article>
-        <h1 class="text-4xl font-bold" lang={content.language}>
-          {content.title}
-        </h1>
+        {content.beingTranslated
+          ? (
+            <h1 class="text-4xl font-bold">
+              <Msg
+                $key="article.beingTranslated"
+                targetLanguage={displayNames.of(content.language)}
+              />
+            </h1>
+          )
+          : (
+            <h1 class="text-4xl font-bold" lang={content.language}>
+              {content.title}
+            </h1>
+          )}
         <ArticleMetadata
           language={state.language}
           class="mt-4"
@@ -334,7 +348,7 @@ export function ArticlePage(
             ? `${postUrl}/delete`
             : null}
         />
-        {toc.length > 0 &&
+        {!content.beingTranslated && toc.length > 0 &&
           (
             <nav class="
                 mt-4 p-4 bg-stone-100 dark:bg-stone-800 w-fit xl:max-w-md
@@ -349,11 +363,48 @@ export function ArticlePage(
               <TableOfContents toc={toc} />
             </nav>
           )}
-        <div
-          lang={content.language}
-          class="prose dark:prose-invert mt-4 text-xl leading-8"
-          dangerouslySetInnerHTML={{ __html: contentHtml }}
-        />
+        {content.beingTranslated
+          ? (
+            <div class="mt-8 p-4 border border-stone-200 dark:border-stone-700">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="size-8 stroke-2 opacity-50 mb-4"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802"
+                />
+              </svg>
+              <Msg
+                $key="article.beingTranslatedDescription"
+                targetLanguage={
+                  <strong>{displayNames.of(content.language)}</strong>
+                }
+                sourceLanguage={
+                  <a
+                    href={postUrl}
+                    hreflang={content.originalLanguage ?? undefined}
+                  >
+                    <strong>
+                      {displayNames.of(content.originalLanguage ?? "en")}
+                    </strong>
+                  </a>
+                }
+              />
+            </div>
+          )
+          : (
+            <div
+              lang={content.language}
+              class="prose dark:prose-invert mt-4 text-xl leading-8"
+              dangerouslySetInnerHTML={{ __html: contentHtml }}
+            />
+          )}
         <PostControls
           language={state.language}
           post={article.post}

@@ -228,7 +228,9 @@
     "edit": "수정",
     "delete": "삭제",
     "deleteConfirm": "이 게시글을 삭제하시겠습니까?",
-    "tableOfContents": "목차"
+    "tableOfContents": "목차",
+    "beingTranslated": "{{targetLanguage}}로 번역중…",
+    "beingTranslatedDescription": "이 게시글은 {{sourceLanguage}}에서 {{targetLanguage}}로 번역중입니다. 번역이 완료될 때까지 기다려 주세요."
   },
   "note": {
     "title": "{{name}}: {{content}}",

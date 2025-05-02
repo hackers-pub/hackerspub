@@ -29,3 +29,32 @@ export type Locale = typeof POSSIBLE_LOCALES[number];
 export function isLocale(value: string): value is Locale {
   return POSSIBLE_LOCALES.includes(value as Locale);
 }
+
+/**
+ * Normalizes a locale code to a standard format.
+ *
+ * @example
+ * ```ts
+ * normalizeLocale("en"); // "en"
+ * normalizeLocale("EN-us"); // "en-US"
+ * normalizeLocale("ko_KR"); // "ko-KR"
+ * normalizeLocale("zh-Hans"); // "zh-CN"
+ * normalizeLocale("zh-Hant"); // "zh-TW"
+ * normalizeLocale("og"); // undefined
+ * ```
+ *
+ * @param value The locale code to normalize.
+ * @returns The normalized locale code if valid, otherwise undefined.
+ */
+export function normalizeLocale(value: string): Locale | undefined {
+  let normalized = value.toLowerCase().replaceAll("_", "-");
+  if (normalized === "zh-hans") {
+    normalized = "zh-cn";
+  } else if (normalized === "zh-hant") {
+    normalized = "zh-tw";
+  } else if (normalized.includes("-")) {
+    const [lang, region] = normalized.split("-");
+    normalized = `${lang}-${region.toUpperCase()}`;
+  }
+  return isLocale(normalized) ? normalized : undefined;
+}

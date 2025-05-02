@@ -1,0 +1,3 @@
+ALTER TABLE "article_content" ADD COLUMN "being_translated" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "article_source" ADD COLUMN "allow_llm_translation" boolean DEFAULT false NOT NULL;--> statement-breakpoint
+ALTER TABLE "article_content" ADD CONSTRAINT "article_content_being_translated_check" CHECK (NOT "article_content"."being_translated" OR ("article_content"."original_language" IS NOT NULL));

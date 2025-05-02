@@ -2,8 +2,10 @@ import { page } from "@fresh/core";
 import {
   getArticleSource,
   getOriginalArticleContent,
-} from "../../../../../models/article.ts";
-import { isPostVisibleTo } from "../../../../../models/post.ts";
+  startArticleContentTranslation,
+} from "@hackerspub/models/article";
+import { normalizeLocale } from "@hackerspub/models/i18n";
+import { isPostVisibleTo } from "@hackerspub/models/post";
 import { db } from "../../../../db.ts";
 import { define } from "../../../../utils.ts";
 import { ArticlePage, type ArticlePageProps, handleArticle } from "./index.tsx";
@@ -23,18 +25,35 @@ export const handler = define.handlers({
     if (!isPostVisibleTo(article.post, ctx.state.account?.actor)) {
       return ctx.next();
     }
-    const lang = ctx.params.lang.toLowerCase();
-    const content = article.contents.find((c) =>
-      c.language.toLowerCase() === lang
-    );
-    if (content == null) return ctx.next();
+    const lang = normalizeLocale(ctx.params.lang);
+    if (lang == null) return ctx.next();
     const original = getOriginalArticleContent(article);
-    if (original?.language === content.language) {
+    if (original?.language === lang) {
       return ctx.redirect(
         new URL(
           `/@${article.account.username}/${article.publishedYear}/${article.slug}`,
           ctx.state.canonicalOrigin,
         ).href,
+      );
+    }
+    let content = article.contents.find((c) =>
+      c.language.toLowerCase() === lang
+    );
+    if (
+      content == null ||
+      content.beingTranslated &&
+        content.updated.getTime() < Date.now() - 30 * 60 * 1000
+    ) {
+      if (ctx.state.account == null) return ctx.next();
+      const original = getOriginalArticleContent(article);
+      if (original == null) return ctx.next();
+      content = await startArticleContentTranslation(
+        ctx.state.fedCtx,
+        {
+          content: original,
+          targetLanguage: lang,
+          requester: ctx.state.account,
+        },
       );
     }
     const permalink = new URL(

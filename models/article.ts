@@ -1,6 +1,7 @@
 import type { Context } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import { summarize } from "@hackerspub/ai/summary";
+import { translate } from "@hackerspub/ai/translate";
 import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
 import type { LanguageModelV1 } from "ai";
@@ -234,6 +235,7 @@ export async function createArticle(
     }),
     { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
   );
+  // TODO: send Create(Article) to the mentioned actors too
   return post;
 }
 
@@ -339,6 +341,7 @@ export async function updateArticle(
       ],
     },
   );
+  // TODO: send Update(Article) to the mentioned actors too
   return post;
 }
 
@@ -414,4 +417,119 @@ export async function startArticleContentSummary(
         ),
       )
   );
+}
+
+export interface ArticleContentTranslationOptions {
+  content: ArticleContent;
+  targetLanguage: string;
+  requester: Account;
+}
+
+export async function startArticleContentTranslation(
+  fedCtx: Context<ContextData>,
+  { content, targetLanguage, requester }: ArticleContentTranslationOptions,
+): Promise<ArticleContent> {
+  const { db, models: { translator: model } } = fedCtx.data;
+  const inserted = await db.insert(articleContentTable).values({
+    sourceId: content.sourceId,
+    language: targetLanguage,
+    title: content.title,
+    content: content.content,
+    originalLanguage: content.language,
+    translationRequesterId: requester.id,
+    beingTranslated: true,
+  }).onConflictDoNothing().returning();
+  let queued: ArticleContent;
+  if (inserted.length < 1) {
+    const translated = await db.query.articleContentTable.findFirst({
+      where: {
+        sourceId: content.sourceId,
+        language: targetLanguage,
+      },
+    });
+    if (
+      !translated?.beingTranslated ||
+      (translated?.updated?.getTime() ?? 0) > Date.now() - 30 * 60 * 1000
+    ) {
+      // If the translation is already started and not older than 30 minutes
+      logger.debug("Translation already started or not needed.");
+      return translated!;
+    }
+    queued = translated;
+  } else {
+    queued = inserted[0];
+  }
+  logger.debug(
+    "Starting translation for content: {sourceId} {language}",
+    queued,
+  );
+  // Combine title and content for translation
+  const text = `# ${content.title}\n\n${content.content}`;
+  translate({
+    model,
+    sourceLanguage: content.language,
+    targetLanguage,
+    text,
+  }).then(async (translation) => {
+    logger.debug("Translation completed: {sourceId} {language}", {
+      ...queued,
+      translation,
+    });
+    // Split the translation into title and content
+    const title = translation.match(/^\s*#\s+([^\n]*)/)?.[1] ?? "";
+    const content = translation.replace(/^\s*#\s+[^\n]*\s*/, "").trim();
+    const updated = await db.update(articleContentTable)
+      .set({
+        title,
+        content,
+        beingTranslated: false,
+        updated: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, queued.sourceId),
+          eq(articleContentTable.language, targetLanguage),
+        ),
+      )
+      .returning();
+    if (updated.length < 1) return;
+    const article = await db.query.articleSourceTable.findFirst({
+      where: { id: queued.sourceId },
+      with: {
+        account: true,
+        contents: true,
+      },
+    });
+    if (article == null) return;
+    const articleObject = await getArticle(fedCtx, article);
+    const update = new vocab.Update({
+      id: new URL(
+        `#update/${article.updated.toISOString()}`,
+        articleObject.id ?? fedCtx.canonicalOrigin,
+      ),
+      actors: articleObject.attributionIds,
+      tos: articleObject.toIds,
+      ccs: articleObject.ccIds,
+      object: articleObject,
+    });
+    await fedCtx.sendActivity(
+      { identifier: article.accountId },
+      "followers",
+      update,
+      {
+        preferSharedInbox: true,
+        excludeBaseUris: [
+          new URL(fedCtx.origin),
+          new URL(fedCtx.canonicalOrigin),
+        ],
+      },
+    );
+    // TODO: send Update(Article) to the mentioned actors too
+    await startArticleContentSummary(
+      db,
+      model,
+      updated[0],
+    );
+  });
+  return queued;
 }
