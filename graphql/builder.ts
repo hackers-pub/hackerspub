@@ -2,6 +2,7 @@ import type { Context as FedContext } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
 import { relations } from "@hackerspub/models/relations";
+import type { Session } from "@hackerspub/models/session";
 import type { Uuid } from "@hackerspub/models/uuid";
 import SchemaBuilder from "@pothos/core";
 import ComplexityPlugin from "@pothos/plugin-complexity";
@@ -28,6 +29,7 @@ export interface Context {
   disk: Disk;
   fedCtx: FedContext<ContextData>;
   moderator: boolean;
+  session: Promise<Session | undefined> | undefined;
 }
 
 export interface PothosTypes {

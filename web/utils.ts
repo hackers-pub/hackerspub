@@ -33,6 +33,16 @@ export type Meta = {
 };
 
 export interface State {
+  sessionPromise?: Promise<{
+    session: Session | undefined;
+    account:
+      | (Account & {
+        actor: Actor;
+        emails: AccountEmail[];
+        links: AccountLink[];
+      })
+      | undefined;
+  }>;
   session?: Session;
   account?: Account & {
     actor: Actor;

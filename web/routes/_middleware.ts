@@ -1,7 +1,4 @@
 import { isLocale } from "@hackerspub/models/i18n";
-import { getSession } from "@hackerspub/models/session";
-import { validateUuid } from "@hackerspub/models/uuid";
-import { getCookies } from "@std/http/cookie";
 import { acceptsLanguages } from "@std/http/negotiation";
 import { db } from "../db.ts";
 import { drive } from "../drive.ts";
@@ -28,18 +25,9 @@ export const handler = define.middleware([
     return ctx.next();
   },
   async (ctx) => {
-    const cookies = getCookies(ctx.req.headers);
-    if (validateUuid(cookies.session)) {
-      const session = await getSession(kv, cookies.session);
-      if (session != null) {
-        const account = await db.query.accountTable.findFirst({
-          where: { id: session.accountId },
-          with: { actor: true, emails: true, links: true },
-        });
-        ctx.state.account = account;
-        ctx.state.session = account == null ? undefined : session;
-      }
-    }
+    const { session, account } = await ctx.state.sessionPromise ?? {};
+    ctx.state.session = session;
+    ctx.state.account = account;
     return await ctx.next();
   },
   (ctx) => {
