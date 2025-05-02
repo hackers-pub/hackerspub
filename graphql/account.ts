@@ -7,6 +7,10 @@ export const Account = builder.drizzleNode("accountTable", {
   id: {
     column: (account) => account.id,
   },
+  grantScopes: async (account, ctx) =>
+    [
+      account.id === (await ctx.session)?.accountId && "self",
+    ].filter((v) => v !== false),
   select: {
     with: {
       emails: true,
@@ -26,7 +30,12 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     locales: t.exposeStringList("locales", { nullable: true }),
     moderator: t.exposeBoolean("moderator"),
-    leftInvitations: t.exposeInt("leftInvitations"),
+    leftInvitations: t.exposeInt("leftInvitations", {
+      authScopes: {
+        $granted: "self",
+        moderator: true,
+      },
+    }),
     updated: t.expose("updated", { type: "DateTime" }),
     created: t.expose("created", { type: "DateTime" }),
     actor: t.relation("actor", { type: Actor }),

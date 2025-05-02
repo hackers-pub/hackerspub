@@ -7,6 +7,8 @@ import {
   trailingSlashes,
 } from "@fresh/core";
 import { createYogaServer } from "@hackerspub/graphql";
+import { getSession } from "@hackerspub/models/session";
+import { validateUuid } from "@hackerspub/models/uuid";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
 import {
@@ -18,6 +20,7 @@ import {
 } from "@opentelemetry/semantic-conventions";
 import "@std/dotenv/load";
 import { serveDir } from "@std/http/file-server";
+import { getCookies } from "@std/http/cookie";
 import { db } from "./db.ts";
 import { drive } from "./drive.ts";
 import { federation } from "./federation.ts";
@@ -102,6 +105,26 @@ app.use(async (ctx) => {
   });
 });
 
+app.use((ctx) => {
+  const cookies = getCookies(ctx.req.headers);
+  if (validateUuid(cookies.session)) {
+    const sessionPromise = getSession(kv, cookies.session)
+      .then(async (session) => {
+        if (session == null) return { account: undefined, session: undefined };
+        const account = await db.query.accountTable.findFirst({
+          where: { id: session.accountId },
+          with: { actor: true, emails: true, links: true },
+        });
+        return {
+          account,
+          session: account == null ? undefined : session,
+        };
+      });
+    ctx.state.sessionPromise = sessionPromise;
+  }
+  return ctx.next();
+});
+
 app.use(async (ctx) => {
   if (
     ctx.url.pathname.startsWith("/.well-known/") ||
@@ -119,6 +142,7 @@ app.use(async (ctx) => {
     disk,
     fedCtx: federation.createContext(ctx.req, { db, kv, disk }),
     moderator: false,
+    session: ctx.state.sessionPromise?.then(({ session }) => session),
   };
 
   if (
