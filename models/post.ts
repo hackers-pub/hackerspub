@@ -1531,7 +1531,7 @@ export async function scrapePostLink<TContextData>(
   lg.debug("Scraped {url}: {result}", { url: responseUrl, result });
   const ogImage = result.ogImage ?? [];
   const twitterImage = result.twitterImage ?? [];
-  const image = ogImage.length > 0
+  let image = ogImage.length > 0
     ? {
       imageUrl: new URL(ogImage[0].url, responseUrl).href,
       imageAlt: ogImage[0].alt,
@@ -1573,24 +1573,34 @@ export async function scrapePostLink<TContextData>(
           url: new URL(fedCtx.canonicalOrigin),
         }),
         "Accept": "image/*",
+        "Referer": responseUrl,
       },
       redirect: "follow",
     });
+    logger.debug("Fetched image {url}: {status} {statusText}", {
+      url: response.url,
+      status: response.status,
+      statusText: response.statusText,
+    });
     if (response.ok) {
       const body = await response.arrayBuffer();
-      const metadata = await sharp(body).metadata();
-      switch (metadata.orientation) {
-        case 6:
-        case 8:
-          image.imageWidth = metadata.height;
-          image.imageHeight = metadata.width;
-          break;
-        case 1:
-        case 3:
-        default:
-          image.imageWidth = metadata.width;
-          image.imageHeight = metadata.height;
-          break;
+      try {
+        const metadata = await sharp(body).metadata();
+        switch (metadata.orientation) {
+          case 6:
+          case 8:
+            image.imageWidth = metadata.height;
+            image.imageHeight = metadata.width;
+            break;
+          case 1:
+          case 3:
+          default:
+            image.imageWidth = metadata.width;
+            image.imageHeight = metadata.height;
+            break;
+        }
+      } catch {
+        image = {};
       }
     }
   }
