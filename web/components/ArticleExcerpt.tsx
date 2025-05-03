@@ -153,11 +153,22 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
             href={post.url ?? post.iri}
             target={remotePost ? "_blank" : undefined}
           >
-            <Excerpt
-              lang={post.language}
-              html={post.contentHtml}
-              emojis={post.emojis}
-            />
+            {post.summary == null
+              ? (
+                <Excerpt
+                  lang={post.language}
+                  html={post.contentHtml}
+                  emojis={post.emojis}
+                />
+              )
+              : (
+                <p
+                  lang={post.language ?? undefined}
+                  class="prose dark:prose-invert leading-8"
+                >
+                  {post.summary}
+                </p>
+              )}
             <Msg $key="article.readMore" />
           </a>
           {props.controls && (

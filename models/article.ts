@@ -28,6 +28,7 @@ import {
   type NewArticleDraft,
   type NewArticleSource,
   type Post,
+  postTable,
   type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline } from "./timeline.ts";
@@ -414,16 +415,26 @@ export async function startArticleContentSummary(
       : content.language,
     targetLanguage: content.language,
     text: content.content,
-  }).then((summary) =>
-    db.update(articleContentTable)
+  }).then(async (summary) => {
+    await db.update(articleContentTable)
       .set({ summary })
       .where(
         and(
           eq(articleContentTable.sourceId, content.sourceId),
           eq(articleContentTable.language, content.language),
         ),
-      )
-  ).catch(async (error) => {
+      );
+    if (content.originalLanguage == null) {
+      await db.update(postTable)
+        .set({ summary })
+        .where(
+          and(
+            eq(postTable.articleSourceId, content.sourceId),
+            eq(postTable.language, content.language),
+          ),
+        );
+    }
+  }).catch(async (error) => {
     logger.error("Summary failed ({sourceId} {language}): {error}", {
       ...content,
       error,

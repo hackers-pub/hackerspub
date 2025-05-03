@@ -136,6 +136,7 @@ export async function syncPostFromArticleSource(
     actorId: actor.id,
     articleSourceId: articleSource.id,
     name: content.title,
+    summary: content.summary,
     contentHtml: rendered.html,
     language: content.language,
     tags: Object.fromEntries(
