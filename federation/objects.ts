@@ -44,11 +44,11 @@ export async function getArticle(
   );
   const contents = await Promise.all(
     articleSource.contents.map(async (content) => ({
-      ...content,
       ...(await renderMarkup(ctx, content.content, {
         docId: articleSource.id,
         kv: ctx.data.kv,
       })),
+      ...content,
     })),
   );
   const hashtags = contents.flatMap((c) => c.hashtags);
