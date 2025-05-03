@@ -103,6 +103,11 @@ export async function getArticleSource(
     };
   } | undefined
 > {
+  if (!Number.isInteger(publishedYear)) {
+    throw new TypeError(
+      `The publishedYear must be an integer: ${publishedYear}`,
+    );
+  }
   let account = await db.query.accountTable.findFirst({
     where: { username },
   });
