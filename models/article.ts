@@ -404,7 +404,9 @@ export async function startArticleContentSummary(
   logger.debug("Starting summary for content: {sourceId} {language}", content);
   summarize({
     model,
-    sourceLanguage: content.language,
+    sourceLanguage: content.beingTranslated
+      ? content.originalLanguage ?? content.language
+      : content.language,
     targetLanguage: content.language,
     text: content.content,
   }).then((summary) =>
