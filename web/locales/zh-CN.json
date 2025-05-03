@@ -271,6 +271,11 @@
       "stats": "反应统计",
       "reactedPeople": "{{count}}人做出了反应。",
       "sharers": "转帖此内容的人"
+    },
+    "shareExternally": {
+      "action": "外部共享",
+      "title": "{{actor}}的Hackers' Pub帖子",
+      "fullText": "$t(post.shareExternally.title)\n{{url}}"
     }
   },
   "poll": {
@@ -376,5 +381,8 @@
   "pageNotFound": {
     "title": "未找到页面",
     "description": "未找到你请求的页面。"
+  },
+  "clipboard": {
+    "copied": "复制了到剪贴板。"
   }
 }

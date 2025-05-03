@@ -146,6 +146,26 @@ export function PostControls(props: PostControlsProps) {
       });
   }
 
+  const shareableExternally = navigator.clipboard != null ||
+    navigator.share != null;
+  function onShareExternally() {
+    if (navigator.share) {
+      navigator.share({
+        title: t("post.shareExternally.title", {
+          actor: `${post.actor.name}(${post.actor.handle})`,
+        }),
+        url: localPostUrl,
+      });
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(t("post.shareExternally.fullText", {
+        actor: `${post.actor.name}(${post.actor.handle})`,
+        url: localPostUrl,
+      })).then(() => {
+        alert(t("clipboard.copied"));
+      });
+    }
+  }
+
   return (
     <TranslationSetup language={props.language}>
       <div class={`${props.class ?? ""} flex`}>
@@ -390,6 +410,30 @@ export function PostControls(props: PostControlsProps) {
                 <path d="M9.348 14.652a3.75 3.75 0 0 1 0-5.304m5.304 0a3.75 3.75 0 0 1 0 5.304m-7.425 2.121a6.75 6.75 0 0 1 0-9.546m9.546 0a6.75 6.75 0 0 1 0 9.546M5.106 18.894c-3.808-3.807-3.808-9.98 0-13.788m13.788 0c3.808 3.807 3.808 9.98 0 13.788M12 12h.008v.008H12V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
               </svg>
             </a>
+          )}
+          {shareableExternally && (
+            <button
+              type="button"
+              class="h-5 flex opacity-50 hover:opacity-100"
+              title={t("post.shareExternally.action")}
+              onClick={onShareExternally}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                class="size-5"
+                aria-label={t("post.shareExternally.action")}
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"
+                />
+              </svg>
+            </button>
           )}
           {signedAccount?.actor.id === post.actorId &&
             (
