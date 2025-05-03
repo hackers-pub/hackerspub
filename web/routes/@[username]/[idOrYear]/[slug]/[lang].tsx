@@ -37,7 +37,7 @@ export const handler = define.handlers({
       );
     }
     let content = article.contents.find((c) =>
-      c.language.toLowerCase() === lang
+      c.language === lang || c.language.toLowerCase() === lang
     );
     if (
       content == null ||
