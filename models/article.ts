@@ -418,9 +418,12 @@ export async function startArticleContentSummary(
           eq(articleContentTable.language, content.language),
         ),
       )
-  ).catch(() => {
-    logger.error("Summary failed: {sourceId} {language}", content);
-    db.update(articleContentTable)
+  ).catch(async (error) => {
+    logger.error("Summary failed ({sourceId} {language}): {error}", {
+      ...content,
+      error,
+    });
+    await db.update(articleContentTable)
       .set({ summaryStarted: null })
       .where(
         and(
@@ -542,9 +545,12 @@ export async function startArticleContentTranslation(
       model,
       updated[0],
     );
-  }).catch(() => {
-    logger.error("Translation failed: {sourceId} {language}", queued);
-    db.delete(articleContentTable)
+  }).catch(async (error) => {
+    logger.error("Translation failed ({sourceId} {language}): {error}", {
+      ...queued,
+      error,
+    });
+    await db.delete(articleContentTable)
       .where(
         and(
           eq(articleContentTable.sourceId, queued.sourceId),
