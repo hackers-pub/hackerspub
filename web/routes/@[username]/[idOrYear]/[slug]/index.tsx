@@ -364,7 +364,9 @@ export function ArticlePage(
               <TableOfContents toc={toc} />
             </nav>
           )}
-        {(content.originalLanguage != null || article.allowLlmTranslation) &&
+        {(content.originalLanguage != null ||
+          article.allowLlmTranslation && state.account ||
+          article.contents.length > 1) &&
           (
             <aside class="
               mt-8 p-4 max-w-[80ch] border border-stone-200 dark:border-stone-700
@@ -430,13 +432,18 @@ export function ArticlePage(
                       />
                     </p>
                   )}
-                {article.allowLlmTranslation && state.account &&
-                  state.locales.find((l) => l !== content.language) && (
+                {(article.allowLlmTranslation && state.account
+                  ? state.locales.find((l) => l !== content.language)
+                  : article.contents.find((c) =>
+                    c.language !== content.language
+                  )) && (
                   <nav class="text-stone-600 dark:text-stone-400">
                     <strong>
                       <Msg $key="article.otherLanguages" />
                     </strong>{" "}
-                    &rarr; {state.locales
+                    &rarr; {(article.allowLlmTranslation && state.account
+                      ? state.locales
+                      : article.contents.map((c) => c.language))
                       .filter((l) => l !== content.language)
                       .map((l, i) => {
                         const displayNames = new Intl.DisplayNames(l, {
