@@ -4,6 +4,7 @@ import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { escape } from "@std/html/entities";
 import { builder } from "./builder.ts";
+import { assertNever } from "@std/assert/unstable-never";
 
 export const ActorType = builder.enumType("ActorType", {
   values: [
@@ -41,7 +42,7 @@ export const Actor = builder.drizzleNode("actorTable", {
           ? "PERSON"
           : actor.type === "Service"
           ? "SERVICE"
-          : UNREACHABLE;
+          : assertNever(actor.type, `Unknown value in \`Actor.type\`: "${actor.type}"`);
       },
     }),
     username: t.exposeString("username"),
@@ -251,5 +252,3 @@ builder.queryFields((t) => ({
     },
   }),
 }));
-
-const UNREACHABLE: never = null as never;
