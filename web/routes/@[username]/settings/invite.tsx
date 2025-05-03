@@ -21,11 +21,13 @@ async function sendInvitation(
   ctx: FreshContext<State>,
   account: AccountWithInvitationInfo & Pick<Account, "id">,
 ): Promise<InvitePageProps> {
+  const canonicalHost = new URL(ctx.state.canonicalOrigin).host;
   if (account.leftInvitations < 1) {
     return {
       success: false,
       account,
       error: "noLeftInvitations",
+      canonicalHost,
     } as InvitePageProps;
   }
   const form = await ctx.req.formData();
@@ -40,6 +42,7 @@ async function sendInvitation(
       success: false,
       account,
       error: "emailRequired",
+      canonicalHost,
     } as InvitePageProps;
   }
   const existingEmail = await db.query.accountEmailTable.findFirst({
@@ -55,6 +58,7 @@ async function sendInvitation(
         username: existingEmail.account.username,
         name: existingEmail.account.name,
       },
+      canonicalHost,
     } as InvitePageProps;
   }
   const token = await createSignupToken(kv, email, {
@@ -105,6 +109,7 @@ async function sendInvitation(
     success: true,
     account,
     email,
+    canonicalHost,
   } as InvitePageProps;
 }
 
@@ -126,6 +131,7 @@ export const handler = define.handlers({
     if (ctx.state.account.id !== account?.id) return ctx.next();
     return page<InvitePageProps>({
       account,
+      canonicalHost: new URL(ctx.state.canonicalOrigin).host,
     });
   },
 

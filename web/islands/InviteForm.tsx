@@ -13,17 +13,18 @@ import { type Language, SUPPORTED_LANGUAGES } from "../i18n.ts";
 
 type AccountView = Pick<Account, "username" | "name" | "id">;
 type ActorView = Pick<Actor, "avatarUrl">;
+
 export type AccountWithInvitationInfo = Omit<AccountView, "id"> & {
   leftInvitations: number;
   inviter: AccountView & { actor: ActorView } | null;
   invitees: (AccountView & { actor: ActorView })[];
 };
+
 export type InviteFormProps =
   & {
     language: Language;
-  }
-  & {
     account: AccountWithInvitationInfo;
+    canonicalHost: string;
   }
   & (
     | { success?: undefined }
@@ -36,7 +37,9 @@ export type InviteFormProps =
     | { success: true; email: string }
   );
 
-export function InviteForm({ language, ...initialData }: InviteFormProps) {
+export function InviteForm(
+  { language, canonicalHost, ...initialData }: InviteFormProps,
+) {
   const [data, setData] = useState(initialData);
   const t = getFixedT(language);
   const [sending, setSending] = useState(false);
@@ -236,7 +239,7 @@ export function InviteForm({ language, ...initialData }: InviteFormProps) {
                     />
                     <strong>{invitee.name}</strong>
                     <span class="opacity-50 before:content-['('] after:content-[')'] ml-1">
-                      @{invitee.username}@{"host"}
+                      @{invitee.username}@{canonicalHost}
                     </span>
                   </a>
                 </li>
