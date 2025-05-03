@@ -433,7 +433,12 @@ export function ArticlePage(
                     </p>
                   )}
                 {(article.allowLlmTranslation && state.account
-                  ? state.locales.find((l) => l !== content.language)
+                  ? state.locales.find((l) =>
+                    l !== content.language &&
+                    (l.replace(/-.*$/, "") !==
+                        originalContent?.language?.replace(/-.*$/, "") ||
+                      l === originalContent?.language)
+                  )
                   : article.contents.find((c) =>
                     c.language !== content.language
                   )) && (
@@ -444,7 +449,12 @@ export function ArticlePage(
                     &rarr; {(article.allowLlmTranslation && state.account
                       ? state.locales
                       : article.contents.map((c) => c.language))
-                      .filter((l) => l !== content.language)
+                      .filter((l) =>
+                        l !== content.language &&
+                        (l.replace(/-.*$/, "") !==
+                            originalContent?.language?.replace(/-.*$/, "") ||
+                          l === originalContent?.language)
+                      )
                       .map((l, i) => {
                         const displayNames = new Intl.DisplayNames(l, {
                           type: "language",
