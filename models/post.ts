@@ -320,6 +320,9 @@ export async function persistPost(
     return;
   }
   const { db } = ctx.data;
+  if (post.id.origin === ctx.canonicalOrigin) {
+    return await getPersistedPost(db, post.id);
+  }
   let actor =
     options.actor == null || options.actor.iri !== post.attributionId.href
       ? await getPersistedActor(db, post.attributionId)
@@ -851,10 +854,35 @@ export async function isPostSharedBy(
 export function getPersistedPost(
   db: Database,
   iri: URL,
-): Promise<Post & { actor: Actor & { instance: Instance } } | undefined> {
+): Promise<
+  | Post & {
+    actor: Actor & { instance: Instance };
+    mentions: (Mention & { actor: Actor })[];
+    replyTarget: Post & { actor: Actor } | null;
+    quotedPost: Post & { actor: Actor } | null;
+    poll: Poll | null;
+  }
+  | undefined
+> {
   return db.query.postTable.findFirst({
-    with: { actor: { with: { instance: true } } },
-    where: { iri: iri.toString() },
+    with: {
+      actor: {
+        with: { instance: true },
+      },
+      mentions: {
+        with: { actor: true },
+      },
+      replyTarget: {
+        with: { actor: true },
+      },
+      quotedPost: {
+        with: { actor: true },
+      },
+      poll: true,
+    },
+    where: {
+      iri: iri.href,
+    },
   });
 }
 

@@ -134,6 +134,9 @@ export async function persistActor(
     logger.warn("Actor {actorId} has no inbox.", { actorId: actor.id.href });
     return undefined;
   }
+  if (actor.id.origin === ctx.canonicalOrigin) {
+    return await getPersistedActor(ctx.data.db, actor.id.href);
+  }
   const { db } = ctx.data;
   const instance = await persistInstance(db, actor.id.host);
   let handle: string;
@@ -285,10 +288,14 @@ export function getPersistedActor(
   db: Database,
   iri: string | URL,
 ): Promise<
-  Actor & { instance: Instance; account: Account | null } | undefined
+  Actor & {
+    instance: Instance;
+    account: Account | null;
+    successor: Actor | null;
+  } | undefined
 > {
   return db.query.actorTable.findFirst({
-    with: { instance: true, account: true },
+    with: { instance: true, account: true, successor: true },
     where: { iri: iri.toString() },
   });
 }
