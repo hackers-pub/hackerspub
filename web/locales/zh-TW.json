@@ -234,7 +234,9 @@
     "deleteConfirm": "你確定要刪除此文章嗎？",
     "tableOfContents": "目錄",
     "beingTranslated": "正在翻譯為{{targetLanguage}}",
-    "beingTranslatedDescription": "此文章正在從{{sourceLanguage}}翻譯為{{targetLanguage}}。請等待翻譯完成。"
+    "beingTranslatedDescription": "此文章正在從{{sourceLanguage}}翻譯為{{targetLanguage}}。請等待翻譯完成。",
+    "translated": "此文章已從{{sourceLanguage}}翻譯為{{targetLanguage}}。",
+    "otherLanguages": "用其他語言閱讀"
   },
   "note": {
     "title": "{{name}}：{{content}}",
@@ -289,6 +291,7 @@
       "slugDescription": "這將會成為你文章永久連結的一部分：",
       "slugAlreadyTaken": "存在相同資料域的文章。請另選一個。",
       "language": "語言",
+      "allowLlmTranslation": "允許基於LLM的自動翻譯",
       "cancel": "取消",
       "submit": "現在發佈",
       "loading": "正在發佈……",

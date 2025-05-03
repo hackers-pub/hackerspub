@@ -31,6 +31,7 @@ export type EditorProps =
     slug: string;
     permalink: string;
     articleLanguage: string;
+    allowLlmTranslation: boolean;
   });
 
 export function Editor(props: EditorProps) {
@@ -63,6 +64,9 @@ export function Editor(props: EditorProps) {
   );
   const [language, setLanguage] = useState<string | null>(
     "articleLanguage" in props ? props.articleLanguage : null,
+  );
+  const [allowLlmTranslation, setAllowLlmTranslation] = useState(
+    "allowLlmTranslation" in props ? props.allowLlmTranslation : true,
   );
   const [publishing, setPublishing] = useState(false);
   const slugInput = useRef<HTMLInputElement | null>(null);
@@ -200,6 +204,7 @@ export function Editor(props: EditorProps) {
         tags,
         slug: slug ?? makeSlug(draftTitle),
         language: language ?? draftLanguage ?? props.language,
+        allowLlmTranslation,
       }),
       redirect: "manual",
       credentials: "include",
@@ -424,6 +429,19 @@ export function Editor(props: EditorProps) {
                           })}
                       </select>
                     </Label>
+                  </div>
+                  <div>
+                    <label class="cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={allowLlmTranslation}
+                        onInput={(event) =>
+                          setAllowLlmTranslation(
+                            (event.target as HTMLInputElement).checked,
+                          )}
+                      />{" "}
+                      <Msg $key="editor.publishMode.allowLlmTranslation" />
+                    </label>
                   </div>
                   <div class="flex w-full">
                     <div class="grow">

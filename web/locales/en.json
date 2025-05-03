@@ -237,7 +237,9 @@
     "deleteConfirm": "Are you sure you want to delete this article?",
     "tableOfContents": "Table of Contents",
     "beingTranslated": "Being translated to {{targetLanguage}}",
-    "beingTranslatedDescription": "This article is being translated from {{sourceLanguage}} to {{targetLanguage}}. Please wait until the translation is complete."
+    "beingTranslatedDescription": "This article is being translated from {{sourceLanguage}} to {{targetLanguage}}. Please wait until the translation is complete.",
+    "translated": "This article has been translated from {{sourceLanguage}} to {{targetLanguage}}.",
+    "otherLanguages": "Read in other languages"
   },
   "note": {
     "title": "{{name}}: {{content}}",
@@ -293,6 +295,7 @@
       "slugDescription": "This will be a part of the permalink of your article:",
       "slugAlreadyTaken": "An article with the same slug already exists. Please choose a different slug.",
       "language": "Language",
+      "allowLlmTranslation": "Allow LLM-powered automatic translation",
       "cancel": "Cancel",
       "submit": "Publish now",
       "loading": "Publishing now…",

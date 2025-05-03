@@ -21,7 +21,6 @@ const PROMPT_LANGUAGES: string[] = (
 async function getTranslationPrompt(
   sourceLanguage: string,
   targetLanguage: string,
-  isPartialText = false,
 ): Promise<string> {
   const promptLanguage =
     findNearestLanguage(targetLanguage, PROMPT_LANGUAGES) ??
@@ -45,38 +44,6 @@ async function getTranslationPrompt(
     displayNames.of(targetLanguage) ?? targetLanguage,
   );
 
-  // Append partial translation context if needed
-  if (isPartialText) {
-    try {
-      const partialPromptPath = join(
-        import.meta.dirname!,
-        "prompts",
-        "translate-partial",
-        `${promptLanguage}.md`,
-      );
-      const partialPrompt = await Deno.readTextFile(partialPromptPath);
-      promptTemplate += "\n\n" + partialPrompt;
-    } catch (_) {
-      // Fallback to English if language-specific partial prompt is not available
-      if (promptLanguage !== "en") {
-        try {
-          const englishPartialPromptPath = join(
-            import.meta.dirname!,
-            "prompts",
-            "translate-partial",
-            "en.md",
-          );
-          const englishPartialPrompt = await Deno.readTextFile(
-            englishPartialPromptPath,
-          );
-          promptTemplate += "\n\n" + englishPartialPrompt;
-        } catch (_) {
-          // Silently fail if even the English partial prompt is not available
-        }
-      }
-    }
-  }
-
   return promptTemplate;
 }
 
@@ -92,25 +59,31 @@ export interface TranslationOptions {
  */
 async function translateChunk(
   options: TranslationOptions,
-  chunk: string,
-  isPartialText: boolean,
+  chunks: string[],
+  translatedChunks: string[],
 ): Promise<string> {
   const system = await getTranslationPrompt(
     options.sourceLanguage,
     options.targetLanguage,
-    isPartialText,
   );
+  const lastChunk = chunks[chunks.length - 1];
 
   let { text } = await generateText({
     model: options.model,
-    system,
-    prompt: chunk,
+    messages: [
+      { role: "system", content: system },
+      ...translatedChunks.flatMap((translated, index) => [
+        { role: "user" as const, content: chunks[index] },
+        { role: "assistant" as const, content: translated },
+      ]),
+      { role: "user" as const, content: lastChunk },
+    ],
   });
 
   if (
     text.match(/^\s*```(?:\s*(?:markdown|md|commonmark))/) &&
     text.match(/```\s*$/) &&
-    !(chunk.match(/^\s*```/) && chunk.match(/```\s*$/))
+    !(lastChunk.match(/^\s*```/) && lastChunk.match(/```\s*$/))
   ) {
     text = text.replaceAll(
       /^\s*```(?:\s*(?:markdown|md|commonmark))|```\s*$/g,
@@ -139,29 +112,27 @@ async function translateChunk(
 export async function translate(options: TranslationOptions): Promise<string> {
   // Use the existing translation method for short texts
   if (options.text.length <= MAX_CHUNK_SIZE) {
-    return translateChunk(options, options.text, false);
+    return translateChunk(options, [options.text], []);
   }
 
   // Split long texts into chunks and translate each one
   const chunks = splitTextIntoChunks(options.text, MAX_CHUNK_SIZE);
   const translatedChunks: string[] = [];
 
-  let index = 1;
-  for (const chunk of chunks) {
+  for (let index = 1; index <= chunks.length; index++) {
     const translatedChunk = await translateChunk(
       options,
-      chunk,
-      chunks.length > 1, // isPartialText = true if we have multiple chunks
+      chunks.slice(0, index),
+      translatedChunks,
     );
     logger.debug(
       "Translated chunk {index}/{total}.",
       {
         index,
         total: chunks.length,
-        chunk,
+        chunks: chunks.slice(0, index),
       },
     );
-    index++;
     translatedChunks.push(translatedChunk);
   }
 

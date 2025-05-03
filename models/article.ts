@@ -416,7 +416,17 @@ export async function startArticleContentSummary(
           eq(articleContentTable.language, content.language),
         ),
       )
-  );
+  ).catch(() => {
+    logger.error("Summary failed: {sourceId} {language}", content);
+    db.update(articleContentTable)
+      .set({ summaryStarted: null })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, content.sourceId),
+          eq(articleContentTable.language, content.language),
+        ),
+      );
+  });
 }
 
 export interface ArticleContentTranslationOptions {
@@ -530,6 +540,15 @@ export async function startArticleContentTranslation(
       model,
       updated[0],
     );
+  }).catch(() => {
+    logger.error("Translation failed: {sourceId} {language}", queued);
+    db.delete(articleContentTable)
+      .where(
+        and(
+          eq(articleContentTable.sourceId, queued.sourceId),
+          eq(articleContentTable.language, targetLanguage),
+        ),
+      );
   });
   return queued;
 }

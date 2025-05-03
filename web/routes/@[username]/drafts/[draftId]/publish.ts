@@ -8,6 +8,7 @@ import { define } from "../../../../utils.ts";
 const ArticleSourceSchema = v.object({
   slug: v.pipe(v.string(), v.trim(), v.maxLength(128)),
   language: v.picklist(POSSIBLE_LOCALES),
+  allowLlmTranslation: v.boolean(),
 });
 
 export const handler = define.handlers({
@@ -40,6 +41,7 @@ export const handler = define.handlers({
       tags: draft.tags,
       slug: result.output.slug,
       language: result.output.language,
+      allowLlmTranslation: result.output.allowLlmTranslation,
     });
     if (post == null) {
       return new Response(

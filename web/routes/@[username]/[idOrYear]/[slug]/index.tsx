@@ -313,6 +313,7 @@ export function ArticlePage(
   }
   const postUrl =
     `/@${article.account.username}/${article.publishedYear}/${article.slug}`;
+  const originalContent = getOriginalArticleContent(article);
   const displayNames = new Intl.DisplayNames(state.language, {
     type: "language",
   });
@@ -363,9 +364,12 @@ export function ArticlePage(
               <TableOfContents toc={toc} />
             </nav>
           )}
-        {content.beingTranslated
-          ? (
-            <div class="mt-8 p-4 border border-stone-200 dark:border-stone-700">
+        {(content.originalLanguage != null || article.allowLlmTranslation) &&
+          (
+            <aside class="
+              mt-8 p-4 max-w-[80ch] border border-stone-200 dark:border-stone-700
+              flex flex-row gap-4
+            ">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -380,31 +384,94 @@ export function ArticlePage(
                   d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802"
                 />
               </svg>
-              <Msg
-                $key="article.beingTranslatedDescription"
-                targetLanguage={
-                  <strong>{displayNames.of(content.language)}</strong>
-                }
-                sourceLanguage={
-                  <a
-                    href={postUrl}
-                    hreflang={content.originalLanguage ?? undefined}
-                  >
+              <div>
+                {content.beingTranslated
+                  ? (
+                    <p class="mb-4">
+                      <Msg
+                        $key="article.beingTranslatedDescription"
+                        targetLanguage={
+                          <strong>{displayNames.of(content.language)}</strong>
+                        }
+                        sourceLanguage={
+                          <a
+                            href={postUrl}
+                            hreflang={content.originalLanguage ?? undefined}
+                          >
+                            <strong>
+                              {displayNames.of(
+                                content.originalLanguage ?? "en",
+                              )}
+                            </strong>
+                          </a>
+                        }
+                      />
+                    </p>
+                  )
+                  : content.originalLanguage == null
+                  ? undefined
+                  : (
+                    <p class="mb-4">
+                      <Msg
+                        $key="article.translated"
+                        targetLanguage={
+                          <strong>{displayNames.of(content.language)}</strong>
+                        }
+                        sourceLanguage={
+                          <a
+                            href={postUrl}
+                            hreflang={content.originalLanguage}
+                          >
+                            <strong>
+                              {displayNames.of(content.originalLanguage)}
+                            </strong>
+                          </a>
+                        }
+                      />
+                    </p>
+                  )}
+                {article.allowLlmTranslation && state.account &&
+                  state.locales.find((l) => l !== content.language) && (
+                  <nav class="text-stone-600 dark:text-stone-400">
                     <strong>
-                      {displayNames.of(content.originalLanguage ?? "en")}
-                    </strong>
-                  </a>
-                }
-              />
-            </div>
-          )
-          : (
-            <div
-              lang={content.language}
-              class="prose dark:prose-invert mt-4 text-xl leading-8"
-              dangerouslySetInnerHTML={{ __html: contentHtml }}
-            />
+                      <Msg $key="article.otherLanguages" />
+                    </strong>{" "}
+                    &rarr; {state.locales
+                      .filter((l) => l !== content.language)
+                      .map((l, i) => {
+                        const displayNames = new Intl.DisplayNames(l, {
+                          type: "language",
+                        });
+                        return (
+                          <>
+                            {i > 0 && <>{" "}&middot;{" "}</>}
+                            <a
+                              key={l}
+                              href={originalContent?.language === l
+                                ? postUrl
+                                : `${postUrl}/${l}`}
+                              hreflang={l}
+                              lang={l}
+                              rel="alternate"
+                              class="text-stone-900 dark:text-stone-100"
+                            >
+                              {displayNames.of(l)}
+                            </a>
+                          </>
+                        );
+                      })}
+                  </nav>
+                )}
+              </div>
+            </aside>
           )}
+        {!content.beingTranslated && (
+          <div
+            lang={content.language}
+            class="prose dark:prose-invert mt-4 text-xl leading-8"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
+        )}
         <PostControls
           language={state.language}
           post={article.post}

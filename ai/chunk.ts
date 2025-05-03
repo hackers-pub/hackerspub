@@ -16,7 +16,7 @@ interface MarkdownBlock {
 }
 
 // Helper function to stringify mdast nodes to Markdown
-function stringifyNodes(nodes: RootContent[] | RootContent): string {
+export function stringifyNodes(nodes: RootContent[] | RootContent): string {
   // Ensure the node passed to stringify is always a Root node.
   const rootNode: Root = Array.isArray(nodes)
     ? { type: "root", children: nodes }
@@ -42,14 +42,13 @@ function stringifyNodes(nodes: RootContent[] | RootContent): string {
  * @param tree The mdast tree.
  * @returns An array of MarkdownBlock objects.
  */
-function groupNodesIntoBlocks(tree: Root): MarkdownBlock[] {
+export function groupNodesIntoBlocks(tree: Root): MarkdownBlock[] {
   const blocks: MarkdownBlock[] = [];
   let currentBlockNodes: RootContent[] = [];
   let currentBlockType: string | null = null;
-  let _currentHeadingLevel: number | null = null; // Lint fix: Add underscore
 
   // Helper to finalize the current block being built
-  function finalizeBlock(forceCanSplit?: boolean) { // forceCanSplit is kept for potential future use
+  function finalizeBlock(forceCanSplit?: boolean) {
     if (currentBlockNodes.length > 0 && currentBlockType) {
       const content = stringifyNodes(currentBlockNodes);
       if (content) {
@@ -82,13 +81,15 @@ function groupNodesIntoBlocks(tree: Root): MarkdownBlock[] {
           canSplitBlock = !containsComplexInline;
         } else if (currentBlockType === "heading_section") {
           // Heading sections themselves are not splittable by default
-          // Splitting happens *within* them in mergeBlocksIntoChunks if needed
-          canSplitBlock = false; // Reverted back to false
+          canSplitBlock = false;
           nodesToStore = [...currentBlockNodes]; // Store original nodes for heading sections
+        } else if (currentBlockType === "heading") {
+          // Standalone headings are not splittable
+          canSplitBlock = false;
         }
         // Other types (code, list, blockquote, etc.) remain non-splittable by default
 
-        // Apply forceCanSplit override if provided (rarely needed now)
+        // Apply forceCanSplit override if provided
         if (forceCanSplit !== undefined) {
           canSplitBlock = forceCanSplit;
         }
@@ -98,7 +99,7 @@ function groupNodesIntoBlocks(tree: Root): MarkdownBlock[] {
           size: content.length,
           type: currentBlockType,
           canSplit: canSplitBlock,
-          originalNodes: nodesToStore, // Add original nodes if stored
+          originalNodes: nodesToStore,
         });
       }
       currentBlockNodes = [];
@@ -113,27 +114,46 @@ function groupNodesIntoBlocks(tree: Root): MarkdownBlock[] {
     if (node.type === "definition") continue;
 
     if (node.type === "heading") {
-      finalizeBlock();
+      finalizeBlock(); // Finalize any previous block
       const headingLevel = node.depth;
-      currentBlockNodes.push(node);
-      currentBlockType = "heading_section";
-      _currentHeadingLevel = headingLevel; // Lint fix: Use underscored variable
+      currentBlockNodes = [node]; // Start new block with just the heading
+      currentBlockType = "heading"; // Default type is just heading
 
+      // Look ahead to gather content under this heading
+      const contentNodes: RootContent[] = [];
       let j = i + 1;
       while (j < tree.children.length) {
         const nextNode = tree.children[j];
+        // Stop conditions for the section
         if (nextNode.type === "heading" && nextNode.depth <= headingLevel) {
+          break; // Stop at next heading of same/higher level
+        }
+        // Stop before major block elements that should form their own blocks
+        if (
+          nextNode.type === "code" || nextNode.type === "list" ||
+          nextNode.type === "blockquote" || nextNode.type === "thematicBreak" ||
+          nextNode.type === "html" || nextNode.type === "table"
+        ) {
           break;
         }
+        // Ignore definitions
         if (nextNode.type !== "definition") {
-          currentBlockNodes.push(nextNode);
+          contentNodes.push(nextNode);
         }
         j++;
       }
-      // Finalize heading section - let finalizeBlock determine splittability (now false)
-      finalizeBlock();
-      i = j - 1;
-      _currentHeadingLevel = null; // Lint fix: Use underscored variable
+
+      // If we gathered content nodes, add them and mark as heading_section
+      if (contentNodes.length > 0) {
+        currentBlockNodes.push(...contentNodes);
+        currentBlockType = "heading_section";
+      }
+      // Else, it remains a simple 'heading' block
+
+      // Finalize the heading or heading_section block (non-splittable)
+      finalizeBlock(false);
+
+      i = j - 1; // Advance main loop index past consumed nodes
     } else if (
       node.type === "code" || node.type === "list" ||
       node.type === "blockquote" ||
@@ -167,7 +187,10 @@ function groupNodesIntoBlocks(tree: Root): MarkdownBlock[] {
 }
 
 // Helper function to split by characters, trying word boundaries
-function splitByCharsWithWordBoundary(text: string, maxSize: number): string[] {
+export function splitByCharsWithWordBoundary(
+  text: string,
+  maxSize: number,
+): string[] {
   const parts: string[] = [];
   let remaining = text.trim();
   while (remaining.length > 0) {
@@ -182,7 +205,7 @@ function splitByCharsWithWordBoundary(text: string, maxSize: number): string[] {
     if (lastSpace > maxSize * 0.5 && lastSpace > 0) {
       // Find the actual index to slice at (after the space)
       const sliceIndex = lastSpace + 1;
-      parts.push(remaining.substring(0, sliceIndex).trimEnd());
+      parts.push(remaining.substring(0, sliceIndex)); // Keep trailing space
       remaining = remaining.substring(sliceIndex).trimStart();
     } else {
       // If no good space found, just split at maxSize
@@ -200,7 +223,10 @@ function splitByCharsWithWordBoundary(text: string, maxSize: number): string[] {
  * @param maxChunkSize The maximum size for each part.
  * @returns An array of smaller Markdown strings.
  */
-function splitLargeBlock(blockContent: string, maxChunkSize: number): string[] {
+export function splitLargeBlock(
+  blockContent: string,
+  maxChunkSize: number,
+): string[] {
   const chunks: string[] = [];
   const trimmedBlock = blockContent.trim(); // Trim input initially
   if (!trimmedBlock || trimmedBlock.length <= maxChunkSize) {
@@ -284,7 +310,7 @@ function splitLargeBlock(blockContent: string, maxChunkSize: number): string[] {
  * @param maxChunkSize Maximum size of each chunk.
  * @returns Array of Markdown strings (chunks).
  */
-function mergeBlocksIntoChunks(
+export function mergeBlocksIntoChunks(
   blocks: MarkdownBlock[],
   maxChunkSize: number,
 ): string[] {
@@ -405,7 +431,7 @@ export function splitTextIntoChunks(
  * @param maxChunkSize The maximum chunk size.
  * @returns True if chunks are valid, false if fallback is needed.
  */
-function validateChunks(
+export function validateChunks(
   chunks: string[],
   blocks: MarkdownBlock[],
   maxChunkSize: number,
@@ -463,7 +489,7 @@ function validateChunks(
  * Try to combine the last chunks if they contain related content
  * (like paragraphs that should be kept together).
  */
-function combineRelatedChunks(
+export function combineRelatedChunks(
   chunks: string[],
   maxChunkSize: number,
 ): string | null {
@@ -497,14 +523,18 @@ function combineRelatedChunks(
  * Fallback chunking method that directly splits text without using AST.
  * Tries to respect paragraph boundaries, lists, and other semantics.
  */
-function splitTextDirectly(text: string, maxChunkSize: number): string[] {
+export function splitTextDirectly(
+  text: string,
+  maxChunkSize: number,
+): string[] {
+  const trimmedText = text.trim();
   // If text is small enough, return as a single chunk
-  if (text.length <= maxChunkSize) {
-    return [text];
+  if (trimmedText.length <= maxChunkSize) {
+    return trimmedText ? [trimmedText] : [];
   }
 
   // First try to split by double newlines (paragraphs)
-  const paragraphs = text.split(/\n\s*\n/);
+  const paragraphs = trimmedText.split(/\n\s*\n/);
 
   // If we have multiple paragraphs, group them into chunks
   if (paragraphs.length > 1) {
@@ -523,24 +553,9 @@ function splitTextDirectly(text: string, maxChunkSize: number): string[] {
           currentChunk = "";
         }
 
-        // Split large paragraph
-        let remaining = trimmedPara;
-        while (remaining.length > 0) {
-          // Try to find a sentence boundary
-          let splitIndex = maxChunkSize;
-          if (remaining.length > maxChunkSize) {
-            const possibleSplit = remaining.substring(0, maxChunkSize)
-              .lastIndexOf(". ");
-            if (possibleSplit > maxChunkSize * 0.5) {
-              splitIndex = possibleSplit + 1; // Include the period
-            }
-          } else {
-            splitIndex = remaining.length;
-          }
-
-          chunks.push(remaining.substring(0, splitIndex).trim());
-          remaining = remaining.substring(splitIndex).trim();
-        }
+        // Split large paragraph using the fallback logic below
+        const subChunks = splitTextDirectlyFallback(trimmedPara, maxChunkSize);
+        chunks.push(...subChunks);
       } else if (
         currentChunk.length + (currentChunk ? 2 : 0) + trimmedPara.length <=
           maxChunkSize
@@ -558,12 +573,23 @@ function splitTextDirectly(text: string, maxChunkSize: number): string[] {
     // Add final chunk
     if (currentChunk) chunks.push(currentChunk);
 
-    return chunks;
+    return chunks.filter((chunk) => chunk.length > 0);
   }
 
-  // If we can't split by paragraphs, split by maxChunkSize with some care for sentence boundaries
+  // If we can't split by paragraphs, use the fallback splitter
+  return splitTextDirectlyFallback(trimmedText, maxChunkSize);
+}
+
+/**
+ * Fallback splitting logic used by splitTextDirectly.
+ * Splits by sentences, then words, then characters.
+ */
+function splitTextDirectlyFallback(
+  text: string,
+  maxChunkSize: number,
+): string[] {
   const chunks: string[] = [];
-  let remaining = text;
+  let remaining = text.trim();
 
   while (remaining.length > 0) {
     if (remaining.length <= maxChunkSize) {
@@ -571,19 +597,43 @@ function splitTextDirectly(text: string, maxChunkSize: number): string[] {
       break;
     }
 
-    // Try to find a sentence boundary near maxChunkSize
     let splitIndex = maxChunkSize;
-    const possibleSplit = remaining.substring(0, maxChunkSize).lastIndexOf(
-      ". ",
-    );
 
-    if (possibleSplit > maxChunkSize * 0.5) {
-      splitIndex = possibleSplit + 1; // Include the period
+    // Try to find a sentence boundary (". " or "! " or "? ") near maxChunkSize
+    let possibleSplit = -1;
+    const sentenceEnders = [". ", "! ", "? ", "\n"];
+    for (const ender of sentenceEnders) {
+      const enderIndex = remaining.substring(0, maxChunkSize).lastIndexOf(
+        ender,
+      );
+      if (enderIndex > possibleSplit) {
+        possibleSplit = enderIndex + (ender === "\n" ? 1 : 2); // Split after delimiter
+      }
     }
 
-    chunks.push(remaining.substring(0, splitIndex).trim());
-    remaining = remaining.substring(splitIndex).trim();
+    // If a sentence boundary is found reasonably close to the end
+    if (possibleSplit > maxChunkSize * 0.5 && possibleSplit > 0) {
+      splitIndex = possibleSplit;
+    } else {
+      // If no good sentence break, try splitting at the last space
+      const lastSpace = remaining.substring(0, maxChunkSize).lastIndexOf(" ");
+      if (lastSpace > maxChunkSize * 0.5 && lastSpace > 0) {
+        splitIndex = lastSpace + 1; // Split *after* the space
+      }
+      // Otherwise, splitIndex remains maxChunkSize (hard split)
+    }
+
+    // Ensure we don't create empty chunks if splitIndex is 0 or negative
+    if (splitIndex <= 0) {
+      splitIndex = Math.min(maxChunkSize, remaining.length); // Fallback to hard split
+    }
+
+    // Ensure splitIndex doesn't exceed remaining length
+    splitIndex = Math.min(splitIndex, remaining.length);
+
+    chunks.push(remaining.substring(0, splitIndex).trimEnd()); // Trim potential trailing space
+    remaining = remaining.substring(splitIndex).trimStart(); // Trim potential leading space
   }
 
-  return chunks;
+  return chunks.filter((chunk) => chunk.length > 0);
 }

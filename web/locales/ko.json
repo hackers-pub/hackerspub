@@ -230,7 +230,9 @@
     "deleteConfirm": "이 게시글을 삭제하시겠습니까?",
     "tableOfContents": "목차",
     "beingTranslated": "{{targetLanguage}}로 번역중…",
-    "beingTranslatedDescription": "이 게시글은 {{sourceLanguage}}에서 {{targetLanguage}}로 번역중입니다. 번역이 완료될 때까지 기다려 주세요."
+    "beingTranslatedDescription": "이 게시글은 {{sourceLanguage}}에서 {{targetLanguage}}로 번역중입니다. 번역이 완료될 때까지 기다려 주세요.",
+    "translated": "이 게시글은 {{sourceLanguage}}에서 {{targetLanguage}}로 번역되었습니다.",
+    "otherLanguages": "다른 언어로 읽기"
   },
   "note": {
     "title": "{{name}}: {{content}}",
@@ -285,6 +287,7 @@
       "slugDescription": "게시글의 고유 링크에 쓰입니다:",
       "slugAlreadyTaken": "같은 슬러그를 가진 게시글이 이미 있습니다. 다른 슬러그를 사용해 주세요.",
       "language": "언어",
+      "allowLlmTranslation": "LLM 기반 자동 번역 허용",
       "cancel": "취소",
       "submit": "게시글 공개",
       "loading": "게시글을 올리는 중…",

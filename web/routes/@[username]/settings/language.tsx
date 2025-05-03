@@ -63,7 +63,7 @@ export default define.page<typeof handler, LanguageSettingsPageProps>(
           selectedLocales={locales}
           class="my-4"
         />
-        <label>
+        <label class="cursor-pointer">
           <input
             type="checkbox"
             name="hideForeignLanguages"

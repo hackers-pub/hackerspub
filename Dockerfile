@@ -8,6 +8,7 @@ COPY web/fonts /app/web/fonts
 
 COPY .npmrc /app/.npmrc
 COPY deno.json /app/deno.json
+COPY ai/deno.json /app/ai/deno.json
 COPY federation/deno.json /app/federation/deno.json
 COPY graphql/deno.json /app/graphql/deno.json
 COPY models/deno.json /app/models/deno.json

@@ -232,7 +232,9 @@
     "deleteConfirm": "この記事を削除してもよろしいですか？",
     "tableOfContents": "目次",
     "beingTranslated": "{{targetLanguage}}に翻訳中",
-    "beingTranslatedDescription": "この記事は{{sourceLanguage}}から{{targetLanguage}}に翻訳中です。翻訳が完了するまでお待ちください。"
+    "beingTranslatedDescription": "この記事は{{sourceLanguage}}から{{targetLanguage}}に翻訳中です。翻訳が完了するまでお待ちください。",
+    "translated": "この記事は{{sourceLanguage}}から{{targetLanguage}}に翻訳されました。",
+    "otherLanguages": "他の言語で読む"
   },
   "note": {
     "title": "{{name}}：{{content}}",
@@ -287,6 +289,7 @@
       "slugDescription": "記事の固定リンクの一部として使用されます：",
       "slugAlreadyTaken": "同じスラッグの記事がすでに存在します。別のスラッグを選んでください。",
       "language": "言語",
+      "allowLlmTranslation": "LLMベースの自動翻訳を許可",
       "cancel": "キャンセル",
       "submit": "公開する",
       "loading": "公開中…",

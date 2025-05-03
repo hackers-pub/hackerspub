@@ -14,6 +14,7 @@ const ArticleSourceSchema = v.object({
   title: v.pipe(v.string(), v.trim()),
   content: v.string(),
   language: v.pipe(v.string(), v.trim(), v.maxLength(2)),
+  allowLlmTranslation: v.boolean(),
 });
 
 export const handler = define.handlers({
@@ -40,6 +41,7 @@ export const handler = define.handlers({
       title: content.title,
       content: content.content,
       language: content.language,
+      allowLlmTranslation: article.allowLlmTranslation,
       permalink: new URL(
         `/@${article.account.username}/${article.publishedYear}/${article.slug}`,
         ctx.url,
@@ -101,6 +103,7 @@ interface ArticleEditPageProps {
   permalink: string;
   slug: string;
   language: string;
+  allowLlmTranslation: boolean;
 }
 
 export default define.page<typeof handler, ArticleEditPageProps>(
@@ -115,6 +118,7 @@ export default define.page<typeof handler, ArticleEditPageProps>(
           permalink={data.permalink}
           slug={data.slug}
           articleLanguage={data.language}
+          allowLlmTranslation={data.allowLlmTranslation}
           defaultTitle={data.title}
           defaultContent={data.content}
           defaultTags={data.tags}

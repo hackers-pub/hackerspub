@@ -44,7 +44,9 @@ export const handler = define.handlers({
       content.beingTranslated &&
         content.updated.getTime() < Date.now() - 30 * 60 * 1000
     ) {
-      if (ctx.state.account == null) return ctx.next();
+      if (ctx.state.account == null || !article.allowLlmTranslation) {
+        return ctx.next();
+      }
       const original = getOriginalArticleContent(article);
       if (original == null) return ctx.next();
       content = await startArticleContentTranslation(
@@ -65,6 +67,11 @@ export const handler = define.handlers({
       headers: {
         Link:
           `<${props.articleIri}>; rel="alternate"; type="application/activity+json"`,
+        ...(content.beingTranslated
+          ? {
+            Refresh: "30",
+          }
+          : {}),
       },
     });
   },
