@@ -13,7 +13,7 @@ export const relations = defineRelations(schema, (r) => ({
       optional: false,
     }),
     articleDrafts: r.many.articleDraftTable(),
-    articleSourecs: r.many.articleSourceTable(),
+    articleSources: r.many.articleSourceTable(),
     inviter: r.one.accountTable({
       from: r.accountTable.inviterId,
       to: r.accountTable.id,
