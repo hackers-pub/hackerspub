@@ -11,11 +11,6 @@ export const Account = builder.drizzleNode("accountTable", {
     [
       account.id === (await ctx.session)?.accountId && "self",
     ].filter((v) => v !== false),
-  select: {
-    with: {
-      emails: true,
-    },
-  },
   fields: (t) => ({
     uuid: t.expose("id", { type: "UUID" }),
     username: t.exposeString("username"),
@@ -23,6 +18,11 @@ export const Account = builder.drizzleNode("accountTable", {
     bio: t.expose("bio", { type: "Markdown" }),
     avatarUrl: t.field({
       type: "URL",
+      select: {
+        with: {
+          emails: true,
+        },
+      },
       async resolve(account, _, ctx) {
         const url = await getAvatarUrl(ctx.disk, account);
         return new URL(url);
