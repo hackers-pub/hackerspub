@@ -18,9 +18,12 @@ Hackers' Pub uses the following technologies:
  -  [Drizzle ORM] for database operations
  -  [Keyv] for caching
  -  [Fedify] for ActivityPub federation
+ -  [Pothos] for GraphQL schema builder
+ -  [Yoga] for GraphQL server
  -  [LogTape] for logging
  -  [Preact] for web frontend
  -  [Tailwind CSS] for styling
+ -  [Vercel AI SDK] for LLM integration
  -  [i18next] for internationalization
  -  [ffmpeg] for video processing
 
@@ -38,9 +41,12 @@ documentation of these technologies to understand how they work.
 [Drizzle ORM]: https://orm.drizzle.team/
 [Keyv]: https://keyv.org/
 [Fedify]: https://fedify.dev/
+[Pothos]: https://pothos-graphql.dev/
+[Yoga]: https://www.graphql-yoga.com/
 [LogTape]: https://logtape.org/
 [Preact]: https://preactjs.com/
 [Tailwind CSS]: https://tailwindcss.com/
+[Vercel AI SDK]: https://ai-sdk.dev/
 [i18next]: https://www.i18next.com/
 [ffmpeg]: https://ffmpeg.org/
 
@@ -53,7 +59,9 @@ To build the project, you need to have the following tools installed:
  -  [Deno] 2.2 or higher
  -  [PostgreSQL] 17 or higher
  -  [ffmpeg] 5.0 or higher
- -  [Mailgun] account
+ -  [Mailgun] account (optional; for sending emails)
+ -  [Anthropic] API key (optional; for translating posts)
+ -  [Google Generative AI] API key (optional; for summarizing posts)
 
 Any other dependencies can be installed using Deno:
 
@@ -62,6 +70,8 @@ deno install
 ~~~~
 
 [Mailgun]: https://www.mailgun.com/
+[Anthropic]: https://console.anthropic.com/
+[Google Generative AI]: https://aistudio.google.com/apikey
 
 
 Creating a database
@@ -123,6 +133,15 @@ and set the values of the variables according to your environment.
 >     For your information, the *media/* directory under the project directory
 >     is listed in the *.gitignore* file, so you don't need to worry about
 >     accidentally committing the files to the repository.
+>
+>  -  `MAILGUN_API_KEY` is the API key for sending emails.  You can use a
+>     [Mailgun] account for this.  However, if you won't test sending emails
+>     (e.g., for sign up or sending invitations), you can omit this variable.
+>
+>  -  `ANTHROPIC_API_KEY` and `GOOGLE_GENERATIVE_AI_API_KEY` are the API keys
+>     for summarizing and translating posts using LLMs.  You can use
+>     [Anthropic] and [Google Generative AI] accounts for this.  However, if
+>     you won't test these features, you can omit these variables.
 
 
 Creating a database schema
