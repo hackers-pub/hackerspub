@@ -9,6 +9,7 @@ import ComplexityPlugin from "@pothos/plugin-complexity";
 import DrizzlePlugin from "@pothos/plugin-drizzle";
 import RelayPlugin from "@pothos/plugin-relay";
 import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
+import SimpleObjectsPlugin from "@pothos/plugin-simple-objects";
 import TracingPlugin from "@pothos/plugin-tracing";
 import WithInputPlugin from "@pothos/plugin-with-input";
 import { getTableConfig } from "drizzle-orm/pg-core";
@@ -73,6 +74,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
     RelayPlugin,
     ScopeAuthPlugin,
     DrizzlePlugin,
+    SimpleObjectsPlugin,
     TracingPlugin,
     WithInputPlugin,
   ],
