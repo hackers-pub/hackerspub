@@ -94,21 +94,6 @@ async function translateChunk(
     ).trim();
   }
 
-  // Find and fix mismatched fence characters
-  const codeBlockRegex =
-    /((`{3,}|~{3,}))([\s\S]*?)(?:\s*)((?:\2)|(?:[`~]{3,}))/g;
-  text = text.replace(
-    codeBlockRegex,
-    (match, opening, _openingChar, content, closing) => {
-      // If opening and closing don't match in character type, fix the closing to match the opening
-      if (opening.charAt(0) !== closing.charAt(0)) {
-        const correctedClosing = opening.charAt(0).repeat(opening.length);
-        return `${opening}${content}${correctedClosing}`;
-      }
-      return match;
-    },
-  );
-
   return text;
 }
 

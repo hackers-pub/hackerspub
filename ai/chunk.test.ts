@@ -72,7 +72,7 @@ Deno.test("stringifyNodes()", () => {
 
 Deno.test("groupNodesIntoBlocks()", () => {
   const md =
-    `# Title\n\nParagraph 1.\n\n\`\`\`js\nconsole.log("code");\n\`\`\`\n\n- List item 1\n- List item 2\n\nAnother paragraph.`;
+    `# Title\n\nParagraph 1.\n\n~~~js\nconsole.log("code");\n~~~\n\n- List item 1\n- List item 2\n\nAnother paragraph.`;
   const tree = parseMd(md);
   const blocks = groupNodesIntoBlocks(tree);
 
@@ -87,7 +87,7 @@ Deno.test("groupNodesIntoBlocks()", () => {
 
   // Code block
   assertEquals(blocks[1].type, "code");
-  assertEquals(blocks[1].content, '```js\nconsole.log("code");\n```');
+  assertEquals(blocks[1].content, '~~~js\nconsole.log("code");\n~~~');
   assertEquals(blocks[1].canSplit, false);
 
   // List block
@@ -469,7 +469,7 @@ And more text after the code.`;
     try {
       // Code blocks are non-splittable, check if it's contained entirely
       const codeBlockContent =
-        '```javascript\nfunction hello() {\n  console.log("Hello, world!");\n}\n```';
+        '~~~javascript\nfunction hello() {\n  console.log("Hello, world!");\n}\n~~~';
       assertElementsTogether(
         chunks,
         [codeBlockContent],
@@ -861,12 +861,12 @@ console.log("end");
         assertEquals(chunks.length, 3, "Should split into 3 chunks");
 
         // Check code block is the last chunk
-        assert(chunks[2].startsWith("```js"), "Chunk 3 starts with code block");
+        assert(chunks[2].startsWith("~~~js"), "Chunk 3 starts with code block");
         assert(
           chunks[2].includes('console.log("end")'),
           "Chunk 3 contains code",
         );
-        assert(chunks[2].endsWith("```"), "Chunk 3 ends with code block");
+        assert(chunks[2].endsWith("~~~"), "Chunk 3 ends with code block");
       } catch (error) {
         logChunks(chunks, "Mixed content ending with code chunks");
         throw error;

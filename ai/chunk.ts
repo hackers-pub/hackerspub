@@ -30,6 +30,8 @@ export function stringifyNodes(nodes: RootContent[] | RootContent): string {
       bullet: "-",
       rule: "*",
       emphasis: "*",
+      fence: "~",
+      fences: true,
     })
     .stringify(rootNode);
 
