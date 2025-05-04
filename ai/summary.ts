@@ -1,20 +1,23 @@
+import {
+  findNearestLocale,
+  isLocale,
+  type Locale,
+} from "@hackerspub/models/i18n";
 import { join } from "@std/path/join";
 import { generateText, type LanguageModelV1 } from "ai";
-import { findNearestLanguage } from "./language.ts";
 
-const PROMPT_LANGUAGES: string[] = (
+const PROMPT_LANGUAGES: Locale[] = (
   await Array.fromAsync(
     Deno.readDir(join(import.meta.dirname!, "prompts", "summary")),
   )
-).map((f) => f.name.replace(/\.md$/, ""));
+).map((f) => f.name.replace(/\.md$/, "")).filter(isLocale);
 
 async function getSummaryPrompt(
   sourceLanguage: string,
   targetLanguage: string,
 ): Promise<string> {
-  const promptLanguage =
-    findNearestLanguage(targetLanguage, PROMPT_LANGUAGES) ??
-      findNearestLanguage(sourceLanguage, PROMPT_LANGUAGES) ?? "en";
+  const promptLanguage = findNearestLocale(targetLanguage, PROMPT_LANGUAGES) ??
+    findNearestLocale(sourceLanguage, PROMPT_LANGUAGES) ?? "en";
   const promptPath = join(
     import.meta.dirname!,
     "prompts",

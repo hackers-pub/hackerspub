@@ -11,8 +11,8 @@ import type {
   PostMedium,
   Reaction,
 } from "@hackerspub/models/schema";
+import { ArticleExcerpt } from "../islands/ArticleExcerpt.tsx";
 import { PostControls } from "../islands/PostControls.tsx";
-import { ArticleExcerpt } from "./ArticleExcerpt.tsx";
 import { Translation } from "./Msg.tsx";
 import { NoteExcerpt } from "./NoteExcerpt.tsx";
 
@@ -103,6 +103,7 @@ export function PostExcerpt(props: PostExcerptProps) {
           {isArticleLike(post)
             ? (
               <ArticleExcerpt
+                language={language}
                 class={props.class}
                 post={post}
                 sharer={sharer}

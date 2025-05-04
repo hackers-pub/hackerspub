@@ -4,9 +4,9 @@ import { extractMentionsFromHtml } from "@hackerspub/models/markup";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type { Account, Actor } from "@hackerspub/models/schema";
 import { ActorList } from "../../../../components/ActorList.tsx";
-import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
 import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
+import { ArticleExcerpt } from "../../../../islands/ArticleExcerpt.tsx";
 import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { define } from "../../../../utils.ts";
@@ -73,6 +73,7 @@ export default define.page<typeof handler, ArticleSharesProps>(
   ({ data: { article, sharers, sharersMentions }, state }) => (
     <div>
       <ArticleExcerpt
+        language={state.language}
         post={article.post}
         signedAccount={state.account}
       />

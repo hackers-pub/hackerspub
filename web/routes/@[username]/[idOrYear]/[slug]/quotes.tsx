@@ -13,10 +13,10 @@ import type {
 } from "@hackerspub/models/schema";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
-import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
+import { ArticleExcerpt } from "../../../../islands/ArticleExcerpt.tsx";
 import { Composer } from "../../../../islands/Composer.tsx";
 import { PostControls } from "../../../../islands/PostControls.tsx";
 import { define } from "../../../../utils.ts";
@@ -133,6 +133,7 @@ export default define.page<typeof handler, ArticleQuotesProps>(
   ({ data: { article, quotes }, state }) => (
     <div>
       <ArticleExcerpt
+        language={state.language}
         post={article.post}
         signedAccount={state.account}
       />

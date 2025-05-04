@@ -4,11 +4,11 @@ import { extractMentionsFromHtml } from "@hackerspub/models/markup";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type { Account, Actor, CustomEmoji } from "@hackerspub/models/schema";
 import { ActorList } from "../../../../components/ActorList.tsx";
-import { ArticleExcerpt } from "../../../../components/ArticleExcerpt.tsx";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PageTitle } from "../../../../components/PageTitle.tsx";
 import { PostReactionsNav } from "../../../../components/PostReactionsNav.tsx";
 import { db } from "../../../../db.ts";
+import { ArticleExcerpt } from "../../../../islands/ArticleExcerpt.tsx";
 import { PostControls } from "../../../../islands/PostControls.tsx";
 import { kv } from "../../../../kv.ts";
 import { define } from "../../../../utils.ts";
@@ -103,6 +103,7 @@ export default define.page<typeof handler, ArticleReactionsProps>(
   ({ data: { article, reactions, reactorsMentions, total }, state }) => (
     <div>
       <ArticleExcerpt
+        language={state.language}
         post={article.post}
         signedAccount={state.account}
       />

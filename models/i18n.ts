@@ -58,3 +58,58 @@ export function normalizeLocale(value: string): Locale | undefined {
   }
   return isLocale(normalized) ? normalized : undefined;
 }
+
+/**
+ * Finds the nearest locale from a list of available locales.
+ *
+ * @example
+ * ```ts
+ * const availableLocales = ["en-US", "ko", "zh-HK"];
+ * findNearestLocale("en", availableLanguages); // "en-US"
+ * findNearestLocale("ko-KR", availableLanguages); // "ko"
+ * findNearestLocale("zh", availableLanguages); // "zh-HK"
+ * findNearestLocale("zh-CN", availableLanguages); // "zh-HK"
+ * findNearestLocale("fr", availableLanguages); // undefined
+ * ```
+ * @param locale The locale to find the nearest match for.
+ * @param availableLocales The list of available locales to search in.
+ * @returns The nearest locale if found, otherwise `undefined`.
+ */
+export function findNearestLocale(
+  locale: string,
+  availableLocales: Locale[],
+): Locale | undefined {
+  const lowerCaseLanguage = locale.toLowerCase();
+
+  // Check for exact match first (case-insensitive)
+  const exactMatch = availableLocales.find(
+    (lang) => lang.toLowerCase() === lowerCaseLanguage,
+  );
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const languageParts = lowerCaseLanguage.split("-");
+  const languageWithoutRegion = languageParts[0];
+
+  // Find all available locales that start with the base locale (case-insensitive)
+  const matchingBaseLanguages = availableLocales.filter((lang) => {
+    const lowerCaseLang = lang.toLowerCase();
+    return lowerCaseLang.startsWith(`${languageWithoutRegion}-`) ||
+      lowerCaseLang === languageWithoutRegion;
+  });
+
+  if (matchingBaseLanguages.length > 0) {
+    // Prefer exact base locale match if available (case-insensitive)
+    const exactBaseMatch = availableLocales.find(
+      (lang) => lang.toLowerCase() === languageWithoutRegion,
+    );
+    if (exactBaseMatch) {
+      return exactBaseMatch;
+    }
+    // Otherwise, return the first available locale with any region
+    return matchingBaseLanguages[0];
+  }
+
+  return undefined;
+}

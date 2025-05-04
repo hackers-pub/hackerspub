@@ -1,18 +1,22 @@
+import {
+  findNearestLocale,
+  isLocale,
+  type Locale,
+} from "@hackerspub/models/i18n";
 import { getLogger } from "@logtape/logtape";
 import { join } from "@std/path/join";
 import { generateText, type LanguageModelV1 } from "ai";
 import { splitTextIntoChunks } from "./chunk.ts";
-import { findNearestLanguage } from "./language.ts";
 
 const logger = getLogger(["hackerspub", "ai", "translate"]);
 
 const MAX_CHUNK_SIZE = 3000;
 
-const PROMPT_LANGUAGES: string[] = (
+const PROMPT_LANGUAGES: Locale[] = (
   await Array.fromAsync(
     Deno.readDir(join(import.meta.dirname!, "prompts", "translate")),
   )
-).map((f) => f.name.replace(/\.md$/, ""));
+).map((f) => f.name.replace(/\.md$/, "")).filter(isLocale);
 
 /**
  * Gets the translation prompt for a given language pair
@@ -22,9 +26,8 @@ async function getTranslationPrompt(
   sourceLanguage: string,
   targetLanguage: string,
 ): Promise<string> {
-  const promptLanguage =
-    findNearestLanguage(targetLanguage, PROMPT_LANGUAGES) ??
-      findNearestLanguage(sourceLanguage, PROMPT_LANGUAGES) ?? "en";
+  const promptLanguage = findNearestLocale(targetLanguage, PROMPT_LANGUAGES) ??
+    findNearestLocale(sourceLanguage, PROMPT_LANGUAGES) ?? "en";
 
   // Read the main translation prompt
   const promptPath = join(

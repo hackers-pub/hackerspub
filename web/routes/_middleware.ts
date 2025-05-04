@@ -1,4 +1,8 @@
-import { isLocale } from "@hackerspub/models/i18n";
+import {
+  isLocale,
+  type Locale,
+  normalizeLocale,
+} from "@hackerspub/models/i18n";
 import { acceptsLanguages } from "@std/http/negotiation";
 import * as models from "../ai.ts";
 import { db } from "../db.ts";
@@ -71,8 +75,10 @@ export const handler = define.middleware([
       if (!locales.includes(lang)) locales.unshift(lang);
     }
     ctx.state.locales = locales
-      .map((locale) => locale === "*" ? DEFAULT_LANGUAGE : locale)
-      .filter(isLocale);
+      .map((locale) =>
+        locale === "*" ? DEFAULT_LANGUAGE : normalizeLocale(locale)
+      )
+      .filter((l): l is Locale => l != null && isLocale(l));
     ctx.state.t = getFixedT(ctx.state.language);
     ctx.state.title = "Hackers' Pub";
     ctx.state.metas ??= [];
