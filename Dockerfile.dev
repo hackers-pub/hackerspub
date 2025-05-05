@@ -6,7 +6,6 @@ RUN apt-get update && apt-get install -y build-essential ffmpeg jq && \
 WORKDIR /app
 COPY web/fonts /app/web/fonts
 
-COPY .npmrc /app/.npmrc
 COPY deno.json /app/deno.json
 COPY ai/deno.json /app/ai/deno.json
 COPY federation/deno.json /app/federation/deno.json
