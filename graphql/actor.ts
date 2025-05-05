@@ -5,6 +5,7 @@ import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { escape } from "@std/html/entities";
 import { builder } from "./builder.ts";
 import { assertNever } from "@std/assert/unstable-never";
+import { Post } from "./post.ts";
 
 export const ActorType = builder.enumType("ActorType", {
   values: [
@@ -42,7 +43,10 @@ export const Actor = builder.drizzleNode("actorTable", {
           ? "PERSON"
           : actor.type === "Service"
           ? "SERVICE"
-          : assertNever(actor.type, `Unknown value in \`Actor.type\`: "${actor.type}"`);
+          : assertNever(
+            actor.type,
+            `Unknown value in \`Actor.type\`: "${actor.type}"`,
+          );
       },
     }),
     username: t.exposeString("username"),
@@ -99,6 +103,17 @@ export const Actor = builder.drizzleNode("actorTable", {
     account: t.relation("account", { nullable: true }),
     instance: t.relation("instance", { type: Instance, nullable: true }),
     successor: t.relation("successor", { nullable: true }),
+    posts: t.relatedConnection("posts", { type: Post }),
+    pins: t.connection({
+      type: Post,
+      select: (args, ctx, nestedSelection) => ({
+        with: {
+          pins: pinConnectionHelpers.getQuery(args, ctx, nestedSelection),
+        },
+      }),
+      resolve: (actor, args, ctx) =>
+        pinConnectionHelpers.resolve(actor.pins, args, ctx),
+    }),
   }),
 });
 
@@ -174,6 +189,19 @@ const followeeConnectionHelpers = drizzleConnectionHelpers(
       },
     }),
     resolveNode: (following) => following.followee,
+  },
+);
+
+const pinConnectionHelpers = drizzleConnectionHelpers(
+  builder,
+  "pinTable",
+  {
+    select: (nodeSelection) => ({
+      with: {
+        post: nodeSelection({}),
+      },
+    }),
+    resolveNode: (pin) => pin.post,
   },
 );
 

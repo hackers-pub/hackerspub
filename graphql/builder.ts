@@ -57,6 +57,10 @@ export interface PothosTypes {
       Input: string;
       Output: string;
     };
+    MediaType: {
+      Input: string;
+      Output: string;
+    };
     URL: {
       Input: URL;
       Output: URL;
@@ -173,5 +177,12 @@ builder.addScalarType(
 builder.addScalarType("URL", URLResolver);
 builder.addScalarType("UUID", UUIDResolver);
 
+builder.scalarType("MediaType", {
+  serialize: (v) => v,
+  parseValue: (v) => String(v),
+});
+
 builder.queryType({});
 // builder.mutationType({});
+
+export const Node = builder.nodeInterfaceRef();
