@@ -51,6 +51,9 @@ export const accountTable = pgTable(
     hideForeignLanguages: boolean("hide_foreign_languages")
       .notNull()
       .default(false),
+    preferAiSummary: boolean("prefer_ai_summary")
+      .notNull()
+      .default(true),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),

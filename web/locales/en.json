@@ -131,6 +131,12 @@
       "howToVerifyLinks": "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {{relMe}} attribute.",
       "save": "Save"
     },
+    "preferences": {
+      "title": "Preferences",
+      "preferAiSummary": "Prefer AI-generated summary",
+      "preferAiSummaryDescription": "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary.",
+      "save": "$t(settings.profile.save)"
+    },
     "language": {
       "title": "Language settings",
       "hideForeignLanguages": "Hide posts in languages you don't know from your timeline",

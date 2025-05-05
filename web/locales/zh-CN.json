@@ -129,6 +129,12 @@
       "howToVerifyLinks": "你可以验证这些链接确实属于你。在链接的页面上使用 {{relMe}} 属性链接回你的 Hackers' Pub 个人资料页。",
       "save": "保存"
     },
+    "preferences": {
+      "title": "偏好设置",
+      "preferAiSummary": "优先使用AI生成的摘要",
+      "preferAiSummaryDescription": "启用后，AI将为文章生成摘要。否则，将使用文章的前几行作为摘要。",
+      "save": "$t(settings.profile.save)"
+    },
     "language": {
       "title": "语言设置",
       "hideForeignLanguages": "在你的$t(glossary.timeline)中隐藏你不懂的语言的$t(glossary.post)",

@@ -568,6 +568,13 @@
       "when": 1746106367569,
       "tag": "0080_article_content.being_translated",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1746424883142,
+      "tag": "0081_account.prefer_ai_summary",
+      "breakpoints": true
     }
   ]
 }

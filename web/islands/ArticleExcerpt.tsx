@@ -30,7 +30,7 @@ interface ArticleExcerptProps {
 }
 
 export function ArticleExcerpt(props: ArticleExcerptProps) {
-  const { post, replier, sharer, language } = props;
+  const { post, replier, sharer, language, signedAccount } = props;
   const [content, setContent] = useState<
     {
       title: string | null;
@@ -168,10 +168,10 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
           authorHandle={post.actor.handle}
           authorAvatarUrl={getAvatarUrl(post.actor)}
           published={post.published}
-          editUrl={post.actorId === props.signedAccount?.actor.id
+          editUrl={post.actorId === signedAccount?.actor.id
             ? `${post.url}/edit`
             : null}
-          deleteUrl={post.actorId === props.signedAccount?.actor.id
+          deleteUrl={post.actorId === signedAccount?.actor.id
             ? `${post.url}/delete`
             : null}
         />
@@ -182,7 +182,8 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
             : `${post.url ?? post.iri}/${content.language}`}
           target={remotePost ? "_blank" : undefined}
         >
-          {content.summary == null
+          {content.summary == null ||
+              signedAccount != null && !signedAccount.preferAiSummary
             ? (
               <Excerpt
                 lang={post.language}
@@ -205,7 +206,7 @@ export function ArticleExcerpt(props: ArticleExcerptProps) {
             language={language}
             post={props.post}
             class="mt-4"
-            signedAccount={props.signedAccount}
+            signedAccount={signedAccount}
           />
         )}
       </article>

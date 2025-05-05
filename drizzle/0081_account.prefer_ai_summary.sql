@@ -1,0 +1,1 @@
+ALTER TABLE "account" ADD COLUMN "prefer_ai_summary" boolean DEFAULT true NOT NULL;
