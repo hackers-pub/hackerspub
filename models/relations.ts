@@ -13,7 +13,7 @@ export const relations = defineRelations(schema, (r) => ({
       optional: false,
     }),
     articleDrafts: r.many.articleDraftTable(),
-    articleSourecs: r.many.articleSourceTable(),
+    articleSources: r.many.articleSourceTable(),
     inviter: r.one.accountTable({
       from: r.accountTable.inviterId,
       to: r.accountTable.id,
@@ -70,6 +70,7 @@ export const relations = defineRelations(schema, (r) => ({
     mentions: r.many.mentionTable(),
     posts: r.many.postTable(),
     pins: r.many.pinTable(),
+    votedPolls: r.many.pollTable(),
   },
   followingTable: {
     follower: r.one.actorTable({
@@ -252,6 +253,10 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     options: r.many.pollOptionTable(),
     votes: r.many.pollVoteTable(),
+    voters: r.many.actorTable({
+      from: r.pollTable.postId.through(r.pollVoteTable.postId),
+      to: r.actorTable.id.through(r.pollVoteTable.actorId),
+    }),
   },
   pollOptionTable: {
     poll: r.one.pollTable({

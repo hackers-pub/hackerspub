@@ -12,6 +12,7 @@ import {
 import * as vocab from "@fedify/fedify/vocab";
 import { getAnnounce } from "@hackerspub/federation/objects";
 import { getLogger } from "@logtape/logtape";
+import { assertNever } from "@std/assert/unstable-never";
 import {
   and,
   count,
@@ -480,7 +481,7 @@ export async function persistPost(
       ? "Note"
       : post instanceof vocab.Question
       ? "Question"
-      : UNREACHABLE,
+      : assertNever(post, `Unexpected type of post: ${post}`),
     visibility,
     actorId: actor.id,
     sensitive: post.sensitive ?? false,
@@ -1729,5 +1730,3 @@ export async function persistPostLink(
     .returning();
   return result[0];
 }
-
-const UNREACHABLE: never = undefined!;

@@ -9,6 +9,7 @@ import ComplexityPlugin from "@pothos/plugin-complexity";
 import DrizzlePlugin from "@pothos/plugin-drizzle";
 import RelayPlugin from "@pothos/plugin-relay";
 import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
+import SimpleObjectsPlugin from "@pothos/plugin-simple-objects";
 import TracingPlugin from "@pothos/plugin-tracing";
 import WithInputPlugin from "@pothos/plugin-with-input";
 import { getTableConfig } from "drizzle-orm/pg-core";
@@ -56,6 +57,10 @@ export interface PothosTypes {
       Input: string;
       Output: string;
     };
+    MediaType: {
+      Input: string;
+      Output: string;
+    };
     URL: {
       Input: URL;
       Output: URL;
@@ -73,6 +78,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
     RelayPlugin,
     ScopeAuthPlugin,
     DrizzlePlugin,
+    SimpleObjectsPlugin,
     TracingPlugin,
     WithInputPlugin,
   ],
@@ -171,5 +177,12 @@ builder.addScalarType(
 builder.addScalarType("URL", URLResolver);
 builder.addScalarType("UUID", UUIDResolver);
 
+builder.scalarType("MediaType", {
+  serialize: (v) => v,
+  parseValue: (v) => String(v),
+});
+
 builder.queryType({});
 // builder.mutationType({});
+
+export const Node = builder.nodeInterfaceRef();

@@ -17,6 +17,7 @@ const config: CodegenConfig = {
           DateTime: "Date",
           HTML: "string",
           Markdown: "string",
+          MediaType: "string",
           URL: "URL",
           UUID: "`${string}-${string}-${string}-${string}-${string}`",
         },

@@ -2,6 +2,9 @@ import { type GraphQLSchema, printSchema } from "graphql";
 import path from "node:path";
 import "./account.ts";
 import "./actor.ts";
+import "./reactable.ts";
+import "./post.ts";
+import "./poll.ts";
 import { builder } from "./builder.ts";
 
 export const schema: GraphQLSchema = builder.toSchema();

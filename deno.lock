@@ -94,14 +94,25 @@
     "npm:@peculiar/asn1-schema@^2.3.8": "2.3.15",
     "npm:@peculiar/asn1-x509@^2.3.8": "2.3.15",
     "npm:@phensley/language-tag@^1.9.0": "1.12.0",
-    "npm:@pothos/core@^4.6.0": "4.6.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
-    "npm:@pothos/plugin-complexity@4.1.0": "4.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
-    "npm:@pothos/plugin-drizzle@~0.8.1": "0.8.1_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
-    "npm:@pothos/plugin-relay@^4.4.1": "4.4.1_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
-    "npm:@pothos/plugin-scope-auth@^4.1.2": "4.1.2_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
-    "npm:@pothos/plugin-tracing@^1.1.0": "1.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
-    "npm:@pothos/plugin-with-input@^4.1.0": "4.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
-    "npm:@pothos/tracing-opentelemetry@^1.1.0": "1.1.0_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.32.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@pothos+plugin-tracing@1.1.0__@pothos+core@4.6.0___graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/core@^4.6.0": "4.6.2_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/core@^4.6.2": "4.6.2_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-complexity@4.1.0": "4.1.0_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-complexity@4.1.1": "4.1.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-drizzle@0.9": "0.9.0_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@opentelemetry+api@1.9.0_postgres@3.4.5",
+    "npm:@pothos/plugin-drizzle@~0.10.1": "0.10.2_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@opentelemetry+api@1.9.0_postgres@3.4.5",
+    "npm:@pothos/plugin-drizzle@~0.10.2": "0.10.2_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@opentelemetry+api@1.9.0_postgres@3.4.5",
+    "npm:@pothos/plugin-drizzle@~0.8.1": "0.8.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-relay@^4.4.1": "4.4.2_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-relay@^4.4.2": "4.4.2_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-scope-auth@^4.1.2": "4.1.3_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-scope-auth@^4.1.3": "4.1.3_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-simple-objects@^4.1.2": "4.1.2_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-tracing@^1.1.0": "1.1.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-tracing@^1.1.1": "1.1.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-with-input@^4.1.0": "4.1.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/plugin-with-input@^4.1.1": "4.1.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/tracing-opentelemetry@^1.1.0": "1.1.1_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.32.0_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@pothos+plugin-tracing@1.1.1__@pothos+core@4.6.2___graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
+    "npm:@pothos/tracing-opentelemetry@^1.1.1": "1.1.1_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.32.0_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@pothos+plugin-tracing@1.1.1__@pothos+core@4.6.2___graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20",
     "npm:@preact/signals@^1.2.3": "1.3.2_preact@10.26.5",
     "npm:@preact/signals@^1.3.1": "1.3.2_preact@10.26.5",
     "npm:@resvg/resvg-js@^2.6.2": "2.6.2",
@@ -2595,56 +2606,86 @@
         "secure-json-parse@3.0.2"
       ]
     },
-    "@pothos/core@4.6.0_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
-      "integrity": "sha512-l3uLPCZG6weomhlx1VmYSMi32dm4jMJ51BUOdhBCKB15E/YAHkzf4dxqXDhyCj63jMxwt5Zz72ITR3AwA9bJqA==",
+    "@pothos/core@4.6.2_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-3mwMf1t87VnfFIAZNJPptR3+k3TVLsynV35PXsFrodtCGv/IOlRDJNjgavIeObPz5qI38cjJ6DeFy6XDXrvudQ==",
       "dependencies": [
         "graphql"
       ]
     },
-    "@pothos/plugin-complexity@4.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
-      "integrity": "sha512-Llw1jy9mJPO+mhgv3Kkgdiw1olzTnrBmIVlkFab/XhnziRS54JaR1JnkDb2faEt6OVLtn5/ObLDdke1Kl6+BjA==",
-      "dependencies": [
-        "@pothos/core",
-        "graphql"
-      ]
-    },
-    "@pothos/plugin-drizzle@0.8.1_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
-      "integrity": "sha512-RYD/+o9KZQskztLX6lTzTTAMvQ/1S08Jx8wpaHSeUCJ9bqnLQsnji4jFLBrB54JYOP9MZnviSAOpBjPhEG8h1w==",
+    "@pothos/plugin-complexity@4.1.0_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-huETiKiFuyNIzuZRFgTKkcUyYJOhn9UC/+lhGk5R6L0mhlCwutYfuycK/LDkqVIgQ+BTj0QnnQXvnTLHSLKOAQ==",
       "dependencies": [
         "@pothos/core",
         "graphql"
       ]
     },
-    "@pothos/plugin-relay@4.4.1_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
-      "integrity": "sha512-/EOPQfIYvYMhIt6h/CZ+1dKA6R+rZmZ8VNFICiU1aHe01Gtf+VIr3g8mXa5EdkGeLJX5p+NzrpnSnjbvWh032g==",
+    "@pothos/plugin-complexity@4.1.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-esP0ZandOsNtMge8pdQugdogOBpW96tFObtFPfjx8Ar80mWcR467mLwfRjhK+2JBycZYhgCT8qrXksDYma8sAA==",
       "dependencies": [
         "@pothos/core",
         "graphql"
       ]
     },
-    "@pothos/plugin-scope-auth@4.1.2_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
-      "integrity": "sha512-LKpzoxgF0CZr8TVu73JKC4tmiPBY2pxf94Zo9WQXNq+b06Q0akvfZH/v+mFa4zroRpBnjLg+eBJn7+Dbdf0ARA==",
+    "@pothos/plugin-drizzle@0.10.2_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@opentelemetry+api@1.9.0_postgres@3.4.5": {
+      "integrity": "sha512-4PNwxAjqiISKDG+dA/QIrB43bUk67hiWj3xShGO1kejOqCfX2z/3QSbF5ToTs5l71A4+MO/9iy71RzV6Z8CjuQ==",
+      "dependencies": [
+        "@pothos/core",
+        "drizzle-orm",
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-drizzle@0.8.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-ul4eTS3KdeMCmrdvn0syLjbxXxpi5P6P0uNIDLF7Z/nP3J5lLW6Yul/BKpgr3fdzBoSmh1vmoBacRiGnssc3ZA==",
       "dependencies": [
         "@pothos/core",
         "graphql"
       ]
     },
-    "@pothos/plugin-tracing@1.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
-      "integrity": "sha512-+ykbg5ZcQaNbUG6yTJtwAqYKA+4KuLOLiqeepAO+GF38SC8nwSeRqW1oANvpuEIMcQ7BIVyd97Nhe+DfNODEiQ==",
+    "@pothos/plugin-drizzle@0.9.0_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.5_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@opentelemetry+api@1.9.0_postgres@3.4.5": {
+      "integrity": "sha512-iOosSevyPS2ZAaOYbgVe/amyBQFuE3k/wIzApPmLBgiKC1LhUkFcUU5c9TpLDmC/D5MgbTLT0icd3g64EZCyjw==",
+      "dependencies": [
+        "@pothos/core",
+        "drizzle-orm",
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-relay@4.4.2_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-tfFJiEwIqU2g46E8PTIX9vw4uxkj5FlQLDrQo3Gik1F5/Zo7EpAs/iK5wpAgUd2bRveQnLbsb1IhtZxKp0BqcA==",
       "dependencies": [
         "@pothos/core",
         "graphql"
       ]
     },
-    "@pothos/plugin-with-input@4.1.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
-      "integrity": "sha512-XHKZAuIguSz5rCYVq/wrS5BQS4ejst0J2xgaH2hvkdftv+VaOqRkMkqhWNq35LvNAw7y1LO9ivJ6h3AkouqRRA==",
+    "@pothos/plugin-scope-auth@4.1.3_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-lFxrvplt2MQ2OHAcIF1Rikz/VlVkluIhvXT2JNW0X5JGDjCf2kKgHU5cSWjQMDq8s3k9He1HZFYYdli1z77YDA==",
       "dependencies": [
         "@pothos/core",
         "graphql"
       ]
     },
-    "@pothos/tracing-opentelemetry@1.1.0_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.32.0_@pothos+core@4.6.0__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@pothos+plugin-tracing@1.1.0__@pothos+core@4.6.0___graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
-      "integrity": "sha512-zq6zDkzoG9UVZ4by8F5q/WvgBadzoKxOSOfIKYJQtOfoCabsIZlJ1XWn5NOwFz5qBDc0A3vdsTqeegmiKX0PdA==",
+    "@pothos/plugin-simple-objects@4.1.2_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-veN3xEre4yCmOvGb6BnenHntzlyEIkSw7Dn2MjKRvH8L5mte1e9GBkbzdXbd2RpUoiB6C7zCxOlzk0k2xnR1cA==",
+      "dependencies": [
+        "@pothos/core",
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-tracing@1.1.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-y4+rFRLzlFgnXp/g0qJveB5/mNpY0hJESdcoVw7Urf/sYmJmNCf5mX9fo5wdVeVJCbCX3lgWD0iBjf5+1SFAsA==",
+      "dependencies": [
+        "@pothos/core",
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-with-input@4.1.1_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-7JNQi+2ut8o6VR2IbLg6l656sHez49M0zZzZM2MV+VqzAJyWKUqqauMpMUkdbuyCHGtEj99oDNDXcpBcVGHRrg==",
+      "dependencies": [
+        "@pothos/core",
+        "graphql"
+      ]
+    },
+    "@pothos/tracing-opentelemetry@1.1.1_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.32.0_@pothos+core@4.6.2__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_@pothos+plugin-tracing@1.1.1__@pothos+core@4.6.2___graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20__graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20_graphql@16.10.0-canary.pr.4364.6b142546832c1283b535908fb8c9a171b2f7cc20": {
+      "integrity": "sha512-3liDEvGkvKDiOLE97tcvUuW3jCU/D8w8mO6OX5hS4DF3GKLVoZfY1vGqBcj71frfEeRJbV0/UC3T90F3lpeE4w==",
       "dependencies": [
         "@opentelemetry/api",
         "@opentelemetry/semantic-conventions@1.32.0",
@@ -6958,14 +6999,15 @@
       "npm:@opentelemetry/sdk-trace-base@^1.28.0",
       "npm:@opentelemetry/semantic-conventions@^1.28.0",
       "npm:@parcel/watcher@^2.5.1",
-      "npm:@pothos/core@^4.6.0",
-      "npm:@pothos/plugin-complexity@4.1.0",
-      "npm:@pothos/plugin-drizzle@~0.8.1",
-      "npm:@pothos/plugin-relay@^4.4.1",
-      "npm:@pothos/plugin-scope-auth@^4.1.2",
-      "npm:@pothos/plugin-tracing@^1.1.0",
-      "npm:@pothos/plugin-with-input@^4.1.0",
-      "npm:@pothos/tracing-opentelemetry@^1.1.0",
+      "npm:@pothos/core@^4.6.2",
+      "npm:@pothos/plugin-complexity@4.1.1",
+      "npm:@pothos/plugin-drizzle@~0.10.2",
+      "npm:@pothos/plugin-relay@^4.4.2",
+      "npm:@pothos/plugin-scope-auth@^4.1.3",
+      "npm:@pothos/plugin-simple-objects@^4.1.2",
+      "npm:@pothos/plugin-tracing@^1.1.1",
+      "npm:@pothos/plugin-with-input@^4.1.1",
+      "npm:@pothos/tracing-opentelemetry@^1.1.1",
       "npm:@preact/signals@^1.3.1",
       "npm:@resvg/resvg-js@^2.6.2",
       "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0",

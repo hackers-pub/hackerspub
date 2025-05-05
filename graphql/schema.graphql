@@ -53,6 +53,8 @@ type Actor implements Node {
   instanceHost: String!
   iri: URL!
   name: HTML
+  pins(after: String, before: String, first: Int, last: Int): ActorPinsConnection!
+  posts(after: String, before: String, first: Int, last: Int): ActorPostsConnection!
   published: DateTime
   rawName: String
   sensitive: Boolean!
@@ -90,12 +92,77 @@ type ActorFollowersConnectionEdge {
   node: Actor!
 }
 
+type ActorPinsConnection {
+  edges: [ActorPinsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorPinsConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
+type ActorPostsConnection {
+  edges: [ActorPostsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorPostsConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
 enum ActorType {
   APPLICATION
   GROUP
   ORGANIZATION
   PERSON
   SERVICE
+}
+
+type Article implements Node & Post & Reactable {
+  account: Account!
+  actor: Actor!
+  allowLlmTranslation: Boolean!
+  content: HTML!
+  engagementStats: PostEngagementStats!
+  hashtags: [Hashtag!]!
+  id: ID!
+  iri: URL!
+  language: String
+  link: PostLink
+  media: [PostMedium!]!
+  mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
+  name: String
+  published: DateTime!
+  publishedYear: Int!
+  quotedPost: Post
+  quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  reactionGroups: [ReactionGroup!]!
+  replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
+  replyTarget: Post
+  sensitive: Boolean!
+  sharedPost: Post
+  shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
+  slug: String!
+  summary: String
+  tags: [String!]!
+  updated: DateTime!
+  url: URL
+  visibility: PostVisibility!
+}
+
+type CustomEmoji implements Node {
+  id: ID!
+  imageUrl: String!
+  iri: URL!
+  name: String!
+}
+
+type CustomEmojiReactionGroup implements ReactionGroup {
+  customEmoji: CustomEmoji!
+  reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
+  subject: Reactable!
 }
 
 """
@@ -108,8 +175,19 @@ A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `dat
 """
 scalar DateTime
 
+type EmojiReactionGroup implements ReactionGroup {
+  emoji: String!
+  reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
+  subject: Reactable!
+}
+
 """An HTML string."""
 scalar HTML
+
+type Hashtag {
+  href: URL!
+  name: String!
+}
 
 type Instance implements Node {
   created: DateTime!
@@ -123,8 +201,37 @@ type Instance implements Node {
 """A Hackers' Pub-flavored Markdown text."""
 scalar Markdown
 
+scalar MediaType
+
 interface Node {
   id: ID!
+}
+
+type Note implements Node & Post & Reactable {
+  actor: Actor!
+  content: HTML!
+  engagementStats: PostEngagementStats!
+  hashtags: [Hashtag!]!
+  id: ID!
+  iri: URL!
+  language: String
+  link: PostLink
+  media: [PostMedium!]!
+  mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
+  name: String
+  published: DateTime!
+  quotedPost: Post
+  quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  reactionGroups: [ReactionGroup!]!
+  replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
+  replyTarget: Post
+  sensitive: Boolean!
+  sharedPost: Post
+  shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
+  summary: String
+  updated: DateTime!
+  url: URL
+  visibility: PostVisibility!
 }
 
 type PageInfo {
@@ -134,6 +241,176 @@ type PageInfo {
   startCursor: String
 }
 
+type Poll implements Node {
+  ends: DateTime!
+  id: ID!
+  multiple: Boolean!
+  options: [PollOption!]!
+  post: Post!
+  voters(after: String, before: String, first: Int, last: Int): PollVotersConnection!
+  votes(after: String, before: String, first: Int, last: Int): PollVotesConnection!
+}
+
+type PollOption {
+  poll: Poll!
+  title: String!
+  votes(after: String, before: String, first: Int, last: Int): PollOptionVotesConnection!
+}
+
+type PollOptionVotesConnection {
+  edges: [PollOptionVotesConnectionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PollOptionVotesConnectionEdge {
+  cursor: String!
+  node: PollVote!
+}
+
+type PollVote {
+  actor: Actor!
+  created: DateTime!
+  option: PollOption!
+  poll: Poll!
+}
+
+type PollVotersConnection {
+  edges: [PollVotersConnectionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PollVotersConnectionEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type PollVotesConnection {
+  edges: [PollVotesConnectionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PollVotesConnectionEdge {
+  cursor: String!
+  node: PollVote!
+}
+
+interface Post implements Node & Reactable {
+  actor: Actor!
+  content: HTML!
+  engagementStats: PostEngagementStats!
+  hashtags: [Hashtag!]!
+  id: ID!
+  iri: URL!
+  language: String
+  link: PostLink
+  media: [PostMedium!]!
+  mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
+  name: String
+  published: DateTime!
+  quotedPost: Post
+  quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  reactionGroups: [ReactionGroup!]!
+  replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
+  replyTarget: Post
+  sensitive: Boolean!
+  sharedPost: Post
+  shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
+  summary: String
+  updated: DateTime!
+  url: URL
+  visibility: PostVisibility!
+}
+
+type PostEngagementStats {
+  post: Post!
+  quotes: Int!
+  reactions: Int!
+  replies: Int!
+  shares: Int!
+}
+
+type PostLink implements Node {
+  author: String
+  description: String
+  id: ID!
+  image: PostLinkImage
+  siteName: String
+  title: String
+  type: String
+  url: URL!
+}
+
+type PostLinkImage {
+  alt: String
+  height: Int
+  post: PostLink!
+  type: MediaType
+  url: URL!
+  width: Int
+}
+
+type PostMedium implements Node {
+  alt: String
+  height: Int
+  id: ID!
+  sensitive: Boolean!
+  thumbnailUrl: String
+  type: MediaType!
+  url: URL!
+  width: Int
+}
+
+type PostMentionsConnection {
+  edges: [PostMentionsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PostMentionsConnectionEdge {
+  cursor: String!
+  node: Actor!
+}
+
+type PostQuotesConnection {
+  edges: [PostQuotesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PostQuotesConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
+type PostRepliesConnection {
+  edges: [PostRepliesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PostRepliesConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
+type PostSharesConnection {
+  edges: [PostSharesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PostSharesConnectionEdge {
+  cursor: String!
+  node: Post!
+}
+
+enum PostVisibility {
+  DIRECT
+  FOLLOWERS
+  NONE
+  PUBLIC
+  UNLISTED
+}
+
 type Query {
   accountByUsername(username: String!): Account
   actorByHandle(handle: String!): Actor
@@ -141,6 +418,55 @@ type Query {
   instanceByHost(host: String!): Instance
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+}
+
+type Question implements Node & Post & Reactable {
+  actor: Actor!
+  content: HTML!
+  engagementStats: PostEngagementStats!
+  hashtags: [Hashtag!]!
+  id: ID!
+  iri: URL!
+  language: String
+  link: PostLink
+  media: [PostMedium!]!
+  mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
+  name: String
+  poll: Poll!
+  published: DateTime!
+  quotedPost: Post
+  quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  reactionGroups: [ReactionGroup!]!
+  replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
+  replyTarget: Post
+  sensitive: Boolean!
+  sharedPost: Post
+  shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
+  summary: String
+  updated: DateTime!
+  url: URL
+  visibility: PostVisibility!
+}
+
+interface Reactable implements Node {
+  id: ID!
+  reactionGroups: [ReactionGroup!]!
+}
+
+interface ReactionGroup {
+  reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
+  subject: Reactable!
+}
+
+type ReactionGroupReactorsConnection {
+  edges: [ReactionGroupReactorsConnectionEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ReactionGroupReactorsConnectionEdge {
+  cursor: String!
+  node: Actor!
 }
 
 """
