@@ -70,6 +70,7 @@ export const relations = defineRelations(schema, (r) => ({
     mentions: r.many.mentionTable(),
     posts: r.many.postTable(),
     pins: r.many.pinTable(),
+    votedPolls: r.many.pollTable(),
   },
   followingTable: {
     follower: r.one.actorTable({
@@ -252,6 +253,10 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     options: r.many.pollOptionTable(),
     votes: r.many.pollVoteTable(),
+    voters: r.many.actorTable({
+      from: r.pollTable.postId.through(r.pollVoteTable.postId),
+      to: r.actorTable.id.through(r.pollVoteTable.actorId),
+    }),
   },
   pollOptionTable: {
     poll: r.one.pollTable({
