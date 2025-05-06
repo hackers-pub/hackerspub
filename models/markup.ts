@@ -2,6 +2,7 @@ import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
 import type * as vocab from "@fedify/fedify/vocab";
 import { hashtag, spanHashAndTag } from "@fedify/markdown-it-hashtag";
 import { mention } from "@fedify/markdown-it-mention";
+import texmath from "@hackerspub/markdown-it-texmath";
 import { getLogger } from "@logtape/logtape";
 import { titlePlugin as title } from "@mdit-vue/plugin-title";
 import cjkBreaks from "@searking/markdown-it-cjk-breaks";
@@ -30,7 +31,6 @@ import deflist from "markdown-it-deflist";
 import footnote from "markdown-it-footnote";
 import admonition from "markdown-it-github-alerts";
 import graphviz from "markdown-it-graphviz";
-import texmath from "markdown-it-texmath";
 import toc from "markdown-it-toc-done-right";
 import { codeToHtml } from "shiki";
 import { persistActor, persistActorsByHandles } from "./actor.ts";
@@ -161,6 +161,7 @@ interface Env {
   origin: string;
   mentionedActors: Record<string, Actor>;
   hashtags: string[];
+  macros: Record<string, unknown>;
 }
 
 export interface RenderMarkupOptions {
@@ -207,6 +208,7 @@ export async function renderMarkup(
     origin: fedCtx.canonicalOrigin,
     mentionedActors,
     hashtags: [],
+    macros: {},
   };
   const rawHtml = (await md.renderAsync(markup, env))
     .replaceAll('<?xml version="1.0" encoding="UTF-8" standalone="no"?>', "")
