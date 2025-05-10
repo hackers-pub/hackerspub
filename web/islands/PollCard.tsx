@@ -124,7 +124,7 @@ export function PollCard(
                 <div class="w-full">
                   <div
                     role="table"
-                    class="grid grid-cols-auto"
+                    class="grid grid-cols-none"
                     style={{ gridAutoColumns: "max-content auto max-content" }}
                   >
                     {poll.options.map((option) => (
