@@ -284,7 +284,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
           {post.media.length > 0 && (
             <div
               class={`
-              flex [justify-center:safe_center] lg:justify-center w-full overflow-x-auto
+              flex [justify-content:safe_center] w-full overflow-x-auto
               ${
                 props.replyTarget
                   ? `
