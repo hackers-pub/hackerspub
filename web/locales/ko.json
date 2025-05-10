@@ -269,9 +269,7 @@
       "sharers": "공유한 사람들"
     },
     "shareExternally": {
-      "action": "외부로 공유",
-      "title": "{{actor}}님의 Hackers' Pub 게시물",
-      "fullText": "$t(post.shareExternally.title)\n{{url}}"
+      "action": "외부로 공유"
     }
   },
   "poll": {

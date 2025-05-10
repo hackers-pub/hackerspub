@@ -271,9 +271,7 @@
       "sharers": "共有した人々"
     },
     "shareExternally": {
-      "action": "外部へ共有",
-      "title": "{{actor}}さんのHackers' Pub投稿",
-      "fullText": "$t(post.shareExternally.title)\n{{url}}"
+      "action": "外部へ共有"
     }
   },
   "poll": {

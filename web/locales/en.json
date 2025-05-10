@@ -277,9 +277,7 @@
       "sharers": "Who shared this"
     },
     "shareExternally": {
-      "action": "Share externally",
-      "title": "Post on Hackers' Pub by {{actor}}",
-      "fullText": "$t(post.shareExternally.title)\n{{url}}"
+      "action": "Share externally"
     }
   },
   "poll": {

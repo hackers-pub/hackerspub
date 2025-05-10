@@ -149,18 +149,13 @@ export function PostControls(props: PostControlsProps) {
   const shareableExternally = navigator.clipboard != null ||
     navigator.share != null;
   function onShareExternally() {
+    const permalink = post.url ?? post.iri;
     if (navigator.share) {
       navigator.share({
-        title: t("post.shareExternally.title", {
-          actor: `${post.actor.name}(${post.actor.handle})`,
-        }),
-        url: localPostUrl,
+        url: permalink,
       });
     } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(t("post.shareExternally.fullText", {
-        actor: `${post.actor.name}(${post.actor.handle})`,
-        url: localPostUrl,
-      })).then(() => {
+      navigator.clipboard.writeText(permalink).then(() => {
         alert(t("clipboard.copied"));
       });
     }

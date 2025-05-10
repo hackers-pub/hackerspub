@@ -273,9 +273,7 @@
       "sharers": "轉貼此內容的人"
     },
     "shareExternally": {
-      "action": "外部共享",
-      "title": "{{actor}}的Hackers' Pub帖子",
-      "fullText": "$t(post.shareExternally.title)\n{{url}}"
+      "action": "外部共享"
     }
   },
   "poll": {
