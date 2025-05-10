@@ -93,7 +93,13 @@ export function PollCard(
     <TranslationSetup language={language}>
       {poll !== null &&
         (
-          <div class={`bg-stone-100 dark:bg-stone-800 p-4 w-fit ${cls ?? ""}`}>
+          <div
+            class={`
+              bg-stone-100 dark:bg-stone-800
+              p-4 max-w-[65ch]
+              ${cls ?? ""}
+            `}
+          >
             {typeof poll === "undefined"
               ? (
                 <svg
@@ -115,7 +121,7 @@ export function PollCard(
                 </svg>
               )
               : (
-                <div class="max-w-[65ch]">
+                <div class="w-full">
                   <div
                     role="table"
                     class="grid grid-cols-auto"
