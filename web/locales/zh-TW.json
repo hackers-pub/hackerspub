@@ -271,6 +271,9 @@
       "stats": "反應統計",
       "reactedPeople": "{{count}}人做出了反應。",
       "sharers": "轉貼此內容的人"
+    },
+    "shareExternally": {
+      "action": "外部共享"
     }
   },
   "poll": {
@@ -376,5 +379,8 @@
   "pageNotFound": {
     "title": "未找到頁面",
     "description": "未找到你請求的頁面。"
+  },
+  "clipboard": {
+    "copied": "複製了到剪貼簿。"
   }
 }

@@ -269,6 +269,9 @@
       "stats": "リアクション統計",
       "reactedPeople": "{{count}}人がリアクションしました。",
       "sharers": "共有した人々"
+    },
+    "shareExternally": {
+      "action": "外部へ共有"
     }
   },
   "poll": {
@@ -374,5 +377,8 @@
   "pageNotFound": {
     "title": "ページが見つかりません",
     "description": "お探しのページが見つかりませんでした。"
+  },
+  "clipboard": {
+    "copied": "クリップボードにコピーされました。"
   }
 }

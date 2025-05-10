@@ -275,6 +275,9 @@
       "reactedPeople_one": "{{count}} person reacted.",
       "reactedPeople_other": "{{count}} people reacted.",
       "sharers": "Who shared this"
+    },
+    "shareExternally": {
+      "action": "Share externally"
     }
   },
   "poll": {
@@ -382,5 +385,8 @@
   "pageNotFound": {
     "title": "Page not found",
     "description": "The page you were looking for vould not be found."
+  },
+  "clipboard": {
+    "copied": "Copied to the clipboard."
   }
 }

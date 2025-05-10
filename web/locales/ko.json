@@ -267,6 +267,9 @@
       "stats": "반응 통계",
       "reactedPeople": "{{count}}명이 반응했습니다.",
       "sharers": "공유한 사람들"
+    },
+    "shareExternally": {
+      "action": "외부로 공유"
     }
   },
   "poll": {
@@ -372,5 +375,8 @@
   "pageNotFound": {
     "title": "페이지를 찾을 수 없습니다",
     "description": "찾으시는 페이지를 찾을 수 없습니다."
+  },
+  "clipboard": {
+    "copied": "클립보드에 복사되었습니다."
   }
 }
