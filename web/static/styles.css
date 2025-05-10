@@ -305,7 +305,11 @@
   display: none;
 }
 
-/* TODO: remove this when using Tailwind CSS v4 */
+/* TODO: remove these classes when using Tailwind CSS v4 */
 .wrap-anywhere {
   overflow-wrap: anywhere;
+}
+
+.grid-cols-auto {
+  grid-template-columns: auto;
 }
