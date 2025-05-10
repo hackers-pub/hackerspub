@@ -115,11 +115,19 @@ export function PollCard(
                 </svg>
               )
               : (
-                <table class="sm:w-[40ch] md:w-[50ch] lg:w-[65ch]">
-                  <tbody>
+                <div class="max-w-[65ch]">
+                  <div
+                    role="table"
+                    class="grid grid-cols-auto"
+                    style={{ gridAutoColumns: "max-content auto max-content" }}
+                  >
                     {poll.options.map((option) => (
-                      <tr key={option.index}>
-                        <td class="pr-2">
+                      <div
+                        key={option.index}
+                        role="row"
+                        class="grid grid-cols-subgrid col-span-4"
+                      >
+                        <div role="cell" class="pr-2">
                           {poll.multiple
                             ? (
                               <input
@@ -153,19 +161,19 @@ export function PollCard(
                                 onChange={() => setSelectedOption(option.index)}
                               />
                             )}
-                        </td>
-                        <th class="w-full text-left">
+                        </div>
+                        <div role="cell" class="w-full text-left relative">
                           <label
                             for={`${idPrefix}-${postId}-${option.index}`}
                             class={`
-                              absolute z-10
+                              z-10 wrap-anywhere
                               ${votable ? "cursor-pointer" : ""}
                             `}
                           >
                             {option.title}
                           </label>
                           <div
-                            class="relative bg-black dark:bg-white opacity-15 h-5 z-0"
+                            class="absolute top-0 bg-black dark:bg-white opacity-15 h-5 z-0"
                             style={{
                               width: `${
                                 option.votesCount > 0
@@ -174,51 +182,52 @@ export function PollCard(
                               }%`,
                             }}
                           />
-                        </th>
-                        <td class="text-right whitespace-nowrap">
+                        </div>
+                        <div role="cell" class="text-right whitespace-nowrap">
                           {formatter.format(
                             votesCount > 0 ? option.votesCount / votesCount : 0,
                           )}
-                        </td>
-                        <td class="text-right whitespace-nowrap relative z-10 opacity-50">
+                        </div>
+                        <div
+                          role="cell"
+                          class="text-right whitespace-nowrap relative z-10 opacity-50"
+                        >
                           ({option.votesCount.toLocaleString(language)})
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colspan={pollEnded ? 3 : 2} class="opacity-50">
-                        <Msg
-                          $key="poll.totalVoters"
-                          voters={
-                            <strong>
-                              {poll.votersCount}
-                            </strong>
-                          }
-                        />
-                      </td>
-                      {!pollEnded &&
-                        (
-                          <td colspan={2} class="text-right">
-                            <Button
-                              type="button"
-                              disabled={!submittable}
-                              onClick={vote}
-                            >
-                              <Msg
-                                $key={votedOptions.size > 0
-                                  ? "poll.voted"
-                                  : submitting
-                                  ? "poll.submittingVote"
-                                  : "poll.submitVote"}
-                              />
-                            </Button>
-                          </td>
-                        )}
-                    </tr>
-                  </tfoot>
-                </table>
+                  </div>
+                  <div class="flex">
+                    <div class="grow opacity-50">
+                      <Msg
+                        $key="poll.totalVoters"
+                        voters={
+                          <strong>
+                            {poll.votersCount}
+                          </strong>
+                        }
+                      />
+                    </div>
+                    {!pollEnded &&
+                      (
+                        <div class="text-right">
+                          <Button
+                            type="button"
+                            disabled={!submittable}
+                            onClick={vote}
+                          >
+                            <Msg
+                              $key={votedOptions.size > 0
+                                ? "poll.voted"
+                                : submitting
+                                ? "poll.submittingVote"
+                                : "poll.submitVote"}
+                            />
+                          </Button>
+                        </div>
+                      )}
+                  </div>
+                </div>
               )}
           </div>
         )}
