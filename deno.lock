@@ -4,7 +4,7 @@
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
     "jsr:@david/which-runtime@~0.2.1": "0.2.1",
     "jsr:@fedify/fedify@1.5.0": "1.5.0",
-    "jsr:@fedify/fedify@1.6.0-dev.778+c3a73aa9": "1.6.0-dev.778+c3a73aa9",
+    "jsr:@fedify/fedify@1.6.0-dev.795+214baa8c": "1.6.0-dev.795+214baa8c",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
     "jsr:@fedify/postgres@0.3": "0.3.0",
@@ -181,6 +181,7 @@
     "npm:sharp@~0.33.5": "0.33.5",
     "npm:shiki@^3.2.1": "3.3.0",
     "npm:ssrfcheck@^1.1.1": "1.1.1",
+    "npm:structured-field-values@^2.0.4": "2.0.4",
     "npm:tailwindcss@3.4.3": "3.4.3_postcss@8.5.3",
     "npm:tailwindcss@^3.4.1": "3.4.3_postcss@8.5.3",
     "npm:tinyld@^1.3.4": "1.3.4",
@@ -225,14 +226,15 @@
         "npm:url-template"
       ]
     },
-    "@fedify/fedify@1.6.0-dev.778+c3a73aa9": {
-      "integrity": "b9dbfb4fae0db2ea0a786ef84d6aebb49aa9c0b2ae22dfdc846ea45c5a6a5a12",
+    "@fedify/fedify@1.6.0-dev.795+214baa8c": {
+      "integrity": "2411b399240d4fb0f92d4d8e55cafea860a1258cb2efe041302433c79d08bca4",
       "dependencies": [
         "jsr:@david/which-runtime",
         "jsr:@hugoalh/http-header-link",
         "jsr:@logtape/logtape@~0.8.2",
         "jsr:@std/async@^1.0.5",
         "jsr:@std/bytes@^1.0.2",
+        "jsr:@std/crypto@^1.0.4",
         "jsr:@std/encoding@1.0.7",
         "jsr:@std/http@^1.0.6",
         "jsr:@std/semver@^1.0.3",
@@ -245,6 +247,7 @@
         "npm:jsonld",
         "npm:multicodec",
         "npm:pkijs",
+        "npm:structured-field-values",
         "npm:uri-template-router",
         "npm:url-template"
       ]
@@ -6454,6 +6457,9 @@
     "strnum@1.1.2": {
       "integrity": "sha512-vrN+B7DBIoTTZjnPNewwhx6cBA/H+IS7rfW68n7XxC1y7uoiGQBxaKzqucGUgavX15dJgiGztLJ8vxuEzwqBdA=="
     },
+    "structured-field-values@2.0.4": {
+      "integrity": "sha512-5zpJXYLPwW3WYUD/D58tQjIBs10l3Yx64jZfcKGs/RH79E2t9Xm/b9+ydwdMNVSksnsIY+HR/2IlQmgo0AcTAg=="
+    },
     "stylehacks@6.1.1_postcss@8.4.35": {
       "integrity": "sha512-gSTTEQ670cJNoaeIp9KX6lZmm8LJ3jPB5yJmX8Zq/wQxOsAFXV3qjWzHas3YYk1qesuVIyYWWUpZ0vSE/dTSGg==",
       "dependencies": [
@@ -6957,7 +6963,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@1.6.0-dev.778+c3a73aa9",
+      "jsr:@fedify/fedify@1.6.0-dev.795+214baa8c",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
       "jsr:@fedify/postgres@0.3",
