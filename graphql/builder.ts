@@ -1,6 +1,7 @@
-import type { Context as FedContext } from "@fedify/fedify";
+import type { RequestContext } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
+import type { Locale } from "@hackerspub/models/i18n";
 import { relations } from "@hackerspub/models/relations";
 import type { Session } from "@hackerspub/models/session";
 import type { Uuid } from "@hackerspub/models/uuid";
@@ -18,6 +19,7 @@ import { GraphQLScalarType, Kind } from "graphql";
 import {
   DateResolver,
   DateTimeResolver,
+  LocaleResolver,
   URLResolver,
   UUIDResolver,
 } from "graphql-scalars";
@@ -28,7 +30,7 @@ export interface Context {
   db: Database;
   kv: Keyv;
   disk: Disk;
-  fedCtx: FedContext<ContextData>;
+  fedCtx: RequestContext<ContextData>;
   moderator: boolean;
   session: Promise<Session | undefined> | undefined;
 }
@@ -48,6 +50,10 @@ export interface PothosTypes {
     DateTime: {
       Input: Date;
       Output: Date;
+    };
+    Locale: {
+      Input: Locale;
+      Output: Locale;
     };
     HTML: {
       Input: string;
@@ -111,10 +117,14 @@ export const builder = new SchemaBuilder<PothosTypes>({
       moderator: ctx.moderator,
     }),
   },
+  relay: {
+    clientMutationId: "optional",
+  },
 });
 
 builder.addScalarType("Date", DateResolver);
 builder.addScalarType("DateTime", DateTimeResolver);
+builder.addScalarType("Locale", LocaleResolver);
 
 builder.addScalarType(
   "HTML",
@@ -183,6 +193,6 @@ builder.scalarType("MediaType", {
 });
 
 builder.queryType({});
-// builder.mutationType({});
+builder.mutationType({});
 
 export const Node = builder.nodeInterfaceRef();

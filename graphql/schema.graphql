@@ -8,11 +8,12 @@ type Account implements Node {
   inviter: Account
   leftInvitations: Int!
   links: [AccountLink!]!
-  locales: [String!]
+  locales: [Locale!]!
   moderator: Boolean!
   name: String!
   updated: DateTime!
   username: String!
+  usernameChanged: DateTime
   uuid: UUID!
 }
 
@@ -35,6 +36,11 @@ type AccountLink implements Node {
   name: String!
   url: URL!
   verified: DateTime
+}
+
+input AccountLinkInput {
+  name: String!
+  url: URL!
 }
 
 type Actor implements Node {
@@ -198,10 +204,17 @@ type Instance implements Node {
   updated: DateTime!
 }
 
+"""The locale in the format of a BCP 47 (RFC 5646) standard string"""
+scalar Locale
+
 """A Hackers' Pub-flavored Markdown text."""
 scalar Markdown
 
 scalar MediaType
+
+type Mutation {
+  updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
+}
 
 interface Node {
   id: ID!
@@ -478,3 +491,21 @@ scalar URL
 A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier.
 """
 scalar UUID
+
+input UpdateAccountInput {
+  bio: String
+  clientMutationId: ID
+  hideForeignLanguages: Boolean
+  hideFromInvitationTree: Boolean
+  id: ID!
+  links: [AccountLinkInput!]
+  locales: [Locale!]
+  name: String
+  preferAiSummary: Boolean
+  username: String
+}
+
+type UpdateAccountPayload {
+  account: Account!
+  clientMutationId: ID
+}

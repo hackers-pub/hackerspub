@@ -88,17 +88,25 @@ export async function getAccountByUsername(
 
 export async function updateAccount(
   fedCtx: RequestContext<ContextData>,
-  account: NewAccount & { links: Link[] },
+  account: Partial<NewAccount> & { id: Uuid; links?: Link[] },
 ): Promise<Account & { links: AccountLink[] } | undefined> {
   const { db } = fedCtx.data;
   const result = await updateAccountData(db, account);
   if (result == null) return undefined;
-  const links = await updateAccountLinks(
-    db,
-    result.id,
-    new URL(`/@${account.username}`, fedCtx.origin).href,
-    account.links,
-  );
+  let links: AccountLink[];
+  if (account.links == null) {
+    links = await db.query.accountLinkTable.findMany({
+      where: { accountId: result.id },
+      orderBy: { index: "asc" },
+    });
+  } else {
+    links = await updateAccountLinks(
+      db,
+      result.id,
+      new URL(`/@${account.username}`, fedCtx.origin).href,
+      account.links,
+    );
+  }
   await fedCtx.sendActivity(
     { identifier: result.id },
     "followers",
@@ -113,7 +121,7 @@ export async function updateAccount(
     }),
     {
       preferSharedInbox: true,
-      excludeBaseUris: [fedCtx.url],
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
   return { ...result, links };
@@ -121,29 +129,30 @@ export async function updateAccount(
 
 export async function updateAccountData(
   db: Database,
-  account: NewAccount,
+  account: Partial<Omit<NewAccount, "id">> & { id: Uuid },
 ): Promise<Account | undefined> {
-  const values: Omit<NewAccount, "id"> = { ...account };
+  const values: Partial<Omit<NewAccount, "id">> = { ...account };
   if ("id" in values) delete values.id;
   const result = await db.update(accountTable).set({
     ...values,
-    username: sql`
-      CASE
-        WHEN ${accountTable.usernameChanged} IS NULL
-        THEN ${values.username}
-        ELSE ${accountTable.username}
-      END
-    `,
-    oldUsername: sql`
-      CASE
-        WHEN
-          ${accountTable.username} = ${values.username} OR
-          ${accountTable.usernameChanged} IS NOT NULL
-        THEN NULL
-        ELSE ${accountTable.username}
-      END
-    `,
-    usernameChanged: sql`
+    ...(values.username == null ? {} : {
+      username: sql`
+        CASE
+          WHEN ${accountTable.usernameChanged} IS NULL
+          THEN ${values.username}
+          ELSE ${accountTable.username}
+        END
+      `,
+      oldUsername: sql`
+        CASE
+          WHEN
+            ${accountTable.username} = ${values.username} OR
+            ${accountTable.usernameChanged} IS NOT NULL
+          THEN NULL
+          ELSE ${accountTable.username}
+        END
+      `,
+      usernameChanged: sql`
         CASE
           WHEN
             ${accountTable.username} = ${values.username} OR
@@ -152,6 +161,7 @@ export async function updateAccountData(
           ELSE CURRENT_TIMESTAMP
         END
       `,
+    }),
     updated: sql`CURRENT_TIMESTAMP`,
   }).where(eq(accountTable.id, account.id)).returning();
   return result.length > 0 ? result[0] : undefined;

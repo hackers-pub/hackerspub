@@ -1,4 +1,5 @@
-import { getAvatarUrl } from "@hackerspub/models/account";
+import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
+import { validateUuid } from "../models/uuid.ts";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 
@@ -14,6 +15,10 @@ export const Account = builder.drizzleNode("accountTable", {
   fields: (t) => ({
     uuid: t.expose("id", { type: "UUID" }),
     username: t.exposeString("username"),
+    usernameChanged: t.expose("usernameChanged", {
+      type: "DateTime",
+      nullable: true,
+    }),
     name: t.exposeString("name"),
     bio: t.expose("bio", { type: "Markdown" }),
     avatarUrl: t.field({
@@ -28,7 +33,7 @@ export const Account = builder.drizzleNode("accountTable", {
         return new URL(url);
       },
     }),
-    locales: t.exposeStringList("locales", { nullable: true }),
+    locales: t.expose("locales", { type: ["Locale"] }),
     moderator: t.exposeBoolean("moderator"),
     leftInvitations: t.exposeInt("leftInvitations", {
       authScopes: {
@@ -83,3 +88,81 @@ builder.queryFields((t) => ({
     },
   }),
 }));
+
+const AccountLinkInput = builder.inputType("AccountLinkInput", {
+  fields: (t) => ({
+    name: t.string({ required: true }),
+    url: t.field({ type: "URL", required: true }),
+  }),
+});
+
+builder.relayMutationField(
+  "updateAccount",
+  {
+    inputFields: (t) => ({
+      id: t.globalID({ required: true }),
+      username: t.string(),
+      name: t.string(),
+      bio: t.string(),
+      locales: t.field({ type: ["Locale"] }),
+      hideFromInvitationTree: t.boolean(),
+      hideForeignLanguages: t.boolean(),
+      preferAiSummary: t.boolean(),
+      links: t.field({
+        type: [AccountLinkInput],
+      }),
+    }),
+  },
+  {
+    async resolve(_root, args, ctx) {
+      if (
+        args.input.id.typename !== "Account" || !validateUuid(args.input.id.id)
+      ) {
+        throw new Error("Invalid account ID.");
+      }
+      const session = await ctx.session;
+      if (session == null) throw new Error("Not authenticated.");
+      else if (session.accountId !== args.input.id.id) {
+        throw new Error("Not authorized.");
+      }
+      const account = await ctx.db.query.accountTable.findFirst({
+        where: {
+          id: args.input.id.id,
+        },
+      });
+      if (account == null) throw new Error("Account not found.");
+      if (args.input.username != null && account.usernameChanged != null) {
+        throw new Error(
+          "Username cannot be changed after it has been changed.",
+        );
+      }
+      const result = await updateAccount(
+        ctx.fedCtx,
+        {
+          id: args.input.id.id,
+          username: args.input.username ?? undefined,
+          name: args.input.name ?? undefined,
+          bio: args.input.bio ?? undefined,
+          locales: args.input.locales ?? undefined,
+          hideFromInvitationTree: args.input.hideFromInvitationTree ??
+            undefined,
+          hideForeignLanguages: args.input.hideForeignLanguages ?? undefined,
+          preferAiSummary: args.input.preferAiSummary ?? undefined,
+          links: args.input.links ?? undefined,
+        },
+      );
+      if (result == null) throw new Error("Account not found");
+      return result;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      account: t.field({
+        type: Account,
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
