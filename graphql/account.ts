@@ -71,6 +71,17 @@ export const AccountLink = builder.drizzleNode("accountLinkTable", {
 });
 
 builder.queryFields((t) => ({
+  viewer: t.drizzleField({
+    type: Account,
+    nullable: true,
+    async resolve(query, _, __, ctx) {
+      const session = await ctx.session;
+      if (session == null) return null;
+      return await ctx.db.query.accountTable.findFirst(
+        query({ where: { id: session.accountId } }),
+      );
+    },
+  }),
   accountByUsername: t.drizzleField({
     type: Account,
     // authScopes: {

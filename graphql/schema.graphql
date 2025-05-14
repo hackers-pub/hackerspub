@@ -446,6 +446,7 @@ type Query {
   instanceByHost(host: String!): Instance
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+  viewer: Account
 }
 
 type Question implements Node & Post & Reactable {

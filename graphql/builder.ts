@@ -40,6 +40,7 @@ export interface PothosTypes {
   DrizzleRelations: typeof relations;
   Context: Context;
   AuthScopes: {
+    signed: boolean;
     moderator: boolean;
   };
   Scalars: {
@@ -114,6 +115,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
   },
   scopeAuth: {
     authScopes: (ctx) => ({
+      signed: ctx.session != null,
       moderator: ctx.moderator,
     }),
   },
