@@ -158,6 +158,20 @@ type Article implements Node & Post & Reactable {
   visibility: PostVisibility!
 }
 
+input CreateNoteInput {
+  clientMutationId: ID
+  content: Markdown!
+  language: Locale!
+  quotedPostId: ID
+  replyTargetId: ID
+  visibility: PostVisibility!
+}
+
+type CreateNotePayload {
+  clientMutationId: ID
+  note: Note!
+}
+
 type CustomEmoji implements Node {
   id: ID!
   imageUrl: String!
@@ -213,6 +227,7 @@ scalar Markdown
 scalar MediaType
 
 type Mutation {
+  createNote(input: CreateNoteInput!): CreateNotePayload!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
 }
 

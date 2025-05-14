@@ -100,7 +100,7 @@ builder.relayMutationField(
   "updateAccount",
   {
     inputFields: (t) => ({
-      id: t.globalID({ required: true }),
+      id: t.globalID({ for: Account, required: true }),
       username: t.string(),
       name: t.string(),
       bio: t.string(),
@@ -115,11 +115,6 @@ builder.relayMutationField(
   },
   {
     async resolve(_root, args, ctx) {
-      if (
-        args.input.id.typename !== "Account" || !validateUuid(args.input.id.id)
-      ) {
-        throw new Error("Invalid account ID.");
-      }
       const session = await ctx.session;
       if (session == null) throw new Error("Not authenticated.");
       else if (session.accountId !== args.input.id.id) {

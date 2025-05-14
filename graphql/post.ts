@@ -1,11 +1,13 @@
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
+import { createNote } from "@hackerspub/models/note";
+import type * as schema from "@hackerspub/models/schema";
+import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
+import { Account } from "./account.ts";
+import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { Reactable } from "./reactable.ts";
-import { Account } from "./account.ts";
-import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
-import { Actor } from "./actor.ts";
 
 const PostVisibility = builder.enumType("PostVisibility", {
   values: [
@@ -256,3 +258,91 @@ const PostLinkImage = builder.drizzleObject("postLinkTable", {
 });
 
 builder.drizzleObjectField(PostLinkImage, "post", (t) => t.variant(PostLink));
+
+builder.relayMutationField(
+  "createNote",
+  {
+    inputFields: (t) => ({
+      visibility: t.field({ type: PostVisibility, required: true }),
+      content: t.field({ type: "Markdown", required: true }),
+      language: t.field({ type: "Locale", required: true }),
+      // TODO: media
+      replyTargetId: t.globalID({
+        for: [Note, Article, Question],
+        required: false,
+      }),
+      quotedPostId: t.globalID({
+        for: [Note, Article, Question],
+        required: false,
+      }),
+    }),
+  },
+  {
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new Error("Not authenticated.");
+      }
+      const { visibility, content, language, replyTargetId, quotedPostId } =
+        args.input;
+      let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
+      if (replyTargetId != null) {
+        replyTarget = await ctx.db.query.postTable.findFirst({
+          with: { actor: true },
+          where: { id: replyTargetId.id },
+        });
+        if (replyTarget == null) {
+          throw new Error("Reply target not found.");
+        }
+      }
+      let quotedPost: schema.Post & { actor: schema.Actor } | undefined;
+      if (quotedPostId != null) {
+        quotedPost = await ctx.db.query.postTable.findFirst({
+          with: { actor: true },
+          where: { id: quotedPostId.id },
+        });
+        if (quotedPost == null) {
+          throw new Error("Quoted post not found.");
+        }
+      }
+      const note = await createNote(
+        ctx.fedCtx,
+        {
+          accountId: session.accountId,
+          visibility: visibility === "PUBLIC"
+            ? "public"
+            : visibility === "UNLISTED"
+            ? "unlisted"
+            : visibility === "FOLLOWERS"
+            ? "followers"
+            : visibility === "DIRECT"
+            ? "direct"
+            : visibility === "NONE"
+            ? "none"
+            : assertNever(
+              visibility,
+              `Unknown value in Post.visibility: "${visibility}"`,
+            ),
+          content,
+          language,
+          media: [], // TODO
+        },
+        { replyTarget, quotedPost },
+      );
+      if (note == null) {
+        throw new Error("Failed to create note.");
+      }
+      return note;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      note: t.field({
+        type: Note,
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
