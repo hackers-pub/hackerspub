@@ -1,5 +1,4 @@
 import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
-import { validateUuid } from "../models/uuid.ts";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 
