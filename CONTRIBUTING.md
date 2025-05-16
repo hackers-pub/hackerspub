@@ -56,7 +56,7 @@ Prerequisites
 
 To build the project, you need to have the following tools installed:
 
- -  [Deno] 2.2 or higher
+ -  [Deno] 2.3 or higher
  -  [PostgreSQL] 17 or higher
  -  [ffmpeg] 5.0 or higher
  -  [Mailgun] account (optional; for sending emails)
