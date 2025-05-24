@@ -13,6 +13,7 @@ import type {
 } from "@hackerspub/models/schema";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
+import { withTransaction } from "../../../../../web/federation.ts";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
@@ -90,7 +91,8 @@ export const handler = define.handlers({
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
-    if (ctx.state.account == null) {
+    const account = ctx.state.account;
+    if (account == null) {
       return new Response("Forbidden", { status: 403 });
     }
     const payload = await ctx.req.json();
@@ -101,16 +103,18 @@ export const handler = define.handlers({
         headers: { "Content-Type": "application/json" },
       });
     }
-    const quote = await createNote(ctx.state.fedCtx, {
-      ...parsed.output,
-      accountId: ctx.state.account.id,
-    }, { quotedPost: article.post });
-    if (quote == null) {
-      return new Response("Internal Server Error", { status: 500 });
-    }
-    return new Response(JSON.stringify(quote), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
+    return await withTransaction(ctx.state.fedCtx, async (context) => {
+      const quote = await createNote(context, {
+        ...parsed.output,
+        accountId: account.id,
+      }, { quotedPost: article.post });
+      if (quote == null) {
+        return new Response("Internal Server Error", { status: 500 });
+      }
+      return new Response(JSON.stringify(quote), {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      });
     });
   },
 });

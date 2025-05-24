@@ -24,6 +24,7 @@ import type {
 import type { Uuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
+import { withTransaction } from "../../../../../web/federation.ts";
 import { summarizer } from "../../../../ai.ts";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PageTitle } from "../../../../components/PageTitle.tsx";
@@ -85,10 +86,11 @@ export const handler = define.handlers({
       ctx.state.account,
     );
     if (article == null) return ctx.next();
-    if (ctx.state.account == null) {
+    const account = ctx.state.account;
+    if (account == null) {
       return new Response("Forbidden", { status: 403 });
     }
-    if (!isPostVisibleTo(article.post, ctx.state.account?.actor)) {
+    if (!isPostVisibleTo(article.post, account.actor)) {
       return ctx.next();
     }
     const payload = await ctx.req.json();
@@ -108,16 +110,18 @@ export const handler = define.handlers({
         },
         with: { actor: true },
       });
-    const post = await createNote(ctx.state.fedCtx, {
-      ...parsed.output,
-      accountId: ctx.state.account.id,
-    }, { replyTarget: article.post, quotedPost });
-    if (post == null) {
-      return new Response("Internal Server Error", { status: 500 });
-    }
-    return new Response(JSON.stringify(post), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
+    return await withTransaction(ctx.state.fedCtx, async (context) => {
+      const post = await createNote(context, {
+        ...parsed.output,
+        accountId: account.id,
+      }, { replyTarget: article.post, quotedPost });
+      if (post == null) {
+        return new Response("Internal Server Error", { status: 500 });
+      }
+      return new Response(JSON.stringify(post), {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      });
     });
   },
 });

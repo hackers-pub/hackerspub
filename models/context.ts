@@ -8,8 +8,8 @@ export interface Models {
   summarizer: LanguageModelV1;
 }
 
-export interface ContextData {
-  db: Database;
+export interface ContextData<D extends Database = Database> {
+  db: D;
   kv: Keyv;
   disk: Disk;
   models: Models;
