@@ -4,6 +4,7 @@
     "~/": "./src/"
   },
   "tasks": {
+    "codegen": "relay-compiler",
     "dev": "vinxi dev",
     "build": "vinxi build"
   },

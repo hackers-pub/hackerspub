@@ -1,29 +1,50 @@
-import { createAsync, query, revalidate } from "@solidjs/router";
-import { Button } from "~/components/ui/button.tsx";
+import { query, type RouteDefinition } from "@solidjs/router";
+import { graphql } from "relay-runtime";
+import { Show } from "solid-js";
+import {
+  createPreloadedQuery,
+  loadQuery,
+  useRelayEnvironment,
+} from "solid-relay";
+import type { routesQuery } from "./__generated__/routesQuery.graphql.ts";
 
-const loadDenoBuild = query(async () => {
-  "use server";
+const RoutesQuery = graphql`
+  query routesQuery {
+    instanceByHost(host: "hackers.pub") {
+      host
+      software
+      softwareVersion
+    }
+  }
+`;
 
-  return Deno.build.target;
-}, "deno-build");
+const loadRoutesQuery = query(
+  () => loadQuery<routesQuery>(useRelayEnvironment()(), RoutesQuery, {}),
+  "loadRoutesQuery",
+);
 
-const loadOsUptime = query(async () => {
-  "use server";
-
-  return Deno.osUptime();
-}, "os-uptime");
+export const route = {
+  preload() {
+    void loadRoutesQuery();
+  },
+} satisfies RouteDefinition;
 
 export default function Home() {
-  const denoBuild = createAsync(() => loadDenoBuild());
-  const osUptime = createAsync(() => loadOsUptime());
+  const data = createPreloadedQuery<routesQuery>(
+    RoutesQuery,
+    loadRoutesQuery,
+  );
 
   return (
     <main>
-      <h1>Hello world from Deno built for {denoBuild()}!</h1>
-      <p>OS uptime: {osUptime()}</p>
-      <Button onClick={() => revalidate("os-uptime")}>
-        refresh uptime
-      </Button>
+      <Show when={data()?.instanceByHost}>
+        {(instance) => (
+          <>
+            {instance().host} running {instance().software}{" "}
+            {instance().softwareVersion}
+          </>
+        )}
+      </Show>
     </main>
   );
 }

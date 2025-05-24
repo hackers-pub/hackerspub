@@ -9,13 +9,19 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "pretendard": "^1.3.9",
+    "relay-runtime": "^19.0.0",
     "solid-js": "^1.9.5",
+    "solid-relay": "^1.0.0-beta.10",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.7",
     "tw-animate-css": "^1.3.0",
     "vinxi": "^0.5.3"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.7"
+    "@tailwindcss/vite": "^4.1.7",
+    "@types/relay-runtime": "^19.0.1",
+    "relay-compiler": "^19.0.0",
+    "vite-plugin-cjs-interop": "^2.2.0",
+    "vite-plugin-relay-lite": "^0.11.0"
   }
 }
