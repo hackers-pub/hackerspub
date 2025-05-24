@@ -1,0 +1,5 @@
+# Vinxi outputs
+dist
+.output
+.vinxi
+app.config.timestamp_*.js
