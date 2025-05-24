@@ -5,6 +5,10 @@ import {
   USERNAME_REGEXP,
 } from "@hackerspub/models/signin";
 import { isEmail } from "@onisaint/validate-email";
+import { getFixedT } from "i18next";
+import { Button } from "../../components/Button.tsx";
+import { Input } from "../../components/Input.tsx";
+import { Label } from "../../components/Label.tsx";
 import { Msg } from "../../components/Msg.tsx";
 import { PageTitle } from "../../components/PageTitle.tsx";
 import { db } from "../../db.ts";
@@ -42,6 +46,7 @@ export const handler = define.handlers({
       with: { emails: true },
     });
     let expiration: Temporal.Duration;
+    let signInToken: string;
     if (account == null) {
       return page<SignPageProps>({
         success: false,
@@ -59,6 +64,7 @@ export const handler = define.handlers({
           subject: t("signInUp.signInEmailSubject"),
           text: t("signInUp.signInEmailText", {
             verifyUrl: verifyUrl.href,
+            code: token.code,
             expiration: expiration.toLocaleString(ctx.state.language, {
               // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
               style: "long",
@@ -66,18 +72,30 @@ export const handler = define.handlers({
           }),
         });
       }
+      signInToken = token.token;
     }
-    return page<SignPageProps>({ success: true, email, expiration });
+    return page<SignPageProps>({
+      success: true,
+      email,
+      expiration,
+      token: signInToken,
+    });
   },
 });
 
 type SignPageProps =
   | { success?: undefined }
   | { success: false } & Omit<SignFormProps, "language">
-  | { success: true; email: string; expiration: Temporal.Duration };
+  | {
+    success: true;
+    email: string;
+    expiration: Temporal.Duration;
+    token: string;
+  };
 
 export default define.page<typeof handler, SignPageProps>(
   function SignPage({ data, state }) {
+    const t = getFixedT(state.language);
     return (
       <div>
         <PageTitle>
@@ -110,6 +128,23 @@ export default define.page<typeof handler, SignPageProps>(
                     />
                   )}
               </p>
+              <form
+                action={`sign/in/${data.token}`}
+                method="post"
+              >
+                <div class="flex flex-col gap-2">
+                  <Label label={t("signInUp.code")} required>
+                    <Input
+                      type="text"
+                      name="code"
+                      class="w-full"
+                    />
+                  </Label>
+                  <Button class="w-full mt-4" type="submit">
+                    <Msg $key="signInUp.submit" />
+                  </Button>
+                </div>
+              </form>
               <p>
                 <Msg
                   $key="signInUp.emailSentExpires"

@@ -9,12 +9,30 @@ import { db } from "../../../db.ts";
 import { kv } from "../../../kv.ts";
 import { define } from "../../../utils.ts";
 
-export const handler = define.handlers({
-  async GET(ctx) {
+export const handler = define.handlers(
+  async function handleSigninRequest(ctx) {
     if (!validateUuid(ctx.params.token)) return ctx.next();
     const token = await getSigninToken(kv, ctx.params.token);
     if (token == null) return ctx.next();
-    const code = ctx.url.searchParams.get("code");
+    let code: string | null = null;
+    if (ctx.req.method === "GET") {
+      code = ctx.url.searchParams.get("code");
+    } else if (ctx.req.method === "POST") {
+      const form = await ctx.req.formData();
+      const form_code = form.get("code");
+      if (typeof form_code !== "string") {
+        return new Response("code should be string", {
+          status: 400,
+          headers: { "Content-Type": "text/plain" },
+        });
+      }
+      code = form_code;
+    } else {
+      return new Response("Not supported method", {
+        status: 400,
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
     if (code !== token.code) return page();
     const account = await db.query.accountTable.findFirst({
       where: { id: token.accountId },
@@ -43,7 +61,7 @@ export const handler = define.handlers({
     headers.set("Location", "/");
     return new Response(null, { status: 301, headers });
   },
-});
+);
 
 export default define.page<typeof handler>(function SigninPage() {
   return (
