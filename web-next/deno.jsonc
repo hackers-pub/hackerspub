@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/denoland/deno/refs/heads/main/cli/schemas/config-file.v1.json",
+  "imports": {
+    "~/": "./src/"
+  },
+  "tasks": {
+    "codegen": "relay-compiler",
+    "dev": "vinxi dev",
+    "build": "vinxi build"
+  },
+  "lint": {
+    "rules": {
+      "exclude": [
+        // SolidStart server functions must be async functions at all time
+        "require-await"
+      ]
+    }
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "solid-js",
+    "types": ["vinxi/types/client"]
+  }
+}

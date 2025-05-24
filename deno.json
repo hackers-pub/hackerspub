@@ -4,7 +4,8 @@
     "./federation",
     "./graphql",
     "./models",
-    "./web"
+    "./web",
+    "./web-next"
   ],
   "imports": {
     "@ai-sdk/anthropic": "npm:@ai-sdk/anthropic@^1.2.10",

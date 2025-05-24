@@ -1,0 +1,7 @@
+{
+  "$schema": "../node_modules/relay-compiler/relay-compiler-config-schema.json",
+  "src": "./src",
+  "language": "typescript",
+  "schema": "../graphql/schema.graphql",
+  "eagerEsModules": true
+}
