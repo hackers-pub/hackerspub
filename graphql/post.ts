@@ -9,6 +9,8 @@ import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { Reactable } from "./reactable.ts";
 
+import { withTransaction } from "../web/federation.ts";
+
 const PostVisibility = builder.enumType("PostVisibility", {
   values: [
     "PUBLIC",
@@ -305,34 +307,36 @@ builder.relayMutationField(
           throw new Error("Quoted post not found.");
         }
       }
-      const note = await createNote(
-        ctx.fedCtx,
-        {
-          accountId: session.accountId,
-          visibility: visibility === "PUBLIC"
-            ? "public"
-            : visibility === "UNLISTED"
-            ? "unlisted"
-            : visibility === "FOLLOWERS"
-            ? "followers"
-            : visibility === "DIRECT"
-            ? "direct"
-            : visibility === "NONE"
-            ? "none"
-            : assertNever(
-              visibility,
-              `Unknown value in Post.visibility: "${visibility}"`,
-            ),
-          content,
-          language,
-          media: [], // TODO
-        },
-        { replyTarget, quotedPost },
-      );
-      if (note == null) {
-        throw new Error("Failed to create note.");
-      }
-      return note;
+      return await withTransaction(ctx.fedCtx, async (context) => {
+        const note = await createNote(
+          context,
+          {
+            accountId: session.accountId,
+            visibility: visibility === "PUBLIC"
+              ? "public"
+              : visibility === "UNLISTED"
+              ? "unlisted"
+              : visibility === "FOLLOWERS"
+              ? "followers"
+              : visibility === "DIRECT"
+              ? "direct"
+              : visibility === "NONE"
+              ? "none"
+              : assertNever(
+                visibility,
+                `Unknown value in Post.visibility: "${visibility}"`,
+              ),
+            content,
+            language,
+            media: [], // TODO
+          },
+          { replyTarget, quotedPost },
+        );
+        if (note == null) {
+          throw new Error("Failed to create note.");
+        }
+        return note;
+      });
     },
   },
   {

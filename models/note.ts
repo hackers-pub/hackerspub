@@ -5,7 +5,7 @@ import type { Disk } from "flydrive";
 import sharp from "sharp";
 import { getNote } from "../federation/objects.ts";
 import type { ContextData } from "./context.ts";
-import type { Database } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import {
   createMentionNotification,
   createQuoteNotification,
@@ -295,7 +295,7 @@ export async function createNoteMedium(
 }
 
 export async function createNote(
-  fedCtx: Context<ContextData>,
+  fedCtx: Context<ContextData<Transaction>>,
   source: Omit<NewNoteSource, "id"> & {
     id?: Uuid;
     media: { blob: Blob; alt: string }[];
