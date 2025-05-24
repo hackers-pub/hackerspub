@@ -64,7 +64,7 @@ export const handler = define.handlers({
     const linkNames = form.getAll("link-name")?.map((n) => n.toString().trim());
     const linkUrls = form.getAll("link-url")?.map((u) => u.toString().trim());
     const links = zip(linkNames, linkUrls)
-      .filter(([name, url]) => name !== "" && url !== "" && url != null)
+      .filter(([name, url]) => name !== "" && URL.canParse(url))
       .map(([name, url]) => ({ name, url }));
     const errors = {
       avatar: avatar == null || avatar === ""
