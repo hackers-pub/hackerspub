@@ -214,7 +214,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                     </p>
                     {(post.link.description ||
                       post.link.author && !URL.canParse(post.link.author)) && (
-                      <p class="m-4 text-stone-500 dark:text-stone-400 line-clamp-2">
+                      <p class="m-4 text-stone-500 dark:text-stone-400 line-clamp-2 wrap-anywhere">
                         {post.link.author && (
                           <>
                             <span class="font-bold">{post.link.author}</span>
