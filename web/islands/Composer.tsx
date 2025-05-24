@@ -6,7 +6,7 @@ import type { Uuid } from "@hackerspub/models/uuid";
 import { getFixedT } from "i18next";
 import type { JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
-import { detectLanguage } from "../../models/langdet.ts";
+import { detectLanguage } from "@hackerspub/models/langdet";
 import { Button } from "../components/Button.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { TextArea } from "../components/TextArea.tsx";
