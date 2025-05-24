@@ -1,0 +1,103 @@
+// Configuration specifically for GitHub Codespaces
+{
+  "name": "Hackers' Pub (GitHub Codespace)",
+  // Path to docker-compose.yml is relative to this devcontainer.json file
+  // If this file is in .devcontainer/codespaces/, and compose is at the root,
+  // then it should be ../../docker-compose.yml
+  "dockerComposeFile": [
+    "../../docker-compose.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/app", // Your project code is mounted to /app
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": "true",
+      "installGit": "true",
+      "configureZshAsDefaultShell": "true",
+      "installOhMyZsh": "true",
+      "upgradePackages": "true"
+    },
+    "ghcr.io/devcontainers/features/git": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "forwardPorts": [
+    8000,
+    5432
+  ],
+  "portsAttributes": {
+    "8000": {
+      "label": "Application (Hackers' Pub)",
+      "onAutoForward": "openPreview",
+      "protocol": "http"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    }
+  },
+  "otherPortsAttributes": {
+    "onAutoForward": "silent"
+  },
+  "remoteUser": "deno",
+  "remoteEnv": {
+    "ORIGIN": "https://${localEnv:CODESPACE_NAME}-8000.${localEnv:GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}",
+    "BEHIND_PROXY": "true",
+    // Ensure your docker-compose.yml can pick up Codespace secrets for other variables
+    // For example, by having "environment: [DB_HOST: ${DB_HOST_SECRET}]" in compose
+    // and then setting DB_HOST_SECRET as a Codespace secret.
+    "DATABASE_URL": "postgresql://postgres:password@db:5432/hackerspub",
+    "KV_URL": "file:///tmp/kv.db"
+    // Add other non-sensitive environment variables needed by VS Code server/terminals if any
+  },
+  // Runs once when the Codespace is created (as root by default for this script).
+  "onCreateCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+  // Runs after VS Code connects (as remoteUser: "deno").
+  "postCreateCommand": "deno install && deno task migrate",
+  "waitFor": "postCreateCommand",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "deno.enable": true,
+        "deno.lint": true,
+        "deno.unstable": true,
+        "editor.defaultFormatter": "denoland.vscode-deno",
+        "[typescript]": {
+          "editor.defaultFormatter": "denoland.vscode-deno"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "denoland.vscode-deno"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "denoland.vscode-deno"
+        },
+        "files.associations": {
+          "*.ts": "typescript",
+          "*.tsx": "typescriptreact"
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        }
+      },
+      "extensions": [
+        "denoland.vscode-deno",
+        "GitHub.copilot",
+        "GitHub.vscode-pull-request-github",
+        "EditorConfig.EditorConfig",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode-remote.remote-containers",
+        "ms-azuretools.vscode-docker",
+        "streetsidesoftware.code-spell-checker",
+        "GraphQL.vscode-graphql"
+      ]
+    }
+  },
+  "runServices": [
+    "app",
+    "db"
+  ],
+  "shutdownAction": "stopCompose"
+}

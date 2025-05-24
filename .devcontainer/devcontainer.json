@@ -1,0 +1,73 @@
+{
+  "name": "Hackers' Pub Dev Environment",
+  "dockerComposeFile": "../docker-compose.yml", // Adjusted path if devcontainer.json is in .devcontainer/
+  "service": "app",
+  "workspaceFolder": "/app",
+  // Configure features for the dev container.
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": "true",
+      "installGit": "true",
+      "configureZshAsDefaultShell": "true",
+      "installOhMyZsh": "true",
+      "upgradePackages": "true"
+      // common-utils should set up /home/deno and make it writable by the deno user
+    },
+    "ghcr.io/devcontainers/features/git": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  // Forward ports. 8000 for the app, 5432 for PostgreSQL.
+  "forwardPorts": [
+    8000,
+    5432
+  ],
+  // Set environment variables.
+  // Consider creating a .env file in the root and referencing it here,
+  // or letting users create it based on .env.sample.
+  // "runArgs": ["--env-file", "../.env"], // Uncomment if you have a .env file ready
+  // Configure VS Code settings and extensions.
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "deno.enable": true,
+        "deno.lint": true,
+        "deno.unstable": true,
+        "editor.defaultFormatter": "denoland.vscode-deno",
+        "[typescript]": {
+          "editor.defaultFormatter": "denoland.vscode-deno"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "denoland.vscode-deno"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "denoland.vscode-deno"
+        },
+        "files.associations": {
+          "*.ts": "typescript",
+          "*.tsx": "typescriptreact"
+        }
+      },
+      "extensions": [
+        "denoland.vscode-deno",
+        "GitHub.copilot",
+        "GitHub.vscode-pull-request-github",
+        "EditorConfig.EditorConfig",
+        "dbaeumer.vscode-eslint", // If you plan to use ESLint alongside Deno lint
+        "bradlc.vscode-tailwindcss", // For Tailwind CSS
+        "ms-vscode-remote.remote-containers",
+        "ms-azuretools.vscode-docker",
+        "streetsidesoftware.code-spell-checker",
+        "GraphQL.vscode-graphql" // For GraphQL development
+      ]
+    }
+  },
+  // Commands to run after the container is created.
+  "postCreateCommand": "deno install && deno task migrate",
+  // Add a name to the Docker network used by docker-compose.
+  "runServices": [
+    "app",
+    "db"
+  ],
+  "shutdownAction": "stopCompose"
+}

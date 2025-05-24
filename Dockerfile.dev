@@ -1,6 +1,6 @@
 FROM docker.io/denoland/deno:2.3.3
 
-RUN apt-get update && apt-get install -y build-essential ffmpeg jq && \
+RUN apt-get update && apt-get install -y build-essential ffmpeg jq git && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -21,6 +21,7 @@ RUN cp .env.sample .env && \
   sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \
   echo >> .env && \
   echo "INSTANCE_ACTOR_KEY='$(deno task keygen)'" >> .env && \
+  deno task -r codegen && \
   deno task build && \
   rm .env
 
