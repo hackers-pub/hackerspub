@@ -6,7 +6,7 @@ import type { Uuid } from "@hackerspub/models/uuid";
 import { getFixedT } from "i18next";
 import type { JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
-import { detectAll } from "tinyld.browser";
+import { detectLanguage } from "@hackerspub/models/langdet";
 import { Button } from "../components/Button.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { TextArea } from "../components/TextArea.tsx";
@@ -79,13 +79,8 @@ export function Composer(props: ComposerProps) {
     if (contentLanguageManuallySet) return;
     const value = event.currentTarget.value;
     setContent(value);
-    const result = detectAll(value);
-    for (const pair of result) {
-      if (pair.lang === props.language) pair.accuracy += 0.5;
-      pair.accuracy /= 2;
-    }
-    result.sort((a, b) => b.accuracy - a.accuracy);
-    const detected = result[0]?.lang;
+    // FIXME: `acceptLanguage === null` ok?
+    const detected = detectLanguage({ text: value, acceptLanguage: null });
     if (detected != null) setContentLanguage(detected);
   }
 

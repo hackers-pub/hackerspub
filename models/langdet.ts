@@ -10,7 +10,7 @@ export interface DetectLanguageOptions {
 
 export function detectLanguage(options: DetectLanguageOptions): string | null {
   const acceptLanguages = parseAcceptLanguage(options.acceptLanguage ?? "");
-  const langDetect = detectAll(options.text);
+  const langDetect = detectAll(sanitizeText(options.text));
   for (let i = 0; i < langDetect.length; i++) {
     langDetect[i].accuracy = (langDetect[i].accuracy +
       (acceptLanguages[langDetect[i].lang] ?? acceptLanguages["*"] ?? 0)) / 2;
@@ -31,4 +31,13 @@ function parseAcceptLanguage(acceptLanguage: string): Record<string, number> {
   });
   langs.sort((a, b) => b[1] - a[1]);
   return Object.fromEntries(langs);
+}
+
+function sanitizeText(text: string): string {
+  const URL_PATTERN = /https?:\/\/[^\s]+/g;
+  const MENTION_PATTERN =
+    /@[\p{L}\p{N}._-]+(@(?:[\p{L}\p{N}][\p{L}\p{N}_-]*\.)+[\p{L}\p{N}]{2,})?/giu;
+
+  return text.replaceAll(URL_PATTERN, "")
+    .replaceAll(MENTION_PATTERN, "");
 }
