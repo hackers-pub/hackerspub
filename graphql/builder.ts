@@ -42,6 +42,7 @@ export interface PothosTypes {
   AuthScopes: {
     signed: boolean;
     moderator: boolean;
+    selfAccount: Uuid;
   };
   Scalars: {
     Date: {
@@ -117,6 +118,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
     authScopes: (ctx) => ({
       signed: ctx.session != null,
       moderator: ctx.moderator,
+      selfAccount: async (id) => id === (await ctx.session)?.accountId,
     }),
   },
   relay: {

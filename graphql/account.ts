@@ -7,10 +7,6 @@ export const Account = builder.drizzleNode("accountTable", {
   id: {
     column: (account) => account.id,
   },
-  grantScopes: async (account, ctx) =>
-    [
-      account.id === (await ctx.session)?.accountId && "self",
-    ].filter((v) => v !== false),
   fields: (t) => ({
     uuid: t.expose("id", { type: "UUID" }),
     username: t.exposeString("username"),
@@ -35,10 +31,10 @@ export const Account = builder.drizzleNode("accountTable", {
     locales: t.expose("locales", { type: ["Locale"] }),
     moderator: t.exposeBoolean("moderator"),
     leftInvitations: t.exposeInt("leftInvitations", {
-      authScopes: {
-        $granted: "self",
+      authScopes: (parent) => ({
         moderator: true,
-      },
+        selfAccount: parent.id,
+      }),
     }),
     updated: t.expose("updated", { type: "DateTime" }),
     created: t.expose("created", { type: "DateTime" }),
@@ -84,9 +80,6 @@ builder.queryFields((t) => ({
   }),
   accountByUsername: t.drizzleField({
     type: Account,
-    // authScopes: {
-    //   moderator: true,
-    // },
     args: {
       username: t.arg.string({ required: true }),
     },
