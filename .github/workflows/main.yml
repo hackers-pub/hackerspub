@@ -20,7 +20,6 @@ jobs:
     - run: deno task check
 
   image:
-    if: github.event_name == 'push'
     needs: [test]
     permissions:
       contents: read
@@ -49,7 +48,7 @@ jobs:
         fi
     - uses: docker/build-push-action@v6
       with:
-        push: true
+        push: ${{ github.event_name == 'push' && 'true' || 'false' }}
         build-args:
           GIT_COMMIT=${{ github.sha }}
         tags: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-${{ steps.arch.outputs.arch }}

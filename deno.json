@@ -147,7 +147,10 @@
   "exclude": [
     ".github/",
     "drizzle/",
-    "node_modules/"
+    "node_modules/",
+    "web-next/node_modules/",
+    "web-next/.output/",
+    "web-next/.vinxi/"
   ],
   "fmt": {
     "exclude": [
@@ -159,9 +162,9 @@
   "tasks": {
     "check": "deno fmt --check && deno lint && deno check .",
     "test": "deno test --env-file=.env.test --allow-all --parallel",
-    "dev": "deno task -f @hackerspub/web dev",
-    "build": "deno task -f @hackerspub/web build",
-    "start": "deno task -f @hackerspub/web start",
+    "dev": "cd web && deno task dev",
+    "build": "cd web && deno task build",
+    "start": "cd web && deno task start",
     "drizzle-kit": "deno run -A npm:drizzle-kit@beta",
     "migrate": "deno run -A npm:drizzle-kit@beta migrate",
     "migrate:generate": "deno run -A npm:drizzle-kit@beta generate",

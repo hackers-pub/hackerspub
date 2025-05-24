@@ -1,6 +1,12 @@
 FROM docker.io/denoland/deno:2.3.3
 
-RUN apt-get update && apt-get install -y build-essential ffmpeg jq && \
+RUN apt-get update && apt-get install -y build-essential curl ffmpeg jq && \
+  apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x -o nodesource_setup.sh && \
+  bash nodesource_setup.sh && \
+  apt-get install -y nodejs && \
+  rm nodesource_setup.sh && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -12,6 +18,8 @@ COPY federation/deno.json /app/federation/deno.json
 COPY graphql/deno.json /app/graphql/deno.json
 COPY models/deno.json /app/models/deno.json
 COPY web/deno.json /app/web/deno.json
+COPY web-next/deno.jsonc /app/web-next/deno.jsonc
+COPY web-next/package.json /app/web-next/package.json
 COPY deno.lock /app/deno.lock
 
 RUN ["deno", "install"]
