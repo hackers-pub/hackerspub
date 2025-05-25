@@ -1,6 +1,10 @@
 import { parseSemVer } from "@fedify/fedify";
 import { count, countDistinct, gt, sql } from "drizzle-orm";
-import { accountTable, articleSourceTable } from "../models/schema.ts";
+import {
+  accountTable,
+  articleSourceTable,
+  noteSourceTable,
+} from "@hackerspub/models/schema";
 import { builder } from "./builder.ts";
 import metadata from "./deno.json" with { type: "json" };
 
@@ -23,8 +27,10 @@ builder.setNodeInfoDispatcher("/nodeinfo/2.1", async (ctx) => {
       sql`CURRENT_TIMESTAMP - INTERVAL '6 months'`,
     ),
   );
-  const [{ localPosts }] = await db.select({ localPosts: count() })
+  const [{ localArticles }] = await db.select({ localArticles: count() })
     .from(articleSourceTable);
+  const [{ localNotes }] = await db.select({ localNotes: count() })
+    .from(noteSourceTable);
   return {
     software: {
       name: "hackerspub",
@@ -44,7 +50,7 @@ builder.setNodeInfoDispatcher("/nodeinfo/2.1", async (ctx) => {
         activeHalfyear,
       },
       localComments: 0, // TODO
-      localPosts,
+      localPosts: localArticles + localNotes,
     },
   };
 });
