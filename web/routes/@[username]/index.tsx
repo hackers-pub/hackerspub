@@ -31,13 +31,13 @@ import {
 import type { Uuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
-import { withTransaction } from "../../../web/federation.ts";
 import { Msg } from "../../components/Msg.tsx";
 import { PostExcerpt } from "../../components/PostExcerpt.tsx";
 import { PostPagination } from "../../components/PostPagination.tsx";
 import { Profile } from "../../components/Profile.tsx";
 import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
+import { withTransaction } from "../../federation.ts";
 import { kv } from "../../kv.ts";
 import { define } from "../../utils.ts";
 

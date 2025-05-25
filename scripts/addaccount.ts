@@ -1,5 +1,5 @@
+import { createSignupToken } from "@hackerspub/models/signup";
 import { kv } from "@hackerspub/web/kv";
-import { createSignupToken } from "../models/signup.ts";
 import { ORIGIN } from "../web/federation.ts";
 
 export async function createSignupLink(email: string): Promise<URL> {

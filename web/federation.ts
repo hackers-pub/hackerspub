@@ -42,6 +42,7 @@ export const federation = await builder.build({
   },
 });
 
+// FIXME: Make this independent of federation object
 export async function withTransaction<T>(
   context: RequestContext<ContextData>,
   callback: (context: RequestContext<ContextData<Transaction>>) => Promise<T>,

@@ -1,8 +1,12 @@
 import * as vocab from "@fedify/fedify/vocab";
+import { toRecipient } from "@hackerspub/models/actor";
+import {
+  actorTable,
+  followingTable,
+  postTable,
+} from "@hackerspub/models/schema";
+import { validateUuid } from "@hackerspub/models/uuid";
 import { and, count, eq, inArray, isNotNull, like, or } from "drizzle-orm";
-import { toRecipient } from "../models/actor.ts";
-import { actorTable, followingTable, postTable } from "../models/schema.ts";
-import { validateUuid } from "../models/uuid.ts";
 import { builder } from "./builder.ts";
 import { getPostRecipients } from "./objects.ts";
 

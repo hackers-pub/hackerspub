@@ -5,11 +5,11 @@ import {
   type Move,
   type Update,
 } from "@fedify/fedify";
+import { persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
+import { follow } from "@hackerspub/models/following";
+import { actorTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
-import { persistActor } from "../../models/actor.ts";
-import { follow } from "../../models/following.ts";
-import { actorTable } from "../../models/schema.ts";
 
 export async function onActorUpdated(
   fedCtx: InboxContext<ContextData>,

@@ -1,6 +1,6 @@
 import { page } from "@fresh/core";
+import { accountTable } from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
-import { accountTable } from "../../../../models/schema.ts";
 import { Button } from "../../../components/Button.tsx";
 import { Msg } from "../../../components/Msg.tsx";
 import { SettingsNav } from "../../../components/SettingsNav.tsx";

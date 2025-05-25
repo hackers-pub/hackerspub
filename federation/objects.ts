@@ -6,14 +6,13 @@ import {
 } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
-import { escape } from "@std/html/entities";
 import {
   DEFAULT_REACTION_EMOJI,
   isReactionEmoji,
   type ReactionEmoji,
-} from "../models/emoji.ts";
-import { renderMarkup } from "../models/markup.ts";
-import { isPostVisibleTo } from "../models/post.ts";
+} from "@hackerspub/models/emoji";
+import { renderMarkup } from "@hackerspub/models/markup";
+import { isPostVisibleTo } from "@hackerspub/models/post";
 import type {
   Account,
   Actor,
@@ -25,8 +24,9 @@ import type {
   Post,
   PostVisibility,
   Reaction,
-} from "../models/schema.ts";
-import { type Uuid, validateUuid } from "../models/uuid.ts";
+} from "@hackerspub/models/schema";
+import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import { escape } from "@std/html/entities";
 import { builder } from "./builder.ts";
 
 export async function getArticle(

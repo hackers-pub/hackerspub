@@ -6,26 +6,26 @@ import {
   type Reject,
   type Undo,
 } from "@fedify/fedify";
+import { persistActor } from "@hackerspub/models/actor";
+import { persistBlocking } from "@hackerspub/models/blocking";
 import type { ContextData } from "@hackerspub/models/context";
-import { getLogger } from "@logtape/logtape";
-import { and, eq, sql } from "drizzle-orm";
-import { persistActor } from "../../models/actor.ts";
-import { persistBlocking } from "../../models/blocking.ts";
 import {
   acceptFollowing,
   updateFolloweesCount,
   updateFollowersCount,
-} from "../../models/following.ts";
+} from "@hackerspub/models/following";
 import {
   createFollowNotification,
   deleteFollowNotification,
-} from "../../models/notification.ts";
+} from "@hackerspub/models/notification";
 import {
   actorTable,
   blockingTable,
   followingTable,
-} from "../../models/schema.ts";
-import { validateUuid } from "../../models/uuid.ts";
+} from "@hackerspub/models/schema";
+import { validateUuid } from "@hackerspub/models/uuid";
+import { getLogger } from "@logtape/logtape";
+import { and, eq, sql } from "drizzle-orm";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "following"]);
 

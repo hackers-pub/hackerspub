@@ -13,10 +13,10 @@ import type {
 } from "@hackerspub/models/schema";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
-import { withTransaction } from "../../../../../web/federation.ts";
 import { Msg } from "../../../../components/Msg.tsx";
 import { PostExcerpt } from "../../../../components/PostExcerpt.tsx";
 import { db } from "../../../../db.ts";
+import { withTransaction } from "../../../../federation.ts";
 import { ArticleExcerpt } from "../../../../islands/ArticleExcerpt.tsx";
 import { Composer } from "../../../../islands/Composer.tsx";
 import { PostControls } from "../../../../islands/PostControls.tsx";

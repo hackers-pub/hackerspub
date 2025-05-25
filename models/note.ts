@@ -1,9 +1,9 @@
 import type { Context, Recipient } from "@fedify/fedify";
 import * as vocab from "@fedify/fedify/vocab";
+import { getNote } from "@hackerspub/federation/objects";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import sharp from "sharp";
-import { getNote } from "../federation/objects.ts";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import {

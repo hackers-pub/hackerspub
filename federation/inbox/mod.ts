@@ -15,8 +15,8 @@ import {
   Undo,
   Update,
 } from "@fedify/fedify";
+import { isPostObject } from "@hackerspub/models/post";
 import { getLogger } from "@logtape/logtape";
-import { isPostObject } from "../../models/post.ts";
 import { builder } from "../builder.ts";
 import { onActorDeleted, onActorMoved, onActorUpdated } from "./actor.ts";
 import {

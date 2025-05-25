@@ -4,12 +4,11 @@ import type * as schema from "@hackerspub/models/schema";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
+import { withTransaction } from "../web/federation.ts"; // FIXME
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { Reactable } from "./reactable.ts";
-
-import { withTransaction } from "../web/federation.ts";
 
 const PostVisibility = builder.enumType("PostVisibility", {
   values: [

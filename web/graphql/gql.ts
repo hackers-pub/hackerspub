@@ -1,8 +1,8 @@
 import type { TypedDocumentNode } from "@graphql-typed-document-node/core";
+import type { Context } from "@hackerspub/graphql";
 import { schema } from "@hackerspub/graphql";
 import { execute, type ExecutionResult } from "graphql";
 import { toe } from "graphql-toe";
-import type { Context } from "../../graphql/builder.ts";
 
 export * from "./__generated__/index.ts";
 

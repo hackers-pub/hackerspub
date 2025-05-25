@@ -7,10 +7,10 @@ import {
   importJwk,
   Person,
 } from "@fedify/fedify";
-import { getAvatarUrl, renderAccountLinks } from "../models/account.ts";
-import { renderMarkup } from "../models/markup.ts";
-import { accountKeyTable, type NewAccountKey } from "../models/schema.ts";
-import { validateUuid } from "../models/uuid.ts";
+import { getAvatarUrl, renderAccountLinks } from "@hackerspub/models/account";
+import { renderMarkup } from "@hackerspub/models/markup";
+import { accountKeyTable, type NewAccountKey } from "@hackerspub/models/schema";
+import { validateUuid } from "@hackerspub/models/uuid";
 import { builder } from "./builder.ts";
 
 const INSTANCE_ACTOR_KEY = Deno.env.get("INSTANCE_ACTOR_KEY");

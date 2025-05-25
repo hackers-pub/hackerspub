@@ -11,34 +11,34 @@ import {
   type Undo,
   type Update,
 } from "@fedify/fedify";
+import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
-import { getLogger } from "@logtape/logtape";
-import { and, eq, or } from "drizzle-orm";
-import { getPersistedActor, persistActor } from "../../models/actor.ts";
 import {
   createMentionNotification,
   createQuoteNotification,
   createReplyNotification,
   createShareNotification,
   deleteShareNotification,
-} from "../../models/notification.ts";
+} from "@hackerspub/models/notification";
 import {
   deletePersistedPost,
   deleteSharedPost,
   isPostObject,
   persistPost,
   persistSharedPost,
-} from "../../models/post.ts";
+} from "@hackerspub/models/post";
 import {
   deleteReaction,
   persistReaction,
   updateReactionsCounts,
-} from "../../models/reaction.ts";
-import { pinTable, type Post, reactionTable } from "../../models/schema.ts";
+} from "@hackerspub/models/reaction";
+import { pinTable, type Post, reactionTable } from "@hackerspub/models/schema";
 import {
   addPostToTimeline,
   removeFromTimeline,
-} from "../../models/timeline.ts";
+} from "@hackerspub/models/timeline";
+import { getLogger } from "@logtape/logtape";
+import { and, eq, or } from "drizzle-orm";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "subscribe"]);
 
