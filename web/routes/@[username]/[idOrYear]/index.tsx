@@ -21,6 +21,7 @@ import type {
   PostMedium,
   Reaction,
 } from "@hackerspub/models/schema";
+import { withTransaction } from "@hackerspub/models/tx";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
@@ -28,7 +29,6 @@ import { Msg } from "../../../components/Msg.tsx";
 import { NoteExcerpt } from "../../../components/NoteExcerpt.tsx";
 import { PostExcerpt } from "../../../components/PostExcerpt.tsx";
 import { db } from "../../../db.ts";
-import { withTransaction } from "../../../federation.ts";
 import { Composer } from "../../../islands/Composer.tsx";
 import { PostControls } from "../../../islands/PostControls.tsx";
 import { kv } from "../../../kv.ts";

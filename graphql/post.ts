@@ -1,10 +1,10 @@
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { createNote } from "@hackerspub/models/note";
 import type * as schema from "@hackerspub/models/schema";
+import { withTransaction } from "@hackerspub/models/tx";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
-import { withTransaction } from "../web/federation.ts"; // FIXME
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";

@@ -28,6 +28,7 @@ import {
   type PostMedium,
   type Reaction,
 } from "@hackerspub/models/schema";
+import { withTransaction } from "@hackerspub/models/tx";
 import type { Uuid } from "@hackerspub/models/uuid";
 import * as v from "@valibot/valibot";
 import { sql } from "drizzle-orm";
@@ -37,7 +38,6 @@ import { PostPagination } from "../../components/PostPagination.tsx";
 import { Profile } from "../../components/Profile.tsx";
 import { ProfileNav } from "../../components/ProfileNav.tsx";
 import { db } from "../../db.ts";
-import { withTransaction } from "../../federation.ts";
 import { kv } from "../../kv.ts";
 import { define } from "../../utils.ts";
 

@@ -32,6 +32,7 @@
     "./signin": "./signin.ts",
     "./signup": "./signup.ts",
     "./timeline": "./timeline.ts",
+    "./tx": "./tx.ts",
     "./url": "./url.ts",
     "./uuid": "./uuid.ts"
   },

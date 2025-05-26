@@ -1,9 +1,6 @@
-import type { RequestContext } from "@fedify/fedify";
 import { PostgresKvStore, PostgresMessageQueue } from "@fedify/postgres";
 import { RedisKvStore } from "@fedify/redis";
 import { builder } from "@hackerspub/federation";
-import type { ContextData } from "@hackerspub/models/context";
-import type { Transaction } from "@hackerspub/models/db";
 import { getLogger } from "@logtape/logtape";
 import { Redis } from "ioredis";
 import { postgres } from "./db.ts";
@@ -41,17 +38,3 @@ export const federation = await builder.build({
     url: new URL(ORIGIN),
   },
 });
-
-// FIXME: Make this independent of federation object
-export async function withTransaction<T>(
-  context: RequestContext<ContextData>,
-  callback: (context: RequestContext<ContextData<Transaction>>) => Promise<T>,
-) {
-  return await context.data.db.transaction(async (transaction) => {
-    const nextContext = federation.createContext(context.request, {
-      ...context.data,
-      db: transaction,
-    }) as RequestContext<ContextData<Transaction>>;
-    return await callback(nextContext);
-  });
-}
