@@ -1596,42 +1596,50 @@ export async function scrapePostLink<TContextData>(
     image.imageUrl != null &&
     (image.imageWidth == null || image.imageHeight == null)
   ) {
-    const response = await fetch(image.imageUrl, {
-      headers: {
-        "User-Agent": getUserAgent({
-          software: "HackersPub",
-          url: new URL(fedCtx.canonicalOrigin),
-        }),
-        "Accept": "image/*",
-        "Referer": responseUrl,
-      },
-      redirect: "follow",
-    });
-    logger.debug("Fetched image {url}: {status} {statusText}", {
-      url: response.url,
-      status: response.status,
-      statusText: response.statusText,
-    });
-    if (response.ok) {
-      const body = await response.arrayBuffer();
-      try {
-        const metadata = await sharp(body).metadata();
-        switch (metadata.orientation) {
-          case 6:
-          case 8:
-            image.imageWidth = metadata.height;
-            image.imageHeight = metadata.width;
-            break;
-          case 1:
-          case 3:
-          default:
-            image.imageWidth = metadata.width;
-            image.imageHeight = metadata.height;
-            break;
+    try {
+      const response = await fetch(image.imageUrl, {
+        headers: {
+          "User-Agent": getUserAgent({
+            software: "HackersPub",
+            url: new URL(fedCtx.canonicalOrigin),
+          }),
+          "Accept": "image/*",
+          "Referer": responseUrl,
+        },
+        redirect: "follow",
+      });
+      logger.debug("Fetched image {url}: {status} {statusText}", {
+        url: response.url,
+        status: response.status,
+        statusText: response.statusText,
+      });
+      if (response.ok) {
+        const body = await response.arrayBuffer();
+        try {
+          const metadata = await sharp(body).metadata();
+          switch (metadata.orientation) {
+            case 6:
+            case 8:
+              image.imageWidth = metadata.height;
+              image.imageHeight = metadata.width;
+              break;
+            case 1:
+            case 3:
+            default:
+              image.imageWidth = metadata.width;
+              image.imageHeight = metadata.height;
+              break;
+          }
+        } catch {
+          image = {};
         }
-      } catch {
-        image = {};
       }
+    } catch (error) {
+      logger.debug(
+        "Failed to fetch image {url}: {error}",
+        { url: image.imageUrl, error },
+      );
+      image = {};
     }
   }
   const creatorHandle = result.customMetaTags?.fediverseCreator == null

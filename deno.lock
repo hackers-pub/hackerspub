@@ -73,6 +73,7 @@
     "npm:@ai-sdk/google@^1.2.14": "1.2.18_zod@3.25.28",
     "npm:@aws-sdk/client-s3@^3.750.0": "3.817.0",
     "npm:@aws-sdk/s3-request-presigner@^3.750.0": "3.817.0",
+    "npm:@graphql-codegen/cli@*": "5.0.6_@parcel+watcher@2.5.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@22.15.15",
     "npm:@graphql-codegen/cli@^5.0.5": "5.0.6_@parcel+watcher@2.5.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@22.15.15",
     "npm:@graphql-codegen/client-preset@^4.8.0": "4.8.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@graphql-typed-document-node/core@^3.2.0": "3.2.0_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
