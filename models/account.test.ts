@@ -42,10 +42,10 @@ const linkMetadata: Record<string, LinkMetadata> = {
     handle: "@hong_minhee",
   },
   "https://keybase.io/hongminhee": { icon: "keybase", handle: "hongminhee" },
-  "https://lemmy.ml/u/hongminhee": {
+  /* "https://lemmy.ml/u/hongminhee": {
     icon: "lemmy",
     handle: "@hongminhee@lemmy.ml",
-  },
+  }, */
   "https://www.linkedin.com/in/simnalamburt": {
     icon: "linkedin",
     handle: "simnalamburt",
