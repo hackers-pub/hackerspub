@@ -5,7 +5,7 @@
     "jsr:@david/which-runtime@~0.2.1": "0.2.1",
     "jsr:@es-toolkit/es-toolkit@^1.38.0": "1.38.0",
     "jsr:@fedify/fedify@1.5.0": "1.5.0",
-    "jsr:@fedify/fedify@1.6.1-dev.831+67c26e13": "1.6.1-dev.831+67c26e13",
+    "jsr:@fedify/fedify@1.6.1-dev.876+7b07d213": "1.6.1-dev.876+7b07d213",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
     "jsr:@fedify/postgres@0.3": "0.3.0",
@@ -240,8 +240,8 @@
         "npm:url-template"
       ]
     },
-    "@fedify/fedify@1.6.1-dev.831+67c26e13": {
-      "integrity": "93d8186404632a274327aad6dfea6a5a5c29d6879b8cea0a3023b33e15a86ef5",
+    "@fedify/fedify@1.6.1-dev.876+7b07d213": {
+      "integrity": "687a189a850f1a9a8b627149ab37691d54bac47cb80104fee0fa600e008e9a2e",
       "dependencies": [
         "jsr:@es-toolkit/es-toolkit",
         "jsr:@hugoalh/http-header-link",
@@ -11066,7 +11066,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@1.6.1-dev.831+67c26e13",
+      "jsr:@fedify/fedify@1.6.1-dev.876+7b07d213",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
       "jsr:@fedify/postgres@0.3",
