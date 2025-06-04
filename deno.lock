@@ -116,8 +116,8 @@
     "npm:@preact/signals@^2.0.4": "2.0.5_preact@10.26.7",
     "npm:@resvg/resvg-js@^2.6.2": "2.6.2",
     "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0": "2.0.1-0",
-    "npm:@shikijs/markdown-it@^3.2.1": "3.4.2_markdown-it-async@2.2.0",
-    "npm:@shikijs/transformers@^3.2.1": "3.4.2",
+    "npm:@shikijs/markdown-it@^3.5.0": "3.5.0_markdown-it-async@2.2.0",
+    "npm:@shikijs/transformers@^3.5.0": "3.5.0",
     "npm:@solidjs/meta@~0.29.4": "0.29.4_solid-js@1.9.7__seroval@1.3.2",
     "npm:@solidjs/router@0.15": "0.15.3_solid-js@1.9.7__seroval@1.3.2",
     "npm:@solidjs/start@^1.1.0": "1.1.4_vinxi@0.5.6__@babel+core@7.27.1__ioredis@5.6.1__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_seroval@1.3.2_solid-js@1.9.7__seroval@1.3.2_ioredis@5.6.1_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@22.15.15_@cloudflare+workers-types@4.20250603.0",
@@ -185,7 +185,7 @@
     "npm:satori-html@~0.3.2": "0.3.2",
     "npm:satori@~0.11.3": "0.11.3",
     "npm:sharp@~0.33.5": "0.33.5",
-    "npm:shiki@^3.2.1": "3.4.2",
+    "npm:shiki@^3.5.0": "3.5.0",
     "npm:solid-js@^1.9.5": "1.9.7_seroval@1.3.2",
     "npm:solid-relay@^1.0.0-beta.10": "1.0.0-beta.10_relay-runtime@19.0.0_seroval@1.3.2_solid-js@1.9.7__seroval@1.3.2",
     "npm:ssrfcheck@^1.1.1": "1.1.1",
@@ -250,6 +250,7 @@
         "jsr:@es-toolkit/es-toolkit",
         "jsr:@hugoalh/http-header-link",
         "jsr:@logtape/logtape@0.11",
+        "npm:@cloudflare/workers-types",
         "npm:@multiformats/base-x",
         "npm:@opentelemetry/api",
         "npm:@opentelemetry/semantic-conventions@^1.27.0",
@@ -3755,10 +3756,10 @@
         "hast-util-to-html"
       ]
     },
-    "@shikijs/core@3.4.2": {
-      "integrity": "sha512-AG8vnSi1W2pbgR2B911EfGqtLE9c4hQBYkv/x7Z+Kt0VxhgQKcW7UNDVYsu9YxwV6u+OJrvdJrMq6DNWoBjihQ==",
+    "@shikijs/core@3.5.0": {
+      "integrity": "sha512-iycvvnVG7MWZHRNuoqpYkV3Qc8DNLU74Lxh/roDwUqJJoXRnCTbbVJGfSWAdBslUgJMsjSHwFL42i55voavDDg==",
       "dependencies": [
-        "@shikijs/types@3.4.2",
+        "@shikijs/types@3.5.0",
         "@shikijs/vscode-textmate",
         "@types/hast",
         "hast-util-to-html"
@@ -3772,10 +3773,10 @@
         "oniguruma-to-es@2.3.0"
       ]
     },
-    "@shikijs/engine-javascript@3.4.2": {
-      "integrity": "sha512-1/adJbSMBOkpScCE/SB6XkjJU17ANln3Wky7lOmrnpl+zBdQ1qXUJg2GXTYVHRq+2j3hd1DesmElTXYDgtfSOQ==",
+    "@shikijs/engine-javascript@3.5.0": {
+      "integrity": "sha512-3MhSnVHEdGb4L4FS/HAPc7WtPmIfHjRZraObf6tKxQaGuQGZfBsoLVCGuoGfiqt/zy0MKpll3oiZiQ/maT/wlQ==",
       "dependencies": [
-        "@shikijs/types@3.4.2",
+        "@shikijs/types@3.5.0",
         "@shikijs/vscode-textmate",
         "oniguruma-to-es@4.3.3"
       ]
@@ -3787,10 +3788,10 @@
         "@shikijs/vscode-textmate"
       ]
     },
-    "@shikijs/engine-oniguruma@3.4.2": {
-      "integrity": "sha512-zcZKMnNndgRa3ORja6Iemsr3DrLtkX3cAF7lTJkdMB6v9alhlBsX9uNiCpqofNrXOvpA3h6lHcLJxgCIhVOU5Q==",
+    "@shikijs/engine-oniguruma@3.5.0": {
+      "integrity": "sha512-DLM1VL+WvWFHQlikP8MTc8T2MdEGAOJhAi9+48wkQ7kO7c/99h4ALK0b0CPQBCeLMp37raoM1Ucuo3OTSjtUxA==",
       "dependencies": [
-        "@shikijs/types@3.4.2",
+        "@shikijs/types@3.5.0",
         "@shikijs/vscode-textmate"
       ]
     },
@@ -3800,18 +3801,18 @@
         "@shikijs/types@1.29.2"
       ]
     },
-    "@shikijs/langs@3.4.2": {
-      "integrity": "sha512-H6azIAM+OXD98yztIfs/KH5H4PU39t+SREhmM8LaNXyUrqj2mx+zVkr8MWYqjceSjDw9I1jawm1WdFqU806rMA==",
+    "@shikijs/langs@3.5.0": {
+      "integrity": "sha512-kBJhmj0ZkULbf3O+Asr8Xs7hcFtQdPnqIld2kKrG9WhDpIvqMRWSj3L9LECi2TH7vV6ROrvJ78/1yEASL0d00w==",
       "dependencies": [
-        "@shikijs/types@3.4.2"
+        "@shikijs/types@3.5.0"
       ]
     },
-    "@shikijs/markdown-it@3.4.2_markdown-it-async@2.2.0": {
-      "integrity": "sha512-koJ4Mm5HcTJw2v5X9RFEfbc/4pho+p2co5xNtLSQNNWaCZWSTB7WDxZS+OYX6OkQ1HUgxu7WK/1mxtfiKCPVbw==",
+    "@shikijs/markdown-it@3.5.0_markdown-it-async@2.2.0": {
+      "integrity": "sha512-/S7oYijZGwrtvGcRcIIx+vcTZR/r3KCQWKSPDDalBpWFrpjgbZWCEpYmIH0DKCpd1C2M3tEG4aS1DODtPj/dCw==",
       "dependencies": [
         "markdown-it",
         "markdown-it-async",
-        "shiki@3.4.2"
+        "shiki@3.5.0"
       ],
       "optionalPeers": [
         "markdown-it-async"
@@ -3823,17 +3824,17 @@
         "@shikijs/types@1.29.2"
       ]
     },
-    "@shikijs/themes@3.4.2": {
-      "integrity": "sha512-qAEuAQh+brd8Jyej2UDDf+b4V2g1Rm8aBIdvt32XhDPrHvDkEnpb7Kzc9hSuHUxz0Iuflmq7elaDuQAP9bHIhg==",
+    "@shikijs/themes@3.5.0": {
+      "integrity": "sha512-xr4bPmAORm2fhfVeaCDfRXiq0rxAxPRR0Bhiw+EaofgJ79Jj61fnVZDF40nJKvmMoKnC60TqCTpbr15ToTgTOA==",
       "dependencies": [
-        "@shikijs/types@3.4.2"
+        "@shikijs/types@3.5.0"
       ]
     },
-    "@shikijs/transformers@3.4.2": {
-      "integrity": "sha512-I5baLVi/ynLEOZoWSAMlACHNnG+yw5HDmse0oe+GW6U1u+ULdEB3UHiVWaHoJSSONV7tlcVxuaMy74sREDkSvg==",
+    "@shikijs/transformers@3.5.0": {
+      "integrity": "sha512-wK7Jm12n9R1INd7N8FD1xCU6AaJm597PTDAQkbbUDa32G03sv0W4jNBbUWl6gZte0DwVmJHxc/yPtAhqCyfplg==",
       "dependencies": [
-        "@shikijs/core@3.4.2",
-        "@shikijs/types@3.4.2"
+        "@shikijs/core@3.5.0",
+        "@shikijs/types@3.5.0"
       ]
     },
     "@shikijs/types@1.29.2": {
@@ -3843,8 +3844,8 @@
         "@types/hast"
       ]
     },
-    "@shikijs/types@3.4.2": {
-      "integrity": "sha512-zHC1l7L+eQlDXLnxvM9R91Efh2V4+rN3oMVS2swCBssbj2U/FBwybD1eeLaq8yl/iwT+zih8iUbTBCgGZOYlVg==",
+    "@shikijs/types@3.5.0": {
+      "integrity": "sha512-VvqGHhS8BWClF7eVnEJLe0nAhQw/1L+xC5mp6uj+tVr3tjD2ASx2Mx9M9l7tZQO++1qwZeIIusvSRhz4aKODFQ==",
       "dependencies": [
         "@shikijs/vscode-textmate",
         "@types/hast"
@@ -9860,15 +9861,15 @@
         "@types/hast"
       ]
     },
-    "shiki@3.4.2": {
-      "integrity": "sha512-wuxzZzQG8kvZndD7nustrNFIKYJ1jJoWIPaBpVe2+KHSvtzMi4SBjOxrigs8qeqce/l3U0cwiC+VAkLKSunHQQ==",
+    "shiki@3.5.0": {
+      "integrity": "sha512-1lyPuqIPPAlmR1BKtDkxiuoZTB2IKSyr+GeHXu4ReOyHoEMhCnUoGZDUv4SJRH0Bi4QmsEPsrkQCRSOgnVRC+g==",
       "dependencies": [
-        "@shikijs/core@3.4.2",
-        "@shikijs/engine-javascript@3.4.2",
-        "@shikijs/engine-oniguruma@3.4.2",
-        "@shikijs/langs@3.4.2",
-        "@shikijs/themes@3.4.2",
-        "@shikijs/types@3.4.2",
+        "@shikijs/core@3.5.0",
+        "@shikijs/engine-javascript@3.5.0",
+        "@shikijs/engine-oniguruma@3.5.0",
+        "@shikijs/langs@3.5.0",
+        "@shikijs/themes@3.5.0",
+        "@shikijs/types@3.5.0",
         "@shikijs/vscode-textmate",
         "@types/hast"
       ]
@@ -11368,8 +11369,8 @@
       "npm:@preact/signals@^1.3.1",
       "npm:@resvg/resvg-js@^2.6.2",
       "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0",
-      "npm:@shikijs/markdown-it@^3.2.1",
-      "npm:@shikijs/transformers@^3.2.1",
+      "npm:@shikijs/markdown-it@^3.5.0",
+      "npm:@shikijs/transformers@^3.5.0",
       "npm:@tailwindcss/typography@~0.5.15",
       "npm:@types/fluent-ffmpeg@^2.1.27",
       "npm:@types/mdast@^4.0.4",
@@ -11412,7 +11413,7 @@
       "npm:satori-html@~0.3.2",
       "npm:satori@~0.11.3",
       "npm:sharp@~0.33.5",
-      "npm:shiki@^3.2.1",
+      "npm:shiki@^3.5.0",
       "npm:ssrfcheck@^1.1.1",
       "npm:tailwindcss@3.4.3",
       "npm:tinyld@^1.3.4",

@@ -126,6 +126,7 @@ const md = MarkdownItAsync({ html: true, linkify: true })
           light: "vitesse-light",
           dark: "vitesse-dark",
         },
+        defaultColor: "light-dark()",
         transformers: [
           transformerNotationDiff({ matchAlgorithm: "v3" }),
           transformerNotationHighlight({ matchAlgorithm: "v3" }),
