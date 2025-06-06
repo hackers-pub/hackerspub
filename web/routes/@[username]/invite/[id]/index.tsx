@@ -81,7 +81,10 @@ export const handler = define.handlers({
         .where(eq(invitationLinkTable.id, invitationLink.id))
         .returning();
       if (updated.length < 1) return ctx.next();
-      else if (updated[0].invitationsLeft < 0) tx.rollback();
+      else if (updated[0].invitationsLeft < 0) {
+        tx.rollback();
+        return ctx.next();
+      }
       const token = await createSignupToken(kv, email, {
         inviterId: invitationLink.inviter.id,
         expiration: EXPIRATION,
