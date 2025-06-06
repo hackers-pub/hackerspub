@@ -139,6 +139,7 @@
     "npm:cssfilter@^0.0.11": "0.0.11",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
     "npm:drizzle-kit@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_esbuild@0.19.12",
+    "npm:drizzle-kit@beta": "1.0.0-beta.1-c0277c0_esbuild@0.25.4",
     "npm:drizzle-orm@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250603.0",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
@@ -6219,8 +6220,18 @@
         "@drizzle-team/brocli",
         "@esbuild-kit/esm-loader",
         "esbuild@0.19.12",
-        "esbuild-register",
+        "esbuild-register@3.6.0_esbuild@0.19.12",
         "gel"
+      ],
+      "bin": true
+    },
+    "drizzle-kit@1.0.0-beta.1-c0277c0_esbuild@0.25.4": {
+      "integrity": "sha512-8oRt69AyPA1ONsI1/2nZCJGkp9egyQOOe/uBuNB8yxcWxIMCDI60OF4rLHUaYfpHP4zuqJwiABFIBQUViPxXTw==",
+      "dependencies": [
+        "@drizzle-team/brocli",
+        "@esbuild-kit/esm-loader",
+        "esbuild@0.25.4",
+        "esbuild-register@3.6.0_esbuild@0.25.4"
       ],
       "bin": true
     },
@@ -6359,6 +6370,13 @@
       "dependencies": [
         "debug@4.4.1",
         "esbuild@0.19.12"
+      ]
+    },
+    "esbuild-register@3.6.0_esbuild@0.25.4": {
+      "integrity": "sha512-H2/S7Pm8a9CL1uhp9OvjwrBh5Pvx0H8qVOxNu8Wed9Y7qv56MPtq+GGM8RJpq6glYJn9Wspr8uw7l55uyinNeg==",
+      "dependencies": [
+        "debug@4.4.1",
+        "esbuild@0.25.4"
       ]
     },
     "esbuild-wasm@0.23.1": {

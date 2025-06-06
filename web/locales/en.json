@@ -26,6 +26,7 @@
     "mention": "mention",
     "handle": "handle",
     "invitation": "invitation",
+    "invitationLink": "invitation link",
     "medium": "medium"
   },
   "notification": {
@@ -165,6 +166,16 @@
       "invitationEmailSubject": "{{inviterName}} invites you to Hackers' Pub!",
       "invitationEmailText": "{{inviter}} invites you to Hackers' Pub!\n\n$t(home.intro.content)\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n",
       "invitationEmailTextWithMessage": "{{inviter}} invites you to Hackers' Pub! Here's a message from {{inviterName}}:\n\n{{message}}\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n",
+      "invitationLinks": "Invitation links",
+      "link": "Link",
+      "invitationsLeft": "Invitations left",
+      "expires": "Expires in",
+      "invitationLinksDescription": "You can use invitation links to join Hackers' Pub. Invitation links can be shared with others.",
+      "createOrDelete": "Create/delete",
+      "delete": "Delete",
+      "markdownEnabled": "$t(composer.markdownEnabled)",
+      "neverExpires": "Never expires",
+      "create": "Create",
       "inviter": "Who invited you",
       "invitees": "Users invited by you",
       "tree": "$t(invitationTree.title)",
@@ -390,5 +401,21 @@
   },
   "clipboard": {
     "copied": "Copied to the clipboard."
+  },
+  "invitationLink": {
+    "description": "{{inviter}} invites you to Hackers' Pub! Enter your email address below to join Hackers' Pub.",
+    "invitationsLeft_one": "1 person can join Hackers' Pub using this invitation link.",
+    "invitationsLeft_other": "{{count}} people can join Hackers' Pub using this invitation link.",
+    "expiration": "This invitation link expires on {{expiration}}.",
+    "introTitle": "$t(home.intro.title)",
+    "introContent": "$t(home.intro.content)",
+    "messageDescription": "{{inviter}} left you a message:",
+    "email": "$t(settings.invite.email)",
+    "emailDescription": "$t(settings.invite.emailDescription)",
+    "signUp": "$t(signUp.title)",
+    "expired": "This invitation link has expired. You need to use another invitation link to join Hackers' Pub.",
+    "exhausted": "This invitation link has been exhausted. You need to use another invitation link to join Hackers' Pub.",
+    "duplicateEmail": "This email address is already registered with Hackers' Pub. Please use a different email address.",
+    "sent": "An email to join Hackers' Pub has been sent to {{email}}. Please check your inbox (it might be in your spam folder)."
   }
 }

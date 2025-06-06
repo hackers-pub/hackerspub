@@ -1,4 +1,3 @@
-import { getAvatarUrl } from "@hackerspub/models/avatar";
 import type { Account, Actor } from "@hackerspub/models/schema";
 import { getFixedT } from "i18next";
 import { useState } from "preact/hooks";
@@ -6,8 +5,6 @@ import { Button } from "../components/Button.tsx";
 import { Input } from "../components/Input.tsx";
 import { Label } from "../components/Label.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
-import { PageTitle } from "../components/PageTitle.tsx";
-import { SettingsNav } from "../components/SettingsNav.tsx";
 import { TextArea } from "../components/TextArea.tsx";
 import { type Language, SUPPORTED_LANGUAGES } from "../i18n.ts";
 
@@ -38,7 +35,7 @@ export type InviteFormProps =
   );
 
 export function InviteForm(
-  { language, canonicalHost, ...initialData }: InviteFormProps,
+  { language, ...initialData }: InviteFormProps,
 ) {
   const [data, setData] = useState(initialData);
   const t = getFixedT(language);
@@ -82,11 +79,6 @@ export function InviteForm(
   return (
     <TranslationSetup language={language}>
       <form method="post" onSubmit={onClickSubmit}>
-        <SettingsNav
-          active="invite"
-          settingsHref={`/@${account.username}/settings`}
-          leftInvitations={leftInvitations}
-        />
         {data.success === false
           ? (
             <p class="mt-4 text-red-700 dark:text-red-500">
@@ -201,60 +193,6 @@ export function InviteForm(
             <Msg $key="settings.invite.send" />
           </Button>
         </div>
-        {account.inviter != null && (
-          <>
-            <PageTitle class="mt-8">
-              <Msg $key="settings.invite.inviter" />
-            </PageTitle>
-            <p>
-              <a href={`/@${account.inviter.username}`}>
-                <img
-                  src={getAvatarUrl(account.inviter.actor)}
-                  width={16}
-                  height={16}
-                  class="inline-block mr-1"
-                />
-                <strong>{account.inviter.name}</strong>
-                <span class="opacity-50 before:content-['('] after:content-[')'] ml-1">
-                  @{account.inviter.username}@{"host"}
-                </span>
-              </a>
-            </p>
-          </>
-        )}
-        {account.invitees.length > 0 && (
-          <>
-            <PageTitle class="mt-8">
-              <Msg $key="settings.invite.invitees" />
-            </PageTitle>
-            <ul>
-              {account.invitees.map((invitee) => (
-                <li key={invitee.id} class="mb-2">
-                  <a href={`/@${invitee.username}`}>
-                    <img
-                      src={getAvatarUrl(invitee.actor)}
-                      width={16}
-                      height={16}
-                      class="inline-block mr-1"
-                    />
-                    <strong>{invitee.name}</strong>
-                    <span class="opacity-50 before:content-['('] after:content-[')'] ml-1">
-                      @{invitee.username}@{canonicalHost}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-        <PageTitle class="mt-8">
-          <Msg $key="settings.invite.tree" />
-        </PageTitle>
-        <p>
-          <a href="/tree">
-            <Msg $key="settings.invite.viewTree" />
-          </a>
-        </p>
       </form>
     </TranslationSetup>
   );

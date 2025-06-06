@@ -1127,3 +1127,23 @@ export const notificationTable = pgTable(
 
 export type Notification = typeof notificationTable.$inferSelect;
 export type NewNotification = typeof notificationTable.$inferInsert;
+
+export const invitationLinkTable = pgTable(
+  "invitation_link",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    inviterId: uuid("inviter_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
+    invitationsLeft: smallint("invitations_left").notNull(),
+    message: text("message"),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    expires: timestamp({ withTimezone: true }),
+  },
+);
+
+export type InvitationLink = typeof invitationLinkTable.$inferSelect;
+export type NewInvitationLink = typeof invitationLinkTable.$inferInsert;

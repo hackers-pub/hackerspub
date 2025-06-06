@@ -1,7 +1,19 @@
 import { type FreshContext, page } from "@fresh/core";
-import { type Account, accountTable } from "@hackerspub/models/schema";
+import { normalizeEmail } from "@hackerspub/models/account";
+import { getAvatarUrl } from "@hackerspub/models/avatar";
+import { type RenderedMarkup, renderMarkup } from "@hackerspub/models/markup";
+import {
+  type Account,
+  accountTable,
+  type InvitationLink,
+} from "@hackerspub/models/schema";
 import { createSignupToken } from "@hackerspub/models/signup";
+import type { Uuid } from "@hackerspub/models/uuid";
 import { eq, sql } from "drizzle-orm";
+import { InvitationLinks } from "../../../components/InvitationLinks.tsx";
+import { Msg } from "../../../components/Msg.tsx";
+import { PageTitle } from "../../../components/PageTitle.tsx";
+import { SettingsNav } from "../../../components/SettingsNav.tsx";
 import { db } from "../../../db.ts";
 import { sendEmail } from "../../../email.ts";
 import getFixedT, { isLanguage } from "../../../i18n.ts";
@@ -15,11 +27,14 @@ import { define, type State } from "../../../utils.ts";
 
 export const EXPIRATION = Temporal.Duration.from({ hours: 48 });
 
-type InvitePageProps = Omit<InviteFormProps, "language">;
+type InvitePageProps = Omit<InviteFormProps, "language"> & {
+  invitationLinks: InvitationLink[];
+};
 
 async function sendInvitation(
   ctx: FreshContext<State>,
   account: AccountWithInvitationInfo & Pick<Account, "id">,
+  invitationLinks: InvitationLink[],
 ): Promise<InvitePageProps> {
   const canonicalHost = new URL(ctx.state.canonicalOrigin).host;
   if (account.leftInvitations < 1) {
@@ -28,10 +43,11 @@ async function sendInvitation(
       account,
       error: "noLeftInvitations",
       canonicalHost,
+      invitationLinks,
     } as InvitePageProps;
   }
   const form = await ctx.req.formData();
-  const email = form.get("email")?.toString()?.trim();
+  const email = normalizeEmail(form.get("email")?.toString()?.trim());
   let language = form.get("language")?.toString()?.trim();
   if (language == null || !isLanguage(language)) {
     language = ctx.state.language;
@@ -43,6 +59,7 @@ async function sendInvitation(
       account,
       error: "emailRequired",
       canonicalHost,
+      invitationLinks,
     } as InvitePageProps;
   }
   const existingEmail = await db.query.accountEmailTable.findFirst({
@@ -59,8 +76,10 @@ async function sendInvitation(
         name: existingEmail.account.name,
       },
       canonicalHost,
+      invitationLinks,
     } as InvitePageProps;
   }
+  // FIXME: Eliminate duplicate code with web/routes/@[username]/invite/[id]/index.tsx
   const token = await createSignupToken(kv, email, {
     inviterId: account.id,
     expiration: EXPIRATION,
@@ -110,6 +129,7 @@ async function sendInvitation(
     account,
     email,
     canonicalHost,
+    invitationLinks,
   } as InvitePageProps;
 }
 
@@ -126,12 +146,14 @@ export const handler = define.handlers({
           with: { actor: true },
           orderBy: { created: "desc" },
         },
+        invitationLinks: true,
       },
     });
     if (ctx.state.account.id !== account?.id) return ctx.next();
     return page<InvitePageProps>({
       account,
       canonicalHost: new URL(ctx.state.canonicalOrigin).host,
+      invitationLinks: account.invitationLinks,
     });
   },
 
@@ -147,11 +169,12 @@ export const handler = define.handlers({
           with: { actor: true },
           orderBy: { created: "desc" },
         },
+        invitationLinks: true,
       },
     });
     if (ctx.state.account.id !== account?.id) return ctx.next();
 
-    const result = await sendInvitation(ctx, account);
+    const result = await sendInvitation(ctx, account, account.invitationLinks);
     if (ctx.req.headers.get("Accept") === "application/json") {
       const { account, ...response } = result;
       return new Response(
@@ -192,11 +215,91 @@ export const handler = define.handlers({
 });
 
 export default define.page<typeof handler, InvitePageProps>(
-  function InvitePage({ state, data }) {
+  async function InvitePage({ state, data }) {
+    const { account, canonicalHost, invitationLinks } = data;
     const formData = {
       language: state.language,
       ...data,
     } as InviteFormProps;
-    return <InviteForm {...formData}></InviteForm>;
+    const messagePromises: Promise<[Uuid, RenderedMarkup]>[] = [];
+    for (const link of invitationLinks) {
+      if (link.message == null) continue;
+      messagePromises.push(
+        renderMarkup(state.fedCtx, link.message, {
+          docId: link.id,
+          kv,
+        }).then((result) => [link.id, result]),
+      );
+    }
+    const messages = await Promise.all(messagePromises);
+    return (
+      <>
+        <SettingsNav
+          active="invite"
+          settingsHref={`/@${account.username}/settings`}
+          leftInvitations={account.leftInvitations}
+        />
+        <InviteForm {...formData}></InviteForm>
+        <InvitationLinks
+          account={account}
+          invitationLinks={invitationLinks}
+          messages={Object.fromEntries(messages)}
+        />
+        {account.inviter != null && (
+          <>
+            <PageTitle class="mt-8">
+              <Msg $key="settings.invite.inviter" />
+            </PageTitle>
+            <p>
+              <a href={`/@${account.inviter.username}`}>
+                <img
+                  src={getAvatarUrl(account.inviter.actor)}
+                  width={16}
+                  height={16}
+                  class="inline-block mr-1"
+                />
+                <strong>{account.inviter.name}</strong>
+                <span class="opacity-50 before:content-['('] after:content-[')'] ml-1">
+                  @{account.inviter.username}@{"host"}
+                </span>
+              </a>
+            </p>
+          </>
+        )}
+        {account.invitees.length > 0 && (
+          <>
+            <PageTitle class="mt-8">
+              <Msg $key="settings.invite.invitees" />
+            </PageTitle>
+            <ul>
+              {account.invitees.map((invitee) => (
+                <li key={invitee.id} class="mb-2">
+                  <a href={`/@${invitee.username}`}>
+                    <img
+                      src={getAvatarUrl(invitee.actor)}
+                      width={16}
+                      height={16}
+                      class="inline-block mr-1"
+                    />
+                    <strong>{invitee.name}</strong>
+                    <span class="opacity-50 before:content-['('] after:content-[')'] ml-1">
+                      @{invitee.username}@{canonicalHost}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        <PageTitle class="mt-8">
+          <Msg $key="settings.invite.tree" />
+        </PageTitle>
+        <p>
+          <a href="/tree">
+            <Msg $key="settings.invite.viewTree" />
+          </a>
+        </p>
+      </>
+    );
   },
 );

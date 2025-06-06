@@ -7,11 +7,12 @@ export interface TimestampProps {
   noRelative?: boolean;
   dateStyle?: Intl.DateTimeFormatOptions["dateStyle"];
   timeStyle?: Intl.DateTimeFormatOptions["timeStyle"];
+  allowFuture?: boolean;
   class?: string;
 }
 
 export function Timestamp(
-  { value, locale, noRelative, dateStyle, timeStyle, class: cls }:
+  { value, locale, noRelative, dateStyle, timeStyle, allowFuture, class: cls }:
     TimestampProps,
 ) {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -33,33 +34,37 @@ export function Timestamp(
     <time datetime={value.toISOString()} title={absTime} class={cls}>
       {noRelative || !IS_BROWSER
         ? absTime
-        : formatRelativeTime(currentDate, value, locale)}
+        : formatRelativeTime(currentDate, value, locale, { allowFuture })}
     </time>
   );
 }
+
+const UNITS: { unit: Intl.RelativeTimeFormatUnit; ms: number }[] = [
+  { unit: "year", ms: 31536000000 }, // 365 days
+  { unit: "month", ms: 2628000000 }, // 30 days
+  { unit: "week", ms: 604800000 }, // 7 days
+  { unit: "day", ms: 86400000 }, // 24 hours
+  { unit: "hour", ms: 3600000 }, // 60 minutes
+  { unit: "minute", ms: 60000 }, // 60 seconds
+  { unit: "second", ms: 1000 },
+];
 
 function formatRelativeTime(
   currentDate: Date,
   targetDate: Date,
   locale: string,
-  options: Intl.RelativeTimeFormatOptions = { numeric: "auto" },
+  options: Intl.RelativeTimeFormatOptions & { allowFuture?: boolean } = {
+    numeric: "auto",
+  },
 ): string {
-  const DIFF_MS = Math.min(targetDate.getTime() - currentDate.getTime(), 0);
-  const ABS_DIFF = Math.abs(DIFF_MS);
-
-  const UNITS: { unit: Intl.RelativeTimeFormatUnit; ms: number }[] = [
-    { unit: "year", ms: 31536000000 }, // 365 days
-    { unit: "month", ms: 2628000000 }, // 30 days
-    { unit: "week", ms: 604800000 }, // 7 days
-    { unit: "day", ms: 86400000 }, // 24 hours
-    { unit: "hour", ms: 3600000 }, // 60 minutes
-    { unit: "minute", ms: 60000 }, // 60 seconds
-    { unit: "second", ms: 1000 },
-  ];
+  const diffMs = options.allowFuture
+    ? targetDate.getTime() - currentDate.getTime()
+    : Math.min(targetDate.getTime() - currentDate.getTime(), 0);
+  const absDiff = Math.abs(diffMs);
 
   for (const { unit, ms } of UNITS) {
-    if (ABS_DIFF >= ms) {
-      const value = Math.round(DIFF_MS / ms);
+    if (absDiff >= ms) {
+      const value = Math.round(diffMs / ms);
       return new Intl.RelativeTimeFormat(locale, options).format(value, unit);
     }
   }

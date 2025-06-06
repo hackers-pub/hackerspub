@@ -26,6 +26,7 @@
     "mention": "メンション",
     "handle": "ハンドル",
     "invitation": "招待",
+    "invitationLink": "招待リンク",
     "medium": "メディア"
   },
   "notification": {
@@ -162,6 +163,16 @@
       "invitationEmailSubject": "{{inviterName}}さんがHackers' Pubに招待しています！",
       "invitationEmailText": "{{inviter}}さんがHackers' Pubに招待しています！\n\n$t(home.intro.content)\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n",
       "invitationEmailTextWithMessage": "{{inviter}}さんがHackers' Pubに招待しています！{{inviterName}}さんからのメッセージです：\n\n{{message}}\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n",
+      "invitationLinks": "$t(glossary.invitationLink)",
+      "link": "リンク",
+      "invitationsLeft": "残り招待数",
+      "expires": "有効期限",
+      "invitationLinksDescription": "$t(glossary.invitationLink)を使用してHackers' Pubに参加できます。$t(glossary.invitationLink)は他の人と共有できます。",
+      "createOrDelete": "生成・削除",
+      "delete": "削除",
+      "markdownEnabled": "$t(composer.markdownEnabled)",
+      "neverExpires": "有効期限なし",
+      "create": "生成",
       "inviter": "招待者",
       "invitees": "招待された人々",
       "tree": "$t(invitationTree.title)",
@@ -382,5 +393,20 @@
   },
   "clipboard": {
     "copied": "クリップボードにコピーされました。"
+  },
+  "invitationLink": {
+    "description": "{{inviter}}さんがあなたをHackers' Pubに招待します！下にメールアドレスを入力してHackers' Pubに参加してください。",
+    "invitationsLeft": "この招待リンクでHackers' Pubに参加できる人数は{{count}}人です。",
+    "expiration": "この招待リンクは{{expiration}}に期限切れになります。",
+    "introTitle": "$t(home.intro.title)",
+    "introContent": "$t(home.intro.content)",
+    "messageDescription": "{{inviter}}さんからのメッセージ：",
+    "email": "$t(settings.invite.email)",
+    "emailDescription": "$t(settings.invite.emailDescription)",
+    "signUp": "$t(signUp.title)",
+    "expired": "この招待リンクは期限切れです。Hackers' Pubに参加するには、別の招待リンクを使用する必要があります。",
+    "exhausted": "この招待リンクは既に使い切られています。Hackers' Pubに参加するには、別の招待リンクを使用する必要があります。",
+    "duplicateEmail": "このメールアドレスは既にHackers' Pubに登録されています。別のメールアドレスをご使用ください。",
+    "sent": "Hackers' Pubへの参加メールが{{email}}に送信されました。受信箱をご確認ください。（迷惑メールフォルダにある可能性があります）"
   }
 }

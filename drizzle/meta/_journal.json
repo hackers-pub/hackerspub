@@ -575,6 +575,13 @@
       "when": 1746424883142,
       "tag": "0081_account.prefer_ai_summary",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1749178770887,
+      "tag": "0082_invitation_link",
+      "breakpoints": true
     }
   ]
 }

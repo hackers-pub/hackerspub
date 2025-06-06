@@ -22,6 +22,7 @@ export const relations = defineRelations(schema, (r) => ({
     invitees: r.many.accountTable({
       alias: "inviter",
     }),
+    invitationLinks: r.many.invitationLinkTable(),
   },
   accountEmailTable: {
     account: r.one.accountTable({
@@ -332,6 +333,13 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.notificationTable.customEmojiId,
       to: r.customEmojiTable.id,
       optional: true,
+    }),
+  },
+  invitationLinkTable: {
+    inviter: r.one.accountTable({
+      from: r.invitationLinkTable.inviterId,
+      to: r.accountTable.id,
+      optional: false,
     }),
   },
 }));

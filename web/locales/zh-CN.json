@@ -26,6 +26,7 @@
     "mention": "提及",
     "handle": "handle",
     "invitation": "邀请",
+    "invitationLink": "邀请链接",
     "medium": "媒体"
   },
   "notification": {
@@ -161,6 +162,16 @@
       "invitationEmailSubject": "{{inviterName}} 邀请你加入 Hackers' Pub！",
       "invitationEmailText": "{{inviter}} 邀请你加入 Hackers' Pub！\n\n$t(home.intro.content)\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n",
       "invitationEmailTextWithMessage": "{{inviter}} 邀请你加入 Hackers' Pub！以下是来自 {{inviterName}} 的信息：\n\n{{message}}\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n",
+      "invitationLinks": "$t(glossary.invitationLink)",
+      "link": "链接",
+      "invitationsLeft": "剩余邀请",
+      "expires": "到期时间",
+      "invitationLinksDescription": "您可以使用$t(glossary.invitationLink)加入Hackers' Pub。$t(glossary.invitationLink)可以与他人分享。",
+      "createOrDelete": "创建·删除",
+      "delete": "删除",
+      "markdownEnabled": "$t(composer.markdownEnabled)",
+      "neverExpires": "永不过期",
+      "create": "创建",
       "inviter": "邀请人",
       "invitees": "被邀请人",
       "tree": "$t(invitationTree.title)",
@@ -383,5 +394,20 @@
   },
   "clipboard": {
     "copied": "复制了到剪贴板。"
+  },
+  "invitationLink": {
+    "description": "{{inviter}} 邀请您加入 Hackers' Pub！请在下方输入您的电子邮件地址来加入 Hackers' Pub。",
+    "invitationsLeft": "{{count}} 人可以使用此邀请链接加入 Hackers' Pub。",
+    "expiration": "此邀请链接将在 {{expiration}} 过期。",
+    "introTitle": "$t(home.intro.title)",
+    "introContent": "$t(home.intro.content)",
+    "messageDescription": "{{inviter}} 给您留言：",
+    "email": "$t(settings.invite.email)",
+    "emailDescription": "$t(settings.invite.emailDescription)",
+    "signUp": "$t(signUp.title)",
+    "expired": "此邀请链接已过期。您需要使用其他邀请链接来加入 Hackers' Pub。",
+    "exhausted": "此邀请链接已用完。您需要使用其他邀请链接来加入 Hackers' Pub。",
+    "duplicateEmail": "此电子邮件地址已在 Hackers' Pub 注册。请使用其他电子邮件地址。",
+    "sent": "加入 Hackers' Pub 的邮件已发送到 {{email}}。请检查您的收件箱。（可能在垃圾邮件文件夹中）"
   }
 }

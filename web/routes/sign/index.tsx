@@ -1,4 +1,5 @@
 import { page } from "@fresh/core";
+import { normalizeEmail } from "@hackerspub/models/account";
 import {
   createSigninToken,
   EXPIRATION as SIGNIN_EXPIRATION,
@@ -25,7 +26,7 @@ export const handler = define.handlers({
   async POST(ctx) {
     const { t } = ctx.state;
     const form = await ctx.req.formData();
-    const email = form.get("email");
+    let email = form.get("email");
     if (
       typeof email !== "string" ||
       !isEmail(email) && !USERNAME_REGEXP.test(email)
@@ -36,6 +37,7 @@ export const handler = define.handlers({
         errors: { email: t("signInUp.invalidEmailOrUsername") },
       });
     }
+    email = normalizeEmail(email);
     const account = await db.query.accountTable.findFirst({
       where: {
         OR: [
