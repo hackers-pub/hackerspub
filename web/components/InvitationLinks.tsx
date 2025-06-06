@@ -39,7 +39,7 @@ export function InvitationLinks(
   { account, invitationLinks, messages }: InvitationLinksProps,
 ) {
   const { leftInvitations } = account;
-  invitationLinks.sort((a, b) => +a.created - +b.created);
+  invitationLinks = invitationLinks.toSorted((a, b) => +a.created - +b.created);
   return (
     <Translation>
       {(t, language) => {
