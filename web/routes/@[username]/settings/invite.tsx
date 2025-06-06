@@ -1,8 +1,15 @@
 import { type FreshContext, page } from "@fresh/core";
 import { getAvatarUrl } from "@hackerspub/models/avatar";
-import { type Account, accountTable } from "@hackerspub/models/schema";
+import { type RenderedMarkup, renderMarkup } from "@hackerspub/models/markup";
+import {
+  type Account,
+  accountTable,
+  type InvitationLink,
+} from "@hackerspub/models/schema";
 import { createSignupToken } from "@hackerspub/models/signup";
+import type { Uuid } from "@hackerspub/models/uuid";
 import { eq, sql } from "drizzle-orm";
+import { InvitationLinks } from "../../../components/InvitationLinks.tsx";
 import { Msg } from "../../../components/Msg.tsx";
 import { PageTitle } from "../../../components/PageTitle.tsx";
 import { SettingsNav } from "../../../components/SettingsNav.tsx";
@@ -19,11 +26,14 @@ import { define, type State } from "../../../utils.ts";
 
 export const EXPIRATION = Temporal.Duration.from({ hours: 48 });
 
-type InvitePageProps = Omit<InviteFormProps, "language">;
+type InvitePageProps = Omit<InviteFormProps, "language"> & {
+  invitationLinks: InvitationLink[];
+};
 
 async function sendInvitation(
   ctx: FreshContext<State>,
   account: AccountWithInvitationInfo & Pick<Account, "id">,
+  invitationLinks: InvitationLink[],
 ): Promise<InvitePageProps> {
   const canonicalHost = new URL(ctx.state.canonicalOrigin).host;
   if (account.leftInvitations < 1) {
@@ -32,6 +42,7 @@ async function sendInvitation(
       account,
       error: "noLeftInvitations",
       canonicalHost,
+      invitationLinks,
     } as InvitePageProps;
   }
   const form = await ctx.req.formData();
@@ -47,6 +58,7 @@ async function sendInvitation(
       account,
       error: "emailRequired",
       canonicalHost,
+      invitationLinks,
     } as InvitePageProps;
   }
   const existingEmail = await db.query.accountEmailTable.findFirst({
@@ -63,6 +75,7 @@ async function sendInvitation(
         name: existingEmail.account.name,
       },
       canonicalHost,
+      invitationLinks,
     } as InvitePageProps;
   }
   const token = await createSignupToken(kv, email, {
@@ -114,6 +127,7 @@ async function sendInvitation(
     account,
     email,
     canonicalHost,
+    invitationLinks,
   } as InvitePageProps;
 }
 
@@ -130,12 +144,14 @@ export const handler = define.handlers({
           with: { actor: true },
           orderBy: { created: "desc" },
         },
+        invitationLinks: true,
       },
     });
     if (ctx.state.account.id !== account?.id) return ctx.next();
     return page<InvitePageProps>({
       account,
       canonicalHost: new URL(ctx.state.canonicalOrigin).host,
+      invitationLinks: account.invitationLinks,
     });
   },
 
@@ -151,11 +167,12 @@ export const handler = define.handlers({
           with: { actor: true },
           orderBy: { created: "desc" },
         },
+        invitationLinks: true,
       },
     });
     if (ctx.state.account.id !== account?.id) return ctx.next();
 
-    const result = await sendInvitation(ctx, account);
+    const result = await sendInvitation(ctx, account, account.invitationLinks);
     if (ctx.req.headers.get("Accept") === "application/json") {
       const { account, ...response } = result;
       return new Response(
@@ -196,12 +213,23 @@ export const handler = define.handlers({
 });
 
 export default define.page<typeof handler, InvitePageProps>(
-  function InvitePage({ state, data }) {
-    const { account, canonicalHost } = data;
+  async function InvitePage({ state, data }) {
+    const { account, canonicalHost, invitationLinks } = data;
     const formData = {
       language: state.language,
       ...data,
     } as InviteFormProps;
+    const messagePromises: Promise<[Uuid, RenderedMarkup]>[] = [];
+    for (const link of invitationLinks) {
+      if (link.message == null) continue;
+      messagePromises.push(
+        renderMarkup(state.fedCtx, link.message, {
+          docId: link.id,
+          kv,
+        }).then((result) => [link.id, result]),
+      );
+    }
+    const messages = await Promise.all(messagePromises);
     return (
       <>
         <SettingsNav
@@ -210,6 +238,11 @@ export default define.page<typeof handler, InvitePageProps>(
           leftInvitations={account.leftInvitations}
         />
         <InviteForm {...formData}></InviteForm>
+        <InvitationLinks
+          account={account}
+          invitationLinks={invitationLinks}
+          messages={Object.fromEntries(messages)}
+        />
         {account.inviter != null && (
           <>
             <PageTitle class="mt-8">
