@@ -1,7 +1,11 @@
 import { type FreshContext, page } from "@fresh/core";
+import { getAvatarUrl } from "@hackerspub/models/avatar";
 import { type Account, accountTable } from "@hackerspub/models/schema";
 import { createSignupToken } from "@hackerspub/models/signup";
 import { eq, sql } from "drizzle-orm";
+import { Msg } from "../../../components/Msg.tsx";
+import { PageTitle } from "../../../components/PageTitle.tsx";
+import { SettingsNav } from "../../../components/SettingsNav.tsx";
 import { db } from "../../../db.ts";
 import { sendEmail } from "../../../email.ts";
 import getFixedT, { isLanguage } from "../../../i18n.ts";
@@ -193,10 +197,74 @@ export const handler = define.handlers({
 
 export default define.page<typeof handler, InvitePageProps>(
   function InvitePage({ state, data }) {
+    const { account, canonicalHost } = data;
     const formData = {
       language: state.language,
       ...data,
     } as InviteFormProps;
-    return <InviteForm {...formData}></InviteForm>;
+    return (
+      <>
+        <SettingsNav
+          active="invite"
+          settingsHref={`/@${account.username}/settings`}
+          leftInvitations={account.leftInvitations}
+        />
+        <InviteForm {...formData}></InviteForm>
+        {account.inviter != null && (
+          <>
+            <PageTitle class="mt-8">
+              <Msg $key="settings.invite.inviter" />
+            </PageTitle>
+            <p>
+              <a href={`/@${account.inviter.username}`}>
+                <img
+                  src={getAvatarUrl(account.inviter.actor)}
+                  width={16}
+                  height={16}
+                  class="inline-block mr-1"
+                />
+                <strong>{account.inviter.name}</strong>
+                <span class="opacity-50 before:content-['('] after:content-[')'] ml-1">
+                  @{account.inviter.username}@{"host"}
+                </span>
+              </a>
+            </p>
+          </>
+        )}
+        {account.invitees.length > 0 && (
+          <>
+            <PageTitle class="mt-8">
+              <Msg $key="settings.invite.invitees" />
+            </PageTitle>
+            <ul>
+              {account.invitees.map((invitee) => (
+                <li key={invitee.id} class="mb-2">
+                  <a href={`/@${invitee.username}`}>
+                    <img
+                      src={getAvatarUrl(invitee.actor)}
+                      width={16}
+                      height={16}
+                      class="inline-block mr-1"
+                    />
+                    <strong>{invitee.name}</strong>
+                    <span class="opacity-50 before:content-['('] after:content-[')'] ml-1">
+                      @{invitee.username}@{canonicalHost}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        <PageTitle class="mt-8">
+          <Msg $key="settings.invite.tree" />
+        </PageTitle>
+        <p>
+          <a href="/tree">
+            <Msg $key="settings.invite.viewTree" />
+          </a>
+        </p>
+      </>
+    );
   },
 );
