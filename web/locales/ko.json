@@ -391,5 +391,20 @@
   },
   "clipboard": {
     "copied": "클립보드에 복사되었습니다."
+  },
+  "invitationLink": {
+    "description": "{{inviter}} 님이 여러분을 Hackers' Pub에 초대합니다! 아래에 이메일 주소를 입력하고 Hackers' Pub에 가입하세요.",
+    "invitationsLeft": "이 초대 링크로 Hackers' Pub에 가입할 수 있는 사람은 {{count}}명입니다.",
+    "expiration": "이 초대 링크는 {{expiration}}에 만료됩니다.",
+    "introTitle": "$t(home.intro.title)",
+    "introContent": "$t(home.intro.content)",
+    "messageDescription": "{{inviter}} 님이 여러분에게 남긴 메시지입니다:",
+    "email": "$t(settings.invite.email)",
+    "emailDescription": "$t(settings.invite.emailDescription)",
+    "signUp": "$t(signUp.title)",
+    "expired": "이 초대 링크는 만료되었습니다. Hackers' Pub에 가입하려면 다른 초대 링크를 사용해야 합니다.",
+    "exhausted": "이 초대 링크는 이미 소진되었습니다. Hackers' Pub에 가입하려면 다른 초대 링크를 사용해야 합니다.",
+    "duplicateEmail": "이 이메일 주소는 이미 Hackers' Pub에 가입되어 있습니다. 다른 이메일 주소를 사용해 주세요.",
+    "sent": "Hackers' Pub에 가입하기 위한 이메일이 {{email}}로 발송되었습니다. 받은 편지함을 확인해 주세요. (스팸함에 있을 수도 있습니다.)"
   }
 }

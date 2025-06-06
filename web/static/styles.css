@@ -22,6 +22,11 @@
   content: '#';
 }
 
+.prose :where(blockquote p:first-of-type)::before,
+.prose :where(blockquote p:last-of-type)::after {
+  content: none;
+}
+
 .prose a.mention:not(.hashtag) {
   display: inline; 
   text-decoration: none;

@@ -79,6 +79,7 @@ async function sendInvitation(
       invitationLinks,
     } as InvitePageProps;
   }
+  // FIXME: Eliminate duplicate code with web/routes/@[username]/invite/[id]/index.tsx
   const token = await createSignupToken(kv, email, {
     inviterId: account.id,
     expiration: EXPIRATION,

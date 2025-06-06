@@ -25,7 +25,7 @@ export const handler = define.handlers({
       return ctx.next();
     }
     const expires = form.get("expires")?.toString();
-    let expiresIn: Temporal.Instant | null;
+    let expiresIn: Temporal.ZonedDateTime | null;
     if (expires == null || expires.trim() === "") {
       expiresIn = null;
     } else {
@@ -43,7 +43,9 @@ export const handler = define.handlers({
           : { hours: 0 },
       );
       if (expiresDuration.total("hours") <= 0) return ctx.next();
-      expiresIn = Temporal.Now.instant().add(expiresDuration);
+      const now = Temporal.Now.instant();
+      const zonedNow = now.toZonedDateTimeISO(Temporal.Now.timeZoneId());
+      expiresIn = zonedNow.add(expiresDuration);
     }
     await db.transaction(async (tx) => {
       const [{ leftInvitations }] = await tx.update(accountTable)
@@ -62,7 +64,7 @@ export const handler = define.handlers({
           inviterId: account.id,
           invitationsLeft,
           message: message?.trim() === "" ? null : message,
-          expires: toDate(expiresIn),
+          expires: toDate(expiresIn?.toInstant()) ?? null,
         } satisfies NewInvitationLink,
       );
     });
