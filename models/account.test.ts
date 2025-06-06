@@ -1,5 +1,10 @@
 import { assertEquals } from "@std/assert/equals";
-import { fetchAccountLinkMetadata, type LinkMetadata } from "./account.ts";
+import { assertThrows } from "@std/assert/throws";
+import {
+  fetchAccountLinkMetadata,
+  type LinkMetadata,
+  normalizeEmail,
+} from "./account.ts";
 
 const linkMetadata: Record<string, LinkMetadata> = {
   "https://fedibird.com/@hongminhee": {
@@ -135,3 +140,43 @@ for (const url in linkMetadata) {
     },
   });
 }
+
+Deno.test("normalizeEmail()", async (t) => {
+  await t.step("with valid email", () => {
+    assertEquals(normalizeEmail("test@example.com"), "test@example.com");
+    assertEquals(normalizeEmail("  test@example.com  "), "test@example.com");
+    assertEquals(normalizeEmail("Test@EXAMPLE.COM"), "Test@example.com");
+    assertEquals(
+      normalizeEmail("user@中文.example"),
+      "user@xn--fiq228c.example",
+    );
+  });
+
+  await t.step("with null and undefined", () => {
+    assertEquals(normalizeEmail(null), null);
+    assertEquals(normalizeEmail(undefined), undefined);
+  });
+
+  await t.step("with invalid email", () => {
+    assertThrows(
+      () => normalizeEmail("invalid"),
+      TypeError,
+      "Invalid email format.",
+    );
+    assertThrows(
+      () => normalizeEmail("@example.com"),
+      TypeError,
+      "Invalid email format.",
+    );
+    assertThrows(
+      () => normalizeEmail("test@"),
+      TypeError,
+      "Invalid email format.",
+    );
+    assertThrows(
+      () => normalizeEmail("test@example@com"),
+      TypeError,
+      "Invalid email format.",
+    );
+  });
+});

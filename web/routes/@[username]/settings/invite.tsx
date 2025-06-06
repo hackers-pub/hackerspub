@@ -1,4 +1,5 @@
 import { type FreshContext, page } from "@fresh/core";
+import { normalizeEmail } from "@hackerspub/models/account";
 import { getAvatarUrl } from "@hackerspub/models/avatar";
 import { type RenderedMarkup, renderMarkup } from "@hackerspub/models/markup";
 import {
@@ -46,7 +47,7 @@ async function sendInvitation(
     } as InvitePageProps;
   }
   const form = await ctx.req.formData();
-  const email = form.get("email")?.toString()?.trim();
+  const email = normalizeEmail(form.get("email")?.toString()?.trim());
   let language = form.get("language")?.toString()?.trim();
   if (language == null || !isLanguage(language)) {
     language = ctx.state.language;
