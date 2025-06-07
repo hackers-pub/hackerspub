@@ -302,17 +302,25 @@ export function sanitizeExcerptHtml(html: string): string {
 }
 
 export function stripHtml(html: string): string {
-  return unescape(
-    textXss.process(
-      html
-        .replace(/\s*<(\/?br|\/?p|\/?h[1-6])\b[^>]*>\s*/g, (m) => `<${m[1]}>`)
-        .replace(/([ \t\r\v]*\n[ \t\r\v]*)/g, "")
-        .replace(
-          /\s*<(\/?br|\/?p|\/?h[1-6])\s*\/?>\s*/g,
-          (m) => m[1].endsWith("br") ? "\n" : "\n\n\n",
-        ),
-    ),
-  ).replace(/(\r?\n){3,}/, "\n\n").trim();
+  html = html.replaceAll(
+    /\s*<(\/?br|\/?hr|\/?p|\/?h[1-6]|li)\b[^>]*>\s*/gi,
+    (_, m) => `<${m}>`,
+  );
+  html = html.replaceAll(/([ \t\r\v]*\n[ \t\r\v]*)/g, "");
+  html = html.replaceAll(
+    /\s*<(\/?br|\/?hr|\/?p|\/?h[1-6]|\/?li)\s*\/?>\s*/gi,
+    (_, m) =>
+      m.endsWith("br") || m.endsWith("hr")
+        ? "\n"
+        : m === "li"
+        ? ""
+        : m === "/li"
+        ? "\n"
+        : "\n\n\n",
+  );
+  return unescape(textXss.process(html))
+    .replaceAll(/(\r?\n){3,}/g, "\n\n")
+    .trim();
 }
 
 export function transformMentions(

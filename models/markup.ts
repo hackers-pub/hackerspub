@@ -41,7 +41,7 @@ import { type Actor, actorTable } from "./schema.ts";
 const logger = getLogger(["hackerspub", "models", "markup"]);
 
 const KV_NAMESPACE = "markup";
-const KV_CACHE_VERSION = "2025-04-13";
+const KV_CACHE_VERSION = "2025-06-08";
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
