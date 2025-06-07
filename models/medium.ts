@@ -37,7 +37,7 @@ export async function persistPostMedium(
     ? document.url.href
     : document.url;
   if (url == null) return undefined;
-  let mediumType: PostMediumType;
+  let mediumType: PostMediumType | undefined;
   if (isPostMediumType(document.mediaType)) {
     mediumType = document.mediaType;
   } else if (
@@ -51,6 +51,8 @@ export async function persistPostMedium(
     const ext = m[1].toLowerCase();
     if (!(ext in mediaTypes)) return undefined;
     mediumType = mediaTypes[ext];
+  } else if (document instanceof vocab.Image) {
+    mediumType = undefined;
   } else {
     return undefined;
   }
@@ -62,6 +64,11 @@ export async function persistPostMedium(
       }),
     },
   });
+  if (mediumType == null) {
+    const contentType = response.headers.get("content-type");
+    if (!isPostMediumType(contentType)) return undefined;
+    mediumType = contentType;
+  }
   if (response.body == null) return undefined;
   let width: number | null = document.width;
   let height: number | null = document.height;
