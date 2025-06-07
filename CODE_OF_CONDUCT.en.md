@@ -14,9 +14,7 @@ engineers and technology enthusiasts. We believe in:
 
 ### Creating an Inclusive Space
 
-Technology communities have historically been exclusive domains. This has
-limited opportunities for diverse talents and perspectives to contribute to
-technological advancement. At Hackers' Pub:
+Technology communities have historically been closed territories of certain groups. This has limited opportunities for diverse talents and perspectives to contribute to technological advancement. At Hackers' Pub:
 
 - We ensure equal participation regardless of gender, sexual orientation, gender
   identity, age, race, ethnicity, nationality, disability, health condition,
@@ -81,25 +79,25 @@ To ensure everyone's safety and comfort, we prohibit:
 The following are explicitly prohibited as discriminatory language or hate
 speech:
 
-Gender, Sexual Orientation, and Gender Identity:
+Regarding gender, sexual orientation, and gender identity:
 
 - Sexist statements about technical abilities
 - Homophobic or transphobic remarks
 - Denial of gender identity
 
-Race, Ethnicity, and Nationality:
+Regarding race, ethnicity, and nationality:
 
 - Racial or ethnic slurs
 - Xenophobic generalizations
 - Hostile statements about immigrants or refugees
 
-Disability and Health:
+Regarding disability and health:
 
 - Ableist language
 - Using health conditions as insults
 - Discriminatory assumptions about capabilities
 
-Social Status and Education:
+Regarding social status and education:
 
 - Classist remarks
 - Academic background discrimination
