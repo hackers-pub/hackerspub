@@ -94,6 +94,9 @@ export const accountEmailTable = pgTable(
       .notNull()
       .default(currentTimestamp),
   },
+  (table) => [
+    index("idx_account_email_lower_email").on(sql`lower(${table.email})`),
+  ],
 );
 
 export type AccountEmail = typeof accountEmailTable.$inferSelect;

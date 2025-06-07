@@ -17,6 +17,7 @@ import { sendEmail } from "../../email.ts";
 import { SignForm, type SignFormProps } from "../../islands/SignForm.tsx";
 import { kv } from "../../kv.ts";
 import { define } from "../../utils.ts";
+import { sql } from "drizzle-orm";
 
 export const handler = define.handlers({
   GET(_ctx) {
@@ -37,8 +38,8 @@ export const handler = define.handlers({
         errors: { email: t("signInUp.invalidEmailOrUsername") },
       });
     }
-    email = normalizeEmail(email);
-    const account = await db.query.accountTable.findFirst({
+    if (isEmail(email)) email = normalizeEmail(email);
+    let account = await db.query.accountTable.findFirst({
       where: {
         OR: [
           { username: email },
@@ -47,6 +48,24 @@ export const handler = define.handlers({
       },
       with: { emails: true },
     });
+    if (account == null && isEmail(email)) {
+      account = await db.query.accountTable.findFirst({
+        where: {
+          emails: {
+            RAW(t) {
+              return sql`lower(${t.email}) = lower(${email})`;
+            },
+          },
+        },
+        with: { emails: true },
+      });
+      if (account != null) {
+        const lowerEmail = email.toLowerCase();
+        email = account.emails.find((m) =>
+          m.email.toLowerCase() === lowerEmail
+        )!.email;
+      }
+    }
     let expiration: Temporal.Duration;
     let signInToken: string;
     if (account == null) {

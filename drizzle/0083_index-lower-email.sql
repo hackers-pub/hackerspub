@@ -1,0 +1,1 @@
+CREATE INDEX "idx_account_email_lower_email" ON "account_email" USING btree (lower("email"));

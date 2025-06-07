@@ -1,4 +1,7 @@
 import Mailgun from "@schotsl/mailgun";
+import { getLogger } from "@logtape/logtape";
+
+const logger = getLogger(["hackerspub", "email"]);
 
 function getEnv(variable: string): string {
   const val = Deno.env.get(variable);
@@ -24,8 +27,7 @@ export interface Email {
 }
 
 export async function sendEmail(email: Email): Promise<void> {
-  await mailgun.send({
-    from: MAILGUN_FROM,
-    ...email,
-  });
+  const params = { from: MAILGUN_FROM, ...email };
+  logger.debug("Sending email... {*}", params);
+  await mailgun.send(params);
 }
