@@ -13,7 +13,7 @@
     "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@^3.750.0",
     "@aws-sdk/s3-request-presigner": "npm:@aws-sdk/s3-request-presigner@^3.750.0",
     "@c4spar/mock-fetch": "jsr:@c4spar/mock-fetch@^1.0.0",
-    "@fedify/fedify": "jsr:@fedify/fedify@1.6.1-dev.881+6369ac5f",
+    "@fedify/fedify": "jsr:@fedify/fedify@1.6.1",
     "@fedify/markdown-it-hashtag": "jsr:@fedify/markdown-it-hashtag@^0.3.0",
     "@fedify/markdown-it-mention": "jsr:@fedify/markdown-it-mention@^0.3.0",
     "@fedify/postgres": "jsr:@fedify/postgres@^0.3.0",

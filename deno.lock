@@ -5,7 +5,7 @@
     "jsr:@david/which-runtime@~0.2.1": "0.2.1",
     "jsr:@es-toolkit/es-toolkit@^1.38.0": "1.38.0",
     "jsr:@fedify/fedify@1.5.0": "1.5.0",
-    "jsr:@fedify/fedify@1.6.1-dev.881+6369ac5f": "1.6.1-dev.881+6369ac5f",
+    "jsr:@fedify/fedify@1.6.1": "1.6.1",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
     "jsr:@fedify/postgres@0.3": "0.3.0",
@@ -245,13 +245,12 @@
         "npm:url-template"
       ]
     },
-    "@fedify/fedify@1.6.1-dev.881+6369ac5f": {
-      "integrity": "85a1624f29bb4142952b0227ba82722695edbe2f4facc959e0b22d7736f52625",
+    "@fedify/fedify@1.6.1": {
+      "integrity": "e5712a15c50d8836e6ad617aefa69bb601b12ac335526c54a7ffe339b0128e0c",
       "dependencies": [
         "jsr:@es-toolkit/es-toolkit",
         "jsr:@hugoalh/http-header-link",
         "jsr:@logtape/logtape@0.11",
-        "npm:@cloudflare/workers-types",
         "npm:@multiformats/base-x",
         "npm:@opentelemetry/api",
         "npm:@opentelemetry/semantic-conventions@^1.27.0",
@@ -11331,7 +11330,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@1.6.1-dev.881+6369ac5f",
+      "jsr:@fedify/fedify@1.6.1",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
       "jsr:@fedify/postgres@0.3",
