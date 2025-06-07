@@ -69,7 +69,10 @@ export default async function App(
                   )
                   : <meta name={meta.name} content={meta.content.toString()} />
               ))}
-              <title>{state.title}</title>
+              <title>
+                {MODE === "development" ? "DEV: " : ""}
+                {state.title}
+              </title>
               <link rel="stylesheet" href="/styles.css" />
               <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
               <link
