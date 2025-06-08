@@ -1,3 +1,4 @@
+import { lingui } from "@lingui/vite-plugin";
 import { defineConfig } from "@solidjs/start/config";
 import tailwindcss from "@tailwindcss/vite";
 import { cjsInterop } from "vite-plugin-cjs-interop";
@@ -15,8 +16,14 @@ export default defineConfig({
     },
     plugins: [
       tailwindcss(),
+      lingui(),
       relay(),
       cjsInterop({ dependencies: ["relay-runtime"] }),
     ],
   }),
+  solid: {
+    babel: {
+      plugins: ["@lingui/babel-plugin-lingui-macro"],
+    },
+  },
 });

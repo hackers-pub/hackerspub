@@ -6,6 +6,11 @@
           "enable": true
         }
       }
+    },
+    "relay": {
+      "settings": {
+        "rootDirectory": "./web-next"
+      }
     }
   },
   "languages": {

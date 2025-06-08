@@ -1,23 +1,36 @@
 {
   "name": "@hackerspub/web-next",
   "type": "module",
+  "imports": {
+    "#i18n": {
+      "browser": "./src/lib/i18n/client.ts",
+      "default": "./src/lib/i18n/server.ts"
+    }
+  },
   "dependencies": {
-    "@kobalte/core": "^0.13.9",
+    "@kobalte/core": "^0.13.10",
+    "@lingui/core": "^5.3.1",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.0",
     "@solidjs/start": "^1.1.0",
+    "@tailwindcss/typography": "^0.5.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "pretendard": "^1.3.9",
     "relay-runtime": "^19.0.0",
-    "solid-js": "^1.9.5",
-    "solid-relay": "^1.0.0-beta.10",
+    "resolve-accept-language": "^3.1.11",
+    "solid-js": "^1.9.7",
+    "solid-relay": "^1.0.0-beta.13",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.7",
     "tw-animate-css": "^1.3.0",
     "vinxi": "^0.5.3"
   },
   "devDependencies": {
+    "@kobalte/tailwindcss": "^0.9.0",
+    "@lingui/babel-plugin-lingui-macro": "^5.3.1",
+    "@lingui/cli": "^5.3.1",
+    "@lingui/vite-plugin": "^5.3.1",
     "@tailwindcss/vite": "^4.1.7",
     "@types/relay-runtime": "^19.0.1",
     "relay-compiler": "^19.0.0",
