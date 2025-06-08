@@ -4,18 +4,31 @@ import { type I18n as LinguiI18n, setupI18n } from "@lingui/core";
 import { createAsync, query } from "@solidjs/router";
 import { resolveAcceptLanguage } from "resolve-accept-language";
 import { createContext, type ParentProps, Show, useContext } from "solid-js";
-import { getRequestHeader } from "vinxi/http";
+import { getQuery, getRequestHeader } from "vinxi/http";
 import linguiConfig from "../../../lingui.config.ts";
 
 const loadI18n = query(async () => {
   "use server";
 
-  const acceptLanguage = getRequestHeader("Accept-Language");
-  const locale = resolveAcceptLanguage(
-    acceptLanguage ?? "",
-    linguiConfig.locales,
-    linguiConfig.sourceLocale,
-  );
+  const query = getQuery();
+  let locale: string;
+  if (
+    query.lang == null || typeof query.lang !== "string" ||
+    !linguiConfig.locales.map((l) => l.toLowerCase()).includes(
+      query.lang.toLowerCase(),
+    )
+  ) {
+    const acceptLanguage = getRequestHeader("Accept-Language");
+    locale = resolveAcceptLanguage(
+      acceptLanguage ?? "",
+      linguiConfig.locales,
+      linguiConfig.sourceLocale,
+    );
+  } else {
+    const lang = query.lang.toLowerCase();
+    locale = linguiConfig.locales.find((l) => l.toLowerCase() === lang) ??
+      linguiConfig.sourceLocale;
+  }
   const messages = await loadMessages(locale);
   return { locale, messages };
 }, "i18n");

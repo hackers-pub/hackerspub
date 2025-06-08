@@ -1,0 +1,28 @@
+post → 콘텐츠
+note → 단문
+article → 게시글
+tag → 태그
+draft → 임시 보관
+react → 반응
+reply → 댓글
+comment → 댓글
+share → 공유
+quote → 인용
+username → 아이디
+displayName → 이름
+bio → 약력
+avatar → 프로필 사진
+follow → 팔로
+followee → 팔로잉
+follower → 팔로워
+block → 차단
+fediverse → 연합우주
+timeline → 타임라인
+passkey → 패스키
+postVisibility → 공개 범위
+instance → 인스턴스
+mention → 언급
+handle → 핸들
+invitation → 초대
+invitationLink → 초대 링크
+medium → 미디어
