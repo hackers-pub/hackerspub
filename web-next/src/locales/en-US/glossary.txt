@@ -1,0 +1,28 @@
+post → post
+note → note
+article → article
+tag → tag
+draft → draft
+react → react
+reply → reply
+comment → comment
+share → share
+quote → quote
+username → username
+displayName → name
+bio → bio
+avatar → avatar
+follow → follow
+followee → following
+follower → follower
+block → block
+fediverse → fediverse
+timeline → timeline
+passkey → passkey
+postVisibility → post privacy
+instance → instance
+mention → mention
+handle → handle
+invitation → invitation
+invitationLink → invitation link
+medium → medium

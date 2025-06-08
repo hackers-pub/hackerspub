@@ -2,9 +2,9 @@ import { isActor } from "@fedify/fedify";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
+import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
 import { builder } from "./builder.ts";
-import { assertNever } from "@std/assert/unstable-never";
 import { Post } from "./post.ts";
 
 export const ActorType = builder.enumType("ActorType", {
@@ -126,10 +126,16 @@ builder.drizzleObjectFields(Actor, (t) => ({
           followers: followerConnectionHelpers.getQuery(args, ctx, select),
         },
       }),
-      resolve: (actor, args, ctx) =>
-        followerConnectionHelpers.resolve(actor.followers, args, ctx),
+      resolve: (actor, args, ctx) => ({
+        ...followerConnectionHelpers.resolve(actor.followers, args, ctx),
+        totalCount: actor.followersCount,
+      }),
     },
-    {},
+    {
+      fields: (t) => ({
+        totalCount: t.exposeInt("totalCount"),
+      }),
+    },
     {
       fields: (t) => ({
         iri: t.field({
@@ -149,10 +155,16 @@ builder.drizzleObjectFields(Actor, (t) => ({
           followees: followeeConnectionHelpers.getQuery(args, ctx, select),
         },
       }),
-      resolve: (actor, args, ctx) =>
-        followeeConnectionHelpers.resolve(actor.followees, args, ctx),
+      resolve: (actor, args, ctx) => ({
+        ...followeeConnectionHelpers.resolve(actor.followees, args, ctx),
+        totalCount: actor.followeesCount,
+      }),
     },
-    {},
+    {
+      fields: (t) => ({
+        totalCount: t.exposeInt("totalCount"),
+      }),
+    },
     {
       fields: (t) => ({
         iri: t.field({

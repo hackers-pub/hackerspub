@@ -4,6 +4,7 @@ import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
 import { RelayEnvironmentProvider } from "solid-relay";
 import { createEnvironment } from "./RelayEnvironment.tsx";
+import { I18nProvider } from "./lib/i18n/index.tsx";
 
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "~/app.css";
@@ -17,7 +18,11 @@ export default function App() {
         <RelayEnvironmentProvider environment={environment}>
           <MetaProvider>
             <Title>Hackers' Pub</Title>
-            <Suspense>{props.children}</Suspense>
+            <Suspense>
+              <I18nProvider>
+                {props.children}
+              </I18nProvider>
+            </Suspense>
           </MetaProvider>
         </RelayEnvironmentProvider>
       )}

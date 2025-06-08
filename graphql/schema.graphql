@@ -75,6 +75,7 @@ type Actor implements Node {
 type ActorFolloweesConnection {
   edges: [ActorFolloweesConnectionEdge!]!
   pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type ActorFolloweesConnectionEdge {
@@ -88,6 +89,7 @@ type ActorFolloweesConnectionEdge {
 type ActorFollowersConnection {
   edges: [ActorFollowersConnectionEdge!]!
   pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type ActorFollowersConnectionEdge {

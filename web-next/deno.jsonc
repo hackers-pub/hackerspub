@@ -1,12 +1,14 @@
 {
   "$schema": "https://raw.githubusercontent.com/denoland/deno/refs/heads/main/cli/schemas/config-file.v1.json",
   "imports": {
-    "~/": "./src/"
+    "~/": "./src/",
+    "#i18n": "./src/lib/i18n/server.ts"
   },
   "tasks": {
     "codegen": "relay-compiler",
     "dev": "vinxi dev",
-    "build": "vinxi build"
+    "build": "vinxi build",
+    "extract": "pnpx @lingui/cli extract"
   },
   "lint": {
     "rules": {
@@ -19,6 +21,8 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "solid-js",
-    "types": ["vinxi/types/client"]
+    "types": [
+      "vinxi/types/client"
+    ]
   }
 }
