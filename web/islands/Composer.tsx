@@ -1,12 +1,12 @@
 import { preprocessContentHtml } from "@hackerspub/models/html";
 import { POSSIBLE_LOCALES } from "@hackerspub/models/i18n";
+import { detectLanguage } from "@hackerspub/models/langdet";
 import type { RenderedMarkup } from "@hackerspub/models/markup";
 import type { Actor, Post, PostVisibility } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { getFixedT } from "i18next";
 import type { JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
-import { detectLanguage } from "@hackerspub/models/langdet";
 import { Button } from "../components/Button.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { TextArea } from "../components/TextArea.tsx";
@@ -82,6 +82,17 @@ export function Composer(props: ComposerProps) {
     // FIXME: `acceptLanguage === null` ok?
     const detected = detectLanguage({ text: value, acceptLanguage: null });
     if (detected != null) setContentLanguage(detected);
+  }
+
+  function onKeyPress(event: JSX.TargetedKeyboardEvent<HTMLTextAreaElement>) {
+    const form = event.currentTarget.form;
+    if (form == null) return;
+    if (
+      event.key === "Enter" && (event.metaKey || event.ctrlKey)
+    ) {
+      event.preventDefault();
+      submit(form);
+    }
   }
 
   function onPreview(event: JSX.TargetedMouseEvent<HTMLButtonElement>) {
@@ -196,10 +207,7 @@ export function Composer(props: ComposerProps) {
     reader.readAsDataURL(file);
   }
 
-  async function onSubmit(event: JSX.TargetedSubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitting(true);
-    const form = event.currentTarget;
+  async function submit(form: HTMLFormElement) {
     const data = new FormData(form);
     const content = data.get("content") as string;
     const visibility = data.get("visibility") as string;
@@ -237,6 +245,12 @@ export function Composer(props: ComposerProps) {
     else if (props.onPost === "post.url") {
       location.href = post.url;
     } else props.onPost(post);
+  }
+
+  function onSubmit(event: JSX.TargetedSubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    submit(event.currentTarget);
   }
 
   return (
@@ -305,6 +319,7 @@ export function Composer(props: ComposerProps) {
               : t("composer.contentPlaceholder")}
             value={content}
             onInput={onInput}
+            onKeyPress={onKeyPress}
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
