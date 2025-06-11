@@ -179,12 +179,14 @@ export function InvitationLinks(
                       min={1}
                       max={leftInvitations}
                       value={leftInvitations}
+                      disabled={account.leftInvitations < 1}
                       class="w-16"
                     />
                   </td>
                   <td class="border border-stone-300 dark:border-stone-500 bg-stone-100 dark:bg-stone-800 p-2">
                     <select
                       name="expires"
+                      disabled={account.leftInvitations < 1}
                       class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
                     >
                       {EXPIRATION_OPTIONS.map(({ unit, value }) => (
