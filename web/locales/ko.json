@@ -20,6 +20,7 @@
     "block": "차단",
     "fediverse": "연합우주",
     "timeline": "타임라인",
+    "feed": "피드",
     "passkey": "패스키",
     "postVisibility": "공개 범위",
     "instance": "인스턴스",
@@ -348,6 +349,7 @@
   "timeline": {
     "fediverse": "연합우주",
     "local": "Hackers' Pub",
+    "feed": "피드",
     "withoutShares": "공유 제외",
     "articlesOnly": "게시글만",
     "recommendations": "$t(recommendedActors.title)"

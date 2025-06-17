@@ -20,6 +20,7 @@
     "block": "屏蔽",
     "fediverse": "联邦宇宙",
     "timeline": "时间线",
+    "feed": "订阅流",
     "passkey": "通行密钥",
     "postVisibility": "内容隐私度",
     "instance": "实例",
@@ -351,6 +352,7 @@
   "timeline": {
     "fediverse": "联邦宇宙",
     "local": "Hackers' Pub",
+    "feed": "订阅流",
     "withoutShares": "不含转帖",
     "articlesOnly": "仅文章",
     "recommendations": "$t(recommendedActors.title)"

@@ -20,6 +20,7 @@
     "block": "block",
     "fediverse": "fediverse",
     "timeline": "timeline",
+    "feed": "feed",
     "passkey": "passkey",
     "postVisibility": "post privacy",
     "instance": "instance",
@@ -356,6 +357,7 @@
   "timeline": {
     "fediverse": "Fediverse",
     "local": "Hackers' Pub",
+    "feed": "Feed",
     "withoutShares": "Without shares",
     "articlesOnly": "Articles only",
     "recommendations": "$t(recommendedActors.title)"

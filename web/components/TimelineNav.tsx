@@ -4,6 +4,7 @@ import { Tab, TabNav } from "./TabNav.tsx";
 export type TimelineNavItem =
   | "fediverse"
   | "local"
+  | "feed"
   | "withoutShares"
   | "articlesOnly"
   | "recommendations";
@@ -16,9 +17,25 @@ export interface TimelineNavProps {
 export function TimelineNav({ active, signedIn }: TimelineNavProps) {
   return (
     <TabNav>
-      <Tab selected={active === "fediverse"} href="/">
-        <Msg $key="timeline.fediverse" />
-      </Tab>
+      {signedIn
+        ? (
+          <>
+            <Tab
+              selected={active === "feed"}
+              href="/"
+            >
+              <Msg $key="timeline.feed" />
+            </Tab>
+            <Tab selected={active === "fediverse"} href="/?filter=fediverse">
+              <Msg $key="timeline.fediverse" />
+            </Tab>
+          </>
+        )
+        : (
+          <Tab selected={active === "fediverse"} href="/">
+            <Msg $key="timeline.fediverse" />
+          </Tab>
+        )}
       <Tab selected={active === "local"} href="/?filter=local">
         <Msg $key="timeline.local" />
       </Tab>

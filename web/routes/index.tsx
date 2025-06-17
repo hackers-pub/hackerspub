@@ -45,11 +45,13 @@ export const handler = define.handlers({
     if (
       filterString === "local" || filterString === "withoutShares" ||
       filterString === "articlesOnly" ||
-      ctx.state.account != null && filterString === "recommendations"
+      ctx.state.account != null &&
+        (filterString === "feed" || filterString === "fediverse" ||
+          filterString === "recommendations")
     ) {
       filter = filterString;
     } else {
-      filter = "fediverse";
+      filter = ctx.state.account == null ? "fediverse" : "feed";
     }
     const untilString = ctx.url.searchParams.get("until");
     const until = untilString == null || !untilString.match(/^\d+(\.\d+)?$/)
@@ -78,9 +80,16 @@ export const handler = define.handlers({
     } else {
       timeline = filter === "recommendations"
         ? []
+        : filter === "fediverse" || filter === "local"
+        ? await getPublicTimeline(db, {
+          currentAccount: ctx.state.account,
+          languages,
+          local: filter === "local",
+          until,
+          window: window + 1,
+        })
         : await getPersonalTimeline(db, {
           currentAccount: ctx.state.account,
-          local: filter === "local",
           withoutShares: filter === "withoutShares",
           postType: filter === "articlesOnly" ? "Article" : undefined,
           until,

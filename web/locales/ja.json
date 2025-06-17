@@ -20,6 +20,7 @@
     "block": "ブロック",
     "fediverse": "フェディバース",
     "timeline": "タイムライン",
+    "feed": "フィード",
     "passkey": "パスキー",
     "postVisibility": "公開範囲",
     "instance": "インスタンス",
@@ -350,6 +351,7 @@
   "timeline": {
     "fediverse": "フェディバース",
     "local": "Hackers' Pub",
+    "feed": "フィード",
     "withoutShares": "共有除外",
     "articlesOnly": "記事のみ",
     "recommendations": "$t(recommendedActors.title)"
