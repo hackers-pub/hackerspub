@@ -1,7 +1,6 @@
 import { page } from "@fresh/core";
 import { recommendActors } from "@hackerspub/models/actor";
 import { extractMentionsFromHtml } from "@hackerspub/models/markup";
-import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import type {
   Account,
   Actor,
@@ -14,9 +13,13 @@ import type {
   PostMedium,
   Reaction,
 } from "@hackerspub/models/schema";
+import {
+  getPersonalTimeline,
+  getPublicTimeline,
+  type TimelineEntry,
+} from "@hackerspub/models/timeline";
 import { getLogger } from "@logtape/logtape";
 import { acceptsLanguages } from "@std/http/negotiation";
-import { sql } from "drizzle-orm";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { PostExcerpt } from "../components/PostExcerpt.tsx";
@@ -58,65 +61,7 @@ export const handler = define.handlers({
     const window = windowString == null || !windowString.match(/^\d+$/)
       ? DEFAULT_WINDOW
       : parseInt(windowString);
-    let timeline: ({
-      post: Post & {
-        actor: Actor & {
-          instance: Instance;
-          followers: Following[];
-          blockees: Blocking[];
-          blockers: Blocking[];
-        };
-        link: PostLink & { creator?: Actor | null } | null;
-        sharedPost:
-          | Post & {
-            actor: Actor & {
-              instance: Instance;
-              followers: Following[];
-              blockees: Blocking[];
-              blockers: Blocking[];
-            };
-            link: PostLink & { creator?: Actor | null } | null;
-            replyTarget:
-              | Post & {
-                actor: Actor & {
-                  instance: Instance;
-                  followers: Following[];
-                  blockees: Blocking[];
-                  blockers: Blocking[];
-                };
-                link: PostLink & { creator?: Actor | null } | null;
-                mentions: (Mention & { actor: Actor })[];
-                media: PostMedium[];
-              }
-              | null;
-            mentions: (Mention & { actor: Actor })[];
-            media: PostMedium[];
-            shares: Post[];
-            reactions: Reaction[];
-          }
-          | null;
-        replyTarget:
-          | Post & {
-            actor: Actor & {
-              instance: Instance;
-              followers: Following[];
-              blockees: Blocking[];
-              blockers: Blocking[];
-            };
-            link: PostLink & { creator?: Actor | null } | null;
-            mentions: (Mention & { actor: Actor })[];
-            media: PostMedium[];
-          }
-          | null;
-        mentions: (Mention & { actor: Actor })[];
-        media: PostMedium[];
-        shares: Post[];
-        reactions: Reaction[];
-      };
-      lastSharer: Actor | null;
-      sharersCount: number;
-      added: Date;
-    })[];
+    let timeline: TimelineEntry[];
     const languages = new Set<string>(
       acceptsLanguages(ctx.req)
         .filter((lang) => lang !== "*")
@@ -124,275 +69,25 @@ export const handler = define.handlers({
     );
     logger.debug("Accepted languages: {languages}", { languages });
     if (ctx.state.account == null) {
-      const posts = await db.query.postTable.findMany({
-        with: {
-          actor: {
-            with: {
-              instance: true,
-              followers: { where: { RAW: sql`false` } },
-              blockees: { where: { RAW: sql`false` } },
-              blockers: { where: { RAW: sql`false` } },
-            },
-          },
-          link: { with: { creator: true } },
-          sharedPost: {
-            with: {
-              actor: {
-                with: {
-                  instance: true,
-                  followers: { where: { RAW: sql`false` } },
-                  blockees: { where: { RAW: sql`false` } },
-                  blockers: { where: { RAW: sql`false` } },
-                },
-              },
-              link: { with: { creator: true } },
-              replyTarget: {
-                with: {
-                  actor: {
-                    with: {
-                      instance: true,
-                      followers: { where: { RAW: sql`false` } },
-                      blockees: { where: { RAW: sql`false` } },
-                      blockers: { where: { RAW: sql`false` } },
-                    },
-                  },
-                  link: { with: { creator: true } },
-                  mentions: {
-                    with: { actor: true },
-                  },
-                  media: true,
-                },
-              },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
-              shares: { where: { RAW: sql`false` } },
-              reactions: { where: { RAW: sql`false` } },
-            },
-          },
-          replyTarget: {
-            with: {
-              actor: {
-                with: {
-                  instance: true,
-                  followers: { where: { RAW: sql`false` } },
-                  blockees: { where: { RAW: sql`false` } },
-                  blockers: { where: { RAW: sql`false` } },
-                },
-              },
-              link: { with: { creator: true } },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
-            },
-          },
-          mentions: {
-            with: { actor: true },
-          },
-          media: true,
-          shares: { where: { RAW: sql`false` } },
-          reactions: { where: { RAW: sql`false` } },
-        },
-        where: {
-          visibility: "public",
-          ...(
-            languages.size < 1
-              ? undefined
-              : { language: { in: [...languages] } }
-          ),
-          replyTargetId: { isNull: true },
-          ...(
-            filter === "local"
-              ? {
-                OR: [
-                  { noteSourceId: { isNotNull: true } },
-                  { articleSourceId: { isNotNull: true } },
-                  {
-                    sharedPostId: { isNotNull: true },
-                    actor: {
-                      accountId: { isNotNull: true },
-                    },
-                  },
-                ],
-              }
-              : filter === "withoutShares"
-              ? { sharedPostId: { isNull: true } }
-              : filter === "articlesOnly"
-              ? { type: "Article" }
-              : undefined
-          ),
-          ...(until == null ? undefined : { published: { lte: until } }),
-        },
-        orderBy: { published: "desc" },
-        limit: window + 1,
+      timeline = await getPublicTimeline(db, {
+        languages,
+        local: filter === "local",
+        withoutShares: filter === "withoutShares",
+        postType: filter === "articlesOnly" ? "Article" : undefined,
+        until,
+        window: window + 1,
       });
-      timeline = posts.map((post) => ({
-        post,
-        lastSharer: null,
-        sharersCount: 0,
-        added: post.published,
-      }));
     } else {
       timeline = filter === "recommendations"
         ? []
-        : await db.query.timelineItemTable.findMany({
-          with: {
-            post: {
-              with: {
-                actor: {
-                  with: {
-                    instance: true,
-                    followers: {
-                      where: { followerId: ctx.state.account.actor.id },
-                    },
-                    blockees: {
-                      where: { blockeeId: ctx.state.account.actor.id },
-                    },
-                    blockers: {
-                      where: { blockerId: ctx.state.account.actor.id },
-                    },
-                  },
-                },
-                link: { with: { creator: true } },
-                sharedPost: {
-                  with: {
-                    actor: {
-                      with: {
-                        instance: true,
-                        followers: {
-                          where: {
-                            followerId: ctx.state.account.actor.id,
-                          },
-                        },
-                        blockees: {
-                          where: { blockeeId: ctx.state.account.actor.id },
-                        },
-                        blockers: {
-                          where: { blockerId: ctx.state.account.actor.id },
-                        },
-                      },
-                    },
-                    link: { with: { creator: true } },
-                    replyTarget: {
-                      with: {
-                        actor: {
-                          with: {
-                            instance: true,
-                            followers: {
-                              where: {
-                                followerId: ctx.state.account.actor.id,
-                              },
-                            },
-                            blockees: {
-                              where: { blockeeId: ctx.state.account.actor.id },
-                            },
-                            blockers: {
-                              where: { blockerId: ctx.state.account.actor.id },
-                            },
-                          },
-                        },
-                        link: { with: { creator: true } },
-                        mentions: {
-                          with: { actor: true },
-                        },
-                        media: true,
-                      },
-                    },
-                    mentions: {
-                      with: { actor: true },
-                    },
-                    media: true,
-                    shares: {
-                      where: { actorId: ctx.state.account.actor.id },
-                    },
-                    reactions: {
-                      where: { actorId: ctx.state.account.actor.id },
-                    },
-                  },
-                },
-                replyTarget: {
-                  with: {
-                    actor: {
-                      with: {
-                        instance: true,
-                        followers: {
-                          where: { followerId: ctx.state.account.actor.id },
-                        },
-                        blockees: {
-                          where: { blockeeId: ctx.state.account.actor.id },
-                        },
-                        blockers: {
-                          where: { blockerId: ctx.state.account.actor.id },
-                        },
-                      },
-                    },
-                    link: { with: { creator: true } },
-                    mentions: {
-                      with: { actor: true },
-                    },
-                    media: true,
-                  },
-                },
-                mentions: {
-                  with: { actor: true },
-                },
-                media: true,
-                shares: {
-                  where: { actorId: ctx.state.account.actor.id },
-                },
-                reactions: {
-                  where: { actorId: ctx.state.account.actor.id },
-                },
-              },
-            },
-            lastSharer: true,
-          },
-          where: {
-            accountId: ctx.state.account.id,
-            post: {
-              AND: [
-                getPostVisibilityFilter(ctx.state.account.actor),
-                filter === "local"
-                  ? {
-                    OR: [
-                      { noteSourceId: { isNotNull: true } },
-                      { articleSourceId: { isNotNull: true } },
-                    ],
-                  }
-                  : filter === "articlesOnly"
-                  ? { type: "Article" }
-                  : filter === "mentionsAndQuotes"
-                  ? {
-                    OR: [
-                      { mentions: { actorId: ctx.state.account.actor.id } },
-                      { quotedPost: { actorId: ctx.state.account.actor.id } },
-                    ],
-                  }
-                  : {},
-                ctx.state.account.hideForeignLanguages
-                  ? { language: { in: ctx.state.locales } }
-                  : {},
-              ],
-            },
-            ...(filter === "withoutShares"
-              ? { originalAuthorId: { isNotNull: true } }
-              : {}),
-            ...(until == null ? undefined : { added: { lte: until } }),
-          },
-          orderBy: filter === "withoutShares"
-            ? { added: "desc" }
-            : { appended: "desc" },
-          limit: window + 1,
+        : await getPersonalTimeline(db, {
+          currentAccount: ctx.state.account,
+          local: filter === "local",
+          withoutShares: filter === "withoutShares",
+          postType: filter === "articlesOnly" ? "Article" : undefined,
+          until,
+          window: window + 1,
         });
-      if (filter === "withoutShares") {
-        timeline = timeline.map((item) => ({
-          ...item,
-          lastSharer: null,
-          lastSharerId: null,
-        }));
-      }
     }
     let next: Date | undefined = undefined;
     if (timeline.length > window) {
