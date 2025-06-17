@@ -350,7 +350,6 @@
     "local": "Hackers' Pub",
     "withoutShares": "공유 제외",
     "articlesOnly": "게시글만",
-    "mentionsAndQuotes": "언급 및 인용",
     "recommendations": "$t(recommendedActors.title)"
   },
   "postPagination": {

@@ -417,7 +417,6 @@ export async function getPublicTimeline(
 
 export interface PersonalTimelineOptions extends TimelineOptions {
   currentAccount: Account & { actor: Actor };
-  mentionsAndQuotes?: boolean;
 }
 
 export async function getPersonalTimeline(
@@ -426,7 +425,6 @@ export async function getPersonalTimeline(
     currentAccount,
     local = false,
     withoutShares = false,
-    mentionsAndQuotes = false,
     postType,
     until,
     window,
@@ -554,14 +552,6 @@ export async function getPersonalTimeline(
               OR: [
                 { noteSourceId: { isNotNull: true } },
                 { articleSourceId: { isNotNull: true } },
-              ],
-            }
-            : {},
-          mentionsAndQuotes
-            ? {
-              OR: [
-                { mentions: { actorId: currentAccount.actor.id } },
-                { quotedPost: { actorId: currentAccount.actor.id } },
               ],
             }
             : {},

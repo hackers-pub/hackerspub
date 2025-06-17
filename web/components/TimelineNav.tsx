@@ -6,7 +6,6 @@ export type TimelineNavItem =
   | "local"
   | "withoutShares"
   | "articlesOnly"
-  | "mentionsAndQuotes"
   | "recommendations";
 
 export interface TimelineNavProps {
@@ -31,12 +30,6 @@ export function TimelineNav({ active, signedIn }: TimelineNavProps) {
       </Tab>
       {signedIn && (
         <>
-          <Tab
-            selected={active === "mentionsAndQuotes"}
-            href="/?filter=mentionsAndQuotes"
-          >
-            <Msg $key="timeline.mentionsAndQuotes" />
-          </Tab>
           <Tab
             selected={active === "recommendations"}
             href="/?filter=recommendations"

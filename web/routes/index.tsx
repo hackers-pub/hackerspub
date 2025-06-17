@@ -45,9 +45,7 @@ export const handler = define.handlers({
     if (
       filterString === "local" || filterString === "withoutShares" ||
       filterString === "articlesOnly" ||
-      ctx.state.account != null &&
-        (filterString === "mentionsAndQuotes" ||
-          filterString === "recommendations")
+      ctx.state.account != null && filterString === "recommendations"
     ) {
       filter = filterString;
     } else {
