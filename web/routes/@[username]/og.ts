@@ -25,8 +25,12 @@ export const handler = define.handlers({
       disk,
       account.ogImageKey,
       html`
-        <div style="display: flex; flex-direction: column; width: 1200px; height: 630px; background-color: white;">
-          <div style="display: flex; flex-direction: row; gap: 25px; height: 530px; padding: 25px;">
+        <div
+          style="display: flex; flex-direction: column; width: 1200px; height: 630px; background-color: white;"
+        >
+          <div
+            style="display: flex; flex-direction: row; gap: 25px; height: 530px; padding: 25px;"
+          >
             <img
               src="${await getAvatarUrl(disk, account)}"
               width="125"
@@ -39,14 +43,18 @@ export const handler = define.handlers({
               <div style="font-size: 32px; color: gray;">
                 @${account.username}@${ctx.url.host}
               </div>
-              <div style="${emptyBio
-          ? "display: none;"
-          : ""} width: 1000px; height: 355px; margin-top: 25px; font-size: 32px; overflow: hidden; text-overflow: ellipsis;">
+              <div
+                style="${emptyBio
+                  ? "display: none;"
+                  : ""} width: 1000px; height: 355px; margin-top: 25px; font-size: 32px; overflow: hidden; text-overflow: ellipsis;"
+              >
                 ${bio.text}
               </div>
             </div>
           </div>
-          <div style="background-color: black; color: white; padding: 25px; height: 100px; font-size: 32px; font-weight: 600;">
+          <div
+            style="background-color: black; color: white; padding: 25px; height: 100px; font-size: 32px; font-weight: 600;"
+          >
             Hackers' Pub
           </div>
         </div>

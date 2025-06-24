@@ -53,8 +53,12 @@ export const handler = define.handlers({
       disk,
       content.ogImageKey,
       html`
-        <div style="display: flex; flex-direction: column; width: 1200px; height: 630px; background-color: white;">
-          <div style="display: flex; flex-direction: row; gap: 25px; height: 530px; padding: 25px;">
+        <div
+          style="display: flex; flex-direction: column; width: 1200px; height: 630px; background-color: white;"
+        >
+          <div
+            style="display: flex; flex-direction: row; gap: 25px; height: 530px; padding: 25px;"
+          >
             <img
               src="${await getAvatarUrl(disk, account)}"
               width="125"
@@ -78,7 +82,9 @@ export const handler = define.handlers({
               </div>
             </div>
           </div>
-          <div style="background-color: black; color: white; padding: 25px; height: 100px; font-size: 32px; font-weight: 600;">
+          <div
+            style="background-color: black; color: white; padding: 25px; height: 100px; font-size: 32px; font-weight: 600;"
+          >
             Hackers' Pub
           </div>
         </div>
