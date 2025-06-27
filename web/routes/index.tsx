@@ -83,7 +83,7 @@ export const handler = define.handlers({
         : filter === "fediverse" || filter === "local"
         ? await getPublicTimeline(db, {
           currentAccount: ctx.state.account,
-          languages,
+          languages: new Set(ctx.state.locales),
           local: filter === "local",
           until,
           window: window + 1,
