@@ -201,7 +201,9 @@ export async function renderMarkup(
   const tmpEnv: { mentions: string[] } = { mentions: [] };
   await tmpMd.renderAsync(markup, tmpEnv);
   const mentions = new Set(tmpEnv.mentions);
+  logger.trace("Mentions: {mentions}", { mentions });
   const mentionedActors = await persistActorsByHandles(fedCtx, [...mentions]);
+  logger.trace("Mentioned actors: {mentionedActors}", { mentionedActors });
   const env: Env = {
     docId: options.docId,
     title: "",

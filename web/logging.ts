@@ -13,12 +13,12 @@ await configure({
   loggers: [
     {
       category: "hackerspub",
-      lowestLevel: "debug",
+      lowestLevel: "trace",
       sinks: ["console"],
     },
     {
       category: "drizzle-orm",
-      lowestLevel: LOG_QUERY ? "debug" : "info",
+      lowestLevel: LOG_QUERY ? "trace" : "info",
       sinks: ["console"],
     },
     { category: "fedify", lowestLevel: "info", sinks: ["console"] },

@@ -11,6 +11,7 @@ import {
 import * as vocab from "@fedify/fedify/vocab";
 import type { Database, RelationsFilter } from "@hackerspub/models/db";
 import { getLogger } from "@logtape/logtape";
+import { delay } from "@std/async";
 import {
   aliasedTable,
   and,
@@ -300,6 +301,8 @@ export function getPersistedActor(
   });
 }
 
+const KV_UNREACHABLE_HANDLES_NAMESPACE = "unreachable-handles";
+
 export async function persistActorsByHandles(
   ctx: Context<ContextData>,
   handles: string[],
@@ -338,19 +341,42 @@ export async function persistActorsByHandles(
       handlesToFetch.delete(handle);
     }
   }
+  const handlesToFetchArray = [...handlesToFetch];
+  const unreachableHandles = await ctx.data.kv.getMany<string>(
+    handlesToFetchArray.map((handle) =>
+      `${KV_UNREACHABLE_HANDLES_NAMESPACE}/${handle}`
+    ),
+  );
+  unreachableHandles.forEach((v, i) => {
+    if (v === "1") handlesToFetch.delete(handlesToFetchArray[i]);
+  });
   const documentLoader = await ctx.getDocumentLoader({
     identifier: new URL(ctx.canonicalOrigin).host,
   });
   const promises = [];
   for (const handle of handlesToFetch) {
     promises.push(
-      ctx.lookupObject(handle, { documentLoader }).catch((error) => {
-        logger.warn("Failed to lookup actor {handle}: {error}", {
-          handle,
-          error,
-        });
-        return null;
-      }),
+      Promise.race([
+        ctx.lookupObject(handle, { documentLoader }).catch((error) => {
+          logger.warn("Failed to lookup actor {handle}: {error}", {
+            handle,
+            error,
+          });
+          return null;
+        }),
+        delay(5000).then(async () => {
+          logger.warn(
+            "Timeout while looking up actor {handle}, skipping.",
+            { handle },
+          );
+          await ctx.data.kv.set(
+            `${KV_UNREACHABLE_HANDLES_NAMESPACE}/${handle}`,
+            "1",
+            300_000,
+          );
+          return null;
+        }),
+      ]),
     );
   }
   const apActors = await Promise.all(promises);
