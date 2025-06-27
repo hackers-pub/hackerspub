@@ -561,7 +561,7 @@ export default define.page<typeof handler, NotePageProps>(
           ? (
             <>
               <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
-              <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400">
+              <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400 break-words">
                 <Msg
                   $key="note.remoteReplyDescription"
                   permalink={
