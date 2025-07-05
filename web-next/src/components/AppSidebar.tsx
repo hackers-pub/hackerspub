@@ -134,7 +134,7 @@ export function AppSidebar() {
           <Trans
             message={t`The source code of this website is available on ${"GITHUB_REPOSITORY"} under the ${"AGPL-3.0"} license.`}
             values={{
-              GITHUB_REPOSITORY: (
+              GITHUB_REPOSITORY: () => (
                 <a
                   href="https://github.com/hackers-pub/hackerspub"
                   class="underline"
@@ -142,7 +142,7 @@ export function AppSidebar() {
                   {t`GitHub repository`}
                 </a>
               ),
-              "AGPL-3.0": (
+              "AGPL-3.0": () => (
                 <a
                   href="https://www.gnu.org/licenses/agpl-3.0.en.html"
                   class="underline"
