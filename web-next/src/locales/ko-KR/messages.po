@@ -23,6 +23,45 @@ msgstr "{0, plural, other {# 팔로워}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
-#: src/routes/(root).tsx:11
+#: src/components/AppSidebar.tsx:123
+msgid "Articles only"
+msgstr "게시글만"
+
+#: src/components/AppSidebar.tsx:131
+msgid "Code of conduct"
+msgstr "행동 강령"
+
+#: src/components/AppSidebar.tsx:85
+msgid "Fediverse"
+msgstr "연합우주"
+
+#: src/components/AppSidebar.tsx:46
+msgid "Feed"
+msgstr "피드"
+
+#: src/components/AppSidebar.tsx:142
+msgid "GitHub repository"
+msgstr "GitHub 저장소"
+
+#: src/components/AppSidebar.tsx:22
+#: src/components/AppSidebar.tsx:66
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
+
+#: src/components/ProfilePageBreadcrumb.tsx:35
+msgid "Home"
+msgstr "홈"
+
+#. placeholder {0}: "GITHUB_REPOSITORY"
+#. placeholder {1}: "AGPL-3.0"
+#: src/components/AppSidebar.tsx:135
+msgid "The source code of this website is available on {0} under the {1} license."
+msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
+
+#: src/components/AppSidebar.tsx:27
+msgid "Timeline"
+msgstr "타임라인"
+
+#: src/components/AppSidebar.tsx:104
+msgid "Without shares"
+msgstr "공유 제외"

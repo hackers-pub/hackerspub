@@ -3,6 +3,7 @@ type Account implements Node {
   avatarUrl: URL!
   bio: Markdown!
   created: DateTime!
+  handle: String!
   id: ID!
   invitees(after: String, before: String, first: Int, last: Int): AccountInviteesConnection!
   inviter: Account

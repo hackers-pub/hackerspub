@@ -23,6 +23,45 @@ msgstr "{0, plural, one {# follower} other {# followers}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
-#: src/routes/(root).tsx:11
+#: src/components/AppSidebar.tsx:123
+msgid "Articles only"
+msgstr "Articles only"
+
+#: src/components/AppSidebar.tsx:131
+msgid "Code of conduct"
+msgstr "Code of conduct"
+
+#: src/components/AppSidebar.tsx:85
+msgid "Fediverse"
+msgstr "Fediverse"
+
+#: src/components/AppSidebar.tsx:46
+msgid "Feed"
+msgstr "Feed"
+
+#: src/components/AppSidebar.tsx:142
+msgid "GitHub repository"
+msgstr "GitHub repository"
+
+#: src/components/AppSidebar.tsx:22
+#: src/components/AppSidebar.tsx:66
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
+
+#: src/components/ProfilePageBreadcrumb.tsx:35
+msgid "Home"
+msgstr "Home"
+
+#. placeholder {0}: "GITHUB_REPOSITORY"
+#. placeholder {1}: "AGPL-3.0"
+#: src/components/AppSidebar.tsx:135
+msgid "The source code of this website is available on {0} under the {1} license."
+msgstr "The source code of this website is available on {0} under the {1} license."
+
+#: src/components/AppSidebar.tsx:27
+msgid "Timeline"
+msgstr "Timeline"
+
+#: src/components/AppSidebar.tsx:104
+msgid "Without shares"
+msgstr "Without shares"

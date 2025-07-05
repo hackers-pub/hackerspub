@@ -23,6 +23,45 @@ msgstr "{0, plural, other {被 # 人關注}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {關注 # 人}}"
 
-#: src/routes/(root).tsx:11
+#: src/components/AppSidebar.tsx:123
+msgid "Articles only"
+msgstr "僅文章"
+
+#: src/components/AppSidebar.tsx:131
+msgid "Code of conduct"
+msgstr "行為準則"
+
+#: src/components/AppSidebar.tsx:85
+msgid "Fediverse"
+msgstr "聯邦宇宙"
+
+#: src/components/AppSidebar.tsx:46
+msgid "Feed"
+msgstr "訂閱流"
+
+#: src/components/AppSidebar.tsx:142
+msgid "GitHub repository"
+msgstr "GitHub 儲存庫"
+
+#: src/components/AppSidebar.tsx:22
+#: src/components/AppSidebar.tsx:66
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
+
+#: src/components/ProfilePageBreadcrumb.tsx:35
+msgid "Home"
+msgstr "首頁"
+
+#. placeholder {0}: "GITHUB_REPOSITORY"
+#. placeholder {1}: "AGPL-3.0"
+#: src/components/AppSidebar.tsx:135
+msgid "The source code of this website is available on {0} under the {1} license."
+msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
+
+#: src/components/AppSidebar.tsx:27
+msgid "Timeline"
+msgstr "時間軸"
+
+#: src/components/AppSidebar.tsx:104
+msgid "Without shares"
+msgstr "不含轉貼"

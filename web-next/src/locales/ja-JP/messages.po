@@ -23,6 +23,45 @@ msgstr "{0, plural, other {#フォロワー}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
-#: src/routes/(root).tsx:11
+#: src/components/AppSidebar.tsx:123
+msgid "Articles only"
+msgstr "記事のみ"
+
+#: src/components/AppSidebar.tsx:131
+msgid "Code of conduct"
+msgstr "行動規範"
+
+#: src/components/AppSidebar.tsx:85
+msgid "Fediverse"
+msgstr "フェディバース"
+
+#: src/components/AppSidebar.tsx:46
+msgid "Feed"
+msgstr "フィード"
+
+#: src/components/AppSidebar.tsx:142
+msgid "GitHub repository"
+msgstr "GitHubリポジトリ"
+
+#: src/components/AppSidebar.tsx:22
+#: src/components/AppSidebar.tsx:66
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
+
+#: src/components/ProfilePageBreadcrumb.tsx:35
+msgid "Home"
+msgstr "ホーム"
+
+#. placeholder {0}: "GITHUB_REPOSITORY"
+#. placeholder {1}: "AGPL-3.0"
+#: src/components/AppSidebar.tsx:135
+msgid "The source code of this website is available on {0} under the {1} license."
+msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
+
+#: src/components/AppSidebar.tsx:27
+msgid "Timeline"
+msgstr "タイムライン"
+
+#: src/components/AppSidebar.tsx:104
+msgid "Without shares"
+msgstr "共有除外"

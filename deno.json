@@ -160,6 +160,15 @@
       "ai/prompts/"
     ]
   },
+  "lint": {
+    "rules": {
+      "exclude": [
+        "require-await",
+        "no-window",
+        "no-window-prefix"
+      ]
+    }
+  },
   "tasks": {
     "check": "deno fmt --check && deno lint && deno check .",
     "test": "deno test --env-file=.env.test --allow-all --parallel",

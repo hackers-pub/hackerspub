@@ -14,6 +14,23 @@ export const Account = builder.drizzleNode("accountTable", {
       type: "DateTime",
       nullable: true,
     }),
+    handle: t.string({
+      select: {
+        columns: {
+          username: true,
+        },
+        with: {
+          actor: {
+            columns: {
+              handleHost: true,
+            },
+          },
+        },
+      },
+      resolve(account, _, _ctx) {
+        return `@${account.username}@${account.actor.handleHost}`;
+      },
+    }),
     name: t.exposeString("name"),
     bio: t.expose("bio", { type: "Markdown" }),
     avatarUrl: t.field({

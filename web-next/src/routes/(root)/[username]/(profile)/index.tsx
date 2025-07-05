@@ -7,6 +7,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
+import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import type { ProfilePageQuery } from "./__generated__/ProfilePageQuery.graphql.ts";
 
 export const route = {
@@ -22,6 +23,7 @@ export const route = {
 const ProfilePageQuery = graphql`
   query ProfilePageQuery($username: String!) {
     accountByUsername(username: $username) {
+      ...ProfilePageBreadcrumb_account
       ...ProfileCard_account
     }
   }
@@ -49,18 +51,20 @@ export default function ProfilePage() {
   return (
     <Show when={data()}>
       {(data) => (
-        <div>
+        <>
           <Show
             when={data().accountByUsername}
-            fallback={<div>Not Found: {username}</div>}
           >
             {(account) => (
               <>
-                <ProfileCard $account={account()} />
+                <ProfilePageBreadcrumb $account={account()} />
+                <div class="p-4">
+                  <ProfileCard $account={account()} />
+                </div>
               </>
             )}
           </Show>
-        </div>
+        </>
       )}
     </Show>
   );

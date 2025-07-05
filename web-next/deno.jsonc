@@ -14,7 +14,9 @@
     "rules": {
       "exclude": [
         // SolidStart server functions must be async functions at all time
-        "require-await"
+        "require-await",
+        "no-window",
+        "no-window-prefix"
       ]
     }
   },
