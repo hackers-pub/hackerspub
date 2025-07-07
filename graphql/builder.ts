@@ -19,6 +19,7 @@ import { GraphQLScalarType, Kind } from "graphql";
 import {
   DateResolver,
   DateTimeResolver,
+  JSONResolver,
   LocaleResolver,
   URLResolver,
   UUIDResolver,
@@ -60,6 +61,10 @@ export interface PothosTypes {
     HTML: {
       Input: string;
       Output: string;
+    };
+    JSON: {
+      Input: unknown;
+      Output: unknown;
     };
     Markdown: {
       Input: string;
@@ -158,6 +163,8 @@ builder.addScalarType(
     },
   }),
 );
+
+builder.addScalarType("JSON", JSONResolver);
 
 builder.addScalarType(
   "Markdown",

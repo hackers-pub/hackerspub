@@ -15,8 +15,9 @@ const config: CodegenConfig = {
         scalars: {
           Date: "Date",
           DateTime: "Date",
-          Locale: "string", // FIXME: It should be Locale from @hackerspub/models/i18n
           HTML: "string",
+          JSON: "unknown",
+          Locale: "string", // FIXME: It should be Locale from @hackerspub/models/i18n
           Markdown: "string",
           MediaType: "string",
           URL: "URL",

@@ -198,6 +198,18 @@ A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `dat
 """
 scalar DateTime
 
+"""A document in a specific language."""
+type Document {
+  html: String!
+
+  """The locale of the document."""
+  locale: Locale!
+  markdown: String!
+
+  """Table of contents for the document."""
+  toc: JSON!
+}
+
 type EmojiReactionGroup implements ReactionGroup {
   emoji: String!
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
@@ -220,6 +232,11 @@ type Instance implements Node {
   softwareVersion: String
   updated: DateTime!
 }
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
 
 """The locale in the format of a BCP 47 (RFC 5646) standard string"""
 scalar Locale
@@ -446,6 +463,10 @@ type Query {
   accountByUsername(username: String!): Account
   actorByHandle(handle: String!): Actor
   actorByUuid(uuid: UUID!): Actor
+  codeOfConduct(
+    """The locale for the Code of Conduct."""
+    locale: Locale!
+  ): Document!
   instanceByHost(host: String!): Instance
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!

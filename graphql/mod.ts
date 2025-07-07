@@ -3,6 +3,7 @@ import path from "node:path";
 import "./account.ts";
 import "./actor.ts";
 import { builder } from "./builder.ts";
+import "./doc.ts";
 import "./poll.ts";
 import "./post.ts";
 import "./reactable.ts";

@@ -27,6 +27,7 @@
     "vinxi": "^0.5.3"
   },
   "devDependencies": {
+    "@deno/vite-plugin": "^1.0.5",
     "@kobalte/tailwindcss": "^0.9.0",
     "@lingui/babel-plugin-lingui-macro": "^5.3.1",
     "@lingui/cli": "^5.3.1",

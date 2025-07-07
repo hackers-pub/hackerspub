@@ -1,3 +1,4 @@
+import deno from "@deno/vite-plugin";
 import { lingui } from "@lingui/vite-plugin";
 import { defineConfig } from "@solidjs/start/config";
 import tailwindcss from "@tailwindcss/vite";
@@ -15,6 +16,7 @@ export default defineConfig({
       },
     },
     plugins: [
+      deno(),
       tailwindcss(),
       lingui(),
       relay(),

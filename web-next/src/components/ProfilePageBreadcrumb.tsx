@@ -1,7 +1,6 @@
 import { graphql } from "relay-runtime";
 import { ComponentProps, Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { ProfilePageBreadcrumb_account$key } from "./__generated__/ProfilePageBreadcrumb_account.graphql.ts";
 import { TopBreadcrumb } from "./TopBreadcrumb.tsx";
 import { Badge } from "./ui/badge.tsx";
@@ -16,7 +15,6 @@ export interface ProfilePageBreadcrumbProps extends ComponentProps<"ol"> {
 }
 
 export function ProfilePageBreadcrumb(props: ProfilePageBreadcrumbProps) {
-  const { t } = useLingui();
   const account = createFragment(
     graphql`
       fragment ProfilePageBreadcrumb_account on Account {
@@ -31,9 +29,6 @@ export function ProfilePageBreadcrumb(props: ProfilePageBreadcrumbProps) {
     <Show when={account()}>
       {(account) => (
         <TopBreadcrumb>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">{t`Home`}</BreadcrumbLink>
-          </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink current>

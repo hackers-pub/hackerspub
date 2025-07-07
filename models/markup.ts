@@ -172,7 +172,7 @@ export interface RenderMarkupOptions {
 }
 
 export async function renderMarkup(
-  fedCtx: Context<ContextData>,
+  fedCtx: Context<ContextData> | null | undefined,
   markup: string,
   options: RenderMarkupOptions = {},
 ): Promise<RenderedMarkup> {
@@ -192,7 +192,9 @@ export async function renderMarkup(
       if (cached != null) return cached;
     }
   }
-  const localDomain = new URL(fedCtx.canonicalOrigin).host;
+  const localDomain = fedCtx == null
+    ? "hackers.pub"
+    : new URL(fedCtx.canonicalOrigin).host;
   const tmpMd = MarkdownItAsync().use(mention, {
     localDomain() {
       return localDomain;
@@ -202,13 +204,15 @@ export async function renderMarkup(
   await tmpMd.renderAsync(markup, tmpEnv);
   const mentions = new Set(tmpEnv.mentions);
   logger.trace("Mentions: {mentions}", { mentions });
-  const mentionedActors = await persistActorsByHandles(fedCtx, [...mentions]);
+  const mentionedActors = fedCtx == null
+    ? {}
+    : await persistActorsByHandles(fedCtx, [...mentions]);
   logger.trace("Mentioned actors: {mentionedActors}", { mentionedActors });
   const env: Env = {
     docId: options.docId,
     title: "",
     localDomain,
-    origin: fedCtx.canonicalOrigin,
+    origin: fedCtx == null ? "https://hackers.pub" : fedCtx.canonicalOrigin,
     mentionedActors,
     hashtags: [],
     macros: {},
