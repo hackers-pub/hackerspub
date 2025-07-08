@@ -27,6 +27,7 @@ msgstr "{0, plural, other {關注 # 人}}"
 msgid "Articles only"
 msgstr "僅文章"
 
+#: src/routes/(root)/coc.tsx:57
 #: src/components/AppSidebar.tsx:131
 msgid "Code of conduct"
 msgstr "行為準則"
@@ -48,9 +49,13 @@ msgstr "GitHub 儲存庫"
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
-#: src/components/ProfilePageBreadcrumb.tsx:35
+#: src/components/TopBreadcrumb.tsx:21
 msgid "Home"
 msgstr "首頁"
+
+#: src/routes/(root)/coc.tsx:69
+msgid "Table of contents"
+msgstr "目錄"
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"

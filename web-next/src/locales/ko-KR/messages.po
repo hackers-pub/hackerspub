@@ -27,6 +27,7 @@ msgstr "{0, plural, other {# 팔로잉}}"
 msgid "Articles only"
 msgstr "게시글만"
 
+#: src/routes/(root)/coc.tsx:57
 #: src/components/AppSidebar.tsx:131
 msgid "Code of conduct"
 msgstr "행동 강령"
@@ -48,9 +49,13 @@ msgstr "GitHub 저장소"
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
-#: src/components/ProfilePageBreadcrumb.tsx:35
+#: src/components/TopBreadcrumb.tsx:21
 msgid "Home"
 msgstr "홈"
+
+#: src/routes/(root)/coc.tsx:69
+msgid "Table of contents"
+msgstr "목차"
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"

@@ -1,4 +1,5 @@
 import type { Locale } from "@hackerspub/models/i18n";
+import type { Toc } from "@hackerspub/models/markup";
 import { query, type RouteDefinition } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -14,6 +15,7 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { TocList } from "../../components/TocList.tsx";
 import type { cocPageQuery } from "./__generated__/cocPageQuery.graphql.ts";
 
 export const route = {
@@ -60,10 +62,21 @@ export default function CocPage() {
       </TopBreadcrumb>
       <Show when={data()}>
         {(data) => (
-          <div
-            class="p-4 prose dark:prose-invert ml-auto mr-auto"
-            innerHTML={data().codeOfConduct.html}
-          />
+          <div class="flex flex-row-reverse">
+            <aside class="border-l p-4 hidden lg:block h-dvh sticky top-0">
+              <h1 class="text-xs font-medium opacity-75">
+                {t`Table of contents`}
+              </h1>
+              <TocList
+                items={data().codeOfConduct.toc as Toc[]}
+                class="text-sm"
+              />
+            </aside>
+            <div
+              class="p-4 prose dark:prose-invert ml-auto mr-auto"
+              innerHTML={data().codeOfConduct.html}
+            />
+          </div>
         )}
       </Show>
     </>

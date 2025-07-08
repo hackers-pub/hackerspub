@@ -27,6 +27,7 @@ msgstr "{0, plural, one {# following} other {# following}}"
 msgid "Articles only"
 msgstr "Articles only"
 
+#: src/routes/(root)/coc.tsx:57
 #: src/components/AppSidebar.tsx:131
 msgid "Code of conduct"
 msgstr "Code of conduct"
@@ -48,9 +49,13 @@ msgstr "GitHub repository"
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
-#: src/components/ProfilePageBreadcrumb.tsx:35
+#: src/components/TopBreadcrumb.tsx:21
 msgid "Home"
 msgstr "Home"
+
+#: src/routes/(root)/coc.tsx:69
+msgid "Table of contents"
+msgstr "Table of contents"
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
