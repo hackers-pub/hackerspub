@@ -21,6 +21,9 @@
     }
   },
   "compilerOptions": {
+    "paths": {
+      "~/*": ["./src/*"]
+    },
     "jsx": "react-jsx",
     "jsxImportSource": "solid-js",
     "types": [
