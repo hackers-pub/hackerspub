@@ -1,4 +1,5 @@
 import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
+import type { Locale } from "@hackerspub/models/i18n";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 
@@ -45,7 +46,19 @@ export const Account = builder.drizzleNode("accountTable", {
         return new URL(url);
       },
     }),
-    locales: t.expose("locales", { type: ["Locale"] }),
+    locales: t.field({
+      type: ["Locale"],
+      nullable: true,
+      select: {
+        columns: {
+          locales: true,
+        },
+      },
+      async resolve(account, _, _ctx) {
+        if (account.locales == null) return null;
+        return account.locales.map((loc) => new Intl.Locale(loc));
+      },
+    }),
     moderator: t.exposeBoolean("moderator"),
     leftInvitations: t.exposeInt("leftInvitations", {
       authScopes: (parent) => ({
@@ -158,7 +171,8 @@ builder.relayMutationField(
           username: args.input.username ?? undefined,
           name: args.input.name ?? undefined,
           bio: args.input.bio ?? undefined,
-          locales: args.input.locales ?? undefined,
+          locales: args.input.locales?.map((loc) => loc.baseName as Locale) ??
+            undefined,
           hideFromInvitationTree: args.input.hideFromInvitationTree ??
             undefined,
           hideForeignLanguages: args.input.hideForeignLanguages ?? undefined,

@@ -160,6 +160,7 @@
     "npm:graphql@canary-pr-4364": "16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:i18next@^24.0.5": "24.2.3",
     "npm:iconv-lite@~0.6.3": "0.6.3",
+    "npm:intl-parse-accept-language@1": "1.0.0",
     "npm:ioredis@^5.4.1": "5.6.1",
     "npm:json-canon@^1.0.1": "1.0.1",
     "npm:json-canonicalize@^1.2.0": "1.2.0",
@@ -192,7 +193,6 @@
     "npm:remark-inline-links@7": "7.0.0",
     "npm:remark-parse@11": "11.0.0",
     "npm:remark-stringify@11": "11.0.0",
-    "npm:resolve-accept-language@^3.1.11": "3.1.11",
     "npm:satori-html@~0.3.2": "0.3.2",
     "npm:satori@~0.11.3": "0.11.3",
     "npm:sharp@~0.33.5": "0.33.5",
@@ -7824,6 +7824,9 @@
         "wrap-ansi@6.2.0"
       ]
     },
+    "intl-parse-accept-language@1.0.0": {
+      "integrity": "sha512-YFMSV91JNBOSjw1cOfw2tup6hDP7mkz+2AUV7W1L1AM6ntgI75qC1ZeFpjPGMrWp+upmBRTX2fJWQ8c7jsUWpA=="
+    },
     "invariant@2.2.4": {
       "integrity": "sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==",
       "dependencies": [
@@ -10266,9 +10269,6 @@
     "requires-port@1.0.0": {
       "integrity": "sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ=="
     },
-    "resolve-accept-language@3.1.11": {
-      "integrity": "sha512-7YVsTu6c9i/8nm8JUwIa/YGmSf02lhaPQAa+G3baisj/v09/8gEJIF1aRO0bqVy/dQugYJJfqeyxrGBepg/RcQ=="
-    },
     "resolve-from@4.0.0": {
       "integrity": "sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g=="
     },
@@ -12178,11 +12178,11 @@
             "npm:@types/relay-runtime@^19.0.1",
             "npm:class-variance-authority@~0.7.1",
             "npm:clsx@^2.1.1",
+            "npm:intl-parse-accept-language@1",
             "npm:pretendard@^1.3.9",
             "npm:react-jsx@1",
             "npm:relay-compiler@19",
             "npm:relay-runtime@19",
-            "npm:resolve-accept-language@^3.1.11",
             "npm:solid-js@^1.9.7",
             "npm:solid-relay@^1.0.0-beta.13",
             "npm:tailwind-merge@^3.3.0",

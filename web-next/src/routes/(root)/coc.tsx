@@ -1,4 +1,3 @@
-import type { Locale } from "@hackerspub/models/i18n";
 import type { Toc } from "@hackerspub/models/markup";
 import { Title } from "@solidjs/meta";
 import { query, type RouteDefinition } from "@solidjs/router";
@@ -22,7 +21,7 @@ import type { cocPageQuery } from "./__generated__/cocPageQuery.graphql.ts";
 export const route = {
   preload() {
     const { i18n } = useLingui();
-    void loadPageQuery(i18n.locale as Locale);
+    void loadPageQuery(i18n.locale);
   },
 } satisfies RouteDefinition;
 
@@ -37,7 +36,7 @@ const cocPageQuery = graphql`
 `;
 
 const loadPageQuery = query(
-  (locale: Locale) =>
+  (locale: Intl.Locale | string) =>
     loadQuery<cocPageQuery>(
       useRelayEnvironment()(),
       cocPageQuery,
@@ -50,7 +49,7 @@ export default function CocPage() {
   const { t, i18n } = useLingui();
   const data = createPreloadedQuery<cocPageQuery>(
     cocPageQuery,
-    () => loadPageQuery(i18n.locale as Locale),
+    () => loadPageQuery(i18n.locale),
   );
   return (
     <>

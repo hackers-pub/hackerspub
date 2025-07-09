@@ -1,8 +1,9 @@
 import { loadMessages } from "#i18n";
+import { negotiateLocale } from "@hackerspub/models/i18n";
 import { I18nProvider as KobalteI18nProvider } from "@kobalte/core/i18n";
 import { type I18n as LinguiI18n, setupI18n } from "@lingui/core";
 import { createAsync, query } from "@solidjs/router";
-import { resolveAcceptLanguage } from "resolve-accept-language";
+import { parseAcceptLanguage } from "intl-parse-accept-language";
 import { createContext, type ParentProps, Show, useContext } from "solid-js";
 import { getQuery, getRequestHeader } from "vinxi/http";
 import linguiConfig from "../../../lingui.config.ts";
@@ -11,26 +12,22 @@ const loadI18n = query(async () => {
   "use server";
 
   const query = getQuery();
-  let locale: string;
-  if (
-    query.lang == null || typeof query.lang !== "string" ||
-    !linguiConfig.locales.map((l) => l.toLowerCase()).includes(
-      query.lang.toLowerCase(),
-    )
-  ) {
-    const acceptLanguage = getRequestHeader("Accept-Language");
-    locale = resolveAcceptLanguage(
-      acceptLanguage ?? "",
-      linguiConfig.locales,
-      linguiConfig.sourceLocale,
-    );
-  } else {
-    const lang = query.lang.toLowerCase();
-    locale = linguiConfig.locales.find((l) => l.toLowerCase() === lang) ??
-      linguiConfig.sourceLocale;
+
+  let loc: Intl.Locale | undefined;
+  if (typeof query.lang === "string") {
+    loc = negotiateLocale(query.lang, linguiConfig.locales);
   }
-  const messages = await loadMessages(locale);
-  return { locale, messages };
+  if (loc == null) {
+    const acceptLanguage = getRequestHeader("Accept-Language");
+    const acceptLanguages = parseAcceptLanguage(acceptLanguage);
+    loc = negotiateLocale(acceptLanguages, linguiConfig.locales);
+  }
+  if (loc == null) {
+    loc = new Intl.Locale(linguiConfig.sourceLocale);
+  }
+
+  const messages = await loadMessages(loc.baseName);
+  return { locale: loc.baseName, messages };
 }, "i18n");
 
 const I18nContext = createContext<LinguiI18n>();

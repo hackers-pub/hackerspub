@@ -1,11 +1,11 @@
-import type { Locale } from "@hackerspub/models/i18n";
+import { negotiateLocale } from "@hackerspub/models/i18n";
 import { renderMarkup, type Toc } from "@hackerspub/models/markup";
-import { exists, expandGlob } from "@std/fs";
-import { basename, dirname, join } from "@std/path";
+import { expandGlob } from "@std/fs";
+import { dirname, join } from "@std/path";
 import { builder } from "./builder.ts";
 
 interface Document {
-  locale: Locale;
+  locale: Intl.Locale;
   markdown: string;
   html: string;
   title: string;
@@ -34,8 +34,6 @@ DocumentRef.implement({
 });
 
 const COC_DIR = dirname(import.meta.dirname!);
-const COC_PATH = (locale: string) =>
-  join(COC_DIR, `CODE_OF_CONDUCT.${locale}.md`);
 
 builder.queryFields((t) => ({
   codeOfConduct: t.field({
@@ -48,34 +46,25 @@ builder.queryFields((t) => ({
       }),
     },
     async resolve(_, args, ctx) {
-      // TODO: Deal with RFC 5646 language tags with a proper parser like
-      //       @phensley/language-tag
-      const match = args.locale.match(/^([a-z]{2,3})(?:-([a-z]{2}))?$/i);
-      const locale = match == null
-        ? "en"
-        : `${match[1].toLowerCase()}${
-          match[2] ? `-${match[2].toUpperCase()}` : ""
-        }`;
-      let path = COC_PATH(locale);
-      if (!await exists(path, { isFile: true })) {
-        const lang = locale.replace(/[-_].*$/, "").toLowerCase();
-        path = COC_PATH(lang);
-        if (lang === locale || !await exists(path, { isFile: true })) {
-          path = COC_PATH("en");
-          const files = expandGlob(COC_PATH("*"), { includeDirs: false });
-          for await (const file of files) {
-            if (!file.isFile) continue;
-            if (!file.name.startsWith(`CODE_OF_CONDUCT.${lang}`)) continue;
-            path = file.path;
-            break;
-          }
-        }
+      const availableLocales: Record<string, string> = {};
+      const files = expandGlob(join(COC_DIR, "CODE_OF_CONDUCT.*.md"), {
+        includeDirs: false,
+      });
+      for await (const file of files) {
+        if (!file.isFile) continue;
+        const match = file.name.match(/^CODE_OF_CONDUCT\.(.+)\.md$/);
+        if (match == null) continue;
+        const locale = match[1];
+        availableLocales[locale] = file.path;
       }
-      const match2 = basename(path).match(/^CODE_OF_CONDUCT\.(.+)\.md$/);
+      const locale =
+        negotiateLocale(args.locale, Object.keys(availableLocales)) ??
+          new Intl.Locale("en");
+      const path = availableLocales[locale.baseName];
       const markdown = await Deno.readTextFile(path);
       const rendered = await renderMarkup(ctx.fedCtx, markdown);
       return {
-        locale: (match2 ? match2[1] : "en") as Locale,
+        locale: locale,
         markdown,
         html: rendered.html,
         title: rendered.title,

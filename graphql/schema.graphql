@@ -9,7 +9,7 @@ type Account implements Node {
   inviter: Account
   leftInvitations: Int!
   links: [AccountLink!]!
-  locales: [Locale!]!
+  locales: [Locale!]
   moderator: Boolean!
   name: String!
   updated: DateTime!
@@ -241,7 +241,7 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 """
 scalar JSON
 
-"""The locale in the format of a BCP 47 (RFC 5646) standard string"""
+"""A BCP 47-compliant language tag."""
 scalar Locale
 
 """A Hackers' Pub-flavored Markdown text."""

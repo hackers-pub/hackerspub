@@ -326,7 +326,7 @@ builder.relayMutationField(
                 `Unknown value in Post.visibility: "${visibility}"`,
               ),
             content,
-            language,
+            language: language.baseName,
             media: [], // TODO
           },
           { replyTarget, quotedPost },

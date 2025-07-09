@@ -1,7 +1,6 @@
 import type { RequestContext } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
-import type { Locale } from "@hackerspub/models/i18n";
 import { relations } from "@hackerspub/models/relations";
 import type { Session } from "@hackerspub/models/session";
 import type { Uuid } from "@hackerspub/models/uuid";
@@ -20,7 +19,6 @@ import {
   DateResolver,
   DateTimeResolver,
   JSONResolver,
-  LocaleResolver,
   URLResolver,
   UUIDResolver,
 } from "graphql-scalars";
@@ -55,8 +53,8 @@ export interface PothosTypes {
       Output: Date;
     };
     Locale: {
-      Input: Locale;
-      Output: Locale;
+      Input: Intl.Locale;
+      Output: Intl.Locale;
     };
     HTML: {
       Input: string;
@@ -133,7 +131,64 @@ export const builder = new SchemaBuilder<PothosTypes>({
 
 builder.addScalarType("Date", DateResolver);
 builder.addScalarType("DateTime", DateTimeResolver);
-builder.addScalarType("Locale", LocaleResolver);
+
+builder.addScalarType(
+  "Locale",
+  new GraphQLScalarType<Intl.Locale, string>({
+    name: "Locale",
+    description: "A BCP 47-compliant language tag.",
+    serialize(value) {
+      if (typeof value === "string") {
+        try {
+          value = new Intl.Locale(value);
+        } catch {
+          throw createGraphQLError(`Invalid locale string: ${value}`);
+        }
+      }
+      if (value instanceof Intl.Locale) {
+        return value.baseName;
+      } else {
+        throw createGraphQLError(
+          `Expected Intl.Locale but got: ${typeof value}`,
+        );
+      }
+    },
+    parseValue(value) {
+      if (!(typeof value === "string")) {
+        throw createGraphQLError(
+          `Expected string for locale but got: ${typeof value}`,
+        );
+      }
+      try {
+        return new Intl.Locale(value);
+      } catch {
+        throw createGraphQLError(`Invalid locale string: ${value}`);
+      }
+    },
+    parseLiteral(ast) {
+      if (ast.kind !== Kind.STRING) {
+        throw createGraphQLError(
+          `Can only validate strings as locales but got a: ${ast.kind}`,
+          { nodes: ast },
+        );
+      }
+      const { value } = ast;
+      try {
+        return new Intl.Locale(value);
+      } catch {
+        throw createGraphQLError(`Invalid locale string: ${value}`, {
+          nodes: ast,
+        });
+      }
+    },
+    extensions: {
+      codegenScalarType: "Intl.Locale | string",
+      jsonSchema: {
+        type: "string",
+      },
+    },
+  }),
+);
 
 builder.addScalarType(
   "HTML",
