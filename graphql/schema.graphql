@@ -206,6 +206,9 @@ type Document {
   locale: Locale!
   markdown: String!
 
+  """The title of the document."""
+  title: String!
+
   """Table of contents for the document."""
   toc: JSON!
 }

@@ -1,5 +1,6 @@
 import type { Locale } from "@hackerspub/models/i18n";
 import type { Toc } from "@hackerspub/models/markup";
+import { Title } from "@solidjs/meta";
 import { query, type RouteDefinition } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -28,6 +29,7 @@ export const route = {
 const cocPageQuery = graphql`
   query cocPageQuery($locale: Locale!) {
     codeOfConduct(locale: $locale) {
+      title
       toc
       html
     }
@@ -52,6 +54,7 @@ export default function CocPage() {
   );
   return (
     <>
+      <Title>{t`Code of conduct`} &mdash; {t`Hackers' Pub`}</Title>
       <TopBreadcrumb>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
@@ -63,6 +66,7 @@ export default function CocPage() {
       <Show when={data()}>
         {(data) => (
           <div class="flex flex-row-reverse">
+            <Title>{data().codeOfConduct.title}</Title>
             <aside class="border-l p-4 hidden lg:block h-dvh sticky top-0">
               <h1 class="text-xs font-medium opacity-75">
                 {t`Table of contents`}

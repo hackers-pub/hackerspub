@@ -21,6 +21,9 @@ DocumentRef.implement({
       type: "Locale",
       description: "The locale of the document.",
     }),
+    title: t.exposeString("title", {
+      description: "The title of the document.",
+    }),
     markdown: t.exposeString("markdown"),
     html: t.exposeString("html"),
     toc: t.expose("toc", {
