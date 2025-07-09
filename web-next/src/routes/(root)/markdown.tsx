@@ -15,7 +15,7 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { cocPageQuery } from "./__generated__/cocPageQuery.graphql.ts";
+import type { markdownPageQuery } from "./__generated__/markdownPageQuery.graphql.ts";
 
 export const route = {
   preload() {
@@ -24,9 +24,9 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-const cocPageQuery = graphql`
-  query cocPageQuery($locale: Locale!) {
-    codeOfConduct(locale: $locale) {
+const markdownPageQuery = graphql`
+  query markdownPageQuery($locale: Locale!) {
+    markdownGuide(locale: $locale) {
       ...DocumentView_document
     }
   }
@@ -34,33 +34,33 @@ const cocPageQuery = graphql`
 
 const loadPageQuery = query(
   (locale: Intl.Locale | string) =>
-    loadQuery<cocPageQuery>(
+    loadQuery<markdownPageQuery>(
       useRelayEnvironment()(),
-      cocPageQuery,
+      markdownPageQuery,
       { locale },
     ),
-  "loadCocPageQuery",
+  "loadMarkdownPageQuery",
 );
 
-export default function CocPage() {
+export default function MarkdownPage() {
   const { t, i18n } = useLingui();
-  const data = createPreloadedQuery<cocPageQuery>(
-    cocPageQuery,
+  const data = createPreloadedQuery<markdownPageQuery>(
+    markdownPageQuery,
     () => loadPageQuery(i18n.locale),
   );
   return (
     <>
-      <Title>{t`Code of conduct`} &mdash; {t`Hackers' Pub`}</Title>
+      <Title>{t`Markdown guide`} &mdash; {t`Hackers' Pub`}</Title>
       <TopBreadcrumb>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink current>
-            {t`Code of conduct`}
+            {t`Markdown guide`}
           </BreadcrumbLink>
         </BreadcrumbItem>
       </TopBreadcrumb>
       <Show when={data()}>
-        {(data) => <DocumentView $document={data().codeOfConduct} />}
+        {(data) => <DocumentView $document={data().markdownGuide} />}
       </Show>
     </>
   );

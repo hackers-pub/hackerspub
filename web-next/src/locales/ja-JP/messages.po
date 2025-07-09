@@ -27,7 +27,8 @@ msgstr "{0, plural, other {#フォロー}}"
 msgid "Articles only"
 msgstr "記事のみ"
 
-#: src/routes/(root)/coc.tsx:57
+#: src/routes/(root)/coc.tsx:53
+#: src/routes/(root)/coc.tsx:58
 #: src/components/AppSidebar.tsx:131
 msgid "Code of conduct"
 msgstr "行動規範"
@@ -44,6 +45,8 @@ msgstr "フィード"
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
+#: src/routes/(root)/markdown.tsx:53
+#: src/routes/(root)/coc.tsx:53
 #: src/components/AppSidebar.tsx:22
 #: src/components/AppSidebar.tsx:66
 msgid "Hackers' Pub"
@@ -53,7 +56,12 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "ホーム"
 
-#: src/routes/(root)/coc.tsx:69
+#: src/routes/(root)/markdown.tsx:53
+#: src/routes/(root)/markdown.tsx:58
+msgid "Markdown guide"
+msgstr "Markdown ガイド"
+
+#: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "目次"
 

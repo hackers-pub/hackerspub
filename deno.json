@@ -158,7 +158,8 @@
     "exclude": [
       "*.md",
       "*.yaml",
-      "ai/prompts/"
+      "ai/prompts/",
+      "graphql/locales/markdown/*.md"
     ]
   },
   "lint": {

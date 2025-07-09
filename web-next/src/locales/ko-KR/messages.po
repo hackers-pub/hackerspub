@@ -27,7 +27,8 @@ msgstr "{0, plural, other {# 팔로잉}}"
 msgid "Articles only"
 msgstr "게시글만"
 
-#: src/routes/(root)/coc.tsx:57
+#: src/routes/(root)/coc.tsx:53
+#: src/routes/(root)/coc.tsx:58
 #: src/components/AppSidebar.tsx:131
 msgid "Code of conduct"
 msgstr "행동 강령"
@@ -44,6 +45,8 @@ msgstr "피드"
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
+#: src/routes/(root)/markdown.tsx:53
+#: src/routes/(root)/coc.tsx:53
 #: src/components/AppSidebar.tsx:22
 #: src/components/AppSidebar.tsx:66
 msgid "Hackers' Pub"
@@ -53,7 +56,12 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "홈"
 
-#: src/routes/(root)/coc.tsx:69
+#: src/routes/(root)/markdown.tsx:53
+#: src/routes/(root)/markdown.tsx:58
+msgid "Markdown guide"
+msgstr "Markdown 가이드"
+
+#: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "목차"
 

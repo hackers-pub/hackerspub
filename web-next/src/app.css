@@ -249,3 +249,311 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
+
+.prose h1 > a.header-anchor:last-child,
+.prose h2 > a.header-anchor:last-child,
+.prose h3 > a.header-anchor:last-child,
+.prose h4 > a.header-anchor:last-child,
+.prose h5 > a.header-anchor:last-child,
+.prose h6 > a.header-anchor:last-child {
+  text-decoration: none;
+  font-weight: normal;
+  opacity: 0.5;
+}
+
+.prose h1:hover > a.header-anchor:last-child:after,
+.prose h2:hover > a.header-anchor:last-child:after,
+.prose h3:hover > a.header-anchor:last-child:after,
+.prose h4:hover > a.header-anchor:last-child:after,
+.prose h5:hover > a.header-anchor:last-child:after,
+.prose h6:hover > a.header-anchor:last-child:after {
+  content: "#";
+}
+
+.prose :where(blockquote p:first-of-type)::before,
+.prose :where(blockquote p:last-of-type)::after {
+  content: none;
+}
+
+.prose a.mention:not(.hashtag) {
+  display: inline;
+  text-decoration: none;
+  font-weight: bolder;
+  white-space: nowrap;
+  padding: 0 0.15em;
+  background-color: color-mix(in srgb, var(--tw-prose-links) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tw-prose-links) 10%, transparent);
+  border-radius: 0.25em;
+}
+
+.prose a.mention:not(.hashtag):hover {
+  background-color: color-mix(in srgb, var(--tw-prose-links) 15%, transparent);
+}
+
+.prose a.mention:not(.hashtag) > img {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-top: 0;
+  margin-bottom: 2px;
+  margin-right: 0.25rem;
+}
+
+.prose a.mention:not(.hashtag) > .name {
+  font-weight: normal;
+  opacity: 0.5;
+  margin-left: 0.25em;
+  white-space: normal;
+}
+
+.prose a.mention:not(.hashtag):hover > .name {
+  opacity: 0.75;
+}
+
+.prose > hr.footnotes-sep {
+  margin: 0;
+}
+
+.prose > hr.footnotes-sep + section.footnotes {
+  font-size: smaller;
+}
+
+.prose .markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: 0.25em solid #888;
+}
+
+.prose .markdown-alert > :first-child {
+  margin-top: 0;
+}
+
+.prose .markdown-alert > :last-child {
+  margin-bottom: 0;
+}
+
+.prose .markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1;
+}
+
+.prose .markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.prose {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+.prose blockquote {
+  font-style: normal;
+  font-weight: normal;
+}
+
+.prose blockquote p:before {
+  content: none;
+}
+
+.prose blockquote p:after {
+  content: none;
+}
+
+.prose code {
+  font-weight: normal;
+  font-size: inherit;
+  background-color: rgba(101, 117, 133, 0.25);
+  padding: 1px;
+}
+
+.prose pre > code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.prose code:before {
+  content: none;
+}
+
+.prose code:after {
+  content: none;
+}
+
+.prose .markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.prose .markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.prose .markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.prose .markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.prose .markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.prose .markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.prose .markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.prose .markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.prose .markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.prose .markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+.prose pre.shiki.has-highlighted,
+.prose pre.shiki:has(> code > span.highlighted.line) {
+  padding-inline-start: 0;
+  padding-inline-end: 0;
+}
+
+.prose pre.shiki.has-highlighted > code > span.line,
+.prose pre.shiki:has(> code > span.highlighted.line) > code > span.line {
+  padding-left: 1.1428571em;
+  padding-right: 1.1428571em;
+}
+
+.prose pre.shiki > code > span.highlighted.line {
+  display: inline-block;
+  width: 100%;
+  background-color: rgba(101, 117, 133, 0.16) !important;
+}
+
+.prose pre.shiki > code > span.highlighted.line > span {
+  background-color: transparent !important;
+}
+
+.prose pre.shiki.has-highlighted > code > span.highlighted.line.error {
+  background-color: rgba(244, 63, 94, 0.14) !important;
+}
+
+.prose pre.shiki.has-highlighted > code > span.highlighted.line.warning {
+  background-color: rgba(251, 191, 36, 0.14) !important;
+}
+
+.prose pre.shiki > code > span.line > span.highlighted-word {
+  background-color: rgba(101, 117, 133, 0.5) !important;
+  border: 1px solid rgba(101, 117, 133, 0.5);
+  padding: 1px 0px;
+  margin: -1px 0px;
+  border-radius: 4px;
+}
+
+.prose pre.shiki.has-focused > code > span.line:not(.focused) {
+  opacity: 0.5;
+  filter: blur(0.095rem);
+  transition: filter 0.35s, opacity 0.35s;
+}
+
+.prose pre.shiki.has-focused:hover > code > span.line:not(.focused) {
+  opacity: 1;
+  filter: blur(0);
+}
+
+.prose pre.shiki.has-diff {
+  padding-inline-start: 0;
+  padding-inline-end: 0;
+}
+
+.prose pre.shiki.has-diff > code > span.line {
+  padding-left: 1.1428571em;
+  padding-right: 1.1428571em;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff {
+  display: inline-block;
+  width: 100%;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff:before {
+  display: inline-block;
+  width: 15px;
+}
+
+.prose pre.shiki.has-diff > code > span.line:not(.diff) {
+  margin-left: 15px;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.add {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.add:before {
+  content: "+";
+  color: #18794e;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.remove {
+  background-color: rgba(244, 63, 94, 0.14) !important;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.remove:before {
+  content: "-";
+  color: #b34e52;
+}
+
+.prose pre.shiki.has-diff > code > span.line.diff.add > span,
+.prose pre.shiki.has-diff > code > span.line.diff.remove > span {
+  background-color: transparent !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose pre.shiki,
+  .prose pre.shiki span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    /* Optional, if you also want font styles */
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+
+/* Hide "RE: <link>" parts of the quoting notes */
+.prose > .quote-inline:last-child,
+.prose > p:last-child > .quote-inline:has(+ .reference-link-inline:last-child),
+.prose > p:last-child > .reference-link-inline:last-child,
+.prose > p:last-child > span:has(+ a.quote-inline:last-child) > .quote-inline,
+.prose > p:last-child > a.quote-inline:last-child {
+  display: none;
+}

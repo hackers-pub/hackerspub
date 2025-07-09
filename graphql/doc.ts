@@ -34,6 +34,7 @@ DocumentRef.implement({
 });
 
 const COC_DIR = dirname(import.meta.dirname!);
+const MARKDOWN_GUIDE_DIR = join(import.meta.dirname!, "locales", "markdown");
 
 builder.queryFields((t) => ({
   codeOfConduct: t.field({
@@ -53,6 +54,42 @@ builder.queryFields((t) => ({
       for await (const file of files) {
         if (!file.isFile) continue;
         const match = file.name.match(/^CODE_OF_CONDUCT\.(.+)\.md$/);
+        if (match == null) continue;
+        const locale = match[1];
+        availableLocales[locale] = file.path;
+      }
+      const locale =
+        negotiateLocale(args.locale, Object.keys(availableLocales)) ??
+          new Intl.Locale("en");
+      const path = availableLocales[locale.baseName];
+      const markdown = await Deno.readTextFile(path);
+      const rendered = await renderMarkup(ctx.fedCtx, markdown);
+      return {
+        locale: locale,
+        markdown,
+        html: rendered.html,
+        title: rendered.title,
+        toc: rendered.toc,
+      };
+    },
+  }),
+  markdownGuide: t.field({
+    type: DocumentRef,
+    args: {
+      locale: t.arg({
+        type: "Locale",
+        required: true,
+        description: "The locale for the Markdown guide.",
+      }),
+    },
+    async resolve(_, args, ctx) {
+      const availableLocales: Record<string, string> = {};
+      const files = expandGlob(join(MARKDOWN_GUIDE_DIR, "*.md"), {
+        includeDirs: false,
+      });
+      for await (const file of files) {
+        if (!file.isFile) continue;
+        const match = file.name.match(/^(.+)\.md$/);
         if (match == null) continue;
         const locale = match[1];
         availableLocales[locale] = file.path;

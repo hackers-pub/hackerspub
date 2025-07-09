@@ -471,6 +471,10 @@ type Query {
     locale: Locale!
   ): Document!
   instanceByHost(host: String!): Instance
+  markdownGuide(
+    """The locale for the Markdown guide."""
+    locale: Locale!
+  ): Document!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
   viewer: Account
