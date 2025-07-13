@@ -68,7 +68,7 @@ export function ProfileCard(props: ProfileCardProps) {
           </CardHeader>
           <CardContent>
             <div
-              innerHTML={account().actor.bio}
+              innerHTML={account().actor.bio ?? ""}
               class="prose dark:prose-invert"
             />
           </CardContent>

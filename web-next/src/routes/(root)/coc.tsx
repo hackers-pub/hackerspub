@@ -37,7 +37,7 @@ const loadPageQuery = query(
     loadQuery<cocPageQuery>(
       useRelayEnvironment()(),
       cocPageQuery,
-      { locale },
+      { locale: typeof locale === "string" ? locale : locale.baseName },
     ),
   "loadCocPageQuery",
 );

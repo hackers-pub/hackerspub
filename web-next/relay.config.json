@@ -3,5 +3,19 @@
   "src": "./src",
   "language": "typescript",
   "schema": "../graphql/schema.graphql",
-  "eagerEsModules": true
+  "eagerEsModules": true,
+  "customScalarTypes": {
+    "Date": "string",
+    "DateTime": "string",
+    "Email": "string",
+    "HTML": "string",
+    "IP": "string",
+    "JSON": "unknown",
+    "Locale": "string",
+    "Markdown": "string",
+    "MediaType": "string",
+    "URL": "string",
+    "URITemplate": "string",
+    "UUID": "`${string}-${string}-${string}-${string}-${string}`"
+  }
 }

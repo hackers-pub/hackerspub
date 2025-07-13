@@ -1,5 +1,4 @@
 import { getLogger } from "@logtape/logtape";
-import { encodeBase64Url } from "@std/encoding/base64url";
 import type Keyv from "keyv";
 import type { Uuid } from "./uuid.ts";
 
@@ -25,12 +24,10 @@ export async function createSigninToken(
   accountId: Uuid,
 ): Promise<SigninToken> {
   const token = crypto.randomUUID();
-  const buffer = new Uint8Array(8);
-  crypto.getRandomValues(buffer);
   const tokenData: SigninToken = {
     accountId,
     token,
-    code: encodeBase64Url(buffer),
+    code: generateTokenCode(),
     created: new Date(),
   };
   await kv.set(
@@ -57,4 +54,15 @@ export async function deleteSigninToken(
   token: Uuid,
 ): Promise<void> {
   await kv.delete(`${KV_NAMESPACE}/${token}`);
+}
+
+function generateTokenCode(): string {
+  const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const buffer = new Uint8Array(6);
+  crypto.getRandomValues(buffer);
+  let result = "";
+  for (let i = 0; i < 6; i++) {
+    result += chars[buffer[i] % chars.length];
+  }
+  return result;
 }

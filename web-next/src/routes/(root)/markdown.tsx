@@ -37,7 +37,7 @@ const loadPageQuery = query(
     loadQuery<markdownPageQuery>(
       useRelayEnvironment()(),
       markdownPageQuery,
-      { locale },
+      { locale: typeof locale === "string" ? locale : locale.baseName },
     ),
   "loadMarkdownPageQuery",
 );

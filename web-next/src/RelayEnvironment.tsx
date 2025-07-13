@@ -33,8 +33,8 @@ const fetchFn: FetchFunction = async (
 };
 
 export function createEnvironment(): IEnvironment {
-  const network = Network.create((...args) => {
-    return fetchFn(...args);
+  const network = Network.create((params, variables, cacheConfig) => {
+    return fetchFn(params, variables, cacheConfig);
   });
   const store = new Store(new RecordSource());
   return new Environment({ store, network });
