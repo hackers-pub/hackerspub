@@ -1,5 +1,7 @@
-import Mailgun from "@schotsl/mailgun";
 import { getLogger } from "@logtape/logtape";
+import Mailgun from "@schotsl/mailgun";
+import type { Transport } from "@upyo/core";
+import { MailgunTransport } from "@upyo/mailgun";
 
 const logger = getLogger(["hackerspub", "email"]);
 
@@ -12,7 +14,7 @@ function getEnv(variable: string): string {
 const MAILGUN_KEY = getEnv("MAILGUN_KEY");
 const MAILGUN_REGION = getEnv("MAILGUN_REGION");
 const MAILGUN_DOMAIN = getEnv("MAILGUN_DOMAIN");
-const MAILGUN_FROM = getEnv("MAILGUN_FROM");
+const MAILGUN_FROM = Deno.env.get("EMAIL_FROM") ?? getEnv("MAILGUN_FROM");
 
 const mailgun = new Mailgun({
   key: MAILGUN_KEY,
@@ -31,3 +33,9 @@ export async function sendEmail(email: Email): Promise<void> {
   logger.debug("Sending email... {*}", params);
   await mailgun.send(params);
 }
+
+export const transport: Transport = new MailgunTransport({
+  apiKey: MAILGUN_KEY,
+  domain: MAILGUN_DOMAIN,
+  region: MAILGUN_REGION === "eu" ? "eu" : "us",
+});

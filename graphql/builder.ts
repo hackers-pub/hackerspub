@@ -1,4 +1,5 @@
 import type { RequestContext } from "@fedify/fedify";
+import { normalizeEmail } from "@hackerspub/models/account";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
 import { relations } from "@hackerspub/models/relations";
@@ -12,6 +13,7 @@ import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
 import SimpleObjectsPlugin from "@pothos/plugin-simple-objects";
 import TracingPlugin from "@pothos/plugin-tracing";
 import WithInputPlugin from "@pothos/plugin-with-input";
+import type { Transport } from "@upyo/core";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import type { Disk } from "flydrive";
 import { GraphQLScalarType, Kind } from "graphql";
@@ -29,6 +31,7 @@ export interface Context {
   db: Database;
   kv: Keyv;
   disk: Disk;
+  email: Transport;
   fedCtx: RequestContext<ContextData>;
   moderator: boolean;
   session: Promise<Session | undefined> | undefined;
@@ -52,6 +55,10 @@ export interface PothosTypes {
       Input: Date;
       Output: Date;
     };
+    Email: {
+      Input: string;
+      Output: string;
+    };
     Locale: {
       Input: Intl.Locale;
       Output: Intl.Locale;
@@ -69,6 +76,10 @@ export interface PothosTypes {
       Output: string;
     };
     MediaType: {
+      Input: string;
+      Output: string;
+    };
+    URITemplate: {
       Input: string;
       Output: string;
     };
@@ -131,6 +142,11 @@ export const builder = new SchemaBuilder<PothosTypes>({
 
 builder.addScalarType("Date", DateResolver);
 builder.addScalarType("DateTime", DateTimeResolver);
+
+builder.scalarType("Email", {
+  serialize: (v) => normalizeEmail(v),
+  parseValue: (v) => normalizeEmail(String(v)),
+});
 
 builder.addScalarType(
   "Locale",
@@ -249,6 +265,11 @@ builder.addScalarType(
     },
   }),
 );
+
+builder.scalarType("URITemplate", {
+  serialize: (v) => v,
+  parseValue: (v) => String(v),
+});
 
 builder.addScalarType("URL", URLResolver);
 builder.addScalarType("UUID", UUIDResolver);

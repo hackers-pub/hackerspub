@@ -213,6 +213,8 @@ type Document {
   toc: JSON!
 }
 
+scalar Email
+
 type EmojiReactionGroup implements ReactionGroup {
   emoji: String!
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
@@ -244,6 +246,13 @@ scalar JSON
 """A BCP 47-compliant language tag."""
 scalar Locale
 
+"""A login challenge for an account."""
+type LoginChallenge {
+  account: Account!
+  created: DateTime!
+  token: UUID!
+}
+
 """A Hackers' Pub-flavored Markdown text."""
 scalar Markdown
 
@@ -251,6 +260,30 @@ scalar MediaType
 
 type Mutation {
   createNote(input: CreateNoteInput!): CreateNotePayload!
+  loginByEmail(
+    """The email of the account to sign in."""
+    email: String!
+
+    """The locale for the sign-in email."""
+    locale: Locale!
+
+    """
+    The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`.
+    """
+    verifyUrl: URITemplate!
+  ): LoginChallenge
+  loginByUsername(
+    """The locale for the sign-in email."""
+    locale: Locale!
+
+    """The username of the account to sign in."""
+    username: String!
+
+    """
+    The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`.
+    """
+    verifyUrl: URITemplate!
+  ): LoginChallenge
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
 }
 
@@ -528,6 +561,8 @@ type ReactionGroupReactorsConnectionEdge {
   cursor: String!
   node: Actor!
 }
+
+scalar URITemplate
 
 """
 A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.

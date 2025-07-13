@@ -72,6 +72,8 @@
     "jsr:@std/streams@^1.0.10": "1.0.10",
     "jsr:@std/text@^1.0.12": "1.0.15",
     "jsr:@std/uuid@^1.0.6": "1.0.9",
+    "jsr:@upyo/core@0.1": "0.1.0",
+    "jsr:@upyo/mailgun@0.1": "0.1.0",
     "jsr:@valibot/valibot@1": "1.1.0",
     "npm:@ai-sdk/anthropic@^1.2.10": "1.2.12_zod@3.25.76",
     "npm:@ai-sdk/google@^1.2.22": "1.2.22_zod@3.25.76",
@@ -510,6 +512,15 @@
       "dependencies": [
         "jsr:@std/bytes@^1.0.6",
         "jsr:@std/crypto@^1.0.5"
+      ]
+    },
+    "@upyo/core@0.1.0": {
+      "integrity": "46150e1b017a2b14763097cf2cc0781c909520c5cc1a08f1c521596b29cf6128"
+    },
+    "@upyo/mailgun@0.1.0": {
+      "integrity": "560052cbda9bc92c59b11f4bfe396adbc490466add11cc0772d18a0ef66f6ed9",
+      "dependencies": [
+        "jsr:@upyo/core"
       ]
     },
     "@valibot/valibot@1.1.0": {
@@ -12074,6 +12085,8 @@
       "jsr:@std/path@^1.0.8",
       "jsr:@std/text@^1.0.12",
       "jsr:@std/uuid@^1.0.6",
+      "jsr:@upyo/core@0.1",
+      "jsr:@upyo/mailgun@0.1",
       "jsr:@valibot/valibot@1",
       "npm:@ai-sdk/anthropic@^1.2.10",
       "npm:@ai-sdk/google@^1.2.22",
@@ -12156,6 +12169,7 @@
       "npm:tinyld@^1.3.4",
       "npm:unified@^11.0.5",
       "npm:unist-util-visit@5",
+      "npm:url-template@^3.1.1",
       "npm:xmlbuilder2@^3.1.1",
       "npm:xss@^1.0.15"
     ],

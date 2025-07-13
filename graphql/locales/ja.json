@@ -1,0 +1,6 @@
+{
+  "login": {
+    "emailSubject": "Hackers' Pubへのログイン",
+    "emailContent": "Hackers' Pubへお帰りなさい！ログインするには以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\n他には下のコードをページに入力して下さい：\n\n{{code}}\n\nこのリンクとコードは{{expiration}}後に有効期限が切れます。\n\nこのメールに心当たりがない場合は、無視していただいて構いません。\n"
+  }
+}
