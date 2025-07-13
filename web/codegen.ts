@@ -17,6 +17,7 @@ const config: CodegenConfig = {
           DateTime: "Date",
           Email: "string",
           HTML: "string",
+          IP: "string",
           JSON: "unknown",
           Locale: "Intl.Locale | string",
           Markdown: "string",

@@ -1,7 +1,10 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
+import { createSession, type Session } from "@hackerspub/models/session";
 import {
   createSigninToken,
+  deleteSigninToken,
   EXPIRATION,
+  getSigninToken,
   type SigninToken,
 } from "@hackerspub/models/signin";
 import type { Uuid } from "@hackerspub/models/uuid";
@@ -39,6 +42,41 @@ LoginChallengeRef.implement({
         });
         return account!;
       },
+    }),
+  }),
+});
+
+const SessionRef = builder.objectRef<Session>("Session");
+
+SessionRef.implement({
+  description: "A login session for an account.",
+  fields: (t) => ({
+    id: t.expose("id", {
+      type: "UUID",
+      description: "The access token for the session.",
+    }),
+    account: t.field({
+      type: Account,
+      async resolve(session, _, ctx) {
+        const account = await ctx.db.query.accountTable.findFirst({
+          where: { id: session.accountId },
+          with: { actor: true },
+        });
+        return account!;
+      },
+    }),
+    userAgent: t.exposeString("userAgent", {
+      description: "The user agent of the session.",
+      nullable: true,
+    }),
+    ipAddress: t.expose("ipAddress", {
+      type: "IP",
+      nullable: true,
+      description: "The IP address that created the session.",
+    }),
+    created: t.expose("created", {
+      type: "DateTime",
+      description: "The creation date of the session.",
     }),
   }),
 });
@@ -99,6 +137,7 @@ builder.mutationFields((t) => ({
       };
     },
   }),
+
   loginByEmail: t.field({
     type: LoginChallengeRef,
     nullable: true,
@@ -166,6 +205,35 @@ builder.mutationFields((t) => ({
         token: token.token,
         created: token.created,
       };
+    },
+  }),
+
+  completeLoginChallenge: t.field({
+    type: SessionRef,
+    nullable: true,
+    args: {
+      token: t.arg({
+        type: "UUID",
+        required: true,
+        description: "The token of the login challenge.",
+      }),
+      code: t.arg.string({
+        required: true,
+        description: "The code of the login challenge.",
+      }),
+    },
+    async resolve(_, args, ctx) {
+      const token = await getSigninToken(ctx.kv, args.token);
+      if (token == null || token.code !== args.code) return null;
+      const remoteAddr = ctx.connectionInfo?.remoteAddr;
+      await deleteSigninToken(ctx.kv, token.token);
+      return await createSession(ctx.kv, {
+        accountId: token.accountId,
+        ipAddress: remoteAddr?.transport === "tcp"
+          ? remoteAddr.hostname
+          : undefined,
+        userAgent: ctx.request.headers.get("User-Agent"),
+      });
     },
   }),
 }));

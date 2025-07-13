@@ -6,9 +6,9 @@ import {
   staticFiles,
   trailingSlashes,
 } from "@fresh/core";
-import { createYogaServer } from "@hackerspub/graphql";
+import { type Context, createYogaServer } from "@hackerspub/graphql";
 import { getSession } from "@hackerspub/models/session";
-import { validateUuid } from "@hackerspub/models/uuid";
+import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import { SpanKind, SpanStatusCode, trace } from "@opentelemetry/api";
 import {
@@ -108,9 +108,18 @@ app.use(async (ctx) => {
 });
 
 app.use((ctx) => {
-  const cookies = getCookies(ctx.req.headers);
-  if (validateUuid(cookies.session)) {
-    const sessionPromise = getSession(kv, cookies.session)
+  let sessionId: Uuid | undefined = undefined;
+  const authorization = ctx.req.headers.get("Authorization");
+  if (authorization && authorization.startsWith("Bearer ")) {
+    const uuid = authorization.slice(7).trim();
+    if (validateUuid(uuid)) sessionId = uuid;
+  }
+  if (sessionId == null) {
+    const cookies = getCookies(ctx.req.headers);
+    if (validateUuid(cookies.session)) sessionId = cookies.session;
+  }
+  if (sessionId != null) {
+    const sessionPromise = getSession(kv, sessionId)
       .then(async (session) => {
         if (session == null) return { account: undefined, session: undefined };
         const account = await db.query.accountTable.findFirst({
@@ -140,14 +149,15 @@ app.use(async (ctx) => {
   }
 
   const disk = drive.use();
-  const graphqlContext = {
+  const graphqlContext: Context = {
     db,
     kv,
     disk,
     email,
     fedCtx: federation.createContext(ctx.req, { db, kv, disk, models }),
-    moderator: false,
     session: ctx.state.sessionPromise?.then(({ session }) => session),
+    request: ctx.req,
+    connectionInfo: ctx.info,
   };
 
   if (

@@ -1,5 +1,5 @@
 import { getSession } from "@hackerspub/models/session";
-import { validateUuid } from "@hackerspub/models/uuid";
+import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getCookies } from "@std/http/cookie";
 import * as models from "./ai.ts";
 import { db } from "./db.ts";
@@ -11,11 +11,18 @@ import { createYogaServer } from "./mod.ts";
 
 const yogaServer = createYogaServer();
 
-Deno.serve({ port: 8080 }, (req) => {
-  const cookies = getCookies(req.headers);
-  const session = validateUuid(cookies.session)
-    ? getSession(kv, cookies.session)
-    : undefined;
+Deno.serve({ port: 8080 }, (req, info) => {
+  let sessionId: Uuid | undefined = undefined;
+  const authorization = req.headers.get("Authorization");
+  if (authorization && authorization.startsWith("Bearer ")) {
+    const uuid = authorization.slice(7).trim();
+    if (validateUuid(uuid)) sessionId = uuid;
+  }
+  if (sessionId == null) {
+    const cookies = getCookies(req.headers);
+    if (validateUuid(cookies.session)) sessionId = cookies.session;
+  }
+  const session = sessionId == null ? undefined : getSession(kv, sessionId);
 
   const disk = drive.use();
   return yogaServer.fetch(req, {
@@ -25,6 +32,7 @@ Deno.serve({ port: 8080 }, (req) => {
     email,
     session,
     fedCtx: federation.createContext(req, { db, kv, disk, models }),
-    moderator: false,
+    request: req,
+    connectionInfo: info,
   });
 });

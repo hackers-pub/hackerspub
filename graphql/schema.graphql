@@ -229,6 +229,11 @@ type Hashtag {
   name: String!
 }
 
+"""
+A field whose value is either an IPv4 or IPv6 address: https://en.wikipedia.org/wiki/IP_address.
+"""
+scalar IP
+
 type Instance implements Node {
   created: DateTime!
   host: String!
@@ -259,6 +264,13 @@ scalar Markdown
 scalar MediaType
 
 type Mutation {
+  completeLoginChallenge(
+    """The code of the login challenge."""
+    code: String!
+
+    """The token of the login challenge."""
+    token: UUID!
+  ): Session
   createNote(input: CreateNoteInput!): CreateNotePayload!
   loginByEmail(
     """The email of the account to sign in."""
@@ -560,6 +572,23 @@ type ReactionGroupReactorsConnection {
 type ReactionGroupReactorsConnectionEdge {
   cursor: String!
   node: Actor!
+}
+
+"""A login session for an account."""
+type Session {
+  account: Account!
+
+  """The creation date of the session."""
+  created: DateTime!
+
+  """The access token for the session."""
+  id: UUID!
+
+  """The IP address that created the session."""
+  ipAddress: IP
+
+  """The user agent of the session."""
+  userAgent: String
 }
 
 scalar URITemplate

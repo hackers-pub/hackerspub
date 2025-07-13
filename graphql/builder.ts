@@ -20,6 +20,7 @@ import { GraphQLScalarType, Kind } from "graphql";
 import {
   DateResolver,
   DateTimeResolver,
+  IPResolver,
   JSONResolver,
   URLResolver,
   UUIDResolver,
@@ -33,8 +34,9 @@ export interface Context {
   disk: Disk;
   email: Transport;
   fedCtx: RequestContext<ContextData>;
-  moderator: boolean;
   session: Promise<Session | undefined> | undefined;
+  request: Request;
+  connectionInfo?: Deno.ServeHandlerInfo<Deno.Addr>;
 }
 
 export interface PothosTypes {
@@ -64,6 +66,10 @@ export interface PothosTypes {
       Output: Intl.Locale;
     };
     HTML: {
+      Input: string;
+      Output: string;
+    };
+    IP: {
       Input: string;
       Output: string;
     };
@@ -107,19 +113,10 @@ export const builder = new SchemaBuilder<PothosTypes>({
   complexity: {
     defaultComplexity: 1,
     defaultListMultiplier: 10,
-    limit(ctx) {
-      if (ctx.moderator) {
-        return {
-          complexity: 1000,
-          depth: 20,
-          breadth: 200,
-        };
-      }
-      return {
-        complexity: 500,
-        depth: 10,
-        breadth: 100,
-      };
+    limit: {
+      complexity: 500,
+      depth: 10,
+      breadth: 100,
     },
   },
   defaultFieldNullability: false,
@@ -131,7 +128,15 @@ export const builder = new SchemaBuilder<PothosTypes>({
   scopeAuth: {
     authScopes: (ctx) => ({
       signed: ctx.session != null,
-      moderator: ctx.moderator,
+      moderator: async () => {
+        const accountId = (await ctx.session)?.accountId;
+        if (accountId == null) return false;
+        const account = await ctx.db.query.accountTable.findFirst({
+          where: { id: accountId },
+          columns: { moderator: true },
+        });
+        return account?.moderator ?? false;
+      },
       selfAccount: async (id) => id === (await ctx.session)?.accountId,
     }),
   },
@@ -235,6 +240,7 @@ builder.addScalarType(
   }),
 );
 
+builder.addScalarType("IP", IPResolver);
 builder.addScalarType("JSON", JSONResolver);
 
 builder.addScalarType(
