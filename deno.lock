@@ -72,8 +72,9 @@
     "jsr:@std/streams@^1.0.10": "1.0.10",
     "jsr:@std/text@^1.0.12": "1.0.15",
     "jsr:@std/uuid@^1.0.6": "1.0.9",
-    "jsr:@upyo/core@0.1": "0.1.0",
-    "jsr:@upyo/mailgun@0.1": "0.1.0",
+    "jsr:@upyo/core@~0.1.1": "0.1.1",
+    "jsr:@upyo/mailgun@~0.1.1": "0.1.1",
+    "jsr:@upyo/mock@~0.1.1": "0.1.1",
     "jsr:@valibot/valibot@1": "1.1.0",
     "npm:@ai-sdk/anthropic@^1.2.10": "1.2.12_zod@3.25.76",
     "npm:@ai-sdk/google@^1.2.22": "1.2.22_zod@3.25.76",
@@ -515,11 +516,17 @@
         "jsr:@std/crypto@^1.0.5"
       ]
     },
-    "@upyo/core@0.1.0": {
-      "integrity": "46150e1b017a2b14763097cf2cc0781c909520c5cc1a08f1c521596b29cf6128"
+    "@upyo/core@0.1.1": {
+      "integrity": "1a6a29b263734881a6fb3fa083329a9c956abc48552dcc9cca4f54b89acc8a5d"
     },
-    "@upyo/mailgun@0.1.0": {
-      "integrity": "560052cbda9bc92c59b11f4bfe396adbc490466add11cc0772d18a0ef66f6ed9",
+    "@upyo/mailgun@0.1.1": {
+      "integrity": "6727e3cb5bed340cc5ab473f7f65e6ac38318e44adfcd4110322f8bc4a52b4fb",
+      "dependencies": [
+        "jsr:@upyo/core"
+      ]
+    },
+    "@upyo/mock@0.1.1": {
+      "integrity": "9589150113e11078cbc3af67ec1b3c7a213f223163290bde803dcae52a6c9a08",
       "dependencies": [
         "jsr:@upyo/core"
       ]
@@ -12093,8 +12100,9 @@
       "jsr:@std/path@^1.0.8",
       "jsr:@std/text@^1.0.12",
       "jsr:@std/uuid@^1.0.6",
-      "jsr:@upyo/core@0.1",
-      "jsr:@upyo/mailgun@0.1",
+      "jsr:@upyo/core@~0.1.1",
+      "jsr:@upyo/mailgun@~0.1.1",
+      "jsr:@upyo/mock@~0.1.1",
       "jsr:@valibot/valibot@1",
       "npm:@ai-sdk/anthropic@^1.2.10",
       "npm:@ai-sdk/google@^1.2.22",

@@ -1,5 +1,6 @@
 import type { Transport } from "@upyo/core";
 import { MailgunTransport } from "@upyo/mailgun";
+import { MockTransport } from "@upyo/mock";
 
 function getEnv(variable: string): string {
   const val = Deno.env.get(variable);
@@ -8,12 +9,11 @@ function getEnv(variable: string): string {
 }
 
 export const EMAIL_FROM = Deno.env.get("EMAIL_FROM") ?? getEnv("MAILGUN_FROM");
-const MAILGUN_KEY = getEnv("MAILGUN_KEY");
-const MAILGUN_REGION = getEnv("MAILGUN_REGION");
-const MAILGUN_DOMAIN = getEnv("MAILGUN_DOMAIN");
 
-export const transport: Transport = new MailgunTransport({
-  apiKey: MAILGUN_KEY,
-  domain: MAILGUN_DOMAIN,
-  region: MAILGUN_REGION === "eu" ? "eu" : "us",
-});
+export const transport: Transport = Deno.env.get("CI") === "true"
+  ? new MockTransport()
+  : new MailgunTransport({
+    apiKey: getEnv("MAILGUN_KEY"),
+    domain: getEnv("MAILGUN_DOMAIN"),
+    region: getEnv("MAILGUN_REGION") === "eu" ? "eu" : "us",
+  });
