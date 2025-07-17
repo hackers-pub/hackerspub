@@ -98,6 +98,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                 reactions: [],
               }}
               replier={post.actor}
+              signedAccount={props.signedAccount}
             />
           )}
           {isArticleLike(post)
