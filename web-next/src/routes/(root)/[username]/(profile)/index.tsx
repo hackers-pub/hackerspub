@@ -58,7 +58,7 @@ export default function ProfilePage() {
             {(account) => (
               <>
                 <ProfilePageBreadcrumb $account={account()} />
-                <div class="p-4">
+                <div>
                   <ProfileCard $account={account()} />
                 </div>
               </>

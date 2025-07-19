@@ -2,13 +2,6 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import type { ProfileCard_account$key } from "./__generated__/ProfileCard_account.graphql.ts";
 
@@ -42,37 +35,46 @@ export function ProfileCard(props: ProfileCardProps) {
   return (
     <Show when={account()}>
       {(account) => (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <Avatar>
-                <AvatarImage src={account().avatarUrl} />
+        <>
+          <div class="border-b p-4">
+            <div class="flex items-center gap-4 mx-auto max-w-prose">
+              <Avatar class="size-16">
+                <a href={`/@${account().username}`}>
+                  <AvatarImage src={account().avatarUrl} class="size-16" />
+                </a>
               </Avatar>
-              {account().name}
-            </CardTitle>
-            <CardDescription>
-              @{account().username}@{account().actor.instanceHost} &middot;{" "}
-              {i18n._(msg`${
-                plural(account().actor.followees.totalCount, {
-                  one: "# following",
-                  other: "# following",
-                })
-              }`)} &middot;{" "}
-              {i18n._(msg`${
-                plural(account().actor.followers.totalCount, {
-                  one: "# follower",
-                  other: "# followers",
-                })
-              }`)}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div
-              innerHTML={account().actor.bio ?? ""}
-              class="prose dark:prose-invert"
-            />
-          </CardContent>
-        </Card>
+              <div>
+                <h1 class="text-xl font-semibold">{account().name}</h1>
+                <div class="opacity-65">
+                  <span class="select-all">
+                    @{account().username}@{account().actor.instanceHost}
+                  </span>{" "}
+                  &middot;{" "}
+                  {i18n._(msg`${
+                    plural(account().actor.followees.totalCount, {
+                      one: "# following",
+                      other: "# following",
+                    })
+                  }`)} &middot;{" "}
+                  {i18n._(msg`${
+                    plural(account().actor.followers.totalCount, {
+                      one: "# follower",
+                      other: "# followers",
+                    })
+                  }`)}
+                </div>
+              </div>
+            </div>
+          </div>
+          <Show when={(account().actor.bio?.trim() ?? "") !== ""}>
+            <div class="p-4 border-b">
+              <div
+                innerHTML={account().actor.bio ?? ""}
+                class="mx-auto prose dark:prose-invert"
+              />
+            </div>
+          </Show>
+        </>
       )}
     </Show>
   );

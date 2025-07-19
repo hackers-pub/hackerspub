@@ -284,6 +284,7 @@ export function AppSidebar(props: AppSidebarProps) {
               GITHUB_REPOSITORY: () => (
                 <a
                   href="https://github.com/hackers-pub/hackerspub"
+                  target="_blank"
                   class="underline"
                 >
                   {t`GitHub repository`}
@@ -292,6 +293,7 @@ export function AppSidebar(props: AppSidebarProps) {
               "AGPL-3.0": () => (
                 <a
                   href="https://www.gnu.org/licenses/agpl-3.0.en.html"
+                  target="_blank"
                   class="underline"
                 >
                   AGPL 3.0
