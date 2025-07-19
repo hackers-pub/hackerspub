@@ -34,9 +34,9 @@ export function getSession(
   return kv.get<Session>(`${KV_NAMESPACE}/${sessionId}`);
 }
 
-export async function deleteSession(
+export function deleteSession(
   kv: Keyv,
   sessionId: Uuid,
-): Promise<void> {
-  await kv.delete(`${KV_NAMESPACE}/${sessionId}`);
+): Promise<boolean> {
+  return kv.delete(`${KV_NAMESPACE}/${sessionId}`);
 }

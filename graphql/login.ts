@@ -1,5 +1,10 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
-import { createSession, type Session } from "@hackerspub/models/session";
+import {
+  createSession,
+  deleteSession,
+  getSession,
+  type Session,
+} from "@hackerspub/models/session";
 import {
   createSigninToken,
   deleteSigninToken,
@@ -234,6 +239,27 @@ builder.mutationFields((t) => ({
           : undefined,
         userAgent: ctx.request.headers.get("User-Agent"),
       });
+    },
+  }),
+
+  revokeSession: t.field({
+    description: "Revoke a session by its ID.",
+    type: SessionRef,
+    nullable: true,
+    args: {
+      sessionId: t.arg({
+        type: "UUID",
+        required: true,
+        description: "The ID of the session to log out.",
+      }),
+    },
+    async resolve(_, args, ctx) {
+      const currentSession = await ctx.session;
+      if (currentSession == null) return null;
+      const session = await getSession(ctx.kv, args.sessionId);
+      if (session?.accountId !== currentSession.accountId) return null;
+      else if (await deleteSession(ctx.kv, args.sessionId)) return session;
+      return null;
     },
   }),
 }));

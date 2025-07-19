@@ -296,6 +296,12 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginChallenge
+
+  """Revoke a session by its ID."""
+  revokeSession(
+    """The ID of the session to log out."""
+    sessionId: UUID!
+  ): Session
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
 }
 
