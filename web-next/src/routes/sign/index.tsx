@@ -104,7 +104,12 @@ export default function SignPage() {
     if (emailInput == null) return;
     setChallenging(true);
     const email = emailInput.value;
-    const verifyUrl = `${location.origin}/sign/in/{token}?code={code}`;
+    const searchParams = location == null
+      ? new URLSearchParams()
+      : new URL(location.href).searchParams;
+    const verifyUrl = `${location.origin}/sign/in/{token}?code={code}&next=${
+      encodeURIComponent(searchParams.get("next") ?? "/")
+    }`;
     if (email.match(/^[^@]+@[^@]+$/)) {
       loginByEmail({
         variables: {
@@ -158,7 +163,10 @@ export default function SignPage() {
               setSessionCookie(response.completeLoginChallenge.id).then(
                 (success) => {
                   if (success) {
-                    window.location.href = "/";
+                    const searchParams = location == null
+                      ? new URLSearchParams()
+                      : new URL(location.href).searchParams;
+                    window.location.href = searchParams.get("next") ?? "/";
                   } else {
                     setCompleting(false);
                   }

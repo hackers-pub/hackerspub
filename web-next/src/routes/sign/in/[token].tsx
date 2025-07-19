@@ -48,5 +48,6 @@ export async function GET({ params, nativeEvent }: APIEvent) {
     expires: new Date(Date.now() + 365 * 60 * 60 * 24 * 1000), // 365 days
     secure: getRequestProtocol(nativeEvent) === "https",
   });
-  return redirect("/");
+  const next = typeof query.next === "string" ? query.next : "/";
+  return redirect(next);
 }

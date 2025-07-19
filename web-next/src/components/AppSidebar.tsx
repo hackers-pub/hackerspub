@@ -202,7 +202,12 @@ export function AppSidebar(props: AppSidebarProps) {
             <Show when={props.signedAccountLoaded && !signedAccount()}>
               {(_) => (
                 <SidebarMenuItem class="list-none">
-                  <SidebarMenuButton as={A} href="/sign">
+                  <SidebarMenuButton
+                    as={A}
+                    href={`/sign?next=${
+                      encodeURIComponent(location?.href ?? "/")
+                    }`}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
