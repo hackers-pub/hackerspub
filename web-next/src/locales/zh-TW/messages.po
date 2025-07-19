@@ -14,41 +14,67 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: account().actor.followers.totalCount
-#: src/components/ProfileCard.tsx:61
+#: src/components/ProfileCard.tsx:59
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人關注}}"
 
 #. placeholder {0}: account().actor.followees.totalCount
-#: src/components/ProfileCard.tsx:55
+#: src/components/ProfileCard.tsx:53
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {關注 # 人}}"
 
-#: src/components/AppSidebar.tsx:123
+#: src/routes/sign/index.tsx:194
+msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
+msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾郵件資料夾）"
+
+#: src/components/AppSidebar.tsx:199
+msgid "Account"
+msgstr "帳戶"
+
+#: src/components/AppSidebar.tsx:192
 msgid "Articles only"
 msgstr "僅文章"
 
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
-#: src/components/AppSidebar.tsx:131
+#: src/components/AppSidebar.tsx:278
 msgid "Code of conduct"
 msgstr "行為準則"
 
-#: src/components/AppSidebar.tsx:85
+#: src/routes/sign/index.tsx:230
+msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
+msgstr "需要建立帳戶嗎？Hackers' Pub 僅限邀請，請聯繫朋友邀請您。"
+
+#: src/routes/sign/index.tsx:208
+msgid "Email or username"
+msgstr "電子郵件或使用者名稱"
+
+#: src/routes/sign/index.tsx:193
+msgid "Enter your email or username below to sign in."
+msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
+
+#. placeholder {0}: error.message
+#: src/components/AppSidebar.tsx:81
+msgid "Failed to sign out: {0}"
+msgstr "登出失敗：{0}"
+
+#: src/components/AppSidebar.tsx:154
 msgid "Fediverse"
 msgstr "聯邦宇宙"
 
-#: src/components/AppSidebar.tsx:46
+#: src/components/AppSidebar.tsx:115
 msgid "Feed"
 msgstr "訂閱流"
 
-#: src/components/AppSidebar.tsx:142
+#: src/components/AppSidebar.tsx:290
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
+#: src/routes/sign.tsx:11
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/coc.tsx:53
-#: src/components/AppSidebar.tsx:22
-#: src/components/AppSidebar.tsx:66
+#: src/components/AppSidebar.tsx:91
+#: src/components/AppSidebar.tsx:135
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -61,20 +87,41 @@ msgstr "首頁"
 msgid "Markdown guide"
 msgstr "Markdown 指南"
 
+#: src/routes/sign/index.tsx:192
+msgid "No such account in Hackers' Pub—please try again."
+msgstr "Hackers' Pub 中無此帳戶，請重試。"
+
+#: src/routes/sign/index.tsx:224
+#: src/components/AppSidebar.tsx:225
+msgid "Sign in"
+msgstr "登入"
+
+#: src/components/AppSidebar.tsx:267
+msgid "Sign out"
+msgstr "登出"
+
+#: src/routes/sign/index.tsx:187
+msgid "Signing in Hackers' Pub"
+msgstr "登入 Hackers' Pub"
+
+#: src/routes/sign/index.tsx:224
+msgid "Signing in…"
+msgstr "登入中…"
+
 #: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "目錄"
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:135
+#: src/components/AppSidebar.tsx:282
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
-#: src/components/AppSidebar.tsx:27
+#: src/components/AppSidebar.tsx:96
 msgid "Timeline"
 msgstr "時間軸"
 
-#: src/components/AppSidebar.tsx:104
+#: src/components/AppSidebar.tsx:173
 msgid "Without shares"
 msgstr "不含轉貼"

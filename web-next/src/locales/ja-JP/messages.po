@@ -14,41 +14,67 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: account().actor.followers.totalCount
-#: src/components/ProfileCard.tsx:61
+#: src/components/ProfileCard.tsx:59
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
 #. placeholder {0}: account().actor.followees.totalCount
-#: src/components/ProfileCard.tsx:55
+#: src/components/ProfileCard.tsx:53
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
-#: src/components/AppSidebar.tsx:123
+#: src/routes/sign/index.tsx:194
+msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
+msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
+
+#: src/components/AppSidebar.tsx:199
+msgid "Account"
+msgstr "アカウント"
+
+#: src/components/AppSidebar.tsx:192
 msgid "Articles only"
 msgstr "記事のみ"
 
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
-#: src/components/AppSidebar.tsx:131
+#: src/components/AppSidebar.tsx:278
 msgid "Code of conduct"
 msgstr "行動規範"
 
-#: src/components/AppSidebar.tsx:85
+#: src/routes/sign/index.tsx:230
+msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
+msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
+
+#: src/routes/sign/index.tsx:208
+msgid "Email or username"
+msgstr "メールアドレスまたはユーザー名"
+
+#: src/routes/sign/index.tsx:193
+msgid "Enter your email or username below to sign in."
+msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
+
+#. placeholder {0}: error.message
+#: src/components/AppSidebar.tsx:81
+msgid "Failed to sign out: {0}"
+msgstr "ログアウトに失敗：{0}"
+
+#: src/components/AppSidebar.tsx:154
 msgid "Fediverse"
 msgstr "フェディバース"
 
-#: src/components/AppSidebar.tsx:46
+#: src/components/AppSidebar.tsx:115
 msgid "Feed"
 msgstr "フィード"
 
-#: src/components/AppSidebar.tsx:142
+#: src/components/AppSidebar.tsx:290
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
+#: src/routes/sign.tsx:11
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/coc.tsx:53
-#: src/components/AppSidebar.tsx:22
-#: src/components/AppSidebar.tsx:66
+#: src/components/AppSidebar.tsx:91
+#: src/components/AppSidebar.tsx:135
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -61,20 +87,41 @@ msgstr "ホーム"
 msgid "Markdown guide"
 msgstr "Markdown ガイド"
 
+#: src/routes/sign/index.tsx:192
+msgid "No such account in Hackers' Pub—please try again."
+msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
+
+#: src/routes/sign/index.tsx:224
+#: src/components/AppSidebar.tsx:225
+msgid "Sign in"
+msgstr "ログイン"
+
+#: src/components/AppSidebar.tsx:267
+msgid "Sign out"
+msgstr "ログアウト"
+
+#: src/routes/sign/index.tsx:187
+msgid "Signing in Hackers' Pub"
+msgstr "Hackers' Pubにログイン"
+
+#: src/routes/sign/index.tsx:224
+msgid "Signing in…"
+msgstr "ログイン中…"
+
 #: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "目次"
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:135
+#: src/components/AppSidebar.tsx:282
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
-#: src/components/AppSidebar.tsx:27
+#: src/components/AppSidebar.tsx:96
 msgid "Timeline"
 msgstr "タイムライン"
 
-#: src/components/AppSidebar.tsx:104
+#: src/components/AppSidebar.tsx:173
 msgid "Without shares"
 msgstr "共有除外"
