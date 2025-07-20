@@ -155,7 +155,8 @@ app.use(async (ctx) => {
     disk,
     email,
     fedCtx: federation.createContext(ctx.req, { db, kv, disk, models }),
-    session: ctx.state.sessionPromise?.then(({ session }) => session),
+    session: await ctx.state.sessionPromise?.then(({ session }) => session),
+    account: await ctx.state.sessionPromise?.then(({ account }) => account),
     request: ctx.req,
     connectionInfo: ctx.info,
   };

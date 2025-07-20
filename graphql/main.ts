@@ -1,3 +1,4 @@
+import type { Account, Actor } from "@hackerspub/models/schema";
 import { getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getCookies } from "@std/http/cookie";
@@ -11,7 +12,7 @@ import { createYogaServer } from "./mod.ts";
 
 const yogaServer = createYogaServer();
 
-Deno.serve({ port: 8080 }, (req, info) => {
+Deno.serve({ port: 8080 }, async (req, info) => {
   let sessionId: Uuid | undefined = undefined;
   const authorization = req.headers.get("Authorization");
   if (authorization && authorization.startsWith("Bearer ")) {
@@ -22,7 +23,18 @@ Deno.serve({ port: 8080 }, (req, info) => {
     const cookies = getCookies(req.headers);
     if (validateUuid(cookies.session)) sessionId = cookies.session;
   }
-  const session = sessionId == null ? undefined : getSession(kv, sessionId);
+  let session = sessionId == null ? undefined : await getSession(kv, sessionId);
+
+  let account: Account & { actor: Actor } | undefined = undefined;
+  if (session != null) {
+    account = await db.query.accountTable.findFirst({
+      where: { id: session.accountId },
+      with: {
+        actor: true,
+      },
+    });
+    if (account == null) session = undefined;
+  }
 
   const disk = drive.use();
   return yogaServer.fetch(req, {
@@ -31,6 +43,7 @@ Deno.serve({ port: 8080 }, (req, info) => {
     disk,
     email,
     session,
+    account,
     fedCtx: federation.createContext(req, { db, kv, disk, models }),
     request: req,
     connectionInfo: info,

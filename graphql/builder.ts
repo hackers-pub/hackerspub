@@ -3,6 +3,7 @@ import { normalizeEmail } from "@hackerspub/models/account";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
 import { relations } from "@hackerspub/models/relations";
+import type { Account, Actor } from "@hackerspub/models/schema";
 import type { Session } from "@hackerspub/models/session";
 import type { Uuid } from "@hackerspub/models/uuid";
 import SchemaBuilder from "@pothos/core";
@@ -34,7 +35,8 @@ export interface Context {
   disk: Disk;
   email: Transport;
   fedCtx: RequestContext<ContextData>;
-  session: Promise<Session | undefined> | undefined;
+  session: Session | undefined;
+  account: Account & { actor: Actor } | undefined;
   request: Request;
   connectionInfo?: Deno.ServeHandlerInfo<Deno.Addr>;
 }
@@ -129,7 +131,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
     authScopes: (ctx) => ({
       signed: ctx.session != null,
       moderator: async () => {
-        const accountId = (await ctx.session)?.accountId;
+        const accountId = ctx.session?.accountId;
         if (accountId == null) return false;
         const account = await ctx.db.query.accountTable.findFirst({
           where: { id: accountId },
@@ -137,7 +139,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
         });
         return account?.moderator ?? false;
       },
-      selfAccount: async (id) => id === (await ctx.session)?.accountId,
+      selfAccount: async (id) => id === ctx.session?.accountId,
     }),
   },
   relay: {

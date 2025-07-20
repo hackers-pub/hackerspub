@@ -1,11 +1,12 @@
 import { isActor } from "@fedify/fedify";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
+import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
 import { builder } from "./builder.ts";
-import { Post } from "./post.ts";
+import { Article, Note, Post, Question } from "./post.ts";
 
 export const ActorType = builder.enumType("ActorType", {
   values: [
@@ -103,7 +104,49 @@ export const Actor = builder.drizzleNode("actorTable", {
     account: t.relation("account", { nullable: true }),
     instance: t.relation("instance", { type: Instance, nullable: true }),
     successor: t.relation("successor", { nullable: true }),
-    posts: t.relatedConnection("posts", { type: Post }),
+    posts: t.relatedConnection("posts", {
+      type: Post,
+      query: (_, ctx) => ({
+        where: getPostVisibilityFilter(ctx.account?.actor ?? null),
+        orderBy: { published: "desc" },
+      }),
+    }),
+    notes: t.relatedConnection("posts", {
+      type: Note,
+      query: (_, ctx) => ({
+        where: {
+          AND: [
+            { type: "Note" },
+            getPostVisibilityFilter(ctx.account?.actor ?? null),
+          ],
+        },
+        orderBy: { published: "desc" },
+      }),
+    }),
+    articles: t.relatedConnection("posts", {
+      type: Article,
+      query: (_, ctx) => ({
+        where: {
+          AND: [
+            { type: "Article" },
+            getPostVisibilityFilter(ctx.account?.actor ?? null),
+          ],
+        },
+        orderBy: { published: "desc" },
+      }),
+    }),
+    questions: t.relatedConnection("posts", {
+      type: Question,
+      query: (_, ctx) => ({
+        where: {
+          AND: [
+            { type: "Question" },
+            getPostVisibilityFilter(ctx.account?.actor ?? null),
+          ],
+        },
+        orderBy: { published: "desc" },
+      }),
+    }),
     pins: t.connection({
       type: Post,
       select: (args, ctx, nestedSelection) => ({

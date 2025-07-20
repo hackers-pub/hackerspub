@@ -63,6 +63,12 @@ export const Post = builder.drizzleInterface("postTable", {
     summary: t.exposeString("summary", { nullable: true }),
     content: t.field({
       type: "HTML",
+      select: {
+        columns: {
+          contentHtml: true,
+          emojis: true,
+        },
+      },
       resolve: (post) => renderCustomEmojis(post.contentHtml, post.emojis),
     }),
     language: t.exposeString("language", { nullable: true }),
@@ -109,7 +115,7 @@ builder.drizzleInterfaceFields(Post, (t) => ({
   }),
 }));
 
-const Note = builder.drizzleNode("postTable", {
+export const Note = builder.drizzleNode("postTable", {
   variant: "Note",
   interfaces: [Post, Reactable],
   id: {
@@ -117,7 +123,7 @@ const Note = builder.drizzleNode("postTable", {
   },
 });
 
-const Article = builder.drizzleNode("postTable", {
+export const Article = builder.drizzleNode("postTable", {
   variant: "Article",
   interfaces: [Post, Reactable],
   id: {
@@ -129,19 +135,6 @@ const Article = builder.drizzleNode("postTable", {
     },
   },
   fields: (t) => ({
-    account: t.field({
-      type: Account,
-      select: (_, __, nestedSelection) => ({
-        with: {
-          articleSource: {
-            with: {
-              account: nestedSelection(),
-            },
-          },
-        },
-      }),
-      resolve: (post) => post.articleSource!.account,
-    }),
     publishedYear: t.int({
       resolve: (post) => post.articleSource!.publishedYear,
     }),
@@ -153,7 +146,22 @@ const Article = builder.drizzleNode("postTable", {
   }),
 });
 
-const Question = builder.drizzleNode("postTable", {
+builder.drizzleObjectField(Article, "account", (t) =>
+  t.field({
+    type: Account,
+    select: (_, __, nestedSelection) => ({
+      with: {
+        articleSource: {
+          with: {
+            account: nestedSelection(),
+          },
+        },
+      },
+    }),
+    resolve: (post) => post.articleSource!.account,
+  }));
+
+export const Question = builder.drizzleNode("postTable", {
   variant: "Question",
   interfaces: [Post, Reactable],
   id: {

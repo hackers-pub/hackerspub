@@ -10,7 +10,13 @@ import { PostList } from "~/components/PostList.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
-import type { ProfilePageQuery } from "./__generated__/ProfilePageQuery.graphql.ts";
+import {
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+} from "~/components/ui/breadcrumb.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
+import type { notesPageQuery } from "./__generated__/notesPageQuery.graphql.ts";
 
 export const route = {
   matchFilters: {
@@ -22,12 +28,12 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-const ProfilePageQuery = graphql`
-  query ProfilePageQuery($username: String!) {
+const notesPageQuery = graphql`
+  query notesPageQuery($username: String!) {
     accountByUsername(username: $username) {
       username
       actor {
-        posts(first: 10) {
+        notes(first: 10) {
           edges {
             node {
               ...PostCard_post
@@ -44,9 +50,9 @@ const ProfilePageQuery = graphql`
 
 const loadPageQuery = query(
   (username: string) =>
-    loadQuery<ProfilePageQuery>(
+    loadQuery<notesPageQuery>(
       useRelayEnvironment()(),
-      ProfilePageQuery,
+      notesPageQuery,
       {
         username,
       },
@@ -54,11 +60,12 @@ const loadPageQuery = query(
   "loadProfilePageQuery",
 );
 
-export default function ProfilePage() {
+export default function ProfileNotesPage() {
   const params = useParams();
+  const { t } = useLingui();
   const username = params.username.substring(1);
-  const data = createPreloadedQuery<ProfilePageQuery>(
-    ProfilePageQuery,
+  const data = createPreloadedQuery<notesPageQuery>(
+    notesPageQuery,
     () => loadPageQuery(username),
   );
   return (
@@ -70,13 +77,20 @@ export default function ProfilePage() {
           >
             {(account) => (
               <>
-                <ProfilePageBreadcrumb $account={account()} />
+                <ProfilePageBreadcrumb $account={account()}>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbLink current>
+                      {t`Notes`}
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                </ProfilePageBreadcrumb>
                 <div>
                   <ProfileCard $account={account()} />
                 </div>
-                <ProfileTabs selected="posts" $actor={account().actor} />
+                <ProfileTabs selected="notes" $actor={account().actor} />
                 <PostList
-                  posts={account().actor.posts.edges.map((edge) => edge.node)}
+                  posts={account().actor.notes.edges.map((edge) => edge.node)}
                 />
               </>
             )}

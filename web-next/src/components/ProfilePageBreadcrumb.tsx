@@ -19,6 +19,7 @@ export function ProfilePageBreadcrumb(props: ProfilePageBreadcrumbProps) {
     graphql`
       fragment ProfilePageBreadcrumb_account on Account {
         name
+        username
         handle
       }
     `,
@@ -31,7 +32,14 @@ export function ProfilePageBreadcrumb(props: ProfilePageBreadcrumbProps) {
         <TopBreadcrumb>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink current>
+            <BreadcrumbLink
+              current={props.children == null ||
+                Array.isArray(props.children) && props.children.length < 1}
+              href={props.children == null ||
+                  Array.isArray(props.children) && props.children.length < 1
+                ? undefined
+                : `/@${account().username}`}
+            >
               {account().name}{" "}
               <Badge variant="secondary" class="select-all">
                 {account().handle}

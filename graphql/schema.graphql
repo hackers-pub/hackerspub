@@ -46,6 +46,7 @@ input AccountLinkInput {
 
 type Actor implements Node {
   account: Account
+  articles(after: String, before: String, first: Int, last: Int): ActorArticlesConnection!
   automaticallyApprovesFollowers: Boolean!
   avatarUrl: URL!
   bio: HTML
@@ -60,9 +61,11 @@ type Actor implements Node {
   instanceHost: String!
   iri: URL!
   name: HTML
+  notes(after: String, before: String, first: Int, last: Int): ActorNotesConnection!
   pins(after: String, before: String, first: Int, last: Int): ActorPinsConnection!
   posts(after: String, before: String, first: Int, last: Int): ActorPostsConnection!
   published: DateTime
+  questions(after: String, before: String, first: Int, last: Int): ActorQuestionsConnection!
   rawName: String
   sensitive: Boolean!
   successor: Actor
@@ -71,6 +74,16 @@ type Actor implements Node {
   url: URL
   username: String!
   uuid: UUID!
+}
+
+type ActorArticlesConnection {
+  edges: [ActorArticlesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorArticlesConnectionEdge {
+  cursor: String!
+  node: Article!
 }
 
 type ActorFolloweesConnection {
@@ -101,6 +114,16 @@ type ActorFollowersConnectionEdge {
   node: Actor!
 }
 
+type ActorNotesConnection {
+  edges: [ActorNotesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorNotesConnectionEdge {
+  cursor: String!
+  node: Note!
+}
+
 type ActorPinsConnection {
   edges: [ActorPinsConnectionEdge!]!
   pageInfo: PageInfo!
@@ -119,6 +142,16 @@ type ActorPostsConnection {
 type ActorPostsConnectionEdge {
   cursor: String!
   node: Post!
+}
+
+type ActorQuestionsConnection {
+  edges: [ActorQuestionsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorQuestionsConnectionEdge {
+  cursor: String!
+  node: Question!
 }
 
 enum ActorType {

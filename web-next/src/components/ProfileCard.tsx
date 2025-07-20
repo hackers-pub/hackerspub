@@ -36,7 +36,7 @@ export function ProfileCard(props: ProfileCardProps) {
     <Show when={account()}>
       {(account) => (
         <>
-          <div class="border-b p-4">
+          <div class="p-4">
             <div class="flex items-center gap-4 mx-auto max-w-prose">
               <Avatar class="size-16">
                 <a href={`/@${account().username}`}>
@@ -67,7 +67,7 @@ export function ProfileCard(props: ProfileCardProps) {
             </div>
           </div>
           <Show when={(account().actor.bio?.trim() ?? "") !== ""}>
-            <div class="p-4 border-b">
+            <div class="p-4 pt-0 border-b">
               <div
                 innerHTML={account().actor.bio ?? ""}
                 class="mx-auto prose dark:prose-invert"
