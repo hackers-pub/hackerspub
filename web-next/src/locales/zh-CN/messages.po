@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: account().actor.followers.totalCount
-#: src/components/ProfileCard.tsx:59
+#: src/components/ProfileCard.tsx:64
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
 #. placeholder {0}: account().actor.followees.totalCount
-#: src/components/ProfileCard.tsx:53
+#: src/components/ProfileCard.tsx:58
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -57,6 +57,14 @@ msgstr "邮箱或用户名"
 msgid "Enter your email or username below to sign in."
 msgstr "请在下方输入您的邮箱或用户名以登录。"
 
+#: src/components/ActorNoteList.tsx:70
+msgid "Failed to load more notes; click to retry"
+msgstr "加载更多帖子失败，点击重试"
+
+#: src/components/ActorPostList.tsx:70
+msgid "Failed to load more posts; click to retry"
+msgstr "加载更多内容失败，点击重试"
+
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:81
 msgid "Failed to sign out: {0}"
@@ -90,6 +98,22 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "首页"
 
+#: src/components/ActorNoteList.tsx:73
+msgid "Load more notes"
+msgstr "加载更多帖子"
+
+#: src/components/ActorPostList.tsx:73
+msgid "Load more posts"
+msgstr "加载更多内容"
+
+#: src/components/ActorNoteList.tsx:67
+msgid "Loading more notes…"
+msgstr "加载更多帖子中…"
+
+#: src/components/ActorPostList.tsx:67
+msgid "Loading more posts…"
+msgstr "加载更多内容中…"
+
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/markdown.tsx:58
 msgid "Markdown guide"
@@ -99,11 +123,23 @@ msgstr "Markdown 指南"
 msgid "Mentioned only"
 msgstr "只提及用户可见"
 
+#: src/components/ActorNoteList.tsx:80
+msgid "No notes found"
+msgstr "未找到帖子"
+
+#: src/components/ActorPostList.tsx:80
+msgid "No posts found"
+msgstr "未找到内容"
+
+#: src/components/PostList.tsx:19
+msgid "No posts found."
+msgstr "未找到内容。"
+
 #: src/routes/sign/index.tsx:192
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中无此账户，请重试。"
 
-#: src/routes/(root)/[username]/(profile)/notes.tsx:84
+#: src/routes/(root)/[username]/(profile)/notes.tsx:76
 #: src/components/ProfileTabs.tsx:44
 msgid "Notes"
 msgstr "帖子"

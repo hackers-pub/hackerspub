@@ -14,6 +14,7 @@
   "files.eol": "\n",
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
+  "relay.rootDirectory": "web-next",
   "[javascript]": {
     "editor.defaultFormatter": "denoland.vscode-deno",
     "editor.formatOnSave": true,

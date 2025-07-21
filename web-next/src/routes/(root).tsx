@@ -9,8 +9,9 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { AppSidebar } from "../components/AppSidebar.tsx";
-import { SidebarProvider } from "../components/ui/sidebar.tsx";
+import { AppSidebar } from "~/components/AppSidebar.tsx";
+import { SidebarProvider } from "~/components/ui/sidebar.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { RootLayoutQuery } from "./__generated__/RootLayoutQuery.graphql.ts";
 
 export const route = {
@@ -39,6 +40,7 @@ const loadRootLayoutQuery = query(
 );
 
 export default function RootLayout(props: RouteSectionProps) {
+  const { i18n } = useLingui();
   const signedAccount = createPreloadedQuery<RootLayoutQuery>(
     RootLayoutQuery,
     () => loadRootLayoutQuery(),
@@ -49,7 +51,7 @@ export default function RootLayout(props: RouteSectionProps) {
         $signedAccount={signedAccount()?.viewer}
         signedAccountLoaded={!signedAccount.pending}
       />
-      <main class="w-full">
+      <main lang={i18n.locale} class="w-full">
         {props.children}
       </main>
     </SidebarProvider>

@@ -6,7 +6,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { PostList } from "~/components/PostList.tsx";
+import { ActorPostList } from "~/components/ActorPostList.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -27,13 +27,7 @@ const ProfilePageQuery = graphql`
     accountByUsername(username: $username) {
       username
       actor {
-        posts(first: 10) {
-          edges {
-            node {
-              ...PostCard_post
-            }
-          }
-        }
+        ...ActorPostList_posts
         ...ProfileTabs_actor
       }
       ...ProfilePageBreadcrumb_account
@@ -47,9 +41,7 @@ const loadPageQuery = query(
     loadQuery<ProfilePageQuery>(
       useRelayEnvironment()(),
       ProfilePageQuery,
-      {
-        username,
-      },
+      { username },
     ),
   "loadProfilePageQuery",
 );
@@ -74,10 +66,10 @@ export default function ProfilePage() {
                 <div>
                   <ProfileCard $account={account()} />
                 </div>
-                <ProfileTabs selected="posts" $actor={account().actor} />
-                <PostList
-                  posts={account().actor.posts.edges.map((edge) => edge.node)}
-                />
+                <div class="p-4">
+                  <ProfileTabs selected="posts" $actor={account().actor} />
+                  <ActorPostList $posts={account().actor} />
+                </div>
               </>
             )}
           </Show>

@@ -36,7 +36,12 @@ export function ProfileCard(props: ProfileCardProps) {
     <Show when={account()}>
       {(account) => (
         <>
-          <div class="p-4">
+          <div
+            class="p-4"
+            classList={{
+              "border-b": (account().actor.bio?.trim() ?? "") === "",
+            }}
+          >
             <div class="flex items-center gap-4 mx-auto max-w-prose">
               <Avatar class="size-16">
                 <a href={`/@${account().username}`}>

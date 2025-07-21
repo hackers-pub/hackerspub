@@ -36,7 +36,7 @@ export function ProfileTabs(props: ProfileTabsProps) {
           : `/@${account.username}`;
         return (
           <Tabs value={props.selected}>
-            <TabsList class="grid max-w-prose mx-auto my-4 grid-cols-3">
+            <TabsList class="grid max-w-prose mx-auto grid-cols-3">
               <TabsTrigger as={A} value="posts" href={baseUrl}>
                 {t`Posts`}
               </TabsTrigger>

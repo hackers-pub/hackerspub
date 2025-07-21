@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: account().actor.followers.totalCount
-#: src/components/ProfileCard.tsx:59
+#: src/components/ProfileCard.tsx:64
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
 #. placeholder {0}: account().actor.followees.totalCount
-#: src/components/ProfileCard.tsx:53
+#: src/components/ProfileCard.tsx:58
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
@@ -57,6 +57,14 @@ msgstr "メールアドレスまたはユーザー名"
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
+#: src/components/ActorNoteList.tsx:70
+msgid "Failed to load more notes; click to retry"
+msgstr "投稿の読み込みに失敗しました。クリックして再試行してください"
+
+#: src/components/ActorPostList.tsx:70
+msgid "Failed to load more posts; click to retry"
+msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
+
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:81
 msgid "Failed to sign out: {0}"
@@ -90,6 +98,22 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "ホーム"
 
+#: src/components/ActorNoteList.tsx:73
+msgid "Load more notes"
+msgstr "投稿をもっと読み込む"
+
+#: src/components/ActorPostList.tsx:73
+msgid "Load more posts"
+msgstr "コンテンツをもっと読み込む"
+
+#: src/components/ActorNoteList.tsx:67
+msgid "Loading more notes…"
+msgstr "投稿を読み込み中…"
+
+#: src/components/ActorPostList.tsx:67
+msgid "Loading more posts…"
+msgstr "コンテンツを読み込み中…"
+
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/markdown.tsx:58
 msgid "Markdown guide"
@@ -99,11 +123,23 @@ msgstr "Markdown ガイド"
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
 
+#: src/components/ActorNoteList.tsx:80
+msgid "No notes found"
+msgstr "投稿はありません"
+
+#: src/components/ActorPostList.tsx:80
+msgid "No posts found"
+msgstr "コンテンツはありません"
+
+#: src/components/PostList.tsx:19
+msgid "No posts found."
+msgstr "コンテンツが見つかりませんでした。"
+
 #: src/routes/sign/index.tsx:192
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
-#: src/routes/(root)/[username]/(profile)/notes.tsx:84
+#: src/routes/(root)/[username]/(profile)/notes.tsx:76
 #: src/components/ProfileTabs.tsx:44
 msgid "Notes"
 msgstr "投稿"

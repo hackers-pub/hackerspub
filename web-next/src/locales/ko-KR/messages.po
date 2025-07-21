@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: account().actor.followers.totalCount
-#: src/components/ProfileCard.tsx:59
+#: src/components/ProfileCard.tsx:64
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: account().actor.followees.totalCount
-#: src/components/ProfileCard.tsx:53
+#: src/components/ProfileCard.tsx:58
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -57,6 +57,14 @@ msgstr "이메일 또는 아이디"
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
 
+#: src/components/ActorNoteList.tsx:70
+msgid "Failed to load more notes; click to retry"
+msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
+
+#: src/components/ActorPostList.tsx:70
+msgid "Failed to load more posts; click to retry"
+msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
+
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:81
 msgid "Failed to sign out: {0}"
@@ -90,6 +98,22 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "홈"
 
+#: src/components/ActorNoteList.tsx:73
+msgid "Load more notes"
+msgstr "단문 더 불러오기"
+
+#: src/components/ActorPostList.tsx:73
+msgid "Load more posts"
+msgstr "콘텐츠 더 불러오기"
+
+#: src/components/ActorNoteList.tsx:67
+msgid "Loading more notes…"
+msgstr "단문 불러오는 중…"
+
+#: src/components/ActorPostList.tsx:67
+msgid "Loading more posts…"
+msgstr "콘텐츠 불러오는 중…"
+
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/markdown.tsx:58
 msgid "Markdown guide"
@@ -99,11 +123,23 @@ msgstr "Markdown 가이드"
 msgid "Mentioned only"
 msgstr "언급된 사용자만"
 
+#: src/components/ActorNoteList.tsx:80
+msgid "No notes found"
+msgstr "단문이 없습니다"
+
+#: src/components/ActorPostList.tsx:80
+msgid "No posts found"
+msgstr "콘텐츠가 없습니다"
+
+#: src/components/PostList.tsx:19
+msgid "No posts found."
+msgstr "콘텐츠를 찾을 수 없습니다."
+
 #: src/routes/sign/index.tsx:192
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
-#: src/routes/(root)/[username]/(profile)/notes.tsx:84
+#: src/routes/(root)/[username]/(profile)/notes.tsx:76
 #: src/components/ProfileTabs.tsx:44
 msgid "Notes"
 msgstr "단문"

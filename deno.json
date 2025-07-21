@@ -147,7 +147,8 @@
   "unstable": [
     "kv",
     "otel",
-    "temporal"
+    "temporal",
+    "sloppy-imports"
   ],
   "nodeModulesDir": "auto",
   "exclude": [
