@@ -31,6 +31,10 @@ msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함
 msgid "Account"
 msgstr "계정"
 
+#: src/components/ProfileTabs.tsx:47
+msgid "Articles"
+msgstr "게시글"
+
 #: src/components/AppSidebar.tsx:192
 msgid "Articles only"
 msgstr "게시글만"
@@ -66,6 +70,10 @@ msgstr "연합우주"
 msgid "Feed"
 msgstr "피드"
 
+#: src/components/VisibilityTag.tsx:76
+msgid "Followers only"
+msgstr "팔로워만"
+
 #: src/components/AppSidebar.tsx:290
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
@@ -87,9 +95,30 @@ msgstr "홈"
 msgid "Markdown guide"
 msgstr "Markdown 가이드"
 
+#: src/components/VisibilityTag.tsx:98
+msgid "Mentioned only"
+msgstr "언급된 사용자만"
+
 #: src/routes/sign/index.tsx:192
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
+
+#: src/routes/(root)/[username]/(profile)/notes.tsx:84
+#: src/components/ProfileTabs.tsx:44
+msgid "Notes"
+msgstr "단문"
+
+#: src/components/ProfileTabs.tsx:41
+msgid "Posts"
+msgstr "콘텐츠"
+
+#: src/components/VisibilityTag.tsx:32
+msgid "Public"
+msgstr "공개"
+
+#: src/components/VisibilityTag.tsx:54
+msgid "Quiet public"
+msgstr "조용히 공개"
 
 #: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225
@@ -121,6 +150,22 @@ msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배�
 #: src/components/AppSidebar.tsx:96
 msgid "Timeline"
 msgstr "타임라인"
+
+#: src/components/VisibilityTag.tsx:79
+msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
+msgstr "작성자의 팔로워만 볼 수 있습니다. 공개 타임라인에는 표시되지 않으며, 작성자를 팔로우하는 사용자만 볼 수 있습니다."
+
+#: src/components/VisibilityTag.tsx:101
+msgid "Visible only to the users mentioned in the post. The post will not appear in the public timeline, and only those mentioned can see it."
+msgstr "게시물에서 언급된 사용자만 볼 수 있습니다. 공개 타임라인에는 표시되지 않으며, 언급된 사용자만 볼 수 있습니다."
+
+#: src/components/VisibilityTag.tsx:57
+msgid "Visible to everyone, but does not appear in the public timeline. Only those with the link can or who follow the author can see it."
+msgstr "모든 사람이 볼 수 있지만 공개 타임라인에는 표시되지 않습니다. 링크를 가진 사용자나 작성자를 팔로우하는 사용자만 볼 수 있습니다."
+
+#: src/components/VisibilityTag.tsx:35
+msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
+msgstr "미가입 사용자를 포함해 모든 사람이 볼 수 있습니다. 공개 타임라인에도 표시됩니다."
 
 #: src/components/AppSidebar.tsx:173
 msgid "Without shares"

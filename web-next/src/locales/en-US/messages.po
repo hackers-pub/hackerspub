@@ -31,6 +31,10 @@ msgstr "A sign-in link has been sent to your email. Please check your inbox (or 
 msgid "Account"
 msgstr "Account"
 
+#: src/components/ProfileTabs.tsx:47
+msgid "Articles"
+msgstr "Articles"
+
 #: src/components/AppSidebar.tsx:192
 msgid "Articles only"
 msgstr "Articles only"
@@ -66,6 +70,10 @@ msgstr "Fediverse"
 msgid "Feed"
 msgstr "Feed"
 
+#: src/components/VisibilityTag.tsx:76
+msgid "Followers only"
+msgstr "Followers only"
+
 #: src/components/AppSidebar.tsx:290
 msgid "GitHub repository"
 msgstr "GitHub repository"
@@ -87,9 +95,30 @@ msgstr "Home"
 msgid "Markdown guide"
 msgstr "Markdown guide"
 
+#: src/components/VisibilityTag.tsx:98
+msgid "Mentioned only"
+msgstr "Mentioned only"
+
 #: src/routes/sign/index.tsx:192
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
+
+#: src/routes/(root)/[username]/(profile)/notes.tsx:84
+#: src/components/ProfileTabs.tsx:44
+msgid "Notes"
+msgstr "Notes"
+
+#: src/components/ProfileTabs.tsx:41
+msgid "Posts"
+msgstr "Posts"
+
+#: src/components/VisibilityTag.tsx:32
+msgid "Public"
+msgstr "Public"
+
+#: src/components/VisibilityTag.tsx:54
+msgid "Quiet public"
+msgstr "Quiet public"
 
 #: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225
@@ -121,6 +150,22 @@ msgstr "The source code of this website is available on {0} under the {1} licens
 #: src/components/AppSidebar.tsx:96
 msgid "Timeline"
 msgstr "Timeline"
+
+#: src/components/VisibilityTag.tsx:79
+msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
+msgstr "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
+
+#: src/components/VisibilityTag.tsx:101
+msgid "Visible only to the users mentioned in the post. The post will not appear in the public timeline, and only those mentioned can see it."
+msgstr "Visible only to the users mentioned in the post. The post will not appear in the public timeline, and only those mentioned can see it."
+
+#: src/components/VisibilityTag.tsx:57
+msgid "Visible to everyone, but does not appear in the public timeline. Only those with the link can or who follow the author can see it."
+msgstr "Visible to everyone, but does not appear in the public timeline. Only those with the link can or who follow the author can see it."
+
+#: src/components/VisibilityTag.tsx:35
+msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
+msgstr "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 
 #: src/components/AppSidebar.tsx:173
 msgid "Without shares"

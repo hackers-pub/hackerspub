@@ -31,6 +31,10 @@ msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾
 msgid "Account"
 msgstr "帳戶"
 
+#: src/components/ProfileTabs.tsx:47
+msgid "Articles"
+msgstr "文章"
+
 #: src/components/AppSidebar.tsx:192
 msgid "Articles only"
 msgstr "僅文章"
@@ -66,6 +70,10 @@ msgstr "聯邦宇宙"
 msgid "Feed"
 msgstr "訂閱流"
 
+#: src/components/VisibilityTag.tsx:76
+msgid "Followers only"
+msgstr "只粉絲可見"
+
 #: src/components/AppSidebar.tsx:290
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
@@ -87,9 +95,30 @@ msgstr "首頁"
 msgid "Markdown guide"
 msgstr "Markdown 指南"
 
+#: src/components/VisibilityTag.tsx:98
+msgid "Mentioned only"
+msgstr "只提及使用者可見"
+
 #: src/routes/sign/index.tsx:192
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中無此帳戶，請重試。"
+
+#: src/routes/(root)/[username]/(profile)/notes.tsx:84
+#: src/components/ProfileTabs.tsx:44
+msgid "Notes"
+msgstr "貼文"
+
+#: src/components/ProfileTabs.tsx:41
+msgid "Posts"
+msgstr "內容"
+
+#: src/components/VisibilityTag.tsx:32
+msgid "Public"
+msgstr "公開"
+
+#: src/components/VisibilityTag.tsx:54
+msgid "Quiet public"
+msgstr "悄悄公開"
 
 #: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225
@@ -121,6 +150,22 @@ msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 #: src/components/AppSidebar.tsx:96
 msgid "Timeline"
 msgstr "時間軸"
+
+#: src/components/VisibilityTag.tsx:79
+msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
+msgstr "只有作者的粉絲可見。內容不會出現在公共時間軸中，只有關注作者的使用者才能看到。"
+
+#: src/components/VisibilityTag.tsx:101
+msgid "Visible only to the users mentioned in the post. The post will not appear in the public timeline, and only those mentioned can see it."
+msgstr "只有被提及的使用者可見。內容不會出現在公共時間軸中，只有被提及的使用者才能看到。"
+
+#: src/components/VisibilityTag.tsx:57
+msgid "Visible to everyone, but does not appear in the public timeline. Only those with the link can or who follow the author can see it."
+msgstr "所有人都可以看到，但不會出現在公共時間軸中。只有擁有連結的使用者或關注作者的使用者才能看到。"
+
+#: src/components/VisibilityTag.tsx:35
+msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
+msgstr "包括未註冊使用者在內的所有人都可以看到。內容也會出現在公共時間軸中。"
 
 #: src/components/AppSidebar.tsx:173
 msgid "Without shares"
