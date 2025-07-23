@@ -21,7 +21,7 @@
     "pretendard": "^1.3.9",
     "relay-runtime": "^19.0.0",
     "solid-js": "^1.9.7",
-    "solid-relay": "^1.0.0-beta.13",
+    "solid-relay": "^1.0.0-beta.15",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.7",
     "tw-animate-css": "^1.3.0",
