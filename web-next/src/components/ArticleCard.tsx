@@ -229,7 +229,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
             on:mouseover={() => setHover(true)}
             on:mouseout={() => setHover(false)}
             data-llm-summary-label={t`Summarized by LLM`}
-            class="prose dark:prose-invert px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
+            class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
             classList={{ "before:border-transparent": !hover() }}
           />
         )}

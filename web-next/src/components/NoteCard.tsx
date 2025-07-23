@@ -113,7 +113,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
       <div
         innerHTML={props.content}
         lang={props.language ?? undefined}
-        class="prose dark:prose-invert"
+        class="prose dark:prose-invert break-words overflow-wrap"
       >
       </div>
     </div>
