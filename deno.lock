@@ -94,6 +94,7 @@
     "npm:@kobalte/tailwindcss@0.9": "0.9.0_tailwindcss@3.4.3__postcss@8.5.6",
     "npm:@levischuck/tiny-cbor@~0.2.2": "0.2.11",
     "npm:@lingui/babel-plugin-lingui-macro@^5.3.1": "5.3.3",
+    "npm:@lingui/cli@*": "5.3.3_@lingui+babel-plugin-lingui-macro@5.3.3",
     "npm:@lingui/cli@^5.3.1": "5.3.3_@lingui+babel-plugin-lingui-macro@5.3.3",
     "npm:@lingui/core@^5.3.1": "5.3.3_@lingui+babel-plugin-lingui-macro@5.3.3",
     "npm:@lingui/vite-plugin@^5.3.1": "5.3.3_vite@6.3.5__picomatch@4.0.3_@types+node@22.15.15",

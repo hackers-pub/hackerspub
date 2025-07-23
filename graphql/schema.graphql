@@ -31,12 +31,45 @@ type AccountInviteesConnectionEdge {
 type AccountLink implements Node {
   created: DateTime!
   handle: String
-  icon: String!
+  icon: AccountLinkIcon!
   id: ID!
   index: Int!
   name: String!
   url: URL!
   verified: DateTime
+}
+
+enum AccountLinkIcon {
+  ACTIVITYPUB
+  AKKOMA
+  BLUESKY
+  CODEBERG
+  DEV
+  DISCORD
+  FACEBOOK
+  GITHUB
+  GITLAB
+  HACKERNEWS
+  HOLLO
+  INSTAGRAM
+  KEYBASE
+  LEMMY
+  LINKEDIN
+  LOBSTERS
+  MASTODON
+  MATRIX
+  MISSKEY
+  PIXELFED
+  PLEROMA
+  QIITA
+  REDDIT
+  SOURCEHUT
+  THREADS
+  VELOG
+  WEB
+  WIKIPEDIA
+  X
+  ZENN
 }
 
 input AccountLinkInput {

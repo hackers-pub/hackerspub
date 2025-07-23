@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: account().actor.followers.totalCount
-#: src/components/ProfileCard.tsx:64
+#: src/components/ProfileCard.tsx:79
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: account().actor.followees.totalCount
-#: src/components/ProfileCard.tsx:58
+#: src/components/ProfileCard.tsx:73
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -216,6 +216,12 @@ msgstr "타임라인"
 #: src/components/ArticleCard.tsx:162
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
+
+#. placeholder {0}: "OWNER"
+#. placeholder {1}: "RELATIVE_TIME"
+#: src/components/ProfileCard.tsx:139
+msgid "Verified that this link is owned by {0} {1}"
+msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."

@@ -1,5 +1,6 @@
 import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
 import type { Locale } from "@hackerspub/models/i18n";
+import { assertNever } from "@std/assert/unstable-never";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 
@@ -69,10 +70,50 @@ export const Account = builder.drizzleNode("accountTable", {
     updated: t.expose("updated", { type: "DateTime" }),
     created: t.expose("created", { type: "DateTime" }),
     actor: t.relation("actor", { type: Actor }),
-    links: t.relation("links", { type: AccountLink }),
+    links: t.relation("links", {
+      type: AccountLink,
+      query: {
+        orderBy: { index: "asc" },
+      },
+    }),
     inviter: t.relation("inviter", { nullable: true }),
     invitees: t.relatedConnection("invitees"),
   }),
+});
+
+const AccountLinkIcon = builder.enumType("AccountLinkIcon", {
+  values: [
+    "ACTIVITYPUB",
+    "AKKOMA",
+    "BLUESKY",
+    "CODEBERG",
+    "DEV",
+    "DISCORD",
+    "FACEBOOK",
+    "GITHUB",
+    "GITLAB",
+    "HACKERNEWS",
+    "HOLLO",
+    "INSTAGRAM",
+    "KEYBASE",
+    "LEMMY",
+    "LINKEDIN",
+    "LOBSTERS",
+    "MASTODON",
+    "MATRIX",
+    "MISSKEY",
+    "PIXELFED",
+    "PLEROMA",
+    "QIITA",
+    "REDDIT",
+    "SOURCEHUT",
+    "THREADS",
+    "VELOG",
+    "WEB",
+    "WIKIPEDIA",
+    "X",
+    "ZENN",
+  ] as const,
 });
 
 export const AccountLink = builder.drizzleNode("accountLinkTable", {
@@ -85,12 +126,86 @@ export const AccountLink = builder.drizzleNode("accountLinkTable", {
     name: t.exposeString("name"),
     url: t.field({
       type: "URL",
+      select: {
+        columns: { url: true },
+      },
       resolve(link) {
         return new URL(link.url);
       },
     }),
     handle: t.exposeString("handle", { nullable: true }),
-    icon: t.exposeString("icon"),
+    icon: t.field({
+      type: AccountLinkIcon,
+      select: {
+        columns: { icon: true },
+      },
+      resolve(link) {
+        switch (link.icon) {
+          case "activitypub":
+            return "ACTIVITYPUB";
+          case "akkoma":
+            return "AKKOMA";
+          case "bluesky":
+            return "BLUESKY";
+          case "codeberg":
+            return "CODEBERG";
+          case "dev":
+            return "DEV";
+          case "discord":
+            return "DISCORD";
+          case "facebook":
+            return "FACEBOOK";
+          case "github":
+            return "GITHUB";
+          case "gitlab":
+            return "GITLAB";
+          case "hackernews":
+            return "HACKERNEWS";
+          case "hollo":
+            return "HOLLO";
+          case "instagram":
+            return "INSTAGRAM";
+          case "keybase":
+            return "KEYBASE";
+          case "lemmy":
+            return "LEMMY";
+          case "linkedin":
+            return "LINKEDIN";
+          case "lobsters":
+            return "LOBSTERS";
+          case "mastodon":
+            return "MASTODON";
+          case "matrix":
+            return "MATRIX";
+          case "misskey":
+            return "MISSKEY";
+          case "pixelfed":
+            return "PIXELFED";
+          case "pleroma":
+            return "PLEROMA";
+          case "qiita":
+            return "QIITA";
+          case "reddit":
+            return "REDDIT";
+          case "sourcehut":
+            return "SOURCEHUT";
+          case "threads":
+            return "THREADS";
+          case "velog":
+            return "VELOG";
+          case "web":
+            return "WEB";
+          case "wikipedia":
+            return "WIKIPEDIA";
+          case "x":
+            return "X";
+          case "zenn":
+            return "ZENN";
+          default:
+            assertNever(link.icon, `Unknown icon: ${link.icon}`);
+        }
+      },
+    }),
     verified: t.expose("verified", { type: "DateTime", nullable: true }),
     created: t.expose("created", { type: "DateTime" }),
   }),
