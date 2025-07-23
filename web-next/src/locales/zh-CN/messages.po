@@ -23,6 +23,12 @@ msgstr "{0, plural, other {被 # 人关注}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
+#. placeholder {0}: "SHARER"
+#. placeholder {1}: "RELATIVE_TIME"
+#: src/components/PostSharer.tsx:36
+msgid "{0} shared {1}"
+msgstr "{0}在{1}转帖了"
+
 #: src/routes/sign/index.tsx:194
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
@@ -173,7 +179,7 @@ msgstr "公开"
 msgid "Quiet public"
 msgstr "悄悄公开"
 
-#: src/components/ArticleCard.tsx:251
+#: src/components/ArticleCard.tsx:236
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -194,7 +200,7 @@ msgstr "登录 Hackers' Pub"
 msgid "Signing in…"
 msgstr "登录中…"
 
-#: src/components/ArticleCard.tsx:231
+#: src/components/ArticleCard.tsx:214
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -213,7 +219,7 @@ msgid "Timeline"
 msgstr "时间线"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:162
+#: src/components/ArticleCard.tsx:132
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 

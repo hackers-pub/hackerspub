@@ -23,6 +23,12 @@ msgstr "{0, plural, one {# follower} other {# followers}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
+#. placeholder {0}: "SHARER"
+#. placeholder {1}: "RELATIVE_TIME"
+#: src/components/PostSharer.tsx:36
+msgid "{0} shared {1}"
+msgstr "{0} shared {1}"
+
 #: src/routes/sign/index.tsx:194
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
@@ -173,7 +179,7 @@ msgstr "Public"
 msgid "Quiet public"
 msgstr "Quiet public"
 
-#: src/components/ArticleCard.tsx:251
+#: src/components/ArticleCard.tsx:236
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -194,7 +200,7 @@ msgstr "Signing in Hackers' Pub"
 msgid "Signing in…"
 msgstr "Signing in…"
 
-#: src/components/ArticleCard.tsx:231
+#: src/components/ArticleCard.tsx:214
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -213,7 +219,7 @@ msgid "Timeline"
 msgstr "Timeline"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:162
+#: src/components/ArticleCard.tsx:132
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 

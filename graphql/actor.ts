@@ -33,6 +33,9 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     type: t.field({
       type: ActorType,
+      select: {
+        columns: { type: true },
+      },
       resolve(actor) {
         return actor.type === "Application"
           ? "APPLICATION"
@@ -48,6 +51,14 @@ export const Actor = builder.drizzleNode("actorTable", {
             actor.type,
             `Unknown value in \`Actor.type\`: "${actor.type}"`,
           );
+      },
+    }),
+    local: t.boolean({
+      select: {
+        columns: { accountId: true },
+      },
+      resolve(actor) {
+        return actor.accountId != null;
       },
     }),
     username: t.exposeString("username"),

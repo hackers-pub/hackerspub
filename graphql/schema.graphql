@@ -93,6 +93,7 @@ type Actor implements Node {
   instance: Instance
   instanceHost: String!
   iri: URL!
+  local: Boolean!
   name: HTML
   notes(after: String, before: String, first: Int, last: Int): ActorNotesConnection!
   pins(after: String, before: String, first: Int, last: Int): ActorPinsConnection!

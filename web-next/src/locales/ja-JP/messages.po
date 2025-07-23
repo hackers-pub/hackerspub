@@ -23,6 +23,12 @@ msgstr "{0, plural, other {#フォロワー}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
+#. placeholder {0}: "SHARER"
+#. placeholder {1}: "RELATIVE_TIME"
+#: src/components/PostSharer.tsx:36
+msgid "{0} shared {1}"
+msgstr "{0}さんが{1}に共有"
+
 #: src/routes/sign/index.tsx:194
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
@@ -173,7 +179,7 @@ msgstr "公開"
 msgid "Quiet public"
 msgstr "ひかえめな公開"
 
-#: src/components/ArticleCard.tsx:251
+#: src/components/ArticleCard.tsx:236
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -194,7 +200,7 @@ msgstr "Hackers' Pubにログイン"
 msgid "Signing in…"
 msgstr "ログイン中…"
 
-#: src/components/ArticleCard.tsx:231
+#: src/components/ArticleCard.tsx:214
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -213,7 +219,7 @@ msgid "Timeline"
 msgstr "タイムライン"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:162
+#: src/components/ArticleCard.tsx:132
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
@@ -221,7 +227,7 @@ msgstr "{0}から翻訳"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ProfileCard.tsx:139
 msgid "Verified that this link is owned by {0} {1}"
-msgstr "{1}に{0}がこのリンクの所有者であることを確認済み"
+msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
