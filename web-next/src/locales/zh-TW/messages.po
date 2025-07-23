@@ -31,6 +31,7 @@ msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾
 msgid "Account"
 msgstr "帳戶"
 
+#: src/routes/(root)/[username]/(profile)/articles.tsx:76
 #: src/components/ProfileTabs.tsx:47
 msgid "Articles"
 msgstr "文章"
@@ -56,6 +57,10 @@ msgstr "電子郵件或使用者名稱"
 #: src/routes/sign/index.tsx:193
 msgid "Enter your email or username below to sign in."
 msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
+
+#: src/components/ActorArticleList.tsx:72
+msgid "Failed to load more articles; click to retry"
+msgstr "載入更多文章失敗，點擊重試"
 
 #: src/components/ActorNoteList.tsx:70
 msgid "Failed to load more notes; click to retry"
@@ -98,6 +103,10 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "首頁"
 
+#: src/components/ActorArticleList.tsx:75
+msgid "Load more articles"
+msgstr "載入更多文章"
+
 #: src/components/ActorNoteList.tsx:73
 msgid "Load more notes"
 msgstr "載入更多貼文"
@@ -105,6 +114,10 @@ msgstr "載入更多貼文"
 #: src/components/ActorPostList.tsx:74
 msgid "Load more posts"
 msgstr "載入更多內容"
+
+#: src/components/ActorArticleList.tsx:69
+msgid "Loading more articles…"
+msgstr "載入更多文章中…"
 
 #: src/components/ActorNoteList.tsx:67
 msgid "Loading more notes…"
@@ -122,6 +135,10 @@ msgstr "Markdown 指南"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "只提及使用者可見"
+
+#: src/components/ActorArticleList.tsx:82
+msgid "No notes articles"
+msgstr "未找到文章"
 
 #: src/components/ActorNoteList.tsx:80
 msgid "No notes found"

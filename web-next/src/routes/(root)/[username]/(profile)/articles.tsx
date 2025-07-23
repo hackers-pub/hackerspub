@@ -6,7 +6,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ActorNoteList } from "~/components/ActorNoteList.tsx";
+import { ActorArticleList } from "~/components/ActorArticleList.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -16,7 +16,7 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { notesPageQuery } from "./__generated__/notesPageQuery.graphql.ts";
+import type { articlesPageQuery } from "./__generated__/articlesPageQuery.graphql.ts";
 
 export const route = {
   matchFilters: {
@@ -28,12 +28,12 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-const notesPageQuery = graphql`
-  query notesPageQuery($username: String!) {
+const articlesPageQuery = graphql`
+  query articlesPageQuery($username: String!) {
     accountByUsername(username: $username) {
       username
       actor {
-        ...ActorNoteList_notes
+        ...ActorArticleList_articles
         ...ProfileTabs_actor
       }
       ...ProfilePageBreadcrumb_account
@@ -44,20 +44,20 @@ const notesPageQuery = graphql`
 
 const loadPageQuery = query(
   (username: string) =>
-    loadQuery<notesPageQuery>(
+    loadQuery<articlesPageQuery>(
       useRelayEnvironment()(),
-      notesPageQuery,
+      articlesPageQuery,
       { username },
     ),
-  "loadNotesPageQuery",
+  "loadArticlesPageQuery",
 );
 
-export default function ProfileNotesPage() {
+export default function ProfileArticlesPage() {
   const params = useParams();
   const { t } = useLingui();
   const username = params.username.substring(1);
-  const data = createPreloadedQuery<notesPageQuery>(
-    notesPageQuery,
+  const data = createPreloadedQuery<articlesPageQuery>(
+    articlesPageQuery,
     () => loadPageQuery(username),
   );
   return (
@@ -73,7 +73,7 @@ export default function ProfileNotesPage() {
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbLink current>
-                      {t`Notes`}
+                      {t`Articles`}
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                 </ProfilePageBreadcrumb>
@@ -81,8 +81,8 @@ export default function ProfileNotesPage() {
                   <ProfileCard $account={account()} />
                 </div>
                 <div class="p-4">
-                  <ProfileTabs selected="notes" $actor={account().actor} />
-                  <ActorNoteList $notes={account().actor} />
+                  <ProfileTabs selected="articles" $actor={account().actor} />
+                  <ActorArticleList $articles={account().actor} />
                 </div>
               </>
             )}

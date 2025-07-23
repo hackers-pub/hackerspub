@@ -40,10 +40,16 @@ export const Post = builder.drizzleInterface("postTable", {
   fields: (t) => ({
     iri: t.field({
       type: "URL",
+      select: {
+        columns: { iri: true },
+      },
       resolve: (post) => new URL(post.iri),
     }),
     visibility: t.field({
       type: PostVisibility,
+      select: {
+        columns: { visibility: true },
+      },
       resolve(post) {
         return post.visibility === "public"
           ? "PUBLIC"
@@ -76,6 +82,9 @@ export const Post = builder.drizzleInterface("postTable", {
     language: t.exposeString("language", { nullable: true }),
     hashtags: t.field({
       type: [Hashtag],
+      select: {
+        columns: { tags: true },
+      },
       resolve(post) {
         return Object.entries(post.tags).map(([name, href]) => ({
           name,
@@ -88,6 +97,9 @@ export const Post = builder.drizzleInterface("postTable", {
     url: t.field({
       type: "URL",
       nullable: true,
+      select: {
+        columns: { url: true },
+      },
       resolve: (post) => post.url ? new URL(post.url) : null,
     }),
     updated: t.expose("updated", { type: "DateTime" }),
@@ -138,11 +150,43 @@ export const Article = builder.drizzleNode("postTable", {
   },
   fields: (t) => ({
     publishedYear: t.int({
+      select: {
+        with: {
+          articleSource: {
+            columns: { publishedYear: true },
+          },
+        },
+      },
       resolve: (post) => post.articleSource!.publishedYear,
     }),
-    slug: t.string({ resolve: (post) => post.articleSource!.slug }),
-    tags: t.stringList({ resolve: (post) => post.articleSource!.tags }),
+    slug: t.string({
+      select: {
+        with: {
+          articleSource: {
+            columns: { slug: true },
+          },
+        },
+      },
+      resolve: (post) => post.articleSource!.slug,
+    }),
+    tags: t.stringList({
+      select: {
+        with: {
+          articleSource: {
+            columns: { tags: true },
+          },
+        },
+      },
+      resolve: (post) => post.articleSource!.tags,
+    }),
     allowLlmTranslation: t.boolean({
+      select: {
+        with: {
+          articleSource: {
+            columns: { allowLlmTranslation: true },
+          },
+        },
+      },
       resolve: (post) => post.articleSource!.allowLlmTranslation,
     }),
     contents: t.field({

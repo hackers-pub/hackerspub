@@ -31,6 +31,7 @@ msgstr "A sign-in link has been sent to your email. Please check your inbox (or 
 msgid "Account"
 msgstr "Account"
 
+#: src/routes/(root)/[username]/(profile)/articles.tsx:76
 #: src/components/ProfileTabs.tsx:47
 msgid "Articles"
 msgstr "Articles"
@@ -56,6 +57,10 @@ msgstr "Email or username"
 #: src/routes/sign/index.tsx:193
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
+
+#: src/components/ActorArticleList.tsx:72
+msgid "Failed to load more articles; click to retry"
+msgstr "Failed to load more articles; click to retry"
 
 #: src/components/ActorNoteList.tsx:70
 msgid "Failed to load more notes; click to retry"
@@ -98,6 +103,10 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "Home"
 
+#: src/components/ActorArticleList.tsx:75
+msgid "Load more articles"
+msgstr "Load more articles"
+
 #: src/components/ActorNoteList.tsx:73
 msgid "Load more notes"
 msgstr "Load more notes"
@@ -105,6 +114,10 @@ msgstr "Load more notes"
 #: src/components/ActorPostList.tsx:74
 msgid "Load more posts"
 msgstr "Load more posts"
+
+#: src/components/ActorArticleList.tsx:69
+msgid "Loading more articles…"
+msgstr "Loading more articles…"
 
 #: src/components/ActorNoteList.tsx:67
 msgid "Loading more notes…"
@@ -122,6 +135,10 @@ msgstr "Markdown guide"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "Mentioned only"
+
+#: src/components/ActorArticleList.tsx:82
+msgid "No notes articles"
+msgstr "No notes articles"
 
 #: src/components/ActorNoteList.tsx:80
 msgid "No notes found"
