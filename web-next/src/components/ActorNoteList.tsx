@@ -50,7 +50,7 @@ export function ActorNoteList(props: ActorNoteListProps) {
   }
 
   return (
-    <div class="border rounded-xl max-w-prose mx-auto my-4">
+    <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto my-4">
       <Show when={notes()}>
         {(data) => (
           <>

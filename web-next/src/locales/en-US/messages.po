@@ -61,7 +61,7 @@ msgstr "Enter your email or username below to sign in."
 msgid "Failed to load more notes; click to retry"
 msgstr "Failed to load more notes; click to retry"
 
-#: src/components/ActorPostList.tsx:70
+#: src/components/ActorPostList.tsx:71
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
@@ -102,7 +102,7 @@ msgstr "Home"
 msgid "Load more notes"
 msgstr "Load more notes"
 
-#: src/components/ActorPostList.tsx:73
+#: src/components/ActorPostList.tsx:74
 msgid "Load more posts"
 msgstr "Load more posts"
 
@@ -110,7 +110,7 @@ msgstr "Load more posts"
 msgid "Loading more notes…"
 msgstr "Loading more notes…"
 
-#: src/components/ActorPostList.tsx:67
+#: src/components/ActorPostList.tsx:68
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
@@ -127,7 +127,7 @@ msgstr "Mentioned only"
 msgid "No notes found"
 msgstr "No notes found"
 
-#: src/components/ActorPostList.tsx:80
+#: src/components/ActorPostList.tsx:81
 msgid "No posts found"
 msgstr "No posts found"
 
@@ -156,6 +156,10 @@ msgstr "Public"
 msgid "Quiet public"
 msgstr "Quiet public"
 
+#: src/components/ArticleCard.tsx:251
+msgid "Read full article"
+msgstr "Read full article"
+
 #: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225
 msgid "Sign in"
@@ -173,6 +177,10 @@ msgstr "Signing in Hackers' Pub"
 msgid "Signing in…"
 msgstr "Signing in…"
 
+#: src/components/ArticleCard.tsx:231
+msgid "Summarized by LLM"
+msgstr "Summarized by LLM"
+
 #: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "Table of contents"
@@ -186,6 +194,11 @@ msgstr "The source code of this website is available on {0} under the {1} licens
 #: src/components/AppSidebar.tsx:96
 msgid "Timeline"
 msgstr "Timeline"
+
+#. placeholder {0}: "LANGUAGE"
+#: src/components/ArticleCard.tsx:162
+msgid "Translated from {0}"
+msgstr "Translated from {0}"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."

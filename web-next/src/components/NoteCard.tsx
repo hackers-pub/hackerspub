@@ -104,7 +104,8 @@ function NoteCardInternal(props: NoteCardInternalProps) {
             </span>
           </div>
           <div class="flex flex-row text-muted-foreground gap-1">
-            <Timestamp value={props.published} /> &middot;{" "}
+            <Timestamp value={props.published} capitalizeFirstLetter /> &middot;
+            {" "}
             <VisibilityTag visibility={props.visibility} />
           </div>
         </div>

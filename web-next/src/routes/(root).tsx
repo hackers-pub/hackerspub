@@ -51,7 +51,10 @@ export default function RootLayout(props: RouteSectionProps) {
         $signedAccount={signedAccount()?.viewer}
         signedAccountLoaded={!signedAccount.pending}
       />
-      <main lang={i18n.locale} class="w-full">
+      <main
+        lang={new Intl.Locale(i18n.locale).minimize().baseName}
+        class="w-full"
+      >
         {props.children}
       </main>
     </SidebarProvider>

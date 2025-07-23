@@ -1,7 +1,8 @@
 import { graphql } from "relay-runtime";
-import { Show } from "solid-js";
+import { Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
 import { PostCard_post$key } from "./__generated__/PostCard_post.graphql.ts";
+import { ArticleCard } from "./ArticleCard.tsx";
 import { NoteCard } from "./NoteCard.tsx";
 
 export interface PostCardProps {
@@ -11,9 +12,14 @@ export interface PostCardProps {
 export function PostCard(props: PostCardProps) {
   const post = createFragment(
     graphql`
-      fragment PostCard_post on Post {
+      fragment PostCard_post on Post
+        @argumentDefinitions(
+          locale: { type: "Locale" },
+        )
+      {
         __typename
         ...NoteCard_note
+        ...ArticleCard_article @arguments(locale: $locale)
       }
     `,
     () => props.$post,
@@ -22,9 +28,14 @@ export function PostCard(props: PostCardProps) {
   return (
     <Show when={post()}>
       {(post) => (
-        <Show when={post().__typename === "Note"}>
-          <NoteCard $note={post()} />
-        </Show>
+        <Switch>
+          <Match when={post().__typename === "Note"}>
+            <NoteCard $note={post()} />
+          </Match>
+          <Match when={post().__typename === "Article"}>
+            <ArticleCard $article={post()} />
+          </Match>
+        </Switch>
       )}
     </Show>
   );

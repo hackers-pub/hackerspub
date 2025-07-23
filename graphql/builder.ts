@@ -65,7 +65,7 @@ export interface PothosTypes {
     };
     Locale: {
       Input: Intl.Locale;
-      Output: Intl.Locale;
+      Output: Intl.Locale | string;
     };
     HTML: {
       Input: string;
@@ -116,9 +116,9 @@ export const builder = new SchemaBuilder<PothosTypes>({
     defaultComplexity: 1,
     defaultListMultiplier: 10,
     limit: {
-      complexity: 500,
+      complexity: 2500,
       depth: 10,
-      breadth: 100,
+      breadth: 150,
     },
   },
   defaultFieldNullability: false,

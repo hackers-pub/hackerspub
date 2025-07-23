@@ -1,4 +1,6 @@
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
+import { negotiateLocale } from "@hackerspub/models/i18n";
+import { renderMarkup } from "@hackerspub/models/markup";
 import { createNote } from "@hackerspub/models/note";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
@@ -143,6 +145,39 @@ export const Article = builder.drizzleNode("postTable", {
     allowLlmTranslation: t.boolean({
       resolve: (post) => post.articleSource!.allowLlmTranslation,
     }),
+    contents: t.field({
+      type: [ArticleContent],
+      args: {
+        language: t.arg({ type: "Locale", required: false }),
+        includeBeingTranslated: t.arg({
+          type: "Boolean",
+          required: false,
+          defaultValue: false,
+        }),
+      },
+      select: (args) => ({
+        with: {
+          articleSource: {
+            with: {
+              contents: {
+                where: {
+                  beingTranslated: args.includeBeingTranslated ?? false,
+                },
+              },
+            },
+          },
+        },
+      }),
+      resolve(post, args) {
+        const contents = post.articleSource?.contents ?? [];
+        if (args.language == null) return contents;
+        const availableLocales = contents.map((c) => c.language);
+        const selectedLocale = negotiateLocale(args.language, availableLocales);
+        return contents.filter(
+          (c) => c.language === selectedLocale?.baseName,
+        );
+      },
+    }),
   }),
 });
 
@@ -169,6 +204,98 @@ export const Question = builder.drizzleNode("postTable", {
   },
   fields: (t) => ({
     poll: t.relation("poll"),
+  }),
+});
+
+export const ArticleContent = builder.drizzleNode("articleContentTable", {
+  name: "ArticleContent",
+  id: {
+    column: (content) => [content.sourceId, content.language],
+  },
+  fields: (t) => ({
+    language: t.expose("language", { type: "Locale" }),
+    title: t.exposeString("title"),
+    summary: t.exposeString("summary", { nullable: true }),
+    summaryStarted: t.expose("summaryStarted", {
+      type: "DateTime",
+      nullable: true,
+    }),
+    content: t.field({
+      type: "HTML",
+      select: {
+        columns: {
+          content: true,
+        },
+        with: {
+          source: {
+            with: {
+              post: {
+                columns: {
+                  emojis: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      async resolve(content, _, ctx) {
+        const html = await renderMarkup(ctx.fedCtx, content.content, {
+          kv: ctx.kv,
+        });
+        return renderCustomEmojis(html.html, content.source.post.emojis);
+      },
+    }),
+    originalLanguage: t.expose("originalLanguage", {
+      type: "Locale",
+      nullable: true,
+    }),
+    translator: t.relation("translator", { nullable: true }),
+    translationRequester: t.relation("translationRequester", {
+      nullable: true,
+    }),
+    beingTranslated: t.exposeBoolean("beingTranslated"),
+    updated: t.expose("updated", { type: "DateTime" }),
+    published: t.expose("published", { type: "DateTime" }),
+    url: t.field({
+      type: "URL",
+      select: {
+        with: {
+          source: {
+            columns: {
+              publishedYear: true,
+              slug: true,
+            },
+            with: {
+              account: {
+                columns: {
+                  username: true,
+                },
+              },
+              post: {
+                columns: {
+                  language: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      resolve(content, _, ctx) {
+        if (
+          content.originalLanguage != null ||
+          content.language !== content.source.post.language
+        ) {
+          return new URL(
+            `/@${content.source.account.username}/${content.source.publishedYear}/${content.source.slug}/${content.language}`,
+            ctx.fedCtx.canonicalOrigin,
+          );
+        }
+        return new URL(
+          `/@${content.source.account.username}/${content.source.publishedYear}/${content.source.slug}`,
+          ctx.fedCtx.canonicalOrigin,
+        );
+      },
+    }),
   }),
 });
 

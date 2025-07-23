@@ -18,6 +18,7 @@ export function ActorPostList(props: ActorPostListProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
+          locale: { type: "Locale" },
         )
       {
         posts(after: $cursor, first: $count)
@@ -25,7 +26,7 @@ export function ActorPostList(props: ActorPostListProps) {
         {
           edges {
             node {
-              ...PostCard_post
+              ...PostCard_post @arguments(locale: $locale)
             }
           }
           pageInfo {
@@ -50,7 +51,7 @@ export function ActorPostList(props: ActorPostListProps) {
   }
 
   return (
-    <div class="border rounded-xl max-w-prose mx-auto my-4">
+    <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto my-4">
       <Show when={posts()}>
         {(data) => (
           <>

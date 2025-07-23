@@ -167,6 +167,7 @@ type Article implements Node & Post & Reactable {
   actor: Actor!
   allowLlmTranslation: Boolean!
   content: HTML!
+  contents(includeBeingTranslated: Boolean = false, language: Locale): [ArticleContent!]!
   engagementStats: PostEngagementStats!
   hashtags: [Hashtag!]!
   id: ID!
@@ -192,6 +193,22 @@ type Article implements Node & Post & Reactable {
   updated: DateTime!
   url: URL
   visibility: PostVisibility!
+}
+
+type ArticleContent implements Node {
+  beingTranslated: Boolean!
+  content: HTML!
+  id: ID!
+  language: Locale!
+  originalLanguage: Locale
+  published: DateTime!
+  summary: String
+  summaryStarted: DateTime
+  title: String!
+  translationRequester: Account
+  translator: Account
+  updated: DateTime!
+  url: URL!
 }
 
 input CreateNoteInput {

@@ -61,7 +61,7 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 msgid "Failed to load more notes; click to retry"
 msgstr "加载更多帖子失败，点击重试"
 
-#: src/components/ActorPostList.tsx:70
+#: src/components/ActorPostList.tsx:71
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
@@ -102,7 +102,7 @@ msgstr "首页"
 msgid "Load more notes"
 msgstr "加载更多帖子"
 
-#: src/components/ActorPostList.tsx:73
+#: src/components/ActorPostList.tsx:74
 msgid "Load more posts"
 msgstr "加载更多内容"
 
@@ -110,7 +110,7 @@ msgstr "加载更多内容"
 msgid "Loading more notes…"
 msgstr "加载更多帖子中…"
 
-#: src/components/ActorPostList.tsx:67
+#: src/components/ActorPostList.tsx:68
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
 
@@ -127,7 +127,7 @@ msgstr "只提及用户可见"
 msgid "No notes found"
 msgstr "未找到帖子"
 
-#: src/components/ActorPostList.tsx:80
+#: src/components/ActorPostList.tsx:81
 msgid "No posts found"
 msgstr "未找到内容"
 
@@ -156,6 +156,10 @@ msgstr "公开"
 msgid "Quiet public"
 msgstr "悄悄公开"
 
+#: src/components/ArticleCard.tsx:251
+msgid "Read full article"
+msgstr "阅读完整文章"
+
 #: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225
 msgid "Sign in"
@@ -173,6 +177,10 @@ msgstr "登录 Hackers' Pub"
 msgid "Signing in…"
 msgstr "登录中…"
 
+#: src/components/ArticleCard.tsx:231
+msgid "Summarized by LLM"
+msgstr "由 AI 生成的摘要"
+
 #: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "目录"
@@ -186,6 +194,11 @@ msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 #: src/components/AppSidebar.tsx:96
 msgid "Timeline"
 msgstr "时间线"
+
+#. placeholder {0}: "LANGUAGE"
+#: src/components/ArticleCard.tsx:162
+msgid "Translated from {0}"
+msgstr "翻译自{0}"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."

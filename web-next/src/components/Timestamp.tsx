@@ -3,6 +3,7 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export interface TimestampProps {
   value: Date | string;
+  capitalizeFirstLetter?: boolean;
 }
 
 export function Timestamp(props: TimestampProps) {
@@ -20,7 +21,9 @@ export function Timestamp(props: TimestampProps) {
         timeStyle: "full",
       })}
     >
-      {formatRelativeTime(targetDate(), date, i18n.locale)}
+      {formatRelativeTime(targetDate(), date, i18n.locale, {
+        capitalizeFirstLetter: props.capitalizeFirstLetter,
+      })}
     </time>
   );
 }
@@ -39,7 +42,10 @@ function formatRelativeTime(
   currentDate: Date,
   targetDate: Date,
   locale: string,
-  options: Intl.RelativeTimeFormatOptions & { allowFuture?: boolean } = {
+  options: Intl.RelativeTimeFormatOptions & {
+    allowFuture?: boolean;
+    capitalizeFirstLetter?: boolean;
+  } = {
     numeric: "auto",
   },
 ): string {
@@ -51,9 +57,17 @@ function formatRelativeTime(
   for (const { unit, ms } of UNITS) {
     if (absDiff >= ms) {
       const value = Math.round(diffMs / ms);
-      return new Intl.RelativeTimeFormat(locale, options).format(value, unit);
+      const f = new Intl.RelativeTimeFormat(locale, options).format(
+        value,
+        unit,
+      );
+      return options.capitalizeFirstLetter
+        ? f.charAt(0).toUpperCase() + f.slice(1)
+        : f;
     }
   }
-
-  return new Intl.RelativeTimeFormat(locale).format(0, "second");
+  const f = new Intl.RelativeTimeFormat(locale).format(0, "second");
+  return options.capitalizeFirstLetter
+    ? f.charAt(0).toUpperCase() + f.slice(1)
+    : f;
 }
