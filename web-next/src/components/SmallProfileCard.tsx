@@ -42,10 +42,9 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
                 href={`/${
                   actor().local ? `@${actor().username}` : actor().handle
                 }`}
+                innerHTML={actor().name ?? actor().username}
                 class="font-semibold text-lg"
-              >
-                {actor().name}
-              </a>
+              />
               <span class="text-muted-foreground select-all">
                 {actor().handle}
               </span>

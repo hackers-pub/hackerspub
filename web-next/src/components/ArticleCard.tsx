@@ -110,7 +110,10 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
             <div class="flex flex-col">
               <div>
                 <Show when={(article().actor.name ?? "").trim() !== ""}>
-                  <span class="font-semibold">{article().actor.name}</span>
+                  <span
+                    innerHTML={article().actor.name ?? ""}
+                    class="font-semibold"
+                  />
                   {" "}
                 </Show>
                 <span class="select-all text-muted-foreground">

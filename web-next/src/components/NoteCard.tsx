@@ -80,7 +80,10 @@ function NoteCardInternal(props: NoteCardInternalProps) {
             <div class="flex flex-col">
               <div>
                 <Show when={(note().actor.name ?? "").trim() !== ""}>
-                  <span class="font-semibold">{note().actor.name}</span>
+                  <span
+                    innerHTML={note().actor.name ?? ""}
+                    class="font-semibold"
+                  />
                   {" "}
                 </Show>
                 <span class="select-all text-muted-foreground">
