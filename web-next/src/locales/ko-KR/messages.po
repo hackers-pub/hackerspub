@@ -13,13 +13,13 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#. placeholder {0}: account().actor.followers.totalCount
-#: src/components/ProfileCard.tsx:79
+#. placeholder {0}: account().actor.followersCount.totalCount
+#: src/components/ProfileCard.tsx:150
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
-#. placeholder {0}: account().actor.followees.totalCount
-#: src/components/ProfileCard.tsx:73
+#. placeholder {0}: account().actor.followeesCount.totalCount
+#: src/components/ProfileCard.tsx:139
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -68,6 +68,10 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 msgid "Failed to load more articles; click to retry"
 msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 
+#: src/components/ActorFollowerList.tsx:78
+msgid "Failed to load more followers; click to retry"
+msgstr "팔로워 불러오기 실패. 클릭하여 재시도하세요"
+
 #: src/components/ActorNoteList.tsx:70
 msgid "Failed to load more notes; click to retry"
 msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
@@ -89,6 +93,10 @@ msgstr "연합우주"
 #: src/components/AppSidebar.tsx:115
 msgid "Feed"
 msgstr "피드"
+
+#: src/routes/(root)/[username]/(profile)/followers.tsx:74
+msgid "Followers"
+msgstr "팔로워"
 
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
@@ -114,6 +122,10 @@ msgstr "홈"
 msgid "Load more articles"
 msgstr "게시글 더 불러오기"
 
+#: src/components/ActorFollowerList.tsx:81
+msgid "Load more followers"
+msgstr "팔로워 더 불러오기"
+
 #: src/components/ActorNoteList.tsx:73
 msgid "Load more notes"
 msgstr "단문 더 불러오기"
@@ -126,6 +138,10 @@ msgstr "콘텐츠 더 불러오기"
 #: src/components/ActorArticleList.tsx:70
 msgid "Loading more articles…"
 msgstr "게시글 불러오는 중…"
+
+#: src/components/ActorFollowerList.tsx:75
+msgid "Loading more followers…"
+msgstr "팔로워 불러오는 중…"
 
 #: src/components/ActorNoteList.tsx:67
 msgid "Loading more notes…"
@@ -144,6 +160,10 @@ msgstr "Markdown 가이드"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "언급된 사용자만"
+
+#: src/components/ActorFollowerList.tsx:88
+msgid "No followers found"
+msgstr "팔로워가 없습니다"
 
 #: src/components/ActorArticleList.tsx:83
 msgid "No notes articles"
@@ -234,7 +254,7 @@ msgstr "{0}에서 번역됨"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:139
+#: src/components/ProfileCard.tsx:116
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 

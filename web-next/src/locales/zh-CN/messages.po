@@ -13,13 +13,13 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#. placeholder {0}: account().actor.followers.totalCount
-#: src/components/ProfileCard.tsx:79
+#. placeholder {0}: account().actor.followersCount.totalCount
+#: src/components/ProfileCard.tsx:150
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
-#. placeholder {0}: account().actor.followees.totalCount
-#: src/components/ProfileCard.tsx:73
+#. placeholder {0}: account().actor.followeesCount.totalCount
+#: src/components/ProfileCard.tsx:139
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -68,6 +68,10 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 msgid "Failed to load more articles; click to retry"
 msgstr "加载更多文章失败，点击重试"
 
+#: src/components/ActorFollowerList.tsx:78
+msgid "Failed to load more followers; click to retry"
+msgstr "加载更多粉丝失败，点击重试"
+
 #: src/components/ActorNoteList.tsx:70
 msgid "Failed to load more notes; click to retry"
 msgstr "加载更多帖子失败，点击重试"
@@ -89,6 +93,10 @@ msgstr "联邦宇宙"
 #: src/components/AppSidebar.tsx:115
 msgid "Feed"
 msgstr "订阅流"
+
+#: src/routes/(root)/[username]/(profile)/followers.tsx:74
+msgid "Followers"
+msgstr "粉丝"
 
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
@@ -114,6 +122,10 @@ msgstr "首页"
 msgid "Load more articles"
 msgstr "加载更多文章"
 
+#: src/components/ActorFollowerList.tsx:81
+msgid "Load more followers"
+msgstr "加载更多粉丝"
+
 #: src/components/ActorNoteList.tsx:73
 msgid "Load more notes"
 msgstr "加载更多帖子"
@@ -126,6 +138,10 @@ msgstr "加载更多内容"
 #: src/components/ActorArticleList.tsx:70
 msgid "Loading more articles…"
 msgstr "加载更多文章中…"
+
+#: src/components/ActorFollowerList.tsx:75
+msgid "Loading more followers…"
+msgstr "加载更多粉丝中…"
 
 #: src/components/ActorNoteList.tsx:67
 msgid "Loading more notes…"
@@ -144,6 +160,10 @@ msgstr "Markdown 指南"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "只提及用户可见"
+
+#: src/components/ActorFollowerList.tsx:88
+msgid "No followers found"
+msgstr "未找到粉丝"
 
 #: src/components/ActorArticleList.tsx:83
 msgid "No notes articles"
@@ -234,7 +254,7 @@ msgstr "翻译自{0}"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:139
+#: src/components/ProfileCard.tsx:116
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已于{1}验证此链接归{0}所有"
 
