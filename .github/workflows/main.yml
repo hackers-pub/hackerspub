@@ -49,7 +49,9 @@ jobs:
         fi
     - uses: docker/build-push-action@v6
       with:
+        pull: "true"
         push: ${{ github.event_name == 'push' && 'true' || 'false' }}
+        no-cache: ${{ github.event_name == 'push' && 'false' || 'true' }}
         build-args:
           GIT_COMMIT=${{ github.sha }}
         tags: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-${{ steps.arch.outputs.arch }}
