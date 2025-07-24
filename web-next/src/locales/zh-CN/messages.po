@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: account().actor.followersCount.totalCount
-#: src/components/ProfileCard.tsx:150
+#: src/components/ProfileCard.tsx:151
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
 #. placeholder {0}: account().actor.followeesCount.totalCount
-#: src/components/ProfileCard.tsx:139
+#: src/components/ProfileCard.tsx:140
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -37,7 +37,7 @@ msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾
 msgid "Account"
 msgstr "账户"
 
-#: src/routes/(root)/[username]/(profile)/articles.tsx:77
+#: src/routes/(root)/[username]/(profile)/articles.tsx:80
 #: src/components/ProfileTabs.tsx:47
 msgid "Articles"
 msgstr "文章"
@@ -101,6 +101,10 @@ msgstr "粉丝"
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
 msgstr "只粉丝可见"
+
+#: src/components/ProfileCard.tsx:161
+msgid "Following you"
+msgstr "关注了你"
 
 #: src/components/AppSidebar.tsx:290
 msgid "GitHub repository"
@@ -207,7 +211,7 @@ msgstr "悄悄公开"
 msgid "Read full article"
 msgstr "阅读完整文章"
 
-#: src/routes/(root)/[username]/(profile)/shares.tsx:77
+#: src/routes/(root)/[username]/(profile)/shares.tsx:80
 #: src/components/ProfileTabs.tsx:50
 msgid "Shares"
 msgstr "转帖"
@@ -254,7 +258,7 @@ msgstr "翻译自{0}"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:116
+#: src/components/ProfileCard.tsx:117
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已于{1}验证此链接归{0}所有"
 

@@ -2,6 +2,7 @@ import { isActor } from "@fedify/fedify";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import { validateUuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
@@ -220,6 +221,42 @@ builder.drizzleObjectFields(Actor, (t) => ({
       }),
     },
   ),
+  follows: t.field({
+    type: "Boolean",
+    args: {
+      followeeId: t.arg.globalID(),
+    },
+    async resolve(actor, { followeeId }, ctx) {
+      if (
+        followeeId == null || followeeId.typename !== "Actor" ||
+        !validateUuid(followeeId.id)
+      ) {
+        return false;
+      }
+      return await ctx.db.query.followingTable.findFirst({
+        columns: { iri: true },
+        where: {
+          followerId: actor.id,
+          followeeId: followeeId.id,
+        },
+      }) != null;
+    },
+  }),
+  followsViewer: t.field({
+    type: "Boolean",
+    async resolve(actor, _, ctx) {
+      if (ctx.account == null || ctx.account.actor == null) {
+        return false;
+      }
+      return await ctx.db.query.followingTable.findFirst({
+        columns: { iri: true },
+        where: {
+          followerId: actor.id,
+          followeeId: ctx.account.actor.id,
+        },
+      }) != null;
+    },
+  }),
   followees: t.connection(
     {
       type: Actor,
@@ -250,6 +287,27 @@ builder.drizzleObjectFields(Actor, (t) => ({
       }),
     },
   ),
+  isFollowedBy: t.field({
+    type: "Boolean",
+    args: {
+      followerId: t.arg.globalID(),
+    },
+    async resolve(actor, { followerId }, ctx) {
+      if (
+        followerId == null || followerId.typename !== "Actor" ||
+        !validateUuid(followerId.id)
+      ) {
+        return false;
+      }
+      return await ctx.db.query.followingTable.findFirst({
+        columns: { iri: true },
+        where: {
+          followerId: followerId.id,
+          followeeId: actor.id,
+        },
+      }) != null;
+    },
+  }),
 }));
 
 const followerConnectionHelpers = drizzleConnectionHelpers(

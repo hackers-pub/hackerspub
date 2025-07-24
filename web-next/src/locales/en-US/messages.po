@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: account().actor.followersCount.totalCount
-#: src/components/ProfileCard.tsx:150
+#: src/components/ProfileCard.tsx:151
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: account().actor.followeesCount.totalCount
-#: src/components/ProfileCard.tsx:139
+#: src/components/ProfileCard.tsx:140
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -37,7 +37,7 @@ msgstr "A sign-in link has been sent to your email. Please check your inbox (or 
 msgid "Account"
 msgstr "Account"
 
-#: src/routes/(root)/[username]/(profile)/articles.tsx:77
+#: src/routes/(root)/[username]/(profile)/articles.tsx:80
 #: src/components/ProfileTabs.tsx:47
 msgid "Articles"
 msgstr "Articles"
@@ -101,6 +101,10 @@ msgstr "Followers"
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
 msgstr "Followers only"
+
+#: src/components/ProfileCard.tsx:161
+msgid "Following you"
+msgstr "Following you"
 
 #: src/components/AppSidebar.tsx:290
 msgid "GitHub repository"
@@ -207,7 +211,7 @@ msgstr "Quiet public"
 msgid "Read full article"
 msgstr "Read full article"
 
-#: src/routes/(root)/[username]/(profile)/shares.tsx:77
+#: src/routes/(root)/[username]/(profile)/shares.tsx:80
 #: src/components/ProfileTabs.tsx:50
 msgid "Shares"
 msgstr "Shares"
@@ -254,7 +258,7 @@ msgstr "Translated from {0}"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:116
+#: src/components/ProfileCard.tsx:117
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 

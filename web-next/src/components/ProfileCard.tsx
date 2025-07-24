@@ -34,6 +34,7 @@ export function ProfileCard(props: ProfileCardProps) {
           followersCount: followers {
             totalCount
           }
+          followsViewer
         }
         links {
           name
@@ -155,6 +156,10 @@ export function ProfileCard(props: ProfileCardProps) {
                   }`,
                 )}
               </a>
+              <Show when={account().actor.followsViewer}>
+                {" "}
+                &middot; {t`Following you`}
+              </Show>
             </div>
           </div>
         </>

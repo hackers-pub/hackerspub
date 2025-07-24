@@ -86,6 +86,8 @@ type Actor implements Node {
   created: DateTime!
   followees(after: String, before: String, first: Int, last: Int): ActorFolloweesConnection!
   followers(after: String, before: String, first: Int, last: Int): ActorFollowersConnection!
+  follows(followeeId: ID): Boolean!
+  followsViewer: Boolean!
   handle: String!
   handleHost: String!
   headerUrl: URL
@@ -93,6 +95,7 @@ type Actor implements Node {
   instance: Instance
   instanceHost: String!
   iri: URL!
+  isFollowedBy(followerId: ID): Boolean!
   local: Boolean!
   name: HTML
   notes(after: String, before: String, first: Int, last: Int): ActorNotesConnection!
