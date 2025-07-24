@@ -74,6 +74,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
       fragment ArticleCardInternal_article on Article
         @argumentDefinitions(locale: { type: "Locale" })
       {
+        __id
         actor {
           name
           handle

@@ -20,10 +20,12 @@ export function ActorNoteList(props: ActorNoteListProps) {
           count: { type: "Int", defaultValue: 20 }
         )
       {
+        __id
         notes(after: $cursor, first: $count)
           @connection(key: "ActorNoteList_notes")
         {
           edges {
+            __id
             node {
               ...NoteCard_note
             }

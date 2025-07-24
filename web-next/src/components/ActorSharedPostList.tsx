@@ -21,10 +21,12 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
           locale: { type: "Locale" }
         )
       {
+        __id
         sharedPosts(after: $cursor, first: $count)
           @connection(key: "ActorSharedPostList_sharedPosts")
         {
           edges {
+            __id
             node {
               ...PostCard_post @arguments(locale: $locale)
             }

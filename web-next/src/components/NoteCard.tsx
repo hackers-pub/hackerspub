@@ -55,6 +55,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
   const note = createFragment(
     graphql`
       fragment NoteCardInternal_note on Note {
+        __id
         actor {
           name
           handle

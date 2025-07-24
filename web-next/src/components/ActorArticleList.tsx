@@ -21,10 +21,12 @@ export function ActorArticleList(props: ActorArticleListProps) {
           locale: { type: "Locale" }
         )
       {
+        __id
         articles(after: $cursor, first: $count)
           @connection(key: "ActorArticleList_articles")
         {
           edges {
+            __id
             node {
               ...ArticleCard_article @arguments(locale: $locale)
             }

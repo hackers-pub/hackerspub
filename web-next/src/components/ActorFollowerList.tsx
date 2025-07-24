@@ -20,10 +20,12 @@ export function ActorFollowerList(props: ActorFollowerListProps) {
           count: { type: "Int", defaultValue: 20 }
         )
       {
+        __id
         followers(after: $cursor, first: $count)
           @connection(key: "ActorFollowerList_followers")
         {
           edges {
+            __id
             node {
               ...SmallProfileCard_actor
             }

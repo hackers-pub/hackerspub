@@ -21,10 +21,12 @@ export function ActorPostList(props: ActorPostListProps) {
           locale: { type: "Locale" }
         )
       {
+        __id
         posts(after: $cursor, first: $count)
           @connection(key: "ActorPostList_posts")
         {
           edges {
+            __id
             node {
               ...PostCard_post @arguments(locale: $locale)
             }
