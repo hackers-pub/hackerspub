@@ -65,34 +65,16 @@ export function ProfileCard(props: ProfileCardProps) {
               </Avatar>
               <div>
                 <h1 class="text-xl font-semibold">{account().name}</h1>
-                <div class="opacity-65">
+                <div class="text-muted-foreground">
                   <span class="select-all">
                     @{account().username}@{account().actor.instanceHost}
-                  </span>{" "}
-                  &middot;{" "}
-                  {i18n._(msg`${
-                    plural(account().actor.followees.totalCount, {
-                      one: "# following",
-                      other: "# following",
-                    })
-                  }`)} &middot;{" "}
-                  {i18n._(msg`${
-                    plural(account().actor.followers.totalCount, {
-                      one: "# follower",
-                      other: "# followers",
-                    })
-                  }`)}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
           <Show when={(account().actor.bio?.trim() ?? "") !== ""}>
-            <div
-              class="p-4 pt-0"
-              classList={{
-                "border-b": account().links.length < 1,
-              }}
-            >
+            <div class="p-4 pt-0">
               <div
                 innerHTML={account().actor.bio ?? ""}
                 class="mx-auto prose dark:prose-invert"
@@ -100,7 +82,7 @@ export function ProfileCard(props: ProfileCardProps) {
             </div>
           </Show>
           <Show when={account().links.length > 0}>
-            <div class="p-4 pt-0 border-b">
+            <div class="p-4 pt-0">
               <ul class="mx-auto max-w-prose">
                 <For each={account().links}>
                   {(link) => (
@@ -155,6 +137,27 @@ export function ProfileCard(props: ProfileCardProps) {
               </ul>
             </div>
           </Show>
+          <div class="p-4 pt-0 border-b">
+            <div class="mx-auto max-w-prose text-muted-foreground">
+              <a>
+                {i18n._(msg`${
+                  plural(account().actor.followees.totalCount, {
+                    one: "# following",
+                    other: "# following",
+                  })
+                }`)}
+              </a>{" "}
+              &middot;{" "}
+              <a>
+                {i18n._(msg`${
+                  plural(account().actor.followers.totalCount, {
+                    one: "# follower",
+                    other: "# followers",
+                  })
+                }`)}
+              </a>
+            </div>
+          </div>
         </>
       )}
     </Show>
