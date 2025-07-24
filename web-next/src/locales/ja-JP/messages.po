@@ -13,13 +13,13 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#. placeholder {0}: account().actor.followers.totalCount
-#: src/components/ProfileCard.tsx:79
+#. placeholder {0}: account().actor.followersCount.totalCount
+#: src/components/ProfileCard.tsx:150
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
-#. placeholder {0}: account().actor.followees.totalCount
-#: src/components/ProfileCard.tsx:73
+#. placeholder {0}: account().actor.followeesCount.totalCount
+#: src/components/ProfileCard.tsx:139
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
@@ -68,6 +68,10 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
 
+#: src/components/ActorFollowerList.tsx:78
+msgid "Failed to load more followers; click to retry"
+msgstr "フォロワーの読み込みに失敗しました。クリックして再試行してください"
+
 #: src/components/ActorNoteList.tsx:70
 msgid "Failed to load more notes; click to retry"
 msgstr "投稿の読み込みに失敗しました。クリックして再試行してください"
@@ -89,6 +93,10 @@ msgstr "フェディバース"
 #: src/components/AppSidebar.tsx:115
 msgid "Feed"
 msgstr "フィード"
+
+#: src/routes/(root)/[username]/(profile)/followers.tsx:74
+msgid "Followers"
+msgstr "フォロワー"
 
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
@@ -114,6 +122,10 @@ msgstr "ホーム"
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
 
+#: src/components/ActorFollowerList.tsx:81
+msgid "Load more followers"
+msgstr "フォロワーをもっと読み込む"
+
 #: src/components/ActorNoteList.tsx:73
 msgid "Load more notes"
 msgstr "投稿をもっと読み込む"
@@ -126,6 +138,10 @@ msgstr "コンテンツをもっと読み込む"
 #: src/components/ActorArticleList.tsx:70
 msgid "Loading more articles…"
 msgstr "記事を読み込み中…"
+
+#: src/components/ActorFollowerList.tsx:75
+msgid "Loading more followers…"
+msgstr "フォロワーを読み込み中…"
 
 #: src/components/ActorNoteList.tsx:67
 msgid "Loading more notes…"
@@ -144,6 +160,10 @@ msgstr "Markdown ガイド"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
+
+#: src/components/ActorFollowerList.tsx:88
+msgid "No followers found"
+msgstr "フォロワーはいません"
 
 #: src/components/ActorArticleList.tsx:83
 msgid "No notes articles"
@@ -234,7 +254,7 @@ msgstr "{0}から翻訳"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:139
+#: src/components/ProfileCard.tsx:116
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 

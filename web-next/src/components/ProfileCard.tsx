@@ -28,10 +28,10 @@ export function ProfileCard(props: ProfileCardProps) {
         actor {
           instanceHost
           bio
-          followees {
+          followeesCount: followees {
             totalCount
           }
-          followers {
+          followersCount: followers {
             totalCount
           }
         }
@@ -51,12 +51,7 @@ export function ProfileCard(props: ProfileCardProps) {
     <Show when={account()}>
       {(account) => (
         <>
-          <div
-            class="p-4"
-            classList={{
-              "border-b": (account().actor.bio?.trim() ?? "") === "",
-            }}
-          >
+          <div class="p-4">
             <div class="flex items-center gap-4 mx-auto max-w-prose">
               <Avatar class="size-16">
                 <a href={`/@${account().username}`}>
@@ -140,21 +135,25 @@ export function ProfileCard(props: ProfileCardProps) {
           <div class="p-4 pt-0 border-b">
             <div class="mx-auto max-w-prose text-muted-foreground">
               <a>
-                {i18n._(msg`${
-                  plural(account().actor.followees.totalCount, {
-                    one: "# following",
-                    other: "# following",
-                  })
-                }`)}
+                {i18n._(
+                  msg`${
+                    plural(account().actor.followeesCount.totalCount, {
+                      one: "# following",
+                      other: "# following",
+                    })
+                  }`,
+                )}
               </a>{" "}
               &middot;{" "}
-              <a>
-                {i18n._(msg`${
-                  plural(account().actor.followers.totalCount, {
-                    one: "# follower",
-                    other: "# followers",
-                  })
-                }`)}
+              <a href={`/@${account().username}/followers`}>
+                {i18n._(
+                  msg`${
+                    plural(account().actor.followersCount.totalCount, {
+                      one: "# follower",
+                      other: "# followers",
+                    })
+                  }`,
+                )}
               </a>
             </div>
           </div>

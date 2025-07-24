@@ -27,6 +27,9 @@ export const Actor = builder.drizzleNode("actorTable", {
     uuid: t.expose("id", { type: "UUID" }),
     iri: t.field({
       type: "URL",
+      select: {
+        columns: { iri: true },
+      },
       resolve(actor) {
         return new URL(actor.iri);
       },
@@ -69,6 +72,9 @@ export const Actor = builder.drizzleNode("actorTable", {
     name: t.field({
       type: "HTML",
       nullable: true,
+      select: {
+        columns: { name: true, emojis: true },
+      },
       resolve(actor) {
         return actor.name
           ? renderCustomEmojis(escape(actor.name), actor.emojis)
@@ -188,6 +194,7 @@ builder.drizzleObjectFields(Actor, (t) => ({
     {
       type: Actor,
       select: (args, ctx, select) => ({
+        columns: { followersCount: true },
         with: {
           followers: followerConnectionHelpers.getQuery(args, ctx, select),
         },
@@ -217,6 +224,7 @@ builder.drizzleObjectFields(Actor, (t) => ({
     {
       type: Actor,
       select: (args, ctx, select) => ({
+        columns: { followeesCount: true },
         with: {
           followees: followeeConnectionHelpers.getQuery(args, ctx, select),
         },
