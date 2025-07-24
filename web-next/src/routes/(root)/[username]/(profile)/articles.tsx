@@ -30,7 +30,10 @@ export const route = {
 } satisfies RouteDefinition;
 
 const articlesPageQuery = graphql`
-  query articlesPageQuery($username: String!, $locale: Locale!) {
+  query articlesPageQuery(
+    $username: String!
+    $locale: Locale!
+  ) {
     accountByUsername(username: $username) {
       username
       actor {
