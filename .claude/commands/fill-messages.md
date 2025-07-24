@@ -1,0 +1,1 @@
+Fill in the missing translations (entries with msgstr "") in all web-next/src/locales/*/messages.po files. Before translating, you MUST consult the corresponding web-next/src/locales/*/glossary.txt file for each language to ensure consistent terminology.
