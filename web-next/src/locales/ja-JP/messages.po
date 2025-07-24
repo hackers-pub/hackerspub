@@ -37,7 +37,7 @@ msgstr "ログインリンクがメールに送信されました。受信トレ
 msgid "Account"
 msgstr "アカウント"
 
-#: src/routes/(root)/[username]/(profile)/articles.tsx:76
+#: src/routes/(root)/[username]/(profile)/articles.tsx:77
 #: src/components/ProfileTabs.tsx:47
 msgid "Articles"
 msgstr "記事"
@@ -64,7 +64,7 @@ msgstr "メールアドレスまたはユーザー名"
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
-#: src/components/ActorArticleList.tsx:72
+#: src/components/ActorArticleList.tsx:73
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
 
@@ -72,6 +72,7 @@ msgstr "記事の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more notes; click to retry"
 msgstr "投稿の読み込みに失敗しました。クリックして再試行してください"
 
+#: src/components/ActorSharedPostList.tsx:73
 #: src/components/ActorPostList.tsx:71
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
@@ -109,7 +110,7 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "ホーム"
 
-#: src/components/ActorArticleList.tsx:75
+#: src/components/ActorArticleList.tsx:76
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
 
@@ -117,11 +118,12 @@ msgstr "記事をもっと読み込む"
 msgid "Load more notes"
 msgstr "投稿をもっと読み込む"
 
+#: src/components/ActorSharedPostList.tsx:76
 #: src/components/ActorPostList.tsx:74
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
-#: src/components/ActorArticleList.tsx:69
+#: src/components/ActorArticleList.tsx:70
 msgid "Loading more articles…"
 msgstr "記事を読み込み中…"
 
@@ -129,6 +131,7 @@ msgstr "記事を読み込み中…"
 msgid "Loading more notes…"
 msgstr "投稿を読み込み中…"
 
+#: src/components/ActorSharedPostList.tsx:70
 #: src/components/ActorPostList.tsx:68
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
@@ -142,7 +145,7 @@ msgstr "Markdown ガイド"
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
 
-#: src/components/ActorArticleList.tsx:82
+#: src/components/ActorArticleList.tsx:83
 msgid "No notes articles"
 msgstr "記事はありません"
 
@@ -150,6 +153,7 @@ msgstr "記事はありません"
 msgid "No notes found"
 msgstr "投稿はありません"
 
+#: src/components/ActorSharedPostList.tsx:83
 #: src/components/ActorPostList.tsx:81
 msgid "No posts found"
 msgstr "コンテンツはありません"
@@ -182,6 +186,11 @@ msgstr "ひかえめな公開"
 #: src/components/ArticleCard.tsx:236
 msgid "Read full article"
 msgstr "記事全文を読む"
+
+#: src/routes/(root)/[username]/(profile)/shares.tsx:77
+#: src/components/ProfileTabs.tsx:50
+msgid "Shares"
+msgstr "共有"
 
 #: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225

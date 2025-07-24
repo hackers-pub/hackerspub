@@ -2,31 +2,31 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { ArticleCard } from "./ArticleCard.tsx";
-import { ActorArticleList_articles$key } from "./__generated__/ActorArticleList_articles.graphql.ts";
+import { PostCard } from "./PostCard.tsx";
+import { ActorSharedPostList_sharedPosts$key } from "./__generated__/ActorSharedPostList_sharedPosts.graphql.ts";
 
-export interface ActorArticleListProps {
-  $articles: ActorArticleList_articles$key;
+export interface ActorSharedPostListProps {
+  $sharedPosts: ActorSharedPostList_sharedPosts$key;
 }
 
-export function ActorArticleList(props: ActorArticleListProps) {
+export function ActorSharedPostList(props: ActorSharedPostListProps) {
   const { t } = useLingui();
-  const articles = createPaginationFragment(
+  const sharedPosts = createPaginationFragment(
     graphql`
-      fragment ActorArticleList_articles on Actor
-        @refetchable(queryName: "ActorArticleListQuery")
+      fragment ActorSharedPostList_sharedPosts on Actor
+        @refetchable(queryName: "ActorSharedPostListQuery")
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
           locale: { type: "Locale" }
         )
       {
-        articles(after: $cursor, first: $count)
-          @connection(key: "ActorArticleList_articles")
+        sharedPosts(after: $cursor, first: $count)
+          @connection(key: "ActorSharedPostList_sharedPosts")
         {
           edges {
             node {
-              ...ArticleCard_article @arguments(locale: $locale)
+              ...PostCard_post @arguments(locale: $locale)
             }
           }
           pageInfo {
@@ -35,7 +35,7 @@ export function ActorArticleList(props: ActorArticleListProps) {
         }
       }
     `,
-    () => props.$articles,
+    () => props.$sharedPosts,
   );
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
@@ -43,7 +43,7 @@ export function ActorArticleList(props: ActorArticleListProps) {
 
   function onLoadMore() {
     setLoadingState("loading");
-    articles.loadNext(20, {
+    sharedPosts.loadNext(20, {
       onComplete(error) {
         setLoadingState(error == null ? "loaded" : "errored");
       },
@@ -52,35 +52,35 @@ export function ActorArticleList(props: ActorArticleListProps) {
 
   return (
     <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto my-4">
-      <Show when={articles()}>
+      <Show when={sharedPosts()}>
         {(data) => (
           <>
-            <For each={data().articles.edges}>
-              {(edge) => <ArticleCard $article={edge.node} />}
+            <For each={data().sharedPosts.edges}>
+              {(edge) => <PostCard $post={edge.node} />}
             </For>
-            <Show when={articles.hasNext}>
+            <Show when={sharedPosts.hasNext}>
               <div
                 on:click={loadingState() === "loading" ? undefined : onLoadMore}
                 class="block px-4 py-8 text-center text-muted-foreground cursor-pointer hover:text-primary hover:bg-secondary"
               >
                 <Switch>
                   <Match
-                    when={articles.pending || loadingState() === "loading"}
+                    when={sharedPosts.pending || loadingState() === "loading"}
                   >
-                    {t`Loading more articles…`}
+                    {t`Loading more posts…`}
                   </Match>
                   <Match when={loadingState() === "errored"}>
-                    {t`Failed to load more articles; click to retry`}
+                    {t`Failed to load more posts; click to retry`}
                   </Match>
                   <Match when={loadingState() === "loaded"}>
-                    {t`Load more articles`}
+                    {t`Load more posts`}
                   </Match>
                 </Switch>
               </div>
             </Show>
-            <Show when={data().articles.edges.length < 1}>
+            <Show when={data().sharedPosts.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
-                {t`No notes articles`}
+                {t`No posts found`}
               </div>
             </Show>
           </>

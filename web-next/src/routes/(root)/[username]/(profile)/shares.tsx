@@ -6,7 +6,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ActorArticleList } from "~/components/ActorArticleList.tsx";
+import { ActorSharedPostList } from "~/components/ActorSharedPostList.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -16,7 +16,7 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { articlesPageQuery } from "./__generated__/articlesPageQuery.graphql.ts";
+import type { sharesPageQuery } from "./__generated__/sharesPageQuery.graphql.ts";
 
 export const route = {
   matchFilters: {
@@ -29,12 +29,12 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
-const articlesPageQuery = graphql`
-  query articlesPageQuery($username: String!, $locale: Locale!) {
+const sharesPageQuery = graphql`
+  query sharesPageQuery($username: String!, $locale: Locale!) {
     accountByUsername(username: $username) {
       username
       actor {
-        ...ActorArticleList_articles @arguments(locale: $locale)
+        ...ActorSharedPostList_sharedPosts @arguments(locale: $locale)
         ...ProfileTabs_actor
       }
       ...ProfilePageBreadcrumb_account
@@ -45,20 +45,20 @@ const articlesPageQuery = graphql`
 
 const loadPageQuery = query(
   (username: string, locale: string) =>
-    loadQuery<articlesPageQuery>(
+    loadQuery<sharesPageQuery>(
       useRelayEnvironment()(),
-      articlesPageQuery,
+      sharesPageQuery,
       { username, locale },
     ),
-  "loadArticlesPageQuery",
+  "loadSharesPageQuery",
 );
 
-export default function ProfileArticlesPage() {
+export default function ProfileSharesPage() {
   const params = useParams();
   const { t, i18n } = useLingui();
   const username = params.username.substring(1);
-  const data = createPreloadedQuery<articlesPageQuery>(
-    articlesPageQuery,
+  const data = createPreloadedQuery<sharesPageQuery>(
+    sharesPageQuery,
     () => loadPageQuery(username, i18n.locale),
   );
   return (
@@ -74,7 +74,7 @@ export default function ProfileArticlesPage() {
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbLink current>
-                      {t`Articles`}
+                      {t`Shares`}
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                 </ProfilePageBreadcrumb>
@@ -82,8 +82,8 @@ export default function ProfileArticlesPage() {
                   <ProfileCard $account={account()} />
                 </div>
                 <div class="p-4">
-                  <ProfileTabs selected="articles" $actor={account().actor} />
-                  <ActorArticleList $articles={account().actor} />
+                  <ProfileTabs selected="shares" $actor={account().actor} />
+                  <ActorSharedPostList $sharedPosts={account().actor} />
                 </div>
               </>
             )}

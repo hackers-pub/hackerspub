@@ -102,6 +102,7 @@ type Actor implements Node {
   questions(after: String, before: String, first: Int, last: Int): ActorQuestionsConnection!
   rawName: String
   sensitive: Boolean!
+  sharedPosts(after: String, before: String, first: Int, last: Int): ActorSharedPostsConnection!
   successor: Actor
   type: ActorType!
   updated: DateTime!
@@ -186,6 +187,16 @@ type ActorQuestionsConnection {
 type ActorQuestionsConnectionEdge {
   cursor: String!
   node: Question!
+}
+
+type ActorSharedPostsConnection {
+  edges: [ActorSharedPostsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorSharedPostsConnectionEdge {
+  cursor: String!
+  node: Post!
 }
 
 enum ActorType {

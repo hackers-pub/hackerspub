@@ -37,7 +37,7 @@ msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함
 msgid "Account"
 msgstr "계정"
 
-#: src/routes/(root)/[username]/(profile)/articles.tsx:76
+#: src/routes/(root)/[username]/(profile)/articles.tsx:77
 #: src/components/ProfileTabs.tsx:47
 msgid "Articles"
 msgstr "게시글"
@@ -64,7 +64,7 @@ msgstr "이메일 또는 아이디"
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
 
-#: src/components/ActorArticleList.tsx:72
+#: src/components/ActorArticleList.tsx:73
 msgid "Failed to load more articles; click to retry"
 msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 
@@ -72,6 +72,7 @@ msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more notes; click to retry"
 msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
 
+#: src/components/ActorSharedPostList.tsx:73
 #: src/components/ActorPostList.tsx:71
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
@@ -109,7 +110,7 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "홈"
 
-#: src/components/ActorArticleList.tsx:75
+#: src/components/ActorArticleList.tsx:76
 msgid "Load more articles"
 msgstr "게시글 더 불러오기"
 
@@ -117,11 +118,12 @@ msgstr "게시글 더 불러오기"
 msgid "Load more notes"
 msgstr "단문 더 불러오기"
 
+#: src/components/ActorSharedPostList.tsx:76
 #: src/components/ActorPostList.tsx:74
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
 
-#: src/components/ActorArticleList.tsx:69
+#: src/components/ActorArticleList.tsx:70
 msgid "Loading more articles…"
 msgstr "게시글 불러오는 중…"
 
@@ -129,6 +131,7 @@ msgstr "게시글 불러오는 중…"
 msgid "Loading more notes…"
 msgstr "단문 불러오는 중…"
 
+#: src/components/ActorSharedPostList.tsx:70
 #: src/components/ActorPostList.tsx:68
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
@@ -142,7 +145,7 @@ msgstr "Markdown 가이드"
 msgid "Mentioned only"
 msgstr "언급된 사용자만"
 
-#: src/components/ActorArticleList.tsx:82
+#: src/components/ActorArticleList.tsx:83
 msgid "No notes articles"
 msgstr "게시글이 없습니다"
 
@@ -150,6 +153,7 @@ msgstr "게시글이 없습니다"
 msgid "No notes found"
 msgstr "단문이 없습니다"
 
+#: src/components/ActorSharedPostList.tsx:83
 #: src/components/ActorPostList.tsx:81
 msgid "No posts found"
 msgstr "콘텐츠가 없습니다"
@@ -182,6 +186,11 @@ msgstr "조용히 공개"
 #: src/components/ArticleCard.tsx:236
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
+
+#: src/routes/(root)/[username]/(profile)/shares.tsx:77
+#: src/components/ProfileTabs.tsx:50
+msgid "Shares"
+msgstr "공유"
 
 #: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225

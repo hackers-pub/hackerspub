@@ -158,6 +158,18 @@ export const Actor = builder.drizzleNode("actorTable", {
         orderBy: { published: "desc" },
       }),
     }),
+    sharedPosts: t.relatedConnection("posts", {
+      type: Post,
+      query: (_, ctx) => ({
+        where: {
+          AND: [
+            getPostVisibilityFilter(ctx.account?.actor ?? null),
+            { sharedPostId: { isNotNull: true } },
+          ],
+        },
+        orderBy: { published: "desc" },
+      }),
+    }),
     pins: t.connection({
       type: Post,
       select: (args, ctx, nestedSelection) => ({

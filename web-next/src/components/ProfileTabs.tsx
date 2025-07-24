@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { ProfileTabs_actor$key } from "./__generated__/ProfileTabs_actor.graphql.ts";
 
-export type ProfileTab = "posts" | "notes" | "articles";
+export type ProfileTab = "posts" | "notes" | "articles" | "shares";
 
 export interface ProfileTabsProps {
   selected: ProfileTab;
@@ -36,7 +36,7 @@ export function ProfileTabs(props: ProfileTabsProps) {
           : `/@${account.username}`;
         return (
           <Tabs value={props.selected}>
-            <TabsList class="grid max-w-prose mx-auto grid-cols-3">
+            <TabsList class="grid max-w-prose mx-auto grid-cols-4">
               <TabsTrigger as={A} value="posts" href={baseUrl}>
                 {t`Posts`}
               </TabsTrigger>
@@ -45,6 +45,9 @@ export function ProfileTabs(props: ProfileTabsProps) {
               </TabsTrigger>
               <TabsTrigger as={A} value="articles" href={`${baseUrl}/articles`}>
                 {t`Articles`}
+              </TabsTrigger>
+              <TabsTrigger as={A} value="shares" href={`${baseUrl}/shares`}>
+                {t`Shares`}
               </TabsTrigger>
             </TabsList>
           </Tabs>

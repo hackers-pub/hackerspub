@@ -18,7 +18,7 @@ export function ActorPostList(props: ActorPostListProps) {
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
-          locale: { type: "Locale" },
+          locale: { type: "Locale" }
         )
       {
         posts(after: $cursor, first: $count)
