@@ -15,6 +15,7 @@ jobs:
     - uses: denoland/setup-deno@v2
       with:
         deno-version: 2.4.1
+        cache: true
     - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
     - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
     - run: deno task check
