@@ -7,6 +7,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorArticleList } from "~/components/ActorArticleList.tsx";
+import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -20,38 +21,32 @@ import type { articlesPageQuery } from "./__generated__/articlesPageQuery.graphq
 
 export const route = {
   matchFilters: {
-    username: /^\@/,
+    handle: /^@/,
   },
   preload(args) {
     const { i18n } = useLingui();
-    const username = args.params.username;
-    void loadPageQuery(username.substring(1), i18n.locale);
+    void loadPageQuery(args.params.handle, i18n.locale);
   },
 } satisfies RouteDefinition;
 
 const articlesPageQuery = graphql`
-  query articlesPageQuery(
-    $username: String!
-    $locale: Locale!
-  ) {
-    accountByUsername(username: $username) {
-      username
-      actor {
-        ...ActorArticleList_articles @arguments(locale: $locale)
-        ...ProfileTabs_actor
-      }
-      ...ProfilePageBreadcrumb_account
-      ...ProfileCard_account
+  query articlesPageQuery($handle: String!, $locale: Locale!) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      ...NavigateIfHandleIsNotCanonical_actor
+      ...ActorArticleList_articles @arguments(locale: $locale)
+      ...ProfilePageBreadcrumb_actor
+      ...ProfileCard_actor
+      ...ProfileTabs_actor
     }
   }
 `;
 
 const loadPageQuery = query(
-  (username: string, locale: string) =>
+  (handle: string, locale: string) =>
     loadQuery<articlesPageQuery>(
       useRelayEnvironment()(),
       articlesPageQuery,
-      { username, locale },
+      { handle, locale },
     ),
   "loadArticlesPageQuery",
 );
@@ -59,21 +54,19 @@ const loadPageQuery = query(
 export default function ProfileArticlesPage() {
   const params = useParams();
   const { t, i18n } = useLingui();
-  const username = params.username.substring(1);
   const data = createPreloadedQuery<articlesPageQuery>(
     articlesPageQuery,
-    () => loadPageQuery(username, i18n.locale),
+    () => loadPageQuery(params.handle, i18n.locale),
   );
   return (
     <Show when={data()}>
       {(data) => (
         <>
-          <Show
-            when={data().accountByUsername}
-          >
-            {(account) => (
+          <Show when={data().actorByHandle}>
+            {(actor) => (
               <>
-                <ProfilePageBreadcrumb $account={account()}>
+                <NavigateIfHandleIsNotCanonical $actor={actor()} />
+                <ProfilePageBreadcrumb $actor={actor()}>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbLink current>
@@ -82,11 +75,11 @@ export default function ProfileArticlesPage() {
                   </BreadcrumbItem>
                 </ProfilePageBreadcrumb>
                 <div>
-                  <ProfileCard $account={account()} />
+                  <ProfileCard $actor={actor()} />
                 </div>
                 <div class="p-4">
-                  <ProfileTabs selected="articles" $actor={account().actor} />
-                  <ActorArticleList $articles={account().actor} />
+                  <ProfileTabs selected="articles" $actor={actor()} />
+                  <ActorArticleList $articles={actor()} />
                 </div>
               </>
             )}

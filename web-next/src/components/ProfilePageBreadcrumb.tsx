@@ -1,34 +1,32 @@
 import { graphql } from "relay-runtime";
 import { ComponentProps, Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { ProfilePageBreadcrumb_account$key } from "./__generated__/ProfilePageBreadcrumb_account.graphql.ts";
-import { TopBreadcrumb } from "./TopBreadcrumb.tsx";
-import { Badge } from "./ui/badge.tsx";
 import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbSeparator,
-} from "./ui/breadcrumb.tsx";
+} from "~/components/ui/breadcrumb.tsx";
+import { ProfilePageBreadcrumb_actor$key } from "./__generated__/ProfilePageBreadcrumb_actor.graphql.ts";
+import { TopBreadcrumb } from "./TopBreadcrumb.tsx";
 
 export interface ProfilePageBreadcrumbProps extends ComponentProps<"ol"> {
-  $account: ProfilePageBreadcrumb_account$key;
+  $actor: ProfilePageBreadcrumb_actor$key;
 }
 
 export function ProfilePageBreadcrumb(props: ProfilePageBreadcrumbProps) {
-  const account = createFragment(
+  const actor = createFragment(
     graphql`
-      fragment ProfilePageBreadcrumb_account on Account {
+      fragment ProfilePageBreadcrumb_actor on Actor {
         name
         username
-        handle
       }
     `,
-    () => props.$account,
+    () => props.$actor,
   );
 
   return (
-    <Show when={account()}>
-      {(account) => (
+    <Show when={actor()}>
+      {(actor) => (
         <TopBreadcrumb>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -38,12 +36,9 @@ export function ProfilePageBreadcrumb(props: ProfilePageBreadcrumbProps) {
               href={props.children == null ||
                   Array.isArray(props.children) && props.children.length < 1
                 ? undefined
-                : `/@${account().username}`}
+                : `/@${actor().username}`}
             >
-              {account().name}{" "}
-              <Badge variant="secondary" class="select-all">
-                {account().handle}
-              </Badge>
+              <span innerHTML={actor().name ?? actor().username} />
             </BreadcrumbLink>
           </BreadcrumbItem>
           {props.children}

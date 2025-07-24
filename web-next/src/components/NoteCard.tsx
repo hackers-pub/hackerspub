@@ -58,7 +58,9 @@ function NoteCardInternal(props: NoteCardInternalProps) {
         actor {
           name
           handle
+          username
           avatarUrl
+          local
         }
         content
         language
@@ -75,12 +77,21 @@ function NoteCardInternal(props: NoteCardInternalProps) {
         <>
           <div class="flex gap-4">
             <Avatar class="size-12">
-              <AvatarImage src={note().actor.avatarUrl} class="size-12" />
+              <a
+                href={note().actor.local
+                  ? `/@${note().actor.username}`
+                  : `/${note().actor.handle}`}
+              >
+                <AvatarImage src={note().actor.avatarUrl} class="size-12" />
+              </a>
             </Avatar>
             <div class="flex flex-col">
               <div>
                 <Show when={(note().actor.name ?? "").trim() !== ""}>
-                  <span
+                  <a
+                    href={note().actor.local
+                      ? `/@${note().actor.username}`
+                      : `/${note().actor.handle}`}
                     innerHTML={note().actor.name ?? ""}
                     class="font-semibold"
                   />

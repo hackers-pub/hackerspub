@@ -78,6 +78,8 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           name
           handle
           avatarUrl
+          local
+          username
         }
         name
         summary
@@ -105,13 +107,22 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
         <>
           <div class="flex gap-4 m-4 mb-0">
             <Avatar class="size-12">
-              <AvatarImage src={article().actor.avatarUrl} class="size-12" />
+              <a
+                href={article().actor.local
+                  ? `/@${article().actor.username}`
+                  : `/${article().actor.handle}`}
+              >
+                <AvatarImage src={article().actor.avatarUrl} class="size-12" />
+              </a>
             </Avatar>
             <div class="flex flex-col">
               <div>
                 <Show when={(article().actor.name ?? "").trim() !== ""}>
-                  <span
+                  <a
                     innerHTML={article().actor.name ?? ""}
+                    href={article().actor.local
+                      ? `/@${article().actor.username}`
+                      : `/${article().actor.handle}`}
                     class="font-semibold"
                   />
                   {" "}

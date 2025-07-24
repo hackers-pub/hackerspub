@@ -2,6 +2,7 @@ import { isActor } from "@fedify/fedify";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import type { Actor as ActorModel } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { assertNever } from "@std/assert/unstable-never";
@@ -385,24 +386,37 @@ builder.queryFields((t) => ({
     type: Actor,
     args: {
       handle: t.arg.string({ required: true }),
+      allowLocalHandle: t.arg.boolean({
+        defaultValue: false,
+        description: "Whether to allow local handles (e.g. @username).",
+      }),
     },
     nullable: true,
-    async resolve(query, _, { handle }, ctx) {
+    async resolve(query, _, { handle, allowLocalHandle }, ctx) {
       if (handle.startsWith("@")) handle = handle.substring(1);
       const split = handle.split("@");
-      if (split.length !== 2) return null;
-      const [username, host] = split;
-      const actor = await ctx.db.query.actorTable.findFirst(
-        query({
-          where: {
-            username,
-            OR: [{ instanceHost: host }, { handleHost: host }],
-          },
-        }),
-      );
+      let actor: ActorModel | undefined = undefined;
+      if (split.length === 2) {
+        const [username, host] = split;
+        actor = await ctx.db.query.actorTable.findFirst(
+          query({
+            where: {
+              username,
+              OR: [{ instanceHost: host }, { handleHost: host }],
+            },
+          }),
+        );
+      } else if (split.length === 1 && allowLocalHandle) {
+        actor = await ctx.db.query.actorTable.findFirst(
+          query({
+            where: { username: split[0], accountId: { isNotNull: true } },
+          }),
+        );
+      }
       if (actor) return actor;
-      // FIXME: documentLoader
-      const documentLoader = ctx.fedCtx.documentLoader;
+      const documentLoader = ctx.account == null
+        ? ctx.fedCtx.documentLoader
+        : await ctx.fedCtx.getDocumentLoader({ identifier: ctx.account.id });
       const actorObject = await ctx.fedCtx.lookupObject(
         handle,
         { documentLoader },

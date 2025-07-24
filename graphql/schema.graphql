@@ -613,7 +613,11 @@ enum PostVisibility {
 
 type Query {
   accountByUsername(username: String!): Account
-  actorByHandle(handle: String!): Actor
+  actorByHandle(
+    """Whether to allow local handles (e.g. @username)."""
+    allowLocalHandle: Boolean = false
+    handle: String!
+  ): Actor
   actorByUuid(uuid: UUID!): Actor
   codeOfConduct(
     """The locale for the Code of Conduct."""

@@ -7,6 +7,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorSharedPostList } from "~/components/ActorSharedPostList.tsx";
+import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -20,38 +21,32 @@ import type { sharesPageQuery } from "./__generated__/sharesPageQuery.graphql.ts
 
 export const route = {
   matchFilters: {
-    username: /^\@/,
+    handle: /^@/,
   },
   preload(args) {
     const { i18n } = useLingui();
-    const username = args.params.username;
-    void loadPageQuery(username.substring(1), i18n.locale);
+    void loadPageQuery(args.params.handle, i18n.locale);
   },
 } satisfies RouteDefinition;
 
 const sharesPageQuery = graphql`
-  query sharesPageQuery(
-    $username: String!
-    $locale: Locale!
-  ) {
-    accountByUsername(username: $username) {
-      username
-      actor {
-        ...ActorSharedPostList_sharedPosts @arguments(locale: $locale)
-        ...ProfileTabs_actor
-      }
-      ...ProfilePageBreadcrumb_account
-      ...ProfileCard_account
+  query sharesPageQuery($handle: String!, $locale: Locale!) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      ...NavigateIfHandleIsNotCanonical_actor
+      ...ActorSharedPostList_sharedPosts @arguments(locale: $locale)
+      ...ProfilePageBreadcrumb_actor
+      ...ProfileCard_actor
+      ...ProfileTabs_actor
     }
   }
 `;
 
 const loadPageQuery = query(
-  (username: string, locale: string) =>
+  (handle: string, locale: string) =>
     loadQuery<sharesPageQuery>(
       useRelayEnvironment()(),
       sharesPageQuery,
-      { username, locale },
+      { handle, locale },
     ),
   "loadSharesPageQuery",
 );
@@ -59,21 +54,21 @@ const loadPageQuery = query(
 export default function ProfileSharesPage() {
   const params = useParams();
   const { t, i18n } = useLingui();
-  const username = params.username.substring(1);
   const data = createPreloadedQuery<sharesPageQuery>(
     sharesPageQuery,
-    () => loadPageQuery(username, i18n.locale),
+    () => loadPageQuery(params.handle, i18n.locale),
   );
   return (
     <Show when={data()}>
       {(data) => (
         <>
           <Show
-            when={data().accountByUsername}
+            when={data().actorByHandle}
           >
-            {(account) => (
+            {(actor) => (
               <>
-                <ProfilePageBreadcrumb $account={account()}>
+                <NavigateIfHandleIsNotCanonical $actor={actor()} />
+                <ProfilePageBreadcrumb $actor={actor()}>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbLink current>
@@ -82,11 +77,11 @@ export default function ProfileSharesPage() {
                   </BreadcrumbItem>
                 </ProfilePageBreadcrumb>
                 <div>
-                  <ProfileCard $account={account()} />
+                  <ProfileCard $actor={actor()} />
                 </div>
                 <div class="p-4">
-                  <ProfileTabs selected="shares" $actor={account().actor} />
-                  <ActorSharedPostList $sharedPosts={account().actor} />
+                  <ProfileTabs selected="shares" $actor={actor()} />
+                  <ActorSharedPostList $sharedPosts={actor()} />
                 </div>
               </>
             )}

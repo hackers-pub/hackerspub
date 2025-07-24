@@ -7,6 +7,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorPostList } from "~/components/ActorPostList.tsx";
+import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -15,35 +16,32 @@ import type { ProfilePageQuery } from "./__generated__/ProfilePageQuery.graphql.
 
 export const route = {
   matchFilters: {
-    username: /^\@/,
+    handle: /^\@/,
   },
   preload(args) {
     const { i18n } = useLingui();
-    const username = args.params.username;
-    void loadPageQuery(username.substring(1), i18n.locale);
+    void loadPageQuery(args.params.handle, i18n.locale);
   },
 } satisfies RouteDefinition;
 
 const ProfilePageQuery = graphql`
-  query ProfilePageQuery($username: String!, $locale: Locale) {
-    accountByUsername(username: $username) {
-      username
-      actor {
-        ...ActorPostList_posts @arguments(locale: $locale)
-        ...ProfileTabs_actor
-      }
-      ...ProfilePageBreadcrumb_account
-      ...ProfileCard_account
+  query ProfilePageQuery($handle: String!, $locale: Locale) {
+    actorByHandle(handle: $handle, allowLocalHandle: true) {
+      ...NavigateIfHandleIsNotCanonical_actor
+      ...ActorPostList_posts @arguments(locale: $locale)
+      ...ProfilePageBreadcrumb_actor
+      ...ProfileCard_actor
+      ...ProfileTabs_actor
     }
   }
 `;
 
 const loadPageQuery = query(
-  (username: string, locale: string) =>
+  (handle: string, locale: string) =>
     loadQuery<ProfilePageQuery>(
       useRelayEnvironment()(),
       ProfilePageQuery,
-      { username, locale },
+      { handle, locale },
     ),
   "loadProfilePageQuery",
 );
@@ -51,27 +49,27 @@ const loadPageQuery = query(
 export default function ProfilePage() {
   const { i18n } = useLingui();
   const params = useParams();
-  const username = params.username.substring(1);
   const data = createPreloadedQuery<ProfilePageQuery>(
     ProfilePageQuery,
-    () => loadPageQuery(username, i18n.locale),
+    () => loadPageQuery(params.handle, i18n.locale),
   );
   return (
     <Show when={data()}>
       {(data) => (
         <>
           <Show
-            when={data().accountByUsername}
+            when={data().actorByHandle}
           >
-            {(account) => (
+            {(actor) => (
               <>
-                <ProfilePageBreadcrumb $account={account()} />
+                <NavigateIfHandleIsNotCanonical $actor={actor()} />
+                <ProfilePageBreadcrumb $actor={actor()} />
                 <div>
-                  <ProfileCard $account={account()} />
+                  <ProfileCard $actor={actor()} />
                 </div>
                 <div class="p-4">
-                  <ProfileTabs selected="posts" $actor={account().actor} />
-                  <ActorPostList $posts={account().actor} />
+                  <ProfileTabs selected="posts" $actor={actor()} />
+                  <ActorPostList $posts={actor()} />
                 </div>
               </>
             )}
