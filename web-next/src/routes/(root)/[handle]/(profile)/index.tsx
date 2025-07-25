@@ -16,7 +16,7 @@ import type { ProfilePageQuery } from "./__generated__/ProfilePageQuery.graphql.
 
 export const route = {
   matchFilters: {
-    handle: /^\@/,
+    handle: /^@/,
   },
   preload(args) {
     const { i18n } = useLingui();

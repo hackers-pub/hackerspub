@@ -112,6 +112,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                 href={article().actor.local
                   ? `/@${article().actor.username}`
                   : `/${article().actor.handle}`}
+                target={article().actor.local ? undefined : "_self"}
               >
                 <AvatarImage src={article().actor.avatarUrl} class="size-12" />
               </a>
@@ -124,6 +125,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                     href={article().actor.local
                       ? `/@${article().actor.username}`
                       : `/${article().actor.handle}`}
+                    target={article().actor.local ? undefined : "_self"}
                     class="font-semibold"
                   />
                   {" "}

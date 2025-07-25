@@ -21,7 +21,7 @@ import type { notesPageQuery } from "./__generated__/notesPageQuery.graphql.ts";
 
 export const route = {
   matchFilters: {
-    handle: /^\@/,
+    handle: /^@/,
   },
   preload(args) {
     void loadPageQuery(args.params.handle);

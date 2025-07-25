@@ -82,6 +82,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
                 href={note().actor.local
                   ? `/@${note().actor.username}`
                   : `/${note().actor.handle}`}
+                target={note().actor.local ? undefined : "_self"}
               >
                 <AvatarImage src={note().actor.avatarUrl} class="size-12" />
               </a>
@@ -93,6 +94,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
                     href={note().actor.local
                       ? `/@${note().actor.username}`
                       : `/${note().actor.handle}`}
+                    target={note().actor.local ? undefined : "_self"}
                     innerHTML={note().actor.name ?? ""}
                     class="font-semibold"
                   />
