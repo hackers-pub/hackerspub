@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
-import { Match, Show, Switch } from "solid-js";
+import { For, Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
+import { NoteCard_media$key } from "./__generated__/NoteCard_media.graphql.ts";
 import { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
 import { NoteCard_quotedNote$key } from "./__generated__/NoteCard_quotedNote.graphql.ts";
 import { NoteCardInternal_note$key } from "./__generated__/NoteCardInternal_note.graphql.ts";
@@ -17,10 +18,12 @@ export function NoteCard(props: NoteCardProps) {
   const note = createFragment(
     graphql`
       fragment NoteCard_note on Note {
-        ...NoteCardInternal_note
         ...PostSharer_post
+        ...NoteCardInternal_note
+        ...NoteCard_media
         sharedPost {
           ...NoteCardInternal_note
+          ...NoteCard_media
           quotedPost {
             __typename
             ...NoteCard_quotedNote
@@ -44,6 +47,7 @@ export function NoteCard(props: NoteCardProps) {
             fallback={
               <>
                 <NoteCardInternal $note={note()} />
+                <NoteMedia $note={note()} />
                 <Show when={note().quotedPost}>
                   {(quotedPost) => (
                     <Switch>
@@ -60,6 +64,7 @@ export function NoteCard(props: NoteCardProps) {
               <>
                 <PostSharer $post={note()} class="p-4 pb-0" />
                 <NoteCardInternal $note={sharedPost()} />
+                <NoteMedia $note={note()} />
                 <Show when={sharedPost().quotedPost}>
                   {(quotedPost) => (
                     <Switch>
@@ -152,6 +157,102 @@ function NoteCardInternal(props: NoteCardInternalProps) {
       )}
     </Show>
   );
+}
+
+interface NoteMediaProps {
+  $note: NoteCard_media$key;
+}
+
+function NoteMedia(props: NoteMediaProps) {
+  const note = createFragment(
+    graphql`
+      fragment NoteCard_media on Note {
+        media {
+          alt
+          type
+          width
+          height
+          url
+          thumbnailUrl
+          sensitive
+        }
+      }
+    `,
+    () => props.$note,
+  );
+
+  return (
+    <Show when={note()}>
+      {(note) => (
+        <Show when={note().media.length > 0}>
+          <div class="mt-4 flex flex-row">
+            <Switch>
+              <Match when={note().media.length === 1}>
+                <img
+                  src={note().media[0].url}
+                  alt={note().media[0].alt ?? undefined}
+                  class="object-cover w-[65ch] h-[65ch]"
+                />
+              </Match>
+              <Match
+                when={note().media.length >= 2 && note().media.length % 2 < 1}
+              >
+                <div class="flex flex-col">
+                  <For each={range(0, note().media.length / 2)}>
+                    {(i) => (
+                      <div class="flex flex-row">
+                        <For each={note().media.slice(i * 2, i * 2 + 2)}>
+                          {(medium) => (
+                            <img
+                              src={medium.url}
+                              alt={medium.alt ?? undefined}
+                              class="object-cover w-[32.5ch] h-[32.5ch]"
+                            />
+                          )}
+                        </For>
+                      </div>
+                    )}
+                  </For>
+                </div>
+              </Match>
+              <Match
+                when={note().media.length >= 3 && note().media.length % 2 > 0}
+              >
+                <div class="flex flex-col">
+                  <img
+                    src={note().media[0].url}
+                    alt={note().media[0].alt ?? undefined}
+                    class="object-cover w-[65ch] h-[65ch]"
+                  />
+                  <For each={range(0, (note().media.length - 1) / 2)}>
+                    {(i) => (
+                      <div class="flex flex-row">
+                        <For each={note().media.slice(1 + i * 2, i * 2 + 3)}>
+                          {(medium) => (
+                            <img
+                              src={medium.url}
+                              alt={medium.alt ?? undefined}
+                              class="object-cover w-[32.5ch] h-[32.5ch]"
+                            />
+                          )}
+                        </For>
+                      </div>
+                    )}
+                  </For>
+                </div>
+              </Match>
+            </Switch>
+          </div>
+        </Show>
+      )}
+    </Show>
+  );
+}
+
+function range(start: number, end: number): number[] {
+  const result: number[] = [];
+  for (let i = start; i < end; i++) result.push(i);
+  return result;
 }
 
 interface QuotedNoteCardProps {
