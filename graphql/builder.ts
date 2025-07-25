@@ -116,9 +116,9 @@ export const builder = new SchemaBuilder<PothosTypes>({
     defaultComplexity: 1,
     defaultListMultiplier: 10,
     limit: {
-      complexity: 2500,
+      complexity: 3000,
       depth: 10,
-      breadth: 150,
+      breadth: 200,
     },
   },
   defaultFieldNullability: false,
