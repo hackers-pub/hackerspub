@@ -34,7 +34,7 @@ export function ArticleCard(props: ArticleCardProps) {
 
   return (
     <div
-      class="flex flex-col border-b last:border-none"
+      class="flex flex-col border-b last:border-none last:rounded-b-xl group"
       classList={{ "bg-accent": hover() }}
     >
       <Show when={article()}>
@@ -242,7 +242,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
             target={article().contents?.[0]?.url == null ? "_blank" : undefined}
             on:mouseover={() => props.setHover?.(true)}
             on:mouseout={() => props.setHover?.(false)}
-            class="block p-4 border-t bg-muted text-center"
+            class="block p-4 border-t bg-muted text-center group-last:rounded-b-xl"
             classList={{
               "text-muted-foreground": !props.hover?.(),
               "text-accent-foreground": props.hover?.(),
