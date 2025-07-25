@@ -13,13 +13,13 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#. placeholder {0}: account().actor.followersCount.totalCount
-#: src/components/ProfileCard.tsx:151
+#. placeholder {0}: actor().followersCount.totalCount
+#: src/components/ProfileCard.tsx:166
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
-#. placeholder {0}: account().actor.followeesCount.totalCount
-#: src/components/ProfileCard.tsx:140
+#. placeholder {0}: actor().followeesCount.totalCount
+#: src/components/ProfileCard.tsx:151
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
@@ -29,6 +29,30 @@ msgstr "{0, plural, other {#フォロー}}"
 msgid "{0} shared {1}"
 msgstr "{0}さんが{1}に共有"
 
+#. placeholder {0}: actor().rawName ?? actor().username
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:72
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:76
+msgid "{0}'s articles"
+msgstr "{0}さんの記事"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:72
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:75
+msgid "{0}'s followers"
+msgstr "{0}さんのフォロワー"
+
+#. placeholder {0}: actor().rawName ?? actor().username
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:73
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:77
+msgid "{0}'s notes"
+msgstr "{0}さんの投稿"
+
+#. placeholder {0}: actor().rawName ?? actor().username
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:74
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:78
+msgid "{0}'s shares"
+msgstr "{0}さんの共有"
+
 #: src/routes/sign/index.tsx:194
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
@@ -37,8 +61,8 @@ msgstr "ログインリンクがメールに送信されました。受信トレ
 msgid "Account"
 msgstr "アカウント"
 
-#: src/routes/(root)/[username]/(profile)/articles.tsx:80
-#: src/components/ProfileTabs.tsx:47
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:83
+#: src/components/ProfileTabs.tsx:48
 msgid "Articles"
 msgstr "記事"
 
@@ -64,20 +88,20 @@ msgstr "メールアドレスまたはユーザー名"
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
-#: src/components/ActorArticleList.tsx:73
+#: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/ActorFollowerList.tsx:78
+#: src/components/ActorFollowerList.tsx:80
 msgid "Failed to load more followers; click to retry"
 msgstr "フォロワーの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/ActorNoteList.tsx:70
+#: src/components/ActorNoteList.tsx:72
 msgid "Failed to load more notes; click to retry"
 msgstr "投稿の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/ActorSharedPostList.tsx:73
-#: src/components/ActorPostList.tsx:71
+#: src/components/ActorSharedPostList.tsx:75
+#: src/components/ActorPostList.tsx:73
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
@@ -94,7 +118,7 @@ msgstr "フェディバース"
 msgid "Feed"
 msgstr "フィード"
 
-#: src/routes/(root)/[username]/(profile)/followers.tsx:74
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:81
 msgid "Followers"
 msgstr "フォロワー"
 
@@ -102,7 +126,7 @@ msgstr "フォロワー"
 msgid "Followers only"
 msgstr "フォロワーのみ"
 
-#: src/components/ProfileCard.tsx:161
+#: src/components/ProfileCard.tsx:176
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
@@ -122,37 +146,37 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "ホーム"
 
-#: src/components/ActorArticleList.tsx:76
+#: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
 
-#: src/components/ActorFollowerList.tsx:81
+#: src/components/ActorFollowerList.tsx:83
 msgid "Load more followers"
 msgstr "フォロワーをもっと読み込む"
 
-#: src/components/ActorNoteList.tsx:73
+#: src/components/ActorNoteList.tsx:75
 msgid "Load more notes"
 msgstr "投稿をもっと読み込む"
 
-#: src/components/ActorSharedPostList.tsx:76
-#: src/components/ActorPostList.tsx:74
+#: src/components/ActorSharedPostList.tsx:78
+#: src/components/ActorPostList.tsx:76
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
-#: src/components/ActorArticleList.tsx:70
+#: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
 msgstr "記事を読み込み中…"
 
-#: src/components/ActorFollowerList.tsx:75
+#: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "フォロワーを読み込み中…"
 
-#: src/components/ActorNoteList.tsx:67
+#: src/components/ActorNoteList.tsx:69
 msgid "Loading more notes…"
 msgstr "投稿を読み込み中…"
 
-#: src/components/ActorSharedPostList.tsx:70
-#: src/components/ActorPostList.tsx:68
+#: src/components/ActorSharedPostList.tsx:72
+#: src/components/ActorPostList.tsx:70
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
 
@@ -165,37 +189,37 @@ msgstr "Markdown ガイド"
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
 
-#: src/components/ActorFollowerList.tsx:88
+#: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "フォロワーはいません"
 
-#: src/components/ActorArticleList.tsx:83
+#: src/components/ActorArticleList.tsx:85
 msgid "No notes articles"
 msgstr "記事はありません"
 
-#: src/components/ActorNoteList.tsx:80
+#: src/components/ActorNoteList.tsx:82
 msgid "No notes found"
 msgstr "投稿はありません"
 
-#: src/components/ActorSharedPostList.tsx:83
-#: src/components/ActorPostList.tsx:81
+#: src/components/ActorSharedPostList.tsx:85
+#: src/components/ActorPostList.tsx:83
 msgid "No posts found"
 msgstr "コンテンツはありません"
 
 #: src/components/PostList.tsx:19
-msgid "No posts found."
-msgstr "コンテンツが見つかりませんでした。"
+#~ msgid "No posts found."
+#~ msgstr "コンテンツが見つかりませんでした。"
 
 #: src/routes/sign/index.tsx:192
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
-#: src/routes/(root)/[username]/(profile)/notes.tsx:76
-#: src/components/ProfileTabs.tsx:44
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:84
+#: src/components/ProfileTabs.tsx:41
 msgid "Notes"
 msgstr "投稿"
 
-#: src/components/ProfileTabs.tsx:41
+#: src/components/ProfileTabs.tsx:38
 msgid "Posts"
 msgstr "コンテンツ"
 
@@ -207,12 +231,12 @@ msgstr "公開"
 msgid "Quiet public"
 msgstr "ひかえめな公開"
 
-#: src/components/ArticleCard.tsx:236
+#: src/components/ArticleCard.tsx:253
 msgid "Read full article"
 msgstr "記事全文を読む"
 
-#: src/routes/(root)/[username]/(profile)/shares.tsx:80
-#: src/components/ProfileTabs.tsx:50
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:85
+#: src/components/ProfileTabs.tsx:51
 msgid "Shares"
 msgstr "共有"
 
@@ -233,7 +257,7 @@ msgstr "Hackers' Pubにログイン"
 msgid "Signing in…"
 msgstr "ログイン中…"
 
-#: src/components/ArticleCard.tsx:214
+#: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -252,13 +276,13 @@ msgid "Timeline"
 msgstr "タイムライン"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:132
+#: src/components/ArticleCard.tsx:149
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:117
+#: src/components/ProfileCard.tsx:125
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 

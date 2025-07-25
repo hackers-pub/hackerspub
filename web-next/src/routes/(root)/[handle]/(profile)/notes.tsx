@@ -1,3 +1,4 @@
+import { Meta, Title } from "@solidjs/meta";
 import { query, type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -31,6 +32,8 @@ export const route = {
 const notesPageQuery = graphql`
   query notesPageQuery($handle: String!) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
+      rawName
+      username
       ...NavigateIfHandleIsNotCanonical_actor
       ...ActorNoteList_notes
       ...ProfilePageBreadcrumb_actor
@@ -66,6 +69,13 @@ export default function ProfileNotesPage() {
           >
             {(actor) => (
               <>
+                <Title>
+                  {t`${actor().rawName ?? actor().username}'s notes`}
+                </Title>
+                <Meta
+                  property="og:title"
+                  content={t`${actor().rawName ?? actor().username}'s notes`}
+                />
                 <NavigateIfHandleIsNotCanonical $actor={actor()} />
                 <ProfilePageBreadcrumb $actor={actor()}>
                   <BreadcrumbSeparator />

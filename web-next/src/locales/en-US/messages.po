@@ -13,13 +13,13 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#. placeholder {0}: account().actor.followersCount.totalCount
-#: src/components/ProfileCard.tsx:151
+#. placeholder {0}: actor().followersCount.totalCount
+#: src/components/ProfileCard.tsx:166
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
-#. placeholder {0}: account().actor.followeesCount.totalCount
-#: src/components/ProfileCard.tsx:140
+#. placeholder {0}: actor().followeesCount.totalCount
+#: src/components/ProfileCard.tsx:151
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -29,6 +29,30 @@ msgstr "{0, plural, one {# following} other {# following}}"
 msgid "{0} shared {1}"
 msgstr "{0} shared {1}"
 
+#. placeholder {0}: actor().rawName ?? actor().username
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:72
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:76
+msgid "{0}'s articles"
+msgstr "{0}'s articles"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:72
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:75
+msgid "{0}'s followers"
+msgstr "{0}'s followers"
+
+#. placeholder {0}: actor().rawName ?? actor().username
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:73
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:77
+msgid "{0}'s notes"
+msgstr "{0}'s notes"
+
+#. placeholder {0}: actor().rawName ?? actor().username
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:74
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:78
+msgid "{0}'s shares"
+msgstr "{0}'s shares"
+
 #: src/routes/sign/index.tsx:194
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
@@ -37,8 +61,8 @@ msgstr "A sign-in link has been sent to your email. Please check your inbox (or 
 msgid "Account"
 msgstr "Account"
 
-#: src/routes/(root)/[username]/(profile)/articles.tsx:80
-#: src/components/ProfileTabs.tsx:47
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:83
+#: src/components/ProfileTabs.tsx:48
 msgid "Articles"
 msgstr "Articles"
 
@@ -64,20 +88,20 @@ msgstr "Email or username"
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
-#: src/components/ActorArticleList.tsx:73
+#: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
 msgstr "Failed to load more articles; click to retry"
 
-#: src/components/ActorFollowerList.tsx:78
+#: src/components/ActorFollowerList.tsx:80
 msgid "Failed to load more followers; click to retry"
 msgstr "Failed to load more followers; click to retry"
 
-#: src/components/ActorNoteList.tsx:70
+#: src/components/ActorNoteList.tsx:72
 msgid "Failed to load more notes; click to retry"
 msgstr "Failed to load more notes; click to retry"
 
-#: src/components/ActorSharedPostList.tsx:73
-#: src/components/ActorPostList.tsx:71
+#: src/components/ActorSharedPostList.tsx:75
+#: src/components/ActorPostList.tsx:73
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
@@ -94,7 +118,7 @@ msgstr "Fediverse"
 msgid "Feed"
 msgstr "Feed"
 
-#: src/routes/(root)/[username]/(profile)/followers.tsx:74
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:81
 msgid "Followers"
 msgstr "Followers"
 
@@ -102,7 +126,7 @@ msgstr "Followers"
 msgid "Followers only"
 msgstr "Followers only"
 
-#: src/components/ProfileCard.tsx:161
+#: src/components/ProfileCard.tsx:176
 msgid "Following you"
 msgstr "Following you"
 
@@ -122,37 +146,37 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "Home"
 
-#: src/components/ActorArticleList.tsx:76
+#: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
 msgstr "Load more articles"
 
-#: src/components/ActorFollowerList.tsx:81
+#: src/components/ActorFollowerList.tsx:83
 msgid "Load more followers"
 msgstr "Load more followers"
 
-#: src/components/ActorNoteList.tsx:73
+#: src/components/ActorNoteList.tsx:75
 msgid "Load more notes"
 msgstr "Load more notes"
 
-#: src/components/ActorSharedPostList.tsx:76
-#: src/components/ActorPostList.tsx:74
+#: src/components/ActorSharedPostList.tsx:78
+#: src/components/ActorPostList.tsx:76
 msgid "Load more posts"
 msgstr "Load more posts"
 
-#: src/components/ActorArticleList.tsx:70
+#: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
 msgstr "Loading more articles…"
 
-#: src/components/ActorFollowerList.tsx:75
+#: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "Loading more followers…"
 
-#: src/components/ActorNoteList.tsx:67
+#: src/components/ActorNoteList.tsx:69
 msgid "Loading more notes…"
 msgstr "Loading more notes…"
 
-#: src/components/ActorSharedPostList.tsx:70
-#: src/components/ActorPostList.tsx:68
+#: src/components/ActorSharedPostList.tsx:72
+#: src/components/ActorPostList.tsx:70
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
@@ -165,37 +189,37 @@ msgstr "Markdown guide"
 msgid "Mentioned only"
 msgstr "Mentioned only"
 
-#: src/components/ActorFollowerList.tsx:88
+#: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "No followers found"
 
-#: src/components/ActorArticleList.tsx:83
+#: src/components/ActorArticleList.tsx:85
 msgid "No notes articles"
 msgstr "No notes articles"
 
-#: src/components/ActorNoteList.tsx:80
+#: src/components/ActorNoteList.tsx:82
 msgid "No notes found"
 msgstr "No notes found"
 
-#: src/components/ActorSharedPostList.tsx:83
-#: src/components/ActorPostList.tsx:81
+#: src/components/ActorSharedPostList.tsx:85
+#: src/components/ActorPostList.tsx:83
 msgid "No posts found"
 msgstr "No posts found"
 
 #: src/components/PostList.tsx:19
-msgid "No posts found."
-msgstr "No posts found."
+#~ msgid "No posts found."
+#~ msgstr "No posts found."
 
 #: src/routes/sign/index.tsx:192
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
-#: src/routes/(root)/[username]/(profile)/notes.tsx:76
-#: src/components/ProfileTabs.tsx:44
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:84
+#: src/components/ProfileTabs.tsx:41
 msgid "Notes"
 msgstr "Notes"
 
-#: src/components/ProfileTabs.tsx:41
+#: src/components/ProfileTabs.tsx:38
 msgid "Posts"
 msgstr "Posts"
 
@@ -207,12 +231,12 @@ msgstr "Public"
 msgid "Quiet public"
 msgstr "Quiet public"
 
-#: src/components/ArticleCard.tsx:236
+#: src/components/ArticleCard.tsx:253
 msgid "Read full article"
 msgstr "Read full article"
 
-#: src/routes/(root)/[username]/(profile)/shares.tsx:80
-#: src/components/ProfileTabs.tsx:50
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:85
+#: src/components/ProfileTabs.tsx:51
 msgid "Shares"
 msgstr "Shares"
 
@@ -233,7 +257,7 @@ msgstr "Signing in Hackers' Pub"
 msgid "Signing in…"
 msgstr "Signing in…"
 
-#: src/components/ArticleCard.tsx:214
+#: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -252,13 +276,13 @@ msgid "Timeline"
 msgstr "Timeline"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:132
+#: src/components/ArticleCard.tsx:149
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:117
+#: src/components/ProfileCard.tsx:125
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 

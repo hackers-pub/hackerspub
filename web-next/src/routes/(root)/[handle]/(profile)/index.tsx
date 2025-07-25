@@ -1,3 +1,4 @@
+import { Link, Meta, Title } from "@solidjs/meta";
 import { query, type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -27,6 +28,10 @@ export const route = {
 const ProfilePageQuery = graphql`
   query ProfilePageQuery($handle: String!, $locale: Locale) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
+      rawName
+      username
+      url
+      iri
       ...NavigateIfHandleIsNotCanonical_actor
       ...ActorPostList_posts @arguments(locale: $locale)
       ...ProfilePageBreadcrumb_actor
@@ -62,6 +67,15 @@ export default function ProfilePage() {
           >
             {(actor) => (
               <>
+                <Link rel="canonical" href={actor().url ?? actor().iri} />
+                <Title>{actor().rawName ?? actor().username}</Title>
+                <Meta property="og:type" content="profile" />
+                <Meta property="og:url" content={actor().url ?? actor().iri} />
+                <Meta
+                  property="og:title"
+                  content={actor().rawName ?? actor().username}
+                />
+                <Meta property="profile:username" content={actor().username} />
                 <NavigateIfHandleIsNotCanonical $actor={actor()} />
                 <ProfilePageBreadcrumb $actor={actor()} />
                 <div>

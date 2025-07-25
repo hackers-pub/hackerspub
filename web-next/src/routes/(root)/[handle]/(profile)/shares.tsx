@@ -1,3 +1,4 @@
+import { Meta, Title } from "@solidjs/meta";
 import { query, type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -32,6 +33,8 @@ export const route = {
 const sharesPageQuery = graphql`
   query sharesPageQuery($handle: String!, $locale: Locale!) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
+      rawName
+      username
       ...NavigateIfHandleIsNotCanonical_actor
       ...ActorSharedPostList_sharedPosts @arguments(locale: $locale)
       ...ProfilePageBreadcrumb_actor
@@ -67,6 +70,13 @@ export default function ProfileSharesPage() {
           >
             {(actor) => (
               <>
+                <Title>
+                  {t`${actor().rawName ?? actor().username}'s shares`}
+                </Title>
+                <Meta
+                  property="og:title"
+                  content={t`${actor().rawName ?? actor().username}'s shares`}
+                />
                 <NavigateIfHandleIsNotCanonical $actor={actor()} />
                 <ProfilePageBreadcrumb $actor={actor()}>
                   <BreadcrumbSeparator />

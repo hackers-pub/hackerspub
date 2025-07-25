@@ -1,3 +1,4 @@
+import { Meta, Title } from "@solidjs/meta";
 import { query, type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -30,6 +31,7 @@ export const route = {
 const followersPageQuery = graphql`
   query followersPageQuery($username: String!) {
     accountByUsername(username: $username) {
+      name
       username
       actor {
         ...ProfilePageBreadcrumb_actor
@@ -67,6 +69,11 @@ export default function ProfileFollowersPage() {
           >
             {(account) => (
               <>
+                <Title>{t`${account().name}'s followers`}</Title>
+                <Meta
+                  property="og:title"
+                  content={t`${account().name}'s followers`}
+                />
                 <ProfilePageBreadcrumb $actor={account().actor}>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
