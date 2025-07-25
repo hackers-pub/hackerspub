@@ -19,9 +19,8 @@ export function ProfileTabs(props: ProfileTabsProps) {
     graphql`
       fragment ProfileTabs_actor on Actor {
         handle
-        account {
-          username
-        }
+        local
+        username
       }
     `,
     () => props.$actor,
@@ -30,23 +29,25 @@ export function ProfileTabs(props: ProfileTabsProps) {
   return (
     <Show when={actor()}>
       {(actor) => {
-        const account = actor().account;
-        const baseUrl = account == null
-          ? `/${actor().handle}`
-          : `/@${account.username}`;
+        const baseUrl = () =>
+          actor().local ? `/@${actor().username}` : `/${actor().handle}`;
         return (
           <Tabs value={props.selected}>
             <TabsList class="grid max-w-prose mx-auto grid-cols-4">
-              <TabsTrigger as={A} value="posts" href={baseUrl}>
+              <TabsTrigger as={A} value="posts" href={baseUrl()}>
                 {t`Posts`}
               </TabsTrigger>
-              <TabsTrigger as={A} value="notes" href={`${baseUrl}/notes`}>
+              <TabsTrigger as={A} value="notes" href={`${baseUrl()}/notes`}>
                 {t`Notes`}
               </TabsTrigger>
-              <TabsTrigger as={A} value="articles" href={`${baseUrl}/articles`}>
+              <TabsTrigger
+                as={A}
+                value="articles"
+                href={`${baseUrl()}/articles`}
+              >
                 {t`Articles`}
               </TabsTrigger>
-              <TabsTrigger as={A} value="shares" href={`${baseUrl}/shares`}>
+              <TabsTrigger as={A} value="shares" href={`${baseUrl()}/shares`}>
                 {t`Shares`}
               </TabsTrigger>
             </TabsList>
