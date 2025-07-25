@@ -30,10 +30,12 @@ export const Actor = builder.drizzleNode("actorTable", {
     iri: t.field({
       type: "URL",
       select: {
-        columns: { iri: true },
+        columns: { iri: true, accountId: true },
       },
-      resolve(actor) {
-        return new URL(actor.iri);
+      resolve(actor, _, ctx) {
+        return actor.accountId == null
+          ? new URL(actor.iri)
+          : ctx.fedCtx.getActorUri(actor.accountId);
       },
     }),
     type: t.field({

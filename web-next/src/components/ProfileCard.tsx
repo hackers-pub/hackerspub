@@ -28,6 +28,8 @@ export function ProfileCard(props: ProfileCardProps) {
         avatarUrl
         bio
         local
+        url
+        iri
         followeesCount: followees {
           totalCount
         }
@@ -56,15 +58,25 @@ export function ProfileCard(props: ProfileCardProps) {
           <div class="p-4">
             <div class="flex items-center gap-4 mx-auto max-w-prose">
               <Avatar class="size-16">
-                <a href={`/@${actor().username}`}>
+                <a
+                  href={actor().local
+                    ? `/@${actor().username}`
+                    : actor().url ?? actor().iri}
+                  target={actor().local ? undefined : "_blank"}
+                >
                   <AvatarImage src={actor().avatarUrl} class="size-16" />
                 </a>
               </Avatar>
               <div>
-                <h1
-                  class="text-xl font-semibold"
-                  innerHTML={actor().name ?? actor().username}
-                />
+                <h1 class="text-xl font-semibold">
+                  <a
+                    innerHTML={actor().name ?? actor().username}
+                    href={actor().local
+                      ? `/@${actor().username}`
+                      : actor().url ?? actor().iri}
+                    target={actor().local ? undefined : "_blank"}
+                  />
+                </h1>
                 <div class="text-muted-foreground">
                   <span class="select-all">
                     {actor().handle}

@@ -68,6 +68,11 @@ export default function ProfilePage() {
             {(actor) => (
               <>
                 <Link rel="canonical" href={actor().url ?? actor().iri} />
+                <Link
+                  rel="alternate"
+                  type="application/activity+json"
+                  href={actor().iri}
+                />
                 <Title>{actor().rawName ?? actor().username}</Title>
                 <Meta property="og:type" content="profile" />
                 <Meta property="og:url" content={actor().url ?? actor().iri} />
