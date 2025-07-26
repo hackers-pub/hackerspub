@@ -1,7 +1,8 @@
-import { MetaProvider, Title } from "@solidjs/meta";
+import { MetaProvider } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { Suspense } from "solid-js";
 import { RelayEnvironmentProvider } from "solid-relay";
+import { Title } from "~/components/Title.tsx";
 import { createEnvironment } from "./RelayEnvironment.tsx";
 import { I18nProvider } from "./lib/i18n/index.tsx";
 import Routes from "./routes.tsx";

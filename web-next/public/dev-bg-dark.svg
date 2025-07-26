@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+  width="512"
+  height="512"
+  viewBox="0 0 512 512"
+  version="1.1"
+  id="svg1"
+  inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
+  sodipodi:docname="dev-bg-dark.svg"
+  xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+  xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:svg="http://www.w3.org/2000/svg"
+>
+  <sodipodi:namedview
+    id="namedview1"
+    pagecolor="#ffffff"
+    bordercolor="#000000"
+    borderopacity="0.25"
+    inkscape:showpageshadow="2"
+    inkscape:pageopacity="0.0"
+    inkscape:pagecheckerboard="true"
+    inkscape:deskcolor="#d1d1d1"
+    inkscape:document-units="px"
+    inkscape:zoom="1.0521546"
+    inkscape:cx="213.37169"
+    inkscape:cy="278.4762"
+    inkscape:window-width="1712"
+    inkscape:window-height="979"
+    inkscape:window-x="0"
+    inkscape:window-y="44"
+    inkscape:window-maximized="1"
+    inkscape:current-layer="svg1"
+  />
+  <defs
+    id="defs1"
+  />
+  <rect
+    style="fill: #0a0a0a; fill-opacity: 1; fill-rule: evenodd; stroke: none; stroke-width: 3.25932"
+    id="rect1"
+    width="512"
+    height="512"
+    x="0"
+    y="0"
+    inkscape:label="bg"
+  />
+  <g
+    id="g12"
+    inkscape:label="text"
+    style="opacity: 0.25"
+  >
+    <path
+      d="m -272.97609,360.59867 q 0,11.712 -4.128,19.68 -4.128,7.968 -11.616,12 -7.488,4.032 -17.856,4.032 h -20.544 v -68.544 h 21.984 q 15.36,0 23.712,8.448 8.448,8.448 8.448,24.384 z m -18.432,0.672 q 0,-9.792 -3.456,-14.304 -3.36,-4.512 -10.272,-4.512 h -4.224 v 39.072 h 3.072 q 7.68,0 11.232,-4.992 3.648,-4.992 3.648,-15.264 z"
+      id="text12"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="D"
+      inkscape:label="d"
+    />
+    <path
+      d="m -223.92006,396.31067 h -37.92 v -68.544 h 37.92 v 14.496 h -20.16 v 11.328 h 18.72 v 14.496 h -18.72 v 13.536 h 20.16 z"
+      id="text11"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="E"
+      inkscape:label="e"
+    />
+    <path
+      d="m -157.68005,327.76667 -20.64,68.544 h -20.736 l -20.544,-68.544 h 19.488 l 8.448,34.368 q 0.48,2.112 1.056,5.28 0.672,3.168 1.152,6.336 0.576,3.072 0.768,4.992 0.192,-1.92 0.672,-4.992 0.576,-3.168 1.152,-6.24 0.672,-3.072 1.152,-5.184 l 8.64,-34.56 z"
+      id="text10"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="V"
+      inkscape:label="v"
+    />
+    <path
+      d="m -113.04001,396.31067 h -37.92 v -68.544 h 37.92 v 14.496 h -20.16 v 11.328 h 18.72 v 14.496 h -18.72 v 13.536 h 20.16 z"
+      id="text9"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="E"
+      inkscape:label="e2"
+    />
+    <path
+      d="m -101.99998,396.31067 v -68.544 h 17.760002 v 53.952 h 23.232 v 14.592 z"
+      id="text8"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="L"
+      inkscape:label="l"
+    />
+    <path
+      d="m 5.9040926,361.94267 q 0,10.944 -3.264,18.912 -3.26400004,7.872 -10.08,12.192 -6.7199996,4.224 -17.2799996,4.224 -15.552,0 -23.136,-9.408 -7.488,-9.504 -7.488,-26.016 0,-16.416 7.488,-25.728 7.584,-9.408 23.232,-9.408 15.8399996,0 23.1359996,9.408 7.392,9.312 7.392,25.824 z m -42.7199996,0 q 0,9.696 2.88,14.976 2.88,5.28 9.216,5.28 6.528,0 9.312,-5.184 2.784,-5.184 2.784,-15.072 0,-9.888 -2.784,-15.168 -2.784,-5.28 -9.216,-5.28 -6.432,0 -9.312,5.376 -2.88,5.28 -2.88,15.072 z"
+      id="text7"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="O"
+      inkscape:label="o"
+    />
+    <path
+      d="m 39.696124,327.76667 q 12.096,0 18.144,5.664 6.048,5.664 6.048,16.128 0,6.432 -2.4,11.904 -2.4,5.472 -7.776,8.832 -5.376,3.264 -14.4,3.264 h -4.416 v 22.752 h -17.76 v -68.544 z m -0.864,14.592 h -3.936 v 16.608 h 2.88 q 3.456,0 5.952,-2.016 2.496,-2.112 2.496,-7.008 0,-3.552 -1.824,-5.568 -1.824,-2.016 -5.568,-2.016 z"
+      id="text6"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="P"
+      inkscape:label="p"
+    />
+    <path
+      d="m 102.57608,396.31067 -13.151996,-48.192 h -0.384 q 0.288,3.552 0.576,8.736 0.288,5.088 0.288,9.696 v 29.76 h -16.032 v -68.544 h 23.904 l 12.959996,45.888 h 0.288 l 12.768,-45.888 h 23.808 v 68.544 h -16.512 v -30.048 q 0,-4.416 0.192,-9.504 0.288,-5.088 0.48,-8.544 h -0.384 l -13.152,48.096 z"
+      id="text5"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="M"
+      inkscape:label="m"
+    />
+    <path
+      d="m 198.96018,396.31067 h -37.92 v -68.544 h 37.92 v 14.496 h -20.16 v 11.328 h 18.72 v 14.496 h -18.72 v 13.536 h 20.16 z"
+      id="text4"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="E"
+      inkscape:label="e3"
+    />
+    <path
+      d="m 270.2882,396.31067 h -22.272 l -22.464,-46.176 h -0.384 q 0.384,4.128 0.576,9.024 0.288,4.8 0.288,8.352 v 28.8 h -16.032 v -68.544 h 22.272 l 22.368,45.408 h 0.288 q -0.192,-4.032 -0.48,-8.64 -0.192,-4.608 -0.192,-7.968 v -28.8 h 16.032 z"
+      id="text3"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="N"
+      inkscape:label="n"
+    />
+    <path
+      d="m 312.0481,396.31067 h -17.664 v -53.76 h -15.168 v -14.784 h 47.904 v 14.784 h -15.072 z"
+      id="text2"
+      style="font-weight: 900; font-stretch: semi-condensed; font-size: 96px; font-family: 'Noto Sans'; -inkscape-font-specification: 'Noto Sans, Heavy Semi-Condensed'; text-align: center; fill-rule: evenodd; fill: #333333"
+      transform="rotate(-45)"
+      aria-label="T"
+      inkscape:label="t"
+    />
+  </g>
+</svg>

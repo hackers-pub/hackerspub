@@ -54,6 +54,10 @@ export default function RootLayout(props: RouteSectionProps) {
       <main
         lang={new Intl.Locale(i18n.locale).minimize().baseName}
         class="w-full"
+        classList={{
+          "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
+          "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
+        }}
       >
         {props.children}
       </main>

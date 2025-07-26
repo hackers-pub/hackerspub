@@ -1,4 +1,4 @@
-import { Meta, Title } from "@solidjs/meta";
+import { Meta } from "@solidjs/meta";
 import { query, type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -10,6 +10,7 @@ import {
 import { ActorFollowerList } from "~/components/ActorFollowerList.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
+import { Title } from "~/components/Title.tsx";
 import {
   BreadcrumbItem,
   BreadcrumbLink,

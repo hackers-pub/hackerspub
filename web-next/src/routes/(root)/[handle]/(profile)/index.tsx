@@ -1,4 +1,4 @@
-import { Link, Meta, Title } from "@solidjs/meta";
+import { Link, Meta } from "@solidjs/meta";
 import { query, type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -12,6 +12,7 @@ import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsN
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
+import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { ProfilePageQuery } from "./__generated__/ProfilePageQuery.graphql.ts";
 
