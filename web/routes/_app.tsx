@@ -112,7 +112,17 @@ export default async function App(
                       href="/"
                       class="text-white dark:text-black font-bold"
                     >
-                      Hackers&rsquo; Pub
+                      <picture>
+                        <source
+                          srcset="/logo-light.svg"
+                          media="(prefers-color-scheme: dark)"
+                        />
+                        <img
+                          src="/logo-dark.svg"
+                          class="h-[30px]"
+                          alt="Hackers' Pub"
+                        />
+                      </picture>
                     </a>
                   </div>
                   <form
