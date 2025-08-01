@@ -398,7 +398,7 @@
   },
   "pageNotFound": {
     "title": "Page not found",
-    "description": "The page you were looking for vould not be found."
+    "description": "The page you were looking for could not be found."
   },
   "clipboard": {
     "copied": "Copied to the clipboard."
