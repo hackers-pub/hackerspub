@@ -70,14 +70,36 @@ msgstr "記事"
 msgid "Articles only"
 msgstr "記事のみ"
 
+#: src/routes/sign/up/[token].tsx:331
+msgid "Bio"
+msgstr "自己紹介"
+
+#: src/routes/sign/up/[token].tsx:136
+msgid "Bio is too long. Maximum length is 512 characters."
+msgstr "自己紹介が長すぎます。最大512文字です。"
+
+#: src/components/AppSidebar.tsx:278
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
+#: src/routes/sign/up/[token].tsx:374
 msgid "Code of conduct"
 msgstr "行動規範"
+
+#: src/routes/sign/up/[token].tsx:402
+msgid "Creating account..."
+msgstr "アカウントを作成中..."
+
+#: src/routes/sign/up/[token].tsx:305
+msgid "Display name"
+msgstr "名前"
 
 #: src/routes/sign/index.tsx:230
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
+
+#: src/routes/sign/up/[token].tsx:260
+msgid "Email address"
+msgstr "メールアドレス"
 
 #: src/routes/sign/index.tsx:208
 msgid "Email or username"
@@ -145,6 +167,10 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "ホーム"
 
+#: src/routes/sign/up/[token].tsx:376
+msgid "I have read and agree to the Code of conduct."
+msgstr "行動規範に同意します。"
+
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
@@ -179,6 +205,10 @@ msgstr "投稿を読み込み中…"
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
 
+#: src/routes/sign/up/[token].tsx:386
+msgid "Loading..."
+msgstr "読み込み中..."
+
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/markdown.tsx:58
 msgid "Markdown guide"
@@ -187,6 +217,14 @@ msgstr "Markdown ガイド"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
+
+#: src/routes/sign/up/[token].tsx:126
+msgid "Name is required."
+msgstr "名前は必須です。"
+
+#: src/routes/sign/up/[token].tsx:129
+msgid "Name is too long. Maximum length is 50 characters."
+msgstr "名前が長すぎます。最大50文字です。"
 
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
@@ -234,6 +272,10 @@ msgstr "ひかえめな公開"
 msgid "Read full article"
 msgstr "記事全文を読む"
 
+#: src/routes/sign/up/[token].tsx:380
+msgid "Read the full Code of conduct"
+msgstr "行動規範の全文を読む"
+
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
@@ -247,6 +289,11 @@ msgstr "ログイン"
 #: src/components/AppSidebar.tsx:267
 msgid "Sign out"
 msgstr "ログアウト"
+
+#: src/routes/sign/up/[token].tsx:236
+#: src/routes/sign/up/[token].tsx:402
+msgid "Sign up"
+msgstr "登録"
 
 #: src/routes/sign/index.tsx:187
 msgid "Signing in Hackers' Pub"
@@ -264,6 +311,14 @@ msgstr "LLMによる要約"
 msgid "Table of contents"
 msgstr "目次"
 
+#: src/routes/sign/up/[token].tsx:335
+msgid "Tell us about yourself..."
+msgstr "自己紹介をお聞かせください..."
+
+#: src/routes/sign/up/[token].tsx:245
+msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
+msgstr "登録リンクが無効です。受信したメールのリンクを正しく使用しているかご確認ください。"
+
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
 #: src/components/AppSidebar.tsx:282
@@ -279,11 +334,31 @@ msgstr "タイムライン"
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
+#: src/routes/sign/up/[token].tsx:278
+msgid "Username"
+msgstr "ユーザー名"
+
+#: src/routes/sign/up/[token].tsx:119
+msgid "Username can only contain lowercase letters, numbers, and underscores."
+msgstr "ユーザー名には小文字、数字、アンダースコアのみ使用できます。"
+
+#: src/routes/sign/up/[token].tsx:113
+msgid "Username is required."
+msgstr "ユーザー名は必須です。"
+
+#: src/routes/sign/up/[token].tsx:116
+msgid "Username is too long. Maximum length is 50 characters."
+msgstr "ユーザー名が長すぎます。最大50文字です。"
+
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ProfileCard.tsx:137
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
+
+#: src/routes/sign/up/[token].tsx:240
+msgid "Verifying your invitation..."
+msgstr "招待を確認中..."
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
@@ -301,6 +376,34 @@ msgstr "誰でも閲覧できますが、公開タイムラインには表示さ
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "未登録ユーザーを含む誰でも閲覧できます。公開タイムラインにも表示されます。"
 
+#: src/routes/sign/up/[token].tsx:250
+msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
+msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォームにご記入ください。"
+
 #: src/components/AppSidebar.tsx:173
 msgid "Without shares"
 msgstr "共有除外"
+
+#: src/routes/sign/up/[token].tsx:350
+msgid "You were invited by"
+msgstr "あなたを招待した方"
+
+#: src/routes/sign/up/[token].tsx:367
+msgid "You'll automatically follow each other when you sign up."
+msgstr "登録したら自動的にお互いをフォローします。"
+
+#: src/routes/sign/up/[token].tsx:343
+msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
+msgstr "自己紹介はプロフィールに表示されます。Markdownで書式設定できます。最大512文字です。"
+
+#: src/routes/sign/up/[token].tsx:269
+msgid "Your email address will be used to sign in to your account."
+msgstr "メールアドレスはアカウントへのログインに使用されます。"
+
+#: src/routes/sign/up/[token].tsx:321
+msgid "Your name will be displayed on your profile and in your posts."
+msgstr "名前はプロフィールとコンテンツに表示されます。"
+
+#: src/routes/sign/up/[token].tsx:295
+msgid "Your username will be used to create your profile URL and your fediverse handle."
+msgstr "ユーザー名はプロフィールURLとフェディバースハンドルの作成に使用されます。"

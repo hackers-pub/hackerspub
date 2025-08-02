@@ -70,14 +70,36 @@ msgstr "Articles"
 msgid "Articles only"
 msgstr "Articles only"
 
+#: src/routes/sign/up/[token].tsx:331
+msgid "Bio"
+msgstr "Bio"
+
+#: src/routes/sign/up/[token].tsx:136
+msgid "Bio is too long. Maximum length is 512 characters."
+msgstr "Bio is too long. Maximum length is 512 characters."
+
+#: src/components/AppSidebar.tsx:278
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
+#: src/routes/sign/up/[token].tsx:374
 msgid "Code of conduct"
 msgstr "Code of conduct"
+
+#: src/routes/sign/up/[token].tsx:402
+msgid "Creating account..."
+msgstr "Creating account..."
+
+#: src/routes/sign/up/[token].tsx:305
+msgid "Display name"
+msgstr "Display name"
 
 #: src/routes/sign/index.tsx:230
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
+
+#: src/routes/sign/up/[token].tsx:260
+msgid "Email address"
+msgstr "Email address"
 
 #: src/routes/sign/index.tsx:208
 msgid "Email or username"
@@ -145,6 +167,10 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "Home"
 
+#: src/routes/sign/up/[token].tsx:376
+msgid "I have read and agree to the Code of conduct."
+msgstr "I have read and agree to the Code of conduct."
+
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
 msgstr "Load more articles"
@@ -179,6 +205,10 @@ msgstr "Loading more notes…"
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
+#: src/routes/sign/up/[token].tsx:386
+msgid "Loading..."
+msgstr "Loading..."
+
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/markdown.tsx:58
 msgid "Markdown guide"
@@ -187,6 +217,14 @@ msgstr "Markdown guide"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "Mentioned only"
+
+#: src/routes/sign/up/[token].tsx:126
+msgid "Name is required."
+msgstr "Name is required."
+
+#: src/routes/sign/up/[token].tsx:129
+msgid "Name is too long. Maximum length is 50 characters."
+msgstr "Name is too long. Maximum length is 50 characters."
 
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
@@ -234,6 +272,10 @@ msgstr "Quiet public"
 msgid "Read full article"
 msgstr "Read full article"
 
+#: src/routes/sign/up/[token].tsx:380
+msgid "Read the full Code of conduct"
+msgstr "Read the full Code of conduct"
+
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
@@ -247,6 +289,11 @@ msgstr "Sign in"
 #: src/components/AppSidebar.tsx:267
 msgid "Sign out"
 msgstr "Sign out"
+
+#: src/routes/sign/up/[token].tsx:236
+#: src/routes/sign/up/[token].tsx:402
+msgid "Sign up"
+msgstr "Sign up"
 
 #: src/routes/sign/index.tsx:187
 msgid "Signing in Hackers' Pub"
@@ -264,6 +311,14 @@ msgstr "Summarized by LLM"
 msgid "Table of contents"
 msgstr "Table of contents"
 
+#: src/routes/sign/up/[token].tsx:335
+msgid "Tell us about yourself..."
+msgstr "Tell us about yourself..."
+
+#: src/routes/sign/up/[token].tsx:245
+msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
+msgstr "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
+
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
 #: src/components/AppSidebar.tsx:282
@@ -279,11 +334,31 @@ msgstr "Timeline"
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
+#: src/routes/sign/up/[token].tsx:278
+msgid "Username"
+msgstr "Username"
+
+#: src/routes/sign/up/[token].tsx:119
+msgid "Username can only contain lowercase letters, numbers, and underscores."
+msgstr "Username can only contain lowercase letters, numbers, and underscores."
+
+#: src/routes/sign/up/[token].tsx:113
+msgid "Username is required."
+msgstr "Username is required."
+
+#: src/routes/sign/up/[token].tsx:116
+msgid "Username is too long. Maximum length is 50 characters."
+msgstr "Username is too long. Maximum length is 50 characters."
+
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ProfileCard.tsx:137
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
+
+#: src/routes/sign/up/[token].tsx:240
+msgid "Verifying your invitation..."
+msgstr "Verifying your invitation..."
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
@@ -301,6 +376,34 @@ msgstr "Visible to everyone, but does not appear in the public timeline. Only th
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 
+#: src/routes/sign/up/[token].tsx:250
+msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
+msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
+
 #: src/components/AppSidebar.tsx:173
 msgid "Without shares"
 msgstr "Without shares"
+
+#: src/routes/sign/up/[token].tsx:350
+msgid "You were invited by"
+msgstr "You were invited by"
+
+#: src/routes/sign/up/[token].tsx:367
+msgid "You'll automatically follow each other when you sign up."
+msgstr "You'll automatically follow each other when you sign up."
+
+#: src/routes/sign/up/[token].tsx:343
+msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
+msgstr "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
+
+#: src/routes/sign/up/[token].tsx:269
+msgid "Your email address will be used to sign in to your account."
+msgstr "Your email address will be used to sign in to your account."
+
+#: src/routes/sign/up/[token].tsx:321
+msgid "Your name will be displayed on your profile and in your posts."
+msgstr "Your name will be displayed on your profile and in your posts."
+
+#: src/routes/sign/up/[token].tsx:295
+msgid "Your username will be used to create your profile URL and your fediverse handle."
+msgstr "Your username will be used to create your profile URL and your fediverse handle."
