@@ -6,6 +6,7 @@ import { builder } from "./builder.ts";
 import "./doc.ts";
 import "./login.ts";
 import "./poll.ts";
+import "./signup.ts";
 import "./post.ts";
 import "./reactable.ts";
 export type { Context } from "./builder.ts";
