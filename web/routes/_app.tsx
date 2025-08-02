@@ -18,6 +18,54 @@ import { MODE, type State } from "../utils.ts";
 
 const PLAUSIBLE = Deno.env.get("PLAUSIBLE")?.trim()?.toLowerCase() === "true";
 
+interface AppleStartupImageConfig {
+  width: number;
+  height: number;
+  pixelRatio: number;
+}
+
+const APPLE_STARTUP_CONFIGS: AppleStartupImageConfig[] = [
+  { width: 1024, height: 1366, pixelRatio: 2 },
+  { width: 834, height: 1194, pixelRatio: 2 },
+  { width: 768, height: 1024, pixelRatio: 2 },
+  { width: 820, height: 1180, pixelRatio: 2 },
+  { width: 834, height: 1112, pixelRatio: 2 },
+  { width: 810, height: 1080, pixelRatio: 2 },
+  { width: 744, height: 1133, pixelRatio: 2 },
+  { width: 440, height: 956, pixelRatio: 3 },
+  { width: 402, height: 874, pixelRatio: 3 },
+  { width: 430, height: 932, pixelRatio: 3 },
+  { width: 393, height: 852, pixelRatio: 3 },
+  { width: 390, height: 844, pixelRatio: 3 },
+  { width: 428, height: 926, pixelRatio: 3 },
+  { width: 375, height: 812, pixelRatio: 3 },
+  { width: 414, height: 896, pixelRatio: 3 },
+  { width: 414, height: 896, pixelRatio: 2 },
+  { width: 414, height: 736, pixelRatio: 3 },
+  { width: 375, height: 667, pixelRatio: 2 },
+  { width: 320, height: 568, pixelRatio: 2 },
+];
+
+const APPLE_STARTUP_IMAGE_LINKS = APPLE_STARTUP_CONFIGS.flatMap((
+  { width, height, pixelRatio },
+) =>
+  ["dark", "light"].flatMap((theme) =>
+    ["portrait", "landscape"].map((orientation) => {
+      const isPortrait = orientation === "portrait";
+      const imageWidth = isPortrait ? width * pixelRatio : height * pixelRatio;
+      const imageHeight = isPortrait ? height * pixelRatio : width * pixelRatio;
+
+      return (
+        <link
+          rel="apple-touch-startup-image"
+          href={`/apple-splash/${theme}-${imageWidth}-${imageHeight}.png`}
+          media={`(prefers-color-scheme: ${theme}) and (device-width: ${width}px) and (device-height: ${height}px) and (-webkit-device-pixel-ratio: ${pixelRatio}) and (orientation: ${orientation})`}
+        />
+      );
+    })
+  )
+);
+
 export default async function App(
   { Component, state, url }: PageProps<unknown, State>,
 ) {
@@ -81,6 +129,9 @@ export default async function App(
                 href="/favicon.ico"
                 sizes="16x16 32x32 48x48 256x256"
               />
+              <link rel="apple-touch-icon" href="apple-icon-180.png" />
+              <meta name="apple-mobile-web-app-capable" content="yes" />
+              {APPLE_STARTUP_IMAGE_LINKS}
               <link rel="manifest" href="/manifest.json" />
               {state.links.map((link) => (
                 <link
