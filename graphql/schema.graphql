@@ -369,6 +369,18 @@ type Mutation {
     """The token of the login challenge."""
     token: UUID!
   ): Session
+
+  """Complete the signup process by creating a new account and session."""
+  completeSignup(
+    """The verification code."""
+    code: String!
+
+    """The account creation data."""
+    input: SignupInput!
+
+    """The signup token."""
+    token: UUID!
+  ): SignupResult!
   createNote(input: CreateNoteInput!): CreateNotePayload!
   loginByEmail(
     """The email of the account to sign in."""
@@ -630,6 +642,15 @@ type Query {
   ): Document!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+
+  """Verify a signup token and return the signup info if valid."""
+  verifySignupToken(
+    """The verification code."""
+    code: String!
+
+    """The signup token to verify."""
+    token: UUID!
+  ): SignupInfo
   viewer: Account
 }
 
@@ -697,6 +718,30 @@ type Session {
 
   """The user agent of the session."""
   userAgent: String
+}
+
+"""
+A signup info containing email and inviter information for account creation.
+"""
+type SignupInfo {
+  email: String!
+  inviter: Account
+}
+
+"""Input data for completing account signup."""
+input SignupInput {
+  bio: String!
+  name: String!
+  username: String!
+}
+
+union SignupResult = Session | SignupValidationErrors
+
+"""Validation errors for signup fields."""
+type SignupValidationErrors {
+  bio: String
+  name: String
+  username: String
 }
 
 scalar URITemplate
