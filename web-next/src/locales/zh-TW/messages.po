@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:166
+#: src/components/ProfileCard.tsx:178
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人關注}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:151
+#: src/components/ProfileCard.tsx:163
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {關注 # 人}}"
 
@@ -30,26 +30,26 @@ msgid "{0} shared {1}"
 msgstr "{0}在{1}轉貼了"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:72
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:76
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:73
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:77
 msgid "{0}'s articles"
 msgstr "{0}的文章"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:72
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:75
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:73
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:76
 msgid "{0}'s followers"
 msgstr "{0}的粉絲"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:73
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:77
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:74
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:78
 msgid "{0}'s notes"
 msgstr "{0}的貼文"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:74
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:78
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:75
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:79
 msgid "{0}'s shares"
 msgstr "{0}的轉貼"
 
@@ -61,8 +61,8 @@ msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾
 msgid "Account"
 msgstr "帳戶"
 
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:83
 #: src/components/ProfileTabs.tsx:48
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:84
 msgid "Articles"
 msgstr "文章"
 
@@ -70,9 +70,9 @@ msgstr "文章"
 msgid "Articles only"
 msgstr "僅文章"
 
+#: src/components/AppSidebar.tsx:278
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
-#: src/components/AppSidebar.tsx:278
 msgid "Code of conduct"
 msgstr "行為準則"
 
@@ -100,8 +100,8 @@ msgstr "載入更多粉絲失敗，點擊重試"
 msgid "Failed to load more notes; click to retry"
 msgstr "載入更多貼文失敗，點擊重試"
 
-#: src/components/ActorSharedPostList.tsx:75
 #: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
 
@@ -118,7 +118,7 @@ msgstr "聯邦宇宙"
 msgid "Feed"
 msgstr "訂閱流"
 
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:81
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 msgid "Followers"
 msgstr "粉絲"
 
@@ -126,7 +126,7 @@ msgstr "粉絲"
 msgid "Followers only"
 msgstr "只粉絲可見"
 
-#: src/components/ProfileCard.tsx:176
+#: src/components/ProfileCard.tsx:188
 msgid "Following you"
 msgstr "關注了你"
 
@@ -134,11 +134,11 @@ msgstr "關注了你"
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
-#: src/routes/sign.tsx:11
-#: src/routes/(root)/markdown.tsx:53
-#: src/routes/(root)/coc.tsx:53
 #: src/components/AppSidebar.tsx:91
 #: src/components/AppSidebar.tsx:135
+#: src/routes/(root)/coc.tsx:53
+#: src/routes/(root)/markdown.tsx:53
+#: src/routes/sign.tsx:11
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -158,8 +158,8 @@ msgstr "載入更多粉絲"
 msgid "Load more notes"
 msgstr "載入更多貼文"
 
-#: src/components/ActorSharedPostList.tsx:78
 #: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:78
 msgid "Load more posts"
 msgstr "載入更多內容"
 
@@ -175,8 +175,8 @@ msgstr "載入更多粉絲中…"
 msgid "Loading more notes…"
 msgstr "載入更多貼文中…"
 
-#: src/components/ActorSharedPostList.tsx:72
 #: src/components/ActorPostList.tsx:70
+#: src/components/ActorSharedPostList.tsx:72
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
 
@@ -201,8 +201,8 @@ msgstr "未找到文章"
 msgid "No notes found"
 msgstr "未找到貼文"
 
-#: src/components/ActorSharedPostList.tsx:85
 #: src/components/ActorPostList.tsx:83
+#: src/components/ActorSharedPostList.tsx:85
 msgid "No posts found"
 msgstr "未找到內容"
 
@@ -214,8 +214,8 @@ msgstr "未找到內容"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中無此帳戶，請重試。"
 
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:84
 #: src/components/ProfileTabs.tsx:41
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "貼文"
 
@@ -235,13 +235,13 @@ msgstr "悄悄公開"
 msgid "Read full article"
 msgstr "閱讀完整文章"
 
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:85
 #: src/components/ProfileTabs.tsx:51
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225
+#: src/routes/sign/index.tsx:224
 msgid "Sign in"
 msgstr "登入"
 
@@ -282,7 +282,7 @@ msgstr "翻譯自{0}"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:125
+#: src/components/ProfileCard.tsx:137
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已於{1}驗證此連結歸{0}所有"
 

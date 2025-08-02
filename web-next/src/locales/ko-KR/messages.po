@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:166
+#: src/components/ProfileCard.tsx:178
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:151
+#: src/components/ProfileCard.tsx:163
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -30,26 +30,26 @@ msgid "{0} shared {1}"
 msgstr "{0} 님이 {1}에 공유함"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:72
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:76
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:73
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:77
 msgid "{0}'s articles"
 msgstr "{0} 님의 게시글"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:72
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:75
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:73
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:76
 msgid "{0}'s followers"
 msgstr "{0} 님의 팔로워"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:73
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:77
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:74
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:78
 msgid "{0}'s notes"
 msgstr "{0} 님의 단문"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:74
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:78
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:75
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:79
 msgid "{0}'s shares"
 msgstr "{0} 님의 공유"
 
@@ -61,8 +61,8 @@ msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함
 msgid "Account"
 msgstr "계정"
 
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:83
 #: src/components/ProfileTabs.tsx:48
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:84
 msgid "Articles"
 msgstr "게시글"
 
@@ -70,9 +70,9 @@ msgstr "게시글"
 msgid "Articles only"
 msgstr "게시글만"
 
+#: src/components/AppSidebar.tsx:278
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
-#: src/components/AppSidebar.tsx:278
 msgid "Code of conduct"
 msgstr "행동 강령"
 
@@ -100,8 +100,8 @@ msgstr "팔로워 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more notes; click to retry"
 msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/components/ActorSharedPostList.tsx:75
 #: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 
@@ -118,7 +118,7 @@ msgstr "연합우주"
 msgid "Feed"
 msgstr "피드"
 
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:81
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 msgid "Followers"
 msgstr "팔로워"
 
@@ -126,7 +126,7 @@ msgstr "팔로워"
 msgid "Followers only"
 msgstr "팔로워만"
 
-#: src/components/ProfileCard.tsx:176
+#: src/components/ProfileCard.tsx:188
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
@@ -134,11 +134,11 @@ msgstr "당신을 팔로우합니다"
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/routes/sign.tsx:11
-#: src/routes/(root)/markdown.tsx:53
-#: src/routes/(root)/coc.tsx:53
 #: src/components/AppSidebar.tsx:91
 #: src/components/AppSidebar.tsx:135
+#: src/routes/(root)/coc.tsx:53
+#: src/routes/(root)/markdown.tsx:53
+#: src/routes/sign.tsx:11
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -158,8 +158,8 @@ msgstr "팔로워 더 불러오기"
 msgid "Load more notes"
 msgstr "단문 더 불러오기"
 
-#: src/components/ActorSharedPostList.tsx:78
 #: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:78
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
 
@@ -175,8 +175,8 @@ msgstr "팔로워 불러오는 중…"
 msgid "Loading more notes…"
 msgstr "단문 불러오는 중…"
 
-#: src/components/ActorSharedPostList.tsx:72
 #: src/components/ActorPostList.tsx:70
+#: src/components/ActorSharedPostList.tsx:72
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
 
@@ -201,8 +201,8 @@ msgstr "게시글이 없습니다"
 msgid "No notes found"
 msgstr "단문이 없습니다"
 
-#: src/components/ActorSharedPostList.tsx:85
 #: src/components/ActorPostList.tsx:83
+#: src/components/ActorSharedPostList.tsx:85
 msgid "No posts found"
 msgstr "콘텐츠가 없습니다"
 
@@ -214,8 +214,8 @@ msgstr "콘텐츠가 없습니다"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:84
 #: src/components/ProfileTabs.tsx:41
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "단문"
 
@@ -235,13 +235,13 @@ msgstr "조용히 공개"
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
 
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:85
 #: src/components/ProfileTabs.tsx:51
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
 msgstr "공유"
 
-#: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225
+#: src/routes/sign/index.tsx:224
 msgid "Sign in"
 msgstr "로그인"
 
@@ -282,7 +282,7 @@ msgstr "{0}에서 번역됨"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:125
+#: src/components/ProfileCard.tsx:137
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 
