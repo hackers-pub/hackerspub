@@ -6,7 +6,7 @@ import {
 import type { Uuid } from "@hackerspub/models/uuid";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { toaster } from "@kobalte/core";
-import { type RouteSectionProps } from "@solidjs/router";
+import { type RouteSectionProps, useNavigate } from "@solidjs/router";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEffect, createSignal, Show } from "solid-js";
 import { getRequestEvent } from "solid-js/web";
@@ -106,6 +106,7 @@ type SignupInfo = NonNullable<
 
 export default function SignupPage(props: RouteSectionProps) {
   const { t, i18n } = useLingui();
+  const navigate = useNavigate();
   const [signupInfo, setSignupInfo] = createSignal<SignupInfo | null>(null);
   const [verifying, setVerifying] = createSignal(true);
   const [invalid, setInvalid] = createSignal(false);
@@ -279,7 +280,7 @@ export default function SignupPage(props: RouteSectionProps) {
             // Session created successfully, set cookie and redirect
             setSessionCookie(response.completeSignup.id).then((success) => {
               if (success) {
-                window.location.href = "/?filter=recommendations";
+                navigate("/?filter=recommendations");
               }
             });
           } else if (
