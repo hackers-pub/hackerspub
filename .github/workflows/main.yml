@@ -47,11 +47,12 @@ jobs:
         else
           echo arch=amd64 >> "$GITHUB_OUTPUT"
         fi
-    - uses: docker/build-push-action@v6
+    - if: github.event_name == 'push'
+      uses: docker/build-push-action@v6
       with:
         pull: "true"
-        push: ${{ github.event_name == 'push' && 'true' || 'false' }}
-        no-cache: ${{ github.event_name == 'push' && 'false' || 'true' }}
+        push: "true"
+        no-cache: "false"
         build-args:
           GIT_COMMIT=${{ github.sha }}
         tags: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-${{ steps.arch.outputs.arch }}
@@ -68,6 +69,27 @@ jobs:
           type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-${{ steps.arch.outputs.arch }}
         cache-to:
           type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-${{ steps.arch.outputs.arch }},mode=max
+        provenance: false
+    - if: github.event_name == 'pull_request'
+      uses: docker/build-push-action@v6
+      with:
+        pull: "true"
+        push: "false"
+        no-cache: "true"
+        build-args:
+          GIT_COMMIT=${{ github.sha }}
+        tags: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-${{ steps.arch.outputs.arch }}
+        labels: |
+          org.opencontainers.image.revision=${{ github.sha }}
+        annotations: |
+          org.opencontainers.image.title=Hackers' Pub
+          org.opencontainers.image.description=ActivityPub-enabled social network for hackers
+          org.opencontainers.image.url=https://hackers.pub/
+          org.opencontainers.image.source=https://github.com/dahlia/hackerspub
+          org.opencontainers.image.revision=${{ github.sha }}
+          org.opencontainers.image.licenses=AGPL-3.0-only
+        cache-from:
+          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-${{ steps.arch.outputs.arch }}
         provenance: false
 
   manifest:
