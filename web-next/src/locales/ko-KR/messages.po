@@ -87,7 +87,7 @@ msgstr "행동 강령"
 
 #: src/routes/sign/up/[token].tsx:402
 msgid "Creating account..."
-msgstr ""
+msgstr "계정을 생성하는 중..."
 
 #: src/routes/sign/up/[token].tsx:305
 msgid "Display name"
@@ -207,7 +207,7 @@ msgstr "콘텐츠 불러오는 중…"
 
 #: src/routes/sign/up/[token].tsx:386
 msgid "Loading..."
-msgstr ""
+msgstr "로딩 중…"
 
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/markdown.tsx:58
@@ -274,7 +274,7 @@ msgstr "게시글 전체 읽기"
 
 #: src/routes/sign/up/[token].tsx:380
 msgid "Read the full Code of conduct"
-msgstr ""
+msgstr "행동 강령 전문을 읽으세요."
 
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
@@ -313,7 +313,7 @@ msgstr "목차"
 
 #: src/routes/sign/up/[token].tsx:335
 msgid "Tell us about yourself..."
-msgstr ""
+msgstr "당신에 대해서 이야기 해주세요…"
 
 #: src/routes/sign/up/[token].tsx:245
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."

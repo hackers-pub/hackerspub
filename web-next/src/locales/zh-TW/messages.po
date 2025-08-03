@@ -87,7 +87,7 @@ msgstr "行為準則"
 
 #: src/routes/sign/up/[token].tsx:402
 msgid "Creating account..."
-msgstr ""
+msgstr "創建帳戶..."
 
 #: src/routes/sign/up/[token].tsx:305
 msgid "Display name"
@@ -207,7 +207,7 @@ msgstr "載入更多內容中…"
 
 #: src/routes/sign/up/[token].tsx:386
 msgid "Loading..."
-msgstr ""
+msgstr "載入中..."
 
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/markdown.tsx:58
@@ -274,7 +274,7 @@ msgstr "閱讀完整文章"
 
 #: src/routes/sign/up/[token].tsx:380
 msgid "Read the full Code of conduct"
-msgstr ""
+msgstr "閱讀完整的行為守則"
 
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
@@ -313,7 +313,7 @@ msgstr "目錄"
 
 #: src/routes/sign/up/[token].tsx:335
 msgid "Tell us about yourself..."
-msgstr ""
+msgstr "介紹您自己..."
 
 #: src/routes/sign/up/[token].tsx:245
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
