@@ -18,7 +18,10 @@ SessionRef.implement({
           where: { id: session.accountId },
           with: { actor: true },
         });
-        return account!;
+        if (!account) {
+          throw new Error(`Account with ID ${session.accountId} not found.`);
+        }
+        return account;
       },
     }),
     userAgent: t.exposeString("userAgent", {
