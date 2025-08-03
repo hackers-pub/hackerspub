@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:166
+#: src/components/ProfileCard.tsx:178
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:151
+#: src/components/ProfileCard.tsx:163
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -30,26 +30,26 @@ msgid "{0} shared {1}"
 msgstr "{0} 님이 {1}에 공유함"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:72
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:76
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:73
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:77
 msgid "{0}'s articles"
 msgstr "{0} 님의 게시글"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:72
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:75
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:73
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:76
 msgid "{0}'s followers"
 msgstr "{0} 님의 팔로워"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:73
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:77
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:74
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:78
 msgid "{0}'s notes"
 msgstr "{0} 님의 단문"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:74
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:78
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:75
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:79
 msgid "{0}'s shares"
 msgstr "{0} 님의 공유"
 
@@ -61,8 +61,12 @@ msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함
 msgid "Account"
 msgstr "계정"
 
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:83
+#: src/routes/sign/up/[token].tsx:308
+msgid "An error occurred during signup. Please try again."
+msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 바랍니다."
+
 #: src/components/ProfileTabs.tsx:48
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:84
 msgid "Articles"
 msgstr "게시글"
 
@@ -70,15 +74,36 @@ msgstr "게시글"
 msgid "Articles only"
 msgstr "게시글만"
 
+#: src/routes/sign/up/[token].tsx:424
+msgid "Bio"
+msgstr "약력"
+
+#: src/routes/sign/up/[token].tsx:175
+msgid "Bio is too long. Maximum length is 512 characters."
+msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
+
+#: src/components/AppSidebar.tsx:278
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
-#: src/components/AppSidebar.tsx:278
+#: src/routes/sign/up/[token].tsx:471
 msgid "Code of conduct"
 msgstr "행동 강령"
+
+#: src/routes/sign/up/[token].tsx:499
+msgid "Creating account…"
+msgstr "계정을 생성하는 중…"
+
+#: src/routes/sign/up/[token].tsx:398
+msgid "Display name"
+msgstr "이름"
 
 #: src/routes/sign/index.tsx:230
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
+
+#: src/routes/sign/up/[token].tsx:351
+msgid "Email address"
+msgstr "이메일 주소"
 
 #: src/routes/sign/index.tsx:208
 msgid "Email or username"
@@ -87,6 +112,10 @@ msgstr "이메일 또는 아이디"
 #: src/routes/sign/index.tsx:193
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
+
+#: src/routes/sign/up/[token].tsx:305
+msgid "Error"
+msgstr "오류"
 
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
@@ -100,8 +129,8 @@ msgstr "팔로워 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more notes; click to retry"
 msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/components/ActorSharedPostList.tsx:75
 #: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 
@@ -118,7 +147,7 @@ msgstr "연합우주"
 msgid "Feed"
 msgstr "피드"
 
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:81
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 msgid "Followers"
 msgstr "팔로워"
 
@@ -126,7 +155,7 @@ msgstr "팔로워"
 msgid "Followers only"
 msgstr "팔로워만"
 
-#: src/components/ProfileCard.tsx:176
+#: src/components/ProfileCard.tsx:188
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
@@ -134,17 +163,21 @@ msgstr "당신을 팔로우합니다"
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/routes/sign.tsx:11
-#: src/routes/(root)/markdown.tsx:53
-#: src/routes/(root)/coc.tsx:53
 #: src/components/AppSidebar.tsx:91
 #: src/components/AppSidebar.tsx:135
+#: src/routes/(root)/coc.tsx:53
+#: src/routes/(root)/markdown.tsx:53
+#: src/routes/sign.tsx:11
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/TopBreadcrumb.tsx:21
 msgid "Home"
 msgstr "홈"
+
+#: src/routes/sign/up/[token].tsx:473
+msgid "I have read and agree to the Code of conduct."
+msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -158,8 +191,8 @@ msgstr "팔로워 더 불러오기"
 msgid "Load more notes"
 msgstr "단문 더 불러오기"
 
-#: src/components/ActorSharedPostList.tsx:78
 #: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:78
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
 
@@ -175,10 +208,14 @@ msgstr "팔로워 불러오는 중…"
 msgid "Loading more notes…"
 msgstr "단문 불러오는 중…"
 
-#: src/components/ActorSharedPostList.tsx:72
 #: src/components/ActorPostList.tsx:70
+#: src/components/ActorSharedPostList.tsx:72
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
+
+#: src/routes/sign/up/[token].tsx:483
+msgid "Loading…"
+msgstr "로딩 중…"
 
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/markdown.tsx:58
@@ -188,6 +225,14 @@ msgstr "Markdown 가이드"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "언급된 사용자만"
+
+#: src/routes/sign/up/[token].tsx:162
+msgid "Name is required."
+msgstr "이름은 필수입니다."
+
+#: src/routes/sign/up/[token].tsx:164
+msgid "Name is too long. Maximum length is 50 characters."
+msgstr "이름이 너무 깁니다. 최대 길이는 50자입니다."
 
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
@@ -201,8 +246,8 @@ msgstr "게시글이 없습니다"
 msgid "No notes found"
 msgstr "단문이 없습니다"
 
-#: src/components/ActorSharedPostList.tsx:85
 #: src/components/ActorPostList.tsx:83
+#: src/components/ActorSharedPostList.tsx:85
 msgid "No posts found"
 msgstr "콘텐츠가 없습니다"
 
@@ -214,8 +259,8 @@ msgstr "콘텐츠가 없습니다"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:84
 #: src/components/ProfileTabs.tsx:41
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "단문"
 
@@ -235,19 +280,28 @@ msgstr "조용히 공개"
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
 
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:85
+#: src/routes/sign/up/[token].tsx:477
+msgid "Read the full Code of conduct"
+msgstr "행동 강령 전문을 읽으세요."
+
 #: src/components/ProfileTabs.tsx:51
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
 msgstr "공유"
 
-#: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225
+#: src/routes/sign/index.tsx:224
 msgid "Sign in"
 msgstr "로그인"
 
 #: src/components/AppSidebar.tsx:267
 msgid "Sign out"
 msgstr "로그아웃"
+
+#: src/routes/sign/up/[token].tsx:327
+#: src/routes/sign/up/[token].tsx:499
+msgid "Sign up"
+msgstr "가입"
 
 #: src/routes/sign/index.tsx:187
 msgid "Signing in Hackers' Pub"
@@ -265,6 +319,14 @@ msgstr "LLM 요약"
 msgid "Table of contents"
 msgstr "목차"
 
+#: src/routes/sign/up/[token].tsx:428
+msgid "Tell us about yourself…"
+msgstr "당신에 대해서 이야기 해주세요…"
+
+#: src/routes/sign/up/[token].tsx:336
+msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
+msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크를 사용하고 있는지 확인해주세요."
+
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
 #: src/components/AppSidebar.tsx:282
@@ -280,11 +342,35 @@ msgstr "타임라인"
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
+#: src/routes/sign/up/[token].tsx:371
+msgid "Username"
+msgstr "아이디"
+
+#: src/routes/sign/up/[token].tsx:149
+msgid "Username can only contain lowercase letters, numbers, and underscores."
+msgstr "아이디는 영문 소문자, 숫자, 밑줄(_)만 사용할 수 있습니다."
+
+#: src/routes/sign/up/[token].tsx:151
+msgid "Username is already taken."
+msgstr "다른 사용자가 사용하고 있는 아이디입니다."
+
+#: src/routes/sign/up/[token].tsx:145
+msgid "Username is required."
+msgstr "아이디는 필수입니다."
+
+#: src/routes/sign/up/[token].tsx:147
+msgid "Username is too long. Maximum length is 15 characters."
+msgstr "아이디가 너무 깁니다. 최대 길이는 15자입니다."
+
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:125
+#: src/components/ProfileCard.tsx:137
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
+
+#: src/routes/sign/up/[token].tsx:331
+msgid "Verifying your invitation…"
+msgstr "초대장을 확인하고 있습니다…"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
@@ -302,6 +388,34 @@ msgstr "모든 사람이 볼 수 있지만 공개 타임라인에는 표시되�
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "미가입 사용자를 포함해 모든 사람이 볼 수 있습니다. 공개 타임라인에도 표시됩니다."
 
+#: src/routes/sign/up/[token].tsx:341
+msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
+msgstr "Hackers' Pub에 오신 것을 환영합니다! 가입을 완료하려면 아래 양식을 작성해주세요."
+
 #: src/components/AppSidebar.tsx:173
 msgid "Without shares"
 msgstr "공유 제외"
+
+#: src/routes/sign/up/[token].tsx:447
+msgid "You were invited by"
+msgstr "당신을 초대한 분"
+
+#: src/routes/sign/up/[token].tsx:464
+msgid "You'll automatically follow each other when you sign up."
+msgstr "가입 시 자동으로 서로 팔로우 하게 됩니다."
+
+#: src/routes/sign/up/[token].tsx:440
+msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
+msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습니다. 최대 512자입니다."
+
+#: src/routes/sign/up/[token].tsx:360
+msgid "Your email address will be used to sign in to your account."
+msgstr "이메일 주소는 계정에 로그인할 때 사용됩니다."
+
+#: src/routes/sign/up/[token].tsx:414
+msgid "Your name will be displayed on your profile and in your posts."
+msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
+
+#: src/routes/sign/up/[token].tsx:388
+msgid "Your username will be used to create your profile URL and your fediverse handle."
+msgstr "아이디는 프로필 URL과 연합우주(fediverse) 핸들로 사용됩니다."

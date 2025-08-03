@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:166
+#: src/components/ProfileCard.tsx:178
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人關注}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:151
+#: src/components/ProfileCard.tsx:163
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {關注 # 人}}"
 
@@ -30,26 +30,26 @@ msgid "{0} shared {1}"
 msgstr "{0}在{1}轉貼了"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:72
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:76
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:73
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:77
 msgid "{0}'s articles"
 msgstr "{0}的文章"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:72
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:75
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:73
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:76
 msgid "{0}'s followers"
 msgstr "{0}的粉絲"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:73
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:77
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:74
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:78
 msgid "{0}'s notes"
 msgstr "{0}的貼文"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:74
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:78
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:75
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:79
 msgid "{0}'s shares"
 msgstr "{0}的轉貼"
 
@@ -61,8 +61,12 @@ msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾
 msgid "Account"
 msgstr "帳戶"
 
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:83
+#: src/routes/sign/up/[token].tsx:308
+msgid "An error occurred during signup. Please try again."
+msgstr "註冊過程中發生錯誤。請重試。"
+
 #: src/components/ProfileTabs.tsx:48
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:84
 msgid "Articles"
 msgstr "文章"
 
@@ -70,15 +74,36 @@ msgstr "文章"
 msgid "Articles only"
 msgstr "僅文章"
 
+#: src/routes/sign/up/[token].tsx:424
+msgid "Bio"
+msgstr "個人簡介"
+
+#: src/routes/sign/up/[token].tsx:175
+msgid "Bio is too long. Maximum length is 512 characters."
+msgstr "個人簡介太長。不能長於 512 字元。"
+
+#: src/components/AppSidebar.tsx:278
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
-#: src/components/AppSidebar.tsx:278
+#: src/routes/sign/up/[token].tsx:471
 msgid "Code of conduct"
 msgstr "行為準則"
+
+#: src/routes/sign/up/[token].tsx:499
+msgid "Creating account…"
+msgstr "創建帳戶…"
+
+#: src/routes/sign/up/[token].tsx:398
+msgid "Display name"
+msgstr "暱稱"
 
 #: src/routes/sign/index.tsx:230
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要建立帳戶嗎？Hackers' Pub 僅限邀請，請聯繫朋友邀請您。"
+
+#: src/routes/sign/up/[token].tsx:351
+msgid "Email address"
+msgstr "電子郵件地址"
 
 #: src/routes/sign/index.tsx:208
 msgid "Email or username"
@@ -87,6 +112,10 @@ msgstr "電子郵件或使用者名稱"
 #: src/routes/sign/index.tsx:193
 msgid "Enter your email or username below to sign in."
 msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
+
+#: src/routes/sign/up/[token].tsx:305
+msgid "Error"
+msgstr "錯誤"
 
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
@@ -100,8 +129,8 @@ msgstr "載入更多粉絲失敗，點擊重試"
 msgid "Failed to load more notes; click to retry"
 msgstr "載入更多貼文失敗，點擊重試"
 
-#: src/components/ActorSharedPostList.tsx:75
 #: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
 
@@ -118,7 +147,7 @@ msgstr "聯邦宇宙"
 msgid "Feed"
 msgstr "訂閱流"
 
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:81
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 msgid "Followers"
 msgstr "粉絲"
 
@@ -126,7 +155,7 @@ msgstr "粉絲"
 msgid "Followers only"
 msgstr "只粉絲可見"
 
-#: src/components/ProfileCard.tsx:176
+#: src/components/ProfileCard.tsx:188
 msgid "Following you"
 msgstr "關注了你"
 
@@ -134,17 +163,21 @@ msgstr "關注了你"
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
-#: src/routes/sign.tsx:11
-#: src/routes/(root)/markdown.tsx:53
-#: src/routes/(root)/coc.tsx:53
 #: src/components/AppSidebar.tsx:91
 #: src/components/AppSidebar.tsx:135
+#: src/routes/(root)/coc.tsx:53
+#: src/routes/(root)/markdown.tsx:53
+#: src/routes/sign.tsx:11
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/TopBreadcrumb.tsx:21
 msgid "Home"
 msgstr "首頁"
+
+#: src/routes/sign/up/[token].tsx:473
+msgid "I have read and agree to the Code of conduct."
+msgstr "我同意 Hackers' Pub 的行為準則。"
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -158,8 +191,8 @@ msgstr "載入更多粉絲"
 msgid "Load more notes"
 msgstr "載入更多貼文"
 
-#: src/components/ActorSharedPostList.tsx:78
 #: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:78
 msgid "Load more posts"
 msgstr "載入更多內容"
 
@@ -175,10 +208,14 @@ msgstr "載入更多粉絲中…"
 msgid "Loading more notes…"
 msgstr "載入更多貼文中…"
 
-#: src/components/ActorSharedPostList.tsx:72
 #: src/components/ActorPostList.tsx:70
+#: src/components/ActorSharedPostList.tsx:72
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
+
+#: src/routes/sign/up/[token].tsx:483
+msgid "Loading…"
+msgstr "載入中…"
 
 #: src/routes/(root)/markdown.tsx:53
 #: src/routes/(root)/markdown.tsx:58
@@ -188,6 +225,14 @@ msgstr "Markdown 指南"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "只提及使用者可見"
+
+#: src/routes/sign/up/[token].tsx:162
+msgid "Name is required."
+msgstr "需要暱稱"
+
+#: src/routes/sign/up/[token].tsx:164
+msgid "Name is too long. Maximum length is 50 characters."
+msgstr "使用者名稱太長。不能長於 50 字元。"
 
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
@@ -201,8 +246,8 @@ msgstr "未找到文章"
 msgid "No notes found"
 msgstr "未找到貼文"
 
-#: src/components/ActorSharedPostList.tsx:85
 #: src/components/ActorPostList.tsx:83
+#: src/components/ActorSharedPostList.tsx:85
 msgid "No posts found"
 msgstr "未找到內容"
 
@@ -214,8 +259,8 @@ msgstr "未找到內容"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中無此帳戶，請重試。"
 
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:84
 #: src/components/ProfileTabs.tsx:41
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "貼文"
 
@@ -235,19 +280,28 @@ msgstr "悄悄公開"
 msgid "Read full article"
 msgstr "閱讀完整文章"
 
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:85
+#: src/routes/sign/up/[token].tsx:477
+msgid "Read the full Code of conduct"
+msgstr "閱讀完整的行為守則"
+
 #: src/components/ProfileTabs.tsx:51
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/routes/sign/index.tsx:224
 #: src/components/AppSidebar.tsx:225
+#: src/routes/sign/index.tsx:224
 msgid "Sign in"
 msgstr "登入"
 
 #: src/components/AppSidebar.tsx:267
 msgid "Sign out"
 msgstr "登出"
+
+#: src/routes/sign/up/[token].tsx:327
+#: src/routes/sign/up/[token].tsx:499
+msgid "Sign up"
+msgstr "註冊"
 
 #: src/routes/sign/index.tsx:187
 msgid "Signing in Hackers' Pub"
@@ -265,6 +319,14 @@ msgstr "由 AI 生成的摘要"
 msgid "Table of contents"
 msgstr "目錄"
 
+#: src/routes/sign/up/[token].tsx:428
+msgid "Tell us about yourself…"
+msgstr "介紹您自己…"
+
+#: src/routes/sign/up/[token].tsx:336
+msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
+msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連結。"
+
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
 #: src/components/AppSidebar.tsx:282
@@ -280,11 +342,35 @@ msgstr "時間軸"
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
 
+#: src/routes/sign/up/[token].tsx:371
+msgid "Username"
+msgstr "使用者名稱"
+
+#: src/routes/sign/up/[token].tsx:149
+msgid "Username can only contain lowercase letters, numbers, and underscores."
+msgstr "使用者名稱只能包含小寫字母、數字以及底線。"
+
+#: src/routes/sign/up/[token].tsx:151
+msgid "Username is already taken."
+msgstr "用戶名已被佔用。"
+
+#: src/routes/sign/up/[token].tsx:145
+msgid "Username is required."
+msgstr "需要使用者名稱"
+
+#: src/routes/sign/up/[token].tsx:147
+msgid "Username is too long. Maximum length is 15 characters."
+msgstr "使用者名稱太長。不能長於 15 字元。"
+
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:125
+#: src/components/ProfileCard.tsx:137
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已於{1}驗證此連結歸{0}所有"
+
+#: src/routes/sign/up/[token].tsx:331
+msgid "Verifying your invitation…"
+msgstr "驗證您的邀請…"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
@@ -302,6 +388,34 @@ msgstr "所有人都可以看到，但不會出現在公共時間軸中。只有
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "包括未註冊使用者在內的所有人都可以看到。內容也會出現在公共時間軸中。"
 
+#: src/routes/sign/up/[token].tsx:341
+msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
+msgstr "歡迎來到 Hackers' Pub！請填寫以下表單完成註冊。"
+
 #: src/components/AppSidebar.tsx:173
 msgid "Without shares"
 msgstr "不含轉貼"
+
+#: src/routes/sign/up/[token].tsx:447
+msgid "You were invited by"
+msgstr "您的邀請人"
+
+#: src/routes/sign/up/[token].tsx:464
+msgid "You'll automatically follow each other when you sign up."
+msgstr "註冊後您將自動追蹤對方。"
+
+#: src/routes/sign/up/[token].tsx:440
+msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
+msgstr "你的個人簡介將在你的個人資料頁面顯示。你可以用 Markdown 文件格式化。最大 512 字元。"
+
+#: src/routes/sign/up/[token].tsx:360
+msgid "Your email address will be used to sign in to your account."
+msgstr "你的電子郵件地址將用於登入。"
+
+#: src/routes/sign/up/[token].tsx:414
+msgid "Your name will be displayed on your profile and in your posts."
+msgstr "你的暱稱將在你的個人資料頁面和你的貼文中顯示。"
+
+#: src/routes/sign/up/[token].tsx:388
+msgid "Your username will be used to create your profile URL and your fediverse handle."
+msgstr "你的使用者名稱將被用來創建你的個人資料 URL 和你的 Fediverse 使用者名稱（handle）。"

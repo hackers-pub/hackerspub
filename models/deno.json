@@ -34,6 +34,7 @@
     "./timeline": "./timeline.ts",
     "./tx": "./tx.ts",
     "./url": "./url.ts",
+    "./userValidation": "./userValidation.ts",
     "./uuid": "./uuid.ts"
   },
   "lint": {
