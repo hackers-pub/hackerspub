@@ -1,3 +1,4 @@
+import { EXPIRATION } from "@hackerspub/models/session";
 import {
   validateBio,
   validateDisplayName,
@@ -94,7 +95,7 @@ const setSessionCookie = async (sessionId: Uuid) => {
   setCookie(event.nativeEvent, "session", sessionId, {
     httpOnly: true,
     path: "/",
-    expires: new Date(Date.now() + 365 * 60 * 60 * 24 * 1000), // 365 days
+    expires: new Date(Date.now() + EXPIRATION.total("millisecond")),
     secure: getRequestProtocol(event.nativeEvent) === "https",
   });
   return true;

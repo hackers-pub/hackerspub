@@ -1,3 +1,4 @@
+import { EXPIRATION } from "@hackerspub/models/session";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { redirect } from "@solidjs/router";
 import type { APIEvent } from "@solidjs/start/server";
@@ -45,7 +46,7 @@ export async function GET({ params, nativeEvent }: APIEvent) {
   setCookie(nativeEvent, "session", sessionId, {
     httpOnly: true,
     path: "/",
-    expires: new Date(Date.now() + 365 * 60 * 60 * 24 * 1000), // 365 days
+    expires: new Date(Date.now() + EXPIRATION.total("millisecond")),
     secure: getRequestProtocol(nativeEvent) === "https",
   });
   const next = typeof query.next === "string" ? query.next : "/";
