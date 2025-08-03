@@ -720,6 +720,15 @@ type Session {
   userAgent: String
 }
 
+enum SignupBioError {
+  BIO_TOO_LONG
+}
+
+enum SignupDisplayNameError {
+  DISPLAY_NAME_REQUIRED
+  DISPLAY_NAME_TOO_LONG
+}
+
 """
 A signup info containing email and inviter information for account creation.
 """
@@ -737,11 +746,18 @@ input SignupInput {
 
 union SignupResult = Session | SignupValidationErrors
 
+enum SignupUsernameError {
+  USERNAME_ALREADY_TAKEN
+  USERNAME_INVALID_CHARACTERS
+  USERNAME_REQUIRED
+  USERNAME_TOO_LONG
+}
+
 """Validation errors for signup fields."""
 type SignupValidationErrors {
-  bio: String
-  name: String
-  username: String
+  bio: SignupBioError
+  name: SignupDisplayNameError
+  username: SignupUsernameError
 }
 
 scalar URITemplate

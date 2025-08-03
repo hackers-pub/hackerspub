@@ -70,26 +70,26 @@ msgstr "Articles"
 msgid "Articles only"
 msgstr "Articles only"
 
-#: src/routes/sign/up/[token].tsx:331
+#: src/routes/sign/up/[token].tsx:379
 msgid "Bio"
 msgstr "Bio"
 
-#: src/routes/sign/up/[token].tsx:136
+#: src/routes/sign/up/[token].tsx:160
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
 #: src/components/AppSidebar.tsx:278
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
-#: src/routes/sign/up/[token].tsx:374
+#: src/routes/sign/up/[token].tsx:422
 msgid "Code of conduct"
 msgstr "Code of conduct"
 
-#: src/routes/sign/up/[token].tsx:402
+#: src/routes/sign/up/[token].tsx:450
 msgid "Creating account..."
 msgstr "Creating account..."
 
-#: src/routes/sign/up/[token].tsx:305
+#: src/routes/sign/up/[token].tsx:353
 msgid "Display name"
 msgstr "Display name"
 
@@ -97,7 +97,7 @@ msgstr "Display name"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
-#: src/routes/sign/up/[token].tsx:260
+#: src/routes/sign/up/[token].tsx:308
 msgid "Email address"
 msgstr "Email address"
 
@@ -167,7 +167,7 @@ msgstr "Hackers' Pub"
 msgid "Home"
 msgstr "Home"
 
-#: src/routes/sign/up/[token].tsx:376
+#: src/routes/sign/up/[token].tsx:424
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
@@ -205,7 +205,7 @@ msgstr "Loading more notes…"
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
-#: src/routes/sign/up/[token].tsx:386
+#: src/routes/sign/up/[token].tsx:434
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -218,11 +218,11 @@ msgstr "Markdown guide"
 msgid "Mentioned only"
 msgstr "Mentioned only"
 
-#: src/routes/sign/up/[token].tsx:126
+#: src/routes/sign/up/[token].tsx:147
 msgid "Name is required."
 msgstr "Name is required."
 
-#: src/routes/sign/up/[token].tsx:129
+#: src/routes/sign/up/[token].tsx:149
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "Name is too long. Maximum length is 50 characters."
 
@@ -272,7 +272,7 @@ msgstr "Quiet public"
 msgid "Read full article"
 msgstr "Read full article"
 
-#: src/routes/sign/up/[token].tsx:380
+#: src/routes/sign/up/[token].tsx:428
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
@@ -290,8 +290,8 @@ msgstr "Sign in"
 msgid "Sign out"
 msgstr "Sign out"
 
-#: src/routes/sign/up/[token].tsx:236
-#: src/routes/sign/up/[token].tsx:402
+#: src/routes/sign/up/[token].tsx:284
+#: src/routes/sign/up/[token].tsx:450
 msgid "Sign up"
 msgstr "Sign up"
 
@@ -311,11 +311,11 @@ msgstr "Summarized by LLM"
 msgid "Table of contents"
 msgstr "Table of contents"
 
-#: src/routes/sign/up/[token].tsx:335
+#: src/routes/sign/up/[token].tsx:383
 msgid "Tell us about yourself..."
 msgstr "Tell us about yourself..."
 
-#: src/routes/sign/up/[token].tsx:245
+#: src/routes/sign/up/[token].tsx:293
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
 msgstr "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
 
@@ -334,21 +334,25 @@ msgstr "Timeline"
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/routes/sign/up/[token].tsx:278
+#: src/routes/sign/up/[token].tsx:326
 msgid "Username"
 msgstr "Username"
 
-#: src/routes/sign/up/[token].tsx:119
+#: src/routes/sign/up/[token].tsx:134
 msgid "Username can only contain lowercase letters, numbers, and underscores."
 msgstr "Username can only contain lowercase letters, numbers, and underscores."
 
-#: src/routes/sign/up/[token].tsx:113
+#: src/routes/sign/up/[token].tsx:136
+msgid "Username is already taken."
+msgstr "Username is already taken."
+
+#: src/routes/sign/up/[token].tsx:130
 msgid "Username is required."
 msgstr "Username is required."
 
-#: src/routes/sign/up/[token].tsx:116
-msgid "Username is too long. Maximum length is 50 characters."
-msgstr "Username is too long. Maximum length is 50 characters."
+#: src/routes/sign/up/[token].tsx:132
+msgid "Username is too long. Maximum length is 15 characters."
+msgstr "Username is too long. Maximum length is 15 characters."
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
@@ -356,7 +360,7 @@ msgstr "Username is too long. Maximum length is 50 characters."
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 
-#: src/routes/sign/up/[token].tsx:240
+#: src/routes/sign/up/[token].tsx:288
 msgid "Verifying your invitation..."
 msgstr "Verifying your invitation..."
 
@@ -376,7 +380,7 @@ msgstr "Visible to everyone, but does not appear in the public timeline. Only th
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 
-#: src/routes/sign/up/[token].tsx:250
+#: src/routes/sign/up/[token].tsx:298
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 
@@ -384,26 +388,26 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/routes/sign/up/[token].tsx:350
+#: src/routes/sign/up/[token].tsx:398
 msgid "You were invited by"
 msgstr "You were invited by"
 
-#: src/routes/sign/up/[token].tsx:367
+#: src/routes/sign/up/[token].tsx:415
 msgid "You'll automatically follow each other when you sign up."
 msgstr "You'll automatically follow each other when you sign up."
 
-#: src/routes/sign/up/[token].tsx:343
+#: src/routes/sign/up/[token].tsx:391
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 
-#: src/routes/sign/up/[token].tsx:269
+#: src/routes/sign/up/[token].tsx:317
 msgid "Your email address will be used to sign in to your account."
 msgstr "Your email address will be used to sign in to your account."
 
-#: src/routes/sign/up/[token].tsx:321
+#: src/routes/sign/up/[token].tsx:369
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
 
-#: src/routes/sign/up/[token].tsx:295
+#: src/routes/sign/up/[token].tsx:343
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "Your username will be used to create your profile URL and your fediverse handle."

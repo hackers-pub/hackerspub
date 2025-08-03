@@ -1,12 +1,19 @@
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import { follow } from "@hackerspub/models/following";
 import { createSession } from "@hackerspub/models/session";
-import { USERNAME_REGEXP } from "@hackerspub/models/signin";
 import {
   createAccount,
   deleteSignupToken,
   getSignupToken,
 } from "@hackerspub/models/signup";
+import {
+  BioValidationError,
+  DisplayNameValidationError,
+  UsernameValidationError,
+  validateBio,
+  validateDisplayName,
+  validateUsername,
+} from "@hackerspub/models/userValidation";
 import {
   generateUuidV7,
   type Uuid,
@@ -32,9 +39,9 @@ interface SignupInput {
 }
 
 interface SignupValidationErrors {
-  username?: string;
-  name?: string;
-  bio?: string;
+  username?: UsernameValidationError | "USERNAME_ALREADY_TAKEN";
+  name?: DisplayNameValidationError;
+  bio?: BioValidationError;
 }
 
 const SignupInfoRef = builder.objectRef<SignupInfo>(
@@ -72,6 +79,30 @@ SignupInputRef.implement({
   }),
 });
 
+const SignupUsernameError = builder.enumType("SignupUsernameError", {
+  values: {
+    USERNAME_REQUIRED: { value: UsernameValidationError.Required },
+    USERNAME_TOO_LONG: { value: UsernameValidationError.TooLong },
+    USERNAME_INVALID_CHARACTERS: {
+      value: UsernameValidationError.InvalidCharacters,
+    },
+    USERNAME_ALREADY_TAKEN: { value: "USERNAME_ALREADY_TAKEN" },
+  },
+});
+
+const SignupDisplayNameError = builder.enumType("SignupDisplayNameError", {
+  values: {
+    DISPLAY_NAME_REQUIRED: { value: DisplayNameValidationError.Required },
+    DISPLAY_NAME_TOO_LONG: { value: DisplayNameValidationError.TooLong },
+  },
+});
+
+const SignupBioError = builder.enumType("SignupBioError", {
+  values: {
+    BIO_TOO_LONG: { value: BioValidationError.TooLong },
+  },
+});
+
 const SignupValidationErrorsRef = builder.objectRef<SignupValidationErrors>(
   "SignupValidationErrors",
 );
@@ -79,9 +110,21 @@ const SignupValidationErrorsRef = builder.objectRef<SignupValidationErrors>(
 SignupValidationErrorsRef.implement({
   description: "Validation errors for signup fields.",
   fields: (t) => ({
-    username: t.exposeString("username", { nullable: true }),
-    name: t.exposeString("name", { nullable: true }),
-    bio: t.exposeString("bio", { nullable: true }),
+    username: t.field({
+      type: SignupUsernameError,
+      nullable: true,
+      resolve: (parent) => parent.username || null,
+    }),
+    name: t.field({
+      type: SignupDisplayNameError,
+      nullable: true,
+      resolve: (parent) => parent.name || null,
+    }),
+    bio: t.field({
+      type: SignupBioError,
+      nullable: true,
+      resolve: (parent) => parent.bio || null,
+    }),
   }),
 });
 
@@ -190,31 +233,28 @@ builder.mutationFields((t) => ({
       const errors: SignupValidationErrors = {};
 
       // Validate username
-      if (!trimmedUsername) {
-        errors.username = "Username is required";
-      } else if (trimmedUsername.length > 50) {
-        errors.username = "Username is too long (maximum 50 characters)";
-      } else if (!trimmedUsername.match(USERNAME_REGEXP)) {
-        errors.username = "Username contains invalid characters";
+      const usernameError = validateUsername(trimmedUsername);
+      if (usernameError) {
+        errors.username = usernameError;
       } else {
         const existingUser = await ctx.db.query.accountTable.findFirst({
           where: { username: trimmedUsername },
         });
         if (existingUser) {
-          errors.username = "Username is already taken";
+          errors.username = "USERNAME_ALREADY_TAKEN";
         }
       }
 
       // Validate name
-      if (!trimmedName) {
-        errors.name = "Name is required";
-      } else if (trimmedName.length > 50) {
-        errors.name = "Name is too long (maximum 50 characters)";
+      const nameError = validateDisplayName(trimmedName);
+      if (nameError) {
+        errors.name = nameError;
       }
 
       // Validate bio
-      if (bio.length > 512) {
-        errors.bio = "Bio is too long (maximum 512 characters)";
+      const bioError = validateBio(bio);
+      if (bioError) {
+        errors.bio = bioError;
       }
 
       // Return validation errors if any

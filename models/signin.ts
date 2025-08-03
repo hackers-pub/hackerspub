@@ -1,5 +1,6 @@
 import { getLogger } from "@logtape/logtape";
 import type Keyv from "keyv";
+import { USERNAME_REGEXP } from "./userValidation.ts";
 import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "signin"]);
@@ -10,7 +11,7 @@ export const EXPIRATION: Temporal.Duration = Temporal.Duration.from({
   hours: 12,
 });
 
-export const USERNAME_REGEXP = /^[a-z0-9_]{1,15}$/;
+export { USERNAME_REGEXP };
 
 export interface SigninToken {
   accountId: Uuid;

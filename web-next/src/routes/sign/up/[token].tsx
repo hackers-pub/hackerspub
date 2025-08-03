@@ -1,3 +1,8 @@
+import {
+  validateBio,
+  validateDisplayName,
+  validateUsername,
+} from "@hackerspub/models/userValidation";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { type RouteSectionProps } from "@solidjs/router";
@@ -22,7 +27,12 @@ import {
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { createEnvironment } from "~/RelayEnvironment.tsx";
 import type { TokenCodeOfConductQuery } from "./__generated__/TokenCodeOfConductQuery.graphql.ts";
-import type { TokenCompleteSignupMutation } from "./__generated__/TokenCompleteSignupMutation.graphql.ts";
+import type {
+  SignupBioError,
+  SignupDisplayNameError,
+  SignupUsernameError,
+  TokenCompleteSignupMutation,
+} from "./__generated__/TokenCompleteSignupMutation.graphql.ts";
 import type { TokenVerifySignupTokenQuery } from "./__generated__/TokenVerifySignupTokenQuery.graphql.ts";
 
 const verifySignupTokenQuery = graphql`
@@ -92,9 +102,9 @@ export default function SignupPage(props: RouteSectionProps) {
   const [invalid, setInvalid] = createSignal(false);
   const [submitting, setSubmitting] = createSignal(false);
   const [fieldErrors, setFieldErrors] = createSignal({
-    username: "",
-    name: "",
-    bio: "",
+    username: null as SignupUsernameError | null,
+    name: null as SignupDisplayNameError | null,
+    bio: null as SignupBioError | null,
   });
 
   const codeOfConductData = createPreloadedQuery<TokenCodeOfConductQuery>(
@@ -115,56 +125,76 @@ export default function SignupPage(props: RouteSectionProps) {
     completeSignupMutation,
   );
 
-  // Validation functions
-  const validateUsername = (username: string) => {
-    if (!username.trim()) {
-      return t`Username is required.`;
+  // Helper functions to convert errors to display strings
+  const getUsernameErrorMessage = (error: SignupUsernameError | null) => {
+    if (!error) return "";
+
+    switch (error) {
+      case "USERNAME_REQUIRED":
+        return t`Username is required.`;
+      case "USERNAME_TOO_LONG":
+        return t`Username is too long. Maximum length is 15 characters.`;
+      case "USERNAME_INVALID_CHARACTERS":
+        return t`Username can only contain lowercase letters, numbers, and underscores.`;
+      case "USERNAME_ALREADY_TAKEN":
+        return t`Username is already taken.`;
+      default:
+        return "";
     }
-    if (username.length > 50) {
-      return t`Username is too long. Maximum length is 50 characters.`;
-    }
-    if (!/^[A-Za-z0-9_]+$/.test(username)) {
-      return t`Username can only contain lowercase letters, numbers, and underscores.`;
-    }
-    return "";
   };
 
-  const validateName = (name: string) => {
-    if (!name.trim()) {
-      return t`Name is required.`;
+  const getDisplayNameErrorMessage = (error: SignupDisplayNameError | null) => {
+    if (!error) return "";
+
+    switch (error) {
+      case "DISPLAY_NAME_REQUIRED":
+        return t`Name is required.`;
+      case "DISPLAY_NAME_TOO_LONG":
+        return t`Name is too long. Maximum length is 50 characters.`;
+      default:
+        return "";
     }
-    if (name.length > 50) {
-      return t`Name is too long. Maximum length is 50 characters.`;
-    }
-    return "";
   };
 
-  const validateBio = (bio: string) => {
-    if (bio.length > 512) {
-      return t`Bio is too long. Maximum length is 512 characters.`;
+  const getBioErrorMessage = (error: SignupBioError | null) => {
+    if (!error) return "";
+
+    switch (error) {
+      case "BIO_TOO_LONG":
+        return t`Bio is too long. Maximum length is 512 characters.`;
+      default:
+        return "";
     }
-    return "";
   };
 
   // Field blur handlers for validation
   const handleUsernameBlur = () => {
     if (usernameInput) {
       const error = validateUsername(usernameInput.value);
-      setFieldErrors((prev) => ({ ...prev, username: error }));
+      setFieldErrors((prev) => ({
+        ...prev,
+        username: error as SignupUsernameError | null,
+      }));
     }
   };
 
   const handleNameBlur = () => {
     if (nameInput) {
-      const error = validateName(nameInput.value);
-      setFieldErrors((prev) => ({ ...prev, name: error }));
+      const error = validateDisplayName(nameInput.value);
+      setFieldErrors((prev) => ({
+        ...prev,
+        name: error as SignupDisplayNameError | null,
+      }));
     }
   };
 
   const handleBioBlur = () => {
     if (bioInput) {
       const error = validateBio(bioInput.value);
-      setFieldErrors((prev) => ({ ...prev, bio: error }));
+      setFieldErrors((prev) => ({
+        ...prev,
+        bio: error as SignupBioError | null,
+      }));
     }
   };
 
@@ -232,9 +262,9 @@ export default function SignupPage(props: RouteSectionProps) {
             // Handle field-specific validation errors
             const errors = response.completeSignup;
             setFieldErrors({
-              username: errors.username || "",
-              name: errors.name || "",
-              bio: errors.bio || "",
+              username: errors.username || null,
+              name: errors.name || null,
+              bio: errors.bio || null,
             });
           }
         }
@@ -300,7 +330,7 @@ export default function SignupPage(props: RouteSectionProps) {
                   <TextFieldInput
                     ref={usernameInput}
                     type="text"
-                    pattern="^[A-Za-z0-9_]{1,50}$"
+                    pattern="^[a-z0-9_]{1,15}$"
                     required
                     onBlur={handleUsernameBlur}
                   />
@@ -308,7 +338,7 @@ export default function SignupPage(props: RouteSectionProps) {
                 {fieldErrors().username
                   ? (
                     <p class="text-sm text-red-600 mt-1">
-                      {fieldErrors().username}
+                      {getUsernameErrorMessage(fieldErrors().username)}
                     </p>
                   )
                   : (
@@ -334,7 +364,7 @@ export default function SignupPage(props: RouteSectionProps) {
                 {fieldErrors().name
                   ? (
                     <p class="text-sm text-red-600 mt-1">
-                      {fieldErrors().name}
+                      {getDisplayNameErrorMessage(fieldErrors().name)}
                     </p>
                   )
                   : (
@@ -358,7 +388,11 @@ export default function SignupPage(props: RouteSectionProps) {
                   />
                 </TextField>
                 {fieldErrors().bio
-                  ? <p class="text-sm text-red-600 mt-1">{fieldErrors().bio}</p>
+                  ? (
+                    <p class="text-sm text-red-600 mt-1">
+                      {getBioErrorMessage(fieldErrors().bio)}
+                    </p>
+                  )
                   : (
                     <p class="text-sm text-muted-foreground mt-1">
                       {t`Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters.`}
