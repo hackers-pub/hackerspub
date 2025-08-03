@@ -237,6 +237,23 @@ export default function SignupPage(props: RouteSectionProps) {
     const name = nameInput.value.trim();
     const bio = bioInput?.value?.trim() || "";
 
+    // Validate all fields before submission
+    const usernameError = validateUsername(username);
+    const nameError = validateDisplayName(name);
+    const bioError = validateBio(bio);
+
+    // Set field errors
+    setFieldErrors({
+      username: usernameError as SignupUsernameError | null,
+      name: nameError as SignupDisplayNameError | null,
+      bio: bioError as SignupBioError | null,
+    });
+
+    // Don't submit if there are validation errors
+    if (usernameError || nameError || bioError) {
+      return;
+    }
+
     setSubmitting(true);
 
     completeSignup({
