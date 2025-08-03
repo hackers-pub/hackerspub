@@ -5,6 +5,7 @@ import {
 } from "@hackerspub/models/userValidation";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { validateUuid } from "@hackerspub/models/uuid";
+import { toaster } from "@kobalte/core";
 import { type RouteSectionProps } from "@solidjs/router";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEffect, createSignal, Show } from "solid-js";
@@ -24,6 +25,14 @@ import {
   TextFieldLabel,
   TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
+import {
+  Toast,
+  ToastContent,
+  ToastDescription,
+  ToastList,
+  ToastRegion,
+  ToastTitle,
+} from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { createEnvironment } from "~/RelayEnvironment.tsx";
 import type { TokenCodeOfConductQuery } from "./__generated__/TokenCodeOfConductQuery.graphql.ts";
@@ -288,196 +297,211 @@ export default function SignupPage(props: RouteSectionProps) {
       },
       onError(error) {
         setSubmitting(false);
-        // Show generic error message for network/server errors
-        alert(
-          error.message || "An error occurred during signup. Please try again.",
-        );
+        toaster.show((props) => (
+          <Toast toastId={props.toastId} variant="destructive">
+            <ToastContent>
+              <ToastTitle>{t`Error`}</ToastTitle>
+              <ToastDescription>
+                {error.message ||
+                  t`An error occurred during signup. Please try again.`}
+              </ToastDescription>
+            </ToastContent>
+          </Toast>
+        ));
       },
     });
   }
 
   return (
-    <div lang={i18n.locale} class="lg:p-8">
-      <div class="mx-auto max-w-2xl">
-        <div class="flex flex-col space-y-2 text-center mb-8">
-          <h1 class="text-2xl font-semibold tracking-tight">
-            {t`Sign up`}
-          </h1>
-          <Show when={verifying()}>
-            <p class="text-sm text-muted-foreground">
-              {t`Verifying your invitation...`}
-            </p>
-          </Show>
-          <Show when={invalid()}>
-            <p class="text-sm text-red-600">
-              {t`The sign-up link is invalid. Please make sure you're using the correct link from the email you received.`}
-            </p>
-          </Show>
+    <>
+      <ToastRegion>
+        <ToastList />
+      </ToastRegion>
+
+      <div lang={i18n.locale} class="lg:p-8">
+        <div class="mx-auto max-w-2xl">
+          <div class="flex flex-col space-y-2 text-center mb-8">
+            <h1 class="text-2xl font-semibold tracking-tight">
+              {t`Sign up`}
+            </h1>
+            <Show when={verifying()}>
+              <p class="text-sm text-muted-foreground">
+                {t`Verifying your invitation...`}
+              </p>
+            </Show>
+            <Show when={invalid()}>
+              <p class="text-sm text-red-600">
+                {t`The sign-up link is invalid. Please make sure you're using the correct link from the email you received.`}
+              </p>
+            </Show>
+            <Show when={signupInfo()}>
+              <p class="text-sm text-muted-foreground">
+                {t`Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up.`}
+              </p>
+            </Show>
+          </div>
+
           <Show when={signupInfo()}>
-            <p class="text-sm text-muted-foreground">
-              {t`Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up.`}
-            </p>
+            <form class="space-y-6" on:submit={onSubmit}>
+              <div class="grid gap-4 lg:grid-cols-2">
+                <div class="lg:col-span-2">
+                  <TextField validationState="valid" class="gap-1">
+                    <TextFieldLabel>{t`Email address`}</TextFieldLabel>
+                    <TextFieldInput
+                      type="email"
+                      value={signupInfo()?.email || ""}
+                      disabled
+                      class="bg-muted"
+                    />
+                  </TextField>
+                  <p class="text-sm text-muted-foreground mt-1">
+                    {t`Your email address will be used to sign in to your account.`}
+                  </p>
+                </div>
+
+                <div>
+                  <TextField
+                    validationState={fieldErrors().username
+                      ? "invalid"
+                      : "valid"}
+                    class="gap-1"
+                  >
+                    <TextFieldLabel>{t`Username`} *</TextFieldLabel>
+                    <TextFieldInput
+                      ref={usernameInput}
+                      type="text"
+                      pattern="^[a-z0-9_]{1,15}$"
+                      required
+                      onBlur={handleUsernameBlur}
+                    />
+                  </TextField>
+                  {fieldErrors().username
+                    ? (
+                      <p class="text-sm text-red-600 mt-1">
+                        {getUsernameErrorMessage(fieldErrors().username)}
+                      </p>
+                    )
+                    : (
+                      <p class="text-sm text-muted-foreground mt-1">
+                        {t`Your username will be used to create your profile URL and your fediverse handle.`}
+                      </p>
+                    )}
+                </div>
+
+                <div>
+                  <TextField
+                    validationState={fieldErrors().name ? "invalid" : "valid"}
+                    class="gap-1"
+                  >
+                    <TextFieldLabel>{t`Display name`} *</TextFieldLabel>
+                    <TextFieldInput
+                      ref={nameInput}
+                      type="text"
+                      required
+                      onBlur={handleNameBlur}
+                    />
+                  </TextField>
+                  {fieldErrors().name
+                    ? (
+                      <p class="text-sm text-red-600 mt-1">
+                        {getDisplayNameErrorMessage(fieldErrors().name)}
+                      </p>
+                    )
+                    : (
+                      <p class="text-sm text-muted-foreground mt-1">
+                        {t`Your name will be displayed on your profile and in your posts.`}
+                      </p>
+                    )}
+                </div>
+
+                <div class="lg:col-span-2">
+                  <TextField
+                    validationState={fieldErrors().bio ? "invalid" : "valid"}
+                    class="gap-1"
+                  >
+                    <TextFieldLabel>{t`Bio`}</TextFieldLabel>
+                    <TextFieldTextArea
+                      ref={bioInput}
+                      rows={4}
+                      placeholder={t`Tell us about yourself...`}
+                      onBlur={handleBioBlur}
+                    />
+                  </TextField>
+                  {fieldErrors().bio
+                    ? (
+                      <p class="text-sm text-red-600 mt-1">
+                        {getBioErrorMessage(fieldErrors().bio)}
+                      </p>
+                    )
+                    : (
+                      <p class="text-sm text-muted-foreground mt-1">
+                        {t`Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters.`}
+                      </p>
+                    )}
+                </div>
+
+                <Show when={signupInfo()?.inviter}>
+                  <div class="lg:col-span-2 p-4 bg-muted rounded-lg">
+                    <h3 class="font-medium mb-2">{t`You were invited by`}</h3>
+                    <div class="flex items-center gap-3">
+                      <Show when={signupInfo()?.inviter?.avatarUrl}>
+                        <img
+                          src={signupInfo()?.inviter?.avatarUrl}
+                          alt=""
+                          class="w-8 h-8 rounded-full"
+                        />
+                      </Show>
+                      <div>
+                        <p class="font-medium">{signupInfo()?.inviter?.name}</p>
+                        <p class="text-sm text-muted-foreground">
+                          @{signupInfo()?.inviter?.handle}
+                        </p>
+                      </div>
+                    </div>
+                    <p class="text-sm text-muted-foreground mt-2">
+                      {t`You'll automatically follow each other when you sign up.`}
+                    </p>
+                  </div>
+                </Show>
+
+                <div class="lg:col-span-2">
+                  <div class="border rounded-lg p-4">
+                    <h3 class="font-medium mb-2">{t`Code of conduct`}</h3>
+                    <p class="text-sm text-muted-foreground mb-3">
+                      {t`I have read and agree to the Code of conduct.`}
+                    </p>
+                    <details class="text-sm">
+                      <summary class="cursor-pointer text-blue-600 hover:text-blue-800">
+                        {t`Read the full Code of conduct`}
+                      </summary>
+                      <div class="mt-2 p-3 bg-muted rounded prose prose-sm max-w-none">
+                        <Show
+                          when={codeOfConductData()?.codeOfConduct}
+                          fallback={
+                            <p class="text-muted-foreground">{t`Loading...`}</p>
+                          }
+                        >
+                          {(doc) => <DocumentView $document={doc()} />}
+                        </Show>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+
+                <div class="lg:col-span-2 text-center">
+                  <Button
+                    type="submit"
+                    disabled={submitting() || !signupInfo()}
+                    class="w-full cursor-pointer"
+                  >
+                    {submitting() ? t`Creating account...` : t`Sign up`}
+                  </Button>
+                </div>
+              </div>
+            </form>
           </Show>
         </div>
-
-        <Show when={signupInfo()}>
-          <form class="space-y-6" on:submit={onSubmit}>
-            <div class="grid gap-4 lg:grid-cols-2">
-              <div class="lg:col-span-2">
-                <TextField validationState="valid" class="gap-1">
-                  <TextFieldLabel>{t`Email address`}</TextFieldLabel>
-                  <TextFieldInput
-                    type="email"
-                    value={signupInfo()?.email || ""}
-                    disabled
-                    class="bg-muted"
-                  />
-                </TextField>
-                <p class="text-sm text-muted-foreground mt-1">
-                  {t`Your email address will be used to sign in to your account.`}
-                </p>
-              </div>
-
-              <div>
-                <TextField
-                  validationState={fieldErrors().username ? "invalid" : "valid"}
-                  class="gap-1"
-                >
-                  <TextFieldLabel>{t`Username`} *</TextFieldLabel>
-                  <TextFieldInput
-                    ref={usernameInput}
-                    type="text"
-                    pattern="^[a-z0-9_]{1,15}$"
-                    required
-                    onBlur={handleUsernameBlur}
-                  />
-                </TextField>
-                {fieldErrors().username
-                  ? (
-                    <p class="text-sm text-red-600 mt-1">
-                      {getUsernameErrorMessage(fieldErrors().username)}
-                    </p>
-                  )
-                  : (
-                    <p class="text-sm text-muted-foreground mt-1">
-                      {t`Your username will be used to create your profile URL and your fediverse handle.`}
-                    </p>
-                  )}
-              </div>
-
-              <div>
-                <TextField
-                  validationState={fieldErrors().name ? "invalid" : "valid"}
-                  class="gap-1"
-                >
-                  <TextFieldLabel>{t`Display name`} *</TextFieldLabel>
-                  <TextFieldInput
-                    ref={nameInput}
-                    type="text"
-                    required
-                    onBlur={handleNameBlur}
-                  />
-                </TextField>
-                {fieldErrors().name
-                  ? (
-                    <p class="text-sm text-red-600 mt-1">
-                      {getDisplayNameErrorMessage(fieldErrors().name)}
-                    </p>
-                  )
-                  : (
-                    <p class="text-sm text-muted-foreground mt-1">
-                      {t`Your name will be displayed on your profile and in your posts.`}
-                    </p>
-                  )}
-              </div>
-
-              <div class="lg:col-span-2">
-                <TextField
-                  validationState={fieldErrors().bio ? "invalid" : "valid"}
-                  class="gap-1"
-                >
-                  <TextFieldLabel>{t`Bio`}</TextFieldLabel>
-                  <TextFieldTextArea
-                    ref={bioInput}
-                    rows={4}
-                    placeholder={t`Tell us about yourself...`}
-                    onBlur={handleBioBlur}
-                  />
-                </TextField>
-                {fieldErrors().bio
-                  ? (
-                    <p class="text-sm text-red-600 mt-1">
-                      {getBioErrorMessage(fieldErrors().bio)}
-                    </p>
-                  )
-                  : (
-                    <p class="text-sm text-muted-foreground mt-1">
-                      {t`Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters.`}
-                    </p>
-                  )}
-              </div>
-
-              <Show when={signupInfo()?.inviter}>
-                <div class="lg:col-span-2 p-4 bg-muted rounded-lg">
-                  <h3 class="font-medium mb-2">{t`You were invited by`}</h3>
-                  <div class="flex items-center gap-3">
-                    <Show when={signupInfo()?.inviter?.avatarUrl}>
-                      <img
-                        src={signupInfo()?.inviter?.avatarUrl}
-                        alt=""
-                        class="w-8 h-8 rounded-full"
-                      />
-                    </Show>
-                    <div>
-                      <p class="font-medium">{signupInfo()?.inviter?.name}</p>
-                      <p class="text-sm text-muted-foreground">
-                        @{signupInfo()?.inviter?.handle}
-                      </p>
-                    </div>
-                  </div>
-                  <p class="text-sm text-muted-foreground mt-2">
-                    {t`You'll automatically follow each other when you sign up.`}
-                  </p>
-                </div>
-              </Show>
-
-              <div class="lg:col-span-2">
-                <div class="border rounded-lg p-4">
-                  <h3 class="font-medium mb-2">{t`Code of conduct`}</h3>
-                  <p class="text-sm text-muted-foreground mb-3">
-                    {t`I have read and agree to the Code of conduct.`}
-                  </p>
-                  <details class="text-sm">
-                    <summary class="cursor-pointer text-blue-600 hover:text-blue-800">
-                      {t`Read the full Code of conduct`}
-                    </summary>
-                    <div class="mt-2 p-3 bg-muted rounded prose prose-sm max-w-none">
-                      <Show
-                        when={codeOfConductData()?.codeOfConduct}
-                        fallback={
-                          <p class="text-muted-foreground">{t`Loading...`}</p>
-                        }
-                      >
-                        {(doc) => <DocumentView $document={doc()} />}
-                      </Show>
-                    </div>
-                  </details>
-                </div>
-              </div>
-
-              <div class="lg:col-span-2 text-center">
-                <Button
-                  type="submit"
-                  disabled={submitting() || !signupInfo()}
-                  class="w-full cursor-pointer"
-                >
-                  {submitting() ? t`Creating account...` : t`Sign up`}
-                </Button>
-              </div>
-            </div>
-          </form>
-        </Show>
       </div>
-    </div>
+    </>
   );
 }
