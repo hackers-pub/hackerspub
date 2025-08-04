@@ -7,8 +7,22 @@ export default function SignLayout(props: RouteSectionProps) {
   return (
     <div class="flex flex-row items-center justify-center w-full h-screen">
       <aside class="grow h-full p-4 bg-zinc-900">
-        <h1 class="text-2xl font-medium text-white">
-          <a href="/">{t`Hackers' Pub`}</a>
+        <h1>
+          <a href="/">
+            <picture>
+              <source
+                srcset="/logo-dark.svg"
+                media="(prefers-color-scheme: dark)"
+              />
+              <img
+                src="/logo-light.svg"
+                alt={t`Hackers' Pub`}
+                width={198}
+                height={50}
+                class="w-[198px] h-[50px]"
+              />
+            </picture>
+          </a>
         </h1>
       </aside>
       <main class="grow">

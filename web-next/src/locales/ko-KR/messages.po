@@ -57,7 +57,7 @@ msgstr "{0} 님의 공유"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함(또는 스팸 폴더)을 확인해주세요."
 
-#: src/components/AppSidebar.tsx:199
+#: src/components/AppSidebar.tsx:215
 msgid "Account"
 msgstr "계정"
 
@@ -70,7 +70,7 @@ msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 �
 msgid "Articles"
 msgstr "게시글"
 
-#: src/components/AppSidebar.tsx:192
+#: src/components/AppSidebar.tsx:208
 msgid "Articles only"
 msgstr "게시글만"
 
@@ -82,7 +82,7 @@ msgstr "약력"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
-#: src/components/AppSidebar.tsx:278
+#: src/components/AppSidebar.tsx:294
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/sign/up/[token].tsx:471
@@ -139,11 +139,11 @@ msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
-#: src/components/AppSidebar.tsx:154
+#: src/components/AppSidebar.tsx:170
 msgid "Fediverse"
 msgstr "연합우주"
 
-#: src/components/AppSidebar.tsx:115
+#: src/components/AppSidebar.tsx:131
 msgid "Feed"
 msgstr "피드"
 
@@ -159,15 +159,15 @@ msgstr "팔로워만"
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
-#: src/components/AppSidebar.tsx:290
+#: src/components/AppSidebar.tsx:306
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/components/AppSidebar.tsx:91
-#: src/components/AppSidebar.tsx:135
+#: src/components/AppSidebar.tsx:100
+#: src/components/AppSidebar.tsx:151
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
-#: src/routes/sign.tsx:11
+#: src/routes/sign.tsx:19
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -289,16 +289,15 @@ msgstr "행동 강령 전문을 읽으세요."
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/AppSidebar.tsx:225
+#: src/components/AppSidebar.tsx:241
 #: src/routes/sign/index.tsx:224
 msgid "Sign in"
 msgstr "로그인"
 
-#: src/components/AppSidebar.tsx:267
+#: src/components/AppSidebar.tsx:283
 msgid "Sign out"
 msgstr "로그아웃"
 
-#: src/routes/sign/up/[token].tsx:327
 #: src/routes/sign/up/[token].tsx:499
 msgid "Sign up"
 msgstr "가입"
@@ -310,6 +309,10 @@ msgstr "Hackers' Pub에 로그인"
 #: src/routes/sign/index.tsx:224
 msgid "Signing in…"
 msgstr "로그인 중…"
+
+#: src/routes/sign/up/[token].tsx:327
+msgid "Signing up for Hackers' Pub"
+msgstr "Hackers' Pub 가입"
 
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
@@ -329,11 +332,11 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:282
+#: src/components/AppSidebar.tsx:298
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
-#: src/components/AppSidebar.tsx:96
+#: src/components/AppSidebar.tsx:112
 msgid "Timeline"
 msgstr "타임라인"
 
@@ -392,7 +395,7 @@ msgstr "미가입 사용자를 포함해 모든 사람이 볼 수 있습니다. 
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Hackers' Pub에 오신 것을 환영합니다! 가입을 완료하려면 아래 양식을 작성해주세요."
 
-#: src/components/AppSidebar.tsx:173
+#: src/components/AppSidebar.tsx:189
 msgid "Without shares"
 msgstr "공유 제외"
 

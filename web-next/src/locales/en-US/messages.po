@@ -57,7 +57,7 @@ msgstr "{0}'s shares"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
-#: src/components/AppSidebar.tsx:199
+#: src/components/AppSidebar.tsx:215
 msgid "Account"
 msgstr "Account"
 
@@ -70,7 +70,7 @@ msgstr "An error occurred during signup. Please try again."
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:192
+#: src/components/AppSidebar.tsx:208
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -82,7 +82,7 @@ msgstr "Bio"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
-#: src/components/AppSidebar.tsx:278
+#: src/components/AppSidebar.tsx:294
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/sign/up/[token].tsx:471
@@ -139,11 +139,11 @@ msgstr "Failed to load more posts; click to retry"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/AppSidebar.tsx:154
+#: src/components/AppSidebar.tsx:170
 msgid "Fediverse"
 msgstr "Fediverse"
 
-#: src/components/AppSidebar.tsx:115
+#: src/components/AppSidebar.tsx:131
 msgid "Feed"
 msgstr "Feed"
 
@@ -159,15 +159,15 @@ msgstr "Followers only"
 msgid "Following you"
 msgstr "Following you"
 
-#: src/components/AppSidebar.tsx:290
+#: src/components/AppSidebar.tsx:306
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
-#: src/components/AppSidebar.tsx:91
-#: src/components/AppSidebar.tsx:135
+#: src/components/AppSidebar.tsx:100
+#: src/components/AppSidebar.tsx:151
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
-#: src/routes/sign.tsx:11
+#: src/routes/sign.tsx:19
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -289,16 +289,15 @@ msgstr "Read the full Code of conduct"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/AppSidebar.tsx:225
+#: src/components/AppSidebar.tsx:241
 #: src/routes/sign/index.tsx:224
 msgid "Sign in"
 msgstr "Sign in"
 
-#: src/components/AppSidebar.tsx:267
+#: src/components/AppSidebar.tsx:283
 msgid "Sign out"
 msgstr "Sign out"
 
-#: src/routes/sign/up/[token].tsx:327
 #: src/routes/sign/up/[token].tsx:499
 msgid "Sign up"
 msgstr "Sign up"
@@ -310,6 +309,10 @@ msgstr "Signing in Hackers' Pub"
 #: src/routes/sign/index.tsx:224
 msgid "Signing in…"
 msgstr "Signing in…"
+
+#: src/routes/sign/up/[token].tsx:327
+msgid "Signing up for Hackers' Pub"
+msgstr "Signing up for Hackers' Pub"
 
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
@@ -329,11 +332,11 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:282
+#: src/components/AppSidebar.tsx:298
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
-#: src/components/AppSidebar.tsx:96
+#: src/components/AppSidebar.tsx:112
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -392,7 +395,7 @@ msgstr "Visible to everyone, including non-registered users. The post will appea
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 
-#: src/components/AppSidebar.tsx:173
+#: src/components/AppSidebar.tsx:189
 msgid "Without shares"
 msgstr "Without shares"
 

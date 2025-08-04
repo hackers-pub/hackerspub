@@ -324,7 +324,7 @@ export default function SignupPage(props: RouteSectionProps) {
         <div class="mx-auto max-w-2xl">
           <div class="flex flex-col space-y-2 text-center mb-8">
             <h1 class="text-2xl font-semibold tracking-tight">
-              {t`Sign up`}
+              {t`Signing up for Hackers' Pub`}
             </h1>
             <Show when={verifying()}>
               <p class="text-sm text-muted-foreground">

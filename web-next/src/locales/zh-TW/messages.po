@@ -57,7 +57,7 @@ msgstr "{0}的轉貼"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾郵件資料夾）"
 
-#: src/components/AppSidebar.tsx:199
+#: src/components/AppSidebar.tsx:215
 msgid "Account"
 msgstr "帳戶"
 
@@ -70,7 +70,7 @@ msgstr "註冊過程中發生錯誤。請重試。"
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:192
+#: src/components/AppSidebar.tsx:208
 msgid "Articles only"
 msgstr "僅文章"
 
@@ -82,7 +82,7 @@ msgstr "個人簡介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "個人簡介太長。不能長於 512 字元。"
 
-#: src/components/AppSidebar.tsx:278
+#: src/components/AppSidebar.tsx:294
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/sign/up/[token].tsx:471
@@ -139,11 +139,11 @@ msgstr "載入更多內容失敗，點擊重試"
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
-#: src/components/AppSidebar.tsx:154
+#: src/components/AppSidebar.tsx:170
 msgid "Fediverse"
 msgstr "聯邦宇宙"
 
-#: src/components/AppSidebar.tsx:115
+#: src/components/AppSidebar.tsx:131
 msgid "Feed"
 msgstr "訂閱流"
 
@@ -159,15 +159,15 @@ msgstr "只粉絲可見"
 msgid "Following you"
 msgstr "關注了你"
 
-#: src/components/AppSidebar.tsx:290
+#: src/components/AppSidebar.tsx:306
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
-#: src/components/AppSidebar.tsx:91
-#: src/components/AppSidebar.tsx:135
+#: src/components/AppSidebar.tsx:100
+#: src/components/AppSidebar.tsx:151
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
-#: src/routes/sign.tsx:11
+#: src/routes/sign.tsx:19
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -289,16 +289,15 @@ msgstr "閱讀完整的行為守則"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/AppSidebar.tsx:225
+#: src/components/AppSidebar.tsx:241
 #: src/routes/sign/index.tsx:224
 msgid "Sign in"
 msgstr "登入"
 
-#: src/components/AppSidebar.tsx:267
+#: src/components/AppSidebar.tsx:283
 msgid "Sign out"
 msgstr "登出"
 
-#: src/routes/sign/up/[token].tsx:327
 #: src/routes/sign/up/[token].tsx:499
 msgid "Sign up"
 msgstr "註冊"
@@ -310,6 +309,10 @@ msgstr "登入 Hackers' Pub"
 #: src/routes/sign/index.tsx:224
 msgid "Signing in…"
 msgstr "登入中…"
+
+#: src/routes/sign/up/[token].tsx:327
+msgid "Signing up for Hackers' Pub"
+msgstr "註冊 Hackers' Pub"
 
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
@@ -329,11 +332,11 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:282
+#: src/components/AppSidebar.tsx:298
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
-#: src/components/AppSidebar.tsx:96
+#: src/components/AppSidebar.tsx:112
 msgid "Timeline"
 msgstr "時間軸"
 
@@ -392,7 +395,7 @@ msgstr "包括未註冊使用者在內的所有人都可以看到。內容也會
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "歡迎來到 Hackers' Pub！請填寫以下表單完成註冊。"
 
-#: src/components/AppSidebar.tsx:173
+#: src/components/AppSidebar.tsx:189
 msgid "Without shares"
 msgstr "不含轉貼"
 

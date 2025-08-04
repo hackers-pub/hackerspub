@@ -88,7 +88,23 @@ export function AppSidebar(props: AppSidebarProps) {
   return (
     <Sidebar>
       <SidebarHeader>
-        <h1 class="font-bold m-2">{t`Hackers' Pub`}</h1>
+        <h1 class="font-bold m-2">
+          <a href="/">
+            <picture>
+              <source
+                srcset="/logo-dark.svg"
+                media="(prefers-color-scheme: dark)"
+              />
+              <img
+                src="/logo-light.svg"
+                alt={t`Hackers' Pub`}
+                width={139}
+                height={35}
+                class="w-[139px] h-[35px]"
+              />
+            </picture>
+          </a>
+        </h1>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
