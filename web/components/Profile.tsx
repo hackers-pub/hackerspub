@@ -171,8 +171,20 @@ export function Profile(
                   />
                 )}
             </PageTitle>
-            {relationship?.outgoing === "none"
+            {relationship === null
               ? (
+                <div class="shrink-0">
+                  <Button
+                    class="ml-4 mt-2 h-9"
+                    type="button"
+                  >
+                    <Msg $key="profile.follow" />
+                  </Button>
+                </div>
+              )
+              : relationship.outgoing === "none"
+              ? (
+                // 로그인했지만 팔로우하지 않은 상태 -> 팔로우 버튼
                 <form
                   method="post"
                   action={`${profileHref}/follow`}
@@ -188,9 +200,10 @@ export function Profile(
                   </Button>
                 </form>
               )
-              : relationship != null && relationship.incoming !== "block" &&
+              : relationship.incoming !== "block" &&
                 relationship.outgoing !== "block" &&
                 (
+                  // 팔로우했거나 요청 중인 상태 -> 언팔로우/요청취소 버튼
                   <form
                     method="post"
                     action={`${profileHref}/unfollow`}
