@@ -3,6 +3,7 @@ import type { Locale } from "@hackerspub/models/i18n";
 import { assertNever } from "@std/assert/unstable-never";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
+import { Notification } from "./notification.ts";
 
 export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
@@ -78,6 +79,9 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     inviter: t.relation("inviter", { nullable: true }),
     invitees: t.relatedConnection("invitees"),
+    notifications: t.relatedConnection("notifications", {
+      type: Notification,
+    }),
   }),
 });
 

@@ -12,6 +12,7 @@ type Account implements Node {
   locales: [Locale!]
   moderator: Boolean!
   name: String!
+  notifications(after: String, before: String, first: Int, last: Int): AccountNotificationsConnection!
   updated: DateTime!
   username: String!
   usernameChanged: DateTime
@@ -75,6 +76,16 @@ enum AccountLinkIcon {
 input AccountLinkInput {
   name: String!
   url: URL!
+}
+
+type AccountNotificationsConnection {
+  edges: [AccountNotificationsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type AccountNotificationsConnectionEdge {
+  cursor: String!
+  node: Notification!
 }
 
 type Actor implements Node {
@@ -319,6 +330,14 @@ type EmojiReactionGroup implements ReactionGroup {
   subject: Reactable!
 }
 
+type FollowNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+  uuid: UUID!
+}
+
 """An HTML string."""
 scalar HTML
 
@@ -360,6 +379,15 @@ type LoginChallenge {
 scalar Markdown
 
 scalar MediaType
+
+type MentionNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+  post: Post
+  uuid: UUID!
+}
 
 type Mutation {
   completeLoginChallenge(
@@ -444,6 +472,33 @@ type Note implements Node & Post & Reactable {
   updated: DateTime!
   url: URL
   visibility: PostVisibility!
+}
+
+interface Notification implements Node {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+  uuid: UUID!
+}
+
+type NotificationActorsConnection {
+  edges: [NotificationActorsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type NotificationActorsConnectionEdge {
+  cursor: String!
+  node: Actor!
+}
+
+enum NotificationType {
+  FOLLOW
+  MENTION
+  QUOTE
+  REACT
+  REPLY
+  SHARE
 }
 
 type PageInfo {
@@ -682,6 +737,26 @@ type Question implements Node & Post & Reactable {
   visibility: PostVisibility!
 }
 
+type QuoteNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+  post: Post
+  uuid: UUID!
+}
+
+type ReactNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  customEmoji: CustomEmoji
+  emoji: String
+  id: ID!
+  post: Post
+  uuid: UUID!
+}
+
 interface Reactable implements Node {
   id: ID!
   reactionGroups: [ReactionGroup!]!
@@ -703,6 +778,15 @@ type ReactionGroupReactorsConnectionEdge {
   node: Actor!
 }
 
+type ReplyNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+  post: Post
+  uuid: UUID!
+}
+
 """A login session for an account."""
 type Session {
   account: Account!
@@ -718,6 +802,15 @@ type Session {
 
   """The user agent of the session."""
   userAgent: String
+}
+
+type ShareNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+  post: Post
+  uuid: UUID!
 }
 
 enum SignupBioError {
