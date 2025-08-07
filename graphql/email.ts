@@ -10,6 +10,12 @@ function getEnv(variable: string): string {
 
 export const EMAIL_FROM = Deno.env.get("EMAIL_FROM") ?? getEnv("MAILGUN_FROM");
 
+if (EMAIL_FROM === "") {
+  throw new Error(
+    "EMAIL_FROM or MAILGUN_FROM cannot be an empty string. Please set it in your environment variables.",
+  );
+}
+
 export const transport: Transport = Deno.env.get("CI") === "true"
   ? new MockTransport()
   : new MailgunTransport({
