@@ -10,6 +10,7 @@ import { Link } from "../islands/Link.tsx";
 import { Button } from "./Button.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 import { PageTitle } from "./PageTitle.tsx";
+import { RemoteFollowButton } from "../islands/RemoteFollowButton.tsx";
 
 export interface ProfileProps {
   actor: Actor & { successor: Actor | null };
@@ -174,12 +175,10 @@ export function Profile(
             {relationship === null
               ? (
                 <div class="shrink-0">
-                  <Button
-                    class="ml-4 mt-2 h-9"
-                    type="button"
-                  >
-                    <Msg $key="profile.follow" />
-                  </Button>
+                  <RemoteFollowButton
+                    actorHandle={actor.handle}
+                    actorName={actor.name ?? undefined}
+                  />
                 </div>
               )
               : relationship.outgoing === "none"
