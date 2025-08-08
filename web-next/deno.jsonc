@@ -8,7 +8,7 @@
     "codegen": "relay-compiler",
     "dev": "vinxi dev",
     "build": "vinxi build",
-    "extract": "pnpx @lingui/cli extract"
+    "extract": "pnpm dlx @lingui/cli extract"
   },
   "unstable": [
     "sloppy-imports"
