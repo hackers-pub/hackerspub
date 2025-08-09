@@ -81,6 +81,9 @@ export const Account = builder.drizzleNode("accountTable", {
     invitees: t.relatedConnection("invitees"),
     notifications: t.relatedConnection("notifications", {
       type: Notification,
+      authScopes: (parent) => ({
+        selfAccount: parent.id,
+      }),
     }),
   }),
 });
