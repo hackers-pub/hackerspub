@@ -2,7 +2,6 @@ import { graphql } from "relay-runtime";
 import { Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
 
-import { ParentProps } from "solid-js";
 import type { NotificationCard_notification$key } from "./__generated__/NotificationCard_notification.graphql.ts";
 import { FollowNotificationCard } from "./notification/FollowNotificationCard.tsx";
 
@@ -25,7 +24,7 @@ export function NotificationCard(props: NotificationCardProps) {
   return (
     <Show when={notification()}>
       {(notification) => (
-        <NotificationContainer>
+        <li class="border-1 border-gray-800 p-4">
           <Switch
             fallback={
               <p>Unknown notification type. {notification().__typename}</p>
@@ -35,16 +34,8 @@ export function NotificationCard(props: NotificationCardProps) {
               <FollowNotificationCard $notification={notification()} />
             </Match>
           </Switch>
-        </NotificationContainer>
+        </li>
       )}
     </Show>
-  );
-}
-
-function NotificationContainer(props: ParentProps) {
-  return (
-    <li class="border-1 border-gray-800 p-4">
-      {props.children}
-    </li>
   );
 }
