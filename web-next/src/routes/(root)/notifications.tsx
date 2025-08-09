@@ -1,4 +1,4 @@
-import { query } from "@solidjs/router";
+import { Navigate, query } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -40,7 +40,10 @@ export default function NotificationsPage() {
       <Title>{t`Hackers' Pub: Notifications`}</Title>
       <Show when={data()}>
         {(data) => (
-          <Show when={data().viewer} fallback={<p>Not logged in.</p>}>
+          <Show
+            when={data().viewer}
+            fallback={<Navigate href="/sign?next=%2Fnotifications" />}
+          >
             {(viewer) => <NotificationList $account={viewer()} />}
           </Show>
         )}
