@@ -14,7 +14,7 @@ import type { notificationsPageQuery } from "./__generated__/notificationsPageQu
 const notificationsPageQuery = graphql`
   query notificationsPageQuery {
     viewer {
-      ...NotificationList_account
+      ...NotificationList_notifications
     }
   }
 `;
