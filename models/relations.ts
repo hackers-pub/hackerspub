@@ -23,6 +23,7 @@ export const relations = defineRelations(schema, (r) => ({
       alias: "inviter",
     }),
     invitationLinks: r.many.invitationLinkTable(),
+    notifications: r.many.notificationTable(),
   },
   accountEmailTable: {
     account: r.one.accountTable({
@@ -328,6 +329,7 @@ export const relations = defineRelations(schema, (r) => ({
     post: r.one.postTable({
       from: r.notificationTable.postId,
       to: r.postTable.id,
+      optional: true,
     }),
     customEmoji: r.one.customEmojiTable({
       from: r.notificationTable.customEmojiId,

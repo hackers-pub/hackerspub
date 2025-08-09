@@ -1,8 +1,15 @@
 import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
 import type { Locale } from "@hackerspub/models/i18n";
+import { actorTable, notificationTable } from "@hackerspub/models/schema";
+import {
+  resolveCursorConnection,
+  type ResolveCursorConnectionArgs,
+} from "@pothos/plugin-relay";
 import { assertNever } from "@std/assert/unstable-never";
+import { and, desc, eq, gt, lt, sql } from "drizzle-orm";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
+import { Notification } from "./notification.ts";
 
 export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
@@ -78,6 +85,61 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     inviter: t.relation("inviter", { nullable: true }),
     invitees: t.relatedConnection("invitees"),
+    notifications: t.connection({
+      type: Notification,
+      authScopes: (parent) => ({
+        selfAccount: parent.id,
+      }),
+      async resolve(account, args, ctx) {
+        return resolveCursorConnection(
+          {
+            args,
+            toCursor: (notification) =>
+              notification.created.valueOf().toString(),
+          },
+          async (
+            { before, after, limit, inverted }: ResolveCursorConnectionArgs,
+          ) => {
+            // NOTE: the notification with latest "created" timestamp is the first
+            //       and the notification with the oldest "created" timestamp is the last.
+            const beforeDate = new Date(Number(before));
+            const afterDate = new Date(Number(after));
+
+            return await ctx.db
+              .select()
+              .from(notificationTable)
+              .where(
+                and(
+                  eq(notificationTable.accountId, account.id),
+                  before
+                    ? inverted
+                      ? lt(notificationTable.created, beforeDate)
+                      : gt(notificationTable.created, beforeDate)
+                    : undefined,
+                  after
+                    ? inverted
+                      ? gt(notificationTable.created, afterDate)
+                      : lt(notificationTable.created, afterDate)
+                    : undefined,
+                  gt(
+                    ctx.db
+                      .$count(
+                        actorTable,
+                        sql`${actorTable.id} = ANY(${notificationTable.actorIds})`,
+                      ),
+                    0,
+                  ),
+                ),
+              )
+              .orderBy(
+                inverted
+                  ? notificationTable.created
+                  : desc(notificationTable.created),
+              ).limit(limit);
+          },
+        );
+      },
+    }),
   }),
 });
 

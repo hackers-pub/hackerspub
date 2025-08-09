@@ -23,6 +23,17 @@ msgstr "{0, plural, other {被 # 人關注}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {關注 # 人}}"
 
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#: src/components/notification/FollowNotificationCard.tsx:51
+msgid "{0} and {1} others followed you"
+msgstr "{0} 和其他 {1} 人關注了你"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/FollowNotificationCard.tsx:39
+msgid "{0} followed you"
+msgstr "{0} 關注了你"
+
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/PostSharer.tsx:36
@@ -170,6 +181,10 @@ msgstr "GitHub 儲存庫"
 #: src/routes/sign.tsx:19
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
+
+#: src/routes/(root)/notifications.tsx:40
+msgid "Hackers' Pub: Notifications"
+msgstr "Hackers' Pub：通知"
 
 #: src/components/TopBreadcrumb.tsx:21
 msgid "Home"
