@@ -19,11 +19,33 @@ import { createMessage, type Message } from "@upyo/core";
 import { sql } from "drizzle-orm";
 import { parseTemplate } from "url-template";
 import { Account } from "./account.ts";
-import { builder } from "./builder.ts";
-import { SessionRef } from "./session.ts";
+import { builder, type ValuesOfEnumType } from "./builder.ts";
 import { EMAIL_FROM } from "./email.ts";
+import { SessionRef } from "./session.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "login"]);
+
+const LoginErrorKind = builder.enumType("LoginErrorKind", {
+  values: ["ACCOUNT_NOT_FOUND"] as const,
+});
+
+class LoginError extends Error {
+  public constructor(
+    public readonly kind: ValuesOfEnumType<typeof LoginErrorKind>,
+  ) {
+    super(`Login error - ${kind}`);
+  }
+}
+
+builder.objectType(LoginError, {
+  name: "LoginError",
+  fields: (t) => ({
+    loginErrorKind: t.field({
+      type: LoginErrorKind,
+      resolve: (error) => error.kind,
+    }),
+  }),
+});
 
 interface LoginChallenge {
   accountId: Uuid;
@@ -54,7 +76,12 @@ LoginChallengeRef.implement({
 builder.mutationFields((t) => ({
   loginByUsername: t.field({
     type: LoginChallengeRef,
-    nullable: true,
+    errors: {
+      types: [LoginError],
+      result: {
+        name: "LoginSuccess",
+      },
+    },
     args: {
       username: t.arg.string({
         required: true,
@@ -80,7 +107,9 @@ builder.mutationFields((t) => ({
         with: { emails: true },
         where: { username: args.username },
       });
-      if (account == null) return null;
+      if (account == null) {
+        throw new LoginError("ACCOUNT_NOT_FOUND");
+      }
       const token = await createSigninToken(ctx.kv, account.id);
       const messages: Message[] = [];
       for (const { email } of account.emails) {
@@ -110,7 +139,12 @@ builder.mutationFields((t) => ({
 
   loginByEmail: t.field({
     type: LoginChallengeRef,
-    nullable: true,
+    errors: {
+      types: [LoginError],
+      result: {
+        name: "LoginSuccess",
+      },
+    },
     args: {
       email: t.arg.string({
         required: true,
@@ -150,7 +184,9 @@ builder.mutationFields((t) => ({
           with: { emails: true },
         });
       }
-      if (account == null) return null;
+      if (account == null) {
+        throw new LoginError("ACCOUNT_NOT_FOUND");
+      }
       const token = await createSigninToken(ctx.kv, account.id);
       const messages: Message[] = [];
       for (const { email } of account.emails) {

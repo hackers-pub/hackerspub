@@ -375,6 +375,18 @@ type LoginChallenge {
   token: UUID!
 }
 
+type LoginError {
+  loginErrorKind: LoginErrorKind!
+}
+
+enum LoginErrorKind {
+  ACCOUNT_NOT_FOUND
+}
+
+type LoginSuccess {
+  data: LoginChallenge!
+}
+
 """A Hackers' Pub-flavored Markdown text."""
 scalar Markdown
 
@@ -421,7 +433,7 @@ type Mutation {
     The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`.
     """
     verifyUrl: URITemplate!
-  ): LoginChallenge
+  ): MutationLoginByUsernameResult!
   loginByUsername(
     """The locale for the sign-in email."""
     locale: Locale!
@@ -433,7 +445,7 @@ type Mutation {
     The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`.
     """
     verifyUrl: URITemplate!
-  ): LoginChallenge
+  ): MutationLoginByUsernameResult!
 
   """Revoke a session by its ID."""
   revokeSession(
@@ -442,6 +454,8 @@ type Mutation {
   ): Session
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
 }
+
+union MutationLoginByUsernameResult = LoginError | LoginSuccess
 
 interface Node {
   id: ID!

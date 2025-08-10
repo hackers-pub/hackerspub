@@ -128,7 +128,7 @@ msgstr "{0} 님의 단문"
 msgid "{0}'s shares"
 msgstr "{0} 님의 공유"
 
-#: src/routes/sign/index.tsx:194
+#: src/routes/sign/index.tsx:180
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함(또는 스팸 폴더)을 확인해주세요."
 
@@ -172,7 +172,7 @@ msgstr "계정을 생성하는 중…"
 msgid "Display name"
 msgstr "이름"
 
-#: src/routes/sign/index.tsx:230
+#: src/routes/sign/index.tsx:272
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
@@ -180,11 +180,11 @@ msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. �
 msgid "Email address"
 msgstr "이메일 주소"
 
-#: src/routes/sign/index.tsx:208
+#: src/routes/sign/index.tsx:250
 msgid "Email or username"
 msgstr "이메일 또는 아이디"
 
-#: src/routes/sign/index.tsx:193
+#: src/routes/sign/index.tsx:188
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
 
@@ -346,7 +346,7 @@ msgstr "콘텐츠가 없습니다"
 #~ msgid "No posts found."
 #~ msgstr "콘텐츠를 찾을 수 없습니다."
 
-#: src/routes/sign/index.tsx:192
+#: src/routes/sign/index.tsx:185
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
@@ -355,7 +355,7 @@ msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요
 msgid "Notes"
 msgstr "단문"
 
-#: src/routes/sign/index.tsx:241
+#: src/routes/sign/index.tsx:283
 msgid "Or enter the code from the email"
 msgstr "또는 이메일의 코드를 입력하세요"
 
@@ -389,7 +389,7 @@ msgid "Shares"
 msgstr "공유"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/sign/index.tsx:224
+#: src/routes/sign/index.tsx:266
 msgid "Sign in"
 msgstr "로그인"
 
@@ -401,17 +401,21 @@ msgstr "로그아웃"
 msgid "Sign up"
 msgstr "가입"
 
-#: src/routes/sign/index.tsx:187
+#: src/routes/sign/index.tsx:233
 msgid "Signing in Hackers' Pub"
 msgstr "Hackers' Pub에 로그인"
 
-#: src/routes/sign/index.tsx:224
+#: src/routes/sign/index.tsx:266
 msgid "Signing in…"
 msgstr "로그인 중…"
 
 #: src/routes/sign/up/[token].tsx:327
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pub 가입"
+
+#: src/routes/sign/index.tsx:190
+msgid "Something went wrong—please try again."
+msgstr "문제가 발생했습니다. 다시 시도해주세요."
 
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
