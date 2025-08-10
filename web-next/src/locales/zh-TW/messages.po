@@ -34,6 +34,13 @@ msgstr "{0} 和其他 {1} 人關注了你"
 msgid "{0} followed you"
 msgstr "{0} 關注了你"
 
+#. placeholder {0}: instance().host
+#. placeholder {1}: instance().software
+#. placeholder {2}: instance().softwareVersion
+#: src/routes/index.tsx:45
+msgid "{0} running {1} {2}"
+msgstr "{0} 正在執行 {1} {2}"
+
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/PostSharer.tsx:36
@@ -140,6 +147,10 @@ msgstr "載入更多粉絲失敗，點擊重試"
 msgid "Failed to load more notes; click to retry"
 msgstr "載入更多貼文失敗，點擊重試"
 
+#: src/components/NotificationList.tsx:74
+msgid "Failed to load more notifications; click to retry"
+msgstr "無法載入更多通知；點擊重試"
+
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
@@ -206,6 +217,10 @@ msgstr "載入更多粉絲"
 msgid "Load more notes"
 msgstr "載入更多貼文"
 
+#: src/components/NotificationList.tsx:77
+msgid "Load more notifications"
+msgstr "載入更多通知"
+
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
 msgid "Load more posts"
@@ -222,6 +237,10 @@ msgstr "載入更多粉絲中…"
 #: src/components/ActorNoteList.tsx:69
 msgid "Loading more notes…"
 msgstr "載入更多貼文中…"
+
+#: src/components/NotificationList.tsx:71
+msgid "Loading more notifications"
+msgstr "正在載入更多通知…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
@@ -278,6 +297,14 @@ msgstr "Hackers' Pub 中無此帳戶，請重試。"
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "貼文"
+
+#: src/routes/sign/index.tsx:241
+msgid "Or enter the code from the email"
+msgstr "或輸入郵件中的驗證碼"
+
+#: src/routes/[...404].tsx:11
+msgid "Page Not Found"
+msgstr "頁面未找到"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -359,6 +386,11 @@ msgstr "時間軸"
 #: src/components/ArticleCard.tsx:149
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
+
+#. placeholder {0}: notification().__typename
+#: src/components/NotificationCard.tsx:32
+msgid "Unknown notification type. {0}"
+msgstr "未知通知類型。{0}"
 
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"

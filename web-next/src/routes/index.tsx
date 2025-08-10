@@ -6,6 +6,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { routesQuery } from "./__generated__/routesQuery.graphql.ts";
 
 const RoutesQuery = graphql`
@@ -30,6 +31,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function Home() {
+  const { t } = useLingui();
   const data = createPreloadedQuery<routesQuery>(
     RoutesQuery,
     loadRoutesQuery,
@@ -40,8 +42,7 @@ export default function Home() {
       <Show when={data()?.instanceByHost}>
         {(instance) => (
           <>
-            {instance().host} running {instance().software}{" "}
-            {instance().softwareVersion}
+            {t`${instance().host} running ${instance().software} ${instance().softwareVersion}`}
           </>
         )}
       </Show>

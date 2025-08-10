@@ -34,6 +34,13 @@ msgstr "{0}さん外{1}人があなたをフォローしました"
 msgid "{0} followed you"
 msgstr "{0}さんがあなたをフォローしました"
 
+#. placeholder {0}: instance().host
+#. placeholder {1}: instance().software
+#. placeholder {2}: instance().softwareVersion
+#: src/routes/index.tsx:45
+msgid "{0} running {1} {2}"
+msgstr "{0}で{1} {2}を実行中"
+
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/PostSharer.tsx:36
@@ -140,6 +147,10 @@ msgstr "フォロワーの読み込みに失敗しました。クリックして
 msgid "Failed to load more notes; click to retry"
 msgstr "投稿の読み込みに失敗しました。クリックして再試行してください"
 
+#: src/components/NotificationList.tsx:74
+msgid "Failed to load more notifications; click to retry"
+msgstr "通知の読み込みに失敗しました。クリックして再試行してください"
+
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
@@ -206,6 +217,10 @@ msgstr "フォロワーをもっと読み込む"
 msgid "Load more notes"
 msgstr "投稿をもっと読み込む"
 
+#: src/components/NotificationList.tsx:77
+msgid "Load more notifications"
+msgstr "通知をもっと読み込む"
+
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
 msgid "Load more posts"
@@ -222,6 +237,10 @@ msgstr "フォロワーを読み込み中…"
 #: src/components/ActorNoteList.tsx:69
 msgid "Loading more notes…"
 msgstr "投稿を読み込み中…"
+
+#: src/components/NotificationList.tsx:71
+msgid "Loading more notifications"
+msgstr "通知を読み込み中…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
@@ -278,6 +297,14 @@ msgstr "Hackers' Pubにそのようなアカウントはありません。もう
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "投稿"
+
+#: src/routes/sign/index.tsx:241
+msgid "Or enter the code from the email"
+msgstr "またはメールのコードを入力してください"
+
+#: src/routes/[...404].tsx:11
+msgid "Page Not Found"
+msgstr "ページが見つかりません"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -359,6 +386,11 @@ msgstr "タイムライン"
 #: src/components/ArticleCard.tsx:149
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
+
+#. placeholder {0}: notification().__typename
+#: src/components/NotificationCard.tsx:32
+msgid "Unknown notification type. {0}"
+msgstr "不明な通知タイプ。{0}"
 
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"

@@ -34,6 +34,13 @@ msgstr "{0} and {1} others followed you"
 msgid "{0} followed you"
 msgstr "{0} followed you"
 
+#. placeholder {0}: instance().host
+#. placeholder {1}: instance().software
+#. placeholder {2}: instance().softwareVersion
+#: src/routes/index.tsx:45
+msgid "{0} running {1} {2}"
+msgstr "{0} running {1} {2}"
+
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/PostSharer.tsx:36
@@ -140,6 +147,10 @@ msgstr "Failed to load more followers; click to retry"
 msgid "Failed to load more notes; click to retry"
 msgstr "Failed to load more notes; click to retry"
 
+#: src/components/NotificationList.tsx:74
+msgid "Failed to load more notifications; click to retry"
+msgstr "Failed to load more notifications; click to retry"
+
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
@@ -206,6 +217,10 @@ msgstr "Load more followers"
 msgid "Load more notes"
 msgstr "Load more notes"
 
+#: src/components/NotificationList.tsx:77
+msgid "Load more notifications"
+msgstr "Load more notifications"
+
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
 msgid "Load more posts"
@@ -222,6 +237,10 @@ msgstr "Loading more followers…"
 #: src/components/ActorNoteList.tsx:69
 msgid "Loading more notes…"
 msgstr "Loading more notes…"
+
+#: src/components/NotificationList.tsx:71
+msgid "Loading more notifications"
+msgstr "Loading more notifications"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
@@ -278,6 +297,14 @@ msgstr "No such account in Hackers' Pub—please try again."
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "Notes"
+
+#: src/routes/sign/index.tsx:241
+msgid "Or enter the code from the email"
+msgstr "Or enter the code from the email"
+
+#: src/routes/[...404].tsx:11
+msgid "Page Not Found"
+msgstr "Page Not Found"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -359,6 +386,11 @@ msgstr "Timeline"
 #: src/components/ArticleCard.tsx:149
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
+
+#. placeholder {0}: notification().__typename
+#: src/components/NotificationCard.tsx:32
+msgid "Unknown notification type. {0}"
+msgstr "Unknown notification type. {0}"
 
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"
