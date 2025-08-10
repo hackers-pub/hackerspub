@@ -5,6 +5,7 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 import type { NotificationCard_notification$key } from "./__generated__/NotificationCard_notification.graphql.ts";
 import { FollowNotificationCard } from "./notification/FollowNotificationCard.tsx";
+import { MentionNotificationCard } from "./notification/MentionNotificationCard.tsx";
 
 export interface NotificationCardProps {
   $notification: NotificationCard_notification$key;
@@ -18,6 +19,7 @@ export function NotificationCard(props: NotificationCardProps) {
       {
         __typename
         ...FollowNotificationCard_notification
+        ...MentionNotificationCard_notification
       }
     `,
     () => props.$notification,
@@ -36,6 +38,9 @@ export function NotificationCard(props: NotificationCardProps) {
           >
             <Match when={notification().__typename === "FollowNotification"}>
               <FollowNotificationCard $notification={notification()} />
+            </Match>
+            <Match when={notification().__typename === "MentionNotification"}>
+              <MentionNotificationCard $notification={notification()} />
             </Match>
           </Switch>
         </li>

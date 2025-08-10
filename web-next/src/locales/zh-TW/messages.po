@@ -30,6 +30,12 @@ msgid "{0} and {1} others followed you"
 msgstr "{0} 和其他 {1} 人關注了你"
 
 #. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#: src/components/notification/MentionNotificationCard.tsx:59
+msgid "{0} and {1} others mentioned you"
+msgstr "{0} 和其他 {1} 人提及了你"
+
+#. placeholder {0}: "ACTOR"
 #: src/components/notification/FollowNotificationCard.tsx:39
 msgid "{0} followed you"
 msgstr "{0} 關注了你"
@@ -40,6 +46,11 @@ msgstr "{0} 關注了你"
 #: src/routes/index.tsx:45
 msgid "{0} running {1} {2}"
 msgstr "{0} 正在執行 {1} {2}"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/MentionNotificationCard.tsx:47
+msgid "{0} mentioned you"
+msgstr "{0} 提及了你"
 
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
