@@ -112,6 +112,7 @@
     "npm:@pothos/core@^4.7.3": "4.8.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-complexity@4.1.1": "4.1.1_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-drizzle@~0.11.1": "0.11.1_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250807.0",
+    "npm:@pothos/plugin-errors@^4.4.2": "4.4.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-relay@^4.6.2": "4.6.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-scope-auth@^4.1.5": "4.1.5_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-simple-objects@^4.1.3": "4.1.3_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
@@ -3667,6 +3668,13 @@
       "dependencies": [
         "@pothos/core",
         "drizzle-orm@1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250807.0",
+        "graphql"
+      ]
+    },
+    "@pothos/plugin-errors@4.4.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
+      "integrity": "sha512-5uyvsZZjTMUyhld+6rV0RIjhgjvlo4QI0ivts7mGtv9k7cRF3vXLplKTOo3KpNsUfkUkn6ZCDQUnQkmmAGvmhQ==",
+      "dependencies": [
+        "@pothos/core",
         "graphql"
       ]
     },
@@ -12054,6 +12062,7 @@
       "npm:@pothos/core@^4.7.3",
       "npm:@pothos/plugin-complexity@4.1.1",
       "npm:@pothos/plugin-drizzle@~0.11.1",
+      "npm:@pothos/plugin-errors@^4.4.2",
       "npm:@pothos/plugin-relay@^4.6.2",
       "npm:@pothos/plugin-scope-auth@^4.1.5",
       "npm:@pothos/plugin-simple-objects@^4.1.3",

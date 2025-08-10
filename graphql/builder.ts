@@ -9,6 +9,7 @@ import type { Uuid } from "@hackerspub/models/uuid";
 import SchemaBuilder from "@pothos/core";
 import ComplexityPlugin from "@pothos/plugin-complexity";
 import DrizzlePlugin from "@pothos/plugin-drizzle";
+import ErrorsPlugin from "@pothos/plugin-errors";
 import RelayPlugin from "@pothos/plugin-relay";
 import ScopeAuthPlugin from "@pothos/plugin-scope-auth";
 import SimpleObjectsPlugin from "@pothos/plugin-simple-objects";
@@ -28,6 +29,9 @@ import {
 } from "graphql-scalars";
 import { createGraphQLError } from "graphql-yoga";
 import type Keyv from "keyv";
+
+export type ValuesOfEnumType<T> = T extends
+  PothosSchemaTypes.EnumRef<never, unknown, infer V> ? V : never;
 
 export interface ServerContext {
   db: Database;
@@ -114,6 +118,7 @@ export const builder = new SchemaBuilder<PothosTypes>({
     SimpleObjectsPlugin,
     TracingPlugin,
     WithInputPlugin,
+    ErrorsPlugin,
   ],
   complexity: {
     defaultComplexity: 1,
