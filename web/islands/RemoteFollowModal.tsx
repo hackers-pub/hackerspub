@@ -8,11 +8,85 @@ export interface RemoteFollowModalProps {
   actorName?: string;
 }
 
+interface ActorData {
+  id?: string;
+  type: string;
+  preferredUsername?: string;
+  name?: string;
+  summary?: string;
+  url?: string;
+  icon?: string;
+  image?: string;
+  followersCount?: number;
+  followingCount?: number;
+  handle: string;
+  profileUrl: string;
+  domain: string;
+  software: string;
+  template?: string;
+}
+
+// webfinger template을 사용하여 원격 팔로우 URL 생성
+function generateRemoteFollowUrl(
+  actorHandle: string,
+  template?: string,
+  domain?: string,
+  software?: string,
+): string | null {
+  // 1순위: webfinger에서 제공하는 template 사용
+  if (template) {
+    const encodedHandle = encodeURIComponent(actorHandle);
+    const url = template.replace("{uri}", encodedHandle);
+    return url;
+  }
+
+  // 2순위: 도메인과 소프트웨어 정보가 있을 경우 폴백 방식 사용
+  if (!domain) return null;
+
+  const encodedHandle = encodeURIComponent(actorHandle);
+  const encodedAcct = encodeURIComponent(
+    actorHandle.startsWith("@") ? actorHandle.slice(1) : actorHandle,
+  );
+
+  switch (software?.toLowerCase()) {
+    case "mastodon":
+    case "pleroma":
+    case "akkoma":
+    case "pixelfed":
+    case "gotosocial":
+    case "takahe":
+      return `https://${domain}/authorize_interaction?uri=${encodedHandle}`;
+
+    case "misskey":
+    case "foundkey":
+    case "calckey":
+    case "firefish":
+    case "iceshrimp":
+      return `https://${domain}/authorize-follow?acct=${encodedAcct}`;
+
+    case "peertube":
+      return `https://${domain}/remote-interaction?uri=${encodedHandle}`;
+
+    case "lemmy":
+      return `https://${domain}/search?q=${encodedHandle}&type=Users`;
+
+    case "friendica":
+    case "hubzilla":
+      return `https://${domain}/follow?url=${encodedHandle}`;
+
+    default:
+      // 표준 ActivityPub 방식 폴백
+      return `https://${domain}/authorize_interaction?uri=${encodedHandle}`;
+  }
+}
+
 export function RemoteFollowModal(
   { isOpen, onClose, actorHandle, actorName }: RemoteFollowModalProps,
 ) {
   const fediverseId = useSignal("");
   const errorMessage = useSignal("");
+  const isLoading = useSignal(false);
+  const actorData = useSignal<ActorData | null>(null);
 
   const validateFediverseId = (id: string): boolean => {
     // Fediverse ID 형식: @username@domain.com 또는 username@domain.com
@@ -26,7 +100,8 @@ export function RemoteFollowModal(
     const withoutAt = normalizedId.startsWith("@")
       ? normalizedId.slice(1)
       : normalizedId;
-    return withoutAt.endsWith("@hackerspub.com");
+    return withoutAt.endsWith("@hackerspub.com") ||
+      withoutAt.endsWith("@hackers.pub");
   };
 
   const handleSubmit = async (e: Event) => {
@@ -63,20 +138,40 @@ export function RemoteFollowModal(
       return;
     }
 
-    // 일반 Fediverse 사용자: 원격 팔로우 처리
+    // 일반 Fediverse 사용자: 서버 API를 통한 webfinger 조회
     try {
-      const normalizedId = inputId.startsWith("@") ? inputId.slice(1) : inputId;
-      const [_, domain] = normalizedId.split("@");
+      isLoading.value = true;
+      errorMessage.value = "";
 
-      // 원격 팔로우를 위한 URL 생성 (ActivityPub 표준)
-      const followUrl = `https://${domain}/authorize_interaction?uri=${
-        encodeURIComponent(actorHandle)
-      }`;
-      window.open(followUrl, "_blank");
-      onClose();
+      const response = await fetch("/api/webfinger", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ fediverseId: inputId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "사용자 조회에 실패했습니다.");
+      }
+
+      if (!data.actor) {
+        throw new Error("사용자 정보를 찾을 수 없습니다.");
+      }
+
+      // 사용자 정보를 상태에 저장하여 UI에 표시
+      actorData.value = data.actor;
+      console.log("Actor data:", data.actor);
     } catch (error) {
-      console.error("Remote follow error:", error);
-      errorMessage.value = "원격 팔로우 처리 중 오류가 발생했습니다.";
+      console.error("Webfinger lookup error:", error);
+      errorMessage.value = error instanceof Error
+        ? error.message
+        : "사용자 정보 조회 중 오류가 발생했습니다.";
+      actorData.value = null;
+    } finally {
+      isLoading.value = false;
     }
   };
 
@@ -89,9 +184,33 @@ export function RemoteFollowModal(
   const handleInputChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
     fediverseId.value = target.value;
-    // 입력 중일 때 에러 메시지 초기화
+    // 입력 중일 때 에러 메시지 초기화 및 사용자 데이터 초기화
     if (errorMessage.value) {
       errorMessage.value = "";
+    }
+    if (actorData.value) {
+      actorData.value = null;
+    }
+  };
+
+  const handleFollowClick = () => {
+    if (!actorData.value) return;
+
+    const actor = actorData.value;
+    const domain = actor.handle.split("@")[1];
+    const remoteFollowUrl = generateRemoteFollowUrl(
+      actorHandle,
+      actor.template,
+      domain,
+      actor.software,
+    );
+
+    if (remoteFollowUrl) {
+      // 새 탭에서 원격 팔로우 페이지 열기
+      window.open(remoteFollowUrl, "_blank", "noopener,noreferrer");
+      onClose();
+    } else {
+      errorMessage.value = "해당 서비스의 팔로우 페이지를 찾을 수 없습니다.";
     }
   };
 
@@ -153,7 +272,8 @@ export function RemoteFollowModal(
               placeholder="@username@mastodon.social"
               value={fediverseId.value}
               onInput={handleInputChange}
-              class={`w-full px-3 py-2 border rounded-md bg-white dark:bg-stone-700 text-gray-900 dark:text-gray-100 ${
+              disabled={isLoading.value}
+              class={`w-full px-3 py-2 border rounded-md bg-white dark:bg-stone-700 text-gray-900 dark:text-gray-100 disabled:opacity-50 ${
                 errorMessage.value
                   ? "border-red-500 dark:border-red-400"
                   : "border-gray-300 dark:border-gray-600"
@@ -163,7 +283,53 @@ export function RemoteFollowModal(
             {errorMessage.value && (
               <p class="text-red-500 text-xs mt-1">{errorMessage.value}</p>
             )}
+            {isLoading.value && (
+              <p class="text-blue-500 text-xs mt-1">
+                사용자 정보를 조회 중입니다...
+              </p>
+            )}
           </div>
+
+          {actorData.value && (
+            <div class="mb-4 p-3 border rounded-md bg-gray-50 dark:bg-stone-700">
+              <div class="flex items-start gap-3">
+                {actorData.value.icon && (
+                  <img
+                    src={actorData.value.icon}
+                    alt="프로필 이미지"
+                    class="w-10 h-10 rounded-full flex-shrink-0"
+                  />
+                )}
+                <div class="flex-1">
+                  <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                    {actorData.value.name ||
+                      actorData.value.preferredUsername ||
+                      actorData.value.handle.split("@")[0]}
+                  </h4>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    {actorData.value.handle}
+                  </p>
+                  {actorData.value.software &&
+                    actorData.value.software !== "unknown" && (
+                    <p class="text-xs text-gray-500 dark:text-gray-500">
+                      {actorData.value.software.charAt(0).toUpperCase() +
+                        actorData.value.software.slice(1)}
+                    </p>
+                  )}
+                  {actorData.value.summary && (
+                    <p
+                      class="text-xs text-gray-600 dark:text-gray-400 mt-1"
+                      style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"
+                    >
+                      {actorData.value.summary.replace(/<[^>]*>/g, "")
+                        .substring(0, 100)}
+                      {actorData.value.summary.length > 100 ? "..." : ""}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div class="flex gap-3">
             <Button
@@ -173,12 +339,25 @@ export function RemoteFollowModal(
             >
               취소
             </Button>
-            <Button
-              type="submit"
-              class="flex-1"
-            >
-              팔로우
-            </Button>
+            {actorData.value
+              ? (
+                <Button
+                  type="button"
+                  onClick={handleFollowClick}
+                  class="flex-1"
+                >
+                  팔로우하기
+                </Button>
+              )
+              : (
+                <Button
+                  type="submit"
+                  disabled={isLoading.value}
+                  class="flex-1 disabled:opacity-50"
+                >
+                  {isLoading.value ? "조회 중..." : "사용자 조회"}
+                </Button>
+              )}
           </div>
         </form>
       </div>
