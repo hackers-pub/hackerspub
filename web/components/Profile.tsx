@@ -67,6 +67,7 @@ export function Profile(
                         width={18}
                         height={18}
                         class="inline-block align-top mt-0.5 mr-1"
+                        alt="Profile img"
                       />
                       {actor.successor.name == null
                         ? actor.successor.username
@@ -103,6 +104,7 @@ export function Profile(
                   class={`mb-5 mr-4 ${
                     actor.successorId == null ? "" : "grayscale"
                   }`}
+                  alt="Profile img"
                 />
               </a>
             )}
