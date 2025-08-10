@@ -10,7 +10,7 @@ import "./poll.ts";
 import "./post.ts";
 import "./reactable.ts";
 import "./signup.ts";
-export type { Context } from "./builder.ts";
+export type { UserContext as Context } from "./builder.ts";
 export { createYogaServer } from "./server.ts";
 
 export const schema: GraphQLSchema = builder.toSchema();
