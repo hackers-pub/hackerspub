@@ -270,6 +270,17 @@ type ArticleContent implements Node {
   url: URL!
 }
 
+type CreateNoteError {
+  createNoteErrorKind: CreateNoteErrorKind!
+}
+
+enum CreateNoteErrorKind {
+  NOTE_CREATION_FAILED
+  NOT_AUTHENTICATED
+  QUOTED_POST_NOT_FOUND
+  REPLY_TARGET_NOT_FOUND
+}
+
 input CreateNoteInput {
   clientMutationId: ID
   content: Markdown!
@@ -282,6 +293,10 @@ input CreateNoteInput {
 type CreateNotePayload {
   clientMutationId: ID
   note: Note!
+}
+
+type CreateNoteSuccess {
+  data: CreateNotePayload!
 }
 
 type CustomEmoji implements Node {
@@ -421,7 +436,7 @@ type Mutation {
     """The signup token."""
     token: UUID!
   ): SignupResult!
-  createNote(input: CreateNoteInput!): CreateNotePayload!
+  createNote(input: CreateNoteInput!): MutationCreateNoteResult!
   loginByEmail(
     """The email of the account to sign in."""
     email: String!
@@ -454,6 +469,8 @@ type Mutation {
   ): Session
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
 }
+
+union MutationCreateNoteResult = CreateNoteError | CreateNoteSuccess
 
 union MutationLoginByUsernameResult = LoginError | LoginSuccess
 

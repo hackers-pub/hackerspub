@@ -9,7 +9,7 @@ import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
-import { builder, Node } from "./builder.ts";
+import { builder, Node, type ValuesOfEnumType } from "./builder.ts";
 import { Reactable } from "./reactable.ts";
 
 const PostVisibility = builder.enumType("PostVisibility", {
@@ -20,6 +20,33 @@ const PostVisibility = builder.enumType("PostVisibility", {
     "DIRECT",
     "NONE",
   ] as const,
+});
+
+const CreateNoteErrorKind = builder.enumType("CreateNoteErrorKind", {
+  values: [
+    "NOT_AUTHENTICATED",
+    "REPLY_TARGET_NOT_FOUND",
+    "QUOTED_POST_NOT_FOUND",
+    "NOTE_CREATION_FAILED",
+  ] as const,
+});
+
+class CreateNoteError extends Error {
+  public constructor(
+    public readonly kind: ValuesOfEnumType<typeof CreateNoteErrorKind>,
+  ) {
+    super(`Create note error - ${kind}`);
+  }
+}
+
+builder.objectType(CreateNoteError, {
+  name: "CreateNoteError",
+  fields: (t) => ({
+    createNoteErrorKind: t.field({
+      type: CreateNoteErrorKind,
+      resolve: (error) => error.kind,
+    }),
+  }),
 });
 
 export const Post = builder.drizzleInterface("postTable", {
@@ -458,10 +485,16 @@ builder.relayMutationField(
     }),
   },
   {
+    errors: {
+      types: [CreateNoteError],
+      result: {
+        name: "CreateNoteSuccess",
+      },
+    },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
       if (session == null) {
-        throw new Error("Not authenticated.");
+        throw new CreateNoteError("NOT_AUTHENTICATED");
       }
       const { visibility, content, language, replyTargetId, quotedPostId } =
         args.input;
@@ -472,7 +505,7 @@ builder.relayMutationField(
           where: { id: replyTargetId.id },
         });
         if (replyTarget == null) {
-          throw new Error("Reply target not found.");
+          throw new CreateNoteError("REPLY_TARGET_NOT_FOUND");
         }
       }
       let quotedPost: schema.Post & { actor: schema.Actor } | undefined;
@@ -482,7 +515,7 @@ builder.relayMutationField(
           where: { id: quotedPostId.id },
         });
         if (quotedPost == null) {
-          throw new Error("Quoted post not found.");
+          throw new CreateNoteError("QUOTED_POST_NOT_FOUND");
         }
       }
       return await withTransaction(ctx.fedCtx, async (context) => {
@@ -511,7 +544,7 @@ builder.relayMutationField(
           { replyTarget, quotedPost },
         );
         if (note == null) {
-          throw new Error("Failed to create note.");
+          throw new CreateNoteError("NOTE_CREATION_FAILED");
         }
         return note;
       });
