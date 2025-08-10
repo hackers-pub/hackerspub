@@ -7,10 +7,10 @@ import { compactUrl } from "@hackerspub/models/url";
 import { escape } from "@std/html/entities";
 import { ConfirmForm } from "../islands/ConfirmForm.tsx";
 import { Link } from "../islands/Link.tsx";
+import { RemoteFollowButton } from "../islands/RemoteFollowButton.tsx";
 import { Button } from "./Button.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 import { PageTitle } from "./PageTitle.tsx";
-import { RemoteFollowButton } from "../islands/RemoteFollowButton.tsx";
 
 export interface ProfileProps {
   actor: Actor & { successor: Actor | null };
@@ -18,10 +18,12 @@ export interface ProfileProps {
   relationship: Relationship | null;
   links?: AccountLink[];
   profileHref: string;
+  signedAccount?: { id: string; actor: { id: string } } | null;
 }
 
 export function Profile(
-  { actor, actorMentions, profileHref, relationship, links }: ProfileProps,
+  { actor, actorMentions, profileHref, relationship, links, signedAccount }:
+    ProfileProps,
 ) {
   const bioHtml = preprocessContentHtml(
     actor.bioHtml ?? "",
@@ -172,49 +174,51 @@ export function Profile(
                   />
                 )}
             </PageTitle>
-            {relationship === null
-              ? (
-                <div class="shrink-0">
-                  <RemoteFollowButton
-                    actorHandle={actor.handle}
-                    actorName={actor.name ?? undefined}
-                  />
-                </div>
-              )
-              : relationship.outgoing === "none"
-              ? (
-                // 로그인했지만 팔로우하지 않은 상태 -> 팔로우 버튼
-                <form
-                  method="post"
-                  action={`${profileHref}/follow`}
-                  class="shrink-0"
-                >
-                  <Button
-                    disabled={relationship?.incoming === "block"}
-                    class="ml-4 mt-2 h-9"
-                  >
-                    {relationship.incoming === "follow"
-                      ? <Msg $key="profile.followBack" />
-                      : <Msg $key="profile.follow" />}
-                  </Button>
-                </form>
-              )
-              : relationship.incoming !== "block" &&
-                relationship.outgoing !== "block" &&
-                (
-                  // 팔로우했거나 요청 중인 상태 -> 언팔로우/요청취소 버튼
+            {signedAccount?.actor.id !== actor.id && (
+              relationship === null
+                ? (
+                  <div class="shrink-0">
+                    <RemoteFollowButton
+                      actorHandle={actor.handle}
+                      actorName={actor.name || actor.username}
+                    />
+                  </div>
+                )
+                : relationship?.outgoing === "none"
+                ? (
+                  // 로그인했지만 팔로우하지 않은 상태 -> 팔로우 버튼
                   <form
                     method="post"
-                    action={`${profileHref}/unfollow`}
+                    action={`${profileHref}/follow`}
                     class="shrink-0"
                   >
-                    <Button class="ml-4 mt-2 h-9">
-                      {relationship.outgoing === "follow"
-                        ? <Msg $key="profile.unfollow" />
-                        : <Msg $key="profile.cancelRequest" />}
+                    <Button
+                      disabled={relationship?.incoming === "block"}
+                      class="ml-4 mt-2 h-9"
+                    >
+                      {relationship.incoming === "follow"
+                        ? <Msg $key="profile.followBack" />
+                        : <Msg $key="profile.follow" />}
                     </Button>
                   </form>
-                )}
+                )
+                : relationship?.incoming !== "block" &&
+                  relationship?.outgoing !== "block" &&
+                  (
+                    // 팔로우했거나 요청 중인 상태 -> 언팔로우/요청취소 버튼
+                    <form
+                      method="post"
+                      action={`${profileHref}/unfollow`}
+                      class="shrink-0"
+                    >
+                      <Button class="ml-4 mt-2 h-9">
+                        {relationship?.outgoing === "follow"
+                          ? <Msg $key="profile.unfollow" />
+                          : <Msg $key="profile.cancelRequest" />}
+                      </Button>
+                    </form>
+                  )
+            )}
             {relationship != null &&
               (
                 <div class="pl-3 pt-3.5">
