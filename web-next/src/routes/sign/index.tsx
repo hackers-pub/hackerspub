@@ -143,6 +143,9 @@ export default function SignPage() {
         onCompleted(response) {
           onCompleted(response.loginByEmail);
         },
+        onError(_error) {
+          onError();
+        },
       });
     } else {
       loginByUsername({
@@ -153,6 +156,9 @@ export default function SignPage() {
         },
         onCompleted(response) {
           onCompleted(response.loginByUsername);
+        },
+        onError(_error) {
+          onError();
         },
       });
     }
@@ -168,8 +174,14 @@ export default function SignPage() {
     ) {
       setErrorCode(data.loginErrorKind);
     } else {
-      setErrorCode("UNKNOWN");
+      onError();
     }
+  }
+
+  function onError() {
+    setChallenging(false);
+    setErrorCode("UNKNOWN");
+    setToken(undefined);
   }
 
   function getSignInMessage() {
