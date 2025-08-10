@@ -1,29 +1,12 @@
 import { useSignal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
+import type { ActorInfo } from "../routes/api/webfinger.ts";
 
 export interface RemoteFollowModalProps {
   isOpen: boolean;
   onClose: () => void;
   actorHandle: string;
   actorName?: string;
-}
-
-interface ActorData {
-  id?: string;
-  type: string;
-  preferredUsername?: string;
-  name?: string;
-  summary?: string;
-  url?: string;
-  icon?: string;
-  image?: string;
-  followersCount?: number;
-  followingCount?: number;
-  handle: string;
-  profileUrl: string;
-  domain: string;
-  software: string;
-  template?: string;
 }
 
 // webfinger template을 사용하여 원격 팔로우 URL 생성
@@ -86,7 +69,7 @@ export function RemoteFollowModal(
   const fediverseId = useSignal("");
   const errorMessage = useSignal("");
   const isLoading = useSignal(false);
-  const actorData = useSignal<ActorData | null>(null);
+  const actionInfo = useSignal<ActorInfo | null>(null);
 
   const validateFediverseId = (id: string): boolean => {
     // Fediverse ID 형식: @username@domain.com 또는 username@domain.com
@@ -148,7 +131,7 @@ export function RemoteFollowModal(
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ fediverseId: inputId }),
+        body: JSON.stringify({ fediverseId: inputId, actorHandle }),
       });
 
       const data = await response.json();
@@ -162,14 +145,14 @@ export function RemoteFollowModal(
       }
 
       // 사용자 정보를 상태에 저장하여 UI에 표시
-      actorData.value = data.actor;
+      actionInfo.value = data.actor;
       console.log("Actor data:", data.actor);
     } catch (error) {
       console.error("Webfinger lookup error:", error);
       errorMessage.value = error instanceof Error
         ? error.message
         : "사용자 정보 조회 중 오류가 발생했습니다.";
-      actorData.value = null;
+      actionInfo.value = null;
     } finally {
       isLoading.value = false;
     }
@@ -188,15 +171,15 @@ export function RemoteFollowModal(
     if (errorMessage.value) {
       errorMessage.value = "";
     }
-    if (actorData.value) {
-      actorData.value = null;
+    if (actionInfo.value) {
+      actionInfo.value = null;
     }
   };
 
   const handleFollowClick = () => {
-    if (!actorData.value) return;
+    if (!actionInfo.value) return;
 
-    const actor = actorData.value;
+    const actor = actionInfo.value;
     const domain = actor.handle.split("@")[1];
     const remoteFollowUrl = generateRemoteFollowUrl(
       actorHandle,
@@ -290,40 +273,40 @@ export function RemoteFollowModal(
             )}
           </div>
 
-          {actorData.value && (
+          {actionInfo.value && (
             <div class="mb-4 p-3 border rounded-md bg-gray-50 dark:bg-stone-700">
               <div class="flex items-start gap-3">
-                {actorData.value.icon && (
+                {actionInfo.value.icon && (
                   <img
-                    src={actorData.value.icon}
+                    src={actionInfo.value.icon}
                     alt="프로필 이미지"
                     class="w-10 h-10 rounded-full flex-shrink-0"
                   />
                 )}
                 <div class="flex-1">
                   <h4 class="font-medium text-gray-900 dark:text-gray-100">
-                    {actorData.value.name ||
-                      actorData.value.preferredUsername ||
-                      actorData.value.handle.split("@")[0]}
+                    {actionInfo.value.name ||
+                      actionInfo.value.preferredUsername ||
+                      actionInfo.value.handle.split("@")[0]}
                   </h4>
                   <p class="text-sm text-gray-600 dark:text-gray-400">
-                    {actorData.value.handle}
+                    {actionInfo.value.handle}
                   </p>
-                  {actorData.value.software &&
-                    actorData.value.software !== "unknown" && (
+                  {actionInfo.value.software &&
+                    actionInfo.value.software !== "unknown" && (
                     <p class="text-xs text-gray-500 dark:text-gray-500">
-                      {actorData.value.software.charAt(0).toUpperCase() +
-                        actorData.value.software.slice(1)}
+                      {actionInfo.value.software.charAt(0).toUpperCase() +
+                        actionInfo.value.software.slice(1)}
                     </p>
                   )}
-                  {actorData.value.summary && (
+                  {actionInfo.value.summary && (
                     <p
                       class="text-xs text-gray-600 dark:text-gray-400 mt-1"
                       style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"
                     >
-                      {actorData.value.summary.replace(/<[^>]*>/g, "")
+                      {actionInfo.value.summary.replace(/<[^>]*>/g, "")
                         .substring(0, 100)}
-                      {actorData.value.summary.length > 100 ? "..." : ""}
+                      {actionInfo.value.summary.length > 100 ? "..." : ""}
                     </p>
                   )}
                 </div>
@@ -339,7 +322,7 @@ export function RemoteFollowModal(
             >
               취소
             </Button>
-            {actorData.value
+            {actionInfo.value
               ? (
                 <Button
                   type="button"

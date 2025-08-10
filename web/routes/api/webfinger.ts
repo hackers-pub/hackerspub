@@ -4,6 +4,7 @@ import { define } from "../../utils.ts";
 
 interface WebfingerRequest {
   fediverseId: string;
+  actorHandle?: string;
 }
 
 interface WebfingerLink {
@@ -18,7 +19,7 @@ interface WebfingerResponse {
   links: WebfingerLink[];
 }
 
-interface ActorInfo {
+export interface ActorInfo {
   id: string | undefined;
   type: string;
   preferredUsername: string | undefined;
@@ -57,7 +58,11 @@ const logger = getLogger(["hackerspub", "api", "webfinger"]);
 
 function validateFediverseId(
   fediverseId: unknown,
-): { isValid: boolean; username?: string; domain?: string; error?: string } {
+): { isValid: false; error: string } | {
+  isValid: true;
+  username: string;
+  domain: string;
+} {
   if (!fediverseId || typeof fediverseId !== "string") {
     return { isValid: false, error: "Fediverse ID가 필요합니다." };
   }
@@ -72,12 +77,12 @@ function validateFediverseId(
 }
 
 function getProductionHandle(handle: string): string {
-  const isDevelopment = Deno.env.get("DENO_ENV") === "development" ||
-    Deno.env.get("NODE_ENV") === "development";
+  const isDevelopment = Deno.env.get("MODE") === "development";
+  const productionHandle = Deno.env.get("PRODUCTION_ACTOR_HANDLE");
 
-  if (!isDevelopment) return handle;
+  if (!isDevelopment || !productionHandle) return handle;
 
-  return handle.replace(/@[a-f0-9]+\.ngrok-free\.app$/, "@hackers.pub");
+  return productionHandle;
 }
 
 async function lookupWebfinger(
@@ -131,6 +136,7 @@ async function buildActorInfo(
   finalDomain: string,
   profileUrl: string,
   subscribeTemplate?: string,
+  actorHandle?: string,
 ): Promise<ActorInfo> {
   let software = "unknown";
   try {
@@ -166,6 +172,11 @@ async function buildActorInfo(
     imageUrl = actorObject.imageId.href;
   }
 
+  // Handle development environment domain conversion for my actor handle
+  const finalActorHandle = actorHandle
+    ? getProductionHandle(actorHandle)
+    : undefined;
+
   return {
     id: actorObject.id?.href,
     type: actorObject.constructor.name,
@@ -181,7 +192,9 @@ async function buildActorInfo(
     profileUrl: profileUrl,
     domain: finalDomain,
     software: software,
-    template: subscribeTemplate,
+    template: subscribeTemplate && finalActorHandle
+      ? subscribeTemplate.replace("{uri}", encodeURIComponent(finalActorHandle))
+      : subscribeTemplate,
   };
 }
 
@@ -203,22 +216,14 @@ export const handler = define.handlers(async (ctx) => {
     const { username, domain } = validation;
     const normalizedId = `${username}@${domain}`;
 
-    // Handle development environment domain conversion
-    const productionHandle = getProductionHandle(`@${normalizedId}`);
-    const finalNormalizedId = productionHandle.startsWith("@")
-      ? productionHandle.slice(1)
-      : productionHandle;
-
-    logger.info("Looking up actor: {fediverseId} -> {finalId}", {
+    logger.info("Looking up actor: {fediverseId}", {
       fediverseId: normalizedId,
-      finalId: finalNormalizedId,
     });
 
     // Perform webfinger lookup
-    const finalDomain = finalNormalizedId.split("@")[1];
     const webfingerResult = await lookupWebfinger(
-      finalDomain,
-      finalNormalizedId,
+      domain,
+      normalizedId,
     );
 
     if (!webfingerResult.success) {
@@ -244,7 +249,7 @@ export const handler = define.handlers(async (ctx) => {
 
     if (!activityPubLink || !activityPubLink.href) {
       logger.warn("No ActivityPub profile found for {fediverseId}", {
-        fediverseId: finalNormalizedId,
+        fediverseId: normalizedId,
       });
       return createJsonResponse(
         { error: "ActivityPub 프로필을 찾을 수 없습니다." },
@@ -263,14 +268,15 @@ export const handler = define.handlers(async (ctx) => {
       // Build actor information
       const actorInfo = await buildActorInfo(
         actorObject,
-        finalNormalizedId,
-        finalDomain,
+        normalizedId,
+        domain,
         activityPubLink.href,
         subscribeLink?.template,
+        requestBody.actorHandle,
       );
 
       logger.info("Successfully looked up actor: {handle}", {
-        handle: finalNormalizedId,
+        handle: normalizedId,
       });
 
       return createJsonResponse({ actor: actorInfo }, 200);
