@@ -212,7 +212,7 @@ export default function SignPage() {
                   type="text"
                   inputmode="email"
                   tabindex={0}
-                  placeholder="me@email.com"
+                  placeholder="me@email.com" // Do not translate
                   on:input={onInput}
                 />
               </TextField>
@@ -238,7 +238,7 @@ export default function SignPage() {
             </div>
             <div class="relative flex justify-center text-xs uppercase">
               <span class="bg-background px-2 text-muted-foreground">
-                Or enter the code from the email
+                {t`Or enter the code from the email`}
               </span>
             </div>
           </div>

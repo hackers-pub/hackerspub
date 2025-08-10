@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 import type { NotificationCard_notification$key } from "./__generated__/NotificationCard_notification.graphql.ts";
 import { FollowNotificationCard } from "./notification/FollowNotificationCard.tsx";
@@ -10,6 +11,7 @@ export interface NotificationCardProps {
 }
 
 export function NotificationCard(props: NotificationCardProps) {
+  const { t } = useLingui();
   const notification = createFragment(
     graphql`
       fragment NotificationCard_notification on Notification
@@ -27,7 +29,9 @@ export function NotificationCard(props: NotificationCardProps) {
         <li class="border-1 border-gray-800 p-4">
           <Switch
             fallback={
-              <p>Unknown notification type. {notification().__typename}</p>
+              <p>
+                {t`Unknown notification type. ${notification().__typename}`}
+              </p>
             }
           >
             <Match when={notification().__typename === "FollowNotification"}>
