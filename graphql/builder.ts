@@ -29,22 +29,25 @@ import {
 import { createGraphQLError } from "graphql-yoga";
 import type Keyv from "keyv";
 
-export interface Context {
+export interface ServerContext {
   db: Database;
   kv: Keyv;
   disk: Disk;
   email: Transport;
   fedCtx: RequestContext<ContextData>;
-  session: Session | undefined;
-  account: Account & { actor: Actor } | undefined;
   request: Request;
   connectionInfo?: Deno.ServeHandlerInfo<Deno.Addr>;
+}
+
+export interface UserContext extends ServerContext {
+  session: Session | undefined;
+  account: Account & { actor: Actor } | undefined;
 }
 
 export interface PothosTypes {
   DefaultFieldNullability: false;
   DrizzleRelations: typeof relations;
-  Context: Context;
+  Context: UserContext;
   AuthScopes: {
     signed: boolean;
     moderator: boolean;
