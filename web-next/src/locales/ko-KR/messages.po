@@ -36,6 +36,13 @@ msgid "{0} and {1} others mentioned you"
 msgstr "{0} 님 외 {1}명이 언급했습니다"
 
 #. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#. placeholder {2}: "EMOJI"
+#: src/components/notification/ReactNotificationCard.tsx:82
+msgid "{0} and {1} others reacted to your post with {2}"
+msgstr "{0} 님 외 {1}명이 {2}(으)로 반응했습니다"
+
+#. placeholder {0}: "ACTOR"
 #: src/components/notification/FollowNotificationCard.tsx:39
 msgid "{0} followed you"
 msgstr "{0} 님이 팔로했습니다"
@@ -51,6 +58,12 @@ msgstr "{0}에서 {1} {2}를 실행 중입니다."
 #: src/components/notification/MentionNotificationCard.tsx:47
 msgid "{0} mentioned you"
 msgstr "{0} 님이 언급했습니다"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "EMOJI"
+#: src/components/notification/ReactNotificationCard.tsx:52
+msgid "{0} reacted to your post with {1}"
+msgstr "{0} 님이 {1}(으)로 반응했습니다"
 
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"

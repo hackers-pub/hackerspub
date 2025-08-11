@@ -36,6 +36,13 @@ msgid "{0} and {1} others mentioned you"
 msgstr "{0}さん外{1}人があなたにメンションしました"
 
 #. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#. placeholder {2}: "EMOJI"
+#: src/components/notification/ReactNotificationCard.tsx:82
+msgid "{0} and {1} others reacted to your post with {2}"
+msgstr "{0}さん外{1}人があなたのコンテンツに{2}でリアクションしました"
+
+#. placeholder {0}: "ACTOR"
 #: src/components/notification/FollowNotificationCard.tsx:39
 msgid "{0} followed you"
 msgstr "{0}さんがあなたをフォローしました"
@@ -51,6 +58,12 @@ msgstr "{0}で{1} {2}を実行中"
 #: src/components/notification/MentionNotificationCard.tsx:47
 msgid "{0} mentioned you"
 msgstr "{0}さんがあなたにメンションしました"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "EMOJI"
+#: src/components/notification/ReactNotificationCard.tsx:52
+msgid "{0} reacted to your post with {1}"
+msgstr "{0}さんがあなたのコンテンツに{1}でリアクションしました"
 
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
