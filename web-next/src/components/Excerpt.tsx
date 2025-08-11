@@ -17,7 +17,7 @@ export function Excerpt(
         prose dark:prose-invert truncate overflow-y-hidden max-h-[2rem] leading-8
         prose-headings:text-base prose-headings:inline
         prose-blockquote:inline prose-pre:inline prose-ol:inline prose-ul:inline
-        prose-p:inline prose-li:inline prose-table:inline prose-thead:inloine
+        prose-p:inline prose-li:inline prose-table:inline prose-thead:inline
         prose-tr:inline prose-th:inline prose-td:inline
         prose-a:no-underline prose-a:font-normal
         ${props.class || ""}
