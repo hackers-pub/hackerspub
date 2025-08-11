@@ -40,77 +40,64 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
 
   return (
     <Show when={notification()}>
-      {(notification) => (
-        <div class="space-y-4">
-          <Switch>
-            <Match when={notification().actors.edges.length === 1}>
-              <div class="flex flex-row gap-2 items-center">
-                <Trans
-                  message={t`${"ACTOR"} reacted to your post with ${"EMOJI"}`}
-                  values={{
-                    ACTOR: () => (
-                      <NotificationActor $notification={notification()} />
-                    ),
-                    EMOJI: () => (
-                      <Show
-                        when={notification().customEmoji}
-                        fallback={
-                          <span class="inline-block text-lg">
-                            {notification().emoji}
-                          </span>
-                        }
-                      >
-                        {(customEmoji) => (
-                          <img
-                            src={customEmoji().imageUrl}
-                            alt={customEmoji().name}
-                            class="inline-block h-5 w-5"
-                          />
-                        )}
-                      </Show>
-                    ),
-                  }}
-                />
-              </div>
-            </Match>
-            <Match when={notification().actors.edges.length > 1}>
-              <div class="flex flex-row gap-2 items-center">
-                <Trans
-                  message={t`${"ACTOR"} and ${"COUNT"} others reacted to your post with ${"EMOJI"}`}
-                  values={{
-                    ACTOR: () => (
-                      <NotificationActor $notification={notification()} />
-                    ),
-                    COUNT: () => notification().actors.edges.length - 1,
-                    EMOJI: () => (
-                      <Show
-                        when={notification().customEmoji}
-                        fallback={
-                          <span class="inline-block text-lg">
-                            {notification().emoji}
-                          </span>
-                        }
-                      >
-                        {(customEmoji) => (
-                          <img
-                            src={customEmoji().imageUrl}
-                            alt={customEmoji().name}
-                            class="inline-block h-5 w-5"
-                          />
-                        )}
-                      </Show>
-                    ),
-                  }}
-                />
-              </div>
-            </Match>
-          </Switch>
-
-          <Show when={notification().post}>
-            {(post) => <PostExcerpt $post={post()} />}
+      {(notification) => {
+        const emojiElement = () => (
+          <Show
+            when={notification().customEmoji}
+            fallback={
+              <span class="inline-block text-lg">
+                {notification().emoji}
+              </span>
+            }
+          >
+            {(customEmoji) => (
+              <img
+                src={customEmoji().imageUrl}
+                alt={customEmoji().name}
+                class="inline-block h-5 w-5"
+              />
+            )}
           </Show>
-        </div>
-      )}
+        );
+
+        return (
+          <div class="space-y-4">
+            <Switch>
+              <Match when={notification().actors.edges.length === 1}>
+                <div class="flex flex-row gap-2 items-center">
+                  <Trans
+                    message={t`${"ACTOR"} reacted to your post with ${"EMOJI"}`}
+                    values={{
+                      ACTOR: () => (
+                        <NotificationActor $notification={notification()} />
+                      ),
+                      EMOJI: () => emojiElement(),
+                    }}
+                  />
+                </div>
+              </Match>
+              <Match when={notification().actors.edges.length > 1}>
+                <div class="flex flex-row gap-2 items-center">
+                  <Trans
+                    message={t`${"ACTOR"} and ${"COUNT"} others reacted to your post with ${"EMOJI"}`}
+                    values={{
+                      ACTOR: () => (
+                        <NotificationActor $notification={notification()} />
+                      ),
+                      COUNT: () => notification().actors.edges.length - 1,
+                      EMOJI: () => emojiElement(),
+                    }}
+                  />
+                </div>
+              </Match>
+            </Switch>
+
+            <Show when={notification().post}>
+              {(post) => <PostExcerpt $post={post()} />}
+            </Show>
+          </div>
+        );
+      }}
     </Show>
   );
 }
