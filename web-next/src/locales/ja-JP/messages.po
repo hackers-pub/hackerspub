@@ -71,7 +71,7 @@ msgstr "{0}さんの投稿"
 msgid "{0}'s shares"
 msgstr "{0}さんの共有"
 
-#: src/routes/sign/index.tsx:194
+#: src/routes/sign/index.tsx:192
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
@@ -115,7 +115,7 @@ msgstr "アカウントを作成中…"
 msgid "Display name"
 msgstr "名前"
 
-#: src/routes/sign/index.tsx:230
+#: src/routes/sign/index.tsx:284
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
 
@@ -123,11 +123,11 @@ msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので
 msgid "Email address"
 msgstr "メールアドレス"
 
-#: src/routes/sign/index.tsx:208
+#: src/routes/sign/index.tsx:262
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
 
-#: src/routes/sign/index.tsx:193
+#: src/routes/sign/index.tsx:200
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
@@ -289,7 +289,7 @@ msgstr "コンテンツはありません"
 #~ msgid "No posts found."
 #~ msgstr "コンテンツが見つかりませんでした。"
 
-#: src/routes/sign/index.tsx:192
+#: src/routes/sign/index.tsx:197
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
@@ -298,7 +298,7 @@ msgstr "Hackers' Pubにそのようなアカウントはありません。もう
 msgid "Notes"
 msgstr "投稿"
 
-#: src/routes/sign/index.tsx:241
+#: src/routes/sign/index.tsx:295
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
@@ -332,7 +332,7 @@ msgid "Shares"
 msgstr "共有"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/sign/index.tsx:224
+#: src/routes/sign/index.tsx:278
 msgid "Sign in"
 msgstr "ログイン"
 
@@ -344,17 +344,21 @@ msgstr "ログアウト"
 msgid "Sign up"
 msgstr "登録"
 
-#: src/routes/sign/index.tsx:187
+#: src/routes/sign/index.tsx:245
 msgid "Signing in Hackers' Pub"
 msgstr "Hackers' Pubにログイン"
 
-#: src/routes/sign/index.tsx:224
+#: src/routes/sign/index.tsx:278
 msgid "Signing in…"
 msgstr "ログイン中…"
 
 #: src/routes/sign/up/[token].tsx:327
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pubに登録"
+
+#: src/routes/sign/index.tsx:202
+msgid "Something went wrong—please try again."
+msgstr "問題が発生しました。再度お試しください。"
 
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
@@ -388,7 +392,7 @@ msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
 #. placeholder {0}: notification().__typename
-#: src/components/NotificationCard.tsx:32
+#: src/components/NotificationCard.tsx:33
 msgid "Unknown notification type. {0}"
 msgstr "不明な通知タイプ。{0}"
 

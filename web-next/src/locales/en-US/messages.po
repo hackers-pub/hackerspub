@@ -71,7 +71,7 @@ msgstr "{0}'s notes"
 msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
-#: src/routes/sign/index.tsx:194
+#: src/routes/sign/index.tsx:192
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
@@ -115,7 +115,7 @@ msgstr "Creating account…"
 msgid "Display name"
 msgstr "Display name"
 
-#: src/routes/sign/index.tsx:230
+#: src/routes/sign/index.tsx:284
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
@@ -123,11 +123,11 @@ msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a frien
 msgid "Email address"
 msgstr "Email address"
 
-#: src/routes/sign/index.tsx:208
+#: src/routes/sign/index.tsx:262
 msgid "Email or username"
 msgstr "Email or username"
 
-#: src/routes/sign/index.tsx:193
+#: src/routes/sign/index.tsx:200
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
@@ -289,7 +289,7 @@ msgstr "No posts found"
 #~ msgid "No posts found."
 #~ msgstr "No posts found."
 
-#: src/routes/sign/index.tsx:192
+#: src/routes/sign/index.tsx:197
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
@@ -298,7 +298,7 @@ msgstr "No such account in Hackers' Pub—please try again."
 msgid "Notes"
 msgstr "Notes"
 
-#: src/routes/sign/index.tsx:241
+#: src/routes/sign/index.tsx:295
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
@@ -332,7 +332,7 @@ msgid "Shares"
 msgstr "Shares"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/sign/index.tsx:224
+#: src/routes/sign/index.tsx:278
 msgid "Sign in"
 msgstr "Sign in"
 
@@ -344,17 +344,21 @@ msgstr "Sign out"
 msgid "Sign up"
 msgstr "Sign up"
 
-#: src/routes/sign/index.tsx:187
+#: src/routes/sign/index.tsx:245
 msgid "Signing in Hackers' Pub"
 msgstr "Signing in Hackers' Pub"
 
-#: src/routes/sign/index.tsx:224
+#: src/routes/sign/index.tsx:278
 msgid "Signing in…"
 msgstr "Signing in…"
 
 #: src/routes/sign/up/[token].tsx:327
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
+
+#: src/routes/sign/index.tsx:202
+msgid "Something went wrong—please try again."
+msgstr "Something went wrong—please try again."
 
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
@@ -388,7 +392,7 @@ msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
 #. placeholder {0}: notification().__typename
-#: src/components/NotificationCard.tsx:32
+#: src/components/NotificationCard.tsx:33
 msgid "Unknown notification type. {0}"
 msgstr "Unknown notification type. {0}"
 
