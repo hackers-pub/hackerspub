@@ -1,9 +1,12 @@
 import { graphql } from "relay-runtime";
-import { Match, Show, Switch } from "solid-js";
+import type { Component } from "solid-js";
+import { Show } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import { createFragment } from "solid-relay";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
-
-import type { NotificationCard_notification$key } from "./__generated__/NotificationCard_notification.graphql.ts";
+import type {
+  NotificationCard_notification$data,
+  NotificationCard_notification$key,
+} from "./__generated__/NotificationCard_notification.graphql.ts";
 import { FollowNotificationCard } from "./notification/FollowNotificationCard.tsx";
 import { MentionNotificationCard } from "./notification/MentionNotificationCard.tsx";
 import { QuoteNotificationCard } from "./notification/QuoteNotificationCard.tsx";
@@ -15,8 +18,22 @@ export interface NotificationCardProps {
   $notification: NotificationCard_notification$key;
 }
 
+// FIXME: NotificationCard type is not exported from the generated file
+const notificationCards: Readonly<
+  Record<
+    string,
+    Component<{ $notification: NotificationCard_notification$data }>
+  >
+> = {
+  FollowNotification: FollowNotificationCard,
+  MentionNotification: MentionNotificationCard,
+  ReactNotification: ReactNotificationCard,
+  QuoteNotification: QuoteNotificationCard,
+  ReplyNotification: ReplyNotificationCard,
+  ShareNotification: ShareNotificationCard,
+};
+
 export function NotificationCard(props: NotificationCardProps) {
-  const { t } = useLingui();
   const notification = createFragment(
     graphql`
       fragment NotificationCard_notification on Notification
@@ -37,32 +54,10 @@ export function NotificationCard(props: NotificationCardProps) {
     <Show when={notification()}>
       {(notification) => (
         <li class="border-1 border-gray-800 p-4">
-          <Switch
-            fallback={
-              <p>
-                {t`Unknown notification type. ${notification().__typename}`}
-              </p>
-            }
-          >
-            <Match when={notification().__typename === "FollowNotification"}>
-              <FollowNotificationCard $notification={notification()} />
-            </Match>
-            <Match when={notification().__typename === "MentionNotification"}>
-              <MentionNotificationCard $notification={notification()} />
-            </Match>
-            <Match when={notification().__typename === "ReactNotification"}>
-              <ReactNotificationCard $notification={notification()} />
-            </Match>
-            <Match when={notification().__typename === "QuoteNotification"}>
-              <QuoteNotificationCard $notification={notification()} />
-            </Match>
-            <Match when={notification().__typename === "ReplyNotification"}>
-              <ReplyNotificationCard $notification={notification()} />
-            </Match>
-            <Match when={notification().__typename === "ShareNotification"}>
-              <ShareNotificationCard $notification={notification()} />
-            </Match>
-          </Switch>
+          <Dynamic
+            component={notificationCards[notification().__typename]}
+            $notification={notification()}
+          />
         </li>
       )}
     </Show>
