@@ -37,6 +37,12 @@ msgstr "{0} 和其他 {1} 人提及了你"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
+#: src/components/notification/QuoteNotificationCard.tsx:59
+msgid "{0} and {1} others quoted your post"
+msgstr "{0} 和其他 {1} 人引用了你的内容"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
 #. placeholder {2}: "EMOJI"
 #: src/components/notification/ReactNotificationCard.tsx:82
 msgid "{0} and {1} others reacted to your post with {2}"
@@ -58,6 +64,11 @@ msgstr "{0} 正在运行 {1} {2}"
 #: src/components/notification/MentionNotificationCard.tsx:47
 msgid "{0} mentioned you"
 msgstr "{0} 提及了你"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/QuoteNotificationCard.tsx:47
+msgid "{0} quoted your post"
+msgstr "{0} 引用了你的内容"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "EMOJI"

@@ -37,6 +37,12 @@ msgstr "{0} 님 외 {1}명이 언급했습니다"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
+#: src/components/notification/QuoteNotificationCard.tsx:59
+msgid "{0} and {1} others quoted your post"
+msgstr "{0} 님 외 {1}명이 회원님의 콘텐츠를 인용했습니다"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
 #. placeholder {2}: "EMOJI"
 #: src/components/notification/ReactNotificationCard.tsx:82
 msgid "{0} and {1} others reacted to your post with {2}"
@@ -58,6 +64,11 @@ msgstr "{0}에서 {1} {2}를 실행 중입니다."
 #: src/components/notification/MentionNotificationCard.tsx:47
 msgid "{0} mentioned you"
 msgstr "{0} 님이 언급했습니다"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/QuoteNotificationCard.tsx:47
+msgid "{0} quoted your post"
+msgstr "{0} 님이 회원님의 콘텐츠를 인용했습니다"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "EMOJI"

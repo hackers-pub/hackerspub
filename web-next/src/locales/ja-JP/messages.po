@@ -37,6 +37,12 @@ msgstr "{0}さん外{1}人があなたにメンションしました"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
+#: src/components/notification/QuoteNotificationCard.tsx:59
+msgid "{0} and {1} others quoted your post"
+msgstr "{0}さん外{1}人があなたのコンテンツを引用しました"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
 #. placeholder {2}: "EMOJI"
 #: src/components/notification/ReactNotificationCard.tsx:82
 msgid "{0} and {1} others reacted to your post with {2}"
@@ -58,6 +64,11 @@ msgstr "{0}で{1} {2}を実行中"
 #: src/components/notification/MentionNotificationCard.tsx:47
 msgid "{0} mentioned you"
 msgstr "{0}さんがあなたにメンションしました"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/QuoteNotificationCard.tsx:47
+msgid "{0} quoted your post"
+msgstr "{0}さんがあなたのコンテンツを引用しました"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "EMOJI"
