@@ -50,6 +50,12 @@ msgstr "{0}さん外{1}人があなたのコンテンツに{2}でリアクショ
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
+#: src/components/notification/ReplyNotificationCard.tsx:59
+msgid "{0} and {1} others replied to your post"
+msgstr "{0}さん外{1}人があなたのコンテンツに返信しました"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
 #: src/components/notification/ShareNotificationCard.tsx:59
 msgid "{0} and {1} others shared your post"
 msgstr "{0}さん外{1}人があなたのコンテンツを共有しました"
@@ -81,6 +87,11 @@ msgstr "{0}さんがあなたのコンテンツを引用しました"
 #: src/components/notification/ReactNotificationCard.tsx:52
 msgid "{0} reacted to your post with {1}"
 msgstr "{0}さんがあなたのコンテンツに{1}でリアクションしました"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/ReplyNotificationCard.tsx:47
+msgid "{0} replied to your post"
+msgstr "{0}さんがあなたのコンテンツに返信しました"
 
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"

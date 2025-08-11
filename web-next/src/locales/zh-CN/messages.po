@@ -50,6 +50,12 @@ msgstr "{0} 和其他 {1} 人用 {2} 对你的内容做出了反应"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
+#: src/components/notification/ReplyNotificationCard.tsx:59
+msgid "{0} and {1} others replied to your post"
+msgstr "{0} 和其他 {1} 人回复了你的内容"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
 #: src/components/notification/ShareNotificationCard.tsx:59
 msgid "{0} and {1} others shared your post"
 msgstr "{0} 和其他 {1} 人转发了你的内容"
@@ -81,6 +87,11 @@ msgstr "{0} 引用了你的内容"
 #: src/components/notification/ReactNotificationCard.tsx:52
 msgid "{0} reacted to your post with {1}"
 msgstr "{0} 用 {1} 对你的内容做出了反应"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/ReplyNotificationCard.tsx:47
+msgid "{0} replied to your post"
+msgstr "{0} 回复了你的内容"
 
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"

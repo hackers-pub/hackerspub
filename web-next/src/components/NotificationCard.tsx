@@ -8,6 +8,7 @@ import { FollowNotificationCard } from "./notification/FollowNotificationCard.ts
 import { MentionNotificationCard } from "./notification/MentionNotificationCard.tsx";
 import { QuoteNotificationCard } from "./notification/QuoteNotificationCard.tsx";
 import { ReactNotificationCard } from "./notification/ReactNotificationCard.tsx";
+import { ReplyNotificationCard } from "./notification/ReplyNotificationCard.tsx";
 import { ShareNotificationCard } from "./notification/ShareNotificationCard.tsx";
 
 export interface NotificationCardProps {
@@ -25,6 +26,7 @@ export function NotificationCard(props: NotificationCardProps) {
         ...MentionNotificationCard_notification
         ...ReactNotificationCard_notification
         ...QuoteNotificationCard_notification
+        ...ReplyNotificationCard_notification
         ...ShareNotificationCard_notification
       }
     `,
@@ -53,6 +55,9 @@ export function NotificationCard(props: NotificationCardProps) {
             </Match>
             <Match when={notification().__typename === "QuoteNotification"}>
               <QuoteNotificationCard $notification={notification()} />
+            </Match>
+            <Match when={notification().__typename === "ReplyNotification"}>
+              <ReplyNotificationCard $notification={notification()} />
             </Match>
             <Match when={notification().__typename === "ShareNotification"}>
               <ShareNotificationCard $notification={notification()} />
