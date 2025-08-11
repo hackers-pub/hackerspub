@@ -49,6 +49,12 @@ msgid "{0} and {1} others reacted to your post with {2}"
 msgstr "{0} and {1} others reacted to your post with {2}"
 
 #. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#: src/components/notification/ShareNotificationCard.tsx:59
+msgid "{0} and {1} others shared your post"
+msgstr "{0} and {1} others shared your post"
+
+#. placeholder {0}: "ACTOR"
 #: src/components/notification/FollowNotificationCard.tsx:39
 msgid "{0} followed you"
 msgstr "{0} followed you"
@@ -81,6 +87,11 @@ msgstr "{0} reacted to your post with {1}"
 #: src/components/PostSharer.tsx:36
 msgid "{0} shared {1}"
 msgstr "{0} shared {1}"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/ShareNotificationCard.tsx:47
+msgid "{0} shared your post"
+msgstr "{0} shared your post"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:73
