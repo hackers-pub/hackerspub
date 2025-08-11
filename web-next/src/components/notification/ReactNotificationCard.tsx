@@ -2,8 +2,8 @@ import { graphql } from "relay-runtime";
 import { Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { Excerpt } from "../Excerpt.tsx";
 import { NotificationActor } from "../NotificationActor.tsx";
+import { PostExcerpt } from "../PostExcerpt.tsx";
 import { Trans } from "../Trans.tsx";
 import type {
   ReactNotificationCard_notification$key,
@@ -26,10 +26,7 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
           }
         }
         post {
-          url
-          content
-          iri
-          language
+          ...PostExcerpt_post
         }
         emoji
         customEmoji {
@@ -110,17 +107,7 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
           </Switch>
 
           <Show when={notification().post}>
-            {(post) => (
-              <a
-                href={post().url ?? post().iri}
-                class="block mt-4 p-3 bg-stone-50 dark:bg-stone-900 rounded border border-stone-200 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-              >
-                <Excerpt
-                  html={post().content}
-                  lang={post().language}
-                />
-              </a>
-            )}
+            {(post) => <PostExcerpt $post={post()} />}
           </Show>
         </div>
       )}
