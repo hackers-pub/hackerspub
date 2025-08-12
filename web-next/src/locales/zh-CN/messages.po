@@ -444,10 +444,6 @@ msgstr "时间线"
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/components/NotificationCard.tsx:32
-#~ msgid "Unknown notification type. {0}"
-#~ msgstr "未知通知类型。{0}"
-
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"
 msgstr "用户名"

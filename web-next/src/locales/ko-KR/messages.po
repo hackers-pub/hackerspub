@@ -444,10 +444,6 @@ msgstr "타임라인"
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
-#: src/components/NotificationCard.tsx:32
-#~ msgid "Unknown notification type. {0}"
-#~ msgstr "알 수 없는 알림 유형입니다. {0}"
-
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"
 msgstr "아이디"
