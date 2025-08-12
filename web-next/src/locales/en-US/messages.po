@@ -25,14 +25,66 @@ msgstr "{0, plural, one {# following} other {# following}}"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
-#: src/components/notification/FollowNotificationCard.tsx:51
+#: src/components/notification/FollowNotificationCard.tsx:29
 msgid "{0} and {1} others followed you"
 msgstr "{0} and {1} others followed you"
 
 #. placeholder {0}: "ACTOR"
-#: src/components/notification/FollowNotificationCard.tsx:39
+#. placeholder {1}: "COUNT"
+#: src/components/notification/MentionNotificationCard.tsx:36
+msgid "{0} and {1} others mentioned you"
+msgstr "{0} and {1} others mentioned you"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#: src/components/notification/QuoteNotificationCard.tsx:34
+msgid "{0} and {1} others quoted your post"
+msgstr "{0} and {1} others quoted your post"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#. placeholder {2}: "EMOJI"
+#: src/components/notification/ReactNotificationCard.tsx:59
+msgid "{0} and {1} others reacted to your post with {2}"
+msgstr "{0} and {1} others reacted to your post with {2}"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#: src/components/notification/ReplyNotificationCard.tsx:34
+msgid "{0} and {1} others replied to your post"
+msgstr "{0} and {1} others replied to your post"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#: src/components/notification/ShareNotificationCard.tsx:34
+msgid "{0} and {1} others shared your post"
+msgstr "{0} and {1} others shared your post"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/FollowNotificationCard.tsx:28
 msgid "{0} followed you"
 msgstr "{0} followed you"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/MentionNotificationCard.tsx:35
+msgid "{0} mentioned you"
+msgstr "{0} mentioned you"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/QuoteNotificationCard.tsx:33
+msgid "{0} quoted your post"
+msgstr "{0} quoted your post"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "EMOJI"
+#: src/components/notification/ReactNotificationCard.tsx:58
+msgid "{0} reacted to your post with {1}"
+msgstr "{0} reacted to your post with {1}"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/ReplyNotificationCard.tsx:33
+msgid "{0} replied to your post"
+msgstr "{0} replied to your post"
 
 #. placeholder {0}: instance().host
 #. placeholder {1}: instance().software
@@ -46,6 +98,11 @@ msgstr "{0} running {1} {2}"
 #: src/components/PostSharer.tsx:36
 msgid "{0} shared {1}"
 msgstr "{0} shared {1}"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/ShareNotificationCard.tsx:33
+msgid "{0} shared your post"
+msgstr "{0} shared your post"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:73
@@ -386,11 +443,6 @@ msgstr "Timeline"
 #: src/components/ArticleCard.tsx:149
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
-
-#. placeholder {0}: notification().__typename
-#: src/components/NotificationCard.tsx:32
-msgid "Unknown notification type. {0}"
-msgstr "Unknown notification type. {0}"
 
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"

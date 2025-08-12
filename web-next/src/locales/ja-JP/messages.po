@@ -25,14 +25,66 @@ msgstr "{0, plural, other {#フォロー}}"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
-#: src/components/notification/FollowNotificationCard.tsx:51
+#: src/components/notification/FollowNotificationCard.tsx:29
 msgid "{0} and {1} others followed you"
 msgstr "{0}さん外{1}人があなたをフォローしました"
 
 #. placeholder {0}: "ACTOR"
-#: src/components/notification/FollowNotificationCard.tsx:39
+#. placeholder {1}: "COUNT"
+#: src/components/notification/MentionNotificationCard.tsx:36
+msgid "{0} and {1} others mentioned you"
+msgstr "{0}さん外{1}人があなたにメンションしました"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#: src/components/notification/QuoteNotificationCard.tsx:34
+msgid "{0} and {1} others quoted your post"
+msgstr "{0}さん外{1}人があなたのコンテンツを引用しました"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#. placeholder {2}: "EMOJI"
+#: src/components/notification/ReactNotificationCard.tsx:59
+msgid "{0} and {1} others reacted to your post with {2}"
+msgstr "{0}さん外{1}人があなたのコンテンツに{2}でリアクションしました"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#: src/components/notification/ReplyNotificationCard.tsx:34
+msgid "{0} and {1} others replied to your post"
+msgstr "{0}さん外{1}人があなたのコンテンツに返信しました"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "COUNT"
+#: src/components/notification/ShareNotificationCard.tsx:34
+msgid "{0} and {1} others shared your post"
+msgstr "{0}さん外{1}人があなたのコンテンツを共有しました"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/FollowNotificationCard.tsx:28
 msgid "{0} followed you"
 msgstr "{0}さんがあなたをフォローしました"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/MentionNotificationCard.tsx:35
+msgid "{0} mentioned you"
+msgstr "{0}さんがあなたにメンションしました"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/QuoteNotificationCard.tsx:33
+msgid "{0} quoted your post"
+msgstr "{0}さんがあなたのコンテンツを引用しました"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "EMOJI"
+#: src/components/notification/ReactNotificationCard.tsx:58
+msgid "{0} reacted to your post with {1}"
+msgstr "{0}さんがあなたのコンテンツに{1}でリアクションしました"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/ReplyNotificationCard.tsx:33
+msgid "{0} replied to your post"
+msgstr "{0}さんがあなたのコンテンツに返信しました"
 
 #. placeholder {0}: instance().host
 #. placeholder {1}: instance().software
@@ -46,6 +98,11 @@ msgstr "{0}で{1} {2}を実行中"
 #: src/components/PostSharer.tsx:36
 msgid "{0} shared {1}"
 msgstr "{0}さんが{1}に共有"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/ShareNotificationCard.tsx:33
+msgid "{0} shared your post"
+msgstr "{0}さんがあなたのコンテンツを共有しました"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:73
@@ -386,11 +443,6 @@ msgstr "タイムライン"
 #: src/components/ArticleCard.tsx:149
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
-
-#. placeholder {0}: notification().__typename
-#: src/components/NotificationCard.tsx:32
-msgid "Unknown notification type. {0}"
-msgstr "不明な通知タイプ。{0}"
 
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"

@@ -9,7 +9,7 @@ export interface ExcerptProps {
 }
 
 export function Excerpt(
-  { class: className, html, emojis, lang }: ExcerptProps,
+  props: ExcerptProps,
 ) {
   return (
     <div
@@ -20,12 +20,13 @@ export function Excerpt(
         prose-p:inline prose-li:inline prose-table:inline prose-thead:inline
         prose-tr:inline prose-th:inline prose-td:inline
         prose-a:no-underline prose-a:font-normal
-        ${className}
+        ${props.class || ""}
       `}
-      lang={lang ?? undefined}
-      dangerouslySetInnerHTML={{
-        __html: renderCustomEmojis(sanitizeExcerptHtml(html), emojis ?? {}),
-      }}
+      lang={props.lang ?? undefined}
+      innerHTML={renderCustomEmojis(
+        sanitizeExcerptHtml(props.html),
+        props.emojis ?? {},
+      )}
     />
   );
 }
