@@ -25,45 +25,66 @@ msgstr "{0, plural, other {关注 # 人}}"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
-#: src/components/notification/FollowNotificationCard.tsx:51
+#: src/components/notification/FollowNotificationCard.tsx:29
 msgid "{0} and {1} others followed you"
 msgstr "{0} 和其他 {1} 人关注了你"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
-#: src/components/notification/MentionNotificationCard.tsx:59
+#: src/components/notification/MentionNotificationCard.tsx:36
 msgid "{0} and {1} others mentioned you"
 msgstr "{0} 和其他 {1} 人提及了你"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
-#: src/components/notification/QuoteNotificationCard.tsx:59
+#: src/components/notification/QuoteNotificationCard.tsx:34
 msgid "{0} and {1} others quoted your post"
 msgstr "{0} 和其他 {1} 人引用了你的内容"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
 #. placeholder {2}: "EMOJI"
-#: src/components/notification/ReactNotificationCard.tsx:82
+#: src/components/notification/ReactNotificationCard.tsx:59
 msgid "{0} and {1} others reacted to your post with {2}"
 msgstr "{0} 和其他 {1} 人用 {2} 对你的内容做出了反应"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
-#: src/components/notification/ReplyNotificationCard.tsx:59
+#: src/components/notification/ReplyNotificationCard.tsx:34
 msgid "{0} and {1} others replied to your post"
 msgstr "{0} 和其他 {1} 人回复了你的内容"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
-#: src/components/notification/ShareNotificationCard.tsx:59
+#: src/components/notification/ShareNotificationCard.tsx:34
 msgid "{0} and {1} others shared your post"
 msgstr "{0} 和其他 {1} 人转发了你的内容"
 
 #. placeholder {0}: "ACTOR"
-#: src/components/notification/FollowNotificationCard.tsx:39
+#: src/components/notification/FollowNotificationCard.tsx:28
 msgid "{0} followed you"
 msgstr "{0} 关注了你"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/MentionNotificationCard.tsx:35
+msgid "{0} mentioned you"
+msgstr "{0} 提及了你"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/QuoteNotificationCard.tsx:33
+msgid "{0} quoted your post"
+msgstr "{0} 引用了你的内容"
+
+#. placeholder {0}: "ACTOR"
+#. placeholder {1}: "EMOJI"
+#: src/components/notification/ReactNotificationCard.tsx:58
+msgid "{0} reacted to your post with {1}"
+msgstr "{0} 用 {1} 对你的内容做出了反应"
+
+#. placeholder {0}: "ACTOR"
+#: src/components/notification/ReplyNotificationCard.tsx:33
+msgid "{0} replied to your post"
+msgstr "{0} 回复了你的内容"
 
 #. placeholder {0}: instance().host
 #. placeholder {1}: instance().software
@@ -72,27 +93,6 @@ msgstr "{0} 关注了你"
 msgid "{0} running {1} {2}"
 msgstr "{0} 正在运行 {1} {2}"
 
-#. placeholder {0}: "ACTOR"
-#: src/components/notification/MentionNotificationCard.tsx:47
-msgid "{0} mentioned you"
-msgstr "{0} 提及了你"
-
-#. placeholder {0}: "ACTOR"
-#: src/components/notification/QuoteNotificationCard.tsx:47
-msgid "{0} quoted your post"
-msgstr "{0} 引用了你的内容"
-
-#. placeholder {0}: "ACTOR"
-#. placeholder {1}: "EMOJI"
-#: src/components/notification/ReactNotificationCard.tsx:52
-msgid "{0} reacted to your post with {1}"
-msgstr "{0} 用 {1} 对你的内容做出了反应"
-
-#. placeholder {0}: "ACTOR"
-#: src/components/notification/ReplyNotificationCard.tsx:47
-msgid "{0} replied to your post"
-msgstr "{0} 回复了你的内容"
-
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/PostSharer.tsx:36
@@ -100,7 +100,7 @@ msgid "{0} shared {1}"
 msgstr "{0}在{1}转帖了"
 
 #. placeholder {0}: "ACTOR"
-#: src/components/notification/ShareNotificationCard.tsx:47
+#: src/components/notification/ShareNotificationCard.tsx:33
 msgid "{0} shared your post"
 msgstr "{0} 转发了你的内容"
 
@@ -444,10 +444,9 @@ msgstr "时间线"
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#. placeholder {0}: notification().__typename
 #: src/components/NotificationCard.tsx:32
-msgid "Unknown notification type. {0}"
-msgstr "未知通知类型。{0}"
+#~ msgid "Unknown notification type. {0}"
+#~ msgstr "未知通知类型。{0}"
 
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"

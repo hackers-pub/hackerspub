@@ -1,13 +1,12 @@
 import { graphql } from "relay-runtime";
-import { Match, Show, Switch } from "solid-js";
+import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { NotificationActor } from "../NotificationActor.tsx";
 import { PostExcerpt } from "../PostExcerpt.tsx";
-import { Trans } from "../Trans.tsx";
 import type {
   MentionNotificationCard_notification$key,
 } from "./__generated__/MentionNotificationCard_notification.graphql.ts";
+import { NotificationMessage } from "./NotificationMessage.tsx";
 
 interface MentionNotificationCardProps {
   $notification: MentionNotificationCard_notification$key;
@@ -19,12 +18,7 @@ export function MentionNotificationCard(props: MentionNotificationCardProps) {
     graphql`
       fragment MentionNotificationCard_notification on MentionNotification
       {
-        ...NotificationActor_notification
-        actors {
-          edges {
-            __typename
-          }
-        }
+        ...NotificationMessage_notification
         post {
           ...PostExcerpt_post
         }
@@ -37,34 +31,11 @@ export function MentionNotificationCard(props: MentionNotificationCardProps) {
     <Show when={notification()}>
       {(notification) => (
         <div class="space-y-4">
-          <Switch>
-            <Match when={notification().actors.edges.length === 1}>
-              <div class="flex flex-row gap-2 items-center">
-                <Trans
-                  message={t`${"ACTOR"} mentioned you`}
-                  values={{
-                    ACTOR: () => (
-                      <NotificationActor $notification={notification()} />
-                    ),
-                  }}
-                />
-              </div>
-            </Match>
-            <Match when={notification().actors.edges.length > 1}>
-              <div class="flex flex-row gap-2 items-center">
-                <Trans
-                  message={t`${"ACTOR"} and ${"COUNT"} others mentioned you`}
-                  values={{
-                    ACTOR: () => (
-                      <NotificationActor $notification={notification()} />
-                    ),
-                    COUNT: () => notification().actors.edges.length - 1,
-                  }}
-                />
-              </div>
-            </Match>
-          </Switch>
-
+          <NotificationMessage
+            singleActorMessage={t`${"ACTOR"} mentioned you`}
+            multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others mentioned you`}
+            $notification={notification()}
+          />
           <Show when={notification().post}>
             {(post) => <PostExcerpt $post={post()} />}
           </Show>

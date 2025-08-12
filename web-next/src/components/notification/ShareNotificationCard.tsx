@@ -1,13 +1,10 @@
 import { graphql } from "relay-runtime";
-import { Match, Show, Switch } from "solid-js";
+import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { NotificationActor } from "../NotificationActor.tsx";
 import { PostExcerpt } from "../PostExcerpt.tsx";
-import { Trans } from "../Trans.tsx";
-import type {
-  ShareNotificationCard_notification$key,
-} from "./__generated__/ShareNotificationCard_notification.graphql.ts";
+import type { ShareNotificationCard_notification$key } from "./__generated__/ShareNotificationCard_notification.graphql.ts";
+import { NotificationMessage } from "./NotificationMessage.tsx";
 
 interface ShareNotificationCardProps {
   $notification: ShareNotificationCard_notification$key;
@@ -19,12 +16,7 @@ export function ShareNotificationCard(props: ShareNotificationCardProps) {
     graphql`
       fragment ShareNotificationCard_notification on ShareNotification
       {
-        ...NotificationActor_notification
-        actors {
-          edges {
-            __typename
-          }
-        }
+        ...NotificationMessage_notification
         post {
           ...PostExcerpt_post
         }
@@ -37,34 +29,11 @@ export function ShareNotificationCard(props: ShareNotificationCardProps) {
     <Show when={notification()}>
       {(notification) => (
         <div class="space-y-4">
-          <Switch>
-            <Match when={notification().actors.edges.length === 1}>
-              <div class="flex flex-row gap-2 items-center">
-                <Trans
-                  message={t`${"ACTOR"} shared your post`}
-                  values={{
-                    ACTOR: () => (
-                      <NotificationActor $notification={notification()} />
-                    ),
-                  }}
-                />
-              </div>
-            </Match>
-            <Match when={notification().actors.edges.length > 1}>
-              <div class="flex flex-row gap-2 items-center">
-                <Trans
-                  message={t`${"ACTOR"} and ${"COUNT"} others shared your post`}
-                  values={{
-                    ACTOR: () => (
-                      <NotificationActor $notification={notification()} />
-                    ),
-                    COUNT: () => notification().actors.edges.length - 1,
-                  }}
-                />
-              </div>
-            </Match>
-          </Switch>
-
+          <NotificationMessage
+            singleActorMessage={t`${"ACTOR"} shared your post`}
+            multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others shared your post`}
+            $notification={notification()}
+          />
           <Show when={notification().post}>
             {(post) => <PostExcerpt $post={post()} />}
           </Show>

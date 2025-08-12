@@ -1,13 +1,10 @@
 import { graphql } from "relay-runtime";
-import { Match, Show, Switch } from "solid-js";
+import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { NotificationActor } from "../NotificationActor.tsx";
 import { PostExcerpt } from "../PostExcerpt.tsx";
-import { Trans } from "../Trans.tsx";
-import type {
-  ReactNotificationCard_notification$key,
-} from "./__generated__/ReactNotificationCard_notification.graphql.ts";
+import type { ReactNotificationCard_notification$key } from "./__generated__/ReactNotificationCard_notification.graphql.ts";
+import { NotificationMessage } from "./NotificationMessage.tsx";
 
 interface ReactNotificationCardProps {
   $notification: ReactNotificationCard_notification$key;
@@ -19,12 +16,7 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
     graphql`
       fragment ReactNotificationCard_notification on ReactNotification
       {
-        ...NotificationActor_notification
-        actors {
-          edges {
-            __typename
-          }
-        }
+        ...NotificationMessage_notification
         post {
           ...PostExcerpt_post
         }
@@ -62,36 +54,12 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
 
         return (
           <div class="space-y-4">
-            <Switch>
-              <Match when={notification().actors.edges.length === 1}>
-                <div class="flex flex-row gap-2 items-center">
-                  <Trans
-                    message={t`${"ACTOR"} reacted to your post with ${"EMOJI"}`}
-                    values={{
-                      ACTOR: () => (
-                        <NotificationActor $notification={notification()} />
-                      ),
-                      EMOJI: () => emojiElement(),
-                    }}
-                  />
-                </div>
-              </Match>
-              <Match when={notification().actors.edges.length > 1}>
-                <div class="flex flex-row gap-2 items-center">
-                  <Trans
-                    message={t`${"ACTOR"} and ${"COUNT"} others reacted to your post with ${"EMOJI"}`}
-                    values={{
-                      ACTOR: () => (
-                        <NotificationActor $notification={notification()} />
-                      ),
-                      COUNT: () => notification().actors.edges.length - 1,
-                      EMOJI: () => emojiElement(),
-                    }}
-                  />
-                </div>
-              </Match>
-            </Switch>
-
+            <NotificationMessage
+              singleActorMessage={t`${"ACTOR"} reacted to your post with ${"EMOJI"}`}
+              multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others reacted to your post with ${"EMOJI"}`}
+              $notification={notification()}
+              additionalValues={{ EMOJI: () => emojiElement() }}
+            />
             <Show when={notification().post}>
               {(post) => <PostExcerpt $post={post()} />}
             </Show>
