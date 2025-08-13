@@ -151,8 +151,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
             innerHTML={note().content}
             lang={note().language ?? undefined}
             class="prose dark:prose-invert break-words overflow-wrap px-4 last:pb-4"
-          >
-          </div>
+          />
         </>
       )}
     </Show>
@@ -325,8 +324,7 @@ function QuotedNoteCard(props: QuotedNoteCardProps) {
               innerHTML={note().content}
               lang={note().language ?? undefined}
               class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
-            >
-            </div>
+            />
           </div>
         </>
       )}
