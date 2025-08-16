@@ -133,7 +133,7 @@ export function RemoteFollowModal(
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ fediverseId: inputId, actorHandle }),
+        body: JSON.stringify({ fediverseId: inputId, actorHandle, language }),
       });
 
       const data = await response.json();

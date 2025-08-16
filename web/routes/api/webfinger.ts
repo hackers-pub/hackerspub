@@ -1,10 +1,13 @@
 import { type Actor, getNodeInfo, isActor } from "@fedify/fedify";
 import { getLogger } from "@logtape/logtape";
 import { define } from "../../utils.ts";
+import getFixedT from "../../i18n.ts";
+import type { Language } from "../../i18n.ts";
 
 interface WebfingerRequest {
   fediverseId: string;
   actorHandle?: string;
+  language?: Language;
 }
 
 interface WebfingerLink {
@@ -58,18 +61,22 @@ const logger = getLogger(["hackerspub", "api", "webfinger"]);
 
 function validateFediverseId(
   fediverseId: unknown,
+  t: ReturnType<typeof getFixedT>,
 ): { isValid: false; error: string } | {
   isValid: true;
   username: string;
   domain: string;
 } {
   if (!fediverseId || typeof fediverseId !== "string") {
-    return { isValid: false, error: "Fediverse ID가 필요합니다." };
+    return { isValid: false, error: t("remoteFollow.api.fediverseIdRequired") };
   }
 
   const match = fediverseId.trim().match(FEDIVERSE_ID_REGEX);
   if (!match) {
-    return { isValid: false, error: "올바른 Fediverse ID 형식이 아닙니다." };
+    return {
+      isValid: false,
+      error: t("remoteFollow.api.fediverseIdInvalidFormat"),
+    };
   }
 
   const [, username, domain] = match;
@@ -88,6 +95,7 @@ function getProductionHandle(handle: string): string {
 async function lookupWebfinger(
   domain: string,
   normalizedId: string,
+  t: ReturnType<typeof getFixedT>,
 ): Promise<
   {
     success: boolean;
@@ -114,7 +122,9 @@ async function lookupWebfinger(
       });
       return {
         success: false,
-        error: `사용자를 찾을 수 없습니다: ${response.status}`,
+        error: t("remoteFollow.api.userNotFoundWithStatus", {
+          status: response.status,
+        }),
         status: response.status,
       };
     }
@@ -126,7 +136,10 @@ async function lookupWebfinger(
       error: error instanceof Error ? error.message : String(error),
       url: webfingerUrl,
     });
-    return { success: false, error: "Webfinger 조회 중 오류가 발생했습니다." };
+    return {
+      success: false,
+      error: t("remoteFollow.api.webfingerLookupError"),
+    };
   }
 }
 
@@ -199,16 +212,13 @@ async function buildActorInfo(
 }
 
 export const handler = define.handlers(async (ctx) => {
-  if (ctx.req.method !== "POST") {
-    return createJsonResponse({ error: "Method not allowed" }, 405);
-  }
+  const requestBody = await ctx.req.json() as WebfingerRequest;
+  const { fedCtx } = ctx.state;
+  const t = getFixedT(requestBody.language);
 
   try {
-    const requestBody = await ctx.req.json() as WebfingerRequest;
-    const { fedCtx } = ctx.state;
-
     // Validate Fediverse ID
-    const validation = validateFediverseId(requestBody.fediverseId);
+    const validation = validateFediverseId(requestBody.fediverseId, t);
     if (!validation.isValid) {
       return createJsonResponse({ error: validation.error }, 400);
     }
@@ -220,10 +230,10 @@ export const handler = define.handlers(async (ctx) => {
       fediverseId: normalizedId,
     });
 
-    // Perform webfinger lookup
     const webfingerResult = await lookupWebfinger(
       domain,
       normalizedId,
+      t,
     );
 
     if (!webfingerResult.success) {
@@ -252,7 +262,7 @@ export const handler = define.handlers(async (ctx) => {
         fediverseId: normalizedId,
       });
       return createJsonResponse(
-        { error: "ActivityPub 프로필을 찾을 수 없습니다." },
+        { error: t("remoteFollow.api.activityPubProfileNotFound") },
         404,
       );
     }
@@ -262,7 +272,7 @@ export const handler = define.handlers(async (ctx) => {
       const actorObject = await fedCtx.lookupObject(activityPubLink.href);
 
       if (!isActor(actorObject)) {
-        throw new Error("조회된 객체가 Actor가 아닙니다.");
+        throw new Error(t("remoteFollow.api.objectNotActor"));
       }
 
       // Build actor information
@@ -287,7 +297,7 @@ export const handler = define.handlers(async (ctx) => {
       });
 
       return createJsonResponse(
-        { error: "프로필 정보를 가져올 수 없습니다." },
+        { error: t("remoteFollow.api.profileInfoFetchFailed") },
         500,
       );
     }
@@ -297,7 +307,7 @@ export const handler = define.handlers(async (ctx) => {
     });
 
     return createJsonResponse(
-      { error: "서버 오류가 발생했습니다." },
+      { error: t("remoteFollow.api.serverError") },
       500,
     );
   }
