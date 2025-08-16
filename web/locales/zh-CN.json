@@ -410,5 +410,21 @@
     "exhausted": "此邀请链接已用完。您需要使用其他邀请链接来加入 Hackers' Pub。",
     "duplicateEmail": "此电子邮件地址已在 Hackers' Pub 注册。请使用其他电子邮件地址。",
     "sent": "加入 Hackers' Pub 的邮件已发送到 {{email}}。请检查您的收件箱。（可能在垃圾邮件文件夹中）"
+  },
+  "remoteFollow": {
+    "title": "远程关注",
+    "description": "要关注 {{actorName}}，请输入你的联邦宇宙 ID。",
+    "fediverseIdLabel": "联邦宇宙 ID",
+    "fediverseIdPlaceholder": "@username@mastodon.social",
+    "fediverseIdExample": "输入你的联邦宇宙 ID（例如：@username@mastodon.social）",
+    "fediverseIdRequired": "请输入你的联邦宇宙 ID。",
+    "fediverseIdInvalid": "联邦宇宙 ID 格式无效。请以 @username@domain.com 格式输入。",
+    "hackersPubUserConfirm": "这似乎是 Hackers' Pub 用户。你想要登录吗？\n确定：前往登录页面\n取消：关闭弹窗",
+    "userLookupError": "查找用户失败。",
+    "userNotFound": "未找到用户信息。",
+    "cancel": "取消",
+    "follow": "关注",
+    "lookupUser": "查找用户",
+    "followExternal": "外部关注"
   }
 }
