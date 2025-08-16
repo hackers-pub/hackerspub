@@ -1,6 +1,7 @@
 import { useSignal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
+import getFixedT from "../i18n.ts";
 import type { Language } from "../i18n.ts";
 import type { ActorInfo } from "../routes/api/webfinger.ts";
 
@@ -73,6 +74,7 @@ export function RemoteFollowModal(
   const errorMessage = useSignal("");
   const isLoading = useSignal(false);
   const actionInfo = useSignal<ActorInfo | null>(null);
+  const t = getFixedT(language);
 
   const validateFediverseId = (id: string): boolean => {
     // Fediverse ID 형식: @username@domain.com 또는 username@domain.com
@@ -95,23 +97,20 @@ export function RemoteFollowModal(
 
     const inputId = fediverseId.value.trim();
     if (!inputId) {
-      errorMessage.value = "Fediverse ID를 입력해주세요.";
+      errorMessage.value = t("remoteFollow.fediverseIdRequired");
       return;
     }
 
     // Fediverse ID 형식 검증
     if (!validateFediverseId(inputId)) {
-      errorMessage.value =
-        "올바른 Fediverse ID 형식이 아닙니다. (@username@domain.com 형식으로 입력해주세요)";
+      errorMessage.value = t("remoteFollow.fediverseIdInvalid");
       return;
     }
 
     // 해커스펍 사용자인지 확인
     if (isHackersPubUser(inputId)) {
       const shouldRedirectToLogin = confirm(
-        "해커스펍 사용자로 보입니다. 로그인하시겠습니까?\n" +
-          "확인: 로그인 페이지로 이동\n" +
-          "취소: 모달 닫기",
+        t("remoteFollow.hackersPubUserConfirm"),
       );
 
       if (shouldRedirectToLogin) {
@@ -140,11 +139,11 @@ export function RemoteFollowModal(
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "사용자 조회에 실패했습니다.");
+        throw new Error(data.error || t("remoteFollow.userLookupError"));
       }
 
       if (!data.actor) {
-        throw new Error("사용자 정보를 찾을 수 없습니다.");
+        throw new Error(t("remoteFollow.userNotFound"));
       }
 
       // 사용자 정보를 상태에 저장하여 UI에 표시
@@ -154,7 +153,7 @@ export function RemoteFollowModal(
       console.error("Webfinger lookup error:", error);
       errorMessage.value = error instanceof Error
         ? error.message
-        : "사용자 정보 조회 중 오류가 발생했습니다.";
+        : t("remoteFollow.userLookupError");
       actionInfo.value = null;
     } finally {
       isLoading.value = false;
@@ -196,7 +195,7 @@ export function RemoteFollowModal(
       window.open(remoteFollowUrl, "_blank", "noopener,noreferrer");
       onClose();
     } else {
-      errorMessage.value = "해당 서비스의 팔로우 페이지를 찾을 수 없습니다.";
+      errorMessage.value = t("remoteFollow.followServiceNotFound");
     }
   };
 
@@ -237,11 +236,13 @@ export function RemoteFollowModal(
 
           <div class="mb-4">
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
-              {actorName || actorHandle}님을 팔로우하려면 Fediverse ID를
-              입력해주세요.
+              <Msg
+                $key="remoteFollow.description"
+                actorName={actorName || actorHandle}
+              />
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400">
-              Fediverse ID를 입력하세요 (예: @username@mastodon.social)
+              <Msg $key="remoteFollow.fediverseIdExample" />
             </p>
           </div>
 
@@ -251,12 +252,12 @@ export function RemoteFollowModal(
                 htmlFor="fediverseId"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
               >
-                Fediverse ID
+                <Msg $key="remoteFollow.fediverseIdLabel" />
               </label>
               <input
                 id="fediverseId"
                 type="text"
-                placeholder="@username@mastodon.social"
+                placeholder={t("remoteFollow.fediverseIdPlaceholder")}
                 value={fediverseId.value}
                 onInput={handleInputChange}
                 disabled={isLoading.value}
@@ -272,7 +273,7 @@ export function RemoteFollowModal(
               )}
               {isLoading.value && (
                 <p class="text-blue-500 text-xs mt-1">
-                  사용자 정보를 조회 중입니다...
+                  <Msg $key="remoteFollow.lookingUpUser" />
                 </p>
               )}
             </div>
@@ -283,7 +284,7 @@ export function RemoteFollowModal(
                   {actionInfo.value.icon && (
                     <img
                       src={actionInfo.value.icon}
-                      alt="프로필 이미지"
+                      alt={t("remoteFollow.profileImageAlt")}
                       class="w-10 h-10 rounded-full flex-shrink-0"
                     />
                   )}
@@ -324,7 +325,7 @@ export function RemoteFollowModal(
                 onClick={onClose}
                 class="flex-1 bg-gray-100 dark:bg-stone-700 hover:bg-gray-200 dark:hover:bg-stone-600"
               >
-                취소
+                <Msg $key="remoteFollow.cancel" />
               </Button>
               {actionInfo.value
                 ? (
@@ -333,7 +334,7 @@ export function RemoteFollowModal(
                     onClick={handleFollowClick}
                     class="flex-1"
                   >
-                    팔로우하기
+                    <Msg $key="remoteFollow.title" />
                   </Button>
                 )
                 : (
@@ -342,7 +343,9 @@ export function RemoteFollowModal(
                     disabled={isLoading.value}
                     class="flex-1 disabled:opacity-50"
                   >
-                    {isLoading.value ? "조회 중..." : "사용자 조회"}
+                    {isLoading.value
+                      ? <Msg $key="remoteFollow.lookingUpUser" />
+                      : <Msg $key="remoteFollow.lookupUser" />}
                   </Button>
                 )}
             </div>
