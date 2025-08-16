@@ -35,7 +35,7 @@ export function Profile(
   );
   return (
     <Translation>
-      {(t) => (
+      {(t, language) => (
         <>
           {relationship?.incoming === "block"
             ? (
@@ -183,6 +183,7 @@ export function Profile(
                     <RemoteFollowButton
                       actorHandle={actor.handle}
                       actorName={actor.name || actor.username}
+                      language={language}
                     />
                   </div>
                 )

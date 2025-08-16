@@ -1,5 +1,7 @@
 import { useSignal } from "@preact/signals";
 import { Button } from "../components/Button.tsx";
+import { Msg, TranslationSetup } from "../components/Msg.tsx";
+import type { Language } from "../i18n.ts";
 import type { ActorInfo } from "../routes/api/webfinger.ts";
 
 export interface RemoteFollowModalProps {
@@ -7,6 +9,7 @@ export interface RemoteFollowModalProps {
   onClose: () => void;
   actorHandle: string;
   actorName?: string;
+  language: Language;
 }
 
 // webfinger template을 사용하여 원격 팔로우 URL 생성
@@ -64,7 +67,7 @@ function generateRemoteFollowUrl(
 }
 
 export function RemoteFollowModal(
-  { isOpen, onClose, actorHandle, actorName }: RemoteFollowModalProps,
+  { isOpen, onClose, actorHandle, actorName, language }: RemoteFollowModalProps,
 ) {
   const fediverseId = useSignal("");
   const errorMessage = useSignal("");
@@ -200,150 +203,152 @@ export function RemoteFollowModal(
   if (!isOpen) return null;
 
   return (
-    <div
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={handleBackdropClick}
-    >
-      <div class="bg-white dark:bg-stone-800 rounded-lg p-6 max-w-md w-full mx-4">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">
-            원격 팔로우
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              class="w-5 h-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <div class="mb-4">
-          <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
-            {actorName || actorHandle}님을 팔로우하려면 Fediverse ID를
-            입력해주세요.
-          </p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            Fediverse ID를 입력하세요 (예: @username@mastodon.social)
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div class="mb-4">
-            <label
-              htmlFor="fediverseId"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
-            >
-              Fediverse ID
-            </label>
-            <input
-              id="fediverseId"
-              type="text"
-              placeholder="@username@mastodon.social"
-              value={fediverseId.value}
-              onInput={handleInputChange}
-              disabled={isLoading.value}
-              class={`w-full px-3 py-2 border rounded-md bg-white dark:bg-stone-700 text-gray-900 dark:text-gray-100 disabled:opacity-50 ${
-                errorMessage.value
-                  ? "border-red-500 dark:border-red-400"
-                  : "border-gray-300 dark:border-gray-600"
-              }`}
-              required
-            />
-            {errorMessage.value && (
-              <p class="text-red-500 text-xs mt-1">{errorMessage.value}</p>
-            )}
-            {isLoading.value && (
-              <p class="text-blue-500 text-xs mt-1">
-                사용자 정보를 조회 중입니다...
-              </p>
-            )}
-          </div>
-
-          {actionInfo.value && (
-            <div class="mb-4 p-3 border rounded-md bg-gray-50 dark:bg-stone-700">
-              <div class="flex items-start gap-3">
-                {actionInfo.value.icon && (
-                  <img
-                    src={actionInfo.value.icon}
-                    alt="프로필 이미지"
-                    class="w-10 h-10 rounded-full flex-shrink-0"
-                  />
-                )}
-                <div class="flex-1">
-                  <h4 class="font-medium text-gray-900 dark:text-gray-100">
-                    {actionInfo.value.name ||
-                      actionInfo.value.preferredUsername ||
-                      actionInfo.value.handle.split("@")[0]}
-                  </h4>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">
-                    {actionInfo.value.handle}
-                  </p>
-                  {actionInfo.value.software &&
-                    actionInfo.value.software !== "unknown" && (
-                    <p class="text-xs text-gray-500 dark:text-gray-500">
-                      {actionInfo.value.software.charAt(0).toUpperCase() +
-                        actionInfo.value.software.slice(1)}
-                    </p>
-                  )}
-                  {actionInfo.value.summary && (
-                    <p
-                      class="text-xs text-gray-600 dark:text-gray-400 mt-1"
-                      style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"
-                    >
-                      {actionInfo.value.summary.replace(/<[^>]*>/g, "")
-                        .substring(0, 100)}
-                      {actionInfo.value.summary.length > 100 ? "..." : ""}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div class="flex gap-3">
-            <Button
+    <TranslationSetup language={language}>
+      <div
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        onClick={handleBackdropClick}
+      >
+        <div class="bg-white dark:bg-stone-800 rounded-lg p-6 max-w-md w-full mx-4">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">
+              <Msg $key="remoteFollow.title" />
+            </h2>
+            <button
               type="button"
               onClick={onClose}
-              class="flex-1 bg-gray-100 dark:bg-stone-700 hover:bg-gray-200 dark:hover:bg-stone-600"
+              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
-              취소
-            </Button>
-            {actionInfo.value
-              ? (
-                <Button
-                  type="button"
-                  onClick={handleFollowClick}
-                  class="flex-1"
-                >
-                  팔로우하기
-                </Button>
-              )
-              : (
-                <Button
-                  type="submit"
-                  disabled={isLoading.value}
-                  class="flex-1 disabled:opacity-50"
-                >
-                  {isLoading.value ? "조회 중..." : "사용자 조회"}
-                </Button>
-              )}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                class="w-5 h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
-        </form>
+
+          <div class="mb-4">
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
+              {actorName || actorHandle}님을 팔로우하려면 Fediverse ID를
+              입력해주세요.
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Fediverse ID를 입력하세요 (예: @username@mastodon.social)
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div class="mb-4">
+              <label
+                htmlFor="fediverseId"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2"
+              >
+                Fediverse ID
+              </label>
+              <input
+                id="fediverseId"
+                type="text"
+                placeholder="@username@mastodon.social"
+                value={fediverseId.value}
+                onInput={handleInputChange}
+                disabled={isLoading.value}
+                class={`w-full px-3 py-2 border rounded-md bg-white dark:bg-stone-700 text-gray-900 dark:text-gray-100 disabled:opacity-50 ${
+                  errorMessage.value
+                    ? "border-red-500 dark:border-red-400"
+                    : "border-gray-300 dark:border-gray-600"
+                }`}
+                required
+              />
+              {errorMessage.value && (
+                <p class="text-red-500 text-xs mt-1">{errorMessage.value}</p>
+              )}
+              {isLoading.value && (
+                <p class="text-blue-500 text-xs mt-1">
+                  사용자 정보를 조회 중입니다...
+                </p>
+              )}
+            </div>
+
+            {actionInfo.value && (
+              <div class="mb-4 p-3 border rounded-md bg-gray-50 dark:bg-stone-700">
+                <div class="flex items-start gap-3">
+                  {actionInfo.value.icon && (
+                    <img
+                      src={actionInfo.value.icon}
+                      alt="프로필 이미지"
+                      class="w-10 h-10 rounded-full flex-shrink-0"
+                    />
+                  )}
+                  <div class="flex-1">
+                    <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                      {actionInfo.value.name ||
+                        actionInfo.value.preferredUsername ||
+                        actionInfo.value.handle.split("@")[0]}
+                    </h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      {actionInfo.value.handle}
+                    </p>
+                    {actionInfo.value.software &&
+                      actionInfo.value.software !== "unknown" && (
+                      <p class="text-xs text-gray-500 dark:text-gray-500">
+                        {actionInfo.value.software.charAt(0).toUpperCase() +
+                          actionInfo.value.software.slice(1)}
+                      </p>
+                    )}
+                    {actionInfo.value.summary && (
+                      <p
+                        class="text-xs text-gray-600 dark:text-gray-400 mt-1"
+                        style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"
+                      >
+                        {actionInfo.value.summary.replace(/<[^>]*>/g, "")
+                          .substring(0, 100)}
+                        {actionInfo.value.summary.length > 100 ? "..." : ""}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div class="flex gap-3">
+              <Button
+                type="button"
+                onClick={onClose}
+                class="flex-1 bg-gray-100 dark:bg-stone-700 hover:bg-gray-200 dark:hover:bg-stone-600"
+              >
+                취소
+              </Button>
+              {actionInfo.value
+                ? (
+                  <Button
+                    type="button"
+                    onClick={handleFollowClick}
+                    class="flex-1"
+                  >
+                    팔로우하기
+                  </Button>
+                )
+                : (
+                  <Button
+                    type="submit"
+                    disabled={isLoading.value}
+                    class="flex-1 disabled:opacity-50"
+                  >
+                    {isLoading.value ? "조회 중..." : "사용자 조회"}
+                  </Button>
+                )}
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+    </TranslationSetup>
   );
 }

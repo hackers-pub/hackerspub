@@ -147,6 +147,7 @@ export function RecommendedActors(
                       <RemoteFollowButton
                         actorHandle={actor.handle}
                         actorName={actor.name || actor.username}
+                        language={language}
                       />
                     )
                     : (
