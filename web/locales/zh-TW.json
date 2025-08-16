@@ -423,9 +423,23 @@
     "hackersPubUserConfirm": "這似乎是 Hackers' Pub 使用者。你想要登入嗎？\n確定：前往登入頁面\n取消：關閉彈窗",
     "userLookupError": "查找使用者失敗。",
     "userNotFound": "未找到使用者資訊。",
+    "userLookupGenericError": "使用者資訊查找過程中發生錯誤。",
+    "profileImageAlt": "個人資料圖片",
+    "lookingUpUser": "正在查找使用者資訊...",
+    "followServiceNotFound": "未找到該服務的關注頁面。",
     "cancel": "取消",
     "follow": "關注",
     "lookupUser": "查找使用者",
-    "followExternal": "外部關注"
+    "lookingUp": "查找中...",
+    "api": {
+      "fediverseIdRequired": "聯邦宇宙 ID 是必需的。",
+      "fediverseIdInvalidFormat": "聯邦宇宙 ID 格式不正確。",
+      "userNotFoundWithStatus": "未找到使用者：{{status}}",
+      "webfingerLookupError": "Webfinger 查找過程中發生錯誤。",
+      "activityPubProfileNotFound": "未找到 ActivityPub 個人資料。",
+      "objectNotActor": "查找到的物件不是 Actor。",
+      "profileInfoFetchFailed": "無法取得個人資料資訊。",
+      "serverError": "伺服器發生錯誤。"
+    }
   }
 }

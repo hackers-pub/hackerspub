@@ -421,9 +421,23 @@
     "hackersPubUserConfirm": "これはHackers' Pubユーザーのようです。ログインしますか？\nOK：ログインページへ移動\nキャンセル：モーダルを閉じる",
     "userLookupError": "ユーザーの検索に失敗しました。",
     "userNotFound": "ユーザー情報が見つかりません。",
+    "userLookupGenericError": "ユーザー情報検索中にエラーが発生しました。",
+    "profileImageAlt": "プロフィール画像",
+    "lookingUpUser": "ユーザー情報を取得中...",
+    "followServiceNotFound": "該当サービスのフォローページが見つかりません。",
     "cancel": "キャンセル",
     "follow": "フォローする",
     "lookupUser": "ユーザーを検索",
-    "followExternal": "外部でフォロー"
+    "lookingUp": "検索中...",
+    "api": {
+      "fediverseIdRequired": "フェディバースIDが必要です。",
+      "fediverseIdInvalidFormat": "正しいフェディバースID形式ではありません。",
+      "userNotFoundWithStatus": "ユーザーが見つかりません：{{status}}",
+      "webfingerLookupError": "Webfinger検索中にエラーが発生しました。",
+      "activityPubProfileNotFound": "ActivityPubプロフィールが見つかりません。",
+      "objectNotActor": "取得されたオブジェクトはActorではありません。",
+      "profileInfoFetchFailed": "プロフィール情報を取得できませんでした。",
+      "serverError": "サーバーエラーが発生しました。"
+    }
   }
 }
