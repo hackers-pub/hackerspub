@@ -437,6 +437,16 @@
     "cancel": "Cancel",
     "follow": "Follow",
     "lookupUser": "Look up user",
-    "lookingUp": "Looking up..."
+    "lookingUp": "Looking up...",
+    "api": {
+      "fediverseIdRequired": "Fediverse ID is required.",
+      "fediverseIdInvalidFormat": "Invalid Fediverse ID format.",
+      "userNotFoundWithStatus": "User not found: {{status}}",
+      "webfingerLookupError": "An error occurred during Webfinger lookup.",
+      "activityPubProfileNotFound": "ActivityPub profile not found.",
+      "objectNotActor": "The retrieved object is not an Actor.",
+      "profileInfoFetchFailed": "Failed to fetch profile information.",
+      "serverError": "Server error occurred."
+    }
   }
 }

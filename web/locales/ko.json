@@ -426,6 +426,16 @@
     "cancel": "취소",
     "follow": "팔로우하기",
     "lookupUser": "사용자 조회",
-    "lookingUp": "조회 중..."
+    "lookingUp": "조회 중...",
+    "api": {
+      "fediverseIdRequired": "Fediverse ID가 필요합니다.",
+      "fediverseIdInvalidFormat": "올바른 Fediverse ID 형식이 아닙니다.",
+      "userNotFoundWithStatus": "사용자를 찾을 수 없습니다: {{status}}",
+      "webfingerLookupError": "Webfinger 조회 중 오류가 발생했습니다.",
+      "activityPubProfileNotFound": "ActivityPub 프로필을 찾을 수 없습니다.",
+      "objectNotActor": "조회된 객체가 Actor가 아닙니다.",
+      "profileInfoFetchFailed": "프로필 정보를 가져올 수 없습니다.",
+      "serverError": "서버 오류가 발생했습니다."
+    }
   }
 }
