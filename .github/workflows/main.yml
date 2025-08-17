@@ -20,8 +20,10 @@ jobs:
       with:
         package_json_file: web-next/package.json
     - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
-    - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
-    - run: deno task check
+    - if: always()
+      run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
+    - if: always()
+      run: deno task check
 
   image:
     needs: [test]
