@@ -19,10 +19,13 @@ jobs:
     - uses: pnpm/action-setup@v4
       with:
         package_json_file: web-next/package.json
-    - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
-    - if: always()
+    - name: Run codegen
+      run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
+    - name: Run tests
+      if: always()
       run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
-    - if: always()
+    - name: Run checks
+      if: always()
       run: deno task check
 
   image:
