@@ -27,6 +27,31 @@ jobs:
     - name: Run checks
       if: always()
       run: deno task check
+    - name: Extract web-next translations 
+      if: always()
+      run: cd web-next && deno task extract
+    - name: Check for uncommitted changes
+      if: always()
+      run: |
+        if ! git diff --exit-code --quiet; then
+          echo "::error::Generated files have uncommitted changes. Please run the generators locally and commit the changes."
+          
+          # Get list of changed files and create annotations
+          git diff --name-only | while read -r file; do
+            echo "::error file=$file::Generated file has uncommitted changes - please run generators locally and commit"
+            
+            # Show which lines were changed
+            git diff --unified=0 "$file" | grep '^@@' | while read -r hunk; do
+              # Extract line numbers from hunk header like @@ -1,3 +1,4 @@
+              line_info=$(echo "$hunk" | sed 's/.*+\([0-9]*\).*/\1/')
+              if [ -n "$line_info" ]; then
+                echo "::error file=$file,line=$line_info::Generated content differs from committed version"
+              fi
+            done
+          done
+          
+          exit 1
+        fi
 
   image:
     needs: [test]
