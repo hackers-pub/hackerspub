@@ -16,6 +16,9 @@ jobs:
       with:
         deno-version: 2.4.3
         cache: true
+    - uses: pnpm/action-setup@v4
+      with:
+        package_json_file: web-next/package.json
     - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
     - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
     - run: deno task check
