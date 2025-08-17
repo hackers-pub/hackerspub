@@ -21,7 +21,6 @@ import {
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { Button } from "../../components/ui/button.tsx";
 import type {
-  LoginErrorKind,
   signByEmailMutation,
 } from "./__generated__/signByEmailMutation.graphql.ts";
 import type {
@@ -33,8 +32,8 @@ import type { signCompleteMutation } from "./__generated__/signCompleteMutation.
 const signByEmailMutation = graphql`
   mutation signByEmailMutation($locale: Locale!, $email: String!, $verifyUrl: URITemplate!) {
     loginByEmail(locale: $locale, email: $email, verifyUrl: $verifyUrl) {
-      __typename
       ... on LoginSuccess {
+        __typename
         data {
           account {
             name
@@ -44,8 +43,8 @@ const signByEmailMutation = graphql`
           token
         }
       }
-      ... on LoginError {
-        loginErrorKind
+      ... on AccountNotFoundError {
+        __typename
       }
     }
   }
@@ -54,8 +53,8 @@ const signByEmailMutation = graphql`
 const signByUsernameMutation = graphql`
   mutation signByUsernameMutation($locale: Locale!, $username: String!, $verifyUrl: URITemplate!) {
     loginByUsername(locale: $locale, username: $username, verifyUrl: $verifyUrl) {
-      __typename
       ... on LoginSuccess {
+        __typename
         data {
           account {
             name
@@ -65,8 +64,8 @@ const signByUsernameMutation = graphql`
           token
         }
       }
-      ... on LoginError {
-        loginErrorKind
+      ... on AccountNotFoundError {
+        __typename
       }
     }
   }
@@ -93,6 +92,11 @@ const setSessionCookie = async (sessionId: Uuid) => {
   return true;
 };
 
+const enum LoginError {
+  ACCOUNT_NOT_FOUND,
+  UNKNOWN,
+}
+
 export default function SignPage() {
   const { t, i18n } = useLingui();
   let emailInput: HTMLInputElement | undefined;
@@ -100,7 +104,8 @@ export default function SignPage() {
   const [challenging, setChallenging] = createSignal(false);
   const [email, setEmail] = createSignal("");
   const [errorCode, setErrorCode] = createSignal<
-    LoginErrorKind | "UNKNOWN" | undefined
+    | LoginError
+    | undefined
   >(
     undefined,
   );
@@ -170,9 +175,9 @@ export default function SignPage() {
       setToken(data.data.token);
       codeInput?.focus();
     } else if (
-      data.__typename === "LoginError"
+      data.__typename === "AccountNotFoundError"
     ) {
-      setErrorCode(data.loginErrorKind);
+      setErrorCode(LoginError.ACCOUNT_NOT_FOUND);
     } else {
       onError();
     }
@@ -180,7 +185,7 @@ export default function SignPage() {
 
   function onError() {
     setChallenging(false);
-    setErrorCode("UNKNOWN");
+    setErrorCode(LoginError.UNKNOWN);
     setToken(undefined);
   }
 
@@ -193,7 +198,7 @@ export default function SignPage() {
     }
 
     switch (currentErrorCode) {
-      case "ACCOUNT_NOT_FOUND":
+      case LoginError.ACCOUNT_NOT_FOUND:
         return t`No such account in Hackers' Pub—please try again.`;
       case undefined:
       case null:

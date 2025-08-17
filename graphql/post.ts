@@ -9,8 +9,9 @@ import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
-import { builder, Node, type ValuesOfEnumType } from "./builder.ts";
+import { builder, Node } from "./builder.ts";
 import { Reactable } from "./reactable.ts";
+import { NotAuthenticatedError } from "./session.ts";
 
 const PostVisibility = builder.enumType("PostVisibility", {
   values: [
@@ -22,30 +23,16 @@ const PostVisibility = builder.enumType("PostVisibility", {
   ] as const,
 });
 
-const CreateNoteErrorKind = builder.enumType("CreateNoteErrorKind", {
-  values: [
-    "NOT_AUTHENTICATED",
-    "REPLY_TARGET_NOT_FOUND",
-    "QUOTED_POST_NOT_FOUND",
-    "NOTE_CREATION_FAILED",
-  ] as const,
-});
-
-class CreateNoteError extends Error {
-  public constructor(
-    public readonly kind: ValuesOfEnumType<typeof CreateNoteErrorKind>,
-  ) {
-    super(`Create note error - ${kind}`);
+class InvalidInputError extends Error {
+  public constructor(public readonly inputPath: string) {
+    super(`Invalid input - ${inputPath}`);
   }
 }
 
-builder.objectType(CreateNoteError, {
-  name: "CreateNoteError",
+builder.objectType(InvalidInputError, {
+  name: "InvalidInputError",
   fields: (t) => ({
-    createNoteErrorKind: t.field({
-      type: CreateNoteErrorKind,
-      resolve: (error) => error.kind,
-    }),
+    inputPath: t.expose("inputPath", { type: "String" }),
   }),
 });
 
@@ -486,7 +473,10 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [CreateNoteError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
       result: {
         name: "CreateNoteSuccess",
       },
@@ -494,7 +484,7 @@ builder.relayMutationField(
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
       if (session == null) {
-        throw new CreateNoteError("NOT_AUTHENTICATED");
+        throw new NotAuthenticatedError();
       }
       const { visibility, content, language, replyTargetId, quotedPostId } =
         args.input;
@@ -505,7 +495,7 @@ builder.relayMutationField(
           where: { id: replyTargetId.id },
         });
         if (replyTarget == null) {
-          throw new CreateNoteError("REPLY_TARGET_NOT_FOUND");
+          throw new InvalidInputError("replyTargetId");
         }
       }
       let quotedPost: schema.Post & { actor: schema.Actor } | undefined;
@@ -515,7 +505,7 @@ builder.relayMutationField(
           where: { id: quotedPostId.id },
         });
         if (quotedPost == null) {
-          throw new CreateNoteError("QUOTED_POST_NOT_FOUND");
+          throw new InvalidInputError("quotedPostId");
         }
       }
       return await withTransaction(ctx.fedCtx, async (context) => {
@@ -544,7 +534,7 @@ builder.relayMutationField(
           { replyTarget, quotedPost },
         );
         if (note == null) {
-          throw new CreateNoteError("NOTE_CREATION_FAILED");
+          throw new Error("Failed to create note");
         }
         return note;
       });

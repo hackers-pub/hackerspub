@@ -78,6 +78,10 @@ input AccountLinkInput {
   url: URL!
 }
 
+type AccountNotFoundError {
+  query: String!
+}
+
 type AccountNotificationsConnection {
   edges: [AccountNotificationsConnectionEdge!]!
   pageInfo: PageInfo!
@@ -270,17 +274,6 @@ type ArticleContent implements Node {
   url: URL!
 }
 
-type CreateNoteError {
-  createNoteErrorKind: CreateNoteErrorKind!
-}
-
-enum CreateNoteErrorKind {
-  NOTE_CREATION_FAILED
-  NOT_AUTHENTICATED
-  QUOTED_POST_NOT_FOUND
-  REPLY_TARGET_NOT_FOUND
-}
-
 input CreateNoteInput {
   clientMutationId: ID
   content: Markdown!
@@ -375,6 +368,10 @@ type Instance implements Node {
   updated: DateTime!
 }
 
+type InvalidInputError {
+  inputPath: String!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -388,14 +385,6 @@ type LoginChallenge {
   account: Account!
   created: DateTime!
   token: UUID!
-}
-
-type LoginError {
-  loginErrorKind: LoginErrorKind!
-}
-
-enum LoginErrorKind {
-  ACCOUNT_NOT_FOUND
 }
 
 type LoginSuccess {
@@ -470,12 +459,16 @@ type Mutation {
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
 }
 
-union MutationCreateNoteResult = CreateNoteError | CreateNoteSuccess
+union MutationCreateNoteResult = CreateNoteSuccess | InvalidInputError | NotAuthenticatedError
 
-union MutationLoginByUsernameResult = LoginError | LoginSuccess
+union MutationLoginByUsernameResult = AccountNotFoundError | LoginSuccess
 
 interface Node {
   id: ID!
+}
+
+type NotAuthenticatedError {
+  notAuthenticated: String!
 }
 
 type Note implements Node & Post & Reactable {

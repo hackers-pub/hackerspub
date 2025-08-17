@@ -2,6 +2,21 @@ import type { Session } from "@hackerspub/models/session";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
 
+export class NotAuthenticatedError extends Error {
+  public constructor() {
+    super("Not authenticated");
+  }
+}
+
+builder.objectType(NotAuthenticatedError, {
+  name: "NotAuthenticatedError",
+  fields: (t) => ({
+    notAuthenticated: t.string({
+      resolve: () => "",
+    }),
+  }),
+});
+
 export const SessionRef = builder.objectRef<Session>("Session");
 
 SessionRef.implement({
