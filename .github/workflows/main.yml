@@ -27,6 +27,30 @@ jobs:
     - name: Run checks
       if: always()
       run: deno task check
+    - name: Check for untranslated messages
+      if: always()
+      run: |
+        cd web-next/src/locales
+        has_untranslated=false
+        for file in */messages.po; do
+          echo "Checking $file..."
+          while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              line_num=$(echo "$line" | cut -d: -f1)
+              msgid=$(echo "$line" | cut -d: -f2-)
+              echo "::error file=web-next/src/locales/$file,line=$line_num::Untranslated message: $msgid"
+              has_untranslated=true
+            fi
+          done < <(awk '/^msgid/ && !/^msgid ""$/ { msgid = $0; getline; while (/^"/) getline; if (/^msgstr ""$/) print NR ": " msgid }' "$file")
+          
+          if [ "$has_untranslated" = false ]; then
+            echo "✅ All messages translated in $file"
+          fi
+        done
+        if [ "$has_untranslated" = true ]; then
+          echo "::error::Found untranslated messages in .po files. Please translate all messages before merging."
+          exit 1
+        fi
     - name: Extract web-next translations 
       if: always()
       run: cd web-next && deno task extract
