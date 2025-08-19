@@ -32,16 +32,14 @@ import type { signCompleteMutation } from "./__generated__/signCompleteMutation.
 const signByEmailMutation = graphql`
   mutation signByEmailMutation($locale: Locale!, $email: String!, $verifyUrl: URITemplate!) {
     loginByEmail(locale: $locale, email: $email, verifyUrl: $verifyUrl) {
-      ... on LoginSuccess {
+      ... on LoginChallenge {
         __typename
-        data {
-          account {
-            name
-            handle
-            avatarUrl
-          }
-          token
+        account {
+          name
+          handle
+          avatarUrl
         }
+        token
       }
       ... on AccountNotFoundError {
         __typename
@@ -53,16 +51,14 @@ const signByEmailMutation = graphql`
 const signByUsernameMutation = graphql`
   mutation signByUsernameMutation($locale: Locale!, $username: String!, $verifyUrl: URITemplate!) {
     loginByUsername(locale: $locale, username: $username, verifyUrl: $verifyUrl) {
-      ... on LoginSuccess {
+      ... on LoginChallenge {
         __typename
-        data {
-          account {
-            name
-            handle
-            avatarUrl
-          }
-          token
+        account {
+          name
+          handle
+          avatarUrl
         }
+        token
       }
       ... on AccountNotFoundError {
         __typename
@@ -171,8 +167,8 @@ export default function SignPage() {
 
   function onCompleted(data: signByUsernameMutation$data["loginByUsername"]) {
     setChallenging(false);
-    if (data.__typename === "LoginSuccess") {
-      setToken(data.data.token);
+    if (data.__typename === "LoginChallenge") {
+      setToken(data.token);
       codeInput?.focus();
     } else if (
       data.__typename === "AccountNotFoundError"

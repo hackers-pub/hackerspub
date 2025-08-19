@@ -69,6 +69,9 @@ builder.mutationFields((t) => ({
     type: LoginChallengeRef,
     errors: {
       types: [AccountNotFoundError],
+      union: {
+        name: "LoginResult",
+      },
       result: {
         name: "LoginSuccess",
       },
@@ -132,6 +135,9 @@ builder.mutationFields((t) => ({
     type: LoginChallengeRef,
     errors: {
       types: [AccountNotFoundError],
+      union: {
+        name: "LoginResult",
+      },
       result: {
         name: "LoginSuccess",
       },

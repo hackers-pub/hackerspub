@@ -288,9 +288,7 @@ type CreateNotePayload {
   note: Note!
 }
 
-type CreateNoteSuccess {
-  data: CreateNotePayload!
-}
+union CreateNoteResult = CreateNotePayload | InvalidInputError | NotAuthenticatedError
 
 type CustomEmoji implements Node {
   id: ID!
@@ -387,9 +385,7 @@ type LoginChallenge {
   token: UUID!
 }
 
-type LoginSuccess {
-  data: LoginChallenge!
-}
+union LoginResult = AccountNotFoundError | LoginChallenge
 
 """A Hackers' Pub-flavored Markdown text."""
 scalar Markdown
@@ -425,7 +421,7 @@ type Mutation {
     """The signup token."""
     token: UUID!
   ): SignupResult!
-  createNote(input: CreateNoteInput!): MutationCreateNoteResult!
+  createNote(input: CreateNoteInput!): CreateNoteResult!
   loginByEmail(
     """The email of the account to sign in."""
     email: String!
@@ -437,7 +433,7 @@ type Mutation {
     The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`.
     """
     verifyUrl: URITemplate!
-  ): MutationLoginByUsernameResult!
+  ): LoginResult!
   loginByUsername(
     """The locale for the sign-in email."""
     locale: Locale!
@@ -449,7 +445,7 @@ type Mutation {
     The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`.
     """
     verifyUrl: URITemplate!
-  ): MutationLoginByUsernameResult!
+  ): LoginResult!
 
   """Revoke a session by its ID."""
   revokeSession(
@@ -458,10 +454,6 @@ type Mutation {
   ): Session
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
 }
-
-union MutationCreateNoteResult = CreateNoteSuccess | InvalidInputError | NotAuthenticatedError
-
-union MutationLoginByUsernameResult = AccountNotFoundError | LoginSuccess
 
 interface Node {
   id: ID!

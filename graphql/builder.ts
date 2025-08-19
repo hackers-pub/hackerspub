@@ -153,6 +153,16 @@ export const builder = new SchemaBuilder<PothosTypes>({
   relay: {
     clientMutationId: "optional",
   },
+  errors: {
+    directResult: true,
+    defaultUnionOptions: {
+      name(options) {
+        return `${options.fieldName.charAt(0).toUpperCase()}${
+          options.fieldName.slice(1)
+        }Result`;
+      },
+    },
+  },
 });
 
 builder.addScalarType("Date", DateResolver);

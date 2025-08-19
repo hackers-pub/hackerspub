@@ -477,9 +477,6 @@ builder.relayMutationField(
         NotAuthenticatedError,
         InvalidInputError,
       ],
-      result: {
-        name: "CreateNoteSuccess",
-      },
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
