@@ -128,7 +128,7 @@ msgstr "{0}'s notes"
 msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
-#: src/routes/sign/index.tsx:180
+#: src/routes/sign/index.tsx:193
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
@@ -172,7 +172,7 @@ msgstr "Creating account…"
 msgid "Display name"
 msgstr "Display name"
 
-#: src/routes/sign/index.tsx:272
+#: src/routes/sign/index.tsx:285
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
@@ -180,11 +180,11 @@ msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a frien
 msgid "Email address"
 msgstr "Email address"
 
-#: src/routes/sign/index.tsx:250
+#: src/routes/sign/index.tsx:263
 msgid "Email or username"
 msgstr "Email or username"
 
-#: src/routes/sign/index.tsx:188
+#: src/routes/sign/index.tsx:201
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
@@ -246,7 +246,7 @@ msgstr "GitHub repository"
 #: src/components/AppSidebar.tsx:151
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
-#: src/routes/sign.tsx:19
+#: src/routes/sign.tsx:14
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -346,7 +346,7 @@ msgstr "No posts found"
 #~ msgid "No posts found."
 #~ msgstr "No posts found."
 
-#: src/routes/sign/index.tsx:185
+#: src/routes/sign/index.tsx:198
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
@@ -355,7 +355,7 @@ msgstr "No such account in Hackers' Pub—please try again."
 msgid "Notes"
 msgstr "Notes"
 
-#: src/routes/sign/index.tsx:283
+#: src/routes/sign/index.tsx:296
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
@@ -389,7 +389,7 @@ msgid "Shares"
 msgstr "Shares"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/sign/index.tsx:266
+#: src/routes/sign/index.tsx:279
 msgid "Sign in"
 msgstr "Sign in"
 
@@ -401,11 +401,11 @@ msgstr "Sign out"
 msgid "Sign up"
 msgstr "Sign up"
 
-#: src/routes/sign/index.tsx:233
+#: src/routes/sign/index.tsx:246
 msgid "Signing in Hackers' Pub"
 msgstr "Signing in Hackers' Pub"
 
-#: src/routes/sign/index.tsx:266
+#: src/routes/sign/index.tsx:279
 msgid "Signing in…"
 msgstr "Signing in…"
 
@@ -413,7 +413,7 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/routes/sign/index.tsx:190
+#: src/routes/sign/index.tsx:203
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 

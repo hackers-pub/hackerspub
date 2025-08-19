@@ -128,7 +128,7 @@ msgstr "{0}さんの投稿"
 msgid "{0}'s shares"
 msgstr "{0}さんの共有"
 
-#: src/routes/sign/index.tsx:180
+#: src/routes/sign/index.tsx:193
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
@@ -172,7 +172,7 @@ msgstr "アカウントを作成中…"
 msgid "Display name"
 msgstr "名前"
 
-#: src/routes/sign/index.tsx:272
+#: src/routes/sign/index.tsx:285
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
 
@@ -180,11 +180,11 @@ msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので
 msgid "Email address"
 msgstr "メールアドレス"
 
-#: src/routes/sign/index.tsx:250
+#: src/routes/sign/index.tsx:263
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
 
-#: src/routes/sign/index.tsx:188
+#: src/routes/sign/index.tsx:201
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
@@ -246,7 +246,7 @@ msgstr "GitHubリポジトリ"
 #: src/components/AppSidebar.tsx:151
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
-#: src/routes/sign.tsx:19
+#: src/routes/sign.tsx:14
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -346,7 +346,7 @@ msgstr "コンテンツはありません"
 #~ msgid "No posts found."
 #~ msgstr "コンテンツが見つかりませんでした。"
 
-#: src/routes/sign/index.tsx:185
+#: src/routes/sign/index.tsx:198
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
@@ -355,7 +355,7 @@ msgstr "Hackers' Pubにそのようなアカウントはありません。もう
 msgid "Notes"
 msgstr "投稿"
 
-#: src/routes/sign/index.tsx:283
+#: src/routes/sign/index.tsx:296
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
@@ -389,7 +389,7 @@ msgid "Shares"
 msgstr "共有"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/sign/index.tsx:266
+#: src/routes/sign/index.tsx:279
 msgid "Sign in"
 msgstr "ログイン"
 
@@ -401,11 +401,11 @@ msgstr "ログアウト"
 msgid "Sign up"
 msgstr "登録"
 
-#: src/routes/sign/index.tsx:233
+#: src/routes/sign/index.tsx:246
 msgid "Signing in Hackers' Pub"
 msgstr "Hackers' Pubにログイン"
 
-#: src/routes/sign/index.tsx:266
+#: src/routes/sign/index.tsx:279
 msgid "Signing in…"
 msgstr "ログイン中…"
 
@@ -413,7 +413,7 @@ msgstr "ログイン中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pubに登録"
 
-#: src/routes/sign/index.tsx:190
+#: src/routes/sign/index.tsx:203
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
