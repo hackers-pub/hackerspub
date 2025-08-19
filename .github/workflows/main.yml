@@ -16,9 +16,66 @@ jobs:
       with:
         deno-version: 2.4.3
         cache: true
-    - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
-    - run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
-    - run: deno task check
+    - uses: pnpm/action-setup@v4
+      with:
+        package_json_file: web-next/package.json
+    - name: Run codegen
+      run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
+    - name: Run tests
+      if: always()
+      run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
+    - name: Run checks
+      if: always()
+      run: deno task check
+    - name: Check for untranslated messages
+      if: always()
+      run: |
+        cd web-next/src/locales
+        has_untranslated=false
+        for file in */messages.po; do
+          echo "Checking $file..."
+          while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              line_num=$(echo "$line" | cut -d: -f1)
+              msgid=$(echo "$line" | cut -d: -f2-)
+              echo "::error file=web-next/src/locales/$file,line=$line_num::Untranslated message: $msgid"
+              has_untranslated=true
+            fi
+          done < <(awk '/^msgid/ && !/^msgid ""$/ { msgid = $0; getline; while (/^"/) getline; if (/^msgstr ""$/) print NR ": " msgid }' "$file")
+          
+          if [ "$has_untranslated" = false ]; then
+            echo "✅ All messages translated in $file"
+          fi
+        done
+        if [ "$has_untranslated" = true ]; then
+          echo "::error::Found untranslated messages in .po files. Please translate all messages before merging."
+          exit 1
+        fi
+    - name: Extract web-next translations 
+      if: always()
+      run: cd web-next && deno task extract
+    - name: Check for uncommitted changes
+      if: always()
+      run: |
+        if ! git diff --exit-code --quiet; then
+          echo "::error::Generated files have uncommitted changes. Please run the generators locally and commit the changes."
+          
+          # Get list of changed files and create annotations
+          git diff --name-only | while read -r file; do
+            echo "::error file=$file::Generated file has uncommitted changes - please run generators locally and commit"
+            
+            # Show which lines were changed
+            git diff --unified=0 "$file" | grep '^@@' | while read -r hunk; do
+              # Extract line numbers from hunk header like @@ -1,3 +1,4 @@
+              line_info=$(echo "$hunk" | sed 's/.*+\([0-9]*\).*/\1/')
+              if [ -n "$line_info" ]; then
+                echo "::error file=$file,line=$line_info::Generated content differs from committed version"
+              fi
+            done
+          done
+          
+          exit 1
+        fi
 
   image:
     needs: [test]
