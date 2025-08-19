@@ -9,19 +9,13 @@ export default function SignLayout(props: RouteSectionProps) {
       <aside class="grow h-full p-4 bg-zinc-900">
         <h1>
           <a href="/">
-            <picture>
-              <source
-                srcset="/logo-dark.svg"
-                media="(prefers-color-scheme: dark)"
-              />
-              <img
-                src="/logo-light.svg"
-                alt={t`Hackers' Pub`}
-                width={198}
-                height={50}
-                class="w-[198px] h-[50px]"
-              />
-            </picture>
+            <img
+              src="/logo-dark.svg"
+              alt={t`Hackers' Pub`}
+              width={198}
+              height={50}
+              class="w-[198px] h-[50px]"
+            />
           </a>
         </h1>
       </aside>
