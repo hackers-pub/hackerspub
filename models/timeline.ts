@@ -20,6 +20,25 @@ import {
   timelineItemTable,
 } from "./schema.ts";
 
+export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
+  const envValue = Deno.env.get("FUTURE_TIMESTAMP_TOLERANCE");
+  if (!envValue) return 300000;
+
+  const parsed = parseInt(envValue, 10);
+  if (isNaN(parsed) || parsed < 0) {
+    console.warn(
+      `Invalid FUTURE_TIMESTAMP_TOLERANCE: "${envValue}", using default 300000`,
+    );
+    return 300000;
+  }
+
+  return parsed;
+})();
+
+function getFutureTimestampLimit(): Date {
+  return new Date(Date.now() + FUTURE_TIMESTAMP_TOLERANCE);
+}
+
 export async function addPostToTimeline(
   db: Database,
   post: Post,
@@ -235,6 +254,7 @@ export async function getPublicTimeline(
     window,
   }: PublicTimelineOptions,
 ): Promise<TimelineEntry[]> {
+  const futureTimestampLimit = getFutureTimestampLimit();
   const posts = await db.query.postTable.findMany({
     with: {
       actor: {
@@ -401,6 +421,7 @@ export async function getPublicTimeline(
           ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
           ...(postType == null ? undefined : { type: postType }),
           ...(until == null ? undefined : { published: { lte: until } }),
+          published: { lte: futureTimestampLimit },
         },
       ],
     },
@@ -430,6 +451,7 @@ export async function getPersonalTimeline(
     window,
   }: PersonalTimelineOptions,
 ): Promise<TimelineEntry[]> {
+  const futureTimestampLimit = getFutureTimestampLimit();
   const timeline = await db.query.timelineItemTable.findMany({
     with: {
       post: {
@@ -559,6 +581,11 @@ export async function getPersonalTimeline(
           currentAccount.hideForeignLanguages && currentAccount.locales != null
             ? { language: { in: currentAccount.locales } }
             : {},
+          {
+            published: {
+              lte: futureTimestampLimit,
+            },
+          },
         ],
       },
       ...(withoutShares ? { originalAuthorId: { isNotNull: true } } : {}),

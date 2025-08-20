@@ -142,6 +142,12 @@ and set the values of the variables according to your environment.
 >     for summarizing and translating posts using LLMs.  You can use
 >     [Anthropic] and [Google Generative AI] accounts for this.  However, if
 >     you won't test these features, you can omit these variables.
+>
+>  -  `FUTURE_TIMESTAMP_TOLERANCE` is the tolerance period in milliseconds for
+>     posts with future timestamps. Posts published more than this time in the
+>     future will be filtered out from timelines. Default value is 300000 (5
+>     minutes). This helps prevent malicious or misconfigured remote servers
+>     from disrupting timeline order with posts that have future timestamps.
 
 
 Creating a database schema
