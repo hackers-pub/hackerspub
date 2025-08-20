@@ -20,9 +20,18 @@ import {
   timelineItemTable,
 } from "./schema.ts";
 
-export const FUTURE_TIMESTAMP_TOLERANCE = parseInt(
-  Deno.env.get("FUTURE_TIMESTAMP_TOLERANCE") ?? "300000",
-);
+export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
+  const envValue = Deno.env.get("FUTURE_TIMESTAMP_TOLERANCE");
+  if (!envValue) return 300000; // 기본값
+  
+  const parsed = parseInt(envValue, 10);
+  if (isNaN(parsed) || parsed < 0) {
+    console.warn(`Invalid FUTURE_TIMESTAMP_TOLERANCE: "${envValue}", using default 300000`);
+    return 300000;
+  }
+  
+  return parsed;
+})();
 
 function getFutureTimestampLimit(): Date {
   return new Date(Date.now() + FUTURE_TIMESTAMP_TOLERANCE);
