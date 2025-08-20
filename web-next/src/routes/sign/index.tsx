@@ -20,7 +20,9 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { Button } from "../../components/ui/button.tsx";
-import type { signByEmailMutation } from "./__generated__/signByEmailMutation.graphql.ts";
+import type {
+  signByEmailMutation,
+} from "./__generated__/signByEmailMutation.graphql.ts";
 import type {
   signByUsernameMutation,
   signByUsernameMutation$data,
@@ -30,12 +32,18 @@ import type { signCompleteMutation } from "./__generated__/signCompleteMutation.
 const signByEmailMutation = graphql`
   mutation signByEmailMutation($locale: Locale!, $email: String!, $verifyUrl: URITemplate!) {
     loginByEmail(locale: $locale, email: $email, verifyUrl: $verifyUrl) {
-      account {
-        name
-        handle
-        avatarUrl
+      ... on LoginChallenge {
+        __typename
+        account {
+          name
+          handle
+          avatarUrl
+        }
+        token
       }
-      token
+      ... on AccountNotFoundError {
+        __typename
+      }
     }
   }
 `;
@@ -43,12 +51,18 @@ const signByEmailMutation = graphql`
 const signByUsernameMutation = graphql`
   mutation signByUsernameMutation($locale: Locale!, $username: String!, $verifyUrl: URITemplate!) {
     loginByUsername(locale: $locale, username: $username, verifyUrl: $verifyUrl) {
-      account {
-        name
-        handle
-        avatarUrl
+      ... on LoginChallenge {
+        __typename
+        account {
+          name
+          handle
+          avatarUrl
+        }
+        token
       }
-      token
+      ... on AccountNotFoundError {
+        __typename
+      }
     }
   }
 `;
@@ -74,13 +88,23 @@ const setSessionCookie = async (sessionId: Uuid) => {
   return true;
 };
 
+const enum LoginError {
+  ACCOUNT_NOT_FOUND,
+  UNKNOWN,
+}
+
 export default function SignPage() {
   const { t, i18n } = useLingui();
   let emailInput: HTMLInputElement | undefined;
   let codeInput: HTMLInputElement | undefined;
   const [challenging, setChallenging] = createSignal(false);
   const [email, setEmail] = createSignal("");
-  const [invalid, setInvalid] = createSignal(false);
+  const [errorCode, setErrorCode] = createSignal<
+    | LoginError
+    | undefined
+  >(
+    undefined,
+  );
   const [token, setToken] = createSignal<Uuid | undefined>(undefined);
   const [loginByEmail] = createMutation<signByEmailMutation>(
     signByEmailMutation,
@@ -96,7 +120,7 @@ export default function SignPage() {
   function onInput() {
     if (emailInput == null) return;
     setEmail(emailInput.value.trim());
-    setInvalid(false);
+    setErrorCode(undefined);
   }
 
   function onChallengeSubmit(event: SubmitEvent) {
@@ -120,6 +144,9 @@ export default function SignPage() {
         onCompleted(response) {
           onCompleted(response.loginByEmail);
         },
+        onError(_error) {
+          onError();
+        },
       });
     } else {
       loginByUsername({
@@ -131,17 +158,49 @@ export default function SignPage() {
         onCompleted(response) {
           onCompleted(response.loginByUsername);
         },
+        onError(_error) {
+          onError();
+        },
       });
     }
   }
 
   function onCompleted(data: signByUsernameMutation$data["loginByUsername"]) {
     setChallenging(false);
-    if (data == null) {
-      setInvalid(true);
-    } else {
+    if (data.__typename === "LoginChallenge") {
       setToken(data.token);
       codeInput?.focus();
+    } else if (
+      data.__typename === "AccountNotFoundError"
+    ) {
+      setErrorCode(LoginError.ACCOUNT_NOT_FOUND);
+    } else {
+      onError();
+    }
+  }
+
+  function onError() {
+    setChallenging(false);
+    setErrorCode(LoginError.UNKNOWN);
+    setToken(undefined);
+  }
+
+  function getSignInMessage() {
+    const currentToken = token();
+    const currentErrorCode = errorCode();
+
+    if (currentToken != null) {
+      return t`A sign-in link has been sent to your email. Please check your inbox (or spam folder).`;
+    }
+
+    switch (currentErrorCode) {
+      case LoginError.ACCOUNT_NOT_FOUND:
+        return t`No such account in Hackers' Pub—please try again.`;
+      case undefined:
+      case null:
+        return t`Enter your email or username below to sign in.`;
+      default:
+        return t`Something went wrong—please try again.`;
     }
   }
 
@@ -187,11 +246,7 @@ export default function SignPage() {
             {t`Signing in Hackers' Pub`}
           </h1>
           <p class="text-sm text-muted-foreground">
-            {token() == null
-              ? invalid()
-                ? t`No such account in Hackers' Pub—please try again.`
-                : t`Enter your email or username below to sign in.`
-              : t`A sign-in link has been sent to your email. Please check your inbox (or spam folder).`}
+            {getSignInMessage()}
           </p>
         </div>
         <Show when={token() == null}>
@@ -201,7 +256,7 @@ export default function SignPage() {
           >
             <Grid class="gap-4">
               <TextField
-                validationState={invalid() ? "invalid" : "valid"}
+                validationState={errorCode() ? "invalid" : "valid"}
                 class="gap-1"
               >
                 <TextFieldLabel class="sr-only">

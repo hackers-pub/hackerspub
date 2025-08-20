@@ -128,7 +128,7 @@ msgstr "{0}的帖子"
 msgid "{0}'s shares"
 msgstr "{0}的转帖"
 
-#: src/routes/sign/index.tsx:194
+#: src/routes/sign/index.tsx:193
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
 
@@ -172,7 +172,7 @@ msgstr "正在创建账户…"
 msgid "Display name"
 msgstr "昵称"
 
-#: src/routes/sign/index.tsx:230
+#: src/routes/sign/index.tsx:285
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀请您。"
 
@@ -180,11 +180,11 @@ msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀�
 msgid "Email address"
 msgstr "电子邮件地址"
 
-#: src/routes/sign/index.tsx:208
+#: src/routes/sign/index.tsx:263
 msgid "Email or username"
 msgstr "邮箱或用户名"
 
-#: src/routes/sign/index.tsx:193
+#: src/routes/sign/index.tsx:201
 msgid "Enter your email or username below to sign in."
 msgstr "请在下方输入您的邮箱或用户名以登录。"
 
@@ -246,7 +246,7 @@ msgstr "GitHub 仓库"
 #: src/components/AppSidebar.tsx:151
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
-#: src/routes/sign.tsx:19
+#: src/routes/sign.tsx:14
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -346,7 +346,7 @@ msgstr "未找到内容"
 #~ msgid "No posts found."
 #~ msgstr "未找到内容。"
 
-#: src/routes/sign/index.tsx:192
+#: src/routes/sign/index.tsx:198
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中无此账户，请重试。"
 
@@ -355,7 +355,7 @@ msgstr "Hackers' Pub 中无此账户，请重试。"
 msgid "Notes"
 msgstr "帖子"
 
-#: src/routes/sign/index.tsx:241
+#: src/routes/sign/index.tsx:296
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
@@ -389,7 +389,7 @@ msgid "Shares"
 msgstr "转帖"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/sign/index.tsx:224
+#: src/routes/sign/index.tsx:279
 msgid "Sign in"
 msgstr "登录"
 
@@ -401,17 +401,21 @@ msgstr "登出"
 msgid "Sign up"
 msgstr "注册"
 
-#: src/routes/sign/index.tsx:187
+#: src/routes/sign/index.tsx:246
 msgid "Signing in Hackers' Pub"
 msgstr "登录 Hackers' Pub"
 
-#: src/routes/sign/index.tsx:224
+#: src/routes/sign/index.tsx:279
 msgid "Signing in…"
 msgstr "登录中…"
 
 #: src/routes/sign/up/[token].tsx:327
 msgid "Signing up for Hackers' Pub"
 msgstr "注册 Hackers' Pub"
+
+#: src/routes/sign/index.tsx:203
+msgid "Something went wrong—please try again."
+msgstr "出现错误，请重试。"
 
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"

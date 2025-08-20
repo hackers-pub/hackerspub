@@ -78,6 +78,10 @@ input AccountLinkInput {
   url: URL!
 }
 
+type AccountNotFoundError {
+  query: String!
+}
+
 type AccountNotificationsConnection {
   edges: [AccountNotificationsConnectionEdge!]!
   pageInfo: PageInfo!
@@ -284,6 +288,8 @@ type CreateNotePayload {
   note: Note!
 }
 
+union CreateNoteResult = CreateNotePayload | InvalidInputError | NotAuthenticatedError
+
 type CustomEmoji implements Node {
   id: ID!
   imageUrl: String!
@@ -360,6 +366,10 @@ type Instance implements Node {
   updated: DateTime!
 }
 
+type InvalidInputError {
+  inputPath: String!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -374,6 +384,8 @@ type LoginChallenge {
   created: DateTime!
   token: UUID!
 }
+
+union LoginResult = AccountNotFoundError | LoginChallenge
 
 """A Hackers' Pub-flavored Markdown text."""
 scalar Markdown
@@ -409,7 +421,7 @@ type Mutation {
     """The signup token."""
     token: UUID!
   ): SignupResult!
-  createNote(input: CreateNoteInput!): CreateNotePayload!
+  createNote(input: CreateNoteInput!): CreateNoteResult!
   loginByEmail(
     """The email of the account to sign in."""
     email: String!
@@ -421,7 +433,7 @@ type Mutation {
     The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`.
     """
     verifyUrl: URITemplate!
-  ): LoginChallenge
+  ): LoginResult!
   loginByUsername(
     """The locale for the sign-in email."""
     locale: Locale!
@@ -433,7 +445,7 @@ type Mutation {
     The RFC 6570-compliant URI Template for the verification link.  Available variabvles: `{token}` and `{code}`.
     """
     verifyUrl: URITemplate!
-  ): LoginChallenge
+  ): LoginResult!
 
   """Revoke a session by its ID."""
   revokeSession(
@@ -445,6 +457,10 @@ type Mutation {
 
 interface Node {
   id: ID!
+}
+
+type NotAuthenticatedError {
+  notAuthenticated: String!
 }
 
 type Note implements Node & Post & Reactable {

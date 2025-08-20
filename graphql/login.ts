@@ -20,10 +20,23 @@ import { sql } from "drizzle-orm";
 import { parseTemplate } from "url-template";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
-import { SessionRef } from "./session.ts";
 import { EMAIL_FROM } from "./email.ts";
+import { SessionRef } from "./session.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "login"]);
+
+class AccountNotFoundError extends Error {
+  public constructor(public readonly query: string) {
+    super(`Account not found`);
+  }
+}
+
+builder.objectType(AccountNotFoundError, {
+  name: "AccountNotFoundError",
+  fields: (t) => ({
+    query: t.exposeString("query"),
+  }),
+});
 
 interface LoginChallenge {
   accountId: Uuid;
@@ -54,7 +67,15 @@ LoginChallengeRef.implement({
 builder.mutationFields((t) => ({
   loginByUsername: t.field({
     type: LoginChallengeRef,
-    nullable: true,
+    errors: {
+      types: [AccountNotFoundError],
+      union: {
+        name: "LoginResult",
+      },
+      result: {
+        name: "LoginSuccess",
+      },
+    },
     args: {
       username: t.arg.string({
         required: true,
@@ -80,7 +101,9 @@ builder.mutationFields((t) => ({
         with: { emails: true },
         where: { username: args.username },
       });
-      if (account == null) return null;
+      if (account == null) {
+        throw new AccountNotFoundError(args.username);
+      }
       const token = await createSigninToken(ctx.kv, account.id);
       const messages: Message[] = [];
       for (const { email } of account.emails) {
@@ -110,7 +133,15 @@ builder.mutationFields((t) => ({
 
   loginByEmail: t.field({
     type: LoginChallengeRef,
-    nullable: true,
+    errors: {
+      types: [AccountNotFoundError],
+      union: {
+        name: "LoginResult",
+      },
+      result: {
+        name: "LoginSuccess",
+      },
+    },
     args: {
       email: t.arg.string({
         required: true,
@@ -150,7 +181,9 @@ builder.mutationFields((t) => ({
           with: { emails: true },
         });
       }
-      if (account == null) return null;
+      if (account == null) {
+        throw new AccountNotFoundError(args.email);
+      }
       const token = await createSigninToken(ctx.kv, account.id);
       const messages: Message[] = [];
       for (const { email } of account.emails) {

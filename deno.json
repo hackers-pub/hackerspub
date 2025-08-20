@@ -42,6 +42,7 @@
     "@pothos/core": "npm:@pothos/core@^4.7.3",
     "@pothos/plugin-complexity": "npm:@pothos/plugin-complexity@4.1.1",
     "@pothos/plugin-drizzle": "npm:@pothos/plugin-drizzle@^0.11.1",
+    "@pothos/plugin-errors": "npm:@pothos/plugin-errors@^4.4.2",
     "@pothos/plugin-relay": "npm:@pothos/plugin-relay@^4.6.2",
     "@pothos/plugin-scope-auth": "npm:@pothos/plugin-scope-auth@^4.1.5",
     "@pothos/plugin-simple-objects": "npm:@pothos/plugin-simple-objects@^4.1.3",
