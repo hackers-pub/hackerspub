@@ -22,14 +22,16 @@ import {
 
 export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
   const envValue = Deno.env.get("FUTURE_TIMESTAMP_TOLERANCE");
-  if (!envValue) return 300000; // 기본값
-  
+  if (!envValue) return 300000;
+
   const parsed = parseInt(envValue, 10);
   if (isNaN(parsed) || parsed < 0) {
-    console.warn(`Invalid FUTURE_TIMESTAMP_TOLERANCE: "${envValue}", using default 300000`);
+    console.warn(
+      `Invalid FUTURE_TIMESTAMP_TOLERANCE: "${envValue}", using default 300000`,
+    );
     return 300000;
   }
-  
+
   return parsed;
 })();
 
