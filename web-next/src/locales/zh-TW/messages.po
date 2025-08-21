@@ -140,6 +140,10 @@ msgstr "帳戶"
 msgid "An error occurred during signup. Please try again."
 msgstr "註冊過程中發生錯誤。請重試。"
 
+#: src/routes/(root)/[handle]/settings.tsx:144
+msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
+msgstr "儲存設定時發生錯誤。請重試，如果問題仍然存在，請聯繫客服。"
+
 #: src/components/ProfileTabs.tsx:48
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:84
 msgid "Articles"
@@ -149,6 +153,12 @@ msgstr "文章"
 msgid "Articles only"
 msgstr "僅文章"
 
+#. placeholder {0}: "CHANGED"
+#: src/routes/(root)/[handle]/settings.tsx:199
+msgid "As you have already changed it {0}, you can't change it again."
+msgstr "自從你已經把使用者名稱換成 {0} 了，你再也改不了了。"
+
+#: src/routes/(root)/[handle]/settings.tsx:230
 #: src/routes/sign/up/[token].tsx:424
 msgid "Bio"
 msgstr "個人簡介"
@@ -157,7 +167,7 @@ msgstr "個人簡介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "個人簡介太長。不能長於 512 字元。"
 
-#: src/components/AppSidebar.tsx:294
+#: src/components/AppSidebar.tsx:321
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/sign/up/[token].tsx:471
@@ -168,6 +178,7 @@ msgstr "行為準則"
 msgid "Creating account…"
 msgstr "創建帳戶…"
 
+#: src/routes/(root)/[handle]/settings.tsx:214
 #: src/routes/sign/up/[token].tsx:398
 msgid "Display name"
 msgstr "暱稱"
@@ -213,6 +224,10 @@ msgstr "無法載入更多通知；點擊重試"
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
 
+#: src/routes/(root)/[handle]/settings.tsx:142
+msgid "Failed to save settings"
+msgstr "儲存設定失敗"
+
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:81
 msgid "Failed to sign out: {0}"
@@ -238,7 +253,7 @@ msgstr "只粉絲可見"
 msgid "Following you"
 msgstr "關注了你"
 
-#: src/components/AppSidebar.tsx:306
+#: src/components/AppSidebar.tsx:333
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
@@ -261,6 +276,10 @@ msgstr "首頁"
 #: src/routes/sign/up/[token].tsx:473
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行為準則。"
+
+#: src/routes/(root)/[handle]/settings.tsx:221
+msgid "John Doe"
+msgstr "張三"
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -367,6 +386,10 @@ msgstr "頁面未找到"
 msgid "Posts"
 msgstr "內容"
 
+#: src/routes/(root)/[handle]/settings.tsx:159
+msgid "Profile settings"
+msgstr "個人資料設定"
+
 #: src/components/VisibilityTag.tsx:32
 msgid "Public"
 msgstr "公開"
@@ -383,6 +406,19 @@ msgstr "閱讀完整文章"
 msgid "Read the full Code of conduct"
 msgstr "閱讀完整的行為守則"
 
+#: src/routes/(root)/[handle]/settings.tsx:247
+msgid "Save"
+msgstr "儲存"
+
+#: src/routes/(root)/[handle]/settings.tsx:247
+msgid "Saving…"
+msgstr "儲存中…"
+
+#: src/components/AppSidebar.tsx:288
+#: src/routes/(root)/[handle]/settings.tsx:168
+msgid "Settings"
+msgstr "設定"
+
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
@@ -393,7 +429,7 @@ msgstr "轉貼"
 msgid "Sign in"
 msgstr "登入"
 
-#: src/components/AppSidebar.tsx:283
+#: src/components/AppSidebar.tsx:310
 msgid "Sign out"
 msgstr "登出"
 
@@ -417,6 +453,10 @@ msgstr "註冊 Hackers' Pub"
 msgid "Something went wrong—please try again."
 msgstr "發生錯誤，請重試。"
 
+#: src/routes/(root)/[handle]/settings.tsx:130
+msgid "Successfully saved settings"
+msgstr "設定儲存成功"
+
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
@@ -435,7 +475,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:298
+#: src/components/AppSidebar.tsx:325
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
@@ -448,6 +488,7 @@ msgstr "時間軸"
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
 
+#: src/routes/(root)/[handle]/settings.tsx:177
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"
 msgstr "使用者名稱"
@@ -502,6 +543,10 @@ msgstr "歡迎來到 Hackers' Pub！請填寫以下表單完成註冊。"
 msgid "Without shares"
 msgstr "不含轉貼"
 
+#: src/routes/(root)/[handle]/settings.tsx:193
+msgid "You can change it only once, and the old username will become available to others."
+msgstr "你只能更改一次使用者名稱，而舊的使用者名稱會公開為別人使用。"
+
 #: src/routes/sign/up/[token].tsx:447
 msgid "You were invited by"
 msgstr "您的邀請人"
@@ -509,6 +554,10 @@ msgstr "您的邀請人"
 #: src/routes/sign/up/[token].tsx:464
 msgid "You'll automatically follow each other when you sign up."
 msgstr "註冊後您將自動追蹤對方。"
+
+#: src/routes/(root)/[handle]/settings.tsx:239
+msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
+msgstr "你的個人簡介將在你的個人資料頁面顯示。你可以用 Markdown 文件格式化。"
 
 #: src/routes/sign/up/[token].tsx:440
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
@@ -518,10 +567,16 @@ msgstr "你的個人簡介將在你的個人資料頁面顯示。你可以用 Ma
 msgid "Your email address will be used to sign in to your account."
 msgstr "你的電子郵件地址將用於登入。"
 
+#: src/routes/(root)/[handle]/settings.tsx:225
 #: src/routes/sign/up/[token].tsx:414
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的暱稱將在你的個人資料頁面和你的貼文中顯示。"
 
+#: src/routes/(root)/[handle]/settings.tsx:132
+msgid "Your profile settings have been updated successfully."
+msgstr "個人資料設定已成功更新。"
+
+#: src/routes/(root)/[handle]/settings.tsx:190
 #: src/routes/sign/up/[token].tsx:388
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的使用者名稱將被用來創建你的個人資料 URL 和你的 Fediverse 使用者名稱（handle）。"

@@ -140,6 +140,10 @@ msgstr "계정"
 msgid "An error occurred during signup. Please try again."
 msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 바랍니다."
 
+#: src/routes/(root)/[handle]/settings.tsx:144
+msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
+msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의하세요."
+
 #: src/components/ProfileTabs.tsx:48
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:84
 msgid "Articles"
@@ -149,6 +153,12 @@ msgstr "게시글"
 msgid "Articles only"
 msgstr "게시글만"
 
+#. placeholder {0}: "CHANGED"
+#: src/routes/(root)/[handle]/settings.tsx:199
+msgid "As you have already changed it {0}, you can't change it again."
+msgstr "이미 {0} 변경하였기 때문에 다시 변경할 수 없습니다."
+
+#: src/routes/(root)/[handle]/settings.tsx:230
 #: src/routes/sign/up/[token].tsx:424
 msgid "Bio"
 msgstr "약력"
@@ -157,7 +167,7 @@ msgstr "약력"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
-#: src/components/AppSidebar.tsx:294
+#: src/components/AppSidebar.tsx:321
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/sign/up/[token].tsx:471
@@ -168,6 +178,7 @@ msgstr "행동 강령"
 msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
 
+#: src/routes/(root)/[handle]/settings.tsx:214
 #: src/routes/sign/up/[token].tsx:398
 msgid "Display name"
 msgstr "이름"
@@ -213,6 +224,10 @@ msgstr "알림을 더 불러오지 못했습니다. 클릭해서 다시 시도�
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 
+#: src/routes/(root)/[handle]/settings.tsx:142
+msgid "Failed to save settings"
+msgstr "설정 저장 실패"
+
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:81
 msgid "Failed to sign out: {0}"
@@ -238,7 +253,7 @@ msgstr "팔로워만"
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
-#: src/components/AppSidebar.tsx:306
+#: src/components/AppSidebar.tsx:333
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
@@ -261,6 +276,10 @@ msgstr "홈"
 #: src/routes/sign/up/[token].tsx:473
 msgid "I have read and agree to the Code of conduct."
 msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
+
+#: src/routes/(root)/[handle]/settings.tsx:221
+msgid "John Doe"
+msgstr "홍길동"
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -367,6 +386,10 @@ msgstr "페이지를 찾을 수 없습니다"
 msgid "Posts"
 msgstr "콘텐츠"
 
+#: src/routes/(root)/[handle]/settings.tsx:159
+msgid "Profile settings"
+msgstr "프로필 설정"
+
 #: src/components/VisibilityTag.tsx:32
 msgid "Public"
 msgstr "공개"
@@ -383,6 +406,19 @@ msgstr "게시글 전체 읽기"
 msgid "Read the full Code of conduct"
 msgstr "행동 강령 전문을 읽으세요."
 
+#: src/routes/(root)/[handle]/settings.tsx:247
+msgid "Save"
+msgstr "저장"
+
+#: src/routes/(root)/[handle]/settings.tsx:247
+msgid "Saving…"
+msgstr "저장 중…"
+
+#: src/components/AppSidebar.tsx:288
+#: src/routes/(root)/[handle]/settings.tsx:168
+msgid "Settings"
+msgstr "설정"
+
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
@@ -393,7 +429,7 @@ msgstr "공유"
 msgid "Sign in"
 msgstr "로그인"
 
-#: src/components/AppSidebar.tsx:283
+#: src/components/AppSidebar.tsx:310
 msgid "Sign out"
 msgstr "로그아웃"
 
@@ -417,6 +453,10 @@ msgstr "Hackers' Pub 가입"
 msgid "Something went wrong—please try again."
 msgstr "문제가 발생했습니다. 다시 시도해주세요."
 
+#: src/routes/(root)/[handle]/settings.tsx:130
+msgid "Successfully saved settings"
+msgstr "설정이 성공적으로 저장되었습니다"
+
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
 msgstr "LLM 요약"
@@ -435,7 +475,7 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:298
+#: src/components/AppSidebar.tsx:325
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
@@ -448,6 +488,7 @@ msgstr "타임라인"
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
+#: src/routes/(root)/[handle]/settings.tsx:177
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"
 msgstr "아이디"
@@ -502,6 +543,10 @@ msgstr "Hackers' Pub에 오신 것을 환영합니다! 가입을 완료하려면
 msgid "Without shares"
 msgstr "공유 제외"
 
+#: src/routes/(root)/[handle]/settings.tsx:193
+msgid "You can change it only once, and the old username will become available to others."
+msgstr "아이디는 단 한 번만 변경할 수 있으며, 변경하기 전 아이디는 다른 사람이 사용할 수 있게 됩니다."
+
 #: src/routes/sign/up/[token].tsx:447
 msgid "You were invited by"
 msgstr "당신을 초대한 분"
@@ -509,6 +554,10 @@ msgstr "당신을 초대한 분"
 #: src/routes/sign/up/[token].tsx:464
 msgid "You'll automatically follow each other when you sign up."
 msgstr "가입 시 자동으로 서로 팔로우 하게 됩니다."
+
+#: src/routes/(root)/[handle]/settings.tsx:239
+msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
+msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습니다."
 
 #: src/routes/sign/up/[token].tsx:440
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
@@ -518,10 +567,16 @@ msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습
 msgid "Your email address will be used to sign in to your account."
 msgstr "이메일 주소는 계정에 로그인할 때 사용됩니다."
 
+#: src/routes/(root)/[handle]/settings.tsx:225
 #: src/routes/sign/up/[token].tsx:414
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
 
+#: src/routes/(root)/[handle]/settings.tsx:132
+msgid "Your profile settings have been updated successfully."
+msgstr "프로필 설정이 성공적으로 업데이트되었습니다."
+
+#: src/routes/(root)/[handle]/settings.tsx:190
 #: src/routes/sign/up/[token].tsx:388
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "아이디는 프로필 URL과 연합우주(fediverse) 핸들로 사용됩니다."

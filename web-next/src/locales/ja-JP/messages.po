@@ -140,6 +140,10 @@ msgstr "アカウント"
 msgid "An error occurred during signup. Please try again."
 msgstr "登録中にエラーが発生しました。もう一度お試しください。"
 
+#: src/routes/(root)/[handle]/settings.tsx:144
+msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
+msgstr "設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
+
 #: src/components/ProfileTabs.tsx:48
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:84
 msgid "Articles"
@@ -149,6 +153,12 @@ msgstr "記事"
 msgid "Articles only"
 msgstr "記事のみ"
 
+#. placeholder {0}: "CHANGED"
+#: src/routes/(root)/[handle]/settings.tsx:199
+msgid "As you have already changed it {0}, you can't change it again."
+msgstr "すでに{0}に変更済みのため、再度変更することはできません。"
+
+#: src/routes/(root)/[handle]/settings.tsx:230
 #: src/routes/sign/up/[token].tsx:424
 msgid "Bio"
 msgstr "自己紹介"
@@ -157,7 +167,7 @@ msgstr "自己紹介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
 
-#: src/components/AppSidebar.tsx:294
+#: src/components/AppSidebar.tsx:321
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/sign/up/[token].tsx:471
@@ -168,6 +178,7 @@ msgstr "行動規範"
 msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
+#: src/routes/(root)/[handle]/settings.tsx:214
 #: src/routes/sign/up/[token].tsx:398
 msgid "Display name"
 msgstr "名前"
@@ -213,6 +224,10 @@ msgstr "通知の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
+#: src/routes/(root)/[handle]/settings.tsx:142
+msgid "Failed to save settings"
+msgstr "設定の保存に失敗しました"
+
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:81
 msgid "Failed to sign out: {0}"
@@ -238,7 +253,7 @@ msgstr "フォロワーのみ"
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
-#: src/components/AppSidebar.tsx:306
+#: src/components/AppSidebar.tsx:333
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -261,6 +276,10 @@ msgstr "ホーム"
 #: src/routes/sign/up/[token].tsx:473
 msgid "I have read and agree to the Code of conduct."
 msgstr "行動規範に同意します。"
+
+#: src/routes/(root)/[handle]/settings.tsx:221
+msgid "John Doe"
+msgstr "田中太郎"
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -367,6 +386,10 @@ msgstr "ページが見つかりません"
 msgid "Posts"
 msgstr "コンテンツ"
 
+#: src/routes/(root)/[handle]/settings.tsx:159
+msgid "Profile settings"
+msgstr "プロフィール設定"
+
 #: src/components/VisibilityTag.tsx:32
 msgid "Public"
 msgstr "公開"
@@ -383,6 +406,19 @@ msgstr "記事全文を読む"
 msgid "Read the full Code of conduct"
 msgstr "行動規範の全文を読む"
 
+#: src/routes/(root)/[handle]/settings.tsx:247
+msgid "Save"
+msgstr "保存"
+
+#: src/routes/(root)/[handle]/settings.tsx:247
+msgid "Saving…"
+msgstr "保存中…"
+
+#: src/components/AppSidebar.tsx:288
+#: src/routes/(root)/[handle]/settings.tsx:168
+msgid "Settings"
+msgstr "設定"
+
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
@@ -393,7 +429,7 @@ msgstr "共有"
 msgid "Sign in"
 msgstr "ログイン"
 
-#: src/components/AppSidebar.tsx:283
+#: src/components/AppSidebar.tsx:310
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -417,6 +453,10 @@ msgstr "Hackers' Pubに登録"
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
+#: src/routes/(root)/[handle]/settings.tsx:130
+msgid "Successfully saved settings"
+msgstr "設定を正常に保存しました"
+
 #: src/components/ArticleCard.tsx:231
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
@@ -435,7 +475,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:298
+#: src/components/AppSidebar.tsx:325
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -448,6 +488,7 @@ msgstr "タイムライン"
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
+#: src/routes/(root)/[handle]/settings.tsx:177
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"
 msgstr "ユーザー名"
@@ -502,6 +543,10 @@ msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォ
 msgid "Without shares"
 msgstr "共有除外"
 
+#: src/routes/(root)/[handle]/settings.tsx:193
+msgid "You can change it only once, and the old username will become available to others."
+msgstr "変更は1回のみ可能で、変更前のユーザー名は他のユーザーが使用できるようになります。"
+
 #: src/routes/sign/up/[token].tsx:447
 msgid "You were invited by"
 msgstr "あなたを招待した方"
@@ -509,6 +554,10 @@ msgstr "あなたを招待した方"
 #: src/routes/sign/up/[token].tsx:464
 msgid "You'll automatically follow each other when you sign up."
 msgstr "登録したら自動的にお互いをフォローします。"
+
+#: src/routes/(root)/[handle]/settings.tsx:239
+msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
+msgstr "自己紹介はプロフィールに表示されます。Markdownを使用できます。"
 
 #: src/routes/sign/up/[token].tsx:440
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
@@ -518,10 +567,16 @@ msgstr "自己紹介はプロフィールに表示されます。Markdownで書�
 msgid "Your email address will be used to sign in to your account."
 msgstr "メールアドレスはアカウントへのログインに使用されます。"
 
+#: src/routes/(root)/[handle]/settings.tsx:225
 #: src/routes/sign/up/[token].tsx:414
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "名前はプロフィールとコンテンツに表示されます。"
 
+#: src/routes/(root)/[handle]/settings.tsx:132
+msgid "Your profile settings have been updated successfully."
+msgstr "プロフィール設定が正常に更新されました。"
+
+#: src/routes/(root)/[handle]/settings.tsx:190
 #: src/routes/sign/up/[token].tsx:388
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "ユーザー名はプロフィールURLとフェディバースハンドルの作成に使用されます。"
