@@ -1,4 +1,4 @@
-FROM docker.io/denoland/deno:2.4.3
+FROM docker.io/denoland/deno:2.4.4
 
 RUN apt-get update && apt-get install -y build-essential curl ffmpeg jq && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
