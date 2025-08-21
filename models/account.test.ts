@@ -68,19 +68,18 @@ const linkMetadata: Record<string, LinkMetadata> = {
     icon: "matrix",
     handle: "#fedify-users:matrix.org",
   },
-  "https://stella.place/@hongminhee": {
+  "https://hoto.moe/@hongminhee": {
     icon: "misskey",
-    handle: "@hongminhee@stella.place",
+    handle: "@hongminhee@hoto.moe",
   },
   "https://pixelfed.social/dansup": {
     icon: "pixelfed",
     handle: "@dansup@pixelfed.social",
   },
-  // FIXME: stereophonic.space seems down for a while?
-  // "https://stereophonic.space/users/karolat": {
-  //   icon: "pleroma",
-  //   handle: "@karolat@stereophonic.space",
-  // },
+  "https://stereophonic.space/users/karolat": {
+    icon: "pleroma",
+    handle: "@karolat@stereophonic.space",
+  },
   "https://qiita.com/hongminhee": { icon: "qiita", handle: "@hongminhee" },
   "https://www.reddit.com/r/fediverse/": {
     icon: "reddit",
