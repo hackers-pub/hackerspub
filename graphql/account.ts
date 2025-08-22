@@ -68,7 +68,13 @@ export const Account = builder.drizzleNode("accountTable", {
       },
     }),
     moderator: t.exposeBoolean("moderator"),
-    leftInvitations: t.exposeInt("leftInvitations", {
+    invitationsLeft: t.exposeInt("leftInvitations", {
+      authScopes: (parent) => ({
+        moderator: true,
+        selfAccount: parent.id,
+      }),
+    }),
+    preferAiSummary: t.exposeBoolean("preferAiSummary", {
       authScopes: (parent) => ({
         moderator: true,
         selfAccount: parent.id,

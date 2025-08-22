@@ -26,3 +26,4 @@ handle → 識別碼
 invitation → 邀請
 invitationLink → 邀請連結
 medium → 媒體
+preferences → 偏好設定

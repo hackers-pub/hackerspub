@@ -34,6 +34,7 @@ import {
   ToastTitle,
 } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { SettingsTabs } from "../../../../components/SettingsTabs.tsx";
 import type { settingsMutation } from "./__generated__/settingsMutation.graphql.ts";
 import type { settingsPageQuery } from "./__generated__/settingsPageQuery.graphql.ts";
 
@@ -47,16 +48,17 @@ export const route = {
 } satisfies RouteDefinition;
 
 const settingsPageQuery = graphql`
-  query settingsPageQuery($handle: String!) {
-    actorByHandle(handle: $handle, allowLocalHandle: true) {
-      account {
-        id
-        username
-        usernameChanged
-        name
-        bio
+  query settingsPageQuery($username: String!) {
+    accountByUsername(username: $username) {
+      id
+      username
+      usernameChanged
+      name
+      bio
+      ...SettingsTabs_account
+      actor {
+        ...ProfilePageBreadcrumb_actor
       }
-      ...ProfilePageBreadcrumb_actor
     }
   }
 `;
@@ -66,7 +68,7 @@ const loadPageQuery = query(
     loadQuery<settingsPageQuery>(
       useRelayEnvironment()(),
       settingsPageQuery,
-      { handle },
+      { username: handle.replace(/^@/, "") },
     ),
   "loadSettingsPageQuery",
 );
@@ -85,6 +87,7 @@ const settingsMutation = graphql`
         usernameChanged
         name
         bio
+        ...SettingsTabs_account
       }
     }
   }
@@ -104,7 +107,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = createSignal(false);
   function onSubmit(event: SubmitEvent) {
     event.preventDefault();
-    const { account } = data()?.actorByHandle ?? {};
+    const account = data()?.accountByUsername;
     const id = account?.id;
     const usernameChanged = account?.usernameChanged;
     if (
@@ -153,25 +156,29 @@ export default function SettingsPage() {
   return (
     <Show when={data()}>
       {(data) => (
-        <Show when={data().actorByHandle}>
-          {(actor) => (
+        <Show when={data().accountByUsername}>
+          {(account) => (
             <>
               <Title>{t`Profile settings`}</Title>
               <ToastRegion>
                 <ToastList />
               </ToastRegion>
+              <ProfilePageBreadcrumb $actor={account().actor}>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink current>
+                    {t`Settings`}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+              </ProfilePageBreadcrumb>
               <form on:submit={onSubmit}>
-                <ProfilePageBreadcrumb $actor={actor()}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Settings`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
                 <div class="p-4">
                   <div class="mx-auto max-w-prose">
-                    <div class="flex flex-col gap-4">
+                    <SettingsTabs
+                      selected="profile"
+                      $account={account()}
+                    />
+                    <div class="flex flex-col gap-4 mt-4">
                       <TextField class="grid w-full items-center gap-1.5">
                         <TextFieldLabel for="username">
                           {t`Username`}
@@ -183,15 +190,15 @@ export default function SettingsPage() {
                           required
                           id="username"
                           placeholder="username"
-                          value={actor().account?.username}
-                          disabled={actor().account?.usernameChanged != null}
+                          value={account().username}
+                          disabled={account().usernameChanged != null}
                         />
                         <TextFieldDescription class="leading-6">
                           {t`Your username will be used to create your profile URL and your fediverse handle.`}
                           {" "}
                           <strong>
                             {t`You can change it only once, and the old username will become available to others.`}
-                            <Show when={actor().account?.usernameChanged}>
+                            <Show when={account().usernameChanged}>
                               {(changed) => (
                                 <>
                                   {" "}
@@ -219,7 +226,7 @@ export default function SettingsPage() {
                           id="name"
                           required
                           placeholder={t`John Doe`}
-                          value={actor().account?.name}
+                          value={account().name}
                         />
                         <TextFieldDescription class="leading-6">
                           {t`Your name will be displayed on your profile and in your posts.`}
@@ -232,7 +239,7 @@ export default function SettingsPage() {
                         <TextFieldTextArea
                           ref={bioInput}
                           id="bio"
-                          value={actor().account?.bio}
+                          value={account().bio}
                           rows={7}
                         />
                         <TextFieldDescription class="leading-6">

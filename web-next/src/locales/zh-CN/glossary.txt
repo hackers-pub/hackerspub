@@ -26,3 +26,4 @@ handle → handle
 invitation → 邀请
 invitationLink → 邀请链接
 medium → 媒体
+preferences → 偏好设置

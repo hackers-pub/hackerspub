@@ -140,7 +140,11 @@ msgstr "账户"
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
 
-#: src/routes/(root)/[handle]/settings.tsx:144
+#: src/routes/(root)/[handle]/settings/preferences.tsx:123
+msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
+msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持团队。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:147
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请联系客服。"
 
@@ -154,11 +158,11 @@ msgid "Articles only"
 msgstr "仅文章"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings.tsx:199
+#: src/routes/(root)/[handle]/settings/index.tsx:206
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 
-#: src/routes/(root)/[handle]/settings.tsx:230
+#: src/routes/(root)/[handle]/settings/index.tsx:237
 #: src/routes/sign/up/[token].tsx:424
 msgid "Bio"
 msgstr "个人简介"
@@ -178,7 +182,7 @@ msgstr "行为准则"
 msgid "Creating account…"
 msgstr "正在创建账户…"
 
-#: src/routes/(root)/[handle]/settings.tsx:214
+#: src/routes/(root)/[handle]/settings/index.tsx:221
 #: src/routes/sign/up/[token].tsx:398
 msgid "Display name"
 msgstr "昵称"
@@ -224,7 +228,11 @@ msgstr "加载更多通知失败；点击重试"
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
-#: src/routes/(root)/[handle]/settings.tsx:142
+#: src/routes/(root)/[handle]/settings/preferences.tsx:121
+msgid "Failed to save preferences"
+msgstr "保存设置失败"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:145
 msgid "Failed to save settings"
 msgstr "保存设置失败"
 
@@ -277,7 +285,11 @@ msgstr "首页"
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行为准则。"
 
-#: src/routes/(root)/[handle]/settings.tsx:221
+#: src/routes/(root)/[handle]/settings/preferences.tsx:174
+msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
+msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:228
 msgid "John Doe"
 msgstr "张三"
 
@@ -386,7 +398,18 @@ msgstr "页面未找到"
 msgid "Posts"
 msgstr "内容"
 
-#: src/routes/(root)/[handle]/settings.tsx:159
+#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+msgid "Prefer AI-generated summary"
+msgstr "优先使用 AI 生成的摘要"
+
+#: src/components/SettingsTabs.tsx:44
+#: src/routes/(root)/[handle]/settings/preferences.tsx:138
+#: src/routes/(root)/[handle]/settings/preferences.tsx:152
+msgid "Preferences"
+msgstr "偏好设置"
+
+#: src/components/SettingsTabs.tsx:37
+#: src/routes/(root)/[handle]/settings/index.tsx:162
 msgid "Profile settings"
 msgstr "个人资料设置"
 
@@ -406,16 +429,19 @@ msgstr "阅读完整文章"
 msgid "Read the full Code of conduct"
 msgstr "阅读完整的行为准则"
 
-#: src/routes/(root)/[handle]/settings.tsx:247
+#: src/routes/(root)/[handle]/settings/index.tsx:254
+#: src/routes/(root)/[handle]/settings/preferences.tsx:183
 msgid "Save"
 msgstr "保存"
 
-#: src/routes/(root)/[handle]/settings.tsx:247
+#: src/routes/(root)/[handle]/settings/index.tsx:254
+#: src/routes/(root)/[handle]/settings/preferences.tsx:183
 msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:288
-#: src/routes/(root)/[handle]/settings.tsx:168
+#: src/routes/(root)/[handle]/settings/index.tsx:170
+#: src/routes/(root)/[handle]/settings/preferences.tsx:146
 msgid "Settings"
 msgstr "设置"
 
@@ -453,7 +479,11 @@ msgstr "注册 Hackers' Pub"
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
 
-#: src/routes/(root)/[handle]/settings.tsx:130
+#: src/routes/(root)/[handle]/settings/preferences.tsx:109
+msgid "Successfully saved preferences"
+msgstr "设置已成功保存"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:133
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
@@ -488,7 +518,7 @@ msgstr "时间线"
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/routes/(root)/[handle]/settings.tsx:177
+#: src/routes/(root)/[handle]/settings/index.tsx:184
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"
 msgstr "用户名"
@@ -543,7 +573,7 @@ msgstr "欢迎来到 Hackers' Pub！请填写以下表单完成注册。"
 msgid "Without shares"
 msgstr "不含转帖"
 
-#: src/routes/(root)/[handle]/settings.tsx:193
+#: src/routes/(root)/[handle]/settings/index.tsx:200
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使用。"
 
@@ -555,7 +585,7 @@ msgstr "您被以下用户邀请"
 msgid "You'll automatically follow each other when you sign up."
 msgstr "您在注册时将自动互相关注。"
 
-#: src/routes/(root)/[handle]/settings.tsx:239
+#: src/routes/(root)/[handle]/settings/index.tsx:246
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。"
 
@@ -567,16 +597,20 @@ msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Ma
 msgid "Your email address will be used to sign in to your account."
 msgstr "你的电子邮件地址将用于登录。"
 
-#: src/routes/(root)/[handle]/settings.tsx:225
+#: src/routes/(root)/[handle]/settings/index.tsx:232
 #: src/routes/sign/up/[token].tsx:414
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
 
-#: src/routes/(root)/[handle]/settings.tsx:132
+#: src/routes/(root)/[handle]/settings/preferences.tsx:111
+msgid "Your preferences have been updated successfully."
+msgstr "您的设置已成功更新。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:135
 msgid "Your profile settings have been updated successfully."
 msgstr "个人资料设置已成功更新。"
 
-#: src/routes/(root)/[handle]/settings.tsx:190
+#: src/routes/(root)/[handle]/settings/index.tsx:197
 #: src/routes/sign/up/[token].tsx:388
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的用户名将被用来创建你的个人资料 URL 和你的 Fediverse 用户名（handle）。"

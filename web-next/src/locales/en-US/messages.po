@@ -140,7 +140,11 @@ msgstr "Account"
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
 
-#: src/routes/(root)/[handle]/settings.tsx:144
+#: src/routes/(root)/[handle]/settings/preferences.tsx:123
+msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
+msgstr "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
+
+#: src/routes/(root)/[handle]/settings/index.tsx:147
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 
@@ -154,11 +158,11 @@ msgid "Articles only"
 msgstr "Articles only"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings.tsx:199
+#: src/routes/(root)/[handle]/settings/index.tsx:206
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "As you have already changed it {0}, you can't change it again."
 
-#: src/routes/(root)/[handle]/settings.tsx:230
+#: src/routes/(root)/[handle]/settings/index.tsx:237
 #: src/routes/sign/up/[token].tsx:424
 msgid "Bio"
 msgstr "Bio"
@@ -178,7 +182,7 @@ msgstr "Code of conduct"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/routes/(root)/[handle]/settings.tsx:214
+#: src/routes/(root)/[handle]/settings/index.tsx:221
 #: src/routes/sign/up/[token].tsx:398
 msgid "Display name"
 msgstr "Display name"
@@ -224,7 +228,11 @@ msgstr "Failed to load more notifications; click to retry"
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
-#: src/routes/(root)/[handle]/settings.tsx:142
+#: src/routes/(root)/[handle]/settings/preferences.tsx:121
+msgid "Failed to save preferences"
+msgstr "Failed to save preferences"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:145
 msgid "Failed to save settings"
 msgstr "Failed to save settings"
 
@@ -277,7 +285,11 @@ msgstr "Home"
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
-#: src/routes/(root)/[handle]/settings.tsx:221
+#: src/routes/(root)/[handle]/settings/preferences.tsx:174
+msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
+msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
+
+#: src/routes/(root)/[handle]/settings/index.tsx:228
 msgid "John Doe"
 msgstr "John Doe"
 
@@ -386,7 +398,18 @@ msgstr "Page Not Found"
 msgid "Posts"
 msgstr "Posts"
 
-#: src/routes/(root)/[handle]/settings.tsx:159
+#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+msgid "Prefer AI-generated summary"
+msgstr "Prefer AI-generated summary"
+
+#: src/components/SettingsTabs.tsx:44
+#: src/routes/(root)/[handle]/settings/preferences.tsx:138
+#: src/routes/(root)/[handle]/settings/preferences.tsx:152
+msgid "Preferences"
+msgstr "Preferences"
+
+#: src/components/SettingsTabs.tsx:37
+#: src/routes/(root)/[handle]/settings/index.tsx:162
 msgid "Profile settings"
 msgstr "Profile settings"
 
@@ -406,16 +429,19 @@ msgstr "Read full article"
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
-#: src/routes/(root)/[handle]/settings.tsx:247
+#: src/routes/(root)/[handle]/settings/index.tsx:254
+#: src/routes/(root)/[handle]/settings/preferences.tsx:183
 msgid "Save"
 msgstr "Save"
 
-#: src/routes/(root)/[handle]/settings.tsx:247
+#: src/routes/(root)/[handle]/settings/index.tsx:254
+#: src/routes/(root)/[handle]/settings/preferences.tsx:183
 msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/AppSidebar.tsx:288
-#: src/routes/(root)/[handle]/settings.tsx:168
+#: src/routes/(root)/[handle]/settings/index.tsx:170
+#: src/routes/(root)/[handle]/settings/preferences.tsx:146
 msgid "Settings"
 msgstr "Settings"
 
@@ -453,7 +479,11 @@ msgstr "Signing up for Hackers' Pub"
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
-#: src/routes/(root)/[handle]/settings.tsx:130
+#: src/routes/(root)/[handle]/settings/preferences.tsx:109
+msgid "Successfully saved preferences"
+msgstr "Successfully saved preferences"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:133
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
@@ -488,7 +518,7 @@ msgstr "Timeline"
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/routes/(root)/[handle]/settings.tsx:177
+#: src/routes/(root)/[handle]/settings/index.tsx:184
 #: src/routes/sign/up/[token].tsx:371
 msgid "Username"
 msgstr "Username"
@@ -543,7 +573,7 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/routes/(root)/[handle]/settings.tsx:193
+#: src/routes/(root)/[handle]/settings/index.tsx:200
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "You can change it only once, and the old username will become available to others."
 
@@ -555,7 +585,7 @@ msgstr "You were invited by"
 msgid "You'll automatically follow each other when you sign up."
 msgstr "You'll automatically follow each other when you sign up."
 
-#: src/routes/(root)/[handle]/settings.tsx:239
+#: src/routes/(root)/[handle]/settings/index.tsx:246
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it."
 
@@ -567,16 +597,20 @@ msgstr "Your bio will be displayed on your profile. You can use Markdown to form
 msgid "Your email address will be used to sign in to your account."
 msgstr "Your email address will be used to sign in to your account."
 
-#: src/routes/(root)/[handle]/settings.tsx:225
+#: src/routes/(root)/[handle]/settings/index.tsx:232
 #: src/routes/sign/up/[token].tsx:414
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
 
-#: src/routes/(root)/[handle]/settings.tsx:132
+#: src/routes/(root)/[handle]/settings/preferences.tsx:111
+msgid "Your preferences have been updated successfully."
+msgstr "Your preferences have been updated successfully."
+
+#: src/routes/(root)/[handle]/settings/index.tsx:135
 msgid "Your profile settings have been updated successfully."
 msgstr "Your profile settings have been updated successfully."
 
-#: src/routes/(root)/[handle]/settings.tsx:190
+#: src/routes/(root)/[handle]/settings/index.tsx:197
 #: src/routes/sign/up/[token].tsx:388
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "Your username will be used to create your profile URL and your fediverse handle."

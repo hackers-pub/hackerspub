@@ -26,3 +26,4 @@ handle → ハンドル
 invitation → 招待
 invitationLink → 招待リンク
 medium → メディア
+preferences → 環境設定

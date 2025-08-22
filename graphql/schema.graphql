@@ -5,14 +5,15 @@ type Account implements Node {
   created: DateTime!
   handle: String!
   id: ID!
+  invitationsLeft: Int!
   invitees(after: String, before: String, first: Int, last: Int): AccountInviteesConnection!
   inviter: Account
-  leftInvitations: Int!
   links: [AccountLink!]!
   locales: [Locale!]
   moderator: Boolean!
   name: String!
   notifications(after: String, before: String, first: Int, last: Int): AccountNotificationsConnection!
+  preferAiSummary: Boolean!
   updated: DateTime!
   username: String!
   usernameChanged: DateTime
