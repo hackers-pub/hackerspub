@@ -137,6 +137,10 @@
       "title": "환경 설정",
       "preferAiSummary": "AI가 생성한 요약 선호",
       "preferAiSummaryDescription": "활성화하면 AI가 게시글의 요약을 생성합니다. 그렇지 않으면 게시글의 첫 몇 줄이 요약으로 사용됩니다.",
+      "noteVisibility": "단문 공개 범위",
+      "noteVisibilityDescription": "단문의 기본 공개 범위를 설정합니다.",
+      "shareVisibility": "공유 공개 범위",
+      "shareVisibilityDescription": "공유 시의 기본 공개 범위를 설정합니다.",
       "save": "$t(settings.profile.save)"
     },
     "language": {

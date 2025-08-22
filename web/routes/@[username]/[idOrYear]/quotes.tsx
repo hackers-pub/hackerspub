@@ -244,6 +244,7 @@ export default define.page<typeof handler, NoteQuotesProps>(
           )
           : (
             <Composer
+              defaultVisibility={state.account!.noteVisibility}
               language={state.language}
               postUrl=""
               noQuoteOnPaste

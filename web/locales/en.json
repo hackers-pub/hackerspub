@@ -139,6 +139,10 @@
       "title": "Preferences",
       "preferAiSummary": "Prefer AI-generated summary",
       "preferAiSummaryDescription": "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary.",
+      "noteVisibility": "Default note privacy",
+      "noteVisibilityDescription": "The default privacy setting for your notes.",
+      "shareVisibility": "Default share privacy",
+      "shareVisibilityDescription": "The default privacy setting for your shares.",
       "save": "$t(settings.profile.save)"
     },
     "language": {

@@ -137,6 +137,10 @@
       "title": "設定",
       "preferAiSummary": "AI生成の要約を優先",
       "preferAiSummaryDescription": "有効にすると、AIが記事の要約を生成します。無効の場合、記事の最初の数行が要約として使用されます。",
+      "noteVisibility": "投稿の公開範囲",
+      "noteVisibilityDescription": "投稿の基本公開範囲を設定します。",
+      "shareVisibility": "共有の公開範囲",
+      "shareVisibilityDescription": "共有の基本公開範囲を設定します。",
       "save": "$t(settings.profile.save)"
     },
     "language": {

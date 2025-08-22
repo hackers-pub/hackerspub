@@ -136,6 +136,10 @@
       "title": "偏好设置",
       "preferAiSummary": "优先使用AI生成的摘要",
       "preferAiSummaryDescription": "启用后，AI将为文章生成摘要。否则，将使用文章的前几行作为摘要。",
+      "noteVisibility": "默认帖子隐私度",
+      "noteVisibilityDescription": "帖子的默认隐私设置。",
+      "shareVisibility": "默认转帖隐私度",
+      "shareVisibilityDescription": "转帖的默认隐私设置。",
       "save": "$t(settings.profile.save)"
     },
     "language": {

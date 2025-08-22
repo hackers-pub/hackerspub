@@ -712,6 +712,7 @@ export async function sharePost(
     links: AccountLink[];
   },
   post: Post & { actor: Actor },
+  visibility?: PostVisibility,
 ): Promise<Post> {
   const { db } = fedCtx.data;
   const actor = await syncActorFromAccount(fedCtx, account);
@@ -720,7 +721,7 @@ export async function sharePost(
     id,
     iri: fedCtx.getObjectUri(vocab.Announce, { id }).href,
     type: post.type,
-    visibility: "public",
+    visibility: visibility || account.shareVisibility,
     actorId: actor.id,
     sharedPostId: post.id,
     name: post.name,

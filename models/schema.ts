@@ -26,6 +26,18 @@ import type { Uuid } from "./uuid.ts";
 
 const currentTimestamp = sql`CURRENT_TIMESTAMP`;
 
+export const POST_VISIBILITIES = [
+  "public",
+  "unlisted",
+  "followers",
+  "direct",
+  "none",
+] as const;
+
+export const postVisibilityEnum = pgEnum("post_visibility", POST_VISIBILITIES);
+
+export type PostVisibility = (typeof postVisibilityEnum.enumValues)[number];
+
 export const accountTable = pgTable(
   "account",
   {
@@ -54,6 +66,12 @@ export const accountTable = pgTable(
     preferAiSummary: boolean("prefer_ai_summary")
       .notNull()
       .default(true),
+    noteVisibility: postVisibilityEnum("note_visibility")
+      .notNull()
+      .default("public"),
+    shareVisibility: postVisibilityEnum("share_visibility")
+      .notNull()
+      .default("public"),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -524,18 +542,6 @@ export const articleContentTable = pgTable(
 
 export type ArticleContent = typeof articleContentTable.$inferSelect;
 export type NewArticleContent = typeof articleContentTable.$inferInsert;
-
-export const POST_VISIBILITIES = [
-  "public",
-  "unlisted",
-  "followers",
-  "direct",
-  "none",
-] as const;
-
-export const postVisibilityEnum = pgEnum("post_visibility", POST_VISIBILITIES);
-
-export type PostVisibility = (typeof postVisibilityEnum.enumValues)[number];
 
 export const noteSourceTable = pgTable("note_source", {
   id: uuid().$type<Uuid>().primaryKey(),

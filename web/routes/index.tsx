@@ -243,6 +243,7 @@ export default define.page<typeof handler, HomeProps>(
           <Composer
             language={state.language}
             postUrl={`/@${state.account!.username}`}
+            defaultVisibility={state.account!.noteVisibility}
             onPost="reload"
           />
         )}

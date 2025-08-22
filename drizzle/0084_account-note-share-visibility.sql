@@ -1,0 +1,2 @@
+ALTER TABLE "account" ADD COLUMN "note_visibility" "post_visibility" DEFAULT 'public' NOT NULL;--> statement-breakpoint
+ALTER TABLE "account" ADD COLUMN "share_visibility" "post_visibility" DEFAULT 'public' NOT NULL;
