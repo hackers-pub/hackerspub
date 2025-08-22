@@ -11,6 +11,7 @@ import type {
   Post,
   PostLink,
   PostMedium,
+  PostVisibility,
   Reaction,
 } from "@hackerspub/models/schema";
 import {
@@ -243,6 +244,7 @@ export default define.page<typeof handler, HomeProps>(
           <Composer
             language={state.language}
             postUrl={`/@${state.account!.username}`}
+            defaultVisibility={state.account!.postVisibility}
             onPost="reload"
           />
         )}

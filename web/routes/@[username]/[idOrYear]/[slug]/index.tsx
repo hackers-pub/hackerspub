@@ -520,6 +520,7 @@ export function ArticlePage(
           )
           : (
             <Composer
+              defaultVisibility={state.account!.postVisibility}
               class="mt-4"
               commentTargets={commentTargets}
               language={state.language}

@@ -166,6 +166,7 @@ export default define.page<typeof handler, ArticleQuotesProps>(
           )
           : (
             <Composer
+              defaultVisibility={state.account!.postVisibility}
               language={state.language}
               postUrl=""
               noQuoteOnPaste
