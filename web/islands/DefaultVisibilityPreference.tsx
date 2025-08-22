@@ -42,7 +42,7 @@ export function DefaultVisibilityPreference({
             </select>
           </Label>
           <p class="opacity-50">
-            {t("settings.preferences.postVisibilityDescription")}
+            {t("settings.preferences.noteVisibilityDescription")}
           </p>
         </div>
         <div>
