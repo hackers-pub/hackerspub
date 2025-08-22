@@ -589,6 +589,13 @@
       "when": 1749288874962,
       "tag": "0083_index-lower-email",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1755851982593,
+      "tag": "0084_account-note-share-visibility",
+      "breakpoints": true
     }
   ]
 }
