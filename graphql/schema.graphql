@@ -3,6 +3,8 @@ type Account implements Node {
   avatarUrl: URL!
   bio: Markdown!
   created: DateTime!
+  defaultNoteVisibility: PostVisibility!
+  defaultShareVisibility: PostVisibility!
   handle: String!
   id: ID!
   invitationsLeft: Int!
@@ -885,6 +887,8 @@ scalar UUID
 input UpdateAccountInput {
   bio: String
   clientMutationId: ID
+  defaultNoteVisibility: PostVisibility
+  defaultShareVisibility: PostVisibility
   hideForeignLanguages: Boolean
   hideFromInvitationTree: Boolean
   id: ID!

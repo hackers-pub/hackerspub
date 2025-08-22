@@ -8,6 +8,10 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import {
+  PostVisibility,
+  PostVisibilitySelect,
+} from "~/components/PostVisibilitySelect.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -46,6 +50,8 @@ const preferencesPageQuery = graphql`
       id
       username
       preferAiSummary
+      defaultNoteVisibility
+      defaultShareVisibility
       ...SettingsTabs_account
       actor {
         ...ProfilePageBreadcrumb_actor
@@ -65,14 +71,23 @@ const loadPreferencesPageQuery = query(
 );
 
 const preferencesMutation = graphql`
-  mutation preferencesMutation($id: ID!, $preferAiSummary: Boolean!) {
+  mutation preferencesMutation(
+    $id: ID!,
+    $preferAiSummary: Boolean!,
+    $defaultNoteVisibility: PostVisibility!,
+    $defaultShareVisibility: PostVisibility!
+  ) {
     updateAccount(input: {
       id: $id,
-      preferAiSummary: $preferAiSummary
+      preferAiSummary: $preferAiSummary,
+      defaultNoteVisibility: $defaultNoteVisibility,
+      defaultShareVisibility: $defaultShareVisibility,
     }) {
       account {
         id
         preferAiSummary
+        defaultNoteVisibility
+        defaultShareVisibility
         ...SettingsTabs_account
       }
     }
@@ -87,6 +102,12 @@ export default function PreferencesPage() {
     preferencesPageQuery,
     () => loadPreferencesPageQuery(params.handle),
   );
+  const [noteVisibility, setNoteVisibility] = createSignal<
+    PostVisibility | undefined
+  >(undefined);
+  const [shareVisibility, setShareVisibility] = createSignal<
+    PostVisibility | undefined
+  >(undefined);
   const [save] = createMutation<preferencesMutation>(preferencesMutation);
   const [saving, setSaving] = createSignal(false);
   function onSubmit(event: SubmitEvent) {
@@ -100,6 +121,10 @@ export default function PreferencesPage() {
         id,
         preferAiSummary: preferAiSummaryDiv.querySelector("input")?.checked ??
           false,
+        defaultNoteVisibility: noteVisibility() ??
+          account.defaultNoteVisibility,
+        defaultShareVisibility: shareVisibility() ??
+          account.defaultShareVisibility,
       },
       onCompleted() {
         setSaving(false);
@@ -172,6 +197,30 @@ export default function PreferencesPage() {
                         </Label>
                         <p class="text-sm text-muted-foreground">
                           {t`If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary.`}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="flex flex-row gap-4">
+                      <div class="grow flex flex-col gap-2">
+                        <Label>{t`Default note privacy`}</Label>
+                        <PostVisibilitySelect
+                          value={noteVisibility() ??
+                            account().defaultNoteVisibility as PostVisibility}
+                          onChange={setNoteVisibility}
+                        />
+                        <p class="text-sm text-muted-foreground">
+                          {t`The default privacy setting for your notes.`}
+                        </p>
+                      </div>
+                      <div class="grow flex flex-col gap-2">
+                        <Label>{t`Default share privacy`}</Label>
+                        <PostVisibilitySelect
+                          value={shareVisibility() ??
+                            account().defaultShareVisibility as PostVisibility}
+                          onChange={setShareVisibility}
+                        />
+                        <p class="text-sm text-muted-foreground">
+                          {t`The default privacy setting for your shares.`}
                         </p>
                       </div>
                     </div>

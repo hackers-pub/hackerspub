@@ -140,7 +140,7 @@ msgstr "账户"
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:123
+#: src/routes/(root)/[handle]/settings/preferences.tsx:148
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持团队。"
 
@@ -181,6 +181,14 @@ msgstr "行为准则"
 #: src/routes/sign/up/[token].tsx:499
 msgid "Creating account…"
 msgstr "正在创建账户…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:205
+msgid "Default note privacy"
+msgstr "默认帖子隐私设置"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:216
+msgid "Default share privacy"
+msgstr "默认转帖隐私设置"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:221
 #: src/routes/sign/up/[token].tsx:398
@@ -228,7 +236,7 @@ msgstr "加载更多通知失败；点击重试"
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:121
+#: src/routes/(root)/[handle]/settings/preferences.tsx:146
 msgid "Failed to save preferences"
 msgstr "保存设置失败"
 
@@ -253,6 +261,7 @@ msgstr "订阅流"
 msgid "Followers"
 msgstr "粉丝"
 
+#: src/components/PostVisibilitySelect.tsx:63
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
 msgstr "只粉丝可见"
@@ -285,7 +294,7 @@ msgstr "首页"
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行为准则。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:174
+#: src/routes/(root)/[handle]/settings/preferences.tsx:199
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
@@ -344,6 +353,7 @@ msgstr "正在加载…"
 msgid "Markdown guide"
 msgstr "Markdown 指南"
 
+#: src/components/PostVisibilitySelect.tsx:83
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "只提及用户可见"
@@ -398,13 +408,13 @@ msgstr "页面未找到"
 msgid "Posts"
 msgstr "内容"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:196
 msgid "Prefer AI-generated summary"
 msgstr "优先使用 AI 生成的摘要"
 
 #: src/components/SettingsTabs.tsx:44
-#: src/routes/(root)/[handle]/settings/preferences.tsx:138
-#: src/routes/(root)/[handle]/settings/preferences.tsx:152
+#: src/routes/(root)/[handle]/settings/preferences.tsx:163
+#: src/routes/(root)/[handle]/settings/preferences.tsx:177
 msgid "Preferences"
 msgstr "偏好设置"
 
@@ -413,10 +423,12 @@ msgstr "偏好设置"
 msgid "Profile settings"
 msgstr "个人资料设置"
 
+#: src/components/PostVisibilitySelect.tsx:23
 #: src/components/VisibilityTag.tsx:32
 msgid "Public"
 msgstr "公开"
 
+#: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
 msgid "Quiet public"
 msgstr "悄悄公开"
@@ -430,18 +442,18 @@ msgid "Read the full Code of conduct"
 msgstr "阅读完整的行为准则"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:254
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:232
 msgid "Save"
 msgstr "保存"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:254
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:232
 msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:170
-#: src/routes/(root)/[handle]/settings/preferences.tsx:146
+#: src/routes/(root)/[handle]/settings/preferences.tsx:171
 msgid "Settings"
 msgstr "设置"
 
@@ -479,7 +491,7 @@ msgstr "注册 Hackers' Pub"
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:109
+#: src/routes/(root)/[handle]/settings/preferences.tsx:134
 msgid "Successfully saved preferences"
 msgstr "设置已成功保存"
 
@@ -498,6 +510,14 @@ msgstr "目录"
 #: src/routes/sign/up/[token].tsx:428
 msgid "Tell us about yourself…"
 msgstr "请告诉我们关于您自己的信息…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:212
+msgid "The default privacy setting for your notes."
+msgstr "您帖子的默认隐私设置。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:223
+msgid "The default privacy setting for your shares."
+msgstr "您转帖的默认隐私设置。"
 
 #: src/routes/sign/up/[token].tsx:336
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
@@ -602,7 +622,7 @@ msgstr "你的电子邮件地址将用于登录。"
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:111
+#: src/routes/(root)/[handle]/settings/preferences.tsx:136
 msgid "Your preferences have been updated successfully."
 msgstr "您的设置已成功更新。"
 

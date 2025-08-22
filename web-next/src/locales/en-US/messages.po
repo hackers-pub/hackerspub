@@ -140,7 +140,7 @@ msgstr "Account"
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:123
+#: src/routes/(root)/[handle]/settings/preferences.tsx:148
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 
@@ -181,6 +181,14 @@ msgstr "Code of conduct"
 #: src/routes/sign/up/[token].tsx:499
 msgid "Creating account…"
 msgstr "Creating account…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:205
+msgid "Default note privacy"
+msgstr "Default note privacy"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:216
+msgid "Default share privacy"
+msgstr "Default share privacy"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:221
 #: src/routes/sign/up/[token].tsx:398
@@ -228,7 +236,7 @@ msgstr "Failed to load more notifications; click to retry"
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:121
+#: src/routes/(root)/[handle]/settings/preferences.tsx:146
 msgid "Failed to save preferences"
 msgstr "Failed to save preferences"
 
@@ -253,6 +261,7 @@ msgstr "Feed"
 msgid "Followers"
 msgstr "Followers"
 
+#: src/components/PostVisibilitySelect.tsx:63
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
 msgstr "Followers only"
@@ -285,7 +294,7 @@ msgstr "Home"
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:174
+#: src/routes/(root)/[handle]/settings/preferences.tsx:199
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
@@ -344,6 +353,7 @@ msgstr "Loading…"
 msgid "Markdown guide"
 msgstr "Markdown guide"
 
+#: src/components/PostVisibilitySelect.tsx:83
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "Mentioned only"
@@ -398,13 +408,13 @@ msgstr "Page Not Found"
 msgid "Posts"
 msgstr "Posts"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:196
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"
 
 #: src/components/SettingsTabs.tsx:44
-#: src/routes/(root)/[handle]/settings/preferences.tsx:138
-#: src/routes/(root)/[handle]/settings/preferences.tsx:152
+#: src/routes/(root)/[handle]/settings/preferences.tsx:163
+#: src/routes/(root)/[handle]/settings/preferences.tsx:177
 msgid "Preferences"
 msgstr "Preferences"
 
@@ -413,10 +423,12 @@ msgstr "Preferences"
 msgid "Profile settings"
 msgstr "Profile settings"
 
+#: src/components/PostVisibilitySelect.tsx:23
 #: src/components/VisibilityTag.tsx:32
 msgid "Public"
 msgstr "Public"
 
+#: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
 msgid "Quiet public"
 msgstr "Quiet public"
@@ -430,18 +442,18 @@ msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:254
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:232
 msgid "Save"
 msgstr "Save"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:254
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:232
 msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:170
-#: src/routes/(root)/[handle]/settings/preferences.tsx:146
+#: src/routes/(root)/[handle]/settings/preferences.tsx:171
 msgid "Settings"
 msgstr "Settings"
 
@@ -479,7 +491,7 @@ msgstr "Signing up for Hackers' Pub"
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:109
+#: src/routes/(root)/[handle]/settings/preferences.tsx:134
 msgid "Successfully saved preferences"
 msgstr "Successfully saved preferences"
 
@@ -498,6 +510,14 @@ msgstr "Table of contents"
 #: src/routes/sign/up/[token].tsx:428
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:212
+msgid "The default privacy setting for your notes."
+msgstr "The default privacy setting for your notes."
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:223
+msgid "The default privacy setting for your shares."
+msgstr "The default privacy setting for your shares."
 
 #: src/routes/sign/up/[token].tsx:336
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
@@ -602,7 +622,7 @@ msgstr "Your email address will be used to sign in to your account."
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:111
+#: src/routes/(root)/[handle]/settings/preferences.tsx:136
 msgid "Your preferences have been updated successfully."
 msgstr "Your preferences have been updated successfully."
 

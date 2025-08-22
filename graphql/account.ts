@@ -10,6 +10,11 @@ import { and, desc, eq, gt, lt, sql } from "drizzle-orm";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 import { Notification } from "./notification.ts";
+import {
+  fromPostVisibility,
+  PostVisibility,
+  toPostVisibility,
+} from "./postvisibility.ts";
 
 export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
@@ -79,6 +84,24 @@ export const Account = builder.drizzleNode("accountTable", {
         moderator: true,
         selfAccount: parent.id,
       }),
+    }),
+    defaultNoteVisibility: t.field({
+      type: PostVisibility,
+      select: {
+        columns: { noteVisibility: true },
+      },
+      resolve(account) {
+        return toPostVisibility(account.noteVisibility);
+      },
+    }),
+    defaultShareVisibility: t.field({
+      type: PostVisibility,
+      select: {
+        columns: { shareVisibility: true },
+      },
+      resolve(account) {
+        return toPostVisibility(account.shareVisibility);
+      },
     }),
     updated: t.expose("updated", { type: "DateTime" }),
     created: t.expose("created", { type: "DateTime" }),
@@ -324,6 +347,8 @@ builder.relayMutationField(
       hideFromInvitationTree: t.boolean(),
       hideForeignLanguages: t.boolean(),
       preferAiSummary: t.boolean(),
+      defaultNoteVisibility: t.field({ type: PostVisibility }),
+      defaultShareVisibility: t.field({ type: PostVisibility }),
       links: t.field({
         type: [AccountLinkInput],
       }),
@@ -360,6 +385,12 @@ builder.relayMutationField(
             undefined,
           hideForeignLanguages: args.input.hideForeignLanguages ?? undefined,
           preferAiSummary: args.input.preferAiSummary ?? undefined,
+          noteVisibility: args.input.defaultNoteVisibility == null
+            ? undefined
+            : fromPostVisibility(args.input.defaultNoteVisibility),
+          shareVisibility: args.input.defaultShareVisibility == null
+            ? undefined
+            : fromPostVisibility(args.input.defaultShareVisibility),
           links: args.input.links ?? undefined,
         },
       );

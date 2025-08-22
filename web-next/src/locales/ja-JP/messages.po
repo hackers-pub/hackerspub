@@ -140,7 +140,7 @@ msgstr "アカウント"
 msgid "An error occurred during signup. Please try again."
 msgstr "登録中にエラーが発生しました。もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:123
+#: src/routes/(root)/[handle]/settings/preferences.tsx:148
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "環境設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
@@ -181,6 +181,14 @@ msgstr "行動規範"
 #: src/routes/sign/up/[token].tsx:499
 msgid "Creating account…"
 msgstr "アカウントを作成中…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:205
+msgid "Default note privacy"
+msgstr "投稿のデフォルト公開範囲"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:216
+msgid "Default share privacy"
+msgstr "共有のデフォルト公開範囲"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:221
 #: src/routes/sign/up/[token].tsx:398
@@ -228,7 +236,7 @@ msgstr "通知の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:121
+#: src/routes/(root)/[handle]/settings/preferences.tsx:146
 msgid "Failed to save preferences"
 msgstr "環境設定の保存に失敗しました"
 
@@ -253,6 +261,7 @@ msgstr "フィード"
 msgid "Followers"
 msgstr "フォロワー"
 
+#: src/components/PostVisibilitySelect.tsx:63
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
 msgstr "フォロワーのみ"
@@ -285,7 +294,7 @@ msgstr "ホーム"
 msgid "I have read and agree to the Code of conduct."
 msgstr "行動規範に同意します。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:174
+#: src/routes/(root)/[handle]/settings/preferences.tsx:199
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
@@ -344,6 +353,7 @@ msgstr "読み込み中…"
 msgid "Markdown guide"
 msgstr "Markdown ガイド"
 
+#: src/components/PostVisibilitySelect.tsx:83
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
@@ -398,13 +408,13 @@ msgstr "ページが見つかりません"
 msgid "Posts"
 msgstr "コンテンツ"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:196
 msgid "Prefer AI-generated summary"
 msgstr "AI生成の要約を優先"
 
 #: src/components/SettingsTabs.tsx:44
-#: src/routes/(root)/[handle]/settings/preferences.tsx:138
-#: src/routes/(root)/[handle]/settings/preferences.tsx:152
+#: src/routes/(root)/[handle]/settings/preferences.tsx:163
+#: src/routes/(root)/[handle]/settings/preferences.tsx:177
 msgid "Preferences"
 msgstr "環境設定"
 
@@ -413,10 +423,12 @@ msgstr "環境設定"
 msgid "Profile settings"
 msgstr "プロフィール設定"
 
+#: src/components/PostVisibilitySelect.tsx:23
 #: src/components/VisibilityTag.tsx:32
 msgid "Public"
 msgstr "公開"
 
+#: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
 msgid "Quiet public"
 msgstr "ひかえめな公開"
@@ -430,18 +442,18 @@ msgid "Read the full Code of conduct"
 msgstr "行動規範の全文を読む"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:254
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:232
 msgid "Save"
 msgstr "保存"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:254
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:232
 msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:170
-#: src/routes/(root)/[handle]/settings/preferences.tsx:146
+#: src/routes/(root)/[handle]/settings/preferences.tsx:171
 msgid "Settings"
 msgstr "設定"
 
@@ -479,7 +491,7 @@ msgstr "Hackers' Pubに登録"
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:109
+#: src/routes/(root)/[handle]/settings/preferences.tsx:134
 msgid "Successfully saved preferences"
 msgstr "環境設定を正常に保存しました"
 
@@ -498,6 +510,14 @@ msgstr "目次"
 #: src/routes/sign/up/[token].tsx:428
 msgid "Tell us about yourself…"
 msgstr "自己紹介をお聞かせください…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:212
+msgid "The default privacy setting for your notes."
+msgstr "投稿のデフォルト公開設定です。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:223
+msgid "The default privacy setting for your shares."
+msgstr "共有のデフォルト公開設定です。"
 
 #: src/routes/sign/up/[token].tsx:336
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
@@ -602,7 +622,7 @@ msgstr "メールアドレスはアカウントへのログインに使用され
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "名前はプロフィールとコンテンツに表示されます。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:111
+#: src/routes/(root)/[handle]/settings/preferences.tsx:136
 msgid "Your preferences have been updated successfully."
 msgstr "環境設定が正常に更新されました。"
 

@@ -10,18 +10,9 @@ import { assertNever } from "@std/assert/unstable-never";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
+import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { Reactable } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
-
-const PostVisibility = builder.enumType("PostVisibility", {
-  values: [
-    "PUBLIC",
-    "UNLISTED",
-    "FOLLOWERS",
-    "DIRECT",
-    "NONE",
-  ] as const,
-});
 
 class InvalidInputError extends Error {
   public constructor(public readonly inputPath: string) {
@@ -65,20 +56,7 @@ export const Post = builder.drizzleInterface("postTable", {
         columns: { visibility: true },
       },
       resolve(post) {
-        return post.visibility === "public"
-          ? "PUBLIC"
-          : post.visibility === "unlisted"
-          ? "UNLISTED"
-          : post.visibility === "followers"
-          ? "FOLLOWERS"
-          : post.visibility === "direct"
-          ? "DIRECT"
-          : post.visibility === "none"
-          ? "NONE"
-          : assertNever(
-            post.visibility,
-            `Unknown value in \`Post.visibility\`: "${post.visibility}"`,
-          );
+        return toPostVisibility(post.visibility);
       },
     }),
     name: t.exposeString("name", { nullable: true }),
