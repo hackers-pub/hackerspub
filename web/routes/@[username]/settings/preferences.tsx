@@ -1,5 +1,9 @@
 import { page } from "@fresh/core";
-import { accountTable } from "@hackerspub/models/schema";
+import {
+  accountTable,
+  POST_VISIBILITIES,
+  type PostVisibility,
+} from "@hackerspub/models/schema";
 import { eq } from "drizzle-orm";
 import { Button } from "../../../components/Button.tsx";
 import { Msg } from "../../../components/Msg.tsx";
@@ -7,7 +11,6 @@ import { Label } from "../../../components/Label.tsx";
 import { SettingsNav } from "../../../components/SettingsNav.tsx";
 import { db } from "../../../db.ts";
 import { define } from "../../../utils.ts";
-import type { PostVisibility } from "@hackerspub/models/schema";
 import { DefaultVisibilityPreference } from "../../../islands/DefaultVisibilityPreference.tsx";
 
 export const handler = define.handlers({
@@ -27,11 +30,20 @@ export const handler = define.handlers({
     }
     const form = await ctx.req.formData();
     const preferAiSummary = form.get("preferAiSummary") === "true";
-    const noteVisibility = form.get("noteVisibility") as PostVisibility;
-    const shareVisibility = form.get("shareVisibility") as PostVisibility;
+
+    const rawNoteVisibility = form.get("noteVisibility");
+    const rawShareVisibility = form.get("shareVisibility");
+    const noteVisibility =
+      POST_VISIBILITIES.includes(rawNoteVisibility as PostVisibility)
+        ? rawNoteVisibility as PostVisibility
+        : "public";
+    const shareVisibility =
+      POST_VISIBILITIES.includes(rawShareVisibility as PostVisibility)
+        ? rawShareVisibility as PostVisibility
+        : "public";
 
     const accounts = await db.update(accountTable)
-      .set({ preferAiSummary, postVisibility, shareVisibility })
+      .set({ preferAiSummary, noteVisibility, shareVisibility })
       .where(eq(accountTable.id, ctx.state.account.id))
       .returning();
     return page<PreferencesPageProps>(accounts[0]);
@@ -41,7 +53,7 @@ export const handler = define.handlers({
 interface PreferencesPageProps {
   preferAiSummary: boolean;
   leftInvitations: number;
-  postVisibility: PostVisibility;
+  noteVisibility: PostVisibility;
   shareVisibility: PostVisibility;
 }
 
