@@ -89,7 +89,7 @@ msgstr "{0} 回复了你的内容"
 #. placeholder {0}: instance().host
 #. placeholder {1}: instance().software
 #. placeholder {2}: instance().softwareVersion
-#: src/routes/index.tsx:45
+#: src/routes/(root)/index.tsx:46
 msgid "{0} running {1} {2}"
 msgstr "{0} 正在运行 {1} {2}"
 
@@ -128,7 +128,7 @@ msgstr "{0}的帖子"
 msgid "{0}'s shares"
 msgstr "{0}的转帖"
 
-#: src/routes/sign/index.tsx:193
+#: src/routes/(root)/sign/index.tsx:193
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
 
@@ -136,7 +136,7 @@ msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾
 msgid "Account"
 msgstr "账户"
 
-#: src/routes/sign/up/[token].tsx:308
+#: src/routes/(root)/sign/up/[token].tsx:308
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
 
@@ -163,22 +163,22 @@ msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:237
-#: src/routes/sign/up/[token].tsx:424
+#: src/routes/(root)/sign/up/[token].tsx:427
 msgid "Bio"
 msgstr "个人简介"
 
-#: src/routes/sign/up/[token].tsx:175
+#: src/routes/(root)/sign/up/[token].tsx:175
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "个人简介太长。不能长于 512 字符。"
 
 #: src/components/AppSidebar.tsx:321
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
-#: src/routes/sign/up/[token].tsx:471
+#: src/routes/(root)/sign/up/[token].tsx:474
 msgid "Code of conduct"
 msgstr "行为准则"
 
-#: src/routes/sign/up/[token].tsx:499
+#: src/routes/(root)/sign/up/[token].tsx:502
 msgid "Creating account…"
 msgstr "正在创建账户…"
 
@@ -191,27 +191,27 @@ msgid "Default share privacy"
 msgstr "默认转帖隐私设置"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:221
-#: src/routes/sign/up/[token].tsx:398
+#: src/routes/(root)/sign/up/[token].tsx:401
 msgid "Display name"
 msgstr "昵称"
 
-#: src/routes/sign/index.tsx:285
+#: src/routes/(root)/sign/index.tsx:288
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀请您。"
 
-#: src/routes/sign/up/[token].tsx:351
+#: src/routes/(root)/sign/up/[token].tsx:354
 msgid "Email address"
 msgstr "电子邮件地址"
 
-#: src/routes/sign/index.tsx:263
+#: src/routes/(root)/sign/index.tsx:266
 msgid "Email or username"
 msgstr "邮箱或用户名"
 
-#: src/routes/sign/index.tsx:201
+#: src/routes/(root)/sign/index.tsx:201
 msgid "Enter your email or username below to sign in."
 msgstr "请在下方输入您的邮箱或用户名以登录。"
 
-#: src/routes/sign/up/[token].tsx:305
+#: src/routes/(root)/sign/up/[token].tsx:305
 msgid "Error"
 msgstr "错误"
 
@@ -278,7 +278,6 @@ msgstr "GitHub 仓库"
 #: src/components/AppSidebar.tsx:151
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
-#: src/routes/sign.tsx:14
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -290,7 +289,7 @@ msgstr "Hackers' Pub：通知"
 msgid "Home"
 msgstr "首页"
 
-#: src/routes/sign/up/[token].tsx:473
+#: src/routes/(root)/sign/up/[token].tsx:476
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行为准则。"
 
@@ -344,7 +343,7 @@ msgstr "正在加载更多通知…"
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
 
-#: src/routes/sign/up/[token].tsx:483
+#: src/routes/(root)/sign/up/[token].tsx:486
 msgid "Loading…"
 msgstr "正在加载…"
 
@@ -358,11 +357,11 @@ msgstr "Markdown 指南"
 msgid "Mentioned only"
 msgstr "只提及用户可见"
 
-#: src/routes/sign/up/[token].tsx:162
+#: src/routes/(root)/sign/up/[token].tsx:162
 msgid "Name is required."
 msgstr "需要昵称"
 
-#: src/routes/sign/up/[token].tsx:164
+#: src/routes/(root)/sign/up/[token].tsx:164
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "用户名太长。不能长于 50 字符。"
 
@@ -387,7 +386,7 @@ msgstr "未找到内容"
 #~ msgid "No posts found."
 #~ msgstr "未找到内容。"
 
-#: src/routes/sign/index.tsx:198
+#: src/routes/(root)/sign/index.tsx:198
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中无此账户，请重试。"
 
@@ -396,7 +395,7 @@ msgstr "Hackers' Pub 中无此账户，请重试。"
 msgid "Notes"
 msgstr "帖子"
 
-#: src/routes/sign/index.tsx:296
+#: src/routes/(root)/sign/index.tsx:299
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
@@ -437,7 +436,7 @@ msgstr "悄悄公开"
 msgid "Read full article"
 msgstr "阅读完整文章"
 
-#: src/routes/sign/up/[token].tsx:477
+#: src/routes/(root)/sign/up/[token].tsx:480
 msgid "Read the full Code of conduct"
 msgstr "阅读完整的行为准则"
 
@@ -463,7 +462,7 @@ msgid "Shares"
 msgstr "转帖"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/sign/index.tsx:279
+#: src/routes/(root)/sign/index.tsx:282
 msgid "Sign in"
 msgstr "登录"
 
@@ -471,23 +470,23 @@ msgstr "登录"
 msgid "Sign out"
 msgstr "登出"
 
-#: src/routes/sign/up/[token].tsx:499
+#: src/routes/(root)/sign/up/[token].tsx:502
 msgid "Sign up"
 msgstr "注册"
 
-#: src/routes/sign/index.tsx:246
+#: src/routes/(root)/sign/index.tsx:249
 msgid "Signing in Hackers' Pub"
 msgstr "登录 Hackers' Pub"
 
-#: src/routes/sign/index.tsx:279
+#: src/routes/(root)/sign/index.tsx:282
 msgid "Signing in…"
 msgstr "登录中…"
 
-#: src/routes/sign/up/[token].tsx:327
+#: src/routes/(root)/sign/up/[token].tsx:330
 msgid "Signing up for Hackers' Pub"
 msgstr "注册 Hackers' Pub"
 
-#: src/routes/sign/index.tsx:203
+#: src/routes/(root)/sign/index.tsx:203
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
 
@@ -507,7 +506,7 @@ msgstr "由 AI 生成的摘要"
 msgid "Table of contents"
 msgstr "目录"
 
-#: src/routes/sign/up/[token].tsx:428
+#: src/routes/(root)/sign/up/[token].tsx:431
 msgid "Tell us about yourself…"
 msgstr "请告诉我们关于您自己的信息…"
 
@@ -519,7 +518,7 @@ msgstr "您帖子的默认隐私设置。"
 msgid "The default privacy setting for your shares."
 msgstr "您转帖的默认隐私设置。"
 
-#: src/routes/sign/up/[token].tsx:336
+#: src/routes/(root)/sign/up/[token].tsx:339
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
 msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链接。"
 
@@ -539,23 +538,23 @@ msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:184
-#: src/routes/sign/up/[token].tsx:371
+#: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Username"
 msgstr "用户名"
 
-#: src/routes/sign/up/[token].tsx:149
+#: src/routes/(root)/sign/up/[token].tsx:149
 msgid "Username can only contain lowercase letters, numbers, and underscores."
 msgstr "用户名只能包含小写字母、数字以及下划线。"
 
-#: src/routes/sign/up/[token].tsx:151
+#: src/routes/(root)/sign/up/[token].tsx:151
 msgid "Username is already taken."
 msgstr "用户名已被占用。"
 
-#: src/routes/sign/up/[token].tsx:145
+#: src/routes/(root)/sign/up/[token].tsx:145
 msgid "Username is required."
 msgstr "需要用户名"
 
-#: src/routes/sign/up/[token].tsx:147
+#: src/routes/(root)/sign/up/[token].tsx:147
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "用户名太长。不能长于 15 字符。"
 
@@ -565,7 +564,7 @@ msgstr "用户名太长。不能长于 15 字符。"
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已于{1}验证此链接归{0}所有"
 
-#: src/routes/sign/up/[token].tsx:331
+#: src/routes/(root)/sign/up/[token].tsx:334
 msgid "Verifying your invitation…"
 msgstr "正在验证您的邀请…"
 
@@ -585,7 +584,7 @@ msgstr "所有人都可以看到，但不会出现在公共时间线中。只有
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "包括未注册用户在内的所有人都可以看到。内容也会出现在公共时间线中。"
 
-#: src/routes/sign/up/[token].tsx:341
+#: src/routes/(root)/sign/up/[token].tsx:344
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "欢迎来到 Hackers' Pub！请填写以下表单完成注册。"
 
@@ -597,11 +596,11 @@ msgstr "不含转帖"
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使用。"
 
-#: src/routes/sign/up/[token].tsx:447
+#: src/routes/(root)/sign/up/[token].tsx:450
 msgid "You were invited by"
 msgstr "您被以下用户邀请"
 
-#: src/routes/sign/up/[token].tsx:464
+#: src/routes/(root)/sign/up/[token].tsx:467
 msgid "You'll automatically follow each other when you sign up."
 msgstr "您在注册时将自动互相关注。"
 
@@ -609,16 +608,16 @@ msgstr "您在注册时将自动互相关注。"
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。"
 
-#: src/routes/sign/up/[token].tsx:440
+#: src/routes/(root)/sign/up/[token].tsx:443
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。最大 512 字符。"
 
-#: src/routes/sign/up/[token].tsx:360
+#: src/routes/(root)/sign/up/[token].tsx:363
 msgid "Your email address will be used to sign in to your account."
 msgstr "你的电子邮件地址将用于登录。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:232
-#: src/routes/sign/up/[token].tsx:414
+#: src/routes/(root)/sign/up/[token].tsx:417
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
 
@@ -631,6 +630,6 @@ msgid "Your profile settings have been updated successfully."
 msgstr "个人资料设置已成功更新。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:197
-#: src/routes/sign/up/[token].tsx:388
+#: src/routes/(root)/sign/up/[token].tsx:391
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的用户名将被用来创建你的个人资料 URL 和你的 Fediverse 用户名（handle）。"
