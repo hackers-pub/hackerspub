@@ -4,6 +4,7 @@ import { createSignal, Show } from "solid-js";
 import { getRequestEvent } from "solid-js/web";
 import { createMutation } from "solid-relay";
 import { getRequestProtocol, setCookie } from "vinxi/http";
+import { Button } from "~/components/ui/button.tsx";
 import { Grid } from "~/components/ui/grid.tsx";
 import {
   OTPField,
@@ -19,7 +20,6 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { Button } from "../../components/ui/button.tsx";
 import type {
   signByEmailMutation,
 } from "./__generated__/signByEmailMutation.graphql.ts";
@@ -239,8 +239,11 @@ export default function SignPage() {
   }
 
   return (
-    <div lang={i18n.locale} class="lg:p-8">
-      <div class="mx-auto sm:w-[350px]">
+    <div
+      lang={i18n.locale}
+      class="lg:p-8 w-full h-full flex items-center justify-center"
+    >
+      <div class="w-full sm:w-[350px]">
         <div class="flex flex-col space-y-2 text-center">
           <h1 class="text-2xl font-semibold tracking-tight">
             {t`Signing in Hackers' Pub`}

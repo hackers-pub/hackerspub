@@ -320,8 +320,11 @@ export default function SignupPage(props: RouteSectionProps) {
         <ToastList />
       </ToastRegion>
 
-      <div lang={i18n.locale} class="lg:p-8">
-        <div class="mx-auto max-w-2xl">
+      <div
+        lang={i18n.locale}
+        class="lg:p-8 min-h-screen flex items-center justify-center"
+      >
+        <div class="w-full max-w-2xl">
           <div class="flex flex-col space-y-2 text-center mb-8">
             <h1 class="text-2xl font-semibold tracking-tight">
               {t`Signing up for Hackers' Pub`}

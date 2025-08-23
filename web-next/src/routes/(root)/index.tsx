@@ -7,10 +7,10 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { routesQuery } from "./__generated__/routesQuery.graphql.ts";
+import type { RootRoutesQuery } from "./__generated__/RootRoutesQuery.graphql.ts";
 
-const RoutesQuery = graphql`
-  query routesQuery {
+const RootRoutesQuery = graphql`
+  query RootRoutesQuery {
     instanceByHost(host: "hackers.pub") {
       host
       software
@@ -20,7 +20,8 @@ const RoutesQuery = graphql`
 `;
 
 const loadRoutesQuery = query(
-  () => loadQuery<routesQuery>(useRelayEnvironment()(), RoutesQuery, {}),
+  () =>
+    loadQuery<RootRoutesQuery>(useRelayEnvironment()(), RootRoutesQuery, {}),
   "loadRoutesQuery",
 );
 
@@ -32,8 +33,8 @@ export const route = {
 
 export default function Home() {
   const { t } = useLingui();
-  const data = createPreloadedQuery<routesQuery>(
-    RoutesQuery,
+  const data = createPreloadedQuery<RootRoutesQuery>(
+    RootRoutesQuery,
     loadRoutesQuery,
   );
 
