@@ -1,4 +1,3 @@
-import { toaster } from "@kobalte/core";
 import { query, type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
@@ -25,14 +24,7 @@ import {
   TextFieldLabel,
   TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
-import {
-  Toast,
-  ToastContent,
-  ToastDescription,
-  ToastList,
-  ToastRegion,
-  ToastTitle,
-} from "~/components/ui/toast.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { SettingsTabs } from "../../../../components/SettingsTabs.tsx";
 import type { settingsMutation } from "./__generated__/settingsMutation.graphql.ts";
@@ -127,28 +119,20 @@ export default function SettingsPage() {
       },
       onCompleted() {
         setSaving(false);
-        toaster.show((props) => (
-          <Toast toastId={props.toastId} variant="default">
-            <ToastContent>
-              <ToastTitle>{t`Successfully saved settings`}</ToastTitle>
-              <ToastDescription>
-                {t`Your profile settings have been updated successfully.`}
-              </ToastDescription>
-            </ToastContent>
-          </Toast>
-        ));
+        showToast({
+          title: t`Successfully saved settings`,
+          description: t`Your profile settings have been updated successfully.`,
+        });
       },
-      onError() {
-        toaster.show((props) => (
-          <Toast toastId={props.toastId} variant="destructive">
-            <ToastContent>
-              <ToastTitle>{t`Failed to save settings`}</ToastTitle>
-              <ToastDescription>
-                {t`An error occurred while saving your settings. Please try again, or contact support if the problem persists.`}
-              </ToastDescription>
-            </ToastContent>
-          </Toast>
-        ));
+      onError(error) {
+        console.error(error);
+        showToast({
+          title: t`Failed to save settings`,
+          description:
+            t`An error occurred while saving your settings. Please try again, or contact support if the problem persists.` +
+            (import.meta.env.DEV ? `\n\n${error.message}` : ""),
+          variant: "error",
+        });
         setSaving(false);
       },
     });
@@ -160,9 +144,6 @@ export default function SettingsPage() {
           {(account) => (
             <>
               <Title>{t`Profile settings`}</Title>
-              <ToastRegion>
-                <ToastList />
-              </ToastRegion>
               <ProfilePageBreadcrumb $actor={account().actor}>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>

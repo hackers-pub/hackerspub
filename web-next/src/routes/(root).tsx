@@ -11,6 +11,7 @@ import {
 } from "solid-relay";
 import { AppSidebar } from "~/components/AppSidebar.tsx";
 import { SidebarProvider } from "~/components/ui/sidebar.tsx";
+import { Toaster } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { RootLayoutQuery } from "./__generated__/RootLayoutQuery.graphql.ts";
 
@@ -61,6 +62,7 @@ export default function RootLayout(props: RouteSectionProps) {
       >
         {props.children}
       </main>
+      <Toaster />
     </SidebarProvider>
   );
 }

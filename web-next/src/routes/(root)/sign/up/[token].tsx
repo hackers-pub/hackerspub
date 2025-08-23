@@ -6,7 +6,6 @@ import {
 } from "@hackerspub/models/userValidation";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { validateUuid } from "@hackerspub/models/uuid";
-import { toaster } from "@kobalte/core";
 import { type RouteSectionProps, useNavigate } from "@solidjs/router";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEffect, createSignal, Show } from "solid-js";
@@ -26,14 +25,7 @@ import {
   TextFieldLabel,
   TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
-import {
-  Toast,
-  ToastContent,
-  ToastDescription,
-  ToastList,
-  ToastRegion,
-  ToastTitle,
-} from "~/components/ui/toast.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { createEnvironment } from "~/RelayEnvironment.tsx";
 import type { TokenCodeOfConductQuery } from "./__generated__/TokenCodeOfConductQuery.graphql.ts";
@@ -299,27 +291,18 @@ export default function SignupPage(props: RouteSectionProps) {
       },
       onError(error) {
         setSubmitting(false);
-        toaster.show((props) => (
-          <Toast toastId={props.toastId} variant="destructive">
-            <ToastContent>
-              <ToastTitle>{t`Error`}</ToastTitle>
-              <ToastDescription>
-                {error.message ||
-                  t`An error occurred during signup. Please try again.`}
-              </ToastDescription>
-            </ToastContent>
-          </Toast>
-        ));
+        showToast({
+          title: t`Error`,
+          description: t`An error occurred during signup. Please try again.` +
+            (import.meta.env.DEV ? `\n\n${error.message}` : ""),
+          variant: "error",
+        });
       },
     });
   }
 
   return (
     <>
-      <ToastRegion>
-        <ToastList />
-      </ToastRegion>
-
       <div
         lang={i18n.locale}
         class="lg:p-8 min-h-screen flex items-center justify-center"
@@ -459,7 +442,7 @@ export default function SignupPage(props: RouteSectionProps) {
                       <div>
                         <p class="font-medium">{signupInfo()?.inviter?.name}</p>
                         <p class="text-sm text-muted-foreground">
-                          @{signupInfo()?.inviter?.handle}
+                          {signupInfo()?.inviter?.handle}
                         </p>
                       </div>
                     </div>
