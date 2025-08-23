@@ -4,6 +4,7 @@ import { createSignal, Show } from "solid-js";
 import { getRequestEvent } from "solid-js/web";
 import { createMutation } from "solid-relay";
 import { getRequestProtocol, setCookie } from "vinxi/http";
+import { Button } from "~/components/ui/button.tsx";
 import { Grid } from "~/components/ui/grid.tsx";
 import {
   OTPField,
@@ -19,7 +20,6 @@ import {
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { Button } from "../../components/ui/button.tsx";
 import type {
   signByEmailMutation,
 } from "./__generated__/signByEmailMutation.graphql.ts";
