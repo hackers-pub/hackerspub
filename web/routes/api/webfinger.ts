@@ -10,6 +10,7 @@ interface WebfingerLink {
   rel?: string;
   type?: string;
   href?: string;
+  template?: string;
 }
 
 interface WebfingerRequest {
