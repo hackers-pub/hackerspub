@@ -129,9 +129,17 @@ async function buildActorInfo(
           continue;
         }
         const emojiName = tag.name.toString();
-        emojis[emojiName] = icon.url instanceof vocab.Link
+        const raw = icon.url instanceof vocab.Link
           ? icon.url.href!.href
           : icon.url.href;
+        // Allow only http(s) URLs; reject quotes to avoid breaking attributes.
+        const u = new URL(raw);
+        if (
+          (u.protocol === "http:" || u.protocol === "https:") &&
+          !/[\'\"]/.test(raw)
+        ) {
+          emojis[emojiName] = u.href;
+        }
       }
     }
   } catch (error) {
