@@ -282,6 +282,7 @@ export default define.page<typeof handler, ProfileNoteListProps>(
           profileHref={data.profileHref}
           relationship={data.relationship}
           links={data.links}
+          signedAccount={state.account}
         />
         <ProfileNav
           active={data.withReplies ? "notesWithReplies" : "notes"}

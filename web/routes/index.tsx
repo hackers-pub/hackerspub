@@ -281,6 +281,7 @@ export default define.page<typeof handler, HomeProps>(
             window={6}
             title={data.filter !== "recommendations"}
             class={data.filter === "recommendations" ? "mt-4" : ""}
+            signedAccount={state.account}
           />
         )}
       </>

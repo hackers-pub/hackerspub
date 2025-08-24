@@ -411,5 +411,34 @@
     "exhausted": "此邀請連結已用完。您需要使用其他邀請連結來加入 Hackers' Pub。",
     "duplicateEmail": "此電子郵件地址已在 Hackers' Pub 註冊。請使用其他電子郵件地址。",
     "sent": "加入 Hackers' Pub 的郵件已發送到 {{email}}。請檢查您的收件匣。（可能在垃圾郵件資料夾中）"
+  },
+  "remoteFollow": {
+    "title": "遠端關注",
+    "description": "要關注 {{actorName}}，請輸入你的聯邦宇宙使用者名稱。",
+    "fediverseIdLabel": "聯邦宇宙使用者名稱",
+    "fediverseIdPlaceholder": "@username@mastodon.social",
+    "fediverseIdExample": "輸入你的聯邦宇宙使用者名稱（例如：@username@mastodon.social）",
+    "fediverseIdRequired": "請輸入你的聯邦宇宙使用者名稱。",
+    "fediverseIdInvalid": "聯邦宇宙使用者名稱格式無效。請以 @username@domain.com 格式輸入。",
+    "userLookupError": "查找使用者失敗。",
+    "userNotFound": "未找到使用者資訊。",
+    "userLookupGenericError": "使用者資訊查找過程中發生錯誤。",
+    "profileImageAlt": "個人資料圖片",
+    "lookingUpUser": "正在查找使用者資訊…",
+    "followServiceNotFound": "未找到該服務的關注頁面。",
+    "cancel": "取消",
+    "follow": "關注",
+    "lookupUser": "查找使用者",
+    "lookingUp": "查找中…",
+    "api": {
+      "fediverseIdRequired": "聯邦宇宙使用者名稱是必需的。",
+      "fediverseIdInvalidFormat": "聯邦宇宙使用者名稱格式不正確。",
+      "userNotFoundWithStatus": "未找到使用者：{{status}}",
+      "webfingerLookupError": "WebFinger 查找過程中發生錯誤。",
+      "activityPubProfileNotFound": "未找到 ActivityPub 個人資料。",
+      "objectNotActor": "查找到的物件不是 actor。",
+      "profileInfoFetchFailed": "無法取得個人資料資訊。",
+      "serverError": "伺服器發生錯誤。"
+    }
   }
 }
