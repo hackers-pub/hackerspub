@@ -98,13 +98,11 @@ export const handler = define.handlers({
         `${invitationLink.inviter.name} (@${invitationLink.inviter.username}@${
           new URL(ctx.state.canonicalOrigin).host
         })`;
-      await sendEmail({
-        to: email,
-        subject: t("settings.invite.invitationEmailSubject", {
-          inviter,
-          inviterName: invitationLink.inviter.name,
-        }),
-        text: t("settings.invite.invitationEmailText", {
+
+      const invitationMessage = invitationLink.message;
+
+      const invitationEmailBody = (invitationMessage || "").trim() === ""
+        ? t("settings.invite.invitationEmailText", {
           inviter,
           inviterName: invitationLink.inviter.name,
           verifyUrl: verifyUrl.href,
@@ -112,7 +110,25 @@ export const handler = define.handlers({
             // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
             style: "long",
           }),
+        })
+        : t("settings.invite.invitationEmailTextWithMessage", {
+          inviter,
+          inviterName: invitationLink.inviter.name,
+          message: invitationMessage,
+          verifyUrl: verifyUrl.href,
+          expiration: EXPIRATION.toLocaleString(ctx.state.language, {
+            // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
+            style: "long",
+          }),
+        });
+
+      await sendEmail({
+        to: email,
+        subject: t("settings.invite.invitationEmailSubject", {
+          inviter,
+          inviterName: invitationLink.inviter.name,
         }),
+        text: invitationEmailBody,
       });
       return page<InvitationLinkPageProps>({
         inviter: invitationLink.inviter,
