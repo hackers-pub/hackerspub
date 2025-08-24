@@ -16,6 +16,7 @@ interface WebfingerLink {
 interface WebfingerRequest {
   fediverseId: string;
   language?: Language;
+  actorHandle?: string;
 }
 
 export interface ActorInfo {
