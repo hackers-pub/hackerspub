@@ -1,5 +1,14 @@
 import { graphql } from "relay-runtime";
-import { ComponentProps, Show } from "solid-js";
+import type { Component, ParentComponent } from "solid-js";
+import {
+  ComponentProps,
+  createContext,
+  createRenderEffect,
+  createSignal,
+  onCleanup,
+  Show,
+  useContext,
+} from "solid-js";
 import { createFragment } from "solid-relay";
 import {
   BreadcrumbItem,
@@ -14,6 +23,7 @@ export interface ProfilePageBreadcrumbProps extends ComponentProps<"ol"> {
 }
 
 export function ProfilePageBreadcrumb(props: ProfilePageBreadcrumbProps) {
+  const { breadcrumb } = useProfilePageBreadcrumb();
   const actor = createFragment(
     graphql`
       fragment ProfilePageBreadcrumb_actor on Actor {
@@ -31,19 +41,69 @@ export function ProfilePageBreadcrumb(props: ProfilePageBreadcrumbProps) {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbLink
-              current={props.children == null ||
-                Array.isArray(props.children) && props.children.length < 1}
-              href={props.children == null ||
-                  Array.isArray(props.children) && props.children.length < 1
-                ? undefined
-                : `/@${actor().username}`}
+              current={breadcrumb() == null}
+              href={breadcrumb() == null ? undefined : `/@${actor().username}`}
             >
               <span innerHTML={actor().name ?? actor().username} />
             </BreadcrumbLink>
           </BreadcrumbItem>
-          {props.children}
+          <Show when={breadcrumb()}>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink current>
+                {breadcrumb()}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          </Show>
         </TopBreadcrumb>
       )}
     </Show>
   );
 }
+
+type ProfilePageBreadcrumbContextType = {
+  breadcrumb: () => string | undefined;
+  setBreadcrumb: (breadcrumb: string | undefined) => void;
+};
+
+const ProfilePageBreadcrumbContext = createContext<
+  ProfilePageBreadcrumbContextType
+>();
+
+export const ProfilePageBreadcrumbProvider: ParentComponent = (props) => {
+  const [breadcrumb, setBreadcrumb] = createSignal<string | undefined>();
+
+  const value: ProfilePageBreadcrumbContextType = {
+    breadcrumb,
+    setBreadcrumb,
+  };
+
+  return (
+    <ProfilePageBreadcrumbContext.Provider value={value}>
+      {props.children}
+    </ProfilePageBreadcrumbContext.Provider>
+  );
+};
+
+const useProfilePageBreadcrumb = () => {
+  const context = useContext(ProfilePageBreadcrumbContext);
+  if (!context) {
+    throw new Error(
+      "useProfilePageBreadcrumb must be used within a ProfilePageBreadcrumbProvider",
+    );
+  }
+  return context;
+};
+
+interface ProfilePageBreadcrumbItemProps {
+  breadcrumb: string | undefined;
+}
+
+export const ProfilePageBreadcrumbItem: Component<
+  ProfilePageBreadcrumbItemProps
+> = (props) => {
+  const { setBreadcrumb } = useProfilePageBreadcrumb();
+  createRenderEffect(() => setBreadcrumb(props.breadcrumb));
+  onCleanup(() => setBreadcrumb(undefined));
+  return null;
+};

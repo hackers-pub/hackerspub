@@ -8,16 +8,9 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorArticleList } from "~/components/ActorArticleList.tsx";
-import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
-import { ProfileCard } from "~/components/ProfileCard.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
+import { ProfilePageBreadcrumbItem } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { articlesPageQuery } from "./__generated__/articlesPageQuery.graphql.ts";
 
@@ -36,10 +29,7 @@ const articlesPageQuery = graphql`
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       rawName
       username
-      ...NavigateIfHandleIsNotCanonical_actor
       ...ActorArticleList_articles @arguments(locale: $locale)
-      ...ProfilePageBreadcrumb_actor
-      ...ProfileCard_actor
       ...ProfileTabs_actor
     }
   }
@@ -62,6 +52,7 @@ export default function ProfileArticlesPage() {
     articlesPageQuery,
     () => loadPageQuery(params.handle, i18n.locale),
   );
+
   return (
     <Show when={data()}>
       {(data) => (
@@ -76,22 +67,9 @@ export default function ProfileArticlesPage() {
                   property="og:title"
                   content={t`${actor().rawName ?? actor().username}'s articles`}
                 />
-                <NavigateIfHandleIsNotCanonical $actor={actor()} />
-                <ProfilePageBreadcrumb $actor={actor()}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Articles`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
-                <div>
-                  <ProfileCard $actor={actor()} />
-                </div>
-                <div class="p-4">
-                  <ProfileTabs selected="articles" $actor={actor()} />
-                  <ActorArticleList $articles={actor()} />
-                </div>
+                <ProfilePageBreadcrumbItem breadcrumb={t`Articles`} />
+                <ProfileTabs selected="articles" $actor={actor()} />
+                <ActorArticleList $articles={actor()} />
               </>
             )}
           </Show>

@@ -105,26 +105,26 @@ msgid "{0} shared your post"
 msgstr "{0} 轉貼了你的內容"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:73
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:77
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:64
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:68
 msgid "{0}'s articles"
 msgstr "{0}的文章"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:73
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:76
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:65
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:68
 msgid "{0}'s followers"
 msgstr "{0}的粉絲"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:74
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:78
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:63
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:67
 msgid "{0}'s notes"
 msgstr "{0}的貼文"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:75
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:79
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:64
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:68
 msgid "{0}'s shares"
 msgstr "{0}的轉貼"
 
@@ -149,7 +149,7 @@ msgid "An error occurred while saving your settings. Please try again, or contac
 msgstr "儲存設定時發生錯誤。請重試，如果問題仍然存在，請聯繫客服。"
 
 #: src/components/ProfileTabs.tsx:48
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:84
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:70
 msgid "Articles"
 msgstr "文章"
 
@@ -257,7 +257,7 @@ msgstr "聯邦宇宙"
 msgid "Feed"
 msgstr "訂閱流"
 
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:82
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:70
 msgid "Followers"
 msgstr "粉絲"
 
@@ -391,7 +391,7 @@ msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中無此帳戶，請重試。"
 
 #: src/components/ProfileTabs.tsx:41
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:85
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:69
 msgid "Notes"
 msgstr "貼文"
 
@@ -457,7 +457,7 @@ msgid "Settings"
 msgstr "設定"
 
 #: src/components/ProfileTabs.tsx:51
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:86
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:70
 msgid "Shares"
 msgstr "轉貼"
 

@@ -13,15 +13,14 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
+import {
+  ProfilePageBreadcrumb,
+  ProfilePageBreadcrumbItem,
+  ProfilePageBreadcrumbProvider,
+} from "~/components/ProfilePageBreadcrumb.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   TextField,
@@ -173,14 +172,10 @@ export default function SettingsPage() {
             {(account) => (
               <>
                 <Title>{t`Profile settings`}</Title>
-                <ProfilePageBreadcrumb $actor={account().actor}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Settings`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
+                <ProfilePageBreadcrumbProvider>
+                  <ProfilePageBreadcrumb $actor={account().actor} />
+                  <ProfilePageBreadcrumbItem breadcrumb={t`Settings`} />
+                </ProfilePageBreadcrumbProvider>
                 <form on:submit={onSubmit}>
                   <div class="p-4">
                     <div class="mx-auto max-w-prose">

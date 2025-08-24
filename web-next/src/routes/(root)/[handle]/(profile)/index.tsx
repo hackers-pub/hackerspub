@@ -8,9 +8,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorPostList } from "~/components/ActorPostList.tsx";
-import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
-import { ProfileCard } from "~/components/ProfileCard.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
+import { ProfilePageBreadcrumbItem } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -33,10 +31,7 @@ const ProfilePageQuery = graphql`
       username
       url
       iri
-      ...NavigateIfHandleIsNotCanonical_actor
       ...ActorPostList_posts @arguments(locale: $locale)
-      ...ProfilePageBreadcrumb_actor
-      ...ProfileCard_actor
       ...ProfileTabs_actor
     }
   }
@@ -59,13 +54,12 @@ export default function ProfilePage() {
     ProfilePageQuery,
     () => loadPageQuery(params.handle, i18n.locale),
   );
+
   return (
     <Show when={data()}>
       {(data) => (
         <>
-          <Show
-            when={data().actorByHandle}
-          >
+          <Show when={data().actorByHandle}>
             {(actor) => (
               <>
                 <Link rel="canonical" href={actor().url ?? actor().iri} />
@@ -74,7 +68,6 @@ export default function ProfilePage() {
                   type="application/activity+json"
                   href={actor().iri}
                 />
-                <Title>{actor().rawName ?? actor().username}</Title>
                 <Meta property="og:type" content="profile" />
                 <Meta property="og:url" content={actor().url ?? actor().iri} />
                 <Meta
@@ -82,15 +75,10 @@ export default function ProfilePage() {
                   content={actor().rawName ?? actor().username}
                 />
                 <Meta property="profile:username" content={actor().username} />
-                <NavigateIfHandleIsNotCanonical $actor={actor()} />
-                <ProfilePageBreadcrumb $actor={actor()} />
-                <div>
-                  <ProfileCard $actor={actor()} />
-                </div>
-                <div class="p-4">
-                  <ProfileTabs selected="posts" $actor={actor()} />
-                  <ActorPostList $posts={actor()} />
-                </div>
+                <Title>{actor().rawName ?? actor().username}</Title>
+                <ProfilePageBreadcrumbItem breadcrumb={undefined} />
+                <ProfileTabs selected="posts" $actor={actor()} />
+                <ActorPostList $posts={actor()} />
               </>
             )}
           </Show>
