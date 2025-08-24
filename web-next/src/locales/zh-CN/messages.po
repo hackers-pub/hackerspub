@@ -128,7 +128,7 @@ msgstr "{0}的帖子"
 msgid "{0}'s shares"
 msgstr "{0}的转帖"
 
-#: src/routes/(root)/sign/index.tsx:193
+#: src/routes/(root)/sign/index.tsx:233
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
 
@@ -140,6 +140,14 @@ msgstr "账户"
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:293
+msgid "An error occurred while registering your passkey."
+msgstr "在注册您的通行密钥时发生错误。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:341
+msgid "An error occurred while revoking your passkey."
+msgstr "在撤销您的通行密钥时发生错误。"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:144
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持团队。"
@@ -147,6 +155,11 @@ msgstr "保存设置时出现错误。请重试，如果问题持续存在，请
 #: src/routes/(root)/[handle]/settings/index.tsx:223
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请联系客服。"
+
+#. placeholder {0}: passkeyToRevoke()?.name
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:539
+msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
+msgstr "您确定要撤销通行密钥“{0}”吗？您将无法再使用它登录您的账户。"
 
 #: src/components/ProfileTabs.tsx:48
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:84
@@ -162,6 +175,10 @@ msgstr "仅文章"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 
+#: src/routes/(root)/sign/index.tsx:419
+msgid "Authenticating…"
+msgstr "正在验证…"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:275
 msgid "Avatar"
 msgstr "头像"
@@ -176,6 +193,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "个人简介太长。不能长于 512 字符。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:323
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Cancel"
 msgstr "取消"
 
@@ -185,6 +203,10 @@ msgstr "取消"
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "行为准则"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:462
+msgid "Created:"
+msgstr "创建于："
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
@@ -211,7 +233,7 @@ msgstr "默认转帖隐私设置"
 msgid "Display name"
 msgstr "昵称"
 
-#: src/routes/(root)/sign/index.tsx:288
+#: src/routes/(root)/sign/index.tsx:425
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀请您。"
 
@@ -223,17 +245,21 @@ msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的
 msgid "Email address"
 msgstr "电子邮件地址"
 
-#: src/routes/(root)/sign/index.tsx:266
+#: src/routes/(root)/sign/index.tsx:380
 msgid "Email or username"
 msgstr "邮箱或用户名"
 
-#: src/routes/(root)/sign/index.tsx:201
+#: src/routes/(root)/sign/index.tsx:241
 msgid "Enter your email or username below to sign in."
 msgstr "请在下方输入您的邮箱或用户名以登录。"
 
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "错误"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:409
+msgid "ex) My key"
+msgstr "例如：我的通行密钥"
 
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
@@ -251,10 +277,23 @@ msgstr "加载更多帖子失败，点击重试"
 msgid "Failed to load more notifications; click to retry"
 msgstr "加载更多通知失败；点击重试"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:516
+msgid "Failed to load more passkeys; click to retry"
+msgstr "加载更多通行密钥失败，点击重试"
+
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
+msgid "Failed to register passkey"
+msgstr "注册通行密钥失败"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:332
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:338
+msgid "Failed to revoke passkey"
+msgstr "撤销通行密钥失败"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "Failed to save preferences"
@@ -321,6 +360,10 @@ msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的
 msgid "John Doe"
 msgstr "张三"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:471
+msgid "Last used:"
+msgstr "最后使用时间："
+
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
 msgstr "加载更多文章"
@@ -336,6 +379,10 @@ msgstr "加载更多帖子"
 #: src/components/NotificationList.tsx:77
 msgid "Load more notifications"
 msgstr "加载更多通知"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:517
+msgid "Load more passkeys"
+msgstr "加载更多通行密钥"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
@@ -357,6 +404,10 @@ msgstr "加载更多帖子中…"
 #: src/components/NotificationList.tsx:71
 msgid "Loading more notifications"
 msgstr "正在加载更多通知…"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:514
+msgid "Loading more passkeys…"
+msgstr "正在加载更多通行密钥…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
@@ -385,6 +436,10 @@ msgstr "需要昵称"
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "用户名太长。不能长于 50 字符。"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
+msgid "Never used"
+msgstr "从未使用过"
+
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "未找到粉丝"
@@ -406,7 +461,7 @@ msgstr "未找到内容"
 #~ msgid "No posts found."
 #~ msgstr "未找到内容。"
 
-#: src/routes/(root)/sign/index.tsx:198
+#: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中无此账户，请重试。"
 
@@ -415,13 +470,42 @@ msgstr "Hackers' Pub 中无此账户，请重试。"
 msgid "Notes"
 msgstr "帖子"
 
-#: src/routes/(root)/sign/index.tsx:299
+#: src/routes/(root)/sign/index.tsx:406
+msgid "Or"
+msgstr "或"
+
+#: src/routes/(root)/sign/index.tsx:436
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
 #: src/routes/[...404].tsx:11
 msgid "Page Not Found"
 msgstr "页面未找到"
+
+#: src/routes/(root)/sign/index.tsx:346
+msgid "Passkey authentication failed"
+msgstr "通行密钥验证失败"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:404
+msgid "Passkey name"
+msgstr "通行密钥名称"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:278
+msgid "Passkey registered successfully"
+msgstr "通行密钥注册成功"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+msgid "Passkey revoked"
+msgstr "通行密钥已撤销"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:385
+msgid "passkeys"
+msgstr "通行密钥"
+
+#: src/components/SettingsTabs.tsx:51
+msgid "Passkeys"
+msgstr "通行密钥"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:143
 msgid "Please choose an image file smaller than 5 MiB."
@@ -464,6 +548,35 @@ msgstr "阅读完整文章"
 msgid "Read the full Code of conduct"
 msgstr "阅读完整的行为准则"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+msgid "Register"
+msgstr "注册"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:396
+msgid "Register a passkey"
+msgstr "注册通行密钥"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
+msgstr "为你的账户注册通行密钥。你可以使用通行密钥登录，而不是通过电子邮件接收登录链接。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
+msgid "Registered passkeys"
+msgstr "已注册的通行密钥"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+msgid "Registering…"
+msgstr "正在注册…"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:492
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
+msgid "Revoke"
+msgstr "撤销"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:537
+msgid "Revoke passkey"
+msgstr "撤销通行密钥"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
@@ -476,6 +589,7 @@ msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:261
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
 msgstr "设置"
@@ -486,9 +600,13 @@ msgid "Shares"
 msgstr "转帖"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/(root)/sign/index.tsx:282
+#: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登录"
+
+#: src/routes/(root)/sign/index.tsx:420
+msgid "Sign in with passkey"
+msgstr "使用通行密钥登录"
 
 #: src/components/AppSidebar.tsx:310
 msgid "Sign out"
@@ -498,11 +616,11 @@ msgstr "登出"
 msgid "Sign up"
 msgstr "注册"
 
-#: src/routes/(root)/sign/index.tsx:249
+#: src/routes/(root)/sign/index.tsx:363
 msgid "Signing in Hackers' Pub"
 msgstr "登录 Hackers' Pub"
 
-#: src/routes/(root)/sign/index.tsx:282
+#: src/routes/(root)/sign/index.tsx:396
 msgid "Signing in…"
 msgstr "登录中…"
 
@@ -510,7 +628,7 @@ msgstr "登录中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "注册 Hackers' Pub"
 
-#: src/routes/(root)/sign/index.tsx:203
+#: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
 
@@ -541,6 +659,14 @@ msgstr "您帖子的默认隐私设置。"
 #: src/routes/(root)/[handle]/settings/preferences.tsx:234
 msgid "The default privacy setting for your shares."
 msgstr "您转帖的默认隐私设置。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
+msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
+msgstr "以下通行密钥已注册到你的账户。你可以使用它们登录你的账户。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+msgid "The passkey has been successfully revoked."
+msgstr "通行密钥已成功撤销。"
 
 #: src/routes/(root)/sign/up/[token].tsx:322
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
@@ -620,6 +746,10 @@ msgstr "不含转帖"
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使用。"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:441
+msgid "You don't have any passkeys registered yet."
+msgstr "您尚未注册任何通行密钥。"
+
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
 msgstr "您被以下用户邀请"
@@ -648,6 +778,10 @@ msgstr "你的电子邮件地址将用于登录。"
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:280
+msgid "Your passkey has been registered and can now be used for authentication."
+msgstr "您的通行密钥已注册，现在可以用于身份验证。"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:135
 msgid "Your preferences have been updated successfully."

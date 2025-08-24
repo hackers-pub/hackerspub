@@ -128,7 +128,7 @@ msgstr "{0}'s notes"
 msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
-#: src/routes/(root)/sign/index.tsx:193
+#: src/routes/(root)/sign/index.tsx:233
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
@@ -140,6 +140,14 @@ msgstr "Account"
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:293
+msgid "An error occurred while registering your passkey."
+msgstr "An error occurred while registering your passkey."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:341
+msgid "An error occurred while revoking your passkey."
+msgstr "An error occurred while revoking your passkey."
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:144
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
@@ -147,6 +155,11 @@ msgstr "An error occurred while saving your preferences. Please try again, or co
 #: src/routes/(root)/[handle]/settings/index.tsx:223
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
+
+#. placeholder {0}: passkeyToRevoke()?.name
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:539
+msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
+msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 
 #: src/components/ProfileTabs.tsx:48
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:84
@@ -162,6 +175,10 @@ msgstr "Articles only"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "As you have already changed it {0}, you can't change it again."
 
+#: src/routes/(root)/sign/index.tsx:419
+msgid "Authenticating…"
+msgstr "Authenticating…"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:275
 msgid "Avatar"
 msgstr "Avatar"
@@ -176,6 +193,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:323
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -185,6 +203,10 @@ msgstr "Cancel"
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "Code of conduct"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:462
+msgid "Created:"
+msgstr "Created:"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
@@ -211,7 +233,7 @@ msgstr "Default share privacy"
 msgid "Display name"
 msgstr "Display name"
 
-#: src/routes/(root)/sign/index.tsx:288
+#: src/routes/(root)/sign/index.tsx:425
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
@@ -223,17 +245,21 @@ msgstr "Drag to select the area you want to keep, then click “Crop” to updat
 msgid "Email address"
 msgstr "Email address"
 
-#: src/routes/(root)/sign/index.tsx:266
+#: src/routes/(root)/sign/index.tsx:380
 msgid "Email or username"
 msgstr "Email or username"
 
-#: src/routes/(root)/sign/index.tsx:201
+#: src/routes/(root)/sign/index.tsx:241
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "Error"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:409
+msgid "ex) My key"
+msgstr "ex) My key"
 
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
@@ -251,10 +277,23 @@ msgstr "Failed to load more notes; click to retry"
 msgid "Failed to load more notifications; click to retry"
 msgstr "Failed to load more notifications; click to retry"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:516
+msgid "Failed to load more passkeys; click to retry"
+msgstr "Failed to load more passkeys; click to retry"
+
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
+msgid "Failed to register passkey"
+msgstr "Failed to register passkey"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:332
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:338
+msgid "Failed to revoke passkey"
+msgstr "Failed to revoke passkey"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "Failed to save preferences"
@@ -321,6 +360,10 @@ msgstr "If enabled, the AI will generate a summary of the article for you. Other
 msgid "John Doe"
 msgstr "John Doe"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:471
+msgid "Last used:"
+msgstr "Last used:"
+
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
 msgstr "Load more articles"
@@ -336,6 +379,10 @@ msgstr "Load more notes"
 #: src/components/NotificationList.tsx:77
 msgid "Load more notifications"
 msgstr "Load more notifications"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:517
+msgid "Load more passkeys"
+msgstr "Load more passkeys"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
@@ -357,6 +404,10 @@ msgstr "Loading more notes…"
 #: src/components/NotificationList.tsx:71
 msgid "Loading more notifications"
 msgstr "Loading more notifications"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:514
+msgid "Loading more passkeys…"
+msgstr "Loading more passkeys…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
@@ -385,6 +436,10 @@ msgstr "Name is required."
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "Name is too long. Maximum length is 50 characters."
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
+msgid "Never used"
+msgstr "Never used"
+
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "No followers found"
@@ -406,7 +461,7 @@ msgstr "No posts found"
 #~ msgid "No posts found."
 #~ msgstr "No posts found."
 
-#: src/routes/(root)/sign/index.tsx:198
+#: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
@@ -415,13 +470,42 @@ msgstr "No such account in Hackers' Pub—please try again."
 msgid "Notes"
 msgstr "Notes"
 
-#: src/routes/(root)/sign/index.tsx:299
+#: src/routes/(root)/sign/index.tsx:406
+msgid "Or"
+msgstr "Or"
+
+#: src/routes/(root)/sign/index.tsx:436
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
 #: src/routes/[...404].tsx:11
 msgid "Page Not Found"
 msgstr "Page Not Found"
+
+#: src/routes/(root)/sign/index.tsx:346
+msgid "Passkey authentication failed"
+msgstr "Passkey authentication failed"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:404
+msgid "Passkey name"
+msgstr "Passkey name"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:278
+msgid "Passkey registered successfully"
+msgstr "Passkey registered successfully"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+msgid "Passkey revoked"
+msgstr "Passkey revoked"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:385
+msgid "passkeys"
+msgstr "passkeys"
+
+#: src/components/SettingsTabs.tsx:51
+msgid "Passkeys"
+msgstr "Passkeys"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:143
 msgid "Please choose an image file smaller than 5 MiB."
@@ -464,6 +548,35 @@ msgstr "Read full article"
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+msgid "Register"
+msgstr "Register"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:396
+msgid "Register a passkey"
+msgstr "Register a passkey"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
+msgstr "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
+msgid "Registered passkeys"
+msgstr "Registered passkeys"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+msgid "Registering…"
+msgstr "Registering…"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:492
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
+msgid "Revoke"
+msgstr "Revoke"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:537
+msgid "Revoke passkey"
+msgstr "Revoke passkey"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
@@ -476,6 +589,7 @@ msgstr "Saving…"
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:261
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
 msgstr "Settings"
@@ -486,9 +600,13 @@ msgid "Shares"
 msgstr "Shares"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/(root)/sign/index.tsx:282
+#: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "Sign in"
+
+#: src/routes/(root)/sign/index.tsx:420
+msgid "Sign in with passkey"
+msgstr "Sign in with passkey"
 
 #: src/components/AppSidebar.tsx:310
 msgid "Sign out"
@@ -498,11 +616,11 @@ msgstr "Sign out"
 msgid "Sign up"
 msgstr "Sign up"
 
-#: src/routes/(root)/sign/index.tsx:249
+#: src/routes/(root)/sign/index.tsx:363
 msgid "Signing in Hackers' Pub"
 msgstr "Signing in Hackers' Pub"
 
-#: src/routes/(root)/sign/index.tsx:282
+#: src/routes/(root)/sign/index.tsx:396
 msgid "Signing in…"
 msgstr "Signing in…"
 
@@ -510,7 +628,7 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/routes/(root)/sign/index.tsx:203
+#: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
@@ -541,6 +659,14 @@ msgstr "The default privacy setting for your notes."
 #: src/routes/(root)/[handle]/settings/preferences.tsx:234
 msgid "The default privacy setting for your shares."
 msgstr "The default privacy setting for your shares."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
+msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
+msgstr "The following passkeys are registered to your account. You can use them to sign in to your account."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+msgid "The passkey has been successfully revoked."
+msgstr "The passkey has been successfully revoked."
 
 #: src/routes/(root)/sign/up/[token].tsx:322
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
@@ -620,6 +746,10 @@ msgstr "Without shares"
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "You can change it only once, and the old username will become available to others."
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:441
+msgid "You don't have any passkeys registered yet."
+msgstr "You don't have any passkeys registered yet."
+
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
 msgstr "You were invited by"
@@ -648,6 +778,10 @@ msgstr "Your email address will be used to sign in to your account."
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:280
+msgid "Your passkey has been registered and can now be used for authentication."
+msgstr "Your passkey has been registered and can now be used for authentication."
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:135
 msgid "Your preferences have been updated successfully."
