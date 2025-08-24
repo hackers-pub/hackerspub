@@ -1,5 +1,9 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import {
+  getAuthenticationOptions,
+  verifyAuthentication,
+} from "@hackerspub/models/passkey";
+import {
   createSession,
   deleteSession,
   getSession,
@@ -13,6 +17,7 @@ import {
 } from "@hackerspub/models/signin";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
+import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 import { expandGlob } from "@std/fs";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
@@ -258,6 +263,63 @@ builder.mutationFields((t) => ({
       if (session?.accountId !== currentSession.accountId) return null;
       else if (await deleteSession(ctx.kv, args.sessionId)) return session;
       return null;
+    },
+  }),
+
+  getPasskeyAuthenticationOptions: t.field({
+    type: "JSON",
+    args: {
+      sessionId: t.arg({
+        type: "UUID",
+        required: true,
+        description: "Temporary session ID for passkey authentication.",
+      }),
+    },
+    async resolve(_, args, ctx) {
+      const options = await getAuthenticationOptions(
+        ctx.kv,
+        ctx.fedCtx.canonicalOrigin,
+        args.sessionId as Uuid,
+      );
+      return options;
+    },
+  }),
+
+  loginByPasskey: t.field({
+    type: SessionRef,
+    nullable: true,
+    args: {
+      sessionId: t.arg({
+        type: "UUID",
+        required: true,
+        description: "Temporary session ID used for authentication options.",
+      }),
+      authenticationResponse: t.arg({
+        type: "JSON",
+        required: true,
+        description: "WebAuthn authentication response from the client.",
+      }),
+    },
+    async resolve(_, args, ctx) {
+      const result = await verifyAuthentication(
+        ctx.db,
+        ctx.kv,
+        ctx.fedCtx.canonicalOrigin,
+        args.sessionId as Uuid,
+        args.authenticationResponse as AuthenticationResponseJSON,
+      );
+      if (result == null) return null;
+      const { response, account } = result;
+      if (!response.verified) return null;
+
+      const remoteAddr = ctx.connectionInfo?.remoteAddr;
+      return await createSession(ctx.kv, {
+        accountId: account.id,
+        ipAddress: remoteAddr?.transport === "tcp"
+          ? remoteAddr.hostname
+          : undefined,
+        userAgent: ctx.request.headers.get("User-Agent"),
+      });
     },
   }),
 }));

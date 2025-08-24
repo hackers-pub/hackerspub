@@ -6,6 +6,7 @@ import { builder } from "./builder.ts";
 import "./doc.ts";
 import "./login.ts";
 import "./notification.ts";
+import "./passkey.ts";
 import "./poll.ts";
 import "./post.ts";
 import "./reactable.ts";

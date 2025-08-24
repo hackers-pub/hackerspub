@@ -15,6 +15,7 @@ type Account implements Node {
   moderator: Boolean!
   name: String!
   notifications(after: String, before: String, first: Int, last: Int): AccountNotificationsConnection!
+  passkeys(after: String, before: String, first: Int, last: Int): AccountPasskeysConnection!
   preferAiSummary: Boolean!
   updated: DateTime!
   username: String!
@@ -93,6 +94,16 @@ type AccountNotificationsConnection {
 type AccountNotificationsConnectionEdge {
   cursor: String!
   node: Notification!
+}
+
+type AccountPasskeysConnection {
+  edges: [AccountPasskeysConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type AccountPasskeysConnectionEdge {
+  cursor: String!
+  node: Passkey!
 }
 
 type Actor implements Node {
@@ -425,6 +436,11 @@ type Mutation {
     token: UUID!
   ): SignupResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
+  getPasskeyAuthenticationOptions(
+    """Temporary session ID for passkey authentication."""
+    sessionId: UUID!
+  ): JSON!
+  getPasskeyRegistrationOptions(accountId: ID!): JSON!
   loginByEmail(
     """The email of the account to sign in."""
     email: String!
@@ -437,6 +453,13 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
+  loginByPasskey(
+    """WebAuthn authentication response from the client."""
+    authenticationResponse: JSON!
+
+    """Temporary session ID used for authentication options."""
+    sessionId: UUID!
+  ): Session
   loginByUsername(
     """The locale for the sign-in email."""
     locale: Locale!
@@ -449,6 +472,7 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
+  revokePasskey(passkeyId: ID!): Boolean!
 
   """Revoke a session by its ID."""
   revokeSession(
@@ -456,6 +480,7 @@ type Mutation {
     sessionId: UUID!
   ): Session
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
+  verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): JSON!
 }
 
 interface Node {
@@ -525,6 +550,13 @@ type PageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   startCursor: String
+}
+
+type Passkey implements Node {
+  created: DateTime!
+  id: ID!
+  lastUsed: DateTime
+  name: String!
 }
 
 type Poll implements Node {
