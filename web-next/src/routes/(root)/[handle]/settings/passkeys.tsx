@@ -193,7 +193,7 @@ export default function passkeysPage() {
   );
 
   const [registering, setRegistering] = createSignal(false);
-  const [passkeyName, setPasskeyName] = createSignal("");
+  let passkeyNameRef: HTMLInputElement | undefined;
   const [passkeyToRevoke, setPasskeyToRevoke] = createSignal<
     { id: string; name: string } | null
   >(null);
@@ -222,7 +222,7 @@ export default function passkeysPage() {
 
   async function onRegisterPasskey() {
     const account = data()?.accountByUsername;
-    const name = passkeyName().trim();
+    const name = passkeyNameRef?.value?.trim() ?? "";
     if (!account || !name) return;
 
     setRegistering(true);
@@ -280,7 +280,7 @@ export default function passkeysPage() {
             t`Your passkey has been registered and can now be used for authentication.`,
           variant: "success",
         });
-        setPasskeyName("");
+        if (passkeyNameRef) passkeyNameRef.value = "";
         // No need to manually refresh - @appendNode automatically updates the connection
       } else {
         throw new Error("Passkey verification failed");
@@ -408,16 +408,13 @@ export default function passkeysPage() {
                               id="passkey-name"
                               placeholder={t`ex) My key`}
                               required
-                              value={passkeyName()}
-                              onInput={(e) =>
-                                setPasskeyName(e.currentTarget.value)}
+                              ref={passkeyNameRef}
                             />
                           </TextField>
                           <Button
                             type="button"
                             onClick={onRegisterPasskey}
-                            disabled={registering() ||
-                              passkeyName().trim() === ""}
+                            disabled={registering()}
                             class="w-full cursor-pointer"
                           >
                             {registering() ? t`Registering…` : t`Register`}
