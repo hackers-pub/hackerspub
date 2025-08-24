@@ -105,26 +105,26 @@ msgid "{0} shared your post"
 msgstr "{0} 님이 회원님의 콘텐츠를 공유했습니다"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:73
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:77
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:64
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:68
 msgid "{0}'s articles"
 msgstr "{0} 님의 게시글"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:73
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:76
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:65
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:68
 msgid "{0}'s followers"
 msgstr "{0} 님의 팔로워"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:74
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:78
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:63
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:67
 msgid "{0}'s notes"
 msgstr "{0} 님의 단문"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:75
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:79
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:64
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:68
 msgid "{0}'s shares"
 msgstr "{0} 님의 공유"
 
@@ -149,7 +149,7 @@ msgid "An error occurred while saving your settings. Please try again, or contac
 msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의하세요."
 
 #: src/components/ProfileTabs.tsx:48
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:84
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:70
 msgid "Articles"
 msgstr "게시글"
 
@@ -257,7 +257,7 @@ msgstr "연합우주"
 msgid "Feed"
 msgstr "피드"
 
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:82
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:70
 msgid "Followers"
 msgstr "팔로워"
 
@@ -391,7 +391,7 @@ msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
 #: src/components/ProfileTabs.tsx:41
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:85
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:69
 msgid "Notes"
 msgstr "단문"
 
@@ -457,7 +457,7 @@ msgid "Settings"
 msgstr "설정"
 
 #: src/components/ProfileTabs.tsx:51
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:86
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:70
 msgid "Shares"
 msgstr "공유"
 

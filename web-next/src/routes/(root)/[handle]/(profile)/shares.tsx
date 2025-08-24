@@ -8,16 +8,9 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorSharedPostList } from "~/components/ActorSharedPostList.tsx";
-import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
-import { ProfileCard } from "~/components/ProfileCard.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
+import { ProfilePageBreadcrumbItem } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { sharesPageQuery } from "./__generated__/sharesPageQuery.graphql.ts";
 
@@ -36,10 +29,7 @@ const sharesPageQuery = graphql`
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       rawName
       username
-      ...NavigateIfHandleIsNotCanonical_actor
       ...ActorSharedPostList_sharedPosts @arguments(locale: $locale)
-      ...ProfilePageBreadcrumb_actor
-      ...ProfileCard_actor
       ...ProfileTabs_actor
     }
   }
@@ -62,13 +52,12 @@ export default function ProfileSharesPage() {
     sharesPageQuery,
     () => loadPageQuery(params.handle, i18n.locale),
   );
+
   return (
     <Show when={data()}>
       {(data) => (
         <>
-          <Show
-            when={data().actorByHandle}
-          >
+          <Show when={data().actorByHandle}>
             {(actor) => (
               <>
                 <Title>
@@ -78,22 +67,9 @@ export default function ProfileSharesPage() {
                   property="og:title"
                   content={t`${actor().rawName ?? actor().username}'s shares`}
                 />
-                <NavigateIfHandleIsNotCanonical $actor={actor()} />
-                <ProfilePageBreadcrumb $actor={actor()}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Shares`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
-                <div>
-                  <ProfileCard $actor={actor()} />
-                </div>
-                <div class="p-4">
-                  <ProfileTabs selected="shares" $actor={actor()} />
-                  <ActorSharedPostList $sharedPosts={actor()} />
-                </div>
+                <ProfilePageBreadcrumbItem breadcrumb={t`Shares`} />
+                <ProfileTabs selected="shares" $actor={actor()} />
+                <ActorSharedPostList $sharedPosts={actor()} />
               </>
             )}
           </Show>

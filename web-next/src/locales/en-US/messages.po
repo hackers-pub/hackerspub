@@ -105,26 +105,26 @@ msgid "{0} shared your post"
 msgstr "{0} shared your post"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:73
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:77
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:64
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:68
 msgid "{0}'s articles"
 msgstr "{0}'s articles"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:73
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:76
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:65
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:68
 msgid "{0}'s followers"
 msgstr "{0}'s followers"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:74
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:78
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:63
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:67
 msgid "{0}'s notes"
 msgstr "{0}'s notes"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:75
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:79
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:64
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:68
 msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
@@ -149,7 +149,7 @@ msgid "An error occurred while saving your settings. Please try again, or contac
 msgstr "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 
 #: src/components/ProfileTabs.tsx:48
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:84
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:70
 msgid "Articles"
 msgstr "Articles"
 
@@ -257,7 +257,7 @@ msgstr "Fediverse"
 msgid "Feed"
 msgstr "Feed"
 
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:82
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:70
 msgid "Followers"
 msgstr "Followers"
 
@@ -391,7 +391,7 @@ msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
 #: src/components/ProfileTabs.tsx:41
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:85
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:69
 msgid "Notes"
 msgstr "Notes"
 
@@ -457,7 +457,7 @@ msgid "Settings"
 msgstr "Settings"
 
 #: src/components/ProfileTabs.tsx:51
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:86
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:70
 msgid "Shares"
 msgstr "Shares"
 

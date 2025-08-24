@@ -105,26 +105,26 @@ msgid "{0} shared your post"
 msgstr "{0}さんがあなたのコンテンツを共有しました"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:73
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:77
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:64
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:68
 msgid "{0}'s articles"
 msgstr "{0}さんの記事"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:73
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:76
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:65
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:68
 msgid "{0}'s followers"
 msgstr "{0}さんのフォロワー"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:74
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:78
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:63
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:67
 msgid "{0}'s notes"
 msgstr "{0}さんの投稿"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:75
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:79
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:64
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:68
 msgid "{0}'s shares"
 msgstr "{0}さんの共有"
 
@@ -149,7 +149,7 @@ msgid "An error occurred while saving your settings. Please try again, or contac
 msgstr "設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
 #: src/components/ProfileTabs.tsx:48
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:84
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:70
 msgid "Articles"
 msgstr "記事"
 
@@ -257,7 +257,7 @@ msgstr "フェディバース"
 msgid "Feed"
 msgstr "フィード"
 
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:82
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:70
 msgid "Followers"
 msgstr "フォロワー"
 
@@ -391,7 +391,7 @@ msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
 #: src/components/ProfileTabs.tsx:41
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:85
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:69
 msgid "Notes"
 msgstr "投稿"
 
@@ -457,7 +457,7 @@ msgid "Settings"
 msgstr "設定"
 
 #: src/components/ProfileTabs.tsx:51
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:86
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:70
 msgid "Shares"
 msgstr "共有"
 
