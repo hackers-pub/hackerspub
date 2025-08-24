@@ -4,6 +4,7 @@ import {
 } from "@hackerspub/models/passkey";
 import { passkeyTable } from "@hackerspub/models/schema";
 import {
+  encodeGlobalID,
   resolveCursorConnection,
   type ResolveCursorConnectionArgs,
 } from "@pothos/plugin-relay";
@@ -23,6 +24,22 @@ export const Passkey = builder.drizzleNode("passkeyTable", {
     created: t.expose("created", { type: "DateTime" }),
   }),
 });
+
+const PasskeyRegistrationResult = builder
+  .objectRef<{
+    verified: boolean;
+    passkey: typeof Passkey.$inferType | null;
+  }>("PasskeyRegistrationResult")
+  .implement({
+    fields: (t) => ({
+      verified: t.exposeBoolean("verified"),
+      passkey: t.field({
+        type: Passkey,
+        nullable: true,
+        resolve: (parent) => parent.passkey,
+      }),
+    }),
+  });
 
 // Add passkeys connection to Account type
 builder.objectField(Account, "passkeys", (t) =>
@@ -95,7 +112,7 @@ builder.mutationFields((t) => ({
     },
   }),
   verifyPasskeyRegistration: t.field({
-    type: "JSON",
+    type: PasskeyRegistrationResult,
     args: {
       accountId: t.arg.globalID({ for: Account, required: true }),
       name: t.arg.string({ required: true }),
@@ -120,11 +137,26 @@ builder.mutationFields((t) => ({
         args.name,
         args.registrationResponse as RegistrationResponseJSON,
       );
-      return { verified: result.verified };
+
+      let passkey = null;
+      if (result.verified && result.registrationInfo != null) {
+        // Fetch the newly created passkey
+        passkey = await ctx.db.query.passkeyTable.findFirst({
+          where: {
+            id: result.registrationInfo.credential.id,
+          },
+        });
+      }
+
+      return {
+        verified: result.verified,
+        passkey: passkey || null,
+      };
     },
   }),
   revokePasskey: t.field({
-    type: "Boolean",
+    type: "ID",
+    nullable: true,
     args: {
       passkeyId: t.arg.globalID({ for: Passkey, required: true }),
     },
@@ -134,14 +166,14 @@ builder.mutationFields((t) => ({
       const passkey = await ctx.db.query.passkeyTable.findFirst({
         where: { id: args.passkeyId.id },
       });
-      if (passkey == null) return false;
+      if (passkey == null) return null;
       if (passkey.accountId !== session.accountId) {
         throw new Error("Not authorized.");
       }
       await ctx.db.delete(passkeyTable).where(
         eq(passkeyTable.id, args.passkeyId.id),
       );
-      return true;
+      return encodeGlobalID(Passkey.name, args.passkeyId.id);
     },
   }),
 }));

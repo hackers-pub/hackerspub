@@ -472,7 +472,7 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
-  revokePasskey(passkeyId: ID!): Boolean!
+  revokePasskey(passkeyId: ID!): ID
 
   """Revoke a session by its ID."""
   revokeSession(
@@ -480,7 +480,7 @@ type Mutation {
     sessionId: UUID!
   ): Session
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
-  verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): JSON!
+  verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): PasskeyRegistrationResult!
 }
 
 interface Node {
@@ -557,6 +557,11 @@ type Passkey implements Node {
   id: ID!
   lastUsed: DateTime
   name: String!
+}
+
+type PasskeyRegistrationResult {
+  passkey: Passkey
+  verified: Boolean!
 }
 
 type Poll implements Node {

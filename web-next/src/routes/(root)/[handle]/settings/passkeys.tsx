@@ -14,6 +14,7 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import {
   createMutation,
+  createPaginationFragment,
   createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
@@ -52,10 +53,13 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { passkeysFragment_account$key } from "./__generated__/passkeysFragment_account.graphql.ts";
 import type { passkeysGetPasskeyRegistrationOptionsMutation } from "./__generated__/passkeysGetPasskeyRegistrationOptionsMutation.graphql.ts";
 import type { passkeysPageQuery } from "./__generated__/passkeysPageQuery.graphql.ts";
 import type { passkeysRevokePasskeyMutation } from "./__generated__/passkeysRevokePasskeyMutation.graphql.ts";
 import type { passkeysVerifyPasskeyRegistrationMutation } from "./__generated__/passkeysVerifyPasskeyRegistrationMutation.graphql.ts";
+
+const PASSKEYS_PAGE_SIZE = 10 as const;
 
 export const route = {
   matchFilters: {
@@ -67,7 +71,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 const passkeysPageQuery = graphql`
-  query passkeysPageQuery($username: String!) {
+  query passkeysPageQuery($username: String!, $first: Int, $after: String) {
     viewer {
       id
     }
@@ -75,16 +79,7 @@ const passkeysPageQuery = graphql`
       id
       username
       ...SettingsTabs_account
-      passkeys(first: 50) {
-        edges {
-          node {
-            id
-            name
-            lastUsed
-            created
-          }
-        }
-      }
+      ...passkeysFragment_account @arguments(first: $first, after: $after)
       actor {
         ...ProfilePageBreadcrumb_actor
       }
@@ -92,12 +87,48 @@ const passkeysPageQuery = graphql`
   }
 `;
 
+const passkeysFragment = graphql`
+  fragment passkeysFragment_account on Account 
+  @refetchable(queryName: "PasskeysPaginationQuery")
+  @argumentDefinitions(
+    first: { type: "Int" }, 
+    after: { type: "String" }
+  ) {
+    passkeys(first: $first, after: $after) 
+    @connection(key: "passkeysFragment_passkeys") {
+      __id
+      edges {
+        node {
+          id
+          name
+          lastUsed
+          created
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+    }
+  }
+`;
+
 const loadPageQuery = query(
-  (handle: string) =>
+  (
+    handle: string,
+    first: number = PASSKEYS_PAGE_SIZE,
+    after: string | null = null,
+  ) =>
     loadQuery<passkeysPageQuery>(
       useRelayEnvironment()(),
       passkeysPageQuery,
-      { username: handle.replace(/^@/, "") },
+      {
+        username: handle.replace(/^@/, ""),
+        first,
+        after,
+      },
     ),
   "loadpasskeysPageQuery",
 );
@@ -113,18 +144,27 @@ const verifyPasskeyRegistrationMutation = graphql`
     $accountId: ID!
     $name: String!
     $registrationResponse: JSON!
+    $connections: [ID!]!
   ) {
     verifyPasskeyRegistration(
       accountId: $accountId
       name: $name
       registrationResponse: $registrationResponse
-    )
+    ) {
+      verified
+      passkey @appendNode(connections: $connections, edgeTypeName: "Passkey") {
+        id
+        name
+        lastUsed
+        created
+      }
+    }
   }
 `;
 
 const revokePasskeyMutation = graphql`
-  mutation passkeysRevokePasskeyMutation($passkeyId: ID!) {
-    revokePasskey(passkeyId: $passkeyId)
+  mutation passkeysRevokePasskeyMutation($passkeyId: ID!, $connections: [ID!]!) {
+    revokePasskey(passkeyId: $passkeyId) @deleteEdge(connections: $connections)
   }
 `;
 
@@ -137,13 +177,6 @@ export default function passkeysPage() {
     passkeysPageQuery,
     () => loadPageQuery(params.handle),
   );
-
-  const refreshData = () => {
-    // TODO: Fix Relay query refreshing - currently loadQuery doesn't update the UI
-    // The loadQuery call fetches data but doesn't update the createPreloadedQuery
-    // Need to investigate proper solid-relay patterns for refreshing queries
-    window.location.reload();
-  };
 
   const [getOptions] = createMutation<
     passkeysGetPasskeyRegistrationOptionsMutation
@@ -164,6 +197,28 @@ export default function passkeysPage() {
   const [passkeyToRevoke, setPasskeyToRevoke] = createSignal<
     { id: string; name: string } | null
   >(null);
+  const [loadingState, setLoadingState] = createSignal<
+    "loaded" | "loading" | "errored"
+  >("loaded");
+
+  // Use pagination fragment for passkey data
+  const passkeyData = createPaginationFragment(
+    passkeysFragment,
+    () => data()?.accountByUsername as passkeysFragment_account$key,
+  );
+
+  const loadMorePasskeys = () => {
+    setLoadingState("loading");
+    passkeyData.loadNext(PASSKEYS_PAGE_SIZE, {
+      onComplete: (error) => {
+        if (error) {
+          setLoadingState("errored");
+        } else {
+          setLoadingState("loaded");
+        }
+      },
+    });
+  };
 
   async function onRegisterPasskey() {
     const account = data()?.accountByUsername;
@@ -210,6 +265,7 @@ export default function passkeysPage() {
             accountId: account.id,
             name,
             registrationResponse,
+            connections: [passkeyData()!.passkeys.__id],
           },
           onCompleted: resolve,
           onError: reject,
@@ -217,10 +273,7 @@ export default function passkeysPage() {
       });
 
       const result = verifyResponse.verifyPasskeyRegistration;
-      if (
-        result && typeof result === "object" && "verified" in result &&
-        result.verified
-      ) {
+      if (result && result.verified) {
         showToast({
           title: t`Passkey registered successfully`,
           description:
@@ -228,8 +281,7 @@ export default function passkeysPage() {
           variant: "success",
         });
         setPasskeyName("");
-        // Refresh the data to show the new passkey
-        refreshData();
+        // No need to manually refresh - @appendNode automatically updates the connection
       } else {
         throw new Error("Passkey verification failed");
       }
@@ -259,7 +311,10 @@ export default function passkeysPage() {
         passkeysRevokePasskeyMutation["response"]
       >((resolve, reject) => {
         revokePasskey({
-          variables: { passkeyId: passkey.id },
+          variables: {
+            passkeyId: passkey.id,
+            connections: [passkeyData()!.passkeys.__id],
+          },
           onCompleted: resolve,
           onError: reject,
         });
@@ -271,8 +326,7 @@ export default function passkeysPage() {
           description: t`The passkey has been successfully revoked.`,
           variant: "success",
         });
-        // Refresh the data to remove the revoked passkey
-        refreshData();
+        // No need to manually refresh - @deleteEdge automatically updates the connection
       } else {
         showToast({
           title: t`Failed to revoke passkey`,
@@ -366,7 +420,7 @@ export default function passkeysPage() {
                               passkeyName().trim() === ""}
                             class="w-full cursor-pointer"
                           >
-                            {registering() ? t`Registering...` : t`Register`}
+                            {registering() ? t`Registering…` : t`Register`}
                           </Button>
                         </CardContent>
                       </Card>
@@ -380,7 +434,11 @@ export default function passkeysPage() {
                         </CardHeader>
                         <CardContent>
                           <Show
-                            when={account().passkeys.edges.length > 0}
+                            when={() => {
+                              const paginatedData = passkeyData();
+                              return paginatedData &&
+                                paginatedData.passkeys.edges.length > 0;
+                            }}
                             fallback={
                               <p class="text-muted-foreground text-center py-8">
                                 {t`You don't have any passkeys registered yet.`}
@@ -388,7 +446,14 @@ export default function passkeysPage() {
                             }
                           >
                             <div class="space-y-4">
-                              <For each={account().passkeys.edges}>
+                              <For
+                                each={(() => {
+                                  const paginatedData = passkeyData();
+                                  return paginatedData
+                                    ? paginatedData.passkeys.edges
+                                    : [];
+                                })()}
+                              >
                                 {(edge) => (
                                   <div class="flex items-center justify-between p-4 border rounded-lg">
                                     <div class="space-y-1">
@@ -432,6 +497,30 @@ export default function passkeysPage() {
                                   </div>
                                 )}
                               </For>
+
+                              <Show
+                                when={() => {
+                                  const paginatedData = passkeyData();
+                                  return paginatedData &&
+                                    paginatedData.passkeys.pageInfo.hasNextPage;
+                                }}
+                              >
+                                <div class="flex justify-center pt-4">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={loadingState() === "loading"}
+                                    onClick={loadMorePasskeys}
+                                    class="cursor-pointer"
+                                  >
+                                    {loadingState() === "loading"
+                                      ? t`Loading more passkeys…`
+                                      : loadingState() === "errored"
+                                      ? t`Failed to load more passkeys; click to retry`
+                                      : t`Load more passkeys`}
+                                  </Button>
+                                </div>
+                              </Show>
                             </div>
                           </Show>
                         </CardContent>
