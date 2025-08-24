@@ -10,9 +10,6 @@
     "build": "vinxi build",
     "extract": "pnpm dlx @lingui/cli extract"
   },
-  "unstable": [
-    "sloppy-imports"
-  ],
   "lint": {
     "rules": {
       "exclude": [
@@ -24,11 +21,6 @@
     }
   },
   "compilerOptions": {
-    "paths": {
-      "~/*": [
-        "./src/*"
-      ]
-    },
     "jsx": "react-jsx",
     "jsxImportSource": "solid-js",
     "types": [
