@@ -136,15 +136,15 @@ msgstr "A sign-in link has been sent to your email. Please check your inbox (or 
 msgid "Account"
 msgstr "Account"
 
-#: src/routes/(root)/sign/up/[token].tsx:308
+#: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:148
+#: src/routes/(root)/[handle]/settings/preferences.tsx:144
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:147
+#: src/routes/(root)/[handle]/settings/index.tsx:142
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 
@@ -158,40 +158,40 @@ msgid "Articles only"
 msgstr "Articles only"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:206
+#: src/routes/(root)/[handle]/settings/index.tsx:216
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "As you have already changed it {0}, you can't change it again."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:237
-#: src/routes/(root)/sign/up/[token].tsx:427
+#: src/routes/(root)/[handle]/settings/index.tsx:247
+#: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "Bio"
 
-#: src/routes/(root)/sign/up/[token].tsx:175
+#: src/routes/(root)/sign/up/[token].tsx:167
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
 #: src/components/AppSidebar.tsx:321
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
-#: src/routes/(root)/sign/up/[token].tsx:474
+#: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "Code of conduct"
 
-#: src/routes/(root)/sign/up/[token].tsx:502
+#: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:205
+#: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "Default note privacy"
 msgstr "Default note privacy"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:216
+#: src/routes/(root)/[handle]/settings/preferences.tsx:226
 msgid "Default share privacy"
 msgstr "Default share privacy"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:221
-#: src/routes/(root)/sign/up/[token].tsx:401
+#: src/routes/(root)/[handle]/settings/index.tsx:231
+#: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "Display name"
 
@@ -199,7 +199,7 @@ msgstr "Display name"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
-#: src/routes/(root)/sign/up/[token].tsx:354
+#: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
 msgstr "Email address"
 
@@ -211,7 +211,7 @@ msgstr "Email or username"
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
-#: src/routes/(root)/sign/up/[token].tsx:305
+#: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "Error"
 
@@ -236,11 +236,11 @@ msgstr "Failed to load more notifications; click to retry"
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:146
+#: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "Failed to save preferences"
 msgstr "Failed to save preferences"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:145
+#: src/routes/(root)/[handle]/settings/index.tsx:140
 msgid "Failed to save settings"
 msgstr "Failed to save settings"
 
@@ -289,15 +289,15 @@ msgstr "Hackers' Pub: Notifications"
 msgid "Home"
 msgstr "Home"
 
-#: src/routes/(root)/sign/up/[token].tsx:476
+#: src/routes/(root)/sign/up/[token].tsx:459
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:199
+#: src/routes/(root)/[handle]/settings/preferences.tsx:209
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:228
+#: src/routes/(root)/[handle]/settings/index.tsx:238
 msgid "John Doe"
 msgstr "John Doe"
 
@@ -343,7 +343,7 @@ msgstr "Loading more notifications"
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
-#: src/routes/(root)/sign/up/[token].tsx:486
+#: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
 msgstr "Loading…"
 
@@ -357,11 +357,11 @@ msgstr "Markdown guide"
 msgid "Mentioned only"
 msgstr "Mentioned only"
 
-#: src/routes/(root)/sign/up/[token].tsx:162
+#: src/routes/(root)/sign/up/[token].tsx:154
 msgid "Name is required."
 msgstr "Name is required."
 
-#: src/routes/(root)/sign/up/[token].tsx:164
+#: src/routes/(root)/sign/up/[token].tsx:156
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "Name is too long. Maximum length is 50 characters."
 
@@ -407,18 +407,18 @@ msgstr "Page Not Found"
 msgid "Posts"
 msgstr "Posts"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:196
+#: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"
 
 #: src/components/SettingsTabs.tsx:44
-#: src/routes/(root)/[handle]/settings/preferences.tsx:163
-#: src/routes/(root)/[handle]/settings/preferences.tsx:177
+#: src/routes/(root)/[handle]/settings/preferences.tsx:176
+#: src/routes/(root)/[handle]/settings/preferences.tsx:187
 msgid "Preferences"
 msgstr "Preferences"
 
 #: src/components/SettingsTabs.tsx:37
-#: src/routes/(root)/[handle]/settings/index.tsx:162
+#: src/routes/(root)/[handle]/settings/index.tsx:175
 msgid "Profile settings"
 msgstr "Profile settings"
 
@@ -436,23 +436,23 @@ msgstr "Quiet public"
 msgid "Read full article"
 msgstr "Read full article"
 
-#: src/routes/(root)/sign/up/[token].tsx:480
+#: src/routes/(root)/sign/up/[token].tsx:463
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:254
-#: src/routes/(root)/[handle]/settings/preferences.tsx:232
+#: src/routes/(root)/[handle]/settings/index.tsx:264
+#: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
 msgstr "Save"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:254
-#: src/routes/(root)/[handle]/settings/preferences.tsx:232
+#: src/routes/(root)/[handle]/settings/index.tsx:264
+#: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/AppSidebar.tsx:288
-#: src/routes/(root)/[handle]/settings/index.tsx:170
-#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/index.tsx:180
+#: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
 msgstr "Settings"
 
@@ -470,7 +470,7 @@ msgstr "Sign in"
 msgid "Sign out"
 msgstr "Sign out"
 
-#: src/routes/(root)/sign/up/[token].tsx:502
+#: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Sign up"
 msgstr "Sign up"
 
@@ -482,7 +482,7 @@ msgstr "Signing in Hackers' Pub"
 msgid "Signing in…"
 msgstr "Signing in…"
 
-#: src/routes/(root)/sign/up/[token].tsx:330
+#: src/routes/(root)/sign/up/[token].tsx:313
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
@@ -506,19 +506,19 @@ msgstr "Summarized by LLM"
 msgid "Table of contents"
 msgstr "Table of contents"
 
-#: src/routes/(root)/sign/up/[token].tsx:431
+#: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:212
+#: src/routes/(root)/[handle]/settings/preferences.tsx:222
 msgid "The default privacy setting for your notes."
 msgstr "The default privacy setting for your notes."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:223
+#: src/routes/(root)/[handle]/settings/preferences.tsx:234
 msgid "The default privacy setting for your shares."
 msgstr "The default privacy setting for your shares."
 
-#: src/routes/(root)/sign/up/[token].tsx:339
+#: src/routes/(root)/sign/up/[token].tsx:322
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
 msgstr "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
 
@@ -537,24 +537,24 @@ msgstr "Timeline"
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:184
-#: src/routes/(root)/sign/up/[token].tsx:374
+#: src/routes/(root)/[handle]/settings/index.tsx:194
+#: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "Username"
 
-#: src/routes/(root)/sign/up/[token].tsx:149
+#: src/routes/(root)/sign/up/[token].tsx:141
 msgid "Username can only contain lowercase letters, numbers, and underscores."
 msgstr "Username can only contain lowercase letters, numbers, and underscores."
 
-#: src/routes/(root)/sign/up/[token].tsx:151
+#: src/routes/(root)/sign/up/[token].tsx:143
 msgid "Username is already taken."
 msgstr "Username is already taken."
 
-#: src/routes/(root)/sign/up/[token].tsx:145
+#: src/routes/(root)/sign/up/[token].tsx:137
 msgid "Username is required."
 msgstr "Username is required."
 
-#: src/routes/(root)/sign/up/[token].tsx:147
+#: src/routes/(root)/sign/up/[token].tsx:139
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "Username is too long. Maximum length is 15 characters."
 
@@ -564,7 +564,7 @@ msgstr "Username is too long. Maximum length is 15 characters."
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 
-#: src/routes/(root)/sign/up/[token].tsx:334
+#: src/routes/(root)/sign/up/[token].tsx:317
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
@@ -584,7 +584,7 @@ msgstr "Visible to everyone, but does not appear in the public timeline. Only th
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 
-#: src/routes/(root)/sign/up/[token].tsx:344
+#: src/routes/(root)/sign/up/[token].tsx:327
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 
@@ -592,44 +592,44 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:200
+#: src/routes/(root)/[handle]/settings/index.tsx:210
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "You can change it only once, and the old username will become available to others."
 
-#: src/routes/(root)/sign/up/[token].tsx:450
+#: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
 msgstr "You were invited by"
 
-#: src/routes/(root)/sign/up/[token].tsx:467
+#: src/routes/(root)/sign/up/[token].tsx:450
 msgid "You'll automatically follow each other when you sign up."
 msgstr "You'll automatically follow each other when you sign up."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:246
+#: src/routes/(root)/[handle]/settings/index.tsx:256
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it."
 
-#: src/routes/(root)/sign/up/[token].tsx:443
+#: src/routes/(root)/sign/up/[token].tsx:426
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 
-#: src/routes/(root)/sign/up/[token].tsx:363
+#: src/routes/(root)/sign/up/[token].tsx:346
 msgid "Your email address will be used to sign in to your account."
 msgstr "Your email address will be used to sign in to your account."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:232
-#: src/routes/(root)/sign/up/[token].tsx:417
+#: src/routes/(root)/[handle]/settings/index.tsx:242
+#: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:136
+#: src/routes/(root)/[handle]/settings/preferences.tsx:135
 msgid "Your preferences have been updated successfully."
 msgstr "Your preferences have been updated successfully."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:135
+#: src/routes/(root)/[handle]/settings/index.tsx:134
 msgid "Your profile settings have been updated successfully."
 msgstr "Your profile settings have been updated successfully."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:197
-#: src/routes/(root)/sign/up/[token].tsx:391
+#: src/routes/(root)/[handle]/settings/index.tsx:207
+#: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "Your username will be used to create your profile URL and your fediverse handle."
