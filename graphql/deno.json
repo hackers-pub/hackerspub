@@ -11,6 +11,7 @@
   },
   "tasks": {
     "codegen": "deno run -A --env-file=../.env mod.ts",
-    "dev": "deno run -A --env-file=../.env main.ts"
+    "dev": "deno run -A --env-file=../.env main.ts",
+    "start": "deno run -A --deny-net=127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,0.0.0.0/8,224.0.0.0/4,240.0.0.0/4,255.255.255.255,localhost,[::1],[::],[::ffff:0:0]/96,[fe80::]/10,[fc00::]/7 --unstable-otel --env-file=../.env main.ts"
   }
 }
