@@ -76,10 +76,10 @@ const linkMetadata: Record<string, LinkMetadata> = {
     icon: "pixelfed",
     handle: "@dansup@pixelfed.social",
   },
-  "https://stereophonic.space/users/karolat": {
-    icon: "pleroma",
-    handle: "@karolat@stereophonic.space",
-  },
+  // "https://stereophonic.space/users/karolat": {
+  //   icon: "pleroma",
+  //   handle: "@karolat@stereophonic.space",
+  // },
   "https://qiita.com/hongminhee": { icon: "qiita", handle: "@hongminhee" },
   "https://www.reddit.com/r/fediverse/": {
     icon: "reddit",
