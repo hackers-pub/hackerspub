@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { SettingsTabs_account$key } from "./__generated__/SettingsTabs_account.graphql.ts";
 
-export type SettingsTab = "profile" | "preferences";
+export type SettingsTab = "profile" | "preferences" | "passkeys";
 
 export interface SettingsTabsProps {
   selected: SettingsTab;
@@ -28,7 +28,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
     <Show when={account()}>
       {(account) => (
         <Tabs value={props.selected}>
-          <TabsList class="grid max-w-prose mx-auto grid-cols-4">
+          <TabsList class="grid max-w-prose mx-auto grid-cols-3">
             <TabsTrigger
               as={A}
               value="profile"
@@ -42,6 +42,13 @@ export function SettingsTabs(props: SettingsTabsProps) {
               href={`/@${account().username}/settings/preferences`}
             >
               {t`Preferences`}
+            </TabsTrigger>
+            <TabsTrigger
+              as={A}
+              value="passkeys"
+              href={`/@${account().username}/settings/passkeys`}
+            >
+              {t`Passkeys`}
             </TabsTrigger>
           </TabsList>
         </Tabs>

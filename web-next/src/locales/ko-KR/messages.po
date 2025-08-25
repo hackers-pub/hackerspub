@@ -128,7 +128,7 @@ msgstr "{0} 님의 단문"
 msgid "{0}'s shares"
 msgstr "{0} 님의 공유"
 
-#: src/routes/(root)/sign/index.tsx:193
+#: src/routes/(root)/sign/index.tsx:233
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함(또는 스팸 폴더)을 확인해주세요."
 
@@ -140,6 +140,14 @@ msgstr "계정"
 msgid "An error occurred during signup. Please try again."
 msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 바랍니다."
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:293
+msgid "An error occurred while registering your passkey."
+msgstr "패스키를 등록하는 중에 오류가 발생했습니다."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:341
+msgid "An error occurred while revoking your passkey."
+msgstr "패스키를 취소하는 중에 오류가 발생했습니다."
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:144
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "환경 설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의해 주세요."
@@ -147,6 +155,11 @@ msgstr "환경 설정 저장 중 오류가 발생했습니다. 다시 시도하�
 #: src/routes/(root)/[handle]/settings/index.tsx:223
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의하세요."
+
+#. placeholder {0}: passkeyToRevoke()?.name
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:539
+msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
+msgstr "{0} 패스키를 취소하시겠습니까? 이 패스키를 사용하여 계정에 로그인할 수 없게 됩니다."
 
 #: src/components/ProfileTabs.tsx:48
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:84
@@ -162,6 +175,10 @@ msgstr "게시글만"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "이미 {0} 변경하였기 때문에 다시 변경할 수 없습니다."
 
+#: src/routes/(root)/sign/index.tsx:419
+msgid "Authenticating…"
+msgstr "인증중…"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:275
 msgid "Avatar"
 msgstr "프로필 사진"
@@ -176,6 +193,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:323
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Cancel"
 msgstr "취소"
 
@@ -185,6 +203,10 @@ msgstr "취소"
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "행동 강령"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:462
+msgid "Created:"
+msgstr "생성일:"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
@@ -211,7 +233,7 @@ msgstr "기본 공유 공개 범위"
 msgid "Display name"
 msgstr "이름"
 
-#: src/routes/(root)/sign/index.tsx:288
+#: src/routes/(root)/sign/index.tsx:425
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
@@ -223,17 +245,21 @@ msgstr "유지하려는 영역을 드래그하여 선택한 다음 “자르기�
 msgid "Email address"
 msgstr "이메일 주소"
 
-#: src/routes/(root)/sign/index.tsx:266
+#: src/routes/(root)/sign/index.tsx:380
 msgid "Email or username"
 msgstr "이메일 또는 아이디"
 
-#: src/routes/(root)/sign/index.tsx:201
+#: src/routes/(root)/sign/index.tsx:241
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
 
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "오류"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:409
+msgid "ex) My key"
+msgstr "예) 나의 키"
 
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
@@ -251,10 +277,23 @@ msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more notifications; click to retry"
 msgstr "알림을 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:516
+msgid "Failed to load more passkeys; click to retry"
+msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
+
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
+msgid "Failed to register passkey"
+msgstr "패스키 등록 실패"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:332
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:338
+msgid "Failed to revoke passkey"
+msgstr "패스키 취소 실패"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "Failed to save preferences"
@@ -321,6 +360,10 @@ msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시
 msgid "John Doe"
 msgstr "홍길동"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:471
+msgid "Last used:"
+msgstr "마지막 사용："
+
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
 msgstr "게시글 더 불러오기"
@@ -336,6 +379,10 @@ msgstr "단문 더 불러오기"
 #: src/components/NotificationList.tsx:77
 msgid "Load more notifications"
 msgstr "알림 더 불러오기"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:517
+msgid "Load more passkeys"
+msgstr "패스키 더 불러오기"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
@@ -357,6 +404,10 @@ msgstr "단문 불러오는 중…"
 #: src/components/NotificationList.tsx:71
 msgid "Loading more notifications"
 msgstr "알림을 더 불러오는 중…"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:514
+msgid "Loading more passkeys…"
+msgstr "패스키를 더 불러오는 중…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
@@ -385,6 +436,10 @@ msgstr "이름은 필수입니다."
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "이름이 너무 깁니다. 최대 길이는 50자입니다."
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
+msgid "Never used"
+msgstr "사용된 적 없음"
+
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "팔로워가 없습니다"
@@ -406,7 +461,7 @@ msgstr "콘텐츠가 없습니다"
 #~ msgid "No posts found."
 #~ msgstr "콘텐츠를 찾을 수 없습니다."
 
-#: src/routes/(root)/sign/index.tsx:198
+#: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
@@ -415,13 +470,42 @@ msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요
 msgid "Notes"
 msgstr "단문"
 
-#: src/routes/(root)/sign/index.tsx:299
+#: src/routes/(root)/sign/index.tsx:406
+msgid "Or"
+msgstr "또는"
+
+#: src/routes/(root)/sign/index.tsx:436
 msgid "Or enter the code from the email"
 msgstr "또는 이메일의 코드를 입력하세요"
 
 #: src/routes/[...404].tsx:11
 msgid "Page Not Found"
 msgstr "페이지를 찾을 수 없습니다"
+
+#: src/routes/(root)/sign/index.tsx:346
+msgid "Passkey authentication failed"
+msgstr "패스키 인증 실패"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:404
+msgid "Passkey name"
+msgstr "패스키 이름"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:278
+msgid "Passkey registered successfully"
+msgstr "패스키 등록 성공"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+msgid "Passkey revoked"
+msgstr "패스키 취소됨"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:385
+msgid "passkeys"
+msgstr "패스키"
+
+#: src/components/SettingsTabs.tsx:51
+msgid "Passkeys"
+msgstr "패스키"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:143
 msgid "Please choose an image file smaller than 5 MiB."
@@ -464,6 +548,35 @@ msgstr "게시글 전체 읽기"
 msgid "Read the full Code of conduct"
 msgstr "행동 강령 전문을 읽으세요."
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+msgid "Register"
+msgstr "등록"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:396
+msgid "Register a passkey"
+msgstr "패스키 등록"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
+msgstr "계정에 패스키를 등록하세요. 이메일로 로그인 링크를 받는 대신 패스키를 사용할 수 있습니다."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
+msgid "Registered passkeys"
+msgstr "등록된 패스키"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+msgid "Registering…"
+msgstr "등록중…"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:492
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
+msgid "Revoke"
+msgstr "취소"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:537
+msgid "Revoke passkey"
+msgstr "패스키를 취소"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
@@ -476,6 +589,7 @@ msgstr "저장 중…"
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:261
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
 msgstr "설정"
@@ -486,9 +600,13 @@ msgid "Shares"
 msgstr "공유"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/(root)/sign/index.tsx:282
+#: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "로그인"
+
+#: src/routes/(root)/sign/index.tsx:420
+msgid "Sign in with passkey"
+msgstr "패스키를 사용하여 로그인"
 
 #: src/components/AppSidebar.tsx:310
 msgid "Sign out"
@@ -498,11 +616,11 @@ msgstr "로그아웃"
 msgid "Sign up"
 msgstr "가입"
 
-#: src/routes/(root)/sign/index.tsx:249
+#: src/routes/(root)/sign/index.tsx:363
 msgid "Signing in Hackers' Pub"
 msgstr "Hackers' Pub에 로그인"
 
-#: src/routes/(root)/sign/index.tsx:282
+#: src/routes/(root)/sign/index.tsx:396
 msgid "Signing in…"
 msgstr "로그인 중…"
 
@@ -510,7 +628,7 @@ msgstr "로그인 중…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pub 가입"
 
-#: src/routes/(root)/sign/index.tsx:203
+#: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "문제가 발생했습니다. 다시 시도해주세요."
 
@@ -541,6 +659,14 @@ msgstr "단문의 기본 공개 설정입니다."
 #: src/routes/(root)/[handle]/settings/preferences.tsx:234
 msgid "The default privacy setting for your shares."
 msgstr "공유의 기본 공개 설정입니다."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
+msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
+msgstr "다음 패스키들이 계정에 등록되어 있습니다. 이들을 사용하여 계정에 로그인할 수 있습니다."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+msgid "The passkey has been successfully revoked."
+msgstr "성공적으로 패스키를 취소했습니다."
 
 #: src/routes/(root)/sign/up/[token].tsx:322
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
@@ -620,6 +746,10 @@ msgstr "공유 제외"
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "아이디는 단 한 번만 변경할 수 있으며, 변경하기 전 아이디는 다른 사람이 사용할 수 있게 됩니다."
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:441
+msgid "You don't have any passkeys registered yet."
+msgstr "등록된 패스키가 아직 없습니다."
+
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
 msgstr "당신을 초대한 분"
@@ -648,6 +778,10 @@ msgstr "이메일 주소는 계정에 로그인할 때 사용됩니다."
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:280
+msgid "Your passkey has been registered and can now be used for authentication."
+msgstr "패스키가 등록되었습니다. 이제 이 패스키를 사용하여 로그인 할 수 있습니다."
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:135
 msgid "Your preferences have been updated successfully."

@@ -128,7 +128,7 @@ msgstr "{0}さんの投稿"
 msgid "{0}'s shares"
 msgstr "{0}さんの共有"
 
-#: src/routes/(root)/sign/index.tsx:193
+#: src/routes/(root)/sign/index.tsx:233
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
@@ -140,6 +140,14 @@ msgstr "アカウント"
 msgid "An error occurred during signup. Please try again."
 msgstr "登録中にエラーが発生しました。もう一度お試しください。"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:293
+msgid "An error occurred while registering your passkey."
+msgstr "パスキーの登録中にエラーが発生しました。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:341
+msgid "An error occurred while revoking your passkey."
+msgstr "パスキーの取消中にエラーが発生しました。"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:144
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "環境設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
@@ -147,6 +155,11 @@ msgstr "環境設定の保存中にエラーが発生しました。再度お試
 #: src/routes/(root)/[handle]/settings/index.tsx:223
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
+
+#. placeholder {0}: passkeyToRevoke()?.name
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:539
+msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
+msgstr "パスキー{0}を取り消しますか？このパスキーを使用してアカウントにログインできなくなります。"
 
 #: src/components/ProfileTabs.tsx:48
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:84
@@ -162,6 +175,10 @@ msgstr "記事のみ"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "すでに{0}に変更済みのため、再度変更することはできません。"
 
+#: src/routes/(root)/sign/index.tsx:419
+msgid "Authenticating…"
+msgstr "認証中…"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:275
 msgid "Avatar"
 msgstr "アイコン"
@@ -176,6 +193,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:323
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -185,6 +203,10 @@ msgstr "キャンセル"
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "行動規範"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:462
+msgid "Created:"
+msgstr "作成日:"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
@@ -211,7 +233,7 @@ msgstr "共有のデフォルト公開範囲"
 msgid "Display name"
 msgstr "名前"
 
-#: src/routes/(root)/sign/index.tsx:288
+#: src/routes/(root)/sign/index.tsx:425
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
 
@@ -223,17 +245,21 @@ msgstr "保持したい領域をドラッグして選択し、「切り抜き」
 msgid "Email address"
 msgstr "メールアドレス"
 
-#: src/routes/(root)/sign/index.tsx:266
+#: src/routes/(root)/sign/index.tsx:380
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
 
-#: src/routes/(root)/sign/index.tsx:201
+#: src/routes/(root)/sign/index.tsx:241
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "エラー"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:409
+msgid "ex) My key"
+msgstr "例) 私のキー"
 
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
@@ -251,10 +277,23 @@ msgstr "投稿の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more notifications; click to retry"
 msgstr "通知の読み込みに失敗しました。クリックして再試行してください"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:516
+msgid "Failed to load more passkeys; click to retry"
+msgstr "パスキーの読み込みに失敗しました。クリックして再試行してください"
+
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
+msgid "Failed to register passkey"
+msgstr "パスキーの登録に失敗しました"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:332
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:338
+msgid "Failed to revoke passkey"
+msgstr "パスキーの取り消しに失敗しました"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "Failed to save preferences"
@@ -321,6 +360,10 @@ msgstr "有効にすると、AIが記事の要約を生成します。無効の�
 msgid "John Doe"
 msgstr "田中太郎"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:471
+msgid "Last used:"
+msgstr "最終使用:"
+
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
@@ -336,6 +379,10 @@ msgstr "投稿をもっと読み込む"
 #: src/components/NotificationList.tsx:77
 msgid "Load more notifications"
 msgstr "通知をもっと読み込む"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:517
+msgid "Load more passkeys"
+msgstr "パスキーを読み込む"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
@@ -357,6 +404,10 @@ msgstr "投稿を読み込み中…"
 #: src/components/NotificationList.tsx:71
 msgid "Loading more notifications"
 msgstr "通知を読み込み中…"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:514
+msgid "Loading more passkeys…"
+msgstr "パスキーを読み込み中…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
@@ -385,6 +436,10 @@ msgstr "名前は必須です。"
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "名前が長すぎます。最大50文字です。"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
+msgid "Never used"
+msgstr "使用履歴なし"
+
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "フォロワーはいません"
@@ -406,7 +461,7 @@ msgstr "コンテンツはありません"
 #~ msgid "No posts found."
 #~ msgstr "コンテンツが見つかりませんでした。"
 
-#: src/routes/(root)/sign/index.tsx:198
+#: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
@@ -415,13 +470,42 @@ msgstr "Hackers' Pubにそのようなアカウントはありません。もう
 msgid "Notes"
 msgstr "投稿"
 
-#: src/routes/(root)/sign/index.tsx:299
+#: src/routes/(root)/sign/index.tsx:406
+msgid "Or"
+msgstr "または"
+
+#: src/routes/(root)/sign/index.tsx:436
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
 #: src/routes/[...404].tsx:11
 msgid "Page Not Found"
 msgstr "ページが見つかりません"
+
+#: src/routes/(root)/sign/index.tsx:346
+msgid "Passkey authentication failed"
+msgstr "パスキー認証に失敗しました"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:404
+msgid "Passkey name"
+msgstr "パスキー名"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:278
+msgid "Passkey registered successfully"
+msgstr "パスキーの登録に成功しました"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+msgid "Passkey revoked"
+msgstr "パスキーを取り消しました"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:385
+msgid "passkeys"
+msgstr "パスキー"
+
+#: src/components/SettingsTabs.tsx:51
+msgid "Passkeys"
+msgstr "パスキー"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:143
 msgid "Please choose an image file smaller than 5 MiB."
@@ -464,6 +548,35 @@ msgstr "記事全文を読む"
 msgid "Read the full Code of conduct"
 msgstr "行動規範の全文を読む"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+msgid "Register"
+msgstr "登録"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:396
+msgid "Register a passkey"
+msgstr "パスキーを登録"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
+msgstr "アカウントにパスキーを登録してください。メールでログインリンクを受け取る代わりにパスキーを使用できます。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
+msgid "Registered passkeys"
+msgstr "登録済みパスキー"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+msgid "Registering…"
+msgstr "登録中…"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:492
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
+msgid "Revoke"
+msgstr "取り消す"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:537
+msgid "Revoke passkey"
+msgstr "パスキーを取り消す"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
@@ -476,6 +589,7 @@ msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:261
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
 msgstr "設定"
@@ -486,9 +600,13 @@ msgid "Shares"
 msgstr "共有"
 
 #: src/components/AppSidebar.tsx:241
-#: src/routes/(root)/sign/index.tsx:282
+#: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "ログイン"
+
+#: src/routes/(root)/sign/index.tsx:420
+msgid "Sign in with passkey"
+msgstr "パスキーでサインイン"
 
 #: src/components/AppSidebar.tsx:310
 msgid "Sign out"
@@ -498,11 +616,11 @@ msgstr "ログアウト"
 msgid "Sign up"
 msgstr "登録"
 
-#: src/routes/(root)/sign/index.tsx:249
+#: src/routes/(root)/sign/index.tsx:363
 msgid "Signing in Hackers' Pub"
 msgstr "Hackers' Pubにログイン"
 
-#: src/routes/(root)/sign/index.tsx:282
+#: src/routes/(root)/sign/index.tsx:396
 msgid "Signing in…"
 msgstr "ログイン中…"
 
@@ -510,7 +628,7 @@ msgstr "ログイン中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pubに登録"
 
-#: src/routes/(root)/sign/index.tsx:203
+#: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
@@ -541,6 +659,14 @@ msgstr "投稿のデフォルト公開設定です。"
 #: src/routes/(root)/[handle]/settings/preferences.tsx:234
 msgid "The default privacy setting for your shares."
 msgstr "共有のデフォルト公開設定です。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
+msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
+msgstr "以下のパスキーがあなたのアカウントに登録されています。これらを使用してアカウントにログインできます。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+msgid "The passkey has been successfully revoked."
+msgstr "パスキーを正常に取り消しました。"
 
 #: src/routes/(root)/sign/up/[token].tsx:322
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
@@ -620,6 +746,10 @@ msgstr "共有除外"
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "変更は1回のみ可能で、変更前のユーザー名は他のユーザーが使用できるようになります。"
 
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:441
+msgid "You don't have any passkeys registered yet."
+msgstr "まだパスキーが登録されていません。"
+
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
 msgstr "あなたを招待した方"
@@ -648,6 +778,10 @@ msgstr "メールアドレスはアカウントへのログインに使用され
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "名前はプロフィールとコンテンツに表示されます。"
+
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:280
+msgid "Your passkey has been registered and can now be used for authentication."
+msgstr "パスキーが登録され、認証に使用できるようになりました。"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:135
 msgid "Your preferences have been updated successfully."

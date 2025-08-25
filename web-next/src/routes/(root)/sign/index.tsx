@@ -1,6 +1,11 @@
 import type { Uuid } from "@hackerspub/models/uuid";
+import {
+  type AuthenticationResponseJSON,
+  type PublicKeyCredentialRequestOptionsJSON,
+  startAuthentication,
+} from "@simplewebauthn/browser";
 import { graphql } from "relay-runtime";
-import { createSignal, Show } from "solid-js";
+import { createSignal, onMount, Show } from "solid-js";
 import { getRequestEvent } from "solid-js/web";
 import { createMutation } from "solid-relay";
 import { getRequestProtocol, setCookie } from "vinxi/http";
@@ -19,15 +24,18 @@ import {
   TextFieldInput,
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type {
   signByEmailMutation,
 } from "./__generated__/signByEmailMutation.graphql.ts";
+import type { signByPasskeyMutation } from "./__generated__/signByPasskeyMutation.graphql.ts";
 import type {
   signByUsernameMutation,
   signByUsernameMutation$data,
 } from "./__generated__/signByUsernameMutation.graphql.ts";
 import type { signCompleteMutation } from "./__generated__/signCompleteMutation.graphql.ts";
+import type { signGetPasskeyAuthenticationOptionsMutation } from "./__generated__/signGetPasskeyAuthenticationOptionsMutation.graphql.ts";
 
 const signByEmailMutation = graphql`
   mutation signByEmailMutation($locale: Locale!, $email: String!, $verifyUrl: URITemplate!) {
@@ -75,6 +83,20 @@ const signCompleteMutation = graphql`
   }
 `;
 
+const signGetPasskeyAuthenticationOptionsMutation = graphql`
+  mutation signGetPasskeyAuthenticationOptionsMutation($sessionId: UUID!) {
+    getPasskeyAuthenticationOptions(sessionId: $sessionId)
+  }
+`;
+
+const signByPasskeyMutation = graphql`
+  mutation signByPasskeyMutation($sessionId: UUID!, $authenticationResponse: JSON!) {
+    loginByPasskey(sessionId: $sessionId, authenticationResponse: $authenticationResponse) {
+      id
+    }
+  }
+`;
+
 const setSessionCookie = async (sessionId: Uuid) => {
   "use server";
   const event = getRequestEvent();
@@ -115,7 +137,25 @@ export default function SignPage() {
   const [complete] = createMutation<signCompleteMutation>(
     signCompleteMutation,
   );
+  const [getPasskeyOptions] = createMutation<
+    signGetPasskeyAuthenticationOptionsMutation
+  >(
+    signGetPasskeyAuthenticationOptionsMutation,
+  );
+  const [loginByPasskey] = createMutation<signByPasskeyMutation>(
+    signByPasskeyMutation,
+  );
   const [completing, setCompleting] = createSignal(false);
+  const [passkeyAuthenticating, setPasskeyAuthenticating] = createSignal(false);
+  const [autoPasskeyAttempted, setAutoPasskeyAttempted] = createSignal(false);
+
+  onMount(() => {
+    // Automatically attempt passkey authentication when page loads
+    if (!autoPasskeyAttempted()) {
+      setAutoPasskeyAttempted(true);
+      onPasskeyLogin(false);
+    }
+  });
 
   function onInput() {
     if (emailInput == null) return;
@@ -238,6 +278,80 @@ export default function SignPage() {
     }
   }
 
+  async function onPasskeyLogin(showError: boolean) {
+    setPasskeyAuthenticating(true);
+
+    try {
+      // Generate a temporary session ID for this authentication attempt
+      const tempSessionId = crypto.randomUUID();
+
+      // Get authentication options
+      const optionsResponse = await new Promise<
+        signGetPasskeyAuthenticationOptionsMutation["response"]
+      >((resolve, reject) => {
+        getPasskeyOptions({
+          variables: { sessionId: tempSessionId },
+          onCompleted: resolve,
+          onError: reject,
+        });
+      });
+
+      const options = optionsResponse.getPasskeyAuthenticationOptions;
+      if (!options || typeof options !== "object") {
+        throw new Error("Invalid authentication options");
+      }
+
+      // Start WebAuthn authentication
+      let authenticationResponse: AuthenticationResponseJSON;
+      try {
+        authenticationResponse = await startAuthentication({
+          optionsJSON: options as PublicKeyCredentialRequestOptionsJSON,
+        });
+      } catch (error) {
+        throw new Error(
+          error instanceof Error ? error.message : "Authentication failed",
+        );
+      }
+
+      // Verify authentication and get session
+      const loginResponse = await new Promise<
+        signByPasskeyMutation["response"]
+      >((resolve, reject) => {
+        loginByPasskey({
+          variables: {
+            sessionId: tempSessionId,
+            authenticationResponse,
+          },
+          onCompleted: resolve,
+          onError: reject,
+        });
+      });
+
+      if (loginResponse.loginByPasskey?.id) {
+        const success = await setSessionCookie(loginResponse.loginByPasskey.id);
+        if (success) {
+          const searchParams = location == null
+            ? new URLSearchParams()
+            : new URL(location.href).searchParams;
+          window.location.href = searchParams.get("next") ?? "/";
+        } else {
+          throw new Error("Failed to set session cookie");
+        }
+      } else {
+        throw new Error("Authentication verification failed");
+      }
+    } catch (_) {
+      if (showError) {
+        showToast({
+          title: t`Passkey authentication failed`,
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setPasskeyAuthenticating(false);
+    }
+  }
+
   return (
     <div
       lang={i18n.locale}
@@ -283,6 +397,29 @@ export default function SignPage() {
               </Button>
             </Grid>
           </form>
+          <div class="relative my-6">
+            <div class="absolute inset-0 flex items-center">
+              <span class="w-full border-t" />
+            </div>
+            <div class="relative flex justify-center text-xs uppercase">
+              <span class="bg-background px-2 text-muted-foreground">
+                {t`Or`}
+              </span>
+            </div>
+          </div>
+          <div class="mb-6">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={passkeyAuthenticating()}
+              onClick={() => onPasskeyLogin(true)}
+              class="w-full cursor-pointer"
+            >
+              {passkeyAuthenticating()
+                ? t`Authenticating…`
+                : t`Sign in with passkey`}
+            </Button>
+          </div>
           <div class="text-center">
             <p class="text-sm text-muted-foreground">
               {t`Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you.`}
