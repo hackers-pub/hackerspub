@@ -9,6 +9,7 @@ import { Msg, Translation, TranslationSetup } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import type { Language } from "../i18n.ts";
 import { Link } from "./Link.tsx";
+import { RemoteFollowButton } from "./RemoteFollowButton.tsx";
 
 export interface RecommendedActorsProps {
   language: Language;
@@ -17,11 +18,19 @@ export interface RecommendedActorsProps {
   window: number;
   title: boolean;
   class?: string;
+  signedAccount?: Account | null;
 }
 
 export function RecommendedActors(
-  { language, actors, actorMentions, window, title, class: klass }:
-    RecommendedActorsProps,
+  {
+    language,
+    actors,
+    actorMentions,
+    window,
+    title,
+    class: klass,
+    signedAccount,
+  }: RecommendedActorsProps,
 ) {
   const [shownActors, setShownActors] = useState(actors.slice(0, window));
   const [hiddenActors, setHiddenActors] = useState(actors.slice(window));
@@ -133,41 +142,53 @@ export function RecommendedActors(
                       }}
                     />
                   </div>
-                  <Button
-                    class="mt-4 w-full grow-0"
-                    disabled={followingActors.has(actor.id)}
-                    onClick={() => {
-                      setHiddenActors((hiddenActors) => hiddenActors.slice(1));
-                      setFollowingActors((actors) => {
-                        const s = new Set(actors);
-                        s.add(actor.id);
-                        return s;
-                      });
-                      fetch(
-                        actor.accountId == null
-                          ? `/${actor.handle}/follow`
-                          : `/@${actor.username}/follow`,
-                        {
-                          method: "POST",
-                        },
-                      ).then(() => {
-                        setShownActors((actors) => [
-                          ...actors.slice(0, index),
-                          ...hiddenActors.slice(0, 1),
-                          ...actors.slice(index + 1),
-                        ]);
-                        setFollowingActors((actors) => {
-                          const s = new Set(actors);
-                          s.delete(actor.id);
-                          return s;
-                        });
-                      });
-                    }}
-                  >
-                    {followingActors.has(actor.id)
-                      ? <Msg $key="recommendedActors.following" />
-                      : <Msg $key="recommendedActors.follow" />}
-                  </Button>
+                  {signedAccount == null
+                    ? (
+                      <RemoteFollowButton
+                        actorHandle={actor.handle}
+                        actorName={actor.name || actor.username}
+                        language={language}
+                      />
+                    )
+                    : (
+                      <Button
+                        class="mt-4 w-full grow-0"
+                        disabled={followingActors.has(actor.id)}
+                        onClick={() => {
+                          setHiddenActors((hiddenActors) =>
+                            hiddenActors.slice(1)
+                          );
+                          setFollowingActors((actors) => {
+                            const s = new Set(actors);
+                            s.add(actor.id);
+                            return s;
+                          });
+                          fetch(
+                            actor.accountId == null
+                              ? `/${actor.handle}/follow`
+                              : `/@${actor.username}/follow`,
+                            {
+                              method: "POST",
+                            },
+                          ).then(() => {
+                            setShownActors((actors) => [
+                              ...actors.slice(0, index),
+                              ...hiddenActors.slice(0, 1),
+                              ...actors.slice(index + 1),
+                            ]);
+                            setFollowingActors((actors) => {
+                              const s = new Set(actors);
+                              s.delete(actor.id);
+                              return s;
+                            });
+                          });
+                        }}
+                      >
+                        {followingActors.has(actor.id)
+                          ? <Msg $key="recommendedActors.following" />
+                          : <Msg $key="recommendedActors.follow" />}
+                      </Button>
+                    )}
                 </div>
               ))}
             </div>

@@ -277,6 +277,7 @@ export default define.page<typeof handler, ProfileShareListProps>(
           profileHref={data.profileHref}
           relationship={data.relationship}
           links={data.links}
+          signedAccount={state.account}
         />
         <ProfileNav
           active="shares"
