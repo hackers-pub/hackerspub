@@ -13,6 +13,7 @@ import { encodeHex } from "@std/encoding/hex";
 import { escape, unescape } from "@std/html/entities";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
+import sharp from "sharp";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import {
@@ -532,4 +533,38 @@ export function normalizeEmail(
   }
   const normalizedHost = new URL(`https://${host}/`).host;
   return `${local}@${normalizedHost}`;
+}
+
+export async function transformAvatar(
+  input: Uint8Array | ArrayBuffer,
+): Promise<{ buffer: Uint8Array; format: "jpeg" | "webp" }> {
+  let image = sharp(input);
+  const metadata = await image.metadata();
+  let { width, height } = metadata;
+  if (width == null || height == null) {
+    throw new Error("Failed to read image metadata.");
+  }
+  if (width !== height) { // crop to square
+    const size = Math.min(width, height);
+    const left = ((width - size) / 2) | 0;
+    const top = ((height - size) / 2) | 0;
+    image = image.extract({ left, top, width: size, height: size });
+    width = height = size;
+  }
+  if (width > 1024) {
+    image = image.resize(1024);
+    width = height = 1024;
+  }
+  let format: "jpeg" | "webp";
+  if (metadata.hasAlpha) {
+    image = image.webp({ quality: 90 });
+    format = "webp";
+  } else if (metadata.format !== "jpeg") {
+    image = image.jpeg({ quality: 90 });
+    format = "jpeg";
+  } else {
+    format = "jpeg";
+  }
+  const buffer = await image.toBuffer();
+  return { buffer: new Uint8Array(buffer.buffer), format };
 }

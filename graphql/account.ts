@@ -1,4 +1,8 @@
-import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
+import {
+  getAvatarUrl,
+  transformAvatar,
+  updateAccount,
+} from "@hackerspub/models/account";
 import type { Locale } from "@hackerspub/models/i18n";
 import { actorTable, notificationTable } from "@hackerspub/models/schema";
 import {
@@ -335,6 +339,13 @@ const AccountLinkInput = builder.inputType("AccountLinkInput", {
   }),
 });
 
+const SUPPORTED_AVATAR_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+
 builder.relayMutationField(
   "updateAccount",
   {
@@ -343,6 +354,7 @@ builder.relayMutationField(
       username: t.string(),
       name: t.string(),
       bio: t.string(),
+      avatarUrl: t.field({ type: "URL" }),
       locales: t.field({ type: ["Locale"] }),
       hideFromInvitationTree: t.boolean(),
       hideForeignLanguages: t.boolean(),
@@ -372,6 +384,32 @@ builder.relayMutationField(
           "Username cannot be changed after it has been changed.",
         );
       }
+      let avatarKey: string | undefined;
+      const promises: Promise<void>[] = [];
+      if (args.input.avatarUrl != null) {
+        const response = await fetch(args.input.avatarUrl);
+        if (response.status !== 200) {
+          throw new Error("Failed to fetch the avatar URL.");
+        }
+        const contentType = response.headers.get("Content-Type");
+        if (
+          contentType == null || !SUPPORTED_AVATAR_TYPES.includes(contentType)
+        ) {
+          throw new Error("Avatar URL must point to an image.");
+        }
+        const disk = ctx.disk;
+        if (account.avatarKey != null) {
+          promises.push(disk.delete(account.avatarKey));
+        }
+        const { buffer, format } = await transformAvatar(
+          await response.arrayBuffer(),
+        );
+        const key = `avatars/${crypto.randomUUID()}.${
+          format === "jpeg" ? "jpg" : format
+        }`;
+        promises.push(disk.put(key, buffer));
+        avatarKey = key;
+      }
       const result = await updateAccount(
         ctx.fedCtx,
         {
@@ -379,6 +417,7 @@ builder.relayMutationField(
           username: args.input.username ?? undefined,
           name: args.input.name ?? undefined,
           bio: args.input.bio ?? undefined,
+          avatarKey,
           locales: args.input.locales?.map((loc) => loc.baseName as Locale) ??
             undefined,
           hideFromInvitationTree: args.input.hideFromInvitationTree ??
@@ -394,6 +433,7 @@ builder.relayMutationField(
           links: args.input.links ?? undefined,
         },
       );
+      await Promise.all(promises);
       if (result == null) throw new Error("Account not found");
       return result;
     },

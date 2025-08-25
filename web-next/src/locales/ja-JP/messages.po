@@ -144,7 +144,7 @@ msgstr "登録中にエラーが発生しました。もう一度お試しくだ
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "環境設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:142
+#: src/routes/(root)/[handle]/settings/index.tsx:223
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
@@ -158,11 +158,15 @@ msgid "Articles only"
 msgstr "記事のみ"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:216
+#: src/routes/(root)/[handle]/settings/index.tsx:360
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "すでに{0}に変更済みのため、再度変更することはできません。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:247
+#: src/routes/(root)/[handle]/settings/index.tsx:275
+msgid "Avatar"
+msgstr "アイコン"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:391
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "自己紹介"
@@ -170,6 +174,10 @@ msgstr "自己紹介"
 #: src/routes/(root)/sign/up/[token].tsx:167
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:323
+msgid "Cancel"
+msgstr "キャンセル"
 
 #: src/components/AppSidebar.tsx:321
 #: src/routes/(root)/coc.tsx:53
@@ -182,6 +190,14 @@ msgstr "行動規範"
 msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:330
+msgid "Crop"
+msgstr "切り抜き"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:303
+msgid "Crop your new avatar"
+msgstr "新しいアイコンを切り抜く"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "Default note privacy"
 msgstr "投稿のデフォルト公開範囲"
@@ -190,7 +206,7 @@ msgstr "投稿のデフォルト公開範囲"
 msgid "Default share privacy"
 msgstr "共有のデフォルト公開範囲"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:231
+#: src/routes/(root)/[handle]/settings/index.tsx:375
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "名前"
@@ -198,6 +214,10 @@ msgstr "名前"
 #: src/routes/(root)/sign/index.tsx:288
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:306
+msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
+msgstr "保持したい領域をドラッグして選択し、「切り抜き」をクリックしてアイコンを更新してください。"
 
 #: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
@@ -240,7 +260,7 @@ msgstr "コンテンツの読み込みに失敗しました。クリックして
 msgid "Failed to save preferences"
 msgstr "環境設定の保存に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:140
+#: src/routes/(root)/[handle]/settings/index.tsx:221
 msgid "Failed to save settings"
 msgstr "設定の保存に失敗しました"
 
@@ -297,7 +317,7 @@ msgstr "行動規範に同意します。"
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:238
+#: src/routes/(root)/[handle]/settings/index.tsx:382
 msgid "John Doe"
 msgstr "田中太郎"
 
@@ -403,6 +423,10 @@ msgstr "またはメールのコードを入力してください"
 msgid "Page Not Found"
 msgstr "ページが見つかりません"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:143
+msgid "Please choose an image file smaller than 5 MiB."
+msgstr "5 MiB未満の画像ファイルを選択してください。"
+
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
 msgstr "コンテンツ"
@@ -418,7 +442,7 @@ msgid "Preferences"
 msgstr "環境設定"
 
 #: src/components/SettingsTabs.tsx:37
-#: src/routes/(root)/[handle]/settings/index.tsx:175
+#: src/routes/(root)/[handle]/settings/index.tsx:256
 msgid "Profile settings"
 msgstr "プロフィール設定"
 
@@ -440,18 +464,18 @@ msgstr "記事全文を読む"
 msgid "Read the full Code of conduct"
 msgstr "行動規範の全文を読む"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:264
+#: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
 msgstr "保存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:264
+#: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:288
-#: src/routes/(root)/[handle]/settings/index.tsx:180
+#: src/routes/(root)/[handle]/settings/index.tsx:261
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
 msgstr "設定"
@@ -494,7 +518,7 @@ msgstr "問題が発生しました。再度お試しください。"
 msgid "Successfully saved preferences"
 msgstr "環境設定を正常に保存しました"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:133
+#: src/routes/(root)/[handle]/settings/index.tsx:214
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
@@ -537,7 +561,7 @@ msgstr "タイムライン"
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:194
+#: src/routes/(root)/[handle]/settings/index.tsx:338
 #: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "ユーザー名"
@@ -592,7 +616,7 @@ msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォ
 msgid "Without shares"
 msgstr "共有除外"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:210
+#: src/routes/(root)/[handle]/settings/index.tsx:354
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "変更は1回のみ可能で、変更前のユーザー名は他のユーザーが使用できるようになります。"
 
@@ -604,7 +628,11 @@ msgstr "あなたを招待した方"
 msgid "You'll automatically follow each other when you sign up."
 msgstr "登録したら自動的にお互いをフォローします。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:256
+#: src/routes/(root)/[handle]/settings/index.tsx:277
+msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
+msgstr "アイコンはプロフィールとコンテンツに表示されます。PNG、JPEG、GIF、WebP形式の画像を5MiBまでアップロードできます。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:400
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "自己紹介はプロフィールに表示されます。Markdownを使用できます。"
 
@@ -616,7 +644,7 @@ msgstr "自己紹介はプロフィールに表示されます。Markdownで書�
 msgid "Your email address will be used to sign in to your account."
 msgstr "メールアドレスはアカウントへのログインに使用されます。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:242
+#: src/routes/(root)/[handle]/settings/index.tsx:386
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "名前はプロフィールとコンテンツに表示されます。"
@@ -625,11 +653,11 @@ msgstr "名前はプロフィールとコンテンツに表示されます。"
 msgid "Your preferences have been updated successfully."
 msgstr "環境設定が正常に更新されました。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:134
+#: src/routes/(root)/[handle]/settings/index.tsx:215
 msgid "Your profile settings have been updated successfully."
 msgstr "プロフィール設定が正常に更新されました。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:207
+#: src/routes/(root)/[handle]/settings/index.tsx:351
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "ユーザー名はプロフィールURLとフェディバースハンドルの作成に使用されます。"

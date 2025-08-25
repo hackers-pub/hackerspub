@@ -131,6 +131,7 @@ export const Note = builder.drizzleNode("postTable", {
 
 export const Article = builder.drizzleNode("postTable", {
   variant: "Article",
+  // @ts-ignore: TODO
   interfaces: [Post, Reactable],
   id: {
     column: (post) => post.id,

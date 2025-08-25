@@ -885,6 +885,7 @@ A field whose value is a generic Universally Unique Identifier: https://en.wikip
 scalar UUID
 
 input UpdateAccountInput {
+  avatarUrl: URL
   bio: String
   clientMutationId: ID
   defaultNoteVisibility: PostVisibility

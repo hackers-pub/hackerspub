@@ -1,9 +1,12 @@
 import { page } from "@fresh/core";
-import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
+import {
+  getAvatarUrl,
+  transformAvatar,
+  updateAccount,
+} from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
-import sharp from "sharp";
 import { Button } from "../../../components/Button.tsx";
 import { Input } from "../../../components/Input.tsx";
 import { Label } from "../../../components/Label.tsx";
@@ -127,37 +130,13 @@ export const handler = define.handlers({
       if (account.avatarKey != null) {
         promises.push(disk.delete(account.avatarKey));
       }
-      let image = sharp(await avatar.arrayBuffer());
-      const metadata = await image.metadata();
-      let { width, height } = metadata;
-      if (width == null || height == null) {
-        // FIXME: This should be a proper error message.
-        throw new Error("Failed to read image metadata.");
-      }
-      if (width !== height) { // crop to square
-        const size = Math.min(width, height);
-        const left = ((width - size) / 2) | 0;
-        const top = ((height - size) / 2) | 0;
-        image = image.extract({ left, top, width: size, height: size });
-        width = height = size;
-      }
-      if (width > 1024) {
-        image = image.resize(1024);
-        width = height = 1024;
-      }
-      let ext: "jpg" | "webp";
-      if (metadata.hasAlpha) {
-        image = image.webp({ quality: 90 });
-        ext = "webp";
-      } else if (metadata.format !== "jpeg") {
-        image = image.jpeg({ quality: 90 });
-        ext = "jpg";
-      } else {
-        ext = "jpg";
-      }
-      const buffer = await image.toBuffer();
-      const key = `avatars/${crypto.randomUUID()}.${ext}`;
-      promises.push(disk.put(key, new Uint8Array(buffer.buffer)));
+      const { buffer, format } = await transformAvatar(
+        await avatar.arrayBuffer(),
+      );
+      const key = `avatars/${crypto.randomUUID()}.${
+        format === "jpeg" ? "jpg" : format
+      }`;
+      promises.push(disk.put(key, buffer));
       values.avatarKey = key;
     }
     const updatedAccount = await updateAccount(ctx.state.fedCtx, values);

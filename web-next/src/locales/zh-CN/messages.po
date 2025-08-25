@@ -144,7 +144,7 @@ msgstr "注册过程中发生错误。请重新尝试。"
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持团队。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:142
+#: src/routes/(root)/[handle]/settings/index.tsx:223
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请联系客服。"
 
@@ -158,11 +158,15 @@ msgid "Articles only"
 msgstr "仅文章"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:216
+#: src/routes/(root)/[handle]/settings/index.tsx:360
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:247
+#: src/routes/(root)/[handle]/settings/index.tsx:275
+msgid "Avatar"
+msgstr "头像"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:391
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "个人简介"
@@ -170,6 +174,10 @@ msgstr "个人简介"
 #: src/routes/(root)/sign/up/[token].tsx:167
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "个人简介太长。不能长于 512 字符。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:323
+msgid "Cancel"
+msgstr "取消"
 
 #: src/components/AppSidebar.tsx:321
 #: src/routes/(root)/coc.tsx:53
@@ -182,6 +190,14 @@ msgstr "行为准则"
 msgid "Creating account…"
 msgstr "正在创建账户…"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:330
+msgid "Crop"
+msgstr "裁剪"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:303
+msgid "Crop your new avatar"
+msgstr "裁剪你的新头像"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "Default note privacy"
 msgstr "默认帖子隐私设置"
@@ -190,7 +206,7 @@ msgstr "默认帖子隐私设置"
 msgid "Default share privacy"
 msgstr "默认转帖隐私设置"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:231
+#: src/routes/(root)/[handle]/settings/index.tsx:375
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "昵称"
@@ -198,6 +214,10 @@ msgstr "昵称"
 #: src/routes/(root)/sign/index.tsx:288
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀请您。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:306
+msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
+msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的头像。"
 
 #: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
@@ -240,7 +260,7 @@ msgstr "加载更多内容失败，点击重试"
 msgid "Failed to save preferences"
 msgstr "保存设置失败"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:140
+#: src/routes/(root)/[handle]/settings/index.tsx:221
 msgid "Failed to save settings"
 msgstr "保存设置失败"
 
@@ -297,7 +317,7 @@ msgstr "我同意 Hackers' Pub 的行为准则。"
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:238
+#: src/routes/(root)/[handle]/settings/index.tsx:382
 msgid "John Doe"
 msgstr "张三"
 
@@ -403,6 +423,10 @@ msgstr "或输入邮件中的验证码"
 msgid "Page Not Found"
 msgstr "页面未找到"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:143
+msgid "Please choose an image file smaller than 5 MiB."
+msgstr "请选择小于 5 MiB 的图片文件。"
+
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
 msgstr "内容"
@@ -418,7 +442,7 @@ msgid "Preferences"
 msgstr "偏好设置"
 
 #: src/components/SettingsTabs.tsx:37
-#: src/routes/(root)/[handle]/settings/index.tsx:175
+#: src/routes/(root)/[handle]/settings/index.tsx:256
 msgid "Profile settings"
 msgstr "个人资料设置"
 
@@ -440,18 +464,18 @@ msgstr "阅读完整文章"
 msgid "Read the full Code of conduct"
 msgstr "阅读完整的行为准则"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:264
+#: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
 msgstr "保存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:264
+#: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:288
-#: src/routes/(root)/[handle]/settings/index.tsx:180
+#: src/routes/(root)/[handle]/settings/index.tsx:261
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
 msgstr "设置"
@@ -494,7 +518,7 @@ msgstr "出现错误，请重试。"
 msgid "Successfully saved preferences"
 msgstr "设置已成功保存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:133
+#: src/routes/(root)/[handle]/settings/index.tsx:214
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
@@ -537,7 +561,7 @@ msgstr "时间线"
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:194
+#: src/routes/(root)/[handle]/settings/index.tsx:338
 #: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "用户名"
@@ -592,7 +616,7 @@ msgstr "欢迎来到 Hackers' Pub！请填写以下表单完成注册。"
 msgid "Without shares"
 msgstr "不含转帖"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:210
+#: src/routes/(root)/[handle]/settings/index.tsx:354
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使用。"
 
@@ -604,7 +628,11 @@ msgstr "您被以下用户邀请"
 msgid "You'll automatically follow each other when you sign up."
 msgstr "您在注册时将自动互相关注。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:256
+#: src/routes/(root)/[handle]/settings/index.tsx:277
+msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
+msgstr "你的头像将在你的个人资料页面和你的帖文中显示。可以上传大小不超过 5 MiB 的 PNG、JPEG、GIF 或 WebP 图片。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:400
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。"
 
@@ -616,7 +644,7 @@ msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Ma
 msgid "Your email address will be used to sign in to your account."
 msgstr "你的电子邮件地址将用于登录。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:242
+#: src/routes/(root)/[handle]/settings/index.tsx:386
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
@@ -625,11 +653,11 @@ msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
 msgid "Your preferences have been updated successfully."
 msgstr "您的设置已成功更新。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:134
+#: src/routes/(root)/[handle]/settings/index.tsx:215
 msgid "Your profile settings have been updated successfully."
 msgstr "个人资料设置已成功更新。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:207
+#: src/routes/(root)/[handle]/settings/index.tsx:351
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的用户名将被用来创建你的个人资料 URL 和你的 Fediverse 用户名（handle）。"

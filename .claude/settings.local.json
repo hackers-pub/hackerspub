@@ -8,7 +8,11 @@
       "Bash(deno task test:*)",
       "Bash(deno task:*)",
       "WebFetch(domain:github.com)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git diff:*)",
+      "Bash(git commit:*)",
+      "Bash(deno fmt:*)",
+      "Bash(deno check:*)"
     ]
   },
   "enableAllProjectMcpServers": false

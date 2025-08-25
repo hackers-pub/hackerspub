@@ -144,7 +144,7 @@ msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 �
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "환경 설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의해 주세요."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:142
+#: src/routes/(root)/[handle]/settings/index.tsx:223
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의하세요."
 
@@ -158,11 +158,15 @@ msgid "Articles only"
 msgstr "게시글만"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:216
+#: src/routes/(root)/[handle]/settings/index.tsx:360
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "이미 {0} 변경하였기 때문에 다시 변경할 수 없습니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:247
+#: src/routes/(root)/[handle]/settings/index.tsx:275
+msgid "Avatar"
+msgstr "프로필 사진"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:391
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "약력"
@@ -170,6 +174,10 @@ msgstr "약력"
 #: src/routes/(root)/sign/up/[token].tsx:167
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
+
+#: src/routes/(root)/[handle]/settings/index.tsx:323
+msgid "Cancel"
+msgstr "취소"
 
 #: src/components/AppSidebar.tsx:321
 #: src/routes/(root)/coc.tsx:53
@@ -182,6 +190,14 @@ msgstr "행동 강령"
 msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:330
+msgid "Crop"
+msgstr "자르기"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:303
+msgid "Crop your new avatar"
+msgstr "새 프로필 사진 자르기"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "Default note privacy"
 msgstr "기본 단문 공개 범위"
@@ -190,7 +206,7 @@ msgstr "기본 단문 공개 범위"
 msgid "Default share privacy"
 msgstr "기본 공유 공개 범위"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:231
+#: src/routes/(root)/[handle]/settings/index.tsx:375
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "이름"
@@ -198,6 +214,10 @@ msgstr "이름"
 #: src/routes/(root)/sign/index.tsx:288
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
+
+#: src/routes/(root)/[handle]/settings/index.tsx:306
+msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
+msgstr "유지하려는 영역을 드래그하여 선택한 다음 “자르기”를 클릭하여 프로필 사진을 업데이트하세요."
 
 #: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
@@ -240,7 +260,7 @@ msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to save preferences"
 msgstr "환경 설정 저장 실패"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:140
+#: src/routes/(root)/[handle]/settings/index.tsx:221
 msgid "Failed to save settings"
 msgstr "설정 저장 실패"
 
@@ -297,7 +317,7 @@ msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:238
+#: src/routes/(root)/[handle]/settings/index.tsx:382
 msgid "John Doe"
 msgstr "홍길동"
 
@@ -403,6 +423,10 @@ msgstr "또는 이메일의 코드를 입력하세요"
 msgid "Page Not Found"
 msgstr "페이지를 찾을 수 없습니다"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:143
+msgid "Please choose an image file smaller than 5 MiB."
+msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
+
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
 msgstr "콘텐츠"
@@ -418,7 +442,7 @@ msgid "Preferences"
 msgstr "환경 설정"
 
 #: src/components/SettingsTabs.tsx:37
-#: src/routes/(root)/[handle]/settings/index.tsx:175
+#: src/routes/(root)/[handle]/settings/index.tsx:256
 msgid "Profile settings"
 msgstr "프로필 설정"
 
@@ -440,18 +464,18 @@ msgstr "게시글 전체 읽기"
 msgid "Read the full Code of conduct"
 msgstr "행동 강령 전문을 읽으세요."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:264
+#: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
 msgstr "저장"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:264
+#: src/routes/(root)/[handle]/settings/index.tsx:408
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Saving…"
 msgstr "저장 중…"
 
 #: src/components/AppSidebar.tsx:288
-#: src/routes/(root)/[handle]/settings/index.tsx:180
+#: src/routes/(root)/[handle]/settings/index.tsx:261
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
 msgstr "설정"
@@ -494,7 +518,7 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 msgid "Successfully saved preferences"
 msgstr "환경 설정이 성공적으로 저장되었습니다"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:133
+#: src/routes/(root)/[handle]/settings/index.tsx:214
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
@@ -537,7 +561,7 @@ msgstr "타임라인"
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:194
+#: src/routes/(root)/[handle]/settings/index.tsx:338
 #: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "아이디"
@@ -592,7 +616,7 @@ msgstr "Hackers' Pub에 오신 것을 환영합니다! 가입을 완료하려면
 msgid "Without shares"
 msgstr "공유 제외"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:210
+#: src/routes/(root)/[handle]/settings/index.tsx:354
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "아이디는 단 한 번만 변경할 수 있으며, 변경하기 전 아이디는 다른 사람이 사용할 수 있게 됩니다."
 
@@ -604,7 +628,11 @@ msgstr "당신을 초대한 분"
 msgid "You'll automatically follow each other when you sign up."
 msgstr "가입 시 자동으로 서로 팔로우 하게 됩니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:256
+#: src/routes/(root)/[handle]/settings/index.tsx:277
+msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
+msgstr "프로필 사진은 프로필과 콘텐츠에 표시됩니다. PNG, JPEG, GIF, WebP 형식의 이미지를 5MiB 이하로 업로드할 수 있습니다."
+
+#: src/routes/(root)/[handle]/settings/index.tsx:400
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습니다."
 
@@ -616,7 +644,7 @@ msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습
 msgid "Your email address will be used to sign in to your account."
 msgstr "이메일 주소는 계정에 로그인할 때 사용됩니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:242
+#: src/routes/(root)/[handle]/settings/index.tsx:386
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
@@ -625,11 +653,11 @@ msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
 msgid "Your preferences have been updated successfully."
 msgstr "환경 설정이 성공적으로 업데이트되었습니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:134
+#: src/routes/(root)/[handle]/settings/index.tsx:215
 msgid "Your profile settings have been updated successfully."
 msgstr "프로필 설정이 성공적으로 업데이트되었습니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:207
+#: src/routes/(root)/[handle]/settings/index.tsx:351
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "아이디는 프로필 URL과 연합우주(fediverse) 핸들로 사용됩니다."
