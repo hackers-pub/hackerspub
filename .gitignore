@@ -1,3 +1,6 @@
+# Claude Code
+.claude/settings.local.json
+
 # dotenv environment variable files
 .env
 .env.development.local
