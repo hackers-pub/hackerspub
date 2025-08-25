@@ -15,7 +15,7 @@ import type {
 // @ts-ignore: ...
 import Cropper from "cropperjs";
 import { graphql } from "relay-runtime";
-import { createSignal, Show } from "solid-js";
+import { createSignal, For, Show } from "solid-js";
 import {
   createMutation,
   createPreloadedQuery,
@@ -76,6 +76,12 @@ const settingsPageQuery = graphql`
       name
       bio
       avatarUrl
+      links {
+        id
+        index
+        name
+        url
+      }
       ...SettingsTabs_account
       actor {
         ...ProfilePageBreadcrumb_actor
@@ -109,6 +115,12 @@ const settingsMutation = graphql`
         usernameChanged
         name
         bio
+        links {
+          id
+          index
+          name
+          url
+        }
         avatarUrl
         ...SettingsTabs_account
       }
@@ -185,6 +197,9 @@ export default function SettingsPage() {
       setCropperSelection(undefined);
     });
   }
+  const [links, setLinks] = createSignal<
+    { name: string; url: string; index: number }[] | undefined
+  >();
   const [save] = createMutation<settingsMutation>(settingsMutation);
   const [saving, setSaving] = createSignal(false);
   function onSubmit(event: SubmitEvent) {
@@ -400,6 +415,55 @@ export default function SettingsPage() {
                             {t`Your bio will be displayed on your profile. You can use Markdown to format it.`}
                           </TextFieldDescription>
                         </TextField>
+                        <For each={links() ?? account().links}>
+                          {(link) => (
+                            <LinkItemForm
+                              index={link.index}
+                              name={link.name}
+                              url={link.url}
+                              onChange={(values) =>
+                                setLinks((links) => {
+                                  const data = [...(links ?? account().links)];
+                                  data[values.index] = values;
+                                  return data;
+                                })}
+                            />
+                          )}
+                        </For>
+                        <LinkItemForm
+                          index={links()?.length ?? account().links.length}
+                          description
+                          onChange={(values) =>
+                            setLinks((links) => {
+                              const data = [...(links ?? account().links)];
+                              data.push(values);
+                              return data;
+                            })}
+                        />
+                        <div class="flex flex-row gap-1.5">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="1.5"
+                            stroke="currentColor"
+                            class="size-6 stroke-muted-foreground"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"
+                            />
+                          </svg>
+                          <p class="text-sm text-muted-foreground">
+                            <Trans
+                              message={t`Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with ${"REL_ME_ATTR"} attribute.`}
+                              values={{
+                                REL_ME_ATTR: () => <code>rel="me"</code>,
+                              }}
+                            />
+                          </p>
+                        </div>
                         <Button
                           type="submit"
                           class="cursor-pointer"
@@ -417,6 +481,72 @@ export default function SettingsPage() {
         </>
       )}
     </Show>
+  );
+}
+
+interface LinkItemFormProps {
+  index: number;
+  name?: string;
+  url?: string;
+  description?: boolean;
+  onChange?(values: { name: string; url: string; index: number }): void;
+}
+
+function LinkItemForm(props: LinkItemFormProps) {
+  const { t } = useLingui();
+  let nameInput: HTMLInputElement | undefined;
+  let urlInput: HTMLInputElement | undefined;
+  return (
+    <div class="flex flex-row gap-4">
+      <TextField class="grid w-full items-center gap-1.5">
+        <TextFieldLabel for={`link-name-${props.index}`}>
+          {t`Link name`}
+        </TextFieldLabel>
+        <TextFieldInput
+          ref={nameInput}
+          type="text"
+          id={`link-name-${props.index}`}
+          placeholder={t`Website`}
+          value={props.name}
+          required={props.url != null && props.url.trim() !== ""}
+          on:input={() =>
+            props?.onChange?.({
+              name: nameInput?.value ?? "",
+              url: urlInput?.value ?? "",
+              index: props.index,
+            })}
+        />
+        <Show when={props.description}>
+          <TextFieldDescription class="leading-6">
+            {t`A name for the link that will be displayed on your profile, e.g., GitHub.`}
+          </TextFieldDescription>
+        </Show>
+      </TextField>
+      <TextField class="grid w-full items-center gap-1.5">
+        <TextFieldLabel for={`link-url-${props.index}`}>
+          {t`URL`}
+        </TextFieldLabel>
+        <TextFieldInput
+          ref={urlInput}
+          type="url"
+          id={`link-url-${props.index}`}
+          placeholder="https://example.com/"
+          value={props.url}
+          required={props.name != null && props.name.trim() !== ""}
+          on:input={() =>
+            props?.onChange?.({
+              name: nameInput?.value ?? "",
+              url: urlInput?.value ?? "",
+              index: props.index,
+            })}
+        />
+        <Show when={props.description}>
+          <TextFieldDescription class="leading-6">
+            {t`The URL of the link, e.g., https://github.com/yourhandle.`}
+          </TextFieldDescription>
+        </Show>
+      </TextField>
+    </div>
   );
 }
 
