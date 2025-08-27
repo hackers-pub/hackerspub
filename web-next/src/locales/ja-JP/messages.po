@@ -128,6 +128,10 @@ msgstr "{0}さんの投稿"
 msgid "{0}'s shares"
 msgstr "{0}さんの共有"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:565
+msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
+msgstr "プロフィールに表示されるリンクの名前。（例：GitHub）"
+
 #: src/routes/(root)/sign/index.tsx:233
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
@@ -152,7 +156,7 @@ msgstr "パスキーの取消中にエラーが発生しました。"
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "環境設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:223
+#: src/routes/(root)/[handle]/settings/index.tsx:342
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
@@ -171,7 +175,7 @@ msgid "Articles only"
 msgstr "記事のみ"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:360
+#: src/routes/(root)/[handle]/settings/index.tsx:440
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "すでに{0}に変更済みのため、再度変更することはできません。"
 
@@ -179,11 +183,11 @@ msgstr "すでに{0}に変更済みのため、再度変更することはでき
 msgid "Authenticating…"
 msgstr "認証中…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:275
+#: src/routes/(root)/[handle]/settings/index.tsx:356
 msgid "Avatar"
 msgstr "アイコン"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:391
+#: src/routes/(root)/[handle]/settings/index.tsx:469
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "自己紹介"
@@ -192,7 +196,7 @@ msgstr "自己紹介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:323
+#: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Cancel"
 msgstr "キャンセル"
@@ -212,11 +216,11 @@ msgstr "作成日:"
 msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:330
+#: src/routes/(root)/[handle]/settings/index.tsx:410
 msgid "Crop"
 msgstr "切り抜き"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:303
+#: src/routes/(root)/[handle]/settings/index.tsx:383
 msgid "Crop your new avatar"
 msgstr "新しいアイコンを切り抜く"
 
@@ -228,7 +232,7 @@ msgstr "投稿のデフォルト公開範囲"
 msgid "Default share privacy"
 msgstr "共有のデフォルト公開範囲"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:375
+#: src/routes/(root)/[handle]/settings/index.tsx:453
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "名前"
@@ -237,7 +241,7 @@ msgstr "名前"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:306
+#: src/routes/(root)/[handle]/settings/index.tsx:386
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "保持したい領域をドラッグして選択し、「切り抜き」をクリックしてアイコンを更新してください。"
 
@@ -299,7 +303,7 @@ msgstr "パスキーの取り消しに失敗しました"
 msgid "Failed to save preferences"
 msgstr "環境設定の保存に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:221
+#: src/routes/(root)/[handle]/settings/index.tsx:340
 msgid "Failed to save settings"
 msgstr "設定の保存に失敗しました"
 
@@ -356,13 +360,17 @@ msgstr "行動規範に同意します。"
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:382
+#: src/routes/(root)/[handle]/settings/index.tsx:460
 msgid "John Doe"
 msgstr "田中太郎"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:471
 msgid "Last used:"
 msgstr "最終使用:"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:546
+msgid "Link name"
+msgstr "リンク名"
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -465,6 +473,11 @@ msgstr "コンテンツはありません"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
+#. placeholder {0}: "REL_ME_ATTR"
+#: src/routes/(root)/[handle]/settings/index.tsx:509
+msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
+msgstr "リンクが実際にあなたのものであることを認証できます。リンク先のページでも{0}属性を使用してあなたのHackers' Pubプロフィールへリンクしてください。"
+
 #: src/components/ProfileTabs.tsx:41
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
@@ -507,7 +520,7 @@ msgstr "パスキー"
 msgid "Passkeys"
 msgstr "パスキー"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:143
+#: src/routes/(root)/[handle]/settings/index.tsx:212
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "5 MiB未満の画像ファイルを選択してください。"
 
@@ -526,7 +539,7 @@ msgid "Preferences"
 msgstr "環境設定"
 
 #: src/components/SettingsTabs.tsx:37
-#: src/routes/(root)/[handle]/settings/index.tsx:256
+#: src/routes/(root)/[handle]/settings/index.tsx:147
 msgid "Profile settings"
 msgstr "プロフィール設定"
 
@@ -577,18 +590,18 @@ msgstr "取り消す"
 msgid "Revoke passkey"
 msgstr "パスキーを取り消す"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:408
+#: src/routes/(root)/[handle]/settings/index.tsx:521
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
 msgstr "保存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:408
+#: src/routes/(root)/[handle]/settings/index.tsx:521
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:288
-#: src/routes/(root)/[handle]/settings/index.tsx:261
+#: src/routes/(root)/[handle]/settings/index.tsx:152
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
@@ -636,7 +649,7 @@ msgstr "問題が発生しました。再度お試しください。"
 msgid "Successfully saved preferences"
 msgstr "環境設定を正常に保存しました"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:214
+#: src/routes/(root)/[handle]/settings/index.tsx:333
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
@@ -678,6 +691,10 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:589
+msgid "The URL of the link, e.g., https://github.com/yourhandle."
+msgstr "リンクのURL。（例：https://github.com/yourhandle）"
+
 #: src/components/AppSidebar.tsx:112
 msgid "Timeline"
 msgstr "タイムライン"
@@ -687,7 +704,11 @@ msgstr "タイムライン"
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:338
+#: src/routes/(root)/[handle]/settings/index.tsx:571
+msgid "URL"
+msgstr "URL"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:418
 #: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "ユーザー名"
@@ -734,6 +755,10 @@ msgstr "誰でも閲覧できますが、公開タイムラインには表示さ
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "未登録ユーザーを含む誰でも閲覧できます。公開タイムラインにも表示されます。"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:552
+msgid "Website"
+msgstr "ウェブサイト"
+
 #: src/routes/(root)/sign/up/[token].tsx:327
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォームにご記入ください。"
@@ -742,9 +767,13 @@ msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォ
 msgid "Without shares"
 msgstr "共有除外"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:354
+#: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "変更は1回のみ可能で、変更前のユーザー名は他のユーザーが使用できるようになります。"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:600
+msgid "You can leave this empty to remove the link."
+msgstr "リンクを削除する場合は空にしてください。"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:441
 msgid "You don't have any passkeys registered yet."
@@ -758,11 +787,11 @@ msgstr "あなたを招待した方"
 msgid "You'll automatically follow each other when you sign up."
 msgstr "登録したら自動的にお互いをフォローします。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:277
+#: src/routes/(root)/[handle]/settings/index.tsx:358
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "アイコンはプロフィールとコンテンツに表示されます。PNG、JPEG、GIF、WebP形式の画像を5MiBまでアップロードできます。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:400
+#: src/routes/(root)/[handle]/settings/index.tsx:478
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "自己紹介はプロフィールに表示されます。Markdownを使用できます。"
 
@@ -774,7 +803,7 @@ msgstr "自己紹介はプロフィールに表示されます。Markdownで書�
 msgid "Your email address will be used to sign in to your account."
 msgstr "メールアドレスはアカウントへのログインに使用されます。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:386
+#: src/routes/(root)/[handle]/settings/index.tsx:464
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "名前はプロフィールとコンテンツに表示されます。"
@@ -787,11 +816,11 @@ msgstr "パスキーが登録され、認証に使用できるようになりま
 msgid "Your preferences have been updated successfully."
 msgstr "環境設定が正常に更新されました。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:215
+#: src/routes/(root)/[handle]/settings/index.tsx:334
 msgid "Your profile settings have been updated successfully."
 msgstr "プロフィール設定が正常に更新されました。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:351
+#: src/routes/(root)/[handle]/settings/index.tsx:431
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "ユーザー名はプロフィールURLとフェディバースハンドルの作成に使用されます。"

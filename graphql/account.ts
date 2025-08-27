@@ -54,6 +54,9 @@ export const Account = builder.drizzleNode("accountTable", {
     avatarUrl: t.field({
       type: "URL",
       select: {
+        columns: {
+          avatarKey: true,
+        },
         with: {
           emails: true,
         },
