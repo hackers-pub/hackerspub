@@ -128,6 +128,10 @@ msgstr "{0}'s notes"
 msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
+#: src/routes/(root)/[handle]/settings/index.tsx:565
+msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
+msgstr "A name for the link that will be displayed on your profile, e.g., GitHub."
+
 #: src/routes/(root)/sign/index.tsx:233
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
@@ -152,7 +156,7 @@ msgstr "An error occurred while revoking your passkey."
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:223
+#: src/routes/(root)/[handle]/settings/index.tsx:342
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 
@@ -171,7 +175,7 @@ msgid "Articles only"
 msgstr "Articles only"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:360
+#: src/routes/(root)/[handle]/settings/index.tsx:440
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "As you have already changed it {0}, you can't change it again."
 
@@ -179,11 +183,11 @@ msgstr "As you have already changed it {0}, you can't change it again."
 msgid "Authenticating…"
 msgstr "Authenticating…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:275
+#: src/routes/(root)/[handle]/settings/index.tsx:356
 msgid "Avatar"
 msgstr "Avatar"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:391
+#: src/routes/(root)/[handle]/settings/index.tsx:469
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "Bio"
@@ -192,7 +196,7 @@ msgstr "Bio"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:323
+#: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Cancel"
 msgstr "Cancel"
@@ -212,11 +216,11 @@ msgstr "Created:"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:330
+#: src/routes/(root)/[handle]/settings/index.tsx:410
 msgid "Crop"
 msgstr "Crop"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:303
+#: src/routes/(root)/[handle]/settings/index.tsx:383
 msgid "Crop your new avatar"
 msgstr "Crop your new avatar"
 
@@ -228,7 +232,7 @@ msgstr "Default note privacy"
 msgid "Default share privacy"
 msgstr "Default share privacy"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:375
+#: src/routes/(root)/[handle]/settings/index.tsx:453
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "Display name"
@@ -237,7 +241,7 @@ msgstr "Display name"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:306
+#: src/routes/(root)/[handle]/settings/index.tsx:386
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 
@@ -299,7 +303,7 @@ msgstr "Failed to revoke passkey"
 msgid "Failed to save preferences"
 msgstr "Failed to save preferences"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:221
+#: src/routes/(root)/[handle]/settings/index.tsx:340
 msgid "Failed to save settings"
 msgstr "Failed to save settings"
 
@@ -356,13 +360,17 @@ msgstr "I have read and agree to the Code of conduct."
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:382
+#: src/routes/(root)/[handle]/settings/index.tsx:460
 msgid "John Doe"
 msgstr "John Doe"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:471
 msgid "Last used:"
 msgstr "Last used:"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:546
+msgid "Link name"
+msgstr "Link name"
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -465,6 +473,11 @@ msgstr "No posts found"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
+#. placeholder {0}: "REL_ME_ATTR"
+#: src/routes/(root)/[handle]/settings/index.tsx:509
+msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
+msgstr "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
+
 #: src/components/ProfileTabs.tsx:41
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
@@ -507,7 +520,7 @@ msgstr "passkeys"
 msgid "Passkeys"
 msgstr "Passkeys"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:143
+#: src/routes/(root)/[handle]/settings/index.tsx:212
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "Please choose an image file smaller than 5 MiB."
 
@@ -526,7 +539,7 @@ msgid "Preferences"
 msgstr "Preferences"
 
 #: src/components/SettingsTabs.tsx:37
-#: src/routes/(root)/[handle]/settings/index.tsx:256
+#: src/routes/(root)/[handle]/settings/index.tsx:147
 msgid "Profile settings"
 msgstr "Profile settings"
 
@@ -577,18 +590,18 @@ msgstr "Revoke"
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:408
+#: src/routes/(root)/[handle]/settings/index.tsx:521
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Save"
 msgstr "Save"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:408
+#: src/routes/(root)/[handle]/settings/index.tsx:521
 #: src/routes/(root)/[handle]/settings/preferences.tsx:243
 msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/AppSidebar.tsx:288
-#: src/routes/(root)/[handle]/settings/index.tsx:261
+#: src/routes/(root)/[handle]/settings/index.tsx:152
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
@@ -636,7 +649,7 @@ msgstr "Something went wrong—please try again."
 msgid "Successfully saved preferences"
 msgstr "Successfully saved preferences"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:214
+#: src/routes/(root)/[handle]/settings/index.tsx:333
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
@@ -678,6 +691,10 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
+#: src/routes/(root)/[handle]/settings/index.tsx:589
+msgid "The URL of the link, e.g., https://github.com/yourhandle."
+msgstr "The URL of the link, e.g., https://github.com/yourhandle."
+
 #: src/components/AppSidebar.tsx:112
 msgid "Timeline"
 msgstr "Timeline"
@@ -687,7 +704,11 @@ msgstr "Timeline"
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:338
+#: src/routes/(root)/[handle]/settings/index.tsx:571
+msgid "URL"
+msgstr "URL"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:418
 #: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "Username"
@@ -734,6 +755,10 @@ msgstr "Visible to everyone, but does not appear in the public timeline. Only th
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 
+#: src/routes/(root)/[handle]/settings/index.tsx:552
+msgid "Website"
+msgstr "Website"
+
 #: src/routes/(root)/sign/up/[token].tsx:327
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
@@ -742,9 +767,13 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:354
+#: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "You can change it only once, and the old username will become available to others."
+
+#: src/routes/(root)/[handle]/settings/index.tsx:600
+msgid "You can leave this empty to remove the link."
+msgstr "You can leave this empty to remove the link."
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:441
 msgid "You don't have any passkeys registered yet."
@@ -758,11 +787,11 @@ msgstr "You were invited by"
 msgid "You'll automatically follow each other when you sign up."
 msgstr "You'll automatically follow each other when you sign up."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:277
+#: src/routes/(root)/[handle]/settings/index.tsx:358
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:400
+#: src/routes/(root)/[handle]/settings/index.tsx:478
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it."
 
@@ -774,7 +803,7 @@ msgstr "Your bio will be displayed on your profile. You can use Markdown to form
 msgid "Your email address will be used to sign in to your account."
 msgstr "Your email address will be used to sign in to your account."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:386
+#: src/routes/(root)/[handle]/settings/index.tsx:464
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
@@ -787,11 +816,11 @@ msgstr "Your passkey has been registered and can now be used for authentication.
 msgid "Your preferences have been updated successfully."
 msgstr "Your preferences have been updated successfully."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:215
+#: src/routes/(root)/[handle]/settings/index.tsx:334
 msgid "Your profile settings have been updated successfully."
 msgstr "Your profile settings have been updated successfully."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:351
+#: src/routes/(root)/[handle]/settings/index.tsx:431
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "Your username will be used to create your profile URL and your fediverse handle."
