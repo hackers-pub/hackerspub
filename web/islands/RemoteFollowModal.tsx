@@ -99,13 +99,24 @@ export function RemoteFollowModal(
   };
 
   const handleFollowClick = () => {
-    if (!actionInfo.value) return;
+    // actor not found
+    if (!actionInfo.value) {
+      errorMessage.value = t("remoteFollow.api.webfingerLookupError");
+      return;
+    }
 
-    const remoteFollowUrl = `https://${actionInfo.value.domain}/${
-      encodeURI(actorHandle)
-    }`;
+    // found actor vut not found WebFinger template
+    if (!actionInfo.value.remoteFollowUrl) {
+      errorMessage.value = t("remoteFollow.api.templateNotFoundError");
+      return;
+    }
+
     // Open remote follow page in new tab
-    window.open(remoteFollowUrl, "_blank", "noopener,noreferrer");
+    window.open(
+      actionInfo.value.remoteFollowUrl,
+      "_blank",
+      "noopener,noreferrer",
+    );
     onClose();
   };
 

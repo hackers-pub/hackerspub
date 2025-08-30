@@ -33,6 +33,7 @@ export interface ActorInfo {
   domain?: string;
   software?: string;
   emojis?: Record<string, string>;
+  remoteFollowUrl?: string;
 }
 
 // Constants
@@ -81,6 +82,7 @@ async function buildActorInfo(
   finalNormalizedId: string,
   finalDomain: string,
   profileUrl: string,
+  remoteFollowUrl?: string,
 ): Promise<ActorInfo> {
   let software = "unknown";
   try {
@@ -162,8 +164,9 @@ async function buildActorInfo(
     handle: finalNormalizedId,
     profileUrl: profileUrl,
     domain: finalDomain,
-    software: software,
-    emojis: emojis,
+    software,
+    emojis,
+    remoteFollowUrl,
   };
 }
 
@@ -213,6 +216,20 @@ export const handler = define.handlers(async (ctx) => {
       );
     }
 
+    // Find remote follow template link
+    const remoteFollowLink = webfingerResult.links?.find((link) =>
+      link.rel === "http://ostatus.org/schema/1.0/subscribe"
+    ) as WebfingerLink | undefined;
+
+    const template = remoteFollowLink?.template;
+
+    logger.warn("Looking up template: {template}", { template });
+
+    const remoteFollowUrl = template?.replace(
+      "{uri}",
+      encodeURI(`${normalizedId}`),
+    );
+
     try {
       // Lookup ActivityPub object with signed request if account available
       const documentLoader = account == null
@@ -233,6 +250,7 @@ export const handler = define.handlers(async (ctx) => {
         normalizedId,
         domain,
         activityPubLink.href,
+        remoteFollowUrl,
       );
 
       logger.info("Successfully looked up actor: {handle}", {
@@ -263,6 +281,7 @@ export const handler = define.handlers(async (ctx) => {
         profileUrl: activityPubLink.href,
         domain,
         software: "unknown",
+        remoteFollowUrl,
       };
 
       logger.info("Using fallback actor info for: {handle}", {
