@@ -21,7 +21,7 @@ export function RemoteFollowModal(
   const fediverseId = useSignal("");
   const errorMessage = useSignal("");
   const isLoading = useSignal(false);
-  const actionInfo = useSignal<ActorInfo | null>(null);
+  const actorInfo = useSignal<ActorInfo | null>(null);
   const t = getFixedT(language);
 
   const validateFediverseId = (id: string): boolean => {
@@ -69,12 +69,12 @@ export function RemoteFollowModal(
         throw new Error(t("remoteFollow.userNotFound"));
       }
       // Store user information in state to display in UI
-      actionInfo.value = data.actor;
+      actorInfo.value = data.actor;
     } catch (error) {
       errorMessage.value = error instanceof Error
         ? error.message
         : t("remoteFollow.userLookupError");
-      actionInfo.value = null;
+      actorInfo.value = null;
     } finally {
       isLoading.value = false;
     }
@@ -93,27 +93,27 @@ export function RemoteFollowModal(
     if (errorMessage.value) {
       errorMessage.value = "";
     }
-    if (actionInfo.value) {
-      actionInfo.value = null;
+    if (actorInfo.value) {
+      actorInfo.value = null;
     }
   };
 
   const handleFollowClick = () => {
     // actor not found
-    if (!actionInfo.value) {
+    if (!actorInfo.value) {
       errorMessage.value = t("remoteFollow.api.webfingerLookupError");
       return;
     }
 
     // found actor vut not found WebFinger template
-    if (!actionInfo.value.remoteFollowUrl) {
+    if (!actorInfo.value.remoteFollowUrl) {
       errorMessage.value = t("remoteFollow.api.templateNotFoundError");
       return;
     }
 
     // Open remote follow page in new tab
     window.open(
-      actionInfo.value.remoteFollowUrl,
+      actorInfo.value.remoteFollowUrl,
       "_blank",
       "noopener,noreferrer",
     );
@@ -199,12 +199,12 @@ export function RemoteFollowModal(
               )}
             </div>
 
-            {actionInfo.value && (
+            {actorInfo.value && (
               <div class="mb-4 p-3 border rounded-md bg-gray-50 dark:bg-stone-700">
                 <div class="flex items-start gap-3">
-                  {actionInfo.value.icon && (
+                  {actorInfo.value.icon && (
                     <img
-                      src={actionInfo.value.icon}
+                      src={actorInfo.value.icon}
                       alt={t("remoteFollow.profileImageAlt")}
                       class="w-10 h-10 rounded-full flex-shrink-0"
                     />
@@ -215,38 +215,38 @@ export function RemoteFollowModal(
                       dangerouslySetInnerHTML={{
                         __html: renderCustomEmojis(
                           htmlEscape(
-                            actionInfo.value.name ||
-                              actionInfo.value.preferredUsername ||
-                              actionInfo.value.handle?.split("@")[0] ||
+                            actorInfo.value.name ||
+                              actorInfo.value.preferredUsername ||
+                              actorInfo.value.handle?.split("@")[0] ||
                               "",
                           ),
-                          actionInfo.value.emojis || {},
+                          actorInfo.value.emojis || {},
                         ),
                       }}
                     />
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                      {actionInfo.value.handle}
+                      {actorInfo.value.handle}
                     </p>
-                    {actionInfo.value.software &&
-                      actionInfo.value.software !== "unknown" && (
+                    {actorInfo.value.software &&
+                      actorInfo.value.software !== "unknown" && (
                       <p class="text-xs text-gray-500 dark:text-gray-500">
-                        {actionInfo.value.software.charAt(0).toUpperCase() +
-                          actionInfo.value.software.slice(1)}
+                        {actorInfo.value.software.charAt(0).toUpperCase() +
+                          actorInfo.value.software.slice(1)}
                       </p>
                     )}
-                    {actionInfo.value.summary && (
+                    {actorInfo.value.summary && (
                       <p
                         class="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2 overflow-hidden"
                         dangerouslySetInnerHTML={{
                           __html: renderCustomEmojis(
                             htmlEscape(
-                              actionInfo.value.summary.replace(/<[^>]*>/g, "")
+                              actorInfo.value.summary.replace(/<[^>]*>/g, "")
                                 .substring(0, 100) +
-                                (actionInfo.value.summary.length > 100
+                                (actorInfo.value.summary.length > 100
                                   ? "..."
                                   : ""),
                             ),
-                            actionInfo.value.emojis || {},
+                            actorInfo.value.emojis || {},
                           ),
                         }}
                       />
@@ -264,7 +264,7 @@ export function RemoteFollowModal(
               >
                 <Msg $key="remoteFollow.cancel" />
               </Button>
-              {actionInfo.value
+              {actorInfo.value
                 ? (
                   <Button
                     type="button"
