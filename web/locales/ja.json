@@ -413,5 +413,35 @@
     "exhausted": "この招待リンクは既に使い切られています。Hackers' Pubに参加するには、別の招待リンクを使用する必要があります。",
     "duplicateEmail": "このメールアドレスは既にHackers' Pubに登録されています。別のメールアドレスをご使用ください。",
     "sent": "Hackers' Pubへの参加メールが{{email}}に送信されました。受信箱をご確認ください。（迷惑メールフォルダにある可能性があります）"
+  },
+  "remoteFollow": {
+    "title": "リモートフォロー",
+    "description": "{{actorName}}さんをフォローするには、フェディバースのハンドルを入力してください。",
+    "fediverseIdLabel": "フェディバースのハンドル",
+    "fediverseIdPlaceholder": "@username@mastodon.social",
+    "fediverseIdExample": "フェディバースのハンドルを入力してください（例：@username@mastodon.social）",
+    "fediverseIdRequired": "フェディバースのハンドルを入力してください。",
+    "fediverseIdInvalid": "無効なフェディバースのハンドルの形式です。@username@domain.com形式で入力してください。",
+    "userLookupError": "ユーザーの検索に失敗しました。",
+    "userNotFound": "ユーザー情報が見つかりません。",
+    "userLookupGenericError": "ユーザー情報検索中にエラーが発生しました。",
+    "profileImageAlt": "プロフィール画像",
+    "lookingUpUser": "ユーザー情報を取得中…",
+    "followServiceNotFound": "該当サービスのフォローページが見つかりません。",
+    "cancel": "キャンセル",
+    "follow": "フォローする",
+    "lookupUser": "ユーザーを検索",
+    "lookingUp": "検索中…",
+    "api": {
+      "fediverseIdRequired": "フェディバースのハンドルが必要です。",
+      "fediverseIdInvalidFormat": "正しいフェディバースのハンドルの形式ではありません。",
+      "userNotFoundWithStatus": "ユーザーが見つかりません：{{status}}",
+      "webfingerLookupError": "WebFinger検索中にエラーが発生しました。",
+      "activityPubProfileNotFound": "ActivityPubプロフィールが見つかりません。",
+      "objectNotActor": "取得されたオブジェクトはアクターではありません。",
+      "profileInfoFetchFailed": "プロフィール情報を取得できませんでした。",
+      "serverError": "サーバーエラーが発生しました。",
+      "templateNotFoundError": "該当するフェディバースハンドルのリモートフォローのテンプレートが見つかりませんでした。"
+    }
   }
 }

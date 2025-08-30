@@ -422,5 +422,35 @@
     "exhausted": "This invitation link has been exhausted. You need to use another invitation link to join Hackers' Pub.",
     "duplicateEmail": "This email address is already registered with Hackers' Pub. Please use a different email address.",
     "sent": "An email to join Hackers' Pub has been sent to {{email}}. Please check your inbox (it might be in your spam folder)."
+  },
+  "remoteFollow": {
+    "title": "Remote Follow",
+    "description": "To follow {{actorName}}, enter your fediverse handle.",
+    "fediverseIdLabel": "Fediverse handle",
+    "fediverseIdPlaceholder": "@username@mastodon.social",
+    "fediverseIdExample": "Enter your fediverse handle (e.g., @username@mastodon.social)",
+    "fediverseIdRequired": "Please enter your fediverse handle.",
+    "fediverseIdInvalid": "Invalid fediverse handle format. Please enter in @username@domain.com format.",
+    "userLookupError": "Failed to look up user.",
+    "userNotFound": "User information not found.",
+    "userLookupGenericError": "An error occurred while looking up user information.",
+    "profileImageAlt": "Profile image",
+    "lookingUpUser": "Looking up user information…",
+    "followServiceNotFound": "Could not find the follow page for this service.",
+    "cancel": "Cancel",
+    "follow": "Follow",
+    "lookupUser": "Look up user",
+    "lookingUp": "Looking up…",
+    "api": {
+      "fediverseIdRequired": "Fediverse handle is required.",
+      "fediverseIdInvalidFormat": "Invalid Fediverse handle.",
+      "userNotFoundWithStatus": "User not found: {{status}}",
+      "webfingerLookupError": "An error occurred during WebFinger lookup.",
+      "activityPubProfileNotFound": "ActivityPub profile not found.",
+      "objectNotActor": "The retrieved object is not an actor.",
+      "profileInfoFetchFailed": "Failed to fetch profile information.",
+      "serverError": "Server error occurred.",
+      "templateNotFoundError": "remoteFollowUrl was not found for this Fediverse handle."
+    }
   }
 }
