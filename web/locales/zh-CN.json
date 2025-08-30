@@ -437,7 +437,8 @@
       "activityPubProfileNotFound": "未找到 ActivityPub 个人资料。",
       "objectNotActor": "查找到的对象不是 actor。",
       "profileInfoFetchFailed": "无法获取个人资料信息。",
-      "serverError": "服务器发生错误。"
+      "serverError": "服务器发生错误。",
+      "templateNotFoundError": "未找到该联邦宇宙用户名的远程关注模板。"
     }
   }
 }

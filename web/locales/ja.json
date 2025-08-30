@@ -436,7 +436,8 @@
       "activityPubProfileNotFound": "ActivityPubプロフィールが見つかりません。",
       "objectNotActor": "取得されたオブジェクトはアクターではありません。",
       "profileInfoFetchFailed": "プロフィール情報を取得できませんでした。",
-      "serverError": "サーバーエラーが発生しました。"
+      "serverError": "サーバーエラーが発生しました。",
+      "templateNotFoundError": "該当するフェディバースハンドルのリモートフォローのテンプレートが見つかりませんでした。"
     }
   }
 }

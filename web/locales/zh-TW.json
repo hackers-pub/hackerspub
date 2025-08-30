@@ -438,7 +438,8 @@
       "activityPubProfileNotFound": "未找到 ActivityPub 個人資料。",
       "objectNotActor": "查找到的物件不是 actor。",
       "profileInfoFetchFailed": "無法取得個人資料資訊。",
-      "serverError": "伺服器發生錯誤。"
+      "serverError": "伺服器發生錯誤。",
+      "templateNotFoundError": "未找到該聯邦宇宙使用者名稱的遠端關注範本。"
     }
   }
 }

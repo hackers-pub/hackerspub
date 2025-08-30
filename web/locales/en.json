@@ -445,7 +445,8 @@
       "activityPubProfileNotFound": "ActivityPub profile not found.",
       "objectNotActor": "The retrieved object is not an actor.",
       "profileInfoFetchFailed": "Failed to fetch profile information.",
-      "serverError": "Server error occurred."
+      "serverError": "Server error occurred.",
+      "templateNotFoundError": "remoteFollowUrl was not found for this Fediverse handle."
     }
   }
 }
