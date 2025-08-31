@@ -23,6 +23,11 @@ msgstr "{0, plural, other {# 팔로워}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
+#. placeholder {0}: account().invitationsLeft
+#: src/routes/(root)/[handle]/settings/invite.tsx:237
+msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
+msgstr "{0, plural, other {Hackers' Pub에 친구를 초대하세요. 최대 #명까지 초대할 수 있습니다.}}"
+
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
 #: src/components/notification/FollowNotificationCard.tsx:29
@@ -64,6 +69,11 @@ msgstr "{0} 님 외 {1}명이 회원님의 콘텐츠를 공유했습니다"
 #: src/components/notification/FollowNotificationCard.tsx:28
 msgid "{0} followed you"
 msgstr "{0} 님이 팔로했습니다"
+
+#. placeholder {0}: "USER"
+#: src/routes/(root)/[handle]/settings/invite.tsx:281
+msgid "{0} is already a member of Hackers' Pub."
+msgstr "{0} 님은 이미 Hackers' Pub의 회원입니다."
 
 #. placeholder {0}: "ACTOR"
 #: src/components/notification/MentionNotificationCard.tsx:35
@@ -160,6 +170,10 @@ msgstr "환경 설정 저장 중 오류가 발생했습니다. 다시 시도하�
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의하세요."
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:178
+msgid "An unexpected error occurred. Please try again later."
+msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도해주세요."
+
 #. placeholder {0}: passkeyToRevoke()?.name
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:539
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
@@ -200,6 +214,10 @@ msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Cancel"
 msgstr "취소"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:305
+msgid "Choose the language your friend prefers. This language will only be used for the invitation."
+msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
 #: src/components/AppSidebar.tsx:321
 #: src/routes/(root)/coc.tsx:53
@@ -245,6 +263,7 @@ msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. �
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "유지하려는 영역을 드래그하여 선택한 다음 “자르기”를 클릭하여 프로필 사진을 업데이트하세요."
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:254
 #: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
 msgstr "이메일 주소"
@@ -264,6 +283,10 @@ msgstr "오류"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:409
 msgid "ex) My key"
 msgstr "예) 나의 키"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:310
+msgid "Extra message"
+msgstr "추가 메시지"
 
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
@@ -306,6 +329,11 @@ msgstr "환경 설정 저장 실패"
 #: src/routes/(root)/[handle]/settings/index.tsx:340
 msgid "Failed to save settings"
 msgstr "설정 저장 실패"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:156
+#: src/routes/(root)/[handle]/settings/invite.tsx:176
+msgid "Failed to send invitation"
+msgstr "초대장 발송에 실패했습니다"
 
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:81
@@ -359,6 +387,20 @@ msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 #: src/routes/(root)/[handle]/settings/preferences.tsx:209
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:298
+msgid "Invitation language"
+msgstr "초대장 언어"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:166
+msgid "Invitation sent"
+msgstr "초대장이 발송되었습니다"
+
+#: src/components/SettingsTabs.tsx:51
+#: src/routes/(root)/[handle]/settings/invite.tsx:210
+#: src/routes/(root)/[handle]/settings/invite.tsx:221
+msgid "Invite"
+msgstr "초대"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:460
 msgid "John Doe"
@@ -452,6 +494,10 @@ msgstr "사용된 적 없음"
 msgid "No followers found"
 msgstr "팔로워가 없습니다"
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:328
+msgid "No invitations left"
+msgstr "남은 초대장이 없습니다"
+
 #: src/components/ActorArticleList.tsx:85
 msgid "No notes articles"
 msgstr "게시글이 없습니다"
@@ -516,13 +562,17 @@ msgstr "패스키 취소됨"
 msgid "passkeys"
 msgstr "패스키"
 
-#: src/components/SettingsTabs.tsx:51
+#: src/components/SettingsTabs.tsx:58
 msgid "Passkeys"
 msgstr "패스키"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:212
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:157
+msgid "Please correct the errors and try again."
+msgstr "오류를 수정하고 다시 시도해주세요."
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -600,8 +650,17 @@ msgstr "저장"
 msgid "Saving…"
 msgstr "저장 중…"
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:331
+msgid "Send"
+msgstr "보내기"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:330
+msgid "Sending…"
+msgstr "보내는 중…"
+
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:152
+#: src/routes/(root)/[handle]/settings/invite.tsx:215
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
@@ -673,9 +732,21 @@ msgstr "단문의 기본 공개 설정입니다."
 msgid "The default privacy setting for your shares."
 msgstr "공유의 기본 공개 설정입니다."
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:272
+msgid "The email address is invalid."
+msgstr "이메일 주소가 유효하지 않습니다."
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:267
+msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
+msgstr "이메일 주소는 초대장을 받을 때 뿐만 아니라, 계정에 로그인할 때도 사용됩니다."
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:429
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "다음 패스키들이 계정에 등록되어 있습니다. 이들을 사용하여 계정에 로그인할 수 있습니다."
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:167
+msgid "The invitation has been sent successfully."
+msgstr "초대장이 성공적으로 발송되었습니다."
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:326
 msgid "The passkey has been successfully revoked."
@@ -775,9 +846,18 @@ msgstr "아이디는 단 한 번만 변경할 수 있으며, 변경하기 전 �
 msgid "You can leave this empty to remove the link."
 msgstr "링크를 삭제하려면 이곳을 비워두세요."
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:316
+msgid "You can leave this field empty."
+msgstr "이 필드는 비워둘 수 있습니다."
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:441
 msgid "You don't have any passkeys registered yet."
 msgstr "등록된 패스키가 아직 없습니다."
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:235
+#: src/routes/(root)/[handle]/settings/invite.tsx:337
+msgid "You have no invitations left. Please wait until you receive more."
+msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려주세요."
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
@@ -802,6 +882,10 @@ msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습
 #: src/routes/(root)/sign/up/[token].tsx:346
 msgid "Your email address will be used to sign in to your account."
 msgstr "이메일 주소는 계정에 로그인할 때 사용됩니다."
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:319
+msgid "Your friend will see this message in the invitation email."
+msgstr "초대장을 받는 친구가 볼 수 있는 메시지입니다."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:464
 #: src/routes/(root)/sign/up/[token].tsx:400
