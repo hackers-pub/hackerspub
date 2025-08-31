@@ -36,6 +36,13 @@ import {
 } from "~/components/ui/breadcrumb.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card.tsx";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -156,7 +163,17 @@ export default function SettingsPage() {
                 <div class="p-4">
                   <div class="mx-auto max-w-prose">
                     <SettingsTabs selected="profile" $account={account()} />
-                    <SettingsForm $account={account()} />
+                    <Card class="mt-4">
+                      <CardHeader>
+                        <CardTitle>{t`Profile settings`}</CardTitle>
+                        <CardDescription>
+                          {t`Update your profile information, including your avatar, username, display name, bio, and links.`}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <SettingsForm $account={account()} />
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </>
@@ -350,7 +367,7 @@ function SettingsForm(props: SettingsFormProps) {
 
   return (
     <form on:submit={onSubmit}>
-      <div class="flex flex-col gap-4 mt-4">
+      <div class="flex flex-col gap-4">
         <div class="flex flex-row gap-4">
           <div class="grow">
             <Label>{t`Avatar`}</Label>

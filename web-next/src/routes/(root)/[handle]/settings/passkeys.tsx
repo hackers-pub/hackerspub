@@ -371,7 +371,7 @@ export default function passkeysPage() {
           <Show when={data().accountByUsername}>
             {(account) => (
               <>
-                <Title>{t`passkeys`}</Title>
+                <Title>{t`Passkeys`}</Title>
                 <ProfilePageBreadcrumb $actor={account().actor}>
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
@@ -382,7 +382,7 @@ export default function passkeysPage() {
                   <BreadcrumbSeparator />
                   <BreadcrumbItem>
                     <BreadcrumbLink current>
-                      {t`passkeys`}
+                      {t`Passkeys`}
                     </BreadcrumbLink>
                   </BreadcrumbItem>
                 </ProfilePageBreadcrumb>
@@ -390,7 +390,7 @@ export default function passkeysPage() {
                   <div class="mx-auto max-w-prose">
                     <SettingsTabs selected="passkeys" $account={account()} />
 
-                    <div class="mt-6 space-y-6">
+                    <div class="mt-4 space-y-6">
                       <Card>
                         <CardHeader>
                           <CardTitle>{t`Register a passkey`}</CardTitle>
@@ -406,7 +406,7 @@ export default function passkeysPage() {
                             <TextFieldInput
                               type="text"
                               id="passkey-name"
-                              placeholder={t`ex) My key`}
+                              placeholder={t`My passkey`}
                               required
                               ref={passkeyNameRef}
                             />

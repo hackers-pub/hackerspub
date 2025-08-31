@@ -26,6 +26,13 @@ import {
   BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb.tsx";
 import { Button } from "~/components/ui/button.tsx";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card.tsx";
 import { Checkbox } from "~/components/ui/checkbox.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
@@ -194,55 +201,66 @@ export default function PreferencesPage() {
                       selected="preferences"
                       $account={account()}
                     />
-                    <form on:submit={onSubmit} class="flex flex-col gap-4 mt-4">
-                      <div class="flex items-start space-x-2">
-                        <Checkbox
-                          id="prefer-ai-summary"
-                          ref={preferAiSummaryDiv}
-                          defaultChecked={account().preferAiSummary}
-                        />
-                        <div class="grid gap-1.5 leading-none">
-                          <Label for="prefer-ai-summary">
-                            {t`Prefer AI-generated summary`}
-                          </Label>
-                          <p class="text-sm text-muted-foreground">
-                            {t`If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary.`}
-                          </p>
-                        </div>
-                      </div>
-                      <div class="flex flex-row gap-4">
-                        <div class="grow flex flex-col gap-1.5">
-                          <Label>{t`Default note privacy`}</Label>
-                          <PostVisibilitySelect
-                            value={noteVisibility() ??
-                              account().defaultNoteVisibility as PostVisibility}
-                            onChange={setNoteVisibility}
-                          />
-                          <p class="text-sm text-muted-foreground">
-                            {t`The default privacy setting for your notes.`}
-                          </p>
-                        </div>
-                        <div class="grow flex flex-col gap-1.5">
-                          <Label>{t`Default share privacy`}</Label>
-                          <PostVisibilitySelect
-                            value={shareVisibility() ??
-                              account()
-                                .defaultShareVisibility as PostVisibility}
-                            onChange={setShareVisibility}
-                          />
-                          <p class="text-sm text-muted-foreground">
-                            {t`The default privacy setting for your shares.`}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        type="submit"
-                        class="cursor-pointer"
-                        disabled={saving()}
-                      >
-                        {saving() ? t`Saving…` : t`Save`}
-                      </Button>
-                    </form>
+                    <Card class="mt-4">
+                      <CardHeader>
+                        <CardTitle>{t`Preferences`}</CardTitle>
+                        <CardDescription>
+                          {t`Set your personal preferences.`}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <form on:submit={onSubmit} class="flex flex-col gap-4">
+                          <div class="flex items-start space-x-2">
+                            <Checkbox
+                              id="prefer-ai-summary"
+                              ref={preferAiSummaryDiv}
+                              defaultChecked={account().preferAiSummary}
+                            />
+                            <div class="grid gap-1.5 leading-none">
+                              <Label for="prefer-ai-summary">
+                                {t`Prefer AI-generated summary`}
+                              </Label>
+                              <p class="text-sm text-muted-foreground">
+                                {t`If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary.`}
+                              </p>
+                            </div>
+                          </div>
+                          <div class="flex flex-row gap-4">
+                            <div class="grow flex flex-col gap-1.5">
+                              <Label>{t`Default note privacy`}</Label>
+                              <PostVisibilitySelect
+                                value={noteVisibility() ??
+                                  account()
+                                    .defaultNoteVisibility as PostVisibility}
+                                onChange={setNoteVisibility}
+                              />
+                              <p class="text-sm text-muted-foreground">
+                                {t`The default privacy setting for your notes.`}
+                              </p>
+                            </div>
+                            <div class="grow flex flex-col gap-1.5">
+                              <Label>{t`Default share privacy`}</Label>
+                              <PostVisibilitySelect
+                                value={shareVisibility() ??
+                                  account()
+                                    .defaultShareVisibility as PostVisibility}
+                                onChange={setShareVisibility}
+                              />
+                              <p class="text-sm text-muted-foreground">
+                                {t`The default privacy setting for your shares.`}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="submit"
+                            class="cursor-pointer"
+                            disabled={saving()}
+                          >
+                            {saving() ? t`Saving…` : t`Save`}
+                          </Button>
+                        </form>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </>
