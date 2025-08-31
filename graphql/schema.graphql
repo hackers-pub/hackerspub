@@ -398,6 +398,7 @@ enum InviteEmailError {
 }
 
 enum InviteInviterError {
+  INVITER_EMAIL_SEND_FAILED
   INVITER_NOT_AUTHENTICATED
   INVITER_NO_INVITATIONS_LEFT
 }
