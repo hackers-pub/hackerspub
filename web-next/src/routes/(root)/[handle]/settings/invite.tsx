@@ -143,7 +143,9 @@ export default function InvitePage() {
         email: email(),
         locale: invitationLanguage(),
         message: message().trim() === "" ? null : message().trim(),
-        verifyUrl: `${window.location.origin}/sign/up/{token}?code={code}`,
+        verifyUrl: `${
+          globalThis.location?.origin ?? "https://hackers.pub"
+        }/sign/up/{token}?code={code}`,
       },
       onCompleted({ invite }) {
         setSending(false);
