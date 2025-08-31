@@ -4,10 +4,14 @@ import { builder } from "./builder.ts";
 
 const LOCALES_DIR = join(import.meta.dirname!, "locales");
 
+let cachedLocales: Intl.Locale[] | null = null;
+
 builder.queryField("availableLocales", (t) =>
   t.field({
     type: ["Locale"],
     async resolve(_root, _args, _ctx) {
+      if (cachedLocales) return cachedLocales;
+      
       const availableLocales: Intl.Locale[] = [];
       const files = expandGlob(join(LOCALES_DIR, "*.json"), {
         includeDirs: false,
@@ -17,8 +21,14 @@ builder.queryField("availableLocales", (t) =>
         const match = file.name.match(/^(.+)\.json$/);
         if (match == null) continue;
         const localeName = match[1];
-        availableLocales.push(new Intl.Locale(localeName));
+        try {
+          availableLocales.push(new Intl.Locale(localeName));
+        } catch {
+          // ignore invalid locale tags
+        }
       }
+      
+      cachedLocales = availableLocales;
       return availableLocales;
     },
   }));
