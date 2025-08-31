@@ -297,6 +297,10 @@ msgstr "Failed to load more articles; click to retry"
 msgid "Failed to load more followers; click to retry"
 msgstr "Failed to load more followers; click to retry"
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:511
+msgid "Failed to load more invitees; click to retry"
+msgstr "Failed to load more invitees; click to retry"
+
 #: src/components/ActorNoteList.tsx:72
 msgid "Failed to load more notes; click to retry"
 msgstr "Failed to load more notes; click to retry"
@@ -412,7 +416,7 @@ msgid "John Doe"
 msgstr "John Doe"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:472
+#: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Joined on {0}"
 msgstr "Joined on {0}"
 
@@ -431,6 +435,10 @@ msgstr "Load more articles"
 #: src/components/ActorFollowerList.tsx:83
 msgid "Load more followers"
 msgstr "Load more followers"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:514
+msgid "Load more invitees"
+msgstr "Load more invitees"
 
 #: src/components/ActorNoteList.tsx:75
 msgid "Load more notes"
@@ -456,6 +464,10 @@ msgstr "Loading more articles…"
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "Loading more followers…"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:508
+msgid "Loading more invitees…"
+msgstr "Loading more invitees…"
 
 #: src/components/ActorNoteList.tsx:69
 msgid "Loading more notes…"

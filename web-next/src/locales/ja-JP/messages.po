@@ -297,6 +297,10 @@ msgstr "記事の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more followers; click to retry"
 msgstr "フォロワーの読み込みに失敗しました。クリックして再試行してください"
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:511
+msgid "Failed to load more invitees; click to retry"
+msgstr "招待された人々の読み込みに失敗しました。クリックして再試行"
+
 #: src/components/ActorNoteList.tsx:72
 msgid "Failed to load more notes; click to retry"
 msgstr "投稿の読み込みに失敗しました。クリックして再試行してください"
@@ -412,7 +416,7 @@ msgid "John Doe"
 msgstr "田中太郎"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:472
+#: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Joined on {0}"
 msgstr "{0}に参加"
 
@@ -431,6 +435,10 @@ msgstr "記事をもっと読み込む"
 #: src/components/ActorFollowerList.tsx:83
 msgid "Load more followers"
 msgstr "フォロワーをもっと読み込む"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:514
+msgid "Load more invitees"
+msgstr "もっと招待された人々を読み込む"
 
 #: src/components/ActorNoteList.tsx:75
 msgid "Load more notes"
@@ -456,6 +464,10 @@ msgstr "記事を読み込み中…"
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "フォロワーを読み込み中…"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:508
+msgid "Loading more invitees…"
+msgstr "招待された人々を読み込み中…"
 
 #: src/components/ActorNoteList.tsx:69
 msgid "Loading more notes…"

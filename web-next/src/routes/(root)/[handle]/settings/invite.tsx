@@ -443,43 +443,80 @@ function InviteeList(props: InviteeListProps) {
     `,
     () => props.$invitees,
   );
+  const [loadingState, setLoadingState] = createSignal<
+    "loaded" | "loading" | "errored"
+  >("loaded");
+
+  function onLoadMore() {
+    setLoadingState("loading");
+    invitees.loadNext(20, {
+      onComplete(error) {
+        setLoadingState(error == null ? "loaded" : "errored");
+      },
+    });
+  }
 
   return (
     <div>
       <Show when={invitees()}>
         {(data) => (
-          <ul class="flex flex-col gap-2">
-            <For each={data().invitees.edges}>
-              {({ node }) => (
-                <li class="flex flex-row gap-1.5">
-                  <Avatar>
-                    <a href={`/@${node.username}`}>
-                      <AvatarImage src={node.avatarUrl} />
-                    </a>
-                  </Avatar>
-                  <div class="flex flex-col">
-                    <a href={`/@${node.username}`}>
-                      <span class="font-semibold">{node.name}</span>
-                      <span class="text-sm text-muted-foreground pl-1.5">
-                        {node.actor.handle}
-                      </span>
-                    </a>
-                    <a
-                      href={`/@${node.username}`}
-                      class="text-sm text-muted-foreground"
-                    >
-                      <Trans
-                        message={t`Joined on ${"DATE"}`}
-                        values={{
-                          DATE: () => <Timestamp value={node.created} />,
-                        }}
-                      />
-                    </a>
-                  </div>
-                </li>
-              )}
-            </For>
-          </ul>
+          <>
+            <ul class="flex flex-col gap-2">
+              <For each={data().invitees.edges}>
+                {({ node }) => (
+                  <li class="flex flex-row gap-1.5">
+                    <Avatar>
+                      <a href={`/@${node.username}`}>
+                        <AvatarImage src={node.avatarUrl} />
+                      </a>
+                    </Avatar>
+                    <div class="flex flex-col">
+                      <a href={`/@${node.username}`}>
+                        <span class="font-semibold">{node.name}</span>
+                        <span class="text-sm text-muted-foreground pl-1.5">
+                          {node.actor.handle}
+                        </span>
+                      </a>
+                      <a
+                        href={`/@${node.username}`}
+                        class="text-sm text-muted-foreground"
+                      >
+                        <Trans
+                          message={t`Joined on ${"DATE"}`}
+                          values={{
+                            DATE: () => <Timestamp value={node.created} />,
+                          }}
+                        />
+                      </a>
+                    </div>
+                  </li>
+                )}
+              </For>
+            </ul>
+            <Show when={data().invitees.pageInfo.hasNextPage}>
+              <Button
+                variant="outline"
+                class="mt-4 cursor-pointer w-full"
+                on:click={invitees.pending || loadingState() === "loading"
+                  ? undefined
+                  : onLoadMore}
+              >
+                <Switch>
+                  <Match
+                    when={invitees.pending || loadingState() === "loading"}
+                  >
+                    {t`Loading more invitees…`}
+                  </Match>
+                  <Match when={loadingState() === "errored"}>
+                    {t`Failed to load more invitees; click to retry`}
+                  </Match>
+                  <Match when={loadingState() === "loaded"}>
+                    {t`Load more invitees`}
+                  </Match>
+                </Switch>
+              </Button>
+            </Show>
+          </>
         )}
       </Show>
     </div>

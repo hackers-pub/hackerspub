@@ -297,6 +297,10 @@ msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more followers; click to retry"
 msgstr "팔로워 불러오기 실패. 클릭하여 재시도하세요"
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:511
+msgid "Failed to load more invitees; click to retry"
+msgstr "초대받은 사람들을 불러오지 못했습니다. 클릭하여 다시 시도"
+
 #: src/components/ActorNoteList.tsx:72
 msgid "Failed to load more notes; click to retry"
 msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
@@ -412,7 +416,7 @@ msgid "John Doe"
 msgstr "홍길동"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:472
+#: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
 
@@ -431,6 +435,10 @@ msgstr "게시글 더 불러오기"
 #: src/components/ActorFollowerList.tsx:83
 msgid "Load more followers"
 msgstr "팔로워 더 불러오기"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:514
+msgid "Load more invitees"
+msgstr "초대받은 사람 더 보기"
 
 #: src/components/ActorNoteList.tsx:75
 msgid "Load more notes"
@@ -456,6 +464,10 @@ msgstr "게시글 불러오는 중…"
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "팔로워 불러오는 중…"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:508
+msgid "Loading more invitees…"
+msgstr "초대받은 사람들을 불러오는 중…"
 
 #: src/components/ActorNoteList.tsx:69
 msgid "Loading more notes…"

@@ -297,6 +297,10 @@ msgstr "載入更多文章失敗，點擊重試"
 msgid "Failed to load more followers; click to retry"
 msgstr "載入更多粉絲失敗，點擊重試"
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:511
+msgid "Failed to load more invitees; click to retry"
+msgstr "載入更多受邀者失敗；點擊重試"
+
 #: src/components/ActorNoteList.tsx:72
 msgid "Failed to load more notes; click to retry"
 msgstr "載入更多貼文失敗，點擊重試"
@@ -412,7 +416,7 @@ msgid "John Doe"
 msgstr "張三"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:472
+#: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Joined on {0}"
 msgstr "於{0}加入"
 
@@ -431,6 +435,10 @@ msgstr "載入更多文章"
 #: src/components/ActorFollowerList.tsx:83
 msgid "Load more followers"
 msgstr "載入更多粉絲"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:514
+msgid "Load more invitees"
+msgstr "載入更多受邀者"
 
 #: src/components/ActorNoteList.tsx:75
 msgid "Load more notes"
@@ -456,6 +464,10 @@ msgstr "載入更多文章中…"
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "載入更多粉絲中…"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:508
+msgid "Loading more invitees…"
+msgstr "正在載入更多受邀者…"
 
 #: src/components/ActorNoteList.tsx:69
 msgid "Loading more notes…"
