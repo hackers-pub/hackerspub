@@ -155,7 +155,7 @@ export function findNearestLocale(
  */
 export function negotiateLocale(
   wantedLocale: Intl.Locale | string,
-  availableLocales: (Intl.Locale | string)[],
+  availableLocales: readonly (Intl.Locale | string)[],
 ): Intl.Locale | undefined;
 
 /**
@@ -166,13 +166,13 @@ export function negotiateLocale(
  * @returns The best matching locale, or undefined if no match is found.
  */
 export function negotiateLocale(
-  wantedLocales: (Intl.Locale | string)[],
-  availableLocales: (Intl.Locale | string)[],
+  wantedLocales: readonly (Intl.Locale | string)[],
+  availableLocales: readonly (Intl.Locale | string)[],
 ): Intl.Locale | undefined;
 
 export function negotiateLocale(
-  wantedLocales: Intl.Locale | string | (Intl.Locale | string)[],
-  availableLocales: (Intl.Locale | string)[],
+  wantedLocales: Intl.Locale | string | readonly (Intl.Locale | string)[],
+  availableLocales: readonly (Intl.Locale | string)[],
 ): Intl.Locale | undefined {
   if (availableLocales.length === 0) {
     return undefined;
