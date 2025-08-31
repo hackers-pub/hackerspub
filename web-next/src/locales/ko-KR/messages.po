@@ -24,9 +24,14 @@ msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
 #. placeholder {0}: account().invitationsLeft
-#: src/routes/(root)/[handle]/settings/invite.tsx:250
+#: src/routes/(root)/[handle]/settings/invite.tsx:258
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, other {Hackers' Pub에 친구를 초대하세요. 최대 #명까지 초대할 수 있습니다.}}"
+
+#. placeholder {0}: account().inviteesCount.totalCount
+#: src/routes/(root)/[handle]/settings/invite.tsx:379
+msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
+msgstr "{0, plural, other {지금까지 총 #명을 초대하셨습니다.}}"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
@@ -71,7 +76,7 @@ msgid "{0} followed you"
 msgstr "{0} 님이 팔로했습니다"
 
 #. placeholder {0}: "USER"
-#: src/routes/(root)/[handle]/settings/invite.tsx:300
+#: src/routes/(root)/[handle]/settings/invite.tsx:308
 msgid "{0} is already a member of Hackers' Pub."
 msgstr "{0} 님은 이미 Hackers' Pub의 회원입니다."
 
@@ -170,7 +175,7 @@ msgstr "환경 설정 저장 중 오류가 발생했습니다. 다시 시도하�
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의하세요."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:187
+#: src/routes/(root)/[handle]/settings/invite.tsx:195
 msgid "An unexpected error occurred. Please try again later."
 msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도해주세요."
 
@@ -215,7 +220,7 @@ msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 msgid "Cancel"
 msgstr "취소"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:325
+#: src/routes/(root)/[handle]/settings/invite.tsx:333
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
@@ -263,7 +268,7 @@ msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. �
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "유지하려는 영역을 드래그하여 선택한 다음 “자르기”를 클릭하여 프로필 사진을 업데이트하세요."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:273
+#: src/routes/(root)/[handle]/settings/invite.tsx:281
 #: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
 msgstr "이메일 주소"
@@ -280,7 +285,7 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 msgid "Error"
 msgstr "오류"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:330
+#: src/routes/(root)/[handle]/settings/invite.tsx:338
 msgid "Extra message"
 msgstr "추가 메시지"
 
@@ -326,8 +331,8 @@ msgstr "환경 설정 저장 실패"
 msgid "Failed to save settings"
 msgstr "설정 저장 실패"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:165
-#: src/routes/(root)/[handle]/settings/invite.tsx:185
+#: src/routes/(root)/[handle]/settings/invite.tsx:173
+#: src/routes/(root)/[handle]/settings/invite.tsx:193
 msgid "Failed to send invitation"
 msgstr "초대장 발송에 실패했습니다"
 
@@ -384,27 +389,32 @@ msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:318
+#: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "Invitation language"
 msgstr "초대장 언어"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:175
+#: src/routes/(root)/[handle]/settings/invite.tsx:183
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
 #: src/components/SettingsTabs.tsx:51
-#: src/routes/(root)/[handle]/settings/invite.tsx:219
-#: src/routes/(root)/[handle]/settings/invite.tsx:230
+#: src/routes/(root)/[handle]/settings/invite.tsx:227
+#: src/routes/(root)/[handle]/settings/invite.tsx:238
 msgid "Invite"
 msgstr "초대"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:243
+#: src/routes/(root)/[handle]/settings/invite.tsx:251
 msgid "Invite a friend"
 msgstr "친구 초대하기"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:477
 msgid "John Doe"
 msgstr "홍길동"
+
+#. placeholder {0}: "DATE"
+#: src/routes/(root)/[handle]/settings/invite.tsx:472
+msgid "Joined on {0}"
+msgstr "{0}에 가입"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:471
 msgid "Last used:"
@@ -498,7 +508,7 @@ msgstr "사용된 적 없음"
 msgid "No followers found"
 msgstr "팔로워가 없습니다"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:349
+#: src/routes/(root)/[handle]/settings/invite.tsx:357
 msgid "No invitations left"
 msgstr "남은 초대장이 없습니다"
 
@@ -567,7 +577,7 @@ msgstr "패스키"
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:166
+#: src/routes/(root)/[handle]/settings/invite.tsx:174
 msgid "Please correct the errors and try again."
 msgstr "오류를 수정하고 다시 시도해주세요."
 
@@ -649,11 +659,11 @@ msgstr "저장"
 msgid "Saving…"
 msgstr "저장 중…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:352
+#: src/routes/(root)/[handle]/settings/invite.tsx:360
 msgid "Send"
 msgstr "보내기"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:351
+#: src/routes/(root)/[handle]/settings/invite.tsx:359
 msgid "Sending…"
 msgstr "보내는 중…"
 
@@ -663,7 +673,7 @@ msgstr "개인의 환경 설정을 설정하세요."
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
-#: src/routes/(root)/[handle]/settings/invite.tsx:224
+#: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
@@ -735,11 +745,11 @@ msgstr "단문의 기본 공개 설정입니다."
 msgid "The default privacy setting for your shares."
 msgstr "공유의 기본 공개 설정입니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:291
+#: src/routes/(root)/[handle]/settings/invite.tsx:299
 msgid "The email address is invalid."
 msgstr "이메일 주소가 유효하지 않습니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:286
+#: src/routes/(root)/[handle]/settings/invite.tsx:294
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "이메일 주소는 초대장을 받을 때 뿐만 아니라, 계정에 로그인할 때도 사용됩니다."
 
@@ -747,7 +757,7 @@ msgstr "이메일 주소는 초대장을 받을 때 뿐만 아니라, 계정에 
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "다음 패스키들이 계정에 등록되어 있습니다. 이들을 사용하여 계정에 로그인할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:176
+#: src/routes/(root)/[handle]/settings/invite.tsx:184
 msgid "The invitation has been sent successfully."
 msgstr "초대장이 성공적으로 발송되었습니다."
 
@@ -807,6 +817,10 @@ msgstr "아이디는 필수입니다."
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "아이디가 너무 깁니다. 최대 길이는 15자입니다."
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:376
+msgid "Users you have invited"
+msgstr "초대한 사용자"
+
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ProfileCard.tsx:137
@@ -853,7 +867,7 @@ msgstr "아이디는 단 한 번만 변경할 수 있으며, 변경하기 전 �
 msgid "You can leave this empty to remove the link."
 msgstr "링크를 삭제하려면 이곳을 비워두세요."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:336
+#: src/routes/(root)/[handle]/settings/invite.tsx:344
 msgid "You can leave this field empty."
 msgstr "이 필드는 비워둘 수 있습니다."
 
@@ -861,8 +875,8 @@ msgstr "이 필드는 비워둘 수 있습니다."
 msgid "You don't have any passkeys registered yet."
 msgstr "등록된 패스키가 아직 없습니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:248
-#: src/routes/(root)/[handle]/settings/invite.tsx:359
+#: src/routes/(root)/[handle]/settings/invite.tsx:256
+#: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려주세요."
 
@@ -890,7 +904,7 @@ msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습
 msgid "Your email address will be used to sign in to your account."
 msgstr "이메일 주소는 계정에 로그인할 때 사용됩니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:339
+#: src/routes/(root)/[handle]/settings/invite.tsx:347
 msgid "Your friend will see this message in the invitation email."
 msgstr "초대장을 받는 친구가 볼 수 있는 메시지입니다."
 

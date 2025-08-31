@@ -26,6 +26,7 @@ type Account implements Node {
 type AccountInviteesConnection {
   edges: [AccountInviteesConnectionEdge!]!
   pageInfo: PageInfo!
+  totalCount: Int!
 }
 
 type AccountInviteesConnectionEdge {

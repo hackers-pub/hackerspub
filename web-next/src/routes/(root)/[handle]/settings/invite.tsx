@@ -6,9 +6,10 @@ import {
   useParams,
 } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { createSignal, Match, Show, Switch } from "solid-js";
+import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
   createMutation,
+  createPaginationFragment,
   createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
@@ -16,6 +17,7 @@ import {
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
+import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import {
@@ -42,6 +44,8 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
+import { Avatar, AvatarImage } from "../../../../components/ui/avatar.tsx";
+import type { inviteInviteeList_invitees$key } from "./__generated__/inviteInviteeList_invitees.graphql.ts";
 import type {
   InviteEmailError,
   InviteInviterError,
@@ -67,10 +71,14 @@ const invitePageQuery = graphql`
       id
       username
       invitationsLeft
-      ...SettingsTabs_account
       actor {
         ...ProfilePageBreadcrumb_actor
       }
+      inviteesCount: invitees {
+        totalCount
+      }
+      ...SettingsTabs_account
+      ...inviteInviteeList_invitees
     }
     ...LocaleSelect_availableLocales
   }
@@ -362,6 +370,28 @@ export default function InvitePage() {
                         </form>
                       </CardContent>
                     </Card>
+                    <Show when={account().inviteesCount.totalCount > 0}>
+                      <Card class="mt-4">
+                        <CardHeader>
+                          <CardTitle>{t`Users you have invited`}</CardTitle>
+                          <CardDescription>
+                            {i18n._(
+                              msg`${
+                                plural(account().inviteesCount.totalCount, {
+                                  one:
+                                    "You have invited total # person so far.",
+                                  other:
+                                    "You have invited total # people so far.",
+                                })
+                              }`,
+                            )}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <InviteeList $invitees={account()} />
+                        </CardContent>
+                      </Card>
+                    </Show>
                   </div>
                 </div>
               </>
@@ -370,5 +400,88 @@ export default function InvitePage() {
         </>
       )}
     </Show>
+  );
+}
+
+interface InviteeListProps {
+  readonly $invitees: inviteInviteeList_invitees$key;
+}
+
+function InviteeList(props: InviteeListProps) {
+  const { t } = useLingui();
+  const invitees = createPaginationFragment(
+    graphql`
+      fragment inviteInviteeList_invitees on Account
+        @refetchable(queryName: "inviteInviteeListQuery")
+        @argumentDefinitions(
+          cursor: { type: "String" }
+          count: { type: "Int", defaultValue: 20 }
+        )
+      {
+        __id
+        invitees(after: $cursor, first: $count)
+          @connection(key: "inviteInviteeList_invitees")
+        {
+          edges {
+            __id
+            node {
+              id
+              name
+              username
+              avatarUrl
+              actor {
+                handle
+              }
+              created
+            }
+          }
+          pageInfo {
+            hasNextPage
+          }
+        }
+      }
+    `,
+    () => props.$invitees,
+  );
+
+  return (
+    <div>
+      <Show when={invitees()}>
+        {(data) => (
+          <ul class="flex flex-col gap-2">
+            <For each={data().invitees.edges}>
+              {({ node }) => (
+                <li class="flex flex-row gap-1.5">
+                  <Avatar>
+                    <a href={`/@${node.username}`}>
+                      <AvatarImage src={node.avatarUrl} />
+                    </a>
+                  </Avatar>
+                  <div class="flex flex-col">
+                    <a href={`/@${node.username}`}>
+                      <span class="font-semibold">{node.name}</span>
+                      <span class="text-sm text-muted-foreground pl-1.5">
+                        {node.actor.handle}
+                      </span>
+                    </a>
+                    <a
+                      href={`/@${node.username}`}
+                      class="text-sm text-muted-foreground"
+                    >
+                      <Trans
+                        message={t`Joined on ${"DATE"}`}
+                        values={{
+                          DATE: () => <Timestamp value={node.created} />,
+                        }}
+                      />
+                    </a>
+                  </div>
+                </li>
+              )}
+            </For>
+          </ul>
+        )}
+      </Show>
+    </div>
   );
 }

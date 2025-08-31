@@ -4,7 +4,12 @@ import {
   updateAccount,
 } from "@hackerspub/models/account";
 import type { Locale } from "@hackerspub/models/i18n";
-import { actorTable, notificationTable } from "@hackerspub/models/schema";
+import {
+  accountTable,
+  actorTable,
+  notificationTable,
+} from "@hackerspub/models/schema";
+import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import {
   resolveCursorConnection,
   type ResolveCursorConnectionArgs,
@@ -120,7 +125,6 @@ export const Account = builder.drizzleNode("accountTable", {
       },
     }),
     inviter: t.relation("inviter", { nullable: true }),
-    invitees: t.relatedConnection("invitees"),
     notifications: t.connection({
       type: Notification,
       authScopes: (parent) => ({
@@ -178,6 +182,40 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
   }),
 });
+
+const accountConnectionHelpers = drizzleConnectionHelpers(
+  builder,
+  "accountTable",
+  {
+    resolveNode: (account) => account,
+  },
+);
+
+builder.drizzleObjectField(Account, "invitees", (t) =>
+  t.connection(
+    {
+      type: Account,
+      select: {
+        with: {
+          invitees: true,
+        },
+      },
+      async resolve(account, args, ctx) {
+        return {
+          ...accountConnectionHelpers.resolve(account.invitees, args, ctx),
+          totalCount: await ctx.db.$count(
+            accountTable,
+            eq(accountTable.inviterId, account.id),
+          ),
+        };
+      },
+    },
+    {
+      fields: (t) => ({
+        totalCount: t.exposeInt("totalCount"),
+      }),
+    },
+  ));
 
 const AccountLinkIcon = builder.enumType("AccountLinkIcon", {
   values: [

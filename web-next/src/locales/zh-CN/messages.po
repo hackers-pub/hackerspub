@@ -24,9 +24,14 @@ msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
 #. placeholder {0}: account().invitationsLeft
-#: src/routes/(root)/[handle]/settings/invite.tsx:250
+#: src/routes/(root)/[handle]/settings/invite.tsx:258
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, other {邀请你的朋友加入 Hackers' Pub。你可以邀请最多 # 个人。}}"
+
+#. placeholder {0}: account().inviteesCount.totalCount
+#: src/routes/(root)/[handle]/settings/invite.tsx:379
+msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
+msgstr "{0, plural, other {您已经邀请了总共#人。}}"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
@@ -71,7 +76,7 @@ msgid "{0} followed you"
 msgstr "{0} 关注了你"
 
 #. placeholder {0}: "USER"
-#: src/routes/(root)/[handle]/settings/invite.tsx:300
+#: src/routes/(root)/[handle]/settings/invite.tsx:308
 msgid "{0} is already a member of Hackers' Pub."
 msgstr "{0} 已经是 Hackers' Pub 的成员。"
 
@@ -170,7 +175,7 @@ msgstr "保存设置时出现错误。请重试，如果问题持续存在，请
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请联系客服。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:187
+#: src/routes/(root)/[handle]/settings/invite.tsx:195
 msgid "An unexpected error occurred. Please try again later."
 msgstr "发生了意外错误。请稍后再试。"
 
@@ -215,7 +220,7 @@ msgstr "个人简介太长。不能长于 512 字符。"
 msgid "Cancel"
 msgstr "取消"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:325
+#: src/routes/(root)/[handle]/settings/invite.tsx:333
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 
@@ -263,7 +268,7 @@ msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀�
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的头像。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:273
+#: src/routes/(root)/[handle]/settings/invite.tsx:281
 #: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
 msgstr "电子邮件地址"
@@ -280,7 +285,7 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 msgid "Error"
 msgstr "错误"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:330
+#: src/routes/(root)/[handle]/settings/invite.tsx:338
 msgid "Extra message"
 msgstr "额外消息"
 
@@ -326,8 +331,8 @@ msgstr "保存设置失败"
 msgid "Failed to save settings"
 msgstr "保存设置失败"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:165
-#: src/routes/(root)/[handle]/settings/invite.tsx:185
+#: src/routes/(root)/[handle]/settings/invite.tsx:173
+#: src/routes/(root)/[handle]/settings/invite.tsx:193
 msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
@@ -384,27 +389,32 @@ msgstr "我同意 Hackers' Pub 的行为准则。"
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:318
+#: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "Invitation language"
 msgstr "邀请语言"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:175
+#: src/routes/(root)/[handle]/settings/invite.tsx:183
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
 #: src/components/SettingsTabs.tsx:51
-#: src/routes/(root)/[handle]/settings/invite.tsx:219
-#: src/routes/(root)/[handle]/settings/invite.tsx:230
+#: src/routes/(root)/[handle]/settings/invite.tsx:227
+#: src/routes/(root)/[handle]/settings/invite.tsx:238
 msgid "Invite"
 msgstr "邀请"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:243
+#: src/routes/(root)/[handle]/settings/invite.tsx:251
 msgid "Invite a friend"
 msgstr "邀请朋友"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:477
 msgid "John Doe"
 msgstr "张三"
+
+#. placeholder {0}: "DATE"
+#: src/routes/(root)/[handle]/settings/invite.tsx:472
+msgid "Joined on {0}"
+msgstr "于{0}加入"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:471
 msgid "Last used:"
@@ -498,7 +508,7 @@ msgstr "从未使用过"
 msgid "No followers found"
 msgstr "未找到粉丝"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:349
+#: src/routes/(root)/[handle]/settings/invite.tsx:357
 msgid "No invitations left"
 msgstr "没有剩余邀请名额"
 
@@ -567,7 +577,7 @@ msgstr "通行密钥"
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "请选择小于 5 MiB 的图片文件。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:166
+#: src/routes/(root)/[handle]/settings/invite.tsx:174
 msgid "Please correct the errors and try again."
 msgstr "请修正错误并重试。"
 
@@ -649,11 +659,11 @@ msgstr "保存"
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:352
+#: src/routes/(root)/[handle]/settings/invite.tsx:360
 msgid "Send"
 msgstr "发送"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:351
+#: src/routes/(root)/[handle]/settings/invite.tsx:359
 msgid "Sending…"
 msgstr "发送中…"
 
@@ -663,7 +673,7 @@ msgstr "设置您的个人偏好设置。"
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
-#: src/routes/(root)/[handle]/settings/invite.tsx:224
+#: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
@@ -735,11 +745,11 @@ msgstr "您帖子的默认隐私设置。"
 msgid "The default privacy setting for your shares."
 msgstr "您转帖的默认隐私设置。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:291
+#: src/routes/(root)/[handle]/settings/invite.tsx:299
 msgid "The email address is invalid."
 msgstr "电子邮件地址无效。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:286
+#: src/routes/(root)/[handle]/settings/invite.tsx:294
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "电子邮件地址不仅用于接收邀请，还用于登录账户。"
 
@@ -747,7 +757,7 @@ msgstr "电子邮件地址不仅用于接收邀请，还用于登录账户。"
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "以下通行密钥已注册到你的账户。你可以使用它们登录你的账户。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:176
+#: src/routes/(root)/[handle]/settings/invite.tsx:184
 msgid "The invitation has been sent successfully."
 msgstr "邀请已成功发送。"
 
@@ -807,6 +817,10 @@ msgstr "需要用户名"
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "用户名太长。不能长于 15 字符。"
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:376
+msgid "Users you have invited"
+msgstr "您邀请的用户"
+
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ProfileCard.tsx:137
@@ -853,7 +867,7 @@ msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使
 msgid "You can leave this empty to remove the link."
 msgstr "您可以将此处留空以删除链接。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:336
+#: src/routes/(root)/[handle]/settings/invite.tsx:344
 msgid "You can leave this field empty."
 msgstr "你可以留空此字段。"
 
@@ -861,8 +875,8 @@ msgstr "你可以留空此字段。"
 msgid "You don't have any passkeys registered yet."
 msgstr "您尚未注册任何通行密钥。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:248
-#: src/routes/(root)/[handle]/settings/invite.tsx:359
+#: src/routes/(root)/[handle]/settings/invite.tsx:256
+#: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你没有剩余邀请名额。请稍后再试。"
 
@@ -890,7 +904,7 @@ msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Ma
 msgid "Your email address will be used to sign in to your account."
 msgstr "你的电子邮件地址将用于登录。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:339
+#: src/routes/(root)/[handle]/settings/invite.tsx:347
 msgid "Your friend will see this message in the invitation email."
 msgstr "你的朋友将在邀请邮件中看到此信息。"
 
