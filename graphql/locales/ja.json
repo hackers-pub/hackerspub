@@ -2,5 +2,10 @@
   "login": {
     "emailSubject": "Hackers' Pubへのログイン",
     "emailContent": "Hackers' Pubへお帰りなさい！ログインするには以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\n他には下のコードをページに入力して下さい：\n\n{{code}}\n\nこのリンクとコードは{{expiration}}後に有効期限が切れます。\n\nこのメールに心当たりがない場合は、無視していただいて構いません。\n"
+  },
+  "invite": {
+    "emailSubject": "{{inviterName}}さんがHackers' Pubに招待しています！",
+    "emailContent": "{{inviter}}さんがHackers' Pubに招待しています！\n\nHackers' Pubは、ソフトウェアエンジニアが知識と経験を共有する場所です。また、ActivityPubに対応したソーシャルネットワークでもあり、フェディバース（fediverse）で気に入ったハッカーをフォローして、最新のコンテンツをフィードで受け取ることができます。\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n",
+    "emailContentWithMessage": "{{inviter}}さんがHackers' Pubに招待しています！{{inviterName}}さんからのメッセージです：\n\n{{message}}\n\n招待を受け入れるには、以下のリンクをクリックしてください：\n\n{{verifyUrl}}\n\nこのリンクは{{expiration}}後に有効期限が切れます。\n"
   }
 }

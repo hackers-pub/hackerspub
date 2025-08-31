@@ -2,5 +2,10 @@
   "login": {
     "emailSubject": "登录 Hackers' Pub",
     "emailContent": "欢迎回到 Hackers' Pub！要登录，点击以下链接：\n\n{{verifyUrl}}\n\n或通过登录页面提交此密码:\n\n{{code}}\n\n该链接和密码将于 {{expiration}} 失效。\n\n如果你并没申请这个电子邮件，可以安全地忽略它。\n"
+  },
+  "invite": {
+    "emailSubject": "{{inviterName}} 邀请你加入 Hackers' Pub！",
+    "emailContent": "{{inviter}} 邀请你加入 Hackers' Pub！\n\nHackers' Pub 是个为软件工程师共同分享知识和经验的地方。它也是启用了 ActivityPub 的社交网络，这样你可以在联邦宇宙里关注你喜爱的黑客，并获取最新的帖子。\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n",
+    "emailContentWithMessage": "{{inviter}} 邀请你加入 Hackers' Pub！以下是来自 {{inviterName}} 的信息：\n\n{{message}}\n\n要接受邀请，请点击以下链接：\n\n{{verifyUrl}}\n\n该链接将于 {{expiration}} 失效。\n"
   }
 }
