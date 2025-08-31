@@ -11,7 +11,7 @@ builder.queryField("availableLocales", (t) =>
     type: ["Locale"],
     async resolve(_root, _args, _ctx) {
       if (cachedLocales) return cachedLocales;
-      
+
       const availableLocales: Intl.Locale[] = [];
       const files = expandGlob(join(LOCALES_DIR, "*.json"), {
         includeDirs: false,
@@ -27,7 +27,7 @@ builder.queryField("availableLocales", (t) =>
           // ignore invalid locale tags
         }
       }
-      
+
       cachedLocales = availableLocales;
       return availableLocales;
     },

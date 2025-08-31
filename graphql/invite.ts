@@ -69,7 +69,11 @@ InvitationRef.implement({
 });
 
 const InviteInviterError = builder.enumType("InviteInviterError", {
-  values: ["INVITER_NOT_AUTHENTICATED", "INVITER_NO_INVITATIONS_LEFT", "INVITER_EMAIL_SEND_FAILED"] as const,
+  values: [
+    "INVITER_NOT_AUTHENTICATED",
+    "INVITER_NO_INVITATIONS_LEFT",
+    "INVITER_EMAIL_SEND_FAILED",
+  ] as const,
 });
 
 const InviteEmailError = builder.enumType("InviteEmailError", {
@@ -227,7 +231,7 @@ builder.mutationField("invite", (t) =>
         await ctx.db.update(accountTable).set({
           leftInvitations: sql`${accountTable.leftInvitations} + 1`,
         }).where(eq(accountTable.id, ctx.account.id));
-        
+
         // Return validation error to inform the user
         return {
           inviter: "INVITER_EMAIL_SEND_FAILED",
@@ -245,26 +249,34 @@ builder.mutationField("invite", (t) =>
 const LOCALES_DIR = join(import.meta.dirname!, "locales");
 
 // Cache for email templates
-let cachedTemplates: Map<string, { subject: string; emailContent: string; emailContentWithMessage: string }> | null = null;
+let cachedTemplates:
+  | Map<
+    string,
+    { subject: string; emailContent: string; emailContentWithMessage: string }
+  >
+  | null = null;
 let cachedAvailableLocales: Record<string, string> | null = null;
 
 async function loadEmailTemplates(): Promise<void> {
   if (cachedTemplates && cachedAvailableLocales) return;
-  
+
   const availableLocales: Record<string, string> = {};
-  const templates = new Map<string, { subject: string; emailContent: string; emailContentWithMessage: string }>();
-  
+  const templates = new Map<
+    string,
+    { subject: string; emailContent: string; emailContentWithMessage: string }
+  >();
+
   const files = expandGlob(join(LOCALES_DIR, "*.json"), {
     includeDirs: false,
   });
-  
+
   for await (const file of files) {
     if (!file.isFile) continue;
     const match = file.name.match(/^(.+)\.json$/);
     if (match == null) continue;
     const localeName = match[1];
     availableLocales[localeName] = file.path;
-    
+
     try {
       const json = await Deno.readTextFile(file.path);
       const data = JSON.parse(json);
@@ -274,10 +286,13 @@ async function loadEmailTemplates(): Promise<void> {
         emailContentWithMessage: data.invite.emailContentWithMessage,
       });
     } catch (error) {
-      console.warn(`Failed to load email template for locale ${localeName}:`, error);
+      console.warn(
+        `Failed to load email template for locale ${localeName}:`,
+        error,
+      );
     }
   }
-  
+
   cachedTemplates = templates;
   cachedAvailableLocales = availableLocales;
 }
@@ -287,16 +302,18 @@ async function getEmailTemplate(
   message: boolean,
 ): Promise<{ subject: string; content: string }> {
   await loadEmailTemplates();
-  
+
   const selectedLocale =
     negotiateLocale(locale, Object.keys(cachedAvailableLocales!)) ??
       new Intl.Locale("en");
-  
+
   const template = cachedTemplates!.get(selectedLocale.baseName);
   if (!template) {
-    throw new Error(`No email template found for locale ${selectedLocale.baseName}`);
+    throw new Error(
+      `No email template found for locale ${selectedLocale.baseName}`,
+    );
   }
-  
+
   return {
     subject: template.subject,
     content: message ? template.emailContentWithMessage : template.emailContent,
