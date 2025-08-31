@@ -24,7 +24,7 @@ msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
 #. placeholder {0}: account().invitationsLeft
-#: src/routes/(root)/[handle]/settings/invite.tsx:237
+#: src/routes/(root)/[handle]/settings/invite.tsx:239
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, one {友達をHackers' Pubに招待しましょう。最大#人まで招待できます。} other {友達をHackers' Pubに招待しましょう。最大#人まで招待できます。}}"
 
@@ -71,7 +71,7 @@ msgid "{0} followed you"
 msgstr "{0}さんがあなたをフォローしました"
 
 #. placeholder {0}: "USER"
-#: src/routes/(root)/[handle]/settings/invite.tsx:281
+#: src/routes/(root)/[handle]/settings/invite.tsx:283
 msgid "{0} is already a member of Hackers' Pub."
 msgstr "{0}さんは既にHackers' Pubのメンバーです。"
 
@@ -170,7 +170,7 @@ msgstr "環境設定の保存中にエラーが発生しました。再度お試
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:178
+#: src/routes/(root)/[handle]/settings/invite.tsx:180
 msgid "An unexpected error occurred. Please try again later."
 msgstr "予期しないエラーが発生しました。後でもう一度お試しください。"
 
@@ -215,7 +215,7 @@ msgstr "自己紹介が長すぎます。最大512文字です。"
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:305
+#: src/routes/(root)/[handle]/settings/invite.tsx:307
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
 
@@ -263,7 +263,7 @@ msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "保持したい領域をドラッグして選択し、「切り抜き」をクリックしてアイコンを更新してください。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:254
+#: src/routes/(root)/[handle]/settings/invite.tsx:256
 #: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
 msgstr "メールアドレス"
@@ -284,7 +284,7 @@ msgstr "エラー"
 msgid "ex) My key"
 msgstr "例) 私のキー"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:310
+#: src/routes/(root)/[handle]/settings/invite.tsx:312
 msgid "Extra message"
 msgstr "追加メッセージ"
 
@@ -330,8 +330,8 @@ msgstr "環境設定の保存に失敗しました"
 msgid "Failed to save settings"
 msgstr "設定の保存に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:156
-#: src/routes/(root)/[handle]/settings/invite.tsx:176
+#: src/routes/(root)/[handle]/settings/invite.tsx:158
+#: src/routes/(root)/[handle]/settings/invite.tsx:178
 msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
@@ -388,17 +388,17 @@ msgstr "行動規範に同意します。"
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:298
+#: src/routes/(root)/[handle]/settings/invite.tsx:300
 msgid "Invitation language"
 msgstr "招待状の言語"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:166
+#: src/routes/(root)/[handle]/settings/invite.tsx:168
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
 #: src/components/SettingsTabs.tsx:51
-#: src/routes/(root)/[handle]/settings/invite.tsx:210
-#: src/routes/(root)/[handle]/settings/invite.tsx:221
+#: src/routes/(root)/[handle]/settings/invite.tsx:212
+#: src/routes/(root)/[handle]/settings/invite.tsx:223
 msgid "Invite"
 msgstr "招待"
 
@@ -494,7 +494,7 @@ msgstr "使用履歴なし"
 msgid "No followers found"
 msgstr "フォロワーはいません"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:328
+#: src/routes/(root)/[handle]/settings/invite.tsx:330
 msgid "No invitations left"
 msgstr "招待状が残っていません"
 
@@ -570,7 +570,7 @@ msgstr "パスキー"
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "5 MiB未満の画像ファイルを選択してください。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:157
+#: src/routes/(root)/[handle]/settings/invite.tsx:159
 msgid "Please correct the errors and try again."
 msgstr "エラーを修正して、もう一度お試しください。"
 
@@ -650,17 +650,17 @@ msgstr "保存"
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:331
+#: src/routes/(root)/[handle]/settings/invite.tsx:333
 msgid "Send"
 msgstr "送信"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:330
+#: src/routes/(root)/[handle]/settings/invite.tsx:332
 msgid "Sending…"
 msgstr "送信中…"
 
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:152
-#: src/routes/(root)/[handle]/settings/invite.tsx:215
+#: src/routes/(root)/[handle]/settings/invite.tsx:217
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:379
 #: src/routes/(root)/[handle]/settings/preferences.tsx:181
 msgid "Settings"
@@ -732,11 +732,11 @@ msgstr "投稿のデフォルト公開設定です。"
 msgid "The default privacy setting for your shares."
 msgstr "共有のデフォルト公開設定です。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:272
+#: src/routes/(root)/[handle]/settings/invite.tsx:274
 msgid "The email address is invalid."
 msgstr "メールアドレスが無効です。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:267
+#: src/routes/(root)/[handle]/settings/invite.tsx:269
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "メールアドレスは招待状を受け取るだけでなく、アカウントへのログインにも使用されます。"
 
@@ -744,7 +744,7 @@ msgstr "メールアドレスは招待状を受け取るだけでなく、アカ
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "以下のパスキーがあなたのアカウントに登録されています。これらを使用してアカウントにログインできます。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:167
+#: src/routes/(root)/[handle]/settings/invite.tsx:169
 msgid "The invitation has been sent successfully."
 msgstr "招待状が正常に送信されました。"
 
@@ -846,7 +846,7 @@ msgstr "変更は1回のみ可能で、変更前のユーザー名は他のユ�
 msgid "You can leave this empty to remove the link."
 msgstr "リンクを削除する場合は空にしてください。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:316
+#: src/routes/(root)/[handle]/settings/invite.tsx:318
 msgid "You can leave this field empty."
 msgstr "このフィールドは空欄でも構いません。"
 
@@ -854,8 +854,8 @@ msgstr "このフィールドは空欄でも構いません。"
 msgid "You don't have any passkeys registered yet."
 msgstr "まだパスキーが登録されていません。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:235
-#: src/routes/(root)/[handle]/settings/invite.tsx:337
+#: src/routes/(root)/[handle]/settings/invite.tsx:237
+#: src/routes/(root)/[handle]/settings/invite.tsx:339
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "招待状が残っていません。追加されるまでお待ちください。"
 
@@ -883,7 +883,7 @@ msgstr "自己紹介はプロフィールに表示されます。Markdownで書�
 msgid "Your email address will be used to sign in to your account."
 msgstr "メールアドレスはアカウントへのログインに使用されます。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:319
+#: src/routes/(root)/[handle]/settings/invite.tsx:321
 msgid "Your friend will see this message in the invitation email."
 msgstr "友達は招待メールでこのメッセージを見ることができます。"
 

@@ -6,6 +6,6 @@
   "invite": {
     "emailSubject": "{{inviterName}} 님이 Hackers' Pub에 초대합니다!",
     "emailContent": "{{inviter}} 님이 Hackers' Pub에 초대합니다!\n\nHackers' Pub은 소프트웨어 프로그래머들이 지식과 경험을 서로 나누는 곳입니다. 또한 ActivityPub을 지원하는 소셜 네트워크이기도 하며, 연합우주(fediverse)에서 즐겨찾는 소프트웨어 프로그래머들을 팔로하고 최신 콘텐츠를 받아 볼 수 있습니다.\n\n초대장을 받으려면 아래 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n",
-    "emailContentWithMessage": "{{inviter}} 님이 Hackers' Pub에 초대합니다! 다음은 {{inviterName}} 님의 메세지입니다:\n\n{{message}}\n\n초대장을 받으려면 아래 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n"
+    "emailContentWithMessage": "{{inviter}} 님이 Hackers' Pub에 초대합니다! 다음은 {{inviterName}} 님의 메시지입니다:\n\n{{message}}\n\n초대장을 받으려면 아래 링크를 클릭하세요:\n\n{{verifyUrl}}\n\n이 링크는 {{expiration}} 후에 만료됩니다.\n"
   }
 }

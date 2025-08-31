@@ -202,7 +202,7 @@ export default function PreferencesPage() {
                           defaultChecked={account().preferAiSummary}
                         />
                         <div class="grid gap-1.5 leading-none">
-                          <Label for="prefer-ai-summary-input">
+                          <Label for="prefer-ai-summary">
                             {t`Prefer AI-generated summary`}
                           </Label>
                           <p class="text-sm text-muted-foreground">
