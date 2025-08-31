@@ -384,6 +384,40 @@ type InvalidInputError {
   inputPath: String!
 }
 
+"""An invitation that has been created."""
+type Invitation {
+  email: Email!
+  inviter: Account!
+  locale: Locale!
+  message: Markdown
+}
+
+enum InviteEmailError {
+  EMAIL_ALREADY_TAKEN
+  EMAIL_INVALID
+}
+
+enum InviteInviterError {
+  INVITER_EMAIL_SEND_FAILED
+  INVITER_NOT_AUTHENTICATED
+  INVITER_NO_INVITATIONS_LEFT
+}
+
+union InviteResult = Invitation | InviteValidationErrors
+
+"""Validation errors that occurred during the invitation process."""
+type InviteValidationErrors {
+  email: InviteEmailError
+  emailOwner: Account
+  inviter: InviteInviterError
+  verifyUrl: InviteVerifyUrlError
+}
+
+enum InviteVerifyUrlError {
+  VERIFY_URL_NO_CODE
+  VERIFY_URL_NO_TOKEN
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -441,6 +475,16 @@ type Mutation {
     sessionId: UUID!
   ): JSON!
   getPasskeyRegistrationOptions(accountId: ID!): JSON!
+  invite(
+    email: Email!
+    locale: Locale!
+    message: Markdown
+
+    """
+    The RFC 6570-compliant URI Template for the verification link.  Available variables: `{token}` and `{code}`.
+    """
+    verifyUrl: URITemplate!
+  ): InviteResult!
   loginByEmail(
     """The email of the account to sign in."""
     email: String!
@@ -742,6 +786,7 @@ type Query {
     handle: String!
   ): Actor
   actorByUuid(uuid: UUID!): Actor
+  availableLocales: [Locale!]!
   codeOfConduct(
     """The locale for the Code of Conduct."""
     locale: Locale!

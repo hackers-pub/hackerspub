@@ -155,7 +155,7 @@ export function findNearestLocale(
  */
 export function negotiateLocale(
   wantedLocale: Intl.Locale | string,
-  availableLocales: (Intl.Locale | string)[],
+  availableLocales: readonly (Intl.Locale | string)[],
 ): Intl.Locale | undefined;
 
 /**
@@ -166,13 +166,13 @@ export function negotiateLocale(
  * @returns The best matching locale, or undefined if no match is found.
  */
 export function negotiateLocale(
-  wantedLocales: (Intl.Locale | string)[],
-  availableLocales: (Intl.Locale | string)[],
+  wantedLocales: readonly (Intl.Locale | string)[],
+  availableLocales: readonly (Intl.Locale | string)[],
 ): Intl.Locale | undefined;
 
 export function negotiateLocale(
-  wantedLocales: Intl.Locale | string | (Intl.Locale | string)[],
-  availableLocales: (Intl.Locale | string)[],
+  wantedLocales: Intl.Locale | string | readonly (Intl.Locale | string)[],
+  availableLocales: readonly (Intl.Locale | string)[],
 ): Intl.Locale | undefined {
   if (availableLocales.length === 0) {
     return undefined;
@@ -186,37 +186,38 @@ export function negotiateLocale(
         : wantedLocales,
     ];
 
-  const availables = availableLocales.map((l) =>
+  const availableLocalesNormalized = availableLocales.map((l) =>
     typeof l === "string" ? new Intl.Locale(l) : l
   );
+  const availablesWithMaximized = availableLocalesNormalized.map((raw) => ({
+    raw,
+    max: raw.maximize(),
+  }));
 
   for (const wanted of wantedArray) {
     const wantedMaximized = wanted.maximize();
 
     // First try exact match
-    for (const available of availables) {
-      const availableMaximized = available.maximize();
-      if (wantedMaximized.baseName === availableMaximized.baseName) {
-        return available;
+    for (const a of availablesWithMaximized) {
+      if (wantedMaximized.baseName === a.max.baseName) {
+        return a.raw;
       }
     }
 
     // Then try language + script match (e.g., zh-Hant)
-    for (const available of availables) {
-      const availableMaximized = available.maximize();
+    for (const a of availablesWithMaximized) {
       if (
-        wantedMaximized.language === availableMaximized.language &&
-        wantedMaximized.script === availableMaximized.script
+        wantedMaximized.language === a.max.language &&
+        wantedMaximized.script === a.max.script
       ) {
-        return available;
+        return a.raw;
       }
     }
 
     // Finally try language-only match
-    for (const available of availables) {
-      const availableMaximized = available.maximize();
-      if (wantedMaximized.language === availableMaximized.language) {
-        return available;
+    for (const a of availablesWithMaximized) {
+      if (wantedMaximized.language === a.max.language) {
+        return a.raw;
       }
     }
   }

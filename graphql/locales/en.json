@@ -2,5 +2,10 @@
   "login": {
     "emailSubject": "Sign in to Hackers' Pub",
     "emailContent": "Welcome back to Hackers' Pub! To sign in, click the following link:\n\n{{verifyUrl}}\n\nor submit this code through the sign-in page:\n\n{{code}}\n\nThis link and code will expire in {{expiration}}.\n\nIf you didn't request this email, you can safely ignore it.\n"
+  },
+  "invite": {
+    "emailSubject": "{{inviterName}} invites you to Hackers' Pub!",
+    "emailContent": "{{inviter}} invites you to Hackers' Pub!\n\nHackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed.\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n",
+    "emailContentWithMessage": "{{inviter}} invites you to Hackers' Pub! Here's a message from {{inviterName}}:\n\n{{message}}\n\nTo accept the invitation, click the following link:\n\n{{verifyUrl}}\n\nThis link will expire in {{expiration}}.\n"
   }
 }
