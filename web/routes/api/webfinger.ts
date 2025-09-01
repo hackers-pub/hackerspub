@@ -227,7 +227,7 @@ export const handler = define.handlers(async (ctx) => {
 
     const remoteFollowUrl = template?.replace(
       "{uri}",
-      encodeURI(`${normalizedId}`),
+      encodeURI(requestBody.actorHandle ?? ""),
     );
 
     try {
