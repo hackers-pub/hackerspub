@@ -159,11 +159,11 @@ msgstr "Account"
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:293
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:294
 msgid "An error occurred while registering your passkey."
 msgstr "An error occurred while registering your passkey."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:341
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:342
 msgid "An error occurred while revoking your passkey."
 msgstr "An error occurred while revoking your passkey."
 
@@ -180,7 +180,7 @@ msgid "An unexpected error occurred. Please try again later."
 msgstr "An unexpected error occurred. Please try again later."
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:539
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:545
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 
@@ -216,7 +216,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:420
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -231,9 +231,10 @@ msgstr "Choose the language your friend prefers. This language will only be used
 msgid "Code of conduct"
 msgstr "Code of conduct"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:462
-msgid "Created:"
-msgstr "Created:"
+#. placeholder {0}: "RELATIVE_DATE"
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:461
+msgid "Created {0}"
+msgstr "Created {0}"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
@@ -309,7 +310,7 @@ msgstr "Failed to load more notes; click to retry"
 msgid "Failed to load more notifications; click to retry"
 msgstr "Failed to load more notifications; click to retry"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:516
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:523
 msgid "Failed to load more passkeys; click to retry"
 msgstr "Failed to load more passkeys; click to retry"
 
@@ -318,12 +319,12 @@ msgstr "Failed to load more passkeys; click to retry"
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Failed to register passkey"
 msgstr "Failed to register passkey"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:332
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:338
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:333
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:339
 msgid "Failed to revoke passkey"
 msgstr "Failed to revoke passkey"
 
@@ -420,9 +421,10 @@ msgstr "John Doe"
 msgid "Joined on {0}"
 msgstr "Joined on {0}"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:471
-msgid "Last used:"
-msgstr "Last used:"
+#. placeholder {0}: "RELATIVE_DATE"
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:478
+msgid "Last used {0}"
+msgstr "Last used {0}"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:563
 msgid "Link name"
@@ -448,7 +450,7 @@ msgstr "Load more notes"
 msgid "Load more notifications"
 msgstr "Load more notifications"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:517
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
 msgid "Load more passkeys"
 msgstr "Load more passkeys"
 
@@ -477,7 +479,7 @@ msgstr "Loading more notes…"
 msgid "Loading more notifications"
 msgstr "Loading more notifications"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:514
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:521
 msgid "Loading more passkeys…"
 msgstr "Loading more passkeys…"
 
@@ -500,7 +502,7 @@ msgstr "Markdown guide"
 msgid "Mentioned only"
 msgstr "Mentioned only"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:409
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:410
 msgid "My passkey"
 msgstr "My passkey"
 
@@ -512,7 +514,7 @@ msgstr "Name is required."
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "Name is too long. Maximum length is 50 characters."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:474
 msgid "Never used"
 msgstr "Never used"
 
@@ -567,21 +569,21 @@ msgstr "Page Not Found"
 msgid "Passkey authentication failed"
 msgstr "Passkey authentication failed"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:404
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
 msgid "Passkey name"
 msgstr "Passkey name"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:278
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:279
 msgid "Passkey registered successfully"
 msgstr "Passkey registered successfully"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
 msgid "Passkey revoked"
 msgstr "Passkey revoked"
 
 #: src/components/SettingsTabs.tsx:58
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:385
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:375
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:386
 msgid "Passkeys"
 msgstr "Passkeys"
 
@@ -632,32 +634,32 @@ msgstr "Read full article"
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
 msgid "Register"
 msgstr "Register"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:396
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:397
 msgid "Register a passkey"
 msgstr "Register a passkey"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:399
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:428
 msgid "Registered passkeys"
 msgstr "Registered passkeys"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
 msgid "Registering…"
 msgstr "Registering…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:492
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:503
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:554
 msgid "Revoke"
 msgstr "Revoke"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:537
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
@@ -686,7 +688,7 @@ msgstr "Set your personal preferences."
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:379
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:380
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
 msgstr "Settings"
@@ -765,7 +767,7 @@ msgstr "The email address is invalid."
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "The email address is not only used for receiving the invitation, but also for signing in to the account."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:430
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "The following passkeys are registered to your account. You can use them to sign in to your account."
 
@@ -773,7 +775,7 @@ msgstr "The following passkeys are registered to your account. You can use them 
 msgid "The invitation has been sent successfully."
 msgstr "The invitation has been sent successfully."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:327
 msgid "The passkey has been successfully revoked."
 msgstr "The passkey has been successfully revoked."
 
@@ -883,7 +885,7 @@ msgstr "You can leave this empty to remove the link."
 msgid "You can leave this field empty."
 msgstr "You can leave this field empty."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:441
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:439
 msgid "You don't have any passkeys registered yet."
 msgstr "You don't have any passkeys registered yet."
 
@@ -925,7 +927,7 @@ msgstr "Your friend will see this message in the invitation email."
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:280
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:281
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "Your passkey has been registered and can now be used for authentication."
 

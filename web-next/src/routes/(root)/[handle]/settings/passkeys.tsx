@@ -23,6 +23,7 @@ import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
+import { Trans } from "~/components/Trans.tsx";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -431,11 +432,8 @@ export default function passkeysPage() {
                         </CardHeader>
                         <CardContent>
                           <Show
-                            when={() => {
-                              const paginatedData = passkeyData();
-                              return paginatedData &&
-                                paginatedData.passkeys.edges.length > 0;
-                            }}
+                            when={(passkeyData()?.passkeys.edges.length ?? 0) >
+                              0}
                             fallback={
                               <p class="text-muted-foreground text-center py-8">
                                 {t`You don't have any passkeys registered yet.`}
@@ -459,22 +457,35 @@ export default function passkeysPage() {
                                       </h4>
                                       <div class="text-sm text-muted-foreground space-y-1">
                                         <div>
-                                          {t`Created:`}{" "}
-                                          <Timestamp
-                                            value={edge.node.created}
+                                          <Trans
+                                            message={t`Created ${"RELATIVE_DATE"}`}
+                                            values={{
+                                              RELATIVE_DATE: () => (
+                                                <Timestamp
+                                                  value={edge.node.created}
+                                                />
+                                              ),
+                                            }}
                                           />
                                         </div>
                                         <div>
-                                          {edge.node.lastUsed
-                                            ? (
-                                              <>
-                                                {t`Last used:`}{" "}
-                                                <Timestamp
-                                                  value={edge.node.lastUsed}
-                                                />
-                                              </>
-                                            )
-                                            : t`Never used`}
+                                          <Show
+                                            when={edge.node.lastUsed}
+                                            fallback={t`Never used`}
+                                          >
+                                            {(lastUsed) => (
+                                              <Trans
+                                                message={t`Last used ${"RELATIVE_DATE"}`}
+                                                values={{
+                                                  RELATIVE_DATE: () => (
+                                                    <Timestamp
+                                                      value={lastUsed()}
+                                                    />
+                                                  ),
+                                                }}
+                                              />
+                                            )}
+                                          </Show>
                                         </div>
                                       </div>
                                     </div>
@@ -496,27 +507,22 @@ export default function passkeysPage() {
                               </For>
 
                               <Show
-                                when={() => {
-                                  const paginatedData = passkeyData();
-                                  return paginatedData &&
-                                    paginatedData.passkeys.pageInfo.hasNextPage;
-                                }}
+                                when={passkeyData()?.passkeys.pageInfo
+                                  .hasNextPage}
                               >
-                                <div class="flex justify-center pt-4">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    disabled={loadingState() === "loading"}
-                                    onClick={loadMorePasskeys}
-                                    class="cursor-pointer"
-                                  >
-                                    {loadingState() === "loading"
-                                      ? t`Loading more passkeys…`
-                                      : loadingState() === "errored"
-                                      ? t`Failed to load more passkeys; click to retry`
-                                      : t`Load more passkeys`}
-                                  </Button>
-                                </div>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  disabled={loadingState() === "loading"}
+                                  onClick={loadMorePasskeys}
+                                  class="w-full cursor-pointer"
+                                >
+                                  {loadingState() === "loading"
+                                    ? t`Loading more passkeys…`
+                                    : loadingState() === "errored"
+                                    ? t`Failed to load more passkeys; click to retry`
+                                    : t`Load more passkeys`}
+                                </Button>
                               </Show>
                             </div>
                           </Show>

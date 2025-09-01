@@ -159,11 +159,11 @@ msgstr "帳戶"
 msgid "An error occurred during signup. Please try again."
 msgstr "註冊過程中發生錯誤。請重試。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:293
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:294
 msgid "An error occurred while registering your passkey."
 msgstr "註冊通行金鑰時發生錯誤。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:341
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:342
 msgid "An error occurred while revoking your passkey."
 msgstr "撤銷通行金鑰時發生錯誤。"
 
@@ -180,7 +180,7 @@ msgid "An unexpected error occurred. Please try again later."
 msgstr "發生了意外錯誤。請稍後再試。"
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:539
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:545
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "您確定要取消密碼{0}嗎？您將無法再使用它登入您的帳戶。"
 
@@ -216,7 +216,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "個人簡介太長。不能長於 512 字元。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:420
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Cancel"
 msgstr "取消"
 
@@ -231,9 +231,10 @@ msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
 msgid "Code of conduct"
 msgstr "行為準則"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:462
-msgid "Created:"
-msgstr "建立時間："
+#. placeholder {0}: "RELATIVE_DATE"
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:461
+msgid "Created {0}"
+msgstr "{0}建立"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
@@ -309,7 +310,7 @@ msgstr "載入更多貼文失敗，點擊重試"
 msgid "Failed to load more notifications; click to retry"
 msgstr "無法載入更多通知；點擊重試"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:516
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:523
 msgid "Failed to load more passkeys; click to retry"
 msgstr "載入更多通行金鑰失敗；點擊重試"
 
@@ -318,12 +319,12 @@ msgstr "載入更多通行金鑰失敗；點擊重試"
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Failed to register passkey"
 msgstr "註冊通行金鑰失敗"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:332
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:338
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:333
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:339
 msgid "Failed to revoke passkey"
 msgstr "撤銷通行金鑰失敗"
 
@@ -420,9 +421,10 @@ msgstr "張三"
 msgid "Joined on {0}"
 msgstr "於{0}加入"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:471
-msgid "Last used:"
-msgstr "最後使用時間："
+#. placeholder {0}: "RELATIVE_DATE"
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:478
+msgid "Last used {0}"
+msgstr "{0}最後使用"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:563
 msgid "Link name"
@@ -448,7 +450,7 @@ msgstr "載入更多貼文"
 msgid "Load more notifications"
 msgstr "載入更多通知"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:517
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
 msgid "Load more passkeys"
 msgstr "載入更多通行金鑰"
 
@@ -477,7 +479,7 @@ msgstr "載入更多貼文中…"
 msgid "Loading more notifications"
 msgstr "正在載入更多通知…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:514
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:521
 msgid "Loading more passkeys…"
 msgstr "正在載入更多通行金鑰…"
 
@@ -500,7 +502,7 @@ msgstr "Markdown 指南"
 msgid "Mentioned only"
 msgstr "只提及使用者可見"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:409
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:410
 msgid "My passkey"
 msgstr "我的通行金鑰"
 
@@ -512,7 +514,7 @@ msgstr "需要暱稱"
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "使用者名稱太長。不能長於 50 字元。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:474
 msgid "Never used"
 msgstr "從未使用過"
 
@@ -567,21 +569,21 @@ msgstr "頁面未找到"
 msgid "Passkey authentication failed"
 msgstr "通行金鑰驗證失敗"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:404
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
 msgid "Passkey name"
 msgstr "通行金鑰名稱"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:278
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:279
 msgid "Passkey registered successfully"
 msgstr "通行金鑰註冊成功"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
 msgid "Passkey revoked"
 msgstr "通行金鑰已撤銷"
 
 #: src/components/SettingsTabs.tsx:58
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:385
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:375
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:386
 msgid "Passkeys"
 msgstr "通行金鑰"
 
@@ -632,32 +634,32 @@ msgstr "閱讀完整文章"
 msgid "Read the full Code of conduct"
 msgstr "閱讀完整的行為守則"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
 msgid "Register"
 msgstr "註冊"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:396
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:397
 msgid "Register a passkey"
 msgstr "註冊通行金鑰"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:399
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "為你的帳戶註冊通行金鑰。你可以使用通行金鑰登入，而不是通過電子郵件接收登入連結。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:428
 msgid "Registered passkeys"
 msgstr "已註冊的通行金鑰"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
 msgid "Registering…"
 msgstr "註冊…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:492
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:503
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:554
 msgid "Revoke"
 msgstr "撤銷"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:537
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Revoke passkey"
 msgstr "撤銷通行金鑰"
 
@@ -686,7 +688,7 @@ msgstr "設定您的個人偏好設定。"
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:379
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:380
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
 msgstr "設定"
@@ -765,7 +767,7 @@ msgstr "電子郵件地址無效。"
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "電子郵件地址不僅用於接收邀請，還用於登入帳戶。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:430
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "以下通行金鑰已註冊到你的帳戶。你可以使用它們登入你的帳戶。"
 
@@ -773,7 +775,7 @@ msgstr "以下通行金鑰已註冊到你的帳戶。你可以使用它們登入
 msgid "The invitation has been sent successfully."
 msgstr "邀請已成功發送。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:327
 msgid "The passkey has been successfully revoked."
 msgstr "通行金鑰已成功撤銷。"
 
@@ -883,7 +885,7 @@ msgstr "您可以將此處留空以刪除連結。"
 msgid "You can leave this field empty."
 msgstr "你可以留空此欄位。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:441
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:439
 msgid "You don't have any passkeys registered yet."
 msgstr "您尚未註冊任何通行金鑰。"
 
@@ -925,7 +927,7 @@ msgstr "你的朋友將在邀請郵件中看到此訊息。"
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的暱稱將在你的個人資料頁面和你的貼文中顯示。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:280
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:281
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "您的通行金鑰已經註冊，現在可以用於驗證。"
 

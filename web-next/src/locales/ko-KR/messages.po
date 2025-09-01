@@ -159,11 +159,11 @@ msgstr "계정"
 msgid "An error occurred during signup. Please try again."
 msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 바랍니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:293
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:294
 msgid "An error occurred while registering your passkey."
 msgstr "패스키를 등록하는 중에 오류가 발생했습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:341
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:342
 msgid "An error occurred while revoking your passkey."
 msgstr "패스키를 취소하는 중에 오류가 발생했습니다."
 
@@ -180,7 +180,7 @@ msgid "An unexpected error occurred. Please try again later."
 msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도해주세요."
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:539
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:545
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "{0} 패스키를 취소하시겠습니까? 이 패스키를 사용하여 계정에 로그인할 수 없게 됩니다."
 
@@ -216,7 +216,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:420
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Cancel"
 msgstr "취소"
 
@@ -231,9 +231,10 @@ msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. �
 msgid "Code of conduct"
 msgstr "행동 강령"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:462
-msgid "Created:"
-msgstr "생성일:"
+#. placeholder {0}: "RELATIVE_DATE"
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:461
+msgid "Created {0}"
+msgstr "{0}에 생성됨"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
@@ -309,7 +310,7 @@ msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more notifications; click to retry"
 msgstr "알림을 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:516
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:523
 msgid "Failed to load more passkeys; click to retry"
 msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
@@ -318,12 +319,12 @@ msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시�
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Failed to register passkey"
 msgstr "패스키 등록 실패"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:332
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:338
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:333
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:339
 msgid "Failed to revoke passkey"
 msgstr "패스키 취소 실패"
 
@@ -420,9 +421,10 @@ msgstr "홍길동"
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:471
-msgid "Last used:"
-msgstr "마지막 사용："
+#. placeholder {0}: "RELATIVE_DATE"
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:478
+msgid "Last used {0}"
+msgstr "{0}에 마지막 사용"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:563
 msgid "Link name"
@@ -448,7 +450,7 @@ msgstr "단문 더 불러오기"
 msgid "Load more notifications"
 msgstr "알림 더 불러오기"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:517
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
 msgid "Load more passkeys"
 msgstr "패스키 더 불러오기"
 
@@ -477,7 +479,7 @@ msgstr "단문 불러오는 중…"
 msgid "Loading more notifications"
 msgstr "알림을 더 불러오는 중…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:514
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:521
 msgid "Loading more passkeys…"
 msgstr "패스키를 더 불러오는 중…"
 
@@ -500,7 +502,7 @@ msgstr "Markdown 가이드"
 msgid "Mentioned only"
 msgstr "언급된 사용자만"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:409
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:410
 msgid "My passkey"
 msgstr "내 패스키"
 
@@ -512,7 +514,7 @@ msgstr "이름은 필수입니다."
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "이름이 너무 깁니다. 최대 길이는 50자입니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:474
 msgid "Never used"
 msgstr "사용된 적 없음"
 
@@ -567,21 +569,21 @@ msgstr "페이지를 찾을 수 없습니다"
 msgid "Passkey authentication failed"
 msgstr "패스키 인증 실패"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:404
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
 msgid "Passkey name"
 msgstr "패스키 이름"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:278
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:279
 msgid "Passkey registered successfully"
 msgstr "패스키 등록 성공"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
 msgid "Passkey revoked"
 msgstr "패스키 취소됨"
 
 #: src/components/SettingsTabs.tsx:58
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:385
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:375
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:386
 msgid "Passkeys"
 msgstr "패스키"
 
@@ -632,32 +634,32 @@ msgstr "게시글 전체 읽기"
 msgid "Read the full Code of conduct"
 msgstr "행동 강령 전문을 읽으세요."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
 msgid "Register"
 msgstr "등록"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:396
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:397
 msgid "Register a passkey"
 msgstr "패스키 등록"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:399
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "계정에 패스키를 등록하세요. 이메일로 로그인 링크를 받는 대신 패스키를 사용할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:428
 msgid "Registered passkeys"
 msgstr "등록된 패스키"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
 msgid "Registering…"
 msgstr "등록중…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:492
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:503
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:554
 msgid "Revoke"
 msgstr "취소"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:537
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Revoke passkey"
 msgstr "패스키를 취소"
 
@@ -686,7 +688,7 @@ msgstr "개인의 환경 설정을 설정하세요."
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:379
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:380
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
 msgstr "설정"
@@ -765,7 +767,7 @@ msgstr "이메일 주소가 유효하지 않습니다."
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "이메일 주소는 초대장을 받을 때 뿐만 아니라, 계정에 로그인할 때도 사용됩니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:430
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "다음 패스키들이 계정에 등록되어 있습니다. 이들을 사용하여 계정에 로그인할 수 있습니다."
 
@@ -773,7 +775,7 @@ msgstr "다음 패스키들이 계정에 등록되어 있습니다. 이들을 �
 msgid "The invitation has been sent successfully."
 msgstr "초대장이 성공적으로 발송되었습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:327
 msgid "The passkey has been successfully revoked."
 msgstr "성공적으로 패스키를 취소했습니다."
 
@@ -883,7 +885,7 @@ msgstr "링크를 삭제하려면 이곳을 비워두세요."
 msgid "You can leave this field empty."
 msgstr "이 필드는 비워둘 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:441
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:439
 msgid "You don't have any passkeys registered yet."
 msgstr "등록된 패스키가 아직 없습니다."
 
@@ -925,7 +927,7 @@ msgstr "초대장을 받는 친구가 볼 수 있는 메시지입니다."
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:280
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:281
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "패스키가 등록되었습니다. 이제 이 패스키를 사용하여 로그인 할 수 있습니다."
 

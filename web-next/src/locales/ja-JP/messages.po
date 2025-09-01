@@ -159,11 +159,11 @@ msgstr "アカウント"
 msgid "An error occurred during signup. Please try again."
 msgstr "登録中にエラーが発生しました。もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:293
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:294
 msgid "An error occurred while registering your passkey."
 msgstr "パスキーの登録中にエラーが発生しました。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:341
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:342
 msgid "An error occurred while revoking your passkey."
 msgstr "パスキーの取消中にエラーが発生しました。"
 
@@ -180,7 +180,7 @@ msgid "An unexpected error occurred. Please try again later."
 msgstr "予期しないエラーが発生しました。後でもう一度お試しください。"
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:539
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:545
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "パスキー{0}を取り消しますか？このパスキーを使用してアカウントにログインできなくなります。"
 
@@ -216,7 +216,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:420
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -231,9 +231,10 @@ msgstr "招待する友達の使用言語を選択してください。この言
 msgid "Code of conduct"
 msgstr "行動規範"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:462
-msgid "Created:"
-msgstr "作成日:"
+#. placeholder {0}: "RELATIVE_DATE"
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:461
+msgid "Created {0}"
+msgstr "{0}に作成"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
@@ -309,7 +310,7 @@ msgstr "投稿の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more notifications; click to retry"
 msgstr "通知の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:516
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:523
 msgid "Failed to load more passkeys; click to retry"
 msgstr "パスキーの読み込みに失敗しました。クリックして再試行してください"
 
@@ -318,12 +319,12 @@ msgstr "パスキーの読み込みに失敗しました。クリックして再
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:290
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Failed to register passkey"
 msgstr "パスキーの登録に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:332
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:338
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:333
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:339
 msgid "Failed to revoke passkey"
 msgstr "パスキーの取り消しに失敗しました"
 
@@ -420,9 +421,10 @@ msgstr "田中太郎"
 msgid "Joined on {0}"
 msgstr "{0}に参加"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:471
-msgid "Last used:"
-msgstr "最終使用:"
+#. placeholder {0}: "RELATIVE_DATE"
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:478
+msgid "Last used {0}"
+msgstr "{0}に最終使用"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:563
 msgid "Link name"
@@ -448,7 +450,7 @@ msgstr "投稿をもっと読み込む"
 msgid "Load more notifications"
 msgstr "通知をもっと読み込む"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:517
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
 msgid "Load more passkeys"
 msgstr "パスキーを読み込む"
 
@@ -477,7 +479,7 @@ msgstr "投稿を読み込み中…"
 msgid "Loading more notifications"
 msgstr "通知を読み込み中…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:514
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:521
 msgid "Loading more passkeys…"
 msgstr "パスキーを読み込み中…"
 
@@ -500,7 +502,7 @@ msgstr "Markdown ガイド"
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:409
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:410
 msgid "My passkey"
 msgstr "私のパスキー"
 
@@ -512,7 +514,7 @@ msgstr "名前は必須です。"
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "名前が長すぎます。最大50文字です。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:477
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:474
 msgid "Never used"
 msgstr "使用履歴なし"
 
@@ -567,21 +569,21 @@ msgstr "ページが見つかりません"
 msgid "Passkey authentication failed"
 msgstr "パスキー認証に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:404
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
 msgid "Passkey name"
 msgstr "パスキー名"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:278
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:279
 msgid "Passkey registered successfully"
 msgstr "パスキーの登録に成功しました"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
 msgid "Passkey revoked"
 msgstr "パスキーを取り消しました"
 
 #: src/components/SettingsTabs.tsx:58
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:385
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:375
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:386
 msgid "Passkeys"
 msgstr "パスキー"
 
@@ -632,32 +634,32 @@ msgstr "記事全文を読む"
 msgid "Read the full Code of conduct"
 msgstr "行動規範の全文を読む"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
 msgid "Register"
 msgstr "登録"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:396
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:397
 msgid "Register a passkey"
 msgstr "パスキーを登録"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:399
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "アカウントにパスキーを登録してください。メールでログインリンクを受け取る代わりにパスキーを使用できます。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:427
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:428
 msgid "Registered passkeys"
 msgstr "登録済みパスキー"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:420
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
 msgid "Registering…"
 msgstr "登録中…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:492
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:548
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:503
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:554
 msgid "Revoke"
 msgstr "取り消す"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:537
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
 msgid "Revoke passkey"
 msgstr "パスキーを取り消す"
 
@@ -686,7 +688,7 @@ msgstr "個人の環境設定を設定してください。"
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:379
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:380
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
 msgstr "設定"
@@ -765,7 +767,7 @@ msgstr "メールアドレスが無効です。"
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "メールアドレスは招待状を受け取るだけでなく、アカウントへのログインにも使用されます。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:429
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:430
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "以下のパスキーがあなたのアカウントに登録されています。これらを使用してアカウントにログインできます。"
 
@@ -773,7 +775,7 @@ msgstr "以下のパスキーがあなたのアカウントに登録されてい
 msgid "The invitation has been sent successfully."
 msgstr "招待状が正常に送信されました。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:327
 msgid "The passkey has been successfully revoked."
 msgstr "パスキーを正常に取り消しました。"
 
@@ -883,7 +885,7 @@ msgstr "リンクを削除する場合は空にしてください。"
 msgid "You can leave this field empty."
 msgstr "このフィールドは空欄でも構いません。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:441
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:439
 msgid "You don't have any passkeys registered yet."
 msgstr "まだパスキーが登録されていません。"
 
@@ -925,7 +927,7 @@ msgstr "友達は招待メールでこのメッセージを見ることができ
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "名前はプロフィールとコンテンツに表示されます。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:280
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:281
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "パスキーが登録され、認証に使用できるようになりました。"
 
