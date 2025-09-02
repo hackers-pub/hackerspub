@@ -547,6 +547,7 @@ export default define.page<typeof handler, ProfilePageProps>(
           relationship={data.relationship}
           links={data.links}
           profileHref={data.profileHref}
+          signedAccount={state.account}
         />
         <ProfileNav
           active="total"

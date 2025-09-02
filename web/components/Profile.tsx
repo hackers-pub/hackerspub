@@ -7,6 +7,7 @@ import { compactUrl } from "@hackerspub/models/url";
 import { escape } from "@std/html/entities";
 import { ConfirmForm } from "../islands/ConfirmForm.tsx";
 import { Link } from "../islands/Link.tsx";
+import { RemoteFollowButton } from "../islands/RemoteFollowButton.tsx";
 import { Button } from "./Button.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 import { PageTitle } from "./PageTitle.tsx";
@@ -17,10 +18,12 @@ export interface ProfileProps {
   relationship: Relationship | null;
   links?: AccountLink[];
   profileHref: string;
+  signedAccount?: { id: string; actor: { id: string } } | null;
 }
 
 export function Profile(
-  { actor, actorMentions, profileHref, relationship, links }: ProfileProps,
+  { actor, actorMentions, profileHref, relationship, links, signedAccount }:
+    ProfileProps,
 ) {
   const bioHtml = preprocessContentHtml(
     actor.bioHtml ?? "",
@@ -32,7 +35,7 @@ export function Profile(
   );
   return (
     <Translation>
-      {(t) => (
+      {(t, language) => (
         <>
           {relationship?.incoming === "block"
             ? (
@@ -64,6 +67,7 @@ export function Profile(
                         width={18}
                         height={18}
                         class="inline-block align-top mt-0.5 mr-1"
+                        alt="Profile img"
                       />
                       {actor.successor.name == null
                         ? actor.successor.username
@@ -100,6 +104,7 @@ export function Profile(
                   class={`mb-5 mr-4 ${
                     actor.successorId == null ? "" : "grayscale"
                   }`}
+                  alt="Profile img"
                 />
               </a>
             )}
@@ -171,38 +176,66 @@ export function Profile(
                   />
                 )}
             </PageTitle>
-            {relationship?.outgoing === "none"
-              ? (
-                <form
-                  method="post"
-                  action={`${profileHref}/follow`}
-                  class="shrink-0"
-                >
-                  <Button
-                    disabled={relationship?.incoming === "block"}
-                    class="ml-4 mt-2 h-9"
+            {(() => {
+              // Don't show any follow buttons on own profile
+              if (signedAccount?.actor.id === actor.id) {
+                return null;
+              }
+
+              // Not logged in - show remote follow button
+              if (signedAccount == null) {
+                return (
+                  <div class="shrink-0">
+                    <RemoteFollowButton
+                      actorHandle={actor.handle}
+                      actorName={actor.name || actor.username}
+                      language={language}
+                    />
+                  </div>
+                );
+              }
+
+              // Logged in - show follow/unfollow buttons based on relationship
+              if (relationship?.outgoing === "none") {
+                return (
+                  <form
+                    method="post"
+                    action={`${profileHref}/follow`}
+                    class="shrink-0"
                   >
-                    {relationship.incoming === "follow"
-                      ? <Msg $key="profile.followBack" />
-                      : <Msg $key="profile.follow" />}
-                  </Button>
-                </form>
-              )
-              : relationship != null && relationship.incoming !== "block" &&
-                relationship.outgoing !== "block" &&
-                (
+                    <Button
+                      disabled={relationship?.incoming === "block"}
+                      class="ml-4 mt-2 h-9"
+                    >
+                      {relationship?.incoming === "follow"
+                        ? <Msg $key="profile.followBack" />
+                        : <Msg $key="profile.follow" />}
+                    </Button>
+                  </form>
+                );
+              }
+
+              if (
+                relationship?.incoming !== "block" &&
+                relationship?.outgoing !== "block"
+              ) {
+                return (
                   <form
                     method="post"
                     action={`${profileHref}/unfollow`}
                     class="shrink-0"
                   >
                     <Button class="ml-4 mt-2 h-9">
-                      {relationship.outgoing === "follow"
+                      {relationship?.outgoing === "follow"
                         ? <Msg $key="profile.unfollow" />
                         : <Msg $key="profile.cancelRequest" />}
                     </Button>
                   </form>
-                )}
+                );
+              }
+
+              return null;
+            })()}
             {relationship != null &&
               (
                 <div class="pl-3 pt-3.5">

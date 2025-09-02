@@ -278,6 +278,7 @@ export default define.page<typeof handler, ProfileArticleListProps>(
           profileHref={data.profileHref}
           relationship={data.relationship}
           links={data.links}
+          signedAccount={state.account}
         />
         <ProfileNav
           active="articles"

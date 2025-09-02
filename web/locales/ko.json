@@ -411,5 +411,35 @@
     "exhausted": "이 초대 링크는 이미 소진되었습니다. Hackers' Pub에 가입하려면 다른 초대 링크를 사용해야 합니다.",
     "duplicateEmail": "이 이메일 주소는 이미 Hackers' Pub에 가입되어 있습니다. 다른 이메일 주소를 사용해 주세요.",
     "sent": "Hackers' Pub에 가입하기 위한 이메일이 {{email}}로 발송되었습니다. 받은 편지함을 확인해 주세요. (스팸함에 있을 수도 있습니다.)"
+  },
+  "remoteFollow": {
+    "title": "원격 팔로",
+    "description": "{{actorName}}님을 팔로하려면 연합우주 핸들을 입력해 주세요.",
+    "fediverseIdLabel": "연합우주 핸들",
+    "fediverseIdPlaceholder": "@username@mastodon.social",
+    "fediverseIdExample": "연합우주 핸들을 입력하세요 (예: @username@mastodon.social)",
+    "fediverseIdRequired": "연합우주 핸들을 입력해 주세요.",
+    "fediverseIdInvalid": "올바른 연합우주 핸들 형식이 아닙니다. (@username@domain.com 형식으로 입력해 주세요)",
+    "userLookupError": "사용자 조회에 실패했습니다.",
+    "userNotFound": "사용자 정보를 찾을 수 없습니다.",
+    "userLookupGenericError": "사용자 정보 조회 중 오류가 발생했습니다.",
+    "profileImageAlt": "프로필 이미지",
+    "lookingUpUser": "사용자 정보를 조회 중입니다…",
+    "followServiceNotFound": "해당 서비스의 팔로 페이지를 찾을 수 없습니다.",
+    "cancel": "취소",
+    "follow": "팔로하기",
+    "lookupUser": "사용자 조회",
+    "lookingUp": "조회 중…",
+    "api": {
+      "fediverseIdRequired": "연합우주 핸들이 필요합니다.",
+      "fediverseIdInvalidFormat": "올바른 연합우주 핸들 형식이 아닙니다.",
+      "userNotFoundWithStatus": "사용자를 찾을 수 없습니다: {{status}}",
+      "webfingerLookupError": "WebFinger 조회 중 오류가 발생했습니다.",
+      "activityPubProfileNotFound": "ActivityPub 프로필을 찾을 수 없습니다.",
+      "objectNotActor": "조회된 객체가 액터가 아닙니다.",
+      "profileInfoFetchFailed": "프로필 정보를 가져올 수 없습니다.",
+      "serverError": "서버 오류가 발생했습니다.",
+      "templateNotFoundError": "해당 연합우주 핸들에서 원격 팔로우를 위한 템플릿을 찾을 수 없습니다."
+    }
   }
 }
