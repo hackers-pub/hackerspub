@@ -160,6 +160,10 @@ msgstr "帳戶"
 msgid "Actions"
 msgstr "操作"
 
+#: src/routes/(root)/[handle]/settings/language.tsx:250
+msgid "Add"
+msgstr "新增"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "註冊過程中發生錯誤。請重試。"
@@ -176,7 +180,7 @@ msgstr "撤銷通行金鑰時發生錯誤。"
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "儲存設定時發生錯誤。請重試，如果問題持續存在，請聯繫支援團隊。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:216
+#: src/routes/(root)/[handle]/settings/language.tsx:217
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "儲存語言偏好時出現錯誤。請重試，如果問題仍然存在，請聯繫支援。"
 
@@ -337,7 +341,7 @@ msgstr "註冊通行金鑰失敗"
 msgid "Failed to revoke passkey"
 msgstr "撤銷通行金鑰失敗"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:214
+#: src/routes/(root)/[handle]/settings/language.tsx:215
 msgid "Failed to save language preferences"
 msgstr "儲存語言偏好失敗"
 
@@ -435,6 +439,7 @@ msgid "Joined on {0}"
 msgstr "於{0}加入"
 
 #: src/components/LanguageList.tsx:33
+#: src/components/LanguageSelect.tsx:93
 msgid "Language"
 msgstr "語言"
 
@@ -723,16 +728,20 @@ msgid "Revoke passkey"
 msgstr "撤銷通行金鑰"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:232
+#: src/routes/(root)/[handle]/settings/language.tsx:255
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Save"
 msgstr "儲存"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:232
+#: src/routes/(root)/[handle]/settings/language.tsx:255
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Saving…"
 msgstr "儲存中…"
+
+#: src/components/LanguageSelect.tsx:65
+msgid "Search a language…"
+msgstr "搜尋語言…"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
@@ -797,7 +806,7 @@ msgstr "註冊 Hackers' Pub"
 msgid "Something went wrong—please try again."
 msgstr "發生錯誤，請重試。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:201
+#: src/routes/(root)/[handle]/settings/language.tsx:202
 msgid "Successfully saved language preferences"
 msgstr "成功儲存語言偏好"
 
@@ -1005,7 +1014,7 @@ msgstr "您的通行金鑰已經註冊，現在可以用於驗證。"
 msgid "Your preferences have been updated successfully."
 msgstr "您的設定已成功更新。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:202
+#: src/routes/(root)/[handle]/settings/language.tsx:203
 msgid "Your preferred languages have been updated."
 msgstr "您的偏好語言已更新。"
 

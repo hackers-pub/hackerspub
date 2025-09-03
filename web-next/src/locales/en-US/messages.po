@@ -160,6 +160,10 @@ msgstr "Account"
 msgid "Actions"
 msgstr "Actions"
 
+#: src/routes/(root)/[handle]/settings/language.tsx:250
+msgid "Add"
+msgstr "Add"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
@@ -176,7 +180,7 @@ msgstr "An error occurred while revoking your passkey."
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 
-#: src/routes/(root)/[handle]/settings/language.tsx:216
+#: src/routes/(root)/[handle]/settings/language.tsx:217
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 
@@ -337,7 +341,7 @@ msgstr "Failed to register passkey"
 msgid "Failed to revoke passkey"
 msgstr "Failed to revoke passkey"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:214
+#: src/routes/(root)/[handle]/settings/language.tsx:215
 msgid "Failed to save language preferences"
 msgstr "Failed to save language preferences"
 
@@ -435,6 +439,7 @@ msgid "Joined on {0}"
 msgstr "Joined on {0}"
 
 #: src/components/LanguageList.tsx:33
+#: src/components/LanguageSelect.tsx:93
 msgid "Language"
 msgstr "Language"
 
@@ -723,16 +728,20 @@ msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:232
+#: src/routes/(root)/[handle]/settings/language.tsx:255
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Save"
 msgstr "Save"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:232
+#: src/routes/(root)/[handle]/settings/language.tsx:255
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Saving…"
 msgstr "Saving…"
+
+#: src/components/LanguageSelect.tsx:65
+msgid "Search a language…"
+msgstr "Search a language…"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
@@ -797,7 +806,7 @@ msgstr "Signing up for Hackers' Pub"
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
-#: src/routes/(root)/[handle]/settings/language.tsx:201
+#: src/routes/(root)/[handle]/settings/language.tsx:202
 msgid "Successfully saved language preferences"
 msgstr "Successfully saved language preferences"
 
@@ -1005,7 +1014,7 @@ msgstr "Your passkey has been registered and can now be used for authentication.
 msgid "Your preferences have been updated successfully."
 msgstr "Your preferences have been updated successfully."
 
-#: src/routes/(root)/[handle]/settings/language.tsx:202
+#: src/routes/(root)/[handle]/settings/language.tsx:203
 msgid "Your preferred languages have been updated."
 msgstr "Your preferred languages have been updated."
 

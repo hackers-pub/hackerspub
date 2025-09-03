@@ -15,6 +15,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { LanguageList } from "~/components/LanguageList.tsx";
+import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -31,8 +32,8 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { showToast } from "../../../../components/ui/toast.tsx";
 import type { languageMutation } from "./__generated__/languageMutation.graphql.ts";
 import type { languagePageQuery } from "./__generated__/languagePageQuery.graphql.ts";
 import type { languagePreferredLanguagesForm_locales$key } from "./__generated__/languagePreferredLanguagesForm_locales.graphql.ts";
@@ -183,6 +184,7 @@ function PreferredLanguagesForm(props: PreferredLanguagesFormProps) {
       ...readonly Intl.Locale[],
     ],
   );
+  const [localeToAdd, setLocaleToAdd] = createSignal<Intl.Locale>();
   const [save] = createMutation<languageMutation>(languageMutation);
   const [saving, setSaving] = createSignal(false);
 
@@ -222,11 +224,33 @@ function PreferredLanguagesForm(props: PreferredLanguagesFormProps) {
   }
 
   return (
-    <form on:submit={onSubmit}>
+    <form on:submit={onSubmit} class="flex flex-col gap-4">
       <LanguageList
         locales={locales()}
         onChange={setLocales}
       />
+      <div class="flex flex-row gap-4">
+        <LanguageSelect
+          class="w-full"
+          value={localeToAdd() == null ? null : localeToAdd()}
+          onChange={setLocaleToAdd}
+          exclude={locales()}
+        />
+        <div class="shrink">
+          <Button
+            type="button"
+            variant="default"
+            class="w-full cursor-pointer"
+            disabled={localeToAdd() == null}
+            on:click={() => {
+              setLocales((locales) => [...locales, localeToAdd()!]);
+              setLocaleToAdd(undefined);
+            }}
+          >
+            {t`Add`}
+          </Button>
+        </div>
+      </div>
       <Button type="submit" class="w-full cursor-pointer" disabled={saving()}>
         {saving() ? t`Saving…` : t`Save`}
       </Button>
