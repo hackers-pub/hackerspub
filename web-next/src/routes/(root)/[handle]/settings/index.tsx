@@ -558,7 +558,7 @@ function LinkItemForm(props: LinkItemFormProps) {
   return (
     <div class="flex flex-col gap-1.5">
       <div class="flex flex-row gap-4">
-        <TextField class="grid w-full items-center gap-1.5">
+        <TextField class="flex flex-col w-full gap-1.5">
           <TextFieldLabel for={`link-name-${props.index}`}>
             {t`Link name`}
           </TextFieldLabel>
@@ -578,12 +578,12 @@ function LinkItemForm(props: LinkItemFormProps) {
               })}
           />
           <Show when={props.description}>
-            <TextFieldDescription class="leading-6">
+            <TextFieldDescription class="leading-6 grow">
               {t`A name for the link that will be displayed on your profile, e.g., GitHub.`}
             </TextFieldDescription>
           </Show>
         </TextField>
-        <TextField class="grid w-full items-center gap-1.5">
+        <TextField class="flex flex-col w-full gap-1.5">
           <TextFieldLabel for={`link-url-${props.index}`}>
             {t`URL`}
           </TextFieldLabel>
@@ -602,7 +602,7 @@ function LinkItemForm(props: LinkItemFormProps) {
               })}
           />
           <Show when={props.description}>
-            <TextFieldDescription class="leading-6">
+            <TextFieldDescription class="leading-6 grow">
               {t`The URL of the link, e.g., https://github.com/yourhandle.`}
             </TextFieldDescription>
           </Show>
