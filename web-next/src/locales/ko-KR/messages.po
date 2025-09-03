@@ -155,6 +155,11 @@ msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함
 msgid "Account"
 msgstr "계정"
 
+#: src/components/LanguageList.tsx:63
+#: src/components/LanguageList.tsx:198
+msgid "Actions"
+msgstr "동작"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 바랍니다."
@@ -170,6 +175,10 @@ msgstr "패스키를 취소하는 중에 오류가 발생했습니다."
 #: src/routes/(root)/[handle]/settings/preferences.tsx:151
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "환경 설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의해 주세요."
+
+#: src/routes/(root)/[handle]/settings/language.tsx:216
+msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
+msgstr "언어 설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의해 주세요."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:359
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
@@ -328,6 +337,10 @@ msgstr "패스키 등록 실패"
 msgid "Failed to revoke passkey"
 msgstr "패스키 취소 실패"
 
+#: src/routes/(root)/[handle]/settings/language.tsx:214
+msgid "Failed to save language preferences"
+msgstr "언어 설정 저장 실패"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:149
 msgid "Failed to save preferences"
 msgstr "환경 설정 저장 실패"
@@ -402,7 +415,7 @@ msgstr "초대장 언어"
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
-#: src/components/SettingsTabs.tsx:51
+#: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
 msgid "Invite"
@@ -420,6 +433,20 @@ msgstr "홍길동"
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
+
+#: src/components/LanguageList.tsx:33
+msgid "Language"
+msgstr "언어"
+
+#: src/components/LanguageList.tsx:32
+msgid "Language code"
+msgstr "언어 코드"
+
+#: src/components/SettingsTabs.tsx:56
+#: src/routes/(root)/[handle]/settings/language.tsx:111
+#: src/routes/(root)/[handle]/settings/language.tsx:122
+msgid "Language settings"
+msgstr "언어 설정"
 
 #. placeholder {0}: "RELATIVE_DATE"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:478
@@ -502,6 +529,22 @@ msgstr "Markdown 가이드"
 msgid "Mentioned only"
 msgstr "언급된 사용자만"
 
+#: src/components/LanguageList.tsx:164
+msgid "Move down"
+msgstr "아래로 이동"
+
+#: src/components/LanguageList.tsx:195
+msgid "Move to the bottom"
+msgstr "맨 아래로 이동"
+
+#: src/components/LanguageList.tsx:104
+msgid "Move to the top"
+msgstr "맨 위로 이동"
+
+#: src/components/LanguageList.tsx:134
+msgid "Move up"
+msgstr "위로 이동"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:410
 msgid "My passkey"
 msgstr "내 패스키"
@@ -513,6 +556,10 @@ msgstr "이름은 필수입니다."
 #: src/routes/(root)/sign/up/[token].tsx:156
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "이름이 너무 깁니다. 최대 길이는 50자입니다."
+
+#: src/components/LanguageList.tsx:34
+msgid "Native name"
+msgstr "현지명"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:474
 msgid "Never used"
@@ -581,7 +628,7 @@ msgstr "패스키 등록 성공"
 msgid "Passkey revoked"
 msgstr "패스키 취소됨"
 
-#: src/components/SettingsTabs.tsx:58
+#: src/components/SettingsTabs.tsx:70
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:375
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:386
 msgid "Passkeys"
@@ -603,14 +650,22 @@ msgstr "콘텐츠"
 msgid "Prefer AI-generated summary"
 msgstr "AI 생성 요약 선호"
 
-#: src/components/SettingsTabs.tsx:44
+#: src/components/SettingsTabs.tsx:49
 #: src/routes/(root)/[handle]/settings/preferences.tsx:183
 #: src/routes/(root)/[handle]/settings/preferences.tsx:194
 #: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Preferences"
 msgstr "환경 설정"
 
-#: src/components/SettingsTabs.tsx:37
+#: src/routes/(root)/[handle]/settings/language.tsx:134
+msgid "Preferred languages"
+msgstr "선호 언어"
+
+#: src/components/LanguageList.tsx:73
+msgid "Priority"
+msgstr "우선순위"
+
+#: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:154
 #: src/routes/(root)/[handle]/settings/index.tsx:168
 msgid "Profile settings"
@@ -654,6 +709,10 @@ msgstr "등록된 패스키"
 msgid "Registering…"
 msgstr "등록중…"
 
+#: src/components/LanguageList.tsx:225
+msgid "Remove"
+msgstr "제거"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:503
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:554
 msgid "Revoke"
@@ -664,14 +723,20 @@ msgid "Revoke passkey"
 msgstr "패스키를 취소"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
+#: src/routes/(root)/[handle]/settings/language.tsx:232
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Save"
 msgstr "저장"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
+#: src/routes/(root)/[handle]/settings/language.tsx:232
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Saving…"
 msgstr "저장 중…"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:136
+msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
+msgstr "선호하는 언어를 우선순위에 따라 선택하세요. 콘텐츠를 사용자의 취향에 맞게 조정하는 데 도움이 됩니다."
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:360
 msgid "Send"
@@ -688,6 +753,7 @@ msgstr "개인의 환경 설정을 설정하세요."
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
+#: src/routes/(root)/[handle]/settings/language.tsx:116
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:380
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
@@ -730,6 +796,10 @@ msgstr "Hackers' Pub 가입"
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "문제가 발생했습니다. 다시 시도해주세요."
+
+#: src/routes/(root)/[handle]/settings/language.tsx:201
+msgid "Successfully saved language preferences"
+msgstr "언어 설정이 성공적으로 저장되었습니다"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:141
 msgid "Successfully saved preferences"
@@ -934,6 +1004,10 @@ msgstr "패스키가 등록되었습니다. 이제 이 패스키를 사용하여
 #: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "Your preferences have been updated successfully."
 msgstr "환경 설정이 성공적으로 업데이트되었습니다."
+
+#: src/routes/(root)/[handle]/settings/language.tsx:202
+msgid "Your preferred languages have been updated."
+msgstr "선호 언어가 업데이트되었습니다."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:351
 msgid "Your profile settings have been updated successfully."

@@ -155,6 +155,11 @@ msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾
 msgid "Account"
 msgstr "账户"
 
+#: src/components/LanguageList.tsx:63
+#: src/components/LanguageList.tsx:198
+msgid "Actions"
+msgstr "操作"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
@@ -170,6 +175,10 @@ msgstr "在撤销您的通行密钥时发生错误。"
 #: src/routes/(root)/[handle]/settings/preferences.tsx:151
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持团队。"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:216
+msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
+msgstr "保存语言偏好时出现错误。请重试，如果问题仍然存在，请联系支持。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:359
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
@@ -328,6 +337,10 @@ msgstr "注册通行密钥失败"
 msgid "Failed to revoke passkey"
 msgstr "撤销通行密钥失败"
 
+#: src/routes/(root)/[handle]/settings/language.tsx:214
+msgid "Failed to save language preferences"
+msgstr "保存语言偏好失败"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:149
 msgid "Failed to save preferences"
 msgstr "保存设置失败"
@@ -402,7 +415,7 @@ msgstr "邀请语言"
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
-#: src/components/SettingsTabs.tsx:51
+#: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
 msgid "Invite"
@@ -420,6 +433,20 @@ msgstr "张三"
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Joined on {0}"
 msgstr "于{0}加入"
+
+#: src/components/LanguageList.tsx:33
+msgid "Language"
+msgstr "语言"
+
+#: src/components/LanguageList.tsx:32
+msgid "Language code"
+msgstr "语言代码"
+
+#: src/components/SettingsTabs.tsx:56
+#: src/routes/(root)/[handle]/settings/language.tsx:111
+#: src/routes/(root)/[handle]/settings/language.tsx:122
+msgid "Language settings"
+msgstr "语言设置"
 
 #. placeholder {0}: "RELATIVE_DATE"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:478
@@ -502,6 +529,22 @@ msgstr "Markdown 指南"
 msgid "Mentioned only"
 msgstr "只提及用户可见"
 
+#: src/components/LanguageList.tsx:164
+msgid "Move down"
+msgstr "向下移动"
+
+#: src/components/LanguageList.tsx:195
+msgid "Move to the bottom"
+msgstr "移动到底部"
+
+#: src/components/LanguageList.tsx:104
+msgid "Move to the top"
+msgstr "移动到顶部"
+
+#: src/components/LanguageList.tsx:134
+msgid "Move up"
+msgstr "向上移动"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:410
 msgid "My passkey"
 msgstr "我的通行密钥"
@@ -513,6 +556,10 @@ msgstr "需要昵称"
 #: src/routes/(root)/sign/up/[token].tsx:156
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "用户名太长。不能长于 50 字符。"
+
+#: src/components/LanguageList.tsx:34
+msgid "Native name"
+msgstr "本地名称"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:474
 msgid "Never used"
@@ -581,7 +628,7 @@ msgstr "通行密钥注册成功"
 msgid "Passkey revoked"
 msgstr "通行密钥已撤销"
 
-#: src/components/SettingsTabs.tsx:58
+#: src/components/SettingsTabs.tsx:70
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:375
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:386
 msgid "Passkeys"
@@ -603,14 +650,22 @@ msgstr "内容"
 msgid "Prefer AI-generated summary"
 msgstr "优先使用 AI 生成的摘要"
 
-#: src/components/SettingsTabs.tsx:44
+#: src/components/SettingsTabs.tsx:49
 #: src/routes/(root)/[handle]/settings/preferences.tsx:183
 #: src/routes/(root)/[handle]/settings/preferences.tsx:194
 #: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Preferences"
 msgstr "偏好设置"
 
-#: src/components/SettingsTabs.tsx:37
+#: src/routes/(root)/[handle]/settings/language.tsx:134
+msgid "Preferred languages"
+msgstr "偏好语言"
+
+#: src/components/LanguageList.tsx:73
+msgid "Priority"
+msgstr "优先级"
+
+#: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:154
 #: src/routes/(root)/[handle]/settings/index.tsx:168
 msgid "Profile settings"
@@ -654,6 +709,10 @@ msgstr "已注册的通行密钥"
 msgid "Registering…"
 msgstr "正在注册…"
 
+#: src/components/LanguageList.tsx:225
+msgid "Remove"
+msgstr "移除"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:503
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:554
 msgid "Revoke"
@@ -664,14 +723,20 @@ msgid "Revoke passkey"
 msgstr "撤销通行密钥"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
+#: src/routes/(root)/[handle]/settings/language.tsx:232
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Save"
 msgstr "保存"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
+#: src/routes/(root)/[handle]/settings/language.tsx:232
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Saving…"
 msgstr "保存中…"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:136
+msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
+msgstr "按偏好顺序选择您的偏好语言。这将有助于根据您的偏好定制内容。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:360
 msgid "Send"
@@ -688,6 +753,7 @@ msgstr "设置您的个人偏好设置。"
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
+#: src/routes/(root)/[handle]/settings/language.tsx:116
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:380
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
@@ -730,6 +796,10 @@ msgstr "注册 Hackers' Pub"
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:201
+msgid "Successfully saved language preferences"
+msgstr "成功保存语言偏好"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:141
 msgid "Successfully saved preferences"
@@ -934,6 +1004,10 @@ msgstr "您的通行密钥已注册，现在可以用于身份验证。"
 #: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "Your preferences have been updated successfully."
 msgstr "您的设置已成功更新。"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:202
+msgid "Your preferred languages have been updated."
+msgstr "您的偏好语言已更新。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:351
 msgid "Your profile settings have been updated successfully."

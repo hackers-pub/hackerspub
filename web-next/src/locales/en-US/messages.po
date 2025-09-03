@@ -155,6 +155,11 @@ msgstr "A sign-in link has been sent to your email. Please check your inbox (or 
 msgid "Account"
 msgstr "Account"
 
+#: src/components/LanguageList.tsx:63
+#: src/components/LanguageList.tsx:198
+msgid "Actions"
+msgstr "Actions"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
@@ -170,6 +175,10 @@ msgstr "An error occurred while revoking your passkey."
 #: src/routes/(root)/[handle]/settings/preferences.tsx:151
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
+
+#: src/routes/(root)/[handle]/settings/language.tsx:216
+msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
+msgstr "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:359
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
@@ -328,6 +337,10 @@ msgstr "Failed to register passkey"
 msgid "Failed to revoke passkey"
 msgstr "Failed to revoke passkey"
 
+#: src/routes/(root)/[handle]/settings/language.tsx:214
+msgid "Failed to save language preferences"
+msgstr "Failed to save language preferences"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:149
 msgid "Failed to save preferences"
 msgstr "Failed to save preferences"
@@ -402,7 +415,7 @@ msgstr "Invitation language"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/SettingsTabs.tsx:51
+#: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
 msgid "Invite"
@@ -420,6 +433,20 @@ msgstr "John Doe"
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Joined on {0}"
 msgstr "Joined on {0}"
+
+#: src/components/LanguageList.tsx:33
+msgid "Language"
+msgstr "Language"
+
+#: src/components/LanguageList.tsx:32
+msgid "Language code"
+msgstr "Language code"
+
+#: src/components/SettingsTabs.tsx:56
+#: src/routes/(root)/[handle]/settings/language.tsx:111
+#: src/routes/(root)/[handle]/settings/language.tsx:122
+msgid "Language settings"
+msgstr "Language settings"
 
 #. placeholder {0}: "RELATIVE_DATE"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:478
@@ -502,6 +529,22 @@ msgstr "Markdown guide"
 msgid "Mentioned only"
 msgstr "Mentioned only"
 
+#: src/components/LanguageList.tsx:164
+msgid "Move down"
+msgstr "Move down"
+
+#: src/components/LanguageList.tsx:195
+msgid "Move to the bottom"
+msgstr "Move to the bottom"
+
+#: src/components/LanguageList.tsx:104
+msgid "Move to the top"
+msgstr "Move to the top"
+
+#: src/components/LanguageList.tsx:134
+msgid "Move up"
+msgstr "Move up"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:410
 msgid "My passkey"
 msgstr "My passkey"
@@ -513,6 +556,10 @@ msgstr "Name is required."
 #: src/routes/(root)/sign/up/[token].tsx:156
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "Name is too long. Maximum length is 50 characters."
+
+#: src/components/LanguageList.tsx:34
+msgid "Native name"
+msgstr "Native name"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:474
 msgid "Never used"
@@ -581,7 +628,7 @@ msgstr "Passkey registered successfully"
 msgid "Passkey revoked"
 msgstr "Passkey revoked"
 
-#: src/components/SettingsTabs.tsx:58
+#: src/components/SettingsTabs.tsx:70
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:375
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:386
 msgid "Passkeys"
@@ -603,14 +650,22 @@ msgstr "Posts"
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"
 
-#: src/components/SettingsTabs.tsx:44
+#: src/components/SettingsTabs.tsx:49
 #: src/routes/(root)/[handle]/settings/preferences.tsx:183
 #: src/routes/(root)/[handle]/settings/preferences.tsx:194
 #: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Preferences"
 msgstr "Preferences"
 
-#: src/components/SettingsTabs.tsx:37
+#: src/routes/(root)/[handle]/settings/language.tsx:134
+msgid "Preferred languages"
+msgstr "Preferred languages"
+
+#: src/components/LanguageList.tsx:73
+msgid "Priority"
+msgstr "Priority"
+
+#: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:154
 #: src/routes/(root)/[handle]/settings/index.tsx:168
 msgid "Profile settings"
@@ -654,6 +709,10 @@ msgstr "Registered passkeys"
 msgid "Registering…"
 msgstr "Registering…"
 
+#: src/components/LanguageList.tsx:225
+msgid "Remove"
+msgstr "Remove"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:503
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:554
 msgid "Revoke"
@@ -664,14 +723,20 @@ msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
+#: src/routes/(root)/[handle]/settings/language.tsx:232
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Save"
 msgstr "Save"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
+#: src/routes/(root)/[handle]/settings/language.tsx:232
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Saving…"
 msgstr "Saving…"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:136
+msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
+msgstr "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:360
 msgid "Send"
@@ -688,6 +753,7 @@ msgstr "Set your personal preferences."
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
+#: src/routes/(root)/[handle]/settings/language.tsx:116
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:380
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
@@ -730,6 +796,10 @@ msgstr "Signing up for Hackers' Pub"
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
+
+#: src/routes/(root)/[handle]/settings/language.tsx:201
+msgid "Successfully saved language preferences"
+msgstr "Successfully saved language preferences"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:141
 msgid "Successfully saved preferences"
@@ -934,6 +1004,10 @@ msgstr "Your passkey has been registered and can now be used for authentication.
 #: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "Your preferences have been updated successfully."
 msgstr "Your preferences have been updated successfully."
+
+#: src/routes/(root)/[handle]/settings/language.tsx:202
+msgid "Your preferred languages have been updated."
+msgstr "Your preferred languages have been updated."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:351
 msgid "Your profile settings have been updated successfully."

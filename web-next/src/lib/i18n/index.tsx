@@ -4,18 +4,33 @@ import { I18nProvider as KobalteI18nProvider } from "@kobalte/core/i18n";
 import { type I18n as LinguiI18n, setupI18n } from "@lingui/core";
 import { createAsync, query } from "@solidjs/router";
 import { parseAcceptLanguage } from "intl-parse-accept-language";
+import { graphql, readInlineData } from "relay-runtime";
 import { createContext, type ParentProps, Show, useContext } from "solid-js";
 import { getQuery, getRequestHeader } from "vinxi/http";
 import linguiConfig from "../../../lingui.config.ts";
+import type { i18nProviderLoadI18n_query$key } from "./__generated__/i18nProviderLoadI18n_query.graphql.ts";
 
-const loadI18n = query(async () => {
+const loadI18n = query(async ($query: i18nProviderLoadI18n_query$key) => {
   "use server";
 
   const query = getQuery();
+  const accountLocales = readInlineData(
+    graphql`
+      fragment i18nProviderLoadI18n_query on Query @inline {
+        viewer {
+          locales
+        }
+      }
+    `,
+    $query,
+  ).viewer?.locales;
 
   let loc: Intl.Locale | undefined;
   if (typeof query.lang === "string") {
     loc = negotiateLocale(query.lang, linguiConfig.locales);
+  }
+  if (loc == null && accountLocales != null && accountLocales.length > 0) {
+    loc = negotiateLocale(accountLocales, linguiConfig.locales);
   }
   if (loc == null) {
     const acceptLanguage = getRequestHeader("Accept-Language");
@@ -32,8 +47,12 @@ const loadI18n = query(async () => {
 
 const I18nContext = createContext<LinguiI18n>();
 
-export function I18nProvider(props: ParentProps) {
-  const locale = createAsync(() => loadI18n(), { deferStream: true });
+export interface I18nProviderProps {
+  readonly $query: i18nProviderLoadI18n_query$key;
+}
+
+export function I18nProvider(props: ParentProps<I18nProviderProps>) {
+  const locale = createAsync(() => loadI18n(props.$query));
   const i18n = () => {
     const loaded = locale();
     if (!loaded) return;

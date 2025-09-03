@@ -155,6 +155,11 @@ msgstr "ログインリンクがメールに送信されました。受信トレ
 msgid "Account"
 msgstr "アカウント"
 
+#: src/components/LanguageList.tsx:63
+#: src/components/LanguageList.tsx:198
+msgid "Actions"
+msgstr "操作"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "登録中にエラーが発生しました。もう一度お試しください。"
@@ -170,6 +175,10 @@ msgstr "パスキーの取消中にエラーが発生しました。"
 #: src/routes/(root)/[handle]/settings/preferences.tsx:151
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "環境設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:216
+msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
+msgstr "言語設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:359
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
@@ -328,6 +337,10 @@ msgstr "パスキーの登録に失敗しました"
 msgid "Failed to revoke passkey"
 msgstr "パスキーの取り消しに失敗しました"
 
+#: src/routes/(root)/[handle]/settings/language.tsx:214
+msgid "Failed to save language preferences"
+msgstr "言語設定の保存に失敗しました"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:149
 msgid "Failed to save preferences"
 msgstr "環境設定の保存に失敗しました"
@@ -402,7 +415,7 @@ msgstr "招待状の言語"
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
-#: src/components/SettingsTabs.tsx:51
+#: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
 msgid "Invite"
@@ -420,6 +433,20 @@ msgstr "田中太郎"
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Joined on {0}"
 msgstr "{0}に参加"
+
+#: src/components/LanguageList.tsx:33
+msgid "Language"
+msgstr "言語"
+
+#: src/components/LanguageList.tsx:32
+msgid "Language code"
+msgstr "言語コード"
+
+#: src/components/SettingsTabs.tsx:56
+#: src/routes/(root)/[handle]/settings/language.tsx:111
+#: src/routes/(root)/[handle]/settings/language.tsx:122
+msgid "Language settings"
+msgstr "言語設定"
 
 #. placeholder {0}: "RELATIVE_DATE"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:478
@@ -502,6 +529,22 @@ msgstr "Markdown ガイド"
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
 
+#: src/components/LanguageList.tsx:164
+msgid "Move down"
+msgstr "下へ移動"
+
+#: src/components/LanguageList.tsx:195
+msgid "Move to the bottom"
+msgstr "一番下へ移動"
+
+#: src/components/LanguageList.tsx:104
+msgid "Move to the top"
+msgstr "一番上へ移動"
+
+#: src/components/LanguageList.tsx:134
+msgid "Move up"
+msgstr "上へ移動"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:410
 msgid "My passkey"
 msgstr "私のパスキー"
@@ -513,6 +556,10 @@ msgstr "名前は必須です。"
 #: src/routes/(root)/sign/up/[token].tsx:156
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "名前が長すぎます。最大50文字です。"
+
+#: src/components/LanguageList.tsx:34
+msgid "Native name"
+msgstr "現地名"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:474
 msgid "Never used"
@@ -581,7 +628,7 @@ msgstr "パスキーの登録に成功しました"
 msgid "Passkey revoked"
 msgstr "パスキーを取り消しました"
 
-#: src/components/SettingsTabs.tsx:58
+#: src/components/SettingsTabs.tsx:70
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:375
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:386
 msgid "Passkeys"
@@ -603,14 +650,22 @@ msgstr "コンテンツ"
 msgid "Prefer AI-generated summary"
 msgstr "AI生成の要約を優先"
 
-#: src/components/SettingsTabs.tsx:44
+#: src/components/SettingsTabs.tsx:49
 #: src/routes/(root)/[handle]/settings/preferences.tsx:183
 #: src/routes/(root)/[handle]/settings/preferences.tsx:194
 #: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Preferences"
 msgstr "環境設定"
 
-#: src/components/SettingsTabs.tsx:37
+#: src/routes/(root)/[handle]/settings/language.tsx:134
+msgid "Preferred languages"
+msgstr "優先言語"
+
+#: src/components/LanguageList.tsx:73
+msgid "Priority"
+msgstr "優先度"
+
+#: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:154
 #: src/routes/(root)/[handle]/settings/index.tsx:168
 msgid "Profile settings"
@@ -654,6 +709,10 @@ msgstr "登録済みパスキー"
 msgid "Registering…"
 msgstr "登録中…"
 
+#: src/components/LanguageList.tsx:225
+msgid "Remove"
+msgstr "削除"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:503
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:554
 msgid "Revoke"
@@ -664,14 +723,20 @@ msgid "Revoke passkey"
 msgstr "パスキーを取り消す"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
+#: src/routes/(root)/[handle]/settings/language.tsx:232
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Save"
 msgstr "保存"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
+#: src/routes/(root)/[handle]/settings/language.tsx:232
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Saving…"
 msgstr "保存中…"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:136
+msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
+msgstr "優先度の高い順に言語を選択してください。コンテンツをあなたの好みに合わせて調整するのに役立ちます。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:360
 msgid "Send"
@@ -688,6 +753,7 @@ msgstr "個人の環境設定を設定してください。"
 #: src/components/AppSidebar.tsx:288
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
+#: src/routes/(root)/[handle]/settings/language.tsx:116
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:380
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
@@ -730,6 +796,10 @@ msgstr "Hackers' Pubに登録"
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:201
+msgid "Successfully saved language preferences"
+msgstr "言語設定を正常に保存しました"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:141
 msgid "Successfully saved preferences"
@@ -934,6 +1004,10 @@ msgstr "パスキーが登録され、認証に使用できるようになりま
 #: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "Your preferences have been updated successfully."
 msgstr "環境設定が正常に更新されました。"
+
+#: src/routes/(root)/[handle]/settings/language.tsx:202
+msgid "Your preferred languages have been updated."
+msgstr "優先言語が更新されました。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:351
 msgid "Your profile settings have been updated successfully."
