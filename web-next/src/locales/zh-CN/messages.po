@@ -151,7 +151,7 @@ msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
 
-#: src/components/AppSidebar.tsx:215
+#: src/components/AppSidebar.tsx:216
 msgid "Account"
 msgstr "账户"
 
@@ -202,7 +202,7 @@ msgstr "您确定要撤销通行密钥“{0}”吗？您将无法再使用它登
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:208
+#: src/components/AppSidebar.tsx:209
 msgid "Articles only"
 msgstr "仅文章"
 
@@ -237,7 +237,7 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 
-#: src/components/AppSidebar.tsx:321
+#: src/components/AppSidebar.tsx:349
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -359,15 +359,15 @@ msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:81
+#: src/components/AppSidebar.tsx:82
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
-#: src/components/AppSidebar.tsx:170
+#: src/components/AppSidebar.tsx:171
 msgid "Fediverse"
 msgstr "联邦宇宙"
 
-#: src/components/AppSidebar.tsx:131
+#: src/components/AppSidebar.tsx:132
 msgid "Feed"
 msgstr "订阅流"
 
@@ -384,12 +384,12 @@ msgstr "只粉丝可见"
 msgid "Following you"
 msgstr "关注了你"
 
-#: src/components/AppSidebar.tsx:333
+#: src/components/AppSidebar.tsx:361
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
-#: src/components/AppSidebar.tsx:100
-#: src/components/AppSidebar.tsx:151
+#: src/components/AppSidebar.tsx:101
+#: src/components/AppSidebar.tsx:152
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
 msgid "Hackers' Pub"
@@ -419,6 +419,7 @@ msgstr "邀请语言"
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
+#: src/components/AppSidebar.tsx:285
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -759,7 +760,7 @@ msgstr "发送中…"
 msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
-#: src/components/AppSidebar.tsx:288
+#: src/components/AppSidebar.tsx:316
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -773,7 +774,7 @@ msgstr "设置"
 msgid "Shares"
 msgstr "转帖"
 
-#: src/components/AppSidebar.tsx:241
+#: src/components/AppSidebar.tsx:242
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登录"
@@ -782,7 +783,7 @@ msgstr "登录"
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
-#: src/components/AppSidebar.tsx:310
+#: src/components/AppSidebar.tsx:338
 msgid "Sign out"
 msgstr "登出"
 
@@ -864,7 +865,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:325
+#: src/components/AppSidebar.tsx:353
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 
@@ -872,7 +873,7 @@ msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 
-#: src/components/AppSidebar.tsx:112
+#: src/components/AppSidebar.tsx:113
 msgid "Timeline"
 msgstr "时间线"
 
@@ -948,7 +949,7 @@ msgstr "网站"
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "欢迎来到 Hackers' Pub！请填写以下表单完成注册。"
 
-#: src/components/AppSidebar.tsx:189
+#: src/components/AppSidebar.tsx:190
 msgid "Without shares"
 msgstr "不含转帖"
 

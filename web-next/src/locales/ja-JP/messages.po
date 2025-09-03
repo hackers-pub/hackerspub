@@ -151,7 +151,7 @@ msgstr "プロフィールに表示されるリンクの名前。（例：GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
-#: src/components/AppSidebar.tsx:215
+#: src/components/AppSidebar.tsx:216
 msgid "Account"
 msgstr "アカウント"
 
@@ -202,7 +202,7 @@ msgstr "パスキー{0}を取り消しますか？このパスキーを使用し
 msgid "Articles"
 msgstr "記事"
 
-#: src/components/AppSidebar.tsx:208
+#: src/components/AppSidebar.tsx:209
 msgid "Articles only"
 msgstr "記事のみ"
 
@@ -237,7 +237,7 @@ msgstr "キャンセル"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
 
-#: src/components/AppSidebar.tsx:321
+#: src/components/AppSidebar.tsx:349
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -359,15 +359,15 @@ msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:81
+#: src/components/AppSidebar.tsx:82
 msgid "Failed to sign out: {0}"
 msgstr "ログアウトに失敗：{0}"
 
-#: src/components/AppSidebar.tsx:170
+#: src/components/AppSidebar.tsx:171
 msgid "Fediverse"
 msgstr "フェディバース"
 
-#: src/components/AppSidebar.tsx:131
+#: src/components/AppSidebar.tsx:132
 msgid "Feed"
 msgstr "フィード"
 
@@ -384,12 +384,12 @@ msgstr "フォロワーのみ"
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
-#: src/components/AppSidebar.tsx:333
+#: src/components/AppSidebar.tsx:361
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
-#: src/components/AppSidebar.tsx:100
-#: src/components/AppSidebar.tsx:151
+#: src/components/AppSidebar.tsx:101
+#: src/components/AppSidebar.tsx:152
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
 msgid "Hackers' Pub"
@@ -419,6 +419,7 @@ msgstr "招待状の言語"
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
+#: src/components/AppSidebar.tsx:285
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -759,7 +760,7 @@ msgstr "送信中…"
 msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
-#: src/components/AppSidebar.tsx:288
+#: src/components/AppSidebar.tsx:316
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -773,7 +774,7 @@ msgstr "設定"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/AppSidebar.tsx:241
+#: src/components/AppSidebar.tsx:242
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "ログイン"
@@ -782,7 +783,7 @@ msgstr "ログイン"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:310
+#: src/components/AppSidebar.tsx:338
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -864,7 +865,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:325
+#: src/components/AppSidebar.tsx:353
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -872,7 +873,7 @@ msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 
-#: src/components/AppSidebar.tsx:112
+#: src/components/AppSidebar.tsx:113
 msgid "Timeline"
 msgstr "タイムライン"
 
@@ -948,7 +949,7 @@ msgstr "ウェブサイト"
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォームにご記入ください。"
 
-#: src/components/AppSidebar.tsx:189
+#: src/components/AppSidebar.tsx:190
 msgid "Without shares"
 msgstr "共有除外"
 

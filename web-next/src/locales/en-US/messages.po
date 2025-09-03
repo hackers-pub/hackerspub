@@ -151,7 +151,7 @@ msgstr "A name for the link that will be displayed on your profile, e.g., GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
-#: src/components/AppSidebar.tsx:215
+#: src/components/AppSidebar.tsx:216
 msgid "Account"
 msgstr "Account"
 
@@ -202,7 +202,7 @@ msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:208
+#: src/components/AppSidebar.tsx:209
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -237,7 +237,7 @@ msgstr "Cancel"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
 
-#: src/components/AppSidebar.tsx:321
+#: src/components/AppSidebar.tsx:349
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -359,15 +359,15 @@ msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:81
+#: src/components/AppSidebar.tsx:82
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/AppSidebar.tsx:170
+#: src/components/AppSidebar.tsx:171
 msgid "Fediverse"
 msgstr "Fediverse"
 
-#: src/components/AppSidebar.tsx:131
+#: src/components/AppSidebar.tsx:132
 msgid "Feed"
 msgstr "Feed"
 
@@ -384,12 +384,12 @@ msgstr "Followers only"
 msgid "Following you"
 msgstr "Following you"
 
-#: src/components/AppSidebar.tsx:333
+#: src/components/AppSidebar.tsx:361
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
-#: src/components/AppSidebar.tsx:100
-#: src/components/AppSidebar.tsx:151
+#: src/components/AppSidebar.tsx:101
+#: src/components/AppSidebar.tsx:152
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
 msgid "Hackers' Pub"
@@ -419,6 +419,7 @@ msgstr "Invitation language"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
+#: src/components/AppSidebar.tsx:285
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -759,7 +760,7 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:288
+#: src/components/AppSidebar.tsx:316
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -773,7 +774,7 @@ msgstr "Settings"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/AppSidebar.tsx:241
+#: src/components/AppSidebar.tsx:242
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "Sign in"
@@ -782,7 +783,7 @@ msgstr "Sign in"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:310
+#: src/components/AppSidebar.tsx:338
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -864,7 +865,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:325
+#: src/components/AppSidebar.tsx:353
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -872,7 +873,7 @@ msgstr "The source code of this website is available on {0} under the {1} licens
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
-#: src/components/AppSidebar.tsx:112
+#: src/components/AppSidebar.tsx:113
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -948,7 +949,7 @@ msgstr "Website"
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 
-#: src/components/AppSidebar.tsx:189
+#: src/components/AppSidebar.tsx:190
 msgid "Without shares"
 msgstr "Without shares"
 

@@ -151,7 +151,7 @@ msgstr "프로필에 표시될 링크의 이름. 예: GitHub."
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함(또는 스팸 폴더)을 확인해주세요."
 
-#: src/components/AppSidebar.tsx:215
+#: src/components/AppSidebar.tsx:216
 msgid "Account"
 msgstr "계정"
 
@@ -202,7 +202,7 @@ msgstr "{0} 패스키를 취소하시겠습니까? 이 패스키를 사용하여
 msgid "Articles"
 msgstr "게시글"
 
-#: src/components/AppSidebar.tsx:208
+#: src/components/AppSidebar.tsx:209
 msgid "Articles only"
 msgstr "게시글만"
 
@@ -237,7 +237,7 @@ msgstr "취소"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
-#: src/components/AppSidebar.tsx:321
+#: src/components/AppSidebar.tsx:349
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -359,15 +359,15 @@ msgid "Failed to send invitation"
 msgstr "초대장 발송에 실패했습니다"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:81
+#: src/components/AppSidebar.tsx:82
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
-#: src/components/AppSidebar.tsx:170
+#: src/components/AppSidebar.tsx:171
 msgid "Fediverse"
 msgstr "연합우주"
 
-#: src/components/AppSidebar.tsx:131
+#: src/components/AppSidebar.tsx:132
 msgid "Feed"
 msgstr "피드"
 
@@ -384,12 +384,12 @@ msgstr "팔로워만"
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
-#: src/components/AppSidebar.tsx:333
+#: src/components/AppSidebar.tsx:361
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/components/AppSidebar.tsx:100
-#: src/components/AppSidebar.tsx:151
+#: src/components/AppSidebar.tsx:101
+#: src/components/AppSidebar.tsx:152
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/markdown.tsx:53
 msgid "Hackers' Pub"
@@ -419,6 +419,7 @@ msgstr "초대장 언어"
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
+#: src/components/AppSidebar.tsx:285
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -759,7 +760,7 @@ msgstr "보내는 중…"
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
-#: src/components/AppSidebar.tsx:288
+#: src/components/AppSidebar.tsx:316
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -773,7 +774,7 @@ msgstr "설정"
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/AppSidebar.tsx:241
+#: src/components/AppSidebar.tsx:242
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "로그인"
@@ -782,7 +783,7 @@ msgstr "로그인"
 msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
-#: src/components/AppSidebar.tsx:310
+#: src/components/AppSidebar.tsx:338
 msgid "Sign out"
 msgstr "로그아웃"
 
@@ -864,7 +865,7 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:325
+#: src/components/AppSidebar.tsx:353
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
@@ -872,7 +873,7 @@ msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배�
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
-#: src/components/AppSidebar.tsx:112
+#: src/components/AppSidebar.tsx:113
 msgid "Timeline"
 msgstr "타임라인"
 
@@ -948,7 +949,7 @@ msgstr "웹사이트"
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Hackers' Pub에 오신 것을 환영합니다! 가입을 완료하려면 아래 양식을 작성해주세요."
 
-#: src/components/AppSidebar.tsx:189
+#: src/components/AppSidebar.tsx:190
 msgid "Without shares"
 msgstr "공유 제외"
 
