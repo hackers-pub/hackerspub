@@ -319,7 +319,7 @@ msgstr "Failed to load more invitees; click to retry"
 msgid "Failed to load more notes; click to retry"
 msgstr "Failed to load more notes; click to retry"
 
-#: src/components/NotificationList.tsx:74
+#: src/components/NotificationList.tsx:73
 msgid "Failed to load more notifications; click to retry"
 msgstr "Failed to load more notifications; click to retry"
 
@@ -395,7 +395,7 @@ msgstr "GitHub repository"
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
-#: src/routes/(root)/notifications.tsx:40
+#: src/routes/(root)/notifications.tsx:46
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
 
@@ -479,7 +479,7 @@ msgstr "Load more invitees"
 msgid "Load more notes"
 msgstr "Load more notes"
 
-#: src/components/NotificationList.tsx:77
+#: src/components/NotificationList.tsx:76
 msgid "Load more notifications"
 msgstr "Load more notifications"
 
@@ -508,7 +508,7 @@ msgstr "Loading more invitees…"
 msgid "Loading more notes…"
 msgstr "Loading more notes…"
 
-#: src/components/NotificationList.tsx:71
+#: src/components/NotificationList.tsx:70
 msgid "Loading more notifications"
 msgstr "Loading more notifications"
 
@@ -605,6 +605,10 @@ msgstr "Note that you can verify your links belong to you by making the linked p
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "Notes"
+
+#: src/routes/(root)/notifications.tsx:51
+msgid "Notifications"
+msgstr "Notifications"
 
 #: src/routes/(root)/sign/index.tsx:406
 msgid "Or"

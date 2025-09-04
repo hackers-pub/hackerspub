@@ -1,14 +1,14 @@
 import { graphql } from "relay-runtime";
 import { For, Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
+import { PostSharer } from "~/components/PostSharer.tsx";
+import { QuotedPostCard } from "~/components/QuotedPostCard.tsx";
+import { Timestamp } from "~/components/Timestamp.tsx";
+import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
+import { VisibilityTag } from "~/components/VisibilityTag.tsx";
 import { NoteCard_media$key } from "./__generated__/NoteCard_media.graphql.ts";
 import { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
-import { NoteCard_quotedNote$key } from "./__generated__/NoteCard_quotedNote.graphql.ts";
 import { NoteCardInternal_note$key } from "./__generated__/NoteCardInternal_note.graphql.ts";
-import { PostSharer } from "./PostSharer.tsx";
-import { Timestamp } from "./Timestamp.tsx";
-import { Avatar, AvatarImage } from "./ui/avatar.tsx";
-import { VisibilityTag } from "./VisibilityTag.tsx";
 
 export interface NoteCardProps {
   $note: NoteCard_note$key;
@@ -25,13 +25,11 @@ export function NoteCard(props: NoteCardProps) {
           ...NoteCardInternal_note
           ...NoteCard_media
           quotedPost {
-            __typename
-            ...NoteCard_quotedNote
+            ...QuotedPostCard_post
           }
         }
         quotedPost {
-          __typename
-          ...NoteCard_quotedNote
+          ...QuotedPostCard_post
         }
       }
     `,
@@ -49,13 +47,7 @@ export function NoteCard(props: NoteCardProps) {
                 <NoteCardInternal $note={note()} />
                 <NoteMedia $note={note()} />
                 <Show when={note().quotedPost}>
-                  {(quotedPost) => (
-                    <Switch>
-                      <Match when={quotedPost().__typename === "Note"}>
-                        <QuotedNoteCard $note={quotedPost()} />
-                      </Match>
-                    </Switch>
-                  )}
+                  {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
                 </Show>
               </>
             }
@@ -66,13 +58,7 @@ export function NoteCard(props: NoteCardProps) {
                 <NoteCardInternal $note={sharedPost()} />
                 <NoteMedia $note={note()} />
                 <Show when={sharedPost().quotedPost}>
-                  {(quotedPost) => (
-                    <Switch>
-                      <Match when={quotedPost().__typename === "Note"}>
-                        <QuotedNoteCard $note={quotedPost()} />
-                      </Match>
-                    </Switch>
-                  )}
+                  {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
                 </Show>
               </>
             )}
@@ -252,82 +238,4 @@ function range(start: number, end: number): number[] {
   const result: number[] = [];
   for (let i = start; i < end; i++) result.push(i);
   return result;
-}
-
-interface QuotedNoteCardProps {
-  $note: NoteCard_quotedNote$key;
-}
-
-function QuotedNoteCard(props: QuotedNoteCardProps) {
-  const note = createFragment(
-    graphql`
-      fragment NoteCard_quotedNote on Note {
-        __id
-        actor {
-          name
-          handle
-          username
-          avatarUrl
-          local
-        }
-        content
-        language
-        visibility
-        published
-      }
-    `,
-    () => props.$note,
-  );
-
-  return (
-    <Show when={note()}>
-      {(note) => (
-        <>
-          <div class="w-0 h-0 border-l-[15px] border-r-[15px] border-b-[20px] border-l-transparent border-r-transparent border-b-muted ml-4" />
-          <div class="flex flex-col bg-muted p-4">
-            <div class="flex gap-4">
-              <Avatar class="size-12">
-                <a
-                  href={note().actor.local
-                    ? `/@${note().actor.username}`
-                    : `/${note().actor.handle}`}
-                  target={note().actor.local ? undefined : "_self"}
-                >
-                  <AvatarImage src={note().actor.avatarUrl} class="size-12" />
-                </a>
-              </Avatar>
-              <div class="flex flex-col">
-                <div>
-                  <Show when={(note().actor.name ?? "").trim() !== ""}>
-                    <a
-                      href={note().actor.local
-                        ? `/@${note().actor.username}`
-                        : `/${note().actor.handle}`}
-                      target={note().actor.local ? undefined : "_self"}
-                      innerHTML={note().actor.name ?? ""}
-                      class="font-semibold"
-                    />
-                    {" "}
-                  </Show>
-                  <span class="select-all text-muted-foreground">
-                    {note().actor.handle}
-                  </span>
-                </div>
-                <div class="flex flex-row text-muted-foreground gap-1">
-                  <Timestamp value={note().published} capitalizeFirstLetter />
-                  {" "}
-                  &middot; <VisibilityTag visibility={note().visibility} />
-                </div>
-              </div>
-            </div>
-            <div
-              innerHTML={note().content}
-              lang={note().language ?? undefined}
-              class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
-            />
-          </div>
-        </>
-      )}
-    </Show>
-  );
 }

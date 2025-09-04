@@ -319,7 +319,7 @@ msgstr "초대받은 사람들을 불러오지 못했습니다. 클릭하여 다
 msgid "Failed to load more notes; click to retry"
 msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/components/NotificationList.tsx:74
+#: src/components/NotificationList.tsx:73
 msgid "Failed to load more notifications; click to retry"
 msgstr "알림을 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
@@ -395,7 +395,7 @@ msgstr "GitHub 저장소"
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
-#: src/routes/(root)/notifications.tsx:40
+#: src/routes/(root)/notifications.tsx:46
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: 알림"
 
@@ -479,7 +479,7 @@ msgstr "초대받은 사람 더 보기"
 msgid "Load more notes"
 msgstr "단문 더 불러오기"
 
-#: src/components/NotificationList.tsx:77
+#: src/components/NotificationList.tsx:76
 msgid "Load more notifications"
 msgstr "알림 더 불러오기"
 
@@ -508,7 +508,7 @@ msgstr "초대받은 사람들을 불러오는 중…"
 msgid "Loading more notes…"
 msgstr "단문 불러오는 중…"
 
-#: src/components/NotificationList.tsx:71
+#: src/components/NotificationList.tsx:70
 msgid "Loading more notifications"
 msgstr "알림을 더 불러오는 중…"
 
@@ -605,6 +605,10 @@ msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링�
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "단문"
+
+#: src/routes/(root)/notifications.tsx:51
+msgid "Notifications"
+msgstr "알림"
 
 #: src/routes/(root)/sign/index.tsx:406
 msgid "Or"

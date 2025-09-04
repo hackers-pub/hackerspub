@@ -27,3 +27,4 @@ invitation → 招待
 invitationLink → 招待リンク
 medium → メディア
 preferences → 環境設定
+notification → 通知

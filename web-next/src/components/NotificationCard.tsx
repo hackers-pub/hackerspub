@@ -53,7 +53,7 @@ export function NotificationCard(props: NotificationCardProps) {
   return (
     <Show when={notification()}>
       {(notification) => (
-        <li class="border-1 border-gray-800 p-4">
+        <li class="border-b last:border-0">
           <Dynamic
             component={notificationCards[notification().__typename]}
             $notification={notification()}

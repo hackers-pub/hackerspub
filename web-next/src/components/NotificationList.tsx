@@ -54,31 +54,31 @@ export function NotificationList(props: NotificationListProps) {
     <Show when={notifications()}>
       {(data) => (
         <>
-          <ul class="flex flex-col gap-2 p-4">
+          <ul class="flex flex-col border rounded-xl *:first-rounded-t-xl *:last:rounded-b-xl mx-auto max-w-prose">
             <For each={data().notifications.edges}>
               {(edge) => <NotificationCard $notification={edge.node} />}
             </For>
+            <Show when={notifications.hasNext}>
+              <li
+                on:click={loadingState() === "loading" ? undefined : onLoadMore}
+                class="block px-4 py-8 text-center text-muted-foreground cursor-pointer hover:text-primary hover:bg-secondary"
+              >
+                <Switch>
+                  <Match
+                    when={notifications.pending || loadingState() === "loading"}
+                  >
+                    {t`Loading more notifications`}
+                  </Match>
+                  <Match when={loadingState() === "errored"}>
+                    {t`Failed to load more notifications; click to retry`}
+                  </Match>
+                  <Match when={loadingState() === "loaded"}>
+                    {t`Load more notifications`}
+                  </Match>
+                </Switch>
+              </li>
+            </Show>
           </ul>
-          <Show when={notifications.hasNext}>
-            <div
-              on:click={loadingState() === "loading" ? undefined : onLoadMore}
-              class="block px-4 py-8 text-center text-muted-foreground cursor-pointer hover:text-primary hover:bg-secondary"
-            >
-              <Switch>
-                <Match
-                  when={notifications.pending || loadingState() === "loading"}
-                >
-                  {t`Loading more notifications`}
-                </Match>
-                <Match when={loadingState() === "errored"}>
-                  {t`Failed to load more notifications; click to retry`}
-                </Match>
-                <Match when={loadingState() === "loaded"}>
-                  {t`Load more notifications`}
-                </Match>
-              </Switch>
-            </div>
-          </Show>
         </>
       )}
     </Show>

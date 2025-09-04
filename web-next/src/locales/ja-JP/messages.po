@@ -319,7 +319,7 @@ msgstr "招待された人々の読み込みに失敗しました。クリック
 msgid "Failed to load more notes; click to retry"
 msgstr "投稿の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/NotificationList.tsx:74
+#: src/components/NotificationList.tsx:73
 msgid "Failed to load more notifications; click to retry"
 msgstr "通知の読み込みに失敗しました。クリックして再試行してください"
 
@@ -395,7 +395,7 @@ msgstr "GitHubリポジトリ"
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
-#: src/routes/(root)/notifications.tsx:40
+#: src/routes/(root)/notifications.tsx:46
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
@@ -479,7 +479,7 @@ msgstr "もっと招待された人々を読み込む"
 msgid "Load more notes"
 msgstr "投稿をもっと読み込む"
 
-#: src/components/NotificationList.tsx:77
+#: src/components/NotificationList.tsx:76
 msgid "Load more notifications"
 msgstr "通知をもっと読み込む"
 
@@ -508,7 +508,7 @@ msgstr "招待された人々を読み込み中…"
 msgid "Loading more notes…"
 msgstr "投稿を読み込み中…"
 
-#: src/components/NotificationList.tsx:71
+#: src/components/NotificationList.tsx:70
 msgid "Loading more notifications"
 msgstr "通知を読み込み中…"
 
@@ -605,6 +605,10 @@ msgstr "リンクが実際にあなたのものであることを認証できま
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "投稿"
+
+#: src/routes/(root)/notifications.tsx:51
+msgid "Notifications"
+msgstr "通知"
 
 #: src/routes/(root)/sign/index.tsx:406
 msgid "Or"

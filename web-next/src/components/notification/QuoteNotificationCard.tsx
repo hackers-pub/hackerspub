@@ -1,10 +1,10 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { NotificationMessage } from "~/components/notification/NotificationMessage.tsx";
+import { QuotedPostCard } from "~/components/QuotedPostCard.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { PostExcerpt } from "../PostExcerpt.tsx";
 import type { QuoteNotificationCard_notification$key } from "./__generated__/QuoteNotificationCard_notification.graphql.ts";
-import { NotificationMessage } from "./NotificationMessage.tsx";
 
 interface QuoteNotificationCardProps {
   $notification: QuoteNotificationCard_notification$key;
@@ -18,7 +18,7 @@ export function QuoteNotificationCard(props: QuoteNotificationCardProps) {
       {
         ...NotificationMessage_notification
         post {
-          ...PostExcerpt_post
+          ...QuotedPostCard_post
         }
       }
     `,
@@ -28,14 +28,14 @@ export function QuoteNotificationCard(props: QuoteNotificationCardProps) {
   return (
     <Show when={notification()}>
       {(notification) => (
-        <div class="space-y-4">
+        <div>
           <NotificationMessage
             singleActorMessage={t`${"ACTOR"} quoted your post`}
             multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others quoted your post`}
             $notification={notification()}
           />
           <Show when={notification().post}>
-            {(post) => <PostExcerpt $post={post()} />}
+            {(post) => <QuotedPostCard $post={post()} class="-mt-2" />}
           </Show>
         </div>
       )}

@@ -1,10 +1,13 @@
+import { A } from "@solidjs/router";
+import { unescape } from "es-toolkit/string";
 import { graphql } from "relay-runtime";
 import type { JSX } from "solid-js";
-import { Match, Show, Switch } from "solid-js";
+import { For, Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
-import { NotificationActor } from "../NotificationActor.tsx";
-import { Trans } from "../Trans.tsx";
-import { NotificationMessage_notification$key } from "./__generated__/NotificationMessage_notification.graphql.ts";
+import { NotificationActor } from "~/components/NotificationActor.tsx";
+import { Trans } from "~/components/Trans.tsx";
+import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
+import type { NotificationMessage_notification$key } from "./__generated__/NotificationMessage_notification.graphql.ts";
 
 interface NotificationMessageProps {
   singleActorMessage: string;
@@ -38,6 +41,13 @@ export function NotificationMessage(props: NotificationMessageProps) {
         actors {
           edges {
             __typename
+            node {
+              avatarUrl
+              handle
+              username
+              local
+              name
+            }
           }
         }
         ...NotificationActor_notification
@@ -49,35 +59,55 @@ export function NotificationMessage(props: NotificationMessageProps) {
   return (
     <Show when={notification()}>
       {(notification) => (
-        <Switch>
-          <Match when={notification().actors.edges.length === 1}>
-            <div class="flex flex-row gap-2 items-center">
-              <Trans
-                message={props.singleActorMessage}
-                values={{
-                  ACTOR: () => (
-                    <NotificationActor $notification={notification()} />
-                  ),
-                  ...props.additionalValues,
-                }}
-              />
-            </div>
-          </Match>
-          <Match when={notification().actors.edges.length > 1}>
-            <div class="flex flex-row gap-2 items-center">
-              <Trans
-                message={props.multipleActorMessage}
-                values={{
-                  ACTOR: () => (
-                    <NotificationActor $notification={notification()} />
-                  ),
-                  COUNT: () => notification().actors.edges.length - 1,
-                  ...props.additionalValues,
-                }}
-              />
-            </div>
-          </Match>
-        </Switch>
+        <div class="m-4 flex flex-row gap-4">
+          <div class="group flex -space-x-8 hover:-space-x-5">
+            <For each={notification().actors.edges.slice(0, 4).toReversed()}>
+              {({ node }) => (
+                <Avatar
+                  as={A}
+                  href={node.local ? `/@${node.username}` : `/${node.handle}`}
+                  class="z-0 hover:z-10 transition-all duration-300 ease-out motion-reduce:transition-none"
+                >
+                  <AvatarImage
+                    src={node.avatarUrl}
+                    alt={node.name == null
+                      ? node.handle
+                      : `${unescape(node.name)} (${node.handle})`}
+                  />
+                </Avatar>
+              )}
+            </For>
+          </div>
+          <Switch>
+            <Match when={notification().actors.edges.length === 1}>
+              <div>
+                <Trans
+                  message={props.singleActorMessage}
+                  values={{
+                    ACTOR: () => (
+                      <NotificationActor $notification={notification()} />
+                    ),
+                    ...props.additionalValues,
+                  }}
+                />
+              </div>
+            </Match>
+            <Match when={notification().actors.edges.length > 1}>
+              <div>
+                <Trans
+                  message={props.multipleActorMessage}
+                  values={{
+                    ACTOR: () => (
+                      <NotificationActor $notification={notification()} />
+                    ),
+                    COUNT: () => notification().actors.edges.length - 1,
+                    ...props.additionalValues,
+                  }}
+                />
+              </div>
+            </Match>
+          </Switch>
+        </div>
       )}
     </Show>
   );

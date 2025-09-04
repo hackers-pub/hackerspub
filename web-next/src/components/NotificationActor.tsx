@@ -2,7 +2,6 @@ import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import type { NotificationActor_notification$key } from "./__generated__/NotificationActor_notification.graphql.ts";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
 
 interface NotificationActorProps {
   $notification: NotificationActor_notification$key;
@@ -17,7 +16,6 @@ export function NotificationActor(props: NotificationActorProps) {
             node {
               handle
               name
-              avatarUrl
             }
           }
         }
@@ -42,22 +40,24 @@ export function NotificationActor(props: NotificationActorProps) {
       {(notification) => (
         <Show when={firstActor(notification())}>
           {(firstActor) => (
-            <a
-              href={`/${firstActor().handle}`}
-              class="flex flex-row gap-1 items-center"
-            >
-              <Avatar class="w-[2rem] h-[2rem]">
-                <Show
-                  when={firstActor().avatarUrl}
-                  fallback={<AvatarFallback />}
-                >
-                  {(avatarUrl) => <AvatarImage src={avatarUrl()} />}
-                </Show>
-              </Avatar>
-              <Show when={firstActor().name}>
-                {(name) => <span>{name()}</span>}
+            <a href={`/${firstActor().handle}`}>
+              <Show
+                when={firstActor().name}
+                fallback={
+                  <span class="font-semibold text-muted-foreground">
+                    {firstActor().handle}
+                  </span>
+                }
+              >
+                {(name) => (
+                  <>
+                    <span innerHTML={name()} class="font-semibold" />{" "}
+                    <span class="text-muted-foreground">
+                      ({firstActor().handle})
+                    </span>
+                  </>
+                )}
               </Show>
-              <span class="text-gray-500">({firstActor().handle})</span>
             </a>
           )}
         </Show>

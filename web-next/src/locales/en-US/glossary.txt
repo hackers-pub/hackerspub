@@ -26,3 +26,5 @@ handle → handle
 invitation → invitation
 invitationLink → invitation link
 medium → medium
+preferences → preferences
+notification → notification

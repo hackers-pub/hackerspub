@@ -319,7 +319,7 @@ msgstr "加载更多受邀者失败；点击重试"
 msgid "Failed to load more notes; click to retry"
 msgstr "加载更多帖子失败，点击重试"
 
-#: src/components/NotificationList.tsx:74
+#: src/components/NotificationList.tsx:73
 msgid "Failed to load more notifications; click to retry"
 msgstr "加载更多通知失败；点击重试"
 
@@ -395,7 +395,7 @@ msgstr "GitHub 仓库"
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
-#: src/routes/(root)/notifications.tsx:40
+#: src/routes/(root)/notifications.tsx:46
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
@@ -479,7 +479,7 @@ msgstr "加载更多受邀者"
 msgid "Load more notes"
 msgstr "加载更多帖子"
 
-#: src/components/NotificationList.tsx:77
+#: src/components/NotificationList.tsx:76
 msgid "Load more notifications"
 msgstr "加载更多通知"
 
@@ -508,7 +508,7 @@ msgstr "正在加载更多受邀者…"
 msgid "Loading more notes…"
 msgstr "加载更多帖子中…"
 
-#: src/components/NotificationList.tsx:71
+#: src/components/NotificationList.tsx:70
 msgid "Loading more notifications"
 msgstr "正在加载更多通知…"
 
@@ -605,6 +605,10 @@ msgstr "你可以验证这些链接确实属于你。在链接的页面上使用
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "帖子"
+
+#: src/routes/(root)/notifications.tsx:51
+msgid "Notifications"
+msgstr "通知"
 
 #: src/routes/(root)/sign/index.tsx:406
 msgid "Or"
