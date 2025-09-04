@@ -237,7 +237,7 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 
-#: src/components/AppSidebar.tsx:349
+#: src/components/AppSidebar.tsx:371
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -384,7 +384,7 @@ msgstr "只粉丝可见"
 msgid "Following you"
 msgstr "关注了你"
 
-#: src/components/AppSidebar.tsx:361
+#: src/components/AppSidebar.tsx:383
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
@@ -419,7 +419,7 @@ msgstr "邀请语言"
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
-#: src/components/AppSidebar.tsx:285
+#: src/components/AppSidebar.tsx:307
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -606,6 +606,7 @@ msgstr "你可以验证这些链接确实属于你。在链接的页面上使用
 msgid "Notes"
 msgstr "帖子"
 
+#: src/components/AppSidebar.tsx:269
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "通知"
@@ -764,7 +765,7 @@ msgstr "发送中…"
 msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
-#: src/components/AppSidebar.tsx:316
+#: src/components/AppSidebar.tsx:338
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -787,7 +788,7 @@ msgstr "登录"
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
-#: src/components/AppSidebar.tsx:338
+#: src/components/AppSidebar.tsx:360
 msgid "Sign out"
 msgstr "登出"
 
@@ -869,7 +870,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:353
+#: src/components/AppSidebar.tsx:375
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 

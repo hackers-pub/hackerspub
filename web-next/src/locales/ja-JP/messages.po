@@ -237,7 +237,7 @@ msgstr "キャンセル"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
 
-#: src/components/AppSidebar.tsx:349
+#: src/components/AppSidebar.tsx:371
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -384,7 +384,7 @@ msgstr "フォロワーのみ"
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
-#: src/components/AppSidebar.tsx:361
+#: src/components/AppSidebar.tsx:383
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -419,7 +419,7 @@ msgstr "招待状の言語"
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
-#: src/components/AppSidebar.tsx:285
+#: src/components/AppSidebar.tsx:307
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -606,6 +606,7 @@ msgstr "リンクが実際にあなたのものであることを認証できま
 msgid "Notes"
 msgstr "投稿"
 
+#: src/components/AppSidebar.tsx:269
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "通知"
@@ -764,7 +765,7 @@ msgstr "送信中…"
 msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
-#: src/components/AppSidebar.tsx:316
+#: src/components/AppSidebar.tsx:338
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -787,7 +788,7 @@ msgstr "ログイン"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:338
+#: src/components/AppSidebar.tsx:360
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -869,7 +870,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:353
+#: src/components/AppSidebar.tsx:375
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 

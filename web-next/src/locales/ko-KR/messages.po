@@ -237,7 +237,7 @@ msgstr "취소"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
-#: src/components/AppSidebar.tsx:349
+#: src/components/AppSidebar.tsx:371
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -384,7 +384,7 @@ msgstr "팔로워만"
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
-#: src/components/AppSidebar.tsx:361
+#: src/components/AppSidebar.tsx:383
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
@@ -419,7 +419,7 @@ msgstr "초대장 언어"
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
-#: src/components/AppSidebar.tsx:285
+#: src/components/AppSidebar.tsx:307
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -606,6 +606,7 @@ msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링�
 msgid "Notes"
 msgstr "단문"
 
+#: src/components/AppSidebar.tsx:269
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "알림"
@@ -764,7 +765,7 @@ msgstr "보내는 중…"
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
-#: src/components/AppSidebar.tsx:316
+#: src/components/AppSidebar.tsx:338
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -787,7 +788,7 @@ msgstr "로그인"
 msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
-#: src/components/AppSidebar.tsx:338
+#: src/components/AppSidebar.tsx:360
 msgid "Sign out"
 msgstr "로그아웃"
 
@@ -869,7 +870,7 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:353
+#: src/components/AppSidebar.tsx:375
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
