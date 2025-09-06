@@ -101,12 +101,9 @@ msgstr "{0}さんがあなたのコンテンツに{1}でリアクションしま
 msgid "{0} replied to your post"
 msgstr "{0}さんがあなたのコンテンツに返信しました"
 
-#. placeholder {0}: instance().host
-#. placeholder {1}: instance().software
-#. placeholder {2}: instance().softwareVersion
 #: src/routes/(root)/index.tsx:46
-msgid "{0} running {1} {2}"
-msgstr "{0}で{1} {2}を実行中"
+#~ msgid "{0} running {1} {2}"
+#~ msgstr "{0}で{1} {2}を実行中"
 
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
@@ -160,7 +157,7 @@ msgstr "アカウント"
 msgid "Actions"
 msgstr "操作"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:250
+#: src/routes/(root)/[handle]/settings/language.tsx:252
 msgid "Add"
 msgstr "追加"
 
@@ -180,7 +177,7 @@ msgstr "パスキーの取消中にエラーが発生しました。"
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "環境設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:217
+#: src/routes/(root)/[handle]/settings/language.tsx:219
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "言語設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
@@ -329,6 +326,7 @@ msgstr "パスキーの読み込みに失敗しました。クリックして再
 
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
+#: src/components/PublicTimeline.tsx:73
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
@@ -341,7 +339,7 @@ msgstr "パスキーの登録に失敗しました"
 msgid "Failed to revoke passkey"
 msgstr "パスキーの取り消しに失敗しました"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:215
+#: src/routes/(root)/[handle]/settings/language.tsx:217
 msgid "Failed to save language preferences"
 msgstr "言語設定の保存に失敗しました"
 
@@ -368,6 +366,7 @@ msgid "Fediverse"
 msgstr "フェディバース"
 
 #: src/components/AppSidebar.tsx:132
+#: src/routes/(root)/index.tsx:54
 msgid "Feed"
 msgstr "フィード"
 
@@ -489,6 +488,7 @@ msgstr "パスキーを読み込む"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
+#: src/components/PublicTimeline.tsx:76
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
@@ -518,6 +518,7 @@ msgstr "パスキーを読み込み中…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
+#: src/components/PublicTimeline.tsx:70
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
 
@@ -589,6 +590,7 @@ msgstr "投稿はありません"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:85
+#: src/components/PublicTimeline.tsx:83
 msgid "No posts found"
 msgstr "コンテンツはありません"
 
@@ -734,13 +736,13 @@ msgid "Revoke passkey"
 msgstr "パスキーを取り消す"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:255
+#: src/routes/(root)/[handle]/settings/language.tsx:257
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Save"
 msgstr "保存"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:255
+#: src/routes/(root)/[handle]/settings/language.tsx:257
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Saving…"
 msgstr "保存中…"
@@ -812,7 +814,7 @@ msgstr "Hackers' Pubに登録"
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:202
+#: src/routes/(root)/[handle]/settings/language.tsx:204
 msgid "Successfully saved language preferences"
 msgstr "言語設定を正常に保存しました"
 
@@ -1020,7 +1022,7 @@ msgstr "パスキーが登録され、認証に使用できるようになりま
 msgid "Your preferences have been updated successfully."
 msgstr "環境設定が正常に更新されました。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:203
+#: src/routes/(root)/[handle]/settings/language.tsx:205
 msgid "Your preferred languages have been updated."
 msgstr "優先言語が更新されました。"
 

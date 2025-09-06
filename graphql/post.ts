@@ -20,6 +20,10 @@ class InvalidInputError extends Error {
   }
 }
 
+export const PostType = builder.enumType("PostType", {
+  values: ["ARTICLE", "NOTE", "QUESTION"],
+});
+
 builder.objectType(InvalidInputError, {
   name: "InvalidInputError",
   fields: (t) => ({

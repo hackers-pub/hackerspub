@@ -398,7 +398,10 @@ export async function getPublicTimeline(
         {
           ...(
             languages.size < 1
-              ? undefined
+              ? (currentAccount?.hideForeignLanguages &&
+                  currentAccount.locales != null
+                ? { language: { in: currentAccount.locales } }
+                : {})
               : { language: { in: [...languages] } }
           ),
           replyTargetId: { isNull: true },
@@ -420,8 +423,7 @@ export async function getPublicTimeline(
           ),
           ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
           ...(postType == null ? undefined : { type: postType }),
-          ...(until == null ? undefined : { published: { lte: until } }),
-          published: { lte: futureTimestampLimit },
+          published: { lte: until == null ? futureTimestampLimit : until },
         },
       ],
     },

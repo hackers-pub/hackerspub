@@ -771,6 +771,12 @@ type PostSharesConnectionEdge {
   node: Post!
 }
 
+enum PostType {
+  ARTICLE
+  NOTE
+  QUESTION
+}
+
 enum PostVisibility {
   DIRECT
   FOLLOWERS
@@ -799,6 +805,7 @@ type Query {
   ): Document!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+  publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
 
   """Verify a signup token and return the signup info if valid."""
   verifySignupToken(
@@ -809,6 +816,19 @@ type Query {
     token: UUID!
   ): SignupInfo
   viewer: Account
+}
+
+type QueryPublicTimelineConnection {
+  edges: [QueryPublicTimelineConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QueryPublicTimelineConnectionEdge {
+  added: DateTime!
+  cursor: String!
+  lastSharer: Actor
+  node: Post!
+  sharersCount: Int!
 }
 
 type Question implements Node & Post & Reactable {

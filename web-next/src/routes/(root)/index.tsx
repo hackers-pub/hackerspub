@@ -6,47 +6,59 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { PublicTimeline } from "~/components/PublicTimeline.tsx";
+import { TopBreadcrumb } from "~/components/TopBreadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import {
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+} from "../../components/ui/breadcrumb.tsx";
 import type { RootRoutesQuery } from "./__generated__/RootRoutesQuery.graphql.ts";
 
+export const route = {
+  preload() {
+    const { i18n } = useLingui();
+    void loadRoutesQuery(i18n.locale);
+  },
+} satisfies RouteDefinition;
+
 const RootRoutesQuery = graphql`
-  query RootRoutesQuery {
-    instanceByHost(host: "hackers.pub") {
-      host
-      software
-      softwareVersion
-    }
+  query RootRoutesQuery($locale: Locale) {
+    ...PublicTimeline_posts @arguments(locale: $locale)
   }
 `;
 
 const loadRoutesQuery = query(
-  () =>
-    loadQuery<RootRoutesQuery>(useRelayEnvironment()(), RootRoutesQuery, {}),
+  (locale: string) =>
+    loadQuery<RootRoutesQuery>(useRelayEnvironment()(), RootRoutesQuery, {
+      locale,
+    }),
   "loadRoutesQuery",
 );
 
-export const route = {
-  preload() {
-    void loadRoutesQuery();
-  },
-} satisfies RouteDefinition;
-
 export default function Home() {
-  const { t } = useLingui();
+  const { i18n, t } = useLingui();
   const data = createPreloadedQuery<RootRoutesQuery>(
     RootRoutesQuery,
-    loadRoutesQuery,
+    () => loadRoutesQuery(i18n.locale),
   );
 
   return (
-    <main>
-      <Show when={data()?.instanceByHost}>
-        {(instance) => (
-          <>
-            {t`${instance().host} running ${instance().software} ${instance().softwareVersion}`}
-          </>
-        )}
-      </Show>
-    </main>
+    <Show when={data()}>
+      {(data) => (
+        <>
+          <TopBreadcrumb>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink current>{t`Feed`}</BreadcrumbLink>
+            </BreadcrumbItem>
+          </TopBreadcrumb>
+          <div class="p-4">
+            <PublicTimeline $posts={data()} />
+          </div>
+        </>
+      )}
+    </Show>
   );
 }

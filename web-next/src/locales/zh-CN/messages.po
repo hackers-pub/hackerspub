@@ -101,12 +101,9 @@ msgstr "{0} 用 {1} 对你的内容做出了反应"
 msgid "{0} replied to your post"
 msgstr "{0} 回复了你的内容"
 
-#. placeholder {0}: instance().host
-#. placeholder {1}: instance().software
-#. placeholder {2}: instance().softwareVersion
 #: src/routes/(root)/index.tsx:46
-msgid "{0} running {1} {2}"
-msgstr "{0} 正在运行 {1} {2}"
+#~ msgid "{0} running {1} {2}"
+#~ msgstr "{0} 正在运行 {1} {2}"
 
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
@@ -160,7 +157,7 @@ msgstr "账户"
 msgid "Actions"
 msgstr "操作"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:250
+#: src/routes/(root)/[handle]/settings/language.tsx:252
 msgid "Add"
 msgstr "添加"
 
@@ -180,7 +177,7 @@ msgstr "在撤销您的通行密钥时发生错误。"
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持团队。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:217
+#: src/routes/(root)/[handle]/settings/language.tsx:219
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "保存语言偏好时出现错误。请重试，如果问题仍然存在，请联系支持。"
 
@@ -329,6 +326,7 @@ msgstr "加载更多通行密钥失败，点击重试"
 
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
+#: src/components/PublicTimeline.tsx:73
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
@@ -341,7 +339,7 @@ msgstr "注册通行密钥失败"
 msgid "Failed to revoke passkey"
 msgstr "撤销通行密钥失败"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:215
+#: src/routes/(root)/[handle]/settings/language.tsx:217
 msgid "Failed to save language preferences"
 msgstr "保存语言偏好失败"
 
@@ -368,6 +366,7 @@ msgid "Fediverse"
 msgstr "联邦宇宙"
 
 #: src/components/AppSidebar.tsx:132
+#: src/routes/(root)/index.tsx:54
 msgid "Feed"
 msgstr "订阅流"
 
@@ -489,6 +488,7 @@ msgstr "加载更多通行密钥"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
+#: src/components/PublicTimeline.tsx:76
 msgid "Load more posts"
 msgstr "加载更多内容"
 
@@ -518,6 +518,7 @@ msgstr "正在加载更多通行密钥…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
+#: src/components/PublicTimeline.tsx:70
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
 
@@ -589,6 +590,7 @@ msgstr "未找到帖子"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:85
+#: src/components/PublicTimeline.tsx:83
 msgid "No posts found"
 msgstr "未找到内容"
 
@@ -734,13 +736,13 @@ msgid "Revoke passkey"
 msgstr "撤销通行密钥"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:255
+#: src/routes/(root)/[handle]/settings/language.tsx:257
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Save"
 msgstr "保存"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:255
+#: src/routes/(root)/[handle]/settings/language.tsx:257
 #: src/routes/(root)/[handle]/settings/preferences.tsx:259
 msgid "Saving…"
 msgstr "保存中…"
@@ -812,7 +814,7 @@ msgstr "注册 Hackers' Pub"
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:202
+#: src/routes/(root)/[handle]/settings/language.tsx:204
 msgid "Successfully saved language preferences"
 msgstr "成功保存语言偏好"
 
@@ -1020,7 +1022,7 @@ msgstr "您的通行密钥已注册，现在可以用于身份验证。"
 msgid "Your preferences have been updated successfully."
 msgstr "您的设置已成功更新。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:203
+#: src/routes/(root)/[handle]/settings/language.tsx:205
 msgid "Your preferred languages have been updated."
 msgstr "您的偏好语言已更新。"
 

@@ -13,6 +13,7 @@ import "./poll.ts";
 import "./post.ts";
 import "./reactable.ts";
 import "./signup.ts";
+import "./timeline.ts";
 export type { UserContext as Context } from "./builder.ts";
 export { createYogaServer } from "./server.ts";
 
