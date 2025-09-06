@@ -22,6 +22,7 @@
     "es-toolkit": "^1.39.10",
     "intl-parse-accept-language": "^1.0.0",
     "pretendard": "^1.3.9",
+    "regexp.escape": "^2.0.1",
     "relay-runtime": "^19.0.0",
     "solid-js": "^1.9.7",
     "solid-relay": "1.0.0-beta.15",

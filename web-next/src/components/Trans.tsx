@@ -1,3 +1,4 @@
+import escape from "regexp.escape";
 import { createMemo, JSX } from "solid-js";
 
 export interface TransProps {
@@ -22,7 +23,7 @@ export interface TransProps {
 export function Trans(props: TransProps) {
   const placeholders = createMemo(() => Object.keys(props.values));
   const pattern = createMemo(() =>
-    new RegExp(placeholders().map(RegExp.escape).join("|"), "g")
+    new RegExp(placeholders().map(RegExp.escape ?? escape).join("|"), "g")
   );
   const elements = createMemo(() => {
     const patternObject = pattern();
