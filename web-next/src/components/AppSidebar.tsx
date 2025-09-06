@@ -113,27 +113,67 @@ export function AppSidebar(props: AppSidebarProps) {
             {t`Timeline`}
           </SidebarGroupLabel>
           <SidebarGroupContent>
+            <Show when={props.signedAccountLoaded && signedAccount()}>
+              <SidebarMenuItem class="list-none">
+                <SidebarMenuButton as={A} href="/feed">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
+                    />
+                  </svg>
+                  {t`Feed`}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem class="list-none">
+                <SidebarMenuButton as={A} href="/feed/without-shares">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="m3 3 8.735 8.735m0 0a.374.374 0 1 1 .53.53m-.53-.53.53.53m0 0L21 21M14.652 9.348a3.75 3.75 0 0 1 0 5.304m2.121-7.425a6.75 6.75 0 0 1 0 9.546m2.121-11.667c3.808 3.807 3.808 9.98 0 13.788m-9.546-4.242a3.733 3.733 0 0 1-1.06-2.122m-1.061 4.243a6.75 6.75 0 0 1-1.625-6.929m-.496 9.05c-3.068-3.067-3.664-7.67-1.79-11.334M12 12h.008v.008H12V12Z"
+                    />
+                  </svg>
+                  {t`Without shares`}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem class="list-none">
+                <SidebarMenuButton as={A} href="/feed/articles">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-6"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                    />
+                  </svg>
+                  {t`Articles only`}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </Show>
             <SidebarMenuItem class="list-none">
-              <SidebarMenuButton as={A} href="/">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="size-6"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
-                  />
-                </svg>
-                {t`Feed`}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem class="list-none">
-              <SidebarMenuButton as={A} href="/">
+              <SidebarMenuButton as={A} href="/local">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -153,7 +193,10 @@ export function AppSidebar(props: AppSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem class="list-none">
-              <SidebarMenuButton as={A} href="/">
+              <SidebarMenuButton
+                as={A}
+                href="/fediverse"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -169,44 +212,6 @@ export function AppSidebar(props: AppSidebarProps) {
                   />
                 </svg>
                 {t`Fediverse`}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem class="list-none">
-              <SidebarMenuButton as={A} href="/">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="size-6"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="m3 3 8.735 8.735m0 0a.374.374 0 1 1 .53.53m-.53-.53.53.53m0 0L21 21M14.652 9.348a3.75 3.75 0 0 1 0 5.304m2.121-7.425a6.75 6.75 0 0 1 0 9.546m2.121-11.667c3.808 3.807 3.808 9.98 0 13.788m-9.546-4.242a3.733 3.733 0 0 1-1.06-2.122m-1.061 4.243a6.75 6.75 0 0 1-1.625-6.929m-.496 9.05c-3.068-3.067-3.664-7.67-1.79-11.334M12 12h.008v.008H12V12Z"
-                  />
-                </svg>
-                {t`Without shares`}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem class="list-none">
-              <SidebarMenuButton as={A} href="/">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="size-6"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-                  />
-                </svg>
-                {t`Articles only`}
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarGroupContent>

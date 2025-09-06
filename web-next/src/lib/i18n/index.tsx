@@ -26,23 +26,27 @@ const loadI18n = query(async ($query: i18nProviderLoadI18n_query$key) => {
   ).viewer?.locales;
 
   let loc: Intl.Locale | undefined;
+  const locales: string[] = [];
   if (typeof query.lang === "string") {
     loc = negotiateLocale(query.lang, linguiConfig.locales);
   }
   if (loc == null && accountLocales != null && accountLocales.length > 0) {
     loc = negotiateLocale(accountLocales, linguiConfig.locales);
+    locales.push(...accountLocales);
   }
   if (loc == null) {
     const acceptLanguage = getRequestHeader("Accept-Language");
     const acceptLanguages = parseAcceptLanguage(acceptLanguage);
     loc = negotiateLocale(acceptLanguages, linguiConfig.locales);
+    locales.push(...acceptLanguages);
   }
   if (loc == null) {
     loc = new Intl.Locale(linguiConfig.sourceLocale);
   }
+  if (locales.length < 1) locales.push(loc.baseName);
 
   const messages = await loadMessages(loc.baseName);
-  return { locale: loc.baseName, messages };
+  return { locale: loc.baseName, locales, messages };
 }, "i18n");
 
 const I18nContext = createContext<LinguiI18n>();
@@ -58,6 +62,7 @@ export function I18nProvider(props: ParentProps<I18nProviderProps>) {
     if (!loaded) return;
     return setupI18n({
       locale: loaded.locale,
+      locales: loaded.locales,
       messages: {
         [loaded.locale]: loaded.messages,
       },

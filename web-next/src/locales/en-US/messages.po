@@ -148,7 +148,7 @@ msgstr "A name for the link that will be displayed on your profile, e.g., GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
-#: src/components/AppSidebar.tsx:216
+#: src/components/AppSidebar.tsx:221
 msgid "Account"
 msgstr "Account"
 
@@ -199,7 +199,8 @@ msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:209
+#: src/components/AppSidebar.tsx:171
+#: src/routes/(root)/feed/articles.tsx:64
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -234,7 +235,7 @@ msgstr "Cancel"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
 
-#: src/components/AppSidebar.tsx:371
+#: src/components/AppSidebar.tsx:376
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -326,7 +327,8 @@ msgstr "Failed to load more passkeys; click to retry"
 
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
-#: src/components/PublicTimeline.tsx:73
+#: src/components/PersonalTimeline.tsx:82
+#: src/components/PublicTimeline.tsx:84
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
@@ -361,12 +363,15 @@ msgstr "Failed to send invitation"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/AppSidebar.tsx:171
+#: src/components/AppSidebar.tsx:214
+#: src/routes/(root)/fediverse.tsx:80
 msgid "Fediverse"
 msgstr "Fediverse"
 
-#: src/components/AppSidebar.tsx:132
-#: src/routes/(root)/index.tsx:54
+#: src/components/AppSidebar.tsx:133
+#: src/routes/(root)/feed/articles.tsx:60
+#: src/routes/(root)/feed/index.tsx:60
+#: src/routes/(root)/feed/without-shares.tsx:60
 msgid "Feed"
 msgstr "Feed"
 
@@ -383,16 +388,21 @@ msgstr "Followers only"
 msgid "Following you"
 msgstr "Following you"
 
-#: src/components/AppSidebar.tsx:383
+#: src/components/AppSidebar.tsx:388
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
 #: src/components/AppSidebar.tsx:101
-#: src/components/AppSidebar.tsx:152
+#: src/components/AppSidebar.tsx:192
 #: src/routes/(root)/coc.tsx:53
+#: src/routes/(root)/local.tsx:76
 #: src/routes/(root)/markdown.tsx:53
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
+
+#: src/components/AboutHackersPub.tsx:232
+msgid "Hackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed."
+msgstr "Hackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed."
 
 #: src/routes/(root)/notifications.tsx:46
 msgid "Hackers' Pub: Notifications"
@@ -418,7 +428,7 @@ msgstr "Invitation language"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:307
+#: src/components/AppSidebar.tsx:312
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -488,7 +498,8 @@ msgstr "Load more passkeys"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
-#: src/components/PublicTimeline.tsx:76
+#: src/components/PersonalTimeline.tsx:85
+#: src/components/PublicTimeline.tsx:87
 msgid "Load more posts"
 msgstr "Load more posts"
 
@@ -518,7 +529,8 @@ msgstr "Loading more passkeys…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
-#: src/components/PublicTimeline.tsx:70
+#: src/components/PersonalTimeline.tsx:79
+#: src/components/PublicTimeline.tsx:81
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
@@ -590,7 +602,8 @@ msgstr "No notes found"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:85
-#: src/components/PublicTimeline.tsx:83
+#: src/components/PersonalTimeline.tsx:92
+#: src/components/PublicTimeline.tsx:94
 msgid "No posts found"
 msgstr "No posts found"
 
@@ -608,7 +621,7 @@ msgstr "Note that you can verify your links belong to you by making the linked p
 msgid "Notes"
 msgstr "Notes"
 
-#: src/components/AppSidebar.tsx:269
+#: src/components/AppSidebar.tsx:274
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "Notifications"
@@ -767,7 +780,7 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:338
+#: src/components/AppSidebar.tsx:343
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -781,7 +794,7 @@ msgstr "Settings"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/AppSidebar.tsx:242
+#: src/components/AppSidebar.tsx:247
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "Sign in"
@@ -790,7 +803,7 @@ msgstr "Sign in"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:360
+#: src/components/AppSidebar.tsx:365
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -872,7 +885,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:375
+#: src/components/AppSidebar.tsx:380
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -881,6 +894,11 @@ msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
 #: src/components/AppSidebar.tsx:113
+#: src/routes/(root)/fediverse.tsx:76
+#: src/routes/(root)/feed/articles.tsx:56
+#: src/routes/(root)/feed/index.tsx:56
+#: src/routes/(root)/feed/without-shares.tsx:56
+#: src/routes/(root)/local.tsx:72
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -956,7 +974,12 @@ msgstr "Website"
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 
-#: src/components/AppSidebar.tsx:190
+#: src/components/AboutHackersPub.tsx:230
+msgid "What is Hackers' Pub?"
+msgstr "What is Hackers' Pub?"
+
+#: src/components/AppSidebar.tsx:152
+#: src/routes/(root)/feed/without-shares.tsx:64
 msgid "Without shares"
 msgstr "Without shares"
 

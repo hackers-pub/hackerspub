@@ -148,7 +148,7 @@ msgstr "為顯示在你個人資料頁面的連結命名，例如 GitHub。"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾郵件資料夾）"
 
-#: src/components/AppSidebar.tsx:216
+#: src/components/AppSidebar.tsx:221
 msgid "Account"
 msgstr "帳戶"
 
@@ -199,7 +199,8 @@ msgstr "您確定要取消密碼{0}嗎？您將無法再使用它登入您的帳
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:209
+#: src/components/AppSidebar.tsx:171
+#: src/routes/(root)/feed/articles.tsx:64
 msgid "Articles only"
 msgstr "僅文章"
 
@@ -234,7 +235,7 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
 
-#: src/components/AppSidebar.tsx:371
+#: src/components/AppSidebar.tsx:376
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -326,7 +327,8 @@ msgstr "載入更多通行金鑰失敗；點擊重試"
 
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
-#: src/components/PublicTimeline.tsx:73
+#: src/components/PersonalTimeline.tsx:82
+#: src/components/PublicTimeline.tsx:84
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
 
@@ -361,12 +363,15 @@ msgstr "發送邀請失敗"
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
-#: src/components/AppSidebar.tsx:171
+#: src/components/AppSidebar.tsx:214
+#: src/routes/(root)/fediverse.tsx:80
 msgid "Fediverse"
 msgstr "聯邦宇宙"
 
-#: src/components/AppSidebar.tsx:132
-#: src/routes/(root)/index.tsx:54
+#: src/components/AppSidebar.tsx:133
+#: src/routes/(root)/feed/articles.tsx:60
+#: src/routes/(root)/feed/index.tsx:60
+#: src/routes/(root)/feed/without-shares.tsx:60
 msgid "Feed"
 msgstr "訂閱流"
 
@@ -383,16 +388,21 @@ msgstr "只粉絲可見"
 msgid "Following you"
 msgstr "關注了你"
 
-#: src/components/AppSidebar.tsx:383
+#: src/components/AppSidebar.tsx:388
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
 #: src/components/AppSidebar.tsx:101
-#: src/components/AppSidebar.tsx:152
+#: src/components/AppSidebar.tsx:192
 #: src/routes/(root)/coc.tsx:53
+#: src/routes/(root)/local.tsx:76
 #: src/routes/(root)/markdown.tsx:53
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
+
+#: src/components/AboutHackersPub.tsx:232
+msgid "Hackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed."
+msgstr "Hackers' Pub 是個為軟體工程師共同分享知識和經驗的地方。它也是啟用了 ActivityPub 的社交網路，這樣你可以在聯邦宇宙裡關注你喜愛的駭客，並獲取最新的貼文。"
 
 #: src/routes/(root)/notifications.tsx:46
 msgid "Hackers' Pub: Notifications"
@@ -418,7 +428,7 @@ msgstr "邀請語言"
 msgid "Invitation sent"
 msgstr "邀請已發送"
 
-#: src/components/AppSidebar.tsx:307
+#: src/components/AppSidebar.tsx:312
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -488,7 +498,8 @@ msgstr "載入更多通行金鑰"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
-#: src/components/PublicTimeline.tsx:76
+#: src/components/PersonalTimeline.tsx:85
+#: src/components/PublicTimeline.tsx:87
 msgid "Load more posts"
 msgstr "載入更多內容"
 
@@ -518,7 +529,8 @@ msgstr "正在載入更多通行金鑰…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
-#: src/components/PublicTimeline.tsx:70
+#: src/components/PersonalTimeline.tsx:79
+#: src/components/PublicTimeline.tsx:81
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
 
@@ -590,7 +602,8 @@ msgstr "未找到貼文"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:85
-#: src/components/PublicTimeline.tsx:83
+#: src/components/PersonalTimeline.tsx:92
+#: src/components/PublicTimeline.tsx:94
 msgid "No posts found"
 msgstr "未找到內容"
 
@@ -608,7 +621,7 @@ msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用
 msgid "Notes"
 msgstr "貼文"
 
-#: src/components/AppSidebar.tsx:269
+#: src/components/AppSidebar.tsx:274
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "通知"
@@ -767,7 +780,7 @@ msgstr "發送中…"
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
-#: src/components/AppSidebar.tsx:338
+#: src/components/AppSidebar.tsx:343
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -781,7 +794,7 @@ msgstr "設定"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/AppSidebar.tsx:242
+#: src/components/AppSidebar.tsx:247
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登入"
@@ -790,7 +803,7 @@ msgstr "登入"
 msgid "Sign in with passkey"
 msgstr "使用通行金鑰登入"
 
-#: src/components/AppSidebar.tsx:360
+#: src/components/AppSidebar.tsx:365
 msgid "Sign out"
 msgstr "登出"
 
@@ -872,7 +885,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:375
+#: src/components/AppSidebar.tsx:380
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
@@ -881,6 +894,11 @@ msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱 。"
 
 #: src/components/AppSidebar.tsx:113
+#: src/routes/(root)/fediverse.tsx:76
+#: src/routes/(root)/feed/articles.tsx:56
+#: src/routes/(root)/feed/index.tsx:56
+#: src/routes/(root)/feed/without-shares.tsx:56
+#: src/routes/(root)/local.tsx:72
 msgid "Timeline"
 msgstr "時間軸"
 
@@ -956,7 +974,12 @@ msgstr "網站"
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "歡迎來到 Hackers' Pub！請填寫以下表單完成註冊。"
 
-#: src/components/AppSidebar.tsx:190
+#: src/components/AboutHackersPub.tsx:230
+msgid "What is Hackers' Pub?"
+msgstr "什麼是 Hackers' Pub？"
+
+#: src/components/AppSidebar.tsx:152
+#: src/routes/(root)/feed/without-shares.tsx:64
 msgid "Without shares"
 msgstr "不含轉貼"
 

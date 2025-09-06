@@ -805,6 +805,7 @@ type Query {
   ): Document!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+  personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
   publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
 
   """Verify a signup token and return the signup info if valid."""
@@ -816,6 +817,19 @@ type Query {
     token: UUID!
   ): SignupInfo
   viewer: Account
+}
+
+type QueryPersonalTimelineConnection {
+  edges: [QueryPersonalTimelineConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QueryPersonalTimelineConnectionEdge {
+  added: DateTime!
+  cursor: String!
+  lastSharer: Actor
+  node: Post!
+  sharersCount: Int!
 }
 
 type QueryPublicTimelineConnection {

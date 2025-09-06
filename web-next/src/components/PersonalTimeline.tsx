@@ -3,38 +3,36 @@ import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { PublicTimeline_posts$key } from "./__generated__/PublicTimeline_posts.graphql.ts";
+import type { PersonalTimeline_posts$key } from "./__generated__/PersonalTimeline_posts.graphql.ts";
 
-export interface PublicTimelineProps {
-  $posts: PublicTimeline_posts$key;
+export interface PersonalTimelineProps {
+  $posts: PersonalTimeline_posts$key;
 }
 
-export function PublicTimeline(props: PublicTimelineProps) {
+export function PersonalTimeline(props: PersonalTimelineProps) {
   const { t } = useLingui();
   const posts = createPaginationFragment(
     graphql`
-      fragment PublicTimeline_posts on Query 
-        @refetchable(queryName: "PublicTimelineQuery")
+      fragment PersonalTimeline_posts on Query
+        @refetchable(queryName: "PersonalTimelineQuery")
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 25 }
           locale: { type: "Locale" }
-          languages: { type: "[Locale!]", }
           local: { type: "Boolean", defaultValue: false }
-          postType: { type: "PostType", defaultValue: null}
+          postType: { type: "PostType", defaultValue: null }
           withoutShares: { type: "Boolean", defaultValue: false }
         )
       {
         __id
-        publicTimeline(
+        personalTimeline(
           after: $cursor,
           first: $count,
-          languages: $languages,
           local: $local,
           postType: $postType,
           withoutShares: $withoutShares,
         )
-          @connection(key: "PublicTimeline__publicTimeline")
+          @connection(key: "PersonalTimeline__personalTimeline")
         {
           edges {
             __id
@@ -68,7 +66,7 @@ export function PublicTimeline(props: PublicTimelineProps) {
       <Show when={posts()}>
         {(data) => (
           <>
-            <For each={data().publicTimeline.edges}>
+            <For each={data().personalTimeline.edges}>
               {(edge) => <PostCard $post={edge.node} />}
             </For>
             <Show when={posts.hasNext}>
@@ -89,7 +87,7 @@ export function PublicTimeline(props: PublicTimelineProps) {
                 </Switch>
               </div>
             </Show>
-            <Show when={data().publicTimeline.edges.length < 1}>
+            <Show when={data().personalTimeline.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No posts found`}
               </div>
