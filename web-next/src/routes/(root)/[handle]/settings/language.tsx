@@ -179,7 +179,9 @@ function PreferredLanguagesForm(props: PreferredLanguagesFormProps) {
   const [locales, setLocales] = createSignal<
     readonly [Intl.Locale, ...readonly Intl.Locale[]]
   >(
-    (account()?.locales ?? []).map((l) => new Intl.Locale(l)) as [
+    (account()?.locales ?? navigator.languages).map((l) =>
+      new Intl.Locale(l)
+    ) as [
       Intl.Locale,
       ...readonly Intl.Locale[],
     ],
