@@ -707,7 +707,7 @@ msgstr "공개"
 msgid "Quiet public"
 msgstr "조용히 공개"
 
-#: src/components/ArticleCard.tsx:253
+#: src/components/ArticleCard.tsx:256
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
 
@@ -839,7 +839,7 @@ msgstr "환경 설정이 성공적으로 저장되었습니다"
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
-#: src/components/ArticleCard.tsx:231
+#: src/components/ArticleCard.tsx:234
 msgid "Summarized by LLM"
 msgstr "LLM 요약"
 
@@ -903,7 +903,7 @@ msgid "Timeline"
 msgstr "타임라인"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:149
+#: src/components/ArticleCard.tsx:152
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 

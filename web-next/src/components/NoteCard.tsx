@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { For, Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
+import { InternalLink } from "~/components/InternalLink.tsx";
 import { PostSharer } from "~/components/PostSharer.tsx";
 import { QuotedPostCard } from "~/components/QuotedPostCard.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
@@ -84,6 +85,8 @@ function NoteCardInternal(props: NoteCardInternalProps) {
           username
           avatarUrl
           local
+          url
+          iri
         }
         content
         language
@@ -100,23 +103,23 @@ function NoteCardInternal(props: NoteCardInternalProps) {
         <>
           <div class="flex gap-4 p-4">
             <Avatar class="size-12">
-              <a
-                href={note().actor.local
+              <InternalLink
+                href={note().actor.url ?? note().actor.iri}
+                internalHref={note().actor.local
                   ? `/@${note().actor.username}`
                   : `/${note().actor.handle}`}
-                target={note().actor.local ? undefined : "_self"}
               >
                 <AvatarImage src={note().actor.avatarUrl} class="size-12" />
-              </a>
+              </InternalLink>
             </Avatar>
             <div class="flex flex-col">
               <div>
                 <Show when={(note().actor.name ?? "").trim() !== ""}>
-                  <a
-                    href={note().actor.local
+                  <InternalLink
+                    href={note().actor.url ?? note().actor.iri}
+                    internalHref={note().actor.local
                       ? `/@${note().actor.username}`
                       : `/${note().actor.handle}`}
-                    target={note().actor.local ? undefined : "_self"}
                     innerHTML={note().actor.name ?? ""}
                     class="font-semibold"
                   />

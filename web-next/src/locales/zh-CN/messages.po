@@ -707,7 +707,7 @@ msgstr "公开"
 msgid "Quiet public"
 msgstr "悄悄公开"
 
-#: src/components/ArticleCard.tsx:253
+#: src/components/ArticleCard.tsx:256
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -839,7 +839,7 @@ msgstr "设置已成功保存"
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
-#: src/components/ArticleCard.tsx:231
+#: src/components/ArticleCard.tsx:234
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -903,7 +903,7 @@ msgid "Timeline"
 msgstr "时间线"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:149
+#: src/components/ArticleCard.tsx:152
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 

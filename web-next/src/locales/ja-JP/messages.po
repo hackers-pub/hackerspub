@@ -707,7 +707,7 @@ msgstr "公開"
 msgid "Quiet public"
 msgstr "ひかえめな公開"
 
-#: src/components/ArticleCard.tsx:253
+#: src/components/ArticleCard.tsx:256
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -839,7 +839,7 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:231
+#: src/components/ArticleCard.tsx:234
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -903,7 +903,7 @@ msgid "Timeline"
 msgstr "タイムライン"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:149
+#: src/components/ArticleCard.tsx:152
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 

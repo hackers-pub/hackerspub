@@ -7,6 +7,7 @@ import {
   ArticleCard_article$key,
 } from "./__generated__/ArticleCard_article.graphql.ts";
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
+import { InternalLink } from "./InternalLink.tsx";
 import { PostSharer } from "./PostSharer.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
@@ -81,6 +82,8 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           avatarUrl
           local
           username
+          url
+          iri
         }
         name
         summary
@@ -108,24 +111,24 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
         <>
           <div class="flex gap-4 m-4 mb-0">
             <Avatar class="size-12">
-              <a
-                href={article().actor.local
+              <InternalLink
+                href={article().actor.url ?? article().actor.iri}
+                internalHref={article().actor.local
                   ? `/@${article().actor.username}`
                   : `/${article().actor.handle}`}
-                target={article().actor.local ? undefined : "_self"}
               >
                 <AvatarImage src={article().actor.avatarUrl} class="size-12" />
-              </a>
+              </InternalLink>
             </Avatar>
             <div class="flex flex-col">
               <div>
                 <Show when={(article().actor.name ?? "").trim() !== ""}>
-                  <a
+                  <InternalLink
                     innerHTML={article().actor.name ?? ""}
-                    href={article().actor.local
+                    href={article().actor.url ?? article().actor.iri}
+                    internalHref={article().actor.local
                       ? `/@${article().actor.username}`
                       : `/${article().actor.handle}`}
-                    target={article().actor.local ? undefined : "_self"}
                     class="font-semibold"
                   />
                   {" "}

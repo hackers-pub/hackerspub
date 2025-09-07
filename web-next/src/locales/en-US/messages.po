@@ -707,7 +707,7 @@ msgstr "Public"
 msgid "Quiet public"
 msgstr "Quiet public"
 
-#: src/components/ArticleCard.tsx:253
+#: src/components/ArticleCard.tsx:256
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -839,7 +839,7 @@ msgstr "Successfully saved preferences"
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
-#: src/components/ArticleCard.tsx:231
+#: src/components/ArticleCard.tsx:234
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -903,7 +903,7 @@ msgid "Timeline"
 msgstr "Timeline"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:149
+#: src/components/ArticleCard.tsx:152
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
