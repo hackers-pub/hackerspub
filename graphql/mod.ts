@@ -12,6 +12,7 @@ import "./passkey.ts";
 import "./poll.ts";
 import "./post.ts";
 import "./reactable.ts";
+import "./search.ts";
 import "./signup.ts";
 import "./timeline.ts";
 export type { UserContext as Context } from "./builder.ts";
