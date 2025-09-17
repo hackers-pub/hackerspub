@@ -74,6 +74,7 @@ export function Composer(props: ComposerProps) {
     props.quotedPostId ?? null,
   );
   const [quoteLoading, setQuoteLoading] = useState(false);
+  const [copyToClipboard, setCopyToClipboard] = useState(false);
 
   function onInput(event: JSX.TargetedInputEvent<HTMLTextAreaElement>) {
     if (contentLanguageManuallySet) return;
@@ -241,6 +242,19 @@ export function Composer(props: ComposerProps) {
       return;
     }
     setContent("");
+
+    if (copyToClipboard) {
+      if (navigator.clipboard) {
+        const croppedContent = post.noteSource.content.slice(0, 90);
+        const postUrl = post.url;
+        const clipboardContent = `
+${croppedContent}
+
+For detail: ${postUrl}
+    `;
+        await navigator.clipboard.writeText(clipboardContent);
+      }
+    }
     if (props.onPost === "reload") location.reload();
     else if (props.onPost === "post.url") {
       location.href = post.url;
@@ -538,6 +552,18 @@ export function Composer(props: ComposerProps) {
             ))}
           </div>
         )}
+
+        <label class="cursor-pointer">
+          <input
+            id="copy-to-clipboard"
+            type="checkbox"
+            name="copyToClipboard"
+            class="cursor-pointer mr-1 mt-4"
+            checked={copyToClipboard}
+            onChange={() => setCopyToClipboard(!copyToClipboard)}
+          />
+          Copy to clipboard
+        </label>
       </form>
     </TranslationSetup>
   );
