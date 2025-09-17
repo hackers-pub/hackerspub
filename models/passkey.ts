@@ -131,7 +131,7 @@ export async function verifyAuthentication(
     expectedRPID: new URL(origin).hostname,
     credential: {
       id: response.id,
-      publicKey: passkey.publicKey,
+      publicKey: new Uint8Array(passkey.publicKey),
       counter: Number(passkey.counter),
       transports: passkey.transports ?? undefined,
     },
