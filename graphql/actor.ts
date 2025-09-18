@@ -7,6 +7,7 @@ import { validateUuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
+import xss from "xss";
 import { builder } from "./builder.ts";
 import { Article, Note, Post, Question } from "./post.ts";
 
@@ -125,6 +126,17 @@ export const Actor = builder.drizzleNode("actorTable", {
     account: t.relation("account", { nullable: true }),
     instance: t.relation("instance", { type: Instance, nullable: true }),
     successor: t.relation("successor", { nullable: true }),
+    fields: t.field({
+      type: [ActorFieldRef],
+      resolve(actor) {
+        const fields: ActorField[] = [];
+        for (const field in actor.fieldHtmls) {
+          const value = actor.fieldHtmls[field];
+          fields.push({ name: field, value: xss(value) });
+        }
+        return fields;
+      },
+    }),
     posts: t.relatedConnection("posts", {
       type: Post,
       query: (_, ctx) => ({
@@ -312,6 +324,21 @@ builder.drizzleObjectFields(Actor, (t) => ({
     },
   }),
 }));
+
+interface ActorField {
+  name: string;
+  value: string;
+}
+
+const ActorFieldRef = builder.objectRef<ActorField>("ActorField");
+
+ActorFieldRef.implement({
+  description: "A property pair in an actor's account.",
+  fields: (t) => ({
+    name: t.exposeString("name"),
+    value: t.expose("value", { type: "HTML" }),
+  }),
+});
 
 const followerConnectionHelpers = drizzleConnectionHelpers(
   builder,

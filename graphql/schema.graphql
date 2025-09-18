@@ -114,6 +114,7 @@ type Actor implements Node {
   avatarUrl: URL!
   bio: HTML
   created: DateTime!
+  fields: [ActorField!]!
   followees(after: String, before: String, first: Int, last: Int): ActorFolloweesConnection!
   followers(after: String, before: String, first: Int, last: Int): ActorFollowersConnection!
   follows(followeeId: ID): Boolean!
@@ -152,6 +153,12 @@ type ActorArticlesConnection {
 type ActorArticlesConnectionEdge {
   cursor: String!
   node: Article!
+}
+
+"""A property pair in an actor's account."""
+type ActorField {
+  name: String!
+  value: HTML!
 }
 
 type ActorFolloweesConnection {

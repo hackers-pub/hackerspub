@@ -37,6 +37,10 @@ export function ProfileCard(props: ProfileCardProps) {
           totalCount
         }
         followsViewer
+        fields {
+          name
+          value
+        }
         account {
           links {
             name
@@ -93,7 +97,31 @@ export function ProfileCard(props: ProfileCardProps) {
               />
             </div>
           </Show>
-          <Show when={actor().account}>
+          <Show
+            when={actor().account}
+            fallback={
+              <Show when={actor().fields.length > 0}>
+                <div class="p-4 pt-0">
+                  <ul class="mx-auto max-w-prose">
+                    <For each={actor().fields}>
+                      {(field) => (
+                        <li class="flex flex-row items-center text-sm mb-1">
+                          <img
+                            src="/icons/web.svg"
+                            class="size-3.5 mr-1 dark:invert opacity-65"
+                          />
+                          <span class="text-muted-foreground mr-1">
+                            {field.name}
+                          </span>
+                          <span innerHTML={field.value}></span>
+                        </li>
+                      )}
+                    </For>
+                  </ul>
+                </div>
+              </Show>
+            }
+          >
             {(account) => (
               <Show
                 when={account().links.length > 0}
