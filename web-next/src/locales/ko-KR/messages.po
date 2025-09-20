@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:178
+#: src/components/ProfileCard.tsx:206
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:163
+#: src/components/ProfileCard.tsx:191
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -148,7 +148,7 @@ msgstr "프로필에 표시될 링크의 이름. 예: GitHub."
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함(또는 스팸 폴더)을 확인해주세요."
 
-#: src/components/AppSidebar.tsx:221
+#: src/components/AppSidebar.tsx:240
 msgid "Account"
 msgstr "계정"
 
@@ -235,7 +235,7 @@ msgstr "취소"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
-#: src/components/AppSidebar.tsx:376
+#: src/components/AppSidebar.tsx:395
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -329,6 +329,7 @@ msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시�
 #: src/components/ActorSharedPostList.tsx:75
 #: src/components/PersonalTimeline.tsx:82
 #: src/components/PublicTimeline.tsx:84
+#: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 
@@ -384,11 +385,11 @@ msgstr "팔로워"
 msgid "Followers only"
 msgstr "팔로워만"
 
-#: src/components/ProfileCard.tsx:188
+#: src/components/ProfileCard.tsx:216
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
-#: src/components/AppSidebar.tsx:388
+#: src/components/AppSidebar.tsx:407
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
@@ -428,7 +429,7 @@ msgstr "초대장 언어"
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
-#: src/components/AppSidebar.tsx:312
+#: src/components/AppSidebar.tsx:331
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -500,6 +501,7 @@ msgstr "패스키 더 불러오기"
 #: src/components/ActorSharedPostList.tsx:78
 #: src/components/PersonalTimeline.tsx:85
 #: src/components/PublicTimeline.tsx:87
+#: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
 
@@ -531,6 +533,7 @@ msgstr "패스키를 더 불러오는 중…"
 #: src/components/ActorSharedPostList.tsx:72
 #: src/components/PersonalTimeline.tsx:79
 #: src/components/PublicTimeline.tsx:81
+#: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
 
@@ -604,12 +607,17 @@ msgstr "단문이 없습니다"
 #: src/components/ActorSharedPostList.tsx:85
 #: src/components/PersonalTimeline.tsx:92
 #: src/components/PublicTimeline.tsx:94
+#: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "콘텐츠가 없습니다"
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
+
+#: src/routes/(root)/search.tsx:267
+msgid "Not found."
+msgstr "찾을 수 없습니다."
 
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
@@ -621,7 +629,7 @@ msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링�
 msgid "Notes"
 msgstr "단문"
 
-#: src/components/AppSidebar.tsx:274
+#: src/components/AppSidebar.tsx:293
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "알림"
@@ -702,6 +710,10 @@ msgstr "프로필 설정"
 msgid "Public"
 msgstr "공개"
 
+#: src/routes/(root)/search.tsx:258
+msgid "Query cannot be empty"
+msgstr "검색어를 비울 수 없습니다"
+
 #: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
 msgid "Quiet public"
@@ -760,9 +772,24 @@ msgstr "저장"
 msgid "Saving…"
 msgstr "저장 중…"
 
+#: src/components/AppSidebar.tsx:233
+#: src/routes/(root)/search.tsx:135
+#: src/routes/(root)/search.tsx:163
+msgid "Search"
+msgstr "검색"
+
 #: src/components/LanguageSelect.tsx:65
 msgid "Search a language…"
 msgstr "언어 검색…"
+
+#: src/routes/(root)/search.tsx:156
+msgid "Search posts..."
+msgstr "콘텐츠 검색..."
+
+#. placeholder {0}: props.searchQuery()
+#: src/routes/(root)/search.tsx:195
+msgid "Search results for \"{0}\""
+msgstr "\"{0}\"의 검색 결과"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
@@ -780,7 +807,7 @@ msgstr "보내는 중…"
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
-#: src/components/AppSidebar.tsx:343
+#: src/components/AppSidebar.tsx:362
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -794,7 +821,7 @@ msgstr "설정"
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/AppSidebar.tsx:247
+#: src/components/AppSidebar.tsx:266
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "로그인"
@@ -803,7 +830,7 @@ msgstr "로그인"
 msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
-#: src/components/AppSidebar.tsx:365
+#: src/components/AppSidebar.tsx:384
 msgid "Sign out"
 msgstr "로그아웃"
 
@@ -885,7 +912,7 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:380
+#: src/components/AppSidebar.tsx:399
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
@@ -942,7 +969,7 @@ msgstr "초대한 사용자"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:137
+#: src/components/ProfileCard.tsx:165
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 
