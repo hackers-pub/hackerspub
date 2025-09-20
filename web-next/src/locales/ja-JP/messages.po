@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:178
+#: src/components/ProfileCard.tsx:206
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:163
+#: src/components/ProfileCard.tsx:191
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
@@ -148,7 +148,7 @@ msgstr "プロフィールに表示されるリンクの名前。（例：GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
-#: src/components/AppSidebar.tsx:221
+#: src/components/AppSidebar.tsx:240
 msgid "Account"
 msgstr "アカウント"
 
@@ -235,7 +235,7 @@ msgstr "キャンセル"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
 
-#: src/components/AppSidebar.tsx:376
+#: src/components/AppSidebar.tsx:395
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -329,6 +329,7 @@ msgstr "パスキーの読み込みに失敗しました。クリックして再
 #: src/components/ActorSharedPostList.tsx:75
 #: src/components/PersonalTimeline.tsx:82
 #: src/components/PublicTimeline.tsx:84
+#: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
@@ -384,11 +385,11 @@ msgstr "フォロワー"
 msgid "Followers only"
 msgstr "フォロワーのみ"
 
-#: src/components/ProfileCard.tsx:188
+#: src/components/ProfileCard.tsx:216
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
-#: src/components/AppSidebar.tsx:388
+#: src/components/AppSidebar.tsx:407
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -428,7 +429,7 @@ msgstr "招待状の言語"
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
-#: src/components/AppSidebar.tsx:312
+#: src/components/AppSidebar.tsx:331
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -500,6 +501,7 @@ msgstr "パスキーを読み込む"
 #: src/components/ActorSharedPostList.tsx:78
 #: src/components/PersonalTimeline.tsx:85
 #: src/components/PublicTimeline.tsx:87
+#: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
@@ -531,6 +533,7 @@ msgstr "パスキーを読み込み中…"
 #: src/components/ActorSharedPostList.tsx:72
 #: src/components/PersonalTimeline.tsx:79
 #: src/components/PublicTimeline.tsx:81
+#: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
 
@@ -604,12 +607,17 @@ msgstr "投稿はありません"
 #: src/components/ActorSharedPostList.tsx:85
 #: src/components/PersonalTimeline.tsx:92
 #: src/components/PublicTimeline.tsx:94
+#: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "コンテンツはありません"
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
+
+#: src/routes/(root)/search.tsx:267
+msgid "Not found."
+msgstr "見つかりませんでした。"
 
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
@@ -621,7 +629,7 @@ msgstr "リンクが実際にあなたのものであることを認証できま
 msgid "Notes"
 msgstr "投稿"
 
-#: src/components/AppSidebar.tsx:274
+#: src/components/AppSidebar.tsx:293
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "通知"
@@ -702,6 +710,10 @@ msgstr "プロフィール設定"
 msgid "Public"
 msgstr "公開"
 
+#: src/routes/(root)/search.tsx:258
+msgid "Query cannot be empty"
+msgstr "検索文字列は空にできません"
+
 #: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
 msgid "Quiet public"
@@ -760,9 +772,24 @@ msgstr "保存"
 msgid "Saving…"
 msgstr "保存中…"
 
+#: src/components/AppSidebar.tsx:233
+#: src/routes/(root)/search.tsx:135
+#: src/routes/(root)/search.tsx:163
+msgid "Search"
+msgstr "検索"
+
 #: src/components/LanguageSelect.tsx:65
 msgid "Search a language…"
 msgstr "言語を検索…"
+
+#: src/routes/(root)/search.tsx:156
+msgid "Search posts..."
+msgstr "コンテンツを検索..."
+
+#. placeholder {0}: props.searchQuery()
+#: src/routes/(root)/search.tsx:195
+msgid "Search results for \"{0}\""
+msgstr "\"{0}\"の検索結果"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
@@ -780,7 +807,7 @@ msgstr "送信中…"
 msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
-#: src/components/AppSidebar.tsx:343
+#: src/components/AppSidebar.tsx:362
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -794,7 +821,7 @@ msgstr "設定"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/AppSidebar.tsx:247
+#: src/components/AppSidebar.tsx:266
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "ログイン"
@@ -803,7 +830,7 @@ msgstr "ログイン"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:365
+#: src/components/AppSidebar.tsx:384
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -885,7 +912,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:380
+#: src/components/AppSidebar.tsx:399
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -942,7 +969,7 @@ msgstr "招待したユーザー"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:137
+#: src/components/ProfileCard.tsx:165
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 
