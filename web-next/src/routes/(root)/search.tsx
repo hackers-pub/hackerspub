@@ -15,6 +15,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { SearchGuide } from "~/components/SearchGuide.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { TopBreadcrumb } from "~/components/TopBreadcrumb.tsx";
 import {
@@ -135,7 +136,7 @@ export default function SearchPage() {
         </BreadcrumbItem>
       </TopBreadcrumb>
       <div class="p-4">
-        <div class="mb-6">
+        <div class="mb-6 relative">
           <form
             method="get"
             class="flex gap-2"
@@ -153,7 +154,7 @@ export default function SearchPage() {
               name="q"
               value={searchQuery()}
               placeholder={t`Search posts...`}
-              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="peer flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
               type="submit"
@@ -161,6 +162,9 @@ export default function SearchPage() {
             >
               {t`Search`}
             </button>
+            <div class="hidden peer-focus:block absolute top-full left-0 right-0 mt-2 z-10">
+              <SearchGuide />
+            </div>
           </form>
         </div>
 
