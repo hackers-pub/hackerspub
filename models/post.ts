@@ -1396,6 +1396,16 @@ export async function deletePost(
     ),
   ).returning();
 
+  const originalPosts = await db.query.postTable.findMany({
+    where: {
+      OR: [
+        ...post.replyTargetId == null ? [] : [{ id: post.replyTargetId }],
+        ...post.sharedPostId == null ? [] : [{ id: post.sharedPostId }],
+        ...post.quotedPostId == null ? [] : [{ id: post.quotedPostId }],
+      ],
+    },
+  });
+
   // When a quoted post is deleted, update the quotes count of the original posts
   for (const quotingPost of quotingPosts) {
     if (quotingPost.quotedPostId) {
@@ -1427,7 +1437,9 @@ export async function deletePost(
   }
   if (post.actor.accountId == null) return;
   const interactors = await db.query.actorTable.findMany({
-    where: { id: { in: interactions.map((i) => i.actorId) } },
+    where: {
+      id: { in: [...interactions, ...originalPosts].map((i) => i.actorId) },
+    },
   });
   const recipients: Recipient[] = interactors.map((actor) => ({
     id: new URL(actor.iri),

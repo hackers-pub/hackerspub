@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:178
+#: src/components/ProfileCard.tsx:206
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:163
+#: src/components/ProfileCard.tsx:191
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -384,7 +384,7 @@ msgstr "팔로워"
 msgid "Followers only"
 msgstr "팔로워만"
 
-#: src/components/ProfileCard.tsx:188
+#: src/components/ProfileCard.tsx:216
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
@@ -942,7 +942,7 @@ msgstr "초대한 사용자"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:137
+#: src/components/ProfileCard.tsx:165
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 

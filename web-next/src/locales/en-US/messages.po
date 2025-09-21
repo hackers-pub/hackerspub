@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:178
+#: src/components/ProfileCard.tsx:206
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:163
+#: src/components/ProfileCard.tsx:191
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -384,7 +384,7 @@ msgstr "Followers"
 msgid "Followers only"
 msgstr "Followers only"
 
-#: src/components/ProfileCard.tsx:188
+#: src/components/ProfileCard.tsx:216
 msgid "Following you"
 msgstr "Following you"
 
@@ -942,7 +942,7 @@ msgstr "Users you have invited"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:137
+#: src/components/ProfileCard.tsx:165
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 
