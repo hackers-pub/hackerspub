@@ -28,6 +28,7 @@
     "./relations": "./relations.ts",
     "./schema": "./schema.ts",
     "./search": "./search.ts",
+    "./searchPatterns": "./searchPatterns.ts",
     "./session": "./session.ts",
     "./signin": "./signin.ts",
     "./signup": "./signup.ts",

@@ -148,7 +148,7 @@ msgstr "為顯示在你個人資料頁面的連結命名，例如 GitHub。"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾郵件資料夾）"
 
-#: src/components/AppSidebar.tsx:221
+#: src/components/AppSidebar.tsx:240
 msgid "Account"
 msgstr "帳戶"
 
@@ -235,7 +235,7 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
 
-#: src/components/AppSidebar.tsx:376
+#: src/components/AppSidebar.tsx:395
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -329,6 +329,7 @@ msgstr "載入更多通行金鑰失敗；點擊重試"
 #: src/components/ActorSharedPostList.tsx:75
 #: src/components/PersonalTimeline.tsx:82
 #: src/components/PublicTimeline.tsx:84
+#: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
 
@@ -388,7 +389,7 @@ msgstr "只粉絲可見"
 msgid "Following you"
 msgstr "關注了你"
 
-#: src/components/AppSidebar.tsx:388
+#: src/components/AppSidebar.tsx:407
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
@@ -428,7 +429,7 @@ msgstr "邀請語言"
 msgid "Invitation sent"
 msgstr "邀請已發送"
 
-#: src/components/AppSidebar.tsx:312
+#: src/components/AppSidebar.tsx:331
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -500,6 +501,7 @@ msgstr "載入更多通行金鑰"
 #: src/components/ActorSharedPostList.tsx:78
 #: src/components/PersonalTimeline.tsx:85
 #: src/components/PublicTimeline.tsx:87
+#: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "載入更多內容"
 
@@ -531,6 +533,7 @@ msgstr "正在載入更多通行金鑰…"
 #: src/components/ActorSharedPostList.tsx:72
 #: src/components/PersonalTimeline.tsx:79
 #: src/components/PublicTimeline.tsx:81
+#: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
 
@@ -604,12 +607,17 @@ msgstr "未找到貼文"
 #: src/components/ActorSharedPostList.tsx:85
 #: src/components/PersonalTimeline.tsx:92
 #: src/components/PublicTimeline.tsx:94
+#: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "未找到內容"
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中無此帳戶，請重試。"
+
+#: src/routes/(root)/search.tsx:271
+msgid "Not found."
+msgstr "未找到。"
 
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
@@ -621,7 +629,7 @@ msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用
 msgid "Notes"
 msgstr "貼文"
 
-#: src/components/AppSidebar.tsx:274
+#: src/components/AppSidebar.tsx:293
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "通知"
@@ -702,6 +710,10 @@ msgstr "個人資料設定"
 msgid "Public"
 msgstr "公開"
 
+#: src/routes/(root)/search.tsx:262
+msgid "Query cannot be empty"
+msgstr "搜尋關鍵詞不能為空"
+
 #: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
 msgid "Quiet public"
@@ -760,9 +772,24 @@ msgstr "儲存"
 msgid "Saving…"
 msgstr "儲存中…"
 
+#: src/components/AppSidebar.tsx:233
+#: src/routes/(root)/search.tsx:136
+#: src/routes/(root)/search.tsx:164
+msgid "Search"
+msgstr "搜尋"
+
 #: src/components/LanguageSelect.tsx:65
 msgid "Search a language…"
 msgstr "搜尋語言…"
+
+#: src/routes/(root)/search.tsx:157
+msgid "Search posts…"
+msgstr "搜尋內容…"
+
+#. placeholder {0}: "KEYWORD"
+#: src/routes/(root)/search.tsx:197
+msgid "Search results for {0}"
+msgstr "{0}的搜尋結果"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
@@ -780,7 +807,7 @@ msgstr "發送中…"
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
-#: src/components/AppSidebar.tsx:343
+#: src/components/AppSidebar.tsx:362
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -794,7 +821,7 @@ msgstr "設定"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/AppSidebar.tsx:247
+#: src/components/AppSidebar.tsx:266
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登入"
@@ -803,7 +830,7 @@ msgstr "登入"
 msgid "Sign in with passkey"
 msgstr "使用通行金鑰登入"
 
-#: src/components/AppSidebar.tsx:365
+#: src/components/AppSidebar.tsx:384
 msgid "Sign out"
 msgstr "登出"
 
@@ -885,7 +912,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:380
+#: src/components/AppSidebar.tsx:399
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 

@@ -148,7 +148,7 @@ msgstr "A name for the link that will be displayed on your profile, e.g., GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
-#: src/components/AppSidebar.tsx:221
+#: src/components/AppSidebar.tsx:240
 msgid "Account"
 msgstr "Account"
 
@@ -235,7 +235,7 @@ msgstr "Cancel"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
 
-#: src/components/AppSidebar.tsx:376
+#: src/components/AppSidebar.tsx:395
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
@@ -329,6 +329,7 @@ msgstr "Failed to load more passkeys; click to retry"
 #: src/components/ActorSharedPostList.tsx:75
 #: src/components/PersonalTimeline.tsx:82
 #: src/components/PublicTimeline.tsx:84
+#: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
@@ -388,7 +389,7 @@ msgstr "Followers only"
 msgid "Following you"
 msgstr "Following you"
 
-#: src/components/AppSidebar.tsx:388
+#: src/components/AppSidebar.tsx:407
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -428,7 +429,7 @@ msgstr "Invitation language"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:312
+#: src/components/AppSidebar.tsx:331
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -500,6 +501,7 @@ msgstr "Load more passkeys"
 #: src/components/ActorSharedPostList.tsx:78
 #: src/components/PersonalTimeline.tsx:85
 #: src/components/PublicTimeline.tsx:87
+#: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "Load more posts"
 
@@ -531,6 +533,7 @@ msgstr "Loading more passkeys…"
 #: src/components/ActorSharedPostList.tsx:72
 #: src/components/PersonalTimeline.tsx:79
 #: src/components/PublicTimeline.tsx:81
+#: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
@@ -604,12 +607,17 @@ msgstr "No notes found"
 #: src/components/ActorSharedPostList.tsx:85
 #: src/components/PersonalTimeline.tsx:92
 #: src/components/PublicTimeline.tsx:94
+#: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "No posts found"
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
+
+#: src/routes/(root)/search.tsx:271
+msgid "Not found."
+msgstr "Not found."
 
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
@@ -621,7 +629,7 @@ msgstr "Note that you can verify your links belong to you by making the linked p
 msgid "Notes"
 msgstr "Notes"
 
-#: src/components/AppSidebar.tsx:274
+#: src/components/AppSidebar.tsx:293
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "Notifications"
@@ -702,6 +710,10 @@ msgstr "Profile settings"
 msgid "Public"
 msgstr "Public"
 
+#: src/routes/(root)/search.tsx:262
+msgid "Query cannot be empty"
+msgstr "Query cannot be empty"
+
 #: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
 msgid "Quiet public"
@@ -760,9 +772,24 @@ msgstr "Save"
 msgid "Saving…"
 msgstr "Saving…"
 
+#: src/components/AppSidebar.tsx:233
+#: src/routes/(root)/search.tsx:136
+#: src/routes/(root)/search.tsx:164
+msgid "Search"
+msgstr "Search"
+
 #: src/components/LanguageSelect.tsx:65
 msgid "Search a language…"
 msgstr "Search a language…"
+
+#: src/routes/(root)/search.tsx:157
+msgid "Search posts…"
+msgstr "Search posts…"
+
+#. placeholder {0}: "KEYWORD"
+#: src/routes/(root)/search.tsx:197
+msgid "Search results for {0}"
+msgstr "Search results for {0}"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
@@ -780,7 +807,7 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:343
+#: src/components/AppSidebar.tsx:362
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -794,7 +821,7 @@ msgstr "Settings"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/AppSidebar.tsx:247
+#: src/components/AppSidebar.tsx:266
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "Sign in"
@@ -803,7 +830,7 @@ msgstr "Sign in"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:365
+#: src/components/AppSidebar.tsx:384
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -885,7 +912,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:380
+#: src/components/AppSidebar.tsx:399
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 

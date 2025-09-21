@@ -358,6 +358,10 @@ type EmojiReactionGroup implements ReactionGroup {
   subject: Reactable!
 }
 
+type EmptySearchQueryError {
+  message: String!
+}
+
 type FollowNotification implements Node & Notification {
   account: Account!
   actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
@@ -814,6 +818,12 @@ type Query {
   nodes(ids: [ID!]!): [Node]!
   personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
   publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
+  searchGuide(
+    """The locale for the search guide."""
+    locale: Locale!
+  ): Document!
+  searchObject(query: String!): SearchObjectResult
+  searchPost(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, query: String!): QuerySearchPostConnection!
 
   """Verify a signup token and return the signup info if valid."""
   verifySignupToken(
@@ -850,6 +860,16 @@ type QueryPublicTimelineConnectionEdge {
   lastSharer: Actor
   node: Post!
   sharersCount: Int!
+}
+
+type QuerySearchPostConnection {
+  edges: [QuerySearchPostConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QuerySearchPostConnectionEdge {
+  cursor: String!
+  node: Post!
 }
 
 type Question implements Node & Post & Reactable {
@@ -928,6 +948,12 @@ type ReplyNotification implements Node & Notification {
   id: ID!
   post: Post
   uuid: UUID!
+}
+
+union SearchObjectResult = EmptySearchQueryError | SearchedObject
+
+type SearchedObject {
+  url: String!
 }
 
 """A login session for an account."""
