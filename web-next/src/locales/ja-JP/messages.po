@@ -615,7 +615,7 @@ msgstr "コンテンツはありません"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
-#: src/routes/(root)/search.tsx:267
+#: src/routes/(root)/search.tsx:271
 msgid "Not found."
 msgstr "見つかりませんでした。"
 
@@ -710,7 +710,7 @@ msgstr "プロフィール設定"
 msgid "Public"
 msgstr "公開"
 
-#: src/routes/(root)/search.tsx:258
+#: src/routes/(root)/search.tsx:262
 msgid "Query cannot be empty"
 msgstr "検索文字列は空にできません"
 
@@ -773,8 +773,8 @@ msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:233
-#: src/routes/(root)/search.tsx:135
-#: src/routes/(root)/search.tsx:163
+#: src/routes/(root)/search.tsx:136
+#: src/routes/(root)/search.tsx:164
 msgid "Search"
 msgstr "検索"
 
@@ -782,14 +782,14 @@ msgstr "検索"
 msgid "Search a language…"
 msgstr "言語を検索…"
 
-#: src/routes/(root)/search.tsx:156
-msgid "Search posts..."
-msgstr "コンテンツを検索..."
+#: src/routes/(root)/search.tsx:157
+msgid "Search posts…"
+msgstr "コンテンツを検索…"
 
-#. placeholder {0}: props.searchQuery()
-#: src/routes/(root)/search.tsx:195
-msgid "Search results for \"{0}\""
-msgstr "\"{0}\"の検索結果"
+#. placeholder {0}: "KEYWORD"
+#: src/routes/(root)/search.tsx:197
+msgid "Search results for {0}"
+msgstr "{0}の検索結果"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."

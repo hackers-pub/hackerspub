@@ -615,7 +615,7 @@ msgstr "콘텐츠가 없습니다"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
-#: src/routes/(root)/search.tsx:267
+#: src/routes/(root)/search.tsx:271
 msgid "Not found."
 msgstr "찾을 수 없습니다."
 
@@ -710,7 +710,7 @@ msgstr "프로필 설정"
 msgid "Public"
 msgstr "공개"
 
-#: src/routes/(root)/search.tsx:258
+#: src/routes/(root)/search.tsx:262
 msgid "Query cannot be empty"
 msgstr "검색어를 비울 수 없습니다"
 
@@ -773,8 +773,8 @@ msgid "Saving…"
 msgstr "저장 중…"
 
 #: src/components/AppSidebar.tsx:233
-#: src/routes/(root)/search.tsx:135
-#: src/routes/(root)/search.tsx:163
+#: src/routes/(root)/search.tsx:136
+#: src/routes/(root)/search.tsx:164
 msgid "Search"
 msgstr "검색"
 
@@ -782,14 +782,14 @@ msgstr "검색"
 msgid "Search a language…"
 msgstr "언어 검색…"
 
-#: src/routes/(root)/search.tsx:156
-msgid "Search posts..."
-msgstr "콘텐츠 검색..."
+#: src/routes/(root)/search.tsx:157
+msgid "Search posts…"
+msgstr "콘텐츠 검색…"
 
-#. placeholder {0}: props.searchQuery()
-#: src/routes/(root)/search.tsx:195
-msgid "Search results for \"{0}\""
-msgstr "\"{0}\"의 검색 결과"
+#. placeholder {0}: "KEYWORD"
+#: src/routes/(root)/search.tsx:197
+msgid "Search results for {0}"
+msgstr "{0}의 검색 결과"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."

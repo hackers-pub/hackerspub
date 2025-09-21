@@ -18,6 +18,7 @@ import {
 import { SearchGuide } from "~/components/SearchGuide.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { TopBreadcrumb } from "~/components/TopBreadcrumb.tsx";
+import { Trans } from "~/components/Trans.tsx";
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -153,7 +154,7 @@ export default function SearchPage() {
               type="text"
               name="q"
               value={searchQuery()}
-              placeholder={t`Search posts...`}
+              placeholder={t`Search posts…`}
               class="peer flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <button
@@ -192,7 +193,10 @@ function SearchPageContent(
   return (
     <>
       <h1 class="text-2xl font-bold mb-4">
-        {t`Search results for "${props.searchQuery()}"`}
+        <Trans
+          message={t`Search results for ${"KEYWORD"}`}
+          values={{ KEYWORD: () => <q>{props.searchQuery()}</q> }}
+        />
       </h1>
       <Show when={props.searchType() === "posts"}>
         <SearchPostsContent searchQuery={props.searchQuery} />

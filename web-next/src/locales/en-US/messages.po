@@ -615,7 +615,7 @@ msgstr "No posts found"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
-#: src/routes/(root)/search.tsx:267
+#: src/routes/(root)/search.tsx:271
 msgid "Not found."
 msgstr "Not found."
 
@@ -710,7 +710,7 @@ msgstr "Profile settings"
 msgid "Public"
 msgstr "Public"
 
-#: src/routes/(root)/search.tsx:258
+#: src/routes/(root)/search.tsx:262
 msgid "Query cannot be empty"
 msgstr "Query cannot be empty"
 
@@ -773,8 +773,8 @@ msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/AppSidebar.tsx:233
-#: src/routes/(root)/search.tsx:135
-#: src/routes/(root)/search.tsx:163
+#: src/routes/(root)/search.tsx:136
+#: src/routes/(root)/search.tsx:164
 msgid "Search"
 msgstr "Search"
 
@@ -782,14 +782,14 @@ msgstr "Search"
 msgid "Search a language…"
 msgstr "Search a language…"
 
-#: src/routes/(root)/search.tsx:156
-msgid "Search posts..."
-msgstr "Search posts..."
+#: src/routes/(root)/search.tsx:157
+msgid "Search posts…"
+msgstr "Search posts…"
 
-#. placeholder {0}: props.searchQuery()
-#: src/routes/(root)/search.tsx:195
-msgid "Search results for \"{0}\""
-msgstr "Search results for \"{0}\""
+#. placeholder {0}: "KEYWORD"
+#: src/routes/(root)/search.tsx:197
+msgid "Search results for {0}"
+msgstr "Search results for {0}"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."

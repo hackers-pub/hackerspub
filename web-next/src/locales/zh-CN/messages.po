@@ -615,7 +615,7 @@ msgstr "未找到内容"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中无此账户，请重试。"
 
-#: src/routes/(root)/search.tsx:267
+#: src/routes/(root)/search.tsx:271
 msgid "Not found."
 msgstr "未找到。"
 
@@ -710,7 +710,7 @@ msgstr "个人资料设置"
 msgid "Public"
 msgstr "公开"
 
-#: src/routes/(root)/search.tsx:258
+#: src/routes/(root)/search.tsx:262
 msgid "Query cannot be empty"
 msgstr "搜索关键词不能为空"
 
@@ -773,8 +773,8 @@ msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:233
-#: src/routes/(root)/search.tsx:135
-#: src/routes/(root)/search.tsx:163
+#: src/routes/(root)/search.tsx:136
+#: src/routes/(root)/search.tsx:164
 msgid "Search"
 msgstr "搜索"
 
@@ -782,14 +782,14 @@ msgstr "搜索"
 msgid "Search a language…"
 msgstr "搜索语言…"
 
-#: src/routes/(root)/search.tsx:156
-msgid "Search posts..."
-msgstr "搜索内容..."
+#: src/routes/(root)/search.tsx:157
+msgid "Search posts…"
+msgstr "搜索内容…"
 
-#. placeholder {0}: props.searchQuery()
-#: src/routes/(root)/search.tsx:195
-msgid "Search results for \"{0}\""
-msgstr "\"{0}\"的搜索结果"
+#. placeholder {0}: "KEYWORD"
+#: src/routes/(root)/search.tsx:197
+msgid "Search results for {0}"
+msgstr "{0}的搜索结果"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:136
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
