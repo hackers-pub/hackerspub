@@ -193,23 +193,24 @@ builder.queryFields((t) => ({
       const searchFilter = compileQuery(parsedQuery);
       const signedAccount = ctx.account;
 
+      const languages = args.languages ?? [];
+
       const posts = await ctx.db.query.postTable.findMany({
         where: {
           AND: [
             searchFilter,
-            getPostVisibilityFilter(signedAccount?.actor ?? null),
-            signedAccount == null ? { visibility: "public" } : {
-              OR: [
-                { visibility: "public" },
-                { actorId: signedAccount.actor.id },
-              ],
-            },
+            signedAccount
+              ? getPostVisibilityFilter(signedAccount.actor)
+              : { visibility: "public" },
             { sharedPostId: { isNull: true } },
-            (args.languages ?? []).length === 0 ? {} : {
-              language: { in: (args.languages ?? []).map((l) => l.baseName) },
-            },
+            languages.length < 1
+              ? (signedAccount?.hideForeignLanguages &&
+                  signedAccount.locales != null
+                ? { language: { in: signedAccount.locales } }
+                : {})
+              : { language: { in: [...languages.map((l) => l.baseName)] } },
+            until == null ? {} : { published: { lte: until } },
           ],
-          ...(until == null ? undefined : { added: { lte: until } }),
         },
         with: {
           actor: {
@@ -345,7 +346,7 @@ builder.queryFields((t) => ({
             },
           },
         },
-        orderBy: { id: "desc" },
+        orderBy: { published: "desc" },
         limit: window + 1,
       });
 
