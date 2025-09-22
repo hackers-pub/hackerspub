@@ -27,7 +27,7 @@ It focuses on the following features:[^1]
     You don't speak Chinese or Spanish? No problem! Hackers' Pub supports
     automatic translation of posts and comments.
 
- -  Algorithimic timeline: You can see posts from users you follow in a
+ -  Algorithmic timeline: You can see posts from users you follow in a
     timeline. The timeline is sorted by the relevance of the posts by default,
     but you can change the sorting order to the latest if you want.
 
