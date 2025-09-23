@@ -92,6 +92,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
         language
         visibility
         published
+        url
       }
     `,
     () => props.$note,
@@ -130,8 +131,9 @@ function NoteCardInternal(props: NoteCardInternalProps) {
                 </span>
               </div>
               <div class="flex flex-row text-muted-foreground gap-1">
-                <Timestamp value={note().published} capitalizeFirstLetter />
-                {" "}
+                <a href={note().url || undefined}>
+                  <Timestamp value={note().published} capitalizeFirstLetter />
+                </a>{" "}
                 &middot; <VisibilityTag visibility={note().visibility} />
               </div>
             </div>
