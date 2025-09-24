@@ -88,7 +88,7 @@ const htmlXss = new FilterXSS({
     li: ["class", "id", "lang", "translate"],
     mark: ["lang", "translate"],
     nav: ["lang", "translate"],
-    ol: ["class", "lang", "translate"],
+    ol: ["class", "lang", "translate", "start"],
     p: ["class", "dir", "lang", "translate"],
     picture: ["lang", "translate"],
     pre: ["lang", "translate", "class", "style"],
