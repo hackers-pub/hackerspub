@@ -129,6 +129,7 @@ type Actor implements Node {
   isFollowedBy(followerId: ID): Boolean!
   local: Boolean!
   name: HTML
+  noteByUuid(uuid: UUID!): Note
   notes(after: String, before: String, first: Int, last: Int): ActorNotesConnection!
   pins(after: String, before: String, first: Int, last: Int): ActorPinsConnection!
   posts(after: String, before: String, first: Int, last: Int): ActorPostsConnection!
