@@ -116,6 +116,12 @@ msgstr "{0}さんが{1}に共有"
 msgid "{0} shared your post"
 msgstr "{0}さんがあなたのコンテンツを共有しました"
 
+#. placeholder {0}: note().actor.name
+#. placeholder {1}: note().content
+#: src/routes/(root)/[handle]/[noteId].tsx:135
+msgid "{0}: {1}"
+msgstr "{0}：{1}"
+
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:73
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:77
@@ -675,6 +681,10 @@ msgstr "5 MiB未満の画像ファイルを選択してください。"
 #: src/routes/(root)/[handle]/settings/invite.tsx:174
 msgid "Please correct the errors and try again."
 msgstr "エラーを修正して、もう一度お試しください。"
+
+#: src/routes/(root)/[handle]/[noteId].tsx:225
+msgid "Post"
+msgstr "コンテンツ"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"

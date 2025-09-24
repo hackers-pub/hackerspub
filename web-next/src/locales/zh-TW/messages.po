@@ -116,6 +116,12 @@ msgstr "{0}在{1}轉貼了"
 msgid "{0} shared your post"
 msgstr "{0} 轉貼了你的內容"
 
+#. placeholder {0}: note().actor.name
+#. placeholder {1}: note().content
+#: src/routes/(root)/[handle]/[noteId].tsx:135
+msgid "{0}: {1}"
+msgstr "{0}：{1}"
+
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:73
 #: src/routes/(root)/[handle]/(profile)/articles.tsx:77
@@ -675,6 +681,10 @@ msgstr "請選擇小於 5 MiB 的圖片檔案。"
 #: src/routes/(root)/[handle]/settings/invite.tsx:174
 msgid "Please correct the errors and try again."
 msgstr "請修正錯誤並重試。"
+
+#: src/routes/(root)/[handle]/[noteId].tsx:225
+msgid "Post"
+msgstr "內容"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
