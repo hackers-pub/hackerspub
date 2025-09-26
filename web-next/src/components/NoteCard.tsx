@@ -17,6 +17,7 @@ import { NoteCardInternal_note$key } from "./__generated__/NoteCardInternal_note
 
 export interface NoteCardProps {
   $note: NoteCard_note$key;
+  zoom?: boolean;
 }
 
 export function NoteCard(props: NoteCardProps) {
@@ -42,14 +43,17 @@ export function NoteCard(props: NoteCardProps) {
   );
 
   return (
-    <div class="flex flex-col border-b last:border-none last:*:last:rounded-b-xl">
+    <div
+      class="flex flex-col border-b last:border-none last:*:last:rounded-b-xl"
+      classList={{ "text-xl": props.zoom }}
+    >
       <Show when={note()}>
         {(note) => (
           <Show
             when={note().sharedPost}
             fallback={
               <>
-                <NoteCardInternal $note={note()} />
+                <NoteCardInternal $note={note()} zoom={props.zoom} />
                 <NoteMedia $note={note()} />
                 <Show when={note().quotedPost}>
                   {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
@@ -60,7 +64,7 @@ export function NoteCard(props: NoteCardProps) {
             {(sharedPost) => (
               <>
                 <PostSharer $post={note()} class="p-4 pb-0" />
-                <NoteCardInternal $note={sharedPost()} />
+                <NoteCardInternal $note={sharedPost()} zoom={props.zoom} />
                 <NoteMedia $note={note()} />
                 <Show when={sharedPost().quotedPost}>
                   {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
@@ -76,6 +80,7 @@ export function NoteCard(props: NoteCardProps) {
 
 interface NoteCardInternalProps {
   $note: NoteCardInternal_note$key;
+  zoom?: boolean;
 }
 
 function NoteCardInternal(props: NoteCardInternalProps) {
@@ -110,15 +115,22 @@ function NoteCardInternal(props: NoteCardInternalProps) {
       {(note) => (
         <>
           <div class="flex gap-4 p-4">
-            <Avatar class="size-12">
+            <Avatar
+              classList={{ "size-12": !props.zoom, "size-14": props.zoom }}
+            >
               <InternalLink
                 href={note().actor.url ?? note().actor.iri}
                 internalHref={note().actor.local
                   ? `/@${note().actor.username}`
                   : `/${note().actor.handle}`}
               >
-                <AvatarImage src={note().actor.avatarUrl} class="size-12" />
-                <AvatarFallback class="size-12">
+                <AvatarImage
+                  src={note().actor.avatarUrl}
+                  classList={{ "size-12": !props.zoom, "size-14": props.zoom }}
+                />
+                <AvatarFallback
+                  classList={{ "size-12": !props.zoom, "size-14": props.zoom }}
+                >
                   {note().actor.avatarInitials}
                 </AvatarFallback>
               </InternalLink>
@@ -159,6 +171,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
             innerHTML={note().content}
             lang={note().language ?? undefined}
             class="prose dark:prose-invert break-words overflow-wrap px-4 last:pb-4"
+            classList={{ "prose-xl": props.zoom }}
           />
         </>
       )}

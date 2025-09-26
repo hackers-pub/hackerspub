@@ -226,8 +226,8 @@ function NoteInternal(props: NoteInternalProps) {
               </BreadcrumbLink>
             </BreadcrumbItem>
           </TopBreadcrumb>
-          <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto my-4">
-            <NoteCard $note={note()} />
+          <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto my-4 text-xl">
+            <NoteCard $note={note()} zoom />
           </div>
         </>
       )}
