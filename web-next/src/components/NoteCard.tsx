@@ -83,6 +83,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
     graphql`
       fragment NoteCardInternal_note on Note {
         __id
+        uuid
         actor {
           name
           handle
@@ -98,6 +99,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
         visibility
         published
         url
+        iri
       }
     `,
     () => props.$note,
@@ -139,9 +141,16 @@ function NoteCardInternal(props: NoteCardInternalProps) {
                 </span>
               </div>
               <div class="flex flex-row text-muted-foreground gap-1">
-                <a href={note().url || undefined}>
+                <InternalLink
+                  href={note().url ?? note().iri}
+                  internalHref={`/${
+                    note().actor.local
+                      ? "@" + note().actor.username
+                      : note().actor.handle
+                  }/${note().uuid}`}
+                >
                   <Timestamp value={note().published} capitalizeFirstLetter />
-                </a>{" "}
+                </InternalLink>{" "}
                 &middot; <VisibilityTag visibility={note().visibility} />
               </div>
             </div>

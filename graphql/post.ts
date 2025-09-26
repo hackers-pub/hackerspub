@@ -47,6 +47,7 @@ export const Post = builder.drizzleInterface("postTable", {
     }
   },
   fields: (t) => ({
+    uuid: t.expose("id", { type: "UUID" }),
     iri: t.field({
       type: "URL",
       select: {

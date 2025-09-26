@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:206
+#: src/components/ProfileCard.tsx:214
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:191
+#: src/components/ProfileCard.tsx:199
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
@@ -391,7 +391,7 @@ msgstr "フォロワー"
 msgid "Followers only"
 msgstr "フォロワーのみ"
 
-#: src/components/ProfileCard.tsx:216
+#: src/components/ProfileCard.tsx:224
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
@@ -625,6 +625,10 @@ msgstr "Hackers' Pubにそのようなアカウントはありません。もう
 msgid "Not found."
 msgstr "見つかりませんでした。"
 
+#: src/routes/(root)/[handle]/[noteId].tsx:225
+msgid "Note"
+msgstr "投稿"
+
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
@@ -682,10 +686,6 @@ msgstr "5 MiB未満の画像ファイルを選択してください。"
 msgid "Please correct the errors and try again."
 msgstr "エラーを修正して、もう一度お試しください。"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:225
-msgid "Post"
-msgstr "コンテンツ"
-
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
 msgstr "コンテンツ"
@@ -729,7 +729,7 @@ msgstr "検索文字列は空にできません"
 msgid "Quiet public"
 msgstr "ひかえめな公開"
 
-#: src/components/ArticleCard.tsx:256
+#: src/components/ArticleCard.tsx:264
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -876,7 +876,7 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:234
+#: src/components/ArticleCard.tsx:242
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -940,7 +940,7 @@ msgid "Timeline"
 msgstr "タイムライン"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:152
+#: src/components/ArticleCard.tsx:160
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
@@ -979,7 +979,7 @@ msgstr "招待したユーザー"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:165
+#: src/components/ProfileCard.tsx:173
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 

@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:206
+#: src/components/ProfileCard.tsx:214
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:191
+#: src/components/ProfileCard.tsx:199
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -391,7 +391,7 @@ msgstr "팔로워"
 msgid "Followers only"
 msgstr "팔로워만"
 
-#: src/components/ProfileCard.tsx:216
+#: src/components/ProfileCard.tsx:224
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
@@ -625,6 +625,10 @@ msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요
 msgid "Not found."
 msgstr "찾을 수 없습니다."
 
+#: src/routes/(root)/[handle]/[noteId].tsx:225
+msgid "Note"
+msgstr "단문"
+
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
@@ -682,10 +686,6 @@ msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
 msgid "Please correct the errors and try again."
 msgstr "오류를 수정하고 다시 시도해주세요."
 
-#: src/routes/(root)/[handle]/[noteId].tsx:225
-msgid "Post"
-msgstr "콘텐츠"
-
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
 msgstr "콘텐츠"
@@ -729,7 +729,7 @@ msgstr "검색어를 비울 수 없습니다"
 msgid "Quiet public"
 msgstr "조용히 공개"
 
-#: src/components/ArticleCard.tsx:256
+#: src/components/ArticleCard.tsx:264
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
 
@@ -876,7 +876,7 @@ msgstr "환경 설정이 성공적으로 저장되었습니다"
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
-#: src/components/ArticleCard.tsx:234
+#: src/components/ArticleCard.tsx:242
 msgid "Summarized by LLM"
 msgstr "LLM 요약"
 
@@ -940,7 +940,7 @@ msgid "Timeline"
 msgstr "타임라인"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:152
+#: src/components/ArticleCard.tsx:160
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
@@ -979,7 +979,7 @@ msgstr "초대한 사용자"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:165
+#: src/components/ProfileCard.tsx:173
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 

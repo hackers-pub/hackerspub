@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:206
+#: src/components/ProfileCard.tsx:214
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人關注}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:191
+#: src/components/ProfileCard.tsx:199
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {關注 # 人}}"
 
@@ -391,7 +391,7 @@ msgstr "粉絲"
 msgid "Followers only"
 msgstr "只粉絲可見"
 
-#: src/components/ProfileCard.tsx:216
+#: src/components/ProfileCard.tsx:224
 msgid "Following you"
 msgstr "關注了你"
 
@@ -625,6 +625,10 @@ msgstr "Hackers' Pub 中無此帳戶，請重試。"
 msgid "Not found."
 msgstr "未找到。"
 
+#: src/routes/(root)/[handle]/[noteId].tsx:225
+msgid "Note"
+msgstr "貼文"
+
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
@@ -682,10 +686,6 @@ msgstr "請選擇小於 5 MiB 的圖片檔案。"
 msgid "Please correct the errors and try again."
 msgstr "請修正錯誤並重試。"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:225
-msgid "Post"
-msgstr "內容"
-
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
 msgstr "內容"
@@ -729,7 +729,7 @@ msgstr "搜尋關鍵詞不能為空"
 msgid "Quiet public"
 msgstr "悄悄公開"
 
-#: src/components/ArticleCard.tsx:256
+#: src/components/ArticleCard.tsx:264
 msgid "Read full article"
 msgstr "閱讀完整文章"
 
@@ -876,7 +876,7 @@ msgstr "設定已成功儲存"
 msgid "Successfully saved settings"
 msgstr "設定儲存成功"
 
-#: src/components/ArticleCard.tsx:234
+#: src/components/ArticleCard.tsx:242
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -940,7 +940,7 @@ msgid "Timeline"
 msgstr "時間軸"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:152
+#: src/components/ArticleCard.tsx:160
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
 
@@ -979,7 +979,7 @@ msgstr "您邀請的使用者"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:165
+#: src/components/ProfileCard.tsx:173
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已於{1}驗證此連結歸{0}所有"
 

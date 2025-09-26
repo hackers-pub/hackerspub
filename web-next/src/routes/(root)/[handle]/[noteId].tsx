@@ -65,7 +65,7 @@ export default function NotePage() {
   const username = params.handle.substring(1);
 
   if (!validateUuid(noteId)) {
-    throw new Error("Invalid Request"); // FIXME
+    return <HttpStatusCode code={404} />;
   }
 
   const data = createPreloadedQuery<NoteIdPageQuery>(
@@ -222,7 +222,7 @@ function NoteInternal(props: NoteInternalProps) {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbLink href={note().url ?? undefined} current>
-                {t`Post`}
+                {t`Note`}
               </BreadcrumbLink>
             </BreadcrumbItem>
           </TopBreadcrumb>
