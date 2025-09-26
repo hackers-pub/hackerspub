@@ -3,6 +3,7 @@ import {
   transformAvatar,
   updateAccount,
 } from "@hackerspub/models/account";
+import { syncActorFromAccount } from "@hackerspub/models/actor";
 import type { Locale } from "@hackerspub/models/i18n";
 import {
   accountTable,
@@ -476,6 +477,10 @@ builder.relayMutationField(
       );
       await Promise.all(promises);
       if (result == null) throw new Error("Account not found");
+      const emails = await ctx.db.query.accountEmailTable.findMany({
+        where: { accountId: result.id },
+      });
+      await syncActorFromAccount(ctx.fedCtx, { ...result, emails });
       return result;
     },
   },

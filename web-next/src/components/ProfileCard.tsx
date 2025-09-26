@@ -2,7 +2,11 @@ import { compactUrl } from "@hackerspub/models/url";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
 import {
   Tooltip,
   TooltipContent,
@@ -26,6 +30,7 @@ export function ProfileCard(props: ProfileCardProps) {
         username
         handle
         avatarUrl
+        avatarInitials
         bio
         local
         url
@@ -69,6 +74,9 @@ export function ProfileCard(props: ProfileCardProps) {
                   target={actor().local ? undefined : "_blank"}
                 >
                   <AvatarImage src={actor().avatarUrl} class="size-16" />
+                  <AvatarFallback class="size-16">
+                    {actor().avatarInitials}
+                  </AvatarFallback>
                 </a>
               </Avatar>
               <div>

@@ -1,7 +1,11 @@
 import { graphql } from "relay-runtime";
 import { Accessor, createSignal, Setter, Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   ArticleCard_article$key,
@@ -80,6 +84,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           name
           handle
           avatarUrl
+          avatarInitials
           local
           username
           url
@@ -118,6 +123,9 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                   : `/${article().actor.handle}`}
               >
                 <AvatarImage src={article().actor.avatarUrl} class="size-12" />
+                <AvatarFallback class="size-12">
+                  {article().actor.avatarInitials}
+                </AvatarFallback>
               </InternalLink>
             </Avatar>
             <div class="flex flex-col">

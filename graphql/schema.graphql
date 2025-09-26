@@ -111,6 +111,7 @@ type Actor implements Node {
   account: Account
   articles(after: String, before: String, first: Int, last: Int): ActorArticlesConnection!
   automaticallyApprovesFollowers: Boolean!
+  avatarInitials: String!
   avatarUrl: URL!
   bio: HTML
   created: DateTime!

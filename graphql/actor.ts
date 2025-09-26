@@ -105,6 +105,20 @@ export const Actor = builder.drizzleNode("actorTable", {
         return new URL(url);
       },
     }),
+    avatarInitials: t.field({
+      type: "String",
+      resolve(actor) {
+        const name = actor.name ?? actor.username;
+        const parts = name.trim().split(/[\s_-]+/);
+        if (parts.length === 0) return "?";
+        if (parts.length === 1) {
+          return parts[0].substring(0, 2).toUpperCase();
+        }
+        return (
+          parts[0][0] + parts[parts.length - 1][0]
+        ).toUpperCase();
+      },
+    }),
     headerUrl: t.field({
       type: "URL",
       nullable: true,

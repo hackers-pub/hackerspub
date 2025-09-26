@@ -5,7 +5,11 @@ import { InternalLink } from "~/components/InternalLink.tsx";
 import { PostSharer } from "~/components/PostSharer.tsx";
 import { QuotedPostCard } from "~/components/QuotedPostCard.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
-import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
 import { VisibilityTag } from "~/components/VisibilityTag.tsx";
 import { NoteCard_media$key } from "./__generated__/NoteCard_media.graphql.ts";
 import { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
@@ -84,6 +88,7 @@ function NoteCardInternal(props: NoteCardInternalProps) {
           handle
           username
           avatarUrl
+          avatarInitials
           local
           url
           iri
@@ -111,6 +116,9 @@ function NoteCardInternal(props: NoteCardInternalProps) {
                   : `/${note().actor.handle}`}
               >
                 <AvatarImage src={note().actor.avatarUrl} class="size-12" />
+                <AvatarFallback class="size-12">
+                  {note().actor.avatarInitials}
+                </AvatarFallback>
               </InternalLink>
             </Avatar>
             <div class="flex flex-col">
