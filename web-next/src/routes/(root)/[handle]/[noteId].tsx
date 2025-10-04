@@ -10,6 +10,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { Title } from "~/components/Title.tsx";
 import {
   BreadcrumbItem,
@@ -18,7 +19,6 @@ import {
 } from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { NoteCard } from "../../../components/NoteCard.tsx";
-import { TopBreadcrumb } from "../../../components/TopBreadcrumb.tsx";
 import type { NoteIdPageQuery } from "./__generated__/NoteIdPageQuery.graphql.ts";
 import type { NoteId_body$key } from "./__generated__/NoteId_body.graphql.ts";
 import type { NoteId_head$key } from "./__generated__/NoteId_head.graphql.ts";
@@ -111,6 +111,7 @@ function NoteMetaHead(props: NoteMetaHeadProps) {
     graphql`
       fragment NoteId_head on Note {
         content
+        excerpt
         published
         updated
         actor {
@@ -132,9 +133,9 @@ function NoteMetaHead(props: NoteMetaHeadProps) {
     <Show when={note()}>
       {(note) => (
         <>
-          <Title>{t`${note().actor.name}: ${note().content}`}</Title>
-          <Meta property="og:title" content={note().content} />
-          <Meta property="og:description" content={note().content} />
+          <Title>{t`${note().actor.name}: ${note().excerpt}`}</Title>
+          <Meta property="og:title" content={note().excerpt} />
+          <Meta property="og:description" content={note().excerpt} />
           <Meta property="og:type" content="article" />
           <Meta
             property="article:published_time"
@@ -198,8 +199,7 @@ function NoteInternal(props: NoteInternalProps) {
     graphql`
       fragment NoteId_body on Note {
         actor {
-          url
-          username
+          ...ProfilePageBreadcrumb_actor
         }
         url
         ...NoteCard_note
@@ -212,20 +212,14 @@ function NoteInternal(props: NoteInternalProps) {
     <Show when={note()}>
       {(note) => (
         <>
-          <TopBreadcrumb>
+          <ProfilePageBreadcrumb $actor={note().actor}>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href={note().actor.url ?? undefined}>
-                {note().actor.username}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href={note().url ?? undefined} current>
+              <BreadcrumbLink current>
                 {t`Note`}
               </BreadcrumbLink>
             </BreadcrumbItem>
-          </TopBreadcrumb>
+          </ProfilePageBreadcrumb>
           <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto my-4 text-xl">
             <NoteCard $note={note()} zoom />
           </div>

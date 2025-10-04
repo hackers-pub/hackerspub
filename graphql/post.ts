@@ -1,4 +1,5 @@
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
+import { stripHtml } from "@hackerspub/models/html";
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { createNote } from "@hackerspub/models/note";
@@ -75,6 +76,18 @@ export const Post = builder.drizzleInterface("postTable", {
         },
       },
       resolve: (post) => renderCustomEmojis(post.contentHtml, post.emojis),
+    }),
+    excerpt: t.string({
+      select: {
+        columns: {
+          summary: true,
+          contentHtml: true,
+        },
+      },
+      resolve(post) {
+        if (post.summary != null) return post.summary;
+        return stripHtml(post.contentHtml);
+      },
     }),
     language: t.exposeString("language", { nullable: true }),
     hashtags: t.field({

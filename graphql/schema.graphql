@@ -256,6 +256,7 @@ type Article implements Node & Post & Reactable {
   content: HTML!
   contents(includeBeingTranslated: Boolean = false, language: Locale): [ArticleContent!]!
   engagementStats: PostEngagementStats!
+  excerpt: String!
   hashtags: [Hashtag!]!
   id: ID!
   iri: URL!
@@ -554,6 +555,7 @@ type Note implements Node & Post & Reactable {
   actor: Actor!
   content: HTML!
   engagementStats: PostEngagementStats!
+  excerpt: String!
   hashtags: [Hashtag!]!
   id: ID!
   iri: URL!
@@ -684,6 +686,7 @@ interface Post implements Node & Reactable {
   actor: Actor!
   content: HTML!
   engagementStats: PostEngagementStats!
+  excerpt: String!
   hashtags: [Hashtag!]!
   id: ID!
   iri: URL!
@@ -881,6 +884,7 @@ type Question implements Node & Post & Reactable {
   actor: Actor!
   content: HTML!
   engagementStats: PostEngagementStats!
+  excerpt: String!
   hashtags: [Hashtag!]!
   id: ID!
   iri: URL!

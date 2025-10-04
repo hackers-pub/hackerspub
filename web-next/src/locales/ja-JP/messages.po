@@ -117,8 +117,8 @@ msgid "{0} shared your post"
 msgstr "{0}さんがあなたのコンテンツを共有しました"
 
 #. placeholder {0}: note().actor.name
-#. placeholder {1}: note().content
-#: src/routes/(root)/[handle]/[noteId].tsx:135
+#. placeholder {1}: note().excerpt
+#: src/routes/(root)/[handle]/[noteId].tsx:136
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -625,7 +625,7 @@ msgstr "Hackers' Pubにそのようなアカウントはありません。もう
 msgid "Not found."
 msgstr "見つかりませんでした。"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:225
+#: src/routes/(root)/[handle]/[noteId].tsx:219
 msgid "Note"
 msgstr "投稿"
 
