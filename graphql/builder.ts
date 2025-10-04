@@ -124,9 +124,9 @@ export const builder = new SchemaBuilder<PothosTypes>({
     defaultComplexity: 1,
     defaultListMultiplier: 10,
     limit: (ctx) => ({
-      complexity: ctx.session == null ? 4500 : 10000,
+      complexity: ctx.session == null ? 5000 : 10000,
       depth: ctx.session == null ? 10 : 20,
-      breadth: ctx.session == null ? 200 : 500,
+      breadth: ctx.session == null ? 350 : 500,
     }),
   },
   defaultFieldNullability: false,
