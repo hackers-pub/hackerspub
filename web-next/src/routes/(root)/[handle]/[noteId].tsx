@@ -12,6 +12,7 @@ import {
 } from "solid-relay";
 import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { Title } from "~/components/Title.tsx";
+import { Trans } from "~/components/Trans.tsx";
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -22,6 +23,7 @@ import { NoteCard } from "../../../components/NoteCard.tsx";
 import type { NoteIdPageQuery } from "./__generated__/NoteIdPageQuery.graphql.ts";
 import type { NoteId_body$key } from "./__generated__/NoteId_body.graphql.ts";
 import type { NoteId_head$key } from "./__generated__/NoteId_head.graphql.ts";
+import type { NoteId_viewer$key } from "./__generated__/NoteId_viewer.graphql.ts";
 
 export const route = {
   matchFilters: {
@@ -45,6 +47,9 @@ const NoteIdPageQuery = graphql`
         ...NoteId_head
         ...NoteId_body
       }
+    }
+    viewer {
+      ...NoteId_viewer
     }
   }
 `;
@@ -89,7 +94,10 @@ export default function NotePage() {
                 {(note) => (
                   <>
                     <NoteMetaHead $note={note()} />
-                    <NoteInternal $note={note()} />
+                    <NoteInternal
+                      $note={note()}
+                      $viewer={data().viewer ?? undefined}
+                    />
                   </>
                 )}
               </Show>
@@ -190,6 +198,7 @@ function NoteMetaHead(props: NoteMetaHeadProps) {
 
 interface NoteInternalProps {
   $note: NoteId_body$key;
+  $viewer?: NoteId_viewer$key;
 }
 
 function NoteInternal(props: NoteInternalProps) {
@@ -198,6 +207,7 @@ function NoteInternal(props: NoteInternalProps) {
   const note = createFragment(
     graphql`
       fragment NoteId_body on Note {
+        iri
         actor {
           ...ProfilePageBreadcrumb_actor
         }
@@ -216,6 +226,14 @@ function NoteInternal(props: NoteInternalProps) {
       }
     `,
     () => props.$note,
+  );
+  const viewer = createFragment(
+    graphql`
+      fragment NoteId_viewer on Account {
+        id
+      }
+    `,
+    () => props.$viewer,
   );
 
   return (
@@ -240,6 +258,20 @@ function NoteInternal(props: NoteInternalProps) {
             </Show>
             <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto text-xl">
               <NoteCard $note={note()} zoom />
+              <Show when={viewer() == null}>
+                <p class="p-4 text-sm text-muted-foreground">
+                  <Trans
+                    message={t`If you have a fediverse account, you can reply to this note from your own instance. Search ${"ACTIVITYPUB_URI"} on your instance and reply to it.`}
+                    values={{
+                      ACTIVITYPUB_URI: () => (
+                        <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
+                          {note().iri}
+                        </span>
+                      ),
+                    }}
+                  />
+                </p>
+              </Show>
             </div>
             <Show when={note().replies?.edges.length}>
               <div class="border-x border-b rounded-b-xl max-w-prose mx-auto">

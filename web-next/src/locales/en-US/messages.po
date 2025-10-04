@@ -118,7 +118,7 @@ msgstr "{0} shared your post"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:136
+#: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -427,6 +427,11 @@ msgstr "I have read and agree to the Code of conduct."
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
+#. placeholder {0}: "ACTIVITYPUB_URI"
+#: src/routes/(root)/[handle]/[noteId].tsx:264
+msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
+msgstr "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "Invitation language"
 msgstr "Invitation language"
@@ -625,7 +630,7 @@ msgstr "No such account in Hackers' Pub—please try again."
 msgid "Not found."
 msgstr "Not found."
 
-#: src/routes/(root)/[handle]/[noteId].tsx:229
+#: src/routes/(root)/[handle]/[noteId].tsx:247
 msgid "Note"
 msgstr "Note"
 

@@ -118,7 +118,7 @@ msgstr "{0} 님이 회원님의 콘텐츠를 공유했습니다"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:136
+#: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -427,6 +427,11 @@ msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
 
+#. placeholder {0}: "ACTIVITYPUB_URI"
+#: src/routes/(root)/[handle]/[noteId].tsx:264
+msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
+msgstr "연합우주(fediverse) 계정이 있으시다면, 이 단문에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {0}로 검색하신 뒤, 해당 단문에 댓글을 남기시면 됩니다."
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "Invitation language"
 msgstr "초대장 언어"
@@ -625,7 +630,7 @@ msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요
 msgid "Not found."
 msgstr "찾을 수 없습니다."
 
-#: src/routes/(root)/[handle]/[noteId].tsx:229
+#: src/routes/(root)/[handle]/[noteId].tsx:247
 msgid "Note"
 msgstr "단문"
 

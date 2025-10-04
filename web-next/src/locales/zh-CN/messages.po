@@ -118,7 +118,7 @@ msgstr "{0} 转发了你的内容"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:136
+#: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -427,6 +427,11 @@ msgstr "我同意 Hackers' Pub 的行为准则。"
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
+#. placeholder {0}: "ACTIVITYPUB_URI"
+#: src/routes/(root)/[handle]/[noteId].tsx:264
+msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
+msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此帖子。在你的实例搜索 {0} 后回复。"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "Invitation language"
 msgstr "邀请语言"
@@ -625,7 +630,7 @@ msgstr "Hackers' Pub 中无此账户，请重试。"
 msgid "Not found."
 msgstr "未找到。"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:229
+#: src/routes/(root)/[handle]/[noteId].tsx:247
 msgid "Note"
 msgstr "帖子"
 

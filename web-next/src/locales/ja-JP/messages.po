@@ -118,7 +118,7 @@ msgstr "{0}さんがあなたのコンテンツを共有しました"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:136
+#: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -427,6 +427,11 @@ msgstr "行動規範に同意します。"
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
+#. placeholder {0}: "ACTIVITYPUB_URI"
+#: src/routes/(root)/[handle]/[noteId].tsx:264
+msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
+msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この投稿に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当投稿に返信してください。"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "Invitation language"
 msgstr "招待状の言語"
@@ -625,7 +630,7 @@ msgstr "Hackers' Pubにそのようなアカウントはありません。もう
 msgid "Not found."
 msgstr "見つかりませんでした。"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:229
+#: src/routes/(root)/[handle]/[noteId].tsx:247
 msgid "Note"
 msgstr "投稿"
 
