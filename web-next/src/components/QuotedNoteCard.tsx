@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { InternalLink } from "~/components/InternalLink.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { VisibilityTag } from "~/components/VisibilityTag.tsx";
@@ -17,17 +18,22 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
     graphql`
       fragment QuotedNoteCard_note on Note {
         __id
+        uuid
         actor {
           name
           handle
           username
           avatarUrl
           local
+          url
+          iri
         }
         content
         language
         visibility
         published
+        url
+        iri
       }
     `,
     () => props.$note,
@@ -41,23 +47,23 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
           <div class="flex flex-col bg-muted p-4">
             <div class="flex gap-4">
               <Avatar class="size-12">
-                <a
-                  href={note().actor.local
+                <InternalLink
+                  href={note().actor.url ?? note().actor.iri}
+                  internalHref={note().actor.local
                     ? `/@${note().actor.username}`
                     : `/${note().actor.handle}`}
-                  target={note().actor.local ? undefined : "_self"}
                 >
                   <AvatarImage src={note().actor.avatarUrl} class="size-12" />
-                </a>
+                </InternalLink>
               </Avatar>
               <div class="flex flex-col">
                 <div>
                   <Show when={(note().actor.name ?? "").trim() !== ""}>
-                    <a
-                      href={note().actor.local
+                    <InternalLink
+                      href={note().actor.url ?? note().actor.iri}
+                      internalHref={note().actor.local
                         ? `/@${note().actor.username}`
                         : `/${note().actor.handle}`}
-                      target={note().actor.local ? undefined : "_self"}
                       innerHTML={note().actor.name ?? ""}
                       class="font-semibold"
                     />
@@ -68,8 +74,14 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                   </span>
                 </div>
                 <div class="flex flex-row text-muted-foreground gap-1">
-                  <Timestamp value={note().published} capitalizeFirstLetter />
-                  {" "}
+                  <InternalLink
+                    href={note().url ?? note().iri}
+                    internalHref={note().actor.local
+                      ? `/@${note().actor.username}/${note().uuid}`
+                      : `/${note().actor.handle}/${note().uuid}`}
+                  >
+                    <Timestamp value={note().published} capitalizeFirstLetter />
+                  </InternalLink>{" "}
                   &middot; <VisibilityTag visibility={note().visibility} />
                 </div>
               </div>
