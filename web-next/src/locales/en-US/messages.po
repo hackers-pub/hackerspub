@@ -625,7 +625,7 @@ msgstr "No such account in Hackers' Pub—please try again."
 msgid "Not found."
 msgstr "Not found."
 
-#: src/routes/(root)/[handle]/[noteId].tsx:219
+#: src/routes/(root)/[handle]/[noteId].tsx:229
 msgid "Note"
 msgstr "Note"
 

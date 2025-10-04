@@ -625,7 +625,7 @@ msgstr "Hackers' Pub 中无此账户，请重试。"
 msgid "Not found."
 msgstr "未找到。"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:219
+#: src/routes/(root)/[handle]/[noteId].tsx:229
 msgid "Note"
 msgstr "帖子"
 

@@ -203,6 +203,16 @@ function NoteInternal(props: NoteInternalProps) {
         }
         url
         ...NoteCard_note
+        replyTarget {
+          ...NoteCard_note
+        }
+        replies {
+          edges {
+            node {
+              ...NoteCard_note
+            }
+          }
+        }
       }
     `,
     () => props.$note,
@@ -220,8 +230,24 @@ function NoteInternal(props: NoteInternalProps) {
               </BreadcrumbLink>
             </BreadcrumbItem>
           </ProfilePageBreadcrumb>
-          <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto my-4 text-xl">
-            <NoteCard $note={note()} zoom />
+          <div class="my-4">
+            <Show when={note().replyTarget}>
+              {(parent) => (
+                <div class="border-x border-t rounded-t-xl max-w-prose mx-auto">
+                  <NoteCard $note={parent()} />
+                </div>
+              )}
+            </Show>
+            <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto text-xl">
+              <NoteCard $note={note()} zoom />
+            </div>
+            <Show when={note().replies?.edges.length}>
+              <div class="border-x border-b rounded-b-xl max-w-prose mx-auto">
+                <For each={note().replies?.edges}>
+                  {(edge) => <NoteCard $note={edge.node} />}
+                </For>
+              </div>
+            </Show>
           </div>
         </>
       )}
