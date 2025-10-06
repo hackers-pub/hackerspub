@@ -249,6 +249,19 @@ enum ActorType {
   SERVICE
 }
 
+input AddReactionToPostInput {
+  clientMutationId: ID
+  emoji: String!
+  postId: ID!
+}
+
+type AddReactionToPostPayload {
+  clientMutationId: ID
+  reaction: Reaction
+}
+
+union AddReactionToPostResult = AddReactionToPostPayload | InvalidInputError | NotAuthenticatedError
+
 type Article implements Node & Post & Reactable {
   account: Account!
   actor: Actor!
@@ -324,9 +337,11 @@ type CustomEmoji implements Node {
 }
 
 type CustomEmojiReactionGroup implements ReactionGroup {
+  count: Int!
   customEmoji: CustomEmoji!
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
   subject: Reactable!
+  viewerHasReacted: Boolean!
 }
 
 """
@@ -357,9 +372,11 @@ type Document {
 scalar Email
 
 type EmojiReactionGroup implements ReactionGroup {
+  count: Int!
   emoji: String!
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
   subject: Reactable!
+  viewerHasReacted: Boolean!
 }
 
 type EmptySearchQueryError {
@@ -466,6 +483,7 @@ type MentionNotification implements Node & Notification {
 }
 
 type Mutation {
+  addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
   completeLoginChallenge(
     """The code of the login challenge."""
     code: String!
@@ -532,6 +550,7 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
+  removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   revokePasskey(passkeyId: ID!): ID
 
   """Revoke a session by its ID."""
@@ -935,9 +954,20 @@ interface Reactable implements Node {
   reactionGroups: [ReactionGroup!]!
 }
 
+type Reaction implements Node {
+  actor: Actor!
+  created: DateTime!
+  customEmoji: CustomEmoji
+  emoji: String
+  id: ID!
+  post: Post!
+}
+
 interface ReactionGroup {
+  count: Int!
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
   subject: Reactable!
+  viewerHasReacted: Boolean!
 }
 
 type ReactionGroupReactorsConnection {
@@ -950,6 +980,19 @@ type ReactionGroupReactorsConnectionEdge {
   cursor: String!
   node: Actor!
 }
+
+input RemoveReactionFromPostInput {
+  clientMutationId: ID
+  emoji: String!
+  postId: ID!
+}
+
+type RemoveReactionFromPostPayload {
+  clientMutationId: ID
+  success: Boolean!
+}
+
+union RemoveReactionFromPostResult = InvalidInputError | NotAuthenticatedError | RemoveReactionFromPostPayload
 
 type ReplyNotification implements Node & Notification {
   account: Account!

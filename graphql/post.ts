@@ -1,8 +1,10 @@
-import { renderCustomEmojis } from "@hackerspub/models/emoji";
+import { isReactionEmoji, renderCustomEmojis } from "@hackerspub/models/emoji";
 import { stripHtml } from "@hackerspub/models/html";
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { createNote } from "@hackerspub/models/note";
+import { isPostVisibleTo } from "@hackerspub/models/post";
+import { react, undoReaction } from "@hackerspub/models/reaction";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
@@ -12,7 +14,7 @@ import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
-import { Reactable } from "./reactable.ts";
+import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 class InvalidInputError extends Error {
@@ -540,6 +542,168 @@ builder.relayMutationField(
         type: Note,
         resolve(result) {
           return result;
+        },
+      }),
+    }),
+  },
+);
+
+builder.drizzleObjectField(
+  Reaction,
+  "post",
+  (t) => t.relation("post", { type: Post }),
+);
+
+builder.relayMutationField(
+  "addReactionToPost",
+  {
+    inputFields: (t) => ({
+      postId: t.globalID({
+        for: [Note, Article, Question],
+        required: true,
+      }),
+      emoji: t.string({ required: true }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const { postId, emoji } = args.input;
+
+      if (!isReactionEmoji(emoji)) {
+        throw new InvalidInputError("emoji");
+      }
+
+      const post = await ctx.db.query.postTable.findFirst({
+        with: {
+          actor: {
+            with: {
+              followers: true,
+              blockees: true,
+              blockers: true,
+            },
+          },
+          replyTarget: {
+            with: { actor: true },
+          },
+          mentions: true,
+        },
+        where: { id: postId.id },
+      });
+
+      if (post == null) {
+        throw new InvalidInputError("postId");
+      }
+
+      if (!isPostVisibleTo(post, ctx.account.actor)) {
+        throw new InvalidInputError("postId");
+      }
+
+      const reaction = await react(
+        ctx.fedCtx,
+        ctx.account,
+        post,
+        emoji,
+      );
+
+      if (reaction == null) {
+        throw new Error("Failed to react to the post");
+      }
+
+      return reaction;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      reaction: t.drizzleField({
+        type: Reaction,
+        nullable: true,
+        resolve(_query, result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "removeReactionFromPost",
+  {
+    inputFields: (t) => ({
+      postId: t.globalID({
+        for: [Note, Article, Question],
+        required: true,
+      }),
+      emoji: t.string({ required: true }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const { postId, emoji } = args.input;
+
+      if (!isReactionEmoji(emoji)) {
+        throw new InvalidInputError("emoji");
+      }
+
+      const post = await ctx.db.query.postTable.findFirst({
+        with: {
+          actor: {
+            with: {
+              followers: true,
+              blockees: true,
+              blockers: true,
+            },
+          },
+          replyTarget: {
+            with: { actor: true },
+          },
+          mentions: true,
+        },
+        where: { id: postId.id },
+      });
+
+      if (post == null) {
+        throw new InvalidInputError("postId");
+      }
+
+      if (!isPostVisibleTo(post, ctx.account.actor)) {
+        throw new InvalidInputError("postId");
+      }
+
+      await undoReaction(
+        ctx.fedCtx,
+        ctx.account,
+        post,
+        emoji,
+      );
+
+      return { success: true };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      success: t.boolean({
+        resolve() {
+          return true;
         },
       }),
     }),

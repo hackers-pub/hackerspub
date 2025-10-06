@@ -1,9 +1,9 @@
-import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import type { RelationsFilter } from "@hackerspub/models/db";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
+import { assertNever } from "@std/assert/unstable-never";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
-import { assertNever } from "@std/assert/unstable-never";
 
 export interface Reactable {
   id: Uuid;
@@ -67,6 +67,25 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
   },
   fields: (t) => ({
     subject: t.field({ type: Reactable, resolve: (group) => group.subject }),
+    count: t.exposeInt("count"),
+    viewerHasReacted: t.boolean({
+      async resolve(group, _, ctx) {
+        if (ctx.account == null) return false;
+
+        // Build the where condition based on group.where filter
+        const whereCondition = {
+          actorId: ctx.account.actor.id,
+          postId: group.subject.id,
+          ...group.where,
+        };
+
+        const reaction = await ctx.db.query.reactionTable.findFirst({
+          where: whereCondition,
+        });
+
+        return !!reaction;
+      },
+    }),
     reactors: t.connection({
       type: Actor,
       async resolve(group, args, ctx, info) {
@@ -157,5 +176,18 @@ builder.drizzleNode("customEmojiTable", {
     }),
     name: t.exposeString("name"),
     imageUrl: t.exposeString("imageUrl"),
+  }),
+});
+
+export const Reaction = builder.drizzleNode("reactionTable", {
+  name: "Reaction",
+  id: {
+    column: (reaction) => reaction.iri,
+  },
+  fields: (t) => ({
+    emoji: t.exposeString("emoji", { nullable: true }),
+    customEmoji: t.relation("customEmoji", { nullable: true }),
+    actor: t.relation("actor"),
+    created: t.expose("created", { type: "DateTime" }),
   }),
 });
