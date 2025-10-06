@@ -167,6 +167,11 @@ msgstr "동작"
 msgid "Add"
 msgstr "추가"
 
+#. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/EmojiReactionPopover.tsx:303
+msgid "Add {0}"
+msgstr "{0} 추가"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 바랍니다."
@@ -338,6 +343,13 @@ msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시�
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
+
+#: src/components/EmojiReactionPopover.tsx:169
+#: src/components/EmojiReactionPopover.tsx:178
+#: src/components/EmojiReactionPopover.tsx:247
+#: src/components/EmojiReactionPopover.tsx:256
+msgid "Failed to react"
+msgstr "반응 실패"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Failed to register passkey"
@@ -734,6 +746,23 @@ msgstr "검색어를 비울 수 없습니다"
 msgid "Quiet public"
 msgstr "조용히 공개"
 
+#: src/components/PostControls.tsx:97
+msgid "Quote"
+msgstr "인용"
+
+#: src/components/PostControls.tsx:116
+msgid "React"
+msgstr "반응"
+
+#: src/components/EmojiReactionPopover.tsx:348
+msgid "React with {emoji}"
+msgstr "{emoji}로 반응"
+
+#: src/components/EmojiReactionPopover.tsx:301
+#: src/components/EmojiReactionPopover.tsx:304
+msgid "reaction"
+msgstr "반응"
+
 #: src/components/ArticleCard.tsx:264
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
@@ -765,6 +794,15 @@ msgstr "등록중…"
 #: src/components/LanguageList.tsx:225
 msgid "Remove"
 msgstr "제거"
+
+#. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/EmojiReactionPopover.tsx:300
+msgid "Remove {0}"
+msgstr "{0} 제거"
+
+#: src/components/PostControls.tsx:75
+msgid "Reply"
+msgstr "댓글"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:503
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:554
@@ -830,6 +868,10 @@ msgstr "개인의 환경 설정을 설정하세요."
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
 msgstr "설정"
+
+#: src/components/PostControls.tsx:86
+msgid "Share"
+msgstr "공유"
 
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
@@ -948,6 +990,16 @@ msgstr "타임라인"
 #: src/components/ArticleCard.tsx:160
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
+
+#: src/components/EmojiReactionPopover.tsx:248
+#: src/components/EmojiReactionPopover.tsx:257
+msgid "Unable to add reaction. Please try again."
+msgstr "반응을 추가할 수 없습니다. 다시 시도해주세요."
+
+#: src/components/EmojiReactionPopover.tsx:170
+#: src/components/EmojiReactionPopover.tsx:179
+msgid "Unable to remove reaction. Please try again."
+msgstr "반응을 제거할 수 없습니다. 다시 시도해주세요."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:170
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."

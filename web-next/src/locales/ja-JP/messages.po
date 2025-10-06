@@ -167,6 +167,11 @@ msgstr "操作"
 msgid "Add"
 msgstr "追加"
 
+#. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/EmojiReactionPopover.tsx:303
+msgid "Add {0}"
+msgstr "{0}を追加"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "登録中にエラーが発生しました。もう一度お試しください。"
@@ -338,6 +343,13 @@ msgstr "パスキーの読み込みに失敗しました。クリックして再
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
+
+#: src/components/EmojiReactionPopover.tsx:169
+#: src/components/EmojiReactionPopover.tsx:178
+#: src/components/EmojiReactionPopover.tsx:247
+#: src/components/EmojiReactionPopover.tsx:256
+msgid "Failed to react"
+msgstr "リアクションに失敗しました"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Failed to register passkey"
@@ -734,6 +746,23 @@ msgstr "検索文字列は空にできません"
 msgid "Quiet public"
 msgstr "ひかえめな公開"
 
+#: src/components/PostControls.tsx:97
+msgid "Quote"
+msgstr "引用"
+
+#: src/components/PostControls.tsx:116
+msgid "React"
+msgstr "リアクション"
+
+#: src/components/EmojiReactionPopover.tsx:348
+msgid "React with {emoji}"
+msgstr "{emoji}でリアクション"
+
+#: src/components/EmojiReactionPopover.tsx:301
+#: src/components/EmojiReactionPopover.tsx:304
+msgid "reaction"
+msgstr "リアクション"
+
 #: src/components/ArticleCard.tsx:264
 msgid "Read full article"
 msgstr "記事全文を読む"
@@ -765,6 +794,15 @@ msgstr "登録中…"
 #: src/components/LanguageList.tsx:225
 msgid "Remove"
 msgstr "削除"
+
+#. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/EmojiReactionPopover.tsx:300
+msgid "Remove {0}"
+msgstr "{0}を削除"
+
+#: src/components/PostControls.tsx:75
+msgid "Reply"
+msgstr "返信"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:503
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:554
@@ -830,6 +868,10 @@ msgstr "個人の環境設定を設定してください。"
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
 msgstr "設定"
+
+#: src/components/PostControls.tsx:86
+msgid "Share"
+msgstr "共有"
 
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
@@ -948,6 +990,16 @@ msgstr "タイムライン"
 #: src/components/ArticleCard.tsx:160
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
+
+#: src/components/EmojiReactionPopover.tsx:248
+#: src/components/EmojiReactionPopover.tsx:257
+msgid "Unable to add reaction. Please try again."
+msgstr "リアクションを追加できませんでした。もう一度お試しください。"
+
+#: src/components/EmojiReactionPopover.tsx:170
+#: src/components/EmojiReactionPopover.tsx:179
+msgid "Unable to remove reaction. Please try again."
+msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:170
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
