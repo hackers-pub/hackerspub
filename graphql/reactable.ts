@@ -1,9 +1,9 @@
-import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import type { RelationsFilter } from "@hackerspub/models/db";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
+import { assertNever } from "@std/assert/unstable-never";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
-import { assertNever } from "@std/assert/unstable-never";
 
 export interface Reactable {
   id: Uuid;
@@ -76,6 +76,7 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
           where: {
             ...query.where,
             ...group.where,
+            postId: group.subject.id,
           },
         });
         return {
