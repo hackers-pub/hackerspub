@@ -168,7 +168,7 @@ msgid "Add"
 msgstr "添加"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:303
+#: src/components/EmojiReactionPopover.tsx:293
 msgid "Add {0}"
 msgstr "添加{0}"
 
@@ -344,10 +344,10 @@ msgstr "加载更多通行密钥失败，点击重试"
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
-#: src/components/EmojiReactionPopover.tsx:169
-#: src/components/EmojiReactionPopover.tsx:178
-#: src/components/EmojiReactionPopover.tsx:247
-#: src/components/EmojiReactionPopover.tsx:256
+#: src/components/EmojiReactionPopover.tsx:159
+#: src/components/EmojiReactionPopover.tsx:168
+#: src/components/EmojiReactionPopover.tsx:237
+#: src/components/EmojiReactionPopover.tsx:246
 msgid "Failed to react"
 msgstr "反应失败"
 
@@ -754,12 +754,12 @@ msgstr "引用"
 msgid "React"
 msgstr "反应"
 
-#: src/components/EmojiReactionPopover.tsx:348
+#: src/components/EmojiReactionPopover.tsx:338
 msgid "React with {emoji}"
 msgstr "用{emoji}反应"
 
-#: src/components/EmojiReactionPopover.tsx:301
-#: src/components/EmojiReactionPopover.tsx:304
+#: src/components/EmojiReactionPopover.tsx:291
+#: src/components/EmojiReactionPopover.tsx:294
 msgid "reaction"
 msgstr "反应"
 
@@ -796,7 +796,7 @@ msgid "Remove"
 msgstr "移除"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:300
+#: src/components/EmojiReactionPopover.tsx:290
 msgid "Remove {0}"
 msgstr "移除{0}"
 
@@ -991,13 +991,13 @@ msgstr "时间线"
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/components/EmojiReactionPopover.tsx:248
-#: src/components/EmojiReactionPopover.tsx:257
+#: src/components/EmojiReactionPopover.tsx:238
+#: src/components/EmojiReactionPopover.tsx:247
 msgid "Unable to add reaction. Please try again."
 msgstr "无法添加反应。请重试。"
 
-#: src/components/EmojiReactionPopover.tsx:170
-#: src/components/EmojiReactionPopover.tsx:179
+#: src/components/EmojiReactionPopover.tsx:160
+#: src/components/EmojiReactionPopover.tsx:169
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
 

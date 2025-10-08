@@ -168,7 +168,7 @@ msgid "Add"
 msgstr "追加"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:303
+#: src/components/EmojiReactionPopover.tsx:293
 msgid "Add {0}"
 msgstr "{0}を追加"
 
@@ -344,10 +344,10 @@ msgstr "パスキーの読み込みに失敗しました。クリックして再
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/EmojiReactionPopover.tsx:169
-#: src/components/EmojiReactionPopover.tsx:178
-#: src/components/EmojiReactionPopover.tsx:247
-#: src/components/EmojiReactionPopover.tsx:256
+#: src/components/EmojiReactionPopover.tsx:159
+#: src/components/EmojiReactionPopover.tsx:168
+#: src/components/EmojiReactionPopover.tsx:237
+#: src/components/EmojiReactionPopover.tsx:246
 msgid "Failed to react"
 msgstr "リアクションに失敗しました"
 
@@ -754,12 +754,12 @@ msgstr "引用"
 msgid "React"
 msgstr "リアクション"
 
-#: src/components/EmojiReactionPopover.tsx:348
+#: src/components/EmojiReactionPopover.tsx:338
 msgid "React with {emoji}"
 msgstr "{emoji}でリアクション"
 
-#: src/components/EmojiReactionPopover.tsx:301
-#: src/components/EmojiReactionPopover.tsx:304
+#: src/components/EmojiReactionPopover.tsx:291
+#: src/components/EmojiReactionPopover.tsx:294
 msgid "reaction"
 msgstr "リアクション"
 
@@ -796,7 +796,7 @@ msgid "Remove"
 msgstr "削除"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:300
+#: src/components/EmojiReactionPopover.tsx:290
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
@@ -991,13 +991,13 @@ msgstr "タイムライン"
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/components/EmojiReactionPopover.tsx:248
-#: src/components/EmojiReactionPopover.tsx:257
+#: src/components/EmojiReactionPopover.tsx:238
+#: src/components/EmojiReactionPopover.tsx:247
 msgid "Unable to add reaction. Please try again."
 msgstr "リアクションを追加できませんでした。もう一度お試しください。"
 
-#: src/components/EmojiReactionPopover.tsx:170
-#: src/components/EmojiReactionPopover.tsx:179
+#: src/components/EmojiReactionPopover.tsx:160
+#: src/components/EmojiReactionPopover.tsx:169
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
