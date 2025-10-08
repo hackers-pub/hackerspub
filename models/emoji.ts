@@ -13,6 +13,54 @@ export function isReactionEmoji(value: unknown): value is ReactionEmoji {
   return REACTION_EMOJIS.includes(value as ReactionEmoji);
 }
 
+export interface ReactionGroup {
+  emoji?: string | null;
+  customEmoji?: {
+    name: string;
+  } | null;
+}
+
+export function sortReactionGroups<T extends ReactionGroup>(
+  groups: readonly T[],
+): T[] {
+  if (!groups) return [];
+
+  // Sort by REACTION_EMOJIS order first, then other emojis, then custom emojis
+  return [...groups].sort((a, b) => {
+    const emojiA = a.emoji;
+    const emojiB = b.emoji;
+
+    // Standard emojis come before custom emojis
+    if (emojiA && !emojiB) return -1;
+    if (!emojiA && emojiB) return 1;
+
+    // If both are standard emojis
+    if (emojiA && emojiB) {
+      const isAReactionEmoji = isReactionEmoji(emojiA);
+      const isBReactionEmoji = isReactionEmoji(emojiB);
+
+      // REACTION_EMOJIS come first
+      if (isAReactionEmoji && !isBReactionEmoji) return -1;
+      if (!isAReactionEmoji && isBReactionEmoji) return 1;
+
+      // If both are in REACTION_EMOJIS, sort by their order
+      if (isAReactionEmoji && isBReactionEmoji) {
+        const indexA = REACTION_EMOJIS.indexOf(emojiA as ReactionEmoji);
+        const indexB = REACTION_EMOJIS.indexOf(emojiB as ReactionEmoji);
+        return indexA - indexB;
+      }
+
+      // If neither is in REACTION_EMOJIS, sort alphabetically
+      return emojiA.localeCompare(emojiB);
+    }
+
+    // Both are custom emojis, sort by name
+    const nameA = a.customEmoji?.name || "";
+    const nameB = b.customEmoji?.name || "";
+    return nameA.localeCompare(nameB);
+  });
+}
+
 export const DEFAULT_REACTION_EMOJI = REACTION_EMOJIS[0];
 
 const CUSTOM_EMOJI_REGEXP = /:([a-z0-9_-]+):/gi;

@@ -4,6 +4,7 @@ import { createFragment } from "solid-relay";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { PostSharer } from "~/components/PostSharer.tsx";
 import { QuotedPostCard } from "~/components/QuotedPostCard.tsx";
+import { PostControls } from "~/components/PostControls.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import {
   Avatar,
@@ -27,6 +28,7 @@ export function NoteCard(props: NoteCardProps) {
         ...PostSharer_post
         ...NoteCardInternal_note
         ...NoteCard_media
+        ...PostControls_note
         sharedPost {
           ...NoteCardInternal_note
           ...NoteCard_media
@@ -58,6 +60,7 @@ export function NoteCard(props: NoteCardProps) {
                 <Show when={note().quotedPost}>
                   {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
                 </Show>
+                <PostControls $note={note()} />
               </>
             }
           >
@@ -105,6 +108,25 @@ function NoteCardInternal(props: NoteCardInternalProps) {
         published
         url
         iri
+        engagementStats {
+          replies
+          shares
+          quotes
+          reactions
+        }
+        reactionGroups {
+          ... on EmojiReactionGroup {
+            emoji
+            count
+          }
+          ... on CustomEmojiReactionGroup {
+            customEmoji {
+              name
+              imageUrl
+            }
+            count
+          }
+        }
       }
     `,
     () => props.$note,
