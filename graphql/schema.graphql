@@ -261,6 +261,7 @@ type Article implements Node & Post & Reactable {
   id: ID!
   iri: URL!
   language: String
+  lastSharer: Actor
   link: PostLink
   media: [PostMedium!]!
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
@@ -560,6 +561,7 @@ type Note implements Node & Post & Reactable {
   id: ID!
   iri: URL!
   language: String
+  lastSharer: Actor
   link: PostLink
   media: [PostMedium!]!
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
@@ -691,6 +693,7 @@ interface Post implements Node & Reactable {
   id: ID!
   iri: URL!
   language: String
+  lastSharer: Actor
   link: PostLink
   media: [PostMedium!]!
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
@@ -889,6 +892,7 @@ type Question implements Node & Post & Reactable {
   id: ID!
   iri: URL!
   language: String
+  lastSharer: Actor
   link: PostLink
   media: [PostMedium!]!
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!

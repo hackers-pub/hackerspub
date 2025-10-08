@@ -126,6 +126,7 @@ builder.drizzleInterfaceFields(Post, (t) => ({
   quotedPost: t.relation("quotedPost", { type: Post, nullable: true }),
   replies: t.relatedConnection("replies", { type: Post }),
   shares: t.relatedConnection("shares", { type: Post }),
+  lastSharer: t.relation("actor", { nullable: true }),
   quotes: t.relatedConnection("quotes", { type: Post }),
   mentions: t.connection({
     type: Actor,
