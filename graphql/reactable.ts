@@ -164,7 +164,7 @@ CustomEmojiReactionGroup.implement({
   }),
 });
 
-builder.drizzleNode("customEmojiTable", {
+export const CustomEmoji = builder.drizzleNode("customEmojiTable", {
   name: "CustomEmoji",
   id: {
     column: (emoji) => emoji.id,
@@ -179,14 +179,57 @@ builder.drizzleNode("customEmojiTable", {
   }),
 });
 
+export interface StandardEmoji {
+  raw: string;
+}
+
+export const StandardEmoji = builder.objectRef<StandardEmoji>("StandardEmoji");
+
+StandardEmoji.implement({
+  fields: (t) => ({
+    raw: t.exposeString("raw"),
+  }),
+});
+
+export const ReactionData = builder.unionType("ReactionData", {
+  types: [StandardEmoji, CustomEmoji] as const,
+  resolveType(value) {
+    if (value && typeof value === "object" && "raw" in value) {
+      return StandardEmoji;
+    }
+    return CustomEmoji;
+  },
+});
+
 export const Reaction = builder.drizzleNode("reactionTable", {
   name: "Reaction",
   id: {
     column: (reaction) => reaction.iri,
   },
   fields: (t) => ({
-    emoji: t.exposeString("emoji", { nullable: true }),
-    customEmoji: t.relation("customEmoji", { nullable: true }),
+    data: t.field({
+      type: ReactionData,
+      tracing: true,
+      select: () => {
+        return {
+          columns: {
+            emoji: true,
+          },
+          with: {
+            customEmoji: true,
+          },
+        };
+      },
+      resolve: (reaction) => {
+        if (reaction.emoji) {
+          return { raw: reaction.emoji };
+        } else if (reaction.customEmoji) {
+          return reaction.customEmoji;
+        } else {
+          throw new Error("Reaction has neither emoji nor customEmojiId");
+        }
+      },
+    }),
     actor: t.relation("actor"),
     created: t.expose("created", { type: "DateTime" }),
   }),

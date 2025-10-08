@@ -957,11 +957,12 @@ interface Reactable implements Node {
 type Reaction implements Node {
   actor: Actor!
   created: DateTime!
-  customEmoji: CustomEmoji
-  emoji: String
+  data: ReactionData!
   id: ID!
   post: Post!
 }
+
+union ReactionData = CustomEmoji | StandardEmoji
 
 interface ReactionGroup {
   count: Int!
@@ -1073,6 +1074,10 @@ type SignupValidationErrors {
   bio: SignupBioError
   name: SignupDisplayNameError
   username: SignupUsernameError
+}
+
+type StandardEmoji {
+  raw: String!
 }
 
 scalar URITemplate

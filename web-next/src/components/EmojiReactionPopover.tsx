@@ -34,16 +34,6 @@ const addReactionToPostMutation = graphql`
       ... on AddReactionToPostPayload {
         reaction {
           id
-          emoji
-          customEmoji {
-            id
-            name
-            imageUrl
-          }
-          actor {
-            id
-            name
-          }
         }
       }
       ... on InvalidInputError {
