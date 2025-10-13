@@ -154,7 +154,7 @@ msgstr "프로필에 표시될 링크의 이름. 예: GitHub."
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함(또는 스팸 폴더)을 확인해주세요."
 
-#: src/components/AppSidebar.tsx:240
+#: src/components/AppSidebar.tsx:244
 msgid "Account"
 msgstr "계정"
 
@@ -210,7 +210,7 @@ msgstr "{0} 패스키를 취소하시겠습니까? 이 패스키를 사용하여
 msgid "Articles"
 msgstr "게시글"
 
-#: src/components/AppSidebar.tsx:171
+#: src/components/AppSidebar.tsx:175
 #: src/routes/(root)/feed/articles.tsx:64
 msgid "Articles only"
 msgstr "게시글만"
@@ -237,6 +237,7 @@ msgstr "약력"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
+#: src/components/NoteComposer.tsx:207
 #: src/routes/(root)/[handle]/settings/index.tsx:420
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Cancel"
@@ -246,12 +247,32 @@ msgstr "취소"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
-#: src/components/AppSidebar.tsx:395
+#: src/components/AppSidebar.tsx:433
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "행동 강령"
+
+#: src/components/AppSidebar.tsx:402
+#: src/components/FloatingComposeButton.tsx:35
+msgid "Compose"
+msgstr "작성"
+
+#: src/components/NoteComposer.tsx:148
+msgid "Content"
+msgstr "내용"
+
+#: src/components/NoteComposer.tsx:94
+msgid "Content cannot be empty"
+msgstr "내용을 입력하세요"
+
+#: src/components/AppSidebar.tsx:424
+#: src/components/FloatingComposeButton.tsx:73
+#: src/components/NoteComposeModal.tsx:24
+#: src/components/NoteComposer.tsx:211
+msgid "Create Note"
+msgstr "단문 작성"
 
 #. placeholder {0}: "RELATIVE_DATE"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:461
@@ -261,6 +282,10 @@ msgstr "{0}에 생성됨"
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
+
+#: src/components/NoteComposer.tsx:212
+msgid "Creating..."
+msgstr "작성 중…"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:427
 msgid "Crop"
@@ -304,6 +329,10 @@ msgstr "이메일 또는 아이디"
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
 
+#: src/components/NoteComposer.tsx:93
+#: src/components/NoteComposer.tsx:119
+#: src/components/NoteComposer.tsx:127
+#: src/components/NoteComposer.tsx:135
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "오류"
@@ -338,8 +367,8 @@ msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시�
 
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:82
-#: src/components/PublicTimeline.tsx:84
+#: src/components/PersonalTimeline.tsx:92
+#: src/components/PublicTimeline.tsx:94
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
@@ -378,16 +407,16 @@ msgid "Failed to send invitation"
 msgstr "초대장 발송에 실패했습니다"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:82
+#: src/components/AppSidebar.tsx:86
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
-#: src/components/AppSidebar.tsx:214
+#: src/components/AppSidebar.tsx:218
 #: src/routes/(root)/fediverse.tsx:80
 msgid "Fediverse"
 msgstr "연합우주"
 
-#: src/components/AppSidebar.tsx:133
+#: src/components/AppSidebar.tsx:137
 #: src/routes/(root)/feed/articles.tsx:60
 #: src/routes/(root)/feed/index.tsx:60
 #: src/routes/(root)/feed/without-shares.tsx:60
@@ -407,12 +436,12 @@ msgstr "팔로워만"
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
-#: src/components/AppSidebar.tsx:407
+#: src/components/AppSidebar.tsx:445
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/components/AppSidebar.tsx:101
-#: src/components/AppSidebar.tsx:192
+#: src/components/AppSidebar.tsx:105
+#: src/components/AppSidebar.tsx:196
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/local.tsx:76
 #: src/routes/(root)/markdown.tsx:53
@@ -444,6 +473,11 @@ msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "연합우주(fediverse) 계정이 있으시다면, 이 단문에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {0}로 검색하신 뒤, 해당 단문에 댓글을 남기시면 됩니다."
 
+#. placeholder {0}: response.createNote.inputPath
+#: src/components/NoteComposer.tsx:120
+msgid "Invalid input: {0}"
+msgstr "잘못된 입력: {0}"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "Invitation language"
 msgstr "초대장 언어"
@@ -452,7 +486,7 @@ msgstr "초대장 언어"
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
-#: src/components/AppSidebar.tsx:331
+#: src/components/AppSidebar.tsx:335
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -474,6 +508,7 @@ msgstr "{0}에 가입"
 
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
+#: src/components/NoteComposer.tsx:186
 msgid "Language"
 msgstr "언어"
 
@@ -522,8 +557,8 @@ msgstr "패스키 더 불러오기"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:85
-#: src/components/PublicTimeline.tsx:87
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
@@ -554,8 +589,8 @@ msgstr "패스키를 더 불러오는 중…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:79
-#: src/components/PublicTimeline.tsx:81
+#: src/components/PersonalTimeline.tsx:89
+#: src/components/PublicTimeline.tsx:91
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
@@ -568,6 +603,10 @@ msgstr "로딩 중…"
 #: src/routes/(root)/markdown.tsx:58
 msgid "Markdown guide"
 msgstr "Markdown 가이드"
+
+#: src/components/NoteComposer.tsx:173
+msgid "Markdown supported"
+msgstr "Markdown 사용 가능"
 
 #: src/components/PostVisibilitySelect.tsx:83
 #: src/components/VisibilityTag.tsx:98
@@ -628,8 +667,8 @@ msgstr "단문이 없습니다"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/PersonalTimeline.tsx:102
+#: src/components/PublicTimeline.tsx:104
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "콘텐츠가 없습니다"
@@ -646,6 +685,10 @@ msgstr "찾을 수 없습니다."
 msgid "Note"
 msgstr "단문"
 
+#: src/components/NoteComposer.tsx:112
+msgid "Note created successfully"
+msgstr "단문이 작성되었습니다"
+
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
@@ -656,7 +699,7 @@ msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링�
 msgid "Notes"
 msgstr "단문"
 
-#: src/components/AppSidebar.tsx:293
+#: src/components/AppSidebar.tsx:297
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "알림"
@@ -825,7 +868,7 @@ msgstr "저장"
 msgid "Saving…"
 msgstr "저장 중…"
 
-#: src/components/AppSidebar.tsx:233
+#: src/components/AppSidebar.tsx:237
 #: src/routes/(root)/search.tsx:136
 #: src/routes/(root)/search.tsx:164
 msgid "Search"
@@ -860,7 +903,7 @@ msgstr "보내는 중…"
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
-#: src/components/AppSidebar.tsx:362
+#: src/components/AppSidebar.tsx:366
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -878,7 +921,7 @@ msgstr "공유"
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/AppSidebar.tsx:266
+#: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "로그인"
@@ -887,7 +930,7 @@ msgstr "로그인"
 msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
-#: src/components/AppSidebar.tsx:384
+#: src/components/AppSidebar.tsx:388
 msgid "Sign out"
 msgstr "로그아웃"
 
@@ -910,6 +953,10 @@ msgstr "Hackers' Pub 가입"
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "문제가 발생했습니다. 다시 시도해주세요."
+
+#: src/components/NoteComposer.tsx:111
+msgid "Success"
+msgstr "성공"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:204
 msgid "Successfully saved language preferences"
@@ -969,7 +1016,7 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:399
+#: src/components/AppSidebar.tsx:437
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
@@ -977,7 +1024,7 @@ msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배�
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
-#: src/components/AppSidebar.tsx:113
+#: src/components/AppSidebar.tsx:117
 #: src/routes/(root)/fediverse.tsx:76
 #: src/routes/(root)/feed/articles.tsx:56
 #: src/routes/(root)/feed/index.tsx:56
@@ -1044,6 +1091,10 @@ msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 msgid "Verifying your invitation…"
 msgstr "초대장을 확인하고 있습니다…"
 
+#: src/components/NoteComposer.tsx:193
+msgid "Visibility"
+msgstr "공개 범위"
+
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
 msgstr "작성자의 팔로워만 볼 수 있습니다. 공개 타임라인에는 표시되지 않으며, 작성자를 팔로우하는 사용자만 볼 수 있습니다."
@@ -1072,7 +1123,11 @@ msgstr "Hackers' Pub에 오신 것을 환영합니다! 가입을 완료하려면
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pub이란?"
 
-#: src/components/AppSidebar.tsx:152
+#: src/components/NoteComposer.tsx:179
+msgid "What's on your mind?"
+msgstr "무슨 생각 해요?"
+
+#: src/components/AppSidebar.tsx:156
 #: src/routes/(root)/feed/without-shares.tsx:64
 msgid "Without shares"
 msgstr "공유 제외"
@@ -1097,6 +1152,10 @@ msgstr "등록된 패스키가 아직 없습니다."
 #: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려주세요."
+
+#: src/components/NoteComposer.tsx:128
+msgid "You must be signed in to create a note"
+msgstr "단문을 작성하려면 로그인해야 합니다"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"

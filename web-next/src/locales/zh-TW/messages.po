@@ -154,7 +154,7 @@ msgstr "為顯示在你個人資料頁面的連結命名，例如 GitHub。"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾郵件資料夾）"
 
-#: src/components/AppSidebar.tsx:240
+#: src/components/AppSidebar.tsx:244
 msgid "Account"
 msgstr "帳戶"
 
@@ -210,7 +210,7 @@ msgstr "您確定要取消密碼{0}嗎？您將無法再使用它登入您的帳
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:171
+#: src/components/AppSidebar.tsx:175
 #: src/routes/(root)/feed/articles.tsx:64
 msgid "Articles only"
 msgstr "僅文章"
@@ -237,6 +237,7 @@ msgstr "個人簡介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "個人簡介太長。不能長於 512 字元。"
 
+#: src/components/NoteComposer.tsx:207
 #: src/routes/(root)/[handle]/settings/index.tsx:420
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Cancel"
@@ -246,12 +247,32 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
 
-#: src/components/AppSidebar.tsx:395
+#: src/components/AppSidebar.tsx:433
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "行為準則"
+
+#: src/components/AppSidebar.tsx:402
+#: src/components/FloatingComposeButton.tsx:35
+msgid "Compose"
+msgstr "寫作"
+
+#: src/components/NoteComposer.tsx:148
+msgid "Content"
+msgstr "內容"
+
+#: src/components/NoteComposer.tsx:94
+msgid "Content cannot be empty"
+msgstr "內容不能為空"
+
+#: src/components/AppSidebar.tsx:424
+#: src/components/FloatingComposeButton.tsx:73
+#: src/components/NoteComposeModal.tsx:24
+#: src/components/NoteComposer.tsx:211
+msgid "Create Note"
+msgstr "建立貼文"
 
 #. placeholder {0}: "RELATIVE_DATE"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:461
@@ -261,6 +282,10 @@ msgstr "{0}建立"
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
 msgstr "創建帳戶…"
+
+#: src/components/NoteComposer.tsx:212
+msgid "Creating..."
+msgstr "正在建立…"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:427
 msgid "Crop"
@@ -304,6 +329,10 @@ msgstr "電子郵件或使用者名稱"
 msgid "Enter your email or username below to sign in."
 msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 
+#: src/components/NoteComposer.tsx:93
+#: src/components/NoteComposer.tsx:119
+#: src/components/NoteComposer.tsx:127
+#: src/components/NoteComposer.tsx:135
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "錯誤"
@@ -338,8 +367,8 @@ msgstr "載入更多通行金鑰失敗；點擊重試"
 
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:82
-#: src/components/PublicTimeline.tsx:84
+#: src/components/PersonalTimeline.tsx:92
+#: src/components/PublicTimeline.tsx:94
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
@@ -378,16 +407,16 @@ msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:82
+#: src/components/AppSidebar.tsx:86
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
-#: src/components/AppSidebar.tsx:214
+#: src/components/AppSidebar.tsx:218
 #: src/routes/(root)/fediverse.tsx:80
 msgid "Fediverse"
 msgstr "聯邦宇宙"
 
-#: src/components/AppSidebar.tsx:133
+#: src/components/AppSidebar.tsx:137
 #: src/routes/(root)/feed/articles.tsx:60
 #: src/routes/(root)/feed/index.tsx:60
 #: src/routes/(root)/feed/without-shares.tsx:60
@@ -407,12 +436,12 @@ msgstr "只粉絲可見"
 msgid "Following you"
 msgstr "關注了你"
 
-#: src/components/AppSidebar.tsx:407
+#: src/components/AppSidebar.tsx:445
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
-#: src/components/AppSidebar.tsx:101
-#: src/components/AppSidebar.tsx:192
+#: src/components/AppSidebar.tsx:105
+#: src/components/AppSidebar.tsx:196
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/local.tsx:76
 #: src/routes/(root)/markdown.tsx:53
@@ -444,6 +473,11 @@ msgstr "啟用後，AI 將為您生成文章摘要。否則，將使用文章的
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡評論此貼文。在你的實例搜尋 {0} 後回覆。"
 
+#. placeholder {0}: response.createNote.inputPath
+#: src/components/NoteComposer.tsx:120
+msgid "Invalid input: {0}"
+msgstr "無效輸入：{0}"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "Invitation language"
 msgstr "邀請語言"
@@ -452,7 +486,7 @@ msgstr "邀請語言"
 msgid "Invitation sent"
 msgstr "邀請已發送"
 
-#: src/components/AppSidebar.tsx:331
+#: src/components/AppSidebar.tsx:335
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -474,6 +508,7 @@ msgstr "於{0}加入"
 
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
+#: src/components/NoteComposer.tsx:186
 msgid "Language"
 msgstr "語言"
 
@@ -522,8 +557,8 @@ msgstr "載入更多通行金鑰"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:85
-#: src/components/PublicTimeline.tsx:87
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "載入更多內容"
@@ -554,8 +589,8 @@ msgstr "正在載入更多通行金鑰…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:79
-#: src/components/PublicTimeline.tsx:81
+#: src/components/PersonalTimeline.tsx:89
+#: src/components/PublicTimeline.tsx:91
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
@@ -568,6 +603,10 @@ msgstr "載入中…"
 #: src/routes/(root)/markdown.tsx:58
 msgid "Markdown guide"
 msgstr "Markdown 指南"
+
+#: src/components/NoteComposer.tsx:173
+msgid "Markdown supported"
+msgstr "Markdown 可用"
 
 #: src/components/PostVisibilitySelect.tsx:83
 #: src/components/VisibilityTag.tsx:98
@@ -628,8 +667,8 @@ msgstr "未找到貼文"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/PersonalTimeline.tsx:102
+#: src/components/PublicTimeline.tsx:104
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "未找到內容"
@@ -646,6 +685,10 @@ msgstr "未找到。"
 msgid "Note"
 msgstr "貼文"
 
+#: src/components/NoteComposer.tsx:112
+msgid "Note created successfully"
+msgstr "貼文建立成功"
+
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
@@ -656,7 +699,7 @@ msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用
 msgid "Notes"
 msgstr "貼文"
 
-#: src/components/AppSidebar.tsx:293
+#: src/components/AppSidebar.tsx:297
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "通知"
@@ -825,7 +868,7 @@ msgstr "儲存"
 msgid "Saving…"
 msgstr "儲存中…"
 
-#: src/components/AppSidebar.tsx:233
+#: src/components/AppSidebar.tsx:237
 #: src/routes/(root)/search.tsx:136
 #: src/routes/(root)/search.tsx:164
 msgid "Search"
@@ -860,7 +903,7 @@ msgstr "發送中…"
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
-#: src/components/AppSidebar.tsx:362
+#: src/components/AppSidebar.tsx:366
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -878,7 +921,7 @@ msgstr "分享"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/AppSidebar.tsx:266
+#: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登入"
@@ -887,7 +930,7 @@ msgstr "登入"
 msgid "Sign in with passkey"
 msgstr "使用通行金鑰登入"
 
-#: src/components/AppSidebar.tsx:384
+#: src/components/AppSidebar.tsx:388
 msgid "Sign out"
 msgstr "登出"
 
@@ -910,6 +953,10 @@ msgstr "註冊 Hackers' Pub"
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "發生錯誤，請重試。"
+
+#: src/components/NoteComposer.tsx:111
+msgid "Success"
+msgstr "成功"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:204
 msgid "Successfully saved language preferences"
@@ -969,7 +1016,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:399
+#: src/components/AppSidebar.tsx:437
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
@@ -977,7 +1024,7 @@ msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱 。"
 
-#: src/components/AppSidebar.tsx:113
+#: src/components/AppSidebar.tsx:117
 #: src/routes/(root)/fediverse.tsx:76
 #: src/routes/(root)/feed/articles.tsx:56
 #: src/routes/(root)/feed/index.tsx:56
@@ -1044,6 +1091,10 @@ msgstr "已於{1}驗證此連結歸{0}所有"
 msgid "Verifying your invitation…"
 msgstr "驗證您的邀請…"
 
+#: src/components/NoteComposer.tsx:193
+msgid "Visibility"
+msgstr "內容隱私度"
+
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
 msgstr "只有作者的粉絲可見。內容不會出現在公共時間軸中，只有關注作者的使用者才能看到。"
@@ -1072,7 +1123,11 @@ msgstr "歡迎來到 Hackers' Pub！請填寫以下表單完成註冊。"
 msgid "What is Hackers' Pub?"
 msgstr "什麼是 Hackers' Pub？"
 
-#: src/components/AppSidebar.tsx:152
+#: src/components/NoteComposer.tsx:179
+msgid "What's on your mind?"
+msgstr "你在想什麼？"
+
+#: src/components/AppSidebar.tsx:156
 #: src/routes/(root)/feed/without-shares.tsx:64
 msgid "Without shares"
 msgstr "不含轉貼"
@@ -1097,6 +1152,10 @@ msgstr "您尚未註冊任何通行金鑰。"
 #: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你沒有剩餘邀請名額。請稍後再試。"
+
+#: src/components/NoteComposer.tsx:128
+msgid "You must be signed in to create a note"
+msgstr "你必須登入才能建立貼文"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"

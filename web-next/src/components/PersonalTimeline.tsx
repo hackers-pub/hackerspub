@@ -1,7 +1,8 @@
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createSignal, For, Match, onMount, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { PersonalTimeline_posts$key } from "./__generated__/PersonalTimeline_posts.graphql.ts";
 
@@ -11,6 +12,7 @@ export interface PersonalTimelineProps {
 
 export function PersonalTimeline(props: PersonalTimelineProps) {
   const { t } = useLingui();
+  const { onNoteCreated } = useNoteCompose();
   const posts = createPaginationFragment(
     graphql`
       fragment PersonalTimeline_posts on Query
@@ -51,6 +53,14 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
+
+  onMount(() => {
+    const cleanup = onNoteCreated(() => {
+      // TODO: Refetch the timeline when a note is created with keeping old data visible
+      posts.refetch({});
+    });
+    return cleanup;
+  });
 
   function onLoadMore() {
     setLoadingState("loading");

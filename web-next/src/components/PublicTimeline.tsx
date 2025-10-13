@@ -1,7 +1,8 @@
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createSignal, For, Match, onMount, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { PublicTimeline_posts$key } from "./__generated__/PublicTimeline_posts.graphql.ts";
 
@@ -11,9 +12,10 @@ export interface PublicTimelineProps {
 
 export function PublicTimeline(props: PublicTimelineProps) {
   const { t } = useLingui();
+  const { onNoteCreated } = useNoteCompose();
   const posts = createPaginationFragment(
     graphql`
-      fragment PublicTimeline_posts on Query 
+      fragment PublicTimeline_posts on Query
         @refetchable(queryName: "PublicTimelineQuery")
         @argumentDefinitions(
           cursor: { type: "String" }
@@ -53,6 +55,14 @@ export function PublicTimeline(props: PublicTimelineProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
+
+  onMount(() => {
+    const cleanup = onNoteCreated(() => {
+      // TODO: Refetch the timeline when a note is created with keeping old data visible
+      posts.refetch({});
+    });
+    return cleanup;
+  });
 
   function onLoadMore() {
     setLoadingState("loading");
