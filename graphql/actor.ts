@@ -204,6 +204,11 @@ export const Actor = builder.drizzleNode("actorTable", {
         where: {
           AND: [
             { type: "Article" },
+            {
+              articleSourceId: {
+                isNotNull: true,
+              },
+            },
             getPostVisibilityFilter(ctx.account?.actor ?? null),
           ],
         },
