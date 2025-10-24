@@ -615,11 +615,23 @@ builder.relayMutationField(
         emoji,
       );
 
-      if (reaction == null) {
-        throw new Error("Failed to react to the post");
+      if (reaction != null) {
+        return reaction;
       }
 
-      return reaction;
+      const existingReaction = await ctx.db.query.reactionTable.findFirst({
+        where: {
+          postId: post.id,
+          actorId: ctx.account.actor.id,
+          emoji,
+        },
+      });
+
+      if (existingReaction != null) {
+        return existingReaction;
+      }
+
+      throw new Error("Failed to react to the post");
     },
   },
   {
