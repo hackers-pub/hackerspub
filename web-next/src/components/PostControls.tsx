@@ -32,8 +32,10 @@ export function PostControls(props: PostControlsProps) {
         reactionGroups {
           ... on EmojiReactionGroup {
             emoji
-            count
-            viewerHasReacted
+            reactors {
+              totalCount
+              viewerHasReacted
+            }
           }
           ... on CustomEmojiReactionGroup {
             customEmoji {
@@ -41,8 +43,10 @@ export function PostControls(props: PostControlsProps) {
               name
               imageUrl
             }
-            count
-            viewerHasReacted
+            reactors {
+              totalCount
+              viewerHasReacted
+            }
           }
         }
       }
@@ -59,7 +63,9 @@ export function PostControls(props: PostControlsProps) {
 
   const userHasReacted = () => {
     const noteData = note();
-    return noteData?.reactionGroups.some((group) => group.viewerHasReacted) ??
+    return noteData?.reactionGroups.some((group) =>
+      group.reactors?.viewerHasReacted
+    ) ??
       false;
   };
 

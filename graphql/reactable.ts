@@ -1,4 +1,5 @@
 import type { RelationsFilter } from "@hackerspub/models/db";
+import { relations } from "@hackerspub/models/relations";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { assertNever } from "@std/assert/unstable-never";
@@ -67,44 +68,50 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
   },
   fields: (t) => ({
     subject: t.field({ type: Reactable, resolve: (group) => group.subject }),
-    count: t.exposeInt("count"),
-    viewerHasReacted: t.boolean({
-      async resolve(group, _, ctx) {
-        if (ctx.account == null) return false;
-
-        // Build the where condition based on group.where filter
-        const whereCondition = {
-          actorId: ctx.account.actor.id,
-          postId: group.subject.id,
-          ...group.where,
-        };
-
-        const reaction = await ctx.db.query.reactionTable.findFirst({
-          where: whereCondition,
-        });
-
-        return !!reaction;
-      },
-    }),
     reactors: t.connection({
       type: Actor,
       async resolve(group, args, ctx, info) {
         const query = reactorConnectionHelpers.getQuery(args, ctx, info);
-        const reactions = await ctx.db.query.reactionTable.findMany({
-          ...query,
-          where: {
-            ...query.where,
-            ...group.where,
-          },
-        });
+        const reactions = query.where == null
+          ? []
+          : await ctx.db.query.reactionTable.findMany({
+            ...query,
+            where: {
+              ...query.where,
+              ...group.where,
+            },
+          });
         return {
           totalCount: group.count,
+          postId: group.subject.id,
+          where: group.where,
           ...reactorConnectionHelpers.resolve(reactions, args, ctx),
         };
       },
     }, {
+      extensions: {
+        pothosDrizzleTable: relations.tablesConfig.reactionTable,
+      },
       fields: (t) => ({
         totalCount: t.exposeInt("totalCount"),
+        viewerHasReacted: t.boolean({
+          async resolve(connection, _, ctx) {
+            if (ctx.account == null) return false;
+
+            // Build the where condition based on connection.where filter
+            const whereCondition = {
+              actorId: ctx.account.actor.id,
+              postId: connection.postId,
+              ...connection.where,
+            };
+
+            const reaction = await ctx.db.query.reactionTable.findFirst({
+              where: whereCondition,
+            });
+
+            return !!reaction;
+          },
+        }),
       }),
     }),
   }),
@@ -135,7 +142,7 @@ const EmojiReactionGroup = builder.objectRef<EmojiReactionGroup>(
 EmojiReactionGroup.implement({
   interfaces: [ReactionGroup],
   fields: (t) => ({
-    emoji: t.exposeString("emoji"),
+    emoji: t.exposeString("emoji", { nullable: false as never }),
   }),
 });
 

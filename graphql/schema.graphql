@@ -337,11 +337,9 @@ type CustomEmoji implements Node {
 }
 
 type CustomEmojiReactionGroup implements ReactionGroup {
-  count: Int!
   customEmoji: CustomEmoji!
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
   subject: Reactable!
-  viewerHasReacted: Boolean!
 }
 
 """
@@ -372,11 +370,9 @@ type Document {
 scalar Email
 
 type EmojiReactionGroup implements ReactionGroup {
-  count: Int!
   emoji: String!
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
   subject: Reactable!
-  viewerHasReacted: Boolean!
 }
 
 type EmptySearchQueryError {
@@ -965,16 +961,15 @@ type Reaction implements Node {
 union ReactionData = CustomEmoji | StandardEmoji
 
 interface ReactionGroup {
-  count: Int!
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
   subject: Reactable!
-  viewerHasReacted: Boolean!
 }
 
 type ReactionGroupReactorsConnection {
   edges: [ReactionGroupReactorsConnectionEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+  viewerHasReacted: Boolean!
 }
 
 type ReactionGroupReactorsConnectionEdge {

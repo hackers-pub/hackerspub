@@ -746,11 +746,11 @@ msgstr "Query cannot be empty"
 msgid "Quiet public"
 msgstr "Quiet public"
 
-#: src/components/PostControls.tsx:97
+#: src/components/PostControls.tsx:103
 msgid "Quote"
 msgstr "Quote"
 
-#: src/components/PostControls.tsx:116
+#: src/components/PostControls.tsx:122
 msgid "React"
 msgstr "React"
 
@@ -800,7 +800,7 @@ msgstr "Remove"
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
-#: src/components/PostControls.tsx:75
+#: src/components/PostControls.tsx:81
 msgid "Reply"
 msgstr "Reply"
 
@@ -869,7 +869,7 @@ msgstr "Set your personal preferences."
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/PostControls.tsx:86
+#: src/components/PostControls.tsx:92
 msgid "Share"
 msgstr "Share"
 

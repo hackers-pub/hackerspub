@@ -2,9 +2,9 @@ import { graphql } from "relay-runtime";
 import { For, Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
 import { InternalLink } from "~/components/InternalLink.tsx";
+import { PostControls } from "~/components/PostControls.tsx";
 import { PostSharer } from "~/components/PostSharer.tsx";
 import { QuotedPostCard } from "~/components/QuotedPostCard.tsx";
-import { PostControls } from "~/components/PostControls.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import {
   Avatar,
@@ -117,14 +117,12 @@ function NoteCardInternal(props: NoteCardInternalProps) {
         reactionGroups {
           ... on EmojiReactionGroup {
             emoji
-            count
           }
           ... on CustomEmojiReactionGroup {
             customEmoji {
               name
               imageUrl
             }
-            count
           }
         }
       }
