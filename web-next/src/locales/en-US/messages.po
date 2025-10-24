@@ -167,6 +167,11 @@ msgstr "Actions"
 msgid "Add"
 msgstr "Add"
 
+#. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/EmojiReactionPopover.tsx:293
+msgid "Add {0}"
+msgstr "Add {0}"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
@@ -338,6 +343,13 @@ msgstr "Failed to load more passkeys; click to retry"
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
+
+#: src/components/EmojiReactionPopover.tsx:159
+#: src/components/EmojiReactionPopover.tsx:168
+#: src/components/EmojiReactionPopover.tsx:237
+#: src/components/EmojiReactionPopover.tsx:246
+msgid "Failed to react"
+msgstr "Failed to react"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Failed to register passkey"
@@ -734,6 +746,23 @@ msgstr "Query cannot be empty"
 msgid "Quiet public"
 msgstr "Quiet public"
 
+#: src/components/PostControls.tsx:103
+msgid "Quote"
+msgstr "Quote"
+
+#: src/components/PostControls.tsx:122
+msgid "React"
+msgstr "React"
+
+#: src/components/EmojiReactionPopover.tsx:338
+msgid "React with {emoji}"
+msgstr "React with {emoji}"
+
+#: src/components/EmojiReactionPopover.tsx:291
+#: src/components/EmojiReactionPopover.tsx:294
+msgid "reaction"
+msgstr "reaction"
+
 #: src/components/ArticleCard.tsx:264
 msgid "Read full article"
 msgstr "Read full article"
@@ -765,6 +794,15 @@ msgstr "Registering…"
 #: src/components/LanguageList.tsx:225
 msgid "Remove"
 msgstr "Remove"
+
+#. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/EmojiReactionPopover.tsx:290
+msgid "Remove {0}"
+msgstr "Remove {0}"
+
+#: src/components/PostControls.tsx:81
+msgid "Reply"
+msgstr "Reply"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:503
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:554
@@ -830,6 +868,10 @@ msgstr "Set your personal preferences."
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
 msgstr "Settings"
+
+#: src/components/PostControls.tsx:92
+msgid "Share"
+msgstr "Share"
 
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
@@ -948,6 +990,16 @@ msgstr "Timeline"
 #: src/components/ArticleCard.tsx:160
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
+
+#: src/components/EmojiReactionPopover.tsx:238
+#: src/components/EmojiReactionPopover.tsx:247
+msgid "Unable to add reaction. Please try again."
+msgstr "Unable to add reaction. Please try again."
+
+#: src/components/EmojiReactionPopover.tsx:160
+#: src/components/EmojiReactionPopover.tsx:169
+msgid "Unable to remove reaction. Please try again."
+msgstr "Unable to remove reaction. Please try again."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:170
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."

@@ -249,6 +249,19 @@ enum ActorType {
   SERVICE
 }
 
+input AddReactionToPostInput {
+  clientMutationId: ID
+  emoji: String!
+  postId: ID!
+}
+
+type AddReactionToPostPayload {
+  clientMutationId: ID
+  reaction: Reaction
+}
+
+union AddReactionToPostResult = AddReactionToPostPayload | InvalidInputError | NotAuthenticatedError
+
 type Article implements Node & Post & Reactable {
   account: Account!
   actor: Actor!
@@ -466,6 +479,7 @@ type MentionNotification implements Node & Notification {
 }
 
 type Mutation {
+  addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
   completeLoginChallenge(
     """The code of the login challenge."""
     code: String!
@@ -532,6 +546,7 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
+  removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   revokePasskey(passkeyId: ID!): ID
 
   """Revoke a session by its ID."""
@@ -935,6 +950,16 @@ interface Reactable implements Node {
   reactionGroups: [ReactionGroup!]!
 }
 
+type Reaction implements Node {
+  actor: Actor!
+  created: DateTime!
+  data: ReactionData!
+  id: ID!
+  post: Post!
+}
+
+union ReactionData = CustomEmoji | StandardEmoji
+
 interface ReactionGroup {
   reactors(after: String, before: String, first: Int, last: Int): ReactionGroupReactorsConnection!
   subject: Reactable!
@@ -944,12 +969,26 @@ type ReactionGroupReactorsConnection {
   edges: [ReactionGroupReactorsConnectionEdge!]!
   pageInfo: PageInfo!
   totalCount: Int!
+  viewerHasReacted: Boolean!
 }
 
 type ReactionGroupReactorsConnectionEdge {
   cursor: String!
   node: Actor!
 }
+
+input RemoveReactionFromPostInput {
+  clientMutationId: ID
+  emoji: String!
+  postId: ID!
+}
+
+type RemoveReactionFromPostPayload {
+  clientMutationId: ID
+  success: Boolean!
+}
+
+union RemoveReactionFromPostResult = InvalidInputError | NotAuthenticatedError | RemoveReactionFromPostPayload
 
 type ReplyNotification implements Node & Notification {
   account: Account!
@@ -1030,6 +1069,10 @@ type SignupValidationErrors {
   bio: SignupBioError
   name: SignupDisplayNameError
   username: SignupUsernameError
+}
+
+type StandardEmoji {
+  raw: String!
 }
 
 scalar URITemplate

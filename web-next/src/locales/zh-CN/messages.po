@@ -167,6 +167,11 @@ msgstr "操作"
 msgid "Add"
 msgstr "添加"
 
+#. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/EmojiReactionPopover.tsx:293
+msgid "Add {0}"
+msgstr "添加{0}"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
@@ -338,6 +343,13 @@ msgstr "加载更多通行密钥失败，点击重试"
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
+
+#: src/components/EmojiReactionPopover.tsx:159
+#: src/components/EmojiReactionPopover.tsx:168
+#: src/components/EmojiReactionPopover.tsx:237
+#: src/components/EmojiReactionPopover.tsx:246
+msgid "Failed to react"
+msgstr "反应失败"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:291
 msgid "Failed to register passkey"
@@ -734,6 +746,23 @@ msgstr "搜索关键词不能为空"
 msgid "Quiet public"
 msgstr "悄悄公开"
 
+#: src/components/PostControls.tsx:103
+msgid "Quote"
+msgstr "引用"
+
+#: src/components/PostControls.tsx:122
+msgid "React"
+msgstr "反应"
+
+#: src/components/EmojiReactionPopover.tsx:338
+msgid "React with {emoji}"
+msgstr "用{emoji}反应"
+
+#: src/components/EmojiReactionPopover.tsx:291
+#: src/components/EmojiReactionPopover.tsx:294
+msgid "reaction"
+msgstr "反应"
+
 #: src/components/ArticleCard.tsx:264
 msgid "Read full article"
 msgstr "阅读完整文章"
@@ -765,6 +794,15 @@ msgstr "正在注册…"
 #: src/components/LanguageList.tsx:225
 msgid "Remove"
 msgstr "移除"
+
+#. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
+#: src/components/EmojiReactionPopover.tsx:290
+msgid "Remove {0}"
+msgstr "移除{0}"
+
+#: src/components/PostControls.tsx:81
+msgid "Reply"
+msgstr "回复"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:503
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:554
@@ -830,6 +868,10 @@ msgstr "设置您的个人偏好设置。"
 #: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
 msgstr "设置"
+
+#: src/components/PostControls.tsx:92
+msgid "Share"
+msgstr "分享"
 
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
@@ -948,6 +990,16 @@ msgstr "时间线"
 #: src/components/ArticleCard.tsx:160
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
+
+#: src/components/EmojiReactionPopover.tsx:238
+#: src/components/EmojiReactionPopover.tsx:247
+msgid "Unable to add reaction. Please try again."
+msgstr "无法添加反应。请重试。"
+
+#: src/components/EmojiReactionPopover.tsx:160
+#: src/components/EmojiReactionPopover.tsx:169
+msgid "Unable to remove reaction. Please try again."
+msgstr "无法移除反应。请重试。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:170
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
