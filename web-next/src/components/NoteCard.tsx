@@ -60,7 +60,10 @@ export function NoteCard(props: NoteCardProps) {
                 <Show when={note().quotedPost}>
                   {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
                 </Show>
-                <PostControls $note={note()} />
+                <PostControls
+                  $note={note()}
+                  classList={{ "mt-4": note().quotedPost == null }}
+                />
               </>
             }
           >

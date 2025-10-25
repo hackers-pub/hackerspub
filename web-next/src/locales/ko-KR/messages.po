@@ -746,11 +746,11 @@ msgstr "검색어를 비울 수 없습니다"
 msgid "Quiet public"
 msgstr "조용히 공개"
 
-#: src/components/PostControls.tsx:103
+#: src/components/PostControls.tsx:108
 msgid "Quote"
 msgstr "인용"
 
-#: src/components/PostControls.tsx:122
+#: src/components/PostControls.tsx:127
 msgid "React"
 msgstr "반응"
 
@@ -800,7 +800,7 @@ msgstr "제거"
 msgid "Remove {0}"
 msgstr "{0} 제거"
 
-#: src/components/PostControls.tsx:81
+#: src/components/PostControls.tsx:86
 msgid "Reply"
 msgstr "댓글"
 
@@ -869,7 +869,7 @@ msgstr "개인의 환경 설정을 설정하세요."
 msgid "Settings"
 msgstr "설정"
 
-#: src/components/PostControls.tsx:92
+#: src/components/PostControls.tsx:97
 msgid "Share"
 msgstr "공유"
 

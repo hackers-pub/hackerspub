@@ -746,11 +746,11 @@ msgstr "検索文字列は空にできません"
 msgid "Quiet public"
 msgstr "ひかえめな公開"
 
-#: src/components/PostControls.tsx:103
+#: src/components/PostControls.tsx:108
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:122
+#: src/components/PostControls.tsx:127
 msgid "React"
 msgstr "リアクション"
 
@@ -800,7 +800,7 @@ msgstr "削除"
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
-#: src/components/PostControls.tsx:81
+#: src/components/PostControls.tsx:86
 msgid "Reply"
 msgstr "返信"
 
@@ -869,7 +869,7 @@ msgstr "個人の環境設定を設定してください。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:92
+#: src/components/PostControls.tsx:97
 msgid "Share"
 msgstr "共有"
 

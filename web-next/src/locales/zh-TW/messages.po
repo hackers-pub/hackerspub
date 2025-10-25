@@ -746,11 +746,11 @@ msgstr "搜尋關鍵詞不能為空"
 msgid "Quiet public"
 msgstr "悄悄公開"
 
-#: src/components/PostControls.tsx:103
+#: src/components/PostControls.tsx:108
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:122
+#: src/components/PostControls.tsx:127
 msgid "React"
 msgstr "反應"
 
@@ -800,7 +800,7 @@ msgstr "移除"
 msgid "Remove {0}"
 msgstr "移除{0}"
 
-#: src/components/PostControls.tsx:81
+#: src/components/PostControls.tsx:86
 msgid "Reply"
 msgstr "回覆"
 
@@ -869,7 +869,7 @@ msgstr "設定您的個人偏好設定。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:92
+#: src/components/PostControls.tsx:97
 msgid "Share"
 msgstr "分享"
 
