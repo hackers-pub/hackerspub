@@ -151,15 +151,9 @@ export const Note = builder.drizzleNode("postTable", {
 
 export const Article = builder.drizzleNode("postTable", {
   variant: "Article",
-  // @ts-ignore: TODO
   interfaces: [Post, Reactable],
   id: {
     column: (post) => post.id,
-  },
-  select: {
-    with: {
-      articleSource: true,
-    },
   },
   fields: (t) => ({
     publishedYear: t.int({
