@@ -37,7 +37,7 @@
     "mentionedYou": "{{actor}}さんがあなたにメンションしました",
     "repliedToYourPost": "{{actor}}さんがあなたのコンテンツに返信しました",
     "sharedYourPost_zero": "{{actor}}さんがあなたのコンテンツを共有しました",
-    "sharedYourPost_other": "{{actor}}さん外{{count}}人があなたのコンテンツを共有しました",
+    "sharedYourPost_other": "{{actor}}さん他{{count}}人があなたのコンテンツを共有しました",
     "quotedYourPost": "{{actor}}さんがあなたのコンテンツを引用しました",
     "reactedToYourPost_zero": "{{actor}}さんがあなたのコンテンツに{{emoji}}でリアクションしました",
     "reactedToYourPost_other": "{{actor}}さんと他{{count}}人があなたのコンテンツに{{emoji}}でリアクションしました"
