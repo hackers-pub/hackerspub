@@ -54,7 +54,7 @@ const loadPageQuery = query(
         slug,
       },
     ),
-  "loadArtileSharesQuery",
+  "loadArticleSharesQuery",
 );
 
 export default function SharesArticlePage() {
