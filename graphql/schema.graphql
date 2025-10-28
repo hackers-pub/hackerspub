@@ -279,7 +279,7 @@ type Article implements Node & Post & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
   name: String
   published: DateTime!
-  publishedYear: Int!
+  publishedYear: Int
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroups: [ReactionGroup!]!
@@ -288,7 +288,7 @@ type Article implements Node & Post & Reactable {
   sensitive: Boolean!
   sharedPost: Post
   shares(after: String, before: String, first: Int, last: Int): PostSharesConnection!
-  slug: String!
+  slug: String
   summary: String
   tags: [String!]!
   updated: DateTime!

@@ -157,6 +157,7 @@ export const Article = builder.drizzleNode("postTable", {
   },
   fields: (t) => ({
     publishedYear: t.int({
+      nullable: true,
       select: {
         with: {
           articleSource: {
@@ -164,9 +165,10 @@ export const Article = builder.drizzleNode("postTable", {
           },
         },
       },
-      resolve: (post) => post.articleSource!.publishedYear,
+      resolve: (post) => post.articleSource?.publishedYear ?? null,
     }),
     slug: t.string({
+      nullable: true,
       select: {
         with: {
           articleSource: {
@@ -174,7 +176,7 @@ export const Article = builder.drizzleNode("postTable", {
           },
         },
       },
-      resolve: (post) => post.articleSource!.slug,
+      resolve: (post) => post.articleSource?.slug ?? null,
     }),
     tags: t.stringList({
       select: {
@@ -184,7 +186,7 @@ export const Article = builder.drizzleNode("postTable", {
           },
         },
       },
-      resolve: (post) => post.articleSource!.tags,
+      resolve: (post) => post.articleSource?.tags ?? [],
     }),
     allowLlmTranslation: t.boolean({
       select: {
@@ -194,7 +196,7 @@ export const Article = builder.drizzleNode("postTable", {
           },
         },
       },
-      resolve: (post) => post.articleSource!.allowLlmTranslation,
+      resolve: (post) => post.articleSource?.allowLlmTranslation ?? false,
     }),
     contents: t.field({
       type: [ArticleContent],
