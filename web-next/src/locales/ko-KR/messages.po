@@ -346,7 +346,7 @@ msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 
 #: src/components/ArticleSharerList.tsx:82
 msgid "Failed to load more sharers; click to retry"
-msgstr ""
+msgstr "공유한 사람들을 불러오지 못했습니다. 클릭하여 재시도"
 
 #: src/components/EmojiReactionPopover.tsx:159
 #: src/components/EmojiReactionPopover.tsx:168
@@ -534,7 +534,7 @@ msgstr "콘텐츠 더 불러오기"
 
 #: src/components/ArticleSharerList.tsx:85
 msgid "Load more sharers"
-msgstr ""
+msgstr "공유한 사람 더 보기"
 
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
@@ -570,7 +570,7 @@ msgstr "콘텐츠 불러오는 중…"
 
 #: src/components/ArticleSharerList.tsx:79
 msgid "Loading more sharers…"
-msgstr ""
+msgstr "공유한 사람들을 불러오는 중…"
 
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
@@ -648,7 +648,7 @@ msgstr "콘텐츠가 없습니다"
 
 #: src/components/ArticleSharerList.tsx:92
 msgid "No sharers found"
-msgstr ""
+msgstr "공유한 사람이 없습니다"
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
@@ -781,7 +781,7 @@ msgstr "반응"
 
 #: src/components/PostReactionsNav.tsx:16
 msgid "Reactions"
-msgstr ""
+msgstr "반응"
 
 #: src/components/ArticleCard.tsx:313
 msgid "Read full article"
@@ -1067,7 +1067,7 @@ msgstr "초대장을 확인하고 있습니다…"
 
 #: src/components/ArticleCard.tsx:278
 msgid "View shares"
-msgstr ""
+msgstr "공유 보기"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."

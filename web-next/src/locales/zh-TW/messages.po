@@ -346,7 +346,7 @@ msgstr "載入更多內容失敗，點擊重試"
 
 #: src/components/ArticleSharerList.tsx:82
 msgid "Failed to load more sharers; click to retry"
-msgstr ""
+msgstr "載入更多轉貼者失敗；點擊重試"
 
 #: src/components/EmojiReactionPopover.tsx:159
 #: src/components/EmojiReactionPopover.tsx:168
@@ -534,7 +534,7 @@ msgstr "載入更多內容"
 
 #: src/components/ArticleSharerList.tsx:85
 msgid "Load more sharers"
-msgstr ""
+msgstr "載入更多轉貼者"
 
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
@@ -570,7 +570,7 @@ msgstr "載入更多內容中…"
 
 #: src/components/ArticleSharerList.tsx:79
 msgid "Loading more sharers…"
-msgstr ""
+msgstr "載入更多轉貼者中…"
 
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
@@ -648,7 +648,7 @@ msgstr "未找到內容"
 
 #: src/components/ArticleSharerList.tsx:92
 msgid "No sharers found"
-msgstr ""
+msgstr "未找到轉貼者"
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
@@ -781,7 +781,7 @@ msgstr "反應"
 
 #: src/components/PostReactionsNav.tsx:16
 msgid "Reactions"
-msgstr ""
+msgstr "反應"
 
 #: src/components/ArticleCard.tsx:313
 msgid "Read full article"
@@ -1067,7 +1067,7 @@ msgstr "驗證您的邀請…"
 
 #: src/components/ArticleCard.tsx:278
 msgid "View shares"
-msgstr ""
+msgstr "查看轉貼"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."

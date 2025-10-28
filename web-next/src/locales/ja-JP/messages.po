@@ -346,7 +346,7 @@ msgstr "コンテンツの読み込みに失敗しました。クリックして
 
 #: src/components/ArticleSharerList.tsx:82
 msgid "Failed to load more sharers; click to retry"
-msgstr ""
+msgstr "共有者の読み込みに失敗しました。クリックして再試行してください"
 
 #: src/components/EmojiReactionPopover.tsx:159
 #: src/components/EmojiReactionPopover.tsx:168
@@ -534,7 +534,7 @@ msgstr "コンテンツをもっと読み込む"
 
 #: src/components/ArticleSharerList.tsx:85
 msgid "Load more sharers"
-msgstr ""
+msgstr "共有者をもっと読み込む"
 
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
@@ -570,7 +570,7 @@ msgstr "コンテンツを読み込み中…"
 
 #: src/components/ArticleSharerList.tsx:79
 msgid "Loading more sharers…"
-msgstr ""
+msgstr "共有者を読み込み中…"
 
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
@@ -648,7 +648,7 @@ msgstr "コンテンツはありません"
 
 #: src/components/ArticleSharerList.tsx:92
 msgid "No sharers found"
-msgstr ""
+msgstr "共有者はいません"
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
@@ -781,7 +781,7 @@ msgstr "リアクション"
 
 #: src/components/PostReactionsNav.tsx:16
 msgid "Reactions"
-msgstr ""
+msgstr "リアクション"
 
 #: src/components/ArticleCard.tsx:313
 msgid "Read full article"
@@ -1067,7 +1067,7 @@ msgstr "招待を確認中…"
 
 #: src/components/ArticleCard.tsx:278
 msgid "View shares"
-msgstr ""
+msgstr "共有を見る"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
