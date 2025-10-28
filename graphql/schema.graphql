@@ -827,6 +827,7 @@ type Query {
     handle: String!
   ): Actor
   actorByUuid(uuid: UUID!): Actor
+  articleByYearAndSlug(handle: String!, idOrYear: String!, slug: String!): Article
   availableLocales: [Locale!]!
   codeOfConduct(
     """The locale for the Code of Conduct."""

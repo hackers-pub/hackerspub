@@ -715,3 +715,51 @@ builder.relayMutationField(
     }),
   },
 );
+
+builder.queryFields((t) => ({
+  articleByYearAndSlug: t.drizzleField({
+    type: Article,
+    nullable: true,
+    args: {
+      handle: t.arg.string({ required: true }),
+      idOrYear: t.arg.string({ required: true }),
+      slug: t.arg.string({ required: true }),
+    },
+    async resolve(query, _, { handle, idOrYear, slug }, ctx) {
+      // Parse year from idOrYear arg
+      const year = Number.parseInt(idOrYear, 10);
+      if (Number.isNaN(year)) return null;
+
+      // Extract username from handle (remove @ prefix if present)
+      const username = handle.startsWith("@") ? handle.slice(1) : handle;
+
+      const account = await ctx.db.query.accountTable.findFirst({
+        where: { username },
+      });
+      if (account == null) return null;
+
+      const articleSource = await ctx.db.query.articleSourceTable.findFirst(
+        {
+          where: { slug, accountId: account.id, publishedYear: year },
+        },
+      );
+      if (articleSource == null) return null;
+
+      // Use query() to load the post with proper GraphQL field selection
+      const article = await ctx.db.query.postTable.findFirst(
+        query({
+          where: { articleSourceId: articleSource.id },
+          with: { articleSource: true },
+        }),
+      );
+
+      if (article == null) {
+        throw new Error(
+          `Article not found: ${username}/${year}/${slug}`,
+        );
+      }
+
+      return article;
+    },
+  }),
+}));
