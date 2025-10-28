@@ -344,6 +344,10 @@ msgstr "加载更多通行密钥失败，点击重试"
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
+#: src/components/ArticleSharerList.tsx:82
+msgid "Failed to load more sharers; click to retry"
+msgstr ""
+
 #: src/components/EmojiReactionPopover.tsx:159
 #: src/components/EmojiReactionPopover.tsx:168
 #: src/components/EmojiReactionPopover.tsx:237
@@ -528,6 +532,10 @@ msgstr "加载更多通行密钥"
 msgid "Load more posts"
 msgstr "加载更多内容"
 
+#: src/components/ArticleSharerList.tsx:85
+msgid "Load more sharers"
+msgstr ""
+
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
 msgstr "加载更多文章中…"
@@ -559,6 +567,10 @@ msgstr "正在加载更多通行密钥…"
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
+
+#: src/components/ArticleSharerList.tsx:79
+msgid "Loading more sharers…"
+msgstr ""
 
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
@@ -633,6 +645,10 @@ msgstr "未找到帖子"
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "未找到内容"
+
+#: src/components/ArticleSharerList.tsx:92
+msgid "No sharers found"
+msgstr ""
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
@@ -763,7 +779,11 @@ msgstr "用{emoji}反应"
 msgid "reaction"
 msgstr "反应"
 
-#: src/components/ArticleCard.tsx:264
+#: src/components/PostReactionsNav.tsx:16
+msgid "Reactions"
+msgstr ""
+
+#: src/components/ArticleCard.tsx:313
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -873,6 +893,7 @@ msgstr "设置"
 msgid "Share"
 msgstr "分享"
 
+#: src/components/PostReactionsNav.tsx:17
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
@@ -923,7 +944,7 @@ msgstr "设置已成功保存"
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
-#: src/components/ArticleCard.tsx:242
+#: src/components/ArticleCard.tsx:250
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -987,7 +1008,7 @@ msgid "Timeline"
 msgstr "时间线"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:160
+#: src/components/ArticleCard.tsx:168
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
@@ -1043,6 +1064,10 @@ msgstr "已于{1}验证此链接归{0}所有"
 #: src/routes/(root)/sign/up/[token].tsx:317
 msgid "Verifying your invitation…"
 msgstr "正在验证您的邀请…"
+
+#: src/components/ArticleCard.tsx:278
+msgid "View shares"
+msgstr ""
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."

@@ -344,6 +344,10 @@ msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시�
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 
+#: src/components/ArticleSharerList.tsx:82
+msgid "Failed to load more sharers; click to retry"
+msgstr ""
+
 #: src/components/EmojiReactionPopover.tsx:159
 #: src/components/EmojiReactionPopover.tsx:168
 #: src/components/EmojiReactionPopover.tsx:237
@@ -528,6 +532,10 @@ msgstr "패스키 더 불러오기"
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
 
+#: src/components/ArticleSharerList.tsx:85
+msgid "Load more sharers"
+msgstr ""
+
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
 msgstr "게시글 불러오는 중…"
@@ -559,6 +567,10 @@ msgstr "패스키를 더 불러오는 중…"
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
+
+#: src/components/ArticleSharerList.tsx:79
+msgid "Loading more sharers…"
+msgstr ""
 
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
@@ -633,6 +645,10 @@ msgstr "단문이 없습니다"
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "콘텐츠가 없습니다"
+
+#: src/components/ArticleSharerList.tsx:92
+msgid "No sharers found"
+msgstr ""
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
@@ -763,7 +779,11 @@ msgstr "{emoji}로 반응"
 msgid "reaction"
 msgstr "반응"
 
-#: src/components/ArticleCard.tsx:264
+#: src/components/PostReactionsNav.tsx:16
+msgid "Reactions"
+msgstr ""
+
+#: src/components/ArticleCard.tsx:313
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
 
@@ -873,6 +893,7 @@ msgstr "설정"
 msgid "Share"
 msgstr "공유"
 
+#: src/components/PostReactionsNav.tsx:17
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
@@ -923,7 +944,7 @@ msgstr "환경 설정이 성공적으로 저장되었습니다"
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
-#: src/components/ArticleCard.tsx:242
+#: src/components/ArticleCard.tsx:250
 msgid "Summarized by LLM"
 msgstr "LLM 요약"
 
@@ -987,7 +1008,7 @@ msgid "Timeline"
 msgstr "타임라인"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:160
+#: src/components/ArticleCard.tsx:168
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
@@ -1043,6 +1064,10 @@ msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 #: src/routes/(root)/sign/up/[token].tsx:317
 msgid "Verifying your invitation…"
 msgstr "초대장을 확인하고 있습니다…"
+
+#: src/components/ArticleCard.tsx:278
+msgid "View shares"
+msgstr ""
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."

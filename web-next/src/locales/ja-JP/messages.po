@@ -344,6 +344,10 @@ msgstr "パスキーの読み込みに失敗しました。クリックして再
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
+#: src/components/ArticleSharerList.tsx:82
+msgid "Failed to load more sharers; click to retry"
+msgstr ""
+
 #: src/components/EmojiReactionPopover.tsx:159
 #: src/components/EmojiReactionPopover.tsx:168
 #: src/components/EmojiReactionPopover.tsx:237
@@ -528,6 +532,10 @@ msgstr "パスキーを読み込む"
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
+#: src/components/ArticleSharerList.tsx:85
+msgid "Load more sharers"
+msgstr ""
+
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
 msgstr "記事を読み込み中…"
@@ -559,6 +567,10 @@ msgstr "パスキーを読み込み中…"
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
+
+#: src/components/ArticleSharerList.tsx:79
+msgid "Loading more sharers…"
+msgstr ""
 
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
@@ -633,6 +645,10 @@ msgstr "投稿はありません"
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "コンテンツはありません"
+
+#: src/components/ArticleSharerList.tsx:92
+msgid "No sharers found"
+msgstr ""
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
@@ -763,7 +779,11 @@ msgstr "{emoji}でリアクション"
 msgid "reaction"
 msgstr "リアクション"
 
-#: src/components/ArticleCard.tsx:264
+#: src/components/PostReactionsNav.tsx:16
+msgid "Reactions"
+msgstr ""
+
+#: src/components/ArticleCard.tsx:313
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -873,6 +893,7 @@ msgstr "設定"
 msgid "Share"
 msgstr "共有"
 
+#: src/components/PostReactionsNav.tsx:17
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
@@ -923,7 +944,7 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:242
+#: src/components/ArticleCard.tsx:250
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -987,7 +1008,7 @@ msgid "Timeline"
 msgstr "タイムライン"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:160
+#: src/components/ArticleCard.tsx:168
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
@@ -1043,6 +1064,10 @@ msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済
 #: src/routes/(root)/sign/up/[token].tsx:317
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
+
+#: src/components/ArticleCard.tsx:278
+msgid "View shares"
+msgstr ""
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
