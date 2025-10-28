@@ -19,7 +19,7 @@ export function PostReactionsNav(props: PostReactionsNavProps) {
 
   return (
     <div class="flex border-b my-4">
-      {(["shares"] as PostReactionsNavItem[]).map((key) => (
+      {(Object.keys(props.hrefs) as PostReactionsNavItem[]).map((key) => (
         <A
           href={props.hrefs[key]}
           class="px-4 py-3 text-sm font-medium border-b-2 transition-colors"
