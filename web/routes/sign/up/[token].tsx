@@ -233,6 +233,7 @@ function SignupForm({ token, values, errors, cocHtml }: SignupFormProps) {
                 required
                 class="w-full"
                 pattern="^[A-Za-z0-9_]{1,50}$"
+                title={t("signUp.usernamePattern")}
                 value={values?.username}
                 aria-invalid={errors?.username ? "true" : "false"}
               />
@@ -253,6 +254,7 @@ function SignupForm({ token, values, errors, cocHtml }: SignupFormProps) {
                 required
                 class="w-full"
                 pattern="^.{1,50}$"
+                title={t("signUp.namePattern")}
                 value={values?.name}
                 aria-invalid={errors?.name ? "true" : "false"}
               />
