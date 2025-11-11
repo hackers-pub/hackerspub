@@ -344,6 +344,10 @@ msgstr "Failed to load more passkeys; click to retry"
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
+#: src/components/ArticleSharerList.tsx:82
+msgid "Failed to load more sharers; click to retry"
+msgstr "Failed to load more sharers; click to retry"
+
 #: src/components/EmojiReactionPopover.tsx:159
 #: src/components/EmojiReactionPopover.tsx:168
 #: src/components/EmojiReactionPopover.tsx:237
@@ -528,6 +532,10 @@ msgstr "Load more passkeys"
 msgid "Load more posts"
 msgstr "Load more posts"
 
+#: src/components/ArticleSharerList.tsx:85
+msgid "Load more sharers"
+msgstr "Load more sharers"
+
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
 msgstr "Loading more articles…"
@@ -559,6 +567,10 @@ msgstr "Loading more passkeys…"
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
+
+#: src/components/ArticleSharerList.tsx:79
+msgid "Loading more sharers…"
+msgstr "Loading more sharers…"
 
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
@@ -633,6 +645,10 @@ msgstr "No notes found"
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "No posts found"
+
+#: src/components/ArticleSharerList.tsx:92
+msgid "No sharers found"
+msgstr "No sharers found"
 
 #: src/routes/(root)/sign/index.tsx:238
 msgid "No such account in Hackers' Pub—please try again."
@@ -763,7 +779,11 @@ msgstr "React with {emoji}"
 msgid "reaction"
 msgstr "reaction"
 
-#: src/components/ArticleCard.tsx:264
+#: src/components/PostReactionsNav.tsx:16
+msgid "Reactions"
+msgstr "Reactions"
+
+#: src/components/ArticleCard.tsx:313
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -873,6 +893,7 @@ msgstr "Settings"
 msgid "Share"
 msgstr "Share"
 
+#: src/components/PostReactionsNav.tsx:17
 #: src/components/ProfileTabs.tsx:51
 #: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
@@ -923,7 +944,7 @@ msgstr "Successfully saved preferences"
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
-#: src/components/ArticleCard.tsx:242
+#: src/components/ArticleCard.tsx:250
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -987,7 +1008,7 @@ msgid "Timeline"
 msgstr "Timeline"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:160
+#: src/components/ArticleCard.tsx:168
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
@@ -1043,6 +1064,10 @@ msgstr "Verified that this link is owned by {0} {1}"
 #: src/routes/(root)/sign/up/[token].tsx:317
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
+
+#: src/components/ArticleCard.tsx:278
+msgid "View shares"
+msgstr "View shares"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
