@@ -154,7 +154,7 @@ msgstr "A name for the link that will be displayed on your profile, e.g., GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
-#: src/components/AppSidebar.tsx:240
+#: src/components/AppSidebar.tsx:244
 msgid "Account"
 msgstr "Account"
 
@@ -210,7 +210,7 @@ msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:171
+#: src/components/AppSidebar.tsx:175
 #: src/routes/(root)/feed/articles.tsx:64
 msgid "Articles only"
 msgstr "Articles only"
@@ -237,6 +237,7 @@ msgstr "Bio"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
+#: src/components/NoteComposer.tsx:207
 #: src/routes/(root)/[handle]/settings/index.tsx:420
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:549
 msgid "Cancel"
@@ -246,12 +247,32 @@ msgstr "Cancel"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
 
-#: src/components/AppSidebar.tsx:395
+#: src/components/AppSidebar.tsx:433
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/coc.tsx:58
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "Code of conduct"
+
+#: src/components/AppSidebar.tsx:402
+#: src/components/FloatingComposeButton.tsx:34
+msgid "Compose"
+msgstr "Compose"
+
+#: src/components/NoteComposer.tsx:148
+msgid "Content"
+msgstr "Content"
+
+#: src/components/NoteComposer.tsx:94
+msgid "Content cannot be empty"
+msgstr "Content cannot be empty"
+
+#: src/components/AppSidebar.tsx:424
+#: src/components/FloatingComposeButton.tsx:72
+#: src/components/NoteComposeModal.tsx:24
+#: src/components/NoteComposer.tsx:211
+msgid "Create Note"
+msgstr "Create Note"
 
 #. placeholder {0}: "RELATIVE_DATE"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:461
@@ -261,6 +282,10 @@ msgstr "Created {0}"
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Creating account…"
 msgstr "Creating account…"
+
+#: src/components/NoteComposer.tsx:212
+msgid "Creating…"
+msgstr "Creating…"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:427
 msgid "Crop"
@@ -304,6 +329,10 @@ msgstr "Email or username"
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
+#: src/components/NoteComposer.tsx:93
+#: src/components/NoteComposer.tsx:119
+#: src/components/NoteComposer.tsx:127
+#: src/components/NoteComposer.tsx:135
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "Error"
@@ -338,8 +367,8 @@ msgstr "Failed to load more passkeys; click to retry"
 
 #: src/components/ActorPostList.tsx:73
 #: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:82
-#: src/components/PublicTimeline.tsx:84
+#: src/components/PersonalTimeline.tsx:92
+#: src/components/PublicTimeline.tsx:94
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
@@ -378,16 +407,16 @@ msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:82
+#: src/components/AppSidebar.tsx:86
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/AppSidebar.tsx:214
+#: src/components/AppSidebar.tsx:218
 #: src/routes/(root)/fediverse.tsx:80
 msgid "Fediverse"
 msgstr "Fediverse"
 
-#: src/components/AppSidebar.tsx:133
+#: src/components/AppSidebar.tsx:137
 #: src/routes/(root)/feed/articles.tsx:60
 #: src/routes/(root)/feed/index.tsx:60
 #: src/routes/(root)/feed/without-shares.tsx:60
@@ -407,12 +436,12 @@ msgstr "Followers only"
 msgid "Following you"
 msgstr "Following you"
 
-#: src/components/AppSidebar.tsx:407
+#: src/components/AppSidebar.tsx:445
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
-#: src/components/AppSidebar.tsx:101
-#: src/components/AppSidebar.tsx:192
+#: src/components/AppSidebar.tsx:105
+#: src/components/AppSidebar.tsx:196
 #: src/routes/(root)/coc.tsx:53
 #: src/routes/(root)/local.tsx:76
 #: src/routes/(root)/markdown.tsx:53
@@ -444,6 +473,11 @@ msgstr "If enabled, the AI will generate a summary of the article for you. Other
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 
+#. placeholder {0}: response.createNote.inputPath
+#: src/components/NoteComposer.tsx:120
+msgid "Invalid input: {0}"
+msgstr "Invalid input: {0}"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:326
 msgid "Invitation language"
 msgstr "Invitation language"
@@ -452,7 +486,7 @@ msgstr "Invitation language"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:331
+#: src/components/AppSidebar.tsx:335
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:227
 #: src/routes/(root)/[handle]/settings/invite.tsx:238
@@ -474,6 +508,7 @@ msgstr "Joined on {0}"
 
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
+#: src/components/NoteComposer.tsx:186
 msgid "Language"
 msgstr "Language"
 
@@ -522,8 +557,8 @@ msgstr "Load more passkeys"
 
 #: src/components/ActorPostList.tsx:76
 #: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:85
-#: src/components/PublicTimeline.tsx:87
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "Load more posts"
@@ -554,8 +589,8 @@ msgstr "Loading more passkeys…"
 
 #: src/components/ActorPostList.tsx:70
 #: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:79
-#: src/components/PublicTimeline.tsx:81
+#: src/components/PersonalTimeline.tsx:89
+#: src/components/PublicTimeline.tsx:91
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
@@ -568,6 +603,10 @@ msgstr "Loading…"
 #: src/routes/(root)/markdown.tsx:58
 msgid "Markdown guide"
 msgstr "Markdown guide"
+
+#: src/components/NoteComposer.tsx:173
+msgid "Markdown supported"
+msgstr "Markdown supported"
 
 #: src/components/PostVisibilitySelect.tsx:83
 #: src/components/VisibilityTag.tsx:98
@@ -628,8 +667,8 @@ msgstr "No notes found"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/PersonalTimeline.tsx:102
+#: src/components/PublicTimeline.tsx:104
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "No posts found"
@@ -646,6 +685,10 @@ msgstr "Not found."
 msgid "Note"
 msgstr "Note"
 
+#: src/components/NoteComposer.tsx:112
+msgid "Note created successfully"
+msgstr "Note created successfully"
+
 #. placeholder {0}: "REL_ME_ATTR"
 #: src/routes/(root)/[handle]/settings/index.tsx:526
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
@@ -656,7 +699,7 @@ msgstr "Note that you can verify your links belong to you by making the linked p
 msgid "Notes"
 msgstr "Notes"
 
-#: src/components/AppSidebar.tsx:293
+#: src/components/AppSidebar.tsx:297
 #: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "Notifications"
@@ -825,7 +868,7 @@ msgstr "Save"
 msgid "Saving…"
 msgstr "Saving…"
 
-#: src/components/AppSidebar.tsx:233
+#: src/components/AppSidebar.tsx:237
 #: src/routes/(root)/search.tsx:136
 #: src/routes/(root)/search.tsx:164
 msgid "Search"
@@ -860,7 +903,7 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:362
+#: src/components/AppSidebar.tsx:366
 #: src/routes/(root)/[handle]/settings/index.tsx:159
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
@@ -878,7 +921,7 @@ msgstr "Share"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/AppSidebar.tsx:266
+#: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "Sign in"
@@ -887,7 +930,7 @@ msgstr "Sign in"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:384
+#: src/components/AppSidebar.tsx:388
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -910,6 +953,10 @@ msgstr "Signing up for Hackers' Pub"
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
+
+#: src/components/NoteComposer.tsx:111
+msgid "Success"
+msgstr "Success"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:204
 msgid "Successfully saved language preferences"
@@ -969,7 +1016,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:399
+#: src/components/AppSidebar.tsx:437
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -977,7 +1024,7 @@ msgstr "The source code of this website is available on {0} under the {1} licens
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
-#: src/components/AppSidebar.tsx:113
+#: src/components/AppSidebar.tsx:117
 #: src/routes/(root)/fediverse.tsx:76
 #: src/routes/(root)/feed/articles.tsx:56
 #: src/routes/(root)/feed/index.tsx:56
@@ -1044,6 +1091,10 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
+#: src/components/NoteComposer.tsx:193
+msgid "Visibility"
+msgstr "Visibility"
+
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
 msgstr "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
@@ -1072,7 +1123,11 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/AppSidebar.tsx:152
+#: src/components/NoteComposer.tsx:179
+msgid "What's on your mind?"
+msgstr "What's on your mind?"
+
+#: src/components/AppSidebar.tsx:156
 #: src/routes/(root)/feed/without-shares.tsx:64
 msgid "Without shares"
 msgstr "Without shares"
@@ -1097,6 +1152,10 @@ msgstr "You don't have any passkeys registered yet."
 #: src/routes/(root)/[handle]/settings/invite.tsx:367
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "You have no invitations left. Please wait until you receive more."
+
+#: src/components/NoteComposer.tsx:128
+msgid "You must be signed in to create a note"
+msgstr "You must be signed in to create a note"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
