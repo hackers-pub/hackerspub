@@ -209,7 +209,7 @@ export function NoteComposer(props: NoteComposerProps) {
           </Show>
           <Button type="submit" disabled={isCreating()}>
             <Show when={isCreating()} fallback={t`Create Note`}>
-              {t`Creating...`}
+              {t`Creating…`}
             </Show>
           </Button>
         </div>

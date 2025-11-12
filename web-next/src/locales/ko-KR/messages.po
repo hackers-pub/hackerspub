@@ -255,7 +255,7 @@ msgid "Code of conduct"
 msgstr "행동 강령"
 
 #: src/components/AppSidebar.tsx:402
-#: src/components/FloatingComposeButton.tsx:35
+#: src/components/FloatingComposeButton.tsx:34
 msgid "Compose"
 msgstr "작성"
 
@@ -268,7 +268,7 @@ msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
 #: src/components/AppSidebar.tsx:424
-#: src/components/FloatingComposeButton.tsx:73
+#: src/components/FloatingComposeButton.tsx:72
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -284,7 +284,7 @@ msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
 
 #: src/components/NoteComposer.tsx:212
-msgid "Creating..."
+msgid "Creating…"
 msgstr "작성 중…"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:427

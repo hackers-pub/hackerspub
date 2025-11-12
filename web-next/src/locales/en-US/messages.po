@@ -255,7 +255,7 @@ msgid "Code of conduct"
 msgstr "Code of conduct"
 
 #: src/components/AppSidebar.tsx:402
-#: src/components/FloatingComposeButton.tsx:35
+#: src/components/FloatingComposeButton.tsx:34
 msgid "Compose"
 msgstr "Compose"
 
@@ -268,7 +268,7 @@ msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
 #: src/components/AppSidebar.tsx:424
-#: src/components/FloatingComposeButton.tsx:73
+#: src/components/FloatingComposeButton.tsx:72
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -284,8 +284,8 @@ msgid "Creating account…"
 msgstr "Creating account…"
 
 #: src/components/NoteComposer.tsx:212
-msgid "Creating..."
-msgstr "Creating..."
+msgid "Creating…"
+msgstr "Creating…"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:427
 msgid "Crop"

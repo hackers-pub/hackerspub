@@ -255,7 +255,7 @@ msgid "Code of conduct"
 msgstr "行動規範"
 
 #: src/components/AppSidebar.tsx:402
-#: src/components/FloatingComposeButton.tsx:35
+#: src/components/FloatingComposeButton.tsx:34
 msgid "Compose"
 msgstr "作成"
 
@@ -268,7 +268,7 @@ msgid "Content cannot be empty"
 msgstr "内容を入力してください"
 
 #: src/components/AppSidebar.tsx:424
-#: src/components/FloatingComposeButton.tsx:73
+#: src/components/FloatingComposeButton.tsx:72
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -284,7 +284,7 @@ msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
 #: src/components/NoteComposer.tsx:212
-msgid "Creating..."
+msgid "Creating…"
 msgstr "作成中…"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:427
