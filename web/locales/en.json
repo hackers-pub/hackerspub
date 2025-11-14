@@ -352,7 +352,11 @@
     "post": "Post",
     "postFailed": "Failed to submit your note. Please try again later.",
     "uploadImage": "Upload image",
-    "markdownEnabled": "Markdown enabled"
+    "markdownEnabled": "Markdown enabled",
+    "restoreDraft": "Restore draft",
+    "draftSaved": "Draft saved",
+    "clearDraft": "Clear draft",
+    "clearDraftConfirm": "Are you sure you want to delete the draft?"
   },
   "postVisibility": {
     "public": "Public",

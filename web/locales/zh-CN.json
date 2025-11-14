@@ -347,7 +347,11 @@
     "post": "发布",
     "postFailed": "发布失败。请稍候再试。",
     "uploadImage": "上传图片",
-    "markdownEnabled": "Markdown 可用"
+    "markdownEnabled": "Markdown 可用",
+    "restoreDraft": "恢复草稿",
+    "draftSaved": "草稿已保存",
+    "clearDraft": "删除草稿",
+    "clearDraftConfirm": "确定要删除草稿吗？"
   },
   "postVisibility": {
     "public": "公开",
