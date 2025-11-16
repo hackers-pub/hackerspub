@@ -3,7 +3,12 @@ import { stripHtml } from "@hackerspub/models/html";
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { createNote } from "@hackerspub/models/note";
-import { isPostVisibleTo } from "@hackerspub/models/post";
+import {
+  isPostSharedBy,
+  isPostVisibleTo,
+  sharePost,
+  unsharePost,
+} from "@hackerspub/models/post";
 import { react, undoReaction } from "@hackerspub/models/reaction";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
@@ -119,6 +124,15 @@ export const Post = builder.drizzleInterface("postTable", {
     actor: t.relation("actor"),
     media: t.relation("media"),
     link: t.relation("link", { type: PostLink, nullable: true }),
+    viewerHasShared: t.boolean({
+      select: {
+        columns: { id: true },
+      },
+      async resolve(post, _, ctx) {
+        if (ctx.account == null) return false;
+        return await isPostSharedBy(ctx.db, post, ctx.account);
+      },
+    }),
   }),
 });
 
@@ -710,6 +724,170 @@ builder.relayMutationField(
       success: t.boolean({
         resolve() {
           return true;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "sharePost",
+  {
+    inputFields: (t) => ({
+      postId: t.globalID({
+        for: [Note, Article, Question],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const { postId } = args.input;
+
+      const post = await ctx.db.query.postTable.findFirst({
+        with: {
+          actor: {
+            with: {
+              followers: true,
+              blockees: true,
+              blockers: true,
+            },
+          },
+          replyTarget: {
+            with: { actor: true },
+          },
+          mentions: true,
+        },
+        where: { id: postId.id },
+      });
+
+      if (post == null) {
+        throw new InvalidInputError("postId");
+      }
+
+      if (!isPostVisibleTo(post, ctx.account.actor)) {
+        throw new InvalidInputError("postId");
+      }
+
+      const share = await sharePost(
+        ctx.fedCtx,
+        ctx.account,
+        post,
+      );
+
+      return {
+        share,
+        originalPostId: postId.id,
+      };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      share: t.field({
+        type: Post,
+        resolve(result) {
+          return result.share;
+        },
+      }),
+      originalPost: t.drizzleField({
+        type: Post,
+        async resolve(query, result, _args, ctx) {
+          const post = await ctx.db.query.postTable.findFirst(
+            query({ where: { id: result.originalPostId } }),
+          );
+          return post!;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "unsharePost",
+  {
+    inputFields: (t) => ({
+      postId: t.globalID({
+        for: [Note, Article, Question],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const { postId } = args.input;
+
+      const post = await ctx.db.query.postTable.findFirst({
+        with: {
+          actor: {
+            with: {
+              followers: true,
+              blockees: true,
+              blockers: true,
+            },
+          },
+          replyTarget: {
+            with: { actor: true },
+          },
+          mentions: true,
+        },
+        where: { id: postId.id },
+      });
+
+      if (post == null) {
+        throw new InvalidInputError("postId");
+      }
+
+      if (!isPostVisibleTo(post, ctx.account.actor)) {
+        throw new InvalidInputError("postId");
+      }
+
+      const unshared = await unsharePost(
+        ctx.fedCtx,
+        ctx.account,
+        post,
+      );
+
+      if (unshared == null) {
+        throw new InvalidInputError("postId");
+      }
+
+      return { success: true, originalPostId: postId.id };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      success: t.boolean({
+        resolve() {
+          return true;
+        },
+      }),
+      originalPost: t.drizzleField({
+        type: Post,
+        async resolve(query, result, _args, ctx) {
+          const post = await ctx.db.query.postTable.findFirst(
+            query({ where: { id: result.originalPostId } }),
+          );
+          return post!;
         },
       }),
     }),
