@@ -406,10 +406,18 @@ msgstr "保存设置失败"
 msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
+#: src/components/PostControls.tsx:145
+msgid "Failed to share post"
+msgstr "转帖失败"
+
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:86
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
+
+#: src/components/PostControls.tsx:131
+msgid "Failed to unshare post"
+msgstr "取消转帖失败"
 
 #: src/components/AppSidebar.tsx:218
 #: src/routes/(root)/fediverse.tsx:80
@@ -789,11 +797,11 @@ msgstr "搜索关键词不能为空"
 msgid "Quiet public"
 msgstr "悄悄公开"
 
-#: src/components/PostControls.tsx:108
+#: src/components/PostControls.tsx:206
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:127
+#: src/components/PostControls.tsx:225
 msgid "React"
 msgstr "反应"
 
@@ -843,7 +851,7 @@ msgstr "移除"
 msgid "Remove {0}"
 msgstr "移除{0}"
 
-#: src/components/PostControls.tsx:86
+#: src/components/PostControls.tsx:177
 msgid "Reply"
 msgstr "回复"
 
@@ -912,7 +920,7 @@ msgstr "设置您的个人偏好设置。"
 msgid "Settings"
 msgstr "设置"
 
-#: src/components/PostControls.tsx:97
+#: src/components/PostControls.tsx:194
 msgid "Share"
 msgstr "分享"
 
@@ -1047,6 +1055,10 @@ msgstr "无法添加反应。请重试。"
 #: src/components/EmojiReactionPopover.tsx:169
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
+
+#: src/components/PostControls.tsx:194
+msgid "Unshare"
+msgstr "取消转帖"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:170
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
