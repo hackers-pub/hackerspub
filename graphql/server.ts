@@ -1,4 +1,9 @@
-import type { Account, Actor } from "@hackerspub/models/schema";
+import type {
+  Account,
+  AccountEmail,
+  AccountLink,
+  Actor,
+} from "@hackerspub/models/schema";
 import { getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getCookies } from "@std/http/cookie";
@@ -33,13 +38,21 @@ export function createYogaServer(): YogaServerInstance<
       let session = sessionId == null
         ? undefined
         : await getSession(kv, sessionId);
-      let account: Account & { actor: Actor } | undefined;
+      let account:
+        | Account & {
+          actor: Actor;
+          emails: AccountEmail[];
+          links: AccountLink[];
+        }
+        | undefined;
 
       if (session != null) {
         account = await db.query.accountTable.findFirst({
           where: { id: session.accountId },
           with: {
             actor: true,
+            emails: true,
+            links: true,
           },
         });
         if (account == null) session = undefined;
