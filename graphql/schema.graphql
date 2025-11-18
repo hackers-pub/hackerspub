@@ -1114,7 +1114,6 @@ input UnsharePostInput {
 type UnsharePostPayload {
   clientMutationId: ID
   originalPost: Post!
-  success: Boolean!
 }
 
 union UnsharePostResult = InvalidInputError | NotAuthenticatedError | UnsharePostPayload

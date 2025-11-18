@@ -406,7 +406,7 @@ msgstr "保存设置失败"
 msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
-#: src/components/PostControls.tsx:145
+#: src/components/PostControls.tsx:144
 msgid "Failed to share post"
 msgstr "转帖失败"
 
@@ -415,7 +415,7 @@ msgstr "转帖失败"
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
-#: src/components/PostControls.tsx:131
+#: src/components/PostControls.tsx:130
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
 
@@ -797,11 +797,11 @@ msgstr "搜索关键词不能为空"
 msgid "Quiet public"
 msgstr "悄悄公开"
 
-#: src/components/PostControls.tsx:206
+#: src/components/PostControls.tsx:205
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:225
+#: src/components/PostControls.tsx:224
 msgid "React"
 msgstr "反应"
 
@@ -851,7 +851,7 @@ msgstr "移除"
 msgid "Remove {0}"
 msgstr "移除{0}"
 
-#: src/components/PostControls.tsx:177
+#: src/components/PostControls.tsx:176
 msgid "Reply"
 msgstr "回复"
 
@@ -920,7 +920,7 @@ msgstr "设置您的个人偏好设置。"
 msgid "Settings"
 msgstr "设置"
 
-#: src/components/PostControls.tsx:194
+#: src/components/PostControls.tsx:193
 msgid "Share"
 msgstr "分享"
 
@@ -1056,7 +1056,7 @@ msgstr "无法添加反应。请重试。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
 
-#: src/components/PostControls.tsx:194
+#: src/components/PostControls.tsx:193
 msgid "Unshare"
 msgstr "取消转帖"
 

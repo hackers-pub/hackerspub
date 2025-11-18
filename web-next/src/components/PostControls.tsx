@@ -47,7 +47,6 @@ const unsharePostMutation = graphql`
   mutation PostControls_unsharePost_Mutation($input: UnsharePostInput!) {
     unsharePost(input: $input) {
       ... on UnsharePostPayload {
-        success
         originalPost {
           id
           viewerHasShared

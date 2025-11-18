@@ -876,11 +876,6 @@ builder.relayMutationField(
   },
   {
     outputFields: (t) => ({
-      success: t.boolean({
-        resolve() {
-          return true;
-        },
-      }),
       originalPost: t.drizzleField({
         type: Post,
         async resolve(query, result, _args, ctx) {

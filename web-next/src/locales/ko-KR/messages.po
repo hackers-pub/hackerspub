@@ -406,7 +406,7 @@ msgstr "설정 저장 실패"
 msgid "Failed to send invitation"
 msgstr "초대장 발송에 실패했습니다"
 
-#: src/components/PostControls.tsx:145
+#: src/components/PostControls.tsx:144
 msgid "Failed to share post"
 msgstr "콘텐츠 공유 실패"
 
@@ -415,7 +415,7 @@ msgstr "콘텐츠 공유 실패"
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
-#: src/components/PostControls.tsx:131
+#: src/components/PostControls.tsx:130
 msgid "Failed to unshare post"
 msgstr "공유 취소 실패"
 
@@ -797,11 +797,11 @@ msgstr "검색어를 비울 수 없습니다"
 msgid "Quiet public"
 msgstr "조용히 공개"
 
-#: src/components/PostControls.tsx:206
+#: src/components/PostControls.tsx:205
 msgid "Quote"
 msgstr "인용"
 
-#: src/components/PostControls.tsx:225
+#: src/components/PostControls.tsx:224
 msgid "React"
 msgstr "반응"
 
@@ -851,7 +851,7 @@ msgstr "제거"
 msgid "Remove {0}"
 msgstr "{0} 제거"
 
-#: src/components/PostControls.tsx:177
+#: src/components/PostControls.tsx:176
 msgid "Reply"
 msgstr "댓글"
 
@@ -920,7 +920,7 @@ msgstr "개인의 환경 설정을 설정하세요."
 msgid "Settings"
 msgstr "설정"
 
-#: src/components/PostControls.tsx:194
+#: src/components/PostControls.tsx:193
 msgid "Share"
 msgstr "공유"
 
@@ -1056,7 +1056,7 @@ msgstr "반응을 추가할 수 없습니다. 다시 시도해주세요."
 msgid "Unable to remove reaction. Please try again."
 msgstr "반응을 제거할 수 없습니다. 다시 시도해주세요."
 
-#: src/components/PostControls.tsx:194
+#: src/components/PostControls.tsx:193
 msgid "Unshare"
 msgstr "공유 취소"
 
