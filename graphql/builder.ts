@@ -29,6 +29,7 @@ import {
 } from "graphql-scalars";
 import { createGraphQLError } from "graphql-yoga";
 import type Keyv from "keyv";
+import type { AccountEmail, AccountLink } from "@hackerspub/models/schema";
 
 export type ValuesOfEnumType<T> = T extends
   PothosSchemaTypes.EnumRef<never, unknown, infer V> ? V : never;
@@ -45,7 +46,9 @@ export interface ServerContext {
 
 export interface UserContext extends ServerContext {
   session: Session | undefined;
-  account: Account & { actor: Actor } | undefined;
+  account:
+    | Account & { actor: Actor; emails: AccountEmail[]; links: AccountLink[] }
+    | undefined;
 }
 
 export interface PothosTypes {

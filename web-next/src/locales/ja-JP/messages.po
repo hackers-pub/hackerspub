@@ -406,10 +406,18 @@ msgstr "設定の保存に失敗しました"
 msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
+#: src/components/PostControls.tsx:144
+msgid "Failed to share post"
+msgstr "コンテンツの共有に失敗しました"
+
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:86
 msgid "Failed to sign out: {0}"
 msgstr "ログアウトに失敗：{0}"
+
+#: src/components/PostControls.tsx:130
+msgid "Failed to unshare post"
+msgstr "共有の取り消しに失敗しました"
 
 #: src/components/AppSidebar.tsx:218
 #: src/routes/(root)/fediverse.tsx:80
@@ -789,11 +797,11 @@ msgstr "検索文字列は空にできません"
 msgid "Quiet public"
 msgstr "ひかえめな公開"
 
-#: src/components/PostControls.tsx:108
+#: src/components/PostControls.tsx:205
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:127
+#: src/components/PostControls.tsx:224
 msgid "React"
 msgstr "リアクション"
 
@@ -843,7 +851,7 @@ msgstr "削除"
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
-#: src/components/PostControls.tsx:86
+#: src/components/PostControls.tsx:176
 msgid "Reply"
 msgstr "返信"
 
@@ -912,7 +920,7 @@ msgstr "個人の環境設定を設定してください。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:97
+#: src/components/PostControls.tsx:193
 msgid "Share"
 msgstr "共有"
 
@@ -1047,6 +1055,10 @@ msgstr "リアクションを追加できませんでした。もう一度お試
 #: src/components/EmojiReactionPopover.tsx:169
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
+
+#: src/components/PostControls.tsx:193
+msgid "Unshare"
+msgstr "共有を取り消す"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:170
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."

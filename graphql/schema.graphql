@@ -294,6 +294,7 @@ type Article implements Node & Post & Reactable {
   updated: DateTime!
   url: URL
   uuid: UUID!
+  viewerHasShared: Boolean!
   visibility: PostVisibility!
 }
 
@@ -554,6 +555,8 @@ type Mutation {
     """The ID of the session to log out."""
     sessionId: UUID!
   ): Session
+  sharePost(input: SharePostInput!): SharePostResult!
+  unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): PasskeyRegistrationResult!
 }
@@ -592,6 +595,7 @@ type Note implements Node & Post & Reactable {
   updated: DateTime!
   url: URL
   uuid: UUID!
+  viewerHasShared: Boolean!
   visibility: PostVisibility!
 }
 
@@ -723,6 +727,7 @@ interface Post implements Node & Reactable {
   updated: DateTime!
   url: URL
   uuid: UUID!
+  viewerHasShared: Boolean!
   visibility: PostVisibility!
 }
 
@@ -922,6 +927,7 @@ type Question implements Node & Post & Reactable {
   updated: DateTime!
   url: URL
   uuid: UUID!
+  viewerHasShared: Boolean!
   visibility: PostVisibility!
 }
 
@@ -1031,6 +1037,19 @@ type ShareNotification implements Node & Notification {
   uuid: UUID!
 }
 
+input SharePostInput {
+  clientMutationId: ID
+  postId: ID!
+}
+
+type SharePostPayload {
+  clientMutationId: ID
+  originalPost: Post!
+  share: Post!
+}
+
+union SharePostResult = InvalidInputError | NotAuthenticatedError | SharePostPayload
+
 enum SignupBioError {
   BIO_TOO_LONG
 }
@@ -1086,6 +1105,18 @@ scalar URL
 A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier.
 """
 scalar UUID
+
+input UnsharePostInput {
+  clientMutationId: ID
+  postId: ID!
+}
+
+type UnsharePostPayload {
+  clientMutationId: ID
+  originalPost: Post!
+}
+
+union UnsharePostResult = InvalidInputError | NotAuthenticatedError | UnsharePostPayload
 
 input UpdateAccountInput {
   avatarUrl: URL

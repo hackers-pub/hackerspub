@@ -406,10 +406,18 @@ msgstr "Failed to save settings"
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
+#: src/components/PostControls.tsx:144
+msgid "Failed to share post"
+msgstr "Failed to share post"
+
 #. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:86
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
+
+#: src/components/PostControls.tsx:130
+msgid "Failed to unshare post"
+msgstr "Failed to unshare post"
 
 #: src/components/AppSidebar.tsx:218
 #: src/routes/(root)/fediverse.tsx:80
@@ -789,11 +797,11 @@ msgstr "Query cannot be empty"
 msgid "Quiet public"
 msgstr "Quiet public"
 
-#: src/components/PostControls.tsx:108
+#: src/components/PostControls.tsx:205
 msgid "Quote"
 msgstr "Quote"
 
-#: src/components/PostControls.tsx:127
+#: src/components/PostControls.tsx:224
 msgid "React"
 msgstr "React"
 
@@ -843,7 +851,7 @@ msgstr "Remove"
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
-#: src/components/PostControls.tsx:86
+#: src/components/PostControls.tsx:176
 msgid "Reply"
 msgstr "Reply"
 
@@ -912,7 +920,7 @@ msgstr "Set your personal preferences."
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/PostControls.tsx:97
+#: src/components/PostControls.tsx:193
 msgid "Share"
 msgstr "Share"
 
@@ -1047,6 +1055,10 @@ msgstr "Unable to add reaction. Please try again."
 #: src/components/EmojiReactionPopover.tsx:169
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
+
+#: src/components/PostControls.tsx:193
+msgid "Unshare"
+msgstr "Unshare"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:170
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."

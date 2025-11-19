@@ -1,22 +1,69 @@
 import { sortReactionGroups } from "@hackerspub/models/emoji";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
-import { createFragment } from "solid-relay";
+import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { EmojiReactionPopover } from "./EmojiReactionPopover.tsx";
 import type { PostControls_note$key } from "./__generated__/PostControls_note.graphql.ts";
+import type { PostControls_sharePost_Mutation } from "./__generated__/PostControls_sharePost_Mutation.graphql.ts";
+import type { PostControls_unsharePost_Mutation } from "./__generated__/PostControls_unsharePost_Mutation.graphql.ts";
 
 export interface PostControlsProps {
   $note: PostControls_note$key;
   class?: string;
   classList?: Record<string, boolean>;
 }
+
+const sharePostMutation = graphql`
+  mutation PostControls_sharePost_Mutation($input: SharePostInput!) {
+    sharePost(input: $input) {
+      ... on SharePostPayload {
+        originalPost {
+          id
+          viewerHasShared
+          engagementStats {
+            shares
+          }
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
+
+const unsharePostMutation = graphql`
+  mutation PostControls_unsharePost_Mutation($input: UnsharePostInput!) {
+    unsharePost(input: $input) {
+      ... on UnsharePostPayload {
+        originalPost {
+          id
+          viewerHasShared
+          engagementStats {
+            shares
+          }
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
 
 export function PostControls(props: PostControlsProps) {
   const { t } = useLingui();
@@ -31,6 +78,7 @@ export function PostControls(props: PostControlsProps) {
           reactions
         }
         id
+        viewerHasShared
         reactionGroups {
           ... on EmojiReactionGroup {
             emoji
@@ -58,6 +106,48 @@ export function PostControls(props: PostControlsProps) {
 
   const [showEmojiPopover, setShowEmojiPopover] = createSignal(false);
 
+  const [sharePost] = createMutation<PostControls_sharePost_Mutation>(
+    sharePostMutation,
+  );
+
+  const [unsharePost] = createMutation<PostControls_unsharePost_Mutation>(
+    unsharePostMutation,
+  );
+
+  const handleShareClick = () => {
+    const noteData = note();
+    if (!noteData) return;
+
+    if (noteData.viewerHasShared) {
+      unsharePost({
+        variables: {
+          input: {
+            postId: noteData.id,
+          },
+        },
+        onError(_error) {
+          showToast({
+            title: t`Failed to unshare post`,
+            variant: "destructive",
+          });
+        },
+      });
+    } else {
+      sharePost({
+        variables: {
+          input: {
+            postId: noteData.id,
+          },
+        },
+        onError(_error) {
+          showToast({
+            title: t`Failed to share post`,
+            variant: "destructive",
+          });
+        },
+      });
+    }
+  };
   const sortedReactionGroups = () => {
     const noteData = note();
     return sortReactionGroups(noteData?.reactionGroups || []);
@@ -93,8 +183,15 @@ export function PostControls(props: PostControlsProps) {
           <Button
             variant="ghost"
             size="sm"
-            class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
-            title={t`Share`}
+            class="h-8 px-2 cursor-pointer"
+            classList={{
+              "text-muted-foreground hover:text-foreground": !note()
+                .viewerHasShared,
+              "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300":
+                note().viewerHasShared,
+            }}
+            title={note().viewerHasShared ? t`Unshare` : t`Share`}
+            onClick={handleShareClick}
           >
             <ShareIcon class="size-4" />
             <span class="text-xs">{note().engagementStats.shares}</span>
