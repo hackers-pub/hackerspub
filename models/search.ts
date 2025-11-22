@@ -56,7 +56,7 @@ export const term: Parser<Term> = choice([
     username,
     host: host?.[1],
   })),
-  regex(/^#[\w_-]+/).map<Term>((s) => ({
+  regex(/^#[\S]+/).map<Term>((s) => ({
     type: "hashtag" as const,
     hashtag: s.substring(1),
   })),
