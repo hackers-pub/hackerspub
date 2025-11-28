@@ -12,6 +12,7 @@ import {
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
 import { VisibilityTag } from "~/components/VisibilityTag.tsx";
+import { NoteCard_link$key } from "./__generated__/NoteCard_link.graphql.ts";
 import { NoteCard_media$key } from "./__generated__/NoteCard_media.graphql.ts";
 import { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
 import { NoteCardInternal_note$key } from "./__generated__/NoteCardInternal_note.graphql.ts";
@@ -28,10 +29,12 @@ export function NoteCard(props: NoteCardProps) {
         ...PostSharer_post
         ...NoteCardInternal_note
         ...NoteCard_media
+        ...NoteCard_link
         ...PostControls_note
         sharedPost {
           ...NoteCardInternal_note
           ...NoteCard_media
+          ...NoteCard_link
           quotedPost {
             ...QuotedPostCard_post
           }
@@ -57,6 +60,7 @@ export function NoteCard(props: NoteCardProps) {
               <>
                 <NoteCardInternal $note={note()} zoom={props.zoom} />
                 <NoteMedia $note={note()} />
+                <LinkPreview $note={note()} />
                 <Show when={note().quotedPost}>
                   {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
                 </Show>
@@ -72,6 +76,7 @@ export function NoteCard(props: NoteCardProps) {
                 <PostSharer $post={note()} class="p-4 pb-0" />
                 <NoteCardInternal $note={sharedPost()} zoom={props.zoom} />
                 <NoteMedia $note={note()} />
+                <LinkPreview $note={sharedPost()} />
                 <Show when={sharedPost().quotedPost}>
                   {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
                 </Show>
@@ -296,4 +301,119 @@ function range(start: number, end: number): number[] {
   const result: number[] = [];
   for (let i = start; i < end; i++) result.push(i);
   return result;
+}
+
+interface LinkPreviewProps {
+  $note: NoteCard_link$key;
+}
+
+function LinkPreview(props: LinkPreviewProps) {
+  const note = createFragment(
+    graphql`
+      fragment NoteCard_link on Note {
+        media {
+          url
+        }
+        quotedPost {
+          __typename
+        }
+        link {
+          url
+          title
+          description
+          author
+          siteName
+          image {
+            url
+            width
+            height
+            alt
+          }
+        }
+      }
+    `,
+    () => props.$note,
+  );
+
+  const shouldShowLink = () => {
+    const n = note();
+    return n && n.media.length === 0 && n.quotedPost == null && n.link;
+  };
+
+  return (
+    <Show when={shouldShowLink()}>
+      {(link) => {
+        const image = link().image;
+        const layoutMode = image?.width != null && image?.height != null &&
+            image.width / image.height > 1.5
+          ? "wide"
+          : "compact";
+        const author = link().author;
+
+        return (
+          <div class="mt-4">
+            <a
+              href={link().url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-layout={layoutMode}
+              class="border border-border bg-muted max-w-prose grid data-[layout=wide]:grid-cols-1 data-[layout=compact]:grid-cols-[auto_1fr] gap-0"
+            >
+              <Show when={image}>
+                {(img) => (
+                  <div class="min-w-0">
+                    <img
+                      src={img().url}
+                      alt={img().alt ?? undefined}
+                      width={img().width ?? undefined}
+                      height={img().height ?? undefined}
+                      style={img().width != null && img().height != null
+                        ? `aspect-ratio: ${img().width} / ${img().height}`
+                        : undefined}
+                      class="m-auto data-[layout=wide]:w-full data-[layout=wide]:h-auto data-[layout=compact]:max-h-40 data-[layout=compact]:w-auto"
+                      data-layout={layoutMode}
+                    />
+                  </div>
+                )}
+              </Show>
+              <div>
+                <p class="m-4 font-bold break-words">{link().title}</p>
+                <Show
+                  when={link().description ||
+                    (author && !URL.canParse(author))}
+                >
+                  <p class="m-4 text-muted-foreground line-clamp-2 break-words">
+                    <Show when={author}>
+                      {(author) => (
+                        <>
+                          <span class="font-bold">{author()}</span>
+                          <Show when={link().description}>·</Show>
+                        </>
+                      )}
+                    </Show>
+                    {link().description}
+                  </p>
+                </Show>
+                <p class="m-4">
+                  <span class="text-muted-foreground uppercase">
+                    {new URL(link().url).host}
+                  </span>
+                  <Show when={link().siteName}>
+                    {(siteName) => (
+                      <>
+                        <span class="text-muted-foreground">·</span>
+                        <span class="text-muted-foreground font-bold">
+                          {siteName()}
+                        </span>
+                      </>
+                    )}
+                  </Show>
+                </p>
+              </div>
+            </a>
+          </div>
+        );
+      }}
+    </Show>
+  );
 }
