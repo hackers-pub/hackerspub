@@ -1222,3 +1222,12 @@ msgstr "프로필 설정이 성공적으로 업데이트되었습니다."
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "아이디는 프로필 URL과 연합우주(fediverse) 핸들로 사용됩니다."
+
+#: src/routes/(root)/tags/[tag].tsx:88
+msgid "Tag"
+msgstr "태그"
+
+#. placeholder {0}: "TAG"
+#: src/routes/(root)/tags/[tag].tsx:98
+msgid "Posts tagged with {0}"
+msgstr "{0} 콘텐츠"

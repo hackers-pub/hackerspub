@@ -1222,3 +1222,12 @@ msgstr "个人资料设置已成功更新。"
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的用户名将被用来创建你的个人资料 URL 和你的 Fediverse 用户名（handle）。"
+
+#: src/routes/(root)/tags/[tag].tsx:88
+msgid "Tag"
+msgstr "标签"
+
+#. placeholder {0}: "TAG"
+#: src/routes/(root)/tags/[tag].tsx:98
+msgid "Posts tagged with {0}"
+msgstr "{0} 内容"

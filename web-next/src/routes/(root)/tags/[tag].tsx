@@ -85,7 +85,7 @@ export default function TagPage() {
           <TopBreadcrumb>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/search">{t`Search`}</BreadcrumbLink>
+              <BreadcrumbLink href={`/tags/${tag()}`}>{t`Tag`}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

@@ -1222,3 +1222,12 @@ msgstr "Your profile settings have been updated successfully."
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "Your username will be used to create your profile URL and your fediverse handle."
+
+#: src/routes/(root)/tags/[tag].tsx:88
+msgid "Tag"
+msgstr "Tag"
+
+#. placeholder {0}: "TAG"
+#: src/routes/(root)/tags/[tag].tsx:98
+msgid "Posts tagged with {0}"
+msgstr "Posts tagged with {0}"

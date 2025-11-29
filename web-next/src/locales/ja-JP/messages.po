@@ -1222,3 +1222,12 @@ msgstr "プロフィール設定が正常に更新されました。"
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "ユーザー名はプロフィールURLとフェディバースハンドルの作成に使用されます。"
+
+#: src/routes/(root)/tags/[tag].tsx:88
+msgid "Tag"
+msgstr "タグ"
+
+#. placeholder {0}: "TAG"
+#: src/routes/(root)/tags/[tag].tsx:98
+msgid "Posts tagged with {0}"
+msgstr "{0} コンテンツ"
