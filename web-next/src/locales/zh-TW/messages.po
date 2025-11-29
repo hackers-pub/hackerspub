@@ -758,6 +758,11 @@ msgstr "請修正錯誤並重試。"
 msgid "Posts"
 msgstr "內容"
 
+#. placeholder {0}: "TAG"
+#: src/routes/(root)/tags/[tag].tsx:98
+msgid "Posts tagged with {0}"
+msgstr "{0} 內容"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:221
 msgid "Prefer AI-generated summary"
 msgstr "優先使用 AI 生成的摘要"
@@ -985,6 +990,10 @@ msgstr "由 AI 生成的摘要"
 #: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "目錄"
+
+#: src/routes/(root)/tags/[tag].tsx:88
+msgid "Tag"
+msgstr "標籤"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"

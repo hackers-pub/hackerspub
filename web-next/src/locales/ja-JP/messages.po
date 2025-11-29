@@ -758,6 +758,11 @@ msgstr "エラーを修正して、もう一度お試しください。"
 msgid "Posts"
 msgstr "コンテンツ"
 
+#. placeholder {0}: "TAG"
+#: src/routes/(root)/tags/[tag].tsx:98
+msgid "Posts tagged with {0}"
+msgstr "{0} コンテンツ"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:221
 msgid "Prefer AI-generated summary"
 msgstr "AI生成の要約を優先"
@@ -985,6 +990,10 @@ msgstr "LLMによる要約"
 #: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "目次"
+
+#: src/routes/(root)/tags/[tag].tsx:88
+msgid "Tag"
+msgstr "タグ"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"

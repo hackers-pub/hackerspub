@@ -758,6 +758,11 @@ msgstr "Please correct the errors and try again."
 msgid "Posts"
 msgstr "Posts"
 
+#. placeholder {0}: "TAG"
+#: src/routes/(root)/tags/[tag].tsx:98
+msgid "Posts tagged with {0}"
+msgstr "Posts tagged with {0}"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:221
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"
@@ -985,6 +990,10 @@ msgstr "Summarized by LLM"
 #: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "Table of contents"
+
+#: src/routes/(root)/tags/[tag].tsx:88
+msgid "Tag"
+msgstr "Tag"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"

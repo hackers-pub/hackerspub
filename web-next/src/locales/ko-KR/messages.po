@@ -758,6 +758,11 @@ msgstr "오류를 수정하고 다시 시도해주세요."
 msgid "Posts"
 msgstr "콘텐츠"
 
+#. placeholder {0}: "TAG"
+#: src/routes/(root)/tags/[tag].tsx:98
+msgid "Posts tagged with {0}"
+msgstr "{0} 콘텐츠"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:221
 msgid "Prefer AI-generated summary"
 msgstr "AI 생성 요약 선호"
@@ -985,6 +990,10 @@ msgstr "LLM 요약"
 #: src/components/DocumentView.tsx:34
 msgid "Table of contents"
 msgstr "목차"
+
+#: src/routes/(root)/tags/[tag].tsx:88
+msgid "Tag"
+msgstr "태그"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
