@@ -2,22 +2,21 @@
   "version": "5",
   "specifiers": {
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
-    "jsr:@es-toolkit/es-toolkit@^1.39.5": "1.39.10",
-    "jsr:@fedify/fedify@1.8.11": "1.8.11",
-    "jsr:@fedify/fedify@^1.8.11": "1.8.11",
+    "jsr:@es-toolkit/es-toolkit@^1.39.5": "1.41.0",
+    "jsr:@fedify/fedify@1.9.1": "1.9.1",
+    "jsr:@fedify/fedify@^1.9.1": "1.9.1",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
-    "jsr:@fedify/postgres@^1.8.11": "1.8.11",
-    "jsr:@fedify/redis@^1.8.11": "1.8.11",
+    "jsr:@fedify/postgres@^1.9.1": "1.9.1",
+    "jsr:@fedify/redis@^1.9.1": "1.9.1",
     "jsr:@fresh/core@2.0.0-alpha.34": "2.0.0-alpha.34",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7": "0.0.1-alpha.7",
     "jsr:@hongminhee/x-forwarded-fetch@0.2": "0.2.0",
-    "jsr:@hugoalh/http-header-link@^1.0.2": "1.0.3",
-    "jsr:@hugoalh/is-string-singleline@^1.0.4": "1.0.5",
     "jsr:@logtape/file@1.0.0": "1.0.0",
-    "jsr:@logtape/logtape@1": "1.0.0",
+    "jsr:@logtape/logtape@1": "1.1.2",
     "jsr:@logtape/logtape@1.0.0": "1.0.0",
+    "jsr:@logtape/logtape@^1.1.1": "1.1.2",
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.1",
     "jsr:@onisaint/validate-email@^1.0.1": "1.0.1",
     "jsr:@schotsl/mailgun@^1.3.0": "1.3.0",
@@ -76,7 +75,7 @@
     "npm:@aws-sdk/s3-request-presigner@^3.848.0": "3.873.0",
     "npm:@cloudflare/workers-types@^4.20250529.0": "4.20250917.0",
     "npm:@corvu/otp-field@~0.1.4": "0.1.4_solid-js@1.9.9__seroval@1.3.2",
-    "npm:@deno/vite-plugin@^1.0.5": "1.0.5_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0",
+    "npm:@deno/vite-plugin@^1.0.5": "1.0.5_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0",
     "npm:@graphql-codegen/cli@*": "5.0.7_@parcel+watcher@2.5.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0",
     "npm:@graphql-codegen/cli@^5.0.5": "5.0.7_@parcel+watcher@2.5.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0",
     "npm:@graphql-codegen/client-preset@^4.8.3": "4.8.3_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
@@ -90,7 +89,7 @@
     "npm:@lingui/babel-plugin-lingui-macro@^5.3.3": "5.4.1",
     "npm:@lingui/cli@^5.3.3": "5.4.1_@lingui+babel-plugin-lingui-macro@5.4.1",
     "npm:@lingui/core@^5.3.3": "5.4.1_@lingui+babel-plugin-lingui-macro@5.4.1",
-    "npm:@lingui/vite-plugin@^5.3.3": "5.4.1_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0",
+    "npm:@lingui/vite-plugin@^5.3.3": "5.4.1_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0",
     "npm:@mdit-vue/plugin-title@^2.1.3": "2.1.4",
     "npm:@multiformats/base-x@^4.0.1": "4.0.1",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
@@ -112,7 +111,7 @@
     "npm:@phensley/language-tag@^1.9.0": "1.13.1",
     "npm:@pothos/core@^4.7.3": "4.8.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-complexity@4.1.1": "4.1.1_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
-    "npm:@pothos/plugin-drizzle@~0.11.1": "0.11.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
+    "npm:@pothos/plugin-drizzle@~0.11.1": "0.11.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
     "npm:@pothos/plugin-errors@^4.4.2": "4.4.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-relay@^4.6.2": "4.6.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-scope-auth@^4.1.5": "4.1.5_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
@@ -128,11 +127,11 @@
     "npm:@shikijs/transformers@^3.8.1": "3.11.0",
     "npm:@solidjs/meta@~0.29.4": "0.29.4_solid-js@1.9.9__seroval@1.3.2",
     "npm:@solidjs/router@~0.15.3": "0.15.3_solid-js@1.9.9__seroval@1.3.2",
-    "npm:@solidjs/start@^1.1.7": "1.1.7_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_seroval@1.3.2_solid-js@1.9.9__seroval@1.3.2_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0",
+    "npm:@solidjs/start@^1.1.7": "1.1.7_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__@types+node@24.2.0__drizzle-orm@1.0.0-beta.1-5e64efc___@cloudflare+workers-types@4.20250917.0___@opentelemetry+api@1.9.0___postgres@3.4.7__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_seroval@1.3.2_solid-js@1.9.9__seroval@1.3.2_ioredis@5.7.0_@types+node@24.2.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
     "npm:@soorria/solid-dropzone@^1.0.1": "1.0.1_solid-js@1.9.9__seroval@1.3.2",
     "npm:@tailwindcss/typography@~0.5.15": "0.5.16_tailwindcss@3.4.3__postcss@8.5.6",
     "npm:@tailwindcss/typography@~0.5.16": "0.5.16_tailwindcss@3.4.3__postcss@8.5.6",
-    "npm:@tailwindcss/vite@^4.1.11": "4.1.12_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0",
+    "npm:@tailwindcss/vite@^4.1.11": "4.1.12_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0",
     "npm:@types/fluent-ffmpeg@^2.1.27": "2.1.27",
     "npm:@types/markdown-it@^14.1.1": "14.1.2",
     "npm:@types/mdast@^4.0.4": "4.0.4",
@@ -150,7 +149,7 @@
     "npm:cssfilter@^0.0.11": "0.0.11",
     "npm:cssnano@6.0.3": "6.0.3_postcss@8.4.35",
     "npm:drizzle-kit@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_esbuild@0.19.12",
-    "npm:drizzle-orm@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
+    "npm:drizzle-orm@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
     "npm:es-toolkit@^1.39.10": "1.39.10",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
@@ -184,7 +183,7 @@
     "npm:multicodec@^3.2.1": "3.2.1",
     "npm:open-graph-scraper@^6.9.0": "6.10.0",
     "npm:pdf-lib@^1.17.1": "1.17.1",
-    "npm:pkijs@^3.2.4": "3.2.5",
+    "npm:pkijs@^3.2.4": "3.3.3",
     "npm:postcss@8.4.35": "8.4.35",
     "npm:postgres@^3.4.5": "3.4.7",
     "npm:postgres@^3.4.7": "3.4.7",
@@ -216,12 +215,12 @@
     "npm:tw-animate-css@^1.3.5": "1.3.5",
     "npm:unified@^11.0.5": "11.0.5",
     "npm:unist-util-visit@5": "5.0.0",
-    "npm:uri-template-router@^0.0.17": "0.0.17",
+    "npm:uri-template-router@1": "1.0.0",
     "npm:url-template@^3.1.1": "3.1.1",
-    "npm:vinxi@0.5.8": "0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0",
-    "npm:vinxi@~0.5.8": "0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0",
-    "npm:vite-plugin-cjs-interop@^2.2.0": "2.2.0_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0",
-    "npm:vite-plugin-relay-lite@0.11": "0.11.0_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0",
+    "npm:vinxi@0.5.8": "0.5.8_@babel+core@7.28.3_ioredis@5.7.0_@types+node@24.2.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
+    "npm:vinxi@~0.5.8": "0.5.8_@babel+core@7.28.3_ioredis@5.7.0_@types+node@24.2.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
+    "npm:vite-plugin-cjs-interop@^2.2.0": "2.2.0_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0",
+    "npm:vite-plugin-relay-lite@0.11": "0.11.0_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0",
     "npm:xmlbuilder2@^3.1.1": "3.1.1",
     "npm:xss@^1.0.15": "1.0.15"
   },
@@ -232,15 +231,14 @@
         "jsr:@std/assert@~0.225.2"
       ]
     },
-    "@es-toolkit/es-toolkit@1.39.10": {
-      "integrity": "8757072a13aa64b3b349ba2b9d7d22fbe7ea6f138506c6cd2222d767cd79918f"
+    "@es-toolkit/es-toolkit@1.41.0": {
+      "integrity": "4df54a18e80b869880cee8a8a9ff7a5e1c424a9fd0916dccd38d34686f110071"
     },
-    "@fedify/fedify@1.8.11": {
-      "integrity": "758ad228641d6f704399abe967deb2909d62eb5b9dbaa96a93b8ae75a855103c",
+    "@fedify/fedify@1.9.1": {
+      "integrity": "d17d3813359d9d53e6ebdfdb4c56c51f73e9a3d017fcadcfa3981be86661b37f",
       "dependencies": [
         "jsr:@es-toolkit/es-toolkit",
-        "jsr:@hugoalh/http-header-link",
-        "jsr:@logtape/logtape@1",
+        "jsr:@logtape/logtape@^1.1.1",
         "npm:@cloudflare/workers-types",
         "npm:@multiformats/base-x",
         "npm:@opentelemetry/api",
@@ -271,19 +269,19 @@
         "npm:@types/markdown-it"
       ]
     },
-    "@fedify/postgres@1.8.11": {
-      "integrity": "1a07e2782011e05e3969ad51904ac4ffedde077a57a27b9a76f284c2313b45e7",
+    "@fedify/postgres@1.9.1": {
+      "integrity": "3b154d5de745969e33dc3500f4018569abe4ccdf74ea2e4ef7d0eb991a005189",
       "dependencies": [
-        "jsr:@fedify/fedify@^1.8.11",
-        "jsr:@logtape/logtape@1",
+        "jsr:@fedify/fedify@^1.9.1",
+        "jsr:@logtape/logtape@^1.1.1",
         "npm:postgres@^3.4.7"
       ]
     },
-    "@fedify/redis@1.8.11": {
-      "integrity": "3f1fa1d8471da7554cd92599e0b9bf5823b6a8f2e878332413c9fd9000743d41",
+    "@fedify/redis@1.9.1": {
+      "integrity": "b81c70edf1e0396106035ede7f43926e0bab264c3d3cf0f79e6646cd7d102f93",
       "dependencies": [
-        "jsr:@fedify/fedify@^1.8.11",
-        "jsr:@logtape/logtape@1",
+        "jsr:@fedify/fedify@^1.9.1",
+        "jsr:@logtape/logtape@^1.1.1",
         "npm:ioredis@^5.6.1"
       ]
     },
@@ -324,15 +322,6 @@
     "@hongminhee/x-forwarded-fetch@0.2.0": {
       "integrity": "8a347e061974e07b480e9461c7d84047e12e92c462fe7679a6f0f59b5c5f48d5"
     },
-    "@hugoalh/http-header-link@1.0.3": {
-      "integrity": "3372096a73d755e3351f7fbd7155db7725874c2682a594a655580e3866563024",
-      "dependencies": [
-        "jsr:@hugoalh/is-string-singleline"
-      ]
-    },
-    "@hugoalh/is-string-singleline@1.0.5": {
-      "integrity": "3409f64eaad51e4afccea0f21853cedf7b0b5b147e3606e585e5e88ba2b03b32"
-    },
     "@logtape/file@1.0.0": {
       "integrity": "9786f613b1317d29ea5dbfa20a53de4a859b4949ca4bf72d9e450515e907cb23",
       "dependencies": [
@@ -341,6 +330,9 @@
     },
     "@logtape/logtape@1.0.0": {
       "integrity": "30e23091ed75daac9eaff83688a90ccfbb7e75e79d0344d5a6e9585e6f653f92"
+    },
+    "@logtape/logtape@1.1.2": {
+      "integrity": "df86a456db8f8a67bea00ce0f8acfc717caf9c3c1ee0c12939d6877796fdd1e6"
     },
     "@luca/esbuild-deno-loader@0.11.1": {
       "integrity": "dc020d16d75b591f679f6b9288b10f38bdb4f24345edb2f5732affa1d9885267",
@@ -1525,16 +1517,10 @@
         "which@4.0.0"
       ]
     },
-    "@deno/vite-plugin@1.0.5_vite@6.3.6__picomatch@4.0.3": {
+    "@deno/vite-plugin@1.0.5_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
       "integrity": "sha512-tLja5n4dyMhcze1NzvSs2iiriBymfBlDCZIrjMTxb9O2ru0gvmV6mn5oBD2teNw5Sd92cj3YJzKwsAs8tMJXlg==",
       "dependencies": [
-        "vite@6.3.6_picomatch@4.0.3"
-      ]
-    },
-    "@deno/vite-plugin@1.0.5_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0": {
-      "integrity": "sha512-tLja5n4dyMhcze1NzvSs2iiriBymfBlDCZIrjMTxb9O2ru0gvmV6mn5oBD2teNw5Sd92cj3YJzKwsAs8tMJXlg==",
-      "dependencies": [
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0"
+        "vite"
       ]
     },
     "@dependents/detective-less@5.0.1": {
@@ -2243,52 +2229,6 @@
         "tslib@2.6.3"
       ]
     },
-    "@graphql-codegen/cli@5.0.7_@parcel+watcher@2.5.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
-      "integrity": "sha512-h/sxYvSaWtxZxo8GtaA8SvcHTyViaaPd7dweF/hmRDpaQU1o3iU3EZxlcJ+oLTunU0tSMFsnrIXm/mhXxI11Cw==",
-      "dependencies": [
-        "@babel/generator",
-        "@babel/template",
-        "@babel/types@7.28.4",
-        "@graphql-codegen/client-preset",
-        "@graphql-codegen/core",
-        "@graphql-codegen/plugin-helpers",
-        "@graphql-tools/apollo-engine-loader",
-        "@graphql-tools/code-file-loader",
-        "@graphql-tools/git-loader",
-        "@graphql-tools/github-loader@8.0.22_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
-        "@graphql-tools/graphql-file-loader",
-        "@graphql-tools/json-file-loader",
-        "@graphql-tools/load",
-        "@graphql-tools/prisma-loader@8.0.17_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
-        "@graphql-tools/url-loader@8.0.33_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_ws@8.18.3",
-        "@graphql-tools/utils",
-        "@parcel/watcher",
-        "@whatwg-node/fetch",
-        "chalk@4.1.2",
-        "cosmiconfig@8.3.6",
-        "debounce",
-        "detect-indent",
-        "graphql",
-        "graphql-config@5.1.5_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
-        "inquirer@8.2.7",
-        "is-glob",
-        "jiti@1.21.7",
-        "json-to-pretty-yaml",
-        "listr2",
-        "log-symbols",
-        "micromatch",
-        "shell-quote",
-        "string-env-interpolation",
-        "ts-log",
-        "tslib@2.8.1",
-        "yaml",
-        "yargs"
-      ],
-      "optionalPeers": [
-        "@parcel/watcher"
-      ],
-      "bin": true
-    },
     "@graphql-codegen/cli@5.0.7_@parcel+watcher@2.5.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0": {
       "integrity": "sha512-h/sxYvSaWtxZxo8GtaA8SvcHTyViaaPd7dweF/hmRDpaQU1o3iU3EZxlcJ+oLTunU0tSMFsnrIXm/mhXxI11Cw==",
       "dependencies": [
@@ -2301,12 +2241,12 @@
         "@graphql-tools/apollo-engine-loader",
         "@graphql-tools/code-file-loader",
         "@graphql-tools/git-loader",
-        "@graphql-tools/github-loader@8.0.22_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0",
+        "@graphql-tools/github-loader",
         "@graphql-tools/graphql-file-loader",
         "@graphql-tools/json-file-loader",
         "@graphql-tools/load",
-        "@graphql-tools/prisma-loader@8.0.17_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0",
-        "@graphql-tools/url-loader@8.0.33_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_ws@8.18.3_@types+node@24.2.0",
+        "@graphql-tools/prisma-loader",
+        "@graphql-tools/url-loader",
         "@graphql-tools/utils",
         "@parcel/watcher",
         "@whatwg-node/fetch",
@@ -2315,8 +2255,8 @@
         "debounce",
         "detect-indent",
         "graphql",
-        "graphql-config@5.1.5_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0",
-        "inquirer@8.2.7_@types+node@24.2.0",
+        "graphql-config",
+        "inquirer",
         "is-glob",
         "jiti@1.21.7",
         "json-to-pretty-yaml",
@@ -2531,21 +2471,6 @@
         "ws"
       ]
     },
-    "@graphql-tools/executor-http@1.3.3_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
-      "integrity": "sha512-LIy+l08/Ivl8f8sMiHW2ebyck59JzyzO/yF9SFS4NH6MJZUezA1xThUXCDIKhHiD56h/gPojbkpcFvM2CbNE7A==",
-      "dependencies": [
-        "@graphql-hive/signal",
-        "@graphql-tools/executor-common@0.0.4_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
-        "@graphql-tools/utils",
-        "@repeaterjs/repeater",
-        "@whatwg-node/disposablestack",
-        "@whatwg-node/fetch",
-        "@whatwg-node/promise-helpers",
-        "graphql",
-        "meros@1.3.1",
-        "tslib@2.8.1"
-      ]
-    },
     "@graphql-tools/executor-http@1.3.3_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0": {
       "integrity": "sha512-LIy+l08/Ivl8f8sMiHW2ebyck59JzyzO/yF9SFS4NH6MJZUezA1xThUXCDIKhHiD56h/gPojbkpcFvM2CbNE7A==",
       "dependencies": [
@@ -2557,7 +2482,7 @@
         "@whatwg-node/fetch",
         "@whatwg-node/promise-helpers",
         "graphql",
-        "meros@1.3.1_@types+node@24.2.0",
+        "meros",
         "tslib@2.8.1"
       ]
     },
@@ -2596,23 +2521,10 @@
         "unixify"
       ]
     },
-    "@graphql-tools/github-loader@8.0.22_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
-      "integrity": "sha512-uQ4JNcNPsyMkTIgzeSbsoT9hogLjYrZooLUYd173l5eUGUi49EAcsGdiBCKaKfEjanv410FE8hjaHr7fjSRkJw==",
-      "dependencies": [
-        "@graphql-tools/executor-http@1.3.3_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
-        "@graphql-tools/graphql-tag-pluck",
-        "@graphql-tools/utils",
-        "@whatwg-node/fetch",
-        "@whatwg-node/promise-helpers",
-        "graphql",
-        "sync-fetch",
-        "tslib@2.8.1"
-      ]
-    },
     "@graphql-tools/github-loader@8.0.22_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0": {
       "integrity": "sha512-uQ4JNcNPsyMkTIgzeSbsoT9hogLjYrZooLUYd173l5eUGUi49EAcsGdiBCKaKfEjanv410FE8hjaHr7fjSRkJw==",
       "dependencies": [
-        "@graphql-tools/executor-http@1.3.3_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0",
+        "@graphql-tools/executor-http",
         "@graphql-tools/graphql-tag-pluck",
         "@graphql-tools/utils",
         "@whatwg-node/fetch",
@@ -2691,32 +2603,10 @@
         "tslib@2.8.1"
       ]
     },
-    "@graphql-tools/prisma-loader@8.0.17_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
-      "integrity": "sha512-fnuTLeQhqRbA156pAyzJYN0KxCjKYRU5bz1q/SKOwElSnAU4k7/G1kyVsWLh7fneY78LoMNH5n+KlFV8iQlnyg==",
-      "dependencies": [
-        "@graphql-tools/url-loader@8.0.33_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_ws@8.18.3",
-        "@graphql-tools/utils",
-        "@types/js-yaml",
-        "@whatwg-node/fetch",
-        "chalk@4.1.2",
-        "debug@4.4.1",
-        "dotenv@16.6.1",
-        "graphql",
-        "graphql-request",
-        "http-proxy-agent",
-        "https-proxy-agent",
-        "jose",
-        "js-yaml@4.1.0",
-        "lodash",
-        "scuid",
-        "tslib@2.8.1",
-        "yaml-ast-parser"
-      ]
-    },
     "@graphql-tools/prisma-loader@8.0.17_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0": {
       "integrity": "sha512-fnuTLeQhqRbA156pAyzJYN0KxCjKYRU5bz1q/SKOwElSnAU4k7/G1kyVsWLh7fneY78LoMNH5n+KlFV8iQlnyg==",
       "dependencies": [
-        "@graphql-tools/url-loader@8.0.33_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_ws@8.18.3_@types+node@24.2.0",
+        "@graphql-tools/url-loader",
         "@graphql-tools/utils",
         "@types/js-yaml",
         "@whatwg-node/fetch",
@@ -2733,7 +2623,8 @@
         "scuid",
         "tslib@2.8.1",
         "yaml-ast-parser"
-      ]
+      ],
+      "deprecated": true
     },
     "@graphql-tools/relay-operation-optimizer@7.0.21_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
       "integrity": "sha512-vMdU0+XfeBh9RCwPqRsr3A05hPA3MsahFn/7OAwXzMySA5EVnSH5R4poWNs3h1a0yT0tDPLhxORhK7qJdSWj2A==",
@@ -2753,29 +2644,11 @@
         "tslib@2.8.1"
       ]
     },
-    "@graphql-tools/url-loader@8.0.33_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_ws@8.18.3": {
-      "integrity": "sha512-Fu626qcNHcqAj8uYd7QRarcJn5XZ863kmxsg1sm0fyjyfBJnsvC7ddFt6Hayz5kxVKfsnjxiDfPMXanvsQVBKw==",
-      "dependencies": [
-        "@graphql-tools/executor-graphql-ws",
-        "@graphql-tools/executor-http@1.3.3_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
-        "@graphql-tools/executor-legacy-ws",
-        "@graphql-tools/utils",
-        "@graphql-tools/wrap",
-        "@types/ws",
-        "@whatwg-node/fetch",
-        "@whatwg-node/promise-helpers",
-        "graphql",
-        "isomorphic-ws",
-        "sync-fetch",
-        "tslib@2.8.1",
-        "ws"
-      ]
-    },
     "@graphql-tools/url-loader@8.0.33_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_ws@8.18.3_@types+node@24.2.0": {
       "integrity": "sha512-Fu626qcNHcqAj8uYd7QRarcJn5XZ863kmxsg1sm0fyjyfBJnsvC7ddFt6Hayz5kxVKfsnjxiDfPMXanvsQVBKw==",
       "dependencies": [
         "@graphql-tools/executor-graphql-ws",
-        "@graphql-tools/executor-http@1.3.3_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0",
+        "@graphql-tools/executor-http",
         "@graphql-tools/executor-legacy-ws",
         "@graphql-tools/utils",
         "@graphql-tools/wrap",
@@ -2968,13 +2841,6 @@
       "integrity": "sha512-MpY/o8/8kj+EcnxwvrP4aTJSWw/aZ7JIGR4aBeZkZw5B7/Jn+tY9/VNwtcoGmdT7GfggGIU4kygOMSbYnOrAbg==",
       "os": ["win32"],
       "cpu": ["x64"]
-    },
-    "@inquirer/external-editor@1.0.1": {
-      "integrity": "sha512-Oau4yL24d2B5IL4ma4UpbQigkVhzPDXLoqy1ggK4gnHg/stmkffJE4oOXHXF3uz0UEpywG68KcyXsyYpA1Re/Q==",
-      "dependencies": [
-        "chardet",
-        "iconv-lite@0.6.3"
-      ]
     },
     "@inquirer/external-editor@1.0.1_@types+node@24.2.0": {
       "integrity": "sha512-Oau4yL24d2B5IL4ma4UpbQigkVhzPDXLoqy1ggK4gnHg/stmkffJE4oOXHXF3uz0UEpywG68KcyXsyYpA1Re/Q==",
@@ -3209,20 +3075,12 @@
         "js-sha256"
       ]
     },
-    "@lingui/vite-plugin@5.4.1_vite@6.3.6__picomatch@4.0.3": {
+    "@lingui/vite-plugin@5.4.1_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
       "integrity": "sha512-4BxkHliJdGk7lmD++Bee9iy+n66kUONUPgpNqEgcuoEfaL0UgWWLbpkOr42X3tMUVt/S/SUM7firx6NexSCJ4Q==",
       "dependencies": [
         "@lingui/cli",
         "@lingui/conf",
-        "vite@6.3.6_picomatch@4.0.3"
-      ]
-    },
-    "@lingui/vite-plugin@5.4.1_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0": {
-      "integrity": "sha512-4BxkHliJdGk7lmD++Bee9iy+n66kUONUPgpNqEgcuoEfaL0UgWWLbpkOr42X3tMUVt/S/SUM7firx6NexSCJ4Q==",
-      "dependencies": [
-        "@lingui/cli",
-        "@lingui/conf",
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0"
+        "vite"
       ]
     },
     "@lukeed/ms@2.0.2": {
@@ -3372,8 +3230,8 @@
       ],
       "bin": true
     },
-    "@noble/hashes@1.8.0": {
-      "integrity": "sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A=="
+    "@noble/hashes@1.4.0": {
+      "integrity": "sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg=="
     },
     "@nodelib/fs.scandir@2.1.5": {
       "integrity": "sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==",
@@ -3844,19 +3702,11 @@
         "graphql"
       ]
     },
-    "@pothos/plugin-drizzle@0.11.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@opentelemetry+api@1.9.0_postgres@3.4.7": {
+    "@pothos/plugin-drizzle@0.11.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-gWrSkjAbX4/TeW0akuyqOZj67JcKQJwPS4onWTfScIML4emwIXIJdjj8Vd8h4lGtT1aQ+a68iHxTfUN85apwaA==",
       "dependencies": [
         "@pothos/core",
-        "drizzle-orm@1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7",
-        "graphql"
-      ]
-    },
-    "@pothos/plugin-drizzle@0.11.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0": {
-      "integrity": "sha512-gWrSkjAbX4/TeW0akuyqOZj67JcKQJwPS4onWTfScIML4emwIXIJdjj8Vd8h4lGtT1aQ+a68iHxTfUN85apwaA==",
-      "dependencies": [
-        "@pothos/core",
-        "drizzle-orm@1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
+        "drizzle-orm",
         "graphql"
       ]
     },
@@ -4928,12 +4778,12 @@
         "solid-js"
       ]
     },
-    "@solidjs/start@1.1.7_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_seroval@1.3.2_solid-js@1.9.9__seroval@1.3.2_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7": {
+    "@solidjs/start@1.1.7_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__@types+node@24.2.0__drizzle-orm@1.0.0-beta.1-5e64efc___@cloudflare+workers-types@4.20250917.0___@opentelemetry+api@1.9.0___postgres@3.4.7__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_seroval@1.3.2_solid-js@1.9.9__seroval@1.3.2_ioredis@5.7.0_@types+node@24.2.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-30nUFzCpCVH7ORtHlO4ZE+VLG3g3EP+x+ceLLJBFRXIVuFQ1p203xZvVCXWqUPydtK78O5w3nIkWA/tLtF0Ybg==",
       "dependencies": [
-        "@tanstack/server-functions-plugin@1.121.21_@babel+core@7.28.3",
-        "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
-        "@vinxi/server-components@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
+        "@tanstack/server-functions-plugin",
+        "@vinxi/plugin-directives",
+        "@vinxi/server-components",
         "defu",
         "error-stack-parser",
         "html-to-image",
@@ -4944,48 +4794,8 @@
         "source-map-js",
         "terracotta",
         "tinyglobby",
-        "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
-        "vite-plugin-solid@2.11.8_solid-js@1.9.9__seroval@1.3.2_vite@6.3.6__picomatch@4.0.3_@babel+core@7.28.3"
-      ]
-    },
-    "@solidjs/start@1.1.7_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_seroval@1.3.2_solid-js@1.9.9__seroval@1.3.2_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0": {
-      "integrity": "sha512-30nUFzCpCVH7ORtHlO4ZE+VLG3g3EP+x+ceLLJBFRXIVuFQ1p203xZvVCXWqUPydtK78O5w3nIkWA/tLtF0Ybg==",
-      "dependencies": [
-        "@tanstack/server-functions-plugin@1.121.21_@babel+core@7.28.3_@types+node@24.2.0",
-        "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0",
-        "@vinxi/server-components@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0",
-        "defu",
-        "error-stack-parser",
-        "html-to-image",
-        "radix3",
-        "seroval",
-        "seroval-plugins",
-        "shiki@1.29.2",
-        "source-map-js",
-        "terracotta",
-        "tinyglobby",
-        "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0",
-        "vite-plugin-solid@2.11.8_solid-js@1.9.9__seroval@1.3.2_vite@6.3.6__picomatch@4.0.3_@babel+core@7.28.3_@types+node@24.2.0"
-      ]
-    },
-    "@solidjs/start@1.1.7_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_seroval@1.3.2_solid-js@1.9.9__seroval@1.3.2_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0": {
-      "integrity": "sha512-30nUFzCpCVH7ORtHlO4ZE+VLG3g3EP+x+ceLLJBFRXIVuFQ1p203xZvVCXWqUPydtK78O5w3nIkWA/tLtF0Ybg==",
-      "dependencies": [
-        "@tanstack/server-functions-plugin@1.121.21_@babel+core@7.28.3_@types+node@24.2.0",
-        "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0",
-        "@vinxi/server-components@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0",
-        "defu",
-        "error-stack-parser",
-        "html-to-image",
-        "radix3",
-        "seroval",
-        "seroval-plugins",
-        "shiki@1.29.2",
-        "source-map-js",
-        "terracotta",
-        "tinyglobby",
-        "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0",
-        "vite-plugin-solid@2.11.8_solid-js@1.9.9__seroval@1.3.2_vite@6.3.6__picomatch@4.0.3_@babel+core@7.28.3_@types+node@24.2.0"
+        "vinxi",
+        "vite-plugin-solid"
       ]
     },
     "@soorria/solid-dropzone@1.0.1_solid-js@1.9.9__seroval@1.3.2": {
@@ -5115,25 +4925,16 @@
         "tailwindcss@3.4.3_postcss@8.5.6"
       ]
     },
-    "@tailwindcss/vite@4.1.12_vite@6.3.6__picomatch@4.0.3": {
+    "@tailwindcss/vite@4.1.12_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
       "integrity": "sha512-4pt0AMFDx7gzIrAOIYgYP0KCBuKWqyW8ayrdiLEjoJTT4pKTjrzG/e4uzWtTLDziC+66R9wbUqZBccJalSE5vQ==",
       "dependencies": [
         "@tailwindcss/node",
         "@tailwindcss/oxide",
         "tailwindcss@4.1.12",
-        "vite@6.3.6_picomatch@4.0.3"
+        "vite"
       ]
     },
-    "@tailwindcss/vite@4.1.12_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0": {
-      "integrity": "sha512-4pt0AMFDx7gzIrAOIYgYP0KCBuKWqyW8ayrdiLEjoJTT4pKTjrzG/e4uzWtTLDziC+66R9wbUqZBccJalSE5vQ==",
-      "dependencies": [
-        "@tailwindcss/node",
-        "@tailwindcss/oxide",
-        "tailwindcss@4.1.12",
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0"
-      ]
-    },
-    "@tanstack/directive-functions-plugin@1.121.21_vite@6.3.6__picomatch@4.0.3": {
+    "@tanstack/directive-functions-plugin@1.121.21_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
       "integrity": "sha512-B9z/HbF7gJBaRHieyX7f2uQ4LpLLAVAEutBZipH6w+CYD6RHRJvSVPzECGHF7icFhNWTiJQL2QR6K07s59yzEw==",
       "dependencies": [
         "@babel/code-frame@7.26.2",
@@ -5143,20 +4944,7 @@
         "@tanstack/router-utils",
         "babel-dead-code-elimination",
         "tiny-invariant",
-        "vite@6.3.6_picomatch@4.0.3"
-      ]
-    },
-    "@tanstack/directive-functions-plugin@1.121.21_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0": {
-      "integrity": "sha512-B9z/HbF7gJBaRHieyX7f2uQ4LpLLAVAEutBZipH6w+CYD6RHRJvSVPzECGHF7icFhNWTiJQL2QR6K07s59yzEw==",
-      "dependencies": [
-        "@babel/code-frame@7.26.2",
-        "@babel/core",
-        "@babel/traverse",
-        "@babel/types@7.28.4",
-        "@tanstack/router-utils",
-        "babel-dead-code-elimination",
-        "tiny-invariant",
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0"
+        "vite"
       ]
     },
     "@tanstack/router-utils@1.131.2_@babel+core@7.28.3": {
@@ -5170,21 +4958,6 @@
         "diff"
       ]
     },
-    "@tanstack/server-functions-plugin@1.121.21_@babel+core@7.28.3": {
-      "integrity": "sha512-a05fzK+jBGacsSAc1vE8an7lpBh4H0PyIEcivtEyHLomgSeElAJxm9E2It/0nYRZ5Lh23m0okbhzJNaYWZpAOg==",
-      "dependencies": [
-        "@babel/code-frame@7.26.2",
-        "@babel/core",
-        "@babel/plugin-syntax-jsx",
-        "@babel/plugin-syntax-typescript",
-        "@babel/template",
-        "@babel/traverse",
-        "@babel/types@7.28.4",
-        "@tanstack/directive-functions-plugin@1.121.21_vite@6.3.6__picomatch@4.0.3",
-        "babel-dead-code-elimination",
-        "tiny-invariant"
-      ]
-    },
     "@tanstack/server-functions-plugin@1.121.21_@babel+core@7.28.3_@types+node@24.2.0": {
       "integrity": "sha512-a05fzK+jBGacsSAc1vE8an7lpBh4H0PyIEcivtEyHLomgSeElAJxm9E2It/0nYRZ5Lh23m0okbhzJNaYWZpAOg==",
       "dependencies": [
@@ -5195,7 +4968,7 @@
         "@babel/template",
         "@babel/traverse",
         "@babel/types@7.28.4",
-        "@tanstack/directive-functions-plugin@1.121.21_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0",
+        "@tanstack/directive-functions-plugin",
         "babel-dead-code-elimination",
         "tiny-invariant"
       ]
@@ -5447,7 +5220,7 @@
         "consola",
         "defu",
         "get-port-please",
-        "h3@1.15.3",
+        "h3@1.15.4",
         "http-shutdown",
         "jiti@1.21.7",
         "mlly",
@@ -5460,7 +5233,7 @@
       ],
       "bin": true
     },
-    "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7": {
+    "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__@types+node@24.2.0__drizzle-orm@1.0.0-beta.1-5e64efc___@cloudflare+workers-types@4.20250917.0___@opentelemetry+api@1.9.0___postgres@3.4.7__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_@types+node@24.2.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-pH/KIVBvBt7z7cXrUH/9uaqcdxjegFC7+zvkZkdOyWzs+kQD5KPf3cl8kC+5ayzXHT+OMlhGhyitytqN3cGmHg==",
       "dependencies": [
         "@babel/parser",
@@ -5472,76 +5245,20 @@
         "magicast@0.2.11",
         "recast@0.23.11",
         "tslib@2.8.1",
-        "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7"
+        "vinxi"
       ]
     },
-    "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0": {
-      "integrity": "sha512-pH/KIVBvBt7z7cXrUH/9uaqcdxjegFC7+zvkZkdOyWzs+kQD5KPf3cl8kC+5ayzXHT+OMlhGhyitytqN3cGmHg==",
-      "dependencies": [
-        "@babel/parser",
-        "acorn@8.15.0",
-        "acorn-jsx",
-        "acorn-loose",
-        "acorn-typescript",
-        "astring",
-        "magicast@0.2.11",
-        "recast@0.23.11",
-        "tslib@2.8.1",
-        "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0"
-      ]
-    },
-    "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0": {
-      "integrity": "sha512-pH/KIVBvBt7z7cXrUH/9uaqcdxjegFC7+zvkZkdOyWzs+kQD5KPf3cl8kC+5ayzXHT+OMlhGhyitytqN3cGmHg==",
-      "dependencies": [
-        "@babel/parser",
-        "acorn@8.15.0",
-        "acorn-jsx",
-        "acorn-loose",
-        "acorn-typescript",
-        "astring",
-        "magicast@0.2.11",
-        "recast@0.23.11",
-        "tslib@2.8.1",
-        "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0"
-      ]
-    },
-    "@vinxi/server-components@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7": {
+    "@vinxi/server-components@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__@types+node@24.2.0__drizzle-orm@1.0.0-beta.1-5e64efc___@cloudflare+workers-types@4.20250917.0___@opentelemetry+api@1.9.0___postgres@3.4.7__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_@types+node@24.2.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-0BsG95qac3dkhfdRZxqzqYWJE4NvPL7ILlV43B6K6ho1etXWB2e5b0IxsUAUbyqpqiXM7mSRivojuXjb2G4OsQ==",
       "dependencies": [
-        "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
+        "@vinxi/plugin-directives",
         "acorn@8.15.0",
         "acorn-loose",
         "acorn-typescript",
         "astring",
         "magicast@0.2.11",
         "recast@0.23.11",
-        "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7"
-      ]
-    },
-    "@vinxi/server-components@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0": {
-      "integrity": "sha512-0BsG95qac3dkhfdRZxqzqYWJE4NvPL7ILlV43B6K6ho1etXWB2e5b0IxsUAUbyqpqiXM7mSRivojuXjb2G4OsQ==",
-      "dependencies": [
-        "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0",
-        "acorn@8.15.0",
-        "acorn-loose",
-        "acorn-typescript",
-        "astring",
-        "magicast@0.2.11",
-        "recast@0.23.11",
-        "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0"
-      ]
-    },
-    "@vinxi/server-components@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0": {
-      "integrity": "sha512-0BsG95qac3dkhfdRZxqzqYWJE4NvPL7ILlV43B6K6ho1etXWB2e5b0IxsUAUbyqpqiXM7mSRivojuXjb2G4OsQ==",
-      "dependencies": [
-        "@vinxi/plugin-directives@0.5.1_vinxi@0.5.8__@babel+core@7.28.3__ioredis@5.7.0__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_acorn@8.15.0_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0",
-        "acorn@8.15.0",
-        "acorn-loose",
-        "acorn-typescript",
-        "astring",
-        "magicast@0.2.11",
-        "recast@0.23.11",
-        "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0"
+        "vinxi"
       ]
     },
     "@vue/compiler-core@3.5.20": {
@@ -6803,22 +6520,13 @@
         "undici-types@5.28.4"
       ]
     },
-    "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7": {
+    "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-xzWNQ6jk/+NtdfLyXEipbX55dmDSeteLFt/ayF+wZUU5bzKgmrDOxmInUTbyVRp46YwnJdkDA1KhB7WIXFofJw==",
       "dependencies": [
-        "drizzle-orm@1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7"
+        "drizzle-orm"
       ],
       "optionalPeers": [
-        "drizzle-orm@1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7"
-      ]
-    },
-    "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0": {
-      "integrity": "sha512-xzWNQ6jk/+NtdfLyXEipbX55dmDSeteLFt/ayF+wZUU5bzKgmrDOxmInUTbyVRp46YwnJdkDA1KhB7WIXFofJw==",
-      "dependencies": [
-        "drizzle-orm@1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0"
-      ],
-      "optionalPeers": [
-        "drizzle-orm@1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0"
+        "drizzle-orm"
       ]
     },
     "debounce@1.2.1": {
@@ -7066,18 +6774,7 @@
       ],
       "bin": true
     },
-    "drizzle-orm@1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7": {
-      "integrity": "sha512-6e4PiYowRLZMcvo7OKoYNWu8WsBhwhjAq+LHE5NCQx5k3BLQKPhOdUpo/DErkzCZrfDHY6mFty76PYt0JfYl3Q==",
-      "dependencies": [
-        "@opentelemetry/api",
-        "postgres"
-      ],
-      "optionalPeers": [
-        "@opentelemetry/api",
-        "postgres"
-      ]
-    },
-    "drizzle-orm@1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0": {
+    "drizzle-orm@1.0.0-beta.1-5e64efc_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-6e4PiYowRLZMcvo7OKoYNWu8WsBhwhjAq+LHE5NCQx5k3BLQKPhOdUpo/DErkzCZrfDHY6mFty76PYt0JfYl3Q==",
       "dependencies": [
         "@cloudflare/workers-types",
@@ -7943,23 +7640,6 @@
     "graceful-fs@4.2.11": {
       "integrity": "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="
     },
-    "graphql-config@5.1.5_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
-      "integrity": "sha512-mG2LL1HccpU8qg5ajLROgdsBzx/o2M6kgI3uAmoaXiSH9PCUbtIyLomLqUtCFaAeG2YCFsl0M5cfQ9rKmDoMVA==",
-      "dependencies": [
-        "@graphql-tools/graphql-file-loader",
-        "@graphql-tools/json-file-loader",
-        "@graphql-tools/load",
-        "@graphql-tools/merge",
-        "@graphql-tools/url-loader@8.0.33_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_ws@8.18.3",
-        "@graphql-tools/utils",
-        "cosmiconfig@8.3.6",
-        "graphql",
-        "jiti@2.5.1",
-        "minimatch@9.0.5",
-        "string-env-interpolation",
-        "tslib@2.8.1"
-      ]
-    },
     "graphql-config@5.1.5_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@types+node@24.2.0": {
       "integrity": "sha512-mG2LL1HccpU8qg5ajLROgdsBzx/o2M6kgI3uAmoaXiSH9PCUbtIyLomLqUtCFaAeG2YCFsl0M5cfQ9rKmDoMVA==",
       "dependencies": [
@@ -7967,7 +7647,7 @@
         "@graphql-tools/json-file-loader",
         "@graphql-tools/load",
         "@graphql-tools/merge",
-        "@graphql-tools/url-loader@8.0.33_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_ws@8.18.3_@types+node@24.2.0",
+        "@graphql-tools/url-loader",
         "@graphql-tools/utils",
         "cosmiconfig@8.3.6",
         "graphql",
@@ -8274,30 +7954,10 @@
     "inherits@2.0.4": {
       "integrity": "sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ=="
     },
-    "inquirer@8.2.7": {
-      "integrity": "sha512-UjOaSel/iddGZJ5xP/Eixh6dY1XghiBw4XK13rCCIJcJfyhhoul/7KhLLUGtebEj6GDYM6Vnx/mVsjx2L/mFIA==",
-      "dependencies": [
-        "@inquirer/external-editor@1.0.1",
-        "ansi-escapes",
-        "chalk@4.1.2",
-        "cli-cursor",
-        "cli-width",
-        "figures",
-        "lodash",
-        "mute-stream",
-        "ora",
-        "run-async",
-        "rxjs",
-        "string-width@4.2.3",
-        "strip-ansi@6.0.1",
-        "through",
-        "wrap-ansi@6.2.0"
-      ]
-    },
     "inquirer@8.2.7_@types+node@24.2.0": {
       "integrity": "sha512-UjOaSel/iddGZJ5xP/Eixh6dY1XghiBw4XK13rCCIJcJfyhhoul/7KhLLUGtebEj6GDYM6Vnx/mVsjx2L/mFIA==",
       "dependencies": [
-        "@inquirer/external-editor@1.0.1_@types+node@24.2.0",
+        "@inquirer/external-editor",
         "ansi-escapes",
         "chalk@4.1.2",
         "cli-cursor",
@@ -9256,9 +8916,6 @@
     "merge2@1.4.1": {
       "integrity": "sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg=="
     },
-    "meros@1.3.1": {
-      "integrity": "sha512-eV7dRObfTrckdmAz4/n7pT1njIsIJXRIZkgCiX43xEsPNy4gjXQzOYYxmGcolAMtF7HyfqRuDBh3Lgs4hmhVEw=="
-    },
     "meros@1.3.1_@types+node@24.2.0": {
       "integrity": "sha512-eV7dRObfTrckdmAz4/n7pT1njIsIJXRIZkgCiX43xEsPNy4gjXQzOYYxmGcolAMtF7HyfqRuDBh3Lgs4hmhVEw==",
       "dependencies": [
@@ -9590,7 +9247,7 @@
         "qs"
       ]
     },
-    "nitropack@2.12.4_rollup@4.50.1_magicast@0.3.5_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
+    "nitropack@2.12.4_rollup@4.50.1_magicast@0.3.5_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@cloudflare+workers-types@4.20250917.0___@opentelemetry+api@1.9.0___postgres@3.4.7__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-MPmPRJWTeH03f/NmpN4q3iI3Woik4uaaWIoX34W3gMJiW06Vm1te/lPzuu5EXpXOK7Q2m3FymGMPXcExqih96Q==",
       "dependencies": [
         "@cloudflare/kv-asset-handler",
@@ -9613,7 +9270,7 @@
         "cookie-es@2.0.0",
         "croner",
         "crossws",
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
+        "db0",
         "defu",
         "destr",
         "dot-prop",
@@ -9623,7 +9280,7 @@
         "exsolve",
         "globby@14.1.0",
         "gzip-size",
-        "h3@1.15.3",
+        "h3@1.15.4",
         "hookable",
         "httpxy",
         "ioredis",
@@ -9659,84 +9316,7 @@
         "unenv@2.0.0-rc.21",
         "unimport",
         "unplugin-utils",
-        "unstorage@1.17.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
-        "untyped",
-        "unwasm",
-        "youch",
-        "youch-core"
-      ],
-      "bin": true
-    },
-    "nitropack@2.12.4_rollup@4.50.1_magicast@0.3.5_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0": {
-      "integrity": "sha512-MPmPRJWTeH03f/NmpN4q3iI3Woik4uaaWIoX34W3gMJiW06Vm1te/lPzuu5EXpXOK7Q2m3FymGMPXcExqih96Q==",
-      "dependencies": [
-        "@cloudflare/kv-asset-handler",
-        "@netlify/functions",
-        "@rollup/plugin-alias",
-        "@rollup/plugin-commonjs",
-        "@rollup/plugin-inject",
-        "@rollup/plugin-json",
-        "@rollup/plugin-node-resolve",
-        "@rollup/plugin-replace",
-        "@rollup/plugin-terser",
-        "@vercel/nft",
-        "archiver",
-        "c12",
-        "chokidar@4.0.3",
-        "citty",
-        "compatx",
-        "confbox@0.2.2",
-        "consola",
-        "cookie-es@2.0.0",
-        "croner",
-        "crossws",
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
-        "defu",
-        "destr",
-        "dot-prop",
-        "esbuild@0.25.9",
-        "escape-string-regexp@5.0.0",
-        "etag",
-        "exsolve",
-        "globby@14.1.0",
-        "gzip-size",
-        "h3@1.15.3",
-        "hookable",
-        "httpxy",
-        "ioredis",
-        "jiti@2.5.1",
-        "klona",
-        "knitwork",
-        "listhen",
-        "magic-string",
-        "magicast@0.3.5",
-        "mime@4.0.7",
-        "mlly",
-        "node-fetch-native",
-        "node-mock-http",
-        "ofetch",
-        "ohash",
-        "pathe@2.0.3",
-        "perfect-debounce",
-        "pkg-types@2.3.0",
-        "pretty-bytes",
-        "radix3",
-        "rollup",
-        "rollup-plugin-visualizer",
-        "scule",
-        "semver@7.7.2",
-        "serve-placeholder",
-        "serve-static@2.2.0",
-        "source-map@0.7.6",
-        "std-env",
-        "ufo",
-        "ultrahtml",
-        "uncrypto",
-        "unctx",
-        "unenv@2.0.0-rc.21",
-        "unimport",
-        "unplugin-utils",
-        "unstorage@1.17.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
+        "unstorage@1.17.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@cloudflare+workers-types@4.20250917.0___@opentelemetry+api@1.9.0___postgres@3.4.7__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
         "untyped",
         "unwasm",
         "youch",
@@ -10225,8 +9805,8 @@
         "pathe@2.0.3"
       ]
     },
-    "pkijs@3.2.5": {
-      "integrity": "sha512-WX0la7n7CbnguuaIQoT4Fc0IJckPDOUldzOwlZ0nwpOcySS+Six/tXBdc0RX17J5o1To0SAr3xDJjDLsOfDFQA==",
+    "pkijs@3.3.3": {
+      "integrity": "sha512-+KD8hJtqQMYoTuL1bbGOqxb4z+nZkTAwVdNtWwe8Tc2xNbEmdJYIYoc6Qt0uF55e6YW6KuTHw1DjQ18gMhzepw==",
       "dependencies": [
         "@noble/hashes",
         "asn1js",
@@ -12163,12 +11743,12 @@
         "webpack-virtual-modules"
       ]
     },
-    "unstorage@1.17.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7": {
+    "unstorage@1.17.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@cloudflare+workers-types@4.20250917.0___@opentelemetry+api@1.9.0___postgres@3.4.7__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-l9Z7lBiwtNp8ZmcoZ/dmPkFXFdtEdZtTZafCSnEIj3YvtkXeGAtL2rN8MQFy/0cs4eOLpuRJMp9ivdug7TCvww==",
       "dependencies": [
         "anymatch",
         "chokidar@4.0.3",
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
+        "db0",
         "destr",
         "h3@1.15.4",
         "ioredis",
@@ -12178,16 +11758,16 @@
         "ufo"
       ],
       "optionalPeers": [
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
+        "db0",
         "ioredis"
       ]
     },
-    "unstorage@1.17.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0": {
+    "unstorage@1.17.0_ioredis@5.7.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@cloudflare+workers-types@4.20250917.0___@opentelemetry+api@1.9.0___postgres@3.4.7__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-l9Z7lBiwtNp8ZmcoZ/dmPkFXFdtEdZtTZafCSnEIj3YvtkXeGAtL2rN8MQFy/0cs4eOLpuRJMp9ivdug7TCvww==",
       "dependencies": [
         "anymatch",
         "chokidar@4.0.3",
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
+        "db0",
         "destr",
         "h3@1.15.4",
         "ioredis",
@@ -12197,45 +11777,7 @@
         "ufo"
       ],
       "optionalPeers": [
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
-        "ioredis"
-      ]
-    },
-    "unstorage@1.17.0_ioredis@5.7.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7": {
-      "integrity": "sha512-l9Z7lBiwtNp8ZmcoZ/dmPkFXFdtEdZtTZafCSnEIj3YvtkXeGAtL2rN8MQFy/0cs4eOLpuRJMp9ivdug7TCvww==",
-      "dependencies": [
-        "anymatch",
-        "chokidar@4.0.3",
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
-        "destr",
-        "h3@1.15.4",
-        "ioredis",
-        "lru-cache@10.4.3",
-        "node-fetch-native",
-        "ofetch",
-        "ufo"
-      ],
-      "optionalPeers": [
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
-        "ioredis"
-      ]
-    },
-    "unstorage@1.17.0_ioredis@5.7.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0": {
-      "integrity": "sha512-l9Z7lBiwtNp8ZmcoZ/dmPkFXFdtEdZtTZafCSnEIj3YvtkXeGAtL2rN8MQFy/0cs4eOLpuRJMp9ivdug7TCvww==",
-      "dependencies": [
-        "anymatch",
-        "chokidar@4.0.3",
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
-        "destr",
-        "h3@1.15.4",
-        "ioredis",
-        "lru-cache@10.4.3",
-        "node-fetch-native",
-        "ofetch",
-        "ufo"
-      ],
-      "optionalPeers": [
-        "db0@0.3.2_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
+        "db0",
         "ioredis"
       ]
     },
@@ -12294,8 +11836,8 @@
     "uqr@0.1.2": {
       "integrity": "sha512-MJu7ypHq6QasgF5YRTjqscSzQp/W11zoUk6kvmlH+fmWEs63Y0Eib13hYFwAzagRJcVY8WVnlV+eBDUGMJ5IbA=="
     },
-    "uri-template-router@0.0.17": {
-      "integrity": "sha512-5h2I/eSN+XFRAFaSR72KTFWg5rf8GB6Ur5+yWHjtwEqmn6cfZqoWsoWTh6NhxW8pIlFq144G2J23OCg3CeAaSg=="
+    "uri-template-router@1.0.0": {
+      "integrity": "sha512-WKcL9ZSIEhHE3f5P4Z47Tf0nWbcgV1ISb/OBuF8YKEYi0SQOyTLCzM6B/gAKFWZhRhqA+C/Ks8UXe2qU5W0FVg=="
     },
     "url-template@3.1.1": {
       "integrity": "sha512-4oszoaEKE/mQOtAmdMWqIRHmkxWkUZMnXFnjQ5i01CuRSK3uluxcH1MRVVVWmhlnzT1SCDfKxxficm2G37qzCA=="
@@ -12350,7 +11892,7 @@
         "vfile-message"
       ]
     },
-    "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7": {
+    "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_@types+node@24.2.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7": {
       "integrity": "sha512-1pGA+cU1G9feBQ1sd5FMftPuLUT8NSX880AvELhNWqoqWhe2jeSOQxjDPxlA3f1AC+Bbknl4UPKHyVXmfLZQjw==",
       "dependencies": [
         "@babel/core",
@@ -12372,7 +11914,7 @@
         "hookable",
         "http-proxy",
         "micromatch",
-        "nitropack@2.12.4_rollup@4.50.1_magicast@0.3.5_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
+        "nitropack",
         "node-fetch-native",
         "path-to-regexp",
         "pathe@1.1.2",
@@ -12384,133 +11926,33 @@
         "ufo",
         "unctx",
         "unenv@1.10.0",
-        "unstorage@1.17.0_ioredis@5.7.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
-        "vite@6.3.6_picomatch@4.0.3",
+        "unstorage@1.17.0_ioredis@5.7.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@cloudflare+workers-types@4.20250917.0___@opentelemetry+api@1.9.0___postgres@3.4.7__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
+        "vite",
         "zod"
       ],
       "bin": true
     },
-    "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0": {
-      "integrity": "sha512-1pGA+cU1G9feBQ1sd5FMftPuLUT8NSX880AvELhNWqoqWhe2jeSOQxjDPxlA3f1AC+Bbknl4UPKHyVXmfLZQjw==",
-      "dependencies": [
-        "@babel/core",
-        "@babel/plugin-syntax-jsx",
-        "@babel/plugin-syntax-typescript",
-        "@types/micromatch",
-        "@vinxi/listhen",
-        "boxen",
-        "chokidar@4.0.3",
-        "citty",
-        "consola",
-        "crossws",
-        "dax-sh",
-        "defu",
-        "es-module-lexer",
-        "esbuild@0.25.9",
-        "get-port-please",
-        "h3@1.15.3",
-        "hookable",
-        "http-proxy",
-        "micromatch",
-        "nitropack@2.12.4_rollup@4.50.1_magicast@0.3.5_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
-        "node-fetch-native",
-        "path-to-regexp",
-        "pathe@1.1.2",
-        "radix3",
-        "resolve@1.22.10",
-        "serve-placeholder",
-        "serve-static@1.16.2",
-        "tinyglobby",
-        "ufo",
-        "unctx",
-        "unenv@1.10.0",
-        "unstorage@1.17.0_ioredis@5.7.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7",
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0",
-        "zod"
-      ],
-      "bin": true
-    },
-    "vinxi@0.5.8_@babel+core@7.28.3_ioredis@5.7.0_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@types+node@24.2.0_@cloudflare+workers-types@4.20250917.0": {
-      "integrity": "sha512-1pGA+cU1G9feBQ1sd5FMftPuLUT8NSX880AvELhNWqoqWhe2jeSOQxjDPxlA3f1AC+Bbknl4UPKHyVXmfLZQjw==",
-      "dependencies": [
-        "@babel/core",
-        "@babel/plugin-syntax-jsx",
-        "@babel/plugin-syntax-typescript",
-        "@types/micromatch",
-        "@vinxi/listhen",
-        "boxen",
-        "chokidar@4.0.3",
-        "citty",
-        "consola",
-        "crossws",
-        "dax-sh",
-        "defu",
-        "es-module-lexer",
-        "esbuild@0.25.9",
-        "get-port-please",
-        "h3@1.15.3",
-        "hookable",
-        "http-proxy",
-        "micromatch",
-        "nitropack@2.12.4_rollup@4.50.1_magicast@0.3.5_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_ioredis@5.7.0_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
-        "node-fetch-native",
-        "path-to-regexp",
-        "pathe@1.1.2",
-        "radix3",
-        "resolve@1.22.10",
-        "serve-placeholder",
-        "serve-static@1.16.2",
-        "tinyglobby",
-        "ufo",
-        "unctx",
-        "unenv@1.10.0",
-        "unstorage@1.17.0_ioredis@5.7.0_db0@0.3.2__drizzle-orm@1.0.0-beta.1-5e64efc___@opentelemetry+api@1.9.0___postgres@3.4.7__@opentelemetry+api@1.9.0__postgres@3.4.7_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_@opentelemetry+api@1.9.0_postgres@3.4.7_@cloudflare+workers-types@4.20250917.0",
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0",
-        "zod"
-      ],
-      "bin": true
-    },
-    "vite-plugin-cjs-interop@2.2.0_vite@6.3.6__picomatch@4.0.3": {
+    "vite-plugin-cjs-interop@2.2.0_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
       "integrity": "sha512-6r7AZMpz2kstspRiK78+4xPvK9GyiGau1uT4GOgxrdzmFFgwLTj/sF9tZiB1VyN24nHGO96wicsRoROEfPGOQg==",
       "dependencies": [
         "estree-walker@3.0.3",
         "magic-string",
         "minimatch@10.0.3",
         "oxc-parser",
-        "vite@6.3.6_picomatch@4.0.3"
+        "vite"
       ]
     },
-    "vite-plugin-cjs-interop@2.2.0_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0": {
-      "integrity": "sha512-6r7AZMpz2kstspRiK78+4xPvK9GyiGau1uT4GOgxrdzmFFgwLTj/sF9tZiB1VyN24nHGO96wicsRoROEfPGOQg==",
-      "dependencies": [
-        "estree-walker@3.0.3",
-        "magic-string",
-        "minimatch@10.0.3",
-        "oxc-parser",
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0"
-      ]
-    },
-    "vite-plugin-relay-lite@0.11.0_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_vite@6.3.6__picomatch@4.0.3": {
+    "vite-plugin-relay-lite@0.11.0_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
       "integrity": "sha512-7Wgc0BgkkEfSX9vUQOrJfeATPvqsfrhKWlvsYjWFDwNQp3AGeA7j59x/NqRkpb/Yy1Q8cYHD0XPYJw1C5uqg+A==",
       "dependencies": [
         "cosmiconfig@9.0.0",
         "graphql",
         "kleur",
         "magic-string",
-        "vite@6.3.6_picomatch@4.0.3"
+        "vite"
       ]
     },
-    "vite-plugin-relay-lite@0.11.0_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0": {
-      "integrity": "sha512-7Wgc0BgkkEfSX9vUQOrJfeATPvqsfrhKWlvsYjWFDwNQp3AGeA7j59x/NqRkpb/Yy1Q8cYHD0XPYJw1C5uqg+A==",
-      "dependencies": [
-        "cosmiconfig@9.0.0",
-        "graphql",
-        "kleur",
-        "magic-string",
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0"
-      ]
-    },
-    "vite-plugin-solid@2.11.8_solid-js@1.9.9__seroval@1.3.2_vite@6.3.6__picomatch@4.0.3_@babel+core@7.28.3": {
+    "vite-plugin-solid@2.11.8_solid-js@1.9.9__seroval@1.3.2_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@babel+core@7.28.3_@types+node@24.2.0": {
       "integrity": "sha512-hFrCxBfv3B1BmFqnJF4JOCYpjrmi/zwyeKjcomQ0khh8HFyQ8SbuBWQ7zGojfrz6HUOBFrJBNySDi/JgAHytWg==",
       "dependencies": [
         "@babel/core",
@@ -12519,39 +11961,11 @@
         "merge-anything",
         "solid-js",
         "solid-refresh",
-        "vite@6.3.6_picomatch@4.0.3",
-        "vitefu@1.1.1_vite@6.3.6__picomatch@4.0.3"
+        "vite",
+        "vitefu"
       ]
     },
-    "vite-plugin-solid@2.11.8_solid-js@1.9.9__seroval@1.3.2_vite@6.3.6__picomatch@4.0.3_@babel+core@7.28.3_@types+node@24.2.0": {
-      "integrity": "sha512-hFrCxBfv3B1BmFqnJF4JOCYpjrmi/zwyeKjcomQ0khh8HFyQ8SbuBWQ7zGojfrz6HUOBFrJBNySDi/JgAHytWg==",
-      "dependencies": [
-        "@babel/core",
-        "@types/babel__core",
-        "babel-preset-solid",
-        "merge-anything",
-        "solid-js",
-        "solid-refresh",
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0",
-        "vitefu@1.1.1_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0"
-      ]
-    },
-    "vite@6.3.6_picomatch@4.0.3": {
-      "integrity": "sha512-0msEVHJEScQbhkbVTb/4iHZdJ6SXp/AvxL2sjwYQFfBqleHtnCqv1J3sa9zbWz/6kW1m9Tfzn92vW+kZ1WV6QA==",
-      "dependencies": [
-        "esbuild@0.25.9",
-        "fdir",
-        "picomatch@4.0.3",
-        "postcss@8.5.6",
-        "rollup",
-        "tinyglobby"
-      ],
-      "optionalDependencies": [
-        "fsevents"
-      ],
-      "bin": true
-    },
-    "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0": {
+    "vite@6.3.6_@types+node@24.2.0_picomatch@4.0.3": {
       "integrity": "sha512-0msEVHJEScQbhkbVTb/4iHZdJ6SXp/AvxL2sjwYQFfBqleHtnCqv1J3sa9zbWz/6kW1m9Tfzn92vW+kZ1WV6QA==",
       "dependencies": [
         "@types/node",
@@ -12570,22 +11984,13 @@
       ],
       "bin": true
     },
-    "vitefu@1.1.1_vite@6.3.6__picomatch@4.0.3": {
+    "vitefu@1.1.1_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
       "integrity": "sha512-B/Fegf3i8zh0yFbpzZ21amWzHmuNlLlmJT6n7bu5e+pCHUKQIfXSYokrqOBGEMMe9UG2sostKQF9mml/vYaWJQ==",
       "dependencies": [
-        "vite@6.3.6_picomatch@4.0.3"
+        "vite"
       ],
       "optionalPeers": [
-        "vite@6.3.6_picomatch@4.0.3"
-      ]
-    },
-    "vitefu@1.1.1_vite@6.3.6__picomatch@4.0.3_@types+node@24.2.0": {
-      "integrity": "sha512-B/Fegf3i8zh0yFbpzZ21amWzHmuNlLlmJT6n7bu5e+pCHUKQIfXSYokrqOBGEMMe9UG2sostKQF9mml/vYaWJQ==",
-      "dependencies": [
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0"
-      ],
-      "optionalPeers": [
-        "vite@6.3.6_picomatch@4.0.3_@types+node@24.2.0"
+        "vite"
       ]
     },
     "wcwidth@1.0.1": {
@@ -12896,11 +12301,11 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@1.8.11",
+      "jsr:@fedify/fedify@1.9.1",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
-      "jsr:@fedify/postgres@^1.8.11",
-      "jsr:@fedify/redis@^1.8.11",
+      "jsr:@fedify/postgres@^1.9.1",
+      "jsr:@fedify/redis@^1.9.1",
       "jsr:@fresh/core@2.0.0-alpha.34",
       "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",
