@@ -1458,6 +1458,7 @@ export async function deletePost(
     id: new URL("#delete", post.iri),
     actor: fedCtx.getActorUri(post.actor.accountId),
     to: PUBLIC_COLLECTION,
+    cc: fedCtx.getFollowersUri(post.actor.accountId),
     object: new vocab.Tombstone({
       id: new URL(post.iri),
     }),
