@@ -131,7 +131,7 @@ export async function unblock(
           object: new URL(blockee.iri),
         }),
       }),
-      { excludeBaseUris: [new URL(fedCtx.origin)] },
+      { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
     );
   }
   return rows[0];

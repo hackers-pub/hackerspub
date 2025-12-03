@@ -47,7 +47,7 @@ export async function follow(
         actor: fedCtx.getActorUri(follower.id),
         object: new URL(followee.iri),
       }),
-      { excludeBaseUris: [new URL(fedCtx.origin)] },
+      { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
     );
   } else if (rows.length > 0 && followee.accountId != null) {
     await updateFolloweesCount(db, rows[0].followerId, 1);
@@ -130,7 +130,7 @@ export async function unfollow(
           object: new URL(followee.iri),
         }),
       }),
-      { excludeBaseUris: [new URL(fedCtx.origin)] },
+      { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
     );
   }
   if (rows.length > 0) {

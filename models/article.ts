@@ -239,7 +239,10 @@ export async function createArticle(
       ccs: articleObject.ccIds,
       object: articleObject,
     }),
-    { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+    {
+      preferSharedInbox: true,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
   );
   // TODO: send Create(Article) to the mentioned actors too
   return post;

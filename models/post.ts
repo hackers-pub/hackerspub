@@ -770,13 +770,16 @@ export async function sharePost(
     { identifier: account.id },
     "followers",
     announce,
-    { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+    {
+      preferSharedInbox: true,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
   );
   await fedCtx.sendActivity(
     { identifier: account.id },
     toRecipient(post.actor),
     announce,
-    { excludeBaseUris: [new URL(fedCtx.origin)] },
+    { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
   );
   return share;
 }
@@ -825,13 +828,16 @@ export async function unsharePost(
     { identifier: account.id },
     "followers",
     undo,
-    { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+    {
+      preferSharedInbox: true,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
   );
   await fedCtx.sendActivity(
     { identifier: account.id },
     toRecipient(sharedPost.actor),
     undo,
-    { excludeBaseUris: [new URL(fedCtx.origin)] },
+    { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
   );
   return unshared[0];
 }

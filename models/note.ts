@@ -370,7 +370,10 @@ export async function createNote(
       { identifier: source.accountId },
       directRecipients,
       activity,
-      { preferSharedInbox: false, excludeBaseUris: [new URL(fedCtx.origin)] },
+      {
+        preferSharedInbox: false,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
     );
   }
   if (post.visibility !== "direct") {
@@ -378,7 +381,10 @@ export async function createNote(
       { identifier: source.accountId },
       "followers",
       activity,
-      { preferSharedInbox: true, excludeBaseUris: [new URL(fedCtx.origin)] },
+      {
+        preferSharedInbox: true,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
     );
   }
   if (
