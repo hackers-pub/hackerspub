@@ -348,7 +348,11 @@
     "post": "發佈",
     "postFailed": "發佈失敗。請稍候再試。",
     "uploadImage": "上傳圖片",
-    "markdownEnabled": "Markdown 可用"
+    "markdownEnabled": "Markdown 可用",
+    "restoreDraft": "恢復草稿",
+    "draftSaved": "草稿已儲存",
+    "clearDraft": "刪除草稿",
+    "clearDraftConfirm": "確定要刪除草稿嗎？"
   },
   "postVisibility": {
     "public": "公開",

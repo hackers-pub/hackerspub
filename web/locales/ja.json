@@ -346,7 +346,11 @@
     "post": "投稿",
     "postFailed": "投稿に失敗しました。後でもう一度お試しください。",
     "uploadImage": "画像アップ",
-    "markdownEnabled": "Markdown対応"
+    "markdownEnabled": "Markdown対応",
+    "restoreDraft": "復元",
+    "draftSaved": "下書き保存済み",
+    "clearDraft": "下書き削除",
+    "clearDraftConfirm": "下書きを削除しますか？"
   },
   "postVisibility": {
     "public": "公開",
