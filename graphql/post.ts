@@ -2,6 +2,11 @@ import { isReactionEmoji, renderCustomEmojis } from "@hackerspub/models/emoji";
 import { stripHtml } from "@hackerspub/models/html";
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
+import {
+  createArticle,
+  deleteArticleDraft,
+  updateArticleDraft,
+} from "@hackerspub/models/article";
 import { createNote } from "@hackerspub/models/note";
 import {
   isPostSharedBy,
@@ -13,6 +18,8 @@ import { react, undoReaction } from "@hackerspub/models/reaction";
 import { articleDraftTable } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
+import { and, eq } from "drizzle-orm";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
@@ -574,6 +581,180 @@ builder.relayMutationField(
   },
 );
 
+builder.relayMutationField(
+  "saveArticleDraft",
+  {
+    inputFields: (t) => ({
+      id: t.globalID({ for: [ArticleDraft], required: false }),
+      title: t.string({ required: true }),
+      content: t.field({ type: "Markdown", required: true }),
+      tags: t.stringList({ required: true }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new NotAuthenticatedError();
+      }
+      const { id, title, content, tags } = args.input;
+
+      const draft = await updateArticleDraft(ctx.db, {
+        id: id?.id ?? generateUuidV7(),
+        accountId: session.accountId,
+        title,
+        content,
+        tags,
+      });
+
+      return draft;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      draft: t.field({
+        type: ArticleDraft,
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "deleteArticleDraft",
+  {
+    inputFields: (t) => ({
+      id: t.globalID({ for: [ArticleDraft], required: true }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const deleted = await deleteArticleDraft(
+        ctx.db,
+        session.accountId,
+        args.input.id.id,
+      );
+
+      if (!deleted) {
+        throw new InvalidInputError("id");
+      }
+
+      return { deletedDraftId: args.input.id.id };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      deletedDraftId: t.globalID({
+        resolve(result) {
+          return { type: "ArticleDraft", id: result.deletedDraftId };
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "publishArticleDraft",
+  {
+    inputFields: (t) => ({
+      id: t.globalID({ for: [ArticleDraft], required: true }),
+      slug: t.string({ required: true }),
+      language: t.field({ type: "Locale", required: true }),
+      allowLlmTranslation: t.boolean({ required: false }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      // Get draft
+      const drafts = await ctx.db
+        .select()
+        .from(articleDraftTable)
+        .where(
+          and(
+            eq(articleDraftTable.id, args.input.id.id),
+            eq(articleDraftTable.accountId, session.accountId),
+          ),
+        )
+        .limit(1);
+      const draft = drafts[0];
+
+      if (!draft) {
+        throw new InvalidInputError("id");
+      }
+
+      const { slug, language, allowLlmTranslation } = args.input;
+
+      // Create article from draft
+      const article = await withTransaction(ctx.fedCtx, async (context) => {
+        return await createArticle(context, {
+          accountId: session.accountId,
+          publishedYear: new Date().getFullYear(),
+          slug,
+          tags: draft.tags,
+          allowLlmTranslation: allowLlmTranslation ?? true,
+          title: draft.title,
+          content: draft.content,
+          language: language.baseName,
+        });
+      });
+
+      if (!article) {
+        throw new Error("Failed to publish article");
+      }
+
+      // Delete draft after successful publish
+      await deleteArticleDraft(ctx.db, session.accountId, draft.id);
+
+      return { article, deletedDraftId: draft.id };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      article: t.field({
+        type: Article,
+        resolve(result) {
+          return result.article;
+        },
+      }),
+      deletedDraftId: t.globalID({
+        resolve(result) {
+          return { type: "ArticleDraft", id: result.deletedDraftId };
+        },
+      }),
+    }),
+  },
+);
+
 builder.drizzleObjectField(
   Reaction,
   "post",
@@ -906,3 +1087,37 @@ builder.relayMutationField(
     }),
   },
 );
+
+builder.queryField("articleDraft", (t) =>
+  t.field({
+    type: ArticleDraft,
+    nullable: true,
+    args: {
+      id: t.arg.globalID({ for: [ArticleDraft], required: false }),
+      uuid: t.arg({ type: "UUID", required: false }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) return null;
+
+      // At least one of id or uuid must be provided
+      if (!args.id && !args.uuid) {
+        throw new Error("Either id or uuid must be provided");
+      }
+
+      // Use uuid if provided, otherwise use id
+      const draftId = args.uuid ?? args.id!.id;
+
+      const drafts = await ctx.db
+        .select()
+        .from(articleDraftTable)
+        .where(
+          and(
+            eq(articleDraftTable.id, draftId),
+            eq(articleDraftTable.accountId, ctx.account.id),
+          ),
+        )
+        .limit(1);
+
+      return drafts[0] ?? null;
+    },
+  }));
