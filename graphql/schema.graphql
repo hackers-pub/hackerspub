@@ -1,5 +1,6 @@
 type Account implements Node {
   actor: Actor!
+  articleDrafts(after: String, before: String, first: Int, last: Int): AccountArticleDraftsConnection!
   avatarUrl: URL!
   bio: Markdown!
   created: DateTime!
@@ -21,6 +22,16 @@ type Account implements Node {
   username: String!
   usernameChanged: DateTime
   uuid: UUID!
+}
+
+type AccountArticleDraftsConnection {
+  edges: [AccountArticleDraftsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type AccountArticleDraftsConnectionEdge {
+  cursor: String!
+  node: ArticleDraft!
 }
 
 type AccountInviteesConnection {
@@ -312,6 +323,17 @@ type ArticleContent implements Node {
   translator: Account
   updated: DateTime!
   url: URL!
+}
+
+type ArticleDraft implements Node {
+  account: Account!
+  content: Markdown!
+  created: DateTime!
+  id: ID!
+  tags: [String!]!
+  title: String!
+  updated: DateTime!
+  uuid: UUID!
 }
 
 input CreateNoteInput {

@@ -10,6 +10,7 @@ import {
   unsharePost,
 } from "@hackerspub/models/post";
 import { react, undoReaction } from "@hackerspub/models/reaction";
+import { articleDraftTable } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
@@ -260,6 +261,22 @@ builder.drizzleObjectField(Article, "account", (t) =>
     }),
     resolve: (post) => post.articleSource!.account,
   }));
+
+export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
+  variant: "ArticleDraft",
+  id: {
+    column: (draft) => draft.id,
+  },
+  fields: (t) => ({
+    uuid: t.expose("id", { type: "UUID" }),
+    title: t.exposeString("title"),
+    content: t.expose("content", { type: "Markdown" }),
+    tags: t.exposeStringList("tags"),
+    created: t.expose("created", { type: "DateTime" }),
+    updated: t.expose("updated", { type: "DateTime" }),
+    account: t.relation("account"),
+  }),
+});
 
 export const Question = builder.drizzleNode("postTable", {
   variant: "Question",
