@@ -36,6 +36,7 @@ This project is currently in a transitional phase, migrating from an existing Fr
 - Run Dev Server: `deno task dev`
 - Run Tests: `deno task test`
 - Database Migration: `deno task migrate`
+- Creating New Migration: `deno task migrate:generate`
 - Pre-commit Hook: `deno task hooks:pre-commit`
 
 ## Code Style Guidelines

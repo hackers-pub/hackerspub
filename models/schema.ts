@@ -1,4 +1,4 @@
-import { desc, isNull, type SQL, sql } from "drizzle-orm";
+import { desc, isNotNull, isNull, type SQL, sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   bigint,
@@ -681,6 +681,12 @@ export const postTable = pgTable(
     index("idx_post_actor_id_published")
       .on(table.actorId, desc(table.published)),
     index().on(table.replyTargetId),
+    index("idx_post_note_source_published")
+      .on(desc(table.published))
+      .where(isNotNull(table.noteSourceId)),
+    index("idx_post_article_source_published")
+      .on(desc(table.published))
+      .where(isNotNull(table.articleSourceId)),
   ],
 );
 

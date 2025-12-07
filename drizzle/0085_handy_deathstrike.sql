@@ -1,0 +1,2 @@
+CREATE INDEX "idx_post_note_source_published" ON "post" USING btree ("published" desc) WHERE "post"."note_source_id" is not null;--> statement-breakpoint
+CREATE INDEX "idx_post_article_source_published" ON "post" USING btree ("published" desc) WHERE "post"."article_source_id" is not null;
