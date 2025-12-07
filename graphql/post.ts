@@ -436,6 +436,7 @@ const PostLink = builder.drizzleNode("postLinkTable", {
     image: t.variant(PostLinkImage, {
       isNull: (link) => link.imageUrl == null,
     }),
+    creator: t.relation("creator", { nullable: true }),
   }),
 });
 

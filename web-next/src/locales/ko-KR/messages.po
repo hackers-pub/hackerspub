@@ -535,6 +535,10 @@ msgstr "언어 설정"
 msgid "Last used {0}"
 msgstr "{0}에 마지막 사용"
 
+#: src/components/NoteCard.tsx:438
+msgid "Link author: "
+msgstr "링크 저자: "
+
 #: src/routes/(root)/[handle]/settings/index.tsx:563
 msgid "Link name"
 msgstr "링크 이름"

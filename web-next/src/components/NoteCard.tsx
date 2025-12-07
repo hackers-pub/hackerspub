@@ -12,6 +12,7 @@ import {
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
 import { VisibilityTag } from "~/components/VisibilityTag.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { NoteCard_link$key } from "./__generated__/NoteCard_link.graphql.ts";
 import { NoteCard_media$key } from "./__generated__/NoteCard_media.graphql.ts";
 import { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
@@ -42,6 +43,12 @@ export function NoteCard(props: NoteCardProps) {
         quotedPost {
           ...QuotedPostCard_post
         }
+        media {
+          id
+        }
+        link {
+          id
+        }
       }
     `,
     () => props.$note,
@@ -66,7 +73,10 @@ export function NoteCard(props: NoteCardProps) {
                 </Show>
                 <PostControls
                   $note={note()}
-                  classList={{ "mt-4": note().quotedPost == null }}
+                  classList={{
+                    "mt-4": note().quotedPost == null && note().link == null &&
+                      note().media.length < 1,
+                  }}
                 />
               </>
             }
@@ -308,6 +318,7 @@ interface LinkPreviewProps {
 }
 
 function LinkPreview(props: LinkPreviewProps) {
+  const { t } = useLingui();
   const note = createFragment(
     graphql`
       fragment NoteCard_link on Note {
@@ -328,6 +339,16 @@ function LinkPreview(props: LinkPreviewProps) {
             width
             height
             alt
+          }
+          creator {
+            name
+            local
+            username
+            handle
+            avatarInitials
+            avatarUrl
+            url
+            iri
           }
         }
       }
@@ -357,7 +378,7 @@ function LinkPreview(props: LinkPreviewProps) {
               target="_blank"
               rel="noopener noreferrer"
               data-layout={layoutMode}
-              class="border border-border bg-muted max-w-prose grid data-[layout=wide]:grid-cols-1 data-[layout=compact]:grid-cols-[auto_1fr] gap-0"
+              class="border-t border-border bg-muted max-w-prose grid data-[layout=wide]:grid-cols-1 data-[layout=compact]:grid-cols-[auto_1fr] gap-0"
             >
               <Show when={image}>
                 {(img) => (
@@ -411,6 +432,45 @@ function LinkPreview(props: LinkPreviewProps) {
                 </p>
               </div>
             </a>
+            <Show when={link().creator}>
+              {(creator) => (
+                <div class="bg-border p-4 flex gap-1.5">
+                  <span>{t`Link author: `}</span>
+                  <Avatar class="size-6">
+                    <InternalLink
+                      href={creator().url ?? creator().iri}
+                      internalHref={creator().local
+                        ? `/@${creator().username}`
+                        : `/${creator().handle}`}
+                    >
+                      <AvatarImage
+                        src={creator().avatarUrl}
+                        class="size-6"
+                      />
+                      <AvatarFallback class="size-6">
+                        {creator().avatarInitials}
+                      </AvatarFallback>
+                    </InternalLink>
+                  </Avatar>
+                  <div>
+                    <Show when={(creator().name ?? "").trim() !== ""}>
+                      <InternalLink
+                        href={creator().url ?? creator().iri}
+                        internalHref={creator().local
+                          ? `/@${creator().username}`
+                          : `/${creator().handle}`}
+                        innerHTML={creator().name ?? ""}
+                        class="font-semibold"
+                      />
+                      {" "}
+                    </Show>
+                    <span class="select-all text-muted-foreground">
+                      {creator().handle}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </Show>
           </div>
         );
       }}

@@ -535,6 +535,10 @@ msgstr "言語設定"
 msgid "Last used {0}"
 msgstr "{0}に最終使用"
 
+#: src/components/NoteCard.tsx:438
+msgid "Link author: "
+msgstr "リンクの著者："
+
 #: src/routes/(root)/[handle]/settings/index.tsx:563
 msgid "Link name"
 msgstr "リンク名"

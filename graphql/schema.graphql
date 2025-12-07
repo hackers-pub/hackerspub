@@ -741,6 +741,7 @@ type PostEngagementStats {
 
 type PostLink implements Node {
   author: String
+  creator: Actor
   description: String
   id: ID!
   image: PostLinkImage
