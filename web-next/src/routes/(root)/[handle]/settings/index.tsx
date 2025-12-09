@@ -70,7 +70,7 @@ export const route = {
     handle: /^@[^@]+$/,
   },
   preload(args) {
-    void loadPageQuery(args.params.handle);
+    void loadPageQuery(args.params.handle!);
   },
 } satisfies RouteDefinition;
 
@@ -124,7 +124,7 @@ export default function SettingsPage() {
   const { t } = useLingui();
   const data = createPreloadedQuery<settingsPageQuery>(
     settingsPageQuery,
-    () => loadPageQuery(params.handle),
+    () => loadPageQuery(params.handle!),
   );
   return (
     <Show when={data()}>

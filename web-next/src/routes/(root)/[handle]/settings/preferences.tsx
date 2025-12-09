@@ -45,7 +45,7 @@ export const route = {
     handle: /^@[^@]+$/,
   },
   preload(args) {
-    void loadPreferencesPageQuery(args.params.handle);
+    void loadPreferencesPageQuery(args.params.handle!);
   },
 } satisfies RouteDefinition;
 
@@ -109,7 +109,7 @@ export default function PreferencesPage() {
   let preferAiSummaryDiv: HTMLDivElement | undefined;
   const data = createPreloadedQuery<preferencesPageQuery>(
     preferencesPageQuery,
-    () => loadPreferencesPageQuery(params.handle),
+    () => loadPreferencesPageQuery(params.handle!),
   );
   const [noteVisibility, setNoteVisibility] = createSignal<
     PostVisibility | undefined

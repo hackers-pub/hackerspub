@@ -26,7 +26,7 @@ export const route = {
     handle: /^@/,
   },
   preload(args) {
-    void loadPageQuery(args.params.handle);
+    void loadPageQuery(args.params.handle!);
   },
 } satisfies RouteDefinition;
 
@@ -59,7 +59,7 @@ export default function ProfileNotesPage() {
   const { t } = useLingui();
   const data = createPreloadedQuery<notesPageQuery>(
     notesPageQuery,
-    () => loadPageQuery(params.handle),
+    () => loadPageQuery(params.handle!),
   );
   return (
     <Show when={data()}>

@@ -67,7 +67,7 @@ export const route = {
     handle: /^@[^@]+$/,
   },
   preload(args) {
-    void loadPageQuery(args.params.handle);
+    void loadPageQuery(args.params.handle!);
   },
 } satisfies RouteDefinition;
 
@@ -176,7 +176,7 @@ export default function passkeysPage() {
 
   const data = createPreloadedQuery<passkeysPageQuery>(
     passkeysPageQuery,
-    () => loadPageQuery(params.handle),
+    () => loadPageQuery(params.handle!),
   );
 
   const [getOptions] = createMutation<

@@ -30,8 +30,8 @@ export const route = {
     handle: /^@/,
   },
   preload(args) {
-    const username = args.params.handle;
-    const noteId = args.params.noteId;
+    const username = args.params.handle!;
+    const noteId = args.params.noteId!;
     if (!validateUuid(noteId)) {
       throw new Error("Invalid Request"); // FIXME
     }
@@ -66,8 +66,8 @@ const loadPageQuery = query(
 
 export default function NotePage() {
   const params = useParams();
-  const noteId = params.noteId;
-  const username = params.handle.substring(1);
+  const noteId = params.noteId!;
+  const username = params.handle!.substring(1);
 
   if (!validateUuid(noteId)) {
     return <HttpStatusCode code={404} />;

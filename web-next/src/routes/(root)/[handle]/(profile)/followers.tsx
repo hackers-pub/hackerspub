@@ -24,7 +24,7 @@ export const route = {
     handle: /^@[^@]+$/,
   },
   preload(args) {
-    const username = args.params.handle;
+    const username = args.params.handle!;
     void loadPageQuery(username.substring(1));
   },
 } satisfies RouteDefinition;
@@ -56,7 +56,7 @@ const loadPageQuery = query(
 export default function ProfileFollowersPage() {
   const params = useParams();
   const { t } = useLingui();
-  const username = params.handle.substring(1);
+  const username = params.handle!.substring(1);
   const data = createPreloadedQuery<followersPageQuery>(
     followersPageQuery,
     () => loadPageQuery(username),

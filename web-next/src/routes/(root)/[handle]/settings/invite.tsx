@@ -58,7 +58,7 @@ export const route = {
     handle: /^@[^@]+$/,
   },
   preload(args) {
-    void loadInvitePageQuery(args.params.handle);
+    void loadInvitePageQuery(args.params.handle!);
   },
 } satisfies RouteDefinition;
 
@@ -134,7 +134,7 @@ export default function InvitePage() {
   const { t, i18n } = useLingui();
   const data = createPreloadedQuery<invitePageQuery>(
     invitePageQuery,
-    () => loadInvitePageQuery(params.handle),
+    () => loadInvitePageQuery(params.handle!),
   );
   const [inviterError, setInviterError] = createSignal<
     InviteInviterError | undefined

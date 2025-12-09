@@ -22,7 +22,7 @@ export const route = {
   },
   preload(args) {
     const { i18n } = useLingui();
-    void loadPageQuery(args.params.handle, i18n.locale);
+    void loadPageQuery(args.params.handle!, i18n.locale);
   },
 } satisfies RouteDefinition;
 
@@ -57,7 +57,7 @@ export default function ProfilePage() {
   const params = useParams();
   const data = createPreloadedQuery<ProfilePageQuery>(
     ProfilePageQuery,
-    () => loadPageQuery(params.handle, i18n.locale),
+    () => loadPageQuery(params.handle!, i18n.locale),
   );
   return (
     <Show when={data()}>

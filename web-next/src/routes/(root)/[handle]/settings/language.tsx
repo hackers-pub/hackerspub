@@ -43,7 +43,7 @@ export const route = {
     handle: /^@[^@]+$/,
   },
   preload(args) {
-    void loadLanguagePageQuery(args.params.handle);
+    void loadLanguagePageQuery(args.params.handle!);
   },
 } satisfies RouteDefinition;
 
@@ -80,7 +80,7 @@ export default function LanguagePage() {
   const { t } = useLingui();
   const data = createPreloadedQuery<languagePageQuery>(
     languagePageQuery,
-    () => loadLanguagePageQuery(params.handle),
+    () => loadLanguagePageQuery(params.handle!),
   );
 
   return (
