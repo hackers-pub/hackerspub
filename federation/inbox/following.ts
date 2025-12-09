@@ -33,7 +33,7 @@ export async function onFollowAccepted(
   fedCtx: InboxContext<ContextData>,
   accept: Accept,
 ): Promise<void> {
-  const follow = await accept.getObject(fedCtx);
+  const follow = await accept.getObject({ ...fedCtx, crossOrigin: "trust" });
   if (!(follow instanceof Follow)) return;
   else if (follow.objectId == null) return;
   else if (accept.actorId?.href !== follow.objectId.href) return;
@@ -58,7 +58,7 @@ export async function onFollowRejected(
   fedCtx: InboxContext<ContextData>,
   reject: Reject,
 ): Promise<void> {
-  const follow = await reject.getObject(fedCtx);
+  const follow = await reject.getObject({ ...fedCtx, crossOrigin: "trust" });
   if (reject.actorId == null) return;
   if (!(follow instanceof Follow) || follow.id == null) return;
   if (follow.objectId?.href !== reject.actorId?.href) return;
