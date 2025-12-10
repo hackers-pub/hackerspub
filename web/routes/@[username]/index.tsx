@@ -159,6 +159,7 @@ export const handler = define.handlers({
         { property: "og:image:width", content: 1200 },
         { property: "og:image:height", content: 630 },
         { property: "profile:username", content: account.username },
+        { name: "twitter:card", content: "summary_large_image" },
       );
       const actorUri = ctx.state.fedCtx.getActorUri(account.id);
       ctx.state.links.push(

@@ -142,6 +142,7 @@ export const handler = define.handlers({
       },
       { property: "og:image:width", content: 1200 },
       { property: "og:image:height", content: 630 },
+      { name: "twitter:card", content: "summary_large_image" },
     );
     ctx.state.links.push(
       { rel: "canonical", href: new URL("/", ctx.state.canonicalOrigin).href },
