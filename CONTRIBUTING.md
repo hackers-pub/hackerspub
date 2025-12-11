@@ -231,6 +231,26 @@ the server to be accessible over HTTPS.
 [2]: https://ngrok.com/docs/getting-started/
 
 
+Running web-next
+----------------
+
+To run web-next, the new web frontend for Hackers' Pub, follow these steps:
+
+ 1. Navigate to the *web-next/* directory.
+
+ 2. Install [watchman]. This is to run `relay-compiler` whenever files are
+    changed.
+
+ 3. Run the development server with the command
+    `VITE_API_URL=http://localhost:8000/graphql deno task dev`.
+    The legacy server must be running at this point, as it also serves as
+    the GraphQL API server for web-next.
+
+ 4. Access http://localhost:3000/ to see the new look of Hackers' Pub.
+
+[watchman]: https://facebook.github.io/watchman/docs/install
+
+
 Setting up Visual Studio Code
 -----------------------------
 
