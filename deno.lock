@@ -203,6 +203,7 @@
     "npm:satori@~0.11.3": "0.11.3",
     "npm:sharp@~0.33.5": "0.33.5",
     "npm:shiki@^3.8.1": "3.12.2",
+    "npm:solid-devtools@~0.34.4": "0.34.4_solid-js@1.9.10__seroval@1.3.2_@babel+core@7.28.3",
     "npm:solid-js@^1.9.10": "1.9.10_seroval@1.3.2",
     "npm:solid-relay@1.0.0-beta.15": "1.0.0-beta.15_relay-runtime@19.0.0_seroval@1.3.2_solid-js@1.9.10__seroval@1.3.2",
     "npm:ssrfcheck@^1.2.0": "1.2.0",
@@ -3250,6 +3251,9 @@
         "fastq"
       ]
     },
+    "@nothing-but/utils@0.17.0": {
+      "integrity": "sha512-TuCHcHLOqDL0SnaAxACfuRHBNRgNJcNn9X0GiH5H3YSDBVquCr3qEIG3FOQAuMyZCbu9w8nk2CHhOsn7IvhIwQ=="
+    },
     "@oozcitak/dom@1.15.10": {
       "integrity": "sha512-0JT29/LaxVgRcGKvHmSrUTEvZ8BXvZhGl2LASRUgHqDTC1M5g1pLmVv56IYNyt3bG2CUjDkc67wnyZC14pbQrQ==",
       "dependencies": [
@@ -4685,9 +4689,58 @@
         "tslib@2.8.1"
       ]
     },
+    "@solid-devtools/debugger@0.28.1_solid-js@1.9.10__seroval@1.3.2": {
+      "integrity": "sha512-6qIUI6VYkXoRnL8oF5bvh2KgH71qlJ18hNw/mwSyY6v48eb80ZR48/5PDXufUa3q+MBSuYa1uqTMwLewpay9eg==",
+      "dependencies": [
+        "@nothing-but/utils",
+        "@solid-devtools/shared",
+        "@solid-primitives/bounds",
+        "@solid-primitives/event-listener",
+        "@solid-primitives/keyboard",
+        "@solid-primitives/rootless",
+        "@solid-primitives/scheduled",
+        "@solid-primitives/static-store",
+        "@solid-primitives/utils",
+        "solid-js"
+      ]
+    },
+    "@solid-devtools/shared@0.20.0_solid-js@1.9.10__seroval@1.3.2": {
+      "integrity": "sha512-o5TACmUOQsxpzpOKCjbQqGk8wL8PMi+frXG9WNu4Lh3PQVUB6hs95Kl/S8xc++zwcMguUKZJn8h5URUiMOca6Q==",
+      "dependencies": [
+        "@nothing-but/utils",
+        "@solid-primitives/event-listener",
+        "@solid-primitives/media",
+        "@solid-primitives/refs",
+        "@solid-primitives/rootless",
+        "@solid-primitives/scheduled",
+        "@solid-primitives/static-store",
+        "@solid-primitives/styles",
+        "@solid-primitives/utils",
+        "solid-js"
+      ]
+    },
+    "@solid-primitives/bounds@0.1.3_solid-js@1.9.10__seroval@1.3.2": {
+      "integrity": "sha512-UbiyKMdSPmtijcEDnYLQL3zzaejpwWDAJJ4Gt5P0hgVs6A72piov0GyNw7V2SroH7NZFwxlYS22YmOr8A5xc1Q==",
+      "dependencies": [
+        "@solid-primitives/event-listener",
+        "@solid-primitives/resize-observer",
+        "@solid-primitives/static-store",
+        "@solid-primitives/utils",
+        "solid-js"
+      ]
+    },
     "@solid-primitives/event-listener@2.4.3_solid-js@1.9.10__seroval@1.3.2": {
       "integrity": "sha512-h4VqkYFv6Gf+L7SQj+Y6puigL/5DIi7x5q07VZET7AWcS+9/G3WfIE9WheniHWJs51OEkRB43w6lDys5YeFceg==",
       "dependencies": [
+        "@solid-primitives/utils",
+        "solid-js"
+      ]
+    },
+    "@solid-primitives/keyboard@1.3.3_solid-js@1.9.10__seroval@1.3.2": {
+      "integrity": "sha512-9dQHTTgLBqyAI7aavtO+HnpTVJgWQA1ghBSrmLtMu1SMxLPDuLfuNr+Tk5udb4AL4Ojg7h9JrKOGEEDqsJXWJA==",
+      "dependencies": [
+        "@solid-primitives/event-listener",
+        "@solid-primitives/rootless",
         "@solid-primitives/utils",
         "solid-js"
       ]
@@ -4746,9 +4799,23 @@
         "solid-js"
       ]
     },
+    "@solid-primitives/scheduled@1.5.2_solid-js@1.9.10__seroval@1.3.2": {
+      "integrity": "sha512-/j2igE0xyNaHhj6kMfcUQn5rAVSTLbAX+CDEBm25hSNBmNiHLu2lM7Usj2kJJ5j36D67bE8wR1hBNA8hjtvsQA==",
+      "dependencies": [
+        "solid-js"
+      ]
+    },
     "@solid-primitives/static-store@0.1.2_solid-js@1.9.10__seroval@1.3.2": {
       "integrity": "sha512-ReK+5O38lJ7fT+L6mUFvUr6igFwHBESZF+2Ug842s7fvlVeBdIVEdTCErygff6w7uR6+jrr7J8jQo+cYrEq4Iw==",
       "dependencies": [
+        "@solid-primitives/utils",
+        "solid-js"
+      ]
+    },
+    "@solid-primitives/styles@0.1.2_solid-js@1.9.10__seroval@1.3.2": {
+      "integrity": "sha512-7iX5K+J5b1PRrbgw3Ki92uvU2LgQ0Kd/QMsrAZxDg5dpUBwMyTijZkA3bbs1ikZsT1oQhS41bTyKbjrXeU0Awg==",
+      "dependencies": [
+        "@solid-primitives/rootless",
         "@solid-primitives/utils",
         "solid-js"
       ]
@@ -10980,6 +11047,17 @@
         "tslib@2.8.1"
       ]
     },
+    "solid-devtools@0.34.4_solid-js@1.9.10__seroval@1.3.2_@babel+core@7.28.3": {
+      "integrity": "sha512-/s/pPTLvTkuXGZhLfsuvp7ge/cdpEwrUPoRwoJPYgz74GTUSb5Ozi2V6Z6HkO0ILT7hXB04j16HbH1aaP5VFOA==",
+      "dependencies": [
+        "@babel/core",
+        "@babel/plugin-syntax-typescript",
+        "@babel/types@7.28.5",
+        "@solid-devtools/debugger",
+        "@solid-devtools/shared",
+        "solid-js"
+      ]
+    },
     "solid-js@1.9.10_seroval@1.3.2": {
       "integrity": "sha512-Coz956cos/EPDlhs6+jsdTxKuJDPT7B5SVIWgABwROyxjY7Xbr8wkzD68Et+NxnV7DLJ3nJdAC2r9InuV/4Jew==",
       "dependencies": [
@@ -12444,6 +12522,7 @@
             "npm:regexp.escape@^2.0.1",
             "npm:relay-compiler@19",
             "npm:relay-runtime@19",
+            "npm:solid-devtools@~0.34.4",
             "npm:solid-js@^1.9.10",
             "npm:solid-relay@1.0.0-beta.15",
             "npm:tailwind-merge@^3.3.1",
