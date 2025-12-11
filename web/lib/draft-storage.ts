@@ -1,4 +1,5 @@
 import { POST_VISIBILITIES } from "@hackerspub/models/schema";
+import type { Uuid } from "@hackerspub/models/uuid";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import * as v from "@valibot/valibot";
@@ -43,7 +44,11 @@ const NoteDraftSchema = v.object({
     alt: v.string(),
   })),
   quotedPostId: v.nullable(
-    v.pipe(v.string(), v.check((input) => validateUuid(input))),
+    v.pipe(
+      v.string(),
+      v.check((input) => validateUuid(input)),
+      v.transform((input) => input as Uuid),
+    ),
   ),
   timestamp: v.number(),
 });
