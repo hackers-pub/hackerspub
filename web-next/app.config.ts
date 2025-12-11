@@ -2,6 +2,7 @@ import deno from "@deno/vite-plugin";
 import { lingui } from "@lingui/vite-plugin";
 import { defineConfig } from "@solidjs/start/config";
 import tailwindcss from "@tailwindcss/vite";
+import devtools from "solid-devtools/vite";
 import { cjsInterop } from "vite-plugin-cjs-interop";
 import relay from "vite-plugin-relay-lite";
 
@@ -16,6 +17,14 @@ export default defineConfig({
       },
     },
     plugins: [
+      devtools({
+        autoname: true,
+        locator: {
+          targetIDE: "vscode",
+          jsxLocation: true,
+          componentLocation: true,
+        },
+      }),
       deno(),
       tailwindcss(),
       lingui(),
