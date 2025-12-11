@@ -6,11 +6,18 @@ import type { Actor, Post, PostVisibility } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { getFixedT } from "i18next";
 import type { JSX } from "preact";
-import { useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { Button } from "../components/Button.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { TextArea } from "../components/TextArea.tsx";
 import { type Language, SUPPORTED_LANGUAGES } from "../i18n.ts";
+import {
+  clearNoteDraft,
+  getNoteDraft,
+  hasDraft,
+  type NoteDraft,
+  saveNoteDraft,
+} from "../lib/draft-storage.ts";
 import { MarkupTextArea } from "./MarkupTextArea.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
 
@@ -75,6 +82,12 @@ export function Composer(props: ComposerProps) {
   );
   const [quoteLoading, setQuoteLoading] = useState(false);
 
+  // Draft auto-save states
+  const [savedDraft, setSavedDraft] = useState<NoteDraft | null>(null);
+  const [showDraftSaved, setShowDraftSaved] = useState(false);
+  const saveTimeoutRef = useRef<number | null>(null);
+  const hideIndicatorTimeoutRef = useRef<number | null>(null);
+
   function onInput(event: JSX.TargetedInputEvent<HTMLTextAreaElement>) {
     if (contentLanguageManuallySet) return;
     const value = event.currentTarget.value;
@@ -82,6 +95,14 @@ export function Composer(props: ComposerProps) {
     // FIXME: `acceptLanguage === null` ok?
     const detected = detectLanguage({ text: value, acceptLanguage: null });
     if (detected != null) setContentLanguage(detected);
+
+    // Clear draft if content becomes empty
+    if (!value.trim() && hasDraft()) {
+      clearNoteDraft();
+      setSavedDraft(null);
+    } else {
+      scheduleDraftSave();
+    }
   }
 
   function onKeyPress(event: JSX.TargetedKeyboardEvent<HTMLTextAreaElement>) {
@@ -241,6 +262,7 @@ export function Composer(props: ComposerProps) {
       return;
     }
     setContent("");
+    clearNoteDraft(); // Clear draft after successful post
     if (props.onPost === "reload") location.reload();
     else if (props.onPost === "post.url") {
       location.href = post.url;
@@ -251,6 +273,113 @@ export function Composer(props: ComposerProps) {
     event.preventDefault();
     setSubmitting(true);
     submit(event.currentTarget);
+  }
+
+  const saveDraft = useCallback(() => {
+    // Skip if nothing to save (empty content)
+    if (!content.trim() && media.length === 0) return;
+
+    const currentDraft: NoteDraft = {
+      content,
+      visibility,
+      language: contentLanguage,
+      media,
+      quotedPostId,
+      timestamp: Date.now(),
+    };
+
+    // Skip if nothing changed
+    if (
+      savedDraft &&
+      savedDraft.content === currentDraft.content &&
+      savedDraft.visibility === currentDraft.visibility &&
+      savedDraft.language === currentDraft.language &&
+      JSON.stringify(savedDraft.media) === JSON.stringify(currentDraft.media) &&
+      savedDraft.quotedPostId === currentDraft.quotedPostId
+    ) {
+      return;
+    }
+
+    // Save to localStorage
+    const success = saveNoteDraft(currentDraft);
+
+    if (success) {
+      setSavedDraft(currentDraft);
+      setShowDraftSaved(true);
+
+      // Clear existing hide timeout
+      if (hideIndicatorTimeoutRef.current !== null) {
+        clearTimeout(hideIndicatorTimeoutRef.current);
+      }
+
+      // Hide indicator after 3s
+      hideIndicatorTimeoutRef.current = setTimeout(() => {
+        setShowDraftSaved(false);
+      }, 3000);
+    }
+  }, [content, visibility, contentLanguage, media, quotedPostId, savedDraft]);
+
+  const scheduleDraftSave = useCallback(() => {
+    // Clear existing timeout
+    if (saveTimeoutRef.current !== null) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Schedule new save after 1.5 seconds
+    saveTimeoutRef.current = setTimeout(() => {
+      saveDraft();
+    }, 1500);
+  }, [saveDraft]);
+
+  // Load draft on mount
+  useEffect(() => {
+    const draft = getNoteDraft();
+    if (draft && !props.quotedPostId && !props.commentTargets) {
+      setSavedDraft(draft);
+    }
+  }, []);
+
+  // Auto-save when media changes
+  useEffect(() => {
+    if (media.length > 0 || savedDraft?.media.length) {
+      scheduleDraftSave();
+    }
+  }, [media, savedDraft?.media.length, scheduleDraftSave]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current !== null) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      if (hideIndicatorTimeoutRef.current !== null) {
+        clearTimeout(hideIndicatorTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  function handleVisibilityChange(visibility: PostVisibility) {
+    setVisibility(visibility);
+    scheduleDraftSave();
+  }
+
+  function onRestoreDraft() {
+    if (savedDraft == null) return;
+
+    setContent(savedDraft.content);
+    setVisibility(savedDraft.visibility);
+    setContentLanguage(savedDraft.language);
+    setMedia(savedDraft.media);
+    setQuotedPostId(savedDraft.quotedPostId);
+    clearNoteDraft();
+    setSavedDraft(null);
+  }
+
+  function onClearDraft() {
+    if (confirm(t("composer.clearDraftConfirm"))) {
+      clearNoteDraft();
+      setSavedDraft(null);
+    }
   }
 
   return (
@@ -334,10 +463,16 @@ export function Composer(props: ComposerProps) {
             class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2"
             aria-label={t("composer.visibility")}
             value={visibility}
-            onSelect={(event) =>
-              setVisibility(event.currentTarget.value as PostVisibility)}
-            onChange={(event) =>
-              setVisibility(event.currentTarget.value as PostVisibility)}
+            onSelect={(event) => {
+              handleVisibilityChange(
+                event.currentTarget.value as PostVisibility,
+              );
+            }}
+            onChange={(event) => {
+              handleVisibilityChange(
+                event.currentTarget.value as PostVisibility,
+              );
+            }}
           >
             <option value="public">
               <Msg $key="postVisibility.public" />
@@ -357,7 +492,13 @@ export function Composer(props: ComposerProps) {
               name="language"
               class="border-[1px] bg-stone-200 border-stone-500 dark:bg-stone-700 dark:border-stone-600 dark:text-white cursor-pointer p-2 w-full lg:w-auto lg:max-w-96"
               aria-label={t("composer.language")}
-              onSelect={() => setContentLanguageManually(true)}
+              onSelect={() => {
+                setContentLanguageManually(true);
+                scheduleDraftSave();
+              }}
+              onChange={() => {
+                scheduleDraftSave();
+              }}
             >
               {POSSIBLE_LOCALES
                 .map((
@@ -410,13 +551,74 @@ export function Composer(props: ComposerProps) {
               <Msg $key="composer.markdownEnabled" />
             </span>
           </a>
+          {(savedDraft || hasDraft()) && !content.trim() && (
+            <div class="flex flex-row gap-2 lg:contents">
+              {savedDraft && (
+                <Button
+                  type="button"
+                  onClick={onRestoreDraft}
+                  class="grow lg:grow-0"
+                  title={t("composer.restoreDraft")}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    class="size-5 inline-block"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                    />
+                  </svg>
+                  <span class="ml-1 lg:hidden xl:inline">
+                    <Msg $key="composer.restoreDraft" />
+                  </span>
+                </Button>
+              )}
+              {hasDraft() && (
+                <Button
+                  type="button"
+                  onClick={onClearDraft}
+                  class="grow lg:grow-0"
+                  title={t("composer.clearDraft")}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    class="size-5 inline-block"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                    />
+                  </svg>
+                  <span class="ml-1 lg:hidden xl:inline">
+                    <Msg $key="composer.clearDraft" />
+                  </span>
+                </Button>
+              )}
+            </div>
+          )}
           <div class="flex flex-row gap-2">
             {!quoteLoading && quotedPostId != null && (
               <>
                 <Button
                   type="button"
                   class="grow"
-                  onClick={() => setQuotedPostId(null)}
+                  onClick={() => {
+                    setQuotedPostId(null);
+                    scheduleDraftSave();
+                  }}
                 >
                   <Msg $key="composer.removeQuote" />
                 </Button>
@@ -511,12 +713,13 @@ export function Composer(props: ComposerProps) {
                   type="button"
                   title={t("composer.removeMedium")}
                   class="hover:bg-stone-200 hover:dark:bg-stone-700"
-                  onClick={() =>
+                  onClick={() => {
                     setMedia((media) =>
                       media.filter((_, i) =>
                         i !== idx
                       )
-                    )}
+                    );
+                  }}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -539,6 +742,23 @@ export function Composer(props: ComposerProps) {
           </div>
         )}
       </form>
+      {/* Auto-save indicator */}
+      {showDraftSaved && savedDraft && (
+        <div
+          class="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 bg-stone-800 dark:bg-stone-700 text-white text-sm px-4 py-2 rounded-lg shadow-lg opacity-90 transition-opacity duration-300"
+          role="status"
+          aria-live="polite"
+        >
+          ✓ <Msg $key="composer.draftSaved" />{" "}
+          {new Date(savedDraft.timestamp).toLocaleTimeString(
+            props.language,
+            {
+              hour: "numeric",
+              minute: "2-digit",
+            },
+          )}
+        </div>
+      )}
     </TranslationSetup>
   );
 }
