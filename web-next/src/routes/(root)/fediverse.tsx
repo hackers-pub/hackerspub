@@ -8,12 +8,6 @@ import {
 } from "solid-relay";
 import { AboutHackersPub } from "~/components/AboutHackersPub.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
-import { TopBreadcrumb } from "~/components/TopBreadcrumb.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
 
@@ -70,16 +64,6 @@ export default function FediverseTimeline() {
     <Show when={data()}>
       {(data) => (
         <>
-          <TopBreadcrumb>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/">{t`Timeline`}</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink current>{t`Fediverse`}</BreadcrumbLink>
-            </BreadcrumbItem>
-          </TopBreadcrumb>
           <Show when={data().viewer == null}>
             <AboutHackersPub />
           </Show>
