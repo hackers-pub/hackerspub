@@ -169,7 +169,7 @@ export function PostControls(props: PostControlsProps) {
     <Show when={note()}>
       {(note) => (
         <div
-          class={`flex items-center justify-evenly gap-1 p-2 ${
+          class={`flex items-center justify-between gap-1 -mx-2 pr-20 ${
             props.class ?? ""
           }`}
           classList={props.classList}
