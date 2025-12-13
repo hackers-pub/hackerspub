@@ -42,11 +42,7 @@ export default function FeedTimeline() {
 
   return (
     <Show when={data()}>
-      {(data) => (
-        <div class="p-4">
-          <PersonalTimeline $posts={data()} />
-        </div>
-      )}
+      {(data) => <PersonalTimeline $posts={data()} />}
     </Show>
   );
 }

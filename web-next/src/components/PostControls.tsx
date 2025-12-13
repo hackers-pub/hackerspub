@@ -169,7 +169,9 @@ export function PostControls(props: PostControlsProps) {
     <Show when={note()}>
       {(note) => (
         <div
-          class={`flex items-center gap-1 p-2 border-t ${props.class ?? ""}`}
+          class={`flex items-center justify-evenly gap-1 p-2 ${
+            props.class ?? ""
+          }`}
           classList={props.classList}
         >
           {/* Reply Button */}
