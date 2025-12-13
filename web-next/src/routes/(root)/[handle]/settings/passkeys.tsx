@@ -19,7 +19,6 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -34,11 +33,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   Card,
@@ -81,9 +75,6 @@ const passkeysPageQuery = graphql`
       username
       ...SettingsTabs_account
       ...passkeysFragment_account @arguments(first: $first, after: $after)
-      actor {
-        ...ProfilePageBreadcrumb_actor
-      }
     }
   }
 `;
@@ -373,20 +364,6 @@ export default function passkeysPage() {
             {(account) => (
               <>
                 <Title>{t`Passkeys`}</Title>
-                <ProfilePageBreadcrumb $actor={account().actor}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href={`/@${account().username}/settings`}>
-                      {t`Settings`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Passkeys`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
                 <div class="p-4">
                   <div class="mx-auto max-w-prose">
                     <SettingsTabs selected="passkeys" $account={account()} />

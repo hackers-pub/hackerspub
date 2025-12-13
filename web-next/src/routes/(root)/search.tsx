@@ -17,13 +17,7 @@ import {
 } from "solid-relay";
 import { SearchGuide } from "~/components/SearchGuide.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
-import { TopBreadcrumb } from "~/components/TopBreadcrumb.tsx";
 import { Trans } from "~/components/Trans.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { searchObjectPageQuery } from "./__generated__/searchObjectPageQuery.graphql.ts";
 import type { searchPostsPageQuery } from "./__generated__/searchPostsPageQuery.graphql.ts";
@@ -129,14 +123,7 @@ export default function SearchPage() {
   );
 
   return (
-    <>
-      <TopBreadcrumb>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink current>{t`Search`}</BreadcrumbLink>
-        </BreadcrumbItem>
-      </TopBreadcrumb>
-      <div class="p-4">
+    <div class="p-4">
         <div class="mb-6 relative">
           <form
             method="get"
@@ -177,7 +164,6 @@ export default function SearchPage() {
           />
         </Show>
       </div>
-    </>
   );
 }
 

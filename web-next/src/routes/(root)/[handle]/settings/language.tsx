@@ -16,14 +16,8 @@ import {
 } from "solid-relay";
 import { LanguageList } from "~/components/LanguageList.tsx";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Title } from "~/components/Title.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   Card,
@@ -57,9 +51,6 @@ const languagePageQuery = graphql`
       username
       ...SettingsTabs_account
       ...languagePreferredLanguagesForm_locales
-      actor {
-        ...ProfilePageBreadcrumb_actor
-      }
     }
   }
 `;
@@ -109,20 +100,6 @@ export default function LanguagePage() {
             {(account) => (
               <>
                 <Title>{t`Language settings`}</Title>
-                <ProfilePageBreadcrumb $actor={account().actor}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href={`/@${account().username}/settings`}>
-                      {t`Settings`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Language settings`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
                 <div class="p-4">
                   <div class="mx-auto max-w-prose">
                     <SettingsTabs

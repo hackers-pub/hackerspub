@@ -10,7 +10,6 @@ import {
 import { ActorPostList } from "~/components/ActorPostList.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -35,7 +34,6 @@ const ProfilePageQuery = graphql`
       iri
       ...NavigateIfHandleIsNotCanonical_actor
       ...ActorPostList_posts @arguments(locale: $locale)
-      ...ProfilePageBreadcrumb_actor
       ...ProfileCard_actor
       ...ProfileTabs_actor
     }
@@ -83,7 +81,6 @@ export default function ProfilePage() {
                 />
                 <Meta property="profile:username" content={actor().username} />
                 <NavigateIfHandleIsNotCanonical $actor={actor()} />
-                <ProfilePageBreadcrumb $actor={actor()} />
                 <div>
                   <ProfileCard $actor={actor()} />
                 </div>

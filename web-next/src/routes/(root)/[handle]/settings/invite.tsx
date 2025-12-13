@@ -15,16 +15,10 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   Card,
@@ -71,9 +65,6 @@ const invitePageQuery = graphql`
       id
       username
       invitationsLeft
-      actor {
-        ...ProfilePageBreadcrumb_actor
-      }
       inviteesCount: invitees {
         totalCount
       }
@@ -225,20 +216,6 @@ export default function InvitePage() {
             {(account) => (
               <>
                 <Title>{t`Invite`}</Title>
-                <ProfilePageBreadcrumb $actor={account().actor}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href={`/@${account().username}/settings`}>
-                      {t`Settings`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Invite`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
                 <div class="p-4">
                   <div class="mx-auto max-w-prose">
                     <SettingsTabs

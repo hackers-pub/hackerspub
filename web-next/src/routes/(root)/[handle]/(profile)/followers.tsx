@@ -9,13 +9,7 @@ import {
 } from "solid-relay";
 import { ActorFollowerList } from "~/components/ActorFollowerList.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { Title } from "~/components/Title.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { followersPageQuery } from "./__generated__/followersPageQuery.graphql.ts";
 
@@ -35,7 +29,6 @@ const followersPageQuery = graphql`
       name
       username
       actor {
-        ...ProfilePageBreadcrumb_actor
         ...ProfileCard_actor
         ...ActorFollowerList_followers
       }
@@ -75,14 +68,6 @@ export default function ProfileFollowersPage() {
                   property="og:title"
                   content={t`${account().name}'s followers`}
                 />
-                <ProfilePageBreadcrumb $actor={account().actor}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Followers`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
                 <div>
                   <ProfileCard $actor={account().actor} />
                 </div>
