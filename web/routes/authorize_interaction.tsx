@@ -124,7 +124,7 @@ export default define.page<typeof handler, AuthorizedInteractionProps>(
                       </h3>
                     )}
                     <p class="text-sm text-gray-600 dark:text-gray-400 truncate">
-                      @{actor.handle}
+                      {actor.handle}
                     </p>
                     {actor.instance && (
                       <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
