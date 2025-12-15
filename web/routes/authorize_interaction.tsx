@@ -54,11 +54,7 @@ export const handler = define.handlers({
           });
 
           if (persistedActor != null) {
-            const refetchedActor = await db.query.actorTable.findFirst({
-              where: { id: persistedActor.id },
-              with: { instance: true },
-            });
-            actor = refetchedActor ?? null;
+            actor = persistedActor;
           }
         }
       }
