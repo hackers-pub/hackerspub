@@ -451,5 +451,14 @@
       "serverError": "伺服器發生錯誤。",
       "templateNotFoundError": "未找到該聯邦宇宙使用者名稱的遠端關注範本。"
     }
+  },
+  "authorizedInteraction": {
+    "title": "遠端關注",
+    "subtitle": "從你的帳戶關注",
+    "description": "你即將從你的帳戶關注 {{uri}}。",
+    "noUri": "未提供使用者 URI。此頁面需要 'uri' 查詢參數。",
+    "loggedInAs": "目前登入帳戶：",
+    "cancel": "取消",
+    "followButton": "關注"
   }
 }
