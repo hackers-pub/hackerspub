@@ -3,11 +3,14 @@ import type * as vocab from "@fedify/fedify/vocab";
 import { page } from "@fresh/core";
 import { persistActor } from "@hackerspub/models/actor";
 import type { Actor, Instance } from "@hackerspub/models/schema";
+import { getLogger } from "@logtape/logtape";
 import { Button } from "../components/Button.tsx";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { db } from "../db.ts";
 import { define } from "../utils.ts";
+
+const logger = getLogger(["hackerspub", "routes", "authorize_interaction"]);
 
 export const handler = define.handlers({
   async GET(ctx) {
@@ -38,7 +41,8 @@ export const handler = define.handlers({
           object = await ctx.state.fedCtx.lookupObject(uri, {
             documentLoader,
           });
-        } catch {
+        } catch (error) {
+          logger.error(`Failed to lookup object for URI "${uri}": ${error}`);
           object = null;
         }
 
