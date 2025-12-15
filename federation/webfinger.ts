@@ -1,10 +1,10 @@
 import { builder } from "@hackerspub/federation";
 
-builder.setWebFingerLinksDispatcher(async (_ctx, _resource) => {
+builder.setWebFingerLinksDispatcher(async (ctx, _resource) => {
   return [
     {
       rel: "http://ostatus.org/schema/1.0/subscribe",
-      template: `https://hackers.pub/authorize_interaction?uri={uri}`,
+      template: `${ctx.origin}/authorize_interaction?uri={uri}`,
     },
   ];
 });
