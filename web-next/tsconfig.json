@@ -9,7 +9,7 @@
     "jsxImportSource": "solid-js",
     "types": [
       "vinxi/types/client",
-      "unplugin-icons/types/solid",
+      "unplugin-icons/types/solid"
     ]
   }
 }

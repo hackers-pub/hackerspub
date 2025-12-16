@@ -124,46 +124,46 @@ export default function SearchPage() {
 
   return (
     <div class="p-4">
-        <div class="mb-6 relative">
-          <form
-            method="get"
-            class="flex gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const formData = new FormData(e.currentTarget);
-              const query = formData.get("q")?.toString() ?? "";
-              navigate(`?q=${encodeURIComponent(query)}`);
-              setSearchQuery(query);
-              setSearchType(getSearchType(query));
-            }}
-          >
-            <input
-              type="text"
-              name="q"
-              value={searchQuery()}
-              placeholder={t`Search posts…`}
-              class="peer flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-              type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {t`Search`}
-            </button>
-            <div class="hidden peer-focus:block absolute top-full left-0 right-0 mt-2 z-10">
-              <SearchGuide />
-            </div>
-          </form>
-        </div>
-
-        <Show when={searchQuery()}>
-          <SearchPageContent
-            searchQuery={searchQuery}
-            searchType={searchType}
-            setSearchType={setSearchType}
+      <div class="mb-6 relative">
+        <form
+          method="get"
+          class="flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const query = formData.get("q")?.toString() ?? "";
+            navigate(`?q=${encodeURIComponent(query)}`);
+            setSearchQuery(query);
+            setSearchType(getSearchType(query));
+          }}
+        >
+          <input
+            type="text"
+            name="q"
+            value={searchQuery()}
+            placeholder={t`Search posts…`}
+            class="peer flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
-        </Show>
+          <button
+            type="submit"
+            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {t`Search`}
+          </button>
+          <div class="hidden peer-focus:block absolute top-full left-0 right-0 mt-2 z-10">
+            <SearchGuide />
+          </div>
+        </form>
       </div>
+
+      <Show when={searchQuery()}>
+        <SearchPageContent
+          searchQuery={searchQuery}
+          searchType={searchType}
+          setSearchType={setSearchType}
+        />
+      </Show>
+    </div>
   );
 }
 

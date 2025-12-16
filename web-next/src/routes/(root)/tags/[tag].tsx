@@ -76,16 +76,16 @@ export default function TagPage() {
     <Show when={data()}>
       {(queryData) => (
         <div class="p-4">
-            <h1 class="text-2xl font-bold mb-4">
-              <Trans
-                message={t`Posts tagged with ${"TAG"}`}
-                values={{
-                  TAG: () => <span class="text-primary">#{tag()}</span>,
-                }}
-              />
-            </h1>
-            <SearchResults $posts={queryData} query={searchQuery} />
-          </div>
+          <h1 class="text-2xl font-bold mb-4">
+            <Trans
+              message={t`Posts tagged with ${"TAG"}`}
+              values={{
+                TAG: () => <span class="text-primary">#{tag()}</span>,
+              }}
+            />
+          </h1>
+          <SearchResults $posts={queryData} query={searchQuery} />
+        </div>
       )}
     </Show>
   );

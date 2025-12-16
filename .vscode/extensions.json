@@ -5,6 +5,6 @@
     "ms-azuretools.vscode-docker",
     "github.vscode-github-actions",
     "meta.relay",
-    "antfu.iconify",
+    "antfu.iconify"
   ]
 }
