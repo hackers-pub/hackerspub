@@ -240,7 +240,7 @@ function NoteInternal(props: NoteInternalProps) {
               )}
             </Show>
             <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto text-xl">
-              <NoteCard $note={note()} zoom />
+              <NoteCard $note={note()} />
               <Show when={viewer() == null}>
                 <p class="p-4 text-sm text-muted-foreground">
                   <Trans

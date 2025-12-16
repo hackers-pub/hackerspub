@@ -34,7 +34,7 @@ const loadArticlesFeedTimelineQuery = query(
 );
 
 export default function ArticlesFeedTimeline() {
-  const { i18n, t } = useLingui();
+  const { i18n } = useLingui();
   const data = createPreloadedQuery<articlesFeedTimelineQuery>(
     articlesFeedTimelineQuery,
     () => loadArticlesFeedTimelineQuery(i18n.locale),

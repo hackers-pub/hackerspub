@@ -46,7 +46,7 @@ const loadLocalTimelineQuery = query(
 );
 
 export default function LocalTimeline() {
-  const { i18n, t } = useLingui();
+  const { i18n } = useLingui();
   const data = createPreloadedQuery<localTimelineQuery>(
     localTimelineQuery,
     () =>

@@ -1,8 +1,8 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { NoteHeader_note$key } from "./__generated__/NoteHeader_note.graphql";
-import { InternalLink } from "./InternalLink";
+import { NoteHeader_note$key } from "./__generated__/NoteHeader_note.graphql.ts";
+import { InternalLink } from "./InternalLink.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { VisibilityTag } from "./VisibilityTag.tsx";
 

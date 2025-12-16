@@ -34,7 +34,7 @@ const loadWithoutSharesFeedTimelineQuery = query(
 );
 
 export default function WithoutSharesFeedTimeline() {
-  const { i18n, t } = useLingui();
+  const { i18n } = useLingui();
   const data = createPreloadedQuery<withoutSharesFeedTimelineQuery>(
     withoutSharesFeedTimelineQuery,
     () => loadWithoutSharesFeedTimelineQuery(i18n.locale),

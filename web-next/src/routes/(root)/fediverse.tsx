@@ -50,7 +50,7 @@ const loadFediverseTimelineQuery = query(
 );
 
 export default function FediverseTimeline() {
-  const { i18n, t } = useLingui();
+  const { i18n } = useLingui();
   const data = createPreloadedQuery<fediverseTimelineQuery>(
     fediverseTimelineQuery,
     () =>

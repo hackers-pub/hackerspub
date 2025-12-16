@@ -1,7 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
-import { NoteCardInternal_note$key } from "./__generated__/NoteCardInternal_note.graphql";
+import { NoteCardInternal_note$key } from "./__generated__/NoteCardInternal_note.graphql.ts";
 import { LinkPreview } from "./LinkPreview.tsx";
 import { NoteHeader } from "./NoteHeader.tsx";
 import { NoteMedia } from "./NoteMedia.tsx";
