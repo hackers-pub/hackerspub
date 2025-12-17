@@ -1,0 +1,40 @@
+{
+  "name": "@deno/vite-plugin",
+  "version": "1.0.5",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/"
+  ],
+  "keywords": [
+    "deno",
+    "vite",
+    "plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denoland/deno-vite-plugin.git"
+  },
+  "scripts": {
+    "test": "vitest",
+    "build": "rimraf dist/ && tsc",
+    "build:fixture": "cd tests/fixture && vite build",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "vite": "5.x || 6.x || 7.x"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.5",
+    "esbuild": "^0.23.1",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.1"
+  }
+}
