@@ -5,6 +5,7 @@ import type { APIEvent } from "@solidjs/start/server";
 import type { RouteDefinition } from "@solidjs/router";
 import { createEnvironment } from "../../../RelayEnvironment.tsx";
 import type { feed_Query } from "./__generated__/feed_Query.graphql.ts";
+import { CANONICAL_ORIGIN_URL } from "~/lib/env.ts";
 
 const WINDOW = 50;
 
@@ -69,21 +70,15 @@ export async function GET({ params, request }: APIEvent) {
     return new Response("Not Found", { status: 404 });
   }
 
-  const maybeCanonicalOrigin = Deno.env.get("ORIGIN");
-  if (maybeCanonicalOrigin === undefined) {
-    throw new Error("ORIGIN environment variable is not set");
-  }
-
-  const canonicalOrigin = new URL(maybeCanonicalOrigin);
   const articlesOnly = requestSearchParams.has("articles");
 
   const canonicalUrl = new URL(
     `/@${username}/feed.xml${articlesOnly ? "?articles" : ""}`,
-    canonicalOrigin,
+    CANONICAL_ORIGIN_URL,
   );
   const profileUrl = new URL(
     `/@${username}${articlesOnly ? "/articles" : ""}`,
-    canonicalOrigin,
+    CANONICAL_ORIGIN_URL,
   );
   const avatarUrl = account.avatarUrl;
 
