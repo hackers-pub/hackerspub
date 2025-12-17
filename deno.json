@@ -145,6 +145,9 @@
       "head"
     ]
   },
+  "links": [
+    "./patches/@deno/vite-plugin"
+  ],
   "unstable": [
     "kv",
     "otel",
@@ -158,7 +161,8 @@
     "node_modules/",
     "web-next/node_modules/",
     "web-next/.output/",
-    "web-next/.vinxi/"
+    "web-next/.vinxi/",
+    "patches/"
   ],
   "fmt": {
     "exclude": [

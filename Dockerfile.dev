@@ -21,6 +21,7 @@ COPY web/deno.json /app/web/deno.json
 COPY web-next/deno.jsonc /app/web-next/deno.jsonc
 COPY web-next/package.json /app/web-next/package.json
 COPY deno.lock /app/deno.lock
+COPY patches /app/patches
 
 RUN ["deno", "install"]
 
