@@ -750,7 +750,7 @@ msgstr "通行密钥已撤销"
 msgid "Passkeys"
 msgstr "通行密钥"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:229
+#: src/routes/(root)/[handle]/settings/index.tsx:227
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "请选择小于 5 MiB 的图片文件。"
 
@@ -787,8 +787,8 @@ msgid "Priority"
 msgstr "优先级"
 
 #: src/components/SettingsTabs.tsx:42
-#: src/routes/(root)/[handle]/settings/index.tsx:154
-#: src/routes/(root)/[handle]/settings/index.tsx:168
+#: src/routes/(root)/[handle]/settings/index.tsx:152
+#: src/routes/(root)/[handle]/settings/index.tsx:166
 msgid "Profile settings"
 msgstr "个人资料设置"
 
@@ -921,7 +921,7 @@ msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
 #: src/components/AppSidebar.tsx:366
-#: src/routes/(root)/[handle]/settings/index.tsx:159
+#: src/routes/(root)/[handle]/settings/index.tsx:157
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:380
@@ -1073,7 +1073,7 @@ msgstr "无法移除反应。请重试。"
 msgid "Unshare"
 msgstr "取消转帖"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:170
+#: src/routes/(root)/[handle]/settings/index.tsx:168
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "更新您的个人资料信息，包括头像、用户名、昵称、个人简介和链接。"
 

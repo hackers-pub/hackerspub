@@ -750,7 +750,7 @@ msgstr "Passkey revoked"
 msgid "Passkeys"
 msgstr "Passkeys"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:229
+#: src/routes/(root)/[handle]/settings/index.tsx:227
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "Please choose an image file smaller than 5 MiB."
 
@@ -787,8 +787,8 @@ msgid "Priority"
 msgstr "Priority"
 
 #: src/components/SettingsTabs.tsx:42
-#: src/routes/(root)/[handle]/settings/index.tsx:154
-#: src/routes/(root)/[handle]/settings/index.tsx:168
+#: src/routes/(root)/[handle]/settings/index.tsx:152
+#: src/routes/(root)/[handle]/settings/index.tsx:166
 msgid "Profile settings"
 msgstr "Profile settings"
 
@@ -921,7 +921,7 @@ msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
 #: src/components/AppSidebar.tsx:366
-#: src/routes/(root)/[handle]/settings/index.tsx:159
+#: src/routes/(root)/[handle]/settings/index.tsx:157
 #: src/routes/(root)/[handle]/settings/invite.tsx:232
 #: src/routes/(root)/[handle]/settings/language.tsx:116
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:380
@@ -1073,7 +1073,7 @@ msgstr "Unable to remove reaction. Please try again."
 msgid "Unshare"
 msgstr "Unshare"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:170
+#: src/routes/(root)/[handle]/settings/index.tsx:168
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "Update your profile information, including your avatar, username, display name, bio, and links."
 

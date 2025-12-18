@@ -12,8 +12,6 @@ import type {
   CropperOptions,
   CropperSelection,
 } from "cropperjs";
-// @ts-ignore: ...
-import Cropper from "cropperjs";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
@@ -223,7 +221,7 @@ function SettingsForm(props: SettingsFormProps) {
     accept: "image/*",
     maxFiles: 1,
     maxSize: 5 * 1024 * 1024, // 5 MiB
-    onDrop(acceptedFiles, fileRejections) {
+    async onDrop(acceptedFiles, fileRejections) {
       if (fileRejections.length > 0) {
         showToast({
           title: t`Please choose an image file smaller than 5 MiB.`,
@@ -236,6 +234,8 @@ function SettingsForm(props: SettingsFormProps) {
       setCropperOpen(true);
       const cropperImage = new Image();
       cropperImage.src = url;
+      const { default: Cropper } = await import("cropperjs");
+      // @ts-ignore: ...
       const cropper = new Cropper(cropperImage, {
         container: cropperContainer,
         template: `
