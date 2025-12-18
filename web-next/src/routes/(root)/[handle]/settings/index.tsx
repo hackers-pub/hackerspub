@@ -642,6 +642,9 @@ function appendCacheBuster(url: string | URL | undefined): string | undefined;
 function appendCacheBuster(url: string | URL | undefined): string | undefined {
   if (url == null) return undefined;
   const u = url instanceof URL ? url : new URL(url);
-  u.searchParams.set(`_${Date.now()}`, "1");
+  // Avoid settings searchParams for URLs with 'data:' scheme.
+  if (u.protocol === "http:" || u.protocol === "https:") {
+    u.searchParams.set(`_${Date.now()}`, "1");
+  }
   return u.href;
 }
