@@ -8,7 +8,6 @@ import { Button } from "../components/Button.tsx";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { db } from "../db.ts";
-import CancelButton from "../islands/CancelButton.tsx";
 import { define } from "../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "authorize_interaction"]);
@@ -156,13 +155,15 @@ export default define.page<typeof handler, AuthorizedInteractionProps>(
               </p>
 
               <div class="flex gap-3">
-                <CancelButton
-                  username={state.account!.username}
-                  class="flex-1 bg-gray-100 dark:bg-stone-700 hover:bg-gray-200 dark:hover:bg-stone-600"
+                <form
+                  action={`${actor?.url}`}
+                  method="GET"
+                  class="flex-1"
                 >
-                  <Msg $key="authorizedInteraction.cancel" />
-                </CancelButton>
-
+                  <Button type="submit" class="w-full">
+                    <Msg $key="authorizedInteraction.cancel" />
+                  </Button>
+                </form>
                 {actor
                   ? (
                     <form
