@@ -47,7 +47,7 @@ export const handler = define.handlers({
             documentLoader,
           });
         } catch (error) {
-          logger.error(`Failed to lookup object for URI "${uri}": ${error}`);
+          logger.error("Failed to lookup object", { uri, err: error });
           object = null;
         }
 
