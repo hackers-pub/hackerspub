@@ -158,7 +158,9 @@ export default define.page<typeof handler, SignPageProps>(
                   )}
               </p>
               <form
-                action={`sign/in/${data.token}${data.from ? `?from=${encodeURIComponent(data.from)}` : ""}`}
+                action={`sign/in/${data.token}${
+                  data.from ? `?from=${encodeURIComponent(data.from)}` : ""
+                }`}
                 method="post"
               >
                 <div class="flex flex-col gap-2">
