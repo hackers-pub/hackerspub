@@ -9,6 +9,7 @@ import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { db } from "../db.ts";
 import { define } from "../utils.ts";
+import CancelButton from "../islands/CancelButton.tsx";
 
 const logger = getLogger(["hackerspub", "routes", "authorize_interaction"]);
 
@@ -151,13 +152,12 @@ export default define.page<typeof handler, AuthorizedInteractionProps>(
               </p>
 
               <div class="flex gap-3">
-                <Button
-                  type="button"
-                  onClick={() => window.history.back()}
+                <CancelButton
+                  username={state.account!.username}
                   class="flex-1 bg-gray-100 dark:bg-stone-700 hover:bg-gray-200 dark:hover:bg-stone-600"
                 >
                   <Msg $key="authorizedInteraction.cancel" />
-                </Button>
+                </CancelButton>
 
                 {actor
                   ? (
