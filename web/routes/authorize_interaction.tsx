@@ -156,7 +156,7 @@ export default define.page<typeof handler, AuthorizedInteractionProps>(
 
               <div class="flex gap-3">
                 <form
-                  action={`${actor?.url}`}
+                  action={actor?.url ?? "/"}
                   method="GET"
                   class="flex-1"
                 >
