@@ -58,7 +58,10 @@ export const handler = define.handlers(
       expires: new Date(Temporal.Now.instant().add(EXPIRATION).toString()),
       secure: ctx.url.protocol === "https:",
     });
-    const from = ctx.url.searchParams.get("from") || "/";
+    let from = ctx.url.searchParams.get("from") || "/";
+    if (!from.startsWith("/") || from.startsWith("//")) {
+      from = "/";
+    }
     headers.set("Location", from);
     return new Response(null, { status: 303, headers });
   },

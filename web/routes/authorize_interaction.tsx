@@ -19,7 +19,11 @@ export const handler = define.handlers({
 
     // If user is not logged in, redirect to sign-in page
     if (!ctx.state.account) {
-      return ctx.redirect(`/sign?from=${encodeURIComponent(ctx.url.href)}`);
+      const fromUrl = ctx.url.pathname + ctx.url.search;
+      const from = fromUrl.startsWith("/") && !fromUrl.startsWith("//")
+        ? fromUrl
+        : "/";
+      return ctx.redirect(`/sign?from=${encodeURIComponent(from)}`);
     }
 
     let actor: (Actor & { instance: Instance }) | null = null;

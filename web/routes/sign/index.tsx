@@ -6,6 +6,7 @@ import {
   USERNAME_REGEXP,
 } from "@hackerspub/models/signin";
 import { isEmail } from "@onisaint/validate-email";
+import { sql } from "drizzle-orm";
 import { getFixedT } from "i18next";
 import { Button } from "../../components/Button.tsx";
 import { Input } from "../../components/Input.tsx";
@@ -17,7 +18,6 @@ import { sendEmail } from "../../email.ts";
 import { SignForm, type SignFormProps } from "../../islands/SignForm.tsx";
 import { kv } from "../../kv.ts";
 import { define } from "../../utils.ts";
-import { sql } from "drizzle-orm";
 
 export const handler = define.handlers({
   GET(ctx) {
@@ -80,7 +80,7 @@ export const handler = define.handlers({
       const verifyUrl = new URL(`/sign/in/${token.token}`, ctx.url);
       verifyUrl.searchParams.set("code", token.code);
       const from = ctx.url.searchParams.get("from");
-      if (from) {
+      if (from && from.startsWith("/") && !from.startsWith("//")) {
         verifyUrl.searchParams.set("from", from);
       }
       expiration = SIGNIN_EXPIRATION;
