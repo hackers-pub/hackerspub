@@ -40,7 +40,7 @@ function I18nProviderWrapper(props: ParentProps) {
   );
 
   return (
-    <Show when={data()}>
+    <Show when={!data.pending && data()}>
       {(data) => (
         <I18nProvider $query={data()}>
           {props.children}
