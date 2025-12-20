@@ -32,6 +32,13 @@ export default defineConfig({
       cjsInterop({ dependencies: ["relay-runtime"] }),
     ],
   }),
+  server: {
+    esbuild: {
+      options: {
+        target: "esnext",
+      },
+    },
+  },
   solid: {
     babel: {
       plugins: ["@lingui/babel-plugin-lingui-macro"],
