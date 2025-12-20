@@ -20,8 +20,9 @@ import { define } from "../../utils.ts";
 import { sql } from "drizzle-orm";
 
 export const handler = define.handlers({
-  GET(_ctx) {
-    return page<SignPageProps>({});
+  GET(ctx) {
+    const from = ctx.url.searchParams.get("from");
+    return page<SignPageProps>({ from });
   },
 
   async POST(ctx) {
@@ -78,6 +79,10 @@ export const handler = define.handlers({
       const token = await createSigninToken(kv, account.id);
       const verifyUrl = new URL(`/sign/in/${token.token}`, ctx.url);
       verifyUrl.searchParams.set("code", token.code);
+      const from = ctx.url.searchParams.get("from");
+      if (from) {
+        verifyUrl.searchParams.set("from", from);
+      }
       expiration = SIGNIN_EXPIRATION;
       for (const { email } of account.emails) {
         await sendEmail({
@@ -95,23 +100,26 @@ export const handler = define.handlers({
       }
       signInToken = token.token;
     }
+    const from = ctx.url.searchParams.get("from");
     return page<SignPageProps>({
       success: true,
       email,
       expiration,
       token: signInToken,
+      from,
     });
   },
 });
 
 type SignPageProps =
-  | { success?: undefined }
-  | { success: false } & Omit<SignFormProps, "language">
+  | { success?: undefined; from?: string | null }
+  | ({ success: false; from?: string | null } & Omit<SignFormProps, "language">)
   | {
     success: true;
     email: string;
     expiration: Temporal.Duration;
     token: string;
+    from?: string | null;
   };
 
 export default define.page<typeof handler, SignPageProps>(
@@ -150,7 +158,7 @@ export default define.page<typeof handler, SignPageProps>(
                   )}
               </p>
               <form
-                action={`sign/in/${data.token}`}
+                action={`sign/in/${data.token}${data.from ? `?from=${encodeURIComponent(data.from)}` : ""}`}
                 method="post"
               >
                 <div class="flex flex-col gap-2">

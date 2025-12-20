@@ -8,8 +8,8 @@ import { Button } from "../components/Button.tsx";
 import { Msg } from "../components/Msg.tsx";
 import { PageTitle } from "../components/PageTitle.tsx";
 import { db } from "../db.ts";
-import { define } from "../utils.ts";
 import CancelButton from "../islands/CancelButton.tsx";
+import { define } from "../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "authorize_interaction"]);
 
@@ -19,7 +19,7 @@ export const handler = define.handlers({
 
     // If user is not logged in, redirect to sign-in page
     if (!ctx.state.account) {
-      return ctx.redirect("/sign");
+      return ctx.redirect(`/sign?from=${encodeURIComponent(ctx.url.href)}`);
     }
 
     let actor: (Actor & { instance: Instance }) | null = null;
