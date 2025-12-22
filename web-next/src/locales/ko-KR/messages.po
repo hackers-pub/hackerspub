@@ -736,7 +736,7 @@ msgstr "패스키 취소됨"
 msgid "Passkeys"
 msgstr "패스키"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:212
+#: src/routes/(root)/[handle]/settings/index.tsx:210
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
 
@@ -772,8 +772,8 @@ msgid "Priority"
 msgstr "우선순위"
 
 #: src/components/SettingsTabs.tsx:42
-#: src/routes/(root)/[handle]/settings/index.tsx:145
-#: src/routes/(root)/[handle]/settings/index.tsx:151
+#: src/routes/(root)/[handle]/settings/index.tsx:143
+#: src/routes/(root)/[handle]/settings/index.tsx:149
 msgid "Profile settings"
 msgstr "프로필 설정"
 
@@ -1046,7 +1046,7 @@ msgstr "반응을 제거할 수 없습니다. 다시 시도해주세요."
 msgid "Unshare"
 msgstr "공유 취소"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:153
+#: src/routes/(root)/[handle]/settings/index.tsx:151
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "프로필 사진, 아이디, 이름, 약력, 링크 등의 프로필 정보를 업데이트하세요."
 

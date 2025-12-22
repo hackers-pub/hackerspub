@@ -736,7 +736,7 @@ msgstr "パスキーを取り消しました"
 msgid "Passkeys"
 msgstr "パスキー"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:212
+#: src/routes/(root)/[handle]/settings/index.tsx:210
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "5 MiB未満の画像ファイルを選択してください。"
 
@@ -772,8 +772,8 @@ msgid "Priority"
 msgstr "優先度"
 
 #: src/components/SettingsTabs.tsx:42
-#: src/routes/(root)/[handle]/settings/index.tsx:145
-#: src/routes/(root)/[handle]/settings/index.tsx:151
+#: src/routes/(root)/[handle]/settings/index.tsx:143
+#: src/routes/(root)/[handle]/settings/index.tsx:149
 msgid "Profile settings"
 msgstr "プロフィール設定"
 
@@ -1046,7 +1046,7 @@ msgstr "リアクションを削除できませんでした。もう一度お試
 msgid "Unshare"
 msgstr "共有を取り消す"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:153
+#: src/routes/(root)/[handle]/settings/index.tsx:151
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "アイコン、ユーザー名、名前、自己紹介、リンクなどのプロフィール情報を更新してください。"
 
