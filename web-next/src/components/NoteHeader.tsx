@@ -53,7 +53,7 @@ export function NoteHeader(props: NoteHeaderProps) {
           <span class="flex text-sm text-muted-foreground/60 gap-1.5">
             <InternalLink
               href={n().url ?? n().iri}
-              internalHref={` ${
+              internalHref={`/${
                 n().actor.local ? "@" + n().actor.username : n().actor.handle
               }/${n().uuid}`}
             >
