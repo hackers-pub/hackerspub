@@ -8,12 +8,6 @@ import {
 } from "solid-relay";
 import { AboutHackersPub } from "~/components/AboutHackersPub.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
-import { TopBreadcrumb } from "~/components/TopBreadcrumb.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
 
@@ -52,7 +46,7 @@ const loadLocalTimelineQuery = query(
 );
 
 export default function LocalTimeline() {
-  const { i18n, t } = useLingui();
+  const { i18n } = useLingui();
   const data = createPreloadedQuery<localTimelineQuery>(
     localTimelineQuery,
     () =>
@@ -66,16 +60,6 @@ export default function LocalTimeline() {
     <Show when={data()}>
       {(data) => (
         <>
-          <TopBreadcrumb>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/">{t`Timeline`}</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink current>{t`Hackers' Pub`}</BreadcrumbLink>
-            </BreadcrumbItem>
-          </TopBreadcrumb>
           <Show when={data().viewer == null}>
             <AboutHackersPub />
           </Show>

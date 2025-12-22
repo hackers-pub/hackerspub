@@ -17,14 +17,8 @@ import {
   PostVisibility,
   PostVisibilitySelect,
 } from "~/components/PostVisibilitySelect.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Title } from "~/components/Title.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   Card,
@@ -61,9 +55,6 @@ const preferencesPageQuery = graphql`
       defaultNoteVisibility
       defaultShareVisibility
       ...SettingsTabs_account
-      actor {
-        ...ProfilePageBreadcrumb_actor
-      }
     }
   }
 `;
@@ -181,20 +172,6 @@ export default function PreferencesPage() {
             {(account) => (
               <>
                 <Title>{t`Preferences`}</Title>
-                <ProfilePageBreadcrumb $actor={account().actor}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink href={`/@${account().username}/settings`}>
-                      {t`Settings`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Preferences`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
                 <div class="p-4">
                   <div class="mx-auto max-w-prose">
                     <SettingsTabs

@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@deno/vite-plugin": "^1.0.5",
+    "@iconify-json/lucide": "^1.2.80",
     "@kobalte/tailwindcss": "^0.9.0",
     "@lingui/babel-plugin-lingui-macro": "^5.3.3",
     "@lingui/cli": "^5.3.3",
@@ -42,6 +43,7 @@
     "react-jsx": "^1.0.0",
     "relay-compiler": "^19.0.0",
     "solid-devtools": "^0.34.4",
+    "unplugin-icons": "^22.5.0",
     "vite-plugin-cjs-interop": "^2.2.0",
     "vite-plugin-relay-lite": "^0.11.0"
   },

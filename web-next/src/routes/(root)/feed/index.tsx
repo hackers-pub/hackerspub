@@ -7,12 +7,6 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
-import { TopBreadcrumb } from "~/components/TopBreadcrumb.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { feedTimelineQuery } from "./__generated__/feedTimelineQuery.graphql.ts";
 
@@ -40,7 +34,7 @@ const loadFeedTimelineQuery = query(
 );
 
 export default function FeedTimeline() {
-  const { i18n, t } = useLingui();
+  const { i18n } = useLingui();
   const data = createPreloadedQuery<feedTimelineQuery>(
     feedTimelineQuery,
     () => loadFeedTimelineQuery(i18n.locale),
@@ -48,23 +42,7 @@ export default function FeedTimeline() {
 
   return (
     <Show when={data()}>
-      {(data) => (
-        <>
-          <TopBreadcrumb>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/">{t`Timeline`}</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink current>{t`Feed`}</BreadcrumbLink>
-            </BreadcrumbItem>
-          </TopBreadcrumb>
-          <div class="p-4">
-            <PersonalTimeline $posts={data()} />
-          </div>
-        </>
-      )}
+      {(data) => <PersonalTimeline $posts={data()} />}
     </Show>
   );
 }

@@ -4,6 +4,7 @@
     "bradlc.vscode-tailwindcss",
     "ms-azuretools.vscode-docker",
     "github.vscode-github-actions",
-    "meta.relay"
+    "meta.relay",
+    "antfu.iconify"
   ]
 }

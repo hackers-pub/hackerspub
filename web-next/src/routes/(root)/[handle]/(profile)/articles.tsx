@@ -10,14 +10,8 @@ import {
 import { ActorArticleList } from "~/components/ActorArticleList.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { articlesPageQuery } from "./__generated__/articlesPageQuery.graphql.ts";
 
@@ -38,7 +32,6 @@ const articlesPageQuery = graphql`
       username
       ...NavigateIfHandleIsNotCanonical_actor
       ...ActorArticleList_articles @arguments(locale: $locale)
-      ...ProfilePageBreadcrumb_actor
       ...ProfileCard_actor
       ...ProfileTabs_actor
     }
@@ -77,14 +70,6 @@ export default function ProfileArticlesPage() {
                   content={t`${actor().rawName ?? actor().username}'s articles`}
                 />
                 <NavigateIfHandleIsNotCanonical $actor={actor()} />
-                <ProfilePageBreadcrumb $actor={actor()}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Articles`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
                 <div>
                   <ProfileCard $actor={actor()} />
                 </div>

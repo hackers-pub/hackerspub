@@ -24,12 +24,12 @@ msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
 #. placeholder {0}: account().invitationsLeft
-#: src/routes/(root)/[handle]/settings/invite.tsx:258
+#: src/routes/(root)/[handle]/settings/invite.tsx:235
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, other {Hackers' Pub에 친구를 초대하세요. 최대 #명까지 초대할 수 있습니다.}}"
 
 #. placeholder {0}: account().inviteesCount.totalCount
-#: src/routes/(root)/[handle]/settings/invite.tsx:379
+#: src/routes/(root)/[handle]/settings/invite.tsx:356
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, other {지금까지 총 #명을 초대하셨습니다.}}"
 
@@ -76,7 +76,7 @@ msgid "{0} followed you"
 msgstr "{0} 님이 팔로했습니다"
 
 #. placeholder {0}: "USER"
-#: src/routes/(root)/[handle]/settings/invite.tsx:308
+#: src/routes/(root)/[handle]/settings/invite.tsx:285
 msgid "{0} is already a member of Hackers' Pub."
 msgstr "{0} 님은 이미 Hackers' Pub의 회원입니다."
 
@@ -118,35 +118,35 @@ msgstr "{0} 님이 회원님의 콘텐츠를 공유했습니다"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:144
+#: src/routes/(root)/[handle]/[noteId].tsx:138
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:73
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:77
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:66
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:70
 msgid "{0}'s articles"
 msgstr "{0} 님의 게시글"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:73
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:76
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:66
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:69
 msgid "{0}'s followers"
 msgstr "{0} 님의 팔로워"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:74
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:78
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:67
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:71
 msgid "{0}'s notes"
 msgstr "{0} 님의 단문"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:75
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:79
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:68
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:72
 msgid "{0}'s shares"
 msgstr "{0} 님의 공유"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:582
+#: src/routes/(root)/[handle]/settings/index.tsx:565
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "프로필에 표시될 링크의 이름. 예: GitHub."
 
@@ -163,7 +163,7 @@ msgstr "계정"
 msgid "Actions"
 msgstr "동작"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:252
+#: src/routes/(root)/[handle]/settings/language.tsx:229
 msgid "Add"
 msgstr "추가"
 
@@ -176,47 +176,45 @@ msgstr "{0} 추가"
 msgid "An error occurred during signup. Please try again."
 msgstr "가입중에 오류가 발생했습니다. 다시 시도해 주시기 바랍니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:294
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:285
 msgid "An error occurred while registering your passkey."
 msgstr "패스키를 등록하는 중에 오류가 발생했습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:342
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:333
 msgid "An error occurred while revoking your passkey."
 msgstr "패스키를 취소하는 중에 오류가 발생했습니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:151
+#: src/routes/(root)/[handle]/settings/preferences.tsx:142
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "환경 설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의해 주세요."
 
-#: src/routes/(root)/[handle]/settings/language.tsx:219
+#: src/routes/(root)/[handle]/settings/language.tsx:196
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "언어 설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의해 주세요."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:359
+#: src/routes/(root)/[handle]/settings/index.tsx:342
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의하세요."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:195
+#: src/routes/(root)/[handle]/settings/invite.tsx:186
 msgid "An unexpected error occurred. Please try again later."
 msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도해주세요."
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:545
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:522
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "{0} 패스키를 취소하시겠습니까? 이 패스키를 사용하여 계정에 로그인할 수 없게 됩니다."
 
 #: src/components/ProfileTabs.tsx:48
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:84
 msgid "Articles"
 msgstr "게시글"
 
 #: src/components/AppSidebar.tsx:175
-#: src/routes/(root)/feed/articles.tsx:64
 msgid "Articles only"
 msgstr "게시글만"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:457
+#: src/routes/(root)/[handle]/settings/index.tsx:440
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "이미 {0} 변경하였기 때문에 다시 변경할 수 없습니다."
 
@@ -224,11 +222,11 @@ msgstr "이미 {0} 변경하였기 때문에 다시 변경할 수 없습니다."
 msgid "Authenticating…"
 msgstr "인증중…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:373
+#: src/routes/(root)/[handle]/settings/index.tsx:356
 msgid "Avatar"
 msgstr "프로필 사진"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:486
+#: src/routes/(root)/[handle]/settings/index.tsx:469
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "약력"
@@ -238,18 +236,17 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
 #: src/components/NoteComposer.tsx:207
-#: src/routes/(root)/[handle]/settings/index.tsx:420
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:549
+#: src/routes/(root)/[handle]/settings/index.tsx:403
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
 msgstr "취소"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:333
+#: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
 #: src/components/AppSidebar.tsx:433
-#: src/routes/(root)/coc.tsx:53
-#: src/routes/(root)/coc.tsx:58
+#: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "행동 강령"
@@ -275,7 +272,7 @@ msgid "Create Note"
 msgstr "단문 작성"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:461
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:438
 msgid "Created {0}"
 msgstr "{0}에 생성됨"
 
@@ -287,23 +284,23 @@ msgstr "계정을 생성하는 중…"
 msgid "Creating…"
 msgstr "작성 중…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:427
+#: src/routes/(root)/[handle]/settings/index.tsx:410
 msgid "Crop"
 msgstr "자르기"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:400
+#: src/routes/(root)/[handle]/settings/index.tsx:383
 msgid "Crop your new avatar"
 msgstr "새 프로필 사진 자르기"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:230
+#: src/routes/(root)/[handle]/settings/preferences.tsx:207
 msgid "Default note privacy"
 msgstr "기본 단문 공개 범위"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:242
+#: src/routes/(root)/[handle]/settings/preferences.tsx:219
 msgid "Default share privacy"
 msgstr "기본 공유 공개 범위"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:470
+#: src/routes/(root)/[handle]/settings/index.tsx:453
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "이름"
@@ -312,11 +309,11 @@ msgstr "이름"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:403
+#: src/routes/(root)/[handle]/settings/index.tsx:386
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "유지하려는 영역을 드래그하여 선택한 다음 “자르기”를 클릭하여 프로필 사진을 업데이트하세요."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:281
+#: src/routes/(root)/[handle]/settings/invite.tsx:258
 #: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
 msgstr "이메일 주소"
@@ -337,7 +334,7 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 msgid "Error"
 msgstr "오류"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:338
+#: src/routes/(root)/[handle]/settings/invite.tsx:315
 msgid "Extra message"
 msgstr "추가 메시지"
 
@@ -349,7 +346,7 @@ msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more followers; click to retry"
 msgstr "팔로워 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:511
+#: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Failed to load more invitees; click to retry"
 msgstr "초대받은 사람들을 불러오지 못했습니다. 클릭하여 다시 시도"
 
@@ -361,7 +358,7 @@ msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more notifications; click to retry"
 msgstr "알림을 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:523
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:500
 msgid "Failed to load more passkeys; click to retry"
 msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
@@ -380,33 +377,33 @@ msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to react"
 msgstr "반응 실패"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:291
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:282
 msgid "Failed to register passkey"
 msgstr "패스키 등록 실패"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:333
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:339
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:324
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:330
 msgid "Failed to revoke passkey"
 msgstr "패스키 취소 실패"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:217
+#: src/routes/(root)/[handle]/settings/language.tsx:194
 msgid "Failed to save language preferences"
 msgstr "언어 설정 저장 실패"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:149
+#: src/routes/(root)/[handle]/settings/preferences.tsx:140
 msgid "Failed to save preferences"
 msgstr "환경 설정 저장 실패"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:357
+#: src/routes/(root)/[handle]/settings/index.tsx:340
 msgid "Failed to save settings"
 msgstr "설정 저장 실패"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:173
-#: src/routes/(root)/[handle]/settings/invite.tsx:193
+#: src/routes/(root)/[handle]/settings/invite.tsx:164
+#: src/routes/(root)/[handle]/settings/invite.tsx:184
 msgid "Failed to send invitation"
 msgstr "초대장 발송에 실패했습니다"
 
-#: src/components/PostControls.tsx:144
+#: src/components/PostControls.tsx:148
 msgid "Failed to share post"
 msgstr "콘텐츠 공유 실패"
 
@@ -415,25 +412,21 @@ msgstr "콘텐츠 공유 실패"
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
-#: src/components/PostControls.tsx:130
+#: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "공유 취소 실패"
 
 #: src/components/AppSidebar.tsx:218
-#: src/routes/(root)/fediverse.tsx:80
 msgid "Fediverse"
 msgstr "연합우주"
 
 #: src/components/AppSidebar.tsx:137
-#: src/routes/(root)/feed/articles.tsx:60
-#: src/routes/(root)/feed/index.tsx:60
-#: src/routes/(root)/feed/without-shares.tsx:60
 msgid "Feed"
 msgstr "피드"
 
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:82
-msgid "Followers"
-msgstr "팔로워"
+#~ msgid "Followers"
+#~ msgstr "팔로워"
 
 #: src/components/PostVisibilitySelect.tsx:63
 #: src/components/VisibilityTag.tsx:76
@@ -450,9 +443,8 @@ msgstr "GitHub 저장소"
 
 #: src/components/AppSidebar.tsx:105
 #: src/components/AppSidebar.tsx:196
-#: src/routes/(root)/coc.tsx:53
-#: src/routes/(root)/local.tsx:76
-#: src/routes/(root)/markdown.tsx:53
+#: src/routes/(root)/coc.tsx:47
+#: src/routes/(root)/markdown.tsx:47
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -460,24 +452,24 @@ msgstr "Hackers' Pub"
 msgid "Hackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed."
 msgstr "Hackers' Pub은 소프트웨어 프로그래머들이 지식과 경험을 서로 나누는 곳입니다. 또한 ActivityPub을 지원하는 소셜 네트워크이기도 하며, 연합우주(fediverse)에서 즐겨찾는 소프트웨어 프로그래머들을 팔로하고 최신 콘텐츠를 받아 볼 수 있습니다."
 
-#: src/routes/(root)/notifications.tsx:46
+#: src/routes/(root)/notifications.tsx:40
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: 알림"
 
 #: src/components/TopBreadcrumb.tsx:21
-msgid "Home"
-msgstr "홈"
+#~ msgid "Home"
+#~ msgstr "홈"
 
 #: src/routes/(root)/sign/up/[token].tsx:459
 msgid "I have read and agree to the Code of conduct."
 msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:224
+#: src/routes/(root)/[handle]/settings/preferences.tsx:201
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:264
+#: src/routes/(root)/[handle]/[noteId].tsx:247
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "연합우주(fediverse) 계정이 있으시다면, 이 단문에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {0}로 검색하신 뒤, 해당 단문에 댓글을 남기시면 됩니다."
 
@@ -486,31 +478,30 @@ msgstr "연합우주(fediverse) 계정이 있으시다면, 이 단문에 댓글�
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:326
+#: src/routes/(root)/[handle]/settings/invite.tsx:303
 msgid "Invitation language"
 msgstr "초대장 언어"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:183
+#: src/routes/(root)/[handle]/settings/invite.tsx:174
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
 #: src/components/AppSidebar.tsx:335
 #: src/components/SettingsTabs.tsx:63
-#: src/routes/(root)/[handle]/settings/invite.tsx:227
-#: src/routes/(root)/[handle]/settings/invite.tsx:238
+#: src/routes/(root)/[handle]/settings/invite.tsx:218
 msgid "Invite"
 msgstr "초대"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:251
+#: src/routes/(root)/[handle]/settings/invite.tsx:228
 msgid "Invite a friend"
 msgstr "친구 초대하기"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:477
+#: src/routes/(root)/[handle]/settings/index.tsx:460
 msgid "John Doe"
 msgstr "홍길동"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:485
+#: src/routes/(root)/[handle]/settings/invite.tsx:462
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
 
@@ -525,21 +516,20 @@ msgid "Language code"
 msgstr "언어 코드"
 
 #: src/components/SettingsTabs.tsx:56
-#: src/routes/(root)/[handle]/settings/language.tsx:111
-#: src/routes/(root)/[handle]/settings/language.tsx:122
+#: src/routes/(root)/[handle]/settings/language.tsx:102
 msgid "Language settings"
 msgstr "언어 설정"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:478
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:455
 msgid "Last used {0}"
 msgstr "{0}에 마지막 사용"
 
-#: src/components/NoteCard.tsx:438
+#: src/components/LinkPreview.tsx:135
 msgid "Link author: "
 msgstr "링크 저자: "
 
-#: src/routes/(root)/[handle]/settings/index.tsx:563
+#: src/routes/(root)/[handle]/settings/index.tsx:546
 msgid "Link name"
 msgstr "링크 이름"
 
@@ -551,7 +541,7 @@ msgstr "게시글 더 불러오기"
 msgid "Load more followers"
 msgstr "팔로워 더 불러오기"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:514
+#: src/routes/(root)/[handle]/settings/invite.tsx:491
 msgid "Load more invitees"
 msgstr "초대받은 사람 더 보기"
 
@@ -563,7 +553,7 @@ msgstr "단문 더 불러오기"
 msgid "Load more notifications"
 msgstr "알림 더 불러오기"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:501
 msgid "Load more passkeys"
 msgstr "패스키 더 불러오기"
 
@@ -583,7 +573,7 @@ msgstr "게시글 불러오는 중…"
 msgid "Loading more followers…"
 msgstr "팔로워 불러오는 중…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:508
+#: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Loading more invitees…"
 msgstr "초대받은 사람들을 불러오는 중…"
 
@@ -595,7 +585,7 @@ msgstr "단문 불러오는 중…"
 msgid "Loading more notifications"
 msgstr "알림을 더 불러오는 중…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:521
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:498
 msgid "Loading more passkeys…"
 msgstr "패스키를 더 불러오는 중…"
 
@@ -611,8 +601,7 @@ msgstr "콘텐츠 불러오는 중…"
 msgid "Loading…"
 msgstr "로딩 중…"
 
-#: src/routes/(root)/markdown.tsx:53
-#: src/routes/(root)/markdown.tsx:58
+#: src/routes/(root)/markdown.tsx:47
 msgid "Markdown guide"
 msgstr "Markdown 가이드"
 
@@ -641,7 +630,7 @@ msgstr "맨 위로 이동"
 msgid "Move up"
 msgstr "위로 이동"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:410
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:387
 msgid "My passkey"
 msgstr "내 패스키"
 
@@ -657,7 +646,7 @@ msgstr "이름이 너무 깁니다. 최대 길이는 50자입니다."
 msgid "Native name"
 msgstr "현지명"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:474
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:451
 msgid "Never used"
 msgstr "사용된 적 없음"
 
@@ -665,7 +654,7 @@ msgstr "사용된 적 없음"
 msgid "No followers found"
 msgstr "팔로워가 없습니다"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:357
+#: src/routes/(root)/[handle]/settings/invite.tsx:334
 msgid "No invitations left"
 msgstr "남은 초대장이 없습니다"
 
@@ -689,30 +678,28 @@ msgstr "콘텐츠가 없습니다"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub에 해당 계정이 없습니다. 다시 시도해주세요."
 
-#: src/routes/(root)/search.tsx:271
+#: src/routes/(root)/search.tsx:257
 msgid "Not found."
 msgstr "찾을 수 없습니다."
 
 #: src/routes/(root)/[handle]/[noteId].tsx:247
-msgid "Note"
-msgstr "단문"
+#~ msgid "Note"
+#~ msgstr "단문"
 
 #: src/components/NoteComposer.tsx:112
 msgid "Note created successfully"
 msgstr "단문이 작성되었습니다"
 
 #. placeholder {0}: "REL_ME_ATTR"
-#: src/routes/(root)/[handle]/settings/index.tsx:526
+#: src/routes/(root)/[handle]/settings/index.tsx:509
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링크한 페이지에서도 {0} 속성을 사용해 당신의 Hackers' Pub 프로필로 링크를 걸어 주세요."
 
 #: src/components/ProfileTabs.tsx:41
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:85
 msgid "Notes"
 msgstr "단문"
 
 #: src/components/AppSidebar.tsx:297
-#: src/routes/(root)/notifications.tsx:51
 msgid "Notifications"
 msgstr "알림"
 
@@ -732,29 +719,28 @@ msgstr "페이지를 찾을 수 없습니다"
 msgid "Passkey authentication failed"
 msgstr "패스키 인증 실패"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:382
 msgid "Passkey name"
 msgstr "패스키 이름"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:279
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:270
 msgid "Passkey registered successfully"
 msgstr "패스키 등록 성공"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:326
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:317
 msgid "Passkey revoked"
 msgstr "패스키 취소됨"
 
 #: src/components/SettingsTabs.tsx:70
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:375
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:386
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:366
 msgid "Passkeys"
 msgstr "패스키"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:227
+#: src/routes/(root)/[handle]/settings/index.tsx:210
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:174
+#: src/routes/(root)/[handle]/settings/invite.tsx:165
 msgid "Please correct the errors and try again."
 msgstr "오류를 수정하고 다시 시도해주세요."
 
@@ -763,22 +749,21 @@ msgid "Posts"
 msgstr "콘텐츠"
 
 #. placeholder {0}: "TAG"
-#: src/routes/(root)/tags/[tag].tsx:98
+#: src/routes/(root)/tags/[tag].tsx:81
 msgid "Posts tagged with {0}"
 msgstr "{0} 콘텐츠"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:221
+#: src/routes/(root)/[handle]/settings/preferences.tsx:198
 msgid "Prefer AI-generated summary"
 msgstr "AI 생성 요약 선호"
 
 #: src/components/SettingsTabs.tsx:49
+#: src/routes/(root)/[handle]/settings/preferences.tsx:174
 #: src/routes/(root)/[handle]/settings/preferences.tsx:183
-#: src/routes/(root)/[handle]/settings/preferences.tsx:194
-#: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Preferences"
 msgstr "환경 설정"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:134
+#: src/routes/(root)/[handle]/settings/language.tsx:111
 msgid "Preferred languages"
 msgstr "선호 언어"
 
@@ -787,8 +772,8 @@ msgid "Priority"
 msgstr "우선순위"
 
 #: src/components/SettingsTabs.tsx:42
-#: src/routes/(root)/[handle]/settings/index.tsx:152
-#: src/routes/(root)/[handle]/settings/index.tsx:166
+#: src/routes/(root)/[handle]/settings/index.tsx:143
+#: src/routes/(root)/[handle]/settings/index.tsx:149
 msgid "Profile settings"
 msgstr "프로필 설정"
 
@@ -797,7 +782,7 @@ msgstr "프로필 설정"
 msgid "Public"
 msgstr "공개"
 
-#: src/routes/(root)/search.tsx:262
+#: src/routes/(root)/search.tsx:248
 msgid "Query cannot be empty"
 msgstr "검색어를 비울 수 없습니다"
 
@@ -806,11 +791,11 @@ msgstr "검색어를 비울 수 없습니다"
 msgid "Quiet public"
 msgstr "조용히 공개"
 
-#: src/components/PostControls.tsx:205
+#: src/components/PostControls.tsx:193
 msgid "Quote"
 msgstr "인용"
 
-#: src/components/PostControls.tsx:224
+#: src/components/PostControls.tsx:230
 msgid "React"
 msgstr "반응"
 
@@ -831,23 +816,23 @@ msgstr "게시글 전체 읽기"
 msgid "Read the full Code of conduct"
 msgstr "행동 강령 전문을 읽으세요."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
 msgid "Register"
 msgstr "등록"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:397
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
 msgid "Register a passkey"
 msgstr "패스키 등록"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:399
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:376
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "계정에 패스키를 등록하세요. 이메일로 로그인 링크를 받는 대신 패스키를 사용할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:428
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
 msgid "Registered passkeys"
 msgstr "등록된 패스키"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:421
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
 msgid "Registering…"
 msgstr "등록중…"
 
@@ -860,34 +845,33 @@ msgstr "제거"
 msgid "Remove {0}"
 msgstr "{0} 제거"
 
-#: src/components/PostControls.tsx:176
+#: src/components/PostControls.tsx:182
 msgid "Reply"
 msgstr "댓글"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:503
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:554
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:480
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:531
 msgid "Revoke"
 msgstr "취소"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:543
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:520
 msgid "Revoke passkey"
 msgstr "패스키를 취소"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:257
-#: src/routes/(root)/[handle]/settings/preferences.tsx:259
+#: src/routes/(root)/[handle]/settings/index.tsx:521
+#: src/routes/(root)/[handle]/settings/language.tsx:234
+#: src/routes/(root)/[handle]/settings/preferences.tsx:236
 msgid "Save"
 msgstr "저장"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:538
-#: src/routes/(root)/[handle]/settings/language.tsx:257
-#: src/routes/(root)/[handle]/settings/preferences.tsx:259
+#: src/routes/(root)/[handle]/settings/index.tsx:521
+#: src/routes/(root)/[handle]/settings/language.tsx:234
+#: src/routes/(root)/[handle]/settings/preferences.tsx:236
 msgid "Saving…"
 msgstr "저장 중…"
 
 #: src/components/AppSidebar.tsx:237
-#: src/routes/(root)/search.tsx:136
-#: src/routes/(root)/search.tsx:164
+#: src/routes/(root)/search.tsx:151
 msgid "Search"
 msgstr "검색"
 
@@ -895,46 +879,40 @@ msgstr "검색"
 msgid "Search a language…"
 msgstr "언어 검색…"
 
-#: src/routes/(root)/search.tsx:157
+#: src/routes/(root)/search.tsx:144
 msgid "Search posts…"
 msgstr "콘텐츠 검색…"
 
 #. placeholder {0}: "KEYWORD"
-#: src/routes/(root)/search.tsx:197
+#: src/routes/(root)/search.tsx:183
 msgid "Search results for {0}"
 msgstr "{0}의 검색 결과"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:136
+#: src/routes/(root)/[handle]/settings/language.tsx:113
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "선호하는 언어를 우선순위에 따라 선택하세요. 콘텐츠를 사용자의 취향에 맞게 조정하는 데 도움이 됩니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:360
+#: src/routes/(root)/[handle]/settings/invite.tsx:337
 msgid "Send"
 msgstr "보내기"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:359
+#: src/routes/(root)/[handle]/settings/invite.tsx:336
 msgid "Sending…"
 msgstr "보내는 중…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:208
+#: src/routes/(root)/[handle]/settings/preferences.tsx:185
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
 #: src/components/AppSidebar.tsx:366
-#: src/routes/(root)/[handle]/settings/index.tsx:157
-#: src/routes/(root)/[handle]/settings/invite.tsx:232
-#: src/routes/(root)/[handle]/settings/language.tsx:116
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:380
-#: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "Settings"
 msgstr "설정"
 
-#: src/components/PostControls.tsx:193
+#: src/components/PostControls.tsx:210
 msgid "Share"
 msgstr "공유"
 
 #: src/components/ProfileTabs.tsx:51
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:86
 msgid "Shares"
 msgstr "공유"
 
@@ -975,15 +953,15 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 msgid "Success"
 msgstr "성공"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:204
+#: src/routes/(root)/[handle]/settings/language.tsx:181
 msgid "Successfully saved language preferences"
 msgstr "언어 설정이 성공적으로 저장되었습니다"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:141
+#: src/routes/(root)/[handle]/settings/preferences.tsx:132
 msgid "Successfully saved preferences"
 msgstr "환경 설정이 성공적으로 저장되었습니다"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:350
+#: src/routes/(root)/[handle]/settings/index.tsx:333
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
@@ -996,38 +974,38 @@ msgid "Table of contents"
 msgstr "목차"
 
 #: src/routes/(root)/tags/[tag].tsx:88
-msgid "Tag"
-msgstr "태그"
+#~ msgid "Tag"
+#~ msgstr "태그"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "당신에 대해서 이야기 해주세요…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:238
+#: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "The default privacy setting for your notes."
 msgstr "단문의 기본 공개 설정입니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:250
+#: src/routes/(root)/[handle]/settings/preferences.tsx:227
 msgid "The default privacy setting for your shares."
 msgstr "공유의 기본 공개 설정입니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:299
+#: src/routes/(root)/[handle]/settings/invite.tsx:276
 msgid "The email address is invalid."
 msgstr "이메일 주소가 유효하지 않습니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:294
+#: src/routes/(root)/[handle]/settings/invite.tsx:271
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "이메일 주소는 초대장을 받을 때 뿐만 아니라, 계정에 로그인할 때도 사용됩니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:430
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:407
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "다음 패스키들이 계정에 등록되어 있습니다. 이들을 사용하여 계정에 로그인할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:184
+#: src/routes/(root)/[handle]/settings/invite.tsx:175
 msgid "The invitation has been sent successfully."
 msgstr "초대장이 성공적으로 발송되었습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:327
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:318
 msgid "The passkey has been successfully revoked."
 msgstr "성공적으로 패스키를 취소했습니다."
 
@@ -1041,16 +1019,11 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:606
+#: src/routes/(root)/[handle]/settings/index.tsx:589
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
 #: src/components/AppSidebar.tsx:117
-#: src/routes/(root)/fediverse.tsx:76
-#: src/routes/(root)/feed/articles.tsx:56
-#: src/routes/(root)/feed/index.tsx:56
-#: src/routes/(root)/feed/without-shares.tsx:56
-#: src/routes/(root)/local.tsx:72
 msgid "Timeline"
 msgstr "타임라인"
 
@@ -1069,19 +1042,19 @@ msgstr "반응을 추가할 수 없습니다. 다시 시도해주세요."
 msgid "Unable to remove reaction. Please try again."
 msgstr "반응을 제거할 수 없습니다. 다시 시도해주세요."
 
-#: src/components/PostControls.tsx:193
+#: src/components/PostControls.tsx:210
 msgid "Unshare"
 msgstr "공유 취소"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:168
+#: src/routes/(root)/[handle]/settings/index.tsx:151
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "프로필 사진, 아이디, 이름, 약력, 링크 등의 프로필 정보를 업데이트하세요."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:588
+#: src/routes/(root)/[handle]/settings/index.tsx:571
 msgid "URL"
 msgstr "URL"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:435
+#: src/routes/(root)/[handle]/settings/index.tsx:418
 #: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "아이디"
@@ -1102,7 +1075,7 @@ msgstr "아이디는 필수입니다."
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "아이디가 너무 깁니다. 최대 길이는 15자입니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:376
+#: src/routes/(root)/[handle]/settings/invite.tsx:353
 msgid "Users you have invited"
 msgstr "초대한 사용자"
 
@@ -1136,7 +1109,7 @@ msgstr "모든 사람이 볼 수 있지만 공개 타임라인에는 표시되�
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "미가입 사용자를 포함해 모든 사람이 볼 수 있습니다. 공개 타임라인에도 표시됩니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:569
+#: src/routes/(root)/[handle]/settings/index.tsx:552
 msgid "Website"
 msgstr "웹사이트"
 
@@ -1153,28 +1126,27 @@ msgid "What's on your mind?"
 msgstr "무슨 생각 해요?"
 
 #: src/components/AppSidebar.tsx:156
-#: src/routes/(root)/feed/without-shares.tsx:64
 msgid "Without shares"
 msgstr "공유 제외"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:451
+#: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "아이디는 단 한 번만 변경할 수 있으며, 변경하기 전 아이디는 다른 사람이 사용할 수 있게 됩니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:617
+#: src/routes/(root)/[handle]/settings/index.tsx:600
 msgid "You can leave this empty to remove the link."
 msgstr "링크를 삭제하려면 이곳을 비워두세요."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:344
+#: src/routes/(root)/[handle]/settings/invite.tsx:321
 msgid "You can leave this field empty."
 msgstr "이 필드는 비워둘 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:439
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:416
 msgid "You don't have any passkeys registered yet."
 msgstr "등록된 패스키가 아직 없습니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:256
-#: src/routes/(root)/[handle]/settings/invite.tsx:367
+#: src/routes/(root)/[handle]/settings/invite.tsx:233
+#: src/routes/(root)/[handle]/settings/invite.tsx:344
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려주세요."
 
@@ -1190,11 +1162,11 @@ msgstr "당신을 초대한 분"
 msgid "You'll automatically follow each other when you sign up."
 msgstr "가입 시 자동으로 서로 팔로우 하게 됩니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:375
+#: src/routes/(root)/[handle]/settings/index.tsx:358
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "프로필 사진은 프로필과 콘텐츠에 표시됩니다. PNG, JPEG, GIF, WebP 형식의 이미지를 5MiB 이하로 업로드할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:495
+#: src/routes/(root)/[handle]/settings/index.tsx:478
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습니다."
 
@@ -1206,32 +1178,32 @@ msgstr "약력은 프로필에 표시됩니다. Markdown을 사용할 수 있습
 msgid "Your email address will be used to sign in to your account."
 msgstr "이메일 주소는 계정에 로그인할 때 사용됩니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:347
+#: src/routes/(root)/[handle]/settings/invite.tsx:324
 msgid "Your friend will see this message in the invitation email."
 msgstr "초대장을 받는 친구가 볼 수 있는 메시지입니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:481
+#: src/routes/(root)/[handle]/settings/index.tsx:464
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:281
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:272
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "패스키가 등록되었습니다. 이제 이 패스키를 사용하여 로그인 할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:142
+#: src/routes/(root)/[handle]/settings/preferences.tsx:133
 msgid "Your preferences have been updated successfully."
 msgstr "환경 설정이 성공적으로 업데이트되었습니다."
 
-#: src/routes/(root)/[handle]/settings/language.tsx:205
+#: src/routes/(root)/[handle]/settings/language.tsx:182
 msgid "Your preferred languages have been updated."
 msgstr "선호 언어가 업데이트되었습니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:351
+#: src/routes/(root)/[handle]/settings/index.tsx:334
 msgid "Your profile settings have been updated successfully."
 msgstr "프로필 설정이 성공적으로 업데이트되었습니다."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:448
+#: src/routes/(root)/[handle]/settings/index.tsx:431
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "아이디는 프로필 URL과 연합우주(fediverse) 핸들로 사용됩니다."

@@ -7,13 +7,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { SearchResults } from "~/components/SearchResults.tsx";
-import { TopBreadcrumb } from "~/components/TopBreadcrumb.tsx";
 import { Trans } from "~/components/Trans.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { TagPageQuery } from "./__generated__/TagPageQuery.graphql.ts";
 
@@ -81,29 +75,17 @@ export default function TagPage() {
   return (
     <Show when={data()}>
       {(queryData) => (
-        <>
-          <TopBreadcrumb>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink href={`/tags/${tag()}`}>{t`Tag`}</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink current>#{tag()}</BreadcrumbLink>
-            </BreadcrumbItem>
-          </TopBreadcrumb>
-          <div class="p-4">
-            <h1 class="text-2xl font-bold mb-4">
-              <Trans
-                message={t`Posts tagged with ${"TAG"}`}
-                values={{
-                  TAG: () => <span class="text-primary">#{tag()}</span>,
-                }}
-              />
-            </h1>
-            <SearchResults $posts={queryData} query={searchQuery} />
-          </div>
-        </>
+        <div class="p-4">
+          <h1 class="text-2xl font-bold mb-4">
+            <Trans
+              message={t`Posts tagged with ${"TAG"}`}
+              values={{
+                TAG: () => <span class="text-primary">#{tag()}</span>,
+              }}
+            />
+          </h1>
+          <SearchResults $posts={queryData} query={searchQuery} />
+        </div>
       )}
     </Show>
   );

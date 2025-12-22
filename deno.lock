@@ -81,6 +81,7 @@
     "npm:@graphql-typed-document-node/core@^3.2.0": "3.2.0_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@hackerspub/markdown-it-texmath@^1.0.1": "1.0.1",
     "npm:@hexagon/base64@^1.1.27": "1.1.28",
+    "npm:@iconify-json/lucide@^1.2.80": "1.2.80",
     "npm:@keyv/redis@^4.6.0": "4.6.0_keyv@5.5.0",
     "npm:@kobalte/core@~0.13.10": "0.13.11_solid-js@1.9.10__seroval@1.3.2",
     "npm:@kobalte/tailwindcss@0.9": "0.9.0_tailwindcss@3.4.3__postcss@8.5.6",
@@ -215,6 +216,7 @@
     "npm:tw-animate-css@^1.3.5": "1.3.5",
     "npm:unified@^11.0.5": "11.0.5",
     "npm:unist-util-visit@5": "5.0.0",
+    "npm:unplugin-icons@^22.5.0": "22.5.0",
     "npm:uri-template-router@1": "1.0.0",
     "npm:url-template@^3.1.1": "3.1.1",
     "npm:vinxi@0.5.8": "0.5.8_@babel+core@7.28.3_ioredis@5.7.0_@types+node@24.2.0_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
@@ -573,6 +575,13 @@
       "dependencies": [
         "@jridgewell/gen-mapping",
         "@jridgewell/trace-mapping"
+      ]
+    },
+    "@antfu/install-pkg@1.1.0": {
+      "integrity": "sha512-MGQsmw10ZyI+EJo45CdSER4zEb+p31LpDAFp2Z3gkSd1yqVZGi0Ebx++YTEMonJy4oChEMLsxZ64j8FH6sSqtQ==",
+      "dependencies": [
+        "package-manager-detector",
+        "tinyexec"
       ]
     },
     "@ardatan/relay-compiler@12.0.3_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
@@ -1173,7 +1182,7 @@
         "@babel/traverse",
         "@babel/types@7.28.5",
         "convert-source-map",
-        "debug@4.4.1",
+        "debug@4.4.3",
         "gensync",
         "json5",
         "semver@6.3.1"
@@ -1369,7 +1378,7 @@
         "@babel/parser",
         "@babel/template",
         "@babel/types@7.28.5",
-        "debug@4.4.1"
+        "debug@4.4.3"
       ]
     },
     "@babel/types@7.28.0": {
@@ -2610,7 +2619,7 @@
         "@types/js-yaml",
         "@whatwg-node/fetch",
         "chalk@4.1.2",
-        "debug@4.4.1",
+        "debug@4.4.3",
         "dotenv@16.6.1",
         "graphql",
         "graphql-request",
@@ -2719,6 +2728,23 @@
     },
     "@humanwhocodes/retry@0.4.3": {
       "integrity": "sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ=="
+    },
+    "@iconify-json/lucide@1.2.80": {
+      "integrity": "sha512-DwAHO+xJEJpOV5y2Q0DIoR3Au9UPk+J6an6KRO281QAxsz/+YpeySGSyZzUEK9tMrSAohkQamqlHx6lPDB8BEg==",
+      "dependencies": [
+        "@iconify/types"
+      ]
+    },
+    "@iconify/types@2.0.0": {
+      "integrity": "sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg=="
+    },
+    "@iconify/utils@3.1.0": {
+      "integrity": "sha512-Zlzem1ZXhI1iHeeERabLNzBHdOa4VhQbqAcOQaMKuTuyZCpwKbC2R4Dd0Zo3g9EAc+Y4fiarO8HIHRAth7+skw==",
+      "dependencies": [
+        "@antfu/install-pkg",
+        "@iconify/types",
+        "mlly"
+      ]
     },
     "@img/sharp-darwin-arm64@0.33.5": {
       "integrity": "sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==",
@@ -5221,7 +5247,7 @@
       "dependencies": [
         "@typescript-eslint/tsconfig-utils",
         "@typescript-eslint/types",
-        "debug@4.4.1",
+        "debug@4.4.3",
         "typescript"
       ]
     },
@@ -5241,7 +5267,7 @@
         "@typescript-eslint/tsconfig-utils",
         "@typescript-eslint/types",
         "@typescript-eslint/visitor-keys",
-        "debug@4.4.1",
+        "debug@4.4.3",
         "fast-glob",
         "is-glob",
         "minimatch@9.0.5",
@@ -6611,6 +6637,12 @@
         "ms@2.1.3"
       ]
     },
+    "debug@4.4.3": {
+      "integrity": "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==",
+      "dependencies": [
+        "ms@2.1.3"
+      ]
+    },
     "decache@4.6.2": {
       "integrity": "sha512-2LPqkLeu8XWHU8qNCS3kcF6sCcb5zIzvWaAHYSvPfwhdd7mHuah29NssMzrTYyHN4F5oFy2ko9OBYxegtU0FEw==",
       "dependencies": [
@@ -7050,7 +7082,7 @@
     "esbuild-register@3.6.0_esbuild@0.19.12": {
       "integrity": "sha512-H2/S7Pm8a9CL1uhp9OvjwrBh5Pvx0H8qVOxNu8Wed9Y7qv56MPtq+GGM8RJpq6glYJn9Wspr8uw7l55uyinNeg==",
       "dependencies": [
-        "debug@4.4.1",
+        "debug@4.4.3",
         "esbuild@0.19.12"
       ]
     },
@@ -7302,7 +7334,7 @@
     "extract-zip@2.0.1": {
       "integrity": "sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==",
       "dependencies": [
-        "debug@4.4.1",
+        "debug@4.4.3",
         "get-stream@5.2.0",
         "yauzl"
       ],
@@ -7531,7 +7563,7 @@
       "integrity": "sha512-Newg9X7mRYskoBjSw70l1YnJ/ZGbq64VPyR821H5WVkTGpHG2O0mQILxCeUhxdYERLFY9B4tUyKLyf3uMTjtKw==",
       "dependencies": [
         "@petamoriken/float16",
-        "debug@4.4.1",
+        "debug@4.4.3",
         "env-paths@3.0.0",
         "semver@7.7.2",
         "shell-quote",
@@ -7925,7 +7957,7 @@
       "integrity": "sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig==",
       "dependencies": [
         "agent-base",
-        "debug@4.4.1"
+        "debug@4.4.3"
       ]
     },
     "http-proxy@1.18.1": {
@@ -7943,7 +7975,7 @@
       "integrity": "sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==",
       "dependencies": [
         "agent-base",
-        "debug@4.4.1"
+        "debug@4.4.3"
       ]
     },
     "httpxy@0.1.7": {
@@ -8063,7 +8095,7 @@
       "dependencies": [
         "@ioredis/commands",
         "cluster-key-slot",
-        "debug@4.4.1",
+        "debug@4.4.3",
         "denque",
         "lodash.defaults",
         "lodash.isarguments",
@@ -9146,7 +9178,7 @@
       "integrity": "sha512-zpe98Q6kvavpCr1NPVSCMebCKfD7CA2NqZ+rykeNhONIJBpc1tFKt9hucLGwha3jNTNI8lHpctWJWoimVF4PfA==",
       "dependencies": [
         "@types/debug",
-        "debug@4.4.1",
+        "debug@4.4.3",
         "decode-named-character-reference",
         "devlop",
         "micromark-core-commonmark",
@@ -9682,6 +9714,9 @@
     },
     "package-json-from-dist@1.0.1": {
       "integrity": "sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw=="
+    },
+    "package-manager-detector@1.6.0": {
+      "integrity": "sha512-61A5ThoTiDG/C8s8UMZwSorAGwMJ0ERVGj2OjoW5pAalsNOg15+iQiPzrLJ4jhZ1HJzmC2PIHT2oEiH3R5fzNA=="
     },
     "pako@0.2.9": {
       "integrity": "sha512-NUcwaKxUxWrZLpDG+z/xZaCgQITkA/Dv4V/T6bw7VON6l1Xz/VnrBqrYjZQ12TamKHzITTfOEIYUj48y2KXImA=="
@@ -10567,7 +10602,7 @@
     "require-in-the-middle@7.5.2": {
       "integrity": "sha512-gAZ+kLqBdHarXB64XpAe2VCjB7rIRv+mU8tfRWziHRJ5umKsIHN2tLLv6EtMw7WCdP19S0ERVMldNvxYCHnhSQ==",
       "dependencies": [
-        "debug@4.4.1",
+        "debug@4.4.3",
         "module-details-from-path",
         "resolve@1.22.10"
       ]
@@ -10781,7 +10816,7 @@
     "send@1.2.0": {
       "integrity": "sha512-uaW0WwXKpL9blXE2o0bRhoL2EGXIrZxQ2ZQ4mgcfoBxdFmQold+qWsD2jLrfZ0trjKL6vOw0j//eAwcALFjKSw==",
       "dependencies": [
-        "debug@4.4.1",
+        "debug@4.4.3",
         "encodeurl@2.0.0",
         "escape-html",
         "etag",
@@ -11805,6 +11840,16 @@
         "normalize-path@2.1.1"
       ]
     },
+    "unplugin-icons@22.5.0": {
+      "integrity": "sha512-MBlMtT5RuMYZy4TZgqUL2OTtOdTUVsS1Mhj6G1pEzMlFJlEnq6mhUfoIt45gBWxHcsOdXJDWLg3pRZ+YmvAVWQ==",
+      "dependencies": [
+        "@antfu/install-pkg",
+        "@iconify/utils",
+        "debug@4.4.3",
+        "local-pkg",
+        "unplugin"
+      ]
+    },
     "unplugin-utils@0.2.5": {
       "integrity": "sha512-gwXJnPRewT4rT7sBi/IvxKTjsms7jX7QIDLOClApuZwR49SXbrB1z2NLUZ+vDHyqCj/n58OzRRqaW+B8OZi8vg==",
       "dependencies": [
@@ -11812,8 +11857,8 @@
         "picomatch@4.0.3"
       ]
     },
-    "unplugin@2.3.8": {
-      "integrity": "sha512-lkaSIlxceytPyt9yfb1h7L9jDFqwMqvUZeGsKB7Z8QrvAO3xZv2S+xMQQYzxk0AGJHcQhbcvhKEstrMy99jnuQ==",
+    "unplugin@2.3.11": {
+      "integrity": "sha512-5uKD0nqiYVzlmCRs01Fhs2BdkEgBS3SAVP6ndrBsuK42iC2+JHyxM05Rm9G8+5mkmRtzMZGY8Ct5+mliZxU/Ww==",
       "dependencies": [
         "@jridgewell/remapping",
         "acorn@8.15.0",
@@ -12497,6 +12542,7 @@
           "dependencies": [
             "npm:@corvu/otp-field@~0.1.4",
             "npm:@deno/vite-plugin@^1.0.5",
+            "npm:@iconify-json/lucide@^1.2.80",
             "npm:@kobalte/core@~0.13.10",
             "npm:@kobalte/tailwindcss@0.9",
             "npm:@lingui/babel-plugin-lingui-macro@^5.3.3",
@@ -12526,6 +12572,7 @@
             "npm:tailwind-merge@^3.3.1",
             "npm:tailwindcss@^4.1.11",
             "npm:tw-animate-css@^1.3.5",
+            "npm:unplugin-icons@^22.5.0",
             "npm:vinxi@~0.5.8",
             "npm:vite-plugin-cjs-interop@^2.2.0",
             "npm:vite-plugin-relay-lite@0.11"

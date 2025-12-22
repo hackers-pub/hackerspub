@@ -10,14 +10,8 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { NoteCard } from "../../../components/NoteCard.tsx";
 import type { NoteIdPageQuery } from "./__generated__/NoteIdPageQuery.graphql.ts";
@@ -208,9 +202,6 @@ function NoteInternal(props: NoteInternalProps) {
     graphql`
       fragment NoteId_body on Note {
         iri
-        actor {
-          ...ProfilePageBreadcrumb_actor
-        }
         url
         ...NoteCard_note
         replyTarget {
@@ -240,14 +231,6 @@ function NoteInternal(props: NoteInternalProps) {
     <Show when={note()}>
       {(note) => (
         <>
-          <ProfilePageBreadcrumb $actor={note().actor}>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink current>
-                {t`Note`}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-          </ProfilePageBreadcrumb>
           <div class="my-4">
             <Show when={note().replyTarget}>
               {(parent) => (
@@ -257,7 +240,7 @@ function NoteInternal(props: NoteInternalProps) {
               )}
             </Show>
             <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto text-xl">
-              <NoteCard $note={note()} zoom />
+              <NoteCard $note={note()} />
               <Show when={viewer() == null}>
                 <p class="p-4 text-sm text-muted-foreground">
                   <Trans

@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": [
+        "./src/*"
+      ]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "solid-js",
     "types": [
-      "vinxi/types/client"
+      "vinxi/types/client",
+      "unplugin-icons/types/solid"
     ]
   }
 }

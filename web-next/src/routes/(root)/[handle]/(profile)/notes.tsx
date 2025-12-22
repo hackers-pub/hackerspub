@@ -10,14 +10,8 @@ import {
 import { ActorNoteList } from "~/components/ActorNoteList.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { notesPageQuery } from "./__generated__/notesPageQuery.graphql.ts";
 
@@ -37,7 +31,6 @@ const notesPageQuery = graphql`
       username
       ...NavigateIfHandleIsNotCanonical_actor
       ...ActorNoteList_notes
-      ...ProfilePageBreadcrumb_actor
       ...ProfileCard_actor
       ...ProfileTabs_actor
     }
@@ -78,14 +71,6 @@ export default function ProfileNotesPage() {
                   content={t`${actor().rawName ?? actor().username}'s notes`}
                 />
                 <NavigateIfHandleIsNotCanonical $actor={actor()} />
-                <ProfilePageBreadcrumb $actor={actor()}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Notes`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
                 <div>
                   <ProfileCard $actor={actor()} />
                 </div>

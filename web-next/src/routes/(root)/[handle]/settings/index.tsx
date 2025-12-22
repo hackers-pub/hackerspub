@@ -22,16 +22,10 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ProfilePageBreadcrumb } from "~/components/ProfilePageBreadcrumb.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
-import {
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "~/components/ui/breadcrumb.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   Card,
@@ -81,9 +75,6 @@ const settingsPageQuery = graphql`
       id
       ...settingsForm_account
       ...SettingsTabs_account
-      actor {
-        ...ProfilePageBreadcrumb_actor
-      }
     }
   }
 `;
@@ -150,14 +141,6 @@ export default function SettingsPage() {
             {(account) => (
               <>
                 <Title>{t`Profile settings`}</Title>
-                <ProfilePageBreadcrumb $actor={account().actor}>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbLink current>
-                      {t`Settings`}
-                    </BreadcrumbLink>
-                  </BreadcrumbItem>
-                </ProfilePageBreadcrumb>
                 <div class="p-4">
                   <div class="mx-auto max-w-prose">
                     <SettingsTabs selected="profile" $account={account()} />
