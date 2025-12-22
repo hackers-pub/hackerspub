@@ -3,12 +3,11 @@
   "specifiers": {
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
     "jsr:@es-toolkit/es-toolkit@^1.39.5": "1.41.0",
-    "jsr:@fedify/fedify@1.9.1": "1.9.1",
-    "jsr:@fedify/fedify@^1.9.1": "1.9.1",
+    "jsr:@fedify/fedify@^1.9.2": "1.9.2",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
-    "jsr:@fedify/postgres@^1.9.1": "1.9.1",
-    "jsr:@fedify/redis@^1.9.1": "1.9.1",
+    "jsr:@fedify/postgres@^1.9.2": "1.9.2",
+    "jsr:@fedify/redis@^1.9.2": "1.9.2",
     "jsr:@fresh/core@2.0.0-alpha.34": "2.0.0-alpha.34",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7": "0.0.1-alpha.7",
@@ -109,7 +108,7 @@
     "npm:@peculiar/asn1-schema@^2.3.8": "2.5.0",
     "npm:@peculiar/asn1-x509@^2.3.8": "2.5.0",
     "npm:@peculiar/x509@^1.13.0": "1.14.0",
-    "npm:@phensley/language-tag@^1.9.0": "1.13.1",
+    "npm:@phensley/language-tag@^1.9.0": "1.14.0",
     "npm:@pothos/core@^4.7.3": "4.8.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-complexity@4.1.1": "4.1.1_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-drizzle@~0.11.1": "0.11.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_drizzle-orm@1.0.0-beta.1-5e64efc__@cloudflare+workers-types@4.20250917.0__@opentelemetry+api@1.9.0__postgres@3.4.7_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@cloudflare+workers-types@4.20250917.0_@opentelemetry+api@1.9.0_postgres@3.4.7",
@@ -237,8 +236,8 @@
     "@es-toolkit/es-toolkit@1.41.0": {
       "integrity": "4df54a18e80b869880cee8a8a9ff7a5e1c424a9fd0916dccd38d34686f110071"
     },
-    "@fedify/fedify@1.9.1": {
-      "integrity": "d17d3813359d9d53e6ebdfdb4c56c51f73e9a3d017fcadcfa3981be86661b37f",
+    "@fedify/fedify@1.9.2": {
+      "integrity": "0364c3d14be507c0e36463fc0454d3e19154b28d4ca844fdb23fed95a991f354",
       "dependencies": [
         "jsr:@es-toolkit/es-toolkit",
         "jsr:@logtape/logtape@^1.1.1",
@@ -272,18 +271,18 @@
         "npm:@types/markdown-it"
       ]
     },
-    "@fedify/postgres@1.9.1": {
-      "integrity": "3b154d5de745969e33dc3500f4018569abe4ccdf74ea2e4ef7d0eb991a005189",
+    "@fedify/postgres@1.9.2": {
+      "integrity": "906606289ea56ccba97d399efef27a3afa239dcaf1c33abc35078c09bc48e18d",
       "dependencies": [
-        "jsr:@fedify/fedify@^1.9.1",
+        "jsr:@fedify/fedify",
         "jsr:@logtape/logtape@^1.1.1",
         "npm:postgres@^3.4.7"
       ]
     },
-    "@fedify/redis@1.9.1": {
-      "integrity": "b81c70edf1e0396106035ede7f43926e0bab264c3d3cf0f79e6646cd7d102f93",
+    "@fedify/redis@1.9.2": {
+      "integrity": "49d34fa94b6b54da2773c951e7ea5fd70306e760c4aeb77fb18b4d8f73142549",
       "dependencies": [
-        "jsr:@fedify/fedify@^1.9.1",
+        "jsr:@fedify/fedify",
         "jsr:@logtape/logtape@^1.1.1",
         "npm:ioredis@^5.6.1"
       ]
@@ -1528,7 +1527,6 @@
       ]
     },
     "@deno/vite-plugin@1.0.5_vite@6.3.6__@types+node@24.2.0__picomatch@4.0.3_@types+node@24.2.0": {
-      "integrity": "sha512-tLja5n4dyMhcze1NzvSs2iiriBymfBlDCZIrjMTxb9O2ru0gvmV6mn5oBD2teNw5Sd92cj3YJzKwsAs8tMJXlg==",
       "dependencies": [
         "vite"
       ]
@@ -3666,8 +3664,8 @@
     "@petamoriken/float16@3.9.2": {
       "integrity": "sha512-VgffxawQde93xKxT3qap3OH+meZf7VaSB5Sqd4Rqc+FP5alWbpOyan/7tRbOAvynjpG3GpdtAuGU/NdhQpmrog=="
     },
-    "@phensley/language-tag@1.13.1": {
-      "integrity": "sha512-0cqJT7yC1wz0LlT63gs6lfTSgvedWA+Msg2tDbp9b5NCF9CTyLZ/9UbncBlXRHHvugbhtlT3NjM6lvwK3mrIoA==",
+    "@phensley/language-tag@1.14.0": {
+      "integrity": "sha512-FJak93PHAWlleOeAt0JBLplkAy/BhrEhK8zuNX1PHca7I+Pdzj3N1lWZD8ZLmDqlYHIBhHkf6PLOrOcjBD1DHg==",
       "dependencies": [
         "tslib@2.8.1"
       ]
@@ -12423,11 +12421,11 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@1.9.1",
+      "jsr:@fedify/fedify@^1.9.2",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
-      "jsr:@fedify/postgres@^1.9.1",
-      "jsr:@fedify/redis@^1.9.1",
+      "jsr:@fedify/postgres@^1.9.2",
+      "jsr:@fedify/redis@^1.9.2",
       "jsr:@fresh/core@2.0.0-alpha.34",
       "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",
@@ -12580,6 +12578,13 @@
             "npm:vite-plugin-relay-lite@0.11"
           ]
         }
+      }
+    },
+    "links": {
+      "npm:@deno/vite-plugin@1.0.5": {
+        "peerDependencies": [
+          "npm:vite@5 || 6 || 7"
+        ]
       }
     }
   }

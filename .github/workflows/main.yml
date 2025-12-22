@@ -21,6 +21,9 @@ jobs:
         package_json_file: web-next/package.json
     - name: Run codegen
       run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
+    - name: Build web-next
+      run: deno task build
+      working-directory: web-next
     - name: Run tests
       if: always()
       run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test

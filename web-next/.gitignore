@@ -4,4 +4,3 @@ dist
 .vinxi
 app.config.timestamp_*.js
 __generated__/
-!.env

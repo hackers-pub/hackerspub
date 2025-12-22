@@ -34,6 +34,13 @@ export default defineConfig({
       Icons({ compiler: "solid" }),
     ],
   }),
+  server: {
+    esbuild: {
+      options: {
+        target: "esnext",
+      },
+    },
+  },
   solid: {
     babel: {
       plugins: ["@lingui/babel-plugin-lingui-macro"],
