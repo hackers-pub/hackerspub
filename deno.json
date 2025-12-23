@@ -184,7 +184,12 @@
   },
   "tasks": {
     "install": "deno cache */*.ts",
-    "check": "deno fmt --check && deno lint && deno check .",
+    "check": {
+      "dependencies": [
+        "next:codegen"
+      ],
+      "command": "deno fmt --check && deno lint && deno check ."
+    },
     "test": "deno test --env-file=.env.test --allow-all --parallel",
     "dev": "cd web && deno task dev",
     "build": "cd web && deno task build",
@@ -195,6 +200,7 @@
     "migrate:test": "deno run --env-file=.env.test -A drizzle-kit migrate",
     "keygen": "deno run --allow-read --allow-env scripts/keygen.ts",
     "addaccount": "deno run --allow-all --env-file=.env scripts/addaccount.ts",
+    "next:codegen": "deno task -f web-next codegen",
     "hooks:install": "deno run --allow-read=deno.json,.git/hooks/ --allow-write=.git/hooks/ jsr:@hongminhee/deno-task-hooks",
     "hooks:pre-commit": "deno task check"
   }
