@@ -3,7 +3,10 @@ import { onCleanup, onMount } from "solid-js";
 
 interface NodeDatum {
   id: string;
-  group: number;
+  username?: string;
+  name?: string;
+  avatarUrl: string;
+  hidden: boolean;
   x?: number;
   y?: number;
   fx?: number | null;
@@ -16,179 +19,18 @@ interface LinkDatum {
   value: number;
 }
 
-interface GraphData {
+export interface GraphData {
   nodes: NodeDatum[];
   links: LinkDatum[];
 }
 
-// Rich tree data for beautiful visualization
-const sampleData: GraphData = {
-  nodes: [
-    // Root (depth 0)
-    { id: "Tech Stack", group: 0 },
-
-    // Level 1 (depth 1)
-    { id: "Frontend", group: 1 },
-    { id: "Backend", group: 1 },
-    { id: "Database", group: 1 },
-    { id: "DevOps", group: 1 },
-    { id: "Mobile", group: 1 },
-
-    // Frontend children (depth 2)
-    { id: "React", group: 2 },
-    { id: "Vue", group: 2 },
-    { id: "Solid", group: 2 },
-    { id: "Svelte", group: 2 },
-    { id: "Angular", group: 2 },
-
-    // Backend children (depth 2)
-    { id: "Node.js", group: 3 },
-    { id: "Deno", group: 3 },
-    { id: "Go", group: 3 },
-    { id: "Rust", group: 3 },
-    { id: "Python", group: 3 },
-
-    // Database children (depth 2)
-    { id: "PostgreSQL", group: 4 },
-    { id: "MongoDB", group: 4 },
-    { id: "Redis", group: 4 },
-    { id: "SQLite", group: 4 },
-
-    // DevOps children (depth 2)
-    { id: "Docker", group: 5 },
-    { id: "K8s", group: 5 },
-    { id: "GitHub Actions", group: 5 },
-    { id: "Terraform", group: 5 },
-
-    // Mobile children (depth 2)
-    { id: "React Native", group: 6 },
-    { id: "Flutter", group: 6 },
-    { id: "Swift", group: 6 },
-    { id: "Kotlin", group: 6 },
-
-    // React frameworks (depth 3)
-    { id: "Next.js", group: 7 },
-    { id: "Remix", group: 7 },
-    { id: "Gatsby", group: 7 },
-
-    // Vue frameworks (depth 3)
-    { id: "Nuxt", group: 7 },
-    { id: "Vite", group: 7 },
-
-    // Solid frameworks (depth 3)
-    { id: "SolidStart", group: 7 },
-
-    // Svelte frameworks (depth 3)
-    { id: "SvelteKit", group: 7 },
-
-    // Node.js frameworks (depth 3)
-    { id: "Express", group: 8 },
-    { id: "Fastify", group: 8 },
-    { id: "NestJS", group: 8 },
-
-    // Deno frameworks (depth 3)
-    { id: "Fresh", group: 8 },
-    { id: "Hono", group: 8 },
-    { id: "Oak", group: 8 },
-
-    // Go frameworks (depth 3)
-    { id: "Gin", group: 8 },
-    { id: "Echo", group: 8 },
-
-    // Python frameworks (depth 3)
-    { id: "FastAPI", group: 8 },
-    { id: "Django", group: 8 },
-    { id: "Flask", group: 8 },
-
-    // Rust frameworks (depth 3)
-    { id: "Actix", group: 8 },
-    { id: "Axum", group: 8 },
-  ],
-  links: [
-    // Root -> Level 1
-    { source: "Tech Stack", target: "Frontend", value: 4 },
-    { source: "Tech Stack", target: "Backend", value: 4 },
-    { source: "Tech Stack", target: "Database", value: 4 },
-    { source: "Tech Stack", target: "DevOps", value: 4 },
-    { source: "Tech Stack", target: "Mobile", value: 4 },
-
-    // Frontend -> frameworks
-    { source: "Frontend", target: "React", value: 3 },
-    { source: "Frontend", target: "Vue", value: 3 },
-    { source: "Frontend", target: "Solid", value: 3 },
-    { source: "Frontend", target: "Svelte", value: 3 },
-    { source: "Frontend", target: "Angular", value: 3 },
-
-    // Backend -> runtimes
-    { source: "Backend", target: "Node.js", value: 3 },
-    { source: "Backend", target: "Deno", value: 3 },
-    { source: "Backend", target: "Go", value: 3 },
-    { source: "Backend", target: "Rust", value: 3 },
-    { source: "Backend", target: "Python", value: 3 },
-
-    // Database -> databases
-    { source: "Database", target: "PostgreSQL", value: 3 },
-    { source: "Database", target: "MongoDB", value: 3 },
-    { source: "Database", target: "Redis", value: 3 },
-    { source: "Database", target: "SQLite", value: 3 },
-
-    // DevOps -> tools
-    { source: "DevOps", target: "Docker", value: 3 },
-    { source: "DevOps", target: "K8s", value: 3 },
-    { source: "DevOps", target: "GitHub Actions", value: 3 },
-    { source: "DevOps", target: "Terraform", value: 3 },
-
-    // Mobile -> platforms
-    { source: "Mobile", target: "React Native", value: 3 },
-    { source: "Mobile", target: "Flutter", value: 3 },
-    { source: "Mobile", target: "Swift", value: 3 },
-    { source: "Mobile", target: "Kotlin", value: 3 },
-
-    // React -> meta-frameworks
-    { source: "React", target: "Next.js", value: 2 },
-    { source: "React", target: "Remix", value: 2 },
-    { source: "React", target: "Gatsby", value: 2 },
-
-    // Vue -> meta-frameworks
-    { source: "Vue", target: "Nuxt", value: 2 },
-    { source: "Vue", target: "Vite", value: 2 },
-
-    // Solid -> meta-frameworks
-    { source: "Solid", target: "SolidStart", value: 2 },
-
-    // Svelte -> meta-frameworks
-    { source: "Svelte", target: "SvelteKit", value: 2 },
-
-    // Node.js -> frameworks
-    { source: "Node.js", target: "Express", value: 2 },
-    { source: "Node.js", target: "Fastify", value: 2 },
-    { source: "Node.js", target: "NestJS", value: 2 },
-
-    // Deno -> frameworks
-    { source: "Deno", target: "Fresh", value: 2 },
-    { source: "Deno", target: "Hono", value: 2 },
-    { source: "Deno", target: "Oak", value: 2 },
-
-    // Go -> frameworks
-    { source: "Go", target: "Gin", value: 2 },
-    { source: "Go", target: "Echo", value: 2 },
-
-    // Python -> frameworks
-    { source: "Python", target: "FastAPI", value: 2 },
-    { source: "Python", target: "Django", value: 2 },
-    { source: "Python", target: "Flask", value: 2 },
-
-    // Rust -> frameworks
-    { source: "Rust", target: "Actix", value: 2 },
-    { source: "Rust", target: "Axum", value: 2 },
-  ],
-};
-
 export interface ForceGraphProps {
   width?: number;
   height?: number;
-  data?: GraphData;
+  data: GraphData;
 }
+
+const NODE_RADIUS = 16;
 
 export function ForceGraph(props: ForceGraphProps) {
   let svgRef: SVGSVGElement | undefined;
@@ -199,13 +41,13 @@ export function ForceGraph(props: ForceGraphProps) {
   onMount(() => {
     if (!svgRef) return;
 
-    const data = props.data ?? sampleData;
+    const data = props.data;
 
     // Create copies of data
     const links: LinkDatum[] = data.links.map((d) => ({ ...d }));
     const nodes: NodeDatum[] = data.nodes.map((d) => ({ ...d }));
 
-    // Create simulation with forces that keep nodes within bounds
+    // Create simulation with forces
     const simulation = d3
       .forceSimulation(nodes)
       .force(
@@ -213,13 +55,13 @@ export function ForceGraph(props: ForceGraphProps) {
         d3
           .forceLink<NodeDatum, LinkDatum>(links)
           .id((d: NodeDatum) => d.id)
-          .distance(40)
-          .strength(1),
+          .distance(80)
+          .strength(0.8),
       )
-      .force("charge", d3.forceManyBody().strength(-200))
-      .force("x", d3.forceX().strength(0.1))
-      .force("y", d3.forceY().strength(0.1))
-      .force("collision", d3.forceCollide().radius(5));
+      .force("charge", d3.forceManyBody().strength(-400))
+      .force("x", d3.forceX().strength(0.05))
+      .force("y", d3.forceY().strength(0.05))
+      .force("collision", d3.forceCollide().radius(NODE_RADIUS + 4));
 
     // Create SVG
     const svg = d3
@@ -228,6 +70,18 @@ export function ForceGraph(props: ForceGraphProps) {
 
     // Clear previous content
     svg.selectAll("*").remove();
+
+    // Create defs for clip paths
+    const defs = svg.append("defs");
+
+    // Create clip paths for each node
+    nodes.forEach((node) => {
+      defs
+        .append("clipPath")
+        .attr("id", `clip-${node.id}`)
+        .append("circle")
+        .attr("r", NODE_RADIUS);
+    });
 
     // Create container group for zoom/pan
     const g = svg.append("g");
@@ -256,32 +110,64 @@ export function ForceGraph(props: ForceGraphProps) {
       .selectAll<SVGLineElement, LinkDatum>("line")
       .data(links)
       .join("line")
-      .attr("stroke-width", 0.5);
+      .attr("stroke-width", 1);
 
-    // Add nodes (same size, same color)
+    // Create node groups
     const node = g
       .append("g")
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 0.5)
-      .selectAll<SVGCircleElement, NodeDatum>("circle")
+      .selectAll<SVGGElement, NodeDatum>("g")
       .data(nodes)
-      .join("circle")
-      .attr("r", 2.5)
-      .attr("fill", "#6366f1")
-      .style("cursor", "grab");
+      .join("g")
+      .style("cursor", "grab")
+      .attr("opacity", (d: NodeDatum) => (d.hidden ? 0.5 : 1));
+
+    // Add avatar images with circular clip
+    node
+      .append("image")
+      .attr("href", (d: NodeDatum) => d.avatarUrl)
+      .attr("width", NODE_RADIUS * 2)
+      .attr("height", NODE_RADIUS * 2)
+      .attr("x", -NODE_RADIUS)
+      .attr("y", -NODE_RADIUS)
+      .attr("clip-path", (d: NodeDatum) => `url(#clip-${d.id})`)
+      .attr("preserveAspectRatio", "xMidYMid slice");
+
+    // Add circle border
+    node
+      .append("circle")
+      .attr("r", NODE_RADIUS)
+      .attr("fill", "none")
+      .attr("stroke", (d: NodeDatum) => (d.hidden ? "#9ca3af" : "#e5e7eb"))
+      .attr("stroke-width", 2)
+      .attr("stroke-dasharray", (d: NodeDatum) => (d.hidden ? "4,2" : "none"));
+
+    // Add username label (or "hidden" for hidden accounts)
+    node
+      .append("text")
+      .text((d: NodeDatum) => (d.hidden ? "🔒" : d.username ?? ""))
+      .attr("x", 0)
+      .attr("y", NODE_RADIUS + 14)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "10px")
+      .attr("fill", "currentColor")
+      .attr("opacity", 0.8);
 
     // Add titles for hover
-    node.append("title").text((d: NodeDatum) => d.id);
+    node
+      .append("title")
+      .text((d: NodeDatum) =>
+        d.hidden ? "Hidden account" : `${d.name} (@${d.username})`
+      );
 
     // Add drag behavior
     const drag = d3
-      .drag<SVGCircleElement, NodeDatum>()
+      .drag<SVGGElement, NodeDatum>()
       .on("start", dragstarted)
       .on("drag", dragged)
       .on("end", dragended);
 
     function dragstarted(
-      event: d3.D3DragEvent<SVGCircleElement, NodeDatum, NodeDatum>,
+      event: d3.D3DragEvent<SVGGElement, NodeDatum, NodeDatum>,
       d: NodeDatum,
     ) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -290,7 +176,7 @@ export function ForceGraph(props: ForceGraphProps) {
     }
 
     function dragged(
-      event: d3.D3DragEvent<SVGCircleElement, NodeDatum, NodeDatum>,
+      event: d3.D3DragEvent<SVGGElement, NodeDatum, NodeDatum>,
       d: NodeDatum,
     ) {
       d.fx = event.x;
@@ -298,7 +184,7 @@ export function ForceGraph(props: ForceGraphProps) {
     }
 
     function dragended(
-      event: d3.D3DragEvent<SVGCircleElement, NodeDatum, NodeDatum>,
+      event: d3.D3DragEvent<SVGGElement, NodeDatum, NodeDatum>,
       d: NodeDatum,
     ) {
       if (!event.active) simulation.alphaTarget(0);
@@ -316,9 +202,7 @@ export function ForceGraph(props: ForceGraphProps) {
         .attr("x2", (d: LinkDatum) => (d.target as NodeDatum).x ?? 0)
         .attr("y2", (d: LinkDatum) => (d.target as NodeDatum).y ?? 0);
 
-      node
-        .attr("cx", (d: NodeDatum) => d.x ?? 0)
-        .attr("cy", (d: NodeDatum) => d.y ?? 0);
+      node.attr("transform", (d: NodeDatum) => `translate(${d.x},${d.y})`);
     });
 
     onCleanup(() => {
