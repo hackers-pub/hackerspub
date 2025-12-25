@@ -79,6 +79,7 @@
     "arcsecond": "npm:arcsecond@^5.0.0",
     "cheerio": "npm:cheerio@^1.1.0",
     "cssfilter": "npm:cssfilter@^0.0.11",
+    "d3": "npm:d3@^7.9.0",
     "drizzle-kit": "npm:drizzle-kit@1.0.0-beta.1-5e64efc",
     "drizzle-orm": "npm:drizzle-orm@1.0.0-beta.1-5e64efc",
     "feed": "npm:feed@^4.2.2",

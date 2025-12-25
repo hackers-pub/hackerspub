@@ -422,6 +422,16 @@ type Invitation {
   message: Markdown
 }
 
+"""A node in the invitation tree."""
+type InvitationTreeNode {
+  avatarUrl: URL!
+  hidden: Boolean!
+  id: ID!
+  inviterId: ID
+  name: String
+  username: String
+}
+
 enum InviteEmailError {
   EMAIL_ALREADY_TAKEN
   EMAIL_INVALID
@@ -839,6 +849,9 @@ type Query {
     locale: Locale!
   ): Document!
   instanceByHost(host: String!): Instance
+
+  """Returns all accounts as a flat array for building the invitation tree."""
+  invitationTree: [InvitationTreeNode!]!
   markdownGuide(
     """The locale for the Markdown guide."""
     locale: Locale!

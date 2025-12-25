@@ -374,6 +374,64 @@ builder.queryFields((t) => ({
   }),
 }));
 
+interface InvitationTreeNode {
+  id: string;
+  username: string | null;
+  name: string | null;
+  avatarUrl: string;
+  inviterId: string | null;
+  hidden: boolean;
+}
+
+const DEFAULT_AVATAR_URL = "https://gravatar.com/avatar/?d=mp&s=128";
+
+const InvitationTreeNodeRef = builder.objectRef<InvitationTreeNode>(
+  "InvitationTreeNode",
+);
+
+InvitationTreeNodeRef.implement({
+  description: "A node in the invitation tree.",
+  fields: (t) => ({
+    id: t.exposeID("id"),
+    username: t.exposeString("username", { nullable: true }),
+    name: t.exposeString("name", { nullable: true }),
+    avatarUrl: t.field({
+      type: "URL",
+      resolve: (node) => new URL(node.avatarUrl),
+    }),
+    inviterId: t.exposeID("inviterId", { nullable: true }),
+    hidden: t.exposeBoolean("hidden"),
+  }),
+});
+
+builder.queryField("invitationTree", (t) =>
+  t.field({
+    type: [InvitationTreeNodeRef],
+    description:
+      "Returns all accounts as a flat array for building the invitation tree.",
+    async resolve(_, __, ctx) {
+      const accounts = await ctx.db.query.accountTable.findMany({
+        with: {
+          actor: true,
+          emails: true,
+        },
+      });
+
+      return await Promise.all(
+        accounts.map(async (account) => ({
+          id: account.id,
+          username: account.hideFromInvitationTree ? null : account.username,
+          name: account.hideFromInvitationTree ? null : account.name,
+          avatarUrl: account.hideFromInvitationTree
+            ? DEFAULT_AVATAR_URL
+            : await getAvatarUrl(ctx.disk, account),
+          inviterId: account.inviterId,
+          hidden: account.hideFromInvitationTree,
+        })),
+      );
+    },
+  }));
+
 const AccountLinkInput = builder.inputType("AccountLinkInput", {
   fields: (t) => ({
     name: t.string({ required: true }),
