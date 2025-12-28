@@ -23,6 +23,11 @@ msgstr "{0, plural, other {被 # 人關注}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {關注 # 人}}"
 
+#. placeholder {0}: edge.node.tags.length - 3
+#: src/routes/(root)/[handle]/drafts/index.tsx:276
+msgid "{0, plural, one {+1 more} other {+# more}}"
+msgstr "{0, plural, other {還有#個}}"
+
 #. placeholder {0}: account().invitationsLeft
 #: src/routes/(root)/[handle]/settings/invite.tsx:235
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
@@ -327,7 +332,7 @@ msgstr "預設貼文隱私設定"
 msgid "Default share privacy"
 msgstr "預設轉貼隱私設定"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:294
+#: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "刪除"
 
@@ -423,7 +428,7 @@ msgstr "額外訊息"
 msgid "Failed to load more articles; click to retry"
 msgstr "載入更多文章失敗，點擊重試"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:318
+#: src/routes/(root)/[handle]/drafts/index.tsx:325
 msgid "Failed to load more drafts; click to retry"
 msgstr "載入更多草稿失敗，點擊重試"
 
@@ -641,7 +646,7 @@ msgstr "連結作者："
 msgid "Link name"
 msgstr "連結名"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:321
+#: src/routes/(root)/[handle]/drafts/index.tsx:328
 msgid "Load More"
 msgstr "載入更多"
 
@@ -713,7 +718,7 @@ msgstr "正在載入更多通行金鑰…"
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:315
+#: src/routes/(root)/[handle]/drafts/index.tsx:322
 msgid "Loading..."
 msgstr "載入中..."
 
@@ -1260,7 +1265,7 @@ msgid "Update your profile information, including your avatar, username, display
 msgstr "更新您的個人資料資訊，包括頭像、使用者名稱、暱稱、個人簡介和連結。"
 
 #. placeholder {0}: new Date(edge.node.updated).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:280
+#: src/routes/(root)/[handle]/drafts/index.tsx:287
 msgid "Updated {0}"
 msgstr "更新於 {0}"
 

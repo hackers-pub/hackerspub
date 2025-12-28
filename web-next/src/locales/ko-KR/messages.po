@@ -23,6 +23,11 @@ msgstr "{0, plural, other {# 팔로워}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
+#. placeholder {0}: edge.node.tags.length - 3
+#: src/routes/(root)/[handle]/drafts/index.tsx:276
+msgid "{0, plural, one {+1 more} other {+# more}}"
+msgstr "{0, plural, other {외 #개}}"
+
 #. placeholder {0}: account().invitationsLeft
 #: src/routes/(root)/[handle]/settings/invite.tsx:235
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
@@ -327,7 +332,7 @@ msgstr "기본 단문 공개 범위"
 msgid "Default share privacy"
 msgstr "기본 공유 공개 범위"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:294
+#: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "삭제"
 
@@ -423,7 +428,7 @@ msgstr "추가 메시지"
 msgid "Failed to load more articles; click to retry"
 msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:318
+#: src/routes/(root)/[handle]/drafts/index.tsx:325
 msgid "Failed to load more drafts; click to retry"
 msgstr "임시 보관 불러오기 실패, 클릭하여 재시도"
 
@@ -641,7 +646,7 @@ msgstr "링크 저자: "
 msgid "Link name"
 msgstr "링크 이름"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:321
+#: src/routes/(root)/[handle]/drafts/index.tsx:328
 msgid "Load More"
 msgstr "더 보기"
 
@@ -713,7 +718,7 @@ msgstr "패스키를 더 불러오는 중…"
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:315
+#: src/routes/(root)/[handle]/drafts/index.tsx:322
 msgid "Loading..."
 msgstr "불러오는 중..."
 
@@ -1260,7 +1265,7 @@ msgid "Update your profile information, including your avatar, username, display
 msgstr "프로필 사진, 아이디, 이름, 약력, 링크 등의 프로필 정보를 업데이트하세요."
 
 #. placeholder {0}: new Date(edge.node.updated).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:280
+#: src/routes/(root)/[handle]/drafts/index.tsx:287
 msgid "Updated {0}"
 msgstr "{0}에 업데이트됨"
 

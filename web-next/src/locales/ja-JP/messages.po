@@ -23,6 +23,11 @@ msgstr "{0, plural, other {#フォロワー}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
+#. placeholder {0}: edge.node.tags.length - 3
+#: src/routes/(root)/[handle]/drafts/index.tsx:276
+msgid "{0, plural, one {+1 more} other {+# more}}"
+msgstr "{0, plural, other {他#件}}"
+
 #. placeholder {0}: account().invitationsLeft
 #: src/routes/(root)/[handle]/settings/invite.tsx:235
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
@@ -327,7 +332,7 @@ msgstr "投稿のデフォルト公開範囲"
 msgid "Default share privacy"
 msgstr "共有のデフォルト公開範囲"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:294
+#: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "削除"
 
@@ -423,7 +428,7 @@ msgstr "追加メッセージ"
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:318
+#: src/routes/(root)/[handle]/drafts/index.tsx:325
 msgid "Failed to load more drafts; click to retry"
 msgstr "下書きの読み込みに失敗しました。クリックして再試行してください"
 
@@ -641,7 +646,7 @@ msgstr "リンクの著者："
 msgid "Link name"
 msgstr "リンク名"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:321
+#: src/routes/(root)/[handle]/drafts/index.tsx:328
 msgid "Load More"
 msgstr "さらに読み込む"
 
@@ -713,7 +718,7 @@ msgstr "パスキーを読み込み中…"
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:315
+#: src/routes/(root)/[handle]/drafts/index.tsx:322
 msgid "Loading..."
 msgstr "読み込み中..."
 
@@ -1260,7 +1265,7 @@ msgid "Update your profile information, including your avatar, username, display
 msgstr "アイコン、ユーザー名、名前、自己紹介、リンクなどのプロフィール情報を更新してください。"
 
 #. placeholder {0}: new Date(edge.node.updated).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:280
+#: src/routes/(root)/[handle]/drafts/index.tsx:287
 msgid "Updated {0}"
 msgstr "{0}に更新"
 

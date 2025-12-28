@@ -12,7 +12,7 @@ import {
 import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { Title } from "~/components/Title.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { showToast } from "~/components/ui/toast.tsx";
 import type { draftsQuery } from "./__generated__/draftsQuery.graphql.ts";
 import type { draftsDeleteMutation } from "./__generated__/draftsDeleteMutation.graphql.ts";
@@ -93,7 +93,7 @@ export const route = {
 } satisfies RouteDefinition;
 
 export default function ArticleDraftsListPage() {
-  const { t } = useLingui();
+  const { t, i18n } = useLingui();
   const params = useParams();
 
   const data = createPreloadedQuery<draftsQuery>(
@@ -272,7 +272,14 @@ export default function ArticleDraftsListPage() {
                         </For>
                         <Show when={edge.node.tags.length > 3}>
                           <Badge variant="outline">
-                            +{edge.node.tags.length - 3} more
+                            {i18n._(
+                              msg`${
+                                plural(edge.node.tags.length - 3, {
+                                  one: "+1 more",
+                                  other: "+# more",
+                                })
+                              }`,
+                            )}
                           </Badge>
                         </Show>
                       </div>
