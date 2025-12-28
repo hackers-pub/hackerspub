@@ -225,6 +225,9 @@ builder.drizzleObjectField(
   (t) =>
     t.relatedConnection("articleDrafts", {
       type: ArticleDraft,
+      authScopes: (parent) => ({
+        selfAccount: parent.id,
+      }),
       query: () => ({
         orderBy: { updated: "desc" },
       }),
