@@ -2,12 +2,12 @@ import { A, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconBell from "~icons/lucide/bell";
 import IconList from "~icons/lucide/list";
 import IconSearch from "~icons/lucide/search";
 import IconSquarePen from "~icons/lucide/square-pen";
-import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { Navigation_signedAccount$key } from "./__generated__/Navigation_signedAccount.graphql.ts";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
 
@@ -39,15 +39,26 @@ export function Navigation(props: NavigationProps) {
     <Show when={signedAccount()} keyed>
       {(account) => (
         <nav
-          class="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+          class="fixed z-50 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 bottom-0 left-0 right-0 border-t sm:sticky sm:top-0 sm:h-screen sm:w-16 sm:shrink-0 sm:border-t-0 sm:border-r"
           role="navigation"
           aria-label={t`Main navigation`}
         >
-          <ul class="flex h-13 items-center justify-around px-2">
-            <li class="flex-1">
+          <A
+            href="/"
+            class="hidden sm:flex items-center justify-center p-3"
+            aria-label={t`Home`}
+          >
+            <img
+              src="/pubnyan-normal-border.svg"
+              alt="Hackers' Pub"
+              class="size-9"
+            />
+          </A>
+          <ul class="flex h-13 items-center justify-around px-2 sm:h-auto sm:flex-col sm:justify-start sm:gap-2 sm:px-0 sm:py-2">
+            <li class="flex-1 sm:flex-none">
               <A
                 href="/feed"
-                class="flex items-center justify-center py-3 text-muted-foreground transition-colors"
+                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3"
                 classList={{
                   "text-foreground": isActive("/feed"),
                 }}
@@ -57,10 +68,10 @@ export function Navigation(props: NavigationProps) {
                 <IconList class="size-6" aria-hidden="true" />
               </A>
             </li>
-            <li class="flex-1">
+            <li class="flex-1 sm:flex-none">
               <A
                 href="/notifications"
-                class="flex items-center justify-center py-3 text-muted-foreground transition-colors"
+                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3"
                 classList={{
                   "text-foreground": isActive("/notifications"),
                 }}
@@ -70,20 +81,20 @@ export function Navigation(props: NavigationProps) {
                 <IconBell class="size-6" aria-hidden="true" />
               </A>
             </li>
-            <li class="flex-1">
+            <li class="flex-1 sm:flex-none">
               <button
                 type="button"
                 onClick={openNoteCompose}
-                class="flex w-full items-center justify-center py-3 text-muted-foreground transition-colors"
+                class="flex w-full items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3"
                 aria-label={t`Create Note`}
               >
                 <IconSquarePen class="size-6" aria-hidden="true" />
               </button>
             </li>
-            <li class="flex-1">
+            <li class="flex-1 sm:flex-none">
               <A
                 href="/search"
-                class="flex items-center justify-center py-3 text-muted-foreground transition-colors"
+                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3"
                 classList={{
                   "text-foreground": isActive("/search"),
                 }}
@@ -93,10 +104,10 @@ export function Navigation(props: NavigationProps) {
                 <IconSearch class="size-6" aria-hidden="true" />
               </A>
             </li>
-            <li class="flex-1">
+            <li class="flex-1 sm:flex-none">
               <A
                 href={`/@${account.username}`}
-                class="flex items-center justify-center py-3"
+                class="flex items-center justify-center py-3 sm:p-3"
                 aria-label={t`Profile`}
                 aria-current={location.pathname === `/@${account.username}`
                   ? "page"

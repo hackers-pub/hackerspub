@@ -10,10 +10,9 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { AppSidebar } from "~/components/AppSidebar.tsx";
 import { Navigation } from "~/components/Navigation.tsx";
 import { NoteComposeModal } from "~/components/NoteComposeModal.tsx";
-import { SidebarProvider, useSidebar } from "~/components/ui/sidebar.tsx";
+import { SidebarProvider } from "~/components/ui/sidebar.tsx";
 import { Toaster } from "~/components/ui/toast.tsx";
 import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -28,7 +27,6 @@ export const route = {
 const RootLayoutQuery = graphql`
   query RootLayoutQuery {
     viewer {
-      ...AppSidebar_signedAccount
       ...Navigation_signedAccount
     }
   }
@@ -67,27 +65,24 @@ function RootLayoutContent(
   }>,
 ) {
   const { i18n } = useLingui();
-  const { isMobile } = useSidebar();
 
   return (
     <>
-      <AppSidebar
-        $signedAccount={props.signedAccount()?.viewer}
-        signedAccountLoaded={!props.signedAccount.pending}
-      />
-      <main
-        lang={new Intl.Locale(i18n.locale).minimize().baseName}
-        class="w-full"
-        classList={{
-          "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
-          "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
-        }}
-      >
-        {props.children}
-      </main>
-      <Show when={isMobile() && props.signedAccount()?.viewer}>
-        {(viewer) => <Navigation $signedAccount={viewer()} />}
-      </Show>
+      <div class="sm:flex mx-auto">
+        <Show when={props.signedAccount()?.viewer}>
+          {(viewer) => <Navigation $signedAccount={viewer()} />}
+        </Show>
+        <main
+          lang={new Intl.Locale(i18n.locale).minimize().baseName}
+          class="w-160"
+          classList={{
+            "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
+            "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
+          }}
+        >
+          {props.children}
+        </main>
+      </div>
       <NoteComposeModal />
       <Toaster />
     </>
