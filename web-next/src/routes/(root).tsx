@@ -74,7 +74,7 @@ function RootLayoutContent(
         </Show>
         <main
           lang={new Intl.Locale(i18n.locale).minimize().baseName}
-          class="w-160"
+          class="max-w-160"
           classList={{
             "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
             "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,

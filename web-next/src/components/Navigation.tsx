@@ -39,82 +39,97 @@ export function Navigation(props: NavigationProps) {
     <Show when={signedAccount()} keyed>
       {(account) => (
         <nav
-          class="fixed z-50 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 bottom-0 left-0 right-0 border-t sm:sticky sm:top-0 sm:h-screen sm:w-16 sm:shrink-0 sm:border-t-0 sm:border-r"
+          class="fixed z-50 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 bottom-0 left-0 right-0 border-t sm:sticky sm:top-0 sm:h-screen sm:w-16 sm:shrink-0 sm:border-t-0 sm:border-r lg:w-50 sm:pt-3"
           role="navigation"
           aria-label={t`Main navigation`}
         >
           <A
             href="/"
-            class="hidden sm:flex items-center justify-center p-3"
+            class="hidden sm:flex items-center justify-center p-3 lg:px-4"
             aria-label={t`Home`}
           >
             <img
               src="/pubnyan-normal-border.svg"
               alt="Hackers' Pub"
-              class="size-9"
+              class="size-9 lg:hidden"
             />
+            <picture class="hidden lg:block">
+              <source
+                srcset="/logo-dark.svg"
+                media="(prefers-color-scheme: dark)"
+              />
+              <img
+                src="/logo-light.svg"
+                alt="Hackers' Pub"
+                class="h-9"
+              />
+            </picture>
           </A>
-          <ul class="flex h-13 items-center justify-around px-2 sm:h-auto sm:flex-col sm:justify-start sm:gap-2 sm:px-0 sm:py-2">
-            <li class="flex-1 sm:flex-none">
+          <ul class="flex h-13 items-center justify-around px-2 sm:h-auto sm:flex-col sm:justify-start sm:gap-1 sm:px-0 sm:py-2 lg:pl-5">
+            <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href="/feed"
-                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3"
+                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
                 classList={{
                   "text-foreground": isActive("/feed"),
                 }}
                 aria-label={t`Feed`}
                 aria-current={isActive("/feed") ? "page" : undefined}
               >
-                <IconList class="size-6" aria-hidden="true" />
+                <IconList class="size-6 shrink-0" aria-hidden="true" />
+                <span class="hidden lg:inline">{t`Feed`}</span>
               </A>
             </li>
-            <li class="flex-1 sm:flex-none">
+            <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href="/notifications"
-                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3"
+                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
                 classList={{
                   "text-foreground": isActive("/notifications"),
                 }}
                 aria-label={t`Notifications`}
                 aria-current={isActive("/notifications") ? "page" : undefined}
               >
-                <IconBell class="size-6" aria-hidden="true" />
+                <IconBell class="size-6 shrink-0" aria-hidden="true" />
+                <span class="hidden lg:inline">{t`Notifications`}</span>
               </A>
             </li>
-            <li class="flex-1 sm:flex-none">
+            <li class="flex-1 sm:flex-none sm:w-full">
               <button
                 type="button"
                 onClick={openNoteCompose}
-                class="flex w-full items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3"
+                class="flex w-full items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
                 aria-label={t`Create Note`}
               >
-                <IconSquarePen class="size-6" aria-hidden="true" />
+                <IconSquarePen class="size-6 shrink-0" aria-hidden="true" />
+                <span class="hidden lg:inline">{t`Create Note`}</span>
               </button>
             </li>
-            <li class="flex-1 sm:flex-none">
+            <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href="/search"
-                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3"
+                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
                 classList={{
                   "text-foreground": isActive("/search"),
                 }}
                 aria-label={t`Search`}
                 aria-current={isActive("/search") ? "page" : undefined}
               >
-                <IconSearch class="size-6" aria-hidden="true" />
+                <IconSearch class="size-6 shrink-0" aria-hidden="true" />
+                <span class="hidden lg:inline">{t`Search`}</span>
               </A>
             </li>
-            <li class="flex-1 sm:flex-none">
+            <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href={`/@${account.username}`}
-                class="flex items-center justify-center py-3 sm:p-3"
+                class="flex items-center justify-center py-3 sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
                 aria-label={t`Profile`}
                 aria-current={location.pathname === `/@${account.username}`
                   ? "page"
                   : undefined}
               >
                 <Avatar
-                  class="size-6"
+                  class="size-6 shrink-0"
                   classList={{
                     "ring-2 ring-foreground": location.pathname ===
                       `/@${account.username}`,
@@ -125,6 +140,7 @@ export function Navigation(props: NavigationProps) {
                     {account.username.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
+                <span class="hidden lg:inline">{t`Profile`}</span>
               </A>
             </li>
           </ul>
