@@ -447,5 +447,14 @@
       "serverError": "서버 오류가 발생했습니다.",
       "templateNotFoundError": "해당 연합우주 핸들에서 원격 팔로우를 위한 템플릿을 찾을 수 없습니다."
     }
+  },
+  "authorizedInteraction": {
+    "title": "원격 팔로",
+    "subtitle": "내 계정으로 팔로하기",
+    "description": "{{uri}}를 회원님의 계정으로 팔로하려고 합니다.",
+    "noUri": "사용자 URI가 제공되지 않았습니다. 이 페이지는 'uri' 쿼리 파라미터가 필요합니다.",
+    "loggedInAs": "로그인 중인 계정:",
+    "cancel": "취소",
+    "followButton": "팔로하기"
   }
 }

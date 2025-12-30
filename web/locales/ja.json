@@ -449,5 +449,14 @@
       "serverError": "サーバーエラーが発生しました。",
       "templateNotFoundError": "該当するフェディバースハンドルのリモートフォローのテンプレートが見つかりませんでした。"
     }
+  },
+  "authorizedInteraction": {
+    "title": "リモートフォロー",
+    "subtitle": "あなたのアカウントからフォロー",
+    "description": "あなたのアカウントから {{uri}} をフォローしようとしています。",
+    "noUri": "ユーザーURIが提供されていません。このページには 'uri' クエリパラメータが必要です。",
+    "loggedInAs": "ログイン中：",
+    "cancel": "キャンセル",
+    "followButton": "フォローする"
   }
 }

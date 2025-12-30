@@ -458,5 +458,14 @@
       "serverError": "Server error occurred.",
       "templateNotFoundError": "remoteFollowUrl was not found for this Fediverse handle."
     }
+  },
+  "authorizedInteraction": {
+    "title": "Remote Follow",
+    "subtitle": "Follow from your account",
+    "description": "You are about to follow {{uri}} from your account.",
+    "noUri": "No user URI provided. This page requires a 'uri' query parameter.",
+    "loggedInAs": "Logged in as",
+    "cancel": "Cancel",
+    "followButton": "Follow"
   }
 }

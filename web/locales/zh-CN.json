@@ -450,5 +450,14 @@
       "serverError": "服务器发生错误。",
       "templateNotFoundError": "未找到该联邦宇宙用户名的远程关注模板。"
     }
+  },
+  "authorizedInteraction": {
+    "title": "远程关注",
+    "subtitle": "从你的账户关注",
+    "description": "你即将从你的账户关注 {{uri}}。",
+    "noUri": "未提供用户 URI。此页面需要 'uri' 查询参数。",
+    "loggedInAs": "当前登录账户：",
+    "cancel": "取消",
+    "followButton": "关注"
   }
 }
