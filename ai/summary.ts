@@ -4,7 +4,7 @@ import {
   type Locale,
 } from "@hackerspub/models/i18n";
 import { join } from "@std/path/join";
-import { generateText, type LanguageModelV1 } from "ai";
+import { generateText, type LanguageModel } from "ai";
 
 const PROMPT_LANGUAGES: Locale[] = (
   await Array.fromAsync(
@@ -35,7 +35,7 @@ async function getSummaryPrompt(
 }
 
 export interface SummaryOptions {
-  model: LanguageModelV1;
+  model: LanguageModel;
   sourceLanguage: string;
   targetLanguage: string;
   text: string;

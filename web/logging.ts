@@ -28,6 +28,11 @@ await configure({
       sinks: ["console"],
     },
     {
+      category: "vertana",
+      lowestLevel: "info",
+      sinks: ["console"],
+    },
+    {
       category: ["logtape", "meta"],
       lowestLevel: "warning",
       sinks: ["console"],

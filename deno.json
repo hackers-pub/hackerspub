@@ -8,8 +8,8 @@
     "./web-next"
   ],
   "imports": {
-    "@ai-sdk/anthropic": "npm:@ai-sdk/anthropic@^1.2.10",
-    "@ai-sdk/google": "npm:@ai-sdk/google@^1.2.22",
+    "@ai-sdk/anthropic": "npm:@ai-sdk/anthropic@^3.0.1",
+    "@ai-sdk/google": "npm:@ai-sdk/google@^3.0.1",
     "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@^3.848.0",
     "@aws-sdk/s3-request-presigner": "npm:@aws-sdk/s3-request-presigner@^3.848.0",
     "@c4spar/mock-fetch": "jsr:@c4spar/mock-fetch@^1.0.0",
@@ -75,7 +75,10 @@
     "@upyo/mailgun": "jsr:@upyo/mailgun@^0.1.1",
     "@upyo/mock": "jsr:@upyo/mock@^0.1.1",
     "@valibot/valibot": "jsr:@valibot/valibot@^1.0.0",
-    "ai": "npm:ai@^4.3.19",
+    "@vertana/context-web": "npm:@vertana/context-web@^0.1.0",
+    "@vertana/core": "jsr:@vertana/core@^0.1.0",
+    "@vertana/facade": "jsr:@vertana/facade@^0.1.0",
+    "ai": "npm:ai@^6.0.3",
     "arcsecond": "npm:arcsecond@^5.0.0",
     "cheerio": "npm:cheerio@^1.1.0",
     "cssfilter": "npm:cssfilter@^0.0.11",

@@ -5,7 +5,7 @@ import { translate } from "@hackerspub/ai/translate";
 import { getArticle } from "@hackerspub/federation/objects";
 import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
-import type { LanguageModelV1 } from "ai";
+import type { LanguageModel } from "ai";
 import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
 import type { ContextData, Models } from "./context.ts";
 import type { Database } from "./db.ts";
@@ -387,7 +387,7 @@ export function getOriginalArticleContent(
 
 export async function startArticleContentSummary(
   db: Database,
-  model: LanguageModelV1,
+  model: LanguageModel,
   content: ArticleContent,
 ): Promise<void> {
   const updated = await db.update(articleContentTable)
@@ -497,6 +497,19 @@ export async function startArticleContentTranslation(
     "Starting translation for content: {sourceId} {language}",
     queued,
   );
+
+  // Fetch article source with author information for translation context
+  const articleSource = await db.query.articleSourceTable.findFirst({
+    where: { id: content.sourceId },
+    with: {
+      account: {
+        with: {
+          actor: true,
+        },
+      },
+    },
+  });
+
   // Combine title and content for translation
   const text = `# ${content.title}\n\n${content.content}`;
   translate({
@@ -504,6 +517,10 @@ export async function startArticleContentTranslation(
     sourceLanguage: content.language,
     targetLanguage,
     text,
+    // Pass context for better translation quality
+    authorName: articleSource?.account?.actor?.name ?? undefined,
+    authorBio: articleSource?.account?.actor?.bioHtml ?? undefined,
+    tags: articleSource?.tags,
   }).then(async (translation) => {
     logger.debug("Translation completed: {sourceId} {language}", {
       ...queued,

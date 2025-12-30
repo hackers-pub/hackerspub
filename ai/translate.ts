@@ -1,129 +1,100 @@
-import {
-  findNearestLocale,
-  isLocale,
-  type Locale,
-} from "@hackerspub/models/i18n";
-import { getLogger } from "@logtape/logtape";
-import { join } from "@std/path/join";
-import { generateText, type LanguageModelV1 } from "ai";
-import { splitTextIntoChunks } from "./chunk.ts";
-
-const logger = getLogger(["hackerspub", "ai", "translate"]);
-
-const MAX_CHUNK_SIZE = 3000;
-
-const PROMPT_LANGUAGES: Locale[] = (
-  await Array.fromAsync(
-    Deno.readDir(join(import.meta.dirname!, "prompts", "translate")),
-  )
-).map((f) => f.name.replace(/\.md$/, "")).filter(isLocale);
-
-/**
- * Gets the translation prompt for a given language pair
- * Optionally appends partial translation context if the text is a segment
- */
-async function getTranslationPrompt(
-  sourceLanguage: string,
-  targetLanguage: string,
-): Promise<string> {
-  const promptLanguage = findNearestLocale(targetLanguage, PROMPT_LANGUAGES) ??
-    findNearestLocale(sourceLanguage, PROMPT_LANGUAGES) ?? "en";
-
-  // Read the main translation prompt
-  const promptPath = join(
-    import.meta.dirname!,
-    "prompts",
-    "translate",
-    `${promptLanguage}.md`,
-  );
-  let promptTemplate = await Deno.readTextFile(promptPath);
-
-  const displayNames = new Intl.DisplayNames(promptLanguage, {
-    type: "language",
-  });
-
-  promptTemplate = promptTemplate.replaceAll(
-    "{{targetLanguage}}",
-    displayNames.of(targetLanguage) ?? targetLanguage,
-  );
-
-  return promptTemplate;
-}
+import { fetchLinkedPages } from "@vertana/context-web";
+import type { RequiredContextSource } from "@vertana/core";
+import { translate as vertanaTranslate } from "@vertana/facade";
+import type { LanguageModel } from "ai";
 
 export interface TranslationOptions {
-  model: LanguageModelV1;
+  model: LanguageModel;
   sourceLanguage: string;
   targetLanguage: string;
   text: string;
+  /** Author's display name */
+  authorName?: string;
+  /** Author's bio/description */
+  authorBio?: string;
+  /** Article tags for context */
+  tags?: string[];
 }
 
 /**
- * Translates an individual chunk of text
+ * Creates a required context source with author information
  */
-async function translateChunk(
-  options: TranslationOptions,
-  chunks: string[],
-  translatedChunks: string[],
-): Promise<string> {
-  const system = await getTranslationPrompt(
-    options.sourceLanguage,
-    options.targetLanguage,
-  );
-  const lastChunk = chunks[chunks.length - 1];
+function createAuthorContextSource(
+  authorName?: string,
+  authorBio?: string,
+): RequiredContextSource | null {
+  if (!authorName && !authorBio) return null;
 
-  let { text } = await generateText({
-    model: options.model,
-    messages: [
-      { role: "system", content: system },
-      ...translatedChunks.flatMap((translated, index) => [
-        { role: "user" as const, content: chunks[index] },
-        { role: "assistant" as const, content: translated },
-      ]),
-      { role: "user" as const, content: lastChunk },
-    ],
-  });
+  return {
+    name: "author-info",
+    description: "Information about the article author",
+    mode: "required",
+    gather: async () => {
+      const parts: string[] = [];
+      if (authorName) {
+        parts.push(`Author: ${authorName}`);
+      }
+      if (authorBio) {
+        parts.push(`Bio: ${authorBio}`);
+      }
+      return {
+        content: parts.join("\n"),
+      };
+    },
+  };
+}
 
-  if (
-    text.match(/^\s*```(?:\s*(?:markdown|md|commonmark))/) &&
-    text.match(/```\s*$/) &&
-    !(lastChunk.match(/^\s*```/) && lastChunk.match(/```\s*$/))
-  ) {
-    text = text.replaceAll(
-      /^\s*```(?:\s*(?:markdown|md|commonmark))|```\s*$/g,
-      "",
-    ).trim();
-  }
+/**
+ * Creates a required context source with article tags
+ */
+function createTagsContextSource(
+  tags?: string[],
+): RequiredContextSource | null {
+  if (!tags || tags.length === 0) return null;
 
-  return text;
+  return {
+    name: "article-tags",
+    description: "Tags/categories of the article for context",
+    mode: "required",
+    gather: async () => ({
+      content: `Article topics: ${tags.join(", ")}`,
+    }),
+  };
 }
 
 export async function translate(options: TranslationOptions): Promise<string> {
-  // Use the existing translation method for short texts
-  if (options.text.length <= MAX_CHUNK_SIZE) {
-    return translateChunk(options, [options.text], []);
-  }
+  // Build context sources
+  const contextSources: RequiredContextSource[] = [];
 
-  // Split long texts into chunks and translate each one
-  const chunks = splitTextIntoChunks(options.text, MAX_CHUNK_SIZE);
-  const translatedChunks: string[] = [];
+  const authorSource = createAuthorContextSource(
+    options.authorName,
+    options.authorBio,
+  );
+  if (authorSource) contextSources.push(authorSource);
 
-  for (let index = 1; index <= chunks.length; index++) {
-    const translatedChunk = await translateChunk(
-      options,
-      chunks.slice(0, index),
-      translatedChunks,
-    );
-    logger.debug(
-      "Translated chunk {index}/{total}.",
-      {
-        index,
-        total: chunks.length,
-        chunks: chunks.slice(0, index),
-      },
-    );
-    translatedChunks.push(translatedChunk);
-  }
+  const tagsSource = createTagsContextSource(options.tags);
+  if (tagsSource) contextSources.push(tagsSource);
 
-  // Combine the translated chunks
-  return translatedChunks.join("\n\n");
+  // Add web context to fetch linked pages
+  const webContext = fetchLinkedPages({
+    text: options.text,
+    mediaType: "text/markdown",
+  });
+  contextSources.push(webContext);
+
+  const result = await vertanaTranslate(
+    options.model,
+    options.targetLanguage,
+    options.text,
+    {
+      sourceLanguage: options.sourceLanguage,
+      mediaType: "text/markdown",
+      tone: "technical",
+      refinement: true,
+      dynamicGlossary: true,
+      contextSources,
+    },
+  );
+
+  return result.text;
 }
