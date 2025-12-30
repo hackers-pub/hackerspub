@@ -27,7 +27,9 @@ export const route = {
 const RootLayoutQuery = graphql`
   query RootLayoutQuery {
     viewer {
+      username
       ...AppSidebar_signedAccount
+      ...FloatingComposeButton_signedAccount
     }
   }
 `;
@@ -68,6 +70,8 @@ export default function RootLayout(props: RouteSectionProps) {
         </main>
         <FloatingComposeButton
           show={!signedAccount.pending && !!signedAccount()?.viewer}
+          username={signedAccount()?.viewer?.username}
+          $signedAccount={signedAccount()?.viewer}
         />
         <NoteComposeModal />
         <Toaster />

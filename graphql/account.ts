@@ -20,6 +20,7 @@ import { and, desc, eq, gt, lt, sql } from "drizzle-orm";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 import { Notification } from "./notification.ts";
+import { ArticleDraft } from "./post.ts";
 import {
   fromPostVisibility,
   PostVisibility,
@@ -217,6 +218,21 @@ builder.drizzleObjectField(Account, "invitees", (t) =>
       }),
     },
   ));
+
+builder.drizzleObjectField(
+  Account,
+  "articleDrafts",
+  (t) =>
+    t.relatedConnection("articleDrafts", {
+      type: ArticleDraft,
+      authScopes: (parent) => ({
+        selfAccount: parent.id,
+      }),
+      query: () => ({
+        orderBy: { updated: "desc" },
+      }),
+    }),
+);
 
 const AccountLinkIcon = builder.enumType("AccountLinkIcon", {
   values: [

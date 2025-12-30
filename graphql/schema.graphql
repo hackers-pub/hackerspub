@@ -1,5 +1,6 @@
 type Account implements Node {
   actor: Actor!
+  articleDrafts(after: String, before: String, first: Int, last: Int): AccountArticleDraftsConnection!
   avatarUrl: URL!
   bio: Markdown!
   created: DateTime!
@@ -21,6 +22,16 @@ type Account implements Node {
   username: String!
   usernameChanged: DateTime
   uuid: UUID!
+}
+
+type AccountArticleDraftsConnection {
+  edges: [AccountArticleDraftsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type AccountArticleDraftsConnectionEdge {
+  cursor: String!
+  node: ArticleDraft!
 }
 
 type AccountInviteesConnection {
@@ -314,6 +325,17 @@ type ArticleContent implements Node {
   url: URL!
 }
 
+type ArticleDraft implements Node {
+  account: Account!
+  content: Markdown!
+  created: DateTime!
+  id: ID!
+  tags: [String!]!
+  title: String!
+  updated: DateTime!
+  uuid: UUID!
+}
+
 input CreateNoteInput {
   clientMutationId: ID
   content: Markdown!
@@ -352,6 +374,18 @@ scalar Date
 A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
 """
 scalar DateTime
+
+input DeleteArticleDraftInput {
+  clientMutationId: ID
+  id: ID!
+}
+
+type DeleteArticleDraftPayload {
+  clientMutationId: ID
+  deletedDraftId: ID!
+}
+
+union DeleteArticleDraftResult = DeleteArticleDraftPayload | InvalidInputError | NotAuthenticatedError
 
 """A document in a specific language."""
 type Document {
@@ -511,6 +545,7 @@ type Mutation {
     token: UUID!
   ): SignupResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
+  deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
     sessionId: UUID!
@@ -557,6 +592,7 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
+  publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   revokePasskey(passkeyId: ID!): ID
 
@@ -565,6 +601,7 @@ type Mutation {
     """The ID of the session to log out."""
     sessionId: UUID!
   ): Session
+  saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
   sharePost(input: SharePostInput!): SharePostResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
@@ -835,6 +872,22 @@ enum PostVisibility {
   UNLISTED
 }
 
+input PublishArticleDraftInput {
+  allowLlmTranslation: Boolean
+  clientMutationId: ID
+  id: ID!
+  language: Locale!
+  slug: String!
+}
+
+type PublishArticleDraftPayload {
+  article: Article!
+  clientMutationId: ID
+  deletedDraftId: ID!
+}
+
+union PublishArticleDraftResult = InvalidInputError | NotAuthenticatedError | PublishArticleDraftPayload
+
 type Query {
   accountByUsername(username: String!): Account
   actorByHandle(
@@ -843,6 +896,7 @@ type Query {
     handle: String!
   ): Actor
   actorByUuid(uuid: UUID!): Actor
+  articleDraft(id: ID, uuid: UUID): ArticleDraft
   availableLocales: [Locale!]!
   codeOfConduct(
     """The locale for the Code of Conduct."""
@@ -1018,6 +1072,21 @@ type ReplyNotification implements Node & Notification {
   post: Post
   uuid: UUID!
 }
+
+input SaveArticleDraftInput {
+  clientMutationId: ID
+  content: Markdown!
+  id: ID
+  tags: [String!]!
+  title: String!
+}
+
+type SaveArticleDraftPayload {
+  clientMutationId: ID
+  draft: ArticleDraft!
+}
+
+union SaveArticleDraftResult = InvalidInputError | NotAuthenticatedError | SaveArticleDraftPayload
 
 union SearchObjectResult = EmptySearchQueryError | SearchedObject
 
