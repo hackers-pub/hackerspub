@@ -17,6 +17,15 @@ export default defineConfig({
         allow: ["../node_modules"],
       },
     },
+    ssr: {
+      // JSR packages that cannot be bundled by Vite need to be externalized
+      external: ["@logtape/logtape"],
+    },
+    build: {
+      rollupOptions: {
+        external: ["@logtape/logtape"],
+      },
+    },
     plugins: [
       devtools({
         autoname: true,
