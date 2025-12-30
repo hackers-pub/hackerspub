@@ -252,7 +252,6 @@ msgid "Code of conduct"
 msgstr "행동 강령"
 
 #: src/components/AppSidebar.tsx:402
-#: src/components/FloatingComposeButton.tsx:34
 msgid "Compose"
 msgstr "작성"
 
@@ -265,7 +264,7 @@ msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
 #: src/components/AppSidebar.tsx:424
-#: src/components/FloatingComposeButton.tsx:72
+#: src/components/Navigation.tsx:81
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -421,6 +420,7 @@ msgid "Fediverse"
 msgstr "연합우주"
 
 #: src/components/AppSidebar.tsx:137
+#: src/components/Navigation.tsx:57
 msgid "Feed"
 msgstr "피드"
 
@@ -601,6 +601,10 @@ msgstr "콘텐츠 불러오는 중…"
 msgid "Loading…"
 msgstr "로딩 중…"
 
+#: src/components/Navigation.tsx:47
+msgid "Main navigation"
+msgstr "메인 내비게이션"
+
 #: src/routes/(root)/markdown.tsx:47
 msgid "Markdown guide"
 msgstr "Markdown 가이드"
@@ -700,6 +704,7 @@ msgid "Notes"
 msgstr "단문"
 
 #: src/components/AppSidebar.tsx:297
+#: src/components/Navigation.tsx:70
 msgid "Notifications"
 msgstr "알림"
 
@@ -770,6 +775,10 @@ msgstr "선호 언어"
 #: src/components/LanguageList.tsx:73
 msgid "Priority"
 msgstr "우선순위"
+
+#: src/components/Navigation.tsx:103
+msgid "Profile"
+msgstr "프로필"
 
 #: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:143
@@ -871,6 +880,7 @@ msgid "Saving…"
 msgstr "저장 중…"
 
 #: src/components/AppSidebar.tsx:237
+#: src/components/Navigation.tsx:93
 #: src/routes/(root)/search.tsx:151
 msgid "Search"
 msgstr "검색"
