@@ -9,6 +9,7 @@ import IconList from "~icons/lucide/list";
 import IconSearch from "~icons/lucide/search";
 import IconSquarePen from "~icons/lucide/square-pen";
 import type { Navigation_signedAccount$key } from "./__generated__/Navigation_signedAccount.graphql.ts";
+import { Footer } from "./Footer.tsx";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar.tsx";
 
 export interface NavigationProps {
@@ -39,7 +40,7 @@ export function Navigation(props: NavigationProps) {
     <Show when={signedAccount()} keyed>
       {(account) => (
         <nav
-          class="fixed z-50 border-border bg-background/95 bottom-0 left-0 right-0 border-t sm:sticky sm:top-0 sm:h-screen sm:w-16 sm:shrink-0 sm:border-t-0 lg:w-50 sm:pt-3"
+          class="fixed sm:flex sm:flex-col z-50 border-border bg-background/95 bottom-0 left-0 right-0 border-t sm:sticky sm:top-0 sm:h-screen sm:w-16 sm:shrink-0 sm:border-t-0 sm:border-r lg:w-50 sm:py-3"
           role="navigation"
           aria-label={t`Main navigation`}
         >
@@ -65,7 +66,7 @@ export function Navigation(props: NavigationProps) {
               />
             </picture>
           </A>
-          <ul class="flex h-13 items-center justify-around px-2 sm:h-auto sm:flex-col sm:justify-start sm:gap-1 sm:px-0 sm:py-2 ">
+          <ul class="flex flex-1 h-13 items-center justify-around px-2 sm:h-auto sm:flex-col sm:justify-start sm:gap-1 sm:px-0 sm:py-2 ">
             <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href="/feed"
@@ -94,7 +95,7 @@ export function Navigation(props: NavigationProps) {
                 <span class="hidden lg:inline">{t`Notifications`}</span>
               </A>
             </li>
-            <li class="flex-1 sm:flex-none sm:w-full md:hidden">
+            <li class="flex-1 sm:hidden">
               <button
                 type="button"
                 onClick={openNoteCompose}
@@ -142,17 +143,18 @@ export function Navigation(props: NavigationProps) {
                 <span class="hidden lg:inline">{t`Profile`}</span>
               </A>
             </li>
+            <li class="hidden sm:flex w-full px-2 mt-5">
+              <button
+                type="button"
+                onClick={openNoteCompose}
+                class="flex lg:flex-1 items-center justify-center p-3 rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+                aria-label={t`Create Note`}
+              >
+                <IconSquarePen class="size-5" aria-hidden="true" />
+              </button>
+            </li>
           </ul>
-          <div class="hidden sm:flex w-full mt-20 px-2">
-            <button
-              type="button"
-              onClick={openNoteCompose}
-              class="flex lg:flex-1 items-center justify-center p-3 rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
-              aria-label={t`Create Note`}
-            >
-              <IconSquarePen class="size-5" aria-hidden="true" />
-            </button>
-          </div>
+          <Footer class="hidden lg:block" />
         </nav>
       )}
     </Show>
