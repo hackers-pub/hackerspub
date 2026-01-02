@@ -155,8 +155,8 @@ msgid "A sign-in link has been sent to your email. Please check your inbox (or s
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
 #: src/components/AppSidebar.tsx:244
-msgid "Account"
-msgstr "アカウント"
+#~ msgid "Account"
+#~ msgstr "アカウント"
 
 #: src/components/LanguageList.tsx:63
 #: src/components/LanguageList.tsx:198
@@ -210,8 +210,8 @@ msgid "Articles"
 msgstr "記事"
 
 #: src/components/AppSidebar.tsx:175
-msgid "Articles only"
-msgstr "記事のみ"
+#~ msgid "Articles only"
+#~ msgstr "記事のみ"
 
 #. placeholder {0}: "CHANGED"
 #: src/routes/(root)/[handle]/settings/index.tsx:440
@@ -245,15 +245,15 @@ msgstr "キャンセル"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
 
-#: src/components/AppSidebar.tsx:433
+#: src/components/Footer.tsx:16
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "行動規範"
 
 #: src/components/AppSidebar.tsx:402
-msgid "Compose"
-msgstr "作成"
+#~ msgid "Compose"
+#~ msgstr "作成"
 
 #: src/components/NoteComposer.tsx:148
 msgid "Content"
@@ -263,8 +263,8 @@ msgstr "内容"
 msgid "Content cannot be empty"
 msgstr "内容を入力してください"
 
-#: src/components/AppSidebar.tsx:424
-#: src/components/Navigation.tsx:81
+#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:151
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -406,21 +406,20 @@ msgstr "招待状の送信に失敗しました"
 msgid "Failed to share post"
 msgstr "コンテンツの共有に失敗しました"
 
-#. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:86
-msgid "Failed to sign out: {0}"
-msgstr "ログアウトに失敗：{0}"
+#~ msgid "Failed to sign out: {0}"
+#~ msgstr "ログアウトに失敗：{0}"
 
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
 #: src/components/AppSidebar.tsx:218
-msgid "Fediverse"
-msgstr "フェディバース"
+#~ msgid "Fediverse"
+#~ msgstr "フェディバース"
 
-#: src/components/AppSidebar.tsx:137
-#: src/components/Navigation.tsx:57
+#: src/components/Navigation.tsx:77
+#: src/components/Navigation.tsx:81
 msgid "Feed"
 msgstr "フィード"
 
@@ -437,12 +436,10 @@ msgstr "フォロワーのみ"
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
-#: src/components/AppSidebar.tsx:445
+#: src/components/Footer.tsx:28
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
-#: src/components/AppSidebar.tsx:105
-#: src/components/AppSidebar.tsx:196
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/markdown.tsx:47
 msgid "Hackers' Pub"
@@ -456,9 +453,9 @@ msgstr "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
-#: src/components/TopBreadcrumb.tsx:21
-#~ msgid "Home"
-#~ msgstr "ホーム"
+#: src/components/Navigation.tsx:50
+msgid "Home"
+msgstr "ホーム"
 
 #: src/routes/(root)/sign/up/[token].tsx:459
 msgid "I have read and agree to the Code of conduct."
@@ -486,7 +483,6 @@ msgstr "招待状の言語"
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
-#: src/components/AppSidebar.tsx:335
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:218
 msgid "Invite"
@@ -601,7 +597,7 @@ msgstr "コンテンツを読み込み中…"
 msgid "Loading…"
 msgstr "読み込み中…"
 
-#: src/components/Navigation.tsx:47
+#: src/components/Navigation.tsx:45
 msgid "Main navigation"
 msgstr "メインナビゲーション"
 
@@ -703,8 +699,8 @@ msgstr "リンクが実際にあなたのものであることを認証できま
 msgid "Notes"
 msgstr "投稿"
 
-#: src/components/AppSidebar.tsx:297
-#: src/components/Navigation.tsx:70
+#: src/components/Navigation.tsx:91
+#: src/components/Navigation.tsx:95
 msgid "Notifications"
 msgstr "通知"
 
@@ -776,7 +772,8 @@ msgstr "優先言語"
 msgid "Priority"
 msgstr "優先度"
 
-#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:126
+#: src/components/Navigation.tsx:143
 msgid "Profile"
 msgstr "プロフィール"
 
@@ -879,8 +876,8 @@ msgstr "保存"
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/components/AppSidebar.tsx:237
-#: src/components/Navigation.tsx:93
+#: src/components/Navigation.tsx:115
+#: src/components/Navigation.tsx:119
 #: src/routes/(root)/search.tsx:151
 msgid "Search"
 msgstr "検索"
@@ -915,8 +912,8 @@ msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
 #: src/components/AppSidebar.tsx:366
-msgid "Settings"
-msgstr "設定"
+#~ msgid "Settings"
+#~ msgstr "設定"
 
 #: src/components/PostControls.tsx:210
 msgid "Share"
@@ -926,7 +923,6 @@ msgstr "共有"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "ログイン"
@@ -936,8 +932,8 @@ msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
 #: src/components/AppSidebar.tsx:388
-msgid "Sign out"
-msgstr "ログアウト"
+#~ msgid "Sign out"
+#~ msgstr "ログアウト"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Sign up"
@@ -1025,7 +1021,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:437
+#: src/components/Footer.tsx:20
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -1034,8 +1030,8 @@ msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 
 #: src/components/AppSidebar.tsx:117
-msgid "Timeline"
-msgstr "タイムライン"
+#~ msgid "Timeline"
+#~ msgstr "タイムライン"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:160
@@ -1136,8 +1132,8 @@ msgid "What's on your mind?"
 msgstr "今何してる？"
 
 #: src/components/AppSidebar.tsx:156
-msgid "Without shares"
-msgstr "共有除外"
+#~ msgid "Without shares"
+#~ msgstr "共有除外"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."

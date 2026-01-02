@@ -155,8 +155,8 @@ msgid "A sign-in link has been sent to your email. Please check your inbox (or s
 msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함(또는 스팸 폴더)을 확인해주세요."
 
 #: src/components/AppSidebar.tsx:244
-msgid "Account"
-msgstr "계정"
+#~ msgid "Account"
+#~ msgstr "계정"
 
 #: src/components/LanguageList.tsx:63
 #: src/components/LanguageList.tsx:198
@@ -210,8 +210,8 @@ msgid "Articles"
 msgstr "게시글"
 
 #: src/components/AppSidebar.tsx:175
-msgid "Articles only"
-msgstr "게시글만"
+#~ msgid "Articles only"
+#~ msgstr "게시글만"
 
 #. placeholder {0}: "CHANGED"
 #: src/routes/(root)/[handle]/settings/index.tsx:440
@@ -245,15 +245,15 @@ msgstr "취소"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
-#: src/components/AppSidebar.tsx:433
+#: src/components/Footer.tsx:16
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "행동 강령"
 
 #: src/components/AppSidebar.tsx:402
-msgid "Compose"
-msgstr "작성"
+#~ msgid "Compose"
+#~ msgstr "작성"
 
 #: src/components/NoteComposer.tsx:148
 msgid "Content"
@@ -263,8 +263,8 @@ msgstr "내용"
 msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
-#: src/components/AppSidebar.tsx:424
-#: src/components/Navigation.tsx:81
+#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:151
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -406,21 +406,20 @@ msgstr "초대장 발송에 실패했습니다"
 msgid "Failed to share post"
 msgstr "콘텐츠 공유 실패"
 
-#. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:86
-msgid "Failed to sign out: {0}"
-msgstr "로그아웃 실패: {0}"
+#~ msgid "Failed to sign out: {0}"
+#~ msgstr "로그아웃 실패: {0}"
 
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "공유 취소 실패"
 
 #: src/components/AppSidebar.tsx:218
-msgid "Fediverse"
-msgstr "연합우주"
+#~ msgid "Fediverse"
+#~ msgstr "연합우주"
 
-#: src/components/AppSidebar.tsx:137
-#: src/components/Navigation.tsx:57
+#: src/components/Navigation.tsx:77
+#: src/components/Navigation.tsx:81
 msgid "Feed"
 msgstr "피드"
 
@@ -437,12 +436,10 @@ msgstr "팔로워만"
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
-#: src/components/AppSidebar.tsx:445
+#: src/components/Footer.tsx:28
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/components/AppSidebar.tsx:105
-#: src/components/AppSidebar.tsx:196
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/markdown.tsx:47
 msgid "Hackers' Pub"
@@ -456,9 +453,9 @@ msgstr "Hackers' Pub은 소프트웨어 프로그래머들이 지식과 경험�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: 알림"
 
-#: src/components/TopBreadcrumb.tsx:21
-#~ msgid "Home"
-#~ msgstr "홈"
+#: src/components/Navigation.tsx:50
+msgid "Home"
+msgstr "홈"
 
 #: src/routes/(root)/sign/up/[token].tsx:459
 msgid "I have read and agree to the Code of conduct."
@@ -486,7 +483,6 @@ msgstr "초대장 언어"
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
-#: src/components/AppSidebar.tsx:335
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:218
 msgid "Invite"
@@ -601,7 +597,7 @@ msgstr "콘텐츠 불러오는 중…"
 msgid "Loading…"
 msgstr "로딩 중…"
 
-#: src/components/Navigation.tsx:47
+#: src/components/Navigation.tsx:45
 msgid "Main navigation"
 msgstr "메인 내비게이션"
 
@@ -703,8 +699,8 @@ msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링�
 msgid "Notes"
 msgstr "단문"
 
-#: src/components/AppSidebar.tsx:297
-#: src/components/Navigation.tsx:70
+#: src/components/Navigation.tsx:91
+#: src/components/Navigation.tsx:95
 msgid "Notifications"
 msgstr "알림"
 
@@ -776,7 +772,8 @@ msgstr "선호 언어"
 msgid "Priority"
 msgstr "우선순위"
 
-#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:126
+#: src/components/Navigation.tsx:143
 msgid "Profile"
 msgstr "프로필"
 
@@ -879,8 +876,8 @@ msgstr "저장"
 msgid "Saving…"
 msgstr "저장 중…"
 
-#: src/components/AppSidebar.tsx:237
-#: src/components/Navigation.tsx:93
+#: src/components/Navigation.tsx:115
+#: src/components/Navigation.tsx:119
 #: src/routes/(root)/search.tsx:151
 msgid "Search"
 msgstr "검색"
@@ -915,8 +912,8 @@ msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
 #: src/components/AppSidebar.tsx:366
-msgid "Settings"
-msgstr "설정"
+#~ msgid "Settings"
+#~ msgstr "설정"
 
 #: src/components/PostControls.tsx:210
 msgid "Share"
@@ -926,7 +923,6 @@ msgstr "공유"
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "로그인"
@@ -936,8 +932,8 @@ msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
 #: src/components/AppSidebar.tsx:388
-msgid "Sign out"
-msgstr "로그아웃"
+#~ msgid "Sign out"
+#~ msgstr "로그아웃"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Sign up"
@@ -1025,7 +1021,7 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:437
+#: src/components/Footer.tsx:20
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
@@ -1034,8 +1030,8 @@ msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
 #: src/components/AppSidebar.tsx:117
-msgid "Timeline"
-msgstr "타임라인"
+#~ msgid "Timeline"
+#~ msgstr "타임라인"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:160
@@ -1136,8 +1132,8 @@ msgid "What's on your mind?"
 msgstr "무슨 생각 해요?"
 
 #: src/components/AppSidebar.tsx:156
-msgid "Without shares"
-msgstr "공유 제외"
+#~ msgid "Without shares"
+#~ msgstr "공유 제외"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."

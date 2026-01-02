@@ -155,8 +155,8 @@ msgid "A sign-in link has been sent to your email. Please check your inbox (or s
 msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾郵件資料夾）"
 
 #: src/components/AppSidebar.tsx:244
-msgid "Account"
-msgstr "帳戶"
+#~ msgid "Account"
+#~ msgstr "帳戶"
 
 #: src/components/LanguageList.tsx:63
 #: src/components/LanguageList.tsx:198
@@ -210,8 +210,8 @@ msgid "Articles"
 msgstr "文章"
 
 #: src/components/AppSidebar.tsx:175
-msgid "Articles only"
-msgstr "僅文章"
+#~ msgid "Articles only"
+#~ msgstr "僅文章"
 
 #. placeholder {0}: "CHANGED"
 #: src/routes/(root)/[handle]/settings/index.tsx:440
@@ -245,15 +245,15 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
 
-#: src/components/AppSidebar.tsx:433
+#: src/components/Footer.tsx:16
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "行為準則"
 
 #: src/components/AppSidebar.tsx:402
-msgid "Compose"
-msgstr "寫作"
+#~ msgid "Compose"
+#~ msgstr "寫作"
 
 #: src/components/NoteComposer.tsx:148
 msgid "Content"
@@ -263,8 +263,8 @@ msgstr "內容"
 msgid "Content cannot be empty"
 msgstr "內容不能為空"
 
-#: src/components/AppSidebar.tsx:424
-#: src/components/Navigation.tsx:81
+#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:151
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -406,21 +406,20 @@ msgstr "發送邀請失敗"
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
-#. placeholder {0}: error.message
 #: src/components/AppSidebar.tsx:86
-msgid "Failed to sign out: {0}"
-msgstr "登出失敗：{0}"
+#~ msgid "Failed to sign out: {0}"
+#~ msgstr "登出失敗：{0}"
 
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
 #: src/components/AppSidebar.tsx:218
-msgid "Fediverse"
-msgstr "聯邦宇宙"
+#~ msgid "Fediverse"
+#~ msgstr "聯邦宇宙"
 
-#: src/components/AppSidebar.tsx:137
-#: src/components/Navigation.tsx:57
+#: src/components/Navigation.tsx:77
+#: src/components/Navigation.tsx:81
 msgid "Feed"
 msgstr "訂閱流"
 
@@ -437,12 +436,10 @@ msgstr "只粉絲可見"
 msgid "Following you"
 msgstr "關注了你"
 
-#: src/components/AppSidebar.tsx:445
+#: src/components/Footer.tsx:28
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
-#: src/components/AppSidebar.tsx:105
-#: src/components/AppSidebar.tsx:196
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/markdown.tsx:47
 msgid "Hackers' Pub"
@@ -456,9 +453,9 @@ msgstr "Hackers' Pub 是個為軟體工程師共同分享知識和經驗的地�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
-#: src/components/TopBreadcrumb.tsx:21
-#~ msgid "Home"
-#~ msgstr "首頁"
+#: src/components/Navigation.tsx:50
+msgid "Home"
+msgstr "首頁"
 
 #: src/routes/(root)/sign/up/[token].tsx:459
 msgid "I have read and agree to the Code of conduct."
@@ -486,7 +483,6 @@ msgstr "邀請語言"
 msgid "Invitation sent"
 msgstr "邀請已發送"
 
-#: src/components/AppSidebar.tsx:335
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:218
 msgid "Invite"
@@ -601,7 +597,7 @@ msgstr "載入更多內容中…"
 msgid "Loading…"
 msgstr "載入中…"
 
-#: src/components/Navigation.tsx:47
+#: src/components/Navigation.tsx:45
 msgid "Main navigation"
 msgstr "主導覽"
 
@@ -703,8 +699,8 @@ msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用
 msgid "Notes"
 msgstr "貼文"
 
-#: src/components/AppSidebar.tsx:297
-#: src/components/Navigation.tsx:70
+#: src/components/Navigation.tsx:91
+#: src/components/Navigation.tsx:95
 msgid "Notifications"
 msgstr "通知"
 
@@ -776,7 +772,8 @@ msgstr "偏好語言"
 msgid "Priority"
 msgstr "優先級"
 
-#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:126
+#: src/components/Navigation.tsx:143
 msgid "Profile"
 msgstr "個人檔案"
 
@@ -879,8 +876,8 @@ msgstr "儲存"
 msgid "Saving…"
 msgstr "儲存中…"
 
-#: src/components/AppSidebar.tsx:237
-#: src/components/Navigation.tsx:93
+#: src/components/Navigation.tsx:115
+#: src/components/Navigation.tsx:119
 #: src/routes/(root)/search.tsx:151
 msgid "Search"
 msgstr "搜尋"
@@ -915,8 +912,8 @@ msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
 #: src/components/AppSidebar.tsx:366
-msgid "Settings"
-msgstr "設定"
+#~ msgid "Settings"
+#~ msgstr "設定"
 
 #: src/components/PostControls.tsx:210
 msgid "Share"
@@ -926,7 +923,6 @@ msgstr "分享"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/AppSidebar.tsx:270
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登入"
@@ -936,8 +932,8 @@ msgid "Sign in with passkey"
 msgstr "使用通行金鑰登入"
 
 #: src/components/AppSidebar.tsx:388
-msgid "Sign out"
-msgstr "登出"
+#~ msgid "Sign out"
+#~ msgstr "登出"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Sign up"
@@ -1025,7 +1021,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:437
+#: src/components/Footer.tsx:20
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
@@ -1034,8 +1030,8 @@ msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱 。"
 
 #: src/components/AppSidebar.tsx:117
-msgid "Timeline"
-msgstr "時間軸"
+#~ msgid "Timeline"
+#~ msgstr "時間軸"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:160
@@ -1136,8 +1132,8 @@ msgid "What's on your mind?"
 msgstr "你在想什麼？"
 
 #: src/components/AppSidebar.tsx:156
-msgid "Without shares"
-msgstr "不含轉貼"
+#~ msgid "Without shares"
+#~ msgstr "不含轉貼"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
