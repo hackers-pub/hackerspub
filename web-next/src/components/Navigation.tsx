@@ -39,7 +39,7 @@ export function Navigation(props: NavigationProps) {
     <Show when={signedAccount()} keyed>
       {(account) => (
         <nav
-          class="fixed z-50 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 bottom-0 left-0 right-0 border-t sm:sticky sm:top-0 sm:h-screen sm:w-16 sm:shrink-0 sm:border-t-0 sm:border-r lg:w-50 sm:pt-3"
+          class="fixed z-50 border-border bg-background/95 bottom-0 left-0 right-0 border-t sm:sticky sm:top-0 sm:h-screen sm:w-16 sm:shrink-0 sm:border-t-0 lg:w-50 sm:pt-3"
           role="navigation"
           aria-label={t`Main navigation`}
         >
@@ -61,15 +61,15 @@ export function Navigation(props: NavigationProps) {
               <img
                 src="/logo-light.svg"
                 alt="Hackers' Pub"
-                class="h-9"
+                class="h-10"
               />
             </picture>
           </A>
-          <ul class="flex h-13 items-center justify-around px-2 sm:h-auto sm:flex-col sm:justify-start sm:gap-1 sm:px-0 sm:py-2 lg:pl-5">
+          <ul class="flex h-13 items-center justify-around px-2 sm:h-auto sm:flex-col sm:justify-start sm:gap-1 sm:px-0 sm:py-2 ">
             <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href="/feed"
-                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
+                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-full lg:hover:bg-accent"
                 classList={{
                   "text-foreground": isActive("/feed"),
                 }}
@@ -83,7 +83,7 @@ export function Navigation(props: NavigationProps) {
             <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href="/notifications"
-                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
+                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-full lg:hover:bg-accent"
                 classList={{
                   "text-foreground": isActive("/notifications"),
                 }}
@@ -94,21 +94,20 @@ export function Navigation(props: NavigationProps) {
                 <span class="hidden lg:inline">{t`Notifications`}</span>
               </A>
             </li>
-            <li class="flex-1 sm:flex-none sm:w-full">
+            <li class="flex-1 sm:flex-none sm:w-full md:hidden">
               <button
                 type="button"
                 onClick={openNoteCompose}
-                class="flex w-full items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
+                class="flex w-full items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3"
                 aria-label={t`Create Note`}
               >
                 <IconSquarePen class="size-6 shrink-0" aria-hidden="true" />
-                <span class="hidden lg:inline">{t`Create Note`}</span>
               </button>
             </li>
             <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href="/search"
-                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
+                class="flex items-center justify-center py-3 text-muted-foreground transition-colors sm:p-3 lg:justify-start lg:gap-3 lg:rounded-full lg:hover:bg-accent"
                 classList={{
                   "text-foreground": isActive("/search"),
                 }}
@@ -122,7 +121,7 @@ export function Navigation(props: NavigationProps) {
             <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href={`/@${account.username}`}
-                class="flex items-center justify-center py-3 sm:p-3 lg:justify-start lg:gap-3 lg:rounded-md lg:hover:bg-accent"
+                class="flex items-center justify-center py-3 sm:p-3 lg:justify-start lg:gap-3 lg:rounded-full lg:hover:bg-accent"
                 aria-label={t`Profile`}
                 aria-current={location.pathname === `/@${account.username}`
                   ? "page"
@@ -144,6 +143,16 @@ export function Navigation(props: NavigationProps) {
               </A>
             </li>
           </ul>
+          <div class="hidden sm:flex w-full mt-20 px-2">
+            <button
+              type="button"
+              onClick={openNoteCompose}
+              class="flex lg:flex-1 items-center justify-center p-3 rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+              aria-label={t`Create Note`}
+            >
+              <IconSquarePen class="size-5" aria-hidden="true" />
+            </button>
+          </div>
         </nav>
       )}
     </Show>
