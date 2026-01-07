@@ -1,3 +1,3 @@
 [tools]
-deno = "2.6.3"
+deno = "2.6.4"
 "npm:pnpm" = "10.12.4"
