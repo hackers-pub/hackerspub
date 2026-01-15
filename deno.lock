@@ -13,9 +13,9 @@
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7": "0.0.1-alpha.7",
     "jsr:@hongminhee/x-forwarded-fetch@0.2": "0.2.0",
-    "jsr:@logtape/file@1.0.0": "1.0.0",
-    "jsr:@logtape/logtape@1": "1.1.2",
-    "jsr:@logtape/logtape@1.0.0": "1.0.0",
+    "jsr:@logtape/drizzle-orm@2.0.0": "2.0.0",
+    "jsr:@logtape/logtape@2": "2.0.0",
+    "jsr:@logtape/logtape@2.0.0": "2.0.0",
     "jsr:@logtape/logtape@^1.2.2": "1.3.5",
     "jsr:@logtape/logtape@^1.3.5": "1.3.5",
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.1",
@@ -335,20 +335,17 @@
     "@hongminhee/x-forwarded-fetch@0.2.0": {
       "integrity": "8a347e061974e07b480e9461c7d84047e12e92c462fe7679a6f0f59b5c5f48d5"
     },
-    "@logtape/file@1.0.0": {
-      "integrity": "9786f613b1317d29ea5dbfa20a53de4a859b4949ca4bf72d9e450515e907cb23",
+    "@logtape/drizzle-orm@2.0.0": {
+      "integrity": "035a6f24731f48bd283abbc21075ae6fd4a7f151d59cd3e76e71191d71842f0c",
       "dependencies": [
-        "jsr:@logtape/logtape@1"
+        "jsr:@logtape/logtape@2"
       ]
-    },
-    "@logtape/logtape@1.0.0": {
-      "integrity": "30e23091ed75daac9eaff83688a90ccfbb7e75e79d0344d5a6e9585e6f653f92"
-    },
-    "@logtape/logtape@1.1.2": {
-      "integrity": "df86a456db8f8a67bea00ce0f8acfc717caf9c3c1ee0c12939d6877796fdd1e6"
     },
     "@logtape/logtape@1.3.5": {
       "integrity": "a5cdb130daf1a9d384006b0f850cc4443bfc2e163dadc6fa667875e79770beb3"
+    },
+    "@logtape/logtape@2.0.0": {
+      "integrity": "c4f2d7684a8239ad9b3fc2fd4ade6eec9f04cdb3a1741bae83f370b4b34253b2"
     },
     "@luca/esbuild-deno-loader@0.11.1": {
       "integrity": "dc020d16d75b591f679f6b9288b10f38bdb4f24345edb2f5732affa1d9885267",
@@ -12689,8 +12686,9 @@
       "jsr:@fresh/core@2.0.0-alpha.34",
       "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",
-      "jsr:@logtape/file@1.0.0",
-      "jsr:@logtape/logtape@1.0.0",
+      "jsr:@logtape/drizzle-orm@2.0.0",
+      "jsr:@logtape/file@2.0.0",
+      "jsr:@logtape/logtape@2.0.0",
       "jsr:@onisaint/validate-email@^1.0.1",
       "jsr:@schotsl/mailgun@^1.3.0",
       "jsr:@simplewebauthn/browser@^13.1.0",
