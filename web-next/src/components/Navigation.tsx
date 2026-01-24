@@ -66,7 +66,7 @@ export function Navigation(props: NavigationProps) {
               />
             </picture>
           </A>
-          <ul class="flex flex-1 h-13 items-center justify-around px-2 sm:h-auto sm:flex-col sm:justify-start sm:gap-1 sm:px-0 sm:py-2 ">
+          <ul class="flex h-13 items-center justify-around px-2 sm:h-auto sm:flex-col sm:justify-start sm:gap-1 sm:px-0 sm:py-2 lg:pl-6">
             <li class="flex-1 sm:flex-none sm:w-full">
               <A
                 href="/feed"
@@ -143,18 +143,18 @@ export function Navigation(props: NavigationProps) {
                 <span class="hidden lg:inline">{t`Profile`}</span>
               </A>
             </li>
-            <li class="hidden sm:flex w-full px-2 mt-5">
-              <button
-                type="button"
-                onClick={openNoteCompose}
-                class="flex lg:flex-1 items-center justify-center p-3 rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
-                aria-label={t`Create Note`}
-              >
-                <IconSquarePen class="size-5" aria-hidden="true" />
-              </button>
-            </li>
           </ul>
-          <Footer class="hidden lg:block" />
+          <div class="hidden sm:flex w-full px-2 mt-5">
+            <button
+              type="button"
+              onClick={openNoteCompose}
+              class="flex lg:flex-1 items-center justify-center p-3 rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+              aria-label={t`Create Note`}
+            >
+              <IconSquarePen class="size-5" aria-hidden="true" />
+            </button>
+          </div>
+          <Footer class="hidden lg:block sm:mt-auto" />
         </nav>
       )}
     </Show>
