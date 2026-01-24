@@ -26,7 +26,7 @@ msgstr "{0, plural, other {#フォロー}}"
 #. placeholder {0}: edge.node.tags.length - 3
 #: src/routes/(root)/[handle]/drafts/index.tsx:276
 msgid "{0, plural, one {+1 more} other {+# more}}"
-msgstr ""
+msgstr "{0, plural, other {+# 他}}"
 
 #. placeholder {0}: account().invitationsLeft
 #: src/routes/(root)/[handle]/settings/invite.tsx:235
@@ -207,11 +207,11 @@ msgstr "予期しないエラーが発生しました。後でもう一度お試
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:133
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
-msgstr ""
+msgstr "\"{draftTitle}\"を削除してもよろしいですか？この操作は取り消せません。"
 
 #: src/components/ArticleComposer.tsx:465
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
-msgstr ""
+msgstr "この下書きを削除してもよろしいですか？この操作は取り消せません。"
 
 #. placeholder {0}: passkeyToRevoke()?.name
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -220,15 +220,15 @@ msgstr "パスキー{0}を取り消しますか？このパスキーを使用し
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:236
 msgid "Article Drafts"
-msgstr ""
+msgstr "記事の下書き"
 
 #: src/components/ArticleComposer.tsx:421
 msgid "Article published"
-msgstr ""
+msgstr "記事を公開しました"
 
 #: src/components/ArticleComposer.tsx:617
 msgid "article-url-slug"
-msgstr ""
+msgstr "記事のURLスラッグ"
 
 #: src/components/ProfileTabs.tsx:48
 msgid "Articles"
@@ -328,19 +328,19 @@ msgstr "共有のデフォルト公開範囲"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
-msgstr ""
+msgstr "削除"
 
 #: src/components/ArticleComposer.tsx:647
 msgid "Delete Draft"
-msgstr ""
+msgstr "下書きを削除"
 
 #: src/components/ArticleComposer.tsx:647
 msgid "Deleting..."
-msgstr ""
+msgstr "削除中..."
 
 #: src/components/ArticleComposer.tsx:277
 msgid "Discard unsaved changes - are you sure?"
-msgstr ""
+msgstr "保存されていない変更を破棄しますか？"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:453
 #: src/routes/(root)/sign/up/[token].tsx:384
@@ -354,19 +354,19 @@ msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので
 #: src/components/ArticleComposer.tsx:486
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Draft deleted"
-msgstr ""
+msgstr "下書きを削除しました"
 
 #: src/components/ArticleComposer.tsx:397
 msgid "Draft must be saved before publishing"
-msgstr ""
+msgstr "公開する前に下書きを保存する必要があります"
 
 #: src/components/ArticleComposer.tsx:531
 msgid "Draft not found"
-msgstr ""
+msgstr "下書きが見つかりません"
 
 #: src/components/ArticleComposer.tsx:349
 msgid "Draft saved"
-msgstr ""
+msgstr "下書きを保存しました"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:386
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
@@ -375,7 +375,7 @@ msgstr "保持したい領域をドラッグして選択し、「切り抜き」
 #: src/routes/(root)/[handle]/drafts/[id].tsx:78
 #: src/routes/(root)/[handle]/drafts/new.tsx:94
 msgid "Edit Draft"
-msgstr ""
+msgstr "下書きを編集"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:258
 #: src/routes/(root)/sign/up/[token].tsx:337
@@ -424,7 +424,7 @@ msgstr "記事の読み込みに失敗しました。クリックして再試行
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:325
 msgid "Failed to load more drafts; click to retry"
-msgstr ""
+msgstr "下書きの読み込みに失敗しました。クリックして再試行"
 
 #: src/components/ActorFollowerList.tsx:80
 msgid "Failed to load more followers; click to retry"
@@ -529,13 +529,13 @@ msgstr "GitHubリポジトリ"
 #: src/routes/(root)/[handle]/drafts/index.tsx:221
 #: src/routes/(root)/[handle]/drafts/new.tsx:80
 msgid "Go Back"
-msgstr ""
+msgstr "戻る"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:69
 #: src/routes/(root)/[handle]/drafts/index.tsx:226
 #: src/routes/(root)/[handle]/drafts/new.tsx:85
 msgid "Go to My Drafts"
-msgstr ""
+msgstr "自分の下書きへ移動"
 
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/markdown.tsx:47
@@ -635,7 +635,7 @@ msgstr "リンク名"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:328
 msgid "Load More"
-msgstr ""
+msgstr "もっと読み込む"
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -671,7 +671,7 @@ msgstr "コンテンツをもっと読み込む"
 
 #: src/components/ArticleComposer.tsx:523
 msgid "Loading draft..."
-msgstr ""
+msgstr "下書きを読み込み中..."
 
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
@@ -707,7 +707,7 @@ msgstr "コンテンツを読み込み中…"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:322
 msgid "Loading..."
-msgstr ""
+msgstr "読み込み中..."
 
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
@@ -770,15 +770,15 @@ msgstr "使用履歴なし"
 #: src/routes/(root)/[handle]/drafts/index.tsx:238
 #: src/routes/(root)/[handle]/drafts/new.tsx:94
 msgid "New Article"
-msgstr ""
+msgstr "新規記事"
 
 #: src/components/ArticleComposer.tsx:457
 msgid "No draft to delete"
-msgstr ""
+msgstr "削除する下書きがありません"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:248
 msgid "No drafts yet. Create your first article!"
-msgstr ""
+msgstr "まだ下書きがありません。最初の記事を作成しましょう！"
 
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
@@ -874,7 +874,7 @@ msgstr "パスキー"
 #: src/routes/(root)/[handle]/drafts/new.tsx:71
 #: src/routes/(root)/[handle]/drafts/new.tsx:72
 msgid "Permission Denied"
-msgstr ""
+msgstr "権限がありません"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:210
 msgid "Please choose an image file smaller than 5 MiB."
@@ -886,13 +886,13 @@ msgstr "エラーを修正して、もう一度お試しください。"
 
 #: src/components/ArticleComposer.tsx:553
 msgid "Please enter a title for your article."
-msgstr ""
+msgstr "記事のタイトルを入力してください。"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:60
 #: src/routes/(root)/[handle]/drafts/index.tsx:217
 #: src/routes/(root)/[handle]/drafts/new.tsx:76
 msgid "Please sign in to access this page"
-msgstr ""
+msgstr "このページにアクセスするにはログインしてください"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -939,15 +939,15 @@ msgstr "公開"
 
 #: src/components/ArticleComposer.tsx:686
 msgid "Publish Article"
-msgstr ""
+msgstr "記事を公開"
 
 #: src/components/ArticleComposer.tsx:676
 msgid "Publish Now"
-msgstr ""
+msgstr "今すぐ公開"
 
 #: src/components/ArticleComposer.tsx:675
 msgid "Publishing..."
-msgstr ""
+msgstr "公開中..."
 
 #: src/routes/(root)/search.tsx:248
 msgid "Query cannot be empty"
@@ -1033,11 +1033,11 @@ msgstr "保存"
 
 #: src/components/ArticleComposer.tsx:659
 msgid "Save Draft"
-msgstr ""
+msgstr "下書きを保存"
 
 #: src/components/ArticleComposer.tsx:659
 msgid "Saving..."
-msgstr ""
+msgstr "保存中..."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:521
 #: src/routes/(root)/[handle]/settings/language.tsx:234
@@ -1122,11 +1122,11 @@ msgstr "Hackers' Pubに登録"
 
 #: src/components/ArticleComposer.tsx:613
 msgid "Slug (URL)"
-msgstr ""
+msgstr "スラッグ (URL)"
 
 #: src/components/ArticleComposer.tsx:388
 msgid "Slug cannot be empty"
-msgstr ""
+msgstr "スラッグは空にできません"
 
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
@@ -1166,7 +1166,7 @@ msgstr "目次"
 
 #: src/components/ArticleComposer.tsx:601
 msgid "Tags"
-msgstr ""
+msgstr "タグ"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
@@ -1216,7 +1216,7 @@ msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 
 #: src/components/ArticleComposer.tsx:621
 msgid "This will be part of the article URL"
-msgstr ""
+msgstr "これは記事のURLの一部になります"
 
 #: src/components/AppSidebar.tsx:117
 #~ msgid "Timeline"
@@ -1224,11 +1224,11 @@ msgstr ""
 
 #: src/components/ArticleComposer.tsx:549
 msgid "Title"
-msgstr ""
+msgstr "タイトル"
 
 #: src/components/ArticleComposer.tsx:319
 msgid "Title cannot be empty"
-msgstr ""
+msgstr "タイトルは空にできません"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:160
@@ -1237,7 +1237,7 @@ msgstr "{0}から翻訳"
 
 #: src/components/ArticleComposer.tsx:605
 msgid "Type tags separated by spaces"
-msgstr ""
+msgstr "タグをスペースで区切って入力"
 
 #: src/components/EmojiReactionPopover.tsx:238
 #: src/components/EmojiReactionPopover.tsx:247
@@ -1260,7 +1260,7 @@ msgstr "アイコン、ユーザー名、名前、自己紹介、リンクなど
 #. placeholder {0}: new Date(edge.node.updated).toLocaleDateString()
 #: src/routes/(root)/[handle]/drafts/index.tsx:287
 msgid "Updated {0}"
-msgstr ""
+msgstr "{0}に更新"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:571
 msgid "URL"
@@ -1343,7 +1343,7 @@ msgstr "今何してる？"
 
 #: src/components/ArticleComposer.tsx:593
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
-msgstr ""
+msgstr "ここに記事を書いてください。Markdownが使用できます。書いている間、記事は自動的に下書きとして保存されます。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
@@ -1359,15 +1359,15 @@ msgstr "このフィールドは空欄でも構いません。"
 
 #: src/routes/(root)/[handle]/drafts/new.tsx:75
 msgid "You can only create drafts for your own account"
-msgstr ""
+msgstr "自分のアカウントでのみ下書きを作成できます"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:59
 msgid "You can only edit your own drafts"
-msgstr ""
+msgstr "自分の下書きのみ編集できます"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:216
 msgid "You can only view your own drafts"
-msgstr ""
+msgstr "自分の下書きのみ閲覧できます"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:416
 msgid "You don't have any passkeys registered yet."
@@ -1385,15 +1385,15 @@ msgstr "投稿を作成するにはログインが必要です"
 #: src/components/ArticleComposer.tsx:503
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 msgid "You must be signed in to delete a draft"
-msgstr ""
+msgstr "下書きを削除するにはログインが必要です"
 
 #: src/components/ArticleComposer.tsx:438
 msgid "You must be signed in to publish an article"
-msgstr ""
+msgstr "記事を公開するにはログインが必要です"
 
 #: src/components/ArticleComposer.tsx:367
 msgid "You must be signed in to save a draft"
-msgstr ""
+msgstr "下書きを保存するにはログインが必要です"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
