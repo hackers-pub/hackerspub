@@ -7,6 +7,22 @@ import Icons from "unplugin-icons/vite";
 import { cjsInterop } from "vite-plugin-cjs-interop";
 import relay from "vite-plugin-relay-lite";
 
+// JSR packages that Vite cannot resolve need to be externalized.
+// This plugin marks them as external so Vite doesn't try to resolve them.
+const jsrExternals = ["@logtape/logtape"];
+
+function jsrExternalPlugin() {
+  return {
+    name: "jsr-external",
+    enforce: "pre" as const,
+    resolveId(id: string) {
+      if (jsrExternals.some((ext) => id === ext || id.startsWith(`${ext}/`))) {
+        return { id, external: true };
+      }
+    },
+  };
+}
+
 export default defineConfig({
   vite: () => ({
     server: {
@@ -17,16 +33,21 @@ export default defineConfig({
         allow: ["../node_modules"],
       },
     },
+    optimizeDeps: {
+      // JSR packages that cannot be pre-bundled by Vite need to be excluded
+      exclude: jsrExternals,
+    },
     ssr: {
       // JSR packages that cannot be bundled by Vite need to be externalized
-      external: ["@logtape/logtape"],
+      external: jsrExternals,
     },
     build: {
       rollupOptions: {
-        external: ["@logtape/logtape"],
+        external: jsrExternals,
       },
     },
     plugins: [
+      jsrExternalPlugin(),
       devtools({
         autoname: true,
         locator: {

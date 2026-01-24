@@ -1,4 +1,4 @@
-import { detectLanguage } from "@hackerspub/models/langdet";
+import { detectLanguage } from "~/lib/langdet.ts";
 import { graphql } from "relay-runtime";
 import { createEffect, createSignal, Show } from "solid-js";
 import { createMutation } from "solid-relay";

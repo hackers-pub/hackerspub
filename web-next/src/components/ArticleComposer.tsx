@@ -1,4 +1,4 @@
-import { detectLanguage } from "@hackerspub/models/langdet";
+import { detectLanguage } from "~/lib/langdet.ts";
 import { debounce } from "es-toolkit";
 import { graphql } from "relay-runtime";
 import {
