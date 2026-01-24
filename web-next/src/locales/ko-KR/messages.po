@@ -23,11 +23,6 @@ msgstr "{0, plural, other {# 팔로워}}"
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
-#. placeholder {0}: edge.node.tags.length - 3
-#: src/routes/(root)/[handle]/drafts/index.tsx:276
-msgid "{0, plural, one {+1 more} other {+# more}}"
-msgstr "{0, plural, other {외 #개}}"
-
 #. placeholder {0}: account().invitationsLeft
 #: src/routes/(root)/[handle]/settings/invite.tsx:235
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
@@ -159,9 +154,9 @@ msgstr "프로필에 표시될 링크의 이름. 예: GitHub."
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "로그인 링크가 이메일로 전송되었습니다. 받은 편지함(또는 스팸 폴더)을 확인해주세요."
 
-#: src/components/AppSidebar.tsx:264
-msgid "Account"
-msgstr "계정"
+#: src/components/AppSidebar.tsx:244
+#~ msgid "Account"
+#~ msgstr "계정"
 
 #: src/components/LanguageList.tsx:63
 #: src/components/LanguageList.tsx:198
@@ -205,38 +200,18 @@ msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 �
 msgid "An unexpected error occurred. Please try again later."
 msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도해주세요."
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:133
-msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
-msgstr "「{draftTitle}」을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
-
-#: src/components/ArticleComposer.tsx:465
-msgid "Are you sure you want to delete this draft? This action cannot be undone."
-msgstr "이 임시 보관을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
-
 #. placeholder {0}: passkeyToRevoke()?.name
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "{0} 패스키를 취소하시겠습니까? 이 패스키를 사용하여 계정에 로그인할 수 없게 됩니다."
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:236
-msgid "Article Drafts"
-msgstr "게시글 임시 보관"
-
-#: src/components/ArticleComposer.tsx:421
-msgid "Article published"
-msgstr "게시글을 공개했습니다"
-
-#: src/components/ArticleComposer.tsx:617
-msgid "article-url-slug"
-msgstr "게시글-url-슬러그"
-
 #: src/components/ProfileTabs.tsx:48
 msgid "Articles"
 msgstr "게시글"
 
-#: src/components/AppSidebar.tsx:195
-msgid "Articles only"
-msgstr "게시글만"
+#: src/components/AppSidebar.tsx:175
+#~ msgid "Articles only"
+#~ msgstr "게시글만"
 
 #. placeholder {0}: "CHANGED"
 #: src/routes/(root)/[handle]/settings/index.tsx:440
@@ -260,7 +235,6 @@ msgstr "약력"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
-#: src/components/ArticleComposer.tsx:671
 #: src/components/NoteComposer.tsx:207
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
@@ -271,18 +245,16 @@ msgstr "취소"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
-#: src/components/AppSidebar.tsx:532
+#: src/components/Footer.tsx:16
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "행동 강령"
 
-#: src/components/AppSidebar.tsx:422
-#: src/components/FloatingComposeButton.tsx:61
-msgid "Compose"
-msgstr "작성"
+#: src/components/AppSidebar.tsx:402
+#~ msgid "Compose"
+#~ msgstr "작성"
 
-#: src/components/ArticleComposer.tsx:562
 #: src/components/NoteComposer.tsx:148
 msgid "Content"
 msgstr "내용"
@@ -291,13 +263,8 @@ msgstr "내용"
 msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
-#: src/components/AppSidebar.tsx:467
-#: src/components/FloatingComposeButton.tsx:123
-msgid "Create Article"
-msgstr "게시글 작성"
-
-#: src/components/AppSidebar.tsx:444
-#: src/components/FloatingComposeButton.tsx:99
+#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:151
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -332,22 +299,6 @@ msgstr "기본 단문 공개 범위"
 msgid "Default share privacy"
 msgstr "기본 공유 공개 범위"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:301
-msgid "Delete"
-msgstr "삭제"
-
-#: src/components/ArticleComposer.tsx:647
-msgid "Delete Draft"
-msgstr "임시 보관 삭제"
-
-#: src/components/ArticleComposer.tsx:647
-msgid "Deleting..."
-msgstr "삭제 중..."
-
-#: src/components/ArticleComposer.tsx:277
-msgid "Discard unsaved changes - are you sure?"
-msgstr "저장하지 않은 변경 사항을 삭제하시겠습니까?"
-
 #: src/routes/(root)/[handle]/settings/index.tsx:453
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
@@ -357,31 +308,9 @@ msgstr "이름"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
-#: src/components/ArticleComposer.tsx:486
-#: src/routes/(root)/[handle]/drafts/index.tsx:174
-msgid "Draft deleted"
-msgstr "임시 보관을 삭제했습니다"
-
-#: src/components/ArticleComposer.tsx:397
-msgid "Draft must be saved before publishing"
-msgstr "공개하기 전에 임시 보관해야 합니다"
-
-#: src/components/ArticleComposer.tsx:531
-msgid "Draft not found"
-msgstr "임시 보관을 찾을 수 없습니다"
-
-#: src/components/ArticleComposer.tsx:349
-msgid "Draft saved"
-msgstr "임시 보관했습니다"
-
 #: src/routes/(root)/[handle]/settings/index.tsx:386
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "유지하려는 영역을 드래그하여 선택한 다음 “자르기”를 클릭하여 프로필 사진을 업데이트하세요."
-
-#: src/routes/(root)/[handle]/drafts/[id].tsx:78
-#: src/routes/(root)/[handle]/drafts/new.tsx:94
-msgid "Edit Draft"
-msgstr "임시 보관 수정"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:258
 #: src/routes/(root)/sign/up/[token].tsx:337
@@ -396,26 +325,10 @@ msgstr "이메일 또는 아이디"
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
 
-#: src/components/ArticleComposer.tsx:318
-#: src/components/ArticleComposer.tsx:357
-#: src/components/ArticleComposer.tsx:366
-#: src/components/ArticleComposer.tsx:374
-#: src/components/ArticleComposer.tsx:387
-#: src/components/ArticleComposer.tsx:396
-#: src/components/ArticleComposer.tsx:428
-#: src/components/ArticleComposer.tsx:437
-#: src/components/ArticleComposer.tsx:445
-#: src/components/ArticleComposer.tsx:456
-#: src/components/ArticleComposer.tsx:493
-#: src/components/ArticleComposer.tsx:502
-#: src/components/ArticleComposer.tsx:510
 #: src/components/NoteComposer.tsx:93
 #: src/components/NoteComposer.tsx:119
 #: src/components/NoteComposer.tsx:127
 #: src/components/NoteComposer.tsx:135
-#: src/routes/(root)/[handle]/drafts/index.tsx:181
-#: src/routes/(root)/[handle]/drafts/index.tsx:190
-#: src/routes/(root)/[handle]/drafts/index.tsx:198
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "오류"
@@ -427,10 +340,6 @@ msgstr "추가 메시지"
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
 msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
-
-#: src/routes/(root)/[handle]/drafts/index.tsx:325
-msgid "Failed to load more drafts; click to retry"
-msgstr "임시 보관 불러오기 실패, 클릭하여 재시도"
 
 #: src/components/ActorFollowerList.tsx:80
 msgid "Failed to load more followers; click to retry"
@@ -497,20 +406,20 @@ msgstr "초대장 발송에 실패했습니다"
 msgid "Failed to share post"
 msgstr "콘텐츠 공유 실패"
 
-#. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:106
-msgid "Failed to sign out: {0}"
-msgstr "로그아웃 실패: {0}"
+#: src/components/AppSidebar.tsx:86
+#~ msgid "Failed to sign out: {0}"
+#~ msgstr "로그아웃 실패: {0}"
 
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "공유 취소 실패"
 
-#: src/components/AppSidebar.tsx:238
-msgid "Fediverse"
-msgstr "연합우주"
+#: src/components/AppSidebar.tsx:218
+#~ msgid "Fediverse"
+#~ msgstr "연합우주"
 
-#: src/components/AppSidebar.tsx:157
+#: src/components/Navigation.tsx:77
+#: src/components/Navigation.tsx:81
 msgid "Feed"
 msgstr "피드"
 
@@ -527,28 +436,10 @@ msgstr "팔로워만"
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
-#: src/components/AppSidebar.tsx:544
+#: src/components/Footer.tsx:28
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:64
-#: src/routes/(root)/[handle]/drafts/index.tsx:221
-#: src/routes/(root)/[handle]/drafts/new.tsx:80
-msgid "Go Back"
-msgstr "돌아가기"
-
-#: src/components/FloatingComposeButton.tsx:148
-msgid "Go to Drafts"
-msgstr "임시 보관으로"
-
-#: src/routes/(root)/[handle]/drafts/[id].tsx:69
-#: src/routes/(root)/[handle]/drafts/index.tsx:226
-#: src/routes/(root)/[handle]/drafts/new.tsx:85
-msgid "Go to My Drafts"
-msgstr "내 임시 보관으로"
-
-#: src/components/AppSidebar.tsx:125
-#: src/components/AppSidebar.tsx:216
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/markdown.tsx:47
 msgid "Hackers' Pub"
@@ -562,9 +453,9 @@ msgstr "Hackers' Pub은 소프트웨어 프로그래머들이 지식과 경험�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: 알림"
 
-#: src/components/TopBreadcrumb.tsx:21
-#~ msgid "Home"
-#~ msgstr "홈"
+#: src/components/Navigation.tsx:50
+msgid "Home"
+msgstr "홈"
 
 #: src/routes/(root)/sign/up/[token].tsx:459
 msgid "I have read and agree to the Code of conduct."
@@ -580,13 +471,7 @@ msgid "If you have a fediverse account, you can reply to this note from your own
 msgstr "연합우주(fediverse) 계정이 있으시다면, 이 단문에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {0}로 검색하신 뒤, 해당 단문에 댓글을 남기시면 됩니다."
 
 #. placeholder {0}: response.createNote.inputPath
-#. placeholder {0}: response.deleteArticleDraft.inputPath
-#. placeholder {0}: response.publishArticleDraft.inputPath
-#: src/components/ArticleComposer.tsx:359
-#: src/components/ArticleComposer.tsx:430
-#: src/components/ArticleComposer.tsx:495
 #: src/components/NoteComposer.tsx:120
-#: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
 
@@ -598,7 +483,6 @@ msgstr "초대장 언어"
 msgid "Invitation sent"
 msgstr "초대장이 발송되었습니다"
 
-#: src/components/AppSidebar.tsx:355
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:218
 msgid "Invite"
@@ -617,7 +501,6 @@ msgstr "홍길동"
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
 
-#: src/components/ArticleComposer.tsx:629
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:186
@@ -645,10 +528,6 @@ msgstr "링크 저자: "
 #: src/routes/(root)/[handle]/settings/index.tsx:546
 msgid "Link name"
 msgstr "링크 이름"
-
-#: src/routes/(root)/[handle]/drafts/index.tsx:328
-msgid "Load More"
-msgstr "더 보기"
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -682,10 +561,6 @@ msgstr "패스키 더 불러오기"
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
 
-#: src/components/ArticleComposer.tsx:523
-msgid "Loading draft..."
-msgstr "임시 보관 불러오는 중..."
-
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
 msgstr "게시글 불러오는 중…"
@@ -718,19 +593,18 @@ msgstr "패스키를 더 불러오는 중…"
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:322
-msgid "Loading..."
-msgstr "불러오는 중..."
-
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
 msgstr "로딩 중…"
+
+#: src/components/Navigation.tsx:45
+msgid "Main navigation"
+msgstr "메인 내비게이션"
 
 #: src/routes/(root)/markdown.tsx:47
 msgid "Markdown guide"
 msgstr "Markdown 가이드"
 
-#: src/components/ArticleComposer.tsx:587
 #: src/components/NoteComposer.tsx:173
 msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
@@ -775,19 +649,6 @@ msgstr "현지명"
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:451
 msgid "Never used"
 msgstr "사용된 적 없음"
-
-#: src/routes/(root)/[handle]/drafts/index.tsx:238
-#: src/routes/(root)/[handle]/drafts/new.tsx:94
-msgid "New Article"
-msgstr "새 게시글"
-
-#: src/components/ArticleComposer.tsx:457
-msgid "No draft to delete"
-msgstr "삭제할 임시 보관이 없습니다"
-
-#: src/routes/(root)/[handle]/drafts/index.tsx:248
-msgid "No drafts yet. Create your first article!"
-msgstr "아직 임시 보관이 없습니다. 첫 게시글을 작성하세요!"
 
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
@@ -838,7 +699,8 @@ msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링�
 msgid "Notes"
 msgstr "단문"
 
-#: src/components/AppSidebar.tsx:317
+#: src/components/Navigation.tsx:91
+#: src/components/Navigation.tsx:95
 msgid "Notifications"
 msgstr "알림"
 
@@ -875,15 +737,6 @@ msgstr "패스키 취소됨"
 msgid "Passkeys"
 msgstr "패스키"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:55
-#: src/routes/(root)/[handle]/drafts/[id].tsx:56
-#: src/routes/(root)/[handle]/drafts/index.tsx:212
-#: src/routes/(root)/[handle]/drafts/index.tsx:213
-#: src/routes/(root)/[handle]/drafts/new.tsx:71
-#: src/routes/(root)/[handle]/drafts/new.tsx:72
-msgid "Permission Denied"
-msgstr "권한이 거부되었습니다"
-
 #: src/routes/(root)/[handle]/settings/index.tsx:210
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
@@ -891,16 +744,6 @@ msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
 #: src/routes/(root)/[handle]/settings/invite.tsx:165
 msgid "Please correct the errors and try again."
 msgstr "오류를 수정하고 다시 시도해주세요."
-
-#: src/components/ArticleComposer.tsx:553
-msgid "Please enter a title for your article."
-msgstr "게시글 제목을 입력해주세요."
-
-#: src/routes/(root)/[handle]/drafts/[id].tsx:60
-#: src/routes/(root)/[handle]/drafts/index.tsx:217
-#: src/routes/(root)/[handle]/drafts/new.tsx:76
-msgid "Please sign in to access this page"
-msgstr "이 페이지에 접근하려면 로그인하세요"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -929,6 +772,11 @@ msgstr "선호 언어"
 msgid "Priority"
 msgstr "우선순위"
 
+#: src/components/Navigation.tsx:126
+#: src/components/Navigation.tsx:143
+msgid "Profile"
+msgstr "프로필"
+
 #: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:143
 #: src/routes/(root)/[handle]/settings/index.tsx:149
@@ -939,18 +787,6 @@ msgstr "프로필 설정"
 #: src/components/VisibilityTag.tsx:32
 msgid "Public"
 msgstr "공개"
-
-#: src/components/ArticleComposer.tsx:686
-msgid "Publish Article"
-msgstr "게시글 공개"
-
-#: src/components/ArticleComposer.tsx:676
-msgid "Publish Now"
-msgstr "지금 공개"
-
-#: src/components/ArticleComposer.tsx:675
-msgid "Publishing..."
-msgstr "공개하는 중..."
 
 #: src/routes/(root)/search.tsx:248
 msgid "Query cannot be empty"
@@ -985,10 +821,6 @@ msgstr "게시글 전체 읽기"
 #: src/routes/(root)/sign/up/[token].tsx:463
 msgid "Read the full Code of conduct"
 msgstr "행동 강령 전문을 읽으세요."
-
-#: src/components/AppSidebar.tsx:480
-msgid "Recent Drafts"
-msgstr "최근 임시 보관"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:398
 msgid "Register"
@@ -1038,21 +870,14 @@ msgstr "패스키를 취소"
 msgid "Save"
 msgstr "저장"
 
-#: src/components/ArticleComposer.tsx:659
-msgid "Save Draft"
-msgstr "임시 보관"
-
-#: src/components/ArticleComposer.tsx:659
-msgid "Saving..."
-msgstr "저장하는 중..."
-
 #: src/routes/(root)/[handle]/settings/index.tsx:521
 #: src/routes/(root)/[handle]/settings/language.tsx:234
 #: src/routes/(root)/[handle]/settings/preferences.tsx:236
 msgid "Saving…"
 msgstr "저장 중…"
 
-#: src/components/AppSidebar.tsx:257
+#: src/components/Navigation.tsx:115
+#: src/components/Navigation.tsx:119
 #: src/routes/(root)/search.tsx:151
 msgid "Search"
 msgstr "검색"
@@ -1086,9 +911,9 @@ msgstr "보내는 중…"
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
-#: src/components/AppSidebar.tsx:386
-msgid "Settings"
-msgstr "설정"
+#: src/components/AppSidebar.tsx:366
+#~ msgid "Settings"
+#~ msgstr "설정"
 
 #: src/components/PostControls.tsx:210
 msgid "Share"
@@ -1098,7 +923,6 @@ msgstr "공유"
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/AppSidebar.tsx:290
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "로그인"
@@ -1107,9 +931,9 @@ msgstr "로그인"
 msgid "Sign in with passkey"
 msgstr "패스키를 사용하여 로그인"
 
-#: src/components/AppSidebar.tsx:408
-msgid "Sign out"
-msgstr "로그아웃"
+#: src/components/AppSidebar.tsx:388
+#~ msgid "Sign out"
+#~ msgstr "로그아웃"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Sign up"
@@ -1127,23 +951,11 @@ msgstr "로그인 중…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pub 가입"
 
-#: src/components/ArticleComposer.tsx:613
-msgid "Slug (URL)"
-msgstr "슬러그 (URL)"
-
-#: src/components/ArticleComposer.tsx:388
-msgid "Slug cannot be empty"
-msgstr "슬러그는 비워둘 수 없습니다"
-
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "문제가 발생했습니다. 다시 시도해주세요."
 
-#: src/components/ArticleComposer.tsx:348
-#: src/components/ArticleComposer.tsx:420
-#: src/components/ArticleComposer.tsx:485
 #: src/components/NoteComposer.tsx:111
-#: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
 msgstr "성공"
 
@@ -1170,10 +982,6 @@ msgstr "목차"
 #: src/routes/(root)/tags/[tag].tsx:88
 #~ msgid "Tag"
 #~ msgstr "태그"
-
-#: src/components/ArticleComposer.tsx:601
-msgid "Tags"
-msgstr "태그"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
@@ -1213,7 +1021,7 @@ msgstr "가입 링크가 유효하지 않습니다. 이메일로 받은 링크�
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:536
+#: src/components/Footer.tsx:20
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배포됩니다."
 
@@ -1221,30 +1029,14 @@ msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배�
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
-#: src/components/ArticleComposer.tsx:621
-msgid "This will be part of the article URL"
-msgstr "게시글 URL의 일부가 됩니다"
-
-#: src/components/AppSidebar.tsx:137
-msgid "Timeline"
-msgstr "타임라인"
-
-#: src/components/ArticleComposer.tsx:549
-msgid "Title"
-msgstr "제목"
-
-#: src/components/ArticleComposer.tsx:319
-msgid "Title cannot be empty"
-msgstr "제목은 비워둘 수 없습니다"
+#: src/components/AppSidebar.tsx:117
+#~ msgid "Timeline"
+#~ msgstr "타임라인"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:160
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
-
-#: src/components/ArticleComposer.tsx:605
-msgid "Type tags separated by spaces"
-msgstr "공백으로 구분된 태그 입력"
 
 #: src/components/EmojiReactionPopover.tsx:238
 #: src/components/EmojiReactionPopover.tsx:247
@@ -1263,11 +1055,6 @@ msgstr "공유 취소"
 #: src/routes/(root)/[handle]/settings/index.tsx:151
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "프로필 사진, 아이디, 이름, 약력, 링크 등의 프로필 정보를 업데이트하세요."
-
-#. placeholder {0}: new Date(edge.node.updated).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:287
-msgid "Updated {0}"
-msgstr "{0}에 업데이트됨"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:571
 msgid "URL"
@@ -1308,10 +1095,6 @@ msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 msgid "Verifying your invitation…"
 msgstr "초대장을 확인하고 있습니다…"
 
-#: src/components/AppSidebar.tsx:522
-msgid "View all drafts →"
-msgstr "모든 임시 보관 보기 →"
-
 #: src/components/NoteComposer.tsx:193
 msgid "Visibility"
 msgstr "공개 범위"
@@ -1348,13 +1131,9 @@ msgstr "Hackers' Pub이란?"
 msgid "What's on your mind?"
 msgstr "무슨 생각 해요?"
 
-#: src/components/AppSidebar.tsx:176
-msgid "Without shares"
-msgstr "공유 제외"
-
-#: src/components/ArticleComposer.tsx:593
-msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
-msgstr "여기에 게시글을 작성하세요. Markdown을 사용할 수 있습니다. 작성하는 동안 자동으로 임시 보관됩니다."
+#: src/components/AppSidebar.tsx:156
+#~ msgid "Without shares"
+#~ msgstr "공유 제외"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
@@ -1368,18 +1147,6 @@ msgstr "링크를 삭제하려면 이곳을 비워두세요."
 msgid "You can leave this field empty."
 msgstr "이 필드는 비워둘 수 있습니다."
 
-#: src/routes/(root)/[handle]/drafts/new.tsx:75
-msgid "You can only create drafts for your own account"
-msgstr "자신의 계정에 대한 임시 보관만 만들 수 있습니다"
-
-#: src/routes/(root)/[handle]/drafts/[id].tsx:59
-msgid "You can only edit your own drafts"
-msgstr "자신의 임시 보관만 수정할 수 있습니다"
-
-#: src/routes/(root)/[handle]/drafts/index.tsx:216
-msgid "You can only view your own drafts"
-msgstr "자신의 임시 보관만 볼 수 있습니다"
-
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:416
 msgid "You don't have any passkeys registered yet."
 msgstr "등록된 패스키가 아직 없습니다."
@@ -1392,19 +1159,6 @@ msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려�
 #: src/components/NoteComposer.tsx:128
 msgid "You must be signed in to create a note"
 msgstr "단문을 작성하려면 로그인해야 합니다"
-
-#: src/components/ArticleComposer.tsx:503
-#: src/routes/(root)/[handle]/drafts/index.tsx:191
-msgid "You must be signed in to delete a draft"
-msgstr "임시 보관을 삭제하려면 로그인해야 합니다"
-
-#: src/components/ArticleComposer.tsx:438
-msgid "You must be signed in to publish an article"
-msgstr "게시글을 공개하려면 로그인해야 합니다"
-
-#: src/components/ArticleComposer.tsx:367
-msgid "You must be signed in to save a draft"
-msgstr "임시 보관하려면 로그인해야 합니다"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
