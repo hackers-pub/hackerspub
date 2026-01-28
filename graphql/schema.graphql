@@ -914,6 +914,7 @@ type Query {
   nodes(ids: [ID!]!): [Node]!
   personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
   publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
+  searchActorsByHandle(limit: Int = 25, prefix: String!): [Actor!]!
   searchGuide(
     """The locale for the search guide."""
     locale: Locale!

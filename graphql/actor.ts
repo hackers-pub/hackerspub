@@ -1,4 +1,5 @@
 import { isActor } from "@fedify/fedify";
+import { desc, eq } from "drizzle-orm";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
@@ -510,6 +511,51 @@ builder.queryFields((t) => ({
     resolve(query, _, { host }, ctx) {
       return ctx.db.query.instanceTable.findFirst(
         query({ where: { host } }),
+      );
+    },
+  }),
+  searchActorsByHandle: t.drizzleField({
+    type: [Actor],
+    authScopes: { signed: true },
+    args: {
+      prefix: t.arg.string({ required: true }),
+      limit: t.arg.int({ defaultValue: 25 }),
+    },
+    async resolve(query, _, args, ctx) {
+      const cleanPrefix = args.prefix.replace(/^\s*@|\s+$/g, "");
+      if (!cleanPrefix) return [];
+
+      const [username, host] = cleanPrefix.includes("@")
+        ? cleanPrefix.split("@")
+        : [cleanPrefix, undefined];
+
+      const canonicalHost = new URL(ctx.fedCtx.canonicalOrigin).host;
+
+      const whereClause = host == null || !URL.canParse(`http://${host}`)
+        ? { username: { ilike: `${username.replace(/([%_])/g, "\\$1")}%` } }
+        : {
+          username,
+          handleHost: {
+            ilike: `${
+              new URL(`http://${host}`).host.replace(/([%_])/g, "\\$1")
+            }%`,
+          },
+        };
+
+      return ctx.db.query.actorTable.findMany(
+        query({
+          where: {
+            ...whereClause,
+            NOT: { username: canonicalHost, handleHost: canonicalHost },
+          },
+          orderBy: (t) => [
+            desc(eq(t.username, username)),
+            desc(eq(t.handleHost, canonicalHost)),
+            t.username,
+            t.handleHost,
+          ],
+          limit: Math.min(args.limit ?? 25, 50),
+        }),
       );
     },
   }),
