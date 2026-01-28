@@ -1,3 +1,5 @@
+import process from "node:process";
+
 import deno from "@deno/vite-plugin";
 import { lingui } from "@lingui/vite-plugin";
 import { defineConfig } from "@solidjs/start/config";
@@ -59,7 +61,7 @@ export default defineConfig({
       deno(),
       tailwindcss(),
       lingui(),
-      relay(),
+      relay({ codegen: process.env.NO_WATCHMAN == "1" ? false : true }),
       cjsInterop({ dependencies: ["relay-runtime"] }),
       Icons({ compiler: "solid" }),
     ],
