@@ -27,6 +27,25 @@ services:
       - /app/.cache
       - /app/.deno
 
+  web-next:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      NO_WATCHMAN: "1"
+      VITE_API_URL: http://app:8000/graphql
+      HOST: "0.0.0.0"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - app
+    command: sh -c "deno task -f web-next codegen && deno task -f web-next dev"
+    volumes:
+      - .:/app
+      - /app/deps
+      - /app/.cache
+      - /app/.deno
+
   db:
     image: postgres:17
     environment:
