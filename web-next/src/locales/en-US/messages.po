@@ -159,9 +159,9 @@ msgstr "A name for the link that will be displayed on your profile, e.g., GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
-#: src/components/AppSidebar.tsx:264
-msgid "Account"
-msgstr "Account"
+#: src/components/AppSidebar.tsx:244
+#~ msgid "Account"
+#~ msgstr "Account"
 
 #: src/components/LanguageList.tsx:63
 #: src/components/LanguageList.tsx:198
@@ -234,9 +234,9 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:195
-msgid "Articles only"
-msgstr "Articles only"
+#: src/components/AppSidebar.tsx:175
+#~ msgid "Articles only"
+#~ msgstr "Articles only"
 
 #. placeholder {0}: "CHANGED"
 #: src/routes/(root)/[handle]/settings/index.tsx:440
@@ -271,16 +271,15 @@ msgstr "Cancel"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
 
-#: src/components/AppSidebar.tsx:532
+#: src/components/Footer.tsx:16
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "Code of conduct"
 
-#: src/components/AppSidebar.tsx:422
-#: src/components/FloatingComposeButton.tsx:61
-msgid "Compose"
-msgstr "Compose"
+#: src/components/AppSidebar.tsx:402
+#~ msgid "Compose"
+#~ msgstr "Compose"
 
 #: src/components/ArticleComposer.tsx:562
 #: src/components/NoteComposer.tsx:148
@@ -291,13 +290,8 @@ msgstr "Content"
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
-#: src/components/AppSidebar.tsx:467
-#: src/components/FloatingComposeButton.tsx:123
-msgid "Create Article"
-msgstr "Create Article"
-
-#: src/components/AppSidebar.tsx:444
-#: src/components/FloatingComposeButton.tsx:99
+#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:152
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -391,10 +385,6 @@ msgstr "Email address"
 #: src/routes/(root)/sign/index.tsx:380
 msgid "Email or username"
 msgstr "Email or username"
-
-#: src/components/ArticleComposer.tsx:540
-#~ msgid "Enter article title..."
-#~ msgstr "Enter article title..."
 
 #: src/routes/(root)/sign/index.tsx:241
 msgid "Enter your email or username below to sign in."
@@ -501,20 +491,20 @@ msgstr "Failed to send invitation"
 msgid "Failed to share post"
 msgstr "Failed to share post"
 
-#. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:106
-msgid "Failed to sign out: {0}"
-msgstr "Failed to sign out: {0}"
+#: src/components/AppSidebar.tsx:86
+#~ msgid "Failed to sign out: {0}"
+#~ msgstr "Failed to sign out: {0}"
 
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
-#: src/components/AppSidebar.tsx:238
-msgid "Fediverse"
-msgstr "Fediverse"
+#: src/components/AppSidebar.tsx:218
+#~ msgid "Fediverse"
+#~ msgstr "Fediverse"
 
-#: src/components/AppSidebar.tsx:157
+#: src/components/Navigation.tsx:77
+#: src/components/Navigation.tsx:81
 msgid "Feed"
 msgstr "Feed"
 
@@ -531,7 +521,7 @@ msgstr "Followers only"
 msgid "Following you"
 msgstr "Following you"
 
-#: src/components/AppSidebar.tsx:544
+#: src/components/Footer.tsx:28
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -541,18 +531,12 @@ msgstr "GitHub repository"
 msgid "Go Back"
 msgstr "Go Back"
 
-#: src/components/FloatingComposeButton.tsx:148
-msgid "Go to Drafts"
-msgstr "Go to Drafts"
-
 #: src/routes/(root)/[handle]/drafts/[id].tsx:69
 #: src/routes/(root)/[handle]/drafts/index.tsx:226
 #: src/routes/(root)/[handle]/drafts/new.tsx:85
 msgid "Go to My Drafts"
 msgstr "Go to My Drafts"
 
-#: src/components/AppSidebar.tsx:125
-#: src/components/AppSidebar.tsx:216
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/markdown.tsx:47
 msgid "Hackers' Pub"
@@ -566,9 +550,9 @@ msgstr "Hackers' Pub is a place for software engineers to share their knowledge 
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
 
-#: src/components/TopBreadcrumb.tsx:21
-#~ msgid "Home"
-#~ msgstr "Home"
+#: src/components/Navigation.tsx:50
+msgid "Home"
+msgstr "Home"
 
 #: src/routes/(root)/sign/up/[token].tsx:459
 msgid "I have read and agree to the Code of conduct."
@@ -602,7 +586,6 @@ msgstr "Invitation language"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:355
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:218
 msgid "Invite"
@@ -730,6 +713,10 @@ msgstr "Loading..."
 msgid "Loading…"
 msgstr "Loading…"
 
+#: src/components/Navigation.tsx:45
+msgid "Main navigation"
+msgstr "Main navigation"
+
 #: src/routes/(root)/markdown.tsx:47
 msgid "Markdown guide"
 msgstr "Markdown guide"
@@ -842,7 +829,8 @@ msgstr "Note that you can verify your links belong to you by making the linked p
 msgid "Notes"
 msgstr "Notes"
 
-#: src/components/AppSidebar.tsx:317
+#: src/components/Navigation.tsx:91
+#: src/components/Navigation.tsx:95
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -933,6 +921,11 @@ msgstr "Preferred languages"
 msgid "Priority"
 msgstr "Priority"
 
+#: src/components/Navigation.tsx:126
+#: src/components/Navigation.tsx:143
+msgid "Profile"
+msgstr "Profile"
+
 #: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:143
 #: src/routes/(root)/[handle]/settings/index.tsx:149
@@ -989,10 +982,6 @@ msgstr "Read full article"
 #: src/routes/(root)/sign/up/[token].tsx:463
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
-
-#: src/components/AppSidebar.tsx:480
-msgid "Recent Drafts"
-msgstr "Recent Drafts"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:398
 msgid "Register"
@@ -1056,7 +1045,8 @@ msgstr "Saving..."
 msgid "Saving…"
 msgstr "Saving…"
 
-#: src/components/AppSidebar.tsx:257
+#: src/components/Navigation.tsx:115
+#: src/components/Navigation.tsx:119
 #: src/routes/(root)/search.tsx:151
 msgid "Search"
 msgstr "Search"
@@ -1090,9 +1080,9 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:386
-msgid "Settings"
-msgstr "Settings"
+#: src/components/AppSidebar.tsx:366
+#~ msgid "Settings"
+#~ msgstr "Settings"
 
 #: src/components/PostControls.tsx:210
 msgid "Share"
@@ -1102,7 +1092,6 @@ msgstr "Share"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/AppSidebar.tsx:290
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "Sign in"
@@ -1111,9 +1100,9 @@ msgstr "Sign in"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:408
-msgid "Sign out"
-msgstr "Sign out"
+#: src/components/AppSidebar.tsx:388
+#~ msgid "Sign out"
+#~ msgstr "Sign out"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Sign up"
@@ -1217,7 +1206,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:536
+#: src/components/Footer.tsx:20
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -1229,9 +1218,9 @@ msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 msgid "This will be part of the article URL"
 msgstr "This will be part of the article URL"
 
-#: src/components/AppSidebar.tsx:137
-msgid "Timeline"
-msgstr "Timeline"
+#: src/components/AppSidebar.tsx:117
+#~ msgid "Timeline"
+#~ msgstr "Timeline"
 
 #: src/components/ArticleComposer.tsx:549
 msgid "Title"
@@ -1312,10 +1301,6 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:522
-msgid "View all drafts →"
-msgstr "View all drafts →"
-
 #: src/components/NoteComposer.tsx:193
 msgid "Visibility"
 msgstr "Visibility"
@@ -1352,9 +1337,9 @@ msgstr "What is Hackers' Pub?"
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
-#: src/components/AppSidebar.tsx:176
-msgid "Without shares"
-msgstr "Without shares"
+#: src/components/AppSidebar.tsx:156
+#~ msgid "Without shares"
+#~ msgstr "Without shares"
 
 #: src/components/ArticleComposer.tsx:593
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."

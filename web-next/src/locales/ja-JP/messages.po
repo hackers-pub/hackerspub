@@ -26,7 +26,7 @@ msgstr "{0, plural, other {#フォロー}}"
 #. placeholder {0}: edge.node.tags.length - 3
 #: src/routes/(root)/[handle]/drafts/index.tsx:276
 msgid "{0, plural, one {+1 more} other {+# more}}"
-msgstr "{0, plural, other {他#件}}"
+msgstr "{0, plural, other {+# 他}}"
 
 #. placeholder {0}: account().invitationsLeft
 #: src/routes/(root)/[handle]/settings/invite.tsx:235
@@ -159,9 +159,9 @@ msgstr "プロフィールに表示されるリンクの名前。（例：GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
-#: src/components/AppSidebar.tsx:264
-msgid "Account"
-msgstr "アカウント"
+#: src/components/AppSidebar.tsx:244
+#~ msgid "Account"
+#~ msgstr "アカウント"
 
 #: src/components/LanguageList.tsx:63
 #: src/components/LanguageList.tsx:198
@@ -207,11 +207,11 @@ msgstr "予期しないエラーが発生しました。後でもう一度お試
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:133
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
-msgstr "「{draftTitle}」を削除してもよろしいですか？この操作は元に戻せません。"
+msgstr "\"{draftTitle}\"を削除してもよろしいですか？この操作は取り消せません。"
 
 #: src/components/ArticleComposer.tsx:465
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
-msgstr "この下書きを削除してもよろしいですか？この操作は元に戻せません。"
+msgstr "この下書きを削除してもよろしいですか？この操作は取り消せません。"
 
 #. placeholder {0}: passkeyToRevoke()?.name
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -228,15 +228,15 @@ msgstr "記事を公開しました"
 
 #: src/components/ArticleComposer.tsx:617
 msgid "article-url-slug"
-msgstr "記事URLスラッグ"
+msgstr "記事のURLスラッグ"
 
 #: src/components/ProfileTabs.tsx:48
 msgid "Articles"
 msgstr "記事"
 
-#: src/components/AppSidebar.tsx:195
-msgid "Articles only"
-msgstr "記事のみ"
+#: src/components/AppSidebar.tsx:175
+#~ msgid "Articles only"
+#~ msgstr "記事のみ"
 
 #. placeholder {0}: "CHANGED"
 #: src/routes/(root)/[handle]/settings/index.tsx:440
@@ -271,16 +271,15 @@ msgstr "キャンセル"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
 
-#: src/components/AppSidebar.tsx:532
+#: src/components/Footer.tsx:16
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "行動規範"
 
-#: src/components/AppSidebar.tsx:422
-#: src/components/FloatingComposeButton.tsx:61
-msgid "Compose"
-msgstr "作成"
+#: src/components/AppSidebar.tsx:402
+#~ msgid "Compose"
+#~ msgstr "作成"
 
 #: src/components/ArticleComposer.tsx:562
 #: src/components/NoteComposer.tsx:148
@@ -291,13 +290,8 @@ msgstr "内容"
 msgid "Content cannot be empty"
 msgstr "内容を入力してください"
 
-#: src/components/AppSidebar.tsx:467
-#: src/components/FloatingComposeButton.tsx:123
-msgid "Create Article"
-msgstr "記事を作成"
-
-#: src/components/AppSidebar.tsx:444
-#: src/components/FloatingComposeButton.tsx:99
+#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:152
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -346,7 +340,7 @@ msgstr "削除中..."
 
 #: src/components/ArticleComposer.tsx:277
 msgid "Discard unsaved changes - are you sure?"
-msgstr "未保存の変更を破棄してもよろしいですか？"
+msgstr "保存されていない変更を破棄しますか？"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:453
 #: src/routes/(root)/sign/up/[token].tsx:384
@@ -430,7 +424,7 @@ msgstr "記事の読み込みに失敗しました。クリックして再試行
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:325
 msgid "Failed to load more drafts; click to retry"
-msgstr "下書きの読み込みに失敗しました。クリックして再試行してください"
+msgstr "下書きの読み込みに失敗しました。クリックして再試行"
 
 #: src/components/ActorFollowerList.tsx:80
 msgid "Failed to load more followers; click to retry"
@@ -497,20 +491,20 @@ msgstr "招待状の送信に失敗しました"
 msgid "Failed to share post"
 msgstr "コンテンツの共有に失敗しました"
 
-#. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:106
-msgid "Failed to sign out: {0}"
-msgstr "ログアウトに失敗：{0}"
+#: src/components/AppSidebar.tsx:86
+#~ msgid "Failed to sign out: {0}"
+#~ msgstr "ログアウトに失敗：{0}"
 
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
-#: src/components/AppSidebar.tsx:238
-msgid "Fediverse"
-msgstr "フェディバース"
+#: src/components/AppSidebar.tsx:218
+#~ msgid "Fediverse"
+#~ msgstr "フェディバース"
 
-#: src/components/AppSidebar.tsx:157
+#: src/components/Navigation.tsx:77
+#: src/components/Navigation.tsx:81
 msgid "Feed"
 msgstr "フィード"
 
@@ -527,7 +521,7 @@ msgstr "フォロワーのみ"
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
-#: src/components/AppSidebar.tsx:544
+#: src/components/Footer.tsx:28
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -537,18 +531,12 @@ msgstr "GitHubリポジトリ"
 msgid "Go Back"
 msgstr "戻る"
 
-#: src/components/FloatingComposeButton.tsx:148
-msgid "Go to Drafts"
-msgstr "下書きへ"
-
 #: src/routes/(root)/[handle]/drafts/[id].tsx:69
 #: src/routes/(root)/[handle]/drafts/index.tsx:226
 #: src/routes/(root)/[handle]/drafts/new.tsx:85
 msgid "Go to My Drafts"
-msgstr "マイ下書きへ"
+msgstr "自分の下書きへ移動"
 
-#: src/components/AppSidebar.tsx:125
-#: src/components/AppSidebar.tsx:216
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/markdown.tsx:47
 msgid "Hackers' Pub"
@@ -562,9 +550,9 @@ msgstr "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
-#: src/components/TopBreadcrumb.tsx:21
-#~ msgid "Home"
-#~ msgstr "ホーム"
+#: src/components/Navigation.tsx:50
+msgid "Home"
+msgstr "ホーム"
 
 #: src/routes/(root)/sign/up/[token].tsx:459
 msgid "I have read and agree to the Code of conduct."
@@ -598,7 +586,6 @@ msgstr "招待状の言語"
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
-#: src/components/AppSidebar.tsx:355
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:218
 msgid "Invite"
@@ -648,7 +635,7 @@ msgstr "リンク名"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:328
 msgid "Load More"
-msgstr "さらに読み込む"
+msgstr "もっと読み込む"
 
 #: src/components/ActorArticleList.tsx:78
 msgid "Load more articles"
@@ -726,6 +713,10 @@ msgstr "読み込み中..."
 msgid "Loading…"
 msgstr "読み込み中…"
 
+#: src/components/Navigation.tsx:45
+msgid "Main navigation"
+msgstr "メインナビゲーション"
+
 #: src/routes/(root)/markdown.tsx:47
 msgid "Markdown guide"
 msgstr "Markdown ガイド"
@@ -779,7 +770,7 @@ msgstr "使用履歴なし"
 #: src/routes/(root)/[handle]/drafts/index.tsx:238
 #: src/routes/(root)/[handle]/drafts/new.tsx:94
 msgid "New Article"
-msgstr "新しい記事"
+msgstr "新規記事"
 
 #: src/components/ArticleComposer.tsx:457
 msgid "No draft to delete"
@@ -838,7 +829,8 @@ msgstr "リンクが実際にあなたのものであることを認証できま
 msgid "Notes"
 msgstr "投稿"
 
-#: src/components/AppSidebar.tsx:317
+#: src/components/Navigation.tsx:91
+#: src/components/Navigation.tsx:95
 msgid "Notifications"
 msgstr "通知"
 
@@ -882,7 +874,7 @@ msgstr "パスキー"
 #: src/routes/(root)/[handle]/drafts/new.tsx:71
 #: src/routes/(root)/[handle]/drafts/new.tsx:72
 msgid "Permission Denied"
-msgstr "アクセスが拒否されました"
+msgstr "権限がありません"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:210
 msgid "Please choose an image file smaller than 5 MiB."
@@ -928,6 +920,11 @@ msgstr "優先言語"
 #: src/components/LanguageList.tsx:73
 msgid "Priority"
 msgstr "優先度"
+
+#: src/components/Navigation.tsx:126
+#: src/components/Navigation.tsx:143
+msgid "Profile"
+msgstr "プロフィール"
 
 #: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:143
@@ -985,10 +982,6 @@ msgstr "記事全文を読む"
 #: src/routes/(root)/sign/up/[token].tsx:463
 msgid "Read the full Code of conduct"
 msgstr "行動規範の全文を読む"
-
-#: src/components/AppSidebar.tsx:480
-msgid "Recent Drafts"
-msgstr "最近の下書き"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:398
 msgid "Register"
@@ -1052,7 +1045,8 @@ msgstr "保存中..."
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/components/AppSidebar.tsx:257
+#: src/components/Navigation.tsx:115
+#: src/components/Navigation.tsx:119
 #: src/routes/(root)/search.tsx:151
 msgid "Search"
 msgstr "検索"
@@ -1086,9 +1080,9 @@ msgstr "送信中…"
 msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
-#: src/components/AppSidebar.tsx:386
-msgid "Settings"
-msgstr "設定"
+#: src/components/AppSidebar.tsx:366
+#~ msgid "Settings"
+#~ msgstr "設定"
 
 #: src/components/PostControls.tsx:210
 msgid "Share"
@@ -1098,7 +1092,6 @@ msgstr "共有"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/AppSidebar.tsx:290
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "ログイン"
@@ -1107,9 +1100,9 @@ msgstr "ログイン"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:408
-msgid "Sign out"
-msgstr "ログアウト"
+#: src/components/AppSidebar.tsx:388
+#~ msgid "Sign out"
+#~ msgstr "ログアウト"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Sign up"
@@ -1129,7 +1122,7 @@ msgstr "Hackers' Pubに登録"
 
 #: src/components/ArticleComposer.tsx:613
 msgid "Slug (URL)"
-msgstr "スラッグ（URL）"
+msgstr "スラッグ (URL)"
 
 #: src/components/ArticleComposer.tsx:388
 msgid "Slug cannot be empty"
@@ -1213,7 +1206,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:536
+#: src/components/Footer.tsx:20
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -1225,9 +1218,9 @@ msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 msgid "This will be part of the article URL"
 msgstr "これは記事のURLの一部になります"
 
-#: src/components/AppSidebar.tsx:137
-msgid "Timeline"
-msgstr "タイムライン"
+#: src/components/AppSidebar.tsx:117
+#~ msgid "Timeline"
+#~ msgstr "タイムライン"
 
 #: src/components/ArticleComposer.tsx:549
 msgid "Title"
@@ -1244,7 +1237,7 @@ msgstr "{0}から翻訳"
 
 #: src/components/ArticleComposer.tsx:605
 msgid "Type tags separated by spaces"
-msgstr "スペースで区切ってタグを入力"
+msgstr "タグをスペースで区切って入力"
 
 #: src/components/EmojiReactionPopover.tsx:238
 #: src/components/EmojiReactionPopover.tsx:247
@@ -1308,10 +1301,6 @@ msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
 
-#: src/components/AppSidebar.tsx:522
-msgid "View all drafts →"
-msgstr "すべての下書きを表示 →"
-
 #: src/components/NoteComposer.tsx:193
 msgid "Visibility"
 msgstr "公開範囲"
@@ -1348,13 +1337,13 @@ msgstr "Hackers' Pubとは？"
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
-#: src/components/AppSidebar.tsx:176
-msgid "Without shares"
-msgstr "共有除外"
+#: src/components/AppSidebar.tsx:156
+#~ msgid "Without shares"
+#~ msgstr "共有除外"
 
 #: src/components/ArticleComposer.tsx:593
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
-msgstr "ここに記事を書いてください。Markdownが使えます。執筆中は自動的に下書きとして保存されます。"
+msgstr "ここに記事を書いてください。Markdownが使用できます。書いている間、記事は自動的に下書きとして保存されます。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
@@ -1370,7 +1359,7 @@ msgstr "このフィールドは空欄でも構いません。"
 
 #: src/routes/(root)/[handle]/drafts/new.tsx:75
 msgid "You can only create drafts for your own account"
-msgstr "自分のアカウントの下書きのみ作成できます"
+msgstr "自分のアカウントでのみ下書きを作成できます"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:59
 msgid "You can only edit your own drafts"
@@ -1378,7 +1367,7 @@ msgstr "自分の下書きのみ編集できます"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:216
 msgid "You can only view your own drafts"
-msgstr "自分の下書きのみ表示できます"
+msgstr "自分の下書きのみ閲覧できます"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:416
 msgid "You don't have any passkeys registered yet."
@@ -1396,15 +1385,15 @@ msgstr "投稿を作成するにはログインが必要です"
 #: src/components/ArticleComposer.tsx:503
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 msgid "You must be signed in to delete a draft"
-msgstr "下書きを削除するにはログインする必要があります"
+msgstr "下書きを削除するにはログインが必要です"
 
 #: src/components/ArticleComposer.tsx:438
 msgid "You must be signed in to publish an article"
-msgstr "記事を公開するにはログインする必要があります"
+msgstr "記事を公開するにはログインが必要です"
 
 #: src/components/ArticleComposer.tsx:367
 msgid "You must be signed in to save a draft"
-msgstr "下書きを保存するにはログインする必要があります"
+msgstr "下書きを保存するにはログインが必要です"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"

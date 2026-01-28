@@ -4,13 +4,13 @@ import {
   type RouteSectionProps,
 } from "@solidjs/router";
 import { graphql } from "relay-runtime";
+import { type ParentProps, Show } from "solid-js";
 import {
   createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { AppSidebar } from "~/components/AppSidebar.tsx";
-import { FloatingComposeButton } from "~/components/FloatingComposeButton.tsx";
+import { Navigation } from "~/components/Navigation.tsx";
 import { NoteComposeModal } from "~/components/NoteComposeModal.tsx";
 import { SidebarProvider } from "~/components/ui/sidebar.tsx";
 import { Toaster } from "~/components/ui/toast.tsx";
@@ -27,9 +27,7 @@ export const route = {
 const RootLayoutQuery = graphql`
   query RootLayoutQuery {
     viewer {
-      username
-      ...AppSidebar_signedAccount
-      ...FloatingComposeButton_signedAccount
+      ...Navigation_signedAccount
     }
   }
 `;
@@ -46,7 +44,6 @@ const loadRootLayoutQuery = query(
 );
 
 export default function RootLayout(props: RouteSectionProps) {
-  const { i18n } = useLingui();
   const signedAccount = createPreloadedQuery<RootLayoutQuery>(
     RootLayoutQuery,
     () => loadRootLayoutQuery(),
@@ -54,13 +51,30 @@ export default function RootLayout(props: RouteSectionProps) {
   return (
     <NoteComposeProvider>
       <SidebarProvider>
-        <AppSidebar
-          $signedAccount={signedAccount()?.viewer}
-          signedAccountLoaded={!signedAccount.pending}
-        />
+        <RootLayoutContent signedAccount={signedAccount}>
+          {props.children}
+        </RootLayoutContent>
+      </SidebarProvider>
+    </NoteComposeProvider>
+  );
+}
+
+function RootLayoutContent(
+  props: ParentProps<{
+    signedAccount: ReturnType<typeof createPreloadedQuery<RootLayoutQuery>>;
+  }>,
+) {
+  const { i18n } = useLingui();
+
+  return (
+    <>
+      <div class="sm:flex mx-auto">
+        <Show when={props.signedAccount()?.viewer}>
+          {(viewer) => <Navigation $signedAccount={viewer()} />}
+        </Show>
         <main
           lang={new Intl.Locale(i18n.locale).minimize().baseName}
-          class="w-full"
+          class="max-w-160"
           classList={{
             "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
             "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
@@ -68,14 +82,9 @@ export default function RootLayout(props: RouteSectionProps) {
         >
           {props.children}
         </main>
-        <FloatingComposeButton
-          show={!signedAccount.pending && !!signedAccount()?.viewer}
-          username={signedAccount()?.viewer?.username}
-          $signedAccount={signedAccount()?.viewer}
-        />
-        <NoteComposeModal />
-        <Toaster />
-      </SidebarProvider>
-    </NoteComposeProvider>
+      </div>
+      <NoteComposeModal />
+      <Toaster />
+    </>
   );
 }
