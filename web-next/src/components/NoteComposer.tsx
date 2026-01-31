@@ -3,6 +3,7 @@ import { graphql } from "relay-runtime";
 import { createEffect, createSignal, Show } from "solid-js";
 import { createMutation } from "solid-relay";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
+import { MentionAutocomplete } from "~/components/MentionAutocomplete.tsx";
 import {
   PostVisibility,
   PostVisibilitySelect,
@@ -57,6 +58,7 @@ export function NoteComposer(props: NoteComposerProps) {
   const [createNote, isCreating] = createMutation<NoteComposerMutation>(
     NoteComposerMutation,
   );
+  let textareaRef: HTMLTextAreaElement | undefined;
 
   createEffect(() => {
     if (manualLanguageChange()) return;
@@ -174,12 +176,20 @@ export function NoteComposer(props: NoteComposerProps) {
             </a>
           </TextFieldLabel>
           <TextFieldTextArea
+            ref={(el) => (textareaRef = el)}
             value={content()}
             onInput={(e) => setContent(e.currentTarget.value)}
             placeholder={props.placeholder ?? t`What's on your mind?`}
             required
             autofocus={props.autoFocus}
             class="min-h-[150px]"
+          />
+          <MentionAutocomplete
+            textareaRef={() => textareaRef}
+            onComplete={() => {
+              // Update content signal after autocomplete inserts text
+              if (textareaRef) setContent(textareaRef.value);
+            }}
           />
         </TextField>
         <div class="flex flex-col gap-2">
