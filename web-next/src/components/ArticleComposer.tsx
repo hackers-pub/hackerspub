@@ -126,32 +126,25 @@ export function ArticleComposer(props: ArticleComposerProps) {
   const navigate = useNavigate();
   const env = useRelayEnvironment();
 
-  // Conditionally load draft data when draftUuid provided
-  const loadDraft = () => {
-    if (!props.draftUuid) {
-      // Return a dummy promise that never resolves for the no-draft case
-      // This prevents createPreloadedQuery from trying to load when there's no UUID
-      return new Promise<never>(() => {});
-    }
-
-    return loadQuery<ArticleComposerDraftQueryType>(
-      env(),
+  // Only load draft data when draftUuid is provided
+  const draftData = props.draftUuid
+    ? createPreloadedQuery<ArticleComposerDraftQueryType>(
       ArticleComposerDraftQuery,
-      {
-        uuid: props
-          .draftUuid as `${string}-${string}-${string}-${string}-${string}`,
-      },
-    );
-  };
-
-  const draftData = createPreloadedQuery<ArticleComposerDraftQueryType>(
-    ArticleComposerDraftQuery,
-    loadDraft,
-  );
+      () =>
+        loadQuery<ArticleComposerDraftQueryType>(
+          env(),
+          ArticleComposerDraftQuery,
+          {
+            uuid: props
+              .draftUuid as `${string}-${string}-${string}-${string}-${string}`,
+          },
+        ),
+    )
+    : undefined;
 
   // Extract draft from query result
   const draft = createMemo(() => {
-    if (!props.draftUuid) return undefined;
+    if (!props.draftUuid || !draftData) return undefined;
     return draftData()?.articleDraft;
   });
 
@@ -517,7 +510,7 @@ export function ArticleComposer(props: ArticleComposerProps) {
 
   return (
     <Show
-      when={!props.draftUuid || draftData()}
+      when={!props.draftUuid || draftData?.()}
       fallback={
         <div class="max-w-4xl mx-auto p-6 text-center text-muted-foreground">
           {t`Loading draft...`}
