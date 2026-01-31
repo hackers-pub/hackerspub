@@ -130,6 +130,19 @@ const SidebarProvider: Component<SidebarProviderProps> = (rawProps) => {
   // Adds a keyboard shortcut to toggle the sidebar.
   createEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Skip shortcuts when user is typing in an editable element
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        if (
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable ||
+          target.closest(".cm-editor")
+        ) {
+          return;
+        }
+      }
+
       if (
         event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
         (event.metaKey || event.ctrlKey)
