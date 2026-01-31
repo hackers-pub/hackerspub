@@ -21,8 +21,8 @@ import {
   TextField,
   TextFieldInput,
   TextFieldLabel,
-  TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
+import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { ArticleComposerSaveMutation } from "./__generated__/ArticleComposerSaveMutation.graphql.ts";
@@ -557,8 +557,8 @@ export function ArticleComposer(props: ArticleComposerProps) {
             </TextField>
 
             {/* Content */}
-            <TextField>
-              <TextFieldLabel class="flex items-center justify-between">
+            <div class="flex flex-col gap-1">
+              <label class="flex items-center justify-between text-sm font-medium">
                 <span>{t`Content`}</span>
                 <a
                   href="/markdown"
@@ -586,15 +586,15 @@ export function ArticleComposer(props: ArticleComposerProps) {
                   </svg>
                   {t`Markdown supported`}
                 </a>
-              </TextFieldLabel>
-              <TextFieldTextArea
+              </label>
+              <MarkdownEditor
                 value={content()}
-                onInput={(e) => setContent(e.currentTarget.value)}
+                onInput={setContent}
                 placeholder={t`Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing.`}
-                required
-                class="min-h-[400px] font-mono"
+                showToolbar
+                minHeight="400px"
               />
-            </TextField>
+            </div>
 
             {/* Tags */}
             <div>
