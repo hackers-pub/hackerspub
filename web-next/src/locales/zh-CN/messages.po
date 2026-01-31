@@ -26,7 +26,7 @@ msgstr "{0, plural, other {关注 # 人}}"
 #. placeholder {0}: edge.node.tags.length - 3
 #: src/routes/(root)/[handle]/drafts/index.tsx:276
 msgid "{0, plural, one {+1 more} other {+# more}}"
-msgstr "{0, plural, other {还有#个}}"
+msgstr "{0, plural, other {+# 更多}}"
 
 #. placeholder {0}: account().invitationsLeft
 #: src/routes/(root)/[handle]/settings/invite.tsx:235
@@ -159,9 +159,9 @@ msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
 
-#: src/components/AppSidebar.tsx:264
-msgid "Account"
-msgstr "账户"
+#: src/components/AppSidebar.tsx:244
+#~ msgid "Account"
+#~ msgstr "账户"
 
 #: src/components/LanguageList.tsx:63
 #: src/components/LanguageList.tsx:198
@@ -207,11 +207,11 @@ msgstr "发生了意外错误。请稍后再试。"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:133
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
-msgstr "您确定要删除\"{draftTitle}\"吗？此操作无法撤销。"
+msgstr "你确定要删除 \"{draftTitle}\" 吗？此操作无法撤销。"
 
 #: src/components/ArticleComposer.tsx:465
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
-msgstr "您确定要删除此草稿吗？此操作无法撤销。"
+msgstr "你确定要删除此草稿吗？此操作无法撤销。"
 
 #. placeholder {0}: passkeyToRevoke()?.name
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:522
@@ -228,15 +228,15 @@ msgstr "文章已发布"
 
 #: src/components/ArticleComposer.tsx:617
 msgid "article-url-slug"
-msgstr "文章网址别名"
+msgstr "文章URL数据域"
 
 #: src/components/ProfileTabs.tsx:48
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:195
-msgid "Articles only"
-msgstr "仅文章"
+#: src/components/AppSidebar.tsx:175
+#~ msgid "Articles only"
+#~ msgstr "仅文章"
 
 #. placeholder {0}: "CHANGED"
 #: src/routes/(root)/[handle]/settings/index.tsx:440
@@ -271,16 +271,15 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 
-#: src/components/AppSidebar.tsx:532
+#: src/components/Footer.tsx:16
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "行为准则"
 
-#: src/components/AppSidebar.tsx:422
-#: src/components/FloatingComposeButton.tsx:61
-msgid "Compose"
-msgstr "写作"
+#: src/components/AppSidebar.tsx:402
+#~ msgid "Compose"
+#~ msgstr "写作"
 
 #: src/components/ArticleComposer.tsx:562
 #: src/components/NoteComposer.tsx:148
@@ -291,13 +290,8 @@ msgstr "内容"
 msgid "Content cannot be empty"
 msgstr "内容不能为空"
 
-#: src/components/AppSidebar.tsx:467
-#: src/components/FloatingComposeButton.tsx:123
-msgid "Create Article"
-msgstr "创建文章"
-
-#: src/components/AppSidebar.tsx:444
-#: src/components/FloatingComposeButton.tsx:99
+#: src/components/Navigation.tsx:103
+#: src/components/Navigation.tsx:152
 #: src/components/NoteComposeModal.tsx:24
 #: src/components/NoteComposer.tsx:211
 msgid "Create Note"
@@ -342,11 +336,11 @@ msgstr "删除草稿"
 
 #: src/components/ArticleComposer.tsx:647
 msgid "Deleting..."
-msgstr "删除中..."
+msgstr "正在删除..."
 
 #: src/components/ArticleComposer.tsx:277
 msgid "Discard unsaved changes - are you sure?"
-msgstr "放弃未保存的更改 - 您确定吗？"
+msgstr "放弃未保存的更改 - 确定吗？"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:453
 #: src/routes/(root)/sign/up/[token].tsx:384
@@ -430,7 +424,7 @@ msgstr "加载更多文章失败，点击重试"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:325
 msgid "Failed to load more drafts; click to retry"
-msgstr "加载更多草稿失败，点击重试"
+msgstr "加载更多草稿失败；点击重试"
 
 #: src/components/ActorFollowerList.tsx:80
 msgid "Failed to load more followers; click to retry"
@@ -497,20 +491,20 @@ msgstr "发送邀请失败"
 msgid "Failed to share post"
 msgstr "转帖失败"
 
-#. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:106
-msgid "Failed to sign out: {0}"
-msgstr "登出失败：{0}"
+#: src/components/AppSidebar.tsx:86
+#~ msgid "Failed to sign out: {0}"
+#~ msgstr "登出失败：{0}"
 
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
 
-#: src/components/AppSidebar.tsx:238
-msgid "Fediverse"
-msgstr "联邦宇宙"
+#: src/components/AppSidebar.tsx:218
+#~ msgid "Fediverse"
+#~ msgstr "联邦宇宙"
 
-#: src/components/AppSidebar.tsx:157
+#: src/components/Navigation.tsx:77
+#: src/components/Navigation.tsx:81
 msgid "Feed"
 msgstr "订阅流"
 
@@ -527,7 +521,7 @@ msgstr "只粉丝可见"
 msgid "Following you"
 msgstr "关注了你"
 
-#: src/components/AppSidebar.tsx:544
+#: src/components/Footer.tsx:28
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
@@ -537,18 +531,12 @@ msgstr "GitHub 仓库"
 msgid "Go Back"
 msgstr "返回"
 
-#: src/components/FloatingComposeButton.tsx:148
-msgid "Go to Drafts"
-msgstr "前往草稿"
-
 #: src/routes/(root)/[handle]/drafts/[id].tsx:69
 #: src/routes/(root)/[handle]/drafts/index.tsx:226
 #: src/routes/(root)/[handle]/drafts/new.tsx:85
 msgid "Go to My Drafts"
 msgstr "前往我的草稿"
 
-#: src/components/AppSidebar.tsx:125
-#: src/components/AppSidebar.tsx:216
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/markdown.tsx:47
 msgid "Hackers' Pub"
@@ -562,9 +550,9 @@ msgstr "Hackers' Pub 是个为软件工程师共同分享知识和经验的地�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
-#: src/components/TopBreadcrumb.tsx:21
-#~ msgid "Home"
-#~ msgstr "首页"
+#: src/components/Navigation.tsx:50
+msgid "Home"
+msgstr "首页"
 
 #: src/routes/(root)/sign/up/[token].tsx:459
 msgid "I have read and agree to the Code of conduct."
@@ -598,7 +586,6 @@ msgstr "邀请语言"
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
-#: src/components/AppSidebar.tsx:355
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:218
 msgid "Invite"
@@ -684,7 +671,7 @@ msgstr "加载更多内容"
 
 #: src/components/ArticleComposer.tsx:523
 msgid "Loading draft..."
-msgstr "加载草稿中..."
+msgstr "正在加载草稿..."
 
 #: src/components/ActorArticleList.tsx:72
 msgid "Loading more articles…"
@@ -720,11 +707,15 @@ msgstr "加载更多内容中…"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:322
 msgid "Loading..."
-msgstr "加载中..."
+msgstr "正在加载..."
 
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
 msgstr "正在加载…"
+
+#: src/components/Navigation.tsx:45
+msgid "Main navigation"
+msgstr "主导航"
 
 #: src/routes/(root)/markdown.tsx:47
 msgid "Markdown guide"
@@ -779,7 +770,7 @@ msgstr "从未使用过"
 #: src/routes/(root)/[handle]/drafts/index.tsx:238
 #: src/routes/(root)/[handle]/drafts/new.tsx:94
 msgid "New Article"
-msgstr "新建文章"
+msgstr "新文章"
 
 #: src/components/ArticleComposer.tsx:457
 msgid "No draft to delete"
@@ -787,7 +778,7 @@ msgstr "没有要删除的草稿"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:248
 msgid "No drafts yet. Create your first article!"
-msgstr "还没有草稿。创建您的第一篇文章！"
+msgstr "暂无草稿。创建你的第一篇文章！"
 
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
@@ -838,7 +829,8 @@ msgstr "你可以验证这些链接确实属于你。在链接的页面上使用
 msgid "Notes"
 msgstr "帖子"
 
-#: src/components/AppSidebar.tsx:317
+#: src/components/Navigation.tsx:91
+#: src/components/Navigation.tsx:95
 msgid "Notifications"
 msgstr "通知"
 
@@ -929,6 +921,11 @@ msgstr "偏好语言"
 msgid "Priority"
 msgstr "优先级"
 
+#: src/components/Navigation.tsx:126
+#: src/components/Navigation.tsx:143
+msgid "Profile"
+msgstr "个人主页"
+
 #: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:143
 #: src/routes/(root)/[handle]/settings/index.tsx:149
@@ -950,7 +947,7 @@ msgstr "立即发布"
 
 #: src/components/ArticleComposer.tsx:675
 msgid "Publishing..."
-msgstr "发布中..."
+msgstr "正在发布..."
 
 #: src/routes/(root)/search.tsx:248
 msgid "Query cannot be empty"
@@ -985,10 +982,6 @@ msgstr "阅读完整文章"
 #: src/routes/(root)/sign/up/[token].tsx:463
 msgid "Read the full Code of conduct"
 msgstr "阅读完整的行为准则"
-
-#: src/components/AppSidebar.tsx:480
-msgid "Recent Drafts"
-msgstr "最近的草稿"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:398
 msgid "Register"
@@ -1044,7 +1037,7 @@ msgstr "保存草稿"
 
 #: src/components/ArticleComposer.tsx:659
 msgid "Saving..."
-msgstr "保存中..."
+msgstr "正在保存..."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:521
 #: src/routes/(root)/[handle]/settings/language.tsx:234
@@ -1052,7 +1045,8 @@ msgstr "保存中..."
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/components/AppSidebar.tsx:257
+#: src/components/Navigation.tsx:115
+#: src/components/Navigation.tsx:119
 #: src/routes/(root)/search.tsx:151
 msgid "Search"
 msgstr "搜索"
@@ -1086,9 +1080,9 @@ msgstr "发送中…"
 msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
-#: src/components/AppSidebar.tsx:386
-msgid "Settings"
-msgstr "设置"
+#: src/components/AppSidebar.tsx:366
+#~ msgid "Settings"
+#~ msgstr "设置"
 
 #: src/components/PostControls.tsx:210
 msgid "Share"
@@ -1098,7 +1092,6 @@ msgstr "分享"
 msgid "Shares"
 msgstr "转帖"
 
-#: src/components/AppSidebar.tsx:290
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登录"
@@ -1107,9 +1100,9 @@ msgstr "登录"
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
-#: src/components/AppSidebar.tsx:408
-msgid "Sign out"
-msgstr "登出"
+#: src/components/AppSidebar.tsx:388
+#~ msgid "Sign out"
+#~ msgstr "登出"
 
 #: src/routes/(root)/sign/up/[token].tsx:485
 msgid "Sign up"
@@ -1129,11 +1122,11 @@ msgstr "注册 Hackers' Pub"
 
 #: src/components/ArticleComposer.tsx:613
 msgid "Slug (URL)"
-msgstr "URL 别名"
+msgstr "数据域 (URL)"
 
 #: src/components/ArticleComposer.tsx:388
 msgid "Slug cannot be empty"
-msgstr "URL 别名不能为空"
+msgstr "数据域不能为空"
 
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
@@ -1213,7 +1206,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:536
+#: src/components/Footer.tsx:20
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 
@@ -1225,9 +1218,9 @@ msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 msgid "This will be part of the article URL"
 msgstr "这将成为文章 URL 的一部分"
 
-#: src/components/AppSidebar.tsx:137
-msgid "Timeline"
-msgstr "时间线"
+#: src/components/AppSidebar.tsx:117
+#~ msgid "Timeline"
+#~ msgstr "时间线"
 
 #: src/components/ArticleComposer.tsx:549
 msgid "Title"
@@ -1308,10 +1301,6 @@ msgstr "已于{1}验证此链接归{0}所有"
 msgid "Verifying your invitation…"
 msgstr "正在验证您的邀请…"
 
-#: src/components/AppSidebar.tsx:522
-msgid "View all drafts →"
-msgstr "查看所有草稿 →"
-
 #: src/components/NoteComposer.tsx:193
 msgid "Visibility"
 msgstr "内容隐私度"
@@ -1348,13 +1337,13 @@ msgstr "什么是 Hackers' Pub？"
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
-#: src/components/AppSidebar.tsx:176
-msgid "Without shares"
-msgstr "不含转帖"
+#: src/components/AppSidebar.tsx:156
+#~ msgid "Without shares"
+#~ msgstr "不含转帖"
 
 #: src/components/ArticleComposer.tsx:593
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
-msgstr "在此撰写文章。您可以使用 Markdown。在您撰写时，文章将自动保存为草稿。"
+msgstr "在这里写文章。可使用 Markdown。你的文章会在你写的时候自动保存为草稿。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
@@ -1370,15 +1359,15 @@ msgstr "你可以留空此字段。"
 
 #: src/routes/(root)/[handle]/drafts/new.tsx:75
 msgid "You can only create drafts for your own account"
-msgstr "您只能为自己的账户创建草稿"
+msgstr "你只能为你自己的帐户创建草稿"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:59
 msgid "You can only edit your own drafts"
-msgstr "您只能编辑自己的草稿"
+msgstr "你只能编辑你自己的草稿"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:216
 msgid "You can only view your own drafts"
-msgstr "您只能查看自己的草稿"
+msgstr "你只能查看你自己的草稿"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:416
 msgid "You don't have any passkeys registered yet."
@@ -1396,15 +1385,15 @@ msgstr "你必须登录才能创建帖子"
 #: src/components/ArticleComposer.tsx:503
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 msgid "You must be signed in to delete a draft"
-msgstr "您必须登录才能删除草稿"
+msgstr "你必须登录才能删除草稿"
 
 #: src/components/ArticleComposer.tsx:438
 msgid "You must be signed in to publish an article"
-msgstr "您必须登录才能发布文章"
+msgstr "你必须登录才能发布文章"
 
 #: src/components/ArticleComposer.tsx:367
 msgid "You must be signed in to save a draft"
-msgstr "您必须登录才能保存草稿"
+msgstr "你必须登录才能保存草稿"
 
 #: src/routes/(root)/sign/up/[token].tsx:433
 msgid "You were invited by"
