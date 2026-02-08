@@ -261,7 +261,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "个人简介太长。不能长于 512 字符。"
 
 #: src/components/ArticleComposer.tsx:671
-#: src/components/NoteComposer.tsx:207
+#: src/components/NoteComposer.tsx:217
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -283,11 +283,11 @@ msgid "Compose"
 msgstr "写作"
 
 #: src/components/ArticleComposer.tsx:562
-#: src/components/NoteComposer.tsx:148
+#: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "内容"
 
-#: src/components/NoteComposer.tsx:94
+#: src/components/NoteComposer.tsx:96
 msgid "Content cannot be empty"
 msgstr "内容不能为空"
 
@@ -299,7 +299,7 @@ msgstr "创建文章"
 #: src/components/AppSidebar.tsx:444
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:24
-#: src/components/NoteComposer.tsx:211
+#: src/components/NoteComposer.tsx:221
 msgid "Create Note"
 msgstr "创建帖子"
 
@@ -312,7 +312,7 @@ msgstr "{0}创建"
 msgid "Creating account…"
 msgstr "正在创建账户…"
 
-#: src/components/NoteComposer.tsx:212
+#: src/components/NoteComposer.tsx:222
 msgid "Creating…"
 msgstr "正在创建…"
 
@@ -409,10 +409,10 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/ArticleComposer.tsx:493
 #: src/components/ArticleComposer.tsx:502
 #: src/components/ArticleComposer.tsx:510
-#: src/components/NoteComposer.tsx:93
-#: src/components/NoteComposer.tsx:119
-#: src/components/NoteComposer.tsx:127
-#: src/components/NoteComposer.tsx:135
+#: src/components/NoteComposer.tsx:95
+#: src/components/NoteComposer.tsx:121
+#: src/components/NoteComposer.tsx:129
+#: src/components/NoteComposer.tsx:137
 #: src/routes/(root)/[handle]/drafts/index.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 #: src/routes/(root)/[handle]/drafts/index.tsx:198
@@ -585,7 +585,7 @@ msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里
 #: src/components/ArticleComposer.tsx:359
 #: src/components/ArticleComposer.tsx:430
 #: src/components/ArticleComposer.tsx:495
-#: src/components/NoteComposer.tsx:120
+#: src/components/NoteComposer.tsx:122
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
@@ -620,7 +620,7 @@ msgstr "于{0}加入"
 #: src/components/ArticleComposer.tsx:629
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/components/NoteComposer.tsx:186
+#: src/components/NoteComposer.tsx:196
 msgid "Language"
 msgstr "语言"
 
@@ -731,7 +731,7 @@ msgid "Markdown guide"
 msgstr "Markdown 指南"
 
 #: src/components/ArticleComposer.tsx:587
-#: src/components/NoteComposer.tsx:173
+#: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -825,7 +825,7 @@ msgstr "未找到。"
 #~ msgid "Note"
 #~ msgstr "帖子"
 
-#: src/components/NoteComposer.tsx:112
+#: src/components/NoteComposer.tsx:114
 msgid "Note created successfully"
 msgstr "帖子创建成功"
 
@@ -1142,7 +1142,7 @@ msgstr "出现错误，请重试。"
 #: src/components/ArticleComposer.tsx:348
 #: src/components/ArticleComposer.tsx:420
 #: src/components/ArticleComposer.tsx:485
-#: src/components/NoteComposer.tsx:111
+#: src/components/NoteComposer.tsx:113
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
 msgstr "成功"
@@ -1312,7 +1312,7 @@ msgstr "正在验证您的邀请…"
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
-#: src/components/NoteComposer.tsx:193
+#: src/components/NoteComposer.tsx:203
 msgid "Visibility"
 msgstr "内容隐私度"
 
@@ -1344,7 +1344,7 @@ msgstr "欢迎来到 Hackers' Pub！请填写以下表单完成注册。"
 msgid "What is Hackers' Pub?"
 msgstr "什么是 Hackers' Pub？"
 
-#: src/components/NoteComposer.tsx:179
+#: src/components/NoteComposer.tsx:182
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
@@ -1389,7 +1389,7 @@ msgstr "您尚未注册任何通行密钥。"
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你没有剩余邀请名额。请稍后再试。"
 
-#: src/components/NoteComposer.tsx:128
+#: src/components/NoteComposer.tsx:130
 msgid "You must be signed in to create a note"
 msgstr "你必须登录才能创建帖子"
 
