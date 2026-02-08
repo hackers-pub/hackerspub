@@ -1,5 +1,6 @@
-import type { Context, Recipient } from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import type { Context } from "@fedify/fedify";
+import type { Recipient } from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { getNote } from "@hackerspub/federation/objects";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";

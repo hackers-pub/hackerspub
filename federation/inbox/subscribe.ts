@@ -1,16 +1,16 @@
+import type { InboxContext } from "@fedify/fedify";
 import {
   type Add,
   type Announce,
   type Create,
   type Delete,
   EmojiReact,
-  type InboxContext,
   Like,
   type Remove,
   Tombstone,
   type Undo,
   type Update,
-} from "@fedify/fedify";
+} from "@fedify/vocab";
 import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import {

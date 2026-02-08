@@ -2,14 +2,16 @@ import {
   type Context,
   type DocumentLoader,
   getUserAgent,
+} from "@fedify/fedify";
+import {
   isActor,
   LanguageString,
   lookupObject,
   PUBLIC_COLLECTION,
   type Recipient,
   traverseCollection,
-} from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+} from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { getAnnounce } from "@hackerspub/federation/objects";
 import { getLogger } from "@logtape/logtape";
 import { assertNever } from "@std/assert/unstable-never";
@@ -489,9 +491,9 @@ export async function persistPost(
     summary: post.summary?.toString(),
     contentHtml,
     language: post.content instanceof LanguageString
-      ? post.content.language.compact()
+      ? post.content.locale.toString()
       : post.contents.length > 1 && post.contents[1] instanceof LanguageString
-      ? post.contents[1].language.compact()
+      ? post.contents[1].locale.toString()
       : undefined,
     tags,
     emojis,

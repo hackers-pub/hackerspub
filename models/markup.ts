@@ -1,5 +1,6 @@
-import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
-import type * as vocab from "@fedify/fedify/vocab";
+import type { Context, DocumentLoader } from "@fedify/fedify";
+import { isActor } from "@fedify/vocab";
+import type * as vocab from "@fedify/vocab";
 import { hashtag, spanHashAndTag } from "@fedify/markdown-it-hashtag";
 import { mention } from "@fedify/markdown-it-mention";
 import texmath from "@hackerspub/markdown-it-texmath";

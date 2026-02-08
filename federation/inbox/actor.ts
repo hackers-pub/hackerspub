@@ -1,10 +1,5 @@
-import {
-  type Delete,
-  type InboxContext,
-  isActor,
-  type Move,
-  type Update,
-} from "@fedify/fedify";
+import type { InboxContext } from "@fedify/fedify";
+import { type Delete, isActor, type Move, type Update } from "@fedify/vocab";
 import { persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import { follow } from "@hackerspub/models/following";

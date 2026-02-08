@@ -1,12 +1,5 @@
-import {
-  Application,
-  Endpoints,
-  exportJwk,
-  generateCryptoKeyPair,
-  Image,
-  importJwk,
-  Person,
-} from "@fedify/fedify";
+import { exportJwk, generateCryptoKeyPair, importJwk } from "@fedify/fedify";
+import { Application, Endpoints, Image, Person } from "@fedify/vocab";
 import { getAvatarUrl, renderAccountLinks } from "@hackerspub/models/account";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { accountKeyTable, type NewAccountKey } from "@hackerspub/models/schema";

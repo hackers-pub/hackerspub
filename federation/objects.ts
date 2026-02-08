@@ -1,10 +1,6 @@
-import {
-  type Context,
-  LanguageString,
-  PUBLIC_COLLECTION,
-  type RequestContext,
-} from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import type { Context, RequestContext } from "@fedify/fedify";
+import { LanguageString, PUBLIC_COLLECTION } from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import type { ContextData } from "@hackerspub/models/context";
 import {
   DEFAULT_REACTION_EMOJI,

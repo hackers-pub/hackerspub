@@ -1,4 +1,5 @@
-import { type Context, Follow, Reject, Undo } from "@fedify/fedify";
+import type { Context } from "@fedify/fedify";
+import { Follow, Reject, Undo } from "@fedify/vocab";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";

@@ -1,5 +1,6 @@
-import { type Actor, getNodeInfo, isActor } from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import { getNodeInfo } from "@fedify/fedify";
+import { type Actor, isActor } from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { define } from "../../utils.ts";
 import getFixedT from "../../i18n.ts";

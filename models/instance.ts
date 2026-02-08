@@ -1,4 +1,4 @@
-import { formatSemVer, getNodeInfo } from "@fedify/fedify";
+import { getNodeInfo } from "@fedify/fedify";
 import { eq, sql } from "drizzle-orm";
 import type { Database } from "./db.ts";
 import { type Instance, instanceTable, type NewInstance } from "./schema.ts";
@@ -26,9 +26,9 @@ export async function persistInstance(
     host,
     software: nodeInfo?.software?.name ?? null,
     softwareVersion: nodeInfo?.software == null ||
-        formatSemVer(nodeInfo.software.version) === "0.0.0"
+        nodeInfo.software.version === "0.0.0"
       ? null
-      : formatSemVer(nodeInfo.software.version),
+      : nodeInfo.software.version,
   };
   const rows = await db.insert(instanceTable)
     .values(values)

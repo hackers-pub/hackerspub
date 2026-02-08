@@ -1,4 +1,4 @@
-import { isActor } from "@fedify/fedify";
+import { isActor } from "@fedify/vocab";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import { compileQuery, parseQuery } from "@hackerspub/models/search";
 import {

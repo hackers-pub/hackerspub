@@ -1,14 +1,13 @@
+import type { Context, DocumentLoader } from "@fedify/fedify";
 import {
-  type Context,
-  type DocumentLoader,
   getActorHandle,
   getActorTypeName,
   isActor,
   Link,
   PropertyValue,
   traverseCollection,
-} from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+} from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import type { Database, RelationsFilter } from "@hackerspub/models/db";
 import { getLogger } from "@logtape/logtape";
 import { delay } from "@std/async";

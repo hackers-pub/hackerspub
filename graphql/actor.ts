@@ -1,4 +1,4 @@
-import { isActor } from "@fedify/fedify";
+import { isActor } from "@fedify/vocab";
 import { desc, eq } from "drizzle-orm";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";

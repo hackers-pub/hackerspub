@@ -1,11 +1,5 @@
-import {
-  Accept,
-  Block,
-  Follow,
-  type InboxContext,
-  type Reject,
-  type Undo,
-} from "@fedify/fedify";
+import type { InboxContext } from "@fedify/fedify";
+import { Accept, Block, Follow, type Reject, type Undo } from "@fedify/vocab";
 import { persistActor } from "@hackerspub/models/actor";
 import { persistBlocking } from "@hackerspub/models/blocking";
 import type { ContextData } from "@hackerspub/models/context";

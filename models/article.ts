@@ -1,5 +1,5 @@
 import type { Context } from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { summarize } from "@hackerspub/ai/summary";
 import { translate } from "@hackerspub/ai/translate";
 import { getArticle } from "@hackerspub/federation/objects";

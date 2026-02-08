@@ -1,5 +1,5 @@
 import { type Context, getUserAgent } from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { join } from "@std/path/join";
 import ffmpeg from "fluent-ffmpeg";
 import type { ContextData } from "./context.ts";

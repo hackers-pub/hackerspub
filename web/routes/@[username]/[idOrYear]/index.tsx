@@ -1,4 +1,4 @@
-import * as vocab from "@fedify/fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { page } from "@fresh/core";
 import { renderMarkup } from "@hackerspub/models/markup";
 import { createNote, getNoteSource, updateNote } from "@hackerspub/models/note";

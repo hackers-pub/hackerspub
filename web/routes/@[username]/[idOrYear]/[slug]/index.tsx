@@ -1,4 +1,4 @@
-import * as vocab from "@fedify/fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { type FreshContext, page } from "@fresh/core";
 import { getAvatarUrl } from "@hackerspub/models/account";
 import {
