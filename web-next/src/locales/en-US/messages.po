@@ -261,7 +261,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
 #: src/components/ArticleComposer.tsx:671
-#: src/components/NoteComposer.tsx:207
+#: src/components/NoteComposer.tsx:217
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -283,11 +283,11 @@ msgid "Compose"
 msgstr "Compose"
 
 #: src/components/ArticleComposer.tsx:562
-#: src/components/NoteComposer.tsx:148
+#: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "Content"
 
-#: src/components/NoteComposer.tsx:94
+#: src/components/NoteComposer.tsx:96
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
@@ -299,7 +299,7 @@ msgstr "Create Article"
 #: src/components/AppSidebar.tsx:444
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:24
-#: src/components/NoteComposer.tsx:211
+#: src/components/NoteComposer.tsx:221
 msgid "Create Note"
 msgstr "Create Note"
 
@@ -312,7 +312,7 @@ msgstr "Created {0}"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:212
+#: src/components/NoteComposer.tsx:222
 msgid "Creating…"
 msgstr "Creating…"
 
@@ -413,10 +413,10 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/ArticleComposer.tsx:493
 #: src/components/ArticleComposer.tsx:502
 #: src/components/ArticleComposer.tsx:510
-#: src/components/NoteComposer.tsx:93
-#: src/components/NoteComposer.tsx:119
-#: src/components/NoteComposer.tsx:127
-#: src/components/NoteComposer.tsx:135
+#: src/components/NoteComposer.tsx:95
+#: src/components/NoteComposer.tsx:121
+#: src/components/NoteComposer.tsx:129
+#: src/components/NoteComposer.tsx:137
 #: src/routes/(root)/[handle]/drafts/index.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 #: src/routes/(root)/[handle]/drafts/index.tsx:198
@@ -589,7 +589,7 @@ msgstr "If you have a fediverse account, you can reply to this note from your ow
 #: src/components/ArticleComposer.tsx:359
 #: src/components/ArticleComposer.tsx:430
 #: src/components/ArticleComposer.tsx:495
-#: src/components/NoteComposer.tsx:120
+#: src/components/NoteComposer.tsx:122
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
@@ -624,7 +624,7 @@ msgstr "Joined on {0}"
 #: src/components/ArticleComposer.tsx:629
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/components/NoteComposer.tsx:186
+#: src/components/NoteComposer.tsx:196
 msgid "Language"
 msgstr "Language"
 
@@ -735,7 +735,7 @@ msgid "Markdown guide"
 msgstr "Markdown guide"
 
 #: src/components/ArticleComposer.tsx:587
-#: src/components/NoteComposer.tsx:173
+#: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
@@ -829,7 +829,7 @@ msgstr "Not found."
 #~ msgid "Note"
 #~ msgstr "Note"
 
-#: src/components/NoteComposer.tsx:112
+#: src/components/NoteComposer.tsx:114
 msgid "Note created successfully"
 msgstr "Note created successfully"
 
@@ -1146,7 +1146,7 @@ msgstr "Something went wrong—please try again."
 #: src/components/ArticleComposer.tsx:348
 #: src/components/ArticleComposer.tsx:420
 #: src/components/ArticleComposer.tsx:485
-#: src/components/NoteComposer.tsx:111
+#: src/components/NoteComposer.tsx:113
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
 msgstr "Success"
@@ -1316,7 +1316,7 @@ msgstr "Verifying your invitation…"
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
-#: src/components/NoteComposer.tsx:193
+#: src/components/NoteComposer.tsx:203
 msgid "Visibility"
 msgstr "Visibility"
 
@@ -1348,7 +1348,7 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/NoteComposer.tsx:179
+#: src/components/NoteComposer.tsx:182
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
@@ -1393,7 +1393,7 @@ msgstr "You don't have any passkeys registered yet."
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "You have no invitations left. Please wait until you receive more."
 
-#: src/components/NoteComposer.tsx:128
+#: src/components/NoteComposer.tsx:130
 msgid "You must be signed in to create a note"
 msgstr "You must be signed in to create a note"
 

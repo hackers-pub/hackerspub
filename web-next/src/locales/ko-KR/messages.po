@@ -261,7 +261,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
 #: src/components/ArticleComposer.tsx:671
-#: src/components/NoteComposer.tsx:207
+#: src/components/NoteComposer.tsx:217
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -283,11 +283,11 @@ msgid "Compose"
 msgstr "작성"
 
 #: src/components/ArticleComposer.tsx:562
-#: src/components/NoteComposer.tsx:148
+#: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "내용"
 
-#: src/components/NoteComposer.tsx:94
+#: src/components/NoteComposer.tsx:96
 msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
@@ -299,7 +299,7 @@ msgstr "게시글 작성"
 #: src/components/AppSidebar.tsx:444
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:24
-#: src/components/NoteComposer.tsx:211
+#: src/components/NoteComposer.tsx:221
 msgid "Create Note"
 msgstr "단문 작성"
 
@@ -312,7 +312,7 @@ msgstr "{0}에 생성됨"
 msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
 
-#: src/components/NoteComposer.tsx:212
+#: src/components/NoteComposer.tsx:222
 msgid "Creating…"
 msgstr "작성 중…"
 
@@ -409,10 +409,10 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 #: src/components/ArticleComposer.tsx:493
 #: src/components/ArticleComposer.tsx:502
 #: src/components/ArticleComposer.tsx:510
-#: src/components/NoteComposer.tsx:93
-#: src/components/NoteComposer.tsx:119
-#: src/components/NoteComposer.tsx:127
-#: src/components/NoteComposer.tsx:135
+#: src/components/NoteComposer.tsx:95
+#: src/components/NoteComposer.tsx:121
+#: src/components/NoteComposer.tsx:129
+#: src/components/NoteComposer.tsx:137
 #: src/routes/(root)/[handle]/drafts/index.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 #: src/routes/(root)/[handle]/drafts/index.tsx:198
@@ -585,7 +585,7 @@ msgstr "연합우주(fediverse) 계정이 있으시다면, 이 단문에 댓글�
 #: src/components/ArticleComposer.tsx:359
 #: src/components/ArticleComposer.tsx:430
 #: src/components/ArticleComposer.tsx:495
-#: src/components/NoteComposer.tsx:120
+#: src/components/NoteComposer.tsx:122
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
@@ -620,7 +620,7 @@ msgstr "{0}에 가입"
 #: src/components/ArticleComposer.tsx:629
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/components/NoteComposer.tsx:186
+#: src/components/NoteComposer.tsx:196
 msgid "Language"
 msgstr "언어"
 
@@ -731,7 +731,7 @@ msgid "Markdown guide"
 msgstr "Markdown 가이드"
 
 #: src/components/ArticleComposer.tsx:587
-#: src/components/NoteComposer.tsx:173
+#: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
 
@@ -825,7 +825,7 @@ msgstr "찾을 수 없습니다."
 #~ msgid "Note"
 #~ msgstr "단문"
 
-#: src/components/NoteComposer.tsx:112
+#: src/components/NoteComposer.tsx:114
 msgid "Note created successfully"
 msgstr "단문이 작성되었습니다"
 
@@ -1142,7 +1142,7 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 #: src/components/ArticleComposer.tsx:348
 #: src/components/ArticleComposer.tsx:420
 #: src/components/ArticleComposer.tsx:485
-#: src/components/NoteComposer.tsx:111
+#: src/components/NoteComposer.tsx:113
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
 msgstr "성공"
@@ -1312,7 +1312,7 @@ msgstr "초대장을 확인하고 있습니다…"
 msgid "View all drafts →"
 msgstr "모든 임시 보관 보기 →"
 
-#: src/components/NoteComposer.tsx:193
+#: src/components/NoteComposer.tsx:203
 msgid "Visibility"
 msgstr "공개 범위"
 
@@ -1344,7 +1344,7 @@ msgstr "Hackers' Pub에 오신 것을 환영합니다! 가입을 완료하려면
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pub이란?"
 
-#: src/components/NoteComposer.tsx:179
+#: src/components/NoteComposer.tsx:182
 msgid "What's on your mind?"
 msgstr "무슨 생각 해요?"
 
@@ -1389,7 +1389,7 @@ msgstr "등록된 패스키가 아직 없습니다."
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려주세요."
 
-#: src/components/NoteComposer.tsx:128
+#: src/components/NoteComposer.tsx:130
 msgid "You must be signed in to create a note"
 msgstr "단문을 작성하려면 로그인해야 합니다"
 

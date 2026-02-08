@@ -261,7 +261,7 @@ msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
 
 #: src/components/ArticleComposer.tsx:671
-#: src/components/NoteComposer.tsx:207
+#: src/components/NoteComposer.tsx:217
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -283,11 +283,11 @@ msgid "Compose"
 msgstr "作成"
 
 #: src/components/ArticleComposer.tsx:562
-#: src/components/NoteComposer.tsx:148
+#: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "内容"
 
-#: src/components/NoteComposer.tsx:94
+#: src/components/NoteComposer.tsx:96
 msgid "Content cannot be empty"
 msgstr "内容を入力してください"
 
@@ -299,7 +299,7 @@ msgstr "記事を作成"
 #: src/components/AppSidebar.tsx:444
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:24
-#: src/components/NoteComposer.tsx:211
+#: src/components/NoteComposer.tsx:221
 msgid "Create Note"
 msgstr "投稿を作成"
 
@@ -312,7 +312,7 @@ msgstr "{0}に作成"
 msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
-#: src/components/NoteComposer.tsx:212
+#: src/components/NoteComposer.tsx:222
 msgid "Creating…"
 msgstr "作成中…"
 
@@ -409,10 +409,10 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 #: src/components/ArticleComposer.tsx:493
 #: src/components/ArticleComposer.tsx:502
 #: src/components/ArticleComposer.tsx:510
-#: src/components/NoteComposer.tsx:93
-#: src/components/NoteComposer.tsx:119
-#: src/components/NoteComposer.tsx:127
-#: src/components/NoteComposer.tsx:135
+#: src/components/NoteComposer.tsx:95
+#: src/components/NoteComposer.tsx:121
+#: src/components/NoteComposer.tsx:129
+#: src/components/NoteComposer.tsx:137
 #: src/routes/(root)/[handle]/drafts/index.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 #: src/routes/(root)/[handle]/drafts/index.tsx:198
@@ -585,7 +585,7 @@ msgstr "フェディバース（fediverse）アカウントをお持ちの場合
 #: src/components/ArticleComposer.tsx:359
 #: src/components/ArticleComposer.tsx:430
 #: src/components/ArticleComposer.tsx:495
-#: src/components/NoteComposer.tsx:120
+#: src/components/NoteComposer.tsx:122
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
 msgstr "無効な入力：{0}"
@@ -620,7 +620,7 @@ msgstr "{0}に参加"
 #: src/components/ArticleComposer.tsx:629
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/components/NoteComposer.tsx:186
+#: src/components/NoteComposer.tsx:196
 msgid "Language"
 msgstr "言語"
 
@@ -731,7 +731,7 @@ msgid "Markdown guide"
 msgstr "Markdown ガイド"
 
 #: src/components/ArticleComposer.tsx:587
-#: src/components/NoteComposer.tsx:173
+#: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown対応"
 
@@ -825,7 +825,7 @@ msgstr "見つかりませんでした。"
 #~ msgid "Note"
 #~ msgstr "投稿"
 
-#: src/components/NoteComposer.tsx:112
+#: src/components/NoteComposer.tsx:114
 msgid "Note created successfully"
 msgstr "投稿が作成されました"
 
@@ -1142,7 +1142,7 @@ msgstr "問題が発生しました。再度お試しください。"
 #: src/components/ArticleComposer.tsx:348
 #: src/components/ArticleComposer.tsx:420
 #: src/components/ArticleComposer.tsx:485
-#: src/components/NoteComposer.tsx:111
+#: src/components/NoteComposer.tsx:113
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
 msgstr "成功"
@@ -1312,7 +1312,7 @@ msgstr "招待を確認中…"
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
 
-#: src/components/NoteComposer.tsx:193
+#: src/components/NoteComposer.tsx:203
 msgid "Visibility"
 msgstr "公開範囲"
 
@@ -1344,7 +1344,7 @@ msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォ
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pubとは？"
 
-#: src/components/NoteComposer.tsx:179
+#: src/components/NoteComposer.tsx:182
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
@@ -1389,7 +1389,7 @@ msgstr "まだパスキーが登録されていません。"
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "招待状が残っていません。追加されるまでお待ちください。"
 
-#: src/components/NoteComposer.tsx:128
+#: src/components/NoteComposer.tsx:130
 msgid "You must be signed in to create a note"
 msgstr "投稿を作成するにはログインが必要です"
 
