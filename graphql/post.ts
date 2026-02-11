@@ -19,6 +19,7 @@ import { articleDraftTable } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
+import { getLogger } from "@logtape/logtape";
 import { and, eq } from "drizzle-orm";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
@@ -29,6 +30,8 @@ import { builder, Node } from "./builder.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
+
+const logger = getLogger(["hackerspub", "graphql", "post"]);
 
 class InvalidInputError extends Error {
   public constructor(public readonly inputPath: string) {
@@ -613,9 +616,23 @@ builder.relayMutationField(
         tags,
       });
 
-      const rendered = await renderMarkup(ctx.fedCtx, content);
+      let contentHtml = "";
+      try {
+        const rendered = await renderMarkup(ctx.fedCtx, content);
+        contentHtml = rendered.html;
+      } catch (error) {
+        logger.error(
+          "Failed to render markdown preview for draft {draftId}: {error}",
+          {
+            draftId: draft.id,
+            accountId: session.accountId,
+            contentLength: content.length,
+            error,
+          },
+        );
+      }
 
-      return { draft, contentHtml: rendered.html };
+      return { draft, contentHtml };
     },
   },
   {

@@ -19,6 +19,7 @@ import {
   syntaxHighlighting,
 } from "@codemirror/language";
 import {
+  createEffect,
   createSignal,
   For,
   onCleanup,
@@ -369,6 +370,29 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
     onCleanup(() => {
       view.destroy();
     });
+  });
+
+  // Sync disabled prop changes into the editor
+  createEffect(() => {
+    const view = editorView();
+    if (view) {
+      view.dispatch({
+        effects: editableCompartment.reconfigure(
+          EditorView.editable.of(!local.disabled),
+        ),
+      });
+    }
+  });
+
+  // Sync external value prop changes into the editor
+  createEffect(() => {
+    const view = editorView();
+    const newValue = local.value ?? "";
+    if (view && view.state.doc.toString() !== newValue) {
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: newValue },
+      });
+    }
   });
 
   const handleInlineStyle = (style: InlineStyle) => {
