@@ -1,6 +1,6 @@
 import { detectLanguage } from "~/lib/langdet.ts";
 import { debounce } from "es-toolkit";
-import { fetchQuery, graphql } from "relay-runtime";
+import { graphql } from "relay-runtime";
 import {
   createEffect,
   createMemo,
@@ -29,7 +29,6 @@ import type { ArticleComposerSaveMutation } from "./__generated__/ArticleCompose
 import type { ArticleComposerPublishMutation } from "./__generated__/ArticleComposerPublishMutation.graphql.ts";
 import type { ArticleComposerDeleteMutation } from "./__generated__/ArticleComposerDeleteMutation.graphql.ts";
 import type { ArticleComposerDraftQuery as ArticleComposerDraftQueryType } from "./__generated__/ArticleComposerDraftQuery.graphql.ts";
-import type { ArticleComposerPreviewQuery } from "./__generated__/ArticleComposerPreviewQuery.graphql.ts";
 import { useBeforeLeave, useNavigate } from "@solidjs/router";
 
 const SaveArticleDraftMutation = graphql`
@@ -40,6 +39,7 @@ const SaveArticleDraftMutation = graphql`
     saveArticleDraft(input: $input) {
       __typename
       ... on SaveArticleDraftPayload {
+        contentHtml
         draft @prependNode(
           connections: $connections
           edgeTypeName: "AccountArticleDraftsConnectionEdge"
@@ -115,14 +115,6 @@ const ArticleComposerDraftQuery = graphql`
   }
 `;
 
-const PreviewMarkdownQuery = graphql`
-  query ArticleComposerPreviewQuery($markdown: Markdown!) {
-    previewMarkdown(markdown: $markdown) {
-      html
-    }
-  }
-`;
-
 export interface ArticleComposerProps {
   draftUuid?: string;
   onSaved?: (draftId: string, draftUuid: string) => void;
@@ -172,8 +164,6 @@ export function ArticleComposer(props: ArticleComposerProps) {
   // Preview state
   const [showPreview, setShowPreview] = createSignal(false);
   const [previewHtml, setPreviewHtml] = createSignal("");
-  const [previewLoading, setPreviewLoading] = createSignal(false);
-
   // Connection IDs for Relay cache updates
   const connectionIds = () => {
     const ids: string[] = [];
@@ -317,44 +307,6 @@ export function ArticleComposer(props: ArticleComposerProps) {
     }
   });
 
-  // Debounced preview fetch
-  const fetchPreview = debounce(async (markdown: string) => {
-    if (!markdown.trim()) {
-      setPreviewHtml("");
-      setPreviewLoading(false);
-      return;
-    }
-
-    try {
-      const result = await fetchQuery<ArticleComposerPreviewQuery>(
-        env(),
-        PreviewMarkdownQuery,
-        { markdown },
-      ).toPromise();
-
-      if (result?.previewMarkdown?.html) {
-        setPreviewHtml(result.previewMarkdown.html);
-      }
-    } catch (error) {
-      console.error("Preview fetch failed:", error);
-    } finally {
-      setPreviewLoading(false);
-    }
-  }, 500);
-
-  // Preview effect - fetch preview when content changes and preview is visible
-  createEffect(() => {
-    if (showPreview()) {
-      const currentContent = content();
-      setPreviewLoading(true);
-      fetchPreview(currentContent);
-    }
-
-    onCleanup(() => {
-      fetchPreview.cancel();
-    });
-  });
-
   const handleSaveDraft = (e?: Event) => {
     e?.preventDefault();
 
@@ -381,13 +333,18 @@ export function ArticleComposer(props: ArticleComposerProps) {
         if (
           response.saveArticleDraft.__typename === "SaveArticleDraftPayload"
         ) {
-          const draft = response.saveArticleDraft.draft;
+          const { draft, contentHtml } = response.saveArticleDraft;
 
           // Update view with server response (normalized tags, generated ID, etc.)
           setTitle(draft.title);
           setContent(draft.content);
           setTags([...draft.tags]);
           setIsDirty(false);
+
+          // Update preview HTML from rendered content
+          if (contentHtml) {
+            setPreviewHtml(contentHtml);
+          }
 
           showToast({
             title: t`Success`,
@@ -609,7 +566,15 @@ export function ArticleComposer(props: ArticleComposerProps) {
                   {/* Preview toggle */}
                   <button
                     type="button"
-                    onClick={() => setShowPreview(!showPreview())}
+                    onClick={() => {
+                      const newShowPreview = !showPreview();
+                      setShowPreview(newShowPreview);
+                      if (
+                        newShowPreview && content().trim() && !previewHtml()
+                      ) {
+                        handleSaveDraft();
+                      }
+                    }}
                     class={`px-3 py-1 text-xs font-medium rounded-md border transition-colors ${
                       showPreview()
                         ? "bg-primary text-primary-foreground border-primary"
@@ -663,26 +628,17 @@ export function ArticleComposer(props: ArticleComposerProps) {
                 <Show when={showPreview()}>
                   <div class="w-full rounded-md border border-input bg-background min-h-[400px] p-4 overflow-auto">
                     <Show
-                      when={!previewLoading()}
+                      when={previewHtml()}
                       fallback={
                         <div class="flex items-center justify-center h-full min-h-[360px] text-muted-foreground">
-                          {t`Loading preview...`}
+                          {t`Save draft to see preview`}
                         </div>
                       }
                     >
-                      <Show
-                        when={previewHtml()}
-                        fallback={
-                          <div class="flex items-center justify-center h-full min-h-[360px] text-muted-foreground">
-                            {t`Nothing to preview`}
-                          </div>
-                        }
-                      >
-                        <div
-                          class="prose dark:prose-invert max-w-none"
-                          innerHTML={previewHtml()}
-                        />
-                      </Show>
+                      <div
+                        class="prose dark:prose-invert max-w-none"
+                        innerHTML={previewHtml()}
+                      />
                     </Show>
                   </div>
                 </Show>

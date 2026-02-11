@@ -146,32 +146,4 @@ builder.queryFields((t) => ({
       };
     },
   }),
-  previewMarkdown: t.field({
-    type: DocumentRef,
-    description: "Preview markdown content by rendering it to HTML.",
-    args: {
-      markdown: t.arg({
-        type: "Markdown",
-        required: true,
-        description: "The markdown content to preview.",
-      }),
-    },
-    authScopes: {
-      signed: true,
-    },
-    async resolve(_, args, ctx) {
-      const rendered = await renderMarkup(ctx.fedCtx, args.markdown);
-      const userLocale = ctx.account?.locales?.[0];
-      const locale = userLocale
-        ? new Intl.Locale(userLocale)
-        : new Intl.Locale("en");
-      return {
-        locale,
-        markdown: args.markdown,
-        html: rendered.html,
-        title: rendered.title,
-        toc: rendered.toc,
-      };
-    },
-  }),
 }));

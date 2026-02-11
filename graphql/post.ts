@@ -613,7 +613,9 @@ builder.relayMutationField(
         tags,
       });
 
-      return draft;
+      const rendered = await renderMarkup(ctx.fedCtx, content);
+
+      return { draft, contentHtml: rendered.html };
     },
   },
   {
@@ -621,7 +623,14 @@ builder.relayMutationField(
       draft: t.field({
         type: ArticleDraft,
         resolve(result) {
-          return result;
+          return result.draft;
+        },
+      }),
+      contentHtml: t.field({
+        type: "HTML",
+        description: "The rendered HTML of the draft's markdown content.",
+        resolve(result) {
+          return result.contentHtml;
         },
       }),
     }),

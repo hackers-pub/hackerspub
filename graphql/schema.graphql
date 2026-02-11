@@ -913,12 +913,6 @@ type Query {
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
   personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
-
-  """Preview markdown content by rendering it to HTML."""
-  previewMarkdown(
-    """The markdown content to preview."""
-    markdown: Markdown!
-  ): Document!
   publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
   searchActorsByHandle(limit: Int = 25, prefix: String!): [Actor!]!
   searchGuide(
@@ -1090,6 +1084,9 @@ input SaveArticleDraftInput {
 
 type SaveArticleDraftPayload {
   clientMutationId: ID
+
+  """The rendered HTML of the draft's markdown content."""
+  contentHtml: HTML!
   draft: ArticleDraft!
 }
 
