@@ -19,7 +19,6 @@ import { articleDraftTable } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
-import { getLogger } from "@logtape/logtape";
 import { and, eq } from "drizzle-orm";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
@@ -30,8 +29,6 @@ import { builder, Node } from "./builder.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
-
-const logger = getLogger(["hackerspub", "graphql", "post"]);
 
 class InvalidInputError extends Error {
   public constructor(public readonly inputPath: string) {
@@ -281,6 +278,19 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
     uuid: t.expose("id", { type: "UUID" }),
     title: t.exposeString("title"),
     content: t.expose("content", { type: "Markdown" }),
+    contentHtml: t.field({
+      type: "HTML",
+      description: "The rendered HTML of the draft's markdown content.",
+      select: {
+        columns: {
+          content: true,
+        },
+      },
+      async resolve(draft, _, ctx) {
+        const rendered = await renderMarkup(ctx.fedCtx, draft.content);
+        return rendered.html;
+      },
+    }),
     tags: t.exposeStringList("tags"),
     created: t.expose("created", { type: "DateTime" }),
     updated: t.expose("updated", { type: "DateTime" }),
@@ -616,23 +626,7 @@ builder.relayMutationField(
         tags,
       });
 
-      let contentHtml = "";
-      try {
-        const rendered = await renderMarkup(ctx.fedCtx, content);
-        contentHtml = rendered.html;
-      } catch (error) {
-        logger.error(
-          "Failed to render markdown preview for draft {draftId}: {error}",
-          {
-            draftId: draft.id,
-            accountId: session.accountId,
-            contentLength: content.length,
-            error,
-          },
-        );
-      }
-
-      return { draft, contentHtml };
+      return draft;
     },
   },
   {
@@ -640,14 +634,7 @@ builder.relayMutationField(
       draft: t.field({
         type: ArticleDraft,
         resolve(result) {
-          return result.draft;
-        },
-      }),
-      contentHtml: t.field({
-        type: "HTML",
-        description: "The rendered HTML of the draft's markdown content.",
-        resolve(result) {
-          return result.contentHtml;
+          return result;
         },
       }),
     }),

@@ -39,7 +39,6 @@ const SaveArticleDraftMutation = graphql`
     saveArticleDraft(input: $input) {
       __typename
       ... on SaveArticleDraftPayload {
-        contentHtml
         draft @prependNode(
           connections: $connections
           edgeTypeName: "AccountArticleDraftsConnectionEdge"
@@ -48,6 +47,7 @@ const SaveArticleDraftMutation = graphql`
           uuid
           title
           content
+          contentHtml
           tags
           updated
         }
@@ -333,7 +333,7 @@ export function ArticleComposer(props: ArticleComposerProps) {
         if (
           response.saveArticleDraft.__typename === "SaveArticleDraftPayload"
         ) {
-          const { draft, contentHtml } = response.saveArticleDraft;
+          const draft = response.saveArticleDraft.draft;
 
           // Update view with server response (normalized tags, generated ID, etc.)
           setTitle(draft.title);
@@ -342,8 +342,8 @@ export function ArticleComposer(props: ArticleComposerProps) {
           setIsDirty(false);
 
           // Update preview HTML from rendered content
-          if (contentHtml) {
-            setPreviewHtml(contentHtml);
+          if (draft.contentHtml) {
+            setPreviewHtml(draft.contentHtml);
           }
 
           showToast({
