@@ -28,6 +28,7 @@ import {
   splitProps,
 } from "solid-js";
 import { cn } from "~/lib/utils.ts";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export interface MarkdownEditorProps {
   value?: string;
@@ -293,6 +294,33 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
     "showToolbar",
   ]);
 
+  const { t } = useLingui();
+
+  const labelOf = (name: string): string => {
+    switch (name) {
+      case "Bold":
+        return t`Bold`;
+      case "Italic":
+        return t`Italic`;
+      case "Code":
+        return t`Code`;
+      case "Link":
+        return t`Link`;
+      case "Heading 1":
+        return t`Heading 1`;
+      case "Heading 2":
+        return t`Heading 2`;
+      case "Heading 3":
+        return t`Heading 3`;
+      case "Quote":
+        return t`Quote`;
+      case "List":
+        return t`List`;
+      default:
+        return name;
+    }
+  };
+
   let containerRef: HTMLDivElement | undefined;
   const [editorView, setEditorView] = createSignal<EditorView | undefined>();
   const editableCompartment = new Compartment();
@@ -431,7 +459,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
                   "hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring",
                   "disabled:cursor-not-allowed disabled:opacity-50",
                 )}
-                title={style.name}
+                title={labelOf(style.name)}
               >
                 {style.icon}
               </button>
@@ -451,7 +479,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
                   style.name === "Bold" && "font-bold",
                   style.name === "Italic" && "italic",
                 )}
-                title={style.name}
+                title={labelOf(style.name)}
               >
                 {style.icon}
               </button>

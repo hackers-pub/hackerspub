@@ -260,6 +260,10 @@ msgstr "自己紹介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
 
+#: src/components/ui/markdown-editor.tsx:302
+msgid "Bold"
+msgstr "太字"
+
 #: src/components/ArticleComposer.tsx:720
 #: src/components/NoteComposer.tsx:217
 #: src/routes/(root)/[handle]/settings/index.tsx:403
@@ -270,6 +274,10 @@ msgstr "キャンセル"
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
+
+#: src/components/ui/markdown-editor.tsx:306
+msgid "Code"
+msgstr "コード"
 
 #: src/components/AppSidebar.tsx:532
 #: src/routes/(root)/coc.tsx:47
@@ -562,6 +570,18 @@ msgstr "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
+#: src/components/ui/markdown-editor.tsx:310
+msgid "Heading 1"
+msgstr "見出し1"
+
+#: src/components/ui/markdown-editor.tsx:312
+msgid "Heading 2"
+msgstr "見出し2"
+
+#: src/components/ui/markdown-editor.tsx:314
+msgid "Heading 3"
+msgstr "見出し3"
+
 #: src/components/ArticleComposer.tsx:584
 msgid "Hide Preview"
 msgstr "プレビューを隠す"
@@ -612,6 +632,10 @@ msgstr "招待"
 msgid "Invite a friend"
 msgstr "友達を招待"
 
+#: src/components/ui/markdown-editor.tsx:304
+msgid "Italic"
+msgstr "斜体"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:460
 msgid "John Doe"
 msgstr "田中太郎"
@@ -642,6 +666,10 @@ msgstr "言語設定"
 msgid "Last used {0}"
 msgstr "{0}に最終使用"
 
+#: src/components/ui/markdown-editor.tsx:308
+msgid "Link"
+msgstr "リンク"
+
 #: src/components/LinkPreview.tsx:135
 msgid "Link author: "
 msgstr "リンクの著者："
@@ -649,6 +677,10 @@ msgstr "リンクの著者："
 #: src/routes/(root)/[handle]/settings/index.tsx:546
 msgid "Link name"
 msgstr "リンク名"
+
+#: src/components/ui/markdown-editor.tsx:318
+msgid "List"
+msgstr "リスト"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:328
 msgid "Load More"
@@ -969,6 +1001,7 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/PostControls.tsx:193
+#: src/components/ui/markdown-editor.tsx:316
 msgid "Quote"
 msgstr "引用"
 

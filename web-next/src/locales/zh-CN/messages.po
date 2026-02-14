@@ -260,6 +260,10 @@ msgstr "个人简介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "个人简介太长。不能长于 512 字符。"
 
+#: src/components/ui/markdown-editor.tsx:302
+msgid "Bold"
+msgstr "粗体"
+
 #: src/components/ArticleComposer.tsx:720
 #: src/components/NoteComposer.tsx:217
 #: src/routes/(root)/[handle]/settings/index.tsx:403
@@ -270,6 +274,10 @@ msgstr "取消"
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
+
+#: src/components/ui/markdown-editor.tsx:306
+msgid "Code"
+msgstr "代码"
 
 #: src/components/AppSidebar.tsx:532
 #: src/routes/(root)/coc.tsx:47
@@ -562,6 +570,18 @@ msgstr "Hackers' Pub 是个为软件工程师共同分享知识和经验的地�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
+#: src/components/ui/markdown-editor.tsx:310
+msgid "Heading 1"
+msgstr "标题 1"
+
+#: src/components/ui/markdown-editor.tsx:312
+msgid "Heading 2"
+msgstr "标题 2"
+
+#: src/components/ui/markdown-editor.tsx:314
+msgid "Heading 3"
+msgstr "标题 3"
+
 #: src/components/ArticleComposer.tsx:584
 msgid "Hide Preview"
 msgstr "隐藏预览"
@@ -612,6 +632,10 @@ msgstr "邀请"
 msgid "Invite a friend"
 msgstr "邀请朋友"
 
+#: src/components/ui/markdown-editor.tsx:304
+msgid "Italic"
+msgstr "斜体"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:460
 msgid "John Doe"
 msgstr "张三"
@@ -642,6 +666,10 @@ msgstr "语言设置"
 msgid "Last used {0}"
 msgstr "{0}最后使用"
 
+#: src/components/ui/markdown-editor.tsx:308
+msgid "Link"
+msgstr "链接"
+
 #: src/components/LinkPreview.tsx:135
 msgid "Link author: "
 msgstr "链接作者："
@@ -649,6 +677,10 @@ msgstr "链接作者："
 #: src/routes/(root)/[handle]/settings/index.tsx:546
 msgid "Link name"
 msgstr "链接名"
+
+#: src/components/ui/markdown-editor.tsx:318
+msgid "List"
+msgstr "列表"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:328
 msgid "Load More"
@@ -969,6 +1001,7 @@ msgid "Quiet public"
 msgstr "悄悄公开"
 
 #: src/components/PostControls.tsx:193
+#: src/components/ui/markdown-editor.tsx:316
 msgid "Quote"
 msgstr "引用"
 
