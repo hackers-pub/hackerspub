@@ -209,7 +209,7 @@ msgstr "予期しないエラーが発生しました。後でもう一度お試
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "「{draftTitle}」を削除してもよろしいですか？この操作は元に戻せません。"
 
-#: src/components/ArticleComposer.tsx:467
+#: src/components/article-composer/ArticleComposerContext.tsx:415
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "この下書きを削除してもよろしいですか？この操作は元に戻せません。"
 
@@ -222,11 +222,11 @@ msgstr "パスキー{0}を取り消しますか？このパスキーを使用し
 msgid "Article Drafts"
 msgstr "記事の下書き"
 
-#: src/components/ArticleComposer.tsx:423
+#: src/components/article-composer/ArticleComposerContext.tsx:371
 msgid "Article published"
 msgstr "記事を公開しました"
 
-#: src/components/ArticleComposer.tsx:666
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:24
 msgid "article-url-slug"
 msgstr "記事URLスラッグ"
 
@@ -264,7 +264,7 @@ msgstr "自己紹介が長すぎます。最大512文字です。"
 msgid "Bold"
 msgstr "太字"
 
-#: src/components/ArticleComposer.tsx:720
+#: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
@@ -290,7 +290,7 @@ msgstr "行動規範"
 msgid "Compose"
 msgstr "作成"
 
-#: src/components/ArticleComposer.tsx:564
+#: src/components/article-composer/ArticleComposerForm.tsx:33
 #: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "内容"
@@ -344,15 +344,15 @@ msgstr "共有のデフォルト公開範囲"
 msgid "Delete"
 msgstr "削除"
 
-#: src/components/ArticleComposer.tsx:696
+#: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Delete Draft"
 msgstr "下書きを削除"
 
-#: src/components/ArticleComposer.tsx:696
+#: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Deleting..."
 msgstr "削除中..."
 
-#: src/components/ArticleComposer.tsx:274
+#: src/components/article-composer/useUnsavedGuard.ts:13
 msgid "Discard unsaved changes - are you sure?"
 msgstr "未保存の変更を破棄してもよろしいですか？"
 
@@ -365,20 +365,20 @@ msgstr "名前"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
 
-#: src/components/ArticleComposer.tsx:488
+#: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Draft deleted"
 msgstr "下書きを削除しました"
 
-#: src/components/ArticleComposer.tsx:399
+#: src/components/article-composer/ArticleComposerContext.tsx:347
 msgid "Draft must be saved before publishing"
 msgstr "公開する前に下書きを保存する必要があります"
 
-#: src/components/ArticleComposer.tsx:533
+#: src/components/article-composer/ArticleComposer.tsx:39
 msgid "Draft not found"
 msgstr "下書きが見つかりません"
 
-#: src/components/ArticleComposer.tsx:351
+#: src/components/article-composer/ArticleComposerContext.tsx:299
 msgid "Draft saved"
 msgstr "下書きを保存しました"
 
@@ -404,19 +404,19 @@ msgstr "メールアドレスまたはユーザー名"
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
-#: src/components/ArticleComposer.tsx:315
-#: src/components/ArticleComposer.tsx:359
-#: src/components/ArticleComposer.tsx:368
-#: src/components/ArticleComposer.tsx:376
-#: src/components/ArticleComposer.tsx:389
-#: src/components/ArticleComposer.tsx:398
-#: src/components/ArticleComposer.tsx:430
-#: src/components/ArticleComposer.tsx:439
-#: src/components/ArticleComposer.tsx:447
-#: src/components/ArticleComposer.tsx:458
-#: src/components/ArticleComposer.tsx:495
-#: src/components/ArticleComposer.tsx:504
-#: src/components/ArticleComposer.tsx:512
+#: src/components/article-composer/ArticleComposerContext.tsx:265
+#: src/components/article-composer/ArticleComposerContext.tsx:307
+#: src/components/article-composer/ArticleComposerContext.tsx:316
+#: src/components/article-composer/ArticleComposerContext.tsx:324
+#: src/components/article-composer/ArticleComposerContext.tsx:337
+#: src/components/article-composer/ArticleComposerContext.tsx:346
+#: src/components/article-composer/ArticleComposerContext.tsx:378
+#: src/components/article-composer/ArticleComposerContext.tsx:387
+#: src/components/article-composer/ArticleComposerContext.tsx:395
+#: src/components/article-composer/ArticleComposerContext.tsx:406
+#: src/components/article-composer/ArticleComposerContext.tsx:443
+#: src/components/article-composer/ArticleComposerContext.tsx:452
+#: src/components/article-composer/ArticleComposerContext.tsx:460
 #: src/components/NoteComposer.tsx:95
 #: src/components/NoteComposer.tsx:121
 #: src/components/NoteComposer.tsx:129
@@ -582,7 +582,7 @@ msgstr "見出し2"
 msgid "Heading 3"
 msgstr "見出し3"
 
-#: src/components/ArticleComposer.tsx:584
+#: src/components/article-composer/ArticleComposerForm.tsx:53
 msgid "Hide Preview"
 msgstr "プレビューを隠す"
 
@@ -606,9 +606,9 @@ msgstr "フェディバース（fediverse）アカウントをお持ちの場合
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
 #. placeholder {0}: response.publishArticleDraft.inputPath
-#: src/components/ArticleComposer.tsx:361
-#: src/components/ArticleComposer.tsx:432
-#: src/components/ArticleComposer.tsx:497
+#: src/components/article-composer/ArticleComposerContext.tsx:309
+#: src/components/article-composer/ArticleComposerContext.tsx:380
+#: src/components/article-composer/ArticleComposerContext.tsx:445
 #: src/components/NoteComposer.tsx:122
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
@@ -645,7 +645,7 @@ msgstr "田中太郎"
 msgid "Joined on {0}"
 msgstr "{0}に参加"
 
-#: src/components/ArticleComposer.tsx:678
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:36
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:196
@@ -718,7 +718,7 @@ msgstr "パスキーを読み込む"
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
-#: src/components/ArticleComposer.tsx:525
+#: src/components/article-composer/ArticleComposer.tsx:31
 msgid "Loading draft..."
 msgstr "下書きを読み込み中..."
 
@@ -766,7 +766,7 @@ msgstr "読み込み中…"
 msgid "Markdown guide"
 msgstr "Markdown ガイド"
 
-#: src/components/ArticleComposer.tsx:610
+#: src/components/article-composer/ArticleComposerForm.tsx:79
 #: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown対応"
@@ -817,7 +817,7 @@ msgstr "使用履歴なし"
 msgid "New Article"
 msgstr "新しい記事"
 
-#: src/components/ArticleComposer.tsx:459
+#: src/components/article-composer/ArticleComposerContext.tsx:407
 msgid "No draft to delete"
 msgstr "削除する下書きがありません"
 
@@ -931,7 +931,7 @@ msgstr "5 MiB未満の画像ファイルを選択してください。"
 msgid "Please correct the errors and try again."
 msgstr "エラーを修正して、もう一度お試しください。"
 
-#: src/components/ArticleComposer.tsx:555
+#: src/components/article-composer/ArticleComposerForm.tsx:24
 msgid "Please enter a title for your article."
 msgstr "記事のタイトルを入力してください。"
 
@@ -979,15 +979,15 @@ msgstr "プロフィール設定"
 msgid "Public"
 msgstr "公開"
 
-#: src/components/ArticleComposer.tsx:735
+#: src/components/article-composer/ArticleComposerActions.tsx:57
 msgid "Publish Article"
 msgstr "記事を公開"
 
-#: src/components/ArticleComposer.tsx:725
+#: src/components/article-composer/ArticleComposerActions.tsx:47
 msgid "Publish Now"
 msgstr "今すぐ公開"
 
-#: src/components/ArticleComposer.tsx:724
+#: src/components/article-composer/ArticleComposerActions.tsx:47
 msgid "Publishing..."
 msgstr "公開中..."
 
@@ -1078,15 +1078,15 @@ msgstr "パスキーを取り消す"
 msgid "Save"
 msgstr "保存"
 
-#: src/components/ArticleComposer.tsx:708
+#: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Save Draft"
 msgstr "下書きを保存"
 
-#: src/components/ArticleComposer.tsx:634
+#: src/components/article-composer/ArticleComposerForm.tsx:103
 msgid "Save draft to see preview"
 msgstr "下書きを保存するとプレビューが表示されます"
 
-#: src/components/ArticleComposer.tsx:708
+#: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Saving..."
 msgstr "保存中..."
 
@@ -1142,7 +1142,7 @@ msgstr "共有"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/ArticleComposer.tsx:584
+#: src/components/article-composer/ArticleComposerForm.tsx:53
 msgid "Show Preview"
 msgstr "プレビューを表示"
 
@@ -1175,11 +1175,11 @@ msgstr "ログイン中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pubに登録"
 
-#: src/components/ArticleComposer.tsx:662
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:20
 msgid "Slug (URL)"
 msgstr "スラッグ（URL）"
 
-#: src/components/ArticleComposer.tsx:390
+#: src/components/article-composer/ArticleComposerContext.tsx:338
 msgid "Slug cannot be empty"
 msgstr "スラッグは空にできません"
 
@@ -1187,9 +1187,9 @@ msgstr "スラッグは空にできません"
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
-#: src/components/ArticleComposer.tsx:350
-#: src/components/ArticleComposer.tsx:422
-#: src/components/ArticleComposer.tsx:487
+#: src/components/article-composer/ArticleComposerContext.tsx:298
+#: src/components/article-composer/ArticleComposerContext.tsx:370
+#: src/components/article-composer/ArticleComposerContext.tsx:435
 #: src/components/NoteComposer.tsx:113
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
@@ -1219,7 +1219,7 @@ msgstr "目次"
 #~ msgid "Tag"
 #~ msgstr "タグ"
 
-#: src/components/ArticleComposer.tsx:650
+#: src/components/article-composer/ArticleComposerForm.tsx:119
 msgid "Tags"
 msgstr "タグ"
 
@@ -1269,7 +1269,7 @@ msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 
-#: src/components/ArticleComposer.tsx:670
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "これは記事のURLの一部になります"
 
@@ -1277,11 +1277,11 @@ msgstr "これは記事のURLの一部になります"
 msgid "Timeline"
 msgstr "タイムライン"
 
-#: src/components/ArticleComposer.tsx:551
+#: src/components/article-composer/ArticleComposerForm.tsx:20
 msgid "Title"
 msgstr "タイトル"
 
-#: src/components/ArticleComposer.tsx:316
+#: src/components/article-composer/ArticleComposerContext.tsx:266
 msgid "Title cannot be empty"
 msgstr "タイトルは空にできません"
 
@@ -1290,7 +1290,7 @@ msgstr "タイトルは空にできません"
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/components/ArticleComposer.tsx:654
+#: src/components/article-composer/ArticleComposerForm.tsx:123
 msgid "Type tags separated by spaces"
 msgstr "スペースで区切ってタグを入力"
 
@@ -1400,7 +1400,7 @@ msgstr "今何してる？"
 msgid "Without shares"
 msgstr "共有除外"
 
-#: src/components/ArticleComposer.tsx:623
+#: src/components/article-composer/ArticleComposerForm.tsx:92
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "ここに記事を書いてください。Markdownが使えます。執筆中は自動的に下書きとして保存されます。"
 
@@ -1441,16 +1441,16 @@ msgstr "招待状が残っていません。追加されるまでお待ちくだ
 msgid "You must be signed in to create a note"
 msgstr "投稿を作成するにはログインが必要です"
 
-#: src/components/ArticleComposer.tsx:505
+#: src/components/article-composer/ArticleComposerContext.tsx:453
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 msgid "You must be signed in to delete a draft"
 msgstr "下書きを削除するにはログインする必要があります"
 
-#: src/components/ArticleComposer.tsx:440
+#: src/components/article-composer/ArticleComposerContext.tsx:388
 msgid "You must be signed in to publish an article"
 msgstr "記事を公開するにはログインする必要があります"
 
-#: src/components/ArticleComposer.tsx:369
+#: src/components/article-composer/ArticleComposerContext.tsx:317
 msgid "You must be signed in to save a draft"
 msgstr "下書きを保存するにはログインする必要があります"
 

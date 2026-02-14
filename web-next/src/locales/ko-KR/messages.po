@@ -209,7 +209,7 @@ msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도�
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "「{draftTitle}」을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
 
-#: src/components/ArticleComposer.tsx:467
+#: src/components/article-composer/ArticleComposerContext.tsx:415
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "이 임시 보관을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
 
@@ -222,11 +222,11 @@ msgstr "{0} 패스키를 취소하시겠습니까? 이 패스키를 사용하여
 msgid "Article Drafts"
 msgstr "게시글 임시 보관"
 
-#: src/components/ArticleComposer.tsx:423
+#: src/components/article-composer/ArticleComposerContext.tsx:371
 msgid "Article published"
 msgstr "게시글을 공개했습니다"
 
-#: src/components/ArticleComposer.tsx:666
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:24
 msgid "article-url-slug"
 msgstr "게시글-url-슬러그"
 
@@ -264,7 +264,7 @@ msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 msgid "Bold"
 msgstr "굵게"
 
-#: src/components/ArticleComposer.tsx:720
+#: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
@@ -290,7 +290,7 @@ msgstr "행동 강령"
 msgid "Compose"
 msgstr "작성"
 
-#: src/components/ArticleComposer.tsx:564
+#: src/components/article-composer/ArticleComposerForm.tsx:33
 #: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "내용"
@@ -344,15 +344,15 @@ msgstr "기본 공유 공개 범위"
 msgid "Delete"
 msgstr "삭제"
 
-#: src/components/ArticleComposer.tsx:696
+#: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Delete Draft"
 msgstr "임시 보관 삭제"
 
-#: src/components/ArticleComposer.tsx:696
+#: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Deleting..."
 msgstr "삭제 중..."
 
-#: src/components/ArticleComposer.tsx:274
+#: src/components/article-composer/useUnsavedGuard.ts:13
 msgid "Discard unsaved changes - are you sure?"
 msgstr "저장하지 않은 변경 사항을 삭제하시겠습니까?"
 
@@ -365,20 +365,20 @@ msgstr "이름"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
-#: src/components/ArticleComposer.tsx:488
+#: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Draft deleted"
 msgstr "임시 보관을 삭제했습니다"
 
-#: src/components/ArticleComposer.tsx:399
+#: src/components/article-composer/ArticleComposerContext.tsx:347
 msgid "Draft must be saved before publishing"
 msgstr "공개하기 전에 임시 보관해야 합니다"
 
-#: src/components/ArticleComposer.tsx:533
+#: src/components/article-composer/ArticleComposer.tsx:39
 msgid "Draft not found"
 msgstr "임시 보관을 찾을 수 없습니다"
 
-#: src/components/ArticleComposer.tsx:351
+#: src/components/article-composer/ArticleComposerContext.tsx:299
 msgid "Draft saved"
 msgstr "임시 보관했습니다"
 
@@ -404,19 +404,19 @@ msgstr "이메일 또는 아이디"
 msgid "Enter your email or username below to sign in."
 msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주세요."
 
-#: src/components/ArticleComposer.tsx:315
-#: src/components/ArticleComposer.tsx:359
-#: src/components/ArticleComposer.tsx:368
-#: src/components/ArticleComposer.tsx:376
-#: src/components/ArticleComposer.tsx:389
-#: src/components/ArticleComposer.tsx:398
-#: src/components/ArticleComposer.tsx:430
-#: src/components/ArticleComposer.tsx:439
-#: src/components/ArticleComposer.tsx:447
-#: src/components/ArticleComposer.tsx:458
-#: src/components/ArticleComposer.tsx:495
-#: src/components/ArticleComposer.tsx:504
-#: src/components/ArticleComposer.tsx:512
+#: src/components/article-composer/ArticleComposerContext.tsx:265
+#: src/components/article-composer/ArticleComposerContext.tsx:307
+#: src/components/article-composer/ArticleComposerContext.tsx:316
+#: src/components/article-composer/ArticleComposerContext.tsx:324
+#: src/components/article-composer/ArticleComposerContext.tsx:337
+#: src/components/article-composer/ArticleComposerContext.tsx:346
+#: src/components/article-composer/ArticleComposerContext.tsx:378
+#: src/components/article-composer/ArticleComposerContext.tsx:387
+#: src/components/article-composer/ArticleComposerContext.tsx:395
+#: src/components/article-composer/ArticleComposerContext.tsx:406
+#: src/components/article-composer/ArticleComposerContext.tsx:443
+#: src/components/article-composer/ArticleComposerContext.tsx:452
+#: src/components/article-composer/ArticleComposerContext.tsx:460
 #: src/components/NoteComposer.tsx:95
 #: src/components/NoteComposer.tsx:121
 #: src/components/NoteComposer.tsx:129
@@ -582,7 +582,7 @@ msgstr "제목 2"
 msgid "Heading 3"
 msgstr "제목 3"
 
-#: src/components/ArticleComposer.tsx:584
+#: src/components/article-composer/ArticleComposerForm.tsx:53
 msgid "Hide Preview"
 msgstr "미리보기 숨기기"
 
@@ -606,9 +606,9 @@ msgstr "연합우주(fediverse) 계정이 있으시다면, 이 단문에 댓글�
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
 #. placeholder {0}: response.publishArticleDraft.inputPath
-#: src/components/ArticleComposer.tsx:361
-#: src/components/ArticleComposer.tsx:432
-#: src/components/ArticleComposer.tsx:497
+#: src/components/article-composer/ArticleComposerContext.tsx:309
+#: src/components/article-composer/ArticleComposerContext.tsx:380
+#: src/components/article-composer/ArticleComposerContext.tsx:445
 #: src/components/NoteComposer.tsx:122
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
@@ -645,7 +645,7 @@ msgstr "홍길동"
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
 
-#: src/components/ArticleComposer.tsx:678
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:36
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:196
@@ -718,7 +718,7 @@ msgstr "패스키 더 불러오기"
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
 
-#: src/components/ArticleComposer.tsx:525
+#: src/components/article-composer/ArticleComposer.tsx:31
 msgid "Loading draft..."
 msgstr "임시 보관 불러오는 중..."
 
@@ -766,7 +766,7 @@ msgstr "로딩 중…"
 msgid "Markdown guide"
 msgstr "Markdown 가이드"
 
-#: src/components/ArticleComposer.tsx:610
+#: src/components/article-composer/ArticleComposerForm.tsx:79
 #: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
@@ -817,7 +817,7 @@ msgstr "사용된 적 없음"
 msgid "New Article"
 msgstr "새 게시글"
 
-#: src/components/ArticleComposer.tsx:459
+#: src/components/article-composer/ArticleComposerContext.tsx:407
 msgid "No draft to delete"
 msgstr "삭제할 임시 보관이 없습니다"
 
@@ -931,7 +931,7 @@ msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
 msgid "Please correct the errors and try again."
 msgstr "오류를 수정하고 다시 시도해주세요."
 
-#: src/components/ArticleComposer.tsx:555
+#: src/components/article-composer/ArticleComposerForm.tsx:24
 msgid "Please enter a title for your article."
 msgstr "게시글 제목을 입력해주세요."
 
@@ -979,15 +979,15 @@ msgstr "프로필 설정"
 msgid "Public"
 msgstr "공개"
 
-#: src/components/ArticleComposer.tsx:735
+#: src/components/article-composer/ArticleComposerActions.tsx:57
 msgid "Publish Article"
 msgstr "게시글 공개"
 
-#: src/components/ArticleComposer.tsx:725
+#: src/components/article-composer/ArticleComposerActions.tsx:47
 msgid "Publish Now"
 msgstr "지금 공개"
 
-#: src/components/ArticleComposer.tsx:724
+#: src/components/article-composer/ArticleComposerActions.tsx:47
 msgid "Publishing..."
 msgstr "공개하는 중..."
 
@@ -1078,15 +1078,15 @@ msgstr "패스키를 취소"
 msgid "Save"
 msgstr "저장"
 
-#: src/components/ArticleComposer.tsx:708
+#: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Save Draft"
 msgstr "임시 보관"
 
-#: src/components/ArticleComposer.tsx:634
+#: src/components/article-composer/ArticleComposerForm.tsx:103
 msgid "Save draft to see preview"
 msgstr "미리보기를 보려면 임시 보관하세요"
 
-#: src/components/ArticleComposer.tsx:708
+#: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Saving..."
 msgstr "저장하는 중..."
 
@@ -1142,7 +1142,7 @@ msgstr "공유"
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/ArticleComposer.tsx:584
+#: src/components/article-composer/ArticleComposerForm.tsx:53
 msgid "Show Preview"
 msgstr "미리보기 표시"
 
@@ -1175,11 +1175,11 @@ msgstr "로그인 중…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pub 가입"
 
-#: src/components/ArticleComposer.tsx:662
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:20
 msgid "Slug (URL)"
 msgstr "슬러그 (URL)"
 
-#: src/components/ArticleComposer.tsx:390
+#: src/components/article-composer/ArticleComposerContext.tsx:338
 msgid "Slug cannot be empty"
 msgstr "슬러그는 비워둘 수 없습니다"
 
@@ -1187,9 +1187,9 @@ msgstr "슬러그는 비워둘 수 없습니다"
 msgid "Something went wrong—please try again."
 msgstr "문제가 발생했습니다. 다시 시도해주세요."
 
-#: src/components/ArticleComposer.tsx:350
-#: src/components/ArticleComposer.tsx:422
-#: src/components/ArticleComposer.tsx:487
+#: src/components/article-composer/ArticleComposerContext.tsx:298
+#: src/components/article-composer/ArticleComposerContext.tsx:370
+#: src/components/article-composer/ArticleComposerContext.tsx:435
 #: src/components/NoteComposer.tsx:113
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
@@ -1219,7 +1219,7 @@ msgstr "목차"
 #~ msgid "Tag"
 #~ msgstr "태그"
 
-#: src/components/ArticleComposer.tsx:650
+#: src/components/article-composer/ArticleComposerForm.tsx:119
 msgid "Tags"
 msgstr "태그"
 
@@ -1269,7 +1269,7 @@ msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배�
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
-#: src/components/ArticleComposer.tsx:670
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "게시글 URL의 일부가 됩니다"
 
@@ -1277,11 +1277,11 @@ msgstr "게시글 URL의 일부가 됩니다"
 msgid "Timeline"
 msgstr "타임라인"
 
-#: src/components/ArticleComposer.tsx:551
+#: src/components/article-composer/ArticleComposerForm.tsx:20
 msgid "Title"
 msgstr "제목"
 
-#: src/components/ArticleComposer.tsx:316
+#: src/components/article-composer/ArticleComposerContext.tsx:266
 msgid "Title cannot be empty"
 msgstr "제목은 비워둘 수 없습니다"
 
@@ -1290,7 +1290,7 @@ msgstr "제목은 비워둘 수 없습니다"
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
-#: src/components/ArticleComposer.tsx:654
+#: src/components/article-composer/ArticleComposerForm.tsx:123
 msgid "Type tags separated by spaces"
 msgstr "공백으로 구분된 태그 입력"
 
@@ -1400,7 +1400,7 @@ msgstr "무슨 생각 해요?"
 msgid "Without shares"
 msgstr "공유 제외"
 
-#: src/components/ArticleComposer.tsx:623
+#: src/components/article-composer/ArticleComposerForm.tsx:92
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "여기에 게시글을 작성하세요. Markdown을 사용할 수 있습니다. 작성하는 동안 자동으로 임시 보관됩니다."
 
@@ -1441,16 +1441,16 @@ msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려�
 msgid "You must be signed in to create a note"
 msgstr "단문을 작성하려면 로그인해야 합니다"
 
-#: src/components/ArticleComposer.tsx:505
+#: src/components/article-composer/ArticleComposerContext.tsx:453
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 msgid "You must be signed in to delete a draft"
 msgstr "임시 보관을 삭제하려면 로그인해야 합니다"
 
-#: src/components/ArticleComposer.tsx:440
+#: src/components/article-composer/ArticleComposerContext.tsx:388
 msgid "You must be signed in to publish an article"
 msgstr "게시글을 공개하려면 로그인해야 합니다"
 
-#: src/components/ArticleComposer.tsx:369
+#: src/components/article-composer/ArticleComposerContext.tsx:317
 msgid "You must be signed in to save a draft"
 msgstr "임시 보관하려면 로그인해야 합니다"
 

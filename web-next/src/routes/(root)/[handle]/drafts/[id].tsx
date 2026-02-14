@@ -7,7 +7,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ArticleComposer } from "~/components/ArticleComposer.tsx";
+import { ArticleComposer } from "~/components/article-composer/index.ts";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
