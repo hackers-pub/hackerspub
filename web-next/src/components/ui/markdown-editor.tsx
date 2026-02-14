@@ -361,15 +361,15 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
           local.onInput(update.state.doc.toString());
         }
       }),
-      // Prevent keyboard events from bubbling to parent handlers
+      // Only stop propagation for shortcuts the editor actually handles,
+      // so they don't trigger app-level handlers (e.g. sidebar toggle on Mod-b)
       EditorView.domEventHandlers({
         keydown: (event) => {
-          // Stop all modifier key combinations from bubbling to app-level handlers
-          // when the editor is focused
-          if (event.ctrlKey || event.metaKey || event.altKey) {
+          const mod = event.ctrlKey || event.metaKey;
+          if (mod && ["b", "i", "k", "`"].includes(event.key)) {
             event.stopPropagation();
           }
-          return false; // Let CodeMirror's keymap handle the event
+          return false;
         },
       }),
     ];
