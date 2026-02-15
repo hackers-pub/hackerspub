@@ -278,6 +278,19 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
     uuid: t.expose("id", { type: "UUID" }),
     title: t.exposeString("title"),
     content: t.expose("content", { type: "Markdown" }),
+    contentHtml: t.field({
+      type: "HTML",
+      description: "The rendered HTML of the draft's markdown content.",
+      select: {
+        columns: {
+          content: true,
+        },
+      },
+      async resolve(draft, _, ctx) {
+        const rendered = await renderMarkup(ctx.fedCtx, draft.content);
+        return rendered.html;
+      },
+    }),
     tags: t.exposeStringList("tags"),
     created: t.expose("created", { type: "DateTime" }),
     updated: t.expose("updated", { type: "DateTime" }),

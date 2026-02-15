@@ -328,6 +328,9 @@ type ArticleContent implements Node {
 type ArticleDraft implements Node {
   account: Account!
   content: Markdown!
+
+  """The rendered HTML of the draft's markdown content."""
+  contentHtml: HTML!
   created: DateTime!
   id: ID!
   tags: [String!]!

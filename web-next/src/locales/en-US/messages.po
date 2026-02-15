@@ -209,7 +209,7 @@ msgstr "An unexpected error occurred. Please try again later."
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 
-#: src/components/ArticleComposer.tsx:465
+#: src/components/article-composer/ArticleComposerContext.tsx:415
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "Are you sure you want to delete this draft? This action cannot be undone."
 
@@ -222,11 +222,11 @@ msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it
 msgid "Article Drafts"
 msgstr "Article Drafts"
 
-#: src/components/ArticleComposer.tsx:421
+#: src/components/article-composer/ArticleComposerContext.tsx:371
 msgid "Article published"
 msgstr "Article published"
 
-#: src/components/ArticleComposer.tsx:617
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:24
 msgid "article-url-slug"
 msgstr "article-url-slug"
 
@@ -260,7 +260,11 @@ msgstr "Bio"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
-#: src/components/ArticleComposer.tsx:671
+#: src/components/ui/markdown-editor.tsx:266
+msgid "Bold"
+msgstr "Bold"
+
+#: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
@@ -270,6 +274,10 @@ msgstr "Cancel"
 #: src/routes/(root)/[handle]/settings/invite.tsx:310
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
+
+#: src/components/ui/markdown-editor.tsx:270
+msgid "Code"
+msgstr "Code"
 
 #: src/components/AppSidebar.tsx:532
 #: src/routes/(root)/coc.tsx:47
@@ -282,7 +290,7 @@ msgstr "Code of conduct"
 msgid "Compose"
 msgstr "Compose"
 
-#: src/components/ArticleComposer.tsx:562
+#: src/components/article-composer/ArticleComposerForm.tsx:33
 #: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "Content"
@@ -336,15 +344,15 @@ msgstr "Default share privacy"
 msgid "Delete"
 msgstr "Delete"
 
-#: src/components/ArticleComposer.tsx:647
+#: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Delete Draft"
 msgstr "Delete Draft"
 
-#: src/components/ArticleComposer.tsx:647
+#: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Deleting..."
 msgstr "Deleting..."
 
-#: src/components/ArticleComposer.tsx:277
+#: src/components/article-composer/useUnsavedGuard.ts:13
 msgid "Discard unsaved changes - are you sure?"
 msgstr "Discard unsaved changes - are you sure?"
 
@@ -357,20 +365,20 @@ msgstr "Display name"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
-#: src/components/ArticleComposer.tsx:486
+#: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Draft deleted"
 msgstr "Draft deleted"
 
-#: src/components/ArticleComposer.tsx:397
+#: src/components/article-composer/ArticleComposerContext.tsx:347
 msgid "Draft must be saved before publishing"
 msgstr "Draft must be saved before publishing"
 
-#: src/components/ArticleComposer.tsx:531
+#: src/components/article-composer/ArticleComposer.tsx:39
 msgid "Draft not found"
 msgstr "Draft not found"
 
-#: src/components/ArticleComposer.tsx:349
+#: src/components/article-composer/ArticleComposerContext.tsx:299
 msgid "Draft saved"
 msgstr "Draft saved"
 
@@ -400,19 +408,19 @@ msgstr "Email or username"
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
-#: src/components/ArticleComposer.tsx:318
-#: src/components/ArticleComposer.tsx:357
-#: src/components/ArticleComposer.tsx:366
-#: src/components/ArticleComposer.tsx:374
-#: src/components/ArticleComposer.tsx:387
-#: src/components/ArticleComposer.tsx:396
-#: src/components/ArticleComposer.tsx:428
-#: src/components/ArticleComposer.tsx:437
-#: src/components/ArticleComposer.tsx:445
-#: src/components/ArticleComposer.tsx:456
-#: src/components/ArticleComposer.tsx:493
-#: src/components/ArticleComposer.tsx:502
-#: src/components/ArticleComposer.tsx:510
+#: src/components/article-composer/ArticleComposerContext.tsx:265
+#: src/components/article-composer/ArticleComposerContext.tsx:307
+#: src/components/article-composer/ArticleComposerContext.tsx:316
+#: src/components/article-composer/ArticleComposerContext.tsx:324
+#: src/components/article-composer/ArticleComposerContext.tsx:337
+#: src/components/article-composer/ArticleComposerContext.tsx:346
+#: src/components/article-composer/ArticleComposerContext.tsx:378
+#: src/components/article-composer/ArticleComposerContext.tsx:387
+#: src/components/article-composer/ArticleComposerContext.tsx:395
+#: src/components/article-composer/ArticleComposerContext.tsx:406
+#: src/components/article-composer/ArticleComposerContext.tsx:443
+#: src/components/article-composer/ArticleComposerContext.tsx:452
+#: src/components/article-composer/ArticleComposerContext.tsx:460
 #: src/components/NoteComposer.tsx:95
 #: src/components/NoteComposer.tsx:121
 #: src/components/NoteComposer.tsx:129
@@ -531,6 +539,10 @@ msgstr "Followers only"
 msgid "Following you"
 msgstr "Following you"
 
+#: src/components/ui/markdown-editor.tsx:412
+msgid "Formatting"
+msgstr "Formatting"
+
 #: src/components/AppSidebar.tsx:544
 msgid "GitHub repository"
 msgstr "GitHub repository"
@@ -566,6 +578,22 @@ msgstr "Hackers' Pub is a place for software engineers to share their knowledge 
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
 
+#: src/components/ui/markdown-editor.tsx:274
+msgid "Heading 1"
+msgstr "Heading 1"
+
+#: src/components/ui/markdown-editor.tsx:276
+msgid "Heading 2"
+msgstr "Heading 2"
+
+#: src/components/ui/markdown-editor.tsx:278
+msgid "Heading 3"
+msgstr "Heading 3"
+
+#: src/components/article-composer/ArticleComposerForm.tsx:53
+msgid "Hide Preview"
+msgstr "Hide Preview"
+
 #: src/components/TopBreadcrumb.tsx:21
 #~ msgid "Home"
 #~ msgstr "Home"
@@ -586,9 +614,9 @@ msgstr "If you have a fediverse account, you can reply to this note from your ow
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
 #. placeholder {0}: response.publishArticleDraft.inputPath
-#: src/components/ArticleComposer.tsx:359
-#: src/components/ArticleComposer.tsx:430
-#: src/components/ArticleComposer.tsx:495
+#: src/components/article-composer/ArticleComposerContext.tsx:309
+#: src/components/article-composer/ArticleComposerContext.tsx:380
+#: src/components/article-composer/ArticleComposerContext.tsx:445
 #: src/components/NoteComposer.tsx:122
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
@@ -612,6 +640,10 @@ msgstr "Invite"
 msgid "Invite a friend"
 msgstr "Invite a friend"
 
+#: src/components/ui/markdown-editor.tsx:268
+msgid "Italic"
+msgstr "Italic"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:460
 msgid "John Doe"
 msgstr "John Doe"
@@ -621,7 +653,7 @@ msgstr "John Doe"
 msgid "Joined on {0}"
 msgstr "Joined on {0}"
 
-#: src/components/ArticleComposer.tsx:629
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:36
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:196
@@ -642,6 +674,10 @@ msgstr "Language settings"
 msgid "Last used {0}"
 msgstr "Last used {0}"
 
+#: src/components/ui/markdown-editor.tsx:272
+msgid "Link"
+msgstr "Link"
+
 #: src/components/LinkPreview.tsx:135
 msgid "Link author: "
 msgstr "Link author: "
@@ -649,6 +685,10 @@ msgstr "Link author: "
 #: src/routes/(root)/[handle]/settings/index.tsx:546
 msgid "Link name"
 msgstr "Link name"
+
+#: src/components/ui/markdown-editor.tsx:282
+msgid "List"
+msgstr "List"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:328
 msgid "Load More"
@@ -686,7 +726,7 @@ msgstr "Load more passkeys"
 msgid "Load more posts"
 msgstr "Load more posts"
 
-#: src/components/ArticleComposer.tsx:523
+#: src/components/article-composer/ArticleComposer.tsx:31
 msgid "Loading draft..."
 msgstr "Loading draft..."
 
@@ -734,7 +774,7 @@ msgstr "Loading…"
 msgid "Markdown guide"
 msgstr "Markdown guide"
 
-#: src/components/ArticleComposer.tsx:587
+#: src/components/article-composer/ArticleComposerForm.tsx:79
 #: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown supported"
@@ -785,7 +825,7 @@ msgstr "Never used"
 msgid "New Article"
 msgstr "New Article"
 
-#: src/components/ArticleComposer.tsx:457
+#: src/components/article-composer/ArticleComposerContext.tsx:407
 msgid "No draft to delete"
 msgstr "No draft to delete"
 
@@ -842,6 +882,10 @@ msgstr "Note that you can verify your links belong to you by making the linked p
 msgid "Notes"
 msgstr "Notes"
 
+#: src/components/ArticleComposer.tsx:677
+#~ msgid "Nothing to preview"
+#~ msgstr "Nothing to preview"
+
 #: src/components/AppSidebar.tsx:317
 msgid "Notifications"
 msgstr "Notifications"
@@ -896,7 +940,7 @@ msgstr "Please choose an image file smaller than 5 MiB."
 msgid "Please correct the errors and try again."
 msgstr "Please correct the errors and try again."
 
-#: src/components/ArticleComposer.tsx:553
+#: src/components/article-composer/ArticleComposerForm.tsx:24
 msgid "Please enter a title for your article."
 msgstr "Please enter a title for your article."
 
@@ -944,15 +988,15 @@ msgstr "Profile settings"
 msgid "Public"
 msgstr "Public"
 
-#: src/components/ArticleComposer.tsx:686
+#: src/components/article-composer/ArticleComposerActions.tsx:57
 msgid "Publish Article"
 msgstr "Publish Article"
 
-#: src/components/ArticleComposer.tsx:676
+#: src/components/article-composer/ArticleComposerActions.tsx:47
 msgid "Publish Now"
 msgstr "Publish Now"
 
-#: src/components/ArticleComposer.tsx:675
+#: src/components/article-composer/ArticleComposerActions.tsx:47
 msgid "Publishing..."
 msgstr "Publishing..."
 
@@ -966,6 +1010,7 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/PostControls.tsx:193
+#: src/components/ui/markdown-editor.tsx:280
 msgid "Quote"
 msgstr "Quote"
 
@@ -1042,11 +1087,15 @@ msgstr "Revoke passkey"
 msgid "Save"
 msgstr "Save"
 
-#: src/components/ArticleComposer.tsx:659
+#: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Save Draft"
 msgstr "Save Draft"
 
-#: src/components/ArticleComposer.tsx:659
+#: src/components/article-composer/ArticleComposerForm.tsx:105
+msgid "Save draft to see preview"
+msgstr "Save draft to see preview"
+
+#: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -1102,6 +1151,10 @@ msgstr "Share"
 msgid "Shares"
 msgstr "Shares"
 
+#: src/components/article-composer/ArticleComposerForm.tsx:53
+msgid "Show Preview"
+msgstr "Show Preview"
+
 #: src/components/AppSidebar.tsx:290
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
@@ -1131,11 +1184,11 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/components/ArticleComposer.tsx:613
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:20
 msgid "Slug (URL)"
 msgstr "Slug (URL)"
 
-#: src/components/ArticleComposer.tsx:388
+#: src/components/article-composer/ArticleComposerContext.tsx:338
 msgid "Slug cannot be empty"
 msgstr "Slug cannot be empty"
 
@@ -1143,9 +1196,9 @@ msgstr "Slug cannot be empty"
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
-#: src/components/ArticleComposer.tsx:348
-#: src/components/ArticleComposer.tsx:420
-#: src/components/ArticleComposer.tsx:485
+#: src/components/article-composer/ArticleComposerContext.tsx:298
+#: src/components/article-composer/ArticleComposerContext.tsx:370
+#: src/components/article-composer/ArticleComposerContext.tsx:435
 #: src/components/NoteComposer.tsx:113
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
@@ -1175,7 +1228,7 @@ msgstr "Table of contents"
 #~ msgid "Tag"
 #~ msgstr "Tag"
 
-#: src/components/ArticleComposer.tsx:601
+#: src/components/article-composer/ArticleComposerForm.tsx:121
 msgid "Tags"
 msgstr "Tags"
 
@@ -1225,7 +1278,7 @@ msgstr "The source code of this website is available on {0} under the {1} licens
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
-#: src/components/ArticleComposer.tsx:621
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "This will be part of the article URL"
 
@@ -1233,11 +1286,11 @@ msgstr "This will be part of the article URL"
 msgid "Timeline"
 msgstr "Timeline"
 
-#: src/components/ArticleComposer.tsx:549
+#: src/components/article-composer/ArticleComposerForm.tsx:20
 msgid "Title"
 msgstr "Title"
 
-#: src/components/ArticleComposer.tsx:319
+#: src/components/article-composer/ArticleComposerContext.tsx:266
 msgid "Title cannot be empty"
 msgstr "Title cannot be empty"
 
@@ -1246,7 +1299,7 @@ msgstr "Title cannot be empty"
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/components/ArticleComposer.tsx:605
+#: src/components/article-composer/ArticleComposerForm.tsx:125
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
@@ -1356,7 +1409,7 @@ msgstr "What's on your mind?"
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/components/ArticleComposer.tsx:593
+#: src/components/article-composer/ArticleComposerForm.tsx:93
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 
@@ -1397,16 +1450,16 @@ msgstr "You have no invitations left. Please wait until you receive more."
 msgid "You must be signed in to create a note"
 msgstr "You must be signed in to create a note"
 
-#: src/components/ArticleComposer.tsx:503
+#: src/components/article-composer/ArticleComposerContext.tsx:453
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 msgid "You must be signed in to delete a draft"
 msgstr "You must be signed in to delete a draft"
 
-#: src/components/ArticleComposer.tsx:438
+#: src/components/article-composer/ArticleComposerContext.tsx:388
 msgid "You must be signed in to publish an article"
 msgstr "You must be signed in to publish an article"
 
-#: src/components/ArticleComposer.tsx:367
+#: src/components/article-composer/ArticleComposerContext.tsx:317
 msgid "You must be signed in to save a draft"
 msgstr "You must be signed in to save a draft"
 
