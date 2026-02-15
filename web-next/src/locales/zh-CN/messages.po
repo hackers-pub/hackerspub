@@ -260,7 +260,7 @@ msgstr "个人简介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "个人简介太长。不能长于 512 字符。"
 
-#: src/components/ui/markdown-editor.tsx:302
+#: src/components/ui/markdown-editor.tsx:266
 msgid "Bold"
 msgstr "粗体"
 
@@ -275,7 +275,7 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 
-#: src/components/ui/markdown-editor.tsx:306
+#: src/components/ui/markdown-editor.tsx:270
 msgid "Code"
 msgstr "代码"
 
@@ -535,6 +535,10 @@ msgstr "只粉丝可见"
 msgid "Following you"
 msgstr "关注了你"
 
+#: src/components/ui/markdown-editor.tsx:410
+msgid "Formatting"
+msgstr "格式"
+
 #: src/components/AppSidebar.tsx:544
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
@@ -570,15 +574,15 @@ msgstr "Hackers' Pub 是个为软件工程师共同分享知识和经验的地�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
-#: src/components/ui/markdown-editor.tsx:310
+#: src/components/ui/markdown-editor.tsx:274
 msgid "Heading 1"
 msgstr "标题 1"
 
-#: src/components/ui/markdown-editor.tsx:312
+#: src/components/ui/markdown-editor.tsx:276
 msgid "Heading 2"
 msgstr "标题 2"
 
-#: src/components/ui/markdown-editor.tsx:314
+#: src/components/ui/markdown-editor.tsx:278
 msgid "Heading 3"
 msgstr "标题 3"
 
@@ -632,7 +636,7 @@ msgstr "邀请"
 msgid "Invite a friend"
 msgstr "邀请朋友"
 
-#: src/components/ui/markdown-editor.tsx:304
+#: src/components/ui/markdown-editor.tsx:268
 msgid "Italic"
 msgstr "斜体"
 
@@ -666,7 +670,7 @@ msgstr "语言设置"
 msgid "Last used {0}"
 msgstr "{0}最后使用"
 
-#: src/components/ui/markdown-editor.tsx:308
+#: src/components/ui/markdown-editor.tsx:272
 msgid "Link"
 msgstr "链接"
 
@@ -678,7 +682,7 @@ msgstr "链接作者："
 msgid "Link name"
 msgstr "链接名"
 
-#: src/components/ui/markdown-editor.tsx:318
+#: src/components/ui/markdown-editor.tsx:282
 msgid "List"
 msgstr "列表"
 
@@ -1001,7 +1005,7 @@ msgid "Quiet public"
 msgstr "悄悄公开"
 
 #: src/components/PostControls.tsx:193
-#: src/components/ui/markdown-editor.tsx:316
+#: src/components/ui/markdown-editor.tsx:280
 msgid "Quote"
 msgstr "引用"
 
@@ -1082,7 +1086,7 @@ msgstr "保存"
 msgid "Save Draft"
 msgstr "保存草稿"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:103
+#: src/components/article-composer/ArticleComposerForm.tsx:105
 msgid "Save draft to see preview"
 msgstr "保存草稿以查看预览"
 
@@ -1219,7 +1223,7 @@ msgstr "目录"
 #~ msgid "Tag"
 #~ msgstr "标签"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:119
+#: src/components/article-composer/ArticleComposerForm.tsx:121
 msgid "Tags"
 msgstr "标签"
 
@@ -1290,7 +1294,7 @@ msgstr "标题不能为空"
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:123
+#: src/components/article-composer/ArticleComposerForm.tsx:125
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
 
@@ -1400,7 +1404,7 @@ msgstr "你在想啥？"
 msgid "Without shares"
 msgstr "不含转帖"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:92
+#: src/components/article-composer/ArticleComposerForm.tsx:93
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "在此撰写文章。您可以使用 Markdown。在您撰写时，文章将自动保存为草稿。"
 

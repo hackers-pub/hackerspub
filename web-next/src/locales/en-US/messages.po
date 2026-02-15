@@ -260,7 +260,7 @@ msgstr "Bio"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
-#: src/components/ui/markdown-editor.tsx:302
+#: src/components/ui/markdown-editor.tsx:266
 msgid "Bold"
 msgstr "Bold"
 
@@ -275,7 +275,7 @@ msgstr "Cancel"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
 
-#: src/components/ui/markdown-editor.tsx:306
+#: src/components/ui/markdown-editor.tsx:270
 msgid "Code"
 msgstr "Code"
 
@@ -539,6 +539,10 @@ msgstr "Followers only"
 msgid "Following you"
 msgstr "Following you"
 
+#: src/components/ui/markdown-editor.tsx:410
+msgid "Formatting"
+msgstr "Formatting"
+
 #: src/components/AppSidebar.tsx:544
 msgid "GitHub repository"
 msgstr "GitHub repository"
@@ -574,15 +578,15 @@ msgstr "Hackers' Pub is a place for software engineers to share their knowledge 
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
 
-#: src/components/ui/markdown-editor.tsx:310
+#: src/components/ui/markdown-editor.tsx:274
 msgid "Heading 1"
 msgstr "Heading 1"
 
-#: src/components/ui/markdown-editor.tsx:312
+#: src/components/ui/markdown-editor.tsx:276
 msgid "Heading 2"
 msgstr "Heading 2"
 
-#: src/components/ui/markdown-editor.tsx:314
+#: src/components/ui/markdown-editor.tsx:278
 msgid "Heading 3"
 msgstr "Heading 3"
 
@@ -636,7 +640,7 @@ msgstr "Invite"
 msgid "Invite a friend"
 msgstr "Invite a friend"
 
-#: src/components/ui/markdown-editor.tsx:304
+#: src/components/ui/markdown-editor.tsx:268
 msgid "Italic"
 msgstr "Italic"
 
@@ -670,7 +674,7 @@ msgstr "Language settings"
 msgid "Last used {0}"
 msgstr "Last used {0}"
 
-#: src/components/ui/markdown-editor.tsx:308
+#: src/components/ui/markdown-editor.tsx:272
 msgid "Link"
 msgstr "Link"
 
@@ -682,7 +686,7 @@ msgstr "Link author: "
 msgid "Link name"
 msgstr "Link name"
 
-#: src/components/ui/markdown-editor.tsx:318
+#: src/components/ui/markdown-editor.tsx:282
 msgid "List"
 msgstr "List"
 
@@ -1006,7 +1010,7 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/PostControls.tsx:193
-#: src/components/ui/markdown-editor.tsx:316
+#: src/components/ui/markdown-editor.tsx:280
 msgid "Quote"
 msgstr "Quote"
 
@@ -1087,7 +1091,7 @@ msgstr "Save"
 msgid "Save Draft"
 msgstr "Save Draft"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:103
+#: src/components/article-composer/ArticleComposerForm.tsx:105
 msgid "Save draft to see preview"
 msgstr "Save draft to see preview"
 
@@ -1224,7 +1228,7 @@ msgstr "Table of contents"
 #~ msgid "Tag"
 #~ msgstr "Tag"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:119
+#: src/components/article-composer/ArticleComposerForm.tsx:121
 msgid "Tags"
 msgstr "Tags"
 
@@ -1295,7 +1299,7 @@ msgstr "Title cannot be empty"
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:123
+#: src/components/article-composer/ArticleComposerForm.tsx:125
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
@@ -1405,7 +1409,7 @@ msgstr "What's on your mind?"
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:92
+#: src/components/article-composer/ArticleComposerForm.tsx:93
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 

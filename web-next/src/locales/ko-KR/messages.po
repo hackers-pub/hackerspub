@@ -260,7 +260,7 @@ msgstr "약력"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
-#: src/components/ui/markdown-editor.tsx:302
+#: src/components/ui/markdown-editor.tsx:266
 msgid "Bold"
 msgstr "굵게"
 
@@ -275,7 +275,7 @@ msgstr "취소"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
-#: src/components/ui/markdown-editor.tsx:306
+#: src/components/ui/markdown-editor.tsx:270
 msgid "Code"
 msgstr "코드"
 
@@ -535,6 +535,10 @@ msgstr "팔로워만"
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
+#: src/components/ui/markdown-editor.tsx:410
+msgid "Formatting"
+msgstr "서식"
+
 #: src/components/AppSidebar.tsx:544
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
@@ -570,15 +574,15 @@ msgstr "Hackers' Pub은 소프트웨어 프로그래머들이 지식과 경험�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: 알림"
 
-#: src/components/ui/markdown-editor.tsx:310
+#: src/components/ui/markdown-editor.tsx:274
 msgid "Heading 1"
 msgstr "제목 1"
 
-#: src/components/ui/markdown-editor.tsx:312
+#: src/components/ui/markdown-editor.tsx:276
 msgid "Heading 2"
 msgstr "제목 2"
 
-#: src/components/ui/markdown-editor.tsx:314
+#: src/components/ui/markdown-editor.tsx:278
 msgid "Heading 3"
 msgstr "제목 3"
 
@@ -632,7 +636,7 @@ msgstr "초대"
 msgid "Invite a friend"
 msgstr "친구 초대하기"
 
-#: src/components/ui/markdown-editor.tsx:304
+#: src/components/ui/markdown-editor.tsx:268
 msgid "Italic"
 msgstr "기울임"
 
@@ -666,7 +670,7 @@ msgstr "언어 설정"
 msgid "Last used {0}"
 msgstr "{0}에 마지막 사용"
 
-#: src/components/ui/markdown-editor.tsx:308
+#: src/components/ui/markdown-editor.tsx:272
 msgid "Link"
 msgstr "링크"
 
@@ -678,7 +682,7 @@ msgstr "링크 저자: "
 msgid "Link name"
 msgstr "링크 이름"
 
-#: src/components/ui/markdown-editor.tsx:318
+#: src/components/ui/markdown-editor.tsx:282
 msgid "List"
 msgstr "목록"
 
@@ -1001,7 +1005,7 @@ msgid "Quiet public"
 msgstr "조용히 공개"
 
 #: src/components/PostControls.tsx:193
-#: src/components/ui/markdown-editor.tsx:316
+#: src/components/ui/markdown-editor.tsx:280
 msgid "Quote"
 msgstr "인용"
 
@@ -1082,7 +1086,7 @@ msgstr "저장"
 msgid "Save Draft"
 msgstr "임시 보관"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:103
+#: src/components/article-composer/ArticleComposerForm.tsx:105
 msgid "Save draft to see preview"
 msgstr "미리보기를 보려면 임시 보관하세요"
 
@@ -1219,7 +1223,7 @@ msgstr "목차"
 #~ msgid "Tag"
 #~ msgstr "태그"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:119
+#: src/components/article-composer/ArticleComposerForm.tsx:121
 msgid "Tags"
 msgstr "태그"
 
@@ -1290,7 +1294,7 @@ msgstr "제목은 비워둘 수 없습니다"
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:123
+#: src/components/article-composer/ArticleComposerForm.tsx:125
 msgid "Type tags separated by spaces"
 msgstr "공백으로 구분된 태그 입력"
 
@@ -1400,7 +1404,7 @@ msgstr "무슨 생각 해요?"
 msgid "Without shares"
 msgstr "공유 제외"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:92
+#: src/components/article-composer/ArticleComposerForm.tsx:93
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "여기에 게시글을 작성하세요. Markdown을 사용할 수 있습니다. 작성하는 동안 자동으로 임시 보관됩니다."
 
