@@ -43,10 +43,11 @@ export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
     if (isDirty() && !options.isPublishing()) {
       debouncedAutoSave();
     }
+  });
 
-    onCleanup(() => {
-      debouncedAutoSave.cancel();
-    });
+  // Cancel pending debounce only on unmount
+  onCleanup(() => {
+    debouncedAutoSave.cancel();
   });
 
   return { isDirty, setIsDirty };
