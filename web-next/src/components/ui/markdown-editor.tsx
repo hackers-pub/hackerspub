@@ -41,11 +41,11 @@ export interface MarkdownEditorProps {
   showToolbar?: boolean;
 }
 
-const lightTheme = EditorView.theme({
+const editorTheme = EditorView.theme({
   "&": {
     fontSize: "14px",
     backgroundColor: "transparent",
-    color: "oklch(0.145 0 0)",
+    color: "var(--foreground)",
   },
   ".cm-scroller": {
     overflow: "auto",
@@ -53,69 +53,31 @@ const lightTheme = EditorView.theme({
   ".cm-content": {
     fontFamily: "inherit",
     padding: "8px 12px",
-    caretColor: "oklch(0.145 0 0)",
+    caretColor: "var(--foreground)",
   },
   ".cm-focused": {
     outline: "none",
   },
   ".cm-placeholder": {
-    color: "oklch(0.556 0 0)",
+    color: "var(--muted-foreground)",
   },
   "&.cm-focused .cm-cursor": {
-    borderLeftColor: "oklch(0.145 0 0)",
+    borderLeftColor: "var(--foreground)",
   },
   ".cm-line": {
-    color: "oklch(0.145 0 0)",
+    color: "var(--foreground)",
   },
   ".cm-gutters": {
     backgroundColor: "transparent",
     borderRight: "none",
   },
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
-    backgroundColor: "oklch(0.9 0.05 250)",
+    backgroundColor: "var(--accent)",
   },
   ".cm-activeLine": {
-    backgroundColor: "oklch(0.97 0 0)",
+    backgroundColor: "var(--muted)",
   },
-}, { dark: false });
-
-const darkTheme = EditorView.theme({
-  "&": {
-    fontSize: "14px",
-    backgroundColor: "transparent",
-    color: "oklch(0.985 0 0)",
-  },
-  ".cm-scroller": {
-    overflow: "auto",
-  },
-  ".cm-content": {
-    fontFamily: "inherit",
-    padding: "8px 12px",
-    caretColor: "oklch(0.985 0 0)",
-  },
-  ".cm-focused": {
-    outline: "none",
-  },
-  ".cm-placeholder": {
-    color: "oklch(0.708 0 0)",
-  },
-  "&.cm-focused .cm-cursor": {
-    borderLeftColor: "oklch(0.985 0 0)",
-  },
-  ".cm-line": {
-    color: "oklch(0.985 0 0)",
-  },
-  ".cm-gutters": {
-    backgroundColor: "transparent",
-    borderRight: "none",
-  },
-  ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
-    backgroundColor: "oklch(0.3 0.05 250)",
-  },
-  ".cm-activeLine": {
-    backgroundColor: "oklch(0.2 0 0)",
-  },
-}, { dark: true });
+});
 
 type InlineStyle = {
   name: string;
@@ -330,10 +292,6 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
   onMount(() => {
     if (!containerRef) return;
 
-    // Detect dark mode
-    const isDark = globalThis.matchMedia?.("(prefers-color-scheme: dark)")
-      .matches ?? false;
-
     // Dynamic theme for minHeight
     const minHeightTheme = EditorView.theme({
       ".cm-content, .cm-gutter": {
@@ -345,7 +303,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
     });
 
     const extensions = [
-      isDark ? darkTheme : lightTheme,
+      editorTheme,
       minHeightTheme,
       history(),
       // Formatting keymap first so it takes precedence
