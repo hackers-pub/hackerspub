@@ -376,7 +376,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
   createEffect(() => {
     const view = editorView();
     const newValue = local.value ?? "";
-    if (view && view.state.doc.toString() !== newValue) {
+    if (view && !view.hasFocus && view.state.doc.toString() !== newValue) {
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: newValue },
       });
