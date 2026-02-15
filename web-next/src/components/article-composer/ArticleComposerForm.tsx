@@ -82,17 +82,19 @@ export function ArticleComposerForm() {
         </label>
         <div
           class={`grid gap-4 ${
-            ctx.showPreview() ? "grid-cols-2" : "grid-cols-1"
+            ctx.showPreview() ? "md:grid-cols-2" : "grid-cols-1"
           }`}
         >
-          {/* Editor */}
-          <MarkdownEditor
-            value={ctx.content()}
-            onInput={ctx.setContent}
-            placeholder={t`Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing.`}
-            showToolbar
-            minHeight="400px"
-          />
+          {/* Editor (hidden on mobile when preview is shown) */}
+          <div class={ctx.showPreview() ? "hidden md:block" : ""}>
+            <MarkdownEditor
+              value={ctx.content()}
+              onInput={ctx.setContent}
+              placeholder={t`Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing.`}
+              showToolbar
+              minHeight="400px"
+            />
+          </div>
           {/* Preview */}
           <Show when={ctx.showPreview()}>
             <div class="w-full rounded-md border border-input bg-background min-h-[400px] p-4 overflow-auto">

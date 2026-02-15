@@ -41,7 +41,7 @@ function ArticleComposerInner() {
         }
       >
         <div
-          class={`mx-auto p-6 ${ctx.showPreview() ? "max-w-7xl" : "max-w-4xl"}`}
+          class="mx-auto p-6 max-w-7xl"
         >
           <form
             onSubmit={(e) => {
