@@ -535,7 +535,7 @@ msgstr "フォロワーのみ"
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
-#: src/components/ui/markdown-editor.tsx:410
+#: src/components/ui/markdown-editor.tsx:412
 msgid "Formatting"
 msgstr "書式設定"
 

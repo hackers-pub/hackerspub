@@ -539,7 +539,7 @@ msgstr "Followers only"
 msgid "Following you"
 msgstr "Following you"
 
-#: src/components/ui/markdown-editor.tsx:410
+#: src/components/ui/markdown-editor.tsx:412
 msgid "Formatting"
 msgstr "Formatting"
 

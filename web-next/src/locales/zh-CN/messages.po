@@ -535,7 +535,7 @@ msgstr "只粉丝可见"
 msgid "Following you"
 msgstr "关注了你"
 
-#: src/components/ui/markdown-editor.tsx:410
+#: src/components/ui/markdown-editor.tsx:412
 msgid "Formatting"
 msgstr "格式"
 

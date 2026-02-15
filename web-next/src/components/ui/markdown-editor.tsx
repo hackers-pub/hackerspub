@@ -407,7 +407,11 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       )}
     >
       <Show when={local.showToolbar}>
-        <div role="toolbar" aria-label={t`Formatting`} class="flex flex-wrap gap-1 border-b border-input p-2">
+        <div
+          role="toolbar"
+          aria-label={t`Formatting`}
+          class="flex flex-wrap gap-1 border-b border-input p-2"
+        >
           <For each={blockStyles}>
             {(style) => (
               <button
