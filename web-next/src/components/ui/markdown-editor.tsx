@@ -407,7 +407,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       )}
     >
       <Show when={local.showToolbar}>
-        <div class="flex flex-wrap gap-1 border-b border-input p-2">
+        <div role="toolbar" aria-label={t`Formatting`} class="flex flex-wrap gap-1 border-b border-input p-2">
           <For each={blockStyles}>
             {(style) => (
               <button
@@ -420,6 +420,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
                   "disabled:cursor-not-allowed disabled:opacity-50",
                 )}
                 title={labelOf(style.name)}
+                aria-label={labelOf(style.name)}
               >
                 {style.icon}
               </button>
@@ -440,6 +441,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
                   style.name === "Italic" && "italic",
                 )}
                 title={labelOf(style.name)}
+                aria-label={labelOf(style.name)}
               >
                 {style.icon}
               </button>
