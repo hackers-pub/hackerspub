@@ -250,35 +250,37 @@ function applyInlineStyle(view: EditorView, style: InlineStyle): void {
 function applyBlockStyle(view: EditorView, style: BlockStyle): void {
   const { state } = view;
   const selection = state.selection.main;
-  const line = state.doc.lineAt(selection.from);
-  const lineText = line.text;
+  const firstLine = state.doc.lineAt(selection.from);
+  const lastLine = state.doc.lineAt(selection.to);
 
-  if (lineText.startsWith(style.prefix)) {
-    view.dispatch({
-      changes: {
+  const changes: { from: number; to: number; insert: string }[] = [];
+  for (let i = firstLine.number; i <= lastLine.number; i++) {
+    const line = state.doc.line(i);
+    const lineText = line.text;
+
+    if (lineText.startsWith(style.prefix)) {
+      changes.push({
         from: line.from,
         to: line.from + style.prefix.length,
         insert: "",
-      },
-    });
-  } else {
-    const existingPrefix = blockStyles.find((s) =>
-      lineText.startsWith(s.prefix)
-    );
-    if (existingPrefix) {
-      view.dispatch({
-        changes: {
+      });
+    } else {
+      const existingPrefix = blockStyles.find((s) =>
+        lineText.startsWith(s.prefix)
+      );
+      if (existingPrefix) {
+        changes.push({
           from: line.from,
           to: line.from + existingPrefix.prefix.length,
           insert: style.prefix,
-        },
-      });
-    } else {
-      view.dispatch({
-        changes: { from: line.from, insert: style.prefix },
-      });
+        });
+      } else {
+        changes.push({ from: line.from, to: line.from, insert: style.prefix });
+      }
     }
   }
+
+  view.dispatch({ changes });
   view.focus();
 }
 
