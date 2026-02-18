@@ -29,8 +29,16 @@ export const handler = define.handlers({
     if (expires == null || expires.trim() === "") {
       expiresIn = null;
     } else {
-      const expiresValue = parseInt(expires.split(/\s+/)[0]);
-      const expiresUnit = expires.split(/\s+/)[1] ?? "hours";
+      const [expiresValueRaw, expiresUnitRaw] = expires.trim().split(/\s+/);
+      const expiresValue = Number(expiresValueRaw);
+      const expiresUnit = expiresUnitRaw ?? "hours";
+      if (
+        !Number.isInteger(expiresValue) || expiresValue <= 0 ||
+        (expiresUnit !== "hours" && expiresUnit !== "days" &&
+          expiresUnit !== "weeks" && expiresUnit !== "months")
+      ) {
+        return ctx.next();
+      }
       const expiresDuration = Temporal.Duration.from(
         expiresUnit === "hours"
           ? { hours: expiresValue }
@@ -42,7 +50,6 @@ export const handler = define.handlers({
           ? { months: expiresValue }
           : { hours: 0 },
       );
-      if (expiresDuration.total("hours") <= 0) return ctx.next();
       const now = Temporal.Now.instant();
       const zonedNow = now.toZonedDateTimeISO(Temporal.Now.timeZoneId());
       expiresIn = zonedNow.add(expiresDuration);
