@@ -53,6 +53,28 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 export { getAvatarUrl } from "./avatar.ts";
 
 const logger = getLogger(["hackerspub", "models", "actor"]);
+const FEATURED_POST_LIMIT = 20;
+const HANDLE_LOOKUP_CONCURRENCY = 5;
+
+async function mapWithConcurrencyLimit<T, TResult>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<TResult>,
+): Promise<TResult[]> {
+  if (items.length < 1) return [];
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    async (_, workerIndex) => {
+      const result: TResult[] = [];
+      // Distribute indices per worker to cap concurrent network lookups.
+      for (let i = workerIndex; i < items.length; i += concurrency) {
+        result.push(await mapper(items[i]));
+      }
+      return result;
+    },
+  );
+  return (await Promise.all(workers)).flat();
+}
 
 export async function syncActorFromAccount(
   fedCtx: Context<ContextData>,
@@ -232,14 +254,17 @@ export async function persistActor(
   const featured = await actor.getFeatured(getterOpts);
   if (featured != null) {
     const featuredPosts: Post[] = [];
+    let featuredPostCount = 0;
     for await (const object of traverseCollection(featured, getterOpts)) {
       if (!isPostObject(object)) continue;
+      if (featuredPostCount >= FEATURED_POST_LIMIT) break;
       const p = await persistPost(ctx, object, {
         ...options,
         actor: result,
-        replies: true,
+        replies: false,
       });
       if (p != null) featuredPosts.push(p);
+      featuredPostCount++;
     }
     featuredPosts.reverse();
     await db.delete(pinTable).where(eq(pinTable.actorId, result.id));
@@ -268,7 +293,7 @@ export async function persistActor(
         const persisted = await persistPost(ctx, object, {
           ...options,
           actor: result,
-          replies: true,
+          replies: false,
         });
         if (persisted != null) i++;
       } else if (activity instanceof vocab.Announce) {
@@ -352,9 +377,11 @@ export async function persistActorsByHandles(
   const documentLoader = await ctx.getDocumentLoader({
     identifier: new URL(ctx.canonicalOrigin).host,
   });
-  const promises = [];
-  for (const handle of handlesToFetch) {
-    promises.push(
+  const lookupHandles = [...handlesToFetch];
+  const apActors = await mapWithConcurrencyLimit(
+    lookupHandles,
+    HANDLE_LOOKUP_CONCURRENCY,
+    (handle) =>
       Promise.race([
         ctx.lookupObject(handle, { documentLoader }).catch((error) => {
           logger.warn("Failed to lookup actor {handle}: {error}", {
@@ -376,9 +403,7 @@ export async function persistActorsByHandles(
           return null;
         }),
       ]),
-    );
-  }
-  const apActors = await Promise.all(promises);
+  );
   for (const apActor of apActors) {
     if (!isActor(apActor)) continue;
     const actor = await persistActor(ctx, apActor, {
