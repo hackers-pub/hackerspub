@@ -7,7 +7,7 @@ import {
 import { createFederation, MemoryKvStore } from "@fedify/fedify";
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
-import { validate } from "@std/uuid/unstable-v7";
+import { validate } from "@std/uuid/v7";
 import { scrapePostLink } from "./post.ts";
 
 Deno.test("scrapePostLink()", async (t) => {

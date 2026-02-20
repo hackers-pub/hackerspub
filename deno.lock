@@ -2,23 +2,22 @@
   "version": "5",
   "specifiers": {
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
-    "jsr:@fedify/fedify@^2.0.0-dev.335": "2.0.0-pr.559.6+b50404e9",
-    "jsr:@fedify/fedify@^2.0.0-pr.559.6+b50404e9": "2.0.0-pr.559.6+b50404e9",
+    "jsr:@fedify/fedify@2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
+    "jsr:@fedify/fedify@^2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
-    "jsr:@fedify/postgres@^2.0.0-dev.335": "2.0.0-pr.559.6+b50404e9",
-    "jsr:@fedify/redis@^2.0.0-dev.335": "2.0.0-pr.559.6+b50404e9",
-    "jsr:@fedify/vocab-runtime@^2.0.0-dev.335": "2.0.0-pr.559.6+b50404e9",
+    "jsr:@fedify/postgres@2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
+    "jsr:@fedify/redis@2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
+    "jsr:@fedify/vocab-runtime@^2.0.0-dev.395+0d27c2dd": "2.0.0-pr.559.6+b50404e9",
     "jsr:@fedify/vocab-runtime@^2.0.0-pr.559.6+b50404e9": "2.0.0-pr.559.6+b50404e9",
-    "jsr:@fedify/vocab@^2.0.0-dev.335": "2.0.0-pr.559.6+b50404e9",
-    "jsr:@fedify/vocab@^2.0.0-pr.559.6+b50404e9": "2.0.0-pr.559.6+b50404e9",
-    "jsr:@fedify/webfinger@^2.0.0-pr.559.6+b50404e9": "2.0.0-pr.559.6+b50404e9",
+    "jsr:@fedify/vocab@2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
+    "jsr:@fedify/vocab@^2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
+    "jsr:@fedify/webfinger@^2.0.0-dev.395+0d27c2dd": "2.0.0-pr.559.6+b50404e9",
     "jsr:@fresh/core@2.0.0-alpha.34": "2.0.0-alpha.34",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7": "0.0.1-alpha.7",
     "jsr:@hongminhee/x-forwarded-fetch@0.2": "0.2.0",
     "jsr:@logtape/drizzle-orm@2.0.0": "2.0.0",
-    "jsr:@logtape/file@2.0.0": "2.0.0",
     "jsr:@logtape/logtape@2": "2.0.0",
     "jsr:@logtape/logtape@2.0.0": "2.0.0",
     "jsr:@logtape/logtape@^1.3.5": "1.3.7",
@@ -28,49 +27,48 @@
     "jsr:@simplewebauthn/browser@^13.1.0": "13.2.0",
     "jsr:@simplewebauthn/server@^13.1.1": "13.2.0",
     "jsr:@std/assert@0.221": "0.221.0",
-    "jsr:@std/assert@^1.0.12": "1.0.14",
+    "jsr:@std/assert@^1.0.12": "1.0.19",
     "jsr:@std/assert@~0.225.2": "0.225.3",
     "jsr:@std/async@^1.0.12": "1.0.14",
     "jsr:@std/bytes@^1.0.2": "1.0.6",
     "jsr:@std/bytes@^1.0.6": "1.0.6",
-    "jsr:@std/cli@^1.0.21": "1.0.22",
+    "jsr:@std/cli@^1.0.28": "1.0.28",
     "jsr:@std/collections@^1.0.10": "1.1.3",
     "jsr:@std/crypto@1": "1.0.5",
     "jsr:@std/crypto@^1.0.5": "1.0.5",
-    "jsr:@std/datetime@~0.225.2": "0.225.5",
+    "jsr:@std/datetime@~0.225.2": "0.225.7",
     "jsr:@std/dotenv@~0.225.3": "0.225.5",
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
     "jsr:@std/encoding@^1.0.5": "1.0.10",
     "jsr:@std/encoding@^1.0.8": "1.0.10",
-    "jsr:@std/fmt@1": "1.0.8",
-    "jsr:@std/fmt@^1.0.8": "1.0.8",
-    "jsr:@std/fs@1": "1.0.19",
-    "jsr:@std/fs@^1.0.19": "1.0.19",
+    "jsr:@std/fmt@1": "1.0.9",
+    "jsr:@std/fmt@^1.0.9": "1.0.9",
+    "jsr:@std/fs@1": "1.0.23",
+    "jsr:@std/fs@^1.0.19": "1.0.23",
+    "jsr:@std/fs@^1.0.23": "1.0.23",
     "jsr:@std/html@0.224": "0.224.2",
-    "jsr:@std/html@1": "1.0.4",
-    "jsr:@std/html@^1.0.3": "1.0.4",
-    "jsr:@std/html@^1.0.4": "1.0.4",
-    "jsr:@std/http@^1.0.13": "1.0.20",
-    "jsr:@std/http@^1.0.15": "1.0.20",
-    "jsr:@std/internal@^1.0.10": "1.0.10",
-    "jsr:@std/internal@^1.0.9": "1.0.10",
-    "jsr:@std/json@^1.0.2": "1.0.2",
+    "jsr:@std/html@1": "1.0.5",
+    "jsr:@std/html@^1.0.3": "1.0.5",
+    "jsr:@std/html@^1.0.5": "1.0.5",
+    "jsr:@std/http@^1.0.13": "1.0.25",
+    "jsr:@std/http@^1.0.15": "1.0.25",
+    "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@std/json@^1.0.2": "1.0.3",
     "jsr:@std/jsonc@1": "1.0.2",
     "jsr:@std/media-types@1": "1.1.0",
     "jsr:@std/media-types@^1.1.0": "1.1.0",
-    "jsr:@std/net@^1.0.4": "1.0.6",
+    "jsr:@std/net@^1.0.6": "1.0.6",
     "jsr:@std/path@0.221": "0.221.0",
-    "jsr:@std/path@1": "1.1.2",
-    "jsr:@std/path@^1.0.6": "1.1.2",
-    "jsr:@std/path@^1.0.8": "1.1.2",
-    "jsr:@std/path@^1.1.0": "1.1.2",
-    "jsr:@std/path@^1.1.1": "1.1.2",
+    "jsr:@std/path@1": "1.1.4",
+    "jsr:@std/path@^1.0.6": "1.1.4",
+    "jsr:@std/path@^1.0.8": "1.1.4",
+    "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/regexp@^1.0.1": "1.0.1",
-    "jsr:@std/semver@1": "1.0.5",
-    "jsr:@std/streams@^1.0.10": "1.0.12",
+    "jsr:@std/semver@1": "1.0.8",
+    "jsr:@std/streams@^1.0.17": "1.0.17",
     "jsr:@std/text@^1.0.12": "1.0.16",
-    "jsr:@std/uuid@^1.0.6": "1.0.9",
+    "jsr:@std/uuid@^1.1.0": "1.1.0",
     "jsr:@upyo/core@~0.1.1": "0.1.1",
     "jsr:@upyo/mailgun@~0.1.1": "0.1.1",
     "jsr:@upyo/mock@~0.1.1": "0.1.1",
@@ -108,15 +106,13 @@
     "npm:@multiformats/base-x@^4.0.1": "4.0.1",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
     "npm:@opentelemetry/context-async-hooks@^1.28.0": "1.30.1_@opentelemetry+api@1.9.0",
-    "npm:@opentelemetry/core@2": "2.5.0_@opentelemetry+api@1.9.0",
     "npm:@opentelemetry/instrumentation-ioredis@0.45": "0.45.0_@opentelemetry+api@1.9.0",
     "npm:@opentelemetry/instrumentation-redis-4@0.44": "0.44.0_@opentelemetry+api@1.9.0",
     "npm:@opentelemetry/instrumentation@0.55": "0.55.0_@opentelemetry+api@1.9.0",
     "npm:@opentelemetry/resources@^1.28.0": "1.30.1_@opentelemetry+api@1.9.0",
-    "npm:@opentelemetry/sdk-trace-base@2": "2.5.0_@opentelemetry+api@1.9.0",
     "npm:@opentelemetry/sdk-trace-base@^1.28.0": "1.30.1_@opentelemetry+api@1.9.0",
-    "npm:@opentelemetry/semantic-conventions@^1.27.0": "1.37.0",
-    "npm:@opentelemetry/semantic-conventions@^1.36.0": "1.37.0",
+    "npm:@opentelemetry/semantic-conventions@^1.36.0": "1.39.0",
+    "npm:@opentelemetry/semantic-conventions@^1.39.0": "1.39.0",
     "npm:@parcel/watcher@^2.5.1": "2.5.1",
     "npm:@peculiar/asn1-android@^2.3.10": "2.5.0",
     "npm:@peculiar/asn1-ecc@^2.3.8": "2.5.0",
@@ -133,9 +129,9 @@
     "npm:@pothos/plugin-simple-objects@^4.1.3": "4.1.3_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-tracing@^1.1.2": "1.1.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-with-input@^4.1.3": "4.1.3_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
-    "npm:@pothos/tracing-opentelemetry@^1.1.2": "1.1.2_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.37.0_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@pothos+plugin-tracing@1.1.2__@pothos+core@4.8.1___graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
+    "npm:@pothos/tracing-opentelemetry@^1.1.2": "1.1.2_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.39.0_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@pothos+plugin-tracing@1.1.2__@pothos+core@4.8.1___graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@preact/signals@^1.3.1": "1.3.2_preact@10.27.1",
-    "npm:@preact/signals@^2.0.4": "2.3.1_preact@10.27.1",
+    "npm:@preact/signals@^2.0.4": "2.8.1_preact@10.27.1",
     "npm:@resvg/resvg-js@^2.6.2": "2.6.2",
     "npm:@searking/markdown-it-cjk-breaks@^2.0.1-0": "2.0.1-0",
     "npm:@shikijs/markdown-it@^3.8.1": "3.11.0_markdown-it-async@2.2.0",
@@ -212,7 +208,7 @@
     "npm:postcss@8.4.35": "8.4.35",
     "npm:postgres@^3.4.5": "3.4.7",
     "npm:postgres@^3.4.7": "3.4.7",
-    "npm:preact-render-to-string@^6.5.11": "6.6.1_preact@10.27.1",
+    "npm:preact-render-to-string@^6.5.11": "6.6.5_preact@10.27.1",
     "npm:preact@^10.26.6": "10.27.1",
     "npm:preact@^10.26.9": "10.27.1",
     "npm:pretendard@^1.3.9": "1.3.9",
@@ -259,17 +255,15 @@
         "jsr:@std/assert@~0.225.2"
       ]
     },
-    "@fedify/fedify@2.0.0-pr.559.6+b50404e9": {
-      "integrity": "a0e4ac97c778adf82625447b0c8c9c8f405e79bee8be220c80e9b12a522c4f46",
+    "@fedify/fedify@2.0.0-dev.395+0d27c2dd": {
+      "integrity": "b10934f42fa485e02dbfbe17597cfc50dd71ebddc68cf6787163a0c94ed6bdf7",
       "dependencies": [
-        "jsr:@fedify/vocab-runtime@^2.0.0-pr.559.6+b50404e9",
-        "jsr:@fedify/vocab@^2.0.0-pr.559.6+b50404e9",
+        "jsr:@fedify/vocab-runtime@^2.0.0-dev.395+0d27c2dd",
+        "jsr:@fedify/vocab@^2.0.0-dev.395+0d27c2dd",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@2",
         "npm:@opentelemetry/api",
-        "npm:@opentelemetry/core",
-        "npm:@opentelemetry/sdk-trace-base@2",
-        "npm:@opentelemetry/semantic-conventions@^1.27.0",
+        "npm:@opentelemetry/semantic-conventions@^1.39.0",
         "npm:byte-encodings",
         "npm:es-toolkit@^1.43.0",
         "npm:json-canon",
@@ -293,26 +287,26 @@
         "npm:@types/markdown-it"
       ]
     },
-    "@fedify/postgres@2.0.0-pr.559.6+b50404e9": {
-      "integrity": "7d62197d04dbcdcc61648ea0bd70879d6ba3dd53004434a9b78f80d4d522dc62",
+    "@fedify/postgres@2.0.0-dev.395+0d27c2dd": {
+      "integrity": "19d7b41e6228baa80bf486affd229f836a25231667a5e86283bad1a817574c87",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.0.0-pr.559.6+b50404e9",
+        "jsr:@fedify/fedify@^2.0.0-dev.395+0d27c2dd",
         "jsr:@logtape/logtape@2",
         "npm:postgres@^3.4.7"
       ]
     },
-    "@fedify/redis@2.0.0-pr.559.6+b50404e9": {
-      "integrity": "3d84ffd2e0eee2bdf151312073131d5b1dd303b760c79ff467611f2ef837dce2",
+    "@fedify/redis@2.0.0-dev.395+0d27c2dd": {
+      "integrity": "8625576a6d139878bb01cdd42af75ebac5fd06a6bfc1c9ad4e8137d337d6707b",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.0.0-pr.559.6+b50404e9",
+        "jsr:@fedify/fedify@^2.0.0-dev.395+0d27c2dd",
         "jsr:@logtape/logtape@2",
         "npm:ioredis@^5.8.2"
       ]
     },
-    "@fedify/vocab@2.0.0-pr.559.6+b50404e9": {
-      "integrity": "f82f885e071c6464550e4394906e156e521f9bc363cb711c3caca0f0440a77b5",
+    "@fedify/vocab@2.0.0-dev.395+0d27c2dd": {
+      "integrity": "8f60f27604b48826e9a82c5afd8c7fb9e3cd0bc0b920eab409b205c8cabb595c",
       "dependencies": [
-        "jsr:@fedify/vocab-runtime@^2.0.0-pr.559.6+b50404e9",
+        "jsr:@fedify/vocab-runtime@^2.0.0-dev.395+0d27c2dd",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@2",
         "npm:@opentelemetry/api",
@@ -383,13 +377,6 @@
         "jsr:@logtape/logtape@2"
       ]
     },
-    "@logtape/file@2.0.0": {
-      "integrity": "beb77f53a5792f4a3e22a8cbdb0f78d2c92c62700ccbff42eac7cf42cb3dac42",
-      "dependencies": [
-        "jsr:@logtape/logtape@2",
-        "jsr:@std/path@^1.1.0"
-      ]
-    },
     "@logtape/logtape@1.3.7": {
       "integrity": "d9dc1f8c7e2e1e4e3998006ea84eaf4054e40ad39325b056b3f517c013286bed"
     },
@@ -435,10 +422,10 @@
     "@std/assert@0.225.3": {
       "integrity": "b3c2847aecf6955b50644cdb9cf072004ea3d1998dd7579fc0acb99dbb23bd4f"
     },
-    "@std/assert@1.0.14": {
-      "integrity": "68d0d4a43b365abc927f45a9b85c639ea18a9fab96ad92281e493e4ed84abaa4",
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
       "dependencies": [
-        "jsr:@std/internal@^1.0.10"
+        "jsr:@std/internal"
       ]
     },
     "@std/async@1.0.14": {
@@ -447,8 +434,8 @@
     "@std/bytes@1.0.6": {
       "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
     },
-    "@std/cli@1.0.22": {
-      "integrity": "50d1e4f87887cb8a8afa29b88505ab5081188f5cad3985460c3b471fa49ff21a"
+    "@std/cli@1.0.28": {
+      "integrity": "74ef9b976db59ca6b23a5283469c9072be6276853807a83ec6c7ce412135c70a"
     },
     "@std/collections@1.1.2": {
       "integrity": "f1685dd45c3ec27c39d0e8a642ccf810f391ec8a6cb5e7355926e6dacc64c43e"
@@ -459,8 +446,8 @@
     "@std/crypto@1.0.5": {
       "integrity": "0dcfbb319fe0bba1bd3af904ceb4f948cde1b92979ec1614528380ed308a3b40"
     },
-    "@std/datetime@0.225.5": {
-      "integrity": "9f650f6caec546b80172e95a4edb8478d5fe060c4c937f7ede242ffceab6efc9"
+    "@std/datetime@0.225.7": {
+      "integrity": "e62c6c454a0ecfc2918fe41e7a621e0f334a6f82605e98fd32eb1e6371999328"
     },
     "@std/dotenv@0.225.5": {
       "integrity": "9ce6f9d0ec3311f74a32535aa1b8c62ed88b1ab91b7f0815797d77a6f60c922f"
@@ -468,41 +455,41 @@
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
     },
-    "@std/fmt@1.0.8": {
-      "integrity": "71e1fc498787e4434d213647a6e43e794af4fd393ef8f52062246e06f7e372b7"
+    "@std/fmt@1.0.9": {
+      "integrity": "2487343e8899fb2be5d0e3d35013e54477ada198854e52dd05ed0422eddcabe0"
     },
-    "@std/fs@1.0.19": {
-      "integrity": "051968c2b1eae4d2ea9f79a08a3845740ef6af10356aff43d3e2ef11ed09fb06",
+    "@std/fs@1.0.23": {
+      "integrity": "3ecbae4ce4fee03b180fa710caff36bb5adb66631c46a6460aaad49515565a37",
       "dependencies": [
-        "jsr:@std/internal@^1.0.9",
-        "jsr:@std/path@^1.1.1"
+        "jsr:@std/internal",
+        "jsr:@std/path@^1.1.4"
       ]
     },
     "@std/html@0.224.2": {
       "integrity": "2f7bfd71081fad988af9ce991750ed1574917dc8e6fae0e151987ea020d1e21a"
     },
-    "@std/html@1.0.4": {
-      "integrity": "eff3497c08164e6ada49b7f81a28b5108087033823153d065e3f89467dd3d50e"
+    "@std/html@1.0.5": {
+      "integrity": "4e2d693f474cae8c16a920fa5e15a3b72267b94b84667f11a50c6dd1cb18d35e"
     },
-    "@std/http@1.0.20": {
-      "integrity": "b5cc33fc001bccce65ed4c51815668c9891c69ccd908295997e983d8f56070a1",
+    "@std/http@1.0.25": {
+      "integrity": "577b4252290af1097132812b339fffdd55fb0f4aeb98ff11bdbf67998aa17193",
       "dependencies": [
         "jsr:@std/cli",
         "jsr:@std/encoding@^1.0.10",
-        "jsr:@std/fmt@^1.0.8",
-        "jsr:@std/fs@^1.0.19",
-        "jsr:@std/html@^1.0.4",
+        "jsr:@std/fmt@^1.0.9",
+        "jsr:@std/fs@^1.0.23",
+        "jsr:@std/html@^1.0.5",
         "jsr:@std/media-types@^1.1.0",
         "jsr:@std/net",
-        "jsr:@std/path@^1.1.1",
+        "jsr:@std/path@^1.1.4",
         "jsr:@std/streams"
       ]
     },
-    "@std/internal@1.0.10": {
-      "integrity": "e3be62ce42cab0e177c27698e5d9800122f67b766a0bea6ca4867886cbde8cf7"
+    "@std/internal@1.0.12": {
+      "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
     },
-    "@std/json@1.0.2": {
-      "integrity": "d9e5497801c15fb679f55a2c01c7794ad7a5dfda4dd1bebab5e409cb5e0d34d4"
+    "@std/json@1.0.3": {
+      "integrity": "97d5710996293a027b7aa5f0d1f4fa29f246f269e6b5597e08807613f37d426c"
     },
     "@std/jsonc@1.0.2": {
       "integrity": "909605dae3af22bd75b1cbda8d64a32cf1fd2cf6efa3f9e224aba6d22c0f44c7",
@@ -522,20 +509,20 @@
         "jsr:@std/assert@0.221"
       ]
     },
-    "@std/path@1.1.2": {
-      "integrity": "c0b13b97dfe06546d5e16bf3966b1cadf92e1cc83e56ba5476ad8b498d9e3038",
+    "@std/path@1.1.4": {
+      "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
       "dependencies": [
-        "jsr:@std/internal@^1.0.10"
+        "jsr:@std/internal"
       ]
     },
     "@std/regexp@1.0.1": {
       "integrity": "5179d823465085c5480dafb44438466e83c424fadc61ba31f744050ecc0f596d"
     },
-    "@std/semver@1.0.5": {
-      "integrity": "529f79e83705714c105ad0ba55bec0f9da0f24d2f726b6cc1c15e505cc2c0624"
+    "@std/semver@1.0.8": {
+      "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
     },
-    "@std/streams@1.0.12": {
-      "integrity": "ae925fa1dc459b1abf5cbaa28cc5c7b0485853af3b2a384b0dc22d86e59dfbf4"
+    "@std/streams@1.0.17": {
+      "integrity": "7859f3d9deed83cf4b41f19223d4a67661b3d3819e9fc117698f493bf5992140"
     },
     "@std/text@1.0.15": {
       "integrity": "91f5cc1e12779a3d95f1be34e763f9c28a75a078b7360e6fcaef0d8d9b1e3e7f"
@@ -546,8 +533,8 @@
         "jsr:@std/regexp"
       ]
     },
-    "@std/uuid@1.0.9": {
-      "integrity": "44b627bf2d372fe1bd099e2ad41b2be41a777fc94e62a3151006895a037f1642",
+    "@std/uuid@1.1.0": {
+      "integrity": "6268db2ccf172849c9be80763354ca305d49ef4af41fe995623d44fcc3f7457c",
       "dependencies": [
         "jsr:@std/bytes@^1.0.6",
         "jsr:@std/crypto@^1.0.5"
@@ -3823,20 +3810,13 @@
         "@opentelemetry/semantic-conventions@1.28.0"
       ]
     },
-    "@opentelemetry/core@2.5.0_@opentelemetry+api@1.9.0": {
-      "integrity": "sha512-ka4H8OM6+DlUhSAZpONu0cPBtPPTQKxbxVzC4CzVx5+K4JnroJVBtDzLAMx4/3CDTJXRvVFhpFjtl4SaiTNoyQ==",
-      "dependencies": [
-        "@opentelemetry/api",
-        "@opentelemetry/semantic-conventions@1.37.0"
-      ]
-    },
     "@opentelemetry/instrumentation-ioredis@0.45.0_@opentelemetry+api@1.9.0": {
       "integrity": "sha512-h79ctSTYgxc6V0saa4JcdjEt/JQd9gkfgFwPNyHZkIx0aQofygMc32Ulp2v7axAHqf8HiI9jP9aP/Qh1mWVSNA==",
       "dependencies": [
         "@opentelemetry/api",
         "@opentelemetry/instrumentation",
         "@opentelemetry/redis-common",
-        "@opentelemetry/semantic-conventions@1.37.0"
+        "@opentelemetry/semantic-conventions@1.39.0"
       ]
     },
     "@opentelemetry/instrumentation-redis-4@0.44.0_@opentelemetry+api@1.9.0": {
@@ -3845,7 +3825,7 @@
         "@opentelemetry/api",
         "@opentelemetry/instrumentation",
         "@opentelemetry/redis-common",
-        "@opentelemetry/semantic-conventions@1.37.0"
+        "@opentelemetry/semantic-conventions@1.39.0"
       ]
     },
     "@opentelemetry/instrumentation@0.55.0_@opentelemetry+api@1.9.0": {
@@ -3867,41 +3847,24 @@
       "integrity": "sha512-5UxZqiAgLYGFjS4s9qm5mBVo433u+dSPUFWVWXmLAD4wB65oMCoXaJP1KJa9DIYYMeHu3z4BZcStG3LC593cWA==",
       "dependencies": [
         "@opentelemetry/api",
-        "@opentelemetry/core@1.30.1_@opentelemetry+api@1.9.0",
+        "@opentelemetry/core",
         "@opentelemetry/semantic-conventions@1.28.0"
-      ]
-    },
-    "@opentelemetry/resources@2.5.0_@opentelemetry+api@1.9.0": {
-      "integrity": "sha512-F8W52ApePshpoSrfsSk1H2yJn9aKjCrbpQF1M9Qii0GHzbfVeFUB+rc3X4aggyZD8x9Gu3Slua+s6krmq6Dt8g==",
-      "dependencies": [
-        "@opentelemetry/api",
-        "@opentelemetry/core@2.5.0_@opentelemetry+api@1.9.0",
-        "@opentelemetry/semantic-conventions@1.37.0"
       ]
     },
     "@opentelemetry/sdk-trace-base@1.30.1_@opentelemetry+api@1.9.0": {
       "integrity": "sha512-jVPgBbH1gCy2Lb7X0AVQ8XAfgg0pJ4nvl8/IiQA6nxOsPvS+0zMJaFSs2ltXe0J6C8dqjcnpyqINDJmU30+uOg==",
       "dependencies": [
         "@opentelemetry/api",
-        "@opentelemetry/core@1.30.1_@opentelemetry+api@1.9.0",
-        "@opentelemetry/resources@1.30.1_@opentelemetry+api@1.9.0",
+        "@opentelemetry/core",
+        "@opentelemetry/resources",
         "@opentelemetry/semantic-conventions@1.28.0"
-      ]
-    },
-    "@opentelemetry/sdk-trace-base@2.5.0_@opentelemetry+api@1.9.0": {
-      "integrity": "sha512-VzRf8LzotASEyNDUxTdaJ9IRJ1/h692WyArDBInf5puLCjxbICD6XkHgpuudis56EndyS7LYFmtTMny6UABNdQ==",
-      "dependencies": [
-        "@opentelemetry/api",
-        "@opentelemetry/core@2.5.0_@opentelemetry+api@1.9.0",
-        "@opentelemetry/resources@2.5.0_@opentelemetry+api@1.9.0",
-        "@opentelemetry/semantic-conventions@1.37.0"
       ]
     },
     "@opentelemetry/semantic-conventions@1.28.0": {
       "integrity": "sha512-lp4qAiMTD4sNWW4DbKLBkfiMZ4jbAboJIGOQr5DvciMRI494OapieI9qiODpOt0XBr1LjIDy1xAGAnVs5supTA=="
     },
-    "@opentelemetry/semantic-conventions@1.37.0": {
-      "integrity": "sha512-JD6DerIKdJGmRp4jQyX5FlrQjA4tjOw1cvfsPAZXfOOEErMUHjPcPSICS+6WnM0nB0efSFARh0KAZss+bvExOA=="
+    "@opentelemetry/semantic-conventions@1.39.0": {
+      "integrity": "sha512-R5R9tb2AXs2IRLNKLBJDynhkfmx7mX0vi8NkhZb3gUkPWHn6HXk5J8iQ/dql0U3ApfWym4kXXmBDRGO+oeOfjg=="
     },
     "@oxc-parser/binding-darwin-arm64@0.36.0": {
       "integrity": "sha512-i49m1L++ZAeAjNob5qho2ir3nflhIzgQl9hsFvmMBzG+we4OKseGlUAd/nEXJ2XnNvu1TEi/EocsE9XgWM5xlg==",
@@ -4297,18 +4260,18 @@
         "graphql"
       ]
     },
-    "@pothos/tracing-opentelemetry@1.1.2_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.37.0_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@pothos+plugin-tracing@1.1.2__@pothos+core@4.8.1___graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
+    "@pothos/tracing-opentelemetry@1.1.2_@opentelemetry+api@1.9.0_@opentelemetry+semantic-conventions@1.39.0_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@pothos+plugin-tracing@1.1.2__@pothos+core@4.8.1___graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02": {
       "integrity": "sha512-mjfNQhm6gfs7sqKGeAiF78GapR7kGXSa9MeRkfz9R88xzyYFrg26npWbvCHwwxXf73CkoQ1iIFMbCVWZPFN+NQ==",
       "dependencies": [
         "@opentelemetry/api",
-        "@opentelemetry/semantic-conventions@1.37.0",
+        "@opentelemetry/semantic-conventions@1.39.0",
         "@pothos/core",
         "@pothos/plugin-tracing",
         "graphql"
       ]
     },
-    "@preact/signals-core@1.12.1": {
-      "integrity": "sha512-BwbTXpj+9QutoZLQvbttRg5x3l5468qaV2kufh+51yha1c53ep5dY4kTuZR35+3pAZxpfQerGJiQqg34ZNZ6uA=="
+    "@preact/signals-core@1.13.0": {
+      "integrity": "sha512-slT6XeTCAbdql61GVLlGU4x7XHI7kCZV5Um5uhE4zLX4ApgiiXc0UYFvVOKq06xcovzp7p+61l68oPi563ARKg=="
     },
     "@preact/signals@1.3.2_preact@10.27.1": {
       "integrity": "sha512-naxcJgUJ6BTOROJ7C3QML7KvwKwCXQJYTc5L/b0eEsdYgPB6SxwoQ1vDGcS0Q7GVjAenVq/tXrybVdFShHYZWg==",
@@ -4317,8 +4280,8 @@
         "preact"
       ]
     },
-    "@preact/signals@2.3.1_preact@10.27.1": {
-      "integrity": "sha512-nyuRIGmcwM/HjvFHhN2xUWfyla9D4llHt+prWoxjQfD6b5prO7CFPlG/xjJkP31Oic4KQXfH9SIhJFP9cy4lmg==",
+    "@preact/signals@2.8.1_preact@10.27.1": {
+      "integrity": "sha512-wX6U0SpcCukZTJBs5ChljvBZb3XmYzA5gd4vKHgX8wZZKaQCo2WHtmThdLx+mcVvlBa5u3XShC7ffbETJD4BiQ==",
       "dependencies": [
         "@preact/signals-core",
         "preact"
@@ -7022,8 +6985,8 @@
     "css-color-keywords@1.0.0": {
       "integrity": "sha512-FyyrDHZKEjXDpNJYvVsV960FiqQyXc/LlYmsxl2BcdMb2WPx0OGRVgTg55rPSyLSNMqP52R9r8geSp7apN3Ofg=="
     },
-    "css-declaration-sorter@7.2.0_postcss@8.4.35": {
-      "integrity": "sha512-h70rUM+3PNFuaBDTLe8wF/cdWu+dOZmb7pJt8Z2sedYbAcQVQV/tEchueg3GWxwqS0cxtbxmaHEdkNACqcvsow==",
+    "css-declaration-sorter@7.3.1_postcss@8.4.35": {
+      "integrity": "sha512-gz6x+KkgNCjxq3Var03pRYLhyNfwhkKF1g/yoLgDNtFvVu0/fOLV9C8fFEZRjACp/XQLumjAYo7JVjzH3wLbxA==",
       "dependencies": [
         "postcss@8.4.35"
       ]
@@ -10989,8 +10952,8 @@
     "postgres@3.4.7": {
       "integrity": "sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw=="
     },
-    "preact-render-to-string@6.6.1_preact@10.27.1": {
-      "integrity": "sha512-IIMfXRjmbSP9QmG18WJLQa4Z4yx3J0VC9QN5q9z2XYlWSzFlJ+bSm/AyLyyV/YFwjof1OXFX2Mz6Ao60LXudJg==",
+    "preact-render-to-string@6.6.5_preact@10.27.1": {
+      "integrity": "sha512-O6MHzYNIKYaiSX3bOw0gGZfEbOmlIDtDfWwN1JJdc/T3ihzRT6tGGSEWE088dWrEDGa1u7101q+6fzQnO9XCPA==",
       "dependencies": [
         "preact"
       ]
@@ -13188,13 +13151,13 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@^2.0.0-dev.335",
+      "jsr:@fedify/fedify@2.0.0-dev.395+0d27c2dd",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
-      "jsr:@fedify/postgres@^2.0.0-dev.335",
-      "jsr:@fedify/redis@^2.0.0-dev.335",
-      "jsr:@fedify/vocab-runtime@^2.0.0-dev.335",
-      "jsr:@fedify/vocab@^2.0.0-dev.335",
+      "jsr:@fedify/postgres@2.0.0-dev.395+0d27c2dd",
+      "jsr:@fedify/redis@2.0.0-dev.395+0d27c2dd",
+      "jsr:@fedify/vocab-runtime@2.0.0-dev.395+0d27c2dd",
+      "jsr:@fedify/vocab@2.0.0-dev.395+0d27c2dd",
       "jsr:@fresh/core@2.0.0-alpha.34",
       "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",
@@ -13215,7 +13178,7 @@
       "jsr:@std/http@^1.0.13",
       "jsr:@std/path@^1.0.8",
       "jsr:@std/text@^1.0.12",
-      "jsr:@std/uuid@^1.0.6",
+      "jsr:@std/uuid@^1.1.0",
       "jsr:@upyo/core@~0.1.1",
       "jsr:@upyo/mailgun@~0.1.1",
       "jsr:@upyo/mock@~0.1.1",
