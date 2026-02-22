@@ -390,6 +390,18 @@ type DeleteArticleDraftPayload {
 
 union DeleteArticleDraftResult = DeleteArticleDraftPayload | InvalidInputError | NotAuthenticatedError
 
+input DeletePostInput {
+  clientMutationId: ID
+  id: ID!
+}
+
+type DeletePostPayload {
+  clientMutationId: ID
+  deletedPostId: ID!
+}
+
+union DeletePostResult = DeletePostPayload | InvalidInputError | NotAuthenticatedError
+
 """A document in a specific language."""
 type Document {
   html: String!
@@ -549,6 +561,7 @@ type Mutation {
   ): SignupResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
+  deletePost(input: DeletePostInput!): DeletePostResult!
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
     sessionId: UUID!
