@@ -390,6 +390,18 @@ type DeleteArticleDraftPayload {
 
 union DeleteArticleDraftResult = DeleteArticleDraftPayload | InvalidInputError | NotAuthenticatedError
 
+input DeletePostInput {
+  clientMutationId: ID
+  id: ID!
+}
+
+type DeletePostPayload {
+  clientMutationId: ID
+  deletedPostId: ID!
+}
+
+union DeletePostResult = DeletePostPayload | InvalidInputError | NotAuthenticatedError | SharedPostDeletionNotAllowedError
+
 """A document in a specific language."""
 type Document {
   html: String!
@@ -549,6 +561,7 @@ type Mutation {
   ): SignupResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
+  deletePost(input: DeletePostInput!): DeletePostResult!
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
     sessionId: UUID!
@@ -1136,6 +1149,10 @@ type SharePostPayload {
 }
 
 union SharePostResult = InvalidInputError | NotAuthenticatedError | SharePostPayload
+
+type SharedPostDeletionNotAllowedError {
+  inputPath: String!
+}
 
 enum SignupBioError {
   BIO_TOO_LONG

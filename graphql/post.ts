@@ -9,6 +9,7 @@ import {
 } from "@hackerspub/models/article";
 import { createNote } from "@hackerspub/models/note";
 import {
+  deletePost,
   isPostSharedBy,
   isPostVisibleTo,
   sharePost,
@@ -36,12 +37,25 @@ class InvalidInputError extends Error {
   }
 }
 
+class SharedPostDeletionNotAllowedError extends Error {
+  public constructor(public readonly inputPath: string) {
+    super("Shared posts cannot be deleted. Use unsharePost instead.");
+  }
+}
+
 export const PostType = builder.enumType("PostType", {
   values: ["ARTICLE", "NOTE", "QUESTION"],
 });
 
 builder.objectType(InvalidInputError, {
   name: "InvalidInputError",
+  fields: (t) => ({
+    inputPath: t.expose("inputPath", { type: "String" }),
+  }),
+});
+
+builder.objectType(SharedPostDeletionNotAllowedError, {
+  name: "SharedPostDeletionNotAllowedError",
   fields: (t) => ({
     inputPath: t.expose("inputPath", { type: "String" }),
   }),
@@ -679,6 +693,62 @@ builder.relayMutationField(
       deletedDraftId: t.globalID({
         resolve(result) {
           return { type: "ArticleDraft", id: result.deletedDraftId };
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "deletePost",
+  {
+    inputFields: (t) => ({
+      id: t.globalID({
+        for: [Note, Article, Question],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        SharedPostDeletionNotAllowedError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const post = await ctx.db.query.postTable.findFirst({
+        with: { actor: true, replyTarget: true },
+        where: { id: args.input.id.id },
+      });
+
+      if (post == null || post.actor.accountId !== session.accountId) {
+        throw new InvalidInputError("id");
+      }
+
+      if (post.sharedPostId != null) {
+        throw new SharedPostDeletionNotAllowedError("id");
+      }
+
+      await deletePost(ctx.fedCtx, post);
+
+      return { deletedPostId: args.input.id };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      deletedPostId: t.globalID({
+        resolve(result) {
+          return {
+            type: result.deletedPostId.typename,
+            id: result.deletedPostId.id,
+          };
         },
       }),
     }),
