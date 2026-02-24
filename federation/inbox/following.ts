@@ -17,11 +17,67 @@ import {
   blockingTable,
   followingTable,
 } from "@hackerspub/models/schema";
-import { validateUuid } from "@hackerspub/models/uuid";
+import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, sql } from "drizzle-orm";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "following"]);
+
+export interface FollowAcceptanceRepository {
+  acceptByIri(followIri: string): Promise<boolean>;
+  acceptByActorIds(
+    followerActorId: Uuid,
+    followeeActorId: Uuid,
+  ): Promise<boolean>;
+}
+
+export interface FollowRejectionRepository {
+  rejectByIri(followIri: string, followeeActorId: Uuid): Promise<boolean>;
+  rejectByActorIds(
+    followerActorId: Uuid,
+    followeeActorId: Uuid,
+  ): Promise<boolean>;
+}
+
+export async function reconcileFollowAcceptance(
+  repo: FollowAcceptanceRepository,
+  values: {
+    followIri: string | null;
+    followerActorId: Uuid;
+    followeeActorId: Uuid;
+  },
+): Promise<boolean> {
+  if (
+    values.followIri != null &&
+    await repo.acceptByIri(values.followIri)
+  ) {
+    return true;
+  }
+  return await repo.acceptByActorIds(
+    values.followerActorId,
+    values.followeeActorId,
+  );
+}
+
+export async function reconcileFollowRejection(
+  repo: FollowRejectionRepository,
+  values: {
+    followIri: string | null;
+    followerActorId: Uuid;
+    followeeActorId: Uuid;
+  },
+): Promise<boolean> {
+  if (
+    values.followIri != null &&
+    await repo.rejectByIri(values.followIri, values.followeeActorId)
+  ) {
+    return true;
+  }
+  return await repo.rejectByActorIds(
+    values.followerActorId,
+    values.followeeActorId,
+  );
+}
 
 export async function onFollowAccepted(
   fedCtx: InboxContext<ContextData>,
@@ -44,8 +100,21 @@ export async function onFollowAccepted(
     where: { iri: follow.objectId.href },
   });
   if (followee == null) return;
-  if (follow.id == null) await acceptFollowing(db, follower, followee);
-  else await acceptFollowing(db, follow.id);
+  await reconcileFollowAcceptance(
+    {
+      async acceptByIri(followIri) {
+        return await acceptFollowing(db, followIri) != null;
+      },
+      async acceptByActorIds(_followerActorId, _followeeActorId) {
+        return await acceptFollowing(db, follower, followee) != null;
+      },
+    },
+    {
+      followIri: follow.id?.href ?? null,
+      followerActorId: follower.actor.id,
+      followeeActorId: followee.id,
+    },
+  );
 }
 
 export async function onFollowRejected(
@@ -54,22 +123,54 @@ export async function onFollowRejected(
 ): Promise<void> {
   const follow = await reject.getObject({ ...fedCtx, crossOrigin: "trust" });
   if (reject.actorId == null) return;
-  if (!(follow instanceof Follow) || follow.id == null) return;
+  if (!(follow instanceof Follow)) return;
   if (follow.objectId?.href !== reject.actorId?.href) return;
   const { db } = fedCtx.data;
-  await db
-    .delete(followingTable)
-    .where(
-      and(
-        eq(followingTable.iri, follow.id.href),
-        eq(
-          followingTable.followeeId,
-          db.select({ id: actorTable.id })
-            .from(actorTable)
-            .where(eq(actorTable.iri, reject.actorId.href)),
-        ),
-      ),
-    );
+  const followee = await db.query.actorTable.findFirst({
+    where: { iri: reject.actorId.href },
+  });
+  if (followee == null) return;
+  const followActor = fedCtx.parseUri(follow.actorId);
+  if (followActor?.type !== "actor") return;
+  if (!validateUuid(followActor.identifier)) return;
+  const follower = await db.query.accountTable.findFirst({
+    with: { actor: true },
+    where: { id: followActor.identifier },
+  });
+  if (follower == null) return;
+  await reconcileFollowRejection(
+    {
+      async rejectByIri(followIri, followeeActorId) {
+        const rows = await db
+          .delete(followingTable)
+          .where(
+            and(
+              eq(followingTable.iri, followIri),
+              eq(followingTable.followeeId, followeeActorId),
+            ),
+          )
+          .returning();
+        return rows.length > 0;
+      },
+      async rejectByActorIds(followerActorId, followeeActorId) {
+        const rows = await db
+          .delete(followingTable)
+          .where(
+            and(
+              eq(followingTable.followerId, followerActorId),
+              eq(followingTable.followeeId, followeeActorId),
+            ),
+          )
+          .returning();
+        return rows.length > 0;
+      },
+    },
+    {
+      followIri: follow.id?.href ?? null,
+      followerActorId: follower.actor.id,
+      followeeActorId: followee.id,
+    },
+  );
 }
 
 export async function onFollowed(
