@@ -37,12 +37,25 @@ class InvalidInputError extends Error {
   }
 }
 
+class SharedPostDeletionNotAllowedError extends Error {
+  public constructor(public readonly inputPath: string) {
+    super("Shared posts cannot be deleted. Use unsharePost instead.");
+  }
+}
+
 export const PostType = builder.enumType("PostType", {
   values: ["ARTICLE", "NOTE", "QUESTION"],
 });
 
 builder.objectType(InvalidInputError, {
   name: "InvalidInputError",
+  fields: (t) => ({
+    inputPath: t.expose("inputPath", { type: "String" }),
+  }),
+});
+
+builder.objectType(SharedPostDeletionNotAllowedError, {
+  name: "SharedPostDeletionNotAllowedError",
   fields: (t) => ({
     inputPath: t.expose("inputPath", { type: "String" }),
   }),
@@ -701,6 +714,7 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
+        SharedPostDeletionNotAllowedError,
       ],
     },
     async resolve(_root, args, ctx) {
@@ -716,6 +730,10 @@ builder.relayMutationField(
 
       if (post == null || post.actor.accountId !== session.accountId) {
         throw new InvalidInputError("id");
+      }
+
+      if (post.sharedPostId != null) {
+        throw new SharedPostDeletionNotAllowedError("id");
       }
 
       await deletePost(ctx.fedCtx, post);

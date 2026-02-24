@@ -400,7 +400,7 @@ type DeletePostPayload {
   deletedPostId: ID!
 }
 
-union DeletePostResult = DeletePostPayload | InvalidInputError | NotAuthenticatedError
+union DeletePostResult = DeletePostPayload | InvalidInputError | NotAuthenticatedError | SharedPostDeletionNotAllowedError
 
 """A document in a specific language."""
 type Document {
@@ -1149,6 +1149,10 @@ type SharePostPayload {
 }
 
 union SharePostResult = InvalidInputError | NotAuthenticatedError | SharePostPayload
+
+type SharedPostDeletionNotAllowedError {
+  inputPath: String!
+}
 
 enum SignupBioError {
   BIO_TOO_LONG
