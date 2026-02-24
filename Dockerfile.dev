@@ -1,4 +1,4 @@
-FROM docker.io/denoland/deno:2.6.4
+FROM docker.io/denoland/deno:2.6.10
 
 ENV NO_WATCHMAN=1
 
