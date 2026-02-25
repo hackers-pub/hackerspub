@@ -1,5 +1,6 @@
 # Claude Code
 .claude/settings.local.json
+.claude/worktrees/
 
 # dotenv environment variable files
 .env
