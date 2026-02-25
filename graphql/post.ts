@@ -27,15 +27,10 @@ import { assertNever } from "@std/assert/unstable-never";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
+import { InvalidInputError } from "./error.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
-
-class InvalidInputError extends Error {
-  public constructor(public readonly inputPath: string) {
-    super(`Invalid input - ${inputPath}`);
-  }
-}
 
 class SharedPostDeletionNotAllowedError extends Error {
   public constructor(public readonly inputPath: string) {
@@ -45,13 +40,6 @@ class SharedPostDeletionNotAllowedError extends Error {
 
 export const PostType = builder.enumType("PostType", {
   values: ["ARTICLE", "NOTE", "QUESTION"],
-});
-
-builder.objectType(InvalidInputError, {
-  name: "InvalidInputError",
-  fields: (t) => ({
-    inputPath: t.expose("inputPath", { type: "String" }),
-  }),
 });
 
 builder.objectType(SharedPostDeletionNotAllowedError, {
