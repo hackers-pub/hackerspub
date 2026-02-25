@@ -2,6 +2,7 @@ import { isActor } from "@fedify/vocab";
 import { desc, eq } from "drizzle-orm";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
+import { follow } from "@hackerspub/models/following";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import type { Actor as ActorModel } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
@@ -10,7 +11,9 @@ import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
 import xss from "xss";
 import { builder } from "./builder.ts";
+import { InvalidInputError } from "./error.ts";
 import { Article, Note, Post, Question } from "./post.ts";
+import { NotAuthenticatedError } from "./session.ts";
 
 export const ActorType = builder.enumType("ActorType", {
   values: [
@@ -560,3 +563,48 @@ builder.queryFields((t) => ({
     },
   }),
 }));
+
+builder.relayMutationField(
+  "followActor",
+  {
+    inputFields: (t) => ({
+      actorId: t.globalID({
+        for: [Actor],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const followee = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.input.actorId.id },
+      });
+
+      if (followee == null || followee.accountId === session.accountId) {
+        throw new InvalidInputError("actorId");
+      }
+
+      await follow(ctx.fedCtx, ctx.account, followee);
+
+      return followee;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      actor: t.field({
+        type: Actor,
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
