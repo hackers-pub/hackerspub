@@ -429,6 +429,18 @@ type EmptySearchQueryError {
   message: String!
 }
 
+input FollowActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type FollowActorPayload {
+  actor: Actor!
+  clientMutationId: ID
+}
+
+union FollowActorResult = FollowActorPayload | InvalidInputError | NotAuthenticatedError
+
 type FollowNotification implements Node & Notification {
   account: Account!
   actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
@@ -562,6 +574,7 @@ type Mutation {
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
   deletePost(input: DeletePostInput!): DeletePostResult!
+  followActor(input: FollowActorInput!): FollowActorResult!
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
     sessionId: UUID!
