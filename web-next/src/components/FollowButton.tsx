@@ -56,12 +56,9 @@ export function FollowButton(props: FollowButtonProps) {
     graphql`
       fragment FollowButton_actor on Actor {
         id
-        username
+        isViewer
         viewerFollows
         followsViewer
-        account {
-          __typename
-        }
       }
     `,
     () => props.$actor,
@@ -109,7 +106,7 @@ export function FollowButton(props: FollowButtonProps) {
   return (
     <Show when={actor()}>
       {(actor) => (
-        <Show when={actor().account == null}>
+        <Show when={!actor().isViewer}>
           <Button
             variant={actor().viewerFollows ? "outline" : "default"}
             size="sm"
