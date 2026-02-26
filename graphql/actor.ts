@@ -308,6 +308,12 @@ builder.drizzleObjectFields(Actor, (t) => ({
       }) != null;
     },
   }),
+  isViewer: t.field({
+    type: "Boolean",
+    resolve(actor, _, ctx) {
+      return ctx.account?.actor?.id === actor.id;
+    },
+  }),
   viewerFollows: t.field({
     type: "Boolean",
     async resolve(actor, _, ctx) {

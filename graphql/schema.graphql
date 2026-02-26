@@ -139,6 +139,7 @@ type Actor implements Node {
   instanceHost: String!
   iri: URL!
   isFollowedBy(followerId: ID): Boolean!
+  isViewer: Boolean!
   local: Boolean!
   name: HTML
   noteByUuid(uuid: UUID!): Note
