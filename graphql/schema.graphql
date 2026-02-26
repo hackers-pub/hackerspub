@@ -156,6 +156,7 @@ type Actor implements Node {
   url: URL
   username: String!
   uuid: UUID!
+  viewerFollows: Boolean!
 }
 
 type ActorArticlesConnection {
@@ -632,6 +633,7 @@ type Mutation {
   ): Session
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
   sharePost(input: SharePostInput!): SharePostResult!
+  unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): PasskeyRegistrationResult!
@@ -1222,6 +1224,18 @@ scalar URL
 A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier.
 """
 scalar UUID
+
+input UnfollowActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type UnfollowActorPayload {
+  actor: Actor!
+  clientMutationId: ID
+}
+
+union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | UnfollowActorPayload
 
 input UnsharePostInput {
   clientMutationId: ID

@@ -2,7 +2,7 @@ import { isActor } from "@fedify/vocab";
 import { desc, eq } from "drizzle-orm";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
-import { follow } from "@hackerspub/models/following";
+import { follow, unfollow } from "@hackerspub/models/following";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import type { Actor as ActorModel } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
@@ -308,6 +308,21 @@ builder.drizzleObjectFields(Actor, (t) => ({
       }) != null;
     },
   }),
+  viewerFollows: t.field({
+    type: "Boolean",
+    async resolve(actor, _, ctx) {
+      if (ctx.account == null || ctx.account.actor == null) {
+        return false;
+      }
+      return await ctx.db.query.followingTable.findFirst({
+        columns: { iri: true },
+        where: {
+          followerId: ctx.account.actor.id,
+          followeeId: actor.id,
+        },
+      }) != null;
+    },
+  }),
   followsViewer: t.field({
     type: "Boolean",
     async resolve(actor, _, ctx) {
@@ -593,6 +608,51 @@ builder.relayMutationField(
       }
 
       await follow(ctx.fedCtx, ctx.account, followee);
+
+      return followee;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      actor: t.field({
+        type: Actor,
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "unfollowActor",
+  {
+    inputFields: (t) => ({
+      actorId: t.globalID({
+        for: [Actor],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const followee = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.input.actorId.id },
+      });
+
+      if (followee == null || followee.accountId === session.accountId) {
+        throw new InvalidInputError("actorId");
+      }
+
+      await unfollow(ctx.fedCtx, ctx.account, followee);
 
       return followee;
     },
