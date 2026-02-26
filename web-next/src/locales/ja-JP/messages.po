@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:214
+#: src/components/ProfileCard.tsx:219
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:199
+#: src/components/ProfileCard.tsx:204
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
@@ -432,6 +432,10 @@ msgstr "エラー"
 msgid "Extra message"
 msgstr "追加メッセージ"
 
+#: src/components/FollowButton.tsx:98
+msgid "Failed to follow"
+msgstr "フォローに失敗しました"
+
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
@@ -510,6 +514,10 @@ msgstr "コンテンツの共有に失敗しました"
 msgid "Failed to sign out: {0}"
 msgstr "ログアウトに失敗：{0}"
 
+#: src/components/FollowButton.tsx:86
+msgid "Failed to unfollow"
+msgstr "フォロー解除に失敗しました"
+
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
@@ -522,6 +530,14 @@ msgstr "フェディバース"
 msgid "Feed"
 msgstr "フィード"
 
+#: src/components/FollowButton.tsx:120
+msgid "Follow"
+msgstr "フォロー"
+
+#: src/components/FollowButton.tsx:119
+msgid "Follow Back"
+msgstr "フォローバック"
+
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 #~ msgid "Followers"
 #~ msgstr "フォロワー"
@@ -531,7 +547,7 @@ msgstr "フィード"
 msgid "Followers only"
 msgstr "フォロワーのみ"
 
-#: src/components/ProfileCard.tsx:224
+#: src/components/ProfileCard.tsx:229
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
@@ -1308,6 +1324,10 @@ msgstr "リアクションを追加できませんでした。もう一度お試
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
+#: src/components/FollowButton.tsx:117
+msgid "Unfollow"
+msgstr "フォロー解除"
+
 #: src/components/PostControls.tsx:210
 msgid "Unshare"
 msgstr "共有を取り消す"
@@ -1352,7 +1372,7 @@ msgstr "招待したユーザー"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:173
+#: src/components/ProfileCard.tsx:178
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 

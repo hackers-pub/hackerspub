@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:214
+#: src/components/ProfileCard.tsx:219
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:199
+#: src/components/ProfileCard.tsx:204
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -436,6 +436,10 @@ msgstr "Error"
 msgid "Extra message"
 msgstr "Extra message"
 
+#: src/components/FollowButton.tsx:98
+msgid "Failed to follow"
+msgstr "Failed to follow"
+
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
 msgstr "Failed to load more articles; click to retry"
@@ -514,6 +518,10 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
+#: src/components/FollowButton.tsx:86
+msgid "Failed to unfollow"
+msgstr "Failed to unfollow"
+
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
@@ -526,6 +534,14 @@ msgstr "Fediverse"
 msgid "Feed"
 msgstr "Feed"
 
+#: src/components/FollowButton.tsx:120
+msgid "Follow"
+msgstr "Follow"
+
+#: src/components/FollowButton.tsx:119
+msgid "Follow Back"
+msgstr "Follow Back"
+
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 #~ msgid "Followers"
 #~ msgstr "Followers"
@@ -535,7 +551,7 @@ msgstr "Feed"
 msgid "Followers only"
 msgstr "Followers only"
 
-#: src/components/ProfileCard.tsx:224
+#: src/components/ProfileCard.tsx:229
 msgid "Following you"
 msgstr "Following you"
 
@@ -1313,6 +1329,10 @@ msgstr "Unable to add reaction. Please try again."
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
+#: src/components/FollowButton.tsx:117
+msgid "Unfollow"
+msgstr "Unfollow"
+
 #: src/components/PostControls.tsx:210
 msgid "Unshare"
 msgstr "Unshare"
@@ -1357,7 +1377,7 @@ msgstr "Users you have invited"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:173
+#: src/components/ProfileCard.tsx:178
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 

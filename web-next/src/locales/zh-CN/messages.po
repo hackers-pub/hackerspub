@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:214
+#: src/components/ProfileCard.tsx:219
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:199
+#: src/components/ProfileCard.tsx:204
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -432,6 +432,10 @@ msgstr "错误"
 msgid "Extra message"
 msgstr "额外消息"
 
+#: src/components/FollowButton.tsx:98
+msgid "Failed to follow"
+msgstr "关注失败"
+
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
 msgstr "加载更多文章失败，点击重试"
@@ -510,6 +514,10 @@ msgstr "转帖失败"
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
+#: src/components/FollowButton.tsx:86
+msgid "Failed to unfollow"
+msgstr "取消关注失败"
+
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
@@ -522,6 +530,14 @@ msgstr "联邦宇宙"
 msgid "Feed"
 msgstr "订阅流"
 
+#: src/components/FollowButton.tsx:120
+msgid "Follow"
+msgstr "关注"
+
+#: src/components/FollowButton.tsx:119
+msgid "Follow Back"
+msgstr "回关"
+
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 #~ msgid "Followers"
 #~ msgstr "粉丝"
@@ -531,7 +547,7 @@ msgstr "订阅流"
 msgid "Followers only"
 msgstr "只粉丝可见"
 
-#: src/components/ProfileCard.tsx:224
+#: src/components/ProfileCard.tsx:229
 msgid "Following you"
 msgstr "关注了你"
 
@@ -1308,6 +1324,10 @@ msgstr "无法添加反应。请重试。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
 
+#: src/components/FollowButton.tsx:117
+msgid "Unfollow"
+msgstr "取消关注"
+
 #: src/components/PostControls.tsx:210
 msgid "Unshare"
 msgstr "取消转帖"
@@ -1352,7 +1372,7 @@ msgstr "您邀请的用户"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:173
+#: src/components/ProfileCard.tsx:178
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已于{1}验证此链接归{0}所有"
 
