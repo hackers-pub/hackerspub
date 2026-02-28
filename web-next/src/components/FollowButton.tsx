@@ -97,33 +97,23 @@ export function FollowButton(props: FollowButtonProps) {
       "ActorFollowerList_followers",
     );
 
-    if (actorData.viewerFollows) {
-      unfollowActor({
-        variables: {
-          input: { actorId: actorData.id },
-          connections: [connectionId],
-        },
-        onError() {
-          showToast({
-            title: t`Failed to unfollow`,
-            variant: "destructive",
-          });
-        },
-      });
-    } else {
-      followActor({
-        variables: {
-          input: { actorId: actorData.id },
-          connections: [connectionId],
-        },
-        onError() {
-          showToast({
-            title: t`Failed to follow`,
-            variant: "destructive",
-          });
-        },
-      });
-    }
+    const isFollowing = actorData.viewerFollows;
+    const [mutation, errorTitle] = isFollowing
+      ? [unfollowActor, t`Failed to unfollow`]
+      : [followActor, t`Failed to follow`];
+
+    mutation({
+      variables: {
+        input: { actorId: actorData.id },
+        connections: [connectionId],
+      },
+      onError() {
+        showToast({
+          title: errorTitle,
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   return (
