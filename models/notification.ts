@@ -247,6 +247,9 @@ export async function deleteNotification(
         ),
       )
       .returning();
+    const isActorIdsEmpty = isNull(
+      sql`array_length(${notificationTable.actorIds}, 1)`,
+    );
     const deleted = await db.delete(notificationTable)
       .where(
         and(
@@ -260,7 +263,7 @@ export async function deleteNotification(
             : typeof emoji === "string"
             ? eq(notificationTable.emoji, emoji)
             : eq(notificationTable.customEmojiId, emoji.id),
-          eq(sql`array_length(${notificationTable.actorIds}, 1)`, 0),
+          isActorIdsEmpty,
         ),
       )
       .returning();
