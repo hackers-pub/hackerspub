@@ -432,7 +432,7 @@ msgstr "오류"
 msgid "Extra message"
 msgstr "추가 메시지"
 
-#: src/components/FollowButton.tsx:98
+#: src/components/FollowButton.tsx:103
 msgid "Failed to follow"
 msgstr "팔로에 실패했습니다"
 
@@ -514,7 +514,7 @@ msgstr "콘텐츠 공유 실패"
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
-#: src/components/FollowButton.tsx:86
+#: src/components/FollowButton.tsx:102
 msgid "Failed to unfollow"
 msgstr "언팔로에 실패했습니다"
 
@@ -530,11 +530,11 @@ msgstr "연합우주"
 msgid "Feed"
 msgstr "피드"
 
-#: src/components/FollowButton.tsx:120
+#: src/components/FollowButton.tsx:133
 msgid "Follow"
 msgstr "팔로"
 
-#: src/components/FollowButton.tsx:119
+#: src/components/FollowButton.tsx:132
 msgid "Follow Back"
 msgstr "맞팔하기"
 
@@ -1324,7 +1324,7 @@ msgstr "반응을 추가할 수 없습니다. 다시 시도해주세요."
 msgid "Unable to remove reaction. Please try again."
 msgstr "반응을 제거할 수 없습니다. 다시 시도해주세요."
 
-#: src/components/FollowButton.tsx:117
+#: src/components/FollowButton.tsx:130
 msgid "Unfollow"
 msgstr "언팔로"
 

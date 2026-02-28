@@ -436,7 +436,7 @@ msgstr "Error"
 msgid "Extra message"
 msgstr "Extra message"
 
-#: src/components/FollowButton.tsx:98
+#: src/components/FollowButton.tsx:103
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
@@ -518,7 +518,7 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/FollowButton.tsx:86
+#: src/components/FollowButton.tsx:102
 msgid "Failed to unfollow"
 msgstr "Failed to unfollow"
 
@@ -534,11 +534,11 @@ msgstr "Fediverse"
 msgid "Feed"
 msgstr "Feed"
 
-#: src/components/FollowButton.tsx:120
+#: src/components/FollowButton.tsx:133
 msgid "Follow"
 msgstr "Follow"
 
-#: src/components/FollowButton.tsx:119
+#: src/components/FollowButton.tsx:132
 msgid "Follow Back"
 msgstr "Follow Back"
 
@@ -1329,7 +1329,7 @@ msgstr "Unable to add reaction. Please try again."
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
-#: src/components/FollowButton.tsx:117
+#: src/components/FollowButton.tsx:130
 msgid "Unfollow"
 msgstr "Unfollow"
 

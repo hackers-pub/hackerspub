@@ -432,7 +432,7 @@ msgstr "錯誤"
 msgid "Extra message"
 msgstr "額外訊息"
 
-#: src/components/FollowButton.tsx:98
+#: src/components/FollowButton.tsx:103
 msgid "Failed to follow"
 msgstr "關注失敗"
 
@@ -514,7 +514,7 @@ msgstr "轉貼失敗"
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
-#: src/components/FollowButton.tsx:86
+#: src/components/FollowButton.tsx:102
 msgid "Failed to unfollow"
 msgstr "取消關注失敗"
 
@@ -530,11 +530,11 @@ msgstr "聯邦宇宙"
 msgid "Feed"
 msgstr "訂閱流"
 
-#: src/components/FollowButton.tsx:120
+#: src/components/FollowButton.tsx:133
 msgid "Follow"
 msgstr "關注"
 
-#: src/components/FollowButton.tsx:119
+#: src/components/FollowButton.tsx:132
 msgid "Follow Back"
 msgstr "回關"
 
@@ -1324,7 +1324,7 @@ msgstr "無法新增反應。請重試。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "無法移除反應。請重試。"
 
-#: src/components/FollowButton.tsx:117
+#: src/components/FollowButton.tsx:130
 msgid "Unfollow"
 msgstr "取消關注"
 
