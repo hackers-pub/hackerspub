@@ -1,4 +1,4 @@
-import { graphql } from "relay-runtime";
+import { ConnectionHandler, graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
@@ -13,12 +13,23 @@ export interface FollowButtonProps {
 }
 
 const followActorMutation = graphql`
-  mutation FollowButton_followActor_Mutation($input: FollowActorInput!) {
+  mutation FollowButton_followActor_Mutation(
+    $input: FollowActorInput!
+    $connections: [ID!]!
+  ) {
     followActor(input: $input) {
       ... on FollowActorPayload {
-        actor {
+        followee {
           id
           viewerFollows
+          followers { totalCount }
+        }
+        follower @appendNode(
+          connections: $connections
+          edgeTypeName: "ActorFollowersConnectionEdge"
+        ) {
+          id
+          ...SmallProfileCard_actor
         }
       }
       ... on InvalidInputError {
@@ -32,13 +43,18 @@ const followActorMutation = graphql`
 `;
 
 const unfollowActorMutation = graphql`
-  mutation FollowButton_unfollowActor_Mutation($input: UnfollowActorInput!) {
+  mutation FollowButton_unfollowActor_Mutation(
+    $input: UnfollowActorInput!
+    $connections: [ID!]!
+  ) {
     unfollowActor(input: $input) {
       ... on UnfollowActorPayload {
-        actor {
+        followee {
           id
           viewerFollows
+          followers { totalCount }
         }
+        unfollowedFollowerId @deleteEdge(connections: $connections)
       }
       ... on InvalidInputError {
         inputPath
@@ -76,10 +92,16 @@ export function FollowButton(props: FollowButtonProps) {
     const actorData = actor();
     if (!actorData) return;
 
+    const connectionId = ConnectionHandler.getConnectionID(
+      actorData.id,
+      "ActorFollowerList_followers",
+    );
+
     if (actorData.viewerFollows) {
       unfollowActor({
         variables: {
           input: { actorId: actorData.id },
+          connections: [connectionId],
         },
         onError() {
           showToast({
@@ -92,6 +114,7 @@ export function FollowButton(props: FollowButtonProps) {
       followActor({
         variables: {
           input: { actorId: actorData.id },
+          connections: [connectionId],
         },
         onError() {
           showToast({

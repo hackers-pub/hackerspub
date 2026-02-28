@@ -615,16 +615,18 @@ builder.relayMutationField(
 
       await follow(ctx.fedCtx, ctx.account, followee);
 
-      return followee;
+      return { followee, follower: ctx.account.actor };
     },
   },
   {
     outputFields: (t) => ({
-      actor: t.field({
+      followee: t.field({
         type: Actor,
-        resolve(result) {
-          return result;
-        },
+        resolve: (result) => result.followee,
+      }),
+      follower: t.field({
+        type: Actor,
+        resolve: (result) => result.follower,
       }),
     }),
   },
@@ -660,16 +662,17 @@ builder.relayMutationField(
 
       await unfollow(ctx.fedCtx, ctx.account, followee);
 
-      return followee;
+      return { followee, followerId: ctx.account.actor.id };
     },
   },
   {
     outputFields: (t) => ({
-      actor: t.field({
+      followee: t.field({
         type: Actor,
-        resolve(result) {
-          return result;
-        },
+        resolve: (result) => result.followee,
+      }),
+      unfollowedFollowerId: t.globalID({
+        resolve: (result) => ({ type: "Actor", id: result.followerId }),
       }),
     }),
   },

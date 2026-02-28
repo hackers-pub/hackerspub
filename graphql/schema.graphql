@@ -437,8 +437,9 @@ input FollowActorInput {
 }
 
 type FollowActorPayload {
-  actor: Actor!
   clientMutationId: ID
+  followee: Actor!
+  follower: Actor!
 }
 
 union FollowActorResult = FollowActorPayload | InvalidInputError | NotAuthenticatedError
@@ -1232,8 +1233,9 @@ input UnfollowActorInput {
 }
 
 type UnfollowActorPayload {
-  actor: Actor!
   clientMutationId: ID
+  followee: Actor!
+  unfollowedFollowerId: ID!
 }
 
 union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | UnfollowActorPayload
