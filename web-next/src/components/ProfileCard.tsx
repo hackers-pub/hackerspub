@@ -37,7 +37,6 @@ export function ProfileCard(props: ProfileCardProps) {
         local
         url
         iri
-        viewerFollows
         followeesCount: followees {
           totalCount
         }
