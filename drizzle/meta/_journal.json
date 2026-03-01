@@ -610,6 +610,13 @@
       "when": 1772353183891,
       "tag": "0086_bitter_nico_minoru",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1772354635243,
+      "tag": "0087_opposite_roland_deschain",
+      "breakpoints": true
     }
   ]
 }

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "exports": {
     "./account": "./account.ts",
+    "./apns": "./apns.ts",
     "./actor": "./actor.ts",
     "./article": "./article.ts",
     "./avatar": "./avatar.ts",

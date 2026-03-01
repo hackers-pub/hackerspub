@@ -24,6 +24,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     invitationLinks: r.many.invitationLinkTable(),
     notifications: r.many.notificationTable(),
+    apnsDeviceTokens: r.many.apnsDeviceTokenTable(),
     uploadedMedia: r.many.articleMediumTable(),
   },
   accountEmailTable: {
@@ -321,6 +322,13 @@ export const relations = defineRelations(schema, (r) => ({
     lastSharer: r.one.actorTable({
       from: r.timelineItemTable.lastSharerId,
       to: r.actorTable.id,
+    }),
+  },
+  apnsDeviceTokenTable: {
+    account: r.one.accountTable({
+      from: r.apnsDeviceTokenTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
     }),
   },
   notificationTable: {

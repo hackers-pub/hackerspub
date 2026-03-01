@@ -1,6 +1,7 @@
 import { getLogger } from "@logtape/logtape";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import postgres from "postgres";
+import { type ApnsNotificationOptions, sendApnsNotification } from "./apns.ts";
 import type { Database } from "./db.ts";
 import {
   type Account,
@@ -15,6 +16,25 @@ import {
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "notification"]);
+
+async function sendApnsNotificationBestEffort(
+  db: Database,
+  options: ApnsNotificationOptions,
+): Promise<void> {
+  try {
+    await sendApnsNotification(db, options);
+  } catch (error) {
+    logger.error(
+      "Failed to send APNS notification after persistence for account {accountId}, notification {notificationId}, type {type}: {error}",
+      {
+        accountId: options.accountId,
+        notificationId: options.notificationId,
+        type: options.type,
+        error,
+      },
+    );
+  }
+}
 
 /**
  * Creates a new notification record in the database.
@@ -34,10 +54,10 @@ export async function createNotification(
   created?: Date | null,
   emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
+  const postId = post?.id;
   try {
-    const postId = post?.id;
     const id = generateUuidV7();
-    const notification = await db.insert(notificationTable)
+    const notificationRows = await db.insert(notificationTable)
       .values({
         id,
         accountId,
@@ -51,10 +71,21 @@ export async function createNotification(
         created: created ?? sql`CURRENT_TIMESTAMP`,
       })
       .returning();
-    return notification[0];
+    const notification = notificationRows[0];
+    if (notification != null) {
+      await sendApnsNotificationBestEffort(db, {
+        accountId,
+        notificationId: notification.id,
+        type,
+        actorId,
+        postId,
+        emoji,
+      });
+    }
+    return notification;
   } catch (error) {
     if (error instanceof postgres.PostgresError && error.code === "23505") {
-      await db.update(notificationTable)
+      const notificationRows = await db.update(notificationTable)
         .set({
           actorIds:
             sql`array_append(${notificationTable.actorIds}, ${actorId})`,
@@ -73,7 +104,20 @@ export async function createNotification(
               ? eq(notificationTable.emoji, emoji)
               : eq(notificationTable.customEmojiId, emoji.id),
           ),
-        );
+        )
+        .returning();
+      const notification = notificationRows[0];
+      if (notification != null) {
+        await sendApnsNotificationBestEffort(db, {
+          accountId,
+          notificationId: notification.id,
+          type,
+          actorId,
+          postId,
+          emoji,
+        });
+      }
+      return notification;
     } else {
       logger.error("Failed to create notification: {error}", { error });
       return undefined;
