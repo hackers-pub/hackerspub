@@ -34,6 +34,7 @@
     "./signup": "./signup.ts",
     "./timeline": "./timeline.ts",
     "./tx": "./tx.ts",
+    "./upload": "./upload.ts",
     "./url": "./url.ts",
     "./userValidation": "./userValidation.ts",
     "./uuid": "./uuid.ts"
