@@ -1,7 +1,7 @@
 import { getLogger } from "@logtape/logtape";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import postgres from "postgres";
-import { sendApnsNotification } from "./apns.ts";
+import { type ApnsNotificationOptions, sendApnsNotification } from "./apns.ts";
 import type { Database } from "./db.ts";
 import {
   type Account,
@@ -16,6 +16,20 @@ import {
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "notification"]);
+
+async function sendApnsNotificationBestEffort(
+  db: Database,
+  options: ApnsNotificationOptions,
+): Promise<void> {
+  try {
+    await sendApnsNotification(db, options);
+  } catch (error) {
+    logger.error(
+      "Failed to send APNS notification after persistence: {error}",
+      { error },
+    );
+  }
+}
 
 /**
  * Creates a new notification record in the database.
@@ -54,7 +68,7 @@ export async function createNotification(
       .returning();
     const notification = notificationRows[0];
     if (notification != null) {
-      await sendApnsNotification(db, {
+      await sendApnsNotificationBestEffort(db, {
         accountId,
         notificationId: notification.id,
         type,
@@ -89,7 +103,7 @@ export async function createNotification(
         .returning();
       const notification = notificationRows[0];
       if (notification != null) {
-        await sendApnsNotification(db, {
+        await sendApnsNotificationBestEffort(db, {
           accountId,
           notificationId: notification.id,
           type,
