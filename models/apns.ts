@@ -1,5 +1,5 @@
 import { getLogger } from "@logtape/logtape";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { ApnsClient, Errors, Host, Notification } from "apns2";
 import type { Database } from "./db.ts";
 import {
@@ -12,6 +12,7 @@ import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "apns"]);
 const APNS_DEVICE_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
+export const MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT = 20;
 
 interface ApnsConfig {
   teamId: string;
@@ -113,6 +114,21 @@ export async function registerApnsDeviceToken(
 ): Promise<ApnsDeviceToken | undefined> {
   const normalized = normalizeApnsDeviceToken(deviceToken);
   if (normalized == null) return undefined;
+
+  const existingToken = await db.query.apnsDeviceTokenTable.findFirst({
+    columns: { accountId: true },
+    where: { deviceToken: normalized },
+  });
+  if (existingToken?.accountId !== accountId) {
+    const tokenCounts = await db.select({ count: count() })
+      .from(apnsDeviceTokenTable)
+      .where(eq(apnsDeviceTokenTable.accountId, accountId));
+    const tokenCount = Number(tokenCounts[0]?.count ?? 0);
+    if (tokenCount >= MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT) {
+      return undefined;
+    }
+  }
+
   const rows = await db.insert(apnsDeviceTokenTable)
     .values({
       accountId,
