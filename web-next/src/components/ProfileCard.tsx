@@ -14,6 +14,7 @@ import {
 } from "~/components/ui/tooltip.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import type { ProfileCard_actor$key } from "./__generated__/ProfileCard_actor.graphql.ts";
+import { FollowButton } from "./FollowButton.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
 
@@ -26,6 +27,7 @@ export function ProfileCard(props: ProfileCardProps) {
   const actor = createFragment(
     graphql`
       fragment ProfileCard_actor on Actor {
+        id
         name
         username
         handle
@@ -55,6 +57,7 @@ export function ProfileCard(props: ProfileCardProps) {
             verified
           }
         }
+        ...FollowButton_actor
       }
     `,
     () => props.$actor,
@@ -79,7 +82,7 @@ export function ProfileCard(props: ProfileCardProps) {
                   </AvatarFallback>
                 </a>
               </Avatar>
-              <div>
+              <div class="flex-1">
                 <h1 class="text-xl font-semibold">
                   <a
                     innerHTML={actor().name ?? actor().username}
@@ -95,6 +98,7 @@ export function ProfileCard(props: ProfileCardProps) {
                   </span>
                 </div>
               </div>
+              <FollowButton $actor={actor()} />
             </div>
           </div>
           <Show when={(actor().bio?.trim() ?? "") !== ""}>

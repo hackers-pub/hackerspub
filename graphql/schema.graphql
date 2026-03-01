@@ -139,6 +139,7 @@ type Actor implements Node {
   instanceHost: String!
   iri: URL!
   isFollowedBy(followerId: ID): Boolean!
+  isViewer: Boolean!
   local: Boolean!
   name: HTML
   noteByUuid(uuid: UUID!): Note
@@ -156,6 +157,7 @@ type Actor implements Node {
   url: URL
   username: String!
   uuid: UUID!
+  viewerFollows: Boolean!
 }
 
 type ActorArticlesConnection {
@@ -429,6 +431,19 @@ type EmptySearchQueryError {
   message: String!
 }
 
+input FollowActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type FollowActorPayload {
+  clientMutationId: ID
+  followee: Actor!
+  follower: Actor!
+}
+
+union FollowActorResult = FollowActorPayload | InvalidInputError | NotAuthenticatedError
+
 type FollowNotification implements Node & Notification {
   account: Account!
   actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
@@ -562,6 +577,7 @@ type Mutation {
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
   deletePost(input: DeletePostInput!): DeletePostResult!
+  followActor(input: FollowActorInput!): FollowActorResult!
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
     sessionId: UUID!
@@ -619,6 +635,7 @@ type Mutation {
   ): Session
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
   sharePost(input: SharePostInput!): SharePostResult!
+  unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): PasskeyRegistrationResult!
@@ -1209,6 +1226,19 @@ scalar URL
 A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier.
 """
 scalar UUID
+
+input UnfollowActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type UnfollowActorPayload {
+  clientMutationId: ID
+  followee: Actor!
+  follower: Actor!
+}
+
+union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | UnfollowActorPayload
 
 input UnsharePostInput {
   clientMutationId: ID
