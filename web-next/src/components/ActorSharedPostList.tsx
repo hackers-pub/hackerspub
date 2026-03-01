@@ -25,6 +25,7 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
         sharedPosts(after: $cursor, first: $count)
           @connection(key: "ActorSharedPostList_sharedPosts")
         {
+          __id
           edges {
             __id
             node {
@@ -58,7 +59,12 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
         {(data) => (
           <>
             <For each={data().sharedPosts.edges}>
-              {(edge) => <PostCard $post={edge.node} />}
+              {(edge) => (
+                <PostCard
+                  $post={edge.node}
+                  connections={[data().sharedPosts.__id]}
+                />
+              )}
             </For>
             <Show when={sharedPosts.hasNext}>
               <div
