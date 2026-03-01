@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:218
+#: src/components/ProfileCard.tsx:222
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:203
+#: src/components/ProfileCard.tsx:207
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -123,7 +123,7 @@ msgstr "{0} 转发了你的内容"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:138
+#: src/routes/(root)/[handle]/[noteId].tsx:143
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -138,6 +138,12 @@ msgstr "{0}的文章"
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:69
 msgid "{0}'s followers"
 msgstr "{0}的粉丝"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/following.tsx:66
+#: src/routes/(root)/[handle]/(profile)/following.tsx:69
+msgid "{0}'s following"
+msgstr "{0}的关注"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:67
@@ -260,12 +266,13 @@ msgstr "个人简介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "个人简介太长。不能长于 512 字符。"
 
-#: src/components/ui/markdown-editor.tsx:266
+#: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "粗体"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
+#: src/components/PostActionMenu.tsx:137
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -275,7 +282,7 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 
-#: src/components/ui/markdown-editor.tsx:270
+#: src/components/ui/markdown-editor.tsx:279
 msgid "Code"
 msgstr "代码"
 
@@ -290,7 +297,7 @@ msgstr "行为准则"
 msgid "Compose"
 msgstr "写作"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:33
+#: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "内容"
@@ -340,6 +347,8 @@ msgstr "默认帖子隐私设置"
 msgid "Default share privacy"
 msgstr "默认转帖隐私设置"
 
+#: src/components/PostActionMenu.tsx:123
+#: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "删除"
@@ -347,6 +356,10 @@ msgstr "删除"
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Delete Draft"
 msgstr "删除草稿"
+
+#: src/components/PostActionMenu.tsx:131
+msgid "Delete post?"
+msgstr "删除内容？"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Deleting..."
@@ -417,6 +430,7 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/article-composer/ArticleComposerContext.tsx:443
 #: src/components/article-composer/ArticleComposerContext.tsx:452
 #: src/components/article-composer/ArticleComposerContext.tsx:460
+#: src/components/article-composer/ArticleComposerForm.tsx:26
 #: src/components/NoteComposer.tsx:95
 #: src/components/NoteComposer.tsx:121
 #: src/components/NoteComposer.tsx:129
@@ -432,11 +446,16 @@ msgstr "错误"
 msgid "Extra message"
 msgstr "额外消息"
 
+#: src/components/PostActionMenu.tsx:88
+#: src/components/PostActionMenu.tsx:95
+msgid "Failed to delete post"
+msgstr "删除内容失败"
+
 #: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "关注失败"
 
-#: src/components/ActorArticleList.tsx:75
+#: src/components/ActorArticleList.tsx:81
 msgid "Failed to load more articles; click to retry"
 msgstr "加载更多文章失败，点击重试"
 
@@ -448,11 +467,15 @@ msgstr "加载更多草稿失败，点击重试"
 msgid "Failed to load more followers; click to retry"
 msgstr "加载更多粉丝失败，点击重试"
 
+#: src/components/ActorFollowingList.tsx:80
+msgid "Failed to load more following; click to retry"
+msgstr "加载更多关注失败，点击重试"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Failed to load more invitees; click to retry"
 msgstr "加载更多受邀者失败；点击重试"
 
-#: src/components/ActorNoteList.tsx:72
+#: src/components/ActorNoteList.tsx:75
 msgid "Failed to load more notes; click to retry"
 msgstr "加载更多帖子失败，点击重试"
 
@@ -464,10 +487,10 @@ msgstr "加载更多通知失败；点击重试"
 msgid "Failed to load more passkeys; click to retry"
 msgstr "加载更多通行密钥失败，点击重试"
 
-#: src/components/ActorPostList.tsx:73
-#: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:81
+#: src/components/PersonalTimeline.tsx:98
+#: src/components/PublicTimeline.tsx:100
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
@@ -522,6 +545,10 @@ msgstr "取消关注失败"
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
 
+#: src/components/article-composer/ArticleComposerForm.tsx:29
+msgid "Failed to upload image"
+msgstr "图片上传失败"
+
 #: src/components/AppSidebar.tsx:238
 msgid "Fediverse"
 msgstr "联邦宇宙"
@@ -547,11 +574,11 @@ msgstr "回关"
 msgid "Followers only"
 msgstr "只粉丝可见"
 
-#: src/components/ProfileCard.tsx:228
+#: src/components/ProfileCard.tsx:232
 msgid "Following you"
 msgstr "关注了你"
 
-#: src/components/ui/markdown-editor.tsx:412
+#: src/components/ui/markdown-editor.tsx:519
 msgid "Formatting"
 msgstr "格式"
 
@@ -590,19 +617,19 @@ msgstr "Hackers' Pub 是个为软件工程师共同分享知识和经验的地�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
-#: src/components/ui/markdown-editor.tsx:274
+#: src/components/ui/markdown-editor.tsx:283
 msgid "Heading 1"
 msgstr "标题 1"
 
-#: src/components/ui/markdown-editor.tsx:276
+#: src/components/ui/markdown-editor.tsx:285
 msgid "Heading 2"
 msgstr "标题 2"
 
-#: src/components/ui/markdown-editor.tsx:278
+#: src/components/ui/markdown-editor.tsx:287
 msgid "Heading 3"
 msgstr "标题 3"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Hide Preview"
 msgstr "隐藏预览"
 
@@ -619,9 +646,14 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:247
+#: src/routes/(root)/[handle]/[noteId].tsx:253
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此帖子。在你的实例搜索 {0} 后回复。"
+
+#: src/components/ui/markdown-editor.tsx:572
+#: src/components/ui/markdown-editor.tsx:573
+msgid "Image"
+msgstr "图片"
 
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
@@ -652,7 +684,7 @@ msgstr "邀请"
 msgid "Invite a friend"
 msgstr "邀请朋友"
 
-#: src/components/ui/markdown-editor.tsx:268
+#: src/components/ui/markdown-editor.tsx:277
 msgid "Italic"
 msgstr "斜体"
 
@@ -686,7 +718,7 @@ msgstr "语言设置"
 msgid "Last used {0}"
 msgstr "{0}最后使用"
 
-#: src/components/ui/markdown-editor.tsx:272
+#: src/components/ui/markdown-editor.tsx:281
 msgid "Link"
 msgstr "链接"
 
@@ -698,7 +730,7 @@ msgstr "链接作者："
 msgid "Link name"
 msgstr "链接名"
 
-#: src/components/ui/markdown-editor.tsx:282
+#: src/components/ui/markdown-editor.tsx:291
 msgid "List"
 msgstr "列表"
 
@@ -706,7 +738,7 @@ msgstr "列表"
 msgid "Load More"
 msgstr "加载更多"
 
-#: src/components/ActorArticleList.tsx:78
+#: src/components/ActorArticleList.tsx:84
 msgid "Load more articles"
 msgstr "加载更多文章"
 
@@ -714,11 +746,15 @@ msgstr "加载更多文章"
 msgid "Load more followers"
 msgstr "加载更多粉丝"
 
+#: src/components/ActorFollowingList.tsx:83
+msgid "Load more following"
+msgstr "加载更多关注"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:491
 msgid "Load more invitees"
 msgstr "加载更多受邀者"
 
-#: src/components/ActorNoteList.tsx:75
+#: src/components/ActorNoteList.tsx:78
 msgid "Load more notes"
 msgstr "加载更多帖子"
 
@@ -730,10 +766,10 @@ msgstr "加载更多通知"
 msgid "Load more passkeys"
 msgstr "加载更多通行密钥"
 
-#: src/components/ActorPostList.tsx:76
-#: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:95
-#: src/components/PublicTimeline.tsx:97
+#: src/components/ActorPostList.tsx:79
+#: src/components/ActorSharedPostList.tsx:84
+#: src/components/PersonalTimeline.tsx:101
+#: src/components/PublicTimeline.tsx:103
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "加载更多内容"
@@ -742,7 +778,7 @@ msgstr "加载更多内容"
 msgid "Loading draft..."
 msgstr "加载草稿中..."
 
-#: src/components/ActorArticleList.tsx:72
+#: src/components/ActorArticleList.tsx:78
 msgid "Loading more articles…"
 msgstr "加载更多文章中…"
 
@@ -750,11 +786,15 @@ msgstr "加载更多文章中…"
 msgid "Loading more followers…"
 msgstr "加载更多粉丝中…"
 
+#: src/components/ActorFollowingList.tsx:77
+msgid "Loading more following…"
+msgstr "正在加载更多关注…"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Loading more invitees…"
 msgstr "正在加载更多受邀者…"
 
-#: src/components/ActorNoteList.tsx:69
+#: src/components/ActorNoteList.tsx:72
 msgid "Loading more notes…"
 msgstr "加载更多帖子中…"
 
@@ -766,10 +806,10 @@ msgstr "正在加载更多通知…"
 msgid "Loading more passkeys…"
 msgstr "正在加载更多通行密钥…"
 
-#: src/components/ActorPostList.tsx:70
-#: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:89
-#: src/components/PublicTimeline.tsx:91
+#: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:78
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
@@ -786,7 +826,7 @@ msgstr "正在加载…"
 msgid "Markdown guide"
 msgstr "Markdown 指南"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:79
+#: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown 可用"
@@ -849,22 +889,26 @@ msgstr "还没有草稿。创建您的第一篇文章！"
 msgid "No followers found"
 msgstr "未找到粉丝"
 
+#: src/components/ActorFollowingList.tsx:90
+msgid "No following found"
+msgstr "没有找到关注的用户"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:334
 msgid "No invitations left"
 msgstr "没有剩余邀请名额"
 
-#: src/components/ActorArticleList.tsx:85
+#: src/components/ActorArticleList.tsx:91
 msgid "No notes articles"
 msgstr "未找到文章"
 
-#: src/components/ActorNoteList.tsx:82
+#: src/components/ActorNoteList.tsx:85
 msgid "No notes found"
 msgstr "未找到帖子"
 
-#: src/components/ActorPostList.tsx:83
-#: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:102
-#: src/components/PublicTimeline.tsx:104
+#: src/components/ActorPostList.tsx:86
+#: src/components/ActorSharedPostList.tsx:91
+#: src/components/PersonalTimeline.tsx:108
+#: src/components/PublicTimeline.tsx:110
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "未找到内容"
@@ -951,7 +995,7 @@ msgstr "请选择小于 5 MiB 的图片文件。"
 msgid "Please correct the errors and try again."
 msgstr "请修正错误并重试。"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:24
+#: src/components/article-composer/ArticleComposerForm.tsx:44
 msgid "Please enter a title for your article."
 msgstr "请输入文章标题。"
 
@@ -960,6 +1004,10 @@ msgstr "请输入文章标题。"
 #: src/routes/(root)/[handle]/drafts/new.tsx:76
 msgid "Please sign in to access this page"
 msgstr "请登录以访问此页面"
+
+#: src/components/PostActionMenu.tsx:84
+msgid "Post deleted"
+msgstr "内容已删除"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -1021,7 +1069,7 @@ msgid "Quiet public"
 msgstr "悄悄公开"
 
 #: src/components/PostControls.tsx:193
-#: src/components/ui/markdown-editor.tsx:280
+#: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
@@ -1038,7 +1086,7 @@ msgstr "用{emoji}反应"
 msgid "reaction"
 msgstr "反应"
 
-#: src/components/ArticleCard.tsx:264
+#: src/components/ArticleCard.tsx:277
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -1102,7 +1150,7 @@ msgstr "保存"
 msgid "Save Draft"
 msgstr "保存草稿"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:105
+#: src/components/article-composer/ArticleComposerForm.tsx:126
 msgid "Save draft to see preview"
 msgstr "保存草稿以查看预览"
 
@@ -1162,7 +1210,7 @@ msgstr "分享"
 msgid "Shares"
 msgstr "转帖"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show Preview"
 msgstr "显示预览"
 
@@ -1227,7 +1275,7 @@ msgstr "设置已成功保存"
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
-#: src/components/ArticleCard.tsx:242
+#: src/components/ArticleCard.tsx:255
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -1239,7 +1287,7 @@ msgstr "目录"
 #~ msgid "Tag"
 #~ msgstr "标签"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:121
+#: src/components/article-composer/ArticleComposerForm.tsx:142
 msgid "Tags"
 msgstr "标签"
 
@@ -1289,6 +1337,10 @@ msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 
+#: src/components/PostActionMenu.tsx:133
+msgid "This action cannot be undone. This will permanently delete this post."
+msgstr "此操作无法撤销。这将永久删除该内容。"
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "这将成为文章 URL 的一部分"
@@ -1297,7 +1349,7 @@ msgstr "这将成为文章 URL 的一部分"
 msgid "Timeline"
 msgstr "时间线"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:20
+#: src/components/article-composer/ArticleComposerForm.tsx:40
 msgid "Title"
 msgstr "标题"
 
@@ -1306,11 +1358,11 @@ msgid "Title cannot be empty"
 msgstr "标题不能为空"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:160
+#: src/components/ArticleCard.tsx:173
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:125
+#: src/components/article-composer/ArticleComposerForm.tsx:146
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
 
@@ -1424,7 +1476,7 @@ msgstr "你在想啥？"
 msgid "Without shares"
 msgstr "不含转帖"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:93
+#: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "在此撰写文章。您可以使用 Markdown。在您撰写时，文章将自动保存为草稿。"
 

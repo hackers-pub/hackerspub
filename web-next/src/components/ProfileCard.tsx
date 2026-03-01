@@ -198,7 +198,11 @@ export function ProfileCard(props: ProfileCardProps) {
           </Show>
           <div class="p-4 pt-0 border-b">
             <div class="mx-auto max-w-prose text-muted-foreground">
-              <a>
+              <a
+                href={actor().local
+                  ? `/@${actor().username}/following`
+                  : undefined}
+              >
                 {i18n._(
                   msg`${
                     plural(actor().followeesCount.totalCount, {

@@ -3,11 +3,14 @@ import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { NoteHeader_note$key } from "./__generated__/NoteHeader_note.graphql.ts";
 import { InternalLink } from "./InternalLink.tsx";
+import { PostActionMenu } from "./PostActionMenu.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { VisibilityTag } from "./VisibilityTag.tsx";
 
 export interface NoteHeaderProps {
   $note: NoteHeader_note$key;
+  connections?: string[];
+  onDeleted?: () => void;
 }
 
 export function NoteHeader(props: NoteHeaderProps) {
@@ -27,6 +30,7 @@ export function NoteHeader(props: NoteHeaderProps) {
           url
           iri
         }
+        ...PostActionMenu_post
       }
     `,
     () => props.$note,
@@ -50,7 +54,7 @@ export function NoteHeader(props: NoteHeaderProps) {
           <span class="select-all text-muted-foreground grow">
             {n().actor.handle}
           </span>
-          <span class="flex text-sm text-muted-foreground/60 gap-1.5">
+          <span class="flex items-center text-sm text-muted-foreground/60 gap-1.5">
             <InternalLink
               href={n().url ?? n().iri}
               internalHref={`/${
@@ -61,6 +65,11 @@ export function NoteHeader(props: NoteHeaderProps) {
             </InternalLink>
             &middot;
             <VisibilityTag visibility={n().visibility} />
+            <PostActionMenu
+              $post={n()}
+              connections={props.connections}
+              onDeleted={props.onDeleted}
+            />
           </span>
         </div>
       )}

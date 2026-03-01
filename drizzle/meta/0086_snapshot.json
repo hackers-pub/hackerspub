@@ -1,5 +1,5 @@
 {
-  "id": "6e407718-e9d5-4894-9757-377f9362598a",
+  "id": "f6aec845-6827-42c2-86fe-2e170fe5439b",
   "prevId": "0d58ade1-795f-4d2b-8aa4-e24c3e5df720",
   "version": "7",
   "dialect": "postgresql",
@@ -711,80 +711,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.apns_device_token": {
-      "name": "apns_device_token",
-      "schema": "",
-      "columns": {
-        "device_token": {
-          "name": "device_token",
-          "type": "varchar(64)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "account_id": {
-          "name": "account_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created": {
-          "name": "created",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "updated": {
-          "name": "updated",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
-        }
-      },
-      "indexes": {
-        "apns_device_token_account_id_index": {
-          "name": "apns_device_token_account_id_index",
-          "columns": [
-            {
-              "expression": "account_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "apns_device_token_account_id_account_id_fk": {
-          "name": "apns_device_token_account_id_account_id_fk",
-          "tableFrom": "apns_device_token",
-          "tableTo": "account",
-          "columnsFrom": [
-            "account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "apns_device_token_device_token_check": {
-          "name": "apns_device_token_device_token_check",
-          "value": "\"apns_device_token\".\"device_token\" ~ '^[0-9a-f]{64}$'"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.article_content": {
       "name": "article_content",
       "schema": "",
@@ -1045,6 +971,108 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.article_medium": {
+      "name": "article_medium",
+      "schema": "",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "article_draft_id": {
+          "name": "article_draft_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "article_source_id": {
+          "name": "article_source_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "width": {
+          "name": "width",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "height": {
+          "name": "height",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created": {
+          "name": "created",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "article_medium_account_id_account_id_fk": {
+          "name": "article_medium_account_id_account_id_fk",
+          "tableFrom": "article_medium",
+          "tableTo": "account",
+          "columnsFrom": [
+            "account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "article_medium_article_draft_id_article_draft_id_fk": {
+          "name": "article_medium_article_draft_id_article_draft_id_fk",
+          "tableFrom": "article_medium",
+          "tableTo": "article_draft",
+          "columnsFrom": [
+            "article_draft_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "article_medium_article_source_id_article_source_id_fk": {
+          "name": "article_medium_article_source_id_article_source_id_fk",
+          "tableFrom": "article_medium",
+          "tableTo": "article_source",
+          "columnsFrom": [
+            "article_source_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },

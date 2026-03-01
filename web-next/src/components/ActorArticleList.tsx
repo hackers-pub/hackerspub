@@ -25,6 +25,7 @@ export function ActorArticleList(props: ActorArticleListProps) {
         articles(after: $cursor, first: $count)
           @connection(key: "ActorArticleList_articles")
         {
+          __id
           edges {
             __id
             node {
@@ -58,7 +59,12 @@ export function ActorArticleList(props: ActorArticleListProps) {
         {(data) => (
           <>
             <For each={data().articles.edges}>
-              {(edge) => <ArticleCard $article={edge.node} />}
+              {(edge) => (
+                <ArticleCard
+                  $article={edge.node}
+                  connections={[data().articles.__id]}
+                />
+              )}
             </For>
             <Show when={articles.hasNext}>
               <div

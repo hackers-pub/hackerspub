@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:218
+#: src/components/ProfileCard.tsx:222
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:203
+#: src/components/ProfileCard.tsx:207
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -123,7 +123,7 @@ msgstr "{0} shared your post"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:138
+#: src/routes/(root)/[handle]/[noteId].tsx:143
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -138,6 +138,12 @@ msgstr "{0}'s articles"
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:69
 msgid "{0}'s followers"
 msgstr "{0}'s followers"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/following.tsx:66
+#: src/routes/(root)/[handle]/(profile)/following.tsx:69
+msgid "{0}'s following"
+msgstr "{0}'s following"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:67
@@ -260,12 +266,13 @@ msgstr "Bio"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
-#: src/components/ui/markdown-editor.tsx:266
+#: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "Bold"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
+#: src/components/PostActionMenu.tsx:137
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -275,7 +282,7 @@ msgstr "Cancel"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
 
-#: src/components/ui/markdown-editor.tsx:270
+#: src/components/ui/markdown-editor.tsx:279
 msgid "Code"
 msgstr "Code"
 
@@ -290,7 +297,7 @@ msgstr "Code of conduct"
 msgid "Compose"
 msgstr "Compose"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:33
+#: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "Content"
@@ -340,6 +347,8 @@ msgstr "Default note privacy"
 msgid "Default share privacy"
 msgstr "Default share privacy"
 
+#: src/components/PostActionMenu.tsx:123
+#: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "Delete"
@@ -347,6 +356,10 @@ msgstr "Delete"
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Delete Draft"
 msgstr "Delete Draft"
+
+#: src/components/PostActionMenu.tsx:131
+msgid "Delete post?"
+msgstr "Delete post?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Deleting..."
@@ -421,6 +434,7 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/article-composer/ArticleComposerContext.tsx:443
 #: src/components/article-composer/ArticleComposerContext.tsx:452
 #: src/components/article-composer/ArticleComposerContext.tsx:460
+#: src/components/article-composer/ArticleComposerForm.tsx:26
 #: src/components/NoteComposer.tsx:95
 #: src/components/NoteComposer.tsx:121
 #: src/components/NoteComposer.tsx:129
@@ -436,11 +450,16 @@ msgstr "Error"
 msgid "Extra message"
 msgstr "Extra message"
 
+#: src/components/PostActionMenu.tsx:88
+#: src/components/PostActionMenu.tsx:95
+msgid "Failed to delete post"
+msgstr "Failed to delete post"
+
 #: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
-#: src/components/ActorArticleList.tsx:75
+#: src/components/ActorArticleList.tsx:81
 msgid "Failed to load more articles; click to retry"
 msgstr "Failed to load more articles; click to retry"
 
@@ -452,11 +471,15 @@ msgstr "Failed to load more drafts; click to retry"
 msgid "Failed to load more followers; click to retry"
 msgstr "Failed to load more followers; click to retry"
 
+#: src/components/ActorFollowingList.tsx:80
+msgid "Failed to load more following; click to retry"
+msgstr "Failed to load more following; click to retry"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Failed to load more invitees; click to retry"
 msgstr "Failed to load more invitees; click to retry"
 
-#: src/components/ActorNoteList.tsx:72
+#: src/components/ActorNoteList.tsx:75
 msgid "Failed to load more notes; click to retry"
 msgstr "Failed to load more notes; click to retry"
 
@@ -468,10 +491,10 @@ msgstr "Failed to load more notifications; click to retry"
 msgid "Failed to load more passkeys; click to retry"
 msgstr "Failed to load more passkeys; click to retry"
 
-#: src/components/ActorPostList.tsx:73
-#: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:81
+#: src/components/PersonalTimeline.tsx:98
+#: src/components/PublicTimeline.tsx:100
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
@@ -526,6 +549,10 @@ msgstr "Failed to unfollow"
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
+#: src/components/article-composer/ArticleComposerForm.tsx:29
+msgid "Failed to upload image"
+msgstr "Failed to upload image"
+
 #: src/components/AppSidebar.tsx:238
 msgid "Fediverse"
 msgstr "Fediverse"
@@ -551,11 +578,11 @@ msgstr "Follow Back"
 msgid "Followers only"
 msgstr "Followers only"
 
-#: src/components/ProfileCard.tsx:228
+#: src/components/ProfileCard.tsx:232
 msgid "Following you"
 msgstr "Following you"
 
-#: src/components/ui/markdown-editor.tsx:412
+#: src/components/ui/markdown-editor.tsx:519
 msgid "Formatting"
 msgstr "Formatting"
 
@@ -594,19 +621,19 @@ msgstr "Hackers' Pub is a place for software engineers to share their knowledge 
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
 
-#: src/components/ui/markdown-editor.tsx:274
+#: src/components/ui/markdown-editor.tsx:283
 msgid "Heading 1"
 msgstr "Heading 1"
 
-#: src/components/ui/markdown-editor.tsx:276
+#: src/components/ui/markdown-editor.tsx:285
 msgid "Heading 2"
 msgstr "Heading 2"
 
-#: src/components/ui/markdown-editor.tsx:278
+#: src/components/ui/markdown-editor.tsx:287
 msgid "Heading 3"
 msgstr "Heading 3"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Hide Preview"
 msgstr "Hide Preview"
 
@@ -623,9 +650,14 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:247
+#: src/routes/(root)/[handle]/[noteId].tsx:253
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
+
+#: src/components/ui/markdown-editor.tsx:572
+#: src/components/ui/markdown-editor.tsx:573
+msgid "Image"
+msgstr "Image"
 
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
@@ -656,7 +688,7 @@ msgstr "Invite"
 msgid "Invite a friend"
 msgstr "Invite a friend"
 
-#: src/components/ui/markdown-editor.tsx:268
+#: src/components/ui/markdown-editor.tsx:277
 msgid "Italic"
 msgstr "Italic"
 
@@ -690,7 +722,7 @@ msgstr "Language settings"
 msgid "Last used {0}"
 msgstr "Last used {0}"
 
-#: src/components/ui/markdown-editor.tsx:272
+#: src/components/ui/markdown-editor.tsx:281
 msgid "Link"
 msgstr "Link"
 
@@ -702,7 +734,7 @@ msgstr "Link author: "
 msgid "Link name"
 msgstr "Link name"
 
-#: src/components/ui/markdown-editor.tsx:282
+#: src/components/ui/markdown-editor.tsx:291
 msgid "List"
 msgstr "List"
 
@@ -710,7 +742,7 @@ msgstr "List"
 msgid "Load More"
 msgstr "Load More"
 
-#: src/components/ActorArticleList.tsx:78
+#: src/components/ActorArticleList.tsx:84
 msgid "Load more articles"
 msgstr "Load more articles"
 
@@ -718,11 +750,15 @@ msgstr "Load more articles"
 msgid "Load more followers"
 msgstr "Load more followers"
 
+#: src/components/ActorFollowingList.tsx:83
+msgid "Load more following"
+msgstr "Load more following"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:491
 msgid "Load more invitees"
 msgstr "Load more invitees"
 
-#: src/components/ActorNoteList.tsx:75
+#: src/components/ActorNoteList.tsx:78
 msgid "Load more notes"
 msgstr "Load more notes"
 
@@ -734,10 +770,10 @@ msgstr "Load more notifications"
 msgid "Load more passkeys"
 msgstr "Load more passkeys"
 
-#: src/components/ActorPostList.tsx:76
-#: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:95
-#: src/components/PublicTimeline.tsx:97
+#: src/components/ActorPostList.tsx:79
+#: src/components/ActorSharedPostList.tsx:84
+#: src/components/PersonalTimeline.tsx:101
+#: src/components/PublicTimeline.tsx:103
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "Load more posts"
@@ -746,7 +782,7 @@ msgstr "Load more posts"
 msgid "Loading draft..."
 msgstr "Loading draft..."
 
-#: src/components/ActorArticleList.tsx:72
+#: src/components/ActorArticleList.tsx:78
 msgid "Loading more articles…"
 msgstr "Loading more articles…"
 
@@ -754,11 +790,15 @@ msgstr "Loading more articles…"
 msgid "Loading more followers…"
 msgstr "Loading more followers…"
 
+#: src/components/ActorFollowingList.tsx:77
+msgid "Loading more following…"
+msgstr "Loading more following…"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Loading more invitees…"
 msgstr "Loading more invitees…"
 
-#: src/components/ActorNoteList.tsx:69
+#: src/components/ActorNoteList.tsx:72
 msgid "Loading more notes…"
 msgstr "Loading more notes…"
 
@@ -770,10 +810,10 @@ msgstr "Loading more notifications"
 msgid "Loading more passkeys…"
 msgstr "Loading more passkeys…"
 
-#: src/components/ActorPostList.tsx:70
-#: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:89
-#: src/components/PublicTimeline.tsx:91
+#: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:78
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
@@ -790,7 +830,7 @@ msgstr "Loading…"
 msgid "Markdown guide"
 msgstr "Markdown guide"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:79
+#: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown supported"
@@ -853,22 +893,26 @@ msgstr "No drafts yet. Create your first article!"
 msgid "No followers found"
 msgstr "No followers found"
 
+#: src/components/ActorFollowingList.tsx:90
+msgid "No following found"
+msgstr "No following found"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:334
 msgid "No invitations left"
 msgstr "No invitations left"
 
-#: src/components/ActorArticleList.tsx:85
+#: src/components/ActorArticleList.tsx:91
 msgid "No notes articles"
 msgstr "No notes articles"
 
-#: src/components/ActorNoteList.tsx:82
+#: src/components/ActorNoteList.tsx:85
 msgid "No notes found"
 msgstr "No notes found"
 
-#: src/components/ActorPostList.tsx:83
-#: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:102
-#: src/components/PublicTimeline.tsx:104
+#: src/components/ActorPostList.tsx:86
+#: src/components/ActorSharedPostList.tsx:91
+#: src/components/PersonalTimeline.tsx:108
+#: src/components/PublicTimeline.tsx:110
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "No posts found"
@@ -956,7 +1000,7 @@ msgstr "Please choose an image file smaller than 5 MiB."
 msgid "Please correct the errors and try again."
 msgstr "Please correct the errors and try again."
 
-#: src/components/article-composer/ArticleComposerForm.tsx:24
+#: src/components/article-composer/ArticleComposerForm.tsx:44
 msgid "Please enter a title for your article."
 msgstr "Please enter a title for your article."
 
@@ -965,6 +1009,10 @@ msgstr "Please enter a title for your article."
 #: src/routes/(root)/[handle]/drafts/new.tsx:76
 msgid "Please sign in to access this page"
 msgstr "Please sign in to access this page"
+
+#: src/components/PostActionMenu.tsx:84
+msgid "Post deleted"
+msgstr "Post deleted"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -1026,7 +1074,7 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/PostControls.tsx:193
-#: src/components/ui/markdown-editor.tsx:280
+#: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "Quote"
 
@@ -1043,7 +1091,7 @@ msgstr "React with {emoji}"
 msgid "reaction"
 msgstr "reaction"
 
-#: src/components/ArticleCard.tsx:264
+#: src/components/ArticleCard.tsx:277
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -1107,7 +1155,7 @@ msgstr "Save"
 msgid "Save Draft"
 msgstr "Save Draft"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:105
+#: src/components/article-composer/ArticleComposerForm.tsx:126
 msgid "Save draft to see preview"
 msgstr "Save draft to see preview"
 
@@ -1167,7 +1215,7 @@ msgstr "Share"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show Preview"
 msgstr "Show Preview"
 
@@ -1232,7 +1280,7 @@ msgstr "Successfully saved preferences"
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
-#: src/components/ArticleCard.tsx:242
+#: src/components/ArticleCard.tsx:255
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -1244,7 +1292,7 @@ msgstr "Table of contents"
 #~ msgid "Tag"
 #~ msgstr "Tag"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:121
+#: src/components/article-composer/ArticleComposerForm.tsx:142
 msgid "Tags"
 msgstr "Tags"
 
@@ -1294,6 +1342,10 @@ msgstr "The source code of this website is available on {0} under the {1} licens
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
+#: src/components/PostActionMenu.tsx:133
+msgid "This action cannot be undone. This will permanently delete this post."
+msgstr "This action cannot be undone. This will permanently delete this post."
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "This will be part of the article URL"
@@ -1302,7 +1354,7 @@ msgstr "This will be part of the article URL"
 msgid "Timeline"
 msgstr "Timeline"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:20
+#: src/components/article-composer/ArticleComposerForm.tsx:40
 msgid "Title"
 msgstr "Title"
 
@@ -1311,11 +1363,11 @@ msgid "Title cannot be empty"
 msgstr "Title cannot be empty"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:160
+#: src/components/ArticleCard.tsx:173
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:125
+#: src/components/article-composer/ArticleComposerForm.tsx:146
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
@@ -1429,7 +1481,7 @@ msgstr "What's on your mind?"
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:93
+#: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 

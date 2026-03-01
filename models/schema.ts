@@ -1189,3 +1189,29 @@ export const invitationLinkTable = pgTable(
 
 export type InvitationLink = typeof invitationLinkTable.$inferSelect;
 export type NewInvitationLink = typeof invitationLinkTable.$inferInsert;
+
+export const articleMediumTable = pgTable(
+  "article_medium",
+  {
+    key: text().primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    articleDraftId: uuid("article_draft_id")
+      .$type<Uuid>()
+      .references(() => articleDraftTable.id, { onDelete: "set null" }),
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .references(() => articleSourceTable.id, { onDelete: "set null" }),
+    url: text().notNull(),
+    width: integer().notNull(),
+    height: integer().notNull(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+);
+
+export type ArticleMedium = typeof articleMediumTable.$inferSelect;
+export type NewArticleMedium = typeof articleMediumTable.$inferInsert;

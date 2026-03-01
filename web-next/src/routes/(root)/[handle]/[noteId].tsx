@@ -1,6 +1,11 @@
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { Meta } from "@solidjs/meta";
-import { query, type RouteDefinition, useParams } from "@solidjs/router";
+import {
+  query,
+  type RouteDefinition,
+  useNavigate,
+  useParams,
+} from "@solidjs/router";
 import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
@@ -197,6 +202,7 @@ interface NoteInternalProps {
 
 function NoteInternal(props: NoteInternalProps) {
   const { t } = useLingui();
+  const navigate = useNavigate();
 
   const note = createFragment(
     graphql`
@@ -240,7 +246,7 @@ function NoteInternal(props: NoteInternalProps) {
               )}
             </Show>
             <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto text-xl">
-              <NoteCard $note={note()} />
+              <NoteCard $note={note()} onDeleted={() => navigate(-1)} />
               <Show when={viewer() == null}>
                 <p class="p-4 text-sm text-muted-foreground">
                   <Trans

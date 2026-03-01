@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:218
+#: src/components/ProfileCard.tsx:222
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:203
+#: src/components/ProfileCard.tsx:207
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -123,7 +123,7 @@ msgstr "{0} 님이 회원님의 콘텐츠를 공유했습니다"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:138
+#: src/routes/(root)/[handle]/[noteId].tsx:143
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -138,6 +138,12 @@ msgstr "{0} 님의 게시글"
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:69
 msgid "{0}'s followers"
 msgstr "{0} 님의 팔로워"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/following.tsx:66
+#: src/routes/(root)/[handle]/(profile)/following.tsx:69
+msgid "{0}'s following"
+msgstr "{0} 님의 팔로잉"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:67
@@ -260,12 +266,13 @@ msgstr "약력"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 
-#: src/components/ui/markdown-editor.tsx:266
+#: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "굵게"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
+#: src/components/PostActionMenu.tsx:137
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -275,7 +282,7 @@ msgstr "취소"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "초대장을 받을 친구가 사용하는 언어를 선택하세요. 이 언어는 초대장에만 사용됩니다."
 
-#: src/components/ui/markdown-editor.tsx:270
+#: src/components/ui/markdown-editor.tsx:279
 msgid "Code"
 msgstr "코드"
 
@@ -290,7 +297,7 @@ msgstr "행동 강령"
 msgid "Compose"
 msgstr "작성"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:33
+#: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "내용"
@@ -340,6 +347,8 @@ msgstr "기본 단문 공개 범위"
 msgid "Default share privacy"
 msgstr "기본 공유 공개 범위"
 
+#: src/components/PostActionMenu.tsx:123
+#: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "삭제"
@@ -347,6 +356,10 @@ msgstr "삭제"
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Delete Draft"
 msgstr "임시 보관 삭제"
+
+#: src/components/PostActionMenu.tsx:131
+msgid "Delete post?"
+msgstr "콘텐츠를 삭제할까요?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Deleting..."
@@ -417,6 +430,7 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 #: src/components/article-composer/ArticleComposerContext.tsx:443
 #: src/components/article-composer/ArticleComposerContext.tsx:452
 #: src/components/article-composer/ArticleComposerContext.tsx:460
+#: src/components/article-composer/ArticleComposerForm.tsx:26
 #: src/components/NoteComposer.tsx:95
 #: src/components/NoteComposer.tsx:121
 #: src/components/NoteComposer.tsx:129
@@ -432,11 +446,16 @@ msgstr "오류"
 msgid "Extra message"
 msgstr "추가 메시지"
 
+#: src/components/PostActionMenu.tsx:88
+#: src/components/PostActionMenu.tsx:95
+msgid "Failed to delete post"
+msgstr "콘텐츠 삭제에 실패했습니다"
+
 #: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "팔로에 실패했습니다"
 
-#: src/components/ActorArticleList.tsx:75
+#: src/components/ActorArticleList.tsx:81
 msgid "Failed to load more articles; click to retry"
 msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 
@@ -448,11 +467,15 @@ msgstr "임시 보관 불러오기 실패, 클릭하여 재시도"
 msgid "Failed to load more followers; click to retry"
 msgstr "팔로워 불러오기 실패. 클릭하여 재시도하세요"
 
+#: src/components/ActorFollowingList.tsx:80
+msgid "Failed to load more following; click to retry"
+msgstr "팔로잉 불러오기 실패. 클릭하여 재시도하세요"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Failed to load more invitees; click to retry"
 msgstr "초대받은 사람들을 불러오지 못했습니다. 클릭하여 다시 시도"
 
-#: src/components/ActorNoteList.tsx:72
+#: src/components/ActorNoteList.tsx:75
 msgid "Failed to load more notes; click to retry"
 msgstr "단문 불러오기 실패. 클릭하여 재시도하세요"
 
@@ -464,10 +487,10 @@ msgstr "알림을 더 불러오지 못했습니다. 클릭해서 다시 시도�
 msgid "Failed to load more passkeys; click to retry"
 msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
-#: src/components/ActorPostList.tsx:73
-#: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:81
+#: src/components/PersonalTimeline.tsx:98
+#: src/components/PublicTimeline.tsx:100
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
@@ -522,6 +545,10 @@ msgstr "언팔로에 실패했습니다"
 msgid "Failed to unshare post"
 msgstr "공유 취소 실패"
 
+#: src/components/article-composer/ArticleComposerForm.tsx:29
+msgid "Failed to upload image"
+msgstr "이미지 업로드에 실패했습니다"
+
 #: src/components/AppSidebar.tsx:238
 msgid "Fediverse"
 msgstr "연합우주"
@@ -547,11 +574,11 @@ msgstr "맞팔하기"
 msgid "Followers only"
 msgstr "팔로워만"
 
-#: src/components/ProfileCard.tsx:228
+#: src/components/ProfileCard.tsx:232
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
-#: src/components/ui/markdown-editor.tsx:412
+#: src/components/ui/markdown-editor.tsx:519
 msgid "Formatting"
 msgstr "서식"
 
@@ -590,19 +617,19 @@ msgstr "Hackers' Pub은 소프트웨어 프로그래머들이 지식과 경험�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: 알림"
 
-#: src/components/ui/markdown-editor.tsx:274
+#: src/components/ui/markdown-editor.tsx:283
 msgid "Heading 1"
 msgstr "제목 1"
 
-#: src/components/ui/markdown-editor.tsx:276
+#: src/components/ui/markdown-editor.tsx:285
 msgid "Heading 2"
 msgstr "제목 2"
 
-#: src/components/ui/markdown-editor.tsx:278
+#: src/components/ui/markdown-editor.tsx:287
 msgid "Heading 3"
 msgstr "제목 3"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Hide Preview"
 msgstr "미리보기 숨기기"
 
@@ -619,9 +646,14 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:247
+#: src/routes/(root)/[handle]/[noteId].tsx:253
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "연합우주(fediverse) 계정이 있으시다면, 이 단문에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {0}로 검색하신 뒤, 해당 단문에 댓글을 남기시면 됩니다."
+
+#: src/components/ui/markdown-editor.tsx:572
+#: src/components/ui/markdown-editor.tsx:573
+msgid "Image"
+msgstr "이미지"
 
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
@@ -652,7 +684,7 @@ msgstr "초대"
 msgid "Invite a friend"
 msgstr "친구 초대하기"
 
-#: src/components/ui/markdown-editor.tsx:268
+#: src/components/ui/markdown-editor.tsx:277
 msgid "Italic"
 msgstr "기울임"
 
@@ -686,7 +718,7 @@ msgstr "언어 설정"
 msgid "Last used {0}"
 msgstr "{0}에 마지막 사용"
 
-#: src/components/ui/markdown-editor.tsx:272
+#: src/components/ui/markdown-editor.tsx:281
 msgid "Link"
 msgstr "링크"
 
@@ -698,7 +730,7 @@ msgstr "링크 저자: "
 msgid "Link name"
 msgstr "링크 이름"
 
-#: src/components/ui/markdown-editor.tsx:282
+#: src/components/ui/markdown-editor.tsx:291
 msgid "List"
 msgstr "목록"
 
@@ -706,7 +738,7 @@ msgstr "목록"
 msgid "Load More"
 msgstr "더 보기"
 
-#: src/components/ActorArticleList.tsx:78
+#: src/components/ActorArticleList.tsx:84
 msgid "Load more articles"
 msgstr "게시글 더 불러오기"
 
@@ -714,11 +746,15 @@ msgstr "게시글 더 불러오기"
 msgid "Load more followers"
 msgstr "팔로워 더 불러오기"
 
+#: src/components/ActorFollowingList.tsx:83
+msgid "Load more following"
+msgstr "팔로잉 더 불러오기"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:491
 msgid "Load more invitees"
 msgstr "초대받은 사람 더 보기"
 
-#: src/components/ActorNoteList.tsx:75
+#: src/components/ActorNoteList.tsx:78
 msgid "Load more notes"
 msgstr "단문 더 불러오기"
 
@@ -730,10 +766,10 @@ msgstr "알림 더 불러오기"
 msgid "Load more passkeys"
 msgstr "패스키 더 불러오기"
 
-#: src/components/ActorPostList.tsx:76
-#: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:95
-#: src/components/PublicTimeline.tsx:97
+#: src/components/ActorPostList.tsx:79
+#: src/components/ActorSharedPostList.tsx:84
+#: src/components/PersonalTimeline.tsx:101
+#: src/components/PublicTimeline.tsx:103
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
@@ -742,7 +778,7 @@ msgstr "콘텐츠 더 불러오기"
 msgid "Loading draft..."
 msgstr "임시 보관 불러오는 중..."
 
-#: src/components/ActorArticleList.tsx:72
+#: src/components/ActorArticleList.tsx:78
 msgid "Loading more articles…"
 msgstr "게시글 불러오는 중…"
 
@@ -750,11 +786,15 @@ msgstr "게시글 불러오는 중…"
 msgid "Loading more followers…"
 msgstr "팔로워 불러오는 중…"
 
+#: src/components/ActorFollowingList.tsx:77
+msgid "Loading more following…"
+msgstr "팔로잉 불러오는 중…"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Loading more invitees…"
 msgstr "초대받은 사람들을 불러오는 중…"
 
-#: src/components/ActorNoteList.tsx:69
+#: src/components/ActorNoteList.tsx:72
 msgid "Loading more notes…"
 msgstr "단문 불러오는 중…"
 
@@ -766,10 +806,10 @@ msgstr "알림을 더 불러오는 중…"
 msgid "Loading more passkeys…"
 msgstr "패스키를 더 불러오는 중…"
 
-#: src/components/ActorPostList.tsx:70
-#: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:89
-#: src/components/PublicTimeline.tsx:91
+#: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:78
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
@@ -786,7 +826,7 @@ msgstr "로딩 중…"
 msgid "Markdown guide"
 msgstr "Markdown 가이드"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:79
+#: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
@@ -849,22 +889,26 @@ msgstr "아직 임시 보관이 없습니다. 첫 게시글을 작성하세요!"
 msgid "No followers found"
 msgstr "팔로워가 없습니다"
 
+#: src/components/ActorFollowingList.tsx:90
+msgid "No following found"
+msgstr "팔로잉하는 사용자가 없습니다"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:334
 msgid "No invitations left"
 msgstr "남은 초대장이 없습니다"
 
-#: src/components/ActorArticleList.tsx:85
+#: src/components/ActorArticleList.tsx:91
 msgid "No notes articles"
 msgstr "게시글이 없습니다"
 
-#: src/components/ActorNoteList.tsx:82
+#: src/components/ActorNoteList.tsx:85
 msgid "No notes found"
 msgstr "단문이 없습니다"
 
-#: src/components/ActorPostList.tsx:83
-#: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:102
-#: src/components/PublicTimeline.tsx:104
+#: src/components/ActorPostList.tsx:86
+#: src/components/ActorSharedPostList.tsx:91
+#: src/components/PersonalTimeline.tsx:108
+#: src/components/PublicTimeline.tsx:110
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "콘텐츠가 없습니다"
@@ -951,7 +995,7 @@ msgstr "5 MiB 미만의 이미지 파일을 선택해주세요."
 msgid "Please correct the errors and try again."
 msgstr "오류를 수정하고 다시 시도해주세요."
 
-#: src/components/article-composer/ArticleComposerForm.tsx:24
+#: src/components/article-composer/ArticleComposerForm.tsx:44
 msgid "Please enter a title for your article."
 msgstr "게시글 제목을 입력해주세요."
 
@@ -960,6 +1004,10 @@ msgstr "게시글 제목을 입력해주세요."
 #: src/routes/(root)/[handle]/drafts/new.tsx:76
 msgid "Please sign in to access this page"
 msgstr "이 페이지에 접근하려면 로그인하세요"
+
+#: src/components/PostActionMenu.tsx:84
+msgid "Post deleted"
+msgstr "콘텐츠가 삭제되었습니다"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -1021,7 +1069,7 @@ msgid "Quiet public"
 msgstr "조용히 공개"
 
 #: src/components/PostControls.tsx:193
-#: src/components/ui/markdown-editor.tsx:280
+#: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "인용"
 
@@ -1038,7 +1086,7 @@ msgstr "{emoji}로 반응"
 msgid "reaction"
 msgstr "반응"
 
-#: src/components/ArticleCard.tsx:264
+#: src/components/ArticleCard.tsx:277
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
 
@@ -1102,7 +1150,7 @@ msgstr "저장"
 msgid "Save Draft"
 msgstr "임시 보관"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:105
+#: src/components/article-composer/ArticleComposerForm.tsx:126
 msgid "Save draft to see preview"
 msgstr "미리보기를 보려면 임시 보관하세요"
 
@@ -1162,7 +1210,7 @@ msgstr "공유"
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show Preview"
 msgstr "미리보기 표시"
 
@@ -1227,7 +1275,7 @@ msgstr "환경 설정이 성공적으로 저장되었습니다"
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
-#: src/components/ArticleCard.tsx:242
+#: src/components/ArticleCard.tsx:255
 msgid "Summarized by LLM"
 msgstr "LLM 요약"
 
@@ -1239,7 +1287,7 @@ msgstr "목차"
 #~ msgid "Tag"
 #~ msgstr "태그"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:121
+#: src/components/article-composer/ArticleComposerForm.tsx:142
 msgid "Tags"
 msgstr "태그"
 
@@ -1289,6 +1337,10 @@ msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배�
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
+#: src/components/PostActionMenu.tsx:133
+msgid "This action cannot be undone. This will permanently delete this post."
+msgstr "이 작업은 되돌릴 수 없습니다. 이 콘텐츠는 영구적으로 삭제됩니다."
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "게시글 URL의 일부가 됩니다"
@@ -1297,7 +1349,7 @@ msgstr "게시글 URL의 일부가 됩니다"
 msgid "Timeline"
 msgstr "타임라인"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:20
+#: src/components/article-composer/ArticleComposerForm.tsx:40
 msgid "Title"
 msgstr "제목"
 
@@ -1306,11 +1358,11 @@ msgid "Title cannot be empty"
 msgstr "제목은 비워둘 수 없습니다"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:160
+#: src/components/ArticleCard.tsx:173
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:125
+#: src/components/article-composer/ArticleComposerForm.tsx:146
 msgid "Type tags separated by spaces"
 msgstr "공백으로 구분된 태그 입력"
 
@@ -1424,7 +1476,7 @@ msgstr "무슨 생각 해요?"
 msgid "Without shares"
 msgstr "공유 제외"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:93
+#: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "여기에 게시글을 작성하세요. Markdown을 사용할 수 있습니다. 작성하는 동안 자동으로 임시 보관됩니다."
 

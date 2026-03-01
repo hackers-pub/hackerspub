@@ -2,34 +2,32 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { PostCard } from "./PostCard.tsx";
-import { ActorSharedPostList_sharedPosts$key } from "./__generated__/ActorSharedPostList_sharedPosts.graphql.ts";
+import { ActorFollowingList_following$key } from "./__generated__/ActorFollowingList_following.graphql.ts";
+import { SmallProfileCard } from "./SmallProfileCard.tsx";
 
-export interface ActorSharedPostListProps {
-  $sharedPosts: ActorSharedPostList_sharedPosts$key;
+export interface ActorFollowingListProps {
+  $following: ActorFollowingList_following$key;
 }
 
-export function ActorSharedPostList(props: ActorSharedPostListProps) {
+export function ActorFollowingList(props: ActorFollowingListProps) {
   const { t } = useLingui();
-  const sharedPosts = createPaginationFragment(
+  const following = createPaginationFragment(
     graphql`
-      fragment ActorSharedPostList_sharedPosts on Actor
-        @refetchable(queryName: "ActorSharedPostListQuery")
+      fragment ActorFollowingList_following on Actor
+        @refetchable(queryName: "ActorFollowingListQuery")
         @argumentDefinitions(
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 20 }
-          locale: { type: "Locale" }
         )
       {
         __id
-        sharedPosts(after: $cursor, first: $count)
-          @connection(key: "ActorSharedPostList_sharedPosts")
+        followees(after: $cursor, first: $count)
+          @connection(key: "ActorFollowingList_followees")
         {
-          __id
           edges {
             __id
             node {
-              ...PostCard_post @arguments(locale: $locale)
+              ...SmallProfileCard_actor
             }
           }
           pageInfo {
@@ -38,7 +36,7 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
         }
       }
     `,
-    () => props.$sharedPosts,
+    () => props.$following,
   );
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
@@ -46,7 +44,7 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
 
   function onLoadMore() {
     setLoadingState("loading");
-    sharedPosts.loadNext(20, {
+    following.loadNext(20, {
       onComplete(error) {
         setLoadingState(error == null ? "loaded" : "errored");
       },
@@ -55,40 +53,41 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
 
   return (
     <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto my-4">
-      <Show when={sharedPosts()}>
+      <Show when={following()}>
         {(data) => (
           <>
-            <For each={data().sharedPosts.edges}>
-              {(edge) => (
-                <PostCard
-                  $post={edge.node}
-                  connections={[data().sharedPosts.__id]}
-                />
-              )}
-            </For>
-            <Show when={sharedPosts.hasNext}>
+            <ul class="divide-y divide-solid">
+              <For each={data().followees.edges}>
+                {(edge) => (
+                  <li>
+                    <SmallProfileCard $actor={edge.node} />
+                  </li>
+                )}
+              </For>
+            </ul>
+            <Show when={following.hasNext}>
               <div
                 on:click={loadingState() === "loading" ? undefined : onLoadMore}
                 class="block px-4 py-8 text-center text-muted-foreground cursor-pointer hover:text-primary hover:bg-secondary"
               >
                 <Switch>
                   <Match
-                    when={sharedPosts.pending || loadingState() === "loading"}
+                    when={following.pending || loadingState() === "loading"}
                   >
-                    {t`Loading more posts…`}
+                    {t`Loading more following…`}
                   </Match>
                   <Match when={loadingState() === "errored"}>
-                    {t`Failed to load more posts; click to retry`}
+                    {t`Failed to load more following; click to retry`}
                   </Match>
                   <Match when={loadingState() === "loaded"}>
-                    {t`Load more posts`}
+                    {t`Load more following`}
                   </Match>
                 </Switch>
               </div>
             </Show>
-            <Show when={data().sharedPosts.edges.length < 1}>
+            <Show when={data().followees.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
-                {t`No posts found`}
+                {t`No following found`}
               </div>
             </Show>
           </>
