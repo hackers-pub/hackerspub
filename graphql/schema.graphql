@@ -1087,6 +1087,11 @@ type ReactionGroupReactorsConnectionEdge {
   node: Actor!
 }
 
+type RegisterApnsDeviceTokenFailedError {
+  limit: Int!
+  message: String!
+}
+
 input RegisterApnsDeviceTokenInput {
   clientMutationId: ID
 
@@ -1101,7 +1106,7 @@ type RegisterApnsDeviceTokenPayload {
   updated: DateTime!
 }
 
-union RegisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | RegisterApnsDeviceTokenPayload
+union RegisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | RegisterApnsDeviceTokenFailedError | RegisterApnsDeviceTokenPayload
 
 input RemoveReactionFromPostInput {
   clientMutationId: ID

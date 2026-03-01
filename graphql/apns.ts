@@ -1,4 +1,5 @@
 import {
+  MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT,
   normalizeApnsDeviceToken,
   registerApnsDeviceToken,
   unregisterApnsDeviceToken,
@@ -6,6 +7,22 @@ import {
 import { builder } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
 import { NotAuthenticatedError } from "./session.ts";
+
+class RegisterApnsDeviceTokenFailedError extends Error {
+  public constructor(
+    public readonly limit: number = MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT,
+  ) {
+    super(`Cannot register more than ${limit} APNS device tokens.`);
+  }
+}
+
+builder.objectType(RegisterApnsDeviceTokenFailedError, {
+  name: "RegisterApnsDeviceTokenFailedError",
+  fields: (t) => ({
+    message: t.expose("message", { type: "String" }),
+    limit: t.exposeInt("limit"),
+  }),
+});
 
 builder.relayMutationField(
   "registerApnsDeviceToken",
@@ -19,7 +36,11 @@ builder.relayMutationField(
   },
   {
     errors: {
-      types: [NotAuthenticatedError, InvalidInputError],
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        RegisterApnsDeviceTokenFailedError,
+      ],
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
@@ -32,7 +53,7 @@ builder.relayMutationField(
         normalized,
       );
       if (result == null) {
-        throw new Error("Failed to register APNS device token.");
+        throw new RegisterApnsDeviceTokenFailedError();
       }
       return result;
     },
