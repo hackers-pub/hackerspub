@@ -10,7 +10,8 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export function NoteComposeModal() {
   const { t } = useLingui();
-  const { isOpen, close, notifyNoteCreated } = useNoteCompose();
+  const { isOpen, quotedPostId, close, clearQuote, notifyNoteCreated } =
+    useNoteCompose();
 
   const handleSuccess = () => {
     notifyNoteCreated();
@@ -21,7 +22,9 @@ export function NoteComposeModal() {
     <Dialog open={isOpen()} onOpenChange={(open) => open ? null : close()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t`Create Note`}</DialogTitle>
+          <DialogTitle>
+            {quotedPostId() ? t`Quote` : t`Create Note`}
+          </DialogTitle>
         </DialogHeader>
         <div class="py-4">
           <NoteComposer
@@ -29,6 +32,8 @@ export function NoteComposeModal() {
             onCancel={close}
             showCancelButton
             autoFocus
+            quotedPostId={quotedPostId()}
+            onQuoteRemoved={clearQuote}
           />
         </div>
       </DialogContent>
