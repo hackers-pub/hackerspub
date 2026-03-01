@@ -23,7 +23,7 @@ export async function uploadImage(
 ): Promise<UploadedImage | undefined> {
   const { data, info } = await sharp(await blob.arrayBuffer())
     .rotate()
-    .webp()
+    .webp({ animated: true })
     .toBuffer({ resolveWithObject: true });
   const { width, height } = info;
   if (width == null || height == null) return undefined;
