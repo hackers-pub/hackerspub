@@ -1,3 +1,4 @@
+import { assert } from "@std/assert";
 import { isActor } from "@fedify/vocab";
 import { desc, eq } from "drizzle-orm";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
@@ -631,7 +632,9 @@ builder.relayMutationField(
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.followeeId } }),
           );
-          return actor!;
+          assert(actor != undefined);
+
+          return actor;
         },
       }),
       follower: t.drizzleField({
@@ -640,7 +643,9 @@ builder.relayMutationField(
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.followerId } }),
           );
-          return actor!;
+          assert(actor != undefined);
+
+          return actor;
         },
       }),
     }),
@@ -688,7 +693,9 @@ builder.relayMutationField(
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.followeeId } }),
           );
-          return actor!;
+          assert(actor != undefined);
+
+          return actor;
         },
       }),
       follower: t.drizzleField({
@@ -697,7 +704,9 @@ builder.relayMutationField(
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.followerId } }),
           );
-          return actor!;
+          assert(actor != undefined);
+
+          return actor;
         },
       }),
     }),
@@ -748,7 +757,9 @@ builder.relayMutationField(
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.followerId } }),
           );
-          return actor!;
+          assert(actor != undefined);
+
+          return actor;
         },
       }),
       followee: t.drizzleField({
@@ -757,7 +768,9 @@ builder.relayMutationField(
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.followeeId } }),
           );
-          return actor!;
+          assert(actor != undefined);
+
+          return actor;
         },
       }),
     }),
@@ -792,16 +805,7 @@ builder.relayMutationField(
         throw new InvalidInputError("actorId");
       }
 
-      const existing = await ctx.db.query.blockingTable.findFirst({
-        columns: { id: true },
-        where: {
-          blockerId: ctx.account.actor.id,
-          blockeeId: blockee.id,
-        },
-      });
-      if (existing == null) {
-        await block(ctx.fedCtx, ctx.account, blockee);
-      }
+      await block(ctx.fedCtx, ctx.account, blockee);
 
       return {
         blockerId: ctx.account.actor.id,
@@ -877,7 +881,9 @@ builder.relayMutationField(
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.blockerId } }),
           );
-          return actor!;
+          assert(actor != undefined);
+
+          return actor;
         },
       }),
       blockee: t.drizzleField({
@@ -886,7 +892,9 @@ builder.relayMutationField(
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.blockeeId } }),
           );
-          return actor!;
+          assert(actor != undefined);
+
+          return actor;
         },
       }),
     }),

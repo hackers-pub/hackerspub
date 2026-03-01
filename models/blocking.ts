@@ -81,8 +81,16 @@ export async function block(
       blockerId: blocker.actor.id,
       blockeeId: blockee.id,
     })
+    .onConflictDoNothing()
     .returning();
-  if (rows.length < 1) return undefined;
+  if (rows.length < 1) {
+    return await db.query.blockingTable.findFirst({
+      where: {
+        blockerId: blocker.actor.id,
+        blockeeId: blockee.id,
+      },
+    });
+  }
   if (blockee.accountId == null) {
     const block = new vocab.Block({
       id: new URL(rows[0].iri),
