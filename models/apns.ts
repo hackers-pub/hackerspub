@@ -115,34 +115,58 @@ export async function registerApnsDeviceToken(
   const normalized = normalizeApnsDeviceToken(deviceToken);
   if (normalized == null) return undefined;
 
-  const existingToken = await db.query.apnsDeviceTokenTable.findFirst({
-    columns: { accountId: true },
-    where: { deviceToken: normalized },
-  });
-  if (existingToken?.accountId !== accountId) {
-    const tokenCounts = await db.select({ count: count() })
-      .from(apnsDeviceTokenTable)
-      .where(eq(apnsDeviceTokenTable.accountId, accountId));
-    const tokenCount = Number(tokenCounts[0]?.count ?? 0);
-    if (tokenCount >= MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT) {
-      return undefined;
-    }
-  }
+  return await db.transaction(async (tx) => {
+    await tx.execute(
+      sql`select id from "account" where id = ${accountId} for update`,
+    );
 
-  const rows = await db.insert(apnsDeviceTokenTable)
-    .values({
-      accountId,
-      deviceToken: normalized,
-    })
-    .onConflictDoUpdate({
-      target: apnsDeviceTokenTable.deviceToken,
-      set: {
+    const existingToken = await tx.query.apnsDeviceTokenTable.findFirst({
+      columns: { accountId: true },
+      where: { deviceToken: normalized },
+    });
+    if (existingToken?.accountId !== accountId) {
+      const tokenCounts = await tx.select({ count: count() })
+        .from(apnsDeviceTokenTable)
+        .where(eq(apnsDeviceTokenTable.accountId, accountId));
+      const tokenCount = Number(tokenCounts[0]?.count ?? 0);
+      if (tokenCount >= MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT) {
+        const oldestTokens = await tx.select({
+          deviceToken: apnsDeviceTokenTable.deviceToken,
+        })
+          .from(apnsDeviceTokenTable)
+          .where(eq(apnsDeviceTokenTable.accountId, accountId))
+          .orderBy(
+            apnsDeviceTokenTable.updated,
+            apnsDeviceTokenTable.created,
+          )
+          .limit(1);
+        const oldestToken = oldestTokens[0]?.deviceToken;
+        if (oldestToken == null) return undefined;
+        await tx.delete(apnsDeviceTokenTable)
+          .where(
+            and(
+              eq(apnsDeviceTokenTable.accountId, accountId),
+              eq(apnsDeviceTokenTable.deviceToken, oldestToken),
+            ),
+          );
+      }
+    }
+
+    const rows = await tx.insert(apnsDeviceTokenTable)
+      .values({
         accountId,
-        updated: sql`CURRENT_TIMESTAMP`,
-      },
-    })
-    .returning();
-  return rows[0];
+        deviceToken: normalized,
+      })
+      .onConflictDoUpdate({
+        target: apnsDeviceTokenTable.deviceToken,
+        set: {
+          accountId,
+          updated: sql`CURRENT_TIMESTAMP`,
+        },
+      })
+      .returning();
+    return rows[0];
+  });
 }
 
 export async function unregisterApnsDeviceToken(
