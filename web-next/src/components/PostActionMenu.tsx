@@ -90,8 +90,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
           });
         }
       },
-      onError(e) {
-        console.log("here", e);
+      onError() {
         showToast({
           title: t`Failed to delete post`,
           variant: "destructive",
