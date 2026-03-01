@@ -179,75 +179,85 @@ export async function sendApnsNotification(
   db: Database,
   options: ApnsNotificationOptions,
 ): Promise<void> {
-  const client = getApnsClient();
-  if (client == null) return;
-  const tokens = await db.query.apnsDeviceTokenTable.findMany({
-    columns: { deviceToken: true },
-    where: { accountId: options.accountId },
-  });
-  if (tokens.length < 1) return;
-
-  const emojiText = typeof options.emoji === "string"
-    ? options.emoji
-    : options.emoji?.name ?? null;
-
-  const notifications = tokens.map(({ deviceToken }) =>
-    new Notification(deviceToken, {
-      alert: getApnsAlert(options.type, options.emoji),
-      threadId: "notifications",
-      collapseId: `notifications-${options.accountId}`,
-      data: {
-        notificationId: options.notificationId,
-        type: options.type,
-        actorId: options.actorId,
-        postId: options.postId ?? null,
-        emoji: emojiText,
-      },
-    })
-  );
-
-  let results: Awaited<ReturnType<ApnsClient["sendMany"]>>;
   try {
-    results = await client.sendMany(notifications);
+    const client = getApnsClient();
+    if (client == null) return;
+    const tokens = await db.query.apnsDeviceTokenTable.findMany({
+      columns: { deviceToken: true },
+      where: { accountId: options.accountId },
+    });
+    if (tokens.length < 1) return;
+
+    const emojiText = typeof options.emoji === "string"
+      ? options.emoji
+      : options.emoji?.name ?? null;
+
+    const notifications = tokens.map(({ deviceToken }) =>
+      new Notification(deviceToken, {
+        alert: getApnsAlert(options.type, options.emoji),
+        threadId: "notifications",
+        collapseId: `notifications-${options.accountId}`,
+        data: {
+          notificationId: options.notificationId,
+          type: options.type,
+          actorId: options.actorId,
+          postId: options.postId ?? null,
+          emoji: emojiText,
+        },
+      })
+    );
+
+    let results: Awaited<ReturnType<ApnsClient["sendMany"]>>;
+    try {
+      results = await client.sendMany(notifications);
+    } catch (error) {
+      logger.error(
+        "Failed to send APNS notifications for account {accountId}: {error}",
+        {
+          accountId: options.accountId,
+          error,
+        },
+      );
+      return;
+    }
+
+    const staleTokens = new Set<string>();
+    for (const result of results) {
+      if (!("error" in result)) continue;
+      const { error } = result;
+      const deviceToken = error.notification.deviceToken;
+      logger.warn(
+        "APNS send failed for account {accountId}, token suffix {deviceTokenSuffix}: {reason}",
+        {
+          accountId: options.accountId,
+          deviceTokenSuffix: getDeviceTokenSuffix(deviceToken),
+          reason: error.reason,
+        },
+      );
+      if (
+        error.reason === Errors.badDeviceToken ||
+        error.reason === Errors.deviceTokenNotForTopic ||
+        error.reason === Errors.unregistered
+      ) {
+        staleTokens.add(deviceToken);
+      }
+    }
+
+    if (staleTokens.size < 1) return;
+    await db.delete(apnsDeviceTokenTable)
+      .where(
+        and(
+          eq(apnsDeviceTokenTable.accountId, options.accountId),
+          inArray(apnsDeviceTokenTable.deviceToken, [...staleTokens]),
+        ),
+      );
   } catch (error) {
     logger.error(
-      "Failed to send APNS notifications for account {accountId}: {error}",
+      "Unexpected APNS error for account {accountId}: {error}",
       {
         accountId: options.accountId,
         error,
       },
     );
-    return;
   }
-
-  const staleTokens = new Set<string>();
-  for (const result of results) {
-    if (!("error" in result)) continue;
-    const { error } = result;
-    const deviceToken = error.notification.deviceToken;
-    logger.warn(
-      "APNS send failed for account {accountId}, token suffix {deviceTokenSuffix}: {reason}",
-      {
-        accountId: options.accountId,
-        deviceTokenSuffix: getDeviceTokenSuffix(deviceToken),
-        reason: error.reason,
-      },
-    );
-    if (
-      error.reason === Errors.badDeviceToken ||
-      error.reason === Errors.deviceTokenNotForTopic ||
-      error.reason === Errors.unregistered
-    ) {
-      staleTokens.add(deviceToken);
-    }
-  }
-
-  if (staleTokens.size < 1) return;
-  await db.delete(apnsDeviceTokenTable)
-    .where(
-      and(
-        eq(apnsDeviceTokenTable.accountId, options.accountId),
-        inArray(apnsDeviceTokenTable.deviceToken, [...staleTokens]),
-      ),
-    );
 }
