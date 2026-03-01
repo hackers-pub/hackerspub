@@ -131,6 +131,18 @@ export const builder = new SchemaBuilder<PothosTypes>({
       depth: ctx.session == null ? 10 : 20,
       breadth: ctx.session == null ? 400 : 800,
     }),
+    complexityError: (errorKind, result, _info) => {
+      // https://pothos-graphql.dev/docs/plugins/complexity#options
+      // FIXME: Not sure but we cannot use LogTape here.
+
+      const value =
+        result[errorKind.toLowerCase() as Lowercase<typeof errorKind>];
+      const maxValue = result[`max${errorKind}`];
+      const errorMessage =
+        `Query exceeds ${errorKind} limit (${value} > ${maxValue})`;
+      console.log(errorMessage);
+      throw createGraphQLError(errorMessage);
+    },
   },
   defaultFieldNullability: false,
   drizzle: {
