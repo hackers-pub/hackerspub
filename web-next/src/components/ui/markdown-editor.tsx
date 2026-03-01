@@ -323,7 +323,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
     pos: number,
   ) => {
     if (!local.onImageUpload) return;
-    const uploadId = Math.random().toString(36).slice(2, 10);
+    const uploadId = crypto.randomUUID();
     const placeholder = `![Uploading ${uploadId}...](uploading)\n`;
 
     view.dispatch({
