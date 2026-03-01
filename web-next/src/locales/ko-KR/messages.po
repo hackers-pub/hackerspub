@@ -123,7 +123,7 @@ msgstr "{0} 님이 회원님의 콘텐츠를 공유했습니다"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:138
+#: src/routes/(root)/[handle]/[noteId].tsx:143
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -266,6 +266,7 @@ msgstr "굵게"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
+#: src/components/PostActionMenu.tsx:130
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -340,6 +341,8 @@ msgstr "기본 단문 공개 범위"
 msgid "Default share privacy"
 msgstr "기본 공유 공개 범위"
 
+#: src/components/PostActionMenu.tsx:116
+#: src/components/PostActionMenu.tsx:136
 #: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "삭제"
@@ -347,6 +350,10 @@ msgstr "삭제"
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Delete Draft"
 msgstr "임시 보관 삭제"
+
+#: src/components/PostActionMenu.tsx:124
+msgid "Delete post?"
+msgstr "콘텐츠를 삭제할까요?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Deleting..."
@@ -435,6 +442,11 @@ msgstr "추가 메시지"
 #: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "팔로에 실패했습니다"
+
+#: src/components/PostActionMenu.tsx:81
+#: src/components/PostActionMenu.tsx:88
+msgid "Failed to delete post"
+msgstr "콘텐츠 삭제에 실패했습니다"
 
 #: src/components/ActorArticleList.tsx:75
 msgid "Failed to load more articles; click to retry"
@@ -619,7 +631,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:247
+#: src/routes/(root)/[handle]/[noteId].tsx:253
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "연합우주(fediverse) 계정이 있으시다면, 이 단문에 댓글을 달 수 있습니다. 사용하시는 인스턴스의 검색창에 {0}로 검색하신 뒤, 해당 단문에 댓글을 남기시면 됩니다."
 
@@ -961,6 +973,10 @@ msgstr "게시글 제목을 입력해주세요."
 msgid "Please sign in to access this page"
 msgstr "이 페이지에 접근하려면 로그인하세요"
 
+#: src/components/PostActionMenu.tsx:77
+msgid "Post deleted"
+msgstr "콘텐츠가 삭제되었습니다"
+
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
 msgstr "콘텐츠"
@@ -1038,7 +1054,7 @@ msgstr "{emoji}로 반응"
 msgid "reaction"
 msgstr "반응"
 
-#: src/components/ArticleCard.tsx:264
+#: src/components/ArticleCard.tsx:267
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
 
@@ -1227,7 +1243,7 @@ msgstr "환경 설정이 성공적으로 저장되었습니다"
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
-#: src/components/ArticleCard.tsx:242
+#: src/components/ArticleCard.tsx:245
 msgid "Summarized by LLM"
 msgstr "LLM 요약"
 
@@ -1289,6 +1305,10 @@ msgstr "이 웹사이트의 소스 코드는 {1} 라이선스로 {0}에서 배�
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "링크의 URL. 예: https://github.com/yourhandle."
 
+#: src/components/PostActionMenu.tsx:126
+msgid "This action cannot be undone. This will permanently delete this post."
+msgstr "이 작업은 되돌릴 수 없습니다. 이 콘텐츠는 영구적으로 삭제됩니다."
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "게시글 URL의 일부가 됩니다"
@@ -1306,7 +1326,7 @@ msgid "Title cannot be empty"
 msgstr "제목은 비워둘 수 없습니다"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:160
+#: src/components/ArticleCard.tsx:163
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
 

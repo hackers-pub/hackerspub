@@ -12,6 +12,7 @@ import {
 } from "./__generated__/ArticleCard_article.graphql.ts";
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
 import { InternalLink } from "./InternalLink.tsx";
+import { PostActionMenu } from "./PostActionMenu.tsx";
 import { PostSharer } from "./PostSharer.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
@@ -80,6 +81,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
         @argumentDefinitions(locale: { type: "Locale" })
       {
         __id
+        ...PostActionMenu_post
         actor {
           name
           handle
@@ -145,8 +147,9 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                   {article().actor.handle}
                 </span>
               </div>
-              <div class="flex flex-row text-muted-foreground gap-1">
+              <div class="flex flex-row items-center text-muted-foreground gap-1">
                 <Timestamp value={article().published} capitalizeFirstLetter />
+                <PostActionMenu $post={article()} />
                 <Show
                   when={article().contents != null &&
                     article().contents.length > 0 &&

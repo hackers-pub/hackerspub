@@ -11,6 +11,7 @@ import { QuotedPostCard } from "./QuotedPostCard.tsx";
 
 export interface NoteCardInternalProps {
   $note: NoteCardInternal_note$key;
+  onDeleted?: () => void;
 }
 
 export function NoteCardInternal(props: NoteCardInternalProps) {
@@ -42,7 +43,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         <div class="flex gap-4">
           <PostAvatar $actor={n().actor} />
           <div class="grow">
-            <NoteHeader $note={n()} />
+            <NoteHeader $note={n()} onDeleted={props.onDeleted} />
             <div
               innerHTML={n().content}
               lang={n().language ?? undefined}

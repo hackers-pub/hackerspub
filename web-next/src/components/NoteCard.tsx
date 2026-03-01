@@ -7,6 +7,7 @@ import { PostSharer } from "./PostSharer.tsx";
 
 export interface NoteCardProps {
   $note: NoteCard_note$key;
+  onDeleted?: () => void;
 }
 
 export function NoteCard(props: NoteCardProps) {
@@ -32,7 +33,10 @@ export function NoteCard(props: NoteCardProps) {
               <Show when={note().sharedPost}>
                 <PostSharer $post={note()} class="ml-14" />
               </Show>
-              <NoteCardInternal $note={displayPost()} />
+              <NoteCardInternal
+                $note={displayPost()}
+                onDeleted={props.onDeleted}
+              />
             </div>
           </article>
         );
