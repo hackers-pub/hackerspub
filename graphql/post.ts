@@ -1238,11 +1238,15 @@ builder.relayMutationField(
       if (blob.size > MAX_IMAGE_SIZE) {
         throw new InvalidInputError("mediaUrl");
       }
-      const result = await uploadImage(ctx.disk, blob);
-      if (result == null) {
+      try {
+        const result = await uploadImage(ctx.disk, blob);
+        if (result == null) {
+          throw new InvalidInputError("mediaUrl");
+        }
+        return result;
+      } catch {
         throw new InvalidInputError("mediaUrl");
       }
-      return result;
     },
   },
   {
