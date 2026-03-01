@@ -21,9 +21,11 @@ export async function uploadImage(
   disk: Disk,
   blob: Blob,
 ): Promise<UploadedImage | undefined> {
-  const { data, info } = await sharp(await blob.arrayBuffer())
+  const { data, info } = await sharp(await blob.arrayBuffer(), {
+    animated: true,
+  })
     .rotate()
-    .webp({ animated: true })
+    .webp()
     .toBuffer({ resolveWithObject: true });
   const { width, height } = info;
   if (width == null || height == null) return undefined;
