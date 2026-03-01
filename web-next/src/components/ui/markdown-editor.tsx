@@ -332,7 +332,10 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
 
     try {
       const result = await local.onImageUpload(file);
-      const alt = file.name.replace(/\.[^.]+$/, "");
+      const alt = file.name.replace(/\.[^.]+$/, "").replace(
+        /[\[\]\\]/g,
+        "\\$&",
+      );
       replacePlaceholder(view, placeholder, `![${alt}](${result.url})\n`);
     } catch {
       replacePlaceholder(view, placeholder, "");
