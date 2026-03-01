@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:218
+#: src/components/ProfileCard.tsx:222
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:203
+#: src/components/ProfileCard.tsx:207
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
@@ -138,6 +138,12 @@ msgstr "{0}さんの記事"
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:69
 msgid "{0}'s followers"
 msgstr "{0}さんのフォロワー"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/following.tsx:66
+#: src/routes/(root)/[handle]/(profile)/following.tsx:69
+msgid "{0}'s following"
+msgstr "{0}さんのフォロー中"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:67
@@ -460,6 +466,10 @@ msgstr "下書きの読み込みに失敗しました。クリックして再試
 msgid "Failed to load more followers; click to retry"
 msgstr "フォロワーの読み込みに失敗しました。クリックして再試行してください"
 
+#: src/components/ActorFollowingList.tsx:80
+msgid "Failed to load more following; click to retry"
+msgstr "フォロー中の読み込みに失敗しました。クリックして再試行してください"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Failed to load more invitees; click to retry"
 msgstr "招待された人々の読み込みに失敗しました。クリックして再試行"
@@ -559,7 +569,7 @@ msgstr "フォローバック"
 msgid "Followers only"
 msgstr "フォロワーのみ"
 
-#: src/components/ProfileCard.tsx:228
+#: src/components/ProfileCard.tsx:232
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
@@ -726,6 +736,10 @@ msgstr "記事をもっと読み込む"
 msgid "Load more followers"
 msgstr "フォロワーをもっと読み込む"
 
+#: src/components/ActorFollowingList.tsx:83
+msgid "Load more following"
+msgstr "フォロー中をもっと読み込む"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:491
 msgid "Load more invitees"
 msgstr "もっと招待された人々を読み込む"
@@ -761,6 +775,10 @@ msgstr "記事を読み込み中…"
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "フォロワーを読み込み中…"
+
+#: src/components/ActorFollowingList.tsx:77
+msgid "Loading more following…"
+msgstr "フォロー中を読み込み中…"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Loading more invitees…"
@@ -860,6 +878,10 @@ msgstr "まだ下書きがありません。最初の記事を作成しましょ
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "フォロワーはいません"
+
+#: src/components/ActorFollowingList.tsx:90
+msgid "No following found"
+msgstr "フォロー中のユーザーはいません"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:334
 msgid "No invitations left"

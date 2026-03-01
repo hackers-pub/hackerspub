@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:218
+#: src/components/ProfileCard.tsx:222
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:203
+#: src/components/ProfileCard.tsx:207
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -138,6 +138,12 @@ msgstr "{0} 님의 게시글"
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:69
 msgid "{0}'s followers"
 msgstr "{0} 님의 팔로워"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/following.tsx:66
+#: src/routes/(root)/[handle]/(profile)/following.tsx:69
+msgid "{0}'s following"
+msgstr "{0} 님의 팔로잉"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:67
@@ -460,6 +466,10 @@ msgstr "임시 보관 불러오기 실패, 클릭하여 재시도"
 msgid "Failed to load more followers; click to retry"
 msgstr "팔로워 불러오기 실패. 클릭하여 재시도하세요"
 
+#: src/components/ActorFollowingList.tsx:80
+msgid "Failed to load more following; click to retry"
+msgstr "팔로잉 불러오기 실패. 클릭하여 재시도하세요"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Failed to load more invitees; click to retry"
 msgstr "초대받은 사람들을 불러오지 못했습니다. 클릭하여 다시 시도"
@@ -559,7 +569,7 @@ msgstr "맞팔하기"
 msgid "Followers only"
 msgstr "팔로워만"
 
-#: src/components/ProfileCard.tsx:228
+#: src/components/ProfileCard.tsx:232
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
@@ -726,6 +736,10 @@ msgstr "게시글 더 불러오기"
 msgid "Load more followers"
 msgstr "팔로워 더 불러오기"
 
+#: src/components/ActorFollowingList.tsx:83
+msgid "Load more following"
+msgstr "팔로잉 더 불러오기"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:491
 msgid "Load more invitees"
 msgstr "초대받은 사람 더 보기"
@@ -761,6 +775,10 @@ msgstr "게시글 불러오는 중…"
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "팔로워 불러오는 중…"
+
+#: src/components/ActorFollowingList.tsx:77
+msgid "Loading more following…"
+msgstr "팔로잉 불러오는 중…"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Loading more invitees…"
@@ -860,6 +878,10 @@ msgstr "아직 임시 보관이 없습니다. 첫 게시글을 작성하세요!"
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "팔로워가 없습니다"
+
+#: src/components/ActorFollowingList.tsx:90
+msgid "No following found"
+msgstr "팔로잉하는 사용자가 없습니다"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:334
 msgid "No invitations left"

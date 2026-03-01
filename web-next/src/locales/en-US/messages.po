@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:218
+#: src/components/ProfileCard.tsx:222
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:203
+#: src/components/ProfileCard.tsx:207
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -138,6 +138,12 @@ msgstr "{0}'s articles"
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:69
 msgid "{0}'s followers"
 msgstr "{0}'s followers"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/following.tsx:66
+#: src/routes/(root)/[handle]/(profile)/following.tsx:69
+msgid "{0}'s following"
+msgstr "{0}'s following"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:67
@@ -464,6 +470,10 @@ msgstr "Failed to load more drafts; click to retry"
 msgid "Failed to load more followers; click to retry"
 msgstr "Failed to load more followers; click to retry"
 
+#: src/components/ActorFollowingList.tsx:80
+msgid "Failed to load more following; click to retry"
+msgstr "Failed to load more following; click to retry"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Failed to load more invitees; click to retry"
 msgstr "Failed to load more invitees; click to retry"
@@ -563,7 +573,7 @@ msgstr "Follow Back"
 msgid "Followers only"
 msgstr "Followers only"
 
-#: src/components/ProfileCard.tsx:228
+#: src/components/ProfileCard.tsx:232
 msgid "Following you"
 msgstr "Following you"
 
@@ -730,6 +740,10 @@ msgstr "Load more articles"
 msgid "Load more followers"
 msgstr "Load more followers"
 
+#: src/components/ActorFollowingList.tsx:83
+msgid "Load more following"
+msgstr "Load more following"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:491
 msgid "Load more invitees"
 msgstr "Load more invitees"
@@ -765,6 +779,10 @@ msgstr "Loading more articles…"
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "Loading more followers…"
+
+#: src/components/ActorFollowingList.tsx:77
+msgid "Loading more following…"
+msgstr "Loading more following…"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Loading more invitees…"
@@ -864,6 +882,10 @@ msgstr "No drafts yet. Create your first article!"
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "No followers found"
+
+#: src/components/ActorFollowingList.tsx:90
+msgid "No following found"
+msgstr "No following found"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:334
 msgid "No invitations left"
