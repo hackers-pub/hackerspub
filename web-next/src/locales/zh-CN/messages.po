@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:218
+#: src/components/ProfileCard.tsx:222
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:203
+#: src/components/ProfileCard.tsx:207
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -138,6 +138,12 @@ msgstr "{0}的文章"
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:69
 msgid "{0}'s followers"
 msgstr "{0}的粉丝"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/following.tsx:66
+#: src/routes/(root)/[handle]/(profile)/following.tsx:69
+msgid "{0}'s following"
+msgstr "{0}的关注"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:67
@@ -460,6 +466,10 @@ msgstr "加载更多草稿失败，点击重试"
 msgid "Failed to load more followers; click to retry"
 msgstr "加载更多粉丝失败，点击重试"
 
+#: src/components/ActorFollowingList.tsx:80
+msgid "Failed to load more following; click to retry"
+msgstr "加载更多关注失败，点击重试"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Failed to load more invitees; click to retry"
 msgstr "加载更多受邀者失败；点击重试"
@@ -559,7 +569,7 @@ msgstr "回关"
 msgid "Followers only"
 msgstr "只粉丝可见"
 
-#: src/components/ProfileCard.tsx:228
+#: src/components/ProfileCard.tsx:232
 msgid "Following you"
 msgstr "关注了你"
 
@@ -726,6 +736,10 @@ msgstr "加载更多文章"
 msgid "Load more followers"
 msgstr "加载更多粉丝"
 
+#: src/components/ActorFollowingList.tsx:83
+msgid "Load more following"
+msgstr "加载更多关注"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:491
 msgid "Load more invitees"
 msgstr "加载更多受邀者"
@@ -761,6 +775,10 @@ msgstr "加载更多文章中…"
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
 msgstr "加载更多粉丝中…"
+
+#: src/components/ActorFollowingList.tsx:77
+msgid "Loading more following…"
+msgstr "正在加载更多关注…"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Loading more invitees…"
@@ -860,6 +878,10 @@ msgstr "还没有草稿。创建您的第一篇文章！"
 #: src/components/ActorFollowerList.tsx:90
 msgid "No followers found"
 msgstr "未找到粉丝"
+
+#: src/components/ActorFollowingList.tsx:90
+msgid "No following found"
+msgstr "没有找到关注的用户"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:334
 msgid "No invitations left"
