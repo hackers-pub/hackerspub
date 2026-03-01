@@ -22,7 +22,7 @@ await configure({
         formatter: ansiColorFormatter,
       }),
       {
-        fieldPatterns: [/device[-_]?token/i],
+        fieldPatterns: [/^(?:apns[-_]?)?device[-_]?token$/i],
         action: redactDeviceToken,
       },
     ),
