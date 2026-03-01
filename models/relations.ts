@@ -24,6 +24,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     invitationLinks: r.many.invitationLinkTable(),
     notifications: r.many.notificationTable(),
+    uploadedMedia: r.many.articleMediumTable(),
   },
   accountEmailTable: {
     account: r.one.accountTable({
@@ -111,6 +112,7 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.accountTable.id,
       optional: false,
     }),
+    uploadedMedia: r.many.articleMediumTable(),
   },
   articleSourceTable: {
     account: r.one.accountTable({
@@ -124,6 +126,7 @@ export const relations = defineRelations(schema, (r) => ({
       optional: false,
     }),
     contents: r.many.articleContentTable(),
+    uploadedMedia: r.many.articleMediumTable(),
   },
   articleContentTable: {
     source: r.one.articleSourceTable({
@@ -334,6 +337,23 @@ export const relations = defineRelations(schema, (r) => ({
     customEmoji: r.one.customEmojiTable({
       from: r.notificationTable.customEmojiId,
       to: r.customEmojiTable.id,
+      optional: true,
+    }),
+  },
+  articleMediumTable: {
+    account: r.one.accountTable({
+      from: r.articleMediumTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    articleDraft: r.one.articleDraftTable({
+      from: r.articleMediumTable.articleDraftId,
+      to: r.articleDraftTable.id,
+      optional: true,
+    }),
+    articleSource: r.one.articleSourceTable({
+      from: r.articleMediumTable.articleSourceId,
+      to: r.articleSourceTable.id,
       optional: true,
     }),
   },

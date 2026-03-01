@@ -638,6 +638,7 @@ type Mutation {
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
+  uploadMedia(input: UploadMediaInput!): UploadMediaResult!
   verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): PasskeyRegistrationResult!
 }
 
@@ -1272,3 +1273,18 @@ type UpdateAccountPayload {
   account: Account!
   clientMutationId: ID
 }
+
+input UploadMediaInput {
+  clientMutationId: ID
+  draftId: UUID
+  mediaUrl: URL!
+}
+
+type UploadMediaPayload {
+  clientMutationId: ID
+  height: Int!
+  url: URL!
+  width: Int!
+}
+
+union UploadMediaResult = InvalidInputError | NotAuthenticatedError | UploadMediaPayload

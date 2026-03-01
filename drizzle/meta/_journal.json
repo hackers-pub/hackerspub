@@ -603,6 +603,13 @@
       "when": 1765081205616,
       "tag": "0085_handy_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1772353183891,
+      "tag": "0086_bitter_nico_minoru",
+      "breakpoints": true
     }
   ]
 }
