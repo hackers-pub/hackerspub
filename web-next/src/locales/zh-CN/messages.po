@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:219
+#: src/components/ProfileCard.tsx:218
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {被 # 人关注}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:204
+#: src/components/ProfileCard.tsx:203
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {关注 # 人}}"
 
@@ -432,7 +432,7 @@ msgstr "错误"
 msgid "Extra message"
 msgstr "额外消息"
 
-#: src/components/FollowButton.tsx:103
+#: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "关注失败"
 
@@ -514,7 +514,7 @@ msgstr "转帖失败"
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
-#: src/components/FollowButton.tsx:102
+#: src/components/FollowButton.tsx:125
 msgid "Failed to unfollow"
 msgstr "取消关注失败"
 
@@ -530,11 +530,11 @@ msgstr "联邦宇宙"
 msgid "Feed"
 msgstr "订阅流"
 
-#: src/components/FollowButton.tsx:133
+#: src/components/FollowButton.tsx:165
 msgid "Follow"
 msgstr "关注"
 
-#: src/components/FollowButton.tsx:132
+#: src/components/FollowButton.tsx:164
 msgid "Follow Back"
 msgstr "回关"
 
@@ -547,7 +547,7 @@ msgstr "回关"
 msgid "Followers only"
 msgstr "只粉丝可见"
 
-#: src/components/ProfileCard.tsx:229
+#: src/components/ProfileCard.tsx:228
 msgid "Following you"
 msgstr "关注了你"
 
@@ -1324,7 +1324,7 @@ msgstr "无法添加反应。请重试。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
 
-#: src/components/FollowButton.tsx:130
+#: src/components/FollowButton.tsx:162
 msgid "Unfollow"
 msgstr "取消关注"
 
@@ -1372,7 +1372,7 @@ msgstr "您邀请的用户"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:178
+#: src/components/ProfileCard.tsx:177
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已于{1}验证此链接归{0}所有"
 
@@ -1460,6 +1460,11 @@ msgstr "您尚未注册任何通行密钥。"
 #: src/routes/(root)/[handle]/settings/invite.tsx:344
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你没有剩余邀请名额。请稍后再试。"
+
+#: src/components/FollowButton.tsx:118
+#: src/components/FollowButton.tsx:136
+msgid "You must be signed in"
+msgstr "请先登录"
 
 #: src/components/NoteComposer.tsx:130
 msgid "You must be signed in to create a note"

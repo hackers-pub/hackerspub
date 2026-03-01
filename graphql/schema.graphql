@@ -1235,7 +1235,7 @@ input UnfollowActorInput {
 type UnfollowActorPayload {
   clientMutationId: ID
   followee: Actor!
-  unfollowedFollowerId: ID!
+  follower: Actor!
 }
 
 union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | UnfollowActorPayload

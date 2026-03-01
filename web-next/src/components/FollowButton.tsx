@@ -18,6 +18,7 @@ const followActorMutation = graphql`
     $connections: [ID!]!
   ) {
     followActor(input: $input) {
+      __typename
       ... on FollowActorPayload {
         followee {
           id
@@ -29,7 +30,7 @@ const followActorMutation = graphql`
           edgeTypeName: "ActorFollowersConnectionEdge"
         ) {
           id
-          ...SmallProfileCard_actor
+          followees { totalCount }
         }
       }
       ... on InvalidInputError {
@@ -48,13 +49,17 @@ const unfollowActorMutation = graphql`
     $connections: [ID!]!
   ) {
     unfollowActor(input: $input) {
+      __typename
       ... on UnfollowActorPayload {
         followee {
           id
           viewerFollows
           followers { totalCount }
         }
-        unfollowedFollowerId @deleteEdge(connections: $connections)
+        follower {
+            id @deleteEdge(connections: $connections)
+            followees { totalCount }
+        }
       }
       ... on InvalidInputError {
         inputPath
@@ -97,23 +102,50 @@ export function FollowButton(props: FollowButtonProps) {
       "ActorFollowerList_followers",
     );
 
-    const isFollowing = actorData.viewerFollows;
-    const [mutation, errorTitle] = isFollowing
-      ? [unfollowActor, t`Failed to unfollow`]
-      : [followActor, t`Failed to follow`];
+    const variables = {
+      input: { actorId: actorData.id },
+      connections: [connectionId],
+    };
 
-    mutation({
-      variables: {
-        input: { actorId: actorData.id },
-        connections: [connectionId],
-      },
-      onError() {
-        showToast({
-          title: errorTitle,
-          variant: "destructive",
-        });
-      },
-    });
+    if (actorData.viewerFollows) {
+      unfollowActor({
+        variables,
+        onCompleted(response) {
+          if (
+            response.unfollowActor.__typename === "NotAuthenticatedError"
+          ) {
+            showToast({
+              title: t`You must be signed in`,
+              variant: "destructive",
+            });
+          }
+        },
+        onError() {
+          showToast({
+            title: t`Failed to unfollow`,
+            variant: "destructive",
+          });
+        },
+      });
+    } else {
+      followActor({
+        variables,
+        onCompleted(response) {
+          if (response.followActor.__typename === "NotAuthenticatedError") {
+            showToast({
+              title: t`You must be signed in`,
+              variant: "destructive",
+            });
+          }
+        },
+        onError() {
+          showToast({
+            title: t`Failed to follow`,
+            variant: "destructive",
+          });
+        },
+      });
+    }
   };
 
   return (

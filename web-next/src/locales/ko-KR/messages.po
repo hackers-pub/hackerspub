@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:219
+#: src/components/ProfileCard.tsx:218
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {# 팔로워}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:204
+#: src/components/ProfileCard.tsx:203
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
@@ -432,7 +432,7 @@ msgstr "오류"
 msgid "Extra message"
 msgstr "추가 메시지"
 
-#: src/components/FollowButton.tsx:103
+#: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "팔로에 실패했습니다"
 
@@ -514,7 +514,7 @@ msgstr "콘텐츠 공유 실패"
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
-#: src/components/FollowButton.tsx:102
+#: src/components/FollowButton.tsx:125
 msgid "Failed to unfollow"
 msgstr "언팔로에 실패했습니다"
 
@@ -530,11 +530,11 @@ msgstr "연합우주"
 msgid "Feed"
 msgstr "피드"
 
-#: src/components/FollowButton.tsx:133
+#: src/components/FollowButton.tsx:165
 msgid "Follow"
 msgstr "팔로"
 
-#: src/components/FollowButton.tsx:132
+#: src/components/FollowButton.tsx:164
 msgid "Follow Back"
 msgstr "맞팔하기"
 
@@ -547,7 +547,7 @@ msgstr "맞팔하기"
 msgid "Followers only"
 msgstr "팔로워만"
 
-#: src/components/ProfileCard.tsx:229
+#: src/components/ProfileCard.tsx:228
 msgid "Following you"
 msgstr "당신을 팔로우합니다"
 
@@ -1324,7 +1324,7 @@ msgstr "반응을 추가할 수 없습니다. 다시 시도해주세요."
 msgid "Unable to remove reaction. Please try again."
 msgstr "반응을 제거할 수 없습니다. 다시 시도해주세요."
 
-#: src/components/FollowButton.tsx:130
+#: src/components/FollowButton.tsx:162
 msgid "Unfollow"
 msgstr "언팔로"
 
@@ -1372,7 +1372,7 @@ msgstr "초대한 사용자"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:178
+#: src/components/ProfileCard.tsx:177
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}에 {0} 님이 이 링크의 소유자임이 확인됨"
 
@@ -1460,6 +1460,11 @@ msgstr "등록된 패스키가 아직 없습니다."
 #: src/routes/(root)/[handle]/settings/invite.tsx:344
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려주세요."
+
+#: src/components/FollowButton.tsx:118
+#: src/components/FollowButton.tsx:136
+msgid "You must be signed in"
+msgstr "로그인이 필요합니다"
 
 #: src/components/NoteComposer.tsx:130
 msgid "You must be signed in to create a note"

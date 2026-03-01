@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:219
+#: src/components/ProfileCard.tsx:218
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:204
+#: src/components/ProfileCard.tsx:203
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
@@ -432,7 +432,7 @@ msgstr "エラー"
 msgid "Extra message"
 msgstr "追加メッセージ"
 
-#: src/components/FollowButton.tsx:103
+#: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "フォローに失敗しました"
 
@@ -514,7 +514,7 @@ msgstr "コンテンツの共有に失敗しました"
 msgid "Failed to sign out: {0}"
 msgstr "ログアウトに失敗：{0}"
 
-#: src/components/FollowButton.tsx:102
+#: src/components/FollowButton.tsx:125
 msgid "Failed to unfollow"
 msgstr "フォロー解除に失敗しました"
 
@@ -530,11 +530,11 @@ msgstr "フェディバース"
 msgid "Feed"
 msgstr "フィード"
 
-#: src/components/FollowButton.tsx:133
+#: src/components/FollowButton.tsx:165
 msgid "Follow"
 msgstr "フォロー"
 
-#: src/components/FollowButton.tsx:132
+#: src/components/FollowButton.tsx:164
 msgid "Follow Back"
 msgstr "フォローバック"
 
@@ -547,7 +547,7 @@ msgstr "フォローバック"
 msgid "Followers only"
 msgstr "フォロワーのみ"
 
-#: src/components/ProfileCard.tsx:229
+#: src/components/ProfileCard.tsx:228
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
@@ -1324,7 +1324,7 @@ msgstr "リアクションを追加できませんでした。もう一度お試
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
-#: src/components/FollowButton.tsx:130
+#: src/components/FollowButton.tsx:162
 msgid "Unfollow"
 msgstr "フォロー解除"
 
@@ -1372,7 +1372,7 @@ msgstr "招待したユーザー"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:178
+#: src/components/ProfileCard.tsx:177
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 
@@ -1460,6 +1460,11 @@ msgstr "まだパスキーが登録されていません。"
 #: src/routes/(root)/[handle]/settings/invite.tsx:344
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "招待状が残っていません。追加されるまでお待ちください。"
+
+#: src/components/FollowButton.tsx:118
+#: src/components/FollowButton.tsx:136
+msgid "You must be signed in"
+msgstr "ログインが必要です"
 
 #: src/components/NoteComposer.tsx:130
 msgid "You must be signed in to create a note"

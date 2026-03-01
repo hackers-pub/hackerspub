@@ -615,18 +615,28 @@ builder.relayMutationField(
 
       await follow(ctx.fedCtx, ctx.account, followee);
 
-      return { followee, follower: ctx.account.actor };
+      return { followeeId: followee.id, followerId: ctx.account.actor.id };
     },
   },
   {
     outputFields: (t) => ({
-      followee: t.field({
+      followee: t.drizzleField({
         type: Actor,
-        resolve: (result) => result.followee,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followeeId } }),
+          );
+          return actor!;
+        },
       }),
-      follower: t.field({
+      follower: t.drizzleField({
         type: Actor,
-        resolve: (result) => result.follower,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followerId } }),
+          );
+          return actor!;
+        },
       }),
     }),
   },
@@ -662,17 +672,28 @@ builder.relayMutationField(
 
       await unfollow(ctx.fedCtx, ctx.account, followee);
 
-      return { followee, followerId: ctx.account.actor.id };
+      return { followeeId: followee.id, followerId: ctx.account.actor.id };
     },
   },
   {
     outputFields: (t) => ({
-      followee: t.field({
+      followee: t.drizzleField({
         type: Actor,
-        resolve: (result) => result.followee,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followeeId } }),
+          );
+          return actor!;
+        },
       }),
-      unfollowedFollowerId: t.globalID({
-        resolve: (result) => ({ type: "Actor", id: result.followerId }),
+      follower: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followerId } }),
+          );
+          return actor!;
+        },
       }),
     }),
   },

@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:219
+#: src/components/ProfileCard.tsx:218
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, one {# follower} other {# followers}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:204
+#: src/components/ProfileCard.tsx:203
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, one {# following} other {# following}}"
 
@@ -436,7 +436,7 @@ msgstr "Error"
 msgid "Extra message"
 msgstr "Extra message"
 
-#: src/components/FollowButton.tsx:103
+#: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
@@ -518,7 +518,7 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/FollowButton.tsx:102
+#: src/components/FollowButton.tsx:125
 msgid "Failed to unfollow"
 msgstr "Failed to unfollow"
 
@@ -534,11 +534,11 @@ msgstr "Fediverse"
 msgid "Feed"
 msgstr "Feed"
 
-#: src/components/FollowButton.tsx:133
+#: src/components/FollowButton.tsx:165
 msgid "Follow"
 msgstr "Follow"
 
-#: src/components/FollowButton.tsx:132
+#: src/components/FollowButton.tsx:164
 msgid "Follow Back"
 msgstr "Follow Back"
 
@@ -551,7 +551,7 @@ msgstr "Follow Back"
 msgid "Followers only"
 msgstr "Followers only"
 
-#: src/components/ProfileCard.tsx:229
+#: src/components/ProfileCard.tsx:228
 msgid "Following you"
 msgstr "Following you"
 
@@ -1329,7 +1329,7 @@ msgstr "Unable to add reaction. Please try again."
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
-#: src/components/FollowButton.tsx:130
+#: src/components/FollowButton.tsx:162
 msgid "Unfollow"
 msgstr "Unfollow"
 
@@ -1377,7 +1377,7 @@ msgstr "Users you have invited"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:178
+#: src/components/ProfileCard.tsx:177
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 
@@ -1465,6 +1465,11 @@ msgstr "You don't have any passkeys registered yet."
 #: src/routes/(root)/[handle]/settings/invite.tsx:344
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "You have no invitations left. Please wait until you receive more."
+
+#: src/components/FollowButton.tsx:118
+#: src/components/FollowButton.tsx:136
+msgid "You must be signed in"
+msgstr "You must be signed in"
 
 #: src/components/NoteComposer.tsx:130
 msgid "You must be signed in to create a note"
