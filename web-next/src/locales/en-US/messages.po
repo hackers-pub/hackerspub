@@ -266,7 +266,7 @@ msgstr "Bold"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
-#: src/components/PostActionMenu.tsx:130
+#: src/components/PostActionMenu.tsx:137
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -341,8 +341,8 @@ msgstr "Default note privacy"
 msgid "Default share privacy"
 msgstr "Default share privacy"
 
-#: src/components/PostActionMenu.tsx:116
-#: src/components/PostActionMenu.tsx:136
+#: src/components/PostActionMenu.tsx:123
+#: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "Delete"
@@ -351,7 +351,7 @@ msgstr "Delete"
 msgid "Delete Draft"
 msgstr "Delete Draft"
 
-#: src/components/PostActionMenu.tsx:124
+#: src/components/PostActionMenu.tsx:131
 msgid "Delete post?"
 msgstr "Delete post?"
 
@@ -443,16 +443,16 @@ msgstr "Error"
 msgid "Extra message"
 msgstr "Extra message"
 
+#: src/components/PostActionMenu.tsx:88
+#: src/components/PostActionMenu.tsx:95
+msgid "Failed to delete post"
+msgstr "Failed to delete post"
+
 #: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
-#: src/components/PostActionMenu.tsx:81
-#: src/components/PostActionMenu.tsx:88
-msgid "Failed to delete post"
-msgstr "Failed to delete post"
-
-#: src/components/ActorArticleList.tsx:75
+#: src/components/ActorArticleList.tsx:81
 msgid "Failed to load more articles; click to retry"
 msgstr "Failed to load more articles; click to retry"
 
@@ -468,7 +468,7 @@ msgstr "Failed to load more followers; click to retry"
 msgid "Failed to load more invitees; click to retry"
 msgstr "Failed to load more invitees; click to retry"
 
-#: src/components/ActorNoteList.tsx:72
+#: src/components/ActorNoteList.tsx:75
 msgid "Failed to load more notes; click to retry"
 msgstr "Failed to load more notes; click to retry"
 
@@ -480,10 +480,10 @@ msgstr "Failed to load more notifications; click to retry"
 msgid "Failed to load more passkeys; click to retry"
 msgstr "Failed to load more passkeys; click to retry"
 
-#: src/components/ActorPostList.tsx:73
-#: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:81
+#: src/components/PersonalTimeline.tsx:98
+#: src/components/PublicTimeline.tsx:100
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
@@ -722,7 +722,7 @@ msgstr "List"
 msgid "Load More"
 msgstr "Load More"
 
-#: src/components/ActorArticleList.tsx:78
+#: src/components/ActorArticleList.tsx:84
 msgid "Load more articles"
 msgstr "Load more articles"
 
@@ -734,7 +734,7 @@ msgstr "Load more followers"
 msgid "Load more invitees"
 msgstr "Load more invitees"
 
-#: src/components/ActorNoteList.tsx:75
+#: src/components/ActorNoteList.tsx:78
 msgid "Load more notes"
 msgstr "Load more notes"
 
@@ -746,10 +746,10 @@ msgstr "Load more notifications"
 msgid "Load more passkeys"
 msgstr "Load more passkeys"
 
-#: src/components/ActorPostList.tsx:76
-#: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:95
-#: src/components/PublicTimeline.tsx:97
+#: src/components/ActorPostList.tsx:79
+#: src/components/ActorSharedPostList.tsx:84
+#: src/components/PersonalTimeline.tsx:101
+#: src/components/PublicTimeline.tsx:103
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "Load more posts"
@@ -758,7 +758,7 @@ msgstr "Load more posts"
 msgid "Loading draft..."
 msgstr "Loading draft..."
 
-#: src/components/ActorArticleList.tsx:72
+#: src/components/ActorArticleList.tsx:78
 msgid "Loading more articles…"
 msgstr "Loading more articles…"
 
@@ -770,7 +770,7 @@ msgstr "Loading more followers…"
 msgid "Loading more invitees…"
 msgstr "Loading more invitees…"
 
-#: src/components/ActorNoteList.tsx:69
+#: src/components/ActorNoteList.tsx:72
 msgid "Loading more notes…"
 msgstr "Loading more notes…"
 
@@ -782,10 +782,10 @@ msgstr "Loading more notifications"
 msgid "Loading more passkeys…"
 msgstr "Loading more passkeys…"
 
-#: src/components/ActorPostList.tsx:70
-#: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:89
-#: src/components/PublicTimeline.tsx:91
+#: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:78
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
@@ -869,18 +869,18 @@ msgstr "No followers found"
 msgid "No invitations left"
 msgstr "No invitations left"
 
-#: src/components/ActorArticleList.tsx:85
+#: src/components/ActorArticleList.tsx:91
 msgid "No notes articles"
 msgstr "No notes articles"
 
-#: src/components/ActorNoteList.tsx:82
+#: src/components/ActorNoteList.tsx:85
 msgid "No notes found"
 msgstr "No notes found"
 
-#: src/components/ActorPostList.tsx:83
-#: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:102
-#: src/components/PublicTimeline.tsx:104
+#: src/components/ActorPostList.tsx:86
+#: src/components/ActorSharedPostList.tsx:91
+#: src/components/PersonalTimeline.tsx:108
+#: src/components/PublicTimeline.tsx:110
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "No posts found"
@@ -978,7 +978,7 @@ msgstr "Please enter a title for your article."
 msgid "Please sign in to access this page"
 msgstr "Please sign in to access this page"
 
-#: src/components/PostActionMenu.tsx:77
+#: src/components/PostActionMenu.tsx:84
 msgid "Post deleted"
 msgstr "Post deleted"
 
@@ -1059,7 +1059,7 @@ msgstr "React with {emoji}"
 msgid "reaction"
 msgstr "reaction"
 
-#: src/components/ArticleCard.tsx:267
+#: src/components/ArticleCard.tsx:277
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -1248,7 +1248,7 @@ msgstr "Successfully saved preferences"
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
-#: src/components/ArticleCard.tsx:245
+#: src/components/ArticleCard.tsx:255
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -1310,7 +1310,7 @@ msgstr "The source code of this website is available on {0} under the {1} licens
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
-#: src/components/PostActionMenu.tsx:126
+#: src/components/PostActionMenu.tsx:133
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
 
@@ -1331,7 +1331,7 @@ msgid "Title cannot be empty"
 msgstr "Title cannot be empty"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:163
+#: src/components/ArticleCard.tsx:173
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 

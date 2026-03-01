@@ -266,7 +266,7 @@ msgstr "粗体"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
-#: src/components/PostActionMenu.tsx:130
+#: src/components/PostActionMenu.tsx:137
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -341,8 +341,8 @@ msgstr "默认帖子隐私设置"
 msgid "Default share privacy"
 msgstr "默认转帖隐私设置"
 
-#: src/components/PostActionMenu.tsx:116
-#: src/components/PostActionMenu.tsx:136
+#: src/components/PostActionMenu.tsx:123
+#: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "删除"
@@ -351,7 +351,7 @@ msgstr "删除"
 msgid "Delete Draft"
 msgstr "删除草稿"
 
-#: src/components/PostActionMenu.tsx:124
+#: src/components/PostActionMenu.tsx:131
 msgid "Delete post?"
 msgstr "删除内容？"
 
@@ -439,16 +439,16 @@ msgstr "错误"
 msgid "Extra message"
 msgstr "额外消息"
 
+#: src/components/PostActionMenu.tsx:88
+#: src/components/PostActionMenu.tsx:95
+msgid "Failed to delete post"
+msgstr "删除内容失败"
+
 #: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "关注失败"
 
-#: src/components/PostActionMenu.tsx:81
-#: src/components/PostActionMenu.tsx:88
-msgid "Failed to delete post"
-msgstr "删除内容失败"
-
-#: src/components/ActorArticleList.tsx:75
+#: src/components/ActorArticleList.tsx:81
 msgid "Failed to load more articles; click to retry"
 msgstr "加载更多文章失败，点击重试"
 
@@ -464,7 +464,7 @@ msgstr "加载更多粉丝失败，点击重试"
 msgid "Failed to load more invitees; click to retry"
 msgstr "加载更多受邀者失败；点击重试"
 
-#: src/components/ActorNoteList.tsx:72
+#: src/components/ActorNoteList.tsx:75
 msgid "Failed to load more notes; click to retry"
 msgstr "加载更多帖子失败，点击重试"
 
@@ -476,10 +476,10 @@ msgstr "加载更多通知失败；点击重试"
 msgid "Failed to load more passkeys; click to retry"
 msgstr "加载更多通行密钥失败，点击重试"
 
-#: src/components/ActorPostList.tsx:73
-#: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:81
+#: src/components/PersonalTimeline.tsx:98
+#: src/components/PublicTimeline.tsx:100
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
@@ -718,7 +718,7 @@ msgstr "列表"
 msgid "Load More"
 msgstr "加载更多"
 
-#: src/components/ActorArticleList.tsx:78
+#: src/components/ActorArticleList.tsx:84
 msgid "Load more articles"
 msgstr "加载更多文章"
 
@@ -730,7 +730,7 @@ msgstr "加载更多粉丝"
 msgid "Load more invitees"
 msgstr "加载更多受邀者"
 
-#: src/components/ActorNoteList.tsx:75
+#: src/components/ActorNoteList.tsx:78
 msgid "Load more notes"
 msgstr "加载更多帖子"
 
@@ -742,10 +742,10 @@ msgstr "加载更多通知"
 msgid "Load more passkeys"
 msgstr "加载更多通行密钥"
 
-#: src/components/ActorPostList.tsx:76
-#: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:95
-#: src/components/PublicTimeline.tsx:97
+#: src/components/ActorPostList.tsx:79
+#: src/components/ActorSharedPostList.tsx:84
+#: src/components/PersonalTimeline.tsx:101
+#: src/components/PublicTimeline.tsx:103
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "加载更多内容"
@@ -754,7 +754,7 @@ msgstr "加载更多内容"
 msgid "Loading draft..."
 msgstr "加载草稿中..."
 
-#: src/components/ActorArticleList.tsx:72
+#: src/components/ActorArticleList.tsx:78
 msgid "Loading more articles…"
 msgstr "加载更多文章中…"
 
@@ -766,7 +766,7 @@ msgstr "加载更多粉丝中…"
 msgid "Loading more invitees…"
 msgstr "正在加载更多受邀者…"
 
-#: src/components/ActorNoteList.tsx:69
+#: src/components/ActorNoteList.tsx:72
 msgid "Loading more notes…"
 msgstr "加载更多帖子中…"
 
@@ -778,10 +778,10 @@ msgstr "正在加载更多通知…"
 msgid "Loading more passkeys…"
 msgstr "正在加载更多通行密钥…"
 
-#: src/components/ActorPostList.tsx:70
-#: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:89
-#: src/components/PublicTimeline.tsx:91
+#: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:78
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
@@ -865,18 +865,18 @@ msgstr "未找到粉丝"
 msgid "No invitations left"
 msgstr "没有剩余邀请名额"
 
-#: src/components/ActorArticleList.tsx:85
+#: src/components/ActorArticleList.tsx:91
 msgid "No notes articles"
 msgstr "未找到文章"
 
-#: src/components/ActorNoteList.tsx:82
+#: src/components/ActorNoteList.tsx:85
 msgid "No notes found"
 msgstr "未找到帖子"
 
-#: src/components/ActorPostList.tsx:83
-#: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:102
-#: src/components/PublicTimeline.tsx:104
+#: src/components/ActorPostList.tsx:86
+#: src/components/ActorSharedPostList.tsx:91
+#: src/components/PersonalTimeline.tsx:108
+#: src/components/PublicTimeline.tsx:110
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "未找到内容"
@@ -973,7 +973,7 @@ msgstr "请输入文章标题。"
 msgid "Please sign in to access this page"
 msgstr "请登录以访问此页面"
 
-#: src/components/PostActionMenu.tsx:77
+#: src/components/PostActionMenu.tsx:84
 msgid "Post deleted"
 msgstr "内容已删除"
 
@@ -1054,7 +1054,7 @@ msgstr "用{emoji}反应"
 msgid "reaction"
 msgstr "反应"
 
-#: src/components/ArticleCard.tsx:267
+#: src/components/ArticleCard.tsx:277
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -1243,7 +1243,7 @@ msgstr "设置已成功保存"
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
-#: src/components/ArticleCard.tsx:245
+#: src/components/ArticleCard.tsx:255
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -1305,7 +1305,7 @@ msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 
-#: src/components/PostActionMenu.tsx:126
+#: src/components/PostActionMenu.tsx:133
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作无法撤销。这将永久删除该内容。"
 
@@ -1326,7 +1326,7 @@ msgid "Title cannot be empty"
 msgstr "标题不能为空"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:163
+#: src/components/ArticleCard.tsx:173
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 

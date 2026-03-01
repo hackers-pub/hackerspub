@@ -266,7 +266,7 @@ msgstr "太字"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
-#: src/components/PostActionMenu.tsx:130
+#: src/components/PostActionMenu.tsx:137
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -341,8 +341,8 @@ msgstr "投稿のデフォルト公開範囲"
 msgid "Default share privacy"
 msgstr "共有のデフォルト公開範囲"
 
-#: src/components/PostActionMenu.tsx:116
-#: src/components/PostActionMenu.tsx:136
+#: src/components/PostActionMenu.tsx:123
+#: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "削除"
@@ -351,7 +351,7 @@ msgstr "削除"
 msgid "Delete Draft"
 msgstr "下書きを削除"
 
-#: src/components/PostActionMenu.tsx:124
+#: src/components/PostActionMenu.tsx:131
 msgid "Delete post?"
 msgstr "コンテンツを削除しますか？"
 
@@ -439,16 +439,16 @@ msgstr "エラー"
 msgid "Extra message"
 msgstr "追加メッセージ"
 
+#: src/components/PostActionMenu.tsx:88
+#: src/components/PostActionMenu.tsx:95
+msgid "Failed to delete post"
+msgstr "コンテンツの削除に失敗しました"
+
 #: src/components/FollowButton.tsx:143
 msgid "Failed to follow"
 msgstr "フォローに失敗しました"
 
-#: src/components/PostActionMenu.tsx:81
-#: src/components/PostActionMenu.tsx:88
-msgid "Failed to delete post"
-msgstr "コンテンツの削除に失敗しました"
-
-#: src/components/ActorArticleList.tsx:75
+#: src/components/ActorArticleList.tsx:81
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
 
@@ -464,7 +464,7 @@ msgstr "フォロワーの読み込みに失敗しました。クリックして
 msgid "Failed to load more invitees; click to retry"
 msgstr "招待された人々の読み込みに失敗しました。クリックして再試行"
 
-#: src/components/ActorNoteList.tsx:72
+#: src/components/ActorNoteList.tsx:75
 msgid "Failed to load more notes; click to retry"
 msgstr "投稿の読み込みに失敗しました。クリックして再試行してください"
 
@@ -476,10 +476,10 @@ msgstr "通知の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more passkeys; click to retry"
 msgstr "パスキーの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/ActorPostList.tsx:73
-#: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:81
+#: src/components/PersonalTimeline.tsx:98
+#: src/components/PublicTimeline.tsx:100
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
@@ -718,7 +718,7 @@ msgstr "リスト"
 msgid "Load More"
 msgstr "さらに読み込む"
 
-#: src/components/ActorArticleList.tsx:78
+#: src/components/ActorArticleList.tsx:84
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
 
@@ -730,7 +730,7 @@ msgstr "フォロワーをもっと読み込む"
 msgid "Load more invitees"
 msgstr "もっと招待された人々を読み込む"
 
-#: src/components/ActorNoteList.tsx:75
+#: src/components/ActorNoteList.tsx:78
 msgid "Load more notes"
 msgstr "投稿をもっと読み込む"
 
@@ -742,10 +742,10 @@ msgstr "通知をもっと読み込む"
 msgid "Load more passkeys"
 msgstr "パスキーを読み込む"
 
-#: src/components/ActorPostList.tsx:76
-#: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:95
-#: src/components/PublicTimeline.tsx:97
+#: src/components/ActorPostList.tsx:79
+#: src/components/ActorSharedPostList.tsx:84
+#: src/components/PersonalTimeline.tsx:101
+#: src/components/PublicTimeline.tsx:103
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
@@ -754,7 +754,7 @@ msgstr "コンテンツをもっと読み込む"
 msgid "Loading draft..."
 msgstr "下書きを読み込み中..."
 
-#: src/components/ActorArticleList.tsx:72
+#: src/components/ActorArticleList.tsx:78
 msgid "Loading more articles…"
 msgstr "記事を読み込み中…"
 
@@ -766,7 +766,7 @@ msgstr "フォロワーを読み込み中…"
 msgid "Loading more invitees…"
 msgstr "招待された人々を読み込み中…"
 
-#: src/components/ActorNoteList.tsx:69
+#: src/components/ActorNoteList.tsx:72
 msgid "Loading more notes…"
 msgstr "投稿を読み込み中…"
 
@@ -778,10 +778,10 @@ msgstr "通知を読み込み中…"
 msgid "Loading more passkeys…"
 msgstr "パスキーを読み込み中…"
 
-#: src/components/ActorPostList.tsx:70
-#: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:89
-#: src/components/PublicTimeline.tsx:91
+#: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:78
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
@@ -865,18 +865,18 @@ msgstr "フォロワーはいません"
 msgid "No invitations left"
 msgstr "招待状が残っていません"
 
-#: src/components/ActorArticleList.tsx:85
+#: src/components/ActorArticleList.tsx:91
 msgid "No notes articles"
 msgstr "記事はありません"
 
-#: src/components/ActorNoteList.tsx:82
+#: src/components/ActorNoteList.tsx:85
 msgid "No notes found"
 msgstr "投稿はありません"
 
-#: src/components/ActorPostList.tsx:83
-#: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:102
-#: src/components/PublicTimeline.tsx:104
+#: src/components/ActorPostList.tsx:86
+#: src/components/ActorSharedPostList.tsx:91
+#: src/components/PersonalTimeline.tsx:108
+#: src/components/PublicTimeline.tsx:110
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "コンテンツはありません"
@@ -973,7 +973,7 @@ msgstr "記事のタイトルを入力してください。"
 msgid "Please sign in to access this page"
 msgstr "このページにアクセスするにはログインしてください"
 
-#: src/components/PostActionMenu.tsx:77
+#: src/components/PostActionMenu.tsx:84
 msgid "Post deleted"
 msgstr "コンテンツを削除しました"
 
@@ -1054,7 +1054,7 @@ msgstr "{emoji}でリアクション"
 msgid "reaction"
 msgstr "リアクション"
 
-#: src/components/ArticleCard.tsx:267
+#: src/components/ArticleCard.tsx:277
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -1243,7 +1243,7 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:245
+#: src/components/ArticleCard.tsx:255
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -1305,7 +1305,7 @@ msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 
-#: src/components/PostActionMenu.tsx:126
+#: src/components/PostActionMenu.tsx:133
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "この操作は取り消せません。このコンテンツは完全に削除されます。"
 
@@ -1326,7 +1326,7 @@ msgid "Title cannot be empty"
 msgstr "タイトルは空にできません"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:163
+#: src/components/ArticleCard.tsx:173
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
