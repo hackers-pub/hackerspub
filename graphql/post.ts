@@ -17,6 +17,11 @@ import {
 } from "@hackerspub/models/post";
 import { react, undoReaction } from "@hackerspub/models/reaction";
 import { articleDraftTable } from "@hackerspub/models/schema";
+import {
+  MAX_IMAGE_SIZE,
+  SUPPORTED_IMAGE_TYPES,
+  uploadImage,
+} from "@hackerspub/models/upload";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
@@ -1192,3 +1197,72 @@ builder.queryField("articleDraft", (t) =>
       return drafts[0] ?? null;
     },
   }));
+
+interface UploadMediaResult {
+  url: string;
+  width: number;
+  height: number;
+}
+
+builder.relayMutationField(
+  "uploadMedia",
+  {
+    inputFields: (t) => ({
+      mediaUrl: t.field({ type: "URL", required: true }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new NotAuthenticatedError();
+      }
+      const response = await fetch(args.input.mediaUrl);
+      if (response.status !== 200) {
+        throw new InvalidInputError("mediaUrl");
+      }
+      const contentType = response.headers.get("Content-Type")?.split(";")[0]
+        ?.trim();
+      if (
+        contentType == null || !SUPPORTED_IMAGE_TYPES.includes(contentType)
+      ) {
+        throw new InvalidInputError("mediaUrl");
+      }
+      const blob = await response.blob();
+      if (blob.size > MAX_IMAGE_SIZE) {
+        throw new InvalidInputError("mediaUrl");
+      }
+      const result = await uploadImage(ctx.disk, blob);
+      if (result == null) {
+        throw new InvalidInputError("mediaUrl");
+      }
+      return result;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      url: t.field({
+        type: "URL",
+        resolve(result: UploadMediaResult) {
+          return new URL(result.url);
+        },
+      }),
+      width: t.int({
+        resolve(result: UploadMediaResult) {
+          return result.width;
+        },
+      }),
+      height: t.int({
+        resolve(result: UploadMediaResult) {
+          return result.height;
+        },
+      }),
+    }),
+  },
+);
