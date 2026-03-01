@@ -30,6 +30,13 @@ import {
 import { cn } from "~/lib/utils.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 
+const SUPPORTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+];
+
 export interface MarkdownEditorProps {
   value?: string;
   onInput?: (value: string) => void;
@@ -39,6 +46,7 @@ export interface MarkdownEditorProps {
   disabled?: boolean;
   minHeight?: string;
   showToolbar?: boolean;
+  onImageUpload?: (file: File) => Promise<{ url: string }>;
 }
 
 const editorTheme = EditorView.theme({
@@ -256,6 +264,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
     "disabled",
     "minHeight",
     "showToolbar",
+    "onImageUpload",
   ]);
 
   const { t } = useLingui();
@@ -286,8 +295,61 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
   };
 
   let containerRef: HTMLDivElement | undefined;
+  let fileInputRef: HTMLInputElement | undefined;
   const [editorView, setEditorView] = createSignal<EditorView | undefined>();
   const editableCompartment = new Compartment();
+
+  const replacePlaceholder = (
+    view: EditorView,
+    placeholder: string,
+    replacement: string,
+  ) => {
+    const doc = view.state.doc.toString();
+    const pos = doc.indexOf(placeholder);
+    if (pos !== -1) {
+      view.dispatch({
+        changes: {
+          from: pos,
+          to: pos + placeholder.length,
+          insert: replacement,
+        },
+      });
+    }
+  };
+
+  const handleImageUpload = async (
+    file: File,
+    view: EditorView,
+    pos: number,
+  ) => {
+    if (!local.onImageUpload) return;
+    const uploadId = Math.random().toString(36).slice(2, 10);
+    const placeholder = `![Uploading ${uploadId}...](uploading)\n`;
+
+    view.dispatch({
+      changes: { from: pos, insert: placeholder },
+    });
+
+    try {
+      const result = await local.onImageUpload(file);
+      const alt = file.name.replace(/\.[^.]+$/, "");
+      replacePlaceholder(view, placeholder, `![${alt}](${result.url})\n`);
+    } catch {
+      replacePlaceholder(view, placeholder, "");
+    }
+  };
+
+  const handleFileSelect = (e: Event) => {
+    const input = e.currentTarget as HTMLInputElement;
+    const view = editorView();
+    if (!input.files || !view) return;
+    for (const file of Array.from(input.files)) {
+      if (SUPPORTED_IMAGE_TYPES.includes(file.type)) {
+        handleImageUpload(file, view, view.state.selection.main.head);
+      }
+    }
+    input.value = "";
+  };
 
   onMount(() => {
     if (!containerRef) return;
@@ -328,6 +390,48 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
           const mod = event.ctrlKey || event.metaKey;
           if (mod && ["b", "i", "k", "`"].includes(event.key)) {
             event.stopPropagation();
+          }
+          return false;
+        },
+        drop: (event, view) => {
+          if (!local.onImageUpload) return false;
+          const files = event.dataTransfer?.files;
+          if (!files || files.length === 0) return false;
+          const imageFiles = Array.from(files).filter((f) =>
+            SUPPORTED_IMAGE_TYPES.includes(f.type)
+          );
+          if (imageFiles.length === 0) return false;
+          event.preventDefault();
+          const pos = view.posAtCoords({
+            x: event.clientX,
+            y: event.clientY,
+          }) ?? view.state.selection.main.head;
+          for (const file of imageFiles) {
+            handleImageUpload(file, view, pos);
+          }
+          return true;
+        },
+        paste: (event, view) => {
+          if (!local.onImageUpload) return false;
+          const items = event.clipboardData?.items;
+          if (!items) return false;
+          const itemList = Array.from(items);
+          for (const item of itemList) {
+            if (
+              item.kind === "file" &&
+              SUPPORTED_IMAGE_TYPES.includes(item.type)
+            ) {
+              event.preventDefault();
+              const file = item.getAsFile();
+              if (file) {
+                handleImageUpload(
+                  file,
+                  view,
+                  view.state.selection.main.head,
+                );
+              }
+              return true;
+            }
           }
           return false;
         },
@@ -451,6 +555,41 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
               </button>
             )}
           </For>
+          <Show when={local.onImageUpload}>
+            <div class="mx-1 h-8 w-px bg-border" />
+            <button
+              type="button"
+              onClick={() => fileInputRef?.click()}
+              disabled={local.disabled}
+              class={cn(
+                "flex h-8 w-8 items-center justify-center rounded text-xs font-medium",
+                "hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              )}
+              title={t`Image`}
+              aria-label={t`Image`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="size-4"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M1 5.25A2.25 2.25 0 0 1 3.25 3h13.5A2.25 2.25 0 0 1 19 5.25v9.5A2.25 2.25 0 0 1 16.75 17H3.25A2.25 2.25 0 0 1 1 14.75v-9.5Zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 0 0 .75-.75v-2.69l-2.22-2.219a.75.75 0 0 0-1.06 0l-1.91 1.909-4.97-4.969a.75.75 0 0 0-1.06 0L2.5 11.06ZM12.75 7a1.25 1.25 0 1 1 2.5 0 1.25 1.25 0 0 1-2.5 0Z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              class="hidden"
+              onChange={handleFileSelect}
+            />
+          </Show>
         </div>
       </Show>
       <div

@@ -6,12 +6,32 @@ import {
   TextFieldInput,
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { uploadImage } from "~/lib/uploadImage.ts";
 import { useArticleComposer } from "./ArticleComposerContext.tsx";
 
 export function ArticleComposerForm() {
   const { t } = useLingui();
   const ctx = useArticleComposer();
+
+  const handleImageUpload = async (
+    file: File,
+  ): Promise<{ url: string }> => {
+    try {
+      const result = await uploadImage(file);
+      return { url: result.url };
+    } catch (error) {
+      showToast({
+        title: t`Error`,
+        description: error instanceof Error
+          ? error.message
+          : t`Failed to upload image`,
+        variant: "error",
+      });
+      throw error;
+    }
+  };
 
   return (
     <>
@@ -93,6 +113,7 @@ export function ArticleComposerForm() {
               placeholder={t`Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing.`}
               showToolbar
               minHeight="400px"
+              onImageUpload={handleImageUpload}
             />
           </div>
           {/* Preview */}
