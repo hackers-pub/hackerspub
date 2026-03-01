@@ -260,7 +260,7 @@ msgstr "自己紹介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
 
-#: src/components/ui/markdown-editor.tsx:266
+#: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "太字"
 
@@ -276,7 +276,7 @@ msgstr "キャンセル"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
 
-#: src/components/ui/markdown-editor.tsx:270
+#: src/components/ui/markdown-editor.tsx:279
 msgid "Code"
 msgstr "コード"
 
@@ -291,7 +291,7 @@ msgstr "行動規範"
 msgid "Compose"
 msgstr "作成"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:33
+#: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "内容"
@@ -424,6 +424,7 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 #: src/components/article-composer/ArticleComposerContext.tsx:443
 #: src/components/article-composer/ArticleComposerContext.tsx:452
 #: src/components/article-composer/ArticleComposerContext.tsx:460
+#: src/components/article-composer/ArticleComposerForm.tsx:26
 #: src/components/NoteComposer.tsx:95
 #: src/components/NoteComposer.tsx:121
 #: src/components/NoteComposer.tsx:129
@@ -534,6 +535,10 @@ msgstr "フォロー解除に失敗しました"
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
+#: src/components/article-composer/ArticleComposerForm.tsx:29
+msgid "Failed to upload image"
+msgstr "画像のアップロードに失敗しました"
+
 #: src/components/AppSidebar.tsx:238
 msgid "Fediverse"
 msgstr "フェディバース"
@@ -563,7 +568,7 @@ msgstr "フォロワーのみ"
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
-#: src/components/ui/markdown-editor.tsx:412
+#: src/components/ui/markdown-editor.tsx:519
 msgid "Formatting"
 msgstr "書式設定"
 
@@ -602,19 +607,19 @@ msgstr "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
-#: src/components/ui/markdown-editor.tsx:274
+#: src/components/ui/markdown-editor.tsx:283
 msgid "Heading 1"
 msgstr "見出し1"
 
-#: src/components/ui/markdown-editor.tsx:276
+#: src/components/ui/markdown-editor.tsx:285
 msgid "Heading 2"
 msgstr "見出し2"
 
-#: src/components/ui/markdown-editor.tsx:278
+#: src/components/ui/markdown-editor.tsx:287
 msgid "Heading 3"
 msgstr "見出し3"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Hide Preview"
 msgstr "プレビューを隠す"
 
@@ -634,6 +639,11 @@ msgstr "有効にすると、AIが記事の要約を生成します。無効の�
 #: src/routes/(root)/[handle]/[noteId].tsx:253
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この投稿に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当投稿に返信してください。"
+
+#: src/components/ui/markdown-editor.tsx:572
+#: src/components/ui/markdown-editor.tsx:573
+msgid "Image"
+msgstr "画像"
 
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
@@ -664,7 +674,7 @@ msgstr "招待"
 msgid "Invite a friend"
 msgstr "友達を招待"
 
-#: src/components/ui/markdown-editor.tsx:268
+#: src/components/ui/markdown-editor.tsx:277
 msgid "Italic"
 msgstr "斜体"
 
@@ -698,7 +708,7 @@ msgstr "言語設定"
 msgid "Last used {0}"
 msgstr "{0}に最終使用"
 
-#: src/components/ui/markdown-editor.tsx:272
+#: src/components/ui/markdown-editor.tsx:281
 msgid "Link"
 msgstr "リンク"
 
@@ -710,7 +720,7 @@ msgstr "リンクの著者："
 msgid "Link name"
 msgstr "リンク名"
 
-#: src/components/ui/markdown-editor.tsx:282
+#: src/components/ui/markdown-editor.tsx:291
 msgid "List"
 msgstr "リスト"
 
@@ -798,7 +808,7 @@ msgstr "読み込み中…"
 msgid "Markdown guide"
 msgstr "Markdown ガイド"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:79
+#: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown対応"
@@ -963,7 +973,7 @@ msgstr "5 MiB未満の画像ファイルを選択してください。"
 msgid "Please correct the errors and try again."
 msgstr "エラーを修正して、もう一度お試しください。"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:24
+#: src/components/article-composer/ArticleComposerForm.tsx:44
 msgid "Please enter a title for your article."
 msgstr "記事のタイトルを入力してください。"
 
@@ -1037,7 +1047,7 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/PostControls.tsx:193
-#: src/components/ui/markdown-editor.tsx:280
+#: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
@@ -1118,7 +1128,7 @@ msgstr "保存"
 msgid "Save Draft"
 msgstr "下書きを保存"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:105
+#: src/components/article-composer/ArticleComposerForm.tsx:126
 msgid "Save draft to see preview"
 msgstr "下書きを保存するとプレビューが表示されます"
 
@@ -1178,7 +1188,7 @@ msgstr "共有"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show Preview"
 msgstr "プレビューを表示"
 
@@ -1255,7 +1265,7 @@ msgstr "目次"
 #~ msgid "Tag"
 #~ msgstr "タグ"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:121
+#: src/components/article-composer/ArticleComposerForm.tsx:142
 msgid "Tags"
 msgstr "タグ"
 
@@ -1317,7 +1327,7 @@ msgstr "これは記事のURLの一部になります"
 msgid "Timeline"
 msgstr "タイムライン"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:20
+#: src/components/article-composer/ArticleComposerForm.tsx:40
 msgid "Title"
 msgstr "タイトル"
 
@@ -1330,7 +1340,7 @@ msgstr "タイトルは空にできません"
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:125
+#: src/components/article-composer/ArticleComposerForm.tsx:146
 msgid "Type tags separated by spaces"
 msgstr "スペースで区切ってタグを入力"
 
@@ -1444,7 +1454,7 @@ msgstr "今何してる？"
 msgid "Without shares"
 msgstr "共有除外"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:93
+#: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "ここに記事を書いてください。Markdownが使えます。執筆中は自動的に下書きとして保存されます。"
 

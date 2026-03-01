@@ -260,7 +260,7 @@ msgstr "個人簡介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "個人簡介太長。不能長於 512 字元。"
 
-#: src/components/ui/markdown-editor.tsx:266
+#: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "粗體"
 
@@ -276,7 +276,7 @@ msgstr "取消"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
 
-#: src/components/ui/markdown-editor.tsx:270
+#: src/components/ui/markdown-editor.tsx:279
 msgid "Code"
 msgstr "程式碼"
 
@@ -291,7 +291,7 @@ msgstr "行為準則"
 msgid "Compose"
 msgstr "寫作"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:33
+#: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "內容"
@@ -424,6 +424,7 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 #: src/components/article-composer/ArticleComposerContext.tsx:443
 #: src/components/article-composer/ArticleComposerContext.tsx:452
 #: src/components/article-composer/ArticleComposerContext.tsx:460
+#: src/components/article-composer/ArticleComposerForm.tsx:26
 #: src/components/NoteComposer.tsx:95
 #: src/components/NoteComposer.tsx:121
 #: src/components/NoteComposer.tsx:129
@@ -534,6 +535,10 @@ msgstr "取消關注失敗"
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
+#: src/components/article-composer/ArticleComposerForm.tsx:29
+msgid "Failed to upload image"
+msgstr "圖片上傳失敗"
+
 #: src/components/AppSidebar.tsx:238
 msgid "Fediverse"
 msgstr "聯邦宇宙"
@@ -563,7 +568,7 @@ msgstr "只粉絲可見"
 msgid "Following you"
 msgstr "關注了你"
 
-#: src/components/ui/markdown-editor.tsx:412
+#: src/components/ui/markdown-editor.tsx:519
 msgid "Formatting"
 msgstr "格式"
 
@@ -602,19 +607,19 @@ msgstr "Hackers' Pub 是個為軟體工程師共同分享知識和經驗的地�
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
-#: src/components/ui/markdown-editor.tsx:274
+#: src/components/ui/markdown-editor.tsx:283
 msgid "Heading 1"
 msgstr "標題 1"
 
-#: src/components/ui/markdown-editor.tsx:276
+#: src/components/ui/markdown-editor.tsx:285
 msgid "Heading 2"
 msgstr "標題 2"
 
-#: src/components/ui/markdown-editor.tsx:278
+#: src/components/ui/markdown-editor.tsx:287
 msgid "Heading 3"
 msgstr "標題 3"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Hide Preview"
 msgstr "隱藏預覽"
 
@@ -634,6 +639,11 @@ msgstr "啟用後，AI 將為您生成文章摘要。否則，將使用文章的
 #: src/routes/(root)/[handle]/[noteId].tsx:253
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡評論此貼文。在你的實例搜尋 {0} 後回覆。"
+
+#: src/components/ui/markdown-editor.tsx:572
+#: src/components/ui/markdown-editor.tsx:573
+msgid "Image"
+msgstr "圖片"
 
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
@@ -664,7 +674,7 @@ msgstr "邀請"
 msgid "Invite a friend"
 msgstr "邀請朋友"
 
-#: src/components/ui/markdown-editor.tsx:268
+#: src/components/ui/markdown-editor.tsx:277
 msgid "Italic"
 msgstr "斜體"
 
@@ -698,7 +708,7 @@ msgstr "語言設定"
 msgid "Last used {0}"
 msgstr "{0}最後使用"
 
-#: src/components/ui/markdown-editor.tsx:272
+#: src/components/ui/markdown-editor.tsx:281
 msgid "Link"
 msgstr "連結"
 
@@ -710,7 +720,7 @@ msgstr "連結作者："
 msgid "Link name"
 msgstr "連結名"
 
-#: src/components/ui/markdown-editor.tsx:282
+#: src/components/ui/markdown-editor.tsx:291
 msgid "List"
 msgstr "列表"
 
@@ -798,7 +808,7 @@ msgstr "載入中…"
 msgid "Markdown guide"
 msgstr "Markdown 指南"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:79
+#: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown 可用"
@@ -963,7 +973,7 @@ msgstr "請選擇小於 5 MiB 的圖片檔案。"
 msgid "Please correct the errors and try again."
 msgstr "請修正錯誤並重試。"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:24
+#: src/components/article-composer/ArticleComposerForm.tsx:44
 msgid "Please enter a title for your article."
 msgstr "請輸入文章標題。"
 
@@ -1037,7 +1047,7 @@ msgid "Quiet public"
 msgstr "悄悄公開"
 
 #: src/components/PostControls.tsx:193
-#: src/components/ui/markdown-editor.tsx:280
+#: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
@@ -1118,7 +1128,7 @@ msgstr "儲存"
 msgid "Save Draft"
 msgstr "儲存草稿"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:105
+#: src/components/article-composer/ArticleComposerForm.tsx:126
 msgid "Save draft to see preview"
 msgstr "儲存草稿以查看預覽"
 
@@ -1178,7 +1188,7 @@ msgstr "分享"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show Preview"
 msgstr "顯示預覽"
 
@@ -1255,7 +1265,7 @@ msgstr "目錄"
 #~ msgid "Tag"
 #~ msgstr "標籤"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:121
+#: src/components/article-composer/ArticleComposerForm.tsx:142
 msgid "Tags"
 msgstr "標籤"
 
@@ -1317,7 +1327,7 @@ msgstr "這將成為文章網址的一部分"
 msgid "Timeline"
 msgstr "時間軸"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:20
+#: src/components/article-composer/ArticleComposerForm.tsx:40
 msgid "Title"
 msgstr "標題"
 
@@ -1330,7 +1340,7 @@ msgstr "標題不能為空"
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:125
+#: src/components/article-composer/ArticleComposerForm.tsx:146
 msgid "Type tags separated by spaces"
 msgstr "輸入標籤，用空格分隔"
 
@@ -1444,7 +1454,7 @@ msgstr "你在想什麼？"
 msgid "Without shares"
 msgstr "不含轉貼"
 
-#: src/components/article-composer/ArticleComposerForm.tsx:93
+#: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "在此撰寫文章。您可以使用 Markdown。在您撰寫時，文章將自動儲存為草稿。"
 
