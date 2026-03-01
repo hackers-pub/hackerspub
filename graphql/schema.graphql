@@ -625,6 +625,7 @@ type Mutation {
     verifyUrl: URITemplate!
   ): LoginResult!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
+  registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   revokePasskey(passkeyId: ID!): ID
 
@@ -636,6 +637,7 @@ type Mutation {
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
   sharePost(input: SharePostInput!): SharePostResult!
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
+  unregisterApnsDeviceToken(input: UnregisterApnsDeviceTokenInput!): UnregisterApnsDeviceTokenResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): PasskeyRegistrationResult!
@@ -1085,6 +1087,22 @@ type ReactionGroupReactorsConnectionEdge {
   node: Actor!
 }
 
+input RegisterApnsDeviceTokenInput {
+  clientMutationId: ID
+
+  """The APNS device token."""
+  deviceToken: String!
+}
+
+type RegisterApnsDeviceTokenPayload {
+  clientMutationId: ID
+  created: DateTime!
+  deviceToken: String!
+  updated: DateTime!
+}
+
+union RegisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | RegisterApnsDeviceTokenPayload
+
 input RemoveReactionFromPostInput {
   clientMutationId: ID
   emoji: String!
@@ -1239,6 +1257,21 @@ type UnfollowActorPayload {
 }
 
 union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | UnfollowActorPayload
+
+input UnregisterApnsDeviceTokenInput {
+  clientMutationId: ID
+
+  """The APNS device token."""
+  deviceToken: String!
+}
+
+type UnregisterApnsDeviceTokenPayload {
+  clientMutationId: ID
+  deviceToken: String!
+  unregistered: Boolean!
+}
+
+union UnregisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | UnregisterApnsDeviceTokenPayload
 
 input UnsharePostInput {
   clientMutationId: ID
