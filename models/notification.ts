@@ -25,8 +25,13 @@ async function sendApnsNotificationBestEffort(
     await sendApnsNotification(db, options);
   } catch (error) {
     logger.error(
-      "Failed to send APNS notification after persistence: {error}",
-      { error },
+      "Failed to send APNS notification after persistence for account {accountId}, notification {notificationId}, type {type}: {error}",
+      {
+        accountId: options.accountId,
+        notificationId: options.notificationId,
+        type: options.type,
+        error,
+      },
     );
   }
 }
