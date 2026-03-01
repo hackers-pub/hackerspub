@@ -26,10 +26,13 @@ import type { PostActionMenu_deletePost_Mutation } from "./__generated__/PostAct
 import type { PostActionMenu_post$key } from "./__generated__/PostActionMenu_post.graphql.ts";
 
 const deletePostMutation = graphql`
-  mutation PostActionMenu_deletePost_Mutation($input: DeletePostInput!) {
+  mutation PostActionMenu_deletePost_Mutation(
+    $input: DeletePostInput!
+    $connections: [ID!]!
+  ) {
     deletePost(input: $input) {
       ... on DeletePostPayload {
-        deletedPostId @deleteRecord
+        deletedPostId @deleteEdge(connections: $connections)
       }
       ... on InvalidInputError {
         inputPath
@@ -43,6 +46,7 @@ const deletePostMutation = graphql`
 
 export interface PostActionMenuProps {
   $post: PostActionMenu_post$key;
+  connections?: string[];
   onDeleted?: () => void;
 }
 
@@ -73,6 +77,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
     commitDeletePost({
       variables: {
         input: { id: p.id },
+        connections: props.connections ?? [],
       },
       onCompleted(response) {
         if (response.deletePost.deletedPostId != null) {

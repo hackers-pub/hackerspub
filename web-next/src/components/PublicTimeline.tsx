@@ -38,6 +38,7 @@ export function PublicTimeline(props: PublicTimelineProps) {
         )
           @connection(key: "PublicTimeline__publicTimeline")
         {
+          __id
           edges {
             __id
             node {
@@ -79,7 +80,12 @@ export function PublicTimeline(props: PublicTimelineProps) {
         {(data) => (
           <>
             <For each={data().publicTimeline.edges}>
-              {(edge) => <PostCard $post={edge.node} />}
+              {(edge) => (
+                <PostCard
+                  $post={edge.node}
+                  connections={[data().publicTimeline.__id]}
+                />
+              )}
             </For>
             <Show when={posts.hasNext}>
               <div

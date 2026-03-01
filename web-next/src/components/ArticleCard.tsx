@@ -19,6 +19,7 @@ import { Trans } from "./Trans.tsx";
 
 export interface ArticleCardProps {
   $article: ArticleCard_article$key;
+  connections?: string[];
 }
 
 export function ArticleCard(props: ArticleCardProps) {
@@ -48,7 +49,11 @@ export function ArticleCard(props: ArticleCardProps) {
           <Show
             when={article().sharedPost}
             fallback={
-              <ArticleCardInternal $article={article()} setHover={setHover} />
+              <ArticleCardInternal
+                $article={article()}
+                setHover={setHover}
+                connections={props.connections}
+              />
             }
           >
             {(sharedPost) => (
@@ -57,6 +62,7 @@ export function ArticleCard(props: ArticleCardProps) {
                 <ArticleCardInternal
                   $article={sharedPost()}
                   setHover={setHover}
+                  connections={props.connections}
                 />
               </>
             )}
@@ -71,6 +77,7 @@ interface ArticleCardInternalProps {
   $article: ArticleCardInternal_article$key;
   hover?: Accessor<boolean>;
   setHover?: Setter<boolean>;
+  connections?: string[];
 }
 
 function ArticleCardInternal(props: ArticleCardInternalProps) {
@@ -149,7 +156,10 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
               </div>
               <div class="flex flex-row items-center text-muted-foreground gap-1">
                 <Timestamp value={article().published} capitalizeFirstLetter />
-                <PostActionMenu $post={article()} />
+                <PostActionMenu
+                  $post={article()}
+                  connections={props.connections}
+                />
                 <Show
                   when={article().contents != null &&
                     article().contents.length > 0 &&
