@@ -271,7 +271,7 @@ msgid "Bold"
 msgstr "太字"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:217
+#: src/components/NoteComposer.tsx:343
 #: src/components/PostActionMenu.tsx:137
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
@@ -298,11 +298,11 @@ msgid "Compose"
 msgstr "作成"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:150
+#: src/components/NoteComposer.tsx:276
 msgid "Content"
 msgstr "内容"
 
-#: src/components/NoteComposer.tsx:96
+#: src/components/NoteComposer.tsx:182
 msgid "Content cannot be empty"
 msgstr "内容を入力してください"
 
@@ -313,8 +313,8 @@ msgstr "記事を作成"
 
 #: src/components/AppSidebar.tsx:444
 #: src/components/FloatingComposeButton.tsx:99
-#: src/components/NoteComposeModal.tsx:24
-#: src/components/NoteComposer.tsx:221
+#: src/components/NoteComposeModal.tsx:26
+#: src/components/NoteComposer.tsx:350
 msgid "Create Note"
 msgstr "投稿を作成"
 
@@ -327,7 +327,7 @@ msgstr "{0}に作成"
 msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
-#: src/components/NoteComposer.tsx:222
+#: src/components/NoteComposer.tsx:351
 msgid "Creating…"
 msgstr "作成中…"
 
@@ -431,10 +431,10 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 #: src/components/article-composer/ArticleComposerContext.tsx:452
 #: src/components/article-composer/ArticleComposerContext.tsx:460
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:95
-#: src/components/NoteComposer.tsx:121
-#: src/components/NoteComposer.tsx:129
-#: src/components/NoteComposer.tsx:137
+#: src/components/NoteComposer.tsx:181
+#: src/components/NoteComposer.tsx:208
+#: src/components/NoteComposer.tsx:216
+#: src/components/NoteComposer.tsx:224
 #: src/routes/(root)/[handle]/drafts/index.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 #: src/routes/(root)/[handle]/drafts/index.tsx:198
@@ -528,7 +528,7 @@ msgstr "設定の保存に失敗しました"
 msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
-#: src/components/PostControls.tsx:148
+#: src/components/PostControls.tsx:150
 msgid "Failed to share post"
 msgstr "コンテンツの共有に失敗しました"
 
@@ -541,7 +541,7 @@ msgstr "ログアウトに失敗：{0}"
 msgid "Failed to unfollow"
 msgstr "フォロー解除に失敗しました"
 
-#: src/components/PostControls.tsx:134
+#: src/components/PostControls.tsx:136
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
@@ -661,7 +661,7 @@ msgstr "画像"
 #: src/components/article-composer/ArticleComposerContext.tsx:309
 #: src/components/article-composer/ArticleComposerContext.tsx:380
 #: src/components/article-composer/ArticleComposerContext.tsx:445
-#: src/components/NoteComposer.tsx:122
+#: src/components/NoteComposer.tsx:209
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
 msgstr "無効な入力：{0}"
@@ -700,7 +700,7 @@ msgstr "{0}に参加"
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:36
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/components/NoteComposer.tsx:196
+#: src/components/NoteComposer.tsx:322
 msgid "Language"
 msgstr "言語"
 
@@ -827,7 +827,7 @@ msgid "Markdown guide"
 msgstr "Markdown ガイド"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:175
+#: src/components/NoteComposer.tsx:301
 msgid "Markdown supported"
 msgstr "Markdown対応"
 
@@ -925,7 +925,7 @@ msgstr "見つかりませんでした。"
 #~ msgid "Note"
 #~ msgstr "投稿"
 
-#: src/components/NoteComposer.tsx:114
+#: src/components/NoteComposer.tsx:201
 msgid "Note created successfully"
 msgstr "投稿が作成されました"
 
@@ -1068,12 +1068,13 @@ msgstr "検索文字列は空にできません"
 msgid "Quiet public"
 msgstr "ひかえめな公開"
 
-#: src/components/PostControls.tsx:193
+#: src/components/NoteComposeModal.tsx:26
+#: src/components/PostControls.tsx:195
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:230
+#: src/components/PostControls.tsx:233
 msgid "React"
 msgstr "リアクション"
 
@@ -1127,7 +1128,12 @@ msgstr "削除"
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
-#: src/components/PostControls.tsx:182
+#: src/components/NoteComposer.tsx:265
+#: src/components/NoteComposer.tsx:266
+msgid "Remove quote"
+msgstr "引用を削除"
+
+#: src/components/PostControls.tsx:184
 msgid "Reply"
 msgstr "返信"
 
@@ -1202,7 +1208,7 @@ msgstr "個人の環境設定を設定してください。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:210
+#: src/components/PostControls.tsx:213
 msgid "Share"
 msgstr "共有"
 
@@ -1258,7 +1264,7 @@ msgstr "問題が発生しました。再度お試しください。"
 #: src/components/article-composer/ArticleComposerContext.tsx:298
 #: src/components/article-composer/ArticleComposerContext.tsx:370
 #: src/components/article-composer/ArticleComposerContext.tsx:435
-#: src/components/NoteComposer.tsx:113
+#: src/components/NoteComposer.tsx:200
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
 msgstr "成功"
@@ -1380,7 +1386,7 @@ msgstr "リアクションを削除できませんでした。もう一度お試
 msgid "Unfollow"
 msgstr "フォロー解除"
 
-#: src/components/PostControls.tsx:210
+#: src/components/PostControls.tsx:213
 msgid "Unshare"
 msgstr "共有を取り消す"
 
@@ -1436,7 +1442,7 @@ msgstr "招待を確認中…"
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
 
-#: src/components/NoteComposer.tsx:203
+#: src/components/NoteComposer.tsx:329
 msgid "Visibility"
 msgstr "公開範囲"
 
@@ -1468,7 +1474,7 @@ msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォ
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pubとは？"
 
-#: src/components/NoteComposer.tsx:182
+#: src/components/NoteComposer.tsx:308
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
@@ -1518,7 +1524,7 @@ msgstr "招待状が残っていません。追加されるまでお待ちくだ
 msgid "You must be signed in"
 msgstr "ログインが必要です"
 
-#: src/components/NoteComposer.tsx:130
+#: src/components/NoteComposer.tsx:217
 msgid "You must be signed in to create a note"
 msgstr "投稿を作成するにはログインが必要です"
 

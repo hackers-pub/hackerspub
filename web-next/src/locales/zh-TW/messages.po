@@ -271,7 +271,7 @@ msgid "Bold"
 msgstr "粗體"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:217
+#: src/components/NoteComposer.tsx:343
 #: src/components/PostActionMenu.tsx:137
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
@@ -298,11 +298,11 @@ msgid "Compose"
 msgstr "寫作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:150
+#: src/components/NoteComposer.tsx:276
 msgid "Content"
 msgstr "內容"
 
-#: src/components/NoteComposer.tsx:96
+#: src/components/NoteComposer.tsx:182
 msgid "Content cannot be empty"
 msgstr "內容不能為空"
 
@@ -313,8 +313,8 @@ msgstr "建立文章"
 
 #: src/components/AppSidebar.tsx:444
 #: src/components/FloatingComposeButton.tsx:99
-#: src/components/NoteComposeModal.tsx:24
-#: src/components/NoteComposer.tsx:221
+#: src/components/NoteComposeModal.tsx:26
+#: src/components/NoteComposer.tsx:350
 msgid "Create Note"
 msgstr "建立貼文"
 
@@ -327,7 +327,7 @@ msgstr "{0}建立"
 msgid "Creating account…"
 msgstr "創建帳戶…"
 
-#: src/components/NoteComposer.tsx:222
+#: src/components/NoteComposer.tsx:351
 msgid "Creating…"
 msgstr "正在建立…"
 
@@ -431,10 +431,10 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 #: src/components/article-composer/ArticleComposerContext.tsx:452
 #: src/components/article-composer/ArticleComposerContext.tsx:460
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:95
-#: src/components/NoteComposer.tsx:121
-#: src/components/NoteComposer.tsx:129
-#: src/components/NoteComposer.tsx:137
+#: src/components/NoteComposer.tsx:181
+#: src/components/NoteComposer.tsx:208
+#: src/components/NoteComposer.tsx:216
+#: src/components/NoteComposer.tsx:224
 #: src/routes/(root)/[handle]/drafts/index.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 #: src/routes/(root)/[handle]/drafts/index.tsx:198
@@ -528,7 +528,7 @@ msgstr "儲存設定失敗"
 msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
-#: src/components/PostControls.tsx:148
+#: src/components/PostControls.tsx:150
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
@@ -541,7 +541,7 @@ msgstr "登出失敗：{0}"
 msgid "Failed to unfollow"
 msgstr "取消關注失敗"
 
-#: src/components/PostControls.tsx:134
+#: src/components/PostControls.tsx:136
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
@@ -661,7 +661,7 @@ msgstr "圖片"
 #: src/components/article-composer/ArticleComposerContext.tsx:309
 #: src/components/article-composer/ArticleComposerContext.tsx:380
 #: src/components/article-composer/ArticleComposerContext.tsx:445
-#: src/components/NoteComposer.tsx:122
+#: src/components/NoteComposer.tsx:209
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
 msgstr "無效輸入：{0}"
@@ -700,7 +700,7 @@ msgstr "於{0}加入"
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:36
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/components/NoteComposer.tsx:196
+#: src/components/NoteComposer.tsx:322
 msgid "Language"
 msgstr "語言"
 
@@ -827,7 +827,7 @@ msgid "Markdown guide"
 msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:175
+#: src/components/NoteComposer.tsx:301
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -925,7 +925,7 @@ msgstr "未找到。"
 #~ msgid "Note"
 #~ msgstr "貼文"
 
-#: src/components/NoteComposer.tsx:114
+#: src/components/NoteComposer.tsx:201
 msgid "Note created successfully"
 msgstr "貼文建立成功"
 
@@ -1068,12 +1068,13 @@ msgstr "搜尋關鍵詞不能為空"
 msgid "Quiet public"
 msgstr "悄悄公開"
 
-#: src/components/PostControls.tsx:193
+#: src/components/NoteComposeModal.tsx:26
+#: src/components/PostControls.tsx:195
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:230
+#: src/components/PostControls.tsx:233
 msgid "React"
 msgstr "反應"
 
@@ -1127,7 +1128,12 @@ msgstr "移除"
 msgid "Remove {0}"
 msgstr "移除{0}"
 
-#: src/components/PostControls.tsx:182
+#: src/components/NoteComposer.tsx:265
+#: src/components/NoteComposer.tsx:266
+msgid "Remove quote"
+msgstr "移除引用"
+
+#: src/components/PostControls.tsx:184
 msgid "Reply"
 msgstr "回覆"
 
@@ -1202,7 +1208,7 @@ msgstr "設定您的個人偏好設定。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:210
+#: src/components/PostControls.tsx:213
 msgid "Share"
 msgstr "分享"
 
@@ -1258,7 +1264,7 @@ msgstr "發生錯誤，請重試。"
 #: src/components/article-composer/ArticleComposerContext.tsx:298
 #: src/components/article-composer/ArticleComposerContext.tsx:370
 #: src/components/article-composer/ArticleComposerContext.tsx:435
-#: src/components/NoteComposer.tsx:113
+#: src/components/NoteComposer.tsx:200
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
 msgstr "成功"
@@ -1380,7 +1386,7 @@ msgstr "無法移除反應。請重試。"
 msgid "Unfollow"
 msgstr "取消關注"
 
-#: src/components/PostControls.tsx:210
+#: src/components/PostControls.tsx:213
 msgid "Unshare"
 msgstr "取消轉貼"
 
@@ -1436,7 +1442,7 @@ msgstr "驗證您的邀請…"
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
-#: src/components/NoteComposer.tsx:203
+#: src/components/NoteComposer.tsx:329
 msgid "Visibility"
 msgstr "內容隱私度"
 
@@ -1468,7 +1474,7 @@ msgstr "歡迎來到 Hackers' Pub！請填寫以下表單完成註冊。"
 msgid "What is Hackers' Pub?"
 msgstr "什麼是 Hackers' Pub？"
 
-#: src/components/NoteComposer.tsx:182
+#: src/components/NoteComposer.tsx:308
 msgid "What's on your mind?"
 msgstr "你在想什麼？"
 
@@ -1518,7 +1524,7 @@ msgstr "你沒有剩餘邀請名額。請稍後再試。"
 msgid "You must be signed in"
 msgstr "請先登入"
 
-#: src/components/NoteComposer.tsx:130
+#: src/components/NoteComposer.tsx:217
 msgid "You must be signed in to create a note"
 msgstr "你必須登入才能建立貼文"
 
