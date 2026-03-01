@@ -171,6 +171,10 @@ function getApnsAlert(
   }
 }
 
+function getDeviceTokenSuffix(deviceToken: string): string {
+  return deviceToken.length <= 8 ? deviceToken : deviceToken.slice(-8);
+}
+
 export async function sendApnsNotification(
   db: Database,
   options: ApnsNotificationOptions,
@@ -220,11 +224,12 @@ export async function sendApnsNotification(
   for (const result of results) {
     if (!("error" in result)) continue;
     const { error } = result;
+    const deviceToken = error.notification.deviceToken;
     logger.warn(
-      "APNS send failed for account {accountId}, token {deviceToken}: {reason}",
+      "APNS send failed for account {accountId}, token suffix {deviceTokenSuffix}: {reason}",
       {
         accountId: options.accountId,
-        deviceToken: error.notification.deviceToken,
+        deviceTokenSuffix: getDeviceTokenSuffix(deviceToken),
         reason: error.reason,
       },
     );
@@ -233,7 +238,7 @@ export async function sendApnsNotification(
       error.reason === Errors.deviceTokenNotForTopic ||
       error.reason === Errors.unregistered
     ) {
-      staleTokens.add(error.notification.deviceToken);
+      staleTokens.add(deviceToken);
     }
   }
 
