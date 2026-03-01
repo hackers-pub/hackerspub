@@ -19,7 +19,7 @@ export function ArticleComposerForm() {
     file: File,
   ): Promise<{ url: string }> => {
     try {
-      const result = await uploadImage(file);
+      const result = await uploadImage(file, ctx.draftUuid);
       return { url: result.url };
     } catch (error) {
       showToast({

@@ -16,7 +16,10 @@ import {
   unsharePost,
 } from "@hackerspub/models/post";
 import { react, undoReaction } from "@hackerspub/models/reaction";
-import { articleDraftTable } from "@hackerspub/models/schema";
+import {
+  articleDraftTable,
+  articleMediumTable,
+} from "@hackerspub/models/schema";
 import {
   MAX_IMAGE_SIZE,
   SUPPORTED_IMAGE_TYPES,
@@ -808,6 +811,11 @@ builder.relayMutationField(
         throw new Error("Failed to publish article");
       }
 
+      // Migrate media tracking from draft to published article
+      await ctx.db.update(articleMediumTable)
+        .set({ articleSourceId: article.articleSource.id })
+        .where(eq(articleMediumTable.articleDraftId, draft.id));
+
       // Delete draft after successful publish
       await deleteArticleDraft(ctx.db, session.accountId, draft.id);
 
@@ -1209,6 +1217,7 @@ builder.relayMutationField(
   {
     inputFields: (t) => ({
       mediaUrl: t.field({ type: "URL", required: true }),
+      draftId: t.field({ type: "UUID", required: false }),
     }),
   },
   {
@@ -1243,6 +1252,19 @@ builder.relayMutationField(
         if (result == null) {
           throw new InvalidInputError("mediaUrl");
         }
+        await ctx.db.insert(articleMediumTable).values({
+          key: result.key,
+          accountId: session.accountId,
+          articleDraftId: args.input.draftId ?? undefined,
+          url: result.url,
+          width: result.width,
+          height: result.height,
+        }).onConflictDoUpdate({
+          target: articleMediumTable.key,
+          set: {
+            articleDraftId: args.input.draftId ?? undefined,
+          },
+        });
         return result;
       } catch {
         throw new InvalidInputError("mediaUrl");

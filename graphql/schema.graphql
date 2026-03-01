@@ -1276,6 +1276,7 @@ type UpdateAccountPayload {
 
 input UploadMediaInput {
   clientMutationId: ID
+  draftId: UUID
   mediaUrl: URL!
 }
 

@@ -18,6 +18,7 @@ function fileToDataUrl(file: File): Promise<string> {
 
 async function uploadMediaOnServer(
   mediaUrl: string,
+  draftId?: string,
 ): Promise<ImageUploadResult> {
   "use server";
 
@@ -53,7 +54,10 @@ async function uploadMediaOnServer(
         }
       `,
       variables: {
-        input: { mediaUrl },
+        input: {
+          mediaUrl,
+          ...(draftId == null ? {} : { draftId }),
+        },
       },
     }),
   });
@@ -89,7 +93,10 @@ async function uploadMediaOnServer(
   throw new Error("Upload failed");
 }
 
-export async function uploadImage(file: File): Promise<ImageUploadResult> {
+export async function uploadImage(
+  file: File,
+  draftId?: string,
+): Promise<ImageUploadResult> {
   const dataUrl = await fileToDataUrl(file);
-  return uploadMediaOnServer(dataUrl);
+  return uploadMediaOnServer(dataUrl, draftId);
 }
