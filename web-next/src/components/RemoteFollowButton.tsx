@@ -24,11 +24,12 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type {
-  RemoteFollowButton_lookupWebFingerQuery,
-  RemoteFollowButton_lookupWebFingerQuery$data,
-} from "./__generated__/RemoteFollowButton_lookupWebFingerQuery.graphql.ts";
+  RemoteFollowButton_lookupRemoteFollowerQuery,
+  RemoteFollowButton_lookupRemoteFollowerQuery$data,
+} from "./__generated__/RemoteFollowButton_lookupRemoteFollowerQuery.graphql.ts";
 
 export interface RemoteFollowButtonProps {
+  actorId: string;
   actorHandle: string;
   actorName?: string | null;
 }
@@ -36,12 +37,12 @@ export interface RemoteFollowButtonProps {
 const FEDIVERSE_ID_REGEX =
   /^@?([a-zA-Z0-9_.-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
 
-const lookupWebFingerQuery = graphql`
-  query RemoteFollowButton_lookupWebFingerQuery(
-    $fediverseId: String!
-    $actorHandle: String!
+const lookupRemoteFollowerQuery = graphql`
+  query RemoteFollowButton_lookupRemoteFollowerQuery(
+    $followerHandle: String!
+    $actorId: ID!
   ) {
-    lookupWebFinger(fediverseId: $fediverseId, actorHandle: $actorHandle) {
+    lookupRemoteFollower(followerHandle: $followerHandle, actorId: $actorId) {
       preferredUsername
       name
       summary
@@ -57,7 +58,7 @@ const lookupWebFingerQuery = graphql`
 `;
 
 type WebFingerResult = NonNullable<
-  RemoteFollowButton_lookupWebFingerQuery$data["lookupWebFinger"]
+  RemoteFollowButton_lookupRemoteFollowerQuery$data["lookupRemoteFollower"]
 >;
 
 export function RemoteFollowButton(props: RemoteFollowButtonProps) {
@@ -106,18 +107,18 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
 
     try {
       const result = await fetchQuery<
-        RemoteFollowButton_lookupWebFingerQuery
+        RemoteFollowButton_lookupRemoteFollowerQuery
       >(
         env(),
-        lookupWebFingerQuery,
+        lookupRemoteFollowerQuery,
         {
-          fediverseId: inputId,
-          actorHandle: props.actorHandle,
+          followerHandle: inputId,
+          actorId: props.actorId,
         },
       ).toPromise();
 
-      if (result?.lookupWebFinger) {
-        setActorInfo(result.lookupWebFinger);
+      if (result?.lookupRemoteFollower) {
+        setActorInfo(result.lookupRemoteFollower);
       } else {
         setError(t`User not found.`);
       }

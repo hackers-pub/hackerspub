@@ -1,7 +1,10 @@
 import { getNodeInfo } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
-import { type Actor, isActor } from "@fedify/vocab";
+import { isActor } from "@fedify/vocab";
+import type { Actor as FedifyActor } from "@fedify/vocab";
+import { validateUuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
+import { Actor } from "./actor.ts";
 import { builder, type UserContext } from "./builder.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "webfinger"]);
@@ -30,6 +33,8 @@ interface WebFingerResultData {
 }
 
 const WebFingerResult = builder.simpleObject("WebFingerResult", {
+  description: "Result of looking up a remote follower via WebFinger, " +
+    "including their ActivityPub profile and remote follow URL.",
   fields: (t) => ({
     preferredUsername: t.string({ nullable: true }),
     name: t.string({ nullable: true }),
@@ -45,7 +50,7 @@ const WebFingerResult = builder.simpleObject("WebFingerResult", {
 });
 
 async function buildWebFingerResult(
-  actorObject: Actor,
+  actorObject: FedifyActor,
   normalizedId: string,
   domain: string,
   remoteFollowUrl?: URL,
@@ -119,8 +124,8 @@ async function buildWebFingerResult(
     url: actorObject.url instanceof URL
       ? actorObject.url
       : actorObject.url?.toString()
-        ? new URL(actorObject.url.toString())
-        : null,
+      ? new URL(actorObject.url.toString())
+      : null,
     iconUrl,
     handle: normalizedId,
     domain,
@@ -130,19 +135,19 @@ async function buildWebFingerResult(
   };
 }
 
-async function lookupWebFingerImpl(
+async function lookupRemoteFollowerImpl(
   ctx: UserContext,
-  fediverseId: string,
+  followerHandle: string,
   actorHandle: string,
 ): Promise<WebFingerResultData | null> {
-  const match = fediverseId.trim().match(FEDIVERSE_ID_REGEX);
+  const match = followerHandle.trim().match(FEDIVERSE_ID_REGEX);
   if (!match) return null;
 
   const [, username, domain] = match;
   const normalizedId = `${username}@${domain}`;
 
-  logger.info("Looking up WebFinger for {fediverseId}", {
-    fediverseId: normalizedId,
+  logger.info("Looking up remote follower {followerHandle}", {
+    followerHandle: normalizedId,
   });
 
   const webfingerResult = await ctx.fedCtx.lookupWebFinger(
@@ -220,22 +225,49 @@ async function lookupWebFingerImpl(
 }
 
 builder.queryFields((t) => ({
-  lookupWebFinger: t.field({
+  lookupRemoteFollower: t.field({
+    description: "Look up a remote Fediverse user by their handle, " +
+      "fetching their ActivityPub profile and constructing " +
+      "a remote follow URL for the given actor.",
     type: WebFingerResult,
     nullable: true,
     args: {
-      fediverseId: t.arg.string({ required: true }),
-      actorHandle: t.arg.string({ required: true }),
+      followerHandle: t.arg.string({
+        required: true,
+        description:
+          "The Fediverse handle of the remote user who wants to follow " +
+          "(e.g., @user@mastodon.social).",
+      }),
+      actorId: t.arg.globalID({
+        required: true,
+        for: [Actor],
+        description:
+          "The Relay global ID of the Hackers' Pub actor to be followed.",
+      }),
     },
     async resolve(_, args, ctx) {
       try {
-        return await lookupWebFingerImpl(
+        if (
+          args.actorId.typename !== "Actor" ||
+          !validateUuid(args.actorId.id)
+        ) {
+          return null;
+        }
+
+        const actor = await ctx.db.query.actorTable.findFirst({
+          where: { id: args.actorId.id },
+          columns: { handle: true },
+        });
+
+        if (!actor) return null;
+
+        return await lookupRemoteFollowerImpl(
           ctx,
-          args.fediverseId,
-          args.actorHandle,
+          args.followerHandle,
+          actor.handle,
         );
       } catch (error) {
-        logger.error("WebFinger lookup error: {error}", {
+        logger.error("Remote follower lookup error: {error}", {
           error: error instanceof Error ? error.message : String(error),
         });
         return null;

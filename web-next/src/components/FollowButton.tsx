@@ -166,6 +166,7 @@ export function FollowButton(props: FollowButtonProps) {
             when={viewer.isAuthenticated()}
             fallback={
               <RemoteFollowButton
+                actorId={actor().id}
                 actorHandle={actor().handle}
                 actorName={actor().rawName}
               />
