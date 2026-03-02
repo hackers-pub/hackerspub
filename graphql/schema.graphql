@@ -1374,11 +1374,11 @@ type WebFingerResult {
   domain: String
   emojis: JSON
   handle: String
-  iconUrl: String
+  iconUrl: URL
   name: String
   preferredUsername: String
-  remoteFollowUrl: String
+  remoteFollowUrl: URL
   software: String
   summary: String
-  url: String
+  url: URL
 }

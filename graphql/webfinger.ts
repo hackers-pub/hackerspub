@@ -16,18 +16,31 @@ interface WebfingerLink {
   template?: string;
 }
 
+interface WebFingerResultData {
+  preferredUsername: string | null;
+  name: string | null;
+  summary: string | null;
+  url: URL | null;
+  iconUrl: URL | null;
+  handle: string | null;
+  domain: string | null;
+  software: string | null;
+  emojis: Record<string, string> | null;
+  remoteFollowUrl: URL | null;
+}
+
 const WebFingerResult = builder.simpleObject("WebFingerResult", {
   fields: (t) => ({
     preferredUsername: t.string({ nullable: true }),
     name: t.string({ nullable: true }),
     summary: t.string({ nullable: true }),
-    url: t.string({ nullable: true }),
-    iconUrl: t.string({ nullable: true }),
+    url: t.field({ type: "URL", nullable: true }),
+    iconUrl: t.field({ type: "URL", nullable: true }),
     handle: t.string({ nullable: true }),
     domain: t.string({ nullable: true }),
     software: t.string({ nullable: true }),
     emojis: t.field({ type: "JSON", nullable: true }),
-    remoteFollowUrl: t.string({ nullable: true }),
+    remoteFollowUrl: t.field({ type: "URL", nullable: true }),
   }),
 });
 
@@ -35,19 +48,8 @@ async function buildWebFingerResult(
   actorObject: Actor,
   normalizedId: string,
   domain: string,
-  remoteFollowUrl?: string,
-): Promise<{
-  preferredUsername: string | null;
-  name: string | null;
-  summary: string | null;
-  url: string | null;
-  iconUrl: string | null;
-  handle: string | null;
-  domain: string | null;
-  software: string | null;
-  emojis: Record<string, string> | null;
-  remoteFollowUrl: string | null;
-}> {
+  remoteFollowUrl?: URL,
+): Promise<WebFingerResultData> {
   let software = "unknown";
   try {
     const nodeInfo = await getNodeInfo(`https://${domain}`);
@@ -61,15 +63,16 @@ async function buildWebFingerResult(
     });
   }
 
-  let iconUrl: string | null = null;
+  let iconUrl: URL | null = null;
   const icon = await actorObject.getIcon();
   if (icon) {
-    iconUrl = icon.url instanceof URL
+    const raw = icon.url instanceof URL
       ? icon.url.href
       : icon.url?.href?.href ?? null;
+    if (raw) iconUrl = new URL(raw);
   }
   if (!iconUrl && actorObject.iconId) {
-    iconUrl = actorObject.iconId.href;
+    iconUrl = new URL(actorObject.iconId.href);
   }
 
   const emojis: Record<string, string> = {};
@@ -114,8 +117,10 @@ async function buildWebFingerResult(
     name: actorObject.name?.toString() ?? null,
     summary: actorObject.summary?.toString() ?? null,
     url: actorObject.url instanceof URL
-      ? actorObject.url.href
-      : actorObject.url?.toString() ?? null,
+      ? actorObject.url
+      : actorObject.url?.toString()
+        ? new URL(actorObject.url.toString())
+        : null,
     iconUrl,
     handle: normalizedId,
     domain,
@@ -129,7 +134,7 @@ async function lookupWebFingerImpl(
   ctx: UserContext,
   fediverseId: string,
   actorHandle: string,
-) {
+): Promise<WebFingerResultData | null> {
   const match = fediverseId.trim().match(FEDIVERSE_ID_REGEX);
   if (!match) return null;
 
@@ -156,7 +161,7 @@ async function lookupWebFingerImpl(
     link.rel === "http://ostatus.org/schema/1.0/subscribe"
   ) as WebfingerLink | undefined;
 
-  let remoteFollowUrl: string | undefined;
+  let remoteFollowUrl: URL | undefined;
   if (remoteFollowLink?.template?.includes("{uri}")) {
     const candidate = remoteFollowLink.template.replace(
       "{uri}",
@@ -165,7 +170,7 @@ async function lookupWebFingerImpl(
     try {
       const u = new URL(candidate);
       if (u.protocol === "http:" || u.protocol === "https:") {
-        remoteFollowUrl = u.toString();
+        remoteFollowUrl = u;
       }
     } catch {
       // invalid URL template, ignore
@@ -203,7 +208,7 @@ async function lookupWebFingerImpl(
       preferredUsername: username,
       name: username,
       summary: null,
-      url: activityPubLink.href,
+      url: new URL(activityPubLink.href),
       iconUrl: null,
       handle: normalizedId,
       domain,
