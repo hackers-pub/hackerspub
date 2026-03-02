@@ -1,0 +1,36 @@
+{
+  "name": "Hackers' Pub",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [
+    {
+      "purpose": "maskable",
+      "sizes": "192x192",
+      "src": "maskable-icon-192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "1024x1024",
+      "src": "maskable-icon-1024.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "512x512",
+      "src": "maskable-icon-512.png",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48 256x256",
+      "type": "image/x-icon"
+    }
+  ],
+  "theme_color": "#000000",
+  "background_color": "#000000"
+}
