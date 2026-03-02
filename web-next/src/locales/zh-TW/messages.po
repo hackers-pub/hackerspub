@@ -1546,7 +1546,7 @@ msgstr "在此撰寫文章。您可以使用 Markdown。在您撰寫時，文章
 #. placeholder {0}: actor().name ?? actor().handle
 #: src/routes/(root)/authorize_interaction.tsx:127
 msgid "You are about to follow {0}."
-msgstr "你即將從你的帳戶關注{0}。"
+msgstr "你即將關注{0}。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
