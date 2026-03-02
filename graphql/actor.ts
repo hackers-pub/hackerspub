@@ -335,6 +335,21 @@ builder.drizzleObjectFields(Actor, (t) => ({
       }) != null;
     },
   }),
+  viewerBlocks: t.field({
+    type: "Boolean",
+    async resolve(actor, _, ctx) {
+      if (ctx.account == null || ctx.account.actor == null) {
+        return false;
+      }
+      return await ctx.db.query.blockingTable.findFirst({
+        columns: { iri: true },
+        where: {
+          blockerId: ctx.account.actor.id,
+          blockeeId: actor.id,
+        },
+      }) != null;
+    },
+  }),
   followsViewer: t.field({
     type: "Boolean",
     async resolve(actor, _, ctx) {
