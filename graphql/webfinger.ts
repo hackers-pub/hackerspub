@@ -75,7 +75,8 @@ async function buildWebFingerResult(
   const emojis: Record<string, string> = {};
   try {
     for await (const tag of actorObject.getTags()) {
-      if (tag instanceof vocab.Emoji) {
+      if (!(tag instanceof vocab.Emoji)) continue;
+      try {
         if (tag.name == null) continue;
         const emojiIcon = await tag.getIcon();
         if (
@@ -95,10 +96,15 @@ async function buildWebFingerResult(
         ) {
           emojis[emojiName] = u.href;
         }
+      } catch (error) {
+        logger.warn("Failed to extract emoji {name}: {error}", {
+          name: tag.name?.toString() ?? "unknown",
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
   } catch (error) {
-    logger.warn("Failed to extract custom emojis: {error}", {
+    logger.warn("Failed to iterate tags: {error}", {
       error: error instanceof Error ? error.message : String(error),
     });
   }
