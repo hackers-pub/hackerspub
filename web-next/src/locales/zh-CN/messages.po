@@ -273,8 +273,11 @@ msgstr "粗体"
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
 #: src/components/PostActionMenu.tsx:137
+#: src/components/RemoteFollowButton.tsx:207
+#: src/components/RemoteFollowButton.tsx:270
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
+#: src/routes/(root)/authorize_interaction.tsx:174
 msgid "Cancel"
 msgstr "取消"
 
@@ -399,6 +402,10 @@ msgstr "草稿已保存"
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的头像。"
 
+#: src/components/RemoteFollowButton.tsx:189
+msgid "e.g., @user@mastodon.social"
+msgstr "例如：@user@mastodon.social"
+
 #: src/routes/(root)/[handle]/drafts/[id].tsx:78
 #: src/routes/(root)/[handle]/drafts/new.tsx:94
 msgid "Edit Draft"
@@ -451,7 +458,7 @@ msgstr "额外消息"
 msgid "Failed to delete post"
 msgstr "删除内容失败"
 
-#: src/components/FollowButton.tsx:143
+#: src/components/FollowButton.tsx:148
 msgid "Failed to follow"
 msgstr "关注失败"
 
@@ -495,6 +502,10 @@ msgstr "加载更多通行密钥失败，点击重试"
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
+#: src/components/RemoteFollowButton.tsx:125
+msgid "Failed to look up user."
+msgstr "查找用户失败。"
+
 #: src/components/EmojiReactionPopover.tsx:159
 #: src/components/EmojiReactionPopover.tsx:168
 #: src/components/EmojiReactionPopover.tsx:237
@@ -537,7 +548,7 @@ msgstr "转帖失败"
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
-#: src/components/FollowButton.tsx:125
+#: src/components/FollowButton.tsx:130
 msgid "Failed to unfollow"
 msgstr "取消关注失败"
 
@@ -553,17 +564,26 @@ msgstr "图片上传失败"
 msgid "Fediverse"
 msgstr "联邦宇宙"
 
+#: src/components/RemoteFollowButton.tsx:186
+msgid "Fediverse handle"
+msgstr "联邦宇宙用户名"
+
 #: src/components/AppSidebar.tsx:157
 msgid "Feed"
 msgstr "订阅流"
 
-#: src/components/FollowButton.tsx:165
+#: src/components/FollowButton.tsx:179
 msgid "Follow"
 msgstr "关注"
 
-#: src/components/FollowButton.tsx:164
+#: src/components/FollowButton.tsx:178
 msgid "Follow Back"
 msgstr "回关"
+
+#: src/routes/(root)/authorize_interaction.tsx:98
+#: src/routes/(root)/authorize_interaction.tsx:113
+msgid "Follow from your account"
+msgstr "从你的账户关注"
 
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 #~ msgid "Followers"
@@ -654,6 +674,10 @@ msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里
 #: src/components/ui/markdown-editor.tsx:573
 msgid "Image"
 msgstr "图片"
+
+#: src/components/RemoteFollowButton.tsx:100
+msgid "Invalid Fediverse handle format."
+msgstr "联邦宇宙用户名格式无效。"
 
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
@@ -822,6 +846,14 @@ msgstr "加载中..."
 msgid "Loading…"
 msgstr "正在加载…"
 
+#: src/components/RemoteFollowButton.tsx:210
+msgid "Look up user"
+msgstr "查找用户"
+
+#: src/components/RemoteFollowButton.tsx:197
+msgid "Looking up user..."
+msgstr "正在查找用户信息…"
+
 #: src/routes/(root)/markdown.tsx:47
 msgid "Markdown guide"
 msgstr "Markdown 指南"
@@ -917,6 +949,10 @@ msgstr "未找到内容"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中无此账户，请重试。"
 
+#: src/routes/(root)/authorize_interaction.tsx:104
+msgid "No user URI provided."
+msgstr "未提供用户 URI。"
+
 #: src/routes/(root)/search.tsx:257
 msgid "Not found."
 msgstr "未找到。"
@@ -998,6 +1034,10 @@ msgstr "请修正错误并重试。"
 #: src/components/article-composer/ArticleComposerForm.tsx:44
 msgid "Please enter a title for your article."
 msgstr "请输入文章标题。"
+
+#: src/components/RemoteFollowButton.tsx:95
+msgid "Please enter your Fediverse handle."
+msgstr "请输入你的联邦宇宙用户名。"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:60
 #: src/routes/(root)/[handle]/drafts/index.tsx:217
@@ -1118,6 +1158,12 @@ msgstr "已注册的通行密钥"
 msgid "Registering…"
 msgstr "正在注册…"
 
+#: src/components/RemoteFollowButton.tsx:164
+#: src/components/RemoteFollowButton.tsx:170
+#: src/components/RemoteFollowButton.tsx:273
+msgid "Remote Follow"
+msgstr "远程关注"
+
 #: src/components/LanguageList.tsx:225
 msgid "Remove"
 msgstr "移除"
@@ -1231,6 +1277,10 @@ msgstr "登出"
 msgid "Sign up"
 msgstr "注册"
 
+#: src/routes/(root)/authorize_interaction.tsx:165
+msgid "Signed in as"
+msgstr "当前登录账户："
+
 #: src/routes/(root)/sign/index.tsx:363
 msgid "Signing in Hackers' Pub"
 msgstr "登录 Hackers' Pub"
@@ -1341,6 +1391,10 @@ msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作无法撤销。这将永久删除该内容。"
 
+#: src/components/RemoteFollowButton.tsx:136
+msgid "This service does not support remote follow."
+msgstr "该服务不支持远程关注。"
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "这将成为文章 URL 的一部分"
@@ -1356,6 +1410,11 @@ msgstr "标题"
 #: src/components/article-composer/ArticleComposerContext.tsx:266
 msgid "Title cannot be empty"
 msgstr "标题不能为空"
+
+#. placeholder {0}: displayName()
+#: src/components/RemoteFollowButton.tsx:172
+msgid "To follow {0}, enter your Fediverse handle."
+msgstr "要关注{0}，请输入你的联邦宇宙用户名。"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:173
@@ -1376,7 +1435,7 @@ msgstr "无法添加反应。请重试。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
 
-#: src/components/FollowButton.tsx:162
+#: src/components/FollowButton.tsx:176
 msgid "Unfollow"
 msgstr "取消关注"
 
@@ -1396,6 +1455,10 @@ msgstr "更新于 {0}"
 #: src/routes/(root)/[handle]/settings/index.tsx:571
 msgid "URL"
 msgstr "URL"
+
+#: src/components/RemoteFollowButton.tsx:122
+msgid "User not found."
+msgstr "未找到用户信息。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:418
 #: src/routes/(root)/sign/up/[token].tsx:357
@@ -1480,6 +1543,11 @@ msgstr "不含转帖"
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "在此撰写文章。您可以使用 Markdown。在您撰写时，文章将自动保存为草稿。"
 
+#. placeholder {0}: actor().name ?? actor().handle
+#: src/routes/(root)/authorize_interaction.tsx:127
+msgid "You are about to follow {0}."
+msgstr "你即将从你的账户关注{0}。"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使用。"
@@ -1513,8 +1581,8 @@ msgstr "您尚未注册任何通行密钥。"
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你没有剩余邀请名额。请稍后再试。"
 
-#: src/components/FollowButton.tsx:118
-#: src/components/FollowButton.tsx:136
+#: src/components/FollowButton.tsx:123
+#: src/components/FollowButton.tsx:141
 msgid "You must be signed in"
 msgstr "请先登录"
 
