@@ -137,8 +137,17 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
       return;
     }
 
-    window.open(info.remoteFollowUrl, "_blank", "noopener,noreferrer");
-    handleOpenChange(false);
+    try {
+      const url = new URL(info.remoteFollowUrl);
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        setError(t`This service does not support remote follow.`);
+        return;
+      }
+      window.open(url.toString(), "_blank", "noopener,noreferrer");
+      handleOpenChange(false);
+    } catch {
+      setError(t`This service does not support remote follow.`);
+    }
   };
 
   const displayName = () => props.actorName || props.actorHandle;
