@@ -22,9 +22,14 @@ import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { authorizeInteractionPageQuery } from "./__generated__/authorizeInteractionPageQuery.graphql.ts";
 
+function stripAcctPrefix(uri: string): string {
+  return uri.replace(/^acct:/i, "");
+}
+
 export const route = {
   preload(args) {
-    const uri = new URLSearchParams(args.location.search).get("uri") ?? "";
+    const raw = new URLSearchParams(args.location.search).get("uri") ?? "";
+    const uri = stripAcctPrefix(raw);
     if (uri) {
       void loadPageQuery(uri);
     }
@@ -66,7 +71,10 @@ const loadPageQuery = query(
 export default function AuthorizeInteractionPage() {
   const { t } = useLingui();
   const [searchParams] = useSearchParams();
-  const uri = () => searchParams.uri as string | undefined;
+  const uri = () => {
+    const raw = searchParams.uri as string | undefined;
+    return raw ? stripAcctPrefix(raw) : undefined;
+  };
 
   return (
     <div class="p-4">
