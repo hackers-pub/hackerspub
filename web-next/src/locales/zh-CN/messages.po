@@ -273,11 +273,11 @@ msgstr "粗体"
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
 #: src/components/PostActionMenu.tsx:137
-#: src/components/RemoteFollowButton.tsx:207
-#: src/components/RemoteFollowButton.tsx:269
+#: src/components/RemoteFollowButton.tsx:217
+#: src/components/RemoteFollowButton.tsx:279
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
-#: src/routes/(root)/authorize_interaction.tsx:177
+#: src/routes/(root)/authorize_interaction.tsx:190
 msgid "Cancel"
 msgstr "取消"
 
@@ -402,7 +402,7 @@ msgstr "草稿已保存"
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的头像。"
 
-#: src/components/RemoteFollowButton.tsx:189
+#: src/components/RemoteFollowButton.tsx:199
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
@@ -502,7 +502,7 @@ msgstr "加载更多通行密钥失败，点击重试"
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
-#: src/components/RemoteFollowButton.tsx:125
+#: src/components/RemoteFollowButton.tsx:126
 msgid "Failed to look up user."
 msgstr "查找用户失败。"
 
@@ -564,7 +564,7 @@ msgstr "图片上传失败"
 msgid "Fediverse"
 msgstr "联邦宇宙"
 
-#: src/components/RemoteFollowButton.tsx:186
+#: src/components/RemoteFollowButton.tsx:196
 msgid "Fediverse handle"
 msgstr "联邦宇宙用户名"
 
@@ -572,16 +572,16 @@ msgstr "联邦宇宙用户名"
 msgid "Feed"
 msgstr "订阅流"
 
-#: src/components/FollowButton.tsx:184
+#: src/components/FollowButton.tsx:185
 msgid "Follow"
 msgstr "关注"
 
-#: src/components/FollowButton.tsx:183
+#: src/components/FollowButton.tsx:184
 msgid "Follow Back"
 msgstr "回关"
 
-#: src/routes/(root)/authorize_interaction.tsx:98
-#: src/routes/(root)/authorize_interaction.tsx:113
+#: src/routes/(root)/authorize_interaction.tsx:81
+#: src/routes/(root)/authorize_interaction.tsx:126
 msgid "Follow from your account"
 msgstr "从你的账户关注"
 
@@ -675,7 +675,7 @@ msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里
 msgid "Image"
 msgstr "图片"
 
-#: src/components/RemoteFollowButton.tsx:100
+#: src/components/RemoteFollowButton.tsx:101
 msgid "Invalid Fediverse handle format."
 msgstr "联邦宇宙用户名格式无效。"
 
@@ -846,11 +846,11 @@ msgstr "加载中..."
 msgid "Loading…"
 msgstr "正在加载…"
 
-#: src/components/RemoteFollowButton.tsx:210
+#: src/components/RemoteFollowButton.tsx:220
 msgid "Look up user"
 msgstr "查找用户"
 
-#: src/components/RemoteFollowButton.tsx:197
+#: src/components/RemoteFollowButton.tsx:207
 msgid "Looking up user..."
 msgstr "正在查找用户信息…"
 
@@ -949,7 +949,7 @@ msgstr "未找到内容"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中无此账户，请重试。"
 
-#: src/routes/(root)/authorize_interaction.tsx:104
+#: src/routes/(root)/authorize_interaction.tsx:87
 msgid "No user URI provided."
 msgstr "未提供用户 URI。"
 
@@ -1035,7 +1035,7 @@ msgstr "请修正错误并重试。"
 msgid "Please enter a title for your article."
 msgstr "请输入文章标题。"
 
-#: src/components/RemoteFollowButton.tsx:95
+#: src/components/RemoteFollowButton.tsx:96
 msgid "Please enter your Fediverse handle."
 msgstr "请输入你的联邦宇宙用户名。"
 
@@ -1158,9 +1158,9 @@ msgstr "已注册的通行密钥"
 msgid "Registering…"
 msgstr "正在注册…"
 
-#: src/components/RemoteFollowButton.tsx:164
-#: src/components/RemoteFollowButton.tsx:170
-#: src/components/RemoteFollowButton.tsx:272
+#: src/components/RemoteFollowButton.tsx:174
+#: src/components/RemoteFollowButton.tsx:180
+#: src/components/RemoteFollowButton.tsx:282
 msgid "Remote Follow"
 msgstr "远程关注"
 
@@ -1277,7 +1277,7 @@ msgstr "登出"
 msgid "Sign up"
 msgstr "注册"
 
-#: src/routes/(root)/authorize_interaction.tsx:168
+#: src/routes/(root)/authorize_interaction.tsx:181
 msgid "Signed in as"
 msgstr "当前登录账户："
 
@@ -1391,7 +1391,9 @@ msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作无法撤销。这将永久删除该内容。"
 
-#: src/components/RemoteFollowButton.tsx:136
+#: src/components/RemoteFollowButton.tsx:137
+#: src/components/RemoteFollowButton.tsx:144
+#: src/components/RemoteFollowButton.tsx:150
 msgid "This service does not support remote follow."
 msgstr "该服务不支持远程关注。"
 
@@ -1412,7 +1414,7 @@ msgid "Title cannot be empty"
 msgstr "标题不能为空"
 
 #. placeholder {0}: displayName()
-#: src/components/RemoteFollowButton.tsx:172
+#: src/components/RemoteFollowButton.tsx:182
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "要关注{0}，请输入你的联邦宇宙用户名。"
 
@@ -1435,7 +1437,7 @@ msgstr "无法添加反应。请重试。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
 
-#: src/components/FollowButton.tsx:181
+#: src/components/FollowButton.tsx:182
 msgid "Unfollow"
 msgstr "取消关注"
 
@@ -1456,7 +1458,7 @@ msgstr "更新于 {0}"
 msgid "URL"
 msgstr "URL"
 
-#: src/components/RemoteFollowButton.tsx:122
+#: src/components/RemoteFollowButton.tsx:123
 msgid "User not found."
 msgstr "未找到用户信息。"
 
@@ -1544,7 +1546,7 @@ msgid "Write your article here. You can use Markdown. Your article will be autom
 msgstr "在此撰写文章。您可以使用 Markdown。在您撰写时，文章将自动保存为草稿。"
 
 #. placeholder {0}: actor().name ?? actor().handle
-#: src/routes/(root)/authorize_interaction.tsx:127
+#: src/routes/(root)/authorize_interaction.tsx:140
 msgid "You are about to follow {0}."
 msgstr "你即将从你的账户关注{0}。"
 

@@ -273,11 +273,11 @@ msgstr "太字"
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
 #: src/components/PostActionMenu.tsx:137
-#: src/components/RemoteFollowButton.tsx:207
-#: src/components/RemoteFollowButton.tsx:269
+#: src/components/RemoteFollowButton.tsx:217
+#: src/components/RemoteFollowButton.tsx:279
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
-#: src/routes/(root)/authorize_interaction.tsx:177
+#: src/routes/(root)/authorize_interaction.tsx:190
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -402,7 +402,7 @@ msgstr "下書きを保存しました"
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "保持したい領域をドラッグして選択し、「切り抜き」をクリックしてアイコンを更新してください。"
 
-#: src/components/RemoteFollowButton.tsx:189
+#: src/components/RemoteFollowButton.tsx:199
 msgid "e.g., @user@mastodon.social"
 msgstr "例: @user@mastodon.social"
 
@@ -502,7 +502,7 @@ msgstr "パスキーの読み込みに失敗しました。クリックして再
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/RemoteFollowButton.tsx:125
+#: src/components/RemoteFollowButton.tsx:126
 msgid "Failed to look up user."
 msgstr "ユーザーの検索に失敗しました。"
 
@@ -564,7 +564,7 @@ msgstr "画像のアップロードに失敗しました"
 msgid "Fediverse"
 msgstr "フェディバース"
 
-#: src/components/RemoteFollowButton.tsx:186
+#: src/components/RemoteFollowButton.tsx:196
 msgid "Fediverse handle"
 msgstr "フェディバースのハンドル"
 
@@ -572,16 +572,16 @@ msgstr "フェディバースのハンドル"
 msgid "Feed"
 msgstr "フィード"
 
-#: src/components/FollowButton.tsx:184
+#: src/components/FollowButton.tsx:185
 msgid "Follow"
 msgstr "フォロー"
 
-#: src/components/FollowButton.tsx:183
+#: src/components/FollowButton.tsx:184
 msgid "Follow Back"
 msgstr "フォローバック"
 
-#: src/routes/(root)/authorize_interaction.tsx:98
-#: src/routes/(root)/authorize_interaction.tsx:113
+#: src/routes/(root)/authorize_interaction.tsx:81
+#: src/routes/(root)/authorize_interaction.tsx:126
 msgid "Follow from your account"
 msgstr "あなたのアカウントからフォロー"
 
@@ -675,7 +675,7 @@ msgstr "フェディバース（fediverse）アカウントをお持ちの場合
 msgid "Image"
 msgstr "画像"
 
-#: src/components/RemoteFollowButton.tsx:100
+#: src/components/RemoteFollowButton.tsx:101
 msgid "Invalid Fediverse handle format."
 msgstr "無効なフェディバースのハンドルの形式です。"
 
@@ -846,11 +846,11 @@ msgstr "読み込み中..."
 msgid "Loading…"
 msgstr "読み込み中…"
 
-#: src/components/RemoteFollowButton.tsx:210
+#: src/components/RemoteFollowButton.tsx:220
 msgid "Look up user"
 msgstr "ユーザーを検索"
 
-#: src/components/RemoteFollowButton.tsx:197
+#: src/components/RemoteFollowButton.tsx:207
 msgid "Looking up user..."
 msgstr "ユーザー情報を取得中…"
 
@@ -949,7 +949,7 @@ msgstr "コンテンツはありません"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pubにそのようなアカウントはありません。もう一度お試しください。"
 
-#: src/routes/(root)/authorize_interaction.tsx:104
+#: src/routes/(root)/authorize_interaction.tsx:87
 msgid "No user URI provided."
 msgstr "ユーザーURIが提供されていません。"
 
@@ -1035,7 +1035,7 @@ msgstr "エラーを修正して、もう一度お試しください。"
 msgid "Please enter a title for your article."
 msgstr "記事のタイトルを入力してください。"
 
-#: src/components/RemoteFollowButton.tsx:95
+#: src/components/RemoteFollowButton.tsx:96
 msgid "Please enter your Fediverse handle."
 msgstr "フェディバースのハンドルを入力してください。"
 
@@ -1158,9 +1158,9 @@ msgstr "登録済みパスキー"
 msgid "Registering…"
 msgstr "登録中…"
 
-#: src/components/RemoteFollowButton.tsx:164
-#: src/components/RemoteFollowButton.tsx:170
-#: src/components/RemoteFollowButton.tsx:272
+#: src/components/RemoteFollowButton.tsx:174
+#: src/components/RemoteFollowButton.tsx:180
+#: src/components/RemoteFollowButton.tsx:282
 msgid "Remote Follow"
 msgstr "リモートフォロー"
 
@@ -1277,7 +1277,7 @@ msgstr "ログアウト"
 msgid "Sign up"
 msgstr "登録"
 
-#: src/routes/(root)/authorize_interaction.tsx:168
+#: src/routes/(root)/authorize_interaction.tsx:181
 msgid "Signed in as"
 msgstr "ログイン中："
 
@@ -1391,7 +1391,9 @@ msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "この操作は取り消せません。このコンテンツは完全に削除されます。"
 
-#: src/components/RemoteFollowButton.tsx:136
+#: src/components/RemoteFollowButton.tsx:137
+#: src/components/RemoteFollowButton.tsx:144
+#: src/components/RemoteFollowButton.tsx:150
 msgid "This service does not support remote follow."
 msgstr "このサービスはリモートフォローに対応していません。"
 
@@ -1412,7 +1414,7 @@ msgid "Title cannot be empty"
 msgstr "タイトルは空にできません"
 
 #. placeholder {0}: displayName()
-#: src/components/RemoteFollowButton.tsx:172
+#: src/components/RemoteFollowButton.tsx:182
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "{0}さんをフォローするには、フェディバースのハンドルを入力してください。"
 
@@ -1435,7 +1437,7 @@ msgstr "リアクションを追加できませんでした。もう一度お試
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
-#: src/components/FollowButton.tsx:181
+#: src/components/FollowButton.tsx:182
 msgid "Unfollow"
 msgstr "フォロー解除"
 
@@ -1456,7 +1458,7 @@ msgstr "{0}に更新"
 msgid "URL"
 msgstr "URL"
 
-#: src/components/RemoteFollowButton.tsx:122
+#: src/components/RemoteFollowButton.tsx:123
 msgid "User not found."
 msgstr "ユーザー情報が見つかりません。"
 
@@ -1544,7 +1546,7 @@ msgid "Write your article here. You can use Markdown. Your article will be autom
 msgstr "ここに記事を書いてください。Markdownが使えます。執筆中は自動的に下書きとして保存されます。"
 
 #. placeholder {0}: actor().name ?? actor().handle
-#: src/routes/(root)/authorize_interaction.tsx:127
+#: src/routes/(root)/authorize_interaction.tsx:140
 msgid "You are about to follow {0}."
 msgstr "あなたのアカウントから{0}をフォローしようとしています。"
 
