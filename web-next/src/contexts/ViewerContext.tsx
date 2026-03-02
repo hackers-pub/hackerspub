@@ -5,12 +5,14 @@ interface ViewerContextValue {
   isLoaded: () => boolean;
 }
 
-const ViewerContext = createContext<ViewerContextValue>();
-
-export const ViewerProvider: ParentComponent<{
+export interface ViewerProviderProps {
   isAuthenticated: () => boolean;
   isLoaded: () => boolean;
-}> = (props) => {
+}
+
+const ViewerContext = createContext<ViewerContextValue>();
+
+export const ViewerProvider: ParentComponent<ViewerProviderProps> = (props) => {
   return (
     <ViewerContext.Provider
       value={{
