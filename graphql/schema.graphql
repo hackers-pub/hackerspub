@@ -157,6 +157,7 @@ type Actor implements Node {
   url: URL
   username: String!
   uuid: UUID!
+  viewerBlocks: Boolean!
   viewerFollows: Boolean!
 }
 
