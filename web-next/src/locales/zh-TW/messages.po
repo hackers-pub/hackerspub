@@ -274,10 +274,10 @@ msgstr "粗體"
 #: src/components/NoteComposer.tsx:217
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:207
-#: src/components/RemoteFollowButton.tsx:270
+#: src/components/RemoteFollowButton.tsx:269
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
-#: src/routes/(root)/authorize_interaction.tsx:174
+#: src/routes/(root)/authorize_interaction.tsx:177
 msgid "Cancel"
 msgstr "取消"
 
@@ -458,7 +458,7 @@ msgstr "額外訊息"
 msgid "Failed to delete post"
 msgstr "刪除內容失敗"
 
-#: src/components/FollowButton.tsx:148
+#: src/components/FollowButton.tsx:153
 msgid "Failed to follow"
 msgstr "關注失敗"
 
@@ -548,7 +548,7 @@ msgstr "轉貼失敗"
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
-#: src/components/FollowButton.tsx:130
+#: src/components/FollowButton.tsx:131
 msgid "Failed to unfollow"
 msgstr "取消關注失敗"
 
@@ -572,11 +572,11 @@ msgstr "聯邦宇宙使用者名稱"
 msgid "Feed"
 msgstr "訂閱流"
 
-#: src/components/FollowButton.tsx:179
+#: src/components/FollowButton.tsx:184
 msgid "Follow"
 msgstr "關注"
 
-#: src/components/FollowButton.tsx:178
+#: src/components/FollowButton.tsx:183
 msgid "Follow Back"
 msgstr "回關"
 
@@ -1160,7 +1160,7 @@ msgstr "註冊…"
 
 #: src/components/RemoteFollowButton.tsx:164
 #: src/components/RemoteFollowButton.tsx:170
-#: src/components/RemoteFollowButton.tsx:273
+#: src/components/RemoteFollowButton.tsx:272
 msgid "Remote Follow"
 msgstr "遠端關注"
 
@@ -1277,7 +1277,7 @@ msgstr "登出"
 msgid "Sign up"
 msgstr "註冊"
 
-#: src/routes/(root)/authorize_interaction.tsx:165
+#: src/routes/(root)/authorize_interaction.tsx:168
 msgid "Signed in as"
 msgstr "目前登入帳戶："
 
@@ -1435,7 +1435,7 @@ msgstr "無法新增反應。請重試。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "無法移除反應。請重試。"
 
-#: src/components/FollowButton.tsx:176
+#: src/components/FollowButton.tsx:181
 msgid "Unfollow"
 msgstr "取消關注"
 
@@ -1581,8 +1581,8 @@ msgstr "您尚未註冊任何通行金鑰。"
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你沒有剩餘邀請名額。請稍後再試。"
 
-#: src/components/FollowButton.tsx:123
-#: src/components/FollowButton.tsx:141
+#: src/components/FollowButton.tsx:124
+#: src/components/FollowButton.tsx:142
 msgid "You must be signed in"
 msgstr "請先登入"
 

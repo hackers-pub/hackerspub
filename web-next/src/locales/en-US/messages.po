@@ -274,10 +274,10 @@ msgstr "Bold"
 #: src/components/NoteComposer.tsx:217
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:207
-#: src/components/RemoteFollowButton.tsx:270
+#: src/components/RemoteFollowButton.tsx:269
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
-#: src/routes/(root)/authorize_interaction.tsx:174
+#: src/routes/(root)/authorize_interaction.tsx:177
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -462,7 +462,7 @@ msgstr "Extra message"
 msgid "Failed to delete post"
 msgstr "Failed to delete post"
 
-#: src/components/FollowButton.tsx:148
+#: src/components/FollowButton.tsx:153
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
@@ -552,7 +552,7 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/FollowButton.tsx:130
+#: src/components/FollowButton.tsx:131
 msgid "Failed to unfollow"
 msgstr "Failed to unfollow"
 
@@ -576,11 +576,11 @@ msgstr "Fediverse handle"
 msgid "Feed"
 msgstr "Feed"
 
-#: src/components/FollowButton.tsx:179
+#: src/components/FollowButton.tsx:184
 msgid "Follow"
 msgstr "Follow"
 
-#: src/components/FollowButton.tsx:178
+#: src/components/FollowButton.tsx:183
 msgid "Follow Back"
 msgstr "Follow Back"
 
@@ -1165,7 +1165,7 @@ msgstr "Registering…"
 
 #: src/components/RemoteFollowButton.tsx:164
 #: src/components/RemoteFollowButton.tsx:170
-#: src/components/RemoteFollowButton.tsx:273
+#: src/components/RemoteFollowButton.tsx:272
 msgid "Remote Follow"
 msgstr "Remote Follow"
 
@@ -1282,7 +1282,7 @@ msgstr "Sign out"
 msgid "Sign up"
 msgstr "Sign up"
 
-#: src/routes/(root)/authorize_interaction.tsx:165
+#: src/routes/(root)/authorize_interaction.tsx:168
 msgid "Signed in as"
 msgstr "Signed in as"
 
@@ -1440,7 +1440,7 @@ msgstr "Unable to add reaction. Please try again."
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
-#: src/components/FollowButton.tsx:176
+#: src/components/FollowButton.tsx:181
 msgid "Unfollow"
 msgstr "Unfollow"
 
@@ -1586,8 +1586,8 @@ msgstr "You don't have any passkeys registered yet."
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "You have no invitations left. Please wait until you receive more."
 
-#: src/components/FollowButton.tsx:123
-#: src/components/FollowButton.tsx:141
+#: src/components/FollowButton.tsx:124
+#: src/components/FollowButton.tsx:142
 msgid "You must be signed in"
 msgstr "You must be signed in"
 

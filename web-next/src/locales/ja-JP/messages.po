@@ -274,10 +274,10 @@ msgstr "太字"
 #: src/components/NoteComposer.tsx:217
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:207
-#: src/components/RemoteFollowButton.tsx:270
+#: src/components/RemoteFollowButton.tsx:269
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
-#: src/routes/(root)/authorize_interaction.tsx:174
+#: src/routes/(root)/authorize_interaction.tsx:177
 msgid "Cancel"
 msgstr "キャンセル"
 
@@ -458,7 +458,7 @@ msgstr "追加メッセージ"
 msgid "Failed to delete post"
 msgstr "コンテンツの削除に失敗しました"
 
-#: src/components/FollowButton.tsx:148
+#: src/components/FollowButton.tsx:153
 msgid "Failed to follow"
 msgstr "フォローに失敗しました"
 
@@ -548,7 +548,7 @@ msgstr "コンテンツの共有に失敗しました"
 msgid "Failed to sign out: {0}"
 msgstr "ログアウトに失敗：{0}"
 
-#: src/components/FollowButton.tsx:130
+#: src/components/FollowButton.tsx:131
 msgid "Failed to unfollow"
 msgstr "フォロー解除に失敗しました"
 
@@ -572,11 +572,11 @@ msgstr "フェディバースのハンドル"
 msgid "Feed"
 msgstr "フィード"
 
-#: src/components/FollowButton.tsx:179
+#: src/components/FollowButton.tsx:184
 msgid "Follow"
 msgstr "フォロー"
 
-#: src/components/FollowButton.tsx:178
+#: src/components/FollowButton.tsx:183
 msgid "Follow Back"
 msgstr "フォローバック"
 
@@ -1160,7 +1160,7 @@ msgstr "登録中…"
 
 #: src/components/RemoteFollowButton.tsx:164
 #: src/components/RemoteFollowButton.tsx:170
-#: src/components/RemoteFollowButton.tsx:273
+#: src/components/RemoteFollowButton.tsx:272
 msgid "Remote Follow"
 msgstr "リモートフォロー"
 
@@ -1277,7 +1277,7 @@ msgstr "ログアウト"
 msgid "Sign up"
 msgstr "登録"
 
-#: src/routes/(root)/authorize_interaction.tsx:165
+#: src/routes/(root)/authorize_interaction.tsx:168
 msgid "Signed in as"
 msgstr "ログイン中："
 
@@ -1435,7 +1435,7 @@ msgstr "リアクションを追加できませんでした。もう一度お試
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
-#: src/components/FollowButton.tsx:176
+#: src/components/FollowButton.tsx:181
 msgid "Unfollow"
 msgstr "フォロー解除"
 
@@ -1581,8 +1581,8 @@ msgstr "まだパスキーが登録されていません。"
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "招待状が残っていません。追加されるまでお待ちください。"
 
-#: src/components/FollowButton.tsx:123
-#: src/components/FollowButton.tsx:141
+#: src/components/FollowButton.tsx:124
+#: src/components/FollowButton.tsx:142
 msgid "You must be signed in"
 msgstr "ログインが必要です"
 

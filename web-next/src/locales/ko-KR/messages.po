@@ -274,10 +274,10 @@ msgstr "굵게"
 #: src/components/NoteComposer.tsx:217
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:207
-#: src/components/RemoteFollowButton.tsx:270
+#: src/components/RemoteFollowButton.tsx:269
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
-#: src/routes/(root)/authorize_interaction.tsx:174
+#: src/routes/(root)/authorize_interaction.tsx:177
 msgid "Cancel"
 msgstr "취소"
 
@@ -458,7 +458,7 @@ msgstr "추가 메시지"
 msgid "Failed to delete post"
 msgstr "콘텐츠 삭제에 실패했습니다"
 
-#: src/components/FollowButton.tsx:148
+#: src/components/FollowButton.tsx:153
 msgid "Failed to follow"
 msgstr "팔로에 실패했습니다"
 
@@ -548,7 +548,7 @@ msgstr "콘텐츠 공유 실패"
 msgid "Failed to sign out: {0}"
 msgstr "로그아웃 실패: {0}"
 
-#: src/components/FollowButton.tsx:130
+#: src/components/FollowButton.tsx:131
 msgid "Failed to unfollow"
 msgstr "언팔로에 실패했습니다"
 
@@ -572,11 +572,11 @@ msgstr "연합우주 핸들"
 msgid "Feed"
 msgstr "피드"
 
-#: src/components/FollowButton.tsx:179
+#: src/components/FollowButton.tsx:184
 msgid "Follow"
 msgstr "팔로"
 
-#: src/components/FollowButton.tsx:178
+#: src/components/FollowButton.tsx:183
 msgid "Follow Back"
 msgstr "맞팔하기"
 
@@ -1160,7 +1160,7 @@ msgstr "등록중…"
 
 #: src/components/RemoteFollowButton.tsx:164
 #: src/components/RemoteFollowButton.tsx:170
-#: src/components/RemoteFollowButton.tsx:273
+#: src/components/RemoteFollowButton.tsx:272
 msgid "Remote Follow"
 msgstr "원격 팔로"
 
@@ -1277,7 +1277,7 @@ msgstr "로그아웃"
 msgid "Sign up"
 msgstr "가입"
 
-#: src/routes/(root)/authorize_interaction.tsx:165
+#: src/routes/(root)/authorize_interaction.tsx:168
 msgid "Signed in as"
 msgstr "로그인 중인 계정:"
 
@@ -1435,7 +1435,7 @@ msgstr "반응을 추가할 수 없습니다. 다시 시도해주세요."
 msgid "Unable to remove reaction. Please try again."
 msgstr "반응을 제거할 수 없습니다. 다시 시도해주세요."
 
-#: src/components/FollowButton.tsx:176
+#: src/components/FollowButton.tsx:181
 msgid "Unfollow"
 msgstr "언팔로"
 
@@ -1581,8 +1581,8 @@ msgstr "등록된 패스키가 아직 없습니다."
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려주세요."
 
-#: src/components/FollowButton.tsx:123
-#: src/components/FollowButton.tsx:141
+#: src/components/FollowButton.tsx:124
+#: src/components/FollowButton.tsx:142
 msgid "You must be signed in"
 msgstr "로그인이 필요합니다"
 
