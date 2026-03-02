@@ -11,7 +11,13 @@ export default createHandler(() => (
             name="viewport"
             content="width=device-width, initial-scale=1"
           />
-          <link rel="icon" href="/favicon.ico" />
+          <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+          <link
+            rel="alternate icon"
+            type="image/x-icon"
+            href="/favicon.ico"
+            sizes="16x16 32x32 48x48 256x256"
+          />
           {assets}
         </head>
         <body>
