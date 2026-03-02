@@ -3,13 +3,16 @@ import { Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { FollowButton_actor$key } from "./__generated__/FollowButton_actor.graphql.ts";
 import type { FollowButton_followActor_Mutation } from "./__generated__/FollowButton_followActor_Mutation.graphql.ts";
 import type { FollowButton_unfollowActor_Mutation } from "./__generated__/FollowButton_unfollowActor_Mutation.graphql.ts";
+import { RemoteFollowButton } from "./RemoteFollowButton.tsx";
 
 export interface FollowButtonProps {
   $actor: FollowButton_actor$key;
+  onFollowed?: () => void;
 }
 
 const followActorMutation = graphql`
@@ -73,10 +76,13 @@ const unfollowActorMutation = graphql`
 
 export function FollowButton(props: FollowButtonProps) {
   const { t } = useLingui();
+  const viewer = useViewer();
   const actor = createFragment(
     graphql`
       fragment FollowButton_actor on Actor {
         id
+        handle
+        rawName
         isViewer
         viewerFollows
         followsViewer
@@ -136,6 +142,10 @@ export function FollowButton(props: FollowButtonProps) {
               title: t`You must be signed in`,
               variant: "destructive",
             });
+          } else if (
+            response.followActor.__typename === "FollowActorPayload"
+          ) {
+            props.onFollowed?.();
           }
         },
         onError() {
@@ -151,19 +161,30 @@ export function FollowButton(props: FollowButtonProps) {
   return (
     <Show when={actor()}>
       {(actor) => (
-        <Show when={!actor().isViewer}>
-          <Button
-            variant={actor().viewerFollows ? "outline" : "default"}
-            size="sm"
-            class="cursor-pointer"
-            onClick={handleClick}
+        <Show when={!actor().isViewer && viewer.isLoaded()}>
+          <Show
+            when={viewer.isAuthenticated()}
+            fallback={
+              <RemoteFollowButton
+                actorId={actor().id}
+                actorHandle={actor().handle}
+                actorName={actor().rawName}
+              />
+            }
           >
-            {actor().viewerFollows
-              ? t`Unfollow`
-              : actor().followsViewer
-              ? t`Follow Back`
-              : t`Follow`}
-          </Button>
+            <Button
+              variant={actor().viewerFollows ? "outline" : "default"}
+              size="sm"
+              class="cursor-pointer"
+              onClick={handleClick}
+            >
+              {actor().viewerFollows
+                ? t`Unfollow`
+                : actor().followsViewer
+                ? t`Follow Back`
+                : t`Follow`}
+            </Button>
+          </Show>
         </Show>
       )}
     </Show>

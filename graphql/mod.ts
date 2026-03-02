@@ -17,6 +17,7 @@ import "./reactable.ts";
 import "./search.ts";
 import "./signup.ts";
 import "./timeline.ts";
+import "./webfinger.ts";
 export type { UserContext as Context } from "./builder.ts";
 export { createYogaServer } from "./server.ts";
 

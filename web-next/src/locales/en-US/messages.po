@@ -273,8 +273,11 @@ msgstr "Bold"
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:217
 #: src/components/PostActionMenu.tsx:137
+#: src/components/RemoteFollowButton.tsx:217
+#: src/components/RemoteFollowButton.tsx:279
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
+#: src/routes/(root)/authorize_interaction.tsx:190
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -399,6 +402,10 @@ msgstr "Draft saved"
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 
+#: src/components/RemoteFollowButton.tsx:199
+msgid "e.g., @user@mastodon.social"
+msgstr "e.g., @user@mastodon.social"
+
 #: src/routes/(root)/[handle]/drafts/[id].tsx:78
 #: src/routes/(root)/[handle]/drafts/new.tsx:94
 msgid "Edit Draft"
@@ -455,7 +462,7 @@ msgstr "Extra message"
 msgid "Failed to delete post"
 msgstr "Failed to delete post"
 
-#: src/components/FollowButton.tsx:143
+#: src/components/FollowButton.tsx:153
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
@@ -499,6 +506,10 @@ msgstr "Failed to load more passkeys; click to retry"
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
+#: src/components/RemoteFollowButton.tsx:126
+msgid "Failed to look up user."
+msgstr "Failed to look up user."
+
 #: src/components/EmojiReactionPopover.tsx:159
 #: src/components/EmojiReactionPopover.tsx:168
 #: src/components/EmojiReactionPopover.tsx:237
@@ -541,7 +552,7 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/FollowButton.tsx:125
+#: src/components/FollowButton.tsx:131
 msgid "Failed to unfollow"
 msgstr "Failed to unfollow"
 
@@ -557,17 +568,26 @@ msgstr "Failed to upload image"
 msgid "Fediverse"
 msgstr "Fediverse"
 
+#: src/components/RemoteFollowButton.tsx:196
+msgid "Fediverse handle"
+msgstr "Fediverse handle"
+
 #: src/components/AppSidebar.tsx:157
 msgid "Feed"
 msgstr "Feed"
 
-#: src/components/FollowButton.tsx:165
+#: src/components/FollowButton.tsx:185
 msgid "Follow"
 msgstr "Follow"
 
-#: src/components/FollowButton.tsx:164
+#: src/components/FollowButton.tsx:184
 msgid "Follow Back"
 msgstr "Follow Back"
+
+#: src/routes/(root)/authorize_interaction.tsx:81
+#: src/routes/(root)/authorize_interaction.tsx:126
+msgid "Follow from your account"
+msgstr "Follow from your account"
 
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 #~ msgid "Followers"
@@ -658,6 +678,10 @@ msgstr "If you have a fediverse account, you can reply to this note from your ow
 #: src/components/ui/markdown-editor.tsx:573
 msgid "Image"
 msgstr "Image"
+
+#: src/components/RemoteFollowButton.tsx:101
+msgid "Invalid Fediverse handle format."
+msgstr "Invalid Fediverse handle format."
 
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
@@ -826,6 +850,14 @@ msgstr "Loading..."
 msgid "Loading…"
 msgstr "Loading…"
 
+#: src/components/RemoteFollowButton.tsx:220
+msgid "Look up user"
+msgstr "Look up user"
+
+#: src/components/RemoteFollowButton.tsx:207
+msgid "Looking up user..."
+msgstr "Looking up user..."
+
 #: src/routes/(root)/markdown.tsx:47
 msgid "Markdown guide"
 msgstr "Markdown guide"
@@ -921,6 +953,10 @@ msgstr "No posts found"
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
+#: src/routes/(root)/authorize_interaction.tsx:87
+msgid "No user URI provided."
+msgstr "No user URI provided."
+
 #: src/routes/(root)/search.tsx:257
 msgid "Not found."
 msgstr "Not found."
@@ -1003,6 +1039,10 @@ msgstr "Please correct the errors and try again."
 #: src/components/article-composer/ArticleComposerForm.tsx:44
 msgid "Please enter a title for your article."
 msgstr "Please enter a title for your article."
+
+#: src/components/RemoteFollowButton.tsx:96
+msgid "Please enter your Fediverse handle."
+msgstr "Please enter your Fediverse handle."
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:60
 #: src/routes/(root)/[handle]/drafts/index.tsx:217
@@ -1123,6 +1163,12 @@ msgstr "Registered passkeys"
 msgid "Registering…"
 msgstr "Registering…"
 
+#: src/components/RemoteFollowButton.tsx:174
+#: src/components/RemoteFollowButton.tsx:180
+#: src/components/RemoteFollowButton.tsx:282
+msgid "Remote Follow"
+msgstr "Remote Follow"
+
 #: src/components/LanguageList.tsx:225
 msgid "Remove"
 msgstr "Remove"
@@ -1236,6 +1282,10 @@ msgstr "Sign out"
 msgid "Sign up"
 msgstr "Sign up"
 
+#: src/routes/(root)/authorize_interaction.tsx:181
+msgid "Signed in as"
+msgstr "Signed in as"
+
 #: src/routes/(root)/sign/index.tsx:363
 msgid "Signing in Hackers' Pub"
 msgstr "Signing in Hackers' Pub"
@@ -1346,6 +1396,12 @@ msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
 
+#: src/components/RemoteFollowButton.tsx:137
+#: src/components/RemoteFollowButton.tsx:144
+#: src/components/RemoteFollowButton.tsx:150
+msgid "This service does not support remote follow."
+msgstr "This service does not support remote follow."
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "This will be part of the article URL"
@@ -1361,6 +1417,11 @@ msgstr "Title"
 #: src/components/article-composer/ArticleComposerContext.tsx:266
 msgid "Title cannot be empty"
 msgstr "Title cannot be empty"
+
+#. placeholder {0}: displayName()
+#: src/components/RemoteFollowButton.tsx:182
+msgid "To follow {0}, enter your Fediverse handle."
+msgstr "To follow {0}, enter your Fediverse handle."
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:173
@@ -1381,7 +1442,7 @@ msgstr "Unable to add reaction. Please try again."
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
-#: src/components/FollowButton.tsx:162
+#: src/components/FollowButton.tsx:182
 msgid "Unfollow"
 msgstr "Unfollow"
 
@@ -1401,6 +1462,10 @@ msgstr "Updated {0}"
 #: src/routes/(root)/[handle]/settings/index.tsx:571
 msgid "URL"
 msgstr "URL"
+
+#: src/components/RemoteFollowButton.tsx:123
+msgid "User not found."
+msgstr "User not found."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:418
 #: src/routes/(root)/sign/up/[token].tsx:357
@@ -1485,6 +1550,11 @@ msgstr "Without shares"
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 
+#. placeholder {0}: actor().name ?? actor().handle
+#: src/routes/(root)/authorize_interaction.tsx:140
+msgid "You are about to follow {0}."
+msgstr "You are about to follow {0}."
+
 #: src/routes/(root)/[handle]/settings/index.tsx:434
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "You can change it only once, and the old username will become available to others."
@@ -1518,8 +1588,8 @@ msgstr "You don't have any passkeys registered yet."
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "You have no invitations left. Please wait until you receive more."
 
-#: src/components/FollowButton.tsx:118
-#: src/components/FollowButton.tsx:136
+#: src/components/FollowButton.tsx:124
+#: src/components/FollowButton.tsx:142
 msgid "You must be signed in"
 msgstr "You must be signed in"
 

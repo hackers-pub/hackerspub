@@ -958,6 +958,19 @@ type Query {
 
   """Returns all accounts as a flat array for building the invitation tree."""
   invitationTree: [InvitationTreeNode!]!
+
+  """
+  Look up a remote Fediverse user by their handle, fetching their ActivityPub profile and constructing a remote follow URL for the given actor.
+  """
+  lookupRemoteFollower(
+    """The Relay global ID of the Hackers' Pub actor to be followed."""
+    actorId: ID!
+
+    """
+    The Fediverse handle of the remote user who wants to follow (e.g., @user@mastodon.social).
+    """
+    followerHandle: String!
+  ): WebFingerResult
   markdownGuide(
     """The locale for the Markdown guide."""
     locale: Locale!
@@ -1368,3 +1381,19 @@ type UploadMediaPayload {
 }
 
 union UploadMediaResult = InvalidInputError | NotAuthenticatedError | UploadMediaPayload
+
+"""
+Result of looking up a remote follower via WebFinger, including their ActivityPub profile and remote follow URL.
+"""
+type WebFingerResult {
+  domain: String
+  emojis: JSON
+  handle: String
+  iconUrl: URL
+  name: String
+  preferredUsername: String
+  remoteFollowUrl: URL
+  software: String
+  summary: String
+  url: URL
+}
