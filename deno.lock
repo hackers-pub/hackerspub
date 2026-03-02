@@ -2,18 +2,17 @@
   "version": "5",
   "specifiers": {
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
-    "jsr:@fedify/fedify@2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
-    "jsr:@fedify/fedify@^2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
+    "jsr:@fedify/fedify@2.0.2": "2.0.2",
+    "jsr:@fedify/fedify@^2.0.2": "2.0.2",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
-    "jsr:@fedify/postgres@2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
-    "jsr:@fedify/redis@2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
-    "jsr:@fedify/vocab-runtime@2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
-    "jsr:@fedify/vocab-runtime@^2.0.0-dev.395+0d27c2dd": "2.0.0-pr.559.6+b50404e9",
-    "jsr:@fedify/vocab-runtime@^2.0.0-pr.559.6+b50404e9": "2.0.0-pr.559.6+b50404e9",
-    "jsr:@fedify/vocab@2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
-    "jsr:@fedify/vocab@^2.0.0-dev.395+0d27c2dd": "2.0.0-dev.395+0d27c2dd",
-    "jsr:@fedify/webfinger@^2.0.0-dev.395+0d27c2dd": "2.0.0-pr.559.6+b50404e9",
+    "jsr:@fedify/postgres@2.0.2": "2.0.2",
+    "jsr:@fedify/redis@2.0.2": "2.0.2",
+    "jsr:@fedify/vocab-runtime@2.0.2": "2.0.2",
+    "jsr:@fedify/vocab-runtime@^2.0.2": "2.0.2",
+    "jsr:@fedify/vocab@2.0.2": "2.0.2",
+    "jsr:@fedify/vocab@^2.0.2": "2.0.2",
+    "jsr:@fedify/webfinger@^2.0.2": "2.0.2",
     "jsr:@fresh/core@2.0.0-alpha.34": "2.0.0-alpha.34",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7": "0.0.1-alpha.7",
@@ -27,20 +26,20 @@
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.1",
     "jsr:@onisaint/validate-email@^1.0.1": "1.0.1",
     "jsr:@schotsl/mailgun@^1.3.0": "1.3.0",
-    "jsr:@simplewebauthn/browser@^13.1.0": "13.2.0",
-    "jsr:@simplewebauthn/server@^13.1.1": "13.2.0",
+    "jsr:@simplewebauthn/browser@^13.1.0": "13.2.2",
+    "jsr:@simplewebauthn/server@^13.1.1": "13.2.3",
     "jsr:@std/assert@0.221": "0.221.0",
     "jsr:@std/assert@^1.0.12": "1.0.19",
     "jsr:@std/assert@~0.225.2": "0.225.3",
-    "jsr:@std/async@^1.0.12": "1.0.14",
+    "jsr:@std/async@^1.0.12": "1.2.0",
     "jsr:@std/bytes@^1.0.2": "1.0.6",
     "jsr:@std/bytes@^1.0.6": "1.0.6",
     "jsr:@std/cli@^1.0.28": "1.0.28",
-    "jsr:@std/collections@^1.0.10": "1.1.3",
+    "jsr:@std/collections@^1.0.10": "1.1.6",
     "jsr:@std/crypto@1": "1.0.5",
     "jsr:@std/crypto@^1.0.5": "1.0.5",
     "jsr:@std/datetime@~0.225.2": "0.225.7",
-    "jsr:@std/dotenv@~0.225.3": "0.225.5",
+    "jsr:@std/dotenv@~0.225.3": "0.225.6",
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
     "jsr:@std/encoding@^1.0.5": "1.0.10",
@@ -71,12 +70,13 @@
     "jsr:@std/regexp@^1.0.1": "1.0.1",
     "jsr:@std/semver@1": "1.0.8",
     "jsr:@std/streams@^1.0.17": "1.0.17",
-    "jsr:@std/text@^1.0.12": "1.0.16",
+    "jsr:@std/text@^1.0.12": "1.0.17",
     "jsr:@std/uuid@^1.1.0": "1.1.0",
-    "jsr:@upyo/core@~0.1.1": "0.1.1",
-    "jsr:@upyo/mailgun@~0.1.1": "0.1.1",
-    "jsr:@upyo/mock@~0.1.1": "0.1.1",
-    "jsr:@valibot/valibot@1": "1.1.0",
+    "jsr:@upyo/core@~0.1.1": "0.1.2",
+    "jsr:@upyo/core@~0.1.2": "0.1.2",
+    "jsr:@upyo/mailgun@~0.1.1": "0.1.2",
+    "jsr:@upyo/mock@~0.1.1": "0.1.2",
+    "jsr:@valibot/valibot@1": "1.2.0",
     "jsr:@vertana/core@0.1": "0.1.0",
     "jsr:@vertana/facade@0.1": "0.1.0",
     "npm:@ai-sdk/anthropic@^3.0.44": "3.0.44_zod@4.2.1",
@@ -120,12 +120,18 @@
     "npm:@opentelemetry/semantic-conventions@^1.36.0": "1.39.0",
     "npm:@opentelemetry/semantic-conventions@^1.39.0": "1.39.0",
     "npm:@parcel/watcher@^2.5.1": "2.5.1",
-    "npm:@peculiar/asn1-android@^2.3.10": "2.5.0",
-    "npm:@peculiar/asn1-ecc@^2.3.8": "2.5.0",
-    "npm:@peculiar/asn1-rsa@^2.3.8": "2.5.0",
-    "npm:@peculiar/asn1-schema@^2.3.8": "2.5.0",
-    "npm:@peculiar/asn1-x509@^2.3.8": "2.5.0",
-    "npm:@peculiar/x509@^1.13.0": "1.14.0",
+    "npm:@peculiar/asn1-android@^2.3.10": "2.6.0",
+    "npm:@peculiar/asn1-android@^2.6.0": "2.6.0",
+    "npm:@peculiar/asn1-ecc@^2.3.8": "2.6.1",
+    "npm:@peculiar/asn1-ecc@^2.6.1": "2.6.1",
+    "npm:@peculiar/asn1-rsa@^2.3.8": "2.6.1",
+    "npm:@peculiar/asn1-rsa@^2.6.1": "2.6.1",
+    "npm:@peculiar/asn1-schema@^2.3.8": "2.6.0",
+    "npm:@peculiar/asn1-schema@^2.6.0": "2.6.0",
+    "npm:@peculiar/asn1-x509@^2.3.8": "2.6.1",
+    "npm:@peculiar/asn1-x509@^2.6.1": "2.6.1",
+    "npm:@peculiar/x509@^1.13.0": "1.14.3",
+    "npm:@peculiar/x509@^1.14.3": "1.14.3",
     "npm:@pothos/core@^4.7.3": "4.8.1_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-complexity@4.1.1": "4.1.1_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-drizzle@~0.11.1": "0.11.2_@pothos+core@4.8.1__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_drizzle-orm@1.0.0-beta.1-5e64efc__@opentelemetry+api@1.9.0__postgres@3.4.7_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_@opentelemetry+api@1.9.0_postgres@3.4.7",
@@ -215,7 +221,7 @@
     "npm:postcss@8.4.35": "8.4.35",
     "npm:postgres@^3.4.5": "3.4.7",
     "npm:postgres@^3.4.7": "3.4.7",
-    "npm:preact-render-to-string@^6.5.11": "6.6.5_preact@10.27.1",
+    "npm:preact-render-to-string@^6.5.11": "6.6.6_preact@10.27.1",
     "npm:preact@^10.26.6": "10.27.1",
     "npm:preact@^10.26.9": "10.27.1",
     "npm:pretendard@^1.3.9": "1.3.9",
@@ -262,11 +268,11 @@
         "jsr:@std/assert@~0.225.2"
       ]
     },
-    "@fedify/fedify@2.0.0-dev.395+0d27c2dd": {
-      "integrity": "b10934f42fa485e02dbfbe17597cfc50dd71ebddc68cf6787163a0c94ed6bdf7",
+    "@fedify/fedify@2.0.2": {
+      "integrity": "6efb0978d5b4cc1cdd9dc69a9727d8d48f12aea1aee8e1f5b3bc260badb2bf99",
       "dependencies": [
-        "jsr:@fedify/vocab-runtime@^2.0.0-dev.395+0d27c2dd",
-        "jsr:@fedify/vocab@^2.0.0-dev.395+0d27c2dd",
+        "jsr:@fedify/vocab-runtime@^2.0.2",
+        "jsr:@fedify/vocab@^2.0.2",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@2",
         "npm:@opentelemetry/api",
@@ -296,26 +302,26 @@
         "npm:@types/markdown-it"
       ]
     },
-    "@fedify/postgres@2.0.0-dev.395+0d27c2dd": {
-      "integrity": "19d7b41e6228baa80bf486affd229f836a25231667a5e86283bad1a817574c87",
+    "@fedify/postgres@2.0.2": {
+      "integrity": "1d21ea6260ad7f41d1b0f62e2cb708a516b0db9bd2906011f0ec4f4ae89f0154",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.0.0-dev.395+0d27c2dd",
+        "jsr:@fedify/fedify@^2.0.2",
         "jsr:@logtape/logtape@2",
         "npm:postgres@^3.4.7"
       ]
     },
-    "@fedify/redis@2.0.0-dev.395+0d27c2dd": {
-      "integrity": "8625576a6d139878bb01cdd42af75ebac5fd06a6bfc1c9ad4e8137d337d6707b",
+    "@fedify/redis@2.0.2": {
+      "integrity": "519ae9284afa473c1d9180e2fc4f28bdfb8e5d19ee9248a1f4ef9f32e22335fa",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.0.0-dev.395+0d27c2dd",
+        "jsr:@fedify/fedify@^2.0.2",
         "jsr:@logtape/logtape@2",
         "npm:ioredis@^5.8.2"
       ]
     },
-    "@fedify/vocab@2.0.0-dev.395+0d27c2dd": {
-      "integrity": "8f60f27604b48826e9a82c5afd8c7fb9e3cd0bc0b920eab409b205c8cabb595c",
+    "@fedify/vocab@2.0.2": {
+      "integrity": "2af5421b4651922b338b55cf0500198c5cd78bac9781603e4d366332d0976192",
       "dependencies": [
-        "jsr:@fedify/vocab-runtime@^2.0.0-dev.395+0d27c2dd",
+        "jsr:@fedify/vocab-runtime@^2.0.2",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@2",
         "npm:@opentelemetry/api",
@@ -323,8 +329,8 @@
         "npm:jsonld"
       ]
     },
-    "@fedify/vocab-runtime@2.0.0-dev.395+0d27c2dd": {
-      "integrity": "b286decc012df0ab62c0a7af2fc695312c05e70683d9439383e95a3a9df22b0b",
+    "@fedify/vocab-runtime@2.0.2": {
+      "integrity": "8856a314de370b0db5f03c113bf5267f3737b2f275140e5f4868284e1fed2de0",
       "dependencies": [
         "jsr:@logtape/logtape@2",
         "npm:@multiformats/base-x",
@@ -335,22 +341,10 @@
         "npm:pkijs"
       ]
     },
-    "@fedify/vocab-runtime@2.0.0-pr.559.6+b50404e9": {
-      "integrity": "657c2977a0f96a3ea77befb4a0f1c0f418c754f6d17a2ee99d0a0a965dba2759",
+    "@fedify/webfinger@2.0.2": {
+      "integrity": "33810ca4f8edd8b71778cf7102316c54f7de2e5a962123db33ddcb34f45e4c87",
       "dependencies": [
-        "jsr:@logtape/logtape@2",
-        "npm:@multiformats/base-x",
-        "npm:@opentelemetry/api",
-        "npm:asn1js",
-        "npm:byte-encodings",
-        "npm:multicodec",
-        "npm:pkijs"
-      ]
-    },
-    "@fedify/webfinger@2.0.0-pr.559.6+b50404e9": {
-      "integrity": "2c350e382297a194bd303c1b9a6b4c62c71b2d773bb2fa34afac8c6b364f4c7c",
-      "dependencies": [
-        "jsr:@fedify/vocab-runtime@^2.0.0-pr.559.6+b50404e9",
+        "jsr:@fedify/vocab-runtime@^2.0.2",
         "jsr:@logtape/logtape@2",
         "npm:@opentelemetry/api"
       ]
@@ -437,17 +431,33 @@
     "@simplewebauthn/browser@13.2.0": {
       "integrity": "181274e4e57506e8356d1b96db2410dfe006168d25c9c1b1fb27ad9a76ad35d8"
     },
+    "@simplewebauthn/browser@13.2.2": {
+      "integrity": "9a7387f031b68abacef42b51e612bb23fec8e28e83f95ac5f1e8922bd9c15157"
+    },
     "@simplewebauthn/server@13.2.0": {
       "integrity": "14c54e7bab97db5fa4158212219c9f7014014967698e73fe250917e2c2f31fa7",
       "dependencies": [
         "npm:@hexagon/base64",
         "npm:@levischuck/tiny-cbor",
-        "npm:@peculiar/asn1-android",
-        "npm:@peculiar/asn1-ecc",
-        "npm:@peculiar/asn1-rsa",
-        "npm:@peculiar/asn1-schema",
-        "npm:@peculiar/asn1-x509",
-        "npm:@peculiar/x509"
+        "npm:@peculiar/asn1-android@^2.3.10",
+        "npm:@peculiar/asn1-ecc@^2.3.8",
+        "npm:@peculiar/asn1-rsa@^2.3.8",
+        "npm:@peculiar/asn1-schema@^2.3.8",
+        "npm:@peculiar/asn1-x509@^2.3.8",
+        "npm:@peculiar/x509@^1.13.0"
+      ]
+    },
+    "@simplewebauthn/server@13.2.3": {
+      "integrity": "8ab14d55c42a6c834ce14630e1500603f043291a7cccdd3f8dcc15d8cbee3264",
+      "dependencies": [
+        "npm:@hexagon/base64",
+        "npm:@levischuck/tiny-cbor",
+        "npm:@peculiar/asn1-android@^2.6.0",
+        "npm:@peculiar/asn1-ecc@^2.6.1",
+        "npm:@peculiar/asn1-rsa@^2.6.1",
+        "npm:@peculiar/asn1-schema@^2.6.0",
+        "npm:@peculiar/asn1-x509@^2.6.1",
+        "npm:@peculiar/x509@^1.14.3"
       ]
     },
     "@std/assert@0.221.0": {
@@ -455,6 +465,9 @@
     },
     "@std/assert@0.225.3": {
       "integrity": "b3c2847aecf6955b50644cdb9cf072004ea3d1998dd7579fc0acb99dbb23bd4f"
+    },
+    "@std/assert@1.0.16": {
+      "integrity": "6a7272ed1eaa77defe76e5ff63ca705d9c495077e2d5fd0126d2b53fc5bd6532"
     },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
@@ -464,6 +477,9 @@
     },
     "@std/async@1.0.14": {
       "integrity": "62e954a418652c704d37563a3e54a37d4cf0268a9dcaeac1660cc652880b5326"
+    },
+    "@std/async@1.2.0": {
+      "integrity": "c059c6f6d95ca7cc012ae8e8d7164d1697113d54b0b679e4372b354b11c2dee5"
     },
     "@std/bytes@1.0.6": {
       "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
@@ -477,6 +493,9 @@
     "@std/collections@1.1.3": {
       "integrity": "bf8b0818886df6a32b64c7d3b037a425111f28278d69fd0995aeb62777c986b0"
     },
+    "@std/collections@1.1.6": {
+      "integrity": "b458160ce65ea5ad35da05d0a5cbee4b583677c8b443a10d7beb0c4ac63f2baa"
+    },
     "@std/crypto@1.0.5": {
       "integrity": "0dcfbb319fe0bba1bd3af904ceb4f948cde1b92979ec1614528380ed308a3b40"
     },
@@ -486,11 +505,17 @@
     "@std/dotenv@0.225.5": {
       "integrity": "9ce6f9d0ec3311f74a32535aa1b8c62ed88b1ab91b7f0815797d77a6f60c922f"
     },
+    "@std/dotenv@0.225.6": {
+      "integrity": "1d6f9db72f565bd26790fa034c26e45ecb260b5245417be76c2279e5734c421b"
+    },
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
     },
     "@std/fmt@1.0.9": {
       "integrity": "2487343e8899fb2be5d0e3d35013e54477ada198854e52dd05ed0422eddcabe0"
+    },
+    "@std/fs@1.0.21": {
+      "integrity": "d720fe1056d78d43065a4d6e0eeb2b19f34adb8a0bc7caf3a4dbf1d4178252cd"
     },
     "@std/fs@1.0.23": {
       "integrity": "3ecbae4ce4fee03b180fa710caff36bb5adb66631c46a6460aaad49515565a37",
@@ -504,6 +529,9 @@
     },
     "@std/html@1.0.5": {
       "integrity": "4e2d693f474cae8c16a920fa5e15a3b72267b94b84667f11a50c6dd1cb18d35e"
+    },
+    "@std/http@1.0.23": {
+      "integrity": "6634e9e034c589bf35101c1b5ee5bbf052a5987abca20f903e58bdba85c80dee"
     },
     "@std/http@1.0.25": {
       "integrity": "577b4252290af1097132812b339fffdd55fb0f4aeb98ff11bdbf67998aa17193",
@@ -567,6 +595,12 @@
         "jsr:@std/regexp"
       ]
     },
+    "@std/text@1.0.17": {
+      "integrity": "4b2c4ef67ae5b6c1dfd447c81c83a43718f52e3c7e748d8b33f694aba9895f95",
+      "dependencies": [
+        "jsr:@std/regexp"
+      ]
+    },
     "@std/uuid@1.1.0": {
       "integrity": "6268db2ccf172849c9be80763354ca305d49ef4af41fe995623d44fcc3f7457c",
       "dependencies": [
@@ -577,20 +611,38 @@
     "@upyo/core@0.1.1": {
       "integrity": "1a6a29b263734881a6fb3fa083329a9c956abc48552dcc9cca4f54b89acc8a5d"
     },
+    "@upyo/core@0.1.2": {
+      "integrity": "d096e0009313206e547892648cb0b82864c28e8d2611e73474c24c13204e90e7"
+    },
     "@upyo/mailgun@0.1.1": {
       "integrity": "6727e3cb5bed340cc5ab473f7f65e6ac38318e44adfcd4110322f8bc4a52b4fb",
       "dependencies": [
-        "jsr:@upyo/core"
+        "jsr:@upyo/core@~0.1.1"
+      ]
+    },
+    "@upyo/mailgun@0.1.2": {
+      "integrity": "f785efaf77536e34f832a8e125044e5ff44bea4f042fc25b790e359100781571",
+      "dependencies": [
+        "jsr:@upyo/core@~0.1.2"
       ]
     },
     "@upyo/mock@0.1.1": {
       "integrity": "9589150113e11078cbc3af67ec1b3c7a213f223163290bde803dcae52a6c9a08",
       "dependencies": [
-        "jsr:@upyo/core"
+        "jsr:@upyo/core@~0.1.1"
+      ]
+    },
+    "@upyo/mock@0.1.2": {
+      "integrity": "180ed3d9a0967d84e947fcbf7cf8fa3f0caad504303acf18f111eb2114ff6f18",
+      "dependencies": [
+        "jsr:@upyo/core@~0.1.2"
       ]
     },
     "@valibot/valibot@1.1.0": {
       "integrity": "2617f02b532011b8140926899d420a3e1bbb0fcb7cdf8e7b669df89e7edd7f5f"
+    },
+    "@valibot/valibot@1.2.0": {
+      "integrity": "61c118a4d027ed55912caf381c78f0a178f335f46ad0c4bcb136498dc1ef2285"
     },
     "@vertana/core@0.1.0": {
       "integrity": "094560bb602912fc645e5cd53255e98e07ed19ca3e48e1a6ee1b75ebd7e02163",
@@ -4085,16 +4137,16 @@
         "pako@1.0.11"
       ]
     },
-    "@peculiar/asn1-android@2.5.0": {
-      "integrity": "sha512-t8A83hgghWQkcneRsgGs2ebAlRe54ns88p7ouv8PW2tzF1nAW4yHcL4uZKrFpIU+uszIRzTkcCuie37gpkId0A==",
+    "@peculiar/asn1-android@2.6.0": {
+      "integrity": "sha512-cBRCKtYPF7vJGN76/yG8VbxRcHLPF3HnkoHhKOZeHpoVtbMYfY9ROKtH3DtYUY9m8uI1Mh47PRhHf2hSK3xcSQ==",
       "dependencies": [
         "@peculiar/asn1-schema",
         "asn1js",
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-cms@2.5.0": {
-      "integrity": "sha512-p0SjJ3TuuleIvjPM4aYfvYw8Fk1Hn/zAVyPJZTtZ2eE9/MIer6/18ROxX6N/e6edVSfvuZBqhxAj3YgsmSjQ/A==",
+    "@peculiar/asn1-cms@2.6.1": {
+      "integrity": "sha512-vdG4fBF6Lkirkcl53q6eOdn3XYKt+kJTG59edgRZORlg/3atWWEReRCx5rYE1ZzTTX6vLK5zDMjHh7vbrcXGtw==",
       "dependencies": [
         "@peculiar/asn1-schema",
         "@peculiar/asn1-x509",
@@ -4103,8 +4155,8 @@
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-csr@2.5.0": {
-      "integrity": "sha512-ioigvA6WSYN9h/YssMmmoIwgl3RvZlAYx4A/9jD2qaqXZwGcNlAxaw54eSx2QG1Yu7YyBC5Rku3nNoHrQ16YsQ==",
+    "@peculiar/asn1-csr@2.6.1": {
+      "integrity": "sha512-WRWnKfIocHyzFYQTka8O/tXCiBquAPSrRjXbOkHbO4qdmS6loffCEGs+rby6WxxGdJCuunnhS2duHURhjyio6w==",
       "dependencies": [
         "@peculiar/asn1-schema",
         "@peculiar/asn1-x509",
@@ -4112,8 +4164,8 @@
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-ecc@2.5.0": {
-      "integrity": "sha512-t4eYGNhXtLRxaP50h3sfO6aJebUCDGQACoeexcelL4roMFRRVgB20yBIu2LxsPh/tdW9I282gNgMOyg3ywg/mg==",
+    "@peculiar/asn1-ecc@2.6.1": {
+      "integrity": "sha512-+Vqw8WFxrtDIN5ehUdvlN2m73exS2JVG0UAyfVB31gIfor3zWEAQPD+K9ydCxaj3MLen9k0JhKpu9LqviuCE1g==",
       "dependencies": [
         "@peculiar/asn1-schema",
         "@peculiar/asn1-x509",
@@ -4121,8 +4173,8 @@
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-pfx@2.5.0": {
-      "integrity": "sha512-Vj0d0wxJZA+Ztqfb7W+/iu8Uasw6hhKtCdLKXLG/P3kEPIQpqGI4P4YXlROfl7gOCqFIbgsj1HzFIFwQ5s20ug==",
+    "@peculiar/asn1-pfx@2.6.1": {
+      "integrity": "sha512-nB5jVQy3MAAWvq0KY0R2JUZG8bO/bTLpnwyOzXyEh/e54ynGTatAR+csOnXkkVD9AFZ2uL8Z7EV918+qB1qDvw==",
       "dependencies": [
         "@peculiar/asn1-cms",
         "@peculiar/asn1-pkcs8",
@@ -4132,8 +4184,8 @@
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-pkcs8@2.5.0": {
-      "integrity": "sha512-L7599HTI2SLlitlpEP8oAPaJgYssByI4eCwQq2C9eC90otFpm8MRn66PpbKviweAlhinWQ3ZjDD2KIVtx7PaVw==",
+    "@peculiar/asn1-pkcs8@2.6.1": {
+      "integrity": "sha512-JB5iQ9Izn5yGMw3ZG4Nw3Xn/hb/G38GYF3lf7WmJb8JZUydhVGEjK/ZlFSWhnlB7K/4oqEs8HnfFIKklhR58Tw==",
       "dependencies": [
         "@peculiar/asn1-schema",
         "@peculiar/asn1-x509",
@@ -4141,8 +4193,8 @@
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-pkcs9@2.5.0": {
-      "integrity": "sha512-UgqSMBLNLR5TzEZ5ZzxR45Nk6VJrammxd60WMSkofyNzd3DQLSNycGWSK5Xg3UTYbXcDFyG8pA/7/y/ztVCa6A==",
+    "@peculiar/asn1-pkcs9@2.6.1": {
+      "integrity": "sha512-5EV8nZoMSxeWmcxWmmcolg22ojZRgJg+Y9MX2fnE2bGRo5KQLqV5IL9kdSQDZxlHz95tHvIq9F//bvL1OeNILw==",
       "dependencies": [
         "@peculiar/asn1-cms",
         "@peculiar/asn1-pfx",
@@ -4154,8 +4206,8 @@
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-rsa@2.5.0": {
-      "integrity": "sha512-qMZ/vweiTHy9syrkkqWFvbT3eLoedvamcUdnnvwyyUNv5FgFXA3KP8td+ATibnlZ0EANW5PYRm8E6MJzEB/72Q==",
+    "@peculiar/asn1-rsa@2.6.1": {
+      "integrity": "sha512-1nVMEh46SElUt5CB3RUTV4EG/z7iYc7EoaDY5ECwganibQPkZ/Y2eMsTKB/LeyrUJ+W/tKoD9WUqIy8vB+CEdA==",
       "dependencies": [
         "@peculiar/asn1-schema",
         "@peculiar/asn1-x509",
@@ -4163,16 +4215,16 @@
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-schema@2.5.0": {
-      "integrity": "sha512-YM/nFfskFJSlHqv59ed6dZlLZqtZQwjRVJ4bBAiWV08Oc+1rSd5lDZcBEx0lGDHfSoH3UziI2pXt2UM33KerPQ==",
+    "@peculiar/asn1-schema@2.6.0": {
+      "integrity": "sha512-xNLYLBFTBKkCzEZIw842BxytQQATQv+lDTCEMZ8C196iJcJJMBUZxrhSTxLaohMyKK8QlzRNTRkUmanucnDSqg==",
       "dependencies": [
         "asn1js",
         "pvtsutils",
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-x509-attr@2.5.0": {
-      "integrity": "sha512-9f0hPOxiJDoG/bfNLAFven+Bd4gwz/VzrCIIWc1025LEI4BXO0U5fOCTNDPbbp2ll+UzqKsZ3g61mpBp74gk9A==",
+    "@peculiar/asn1-x509-attr@2.6.1": {
+      "integrity": "sha512-tlW6cxoHwgcQghnJwv3YS+9OO1737zgPogZ+CgWRUK4roEwIPzRH4JEiG770xe5HX2ATfCpmX60gurfWIF9dcQ==",
       "dependencies": [
         "@peculiar/asn1-schema",
         "@peculiar/asn1-x509",
@@ -4180,8 +4232,8 @@
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/asn1-x509@2.5.0": {
-      "integrity": "sha512-CpwtMCTJvfvYTFMuiME5IH+8qmDe3yEWzKHe7OOADbGfq7ohxeLaXwQo0q4du3qs0AII3UbLCvb9NF/6q0oTKQ==",
+    "@peculiar/asn1-x509@2.6.1": {
+      "integrity": "sha512-O9jT5F1A2+t3r7C4VT7LYGXqkGLK7Kj1xFpz7U0isPrubwU5PbDoyYtx6MiGst29yq7pXN5vZbQFKRCP+lLZlA==",
       "dependencies": [
         "@peculiar/asn1-schema",
         "asn1js",
@@ -4189,8 +4241,8 @@
         "tslib@2.8.1"
       ]
     },
-    "@peculiar/x509@1.14.0": {
-      "integrity": "sha512-Yc4PDxN3OrxUPiXgU63c+ZRXKGE8YKF2McTciYhUHFtHVB0KMnjeFSU0qpztGhsp4P0uKix4+J2xEpIEDu8oXg==",
+    "@peculiar/x509@1.14.3": {
+      "integrity": "sha512-C2Xj8FZ0uHWeCXXqX5B4/gVFQmtSkiuOolzAgutjTfseNOHT3pUjljDZsTSxXFGgio54bCzVFqmEOUrIVk8RDA==",
       "dependencies": [
         "@peculiar/asn1-cms",
         "@peculiar/asn1-csr",
@@ -11056,8 +11108,8 @@
     "postgres@3.4.7": {
       "integrity": "sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw=="
     },
-    "preact-render-to-string@6.6.5_preact@10.27.1": {
-      "integrity": "sha512-O6MHzYNIKYaiSX3bOw0gGZfEbOmlIDtDfWwN1JJdc/T3ihzRT6tGGSEWE088dWrEDGa1u7101q+6fzQnO9XCPA==",
+    "preact-render-to-string@6.6.6_preact@10.27.1": {
+      "integrity": "sha512-EfqZJytnjJldV+YaaqhthU2oXsEf5e+6rDv957p+zxAvNfFLQOPfvBOTncscQ+akzu6Wrl7s3Pa0LjUQmWJsGQ==",
       "dependencies": [
         "preact"
       ]
@@ -13255,13 +13307,13 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@2.0.0-dev.395+0d27c2dd",
+      "jsr:@fedify/fedify@2.0.2",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
-      "jsr:@fedify/postgres@2.0.0-dev.395+0d27c2dd",
-      "jsr:@fedify/redis@2.0.0-dev.395+0d27c2dd",
-      "jsr:@fedify/vocab-runtime@2.0.0-dev.395+0d27c2dd",
-      "jsr:@fedify/vocab@2.0.0-dev.395+0d27c2dd",
+      "jsr:@fedify/postgres@2.0.2",
+      "jsr:@fedify/redis@2.0.2",
+      "jsr:@fedify/vocab-runtime@2.0.2",
+      "jsr:@fedify/vocab@2.0.2",
       "jsr:@fresh/core@2.0.0-alpha.34",
       "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",
