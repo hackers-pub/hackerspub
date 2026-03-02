@@ -958,6 +958,7 @@ type Query {
 
   """Returns all accounts as a flat array for building the invitation tree."""
   invitationTree: [InvitationTreeNode!]!
+  lookupWebFinger(actorHandle: String!, fediverseId: String!): WebFingerResult
   markdownGuide(
     """The locale for the Markdown guide."""
     locale: Locale!
@@ -1368,3 +1369,16 @@ type UploadMediaPayload {
 }
 
 union UploadMediaResult = InvalidInputError | NotAuthenticatedError | UploadMediaPayload
+
+type WebFingerResult {
+  domain: String
+  emojis: JSON
+  handle: String
+  iconUrl: String
+  name: String
+  preferredUsername: String
+  remoteFollowUrl: String
+  software: String
+  summary: String
+  url: String
+}
