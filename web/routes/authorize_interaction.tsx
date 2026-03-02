@@ -1,5 +1,5 @@
-import { isActor } from "@fedify/fedify";
-import type * as vocab from "@fedify/fedify/vocab";
+import { isActor } from "@fedify/vocab";
+import type * as vocab from "@fedify/vocab";
 import { page } from "@fresh/core";
 import { persistActor } from "@hackerspub/models/actor";
 import type { Actor, Instance } from "@hackerspub/models/schema";

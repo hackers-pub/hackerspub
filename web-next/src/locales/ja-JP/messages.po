@@ -14,12 +14,12 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: actor().followersCount.totalCount
-#: src/components/ProfileCard.tsx:214
+#: src/components/ProfileCard.tsx:222
 msgid "{0, plural, one {# follower} other {# followers}}"
 msgstr "{0, plural, other {#フォロワー}}"
 
 #. placeholder {0}: actor().followeesCount.totalCount
-#: src/components/ProfileCard.tsx:199
+#: src/components/ProfileCard.tsx:207
 msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {#フォロー}}"
 
@@ -123,7 +123,7 @@ msgstr "{0}さんがあなたのコンテンツを共有しました"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:138
+#: src/routes/(root)/[handle]/[noteId].tsx:143
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -138,6 +138,12 @@ msgstr "{0}さんの記事"
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:69
 msgid "{0}'s followers"
 msgstr "{0}さんのフォロワー"
+
+#. placeholder {0}: account().name
+#: src/routes/(root)/[handle]/(profile)/following.tsx:66
+#: src/routes/(root)/[handle]/(profile)/following.tsx:69
+msgid "{0}'s following"
+msgstr "{0}さんのフォロー中"
 
 #. placeholder {0}: actor().rawName ?? actor().username
 #: src/routes/(root)/[handle]/(profile)/notes.tsx:67
@@ -209,7 +215,7 @@ msgstr "予期しないエラーが発生しました。後でもう一度お試
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "\"{draftTitle}\"を削除してもよろしいですか？この操作は取り消せません。"
 
-#: src/components/ArticleComposer.tsx:465
+#: src/components/article-composer/ArticleComposerContext.tsx:415
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "この下書きを削除してもよろしいですか？この操作は取り消せません。"
 
@@ -222,11 +228,11 @@ msgstr "パスキー{0}を取り消しますか？このパスキーを使用し
 msgid "Article Drafts"
 msgstr "記事の下書き"
 
-#: src/components/ArticleComposer.tsx:421
+#: src/components/article-composer/ArticleComposerContext.tsx:371
 msgid "Article published"
 msgstr "記事を公開しました"
 
-#: src/components/ArticleComposer.tsx:617
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:24
 msgid "article-url-slug"
 msgstr "記事のURLスラッグ"
 
@@ -260,8 +266,13 @@ msgstr "自己紹介"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "自己紹介が長すぎます。最大512文字です。"
 
-#: src/components/ArticleComposer.tsx:671
-#: src/components/NoteComposer.tsx:207
+#: src/components/ui/markdown-editor.tsx:275
+msgid "Bold"
+msgstr "太字"
+
+#: src/components/article-composer/ArticleComposerActions.tsx:44
+#: src/components/NoteComposer.tsx:217
+#: src/components/PostActionMenu.tsx:137
 #: src/routes/(root)/[handle]/settings/index.tsx:403
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
 msgid "Cancel"
@@ -271,7 +282,12 @@ msgstr "キャンセル"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
 
+#: src/components/ui/markdown-editor.tsx:279
+msgid "Code"
+msgstr "コード"
+
 #: src/components/Footer.tsx:16
+#: src/components/AppSidebar.tsx:532
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
@@ -281,19 +297,19 @@ msgstr "行動規範"
 #~ msgid "Compose"
 #~ msgstr "作成"
 
-#: src/components/ArticleComposer.tsx:562
-#: src/components/NoteComposer.tsx:148
+#: src/components/article-composer/ArticleComposerForm.tsx:53
+#: src/components/NoteComposer.tsx:150
 msgid "Content"
 msgstr "内容"
 
-#: src/components/NoteComposer.tsx:94
+#: src/components/NoteComposer.tsx:96
 msgid "Content cannot be empty"
 msgstr "内容を入力してください"
 
 #: src/components/Navigation.tsx:103
 #: src/components/Navigation.tsx:152
 #: src/components/NoteComposeModal.tsx:24
-#: src/components/NoteComposer.tsx:211
+#: src/components/NoteComposer.tsx:221
 msgid "Create Note"
 msgstr "投稿を作成"
 
@@ -306,7 +322,7 @@ msgstr "{0}に作成"
 msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
-#: src/components/NoteComposer.tsx:212
+#: src/components/NoteComposer.tsx:222
 msgid "Creating…"
 msgstr "作成中…"
 
@@ -326,19 +342,25 @@ msgstr "投稿のデフォルト公開範囲"
 msgid "Default share privacy"
 msgstr "共有のデフォルト公開範囲"
 
+#: src/components/PostActionMenu.tsx:123
+#: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:301
 msgid "Delete"
 msgstr "削除"
 
-#: src/components/ArticleComposer.tsx:647
+#: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Delete Draft"
 msgstr "下書きを削除"
 
-#: src/components/ArticleComposer.tsx:647
+#: src/components/PostActionMenu.tsx:131
+msgid "Delete post?"
+msgstr "コンテンツを削除しますか？"
+
+#: src/components/article-composer/ArticleComposerActions.tsx:20
 msgid "Deleting..."
 msgstr "削除中..."
 
-#: src/components/ArticleComposer.tsx:277
+#: src/components/article-composer/useUnsavedGuard.ts:13
 msgid "Discard unsaved changes - are you sure?"
 msgstr "保存されていない変更を破棄しますか？"
 
@@ -351,20 +373,20 @@ msgstr "名前"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
 
-#: src/components/ArticleComposer.tsx:486
+#: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Draft deleted"
 msgstr "下書きを削除しました"
 
-#: src/components/ArticleComposer.tsx:397
+#: src/components/article-composer/ArticleComposerContext.tsx:347
 msgid "Draft must be saved before publishing"
 msgstr "公開する前に下書きを保存する必要があります"
 
-#: src/components/ArticleComposer.tsx:531
+#: src/components/article-composer/ArticleComposer.tsx:39
 msgid "Draft not found"
 msgstr "下書きが見つかりません"
 
-#: src/components/ArticleComposer.tsx:349
+#: src/components/article-composer/ArticleComposerContext.tsx:299
 msgid "Draft saved"
 msgstr "下書きを保存しました"
 
@@ -390,23 +412,24 @@ msgstr "メールアドレスまたはユーザー名"
 msgid "Enter your email or username below to sign in."
 msgstr "以下にメールアドレスまたはユーザー名を入力してログインしてください。"
 
-#: src/components/ArticleComposer.tsx:318
-#: src/components/ArticleComposer.tsx:357
-#: src/components/ArticleComposer.tsx:366
-#: src/components/ArticleComposer.tsx:374
-#: src/components/ArticleComposer.tsx:387
-#: src/components/ArticleComposer.tsx:396
-#: src/components/ArticleComposer.tsx:428
-#: src/components/ArticleComposer.tsx:437
-#: src/components/ArticleComposer.tsx:445
-#: src/components/ArticleComposer.tsx:456
-#: src/components/ArticleComposer.tsx:493
-#: src/components/ArticleComposer.tsx:502
-#: src/components/ArticleComposer.tsx:510
-#: src/components/NoteComposer.tsx:93
-#: src/components/NoteComposer.tsx:119
-#: src/components/NoteComposer.tsx:127
-#: src/components/NoteComposer.tsx:135
+#: src/components/article-composer/ArticleComposerContext.tsx:265
+#: src/components/article-composer/ArticleComposerContext.tsx:307
+#: src/components/article-composer/ArticleComposerContext.tsx:316
+#: src/components/article-composer/ArticleComposerContext.tsx:324
+#: src/components/article-composer/ArticleComposerContext.tsx:337
+#: src/components/article-composer/ArticleComposerContext.tsx:346
+#: src/components/article-composer/ArticleComposerContext.tsx:378
+#: src/components/article-composer/ArticleComposerContext.tsx:387
+#: src/components/article-composer/ArticleComposerContext.tsx:395
+#: src/components/article-composer/ArticleComposerContext.tsx:406
+#: src/components/article-composer/ArticleComposerContext.tsx:443
+#: src/components/article-composer/ArticleComposerContext.tsx:452
+#: src/components/article-composer/ArticleComposerContext.tsx:460
+#: src/components/article-composer/ArticleComposerForm.tsx:26
+#: src/components/NoteComposer.tsx:95
+#: src/components/NoteComposer.tsx:121
+#: src/components/NoteComposer.tsx:129
+#: src/components/NoteComposer.tsx:137
 #: src/routes/(root)/[handle]/drafts/index.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 #: src/routes/(root)/[handle]/drafts/index.tsx:198
@@ -418,7 +441,16 @@ msgstr "エラー"
 msgid "Extra message"
 msgstr "追加メッセージ"
 
-#: src/components/ActorArticleList.tsx:75
+#: src/components/PostActionMenu.tsx:88
+#: src/components/PostActionMenu.tsx:95
+msgid "Failed to delete post"
+msgstr "コンテンツの削除に失敗しました"
+
+#: src/components/FollowButton.tsx:143
+msgid "Failed to follow"
+msgstr "フォローに失敗しました"
+
+#: src/components/ActorArticleList.tsx:81
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
 
@@ -430,11 +462,15 @@ msgstr "下書きの読み込みに失敗しました。クリックして再試
 msgid "Failed to load more followers; click to retry"
 msgstr "フォロワーの読み込みに失敗しました。クリックして再試行してください"
 
+#: src/components/ActorFollowingList.tsx:80
+msgid "Failed to load more following; click to retry"
+msgstr "フォロー中の読み込みに失敗しました。クリックして再試行してください"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Failed to load more invitees; click to retry"
 msgstr "招待された人々の読み込みに失敗しました。クリックして再試行"
 
-#: src/components/ActorNoteList.tsx:72
+#: src/components/ActorNoteList.tsx:75
 msgid "Failed to load more notes; click to retry"
 msgstr "投稿の読み込みに失敗しました。クリックして再試行してください"
 
@@ -446,10 +482,10 @@ msgstr "通知の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more passkeys; click to retry"
 msgstr "パスキーの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/ActorPostList.tsx:73
-#: src/components/ActorSharedPostList.tsx:75
-#: src/components/PersonalTimeline.tsx:92
-#: src/components/PublicTimeline.tsx:94
+#: src/components/ActorPostList.tsx:76
+#: src/components/ActorSharedPostList.tsx:81
+#: src/components/PersonalTimeline.tsx:98
+#: src/components/PublicTimeline.tsx:100
 #: src/components/SearchResults.tsx:97
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
@@ -495,18 +531,34 @@ msgstr "コンテンツの共有に失敗しました"
 #~ msgid "Failed to sign out: {0}"
 #~ msgstr "ログアウトに失敗：{0}"
 
+#: src/components/FollowButton.tsx:125
+msgid "Failed to unfollow"
+msgstr "フォロー解除に失敗しました"
+
 #: src/components/PostControls.tsx:134
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
-#: src/components/AppSidebar.tsx:218
-#~ msgid "Fediverse"
-#~ msgstr "フェディバース"
+#: src/components/article-composer/ArticleComposerForm.tsx:29
+msgid "Failed to upload image"
+msgstr "画像のアップロードに失敗しました"
+
+#: src/components/AppSidebar.tsx:238
+msgid "Fediverse"
+msgstr "フェディバース"
 
 #: src/components/Navigation.tsx:77
 #: src/components/Navigation.tsx:81
 msgid "Feed"
 msgstr "フィード"
+
+#: src/components/FollowButton.tsx:165
+msgid "Follow"
+msgstr "フォロー"
+
+#: src/components/FollowButton.tsx:164
+msgid "Follow Back"
+msgstr "フォローバック"
 
 #: src/routes/(root)/[handle]/(profile)/followers.tsx:82
 #~ msgid "Followers"
@@ -517,11 +569,16 @@ msgstr "フィード"
 msgid "Followers only"
 msgstr "フォロワーのみ"
 
-#: src/components/ProfileCard.tsx:224
+#: src/components/ProfileCard.tsx:232
 msgid "Following you"
 msgstr "あなたをフォロー中"
 
+#: src/components/ui/markdown-editor.tsx:519
+msgid "Formatting"
+msgstr "書式設定"
+
 #: src/components/Footer.tsx:28
+#: src/components/AppSidebar.tsx:544
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -550,6 +607,22 @@ msgstr "Hackers' Pubは、ソフトウェアエンジニアが知識と経験を
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
+#: src/components/ui/markdown-editor.tsx:283
+msgid "Heading 1"
+msgstr "見出し1"
+
+#: src/components/ui/markdown-editor.tsx:285
+msgid "Heading 2"
+msgstr "見出し2"
+
+#: src/components/ui/markdown-editor.tsx:287
+msgid "Heading 3"
+msgstr "見出し3"
+
+#: src/components/article-composer/ArticleComposerForm.tsx:73
+msgid "Hide Preview"
+msgstr "プレビューを隠す"
+
 #: src/components/Navigation.tsx:50
 msgid "Home"
 msgstr "ホーム"
@@ -563,17 +636,22 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:247
+#: src/routes/(root)/[handle]/[noteId].tsx:253
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この投稿に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当投稿に返信してください。"
+
+#: src/components/ui/markdown-editor.tsx:572
+#: src/components/ui/markdown-editor.tsx:573
+msgid "Image"
+msgstr "画像"
 
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
 #. placeholder {0}: response.publishArticleDraft.inputPath
-#: src/components/ArticleComposer.tsx:359
-#: src/components/ArticleComposer.tsx:430
-#: src/components/ArticleComposer.tsx:495
-#: src/components/NoteComposer.tsx:120
+#: src/components/article-composer/ArticleComposerContext.tsx:309
+#: src/components/article-composer/ArticleComposerContext.tsx:380
+#: src/components/article-composer/ArticleComposerContext.tsx:445
+#: src/components/NoteComposer.tsx:122
 #: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
 msgstr "無効な入力：{0}"
@@ -595,6 +673,10 @@ msgstr "招待"
 msgid "Invite a friend"
 msgstr "友達を招待"
 
+#: src/components/ui/markdown-editor.tsx:277
+msgid "Italic"
+msgstr "斜体"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:460
 msgid "John Doe"
 msgstr "田中太郎"
@@ -604,10 +686,10 @@ msgstr "田中太郎"
 msgid "Joined on {0}"
 msgstr "{0}に参加"
 
-#: src/components/ArticleComposer.tsx:629
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:36
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/components/NoteComposer.tsx:186
+#: src/components/NoteComposer.tsx:196
 msgid "Language"
 msgstr "言語"
 
@@ -625,6 +707,10 @@ msgstr "言語設定"
 msgid "Last used {0}"
 msgstr "{0}に最終使用"
 
+#: src/components/ui/markdown-editor.tsx:281
+msgid "Link"
+msgstr "リンク"
+
 #: src/components/LinkPreview.tsx:135
 msgid "Link author: "
 msgstr "リンクの著者："
@@ -633,11 +719,15 @@ msgstr "リンクの著者："
 msgid "Link name"
 msgstr "リンク名"
 
+#: src/components/ui/markdown-editor.tsx:291
+msgid "List"
+msgstr "リスト"
+
 #: src/routes/(root)/[handle]/drafts/index.tsx:328
 msgid "Load More"
 msgstr "もっと読み込む"
 
-#: src/components/ActorArticleList.tsx:78
+#: src/components/ActorArticleList.tsx:84
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
 
@@ -645,11 +735,15 @@ msgstr "記事をもっと読み込む"
 msgid "Load more followers"
 msgstr "フォロワーをもっと読み込む"
 
+#: src/components/ActorFollowingList.tsx:83
+msgid "Load more following"
+msgstr "フォロー中をもっと読み込む"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:491
 msgid "Load more invitees"
 msgstr "もっと招待された人々を読み込む"
 
-#: src/components/ActorNoteList.tsx:75
+#: src/components/ActorNoteList.tsx:78
 msgid "Load more notes"
 msgstr "投稿をもっと読み込む"
 
@@ -661,19 +755,19 @@ msgstr "通知をもっと読み込む"
 msgid "Load more passkeys"
 msgstr "パスキーを読み込む"
 
-#: src/components/ActorPostList.tsx:76
-#: src/components/ActorSharedPostList.tsx:78
-#: src/components/PersonalTimeline.tsx:95
-#: src/components/PublicTimeline.tsx:97
+#: src/components/ActorPostList.tsx:79
+#: src/components/ActorSharedPostList.tsx:84
+#: src/components/PersonalTimeline.tsx:101
+#: src/components/PublicTimeline.tsx:103
 #: src/components/SearchResults.tsx:100
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
-#: src/components/ArticleComposer.tsx:523
+#: src/components/article-composer/ArticleComposer.tsx:31
 msgid "Loading draft..."
 msgstr "下書きを読み込み中..."
 
-#: src/components/ActorArticleList.tsx:72
+#: src/components/ActorArticleList.tsx:78
 msgid "Loading more articles…"
 msgstr "記事を読み込み中…"
 
@@ -681,11 +775,15 @@ msgstr "記事を読み込み中…"
 msgid "Loading more followers…"
 msgstr "フォロワーを読み込み中…"
 
+#: src/components/ActorFollowingList.tsx:77
+msgid "Loading more following…"
+msgstr "フォロー中を読み込み中…"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Loading more invitees…"
 msgstr "招待された人々を読み込み中…"
 
-#: src/components/ActorNoteList.tsx:69
+#: src/components/ActorNoteList.tsx:72
 msgid "Loading more notes…"
 msgstr "投稿を読み込み中…"
 
@@ -697,10 +795,10 @@ msgstr "通知を読み込み中…"
 msgid "Loading more passkeys…"
 msgstr "パスキーを読み込み中…"
 
-#: src/components/ActorPostList.tsx:70
-#: src/components/ActorSharedPostList.tsx:72
-#: src/components/PersonalTimeline.tsx:89
-#: src/components/PublicTimeline.tsx:91
+#: src/components/ActorPostList.tsx:73
+#: src/components/ActorSharedPostList.tsx:78
+#: src/components/PersonalTimeline.tsx:95
+#: src/components/PublicTimeline.tsx:97
 #: src/components/SearchResults.tsx:94
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
@@ -721,8 +819,8 @@ msgstr "メインナビゲーション"
 msgid "Markdown guide"
 msgstr "Markdown ガイド"
 
-#: src/components/ArticleComposer.tsx:587
-#: src/components/NoteComposer.tsx:173
+#: src/components/article-composer/ArticleComposerForm.tsx:99
+#: src/components/NoteComposer.tsx:175
 msgid "Markdown supported"
 msgstr "Markdown対応"
 
@@ -772,7 +870,7 @@ msgstr "使用履歴なし"
 msgid "New Article"
 msgstr "新規記事"
 
-#: src/components/ArticleComposer.tsx:457
+#: src/components/article-composer/ArticleComposerContext.tsx:407
 msgid "No draft to delete"
 msgstr "削除する下書きがありません"
 
@@ -784,22 +882,26 @@ msgstr "まだ下書きがありません。最初の記事を作成しましょ
 msgid "No followers found"
 msgstr "フォロワーはいません"
 
+#: src/components/ActorFollowingList.tsx:90
+msgid "No following found"
+msgstr "フォロー中のユーザーはいません"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:334
 msgid "No invitations left"
 msgstr "招待状が残っていません"
 
-#: src/components/ActorArticleList.tsx:85
+#: src/components/ActorArticleList.tsx:91
 msgid "No notes articles"
 msgstr "記事はありません"
 
-#: src/components/ActorNoteList.tsx:82
+#: src/components/ActorNoteList.tsx:85
 msgid "No notes found"
 msgstr "投稿はありません"
 
-#: src/components/ActorPostList.tsx:83
-#: src/components/ActorSharedPostList.tsx:85
-#: src/components/PersonalTimeline.tsx:102
-#: src/components/PublicTimeline.tsx:104
+#: src/components/ActorPostList.tsx:86
+#: src/components/ActorSharedPostList.tsx:91
+#: src/components/PersonalTimeline.tsx:108
+#: src/components/PublicTimeline.tsx:110
 #: src/components/SearchResults.tsx:107
 msgid "No posts found"
 msgstr "コンテンツはありません"
@@ -816,7 +918,7 @@ msgstr "見つかりませんでした。"
 #~ msgid "Note"
 #~ msgstr "投稿"
 
-#: src/components/NoteComposer.tsx:112
+#: src/components/NoteComposer.tsx:114
 msgid "Note created successfully"
 msgstr "投稿が作成されました"
 
@@ -829,8 +931,12 @@ msgstr "リンクが実際にあなたのものであることを認証できま
 msgid "Notes"
 msgstr "投稿"
 
+#~ msgid "Nothing to preview"
+#~ msgstr "プレビューする内容がありません"
+
 #: src/components/Navigation.tsx:91
 #: src/components/Navigation.tsx:95
+#: src/components/AppSidebar.tsx:317
 msgid "Notifications"
 msgstr "通知"
 
@@ -884,7 +990,7 @@ msgstr "5 MiB未満の画像ファイルを選択してください。"
 msgid "Please correct the errors and try again."
 msgstr "エラーを修正して、もう一度お試しください。"
 
-#: src/components/ArticleComposer.tsx:553
+#: src/components/article-composer/ArticleComposerForm.tsx:44
 msgid "Please enter a title for your article."
 msgstr "記事のタイトルを入力してください。"
 
@@ -893,6 +999,10 @@ msgstr "記事のタイトルを入力してください。"
 #: src/routes/(root)/[handle]/drafts/new.tsx:76
 msgid "Please sign in to access this page"
 msgstr "このページにアクセスするにはログインしてください"
+
+#: src/components/PostActionMenu.tsx:84
+msgid "Post deleted"
+msgstr "コンテンツを削除しました"
 
 #: src/components/ProfileTabs.tsx:38
 msgid "Posts"
@@ -937,15 +1047,15 @@ msgstr "プロフィール設定"
 msgid "Public"
 msgstr "公開"
 
-#: src/components/ArticleComposer.tsx:686
+#: src/components/article-composer/ArticleComposerActions.tsx:57
 msgid "Publish Article"
 msgstr "記事を公開"
 
-#: src/components/ArticleComposer.tsx:676
+#: src/components/article-composer/ArticleComposerActions.tsx:47
 msgid "Publish Now"
 msgstr "今すぐ公開"
 
-#: src/components/ArticleComposer.tsx:675
+#: src/components/article-composer/ArticleComposerActions.tsx:47
 msgid "Publishing..."
 msgstr "公開中..."
 
@@ -959,6 +1069,7 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/PostControls.tsx:193
+#: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
@@ -975,7 +1086,7 @@ msgstr "{emoji}でリアクション"
 msgid "reaction"
 msgstr "リアクション"
 
-#: src/components/ArticleCard.tsx:264
+#: src/components/ArticleCard.tsx:277
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -1031,11 +1142,15 @@ msgstr "パスキーを取り消す"
 msgid "Save"
 msgstr "保存"
 
-#: src/components/ArticleComposer.tsx:659
+#: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Save Draft"
 msgstr "下書きを保存"
 
-#: src/components/ArticleComposer.tsx:659
+#: src/components/article-composer/ArticleComposerForm.tsx:126
+msgid "Save draft to see preview"
+msgstr "下書きを保存するとプレビューが表示されます"
+
+#: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Saving..."
 msgstr "保存中..."
 
@@ -1092,6 +1207,11 @@ msgstr "共有"
 msgid "Shares"
 msgstr "共有"
 
+#: src/components/article-composer/ArticleComposerForm.tsx:73
+msgid "Show Preview"
+msgstr "プレビューを表示"
+
+#: src/components/AppSidebar.tsx:290
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "ログイン"
@@ -1120,11 +1240,11 @@ msgstr "ログイン中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pubに登録"
 
-#: src/components/ArticleComposer.tsx:613
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:20
 msgid "Slug (URL)"
 msgstr "スラッグ (URL)"
 
-#: src/components/ArticleComposer.tsx:388
+#: src/components/article-composer/ArticleComposerContext.tsx:338
 msgid "Slug cannot be empty"
 msgstr "スラッグは空にできません"
 
@@ -1132,10 +1252,10 @@ msgstr "スラッグは空にできません"
 msgid "Something went wrong—please try again."
 msgstr "問題が発生しました。再度お試しください。"
 
-#: src/components/ArticleComposer.tsx:348
-#: src/components/ArticleComposer.tsx:420
-#: src/components/ArticleComposer.tsx:485
-#: src/components/NoteComposer.tsx:111
+#: src/components/article-composer/ArticleComposerContext.tsx:298
+#: src/components/article-composer/ArticleComposerContext.tsx:370
+#: src/components/article-composer/ArticleComposerContext.tsx:435
+#: src/components/NoteComposer.tsx:113
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
 msgstr "成功"
@@ -1152,7 +1272,7 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:242
+#: src/components/ArticleCard.tsx:255
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -1164,7 +1284,7 @@ msgstr "目次"
 #~ msgid "Tag"
 #~ msgstr "タグ"
 
-#: src/components/ArticleComposer.tsx:601
+#: src/components/article-composer/ArticleComposerForm.tsx:142
 msgid "Tags"
 msgstr "タグ"
 
@@ -1214,7 +1334,11 @@ msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 
-#: src/components/ArticleComposer.tsx:621
+#: src/components/PostActionMenu.tsx:133
+msgid "This action cannot be undone. This will permanently delete this post."
+msgstr "この操作は取り消せません。このコンテンツは完全に削除されます。"
+
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:28
 msgid "This will be part of the article URL"
 msgstr "これは記事のURLの一部になります"
 
@@ -1222,20 +1346,20 @@ msgstr "これは記事のURLの一部になります"
 #~ msgid "Timeline"
 #~ msgstr "タイムライン"
 
-#: src/components/ArticleComposer.tsx:549
+#: src/components/article-composer/ArticleComposerForm.tsx:40
 msgid "Title"
 msgstr "タイトル"
 
-#: src/components/ArticleComposer.tsx:319
+#: src/components/article-composer/ArticleComposerContext.tsx:266
 msgid "Title cannot be empty"
 msgstr "タイトルは空にできません"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:160
+#: src/components/ArticleCard.tsx:173
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/components/ArticleComposer.tsx:605
+#: src/components/article-composer/ArticleComposerForm.tsx:146
 msgid "Type tags separated by spaces"
 msgstr "タグをスペースで区切って入力"
 
@@ -1248,6 +1372,10 @@ msgstr "リアクションを追加できませんでした。もう一度お試
 #: src/components/EmojiReactionPopover.tsx:169
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
+
+#: src/components/FollowButton.tsx:162
+msgid "Unfollow"
+msgstr "フォロー解除"
 
 #: src/components/PostControls.tsx:210
 msgid "Unshare"
@@ -1293,7 +1421,7 @@ msgstr "招待したユーザー"
 
 #. placeholder {0}: "OWNER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ProfileCard.tsx:173
+#: src/components/ProfileCard.tsx:177
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済み"
 
@@ -1301,7 +1429,11 @@ msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
 
-#: src/components/NoteComposer.tsx:193
+#: src/components/AppSidebar.tsx:522
+msgid "View all drafts →"
+msgstr "すべての下書きを表示 →"
+
+#: src/components/NoteComposer.tsx:203
 msgid "Visibility"
 msgstr "公開範囲"
 
@@ -1333,7 +1465,7 @@ msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォ
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pubとは？"
 
-#: src/components/NoteComposer.tsx:179
+#: src/components/NoteComposer.tsx:182
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
@@ -1341,7 +1473,7 @@ msgstr "今何してる？"
 #~ msgid "Without shares"
 #~ msgstr "共有除外"
 
-#: src/components/ArticleComposer.tsx:593
+#: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "ここに記事を書いてください。Markdownが使用できます。書いている間、記事は自動的に下書きとして保存されます。"
 
@@ -1378,20 +1510,25 @@ msgstr "まだパスキーが登録されていません。"
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "招待状が残っていません。追加されるまでお待ちください。"
 
-#: src/components/NoteComposer.tsx:128
+#: src/components/FollowButton.tsx:118
+#: src/components/FollowButton.tsx:136
+msgid "You must be signed in"
+msgstr "ログインが必要です"
+
+#: src/components/NoteComposer.tsx:130
 msgid "You must be signed in to create a note"
 msgstr "投稿を作成するにはログインが必要です"
 
-#: src/components/ArticleComposer.tsx:503
+#: src/components/article-composer/ArticleComposerContext.tsx:453
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 msgid "You must be signed in to delete a draft"
 msgstr "下書きを削除するにはログインが必要です"
 
-#: src/components/ArticleComposer.tsx:438
+#: src/components/article-composer/ArticleComposerContext.tsx:388
 msgid "You must be signed in to publish an article"
 msgstr "記事を公開するにはログインが必要です"
 
-#: src/components/ArticleComposer.tsx:367
+#: src/components/article-composer/ArticleComposerContext.tsx:317
 msgid "You must be signed in to save a draft"
 msgstr "下書きを保存するにはログインが必要です"
 

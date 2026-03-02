@@ -3,6 +3,7 @@ import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import type { SmallProfileCard_actor$key } from "./__generated__/SmallProfileCard_actor.graphql.ts";
+import { FollowButton } from "./FollowButton.tsx";
 
 export interface SmallProfileCardProps {
   $actor: SmallProfileCard_actor$key;
@@ -18,6 +19,7 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
         handle
         local
         username
+        ...FollowButton_actor
       }
     `,
     () => props.$actor,
@@ -37,7 +39,7 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
                 <AvatarImage src={actor().avatarUrl} class="size-16" />
               </a>
             </Avatar>
-            <div class="flex flex-col">
+            <div class="flex flex-col flex-1">
               <a
                 href={`/${
                   actor().local ? `@${actor().username}` : actor().handle
@@ -49,6 +51,7 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
                 {actor().handle}
               </span>
             </div>
+            <FollowButton $actor={actor()} />
           </div>
           <Show when={actor().bio}>
             {(bio) => (

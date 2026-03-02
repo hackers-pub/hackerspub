@@ -1,5 +1,6 @@
-import type { Context, Recipient } from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import type { Context } from "@fedify/fedify";
+import type { Recipient } from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { getNote } from "@hackerspub/federation/objects";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
@@ -358,6 +359,7 @@ export async function createNote(
     ccs: noteObject.ccIds,
     object: noteObject,
   });
+  const orderingKey = post.iri;
   if (post.mentions.length > 0) {
     const directRecipients: Recipient[] = post.mentions.map((m) => ({
       id: new URL(m.actor.iri),
@@ -371,6 +373,7 @@ export async function createNote(
       directRecipients,
       activity,
       {
+        orderingKey,
         preferSharedInbox: false,
         excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
       },
@@ -382,6 +385,7 @@ export async function createNote(
       "followers",
       activity,
       {
+        orderingKey,
         preferSharedInbox: true,
         excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
       },
@@ -500,6 +504,7 @@ export async function updateNote(
       object: noteObject,
     }),
     {
+      orderingKey: post.iri,
       preferSharedInbox: true,
       excludeBaseUris: [
         new URL(fedCtx.origin),

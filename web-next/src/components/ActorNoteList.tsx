@@ -24,6 +24,7 @@ export function ActorNoteList(props: ActorNoteListProps) {
         notes(after: $cursor, first: $count)
           @connection(key: "ActorNoteList_notes")
         {
+          __id
           edges {
             __id
             node {
@@ -57,7 +58,9 @@ export function ActorNoteList(props: ActorNoteListProps) {
         {(data) => (
           <>
             <For each={data().notes.edges}>
-              {(edge) => <NoteCard $note={edge.node} />}
+              {(edge) => (
+                <NoteCard $note={edge.node} connections={[data().notes.__id]} />
+              )}
             </For>
             <Show when={notes.hasNext}>
               <div

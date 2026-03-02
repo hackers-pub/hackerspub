@@ -1,4 +1,5 @@
-import { type Context, Follow, Reject, Undo } from "@fedify/fedify";
+import type { Context } from "@fedify/fedify";
+import { Follow, Reject, Undo } from "@fedify/vocab";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";
@@ -47,7 +48,10 @@ export async function follow(
         actor: fedCtx.getActorUri(follower.id),
         object: new URL(followee.iri),
       }),
-      { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
+      {
+        orderingKey: rows[0].iri,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
     );
   } else if (rows.length > 0 && followee.accountId != null) {
     await updateFolloweesCount(db, rows[0].followerId, 1);
@@ -130,7 +134,10 @@ export async function unfollow(
           object: new URL(followee.iri),
         }),
       }),
-      { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
+      {
+        orderingKey: rows[0].iri,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
     );
   }
   if (rows.length > 0) {
@@ -179,6 +186,7 @@ export async function removeFollower(
           object: fedCtx.getActorUri(followee.id),
         }),
       }),
+      { orderingKey: rows[0].iri },
     );
   }
   return rows[0];

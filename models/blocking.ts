@@ -1,5 +1,6 @@
-import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import type { Context, DocumentLoader } from "@fedify/fedify";
+import { isActor } from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { and, eq } from "drizzle-orm";
 import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";
@@ -80,8 +81,16 @@ export async function block(
       blockerId: blocker.actor.id,
       blockeeId: blockee.id,
     })
+    .onConflictDoNothing()
     .returning();
-  if (rows.length < 1) return undefined;
+  if (rows.length < 1) {
+    return await db.query.blockingTable.findFirst({
+      where: {
+        blockerId: blocker.actor.id,
+        blockeeId: blockee.id,
+      },
+    });
+  }
   if (blockee.accountId == null) {
     const block = new vocab.Block({
       id: new URL(rows[0].iri),
@@ -93,6 +102,7 @@ export async function block(
       toRecipient(blockee),
       block,
       {
+        orderingKey: rows[0].iri,
         excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
         fanout: "skip",
         preferSharedInbox: false,
@@ -131,7 +141,10 @@ export async function unblock(
           object: new URL(blockee.iri),
         }),
       }),
-      { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
+      {
+        orderingKey: rows[0].iri,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
     );
   }
   return rows[0];

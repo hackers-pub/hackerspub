@@ -36,6 +36,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
         )
           @connection(key: "PersonalTimeline__personalTimeline")
         {
+          __id
           edges {
             __id
             node {
@@ -77,7 +78,12 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
         {(data) => (
           <>
             <For each={data().personalTimeline.edges}>
-              {(edge) => <PostCard $post={edge.node} />}
+              {(edge) => (
+                <PostCard
+                  $post={edge.node}
+                  connections={[data().personalTimeline.__id]}
+                />
+              )}
             </For>
             <Show when={posts.hasNext}>
               <div

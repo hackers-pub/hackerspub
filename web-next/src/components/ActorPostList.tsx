@@ -25,6 +25,7 @@ export function ActorPostList(props: ActorPostListProps) {
         posts(after: $cursor, first: $count)
           @connection(key: "ActorPostList_posts")
         {
+          __id
           edges {
             __id
             node {
@@ -58,7 +59,9 @@ export function ActorPostList(props: ActorPostListProps) {
         {(data) => (
           <>
             <For each={data().posts.edges}>
-              {(edge) => <PostCard $post={edge.node} />}
+              {(edge) => (
+                <PostCard $post={edge.node} connections={[data().posts.__id]} />
+              )}
             </For>
             <Show when={posts.hasNext}>
               <div

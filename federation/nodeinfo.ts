@@ -1,4 +1,3 @@
-import { parseSemVer } from "@fedify/fedify";
 import { count, countDistinct, gt, sql } from "drizzle-orm";
 import {
   accountTable,
@@ -34,7 +33,7 @@ builder.setNodeInfoDispatcher("/nodeinfo/2.1", async (ctx) => {
   return {
     software: {
       name: "hackerspub",
-      version: parseSemVer(metadata.version),
+      version: metadata.version,
       homepage: new URL("https://hackers.pub/"),
       repository: new URL("https://github.com/hackers-pub/hackerspub"),
     },

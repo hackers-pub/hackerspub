@@ -1,4 +1,4 @@
-import { isActor } from "@fedify/fedify";
+import { isActor } from "@fedify/vocab";
 import { page } from "@fresh/core";
 import { getRelationship, type Relationship } from "@hackerspub/models/account";
 import {

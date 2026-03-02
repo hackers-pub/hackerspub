@@ -1,5 +1,5 @@
 import { validate as validateUuidV1To5 } from "@std/uuid";
-import { generate, validate as validateUuidV7 } from "@std/uuid/unstable-v7";
+import { generate, validate as validateUuidV7 } from "@std/uuid/v7";
 
 export type Uuid = ReturnType<typeof crypto.randomUUID>;
 

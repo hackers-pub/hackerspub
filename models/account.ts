@@ -1,12 +1,11 @@
+import { getNodeInfo, type RequestContext } from "@fedify/fedify";
 import {
   getActorHandle,
-  getNodeInfo,
   isActor,
   lookupObject,
   PropertyValue,
-  type RequestContext,
-} from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+} from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { encodeHex } from "@std/encoding/hex";

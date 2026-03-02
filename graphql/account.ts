@@ -197,11 +197,15 @@ builder.drizzleObjectField(Account, "invitees", (t) =>
   t.connection(
     {
       type: Account,
-      select: {
+      select: (args, ctx, nestedSelection) => ({
         with: {
-          invitees: true,
+          invitees: accountConnectionHelpers.getQuery(
+            args,
+            ctx,
+            nestedSelection,
+          ),
         },
-      },
+      }),
       async resolve(account, args, ctx) {
         return {
           ...accountConnectionHelpers.resolve(account.invitees, args, ctx),

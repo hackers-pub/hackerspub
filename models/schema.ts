@@ -1055,6 +1055,33 @@ export const timelineItemTable = pgTable(
 export type TimelineItem = typeof timelineItemTable.$inferSelect;
 export type NewTimelineItem = typeof timelineItemTable.$inferInsert;
 
+export const apnsDeviceTokenTable = pgTable(
+  "apns_device_token",
+  {
+    deviceToken: varchar("device_token", { length: 64 }).primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.accountId),
+    check(
+      "apns_device_token_device_token_check",
+      sql`${table.deviceToken} ~ '^[0-9a-f]{64}$'`,
+    ),
+  ],
+);
+
+export type ApnsDeviceToken = typeof apnsDeviceTokenTable.$inferSelect;
+export type NewApnsDeviceToken = typeof apnsDeviceTokenTable.$inferInsert;
+
 export const notificationTypeEnum = pgEnum("notification_type", [
   "follow",
   "mention",
@@ -1162,3 +1189,29 @@ export const invitationLinkTable = pgTable(
 
 export type InvitationLink = typeof invitationLinkTable.$inferSelect;
 export type NewInvitationLink = typeof invitationLinkTable.$inferInsert;
+
+export const articleMediumTable = pgTable(
+  "article_medium",
+  {
+    key: text().primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    articleDraftId: uuid("article_draft_id")
+      .$type<Uuid>()
+      .references(() => articleDraftTable.id, { onDelete: "set null" }),
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .references(() => articleSourceTable.id, { onDelete: "set null" }),
+    url: text().notNull(),
+    width: integer().notNull(),
+    height: integer().notNull(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+);
+
+export type ArticleMedium = typeof articleMediumTable.$inferSelect;
+export type NewArticleMedium = typeof articleMediumTable.$inferInsert;

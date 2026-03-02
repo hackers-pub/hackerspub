@@ -1,4 +1,4 @@
-import * as vocab from "@fedify/fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { toRecipient } from "@hackerspub/models/actor";
 import {
   actorTable,

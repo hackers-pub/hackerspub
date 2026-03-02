@@ -139,6 +139,7 @@ type Actor implements Node {
   instanceHost: String!
   iri: URL!
   isFollowedBy(followerId: ID): Boolean!
+  isViewer: Boolean!
   local: Boolean!
   name: HTML
   noteByUuid(uuid: UUID!): Note
@@ -156,6 +157,7 @@ type Actor implements Node {
   url: URL
   username: String!
   uuid: UUID!
+  viewerFollows: Boolean!
 }
 
 type ActorArticlesConnection {
@@ -328,6 +330,9 @@ type ArticleContent implements Node {
 type ArticleDraft implements Node {
   account: Account!
   content: Markdown!
+
+  """The rendered HTML of the draft's markdown content."""
+  contentHtml: HTML!
   created: DateTime!
   id: ID!
   tags: [String!]!
@@ -335,6 +340,19 @@ type ArticleDraft implements Node {
   updated: DateTime!
   uuid: UUID!
 }
+
+input BlockActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type BlockActorPayload {
+  blockee: Actor!
+  blocker: Actor!
+  clientMutationId: ID
+}
+
+union BlockActorResult = BlockActorPayload | InvalidInputError | NotAuthenticatedError
 
 input CreateNoteInput {
   clientMutationId: ID
@@ -387,6 +405,18 @@ type DeleteArticleDraftPayload {
 
 union DeleteArticleDraftResult = DeleteArticleDraftPayload | InvalidInputError | NotAuthenticatedError
 
+input DeletePostInput {
+  clientMutationId: ID
+  id: ID!
+}
+
+type DeletePostPayload {
+  clientMutationId: ID
+  deletedPostId: ID!
+}
+
+union DeletePostResult = DeletePostPayload | InvalidInputError | NotAuthenticatedError | SharedPostDeletionNotAllowedError
+
 """A document in a specific language."""
 type Document {
   html: String!
@@ -413,6 +443,19 @@ type EmojiReactionGroup implements ReactionGroup {
 type EmptySearchQueryError {
   message: String!
 }
+
+input FollowActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type FollowActorPayload {
+  clientMutationId: ID
+  followee: Actor!
+  follower: Actor!
+}
+
+union FollowActorResult = FollowActorPayload | InvalidInputError | NotAuthenticatedError
 
 type FollowNotification implements Node & Notification {
   account: Account!
@@ -525,6 +568,7 @@ type MentionNotification implements Node & Notification {
 
 type Mutation {
   addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
+  blockActor(input: BlockActorInput!): BlockActorResult!
   completeLoginChallenge(
     """The code of the login challenge."""
     code: String!
@@ -546,6 +590,8 @@ type Mutation {
   ): SignupResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
+  deletePost(input: DeletePostInput!): DeletePostResult!
+  followActor(input: FollowActorInput!): FollowActorResult!
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
     sessionId: UUID!
@@ -593,6 +639,8 @@ type Mutation {
     verifyUrl: URITemplate!
   ): LoginResult!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
+  registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult!
+  removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   revokePasskey(passkeyId: ID!): ID
 
@@ -603,8 +651,12 @@ type Mutation {
   ): Session
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
   sharePost(input: SharePostInput!): SharePostResult!
+  unblockActor(input: UnblockActorInput!): UnblockActorResult!
+  unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
+  unregisterApnsDeviceToken(input: UnregisterApnsDeviceTokenInput!): UnregisterApnsDeviceTokenResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
+  uploadMedia(input: UploadMediaInput!): UploadMediaResult!
   verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): PasskeyRegistrationResult!
 }
 
@@ -914,6 +966,7 @@ type Query {
   nodes(ids: [ID!]!): [Node]!
   personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
   publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
+  searchActorsByHandle(limit: Int = 25, prefix: String!): [Actor!]!
   searchGuide(
     """The locale for the search guide."""
     locale: Locale!
@@ -1051,6 +1104,40 @@ type ReactionGroupReactorsConnectionEdge {
   node: Actor!
 }
 
+type RegisterApnsDeviceTokenFailedError {
+  limit: Int!
+  message: String!
+}
+
+input RegisterApnsDeviceTokenInput {
+  clientMutationId: ID
+
+  """The APNS device token."""
+  deviceToken: String!
+}
+
+type RegisterApnsDeviceTokenPayload {
+  clientMutationId: ID
+  created: DateTime!
+  deviceToken: String!
+  updated: DateTime!
+}
+
+union RegisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | RegisterApnsDeviceTokenFailedError | RegisterApnsDeviceTokenPayload
+
+input RemoveFollowerInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type RemoveFollowerPayload {
+  clientMutationId: ID
+  followee: Actor!
+  follower: Actor!
+}
+
+union RemoveFollowerResult = InvalidInputError | NotAuthenticatedError | RemoveFollowerPayload
+
 input RemoveReactionFromPostInput {
   clientMutationId: ID
   emoji: String!
@@ -1133,6 +1220,10 @@ type SharePostPayload {
 
 union SharePostResult = InvalidInputError | NotAuthenticatedError | SharePostPayload
 
+type SharedPostDeletionNotAllowedError {
+  inputPath: String!
+}
+
 enum SignupBioError {
   BIO_TOO_LONG
 }
@@ -1189,6 +1280,47 @@ A field whose value is a generic Universally Unique Identifier: https://en.wikip
 """
 scalar UUID
 
+input UnblockActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type UnblockActorPayload {
+  blockee: Actor!
+  blocker: Actor!
+  clientMutationId: ID
+}
+
+union UnblockActorResult = InvalidInputError | NotAuthenticatedError | UnblockActorPayload
+
+input UnfollowActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type UnfollowActorPayload {
+  clientMutationId: ID
+  followee: Actor!
+  follower: Actor!
+}
+
+union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | UnfollowActorPayload
+
+input UnregisterApnsDeviceTokenInput {
+  clientMutationId: ID
+
+  """The APNS device token."""
+  deviceToken: String!
+}
+
+type UnregisterApnsDeviceTokenPayload {
+  clientMutationId: ID
+  deviceToken: String!
+  unregistered: Boolean!
+}
+
+union UnregisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | UnregisterApnsDeviceTokenPayload
+
 input UnsharePostInput {
   clientMutationId: ID
   postId: ID!
@@ -1221,3 +1353,18 @@ type UpdateAccountPayload {
   account: Account!
   clientMutationId: ID
 }
+
+input UploadMediaInput {
+  clientMutationId: ID
+  draftId: UUID
+  mediaUrl: URL!
+}
+
+type UploadMediaPayload {
+  clientMutationId: ID
+  height: Int!
+  url: URL!
+  width: Int!
+}
+
+union UploadMediaResult = InvalidInputError | NotAuthenticatedError | UploadMediaPayload

@@ -9,13 +9,22 @@ import {
 } from "@hackerspub/models/article";
 import { createNote } from "@hackerspub/models/note";
 import {
+  deletePost,
   isPostSharedBy,
   isPostVisibleTo,
   sharePost,
   unsharePost,
 } from "@hackerspub/models/post";
 import { react, undoReaction } from "@hackerspub/models/reaction";
-import { articleDraftTable } from "@hackerspub/models/schema";
+import {
+  articleDraftTable,
+  articleMediumTable,
+} from "@hackerspub/models/schema";
+import {
+  MAX_IMAGE_SIZE,
+  SUPPORTED_IMAGE_TYPES,
+  uploadImage,
+} from "@hackerspub/models/upload";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
@@ -26,13 +35,14 @@ import { assertNever } from "@std/assert/unstable-never";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
+import { InvalidInputError } from "./error.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
-class InvalidInputError extends Error {
+class SharedPostDeletionNotAllowedError extends Error {
   public constructor(public readonly inputPath: string) {
-    super(`Invalid input - ${inputPath}`);
+    super("Shared posts cannot be deleted. Use unsharePost instead.");
   }
 }
 
@@ -40,8 +50,8 @@ export const PostType = builder.enumType("PostType", {
   values: ["ARTICLE", "NOTE", "QUESTION"],
 });
 
-builder.objectType(InvalidInputError, {
-  name: "InvalidInputError",
+builder.objectType(SharedPostDeletionNotAllowedError, {
+  name: "SharedPostDeletionNotAllowedError",
   fields: (t) => ({
     inputPath: t.expose("inputPath", { type: "String" }),
   }),
@@ -278,6 +288,19 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
     uuid: t.expose("id", { type: "UUID" }),
     title: t.exposeString("title"),
     content: t.expose("content", { type: "Markdown" }),
+    contentHtml: t.field({
+      type: "HTML",
+      description: "The rendered HTML of the draft's markdown content.",
+      select: {
+        columns: {
+          content: true,
+        },
+      },
+      async resolve(draft, _, ctx) {
+        const rendered = await renderMarkup(ctx.fedCtx, draft.content);
+        return rendered.html;
+      },
+    }),
     tags: t.exposeStringList("tags"),
     created: t.expose("created", { type: "DateTime" }),
     updated: t.expose("updated", { type: "DateTime" }),
@@ -673,6 +696,62 @@ builder.relayMutationField(
 );
 
 builder.relayMutationField(
+  "deletePost",
+  {
+    inputFields: (t) => ({
+      id: t.globalID({
+        for: [Note, Article, Question],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+        SharedPostDeletionNotAllowedError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const post = await ctx.db.query.postTable.findFirst({
+        with: { actor: true, replyTarget: true },
+        where: { id: args.input.id.id },
+      });
+
+      if (post == null || post.actor.accountId !== session.accountId) {
+        throw new InvalidInputError("id");
+      }
+
+      if (post.sharedPostId != null) {
+        throw new SharedPostDeletionNotAllowedError("id");
+      }
+
+      await deletePost(ctx.fedCtx, post);
+
+      return { deletedPostId: args.input.id };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      deletedPostId: t.globalID({
+        resolve(result) {
+          return {
+            type: result.deletedPostId.typename,
+            id: result.deletedPostId.id,
+          };
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
   "publishArticleDraft",
   {
     inputFields: (t) => ({
@@ -731,6 +810,11 @@ builder.relayMutationField(
       if (!article) {
         throw new Error("Failed to publish article");
       }
+
+      // Migrate media tracking from draft to published article
+      await ctx.db.update(articleMediumTable)
+        .set({ articleSourceId: article.articleSource.id })
+        .where(eq(articleMediumTable.articleDraftId, draft.id));
 
       // Delete draft after successful publish
       await deleteArticleDraft(ctx.db, session.accountId, draft.id);
@@ -1121,3 +1205,90 @@ builder.queryField("articleDraft", (t) =>
       return drafts[0] ?? null;
     },
   }));
+
+interface UploadMediaResult {
+  url: string;
+  width: number;
+  height: number;
+}
+
+builder.relayMutationField(
+  "uploadMedia",
+  {
+    inputFields: (t) => ({
+      mediaUrl: t.field({ type: "URL", required: true }),
+      draftId: t.field({ type: "UUID", required: false }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new NotAuthenticatedError();
+      }
+      const response = await fetch(args.input.mediaUrl);
+      if (response.status !== 200) {
+        throw new InvalidInputError("mediaUrl");
+      }
+      const contentType = response.headers.get("Content-Type")?.split(";")[0]
+        ?.trim();
+      if (
+        contentType == null || !SUPPORTED_IMAGE_TYPES.includes(contentType)
+      ) {
+        throw new InvalidInputError("mediaUrl");
+      }
+      const blob = await response.blob();
+      if (blob.size > MAX_IMAGE_SIZE) {
+        throw new InvalidInputError("mediaUrl");
+      }
+      try {
+        const result = await uploadImage(ctx.disk, blob);
+        if (result == null) {
+          throw new InvalidInputError("mediaUrl");
+        }
+        await ctx.db.insert(articleMediumTable).values({
+          key: result.key,
+          accountId: session.accountId,
+          articleDraftId: args.input.draftId ?? undefined,
+          url: result.url,
+          width: result.width,
+          height: result.height,
+        }).onConflictDoUpdate({
+          target: articleMediumTable.key,
+          set: {
+            articleDraftId: args.input.draftId ?? undefined,
+          },
+        });
+        return result;
+      } catch {
+        throw new InvalidInputError("mediaUrl");
+      }
+    },
+  },
+  {
+    outputFields: (t) => ({
+      url: t.field({
+        type: "URL",
+        resolve(result: UploadMediaResult) {
+          return new URL(result.url);
+        },
+      }),
+      width: t.int({
+        resolve(result: UploadMediaResult) {
+          return result.width;
+        },
+      }),
+      height: t.int({
+        resolve(result: UploadMediaResult) {
+          return result.height;
+        },
+      }),
+    }),
+  },
+);

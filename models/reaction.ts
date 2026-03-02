@@ -1,5 +1,6 @@
-import { type Context, type DocumentLoader, isActor } from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import type { Context, DocumentLoader } from "@fedify/fedify";
+import { isActor } from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { getEmojiReact, getEmojiReactId } from "@hackerspub/federation/objects";
 import { and, eq, sql } from "drizzle-orm";
 import { getPersistedActor, persistActor } from "./actor.ts";
@@ -234,6 +235,7 @@ export async function react(
     post,
   });
   if (activity == null) return rows[0];
+  const orderingKey = id.href;
   await ctx.sendActivity(
     { identifier: account.id },
     {
@@ -244,13 +246,18 @@ export async function react(
         : { sharedInbox: new URL(post.actor.sharedInboxUrl) },
     },
     activity,
-    { excludeBaseUris: [new URL(ctx.canonicalOrigin)], fanout: "skip" },
+    {
+      orderingKey,
+      excludeBaseUris: [new URL(ctx.canonicalOrigin)],
+      fanout: "skip",
+    },
   );
   await ctx.sendActivity(
     { identifier: account.id },
     "followers",
     activity,
     {
+      orderingKey,
       excludeBaseUris: [new URL(ctx.canonicalOrigin)],
       preferSharedInbox: true,
     },
@@ -291,6 +298,7 @@ export async function undoReaction(
     post,
   });
   if (activity?.id == null) return rows[0];
+  const orderingKey = activity.id.href;
   const undo = new vocab.Undo({
     id: new URL("#undo", activity.id),
     actor: ctx.getActorUri(account.id),
@@ -309,13 +317,18 @@ export async function undoReaction(
         : { sharedInbox: new URL(post.actor.sharedInboxUrl) },
     },
     undo,
-    { excludeBaseUris: [new URL(ctx.canonicalOrigin)], fanout: "skip" },
+    {
+      orderingKey,
+      excludeBaseUris: [new URL(ctx.canonicalOrigin)],
+      fanout: "skip",
+    },
   );
   await ctx.sendActivity(
     { identifier: account.id },
     "followers",
     undo,
     {
+      orderingKey,
       excludeBaseUris: [new URL(ctx.canonicalOrigin)],
       preferSharedInbox: true,
     },

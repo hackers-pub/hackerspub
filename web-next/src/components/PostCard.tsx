@@ -7,6 +7,7 @@ import { NoteCard } from "./NoteCard.tsx";
 
 export interface PostCardProps {
   $post: PostCard_post$key;
+  connections?: string[];
 }
 
 export function PostCard(props: PostCardProps) {
@@ -30,10 +31,10 @@ export function PostCard(props: PostCardProps) {
       {(post) => (
         <Switch>
           <Match when={post().__typename === "Note"}>
-            <NoteCard $note={post()} />
+            <NoteCard $note={post()} connections={props.connections} />
           </Match>
           <Match when={post().__typename === "Article"}>
-            <ArticleCard $article={post()} />
+            <ArticleCard $article={post()} connections={props.connections} />
           </Match>
         </Switch>
       )}

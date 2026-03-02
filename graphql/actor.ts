@@ -1,6 +1,14 @@
-import { isActor } from "@fedify/fedify";
+import { assert } from "@std/assert";
+import { isActor } from "@fedify/vocab";
+import { desc, eq } from "drizzle-orm";
 import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
+import { block, unblock } from "@hackerspub/models/blocking";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
+import {
+  follow,
+  removeFollower as removeFollowerModel,
+  unfollow,
+} from "@hackerspub/models/following";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import type { Actor as ActorModel } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
@@ -9,7 +17,9 @@ import { assertNever } from "@std/assert/unstable-never";
 import { escape } from "@std/html/entities";
 import xss from "xss";
 import { builder } from "./builder.ts";
+import { InvalidInputError } from "./error.ts";
 import { Article, Note, Post, Question } from "./post.ts";
+import { NotAuthenticatedError } from "./session.ts";
 
 export const ActorType = builder.enumType("ActorType", {
   values: [
@@ -304,6 +314,27 @@ builder.drizzleObjectFields(Actor, (t) => ({
       }) != null;
     },
   }),
+  isViewer: t.field({
+    type: "Boolean",
+    resolve(actor, _, ctx) {
+      return ctx.account?.actor?.id === actor.id;
+    },
+  }),
+  viewerFollows: t.field({
+    type: "Boolean",
+    async resolve(actor, _, ctx) {
+      if (ctx.account == null || ctx.account.actor == null) {
+        return false;
+      }
+      return await ctx.db.query.followingTable.findFirst({
+        columns: { iri: true },
+        where: {
+          followerId: ctx.account.actor.id,
+          followeeId: actor.id,
+        },
+      }) != null;
+    },
+  }),
   followsViewer: t.field({
     type: "Boolean",
     async resolve(actor, _, ctx) {
@@ -513,4 +544,359 @@ builder.queryFields((t) => ({
       );
     },
   }),
+  searchActorsByHandle: t.drizzleField({
+    type: [Actor],
+    authScopes: { signed: true },
+    args: {
+      prefix: t.arg.string({ required: true }),
+      limit: t.arg.int({ defaultValue: 25 }),
+    },
+    async resolve(query, _, args, ctx) {
+      const cleanPrefix = args.prefix.replace(/^\s*@|\s+$/g, "");
+      if (!cleanPrefix) return [];
+
+      const [username, host] = cleanPrefix.includes("@")
+        ? cleanPrefix.split("@")
+        : [cleanPrefix, undefined];
+
+      const canonicalHost = new URL(ctx.fedCtx.canonicalOrigin).host;
+
+      const whereClause = host == null || !URL.canParse(`http://${host}`)
+        ? { username: { ilike: `${username.replace(/([%_])/g, "\\$1")}%` } }
+        : {
+          username,
+          handleHost: {
+            ilike: `${
+              new URL(`http://${host}`).host.replace(/([%_])/g, "\\$1")
+            }%`,
+          },
+        };
+
+      return ctx.db.query.actorTable.findMany(
+        query({
+          where: {
+            ...whereClause,
+            NOT: { username: canonicalHost, handleHost: canonicalHost },
+          },
+          orderBy: (t) => [
+            desc(eq(t.username, username)),
+            desc(eq(t.handleHost, canonicalHost)),
+            t.username,
+            t.handleHost,
+          ],
+          limit: Math.min(args.limit ?? 25, 50),
+        }),
+      );
+    },
+  }),
 }));
+
+builder.relayMutationField(
+  "followActor",
+  {
+    inputFields: (t) => ({
+      actorId: t.globalID({
+        for: [Actor],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const followee = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.input.actorId.id },
+      });
+
+      if (followee == null || followee.accountId === session.accountId) {
+        throw new InvalidInputError("actorId");
+      }
+
+      await follow(ctx.fedCtx, ctx.account, followee);
+
+      return { followeeId: followee.id, followerId: ctx.account.actor.id };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      followee: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followeeId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+      follower: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followerId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "unfollowActor",
+  {
+    inputFields: (t) => ({
+      actorId: t.globalID({
+        for: [Actor],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const followee = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.input.actorId.id },
+      });
+
+      if (followee == null || followee.accountId === session.accountId) {
+        throw new InvalidInputError("actorId");
+      }
+
+      await unfollow(ctx.fedCtx, ctx.account, followee);
+
+      return { followeeId: followee.id, followerId: ctx.account.actor.id };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      followee: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followeeId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+      follower: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followerId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "removeFollower",
+  {
+    inputFields: (t) => ({
+      actorId: t.globalID({
+        for: [Actor],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const follower = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.input.actorId.id },
+      });
+
+      if (follower == null || follower.accountId === session.accountId) {
+        throw new InvalidInputError("actorId");
+      }
+
+      await removeFollowerModel(ctx.fedCtx, ctx.account, follower);
+
+      return {
+        followerId: follower.id,
+        followeeId: ctx.account.actor.id,
+      };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      follower: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followerId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+      followee: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.followeeId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "blockActor",
+  {
+    inputFields: (t) => ({
+      actorId: t.globalID({
+        for: [Actor],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const blockee = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.input.actorId.id },
+      });
+
+      if (blockee == null || blockee.accountId === session.accountId) {
+        throw new InvalidInputError("actorId");
+      }
+
+      await block(ctx.fedCtx, ctx.account, blockee);
+
+      return {
+        blockerId: ctx.account.actor.id,
+        blockeeId: blockee.id,
+      };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      blocker: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.blockerId } }),
+          );
+          return actor!;
+        },
+      }),
+      blockee: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.blockeeId } }),
+          );
+          return actor!;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "unblockActor",
+  {
+    inputFields: (t) => ({
+      actorId: t.globalID({
+        for: [Actor],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const blockee = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.input.actorId.id },
+      });
+
+      if (blockee == null || blockee.accountId === session.accountId) {
+        throw new InvalidInputError("actorId");
+      }
+
+      await unblock(ctx.fedCtx, ctx.account, blockee);
+
+      return {
+        blockerId: ctx.account.actor.id,
+        blockeeId: blockee.id,
+      };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      blocker: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.blockerId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+      blockee: t.drizzleField({
+        type: Actor,
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.blockeeId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+    }),
+  },
+);

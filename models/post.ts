@@ -2,14 +2,16 @@ import {
   type Context,
   type DocumentLoader,
   getUserAgent,
+} from "@fedify/fedify";
+import {
   isActor,
   LanguageString,
   lookupObject,
   PUBLIC_COLLECTION,
   type Recipient,
   traverseCollection,
-} from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+} from "@fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { getAnnounce } from "@hackerspub/federation/objects";
 import { getLogger } from "@logtape/logtape";
 import { assertNever } from "@std/assert/unstable-never";
@@ -82,6 +84,12 @@ import { addPostToTimeline, removeFromTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "post"]);
+const DEFAULT_MAX_PERSIST_POST_DEPTH = 3;
+const DEFAULT_MAX_INLINE_REPLIES = 50;
+const DEFAULT_INLINE_REPLIES_THRESHOLD = 50;
+const REPLIES_BACKFILL_LOCK_TTL_SECONDS = 300;
+const REPLIES_BACKFILL_RETRY_DELAY_MS = 30_000;
+const SCRAPE_IMAGE_METADATA_BYTES_LIMIT = 128 * 1024;
 
 export type PostObject = vocab.Article | vocab.Note | vocab.Question;
 
@@ -95,6 +103,41 @@ export function isArticleLike(
 ): boolean {
   return post.type === "Article" ||
     post.name != null && post.actor.instance.software !== "nodebb";
+}
+
+async function readResponseBytesAtMost(
+  response: Response,
+  maxBytes: number,
+): Promise<Uint8Array> {
+  if (response.body == null) {
+    return new Uint8Array((await response.arrayBuffer()).slice(0, maxBytes));
+  }
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  // Stop reading once we have enough bytes for lightweight metadata probing.
+  while (total < maxBytes) {
+    const { done, value } = await reader.read();
+    if (done || value == null) break;
+    if (total + value.length <= maxBytes) {
+      chunks.push(value);
+      total += value.length;
+      continue;
+    }
+    const remaining = maxBytes - total;
+    if (remaining > 0) {
+      chunks.push(value.slice(0, remaining));
+      total += remaining;
+    }
+    break;
+  }
+  const result = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return result;
 }
 
 export async function syncPostFromArticleSource(
@@ -301,6 +344,11 @@ export async function persistPost(
     actor?: Actor & { instance: Instance };
     replyTarget?: Post & { actor: Actor & { instance: Instance } };
     replies?: boolean;
+    depth?: number;
+    maxDepth?: number;
+    maxReplies?: number;
+    inlineRepliesThreshold?: number;
+    deferLargeReplies?: boolean;
     contextLoader?: DocumentLoader;
     documentLoader?: DocumentLoader;
   } = {},
@@ -322,6 +370,13 @@ export async function persistPost(
     return;
   }
   const { db } = ctx.data;
+  const depth = options.depth ?? 0;
+  const maxDepth = options.maxDepth ?? DEFAULT_MAX_PERSIST_POST_DEPTH;
+  const maxReplies = options.maxReplies ?? DEFAULT_MAX_INLINE_REPLIES;
+  const inlineRepliesThreshold = options.inlineRepliesThreshold ??
+    DEFAULT_INLINE_REPLIES_THRESHOLD;
+  const deferLargeReplies = options.deferLargeReplies ?? true;
+  const shouldRecurse = depth < maxDepth;
   if (post.id.origin === ctx.canonicalOrigin) {
     return await getPersistedPost(db, post.id);
   }
@@ -408,7 +463,7 @@ export async function persistPost(
     );
     if (quotedPosts.length > 0) {
       quotedPost = quotedPosts[0];
-    } else {
+    } else if (shouldRecurse) {
       for (const iri of quotedPostIris) {
         let obj: vocab.Object | null;
         try {
@@ -419,6 +474,11 @@ export async function persistPost(
         if (!isPostObject(obj)) continue;
         quotedPost = await persistPost(ctx, obj, {
           replies: false,
+          depth: depth + 1,
+          maxDepth,
+          maxReplies,
+          inlineRepliesThreshold,
+          deferLargeReplies: false,
           contextLoader: options.contextLoader,
           documentLoader: options.documentLoader,
         });
@@ -434,10 +494,14 @@ export async function persistPost(
   if (post.replyTargetId != null) {
     replyTarget = options.replyTarget ??
       await getPersistedPost(db, post.replyTargetId);
-    if (replyTarget == null) {
+    if (replyTarget == null && shouldRecurse) {
       const apReplyTarget = await post.getReplyTarget(opts);
       if (!isPostObject(apReplyTarget)) return;
-      replyTarget = await persistPost(ctx, apReplyTarget, options);
+      replyTarget = await persistPost(ctx, apReplyTarget, {
+        ...options,
+        replies: false,
+        depth: depth + 1,
+      });
       if (replyTarget == null) return;
     }
   }
@@ -489,9 +553,9 @@ export async function persistPost(
     summary: post.summary?.toString(),
     contentHtml,
     language: post.content instanceof LanguageString
-      ? post.content.language.compact()
+      ? post.content.locale.toString()
       : post.contents.length > 1 && post.contents[1] instanceof LanguageString
-      ? post.contents[1].language.compact()
+      ? post.contents[1].locale.toString()
       : undefined,
     tags,
     emojis,
@@ -568,15 +632,21 @@ export async function persistPost(
     await persistPostMedium(ctx, attachment, persistedPost.id, i);
     i++;
   }
-  if (options.replies) {
-    if (replies != null) {
+  if (options.replies && depth === 0 && replies != null) {
+    const totalItems = replies.totalItems ?? 0;
+    const canInlineReplies = totalItems < 1 ||
+      totalItems <= inlineRepliesThreshold;
+    if (canInlineReplies) {
       let repliesCount = 0;
       for await (const reply of traverseCollection(replies, opts)) {
+        if (repliesCount >= maxReplies) break;
         if (!isPostObject(reply)) continue;
         await persistPost(ctx, reply, {
           ...options,
           actor,
           replyTarget: persistedPost,
+          replies: false,
+          depth: depth + 1,
         });
         repliesCount++;
       }
@@ -585,6 +655,55 @@ export async function persistPost(
           .set({ repliesCount })
           .where(eq(postTable.id, persistedPost.id));
         persistedPost.repliesCount = repliesCount;
+      }
+    } else if (deferLargeReplies) {
+      const lockKey = `reply-backfill/${persistedPost.iri}`;
+      const [locked] = await ctx.data.kv.getMany<string>([lockKey]);
+      if (locked !== "1") {
+        // Best-effort dedupe lock: avoid spawning multiple backfills for
+        // the same post during bursty inbox traffic.
+        await ctx.data.kv.set(lockKey, "1", REPLIES_BACKFILL_LOCK_TTL_SECONDS);
+        void (async () => {
+          const persistReply = async (
+            attempt: number,
+          ): Promise<void> => {
+            try {
+              let count = 0;
+              for await (const reply of traverseCollection(replies, opts)) {
+                if (count >= maxReplies) break;
+                if (!isPostObject(reply)) continue;
+                await persistPost(ctx, reply, {
+                  ...options,
+                  actor,
+                  replyTarget: persistedPost,
+                  replies: false,
+                  depth: depth + 1,
+                });
+                count++;
+              }
+            } catch (error) {
+              if (attempt < 1) {
+                // Single delayed retry to absorb transient federation failures
+                // without introducing a durable queue.
+                await new Promise((resolve) =>
+                  setTimeout(resolve, REPLIES_BACKFILL_RETRY_DELAY_MS)
+                );
+                await persistReply(attempt + 1);
+                return;
+              }
+              logger.warn(
+                "Failed to backfill replies for {postIri} after retry: {error}",
+                { postIri: persistedPost.iri, error },
+              );
+            }
+          };
+          await persistReply(0);
+        })().catch((error) => {
+          logger.warn("Replies backfill task failed for {postIri}: {error}", {
+            postIri: persistedPost.iri,
+            error,
+          });
+        });
       }
     }
   }
@@ -771,6 +890,7 @@ export async function sharePost(
     "followers",
     announce,
     {
+      orderingKey: share.iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
@@ -779,7 +899,10 @@ export async function sharePost(
     { identifier: account.id },
     toRecipient(post.actor),
     announce,
-    { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
+    {
+      orderingKey: share.iri,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
   );
   return share;
 }
@@ -829,6 +952,7 @@ export async function unsharePost(
     "followers",
     undo,
     {
+      orderingKey: unshared[0].iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
@@ -837,7 +961,10 @@ export async function unsharePost(
     { identifier: account.id },
     toRecipient(sharedPost.actor),
     undo,
-    { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
+    {
+      orderingKey: unshared[0].iri,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
   );
   return unshared[0];
 }
@@ -1468,6 +1595,7 @@ export async function deletePost(
     "followers",
     activity,
     {
+      orderingKey: post.iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
@@ -1477,6 +1605,7 @@ export async function deletePost(
     recipients,
     activity,
     {
+      orderingKey: post.iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
@@ -1581,7 +1710,7 @@ export async function scrapePostLink<TContextData>(
   lg.debug("Scraped {url}: {result}", { url: responseUrl, result });
   const ogImage = result.ogImage ?? [];
   const twitterImage = result.twitterImage ?? [];
-  let image = ogImage.length > 0
+  const image = ogImage.length > 0
     ? {
       imageUrl: new URL(ogImage[0].url, responseUrl).href,
       imageAlt: ogImage[0].alt,
@@ -1624,6 +1753,7 @@ export async function scrapePostLink<TContextData>(
             url: new URL(fedCtx.canonicalOrigin),
           }),
           "Accept": "image/*",
+          "Range": `bytes=0-${SCRAPE_IMAGE_METADATA_BYTES_LIMIT - 1}`,
           "Referer": responseUrl,
         },
         redirect: "follow",
@@ -1634,7 +1764,10 @@ export async function scrapePostLink<TContextData>(
         statusText: response.statusText,
       });
       if (response.ok) {
-        const body = await response.arrayBuffer();
+        const body = await readResponseBytesAtMost(
+          response,
+          SCRAPE_IMAGE_METADATA_BYTES_LIMIT,
+        );
         try {
           const metadata = await sharp(body).metadata();
           switch (metadata.orientation) {
@@ -1651,7 +1784,8 @@ export async function scrapePostLink<TContextData>(
               break;
           }
         } catch {
-          image = {};
+          image.imageWidth = undefined;
+          image.imageHeight = undefined;
         }
       }
     } catch (error) {
@@ -1659,7 +1793,8 @@ export async function scrapePostLink<TContextData>(
         "Failed to fetch image {url}: {error}",
         { url: image.imageUrl, error },
       );
-      image = {};
+      image.imageWidth = undefined;
+      image.imageHeight = undefined;
     }
   }
   const creatorHandle = result.customMetaTags?.fediverseCreator == null

@@ -1,5 +1,5 @@
 import type { Context, DocumentLoader } from "@fedify/fedify";
-import * as vocab from "@fedify/fedify/vocab";
+import * as vocab from "@fedify/vocab";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { getPersistedActor, persistActor, toRecipient } from "./actor.ts";
 import type { ContextData } from "./context.ts";

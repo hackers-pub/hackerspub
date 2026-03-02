@@ -14,7 +14,7 @@ import {
   Remove,
   Undo,
   Update,
-} from "@fedify/fedify";
+} from "@fedify/vocab";
 import { isPostObject } from "@hackerspub/models/post";
 import { getLogger } from "@logtape/logtape";
 import { builder } from "../builder.ts";
