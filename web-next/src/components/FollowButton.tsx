@@ -161,7 +161,7 @@ export function FollowButton(props: FollowButtonProps) {
   return (
     <Show when={actor()}>
       {(actor) => (
-        <Show when={!actor().isViewer}>
+        <Show when={!actor().isViewer && viewer.isLoaded()}>
           <Show
             when={viewer.isAuthenticated()}
             fallback={
