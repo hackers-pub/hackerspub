@@ -359,6 +359,7 @@ export async function createNote(
     ccs: noteObject.ccIds,
     object: noteObject,
   });
+  const orderingKey = post.iri;
   if (post.mentions.length > 0) {
     const directRecipients: Recipient[] = post.mentions.map((m) => ({
       id: new URL(m.actor.iri),
@@ -372,6 +373,7 @@ export async function createNote(
       directRecipients,
       activity,
       {
+        orderingKey,
         preferSharedInbox: false,
         excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
       },
@@ -383,6 +385,7 @@ export async function createNote(
       "followers",
       activity,
       {
+        orderingKey,
         preferSharedInbox: true,
         excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
       },
@@ -501,6 +504,7 @@ export async function updateNote(
       object: noteObject,
     }),
     {
+      orderingKey: post.iri,
       preferSharedInbox: true,
       excludeBaseUris: [
         new URL(fedCtx.origin),

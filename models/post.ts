@@ -890,6 +890,7 @@ export async function sharePost(
     "followers",
     announce,
     {
+      orderingKey: share.iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
@@ -898,7 +899,10 @@ export async function sharePost(
     { identifier: account.id },
     toRecipient(post.actor),
     announce,
-    { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
+    {
+      orderingKey: share.iri,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
   );
   return share;
 }
@@ -948,6 +952,7 @@ export async function unsharePost(
     "followers",
     undo,
     {
+      orderingKey: unshared[0].iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
@@ -956,7 +961,10 @@ export async function unsharePost(
     { identifier: account.id },
     toRecipient(sharedPost.actor),
     undo,
-    { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
+    {
+      orderingKey: unshared[0].iri,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
   );
   return unshared[0];
 }
@@ -1587,6 +1595,7 @@ export async function deletePost(
     "followers",
     activity,
     {
+      orderingKey: post.iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
@@ -1596,6 +1605,7 @@ export async function deletePost(
     recipients,
     activity,
     {
+      orderingKey: post.iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },

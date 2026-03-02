@@ -215,7 +215,10 @@ export async function onFollowed(
       actor: fedCtx.getActorUri(followee.id),
       object: follow,
     }),
-    { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
+    {
+      orderingKey: rows[0].iri,
+      excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+    },
   );
 }
 

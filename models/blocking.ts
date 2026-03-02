@@ -102,6 +102,7 @@ export async function block(
       toRecipient(blockee),
       block,
       {
+        orderingKey: rows[0].iri,
         excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
         fanout: "skip",
         preferSharedInbox: false,
@@ -140,7 +141,10 @@ export async function unblock(
           object: new URL(blockee.iri),
         }),
       }),
-      { excludeBaseUris: [new URL(fedCtx.canonicalOrigin)] },
+      {
+        orderingKey: rows[0].iri,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
     );
   }
   return rows[0];

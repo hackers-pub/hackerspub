@@ -240,6 +240,7 @@ export async function createArticle(
       object: articleObject,
     }),
     {
+      orderingKey: post.iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
@@ -343,6 +344,7 @@ export async function updateArticle(
       object: articleObject,
     }),
     {
+      orderingKey: post.iri,
       preferSharedInbox: true,
       excludeBaseUris: [
         new URL(fedCtx.origin),
@@ -563,11 +565,14 @@ export async function startArticleContentTranslation(
       ccs: articleObject.ccIds,
       object: articleObject,
     });
+    const orderingKey = fedCtx.getObjectUri(vocab.Article, { id: article.id })
+      .href;
     await fedCtx.sendActivity(
       { identifier: article.accountId },
       "followers",
       update,
       {
+        orderingKey,
         preferSharedInbox: true,
         excludeBaseUris: [
           new URL(fedCtx.origin),
