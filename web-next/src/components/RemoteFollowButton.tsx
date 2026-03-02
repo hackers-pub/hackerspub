@@ -146,7 +146,8 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
   const actorDisplayName = () => {
     const info = actorInfo();
     if (!info) return "";
-    return info.name || info.preferredUsername || info.handle?.split("@")[0] ||
+    return info.name || info.preferredUsername ||
+      info.handle?.replace(/^@/, "").split("@")[0] ||
       "";
   };
 
@@ -227,10 +228,9 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
                   )}
                 </Show>
                 <div class="flex-1 min-w-0">
-                  <h4
-                    class="font-medium truncate"
-                    innerHTML={actorDisplayName()}
-                  />
+                  <h4 class="font-medium truncate">
+                    {actorDisplayName()}
+                  </h4>
                   <p class="text-sm text-muted-foreground truncate">
                     {info().handle}
                   </p>

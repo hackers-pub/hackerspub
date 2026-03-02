@@ -1,6 +1,6 @@
 import { getNodeInfo } from "@fedify/fedify";
-import { type Actor, isActor } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
+import { type Actor, isActor } from "@fedify/vocab";
 import { getLogger } from "@logtape/logtape";
 import { builder, type UserContext } from "./builder.ts";
 
@@ -151,7 +151,7 @@ async function lookupWebFingerImpl(
 
   const remoteFollowUrl = remoteFollowLink?.template?.replace(
     "{uri}",
-    encodeURI(actorHandle),
+    encodeURIComponent(actorHandle),
   );
 
   try {

@@ -142,9 +142,10 @@ export default function AuthorizeInteractionPage() {
                                 {(name) => (
                                   <h2
                                     class="font-semibold truncate"
-                                    innerHTML={name()}
                                     aria-label={actor().rawName ?? actor().username}
-                                  />
+                                  >
+                                    {name()}
+                                  </h2>
                                 )}
                               </Show>
                               <p class="text-sm text-muted-foreground truncate">
