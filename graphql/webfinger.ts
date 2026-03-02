@@ -156,8 +156,11 @@ async function lookupRemoteFollowerImpl(
   if (webfingerResult == null) return null;
 
   const activityPubLink = webfingerResult.links?.find((link) =>
-    link.type === "application/activity+json" ||
-    (link.rel === "self" && link.type?.includes("activity"))
+    link.rel === "self" &&
+    (link.type === "application/activity+json" ||
+      link.type?.startsWith(
+        'application/ld+json; profile="https://www.w3.org/ns/activitystreams"',
+      ))
   ) as WebfingerLink | undefined;
 
   if (!activityPubLink?.href) return null;
