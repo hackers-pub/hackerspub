@@ -15,6 +15,7 @@ import { NoteComposeModal } from "~/components/NoteComposeModal.tsx";
 import { SidebarProvider } from "~/components/ui/sidebar.tsx";
 import { Toaster } from "~/components/ui/toast.tsx";
 import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
+import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { RootLayoutQuery } from "./__generated__/RootLayoutQuery.graphql.ts";
 
@@ -52,30 +53,35 @@ export default function RootLayout(props: RouteSectionProps) {
     () => loadRootLayoutQuery(),
   );
   return (
-    <NoteComposeProvider>
-      <SidebarProvider>
-        <AppSidebar
-          $signedAccount={signedAccount()?.viewer}
-          signedAccountLoaded={!signedAccount.pending}
-        />
-        <main
-          lang={new Intl.Locale(i18n.locale).minimize().baseName}
-          class="w-full"
-          classList={{
-            "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
-            "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
-          }}
-        >
-          {props.children}
-        </main>
-        <FloatingComposeButton
-          show={!signedAccount.pending && !!signedAccount()?.viewer}
-          username={signedAccount()?.viewer?.username}
-          $signedAccount={signedAccount()?.viewer}
-        />
-        <NoteComposeModal />
-        <Toaster />
-      </SidebarProvider>
-    </NoteComposeProvider>
+    <ViewerProvider
+      isAuthenticated={() =>
+        !signedAccount.pending && !!signedAccount()?.viewer}
+    >
+      <NoteComposeProvider>
+        <SidebarProvider>
+          <AppSidebar
+            $signedAccount={signedAccount()?.viewer}
+            signedAccountLoaded={!signedAccount.pending}
+          />
+          <main
+            lang={new Intl.Locale(i18n.locale).minimize().baseName}
+            class="w-full"
+            classList={{
+              "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
+              "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
+            }}
+          >
+            {props.children}
+          </main>
+          <FloatingComposeButton
+            show={!signedAccount.pending && !!signedAccount()?.viewer}
+            username={signedAccount()?.viewer?.username}
+            $signedAccount={signedAccount()?.viewer}
+          />
+          <NoteComposeModal />
+          <Toaster />
+        </SidebarProvider>
+      </NoteComposeProvider>
+    </ViewerProvider>
   );
 }
