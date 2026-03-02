@@ -6,7 +6,8 @@ import { builder, type UserContext } from "./builder.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "webfinger"]);
 
-const FEDIVERSE_ID_REGEX = /^@?([^@]+)@([^@]+)$/;
+const FEDIVERSE_ID_REGEX =
+  /^@?([a-zA-Z0-9_.-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})$/;
 
 interface WebfingerLink {
   rel?: string;
@@ -149,10 +150,21 @@ async function lookupWebFingerImpl(
     link.rel === "http://ostatus.org/schema/1.0/subscribe"
   ) as WebfingerLink | undefined;
 
-  const remoteFollowUrl = remoteFollowLink?.template?.replace(
-    "{uri}",
-    encodeURIComponent(actorHandle),
-  );
+  let remoteFollowUrl: string | undefined;
+  if (remoteFollowLink?.template?.includes("{uri}")) {
+    const candidate = remoteFollowLink.template.replace(
+      "{uri}",
+      encodeURIComponent(actorHandle),
+    );
+    try {
+      const u = new URL(candidate);
+      if (u.protocol === "http:" || u.protocol === "https:") {
+        remoteFollowUrl = u.toString();
+      }
+    } catch {
+      // invalid URL template, ignore
+    }
+  }
 
   try {
     const documentLoader = ctx.account == null
