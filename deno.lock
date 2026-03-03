@@ -77,8 +77,8 @@
     "jsr:@upyo/mailgun@~0.1.1": "0.1.2",
     "jsr:@upyo/mock@~0.1.1": "0.1.2",
     "jsr:@valibot/valibot@1": "1.2.0",
-    "jsr:@vertana/core@0.1": "0.1.0",
-    "jsr:@vertana/facade@0.1": "0.1.0",
+    "jsr:@vertana/core@~0.1.1": "0.1.1",
+    "jsr:@vertana/facade@~0.1.1": "0.1.1",
     "npm:@ai-sdk/anthropic@^3.0.44": "3.0.44_zod@4.2.1",
     "npm:@ai-sdk/google@^3.0.29": "3.0.29_zod@4.2.1",
     "npm:@aws-sdk/client-s3@^3.848.0": "3.873.0",
@@ -162,9 +162,9 @@
     "npm:@types/mdast@^4.0.4": "4.0.4",
     "npm:@types/node@*": "24.2.0",
     "npm:@types/relay-runtime@^19.0.2": "19.0.2",
-    "npm:@vertana/context-web@0.1": "0.1.0_@standard-schema+spec@1.1.0_ai@6.0.86__zod@4.2.1",
-    "npm:ai@^6.0.3": "6.0.86_zod@4.2.1",
-    "npm:ai@^6.0.86": "6.0.86_zod@4.2.1",
+    "npm:@vertana/context-web@~0.1.1": "0.1.1_@standard-schema+spec@1.1.0_ai@6.0.108__zod@4.2.1",
+    "npm:ai@^6.0.3": "6.0.108_zod@4.2.1",
+    "npm:ai@^6.0.86": "6.0.108_zod@4.2.1",
     "npm:apns2@^12.2.0": "12.2.0",
     "npm:arcsecond@5": "5.0.0",
     "npm:asn1js@^3.0.6": "3.0.6",
@@ -644,8 +644,8 @@
     "@valibot/valibot@1.2.0": {
       "integrity": "61c118a4d027ed55912caf381c78f0a178f335f46ad0c4bcb136498dc1ef2285"
     },
-    "@vertana/core@0.1.0": {
-      "integrity": "094560bb602912fc645e5cd53255e98e07ed19ca3e48e1a6ee1b75ebd7e02163",
+    "@vertana/core@0.1.1": {
+      "integrity": "8fb5318976cb65c0b69981fcfbafa9464bdd55d57db28a8537edaa923f304e44",
       "dependencies": [
         "jsr:@logtape/logtape@^1.3.5",
         "npm:@standard-community/standard-json",
@@ -658,8 +658,8 @@
         "npm:zod"
       ]
     },
-    "@vertana/facade@0.1.0": {
-      "integrity": "4f8d6eb60fa01a3e6a0c2f09da686d7c20c3fad940097a0796b2763ff0ce0f99",
+    "@vertana/facade@0.1.1": {
+      "integrity": "d1fcd00d07b4f6c639ddf7f1ad2607e0360c7a0108b30123c08934bc9b65f079",
       "dependencies": [
         "jsr:@logtape/logtape@^1.3.5",
         "jsr:@vertana/core",
@@ -672,15 +672,15 @@
       "integrity": "sha512-ke1NldgohWJ7sWLqm9Um9TVIOrtg8Y8AecWeB6PgaLt+paTPisAsyNfe8FNOVusuv58ugLBqY/78AkhUmbjXHA==",
       "dependencies": [
         "@ai-sdk/provider",
-        "@ai-sdk/provider-utils",
+        "@ai-sdk/provider-utils@4.0.15_zod@4.2.1",
         "zod@4.2.1"
       ]
     },
-    "@ai-sdk/gateway@3.0.46_zod@4.2.1": {
-      "integrity": "sha512-zH1UbNRjG5woOXXFOrVCZraqZuFTtmPvLardMGcgLkzpxKV0U3tAGoyWKSZ862H+eBJfI/Hf2yj/zzGJcCkycg==",
+    "@ai-sdk/gateway@3.0.61_zod@4.2.1": {
+      "integrity": "sha512-OT6SeORuOoqfABhntMJHmInblxE2DbBYvRTynVOGl6dCDDh0cNU1lJgknyDV698eQmfb6Um/94/rImgt0ZPjDA==",
       "dependencies": [
         "@ai-sdk/provider",
-        "@ai-sdk/provider-utils",
+        "@ai-sdk/provider-utils@4.0.17_zod@4.2.1",
         "@vercel/oidc",
         "zod@4.2.1"
       ]
@@ -689,12 +689,21 @@
       "integrity": "sha512-x0hcU10AA+i1ZUQHloGD5qXWsB+Y8qnxlmFUef6Ly4rB53MGVbQExkI9nOKiCO3mu2TGiiNoQMeKWSeQVLfRUA==",
       "dependencies": [
         "@ai-sdk/provider",
-        "@ai-sdk/provider-utils",
+        "@ai-sdk/provider-utils@4.0.15_zod@4.2.1",
         "zod@4.2.1"
       ]
     },
     "@ai-sdk/provider-utils@4.0.15_zod@4.2.1": {
       "integrity": "sha512-8XiKWbemmCbvNN0CLR9u3PQiet4gtEVIrX4zzLxnCj06AwsEDJwJVBbKrEI4t6qE8XRSIvU2irka0dcpziKW6w==",
+      "dependencies": [
+        "@ai-sdk/provider",
+        "@standard-schema/spec",
+        "eventsource-parser",
+        "zod@4.2.1"
+      ]
+    },
+    "@ai-sdk/provider-utils@4.0.17_zod@4.2.1": {
+      "integrity": "sha512-oyCeFINTYK0B8ZGUBiQc05G5vytPlKSmTTtm19xfJuUgoi8zkvvRcoPQci4mSnyfpPn2XSFFDfsALG8uGcapfg==",
       "dependencies": [
         "@ai-sdk/provider",
         "@standard-schema/spec",
@@ -3671,8 +3680,8 @@
         "vite"
       ]
     },
-    "@logtape/logtape@1.3.5": {
-      "integrity": "sha512-G+MxWB7Tbv/2764519+Cp6rKXUdRbe/GiRwTvlm/Wv/sNsiquRnx9Hzr9eXaIpAYLT4PrBlkthjJ4gmqdSPrFg=="
+    "@logtape/logtape@1.3.7": {
+      "integrity": "sha512-YgF+q9op97oLLPwc7TcTNIllTArVtTwkwyKky6XVzAXQcBrvFXXtMuwJSryONAyOUSItrx994O/HABOrszZyFg=="
     },
     "@lukeed/ms@2.0.2": {
       "integrity": "sha512-9I2Zn6+NJLfaGoz9jN3lpwDgAYvfGeNYdbAIjJOqzs4Tpc+VU3Jqq4IofSUBKajiDS8k9fZIg18/z13mpk1bsA=="
@@ -5912,8 +5921,8 @@
     "@vercel/oidc@3.1.0": {
       "integrity": "sha512-Fw28YZpRnA3cAHHDlkt7xQHiJ0fcL+NRcIqsocZQUSmbzeIKRpwttJjik5ZGanXP+vlA4SbTg+AbA3bP363l+w=="
     },
-    "@vertana/context-web@0.1.0_@standard-schema+spec@1.1.0_ai@6.0.86__zod@4.2.1": {
-      "integrity": "sha512-blAku1NkSvCslu1F4C3iQx9kbhswubV5M9Q/ib4UWuDhATvJ1GutHMxdrezn/8W9tBdMZBCFvd1bdyQ9Nq2Evg==",
+    "@vertana/context-web@0.1.1_@standard-schema+spec@1.1.0_ai@6.0.108__zod@4.2.1": {
+      "integrity": "sha512-VF9LjoYuE5TKKKYgETJpovg4UT6JC0wp7RXkDNf9pfpioI3FNw1pV/qMMYTI2HQXRLic130MT6miNYm+acbc6Q==",
       "dependencies": [
         "@logtape/logtape",
         "@mozilla/readability",
@@ -5923,8 +5932,8 @@
         "zod@4.2.1"
       ]
     },
-    "@vertana/core@0.1.0_@standard-schema+spec@1.1.0_ai@6.0.86__zod@4.2.1_zod@4.2.1": {
-      "integrity": "sha512-dDqfZrPHaPUfM9Rt7mrxACSbRwmcR9irnemmzYYmTsPjGMIqkwaQJo3X4zhINp7ve57Icd8g8MgnIkM6EAzVEQ==",
+    "@vertana/core@0.1.1_@standard-schema+spec@1.1.0_ai@6.0.108__zod@4.2.1_zod@4.2.1": {
+      "integrity": "sha512-ZPHJH3sXiFU2Mc03d6zEqTyKN6EhmGjz9kKCTWa+12xpjegF4RNUzWZcPGBb9+ustIS8TOM4efimLVQhZg4uDw==",
       "dependencies": [
         "@logtape/logtape",
         "@standard-community/standard-json",
@@ -6134,12 +6143,12 @@
         "indent-string"
       ]
     },
-    "ai@6.0.86_zod@4.2.1": {
-      "integrity": "sha512-U2W2LBCHA/pr0Ui7vmmsjBiLEzBbZF3yVHNy7Rbzn7IX+SvoQPFM5rN74hhfVzZoE8zBuGD4nLLk+j0elGacvQ==",
+    "ai@6.0.108_zod@4.2.1": {
+      "integrity": "sha512-h2xwwU9lE+tdLyII/uFcjcrw+7ciWj2S68GrwQsebjHPSfnvxwrn+sjIl+tBt419yA9rYznWXtQvHJxM1wEAAQ==",
       "dependencies": [
         "@ai-sdk/gateway",
         "@ai-sdk/provider",
-        "@ai-sdk/provider-utils",
+        "@ai-sdk/provider-utils@4.0.17_zod@4.2.1",
         "@opentelemetry/api",
         "zod@4.2.1"
       ]
@@ -13340,8 +13349,8 @@
       "jsr:@upyo/mailgun@~0.1.1",
       "jsr:@upyo/mock@~0.1.1",
       "jsr:@valibot/valibot@1",
-      "jsr:@vertana/core@0.1",
-      "jsr:@vertana/facade@0.1",
+      "jsr:@vertana/core@~0.1.1",
+      "jsr:@vertana/facade@~0.1.1",
       "npm:@ai-sdk/anthropic@^3.0.44",
       "npm:@ai-sdk/google@^3.0.29",
       "npm:@aws-sdk/client-s3@^3.848.0",
@@ -13379,7 +13388,7 @@
       "npm:@tailwindcss/typography@~0.5.15",
       "npm:@types/fluent-ffmpeg@^2.1.27",
       "npm:@types/mdast@^4.0.4",
-      "npm:@vertana/context-web@0.1",
+      "npm:@vertana/context-web@~0.1.1",
       "npm:ai@^6.0.86",
       "npm:apns2@^12.2.0",
       "npm:arcsecond@5",
