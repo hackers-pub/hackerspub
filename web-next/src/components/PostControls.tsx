@@ -4,10 +4,10 @@ import { createSignal, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu.tsx";
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "~/components/ui/hover-card.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconHeart from "~icons/lucide/heart";
@@ -215,11 +215,14 @@ export function PostControls(props: PostControlsProps) {
           </Button>
 
           {/* Reactions Button */}
-          <DropdownMenu
+          <HoverCard
             open={showEmojiPopover()}
             onOpenChange={setShowEmojiPopover}
+            openDelay={300}
+            closeDelay={200}
           >
-            <DropdownMenuTrigger
+            <HoverCardTrigger
+              as="button"
               class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
               classList={{
                 "text-muted-foreground hover:text-foreground":
@@ -231,8 +234,8 @@ export function PostControls(props: PostControlsProps) {
             >
               <IconHeart class="size-4" />
               <span class="text-xs">{note().engagementStats.reactions}</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent class="w-80 p-0">
+            </HoverCardTrigger>
+            <HoverCardContent class="w-80 p-0">
               <EmojiReactionPopover
                 noteData={{
                   ...note(),
@@ -240,8 +243,8 @@ export function PostControls(props: PostControlsProps) {
                 }}
                 onClose={() => setShowEmojiPopover(false)}
               />
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </HoverCardContent>
+          </HoverCard>
         </div>
       )}
     </Show>
