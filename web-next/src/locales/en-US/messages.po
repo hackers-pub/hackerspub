@@ -628,10 +628,15 @@ msgstr "Go to My Drafts"
 
 #: src/components/AppSidebar.tsx:125
 #: src/components/AppSidebar.tsx:216
+#: src/routes/(root).tsx:82
 #: src/routes/(root)/coc.tsx:47
 #: src/routes/(root)/markdown.tsx:47
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
+
+#: src/routes/(root).tsx:74
+msgid "Hackers' Pub home"
+msgstr "Hackers' Pub home"
 
 #: src/components/AboutHackersPub.tsx:232
 msgid "Hackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed."
@@ -1422,6 +1427,10 @@ msgstr "Title cannot be empty"
 #: src/components/RemoteFollowButton.tsx:182
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "To follow {0}, enter your Fediverse handle."
+
+#: src/routes/(root).tsx:72
+msgid "Toggle sidebar"
+msgstr "Toggle sidebar"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:173

@@ -1,6 +1,7 @@
 import {
+  A,
   query,
-  RouteDefinition,
+  type RouteDefinition,
   type RouteSectionProps,
 } from "@solidjs/router";
 import { graphql } from "relay-runtime";
@@ -12,7 +13,7 @@ import {
 import { AppSidebar } from "~/components/AppSidebar.tsx";
 import { FloatingComposeButton } from "~/components/FloatingComposeButton.tsx";
 import { NoteComposeModal } from "~/components/NoteComposeModal.tsx";
-import { SidebarProvider } from "~/components/ui/sidebar.tsx";
+import { SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar.tsx";
 import { Toaster } from "~/components/ui/toast.tsx";
 import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
 import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
@@ -47,7 +48,7 @@ const loadRootLayoutQuery = query(
 );
 
 export default function RootLayout(props: RouteSectionProps) {
-  const { i18n } = useLingui();
+  const { i18n, t } = useLingui();
   const signedAccount = createPreloadedQuery<RootLayoutQuery>(
     RootLayoutQuery,
     () => loadRootLayoutQuery(),
@@ -64,9 +65,33 @@ export default function RootLayout(props: RouteSectionProps) {
             $signedAccount={signedAccount()?.viewer}
             signedAccountLoaded={!signedAccount.pending}
           />
+          <header class="fixed inset-x-0 top-0 z-40 border-b bg-background/80 backdrop-blur md:hidden">
+            <div class="flex h-14 items-center justify-between px-4">
+              <SidebarTrigger
+                class="size-9 rounded-full"
+                aria-label={t`Toggle sidebar`}
+              />
+              <A href="/" aria-label={t`Hackers' Pub home`}>
+                <picture>
+                  <source
+                    srcset="/logo-dark.svg"
+                    media="(prefers-color-scheme: dark)"
+                  />
+                  <img
+                    src="/logo-light.svg"
+                    alt={t`Hackers' Pub`}
+                    width={111}
+                    height={28}
+                    class="h-7 w-auto"
+                  />
+                </picture>
+              </A>
+              <div class="size-9" aria-hidden="true" />
+            </div>
+          </header>
           <main
             lang={new Intl.Locale(i18n.locale).minimize().baseName}
-            class="w-full"
+            class="w-full pt-14 md:pt-0"
             classList={{
               "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
               "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
