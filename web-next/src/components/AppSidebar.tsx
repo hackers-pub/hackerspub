@@ -424,7 +424,7 @@ export function AppSidebar(props: AppSidebarProps) {
             <SidebarGroupContent>
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
-                  onClick={openNoteCompose}
+                  onClick={() => openNoteCompose()}
                   class="cursor-pointer"
                 >
                   <svg
