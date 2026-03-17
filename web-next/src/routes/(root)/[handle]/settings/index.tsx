@@ -52,6 +52,7 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SettingsTabs } from "../../../../components/SettingsTabs.tsx";
 import { settingsForm_account$key } from "./__generated__/settingsForm_account.graphql.ts";
 import type { settingsMutation } from "./__generated__/settingsMutation.graphql.ts";
@@ -141,7 +142,7 @@ export default function SettingsPage() {
             {(account) => (
               <>
                 <Title>{t`Profile settings`}</Title>
-                <div class="p-4">
+                <NarrowContainer class="p-4">
                   <SettingsTabs selected="profile" $account={account()} />
                   <Card class="mt-4">
                     <CardHeader>
@@ -154,7 +155,7 @@ export default function SettingsPage() {
                       <SettingsForm $account={account()} />
                     </CardContent>
                   </Card>
-                </div>
+                </NarrowContainer>
               </>
             )}
           </Show>

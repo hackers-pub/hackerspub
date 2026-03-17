@@ -17,6 +17,7 @@ import {
   PostVisibility,
   PostVisibilitySelect,
 } from "~/components/PostVisibilitySelect.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
@@ -172,7 +173,7 @@ export default function PreferencesPage() {
             {(account) => (
               <>
                 <Title>{t`Preferences`}</Title>
-                <div class="p-4">
+                <NarrowContainer class="p-4">
                   <SettingsTabs
                     selected="preferences"
                     $account={account()}
@@ -237,7 +238,7 @@ export default function PreferencesPage() {
                       </form>
                     </CardContent>
                   </Card>
-                </div>
+                </NarrowContainer>
               </>
             )}
           </Show>

@@ -16,6 +16,7 @@ import {
 } from "solid-relay";
 import { LanguageList } from "~/components/LanguageList.tsx";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
@@ -100,7 +101,7 @@ export default function LanguagePage() {
             {(account) => (
               <>
                 <Title>{t`Language settings`}</Title>
-                <div class="p-4">
+                <NarrowContainer class="p-4">
                   <SettingsTabs
                     selected="language"
                     $account={account()}
@@ -116,7 +117,7 @@ export default function LanguagePage() {
                       <PreferredLanguagesForm $locales={account()} />
                     </CardContent>
                   </Card>
-                </div>
+                </NarrowContainer>
               </>
             )}
           </Show>

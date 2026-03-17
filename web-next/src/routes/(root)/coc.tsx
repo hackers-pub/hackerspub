@@ -8,6 +8,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { DocumentView } from "~/components/DocumentView.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { cocPageQuery } from "./__generated__/cocPageQuery.graphql.ts";
 
@@ -43,11 +44,11 @@ export default function CocPage() {
     () => loadPageQuery(i18n.locale),
   );
   return (
-    <>
+    <NarrowContainer>
       <Title>{t`Code of conduct`} &mdash; {t`Hackers' Pub`}</Title>
       <Show when={data()}>
         {(data) => <DocumentView $document={data().codeOfConduct} />}
       </Show>
-    </>
+    </NarrowContainer>
   );
 }

@@ -19,6 +19,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -364,7 +365,7 @@ export default function passkeysPage() {
             {(account) => (
               <>
                 <Title>{t`Passkeys`}</Title>
-                <div class="p-4">
+                <NarrowContainer class="p-4">
                   <SettingsTabs selected="passkeys" $account={account()} />
 
                   <div class="mt-4 space-y-6">
@@ -505,7 +506,7 @@ export default function passkeysPage() {
                       </CardContent>
                     </Card>
                   </div>
-                </div>
+                </NarrowContainer>
               </>
             )}
           </Show>

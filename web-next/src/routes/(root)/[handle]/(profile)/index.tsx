@@ -8,6 +8,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorPostList } from "~/components/ActorPostList.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -65,7 +66,7 @@ export default function ProfilePage() {
             when={data().actorByHandle}
           >
             {(actor) => (
-              <>
+              <NarrowContainer>
                 <Link rel="canonical" href={actor().url ?? actor().iri} />
                 <Link
                   rel="alternate"
@@ -88,7 +89,7 @@ export default function ProfilePage() {
                   <ProfileTabs selected="posts" $actor={actor()} />
                   <ActorPostList $posts={actor()} />
                 </div>
-              </>
+              </NarrowContainer>
             )}
           </Show>
         </>

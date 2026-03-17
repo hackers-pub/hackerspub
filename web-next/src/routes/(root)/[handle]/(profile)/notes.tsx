@@ -8,6 +8,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorNoteList } from "~/components/ActorNoteList.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -62,7 +63,7 @@ export default function ProfileNotesPage() {
             when={data().actorByHandle}
           >
             {(actor) => (
-              <>
+              <NarrowContainer>
                 <Title>
                   {t`${actor().rawName ?? actor().username}'s notes`}
                 </Title>
@@ -78,7 +79,7 @@ export default function ProfileNotesPage() {
                   <ProfileTabs selected="notes" $actor={actor()} />
                   <ActorNoteList $notes={actor()} />
                 </div>
-              </>
+              </NarrowContainer>
             )}
           </Show>
         </>

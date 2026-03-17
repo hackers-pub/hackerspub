@@ -6,6 +6,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { articlesFeedTimelineQuery } from "./__generated__/articlesFeedTimelineQuery.graphql.ts";
@@ -42,7 +43,11 @@ export default function ArticlesFeedTimeline() {
 
   return (
     <Show when={data()}>
-      {(data) => <PersonalTimeline $posts={data()} />}
+      {(data) => (
+        <NarrowContainer>
+          <PersonalTimeline $posts={data()} />
+        </NarrowContainer>
+      )}
     </Show>
   );
 }

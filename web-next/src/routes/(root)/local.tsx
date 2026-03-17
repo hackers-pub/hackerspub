@@ -7,6 +7,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { AboutHackersPub } from "~/components/AboutHackersPub.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
@@ -59,12 +60,12 @@ export default function LocalTimeline() {
   return (
     <Show when={data()}>
       {(data) => (
-        <>
+        <NarrowContainer>
           <Show when={data().viewer == null}>
             <AboutHackersPub />
           </Show>
           <PublicTimeline $posts={data()} />
-        </>
+        </NarrowContainer>
       )}
     </Show>
   );

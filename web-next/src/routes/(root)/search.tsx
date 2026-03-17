@@ -15,6 +15,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SearchGuide } from "~/components/SearchGuide.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { Trans } from "~/components/Trans.tsx";
@@ -123,7 +124,7 @@ export default function SearchPage() {
   );
 
   return (
-    <div class="p-4">
+    <NarrowContainer class="p-4">
       <div class="mb-6 relative">
         <form
           method="get"
@@ -163,7 +164,7 @@ export default function SearchPage() {
           setSearchType={setSearchType}
         />
       </Show>
-    </div>
+    </NarrowContainer>
   );
 }
 

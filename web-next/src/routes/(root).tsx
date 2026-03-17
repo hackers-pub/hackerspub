@@ -91,7 +91,7 @@ export default function RootLayout(props: RouteSectionProps) {
           </header>
           <main
             lang={new Intl.Locale(i18n.locale).minimize().baseName}
-            class="max-w-160 mx-auto pt-14 md:pt-0"
+            class="w-full pt-14 md:pt-0"
             classList={{
               "bg-[url(/dev-bg-light.svg)]": import.meta.env.DEV,
               "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,

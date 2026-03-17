@@ -15,6 +15,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -216,7 +217,7 @@ export default function InvitePage() {
             {(account) => (
               <>
                 <Title>{t`Invite`}</Title>
-                <div class="p-4">
+                <NarrowContainer class="p-4">
                   <SettingsTabs
                     selected="invite"
                     $account={account()}
@@ -367,7 +368,7 @@ export default function InvitePage() {
                       </CardContent>
                     </Card>
                   </Show>
-                </div>
+                </NarrowContainer>
               </>
             )}
           </Show>

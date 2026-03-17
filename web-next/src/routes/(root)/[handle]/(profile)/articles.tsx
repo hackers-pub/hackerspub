@@ -8,6 +8,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorArticleList } from "~/components/ActorArticleList.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -61,7 +62,7 @@ export default function ProfileArticlesPage() {
         <>
           <Show when={data().actorByHandle}>
             {(actor) => (
-              <>
+              <NarrowContainer>
                 <Title>
                   {t`${actor().rawName ?? actor().username}'s articles`}
                 </Title>
@@ -77,7 +78,7 @@ export default function ProfileArticlesPage() {
                   <ProfileTabs selected="articles" $actor={actor()} />
                   <ActorArticleList $articles={actor()} />
                 </div>
-              </>
+              </NarrowContainer>
             )}
           </Show>
         </>

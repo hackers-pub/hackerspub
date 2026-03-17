@@ -15,6 +15,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -236,7 +237,7 @@ function NoteInternal(props: NoteInternalProps) {
   return (
     <Show when={note()}>
       {(note) => (
-        <>
+        <NarrowContainer>
           <div class="my-4">
             <Show when={note().replyTarget}>
               {(parent) => (
@@ -270,7 +271,7 @@ function NoteInternal(props: NoteInternalProps) {
               </div>
             </Show>
           </div>
-        </>
+        </NarrowContainer>
       )}
     </Show>
   );
