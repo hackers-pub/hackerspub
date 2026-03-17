@@ -24,7 +24,7 @@ msgid "{0, plural, one {# following} other {# following}}"
 msgstr "{0, plural, other {# 팔로잉}}"
 
 #. placeholder {0}: edge.node.tags.length - 3
-#: src/routes/(root)/[handle]/drafts/index.tsx:276
+#: src/routes/(root)/[handle]/drafts/index.tsx:277
 msgid "{0, plural, one {+1 more} other {+# more}}"
 msgstr "{0, plural, other {외 #개}}"
 
@@ -211,7 +211,7 @@ msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 �
 msgid "An unexpected error occurred. Please try again later."
 msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도해주세요."
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:133
+#: src/routes/(root)/[handle]/drafts/index.tsx:134
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "「{draftTitle}」을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
 
@@ -224,7 +224,7 @@ msgstr "이 임시 보관을 삭제하시겠습니까? 이 작업은 취소할 �
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "{0} 패스키를 취소하시겠습니까? 이 패스키를 사용하여 계정에 로그인할 수 없게 됩니다."
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:236
+#: src/routes/(root)/[handle]/drafts/index.tsx:237
 msgid "Article Drafts"
 msgstr "게시글 임시 보관"
 
@@ -352,7 +352,7 @@ msgstr "기본 공유 공개 범위"
 
 #: src/components/PostActionMenu.tsx:123
 #: src/components/PostActionMenu.tsx:143
-#: src/routes/(root)/[handle]/drafts/index.tsx:301
+#: src/routes/(root)/[handle]/drafts/index.tsx:302
 msgid "Delete"
 msgstr "삭제"
 
@@ -382,7 +382,7 @@ msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
 #: src/components/article-composer/ArticleComposerContext.tsx:436
-#: src/routes/(root)/[handle]/drafts/index.tsx:174
+#: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Draft deleted"
 msgstr "임시 보관을 삭제했습니다"
 
@@ -406,8 +406,8 @@ msgstr "유지하려는 영역을 드래그하여 선택한 다음 “자르기�
 msgid "e.g., @user@mastodon.social"
 msgstr "예: @user@mastodon.social"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:78
-#: src/routes/(root)/[handle]/drafts/new.tsx:94
+#: src/routes/(root)/[handle]/drafts/[id].tsx:79
+#: src/routes/(root)/[handle]/drafts/new.tsx:95
 msgid "Edit Draft"
 msgstr "임시 보관 수정"
 
@@ -442,9 +442,9 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 #: src/components/NoteComposer.tsx:121
 #: src/components/NoteComposer.tsx:129
 #: src/components/NoteComposer.tsx:137
-#: src/routes/(root)/[handle]/drafts/index.tsx:181
-#: src/routes/(root)/[handle]/drafts/index.tsx:190
-#: src/routes/(root)/[handle]/drafts/index.tsx:198
+#: src/routes/(root)/[handle]/drafts/index.tsx:182
+#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:199
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "오류"
@@ -466,7 +466,7 @@ msgstr "팔로에 실패했습니다"
 msgid "Failed to load more articles; click to retry"
 msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:325
+#: src/routes/(root)/[handle]/drafts/index.tsx:326
 msgid "Failed to load more drafts; click to retry"
 msgstr "임시 보관 불러오기 실패, 클릭하여 재시도"
 
@@ -606,9 +606,9 @@ msgstr "서식"
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:64
-#: src/routes/(root)/[handle]/drafts/index.tsx:221
-#: src/routes/(root)/[handle]/drafts/new.tsx:80
+#: src/routes/(root)/[handle]/drafts/[id].tsx:65
+#: src/routes/(root)/[handle]/drafts/index.tsx:222
+#: src/routes/(root)/[handle]/drafts/new.tsx:81
 msgid "Go Back"
 msgstr "돌아가기"
 
@@ -616,9 +616,9 @@ msgstr "돌아가기"
 msgid "Go to Drafts"
 msgstr "임시 보관으로"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:69
-#: src/routes/(root)/[handle]/drafts/index.tsx:226
-#: src/routes/(root)/[handle]/drafts/new.tsx:85
+#: src/routes/(root)/[handle]/drafts/[id].tsx:70
+#: src/routes/(root)/[handle]/drafts/index.tsx:227
+#: src/routes/(root)/[handle]/drafts/new.tsx:86
 msgid "Go to My Drafts"
 msgstr "내 임시 보관으로"
 
@@ -691,7 +691,7 @@ msgstr "올바른 연합우주 핸들 형식이 아닙니다."
 #: src/components/article-composer/ArticleComposerContext.tsx:380
 #: src/components/article-composer/ArticleComposerContext.tsx:445
 #: src/components/NoteComposer.tsx:122
-#: src/routes/(root)/[handle]/drafts/index.tsx:183
+#: src/routes/(root)/[handle]/drafts/index.tsx:184
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
 
@@ -763,7 +763,7 @@ msgstr "링크 이름"
 msgid "List"
 msgstr "목록"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:328
+#: src/routes/(root)/[handle]/drafts/index.tsx:329
 msgid "Load More"
 msgstr "더 보기"
 
@@ -843,7 +843,7 @@ msgstr "패스키를 더 불러오는 중…"
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:322
+#: src/routes/(root)/[handle]/drafts/index.tsx:323
 msgid "Loading..."
 msgstr "불러오는 중..."
 
@@ -909,8 +909,8 @@ msgstr "현지명"
 msgid "Never used"
 msgstr "사용된 적 없음"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:238
-#: src/routes/(root)/[handle]/drafts/new.tsx:94
+#: src/routes/(root)/[handle]/drafts/index.tsx:239
+#: src/routes/(root)/[handle]/drafts/new.tsx:95
 msgid "New Article"
 msgstr "새 게시글"
 
@@ -918,7 +918,7 @@ msgstr "새 게시글"
 msgid "No draft to delete"
 msgstr "삭제할 임시 보관이 없습니다"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:248
+#: src/routes/(root)/[handle]/drafts/index.tsx:249
 msgid "No drafts yet. Create your first article!"
 msgstr "아직 임시 보관이 없습니다. 첫 게시글을 작성하세요!"
 
@@ -1019,12 +1019,12 @@ msgstr "패스키 취소됨"
 msgid "Passkeys"
 msgstr "패스키"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:55
 #: src/routes/(root)/[handle]/drafts/[id].tsx:56
-#: src/routes/(root)/[handle]/drafts/index.tsx:212
+#: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:213
-#: src/routes/(root)/[handle]/drafts/new.tsx:71
+#: src/routes/(root)/[handle]/drafts/index.tsx:214
 #: src/routes/(root)/[handle]/drafts/new.tsx:72
+#: src/routes/(root)/[handle]/drafts/new.tsx:73
 msgid "Permission Denied"
 msgstr "권한이 거부되었습니다"
 
@@ -1044,9 +1044,9 @@ msgstr "게시글 제목을 입력해주세요."
 msgid "Please enter your Fediverse handle."
 msgstr "연합우주 핸들을 입력해 주세요."
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:60
-#: src/routes/(root)/[handle]/drafts/index.tsx:217
-#: src/routes/(root)/[handle]/drafts/new.tsx:76
+#: src/routes/(root)/[handle]/drafts/[id].tsx:61
+#: src/routes/(root)/[handle]/drafts/index.tsx:218
+#: src/routes/(root)/[handle]/drafts/new.tsx:77
 msgid "Please sign in to access this page"
 msgstr "이 페이지에 접근하려면 로그인하세요"
 
@@ -1314,7 +1314,7 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 #: src/components/article-composer/ArticleComposerContext.tsx:370
 #: src/components/article-composer/ArticleComposerContext.tsx:435
 #: src/components/NoteComposer.tsx:113
-#: src/routes/(root)/[handle]/drafts/index.tsx:173
+#: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "성공"
 
@@ -1459,7 +1459,7 @@ msgid "Update your profile information, including your avatar, username, display
 msgstr "프로필 사진, 아이디, 이름, 약력, 링크 등의 프로필 정보를 업데이트하세요."
 
 #. placeholder {0}: new Date(edge.node.updated).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:287
+#: src/routes/(root)/[handle]/drafts/index.tsx:288
 msgid "Updated {0}"
 msgstr "{0}에 업데이트됨"
 
@@ -1571,15 +1571,15 @@ msgstr "링크를 삭제하려면 이곳을 비워두세요."
 msgid "You can leave this field empty."
 msgstr "이 필드는 비워둘 수 있습니다."
 
-#: src/routes/(root)/[handle]/drafts/new.tsx:75
+#: src/routes/(root)/[handle]/drafts/new.tsx:76
 msgid "You can only create drafts for your own account"
 msgstr "자신의 계정에 대한 임시 보관만 만들 수 있습니다"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:59
+#: src/routes/(root)/[handle]/drafts/[id].tsx:60
 msgid "You can only edit your own drafts"
 msgstr "자신의 임시 보관만 수정할 수 있습니다"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:216
+#: src/routes/(root)/[handle]/drafts/index.tsx:217
 msgid "You can only view your own drafts"
 msgstr "자신의 임시 보관만 볼 수 있습니다"
 
@@ -1602,7 +1602,7 @@ msgid "You must be signed in to create a note"
 msgstr "단문을 작성하려면 로그인해야 합니다"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:453
-#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:192
 msgid "You must be signed in to delete a draft"
 msgstr "임시 보관을 삭제하려면 로그인해야 합니다"
 

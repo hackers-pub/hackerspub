@@ -12,6 +12,7 @@ import {
 import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { Title } from "~/components/Title.tsx";
+import { WideContainer } from "~/components/WideContainer.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import { showToast } from "~/components/ui/toast.tsx";
 import type { draftsQuery } from "./__generated__/draftsQuery.graphql.ts";
@@ -207,7 +208,7 @@ export default function ArticleDraftsListPage() {
     <Show
       when={data()?.viewer?.username === params.handle!.substring(1)}
       fallback={
-        <div class="container mx-auto p-6">
+        <WideContainer class="p-6">
           <HttpStatusCode code={403} />
           <Title>{t`Permission Denied`}</Title>
           <h1 class="text-2xl font-bold mb-4">{t`Permission Denied`}</h1>
@@ -228,10 +229,10 @@ export default function ArticleDraftsListPage() {
               )}
             </Show>
           </div>
-        </div>
+        </WideContainer>
       }
     >
-      <div class="container mx-auto p-6">
+      <WideContainer class="p-6">
         <div class="flex items-center justify-between mb-6">
           <Title>{t`Article Drafts`}</Title>
           <A href={`/@${params.handle!.substring(1)}/drafts/new`}>
@@ -332,7 +333,7 @@ export default function ArticleDraftsListPage() {
             </div>
           </Show>
         </Show>
-      </div>
+      </WideContainer>
     </Show>
   );
 }
