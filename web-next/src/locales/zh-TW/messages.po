@@ -29,12 +29,12 @@ msgid "{0, plural, one {+1 more} other {+# more}}"
 msgstr "{0, plural, other {還有#個}}"
 
 #. placeholder {0}: account().invitationsLeft
-#: src/routes/(root)/[handle]/settings/invite.tsx:235
+#: src/routes/(root)/[handle]/settings/invite.tsx:234
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, other {邀請你的朋友加入 Hackers' Pub。你可以邀請最多 # 個人。}}"
 
 #. placeholder {0}: account().inviteesCount.totalCount
-#: src/routes/(root)/[handle]/settings/invite.tsx:356
+#: src/routes/(root)/[handle]/settings/invite.tsx:355
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, other {您已經邀請了總共#人。}}"
 
@@ -81,7 +81,7 @@ msgid "{0} followed you"
 msgstr "{0} 關注了你"
 
 #. placeholder {0}: "USER"
-#: src/routes/(root)/[handle]/settings/invite.tsx:285
+#: src/routes/(root)/[handle]/settings/invite.tsx:284
 msgid "{0} is already a member of Hackers' Pub."
 msgstr "{0} 已經是 Hackers' Pub 的成員。"
 
@@ -157,7 +157,7 @@ msgstr "{0}的貼文"
 msgid "{0}'s shares"
 msgstr "{0}的轉貼"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:565
+#: src/routes/(root)/[handle]/settings/index.tsx:563
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "為顯示在你個人資料頁面的連結命名，例如 GitHub。"
 
@@ -174,7 +174,7 @@ msgstr "帳戶"
 msgid "Actions"
 msgstr "操作"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:229
+#: src/routes/(root)/[handle]/settings/language.tsx:227
 msgid "Add"
 msgstr "新增"
 
@@ -199,11 +199,11 @@ msgstr "撤銷通行金鑰時發生錯誤。"
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "儲存設定時發生錯誤。請重試，如果問題持續存在，請聯繫支援團隊。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:196
+#: src/routes/(root)/[handle]/settings/language.tsx:194
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "儲存語言偏好時出現錯誤。請重試，如果問題仍然存在，請聯繫支援。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:342
+#: src/routes/(root)/[handle]/settings/index.tsx:340
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "儲存設定時發生錯誤。請重試，如果問題仍然存在，請聯繫客服。"
 
@@ -220,7 +220,7 @@ msgid "Are you sure you want to delete this draft? This action cannot be undone.
 msgstr "您確定要刪除此草稿嗎？此操作無法復原。"
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:522
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:520
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "您確定要取消密碼{0}嗎？您將無法再使用它登入您的帳戶。"
 
@@ -245,7 +245,7 @@ msgid "Articles only"
 msgstr "僅文章"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:440
+#: src/routes/(root)/[handle]/settings/index.tsx:438
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自從你已經把使用者名稱換成 {0} 了，你再也改不了了。"
 
@@ -253,11 +253,11 @@ msgstr "自從你已經把使用者名稱換成 {0} 了，你再也改不了了�
 msgid "Authenticating…"
 msgstr "驗證中…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:356
+#: src/routes/(root)/[handle]/settings/index.tsx:354
 msgid "Avatar"
 msgstr "頭像"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:469
+#: src/routes/(root)/[handle]/settings/index.tsx:467
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "個人簡介"
@@ -275,13 +275,13 @@ msgstr "粗體"
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:217
 #: src/components/RemoteFollowButton.tsx:279
-#: src/routes/(root)/[handle]/settings/index.tsx:403
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:526
+#: src/routes/(root)/[handle]/settings/index.tsx:401
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:524
 #: src/routes/(root)/authorize_interaction.tsx:190
 msgid "Cancel"
 msgstr "取消"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:310
+#: src/routes/(root)/[handle]/settings/invite.tsx:309
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
 
@@ -322,7 +322,7 @@ msgid "Create Note"
 msgstr "建立貼文"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:438
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:437
 msgid "Created {0}"
 msgstr "{0}建立"
 
@@ -334,19 +334,19 @@ msgstr "創建帳戶…"
 msgid "Creating…"
 msgstr "正在建立…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:410
+#: src/routes/(root)/[handle]/settings/index.tsx:408
 msgid "Crop"
 msgstr "裁剪"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:383
+#: src/routes/(root)/[handle]/settings/index.tsx:381
 msgid "Crop your new avatar"
 msgstr "裁剪你的新頭像"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:207
+#: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Default note privacy"
 msgstr "預設貼文隱私設定"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:219
+#: src/routes/(root)/[handle]/settings/preferences.tsx:218
 msgid "Default share privacy"
 msgstr "預設轉貼隱私設定"
 
@@ -372,7 +372,7 @@ msgstr "刪除中..."
 msgid "Discard unsaved changes - are you sure?"
 msgstr "放棄未儲存的變更 - 您確定嗎？"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:453
+#: src/routes/(root)/[handle]/settings/index.tsx:451
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "暱稱"
@@ -398,7 +398,7 @@ msgstr "未找到草稿"
 msgid "Draft saved"
 msgstr "草稿已儲存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:386
+#: src/routes/(root)/[handle]/settings/index.tsx:384
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "拖動選擇要保留的區域，然後點擊「裁剪」來更新你的頭像。"
 
@@ -411,7 +411,7 @@ msgstr "例如：@user@mastodon.social"
 msgid "Edit Draft"
 msgstr "編輯草稿"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:258
+#: src/routes/(root)/[handle]/settings/invite.tsx:257
 #: src/routes/(root)/sign/up/[token].tsx:337
 msgid "Email address"
 msgstr "電子郵件地址"
@@ -449,7 +449,7 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 msgid "Error"
 msgstr "錯誤"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:315
+#: src/routes/(root)/[handle]/settings/invite.tsx:314
 msgid "Extra message"
 msgstr "額外訊息"
 
@@ -478,7 +478,7 @@ msgstr "載入更多粉絲失敗，點擊重試"
 msgid "Failed to load more following; click to retry"
 msgstr "載入更多關注失敗，點擊重試"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:488
+#: src/routes/(root)/[handle]/settings/invite.tsx:485
 msgid "Failed to load more invitees; click to retry"
 msgstr "載入更多受邀者失敗；點擊重試"
 
@@ -490,7 +490,7 @@ msgstr "載入更多貼文失敗，點擊重試"
 msgid "Failed to load more notifications; click to retry"
 msgstr "無法載入更多通知；點擊重試"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:500
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:499
 msgid "Failed to load more passkeys; click to retry"
 msgstr "載入更多通行金鑰失敗；點擊重試"
 
@@ -522,7 +522,7 @@ msgstr "註冊通行金鑰失敗"
 msgid "Failed to revoke passkey"
 msgstr "撤銷通行金鑰失敗"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:194
+#: src/routes/(root)/[handle]/settings/language.tsx:192
 msgid "Failed to save language preferences"
 msgstr "儲存語言偏好失敗"
 
@@ -530,7 +530,7 @@ msgstr "儲存語言偏好失敗"
 msgid "Failed to save preferences"
 msgstr "儲存設定失敗"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:340
+#: src/routes/(root)/[handle]/settings/index.tsx:338
 msgid "Failed to save settings"
 msgstr "儲存設定失敗"
 
@@ -666,7 +666,7 @@ msgstr "隱藏預覽"
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行為準則。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:201
+#: src/routes/(root)/[handle]/settings/preferences.tsx:200
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "啟用後，AI 將為您生成文章摘要。否則，將使用文章的前幾行作為摘要。"
 
@@ -695,7 +695,7 @@ msgstr "聯邦宇宙使用者名稱格式無效。"
 msgid "Invalid input: {0}"
 msgstr "無效輸入：{0}"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:303
+#: src/routes/(root)/[handle]/settings/invite.tsx:302
 msgid "Invitation language"
 msgstr "邀請語言"
 
@@ -709,7 +709,7 @@ msgstr "邀請已發送"
 msgid "Invite"
 msgstr "邀請"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:228
+#: src/routes/(root)/[handle]/settings/invite.tsx:227
 msgid "Invite a friend"
 msgstr "邀請朋友"
 
@@ -717,12 +717,12 @@ msgstr "邀請朋友"
 msgid "Italic"
 msgstr "斜體"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:460
+#: src/routes/(root)/[handle]/settings/index.tsx:458
 msgid "John Doe"
 msgstr "張三"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:462
+#: src/routes/(root)/[handle]/settings/invite.tsx:459
 msgid "Joined on {0}"
 msgstr "於{0}加入"
 
@@ -743,7 +743,7 @@ msgid "Language settings"
 msgstr "語言設定"
 
 #. placeholder {0}: "RELATIVE_DATE"
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:455
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:454
 msgid "Last used {0}"
 msgstr "{0}最後使用"
 
@@ -755,7 +755,7 @@ msgstr "連結"
 msgid "Link author: "
 msgstr "連結作者："
 
-#: src/routes/(root)/[handle]/settings/index.tsx:546
+#: src/routes/(root)/[handle]/settings/index.tsx:544
 msgid "Link name"
 msgstr "連結名"
 
@@ -779,7 +779,7 @@ msgstr "載入更多粉絲"
 msgid "Load more following"
 msgstr "載入更多關注"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:491
+#: src/routes/(root)/[handle]/settings/invite.tsx:488
 msgid "Load more invitees"
 msgstr "載入更多受邀者"
 
@@ -791,7 +791,7 @@ msgstr "載入更多貼文"
 msgid "Load more notifications"
 msgstr "載入更多通知"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:501
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:500
 msgid "Load more passkeys"
 msgstr "載入更多通行金鑰"
 
@@ -819,7 +819,7 @@ msgstr "載入更多粉絲中…"
 msgid "Loading more following…"
 msgstr "正在載入更多關注…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:485
+#: src/routes/(root)/[handle]/settings/invite.tsx:482
 msgid "Loading more invitees…"
 msgstr "正在載入更多受邀者…"
 
@@ -831,7 +831,7 @@ msgstr "載入更多貼文中…"
 msgid "Loading more notifications"
 msgstr "正在載入更多通知…"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:498
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:497
 msgid "Loading more passkeys…"
 msgstr "正在載入更多通行金鑰…"
 
@@ -889,7 +889,7 @@ msgstr "移動到頂部"
 msgid "Move up"
 msgstr "向上移動"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:387
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:386
 msgid "My passkey"
 msgstr "我的通行金鑰"
 
@@ -905,7 +905,7 @@ msgstr "使用者名稱太長。不能長於 50 字元。"
 msgid "Native name"
 msgstr "本地名稱"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:451
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:450
 msgid "Never used"
 msgstr "從未使用過"
 
@@ -930,7 +930,7 @@ msgstr "未找到粉絲"
 msgid "No following found"
 msgstr "沒有找到關注的使用者"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:334
+#: src/routes/(root)/[handle]/settings/invite.tsx:333
 msgid "No invitations left"
 msgstr "沒有剩餘邀請名額"
 
@@ -971,7 +971,7 @@ msgid "Note created successfully"
 msgstr "貼文建立成功"
 
 #. placeholder {0}: "REL_ME_ATTR"
-#: src/routes/(root)/[handle]/settings/index.tsx:509
+#: src/routes/(root)/[handle]/settings/index.tsx:507
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用 {0} 屬性連結回你的 Hackers' Pub 個人資料頁。"
 
@@ -1002,7 +1002,7 @@ msgstr "頁面未找到"
 msgid "Passkey authentication failed"
 msgstr "通行金鑰驗證失敗"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:382
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:381
 msgid "Passkey name"
 msgstr "通行金鑰名稱"
 
@@ -1028,7 +1028,7 @@ msgstr "通行金鑰"
 msgid "Permission Denied"
 msgstr "權限被拒絕"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:210
+#: src/routes/(root)/[handle]/settings/index.tsx:208
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "請選擇小於 5 MiB 的圖片檔案。"
 
@@ -1063,17 +1063,17 @@ msgstr "內容"
 msgid "Posts tagged with {0}"
 msgstr "{0} 內容"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:198
+#: src/routes/(root)/[handle]/settings/preferences.tsx:197
 msgid "Prefer AI-generated summary"
 msgstr "優先使用 AI 生成的摘要"
 
 #: src/components/SettingsTabs.tsx:49
 #: src/routes/(root)/[handle]/settings/preferences.tsx:174
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:182
 msgid "Preferences"
 msgstr "偏好設定"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:111
+#: src/routes/(root)/[handle]/settings/language.tsx:110
 msgid "Preferred languages"
 msgstr "偏好語言"
 
@@ -1083,7 +1083,7 @@ msgstr "優先級"
 
 #: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:143
-#: src/routes/(root)/[handle]/settings/index.tsx:149
+#: src/routes/(root)/[handle]/settings/index.tsx:148
 msgid "Profile settings"
 msgstr "個人資料設定"
 
@@ -1143,23 +1143,23 @@ msgstr "閱讀完整的行為守則"
 msgid "Recent Drafts"
 msgstr "最近的草稿"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:397
 msgid "Register"
 msgstr "註冊"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:374
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:373
 msgid "Register a passkey"
 msgstr "註冊通行金鑰"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:376
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:375
 msgid "Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email."
 msgstr "為你的帳戶註冊通行金鑰。你可以使用通行金鑰登入，而不是通過電子郵件接收登入連結。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:405
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:404
 msgid "Registered passkeys"
 msgstr "已註冊的通行金鑰"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:398
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:397
 msgid "Registering…"
 msgstr "註冊…"
 
@@ -1182,18 +1182,18 @@ msgstr "移除{0}"
 msgid "Reply"
 msgstr "回覆"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:480
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:531
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:479
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:529
 msgid "Revoke"
 msgstr "撤銷"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:520
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:518
 msgid "Revoke passkey"
 msgstr "撤銷通行金鑰"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:521
-#: src/routes/(root)/[handle]/settings/language.tsx:234
-#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/index.tsx:519
+#: src/routes/(root)/[handle]/settings/language.tsx:232
+#: src/routes/(root)/[handle]/settings/preferences.tsx:235
 msgid "Save"
 msgstr "儲存"
 
@@ -1209,9 +1209,9 @@ msgstr "儲存草稿以查看預覽"
 msgid "Saving..."
 msgstr "儲存中..."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:521
-#: src/routes/(root)/[handle]/settings/language.tsx:234
-#: src/routes/(root)/[handle]/settings/preferences.tsx:236
+#: src/routes/(root)/[handle]/settings/index.tsx:519
+#: src/routes/(root)/[handle]/settings/language.tsx:232
+#: src/routes/(root)/[handle]/settings/preferences.tsx:235
 msgid "Saving…"
 msgstr "儲存中…"
 
@@ -1233,19 +1233,19 @@ msgstr "搜尋內容…"
 msgid "Search results for {0}"
 msgstr "{0}的搜尋結果"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:113
+#: src/routes/(root)/[handle]/settings/language.tsx:112
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "按偏好順序選擇您的偏好語言。這將有助於根據您的偏好定製內容。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:337
+#: src/routes/(root)/[handle]/settings/invite.tsx:336
 msgid "Send"
 msgstr "發送"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:336
+#: src/routes/(root)/[handle]/settings/invite.tsx:335
 msgid "Sending…"
 msgstr "發送中…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:185
+#: src/routes/(root)/[handle]/settings/preferences.tsx:184
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
@@ -1318,7 +1318,7 @@ msgstr "發生錯誤，請重試。"
 msgid "Success"
 msgstr "成功"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:181
+#: src/routes/(root)/[handle]/settings/language.tsx:179
 msgid "Successfully saved language preferences"
 msgstr "成功儲存語言偏好"
 
@@ -1326,7 +1326,7 @@ msgstr "成功儲存語言偏好"
 msgid "Successfully saved preferences"
 msgstr "設定已成功儲存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:333
+#: src/routes/(root)/[handle]/settings/index.tsx:331
 msgid "Successfully saved settings"
 msgstr "設定儲存成功"
 
@@ -1350,23 +1350,23 @@ msgstr "標籤"
 msgid "Tell us about yourself…"
 msgstr "介紹您自己…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:215
+#: src/routes/(root)/[handle]/settings/preferences.tsx:214
 msgid "The default privacy setting for your notes."
 msgstr "您貼文的預設隱私設定。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:227
+#: src/routes/(root)/[handle]/settings/preferences.tsx:226
 msgid "The default privacy setting for your shares."
 msgstr "您轉貼的預設隱私設定。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:276
+#: src/routes/(root)/[handle]/settings/invite.tsx:275
 msgid "The email address is invalid."
 msgstr "電子郵件地址無效。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:271
+#: src/routes/(root)/[handle]/settings/invite.tsx:270
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "電子郵件地址不僅用於接收邀請，還用於登入帳戶。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:407
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:406
 msgid "The following passkeys are registered to your account. You can use them to sign in to your account."
 msgstr "以下通行金鑰已註冊到你的帳戶。你可以使用它們登入你的帳戶。"
 
@@ -1388,7 +1388,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:589
+#: src/routes/(root)/[handle]/settings/index.tsx:587
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱 。"
 
@@ -1454,7 +1454,7 @@ msgstr "取消關注"
 msgid "Unshare"
 msgstr "取消轉貼"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:151
+#: src/routes/(root)/[handle]/settings/index.tsx:150
 msgid "Update your profile information, including your avatar, username, display name, bio, and links."
 msgstr "更新您的個人資料資訊，包括頭像、使用者名稱、暱稱、個人簡介和連結。"
 
@@ -1463,7 +1463,7 @@ msgstr "更新您的個人資料資訊，包括頭像、使用者名稱、暱稱
 msgid "Updated {0}"
 msgstr "更新於 {0}"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:571
+#: src/routes/(root)/[handle]/settings/index.tsx:569
 msgid "URL"
 msgstr "URL"
 
@@ -1471,7 +1471,7 @@ msgstr "URL"
 msgid "User not found."
 msgstr "未找到使用者資訊。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:418
+#: src/routes/(root)/[handle]/settings/index.tsx:416
 #: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "使用者名稱"
@@ -1492,7 +1492,7 @@ msgstr "需要使用者名稱"
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "使用者名稱太長。不能長於 15 字元。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:353
+#: src/routes/(root)/[handle]/settings/invite.tsx:352
 msgid "Users you have invited"
 msgstr "您邀請的使用者"
 
@@ -1530,7 +1530,7 @@ msgstr "所有人都可以看到，但不會出現在公共時間軸中。只有
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "包括未註冊使用者在內的所有人都可以看到。內容也會出現在公共時間軸中。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:552
+#: src/routes/(root)/[handle]/settings/index.tsx:550
 msgid "Website"
 msgstr "網站"
 
@@ -1559,15 +1559,15 @@ msgstr "在此撰寫文章。您可以使用 Markdown。在您撰寫時，文章
 msgid "You are about to follow {0}."
 msgstr "你即將關注{0}。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:434
+#: src/routes/(root)/[handle]/settings/index.tsx:432
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次使用者名稱，而舊的使用者名稱會公開為別人使用。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:600
+#: src/routes/(root)/[handle]/settings/index.tsx:598
 msgid "You can leave this empty to remove the link."
 msgstr "您可以將此處留空以刪除連結。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:321
+#: src/routes/(root)/[handle]/settings/invite.tsx:320
 msgid "You can leave this field empty."
 msgstr "你可以留空此欄位。"
 
@@ -1583,12 +1583,12 @@ msgstr "您只能編輯自己的草稿"
 msgid "You can only view your own drafts"
 msgstr "您只能檢視自己的草稿"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:416
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:415
 msgid "You don't have any passkeys registered yet."
 msgstr "您尚未註冊任何通行金鑰。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:233
-#: src/routes/(root)/[handle]/settings/invite.tsx:344
+#: src/routes/(root)/[handle]/settings/invite.tsx:232
+#: src/routes/(root)/[handle]/settings/invite.tsx:343
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你沒有剩餘邀請名額。請稍後再試。"
 
@@ -1622,11 +1622,11 @@ msgstr "您的邀請人"
 msgid "You'll automatically follow each other when you sign up."
 msgstr "註冊後您將自動追蹤對方。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:358
+#: src/routes/(root)/[handle]/settings/index.tsx:356
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "你的頭像將在你的個人資料頁面和你的貼文中顯示。可以上傳大小不超過 5 MiB 的 PNG、JPEG、GIF 或 WebP 圖片。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:478
+#: src/routes/(root)/[handle]/settings/index.tsx:476
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "你的個人簡介將在你的個人資料頁面顯示。你可以用 Markdown 文件格式化。"
 
@@ -1638,11 +1638,11 @@ msgstr "你的個人簡介將在你的個人資料頁面顯示。你可以用 Ma
 msgid "Your email address will be used to sign in to your account."
 msgstr "你的電子郵件地址將用於登入。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:324
+#: src/routes/(root)/[handle]/settings/invite.tsx:323
 msgid "Your friend will see this message in the invitation email."
 msgstr "你的朋友將在邀請郵件中看到此訊息。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:464
+#: src/routes/(root)/[handle]/settings/index.tsx:462
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的暱稱將在你的個人資料頁面和你的貼文中顯示。"
@@ -1655,15 +1655,15 @@ msgstr "您的通行金鑰已經註冊，現在可以用於驗證。"
 msgid "Your preferences have been updated successfully."
 msgstr "您的設定已成功更新。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:182
+#: src/routes/(root)/[handle]/settings/language.tsx:180
 msgid "Your preferred languages have been updated."
 msgstr "您的偏好語言已更新。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:334
+#: src/routes/(root)/[handle]/settings/index.tsx:332
 msgid "Your profile settings have been updated successfully."
 msgstr "個人資料設定已成功更新。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:431
+#: src/routes/(root)/[handle]/settings/index.tsx:429
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的使用者名稱將被用來創建你的個人資料 URL 和你的 Fediverse 使用者名稱（handle）。"
