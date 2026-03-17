@@ -365,147 +365,145 @@ export default function passkeysPage() {
               <>
                 <Title>{t`Passkeys`}</Title>
                 <div class="p-4">
-                  <div class="mx-auto max-w-prose">
-                    <SettingsTabs selected="passkeys" $account={account()} />
+                  <SettingsTabs selected="passkeys" $account={account()} />
 
-                    <div class="mt-4 space-y-6">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>{t`Register a passkey`}</CardTitle>
-                          <CardDescription>
-                            {t`Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email.`}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent class="space-y-4">
-                          <TextField class="grid w-full items-center gap-1.5">
-                            <TextFieldLabel for="passkey-name">
-                              {t`Passkey name`}
-                            </TextFieldLabel>
-                            <TextFieldInput
-                              type="text"
-                              id="passkey-name"
-                              placeholder={t`My passkey`}
-                              required
-                              ref={passkeyNameRef}
-                            />
-                          </TextField>
-                          <Button
-                            type="button"
-                            onClick={onRegisterPasskey}
-                            disabled={registering()}
-                            class="w-full cursor-pointer"
-                          >
-                            {registering() ? t`Registering…` : t`Register`}
-                          </Button>
-                        </CardContent>
-                      </Card>
+                  <div class="mt-4 space-y-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t`Register a passkey`}</CardTitle>
+                        <CardDescription>
+                          {t`Register a passkey to sign in to your account. You can use a passkey instead of receiving a sign-in link by email.`}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent class="space-y-4">
+                        <TextField class="grid w-full items-center gap-1.5">
+                          <TextFieldLabel for="passkey-name">
+                            {t`Passkey name`}
+                          </TextFieldLabel>
+                          <TextFieldInput
+                            type="text"
+                            id="passkey-name"
+                            placeholder={t`My passkey`}
+                            required
+                            ref={passkeyNameRef}
+                          />
+                        </TextField>
+                        <Button
+                          type="button"
+                          onClick={onRegisterPasskey}
+                          disabled={registering()}
+                          class="w-full cursor-pointer"
+                        >
+                          {registering() ? t`Registering…` : t`Register`}
+                        </Button>
+                      </CardContent>
+                    </Card>
 
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>{t`Registered passkeys`}</CardTitle>
-                          <CardDescription>
-                            {t`The following passkeys are registered to your account. You can use them to sign in to your account.`}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <Show
-                            when={(passkeyData()?.passkeys.edges.length ?? 0) >
-                              0}
-                            fallback={
-                              <p class="text-muted-foreground text-center py-8">
-                                {t`You don't have any passkeys registered yet.`}
-                              </p>
-                            }
-                          >
-                            <div class="space-y-4">
-                              <For
-                                each={(() => {
-                                  const paginatedData = passkeyData();
-                                  return paginatedData
-                                    ? paginatedData.passkeys.edges
-                                    : [];
-                                })()}
-                              >
-                                {(edge) => (
-                                  <div class="flex items-center justify-between p-4 border rounded-lg">
-                                    <div class="space-y-1">
-                                      <h4 class="font-medium">
-                                        {edge.node.name}
-                                      </h4>
-                                      <div class="text-sm text-muted-foreground space-y-1">
-                                        <div>
-                                          <Trans
-                                            message={t`Created ${"RELATIVE_DATE"}`}
-                                            values={{
-                                              RELATIVE_DATE: () => (
-                                                <Timestamp
-                                                  value={edge.node.created}
-                                                />
-                                              ),
-                                            }}
-                                          />
-                                        </div>
-                                        <div>
-                                          <Show
-                                            when={edge.node.lastUsed}
-                                            fallback={t`Never used`}
-                                          >
-                                            {(lastUsed) => (
-                                              <Trans
-                                                message={t`Last used ${"RELATIVE_DATE"}`}
-                                                values={{
-                                                  RELATIVE_DATE: () => (
-                                                    <Timestamp
-                                                      value={lastUsed()}
-                                                    />
-                                                  ),
-                                                }}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>{t`Registered passkeys`}</CardTitle>
+                        <CardDescription>
+                          {t`The following passkeys are registered to your account. You can use them to sign in to your account.`}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Show
+                          when={(passkeyData()?.passkeys.edges.length ?? 0) >
+                            0}
+                          fallback={
+                            <p class="text-muted-foreground text-center py-8">
+                              {t`You don't have any passkeys registered yet.`}
+                            </p>
+                          }
+                        >
+                          <div class="space-y-4">
+                            <For
+                              each={(() => {
+                                const paginatedData = passkeyData();
+                                return paginatedData
+                                  ? paginatedData.passkeys.edges
+                                  : [];
+                              })()}
+                            >
+                              {(edge) => (
+                                <div class="flex items-center justify-between p-4 border rounded-lg">
+                                  <div class="space-y-1">
+                                    <h4 class="font-medium">
+                                      {edge.node.name}
+                                    </h4>
+                                    <div class="text-sm text-muted-foreground space-y-1">
+                                      <div>
+                                        <Trans
+                                          message={t`Created ${"RELATIVE_DATE"}`}
+                                          values={{
+                                            RELATIVE_DATE: () => (
+                                              <Timestamp
+                                                value={edge.node.created}
                                               />
-                                            )}
-                                          </Show>
-                                        </div>
+                                            ),
+                                          }}
+                                        />
+                                      </div>
+                                      <div>
+                                        <Show
+                                          when={edge.node.lastUsed}
+                                          fallback={t`Never used`}
+                                        >
+                                          {(lastUsed) => (
+                                            <Trans
+                                              message={t`Last used ${"RELATIVE_DATE"}`}
+                                              values={{
+                                                RELATIVE_DATE: () => (
+                                                  <Timestamp
+                                                    value={lastUsed()}
+                                                  />
+                                                ),
+                                              }}
+                                            />
+                                          )}
+                                        </Show>
                                       </div>
                                     </div>
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="sm"
-                                      class="cursor-pointer hover:bg-destructive/70"
-                                      onClick={() =>
-                                        openRevokeDialog(
-                                          edge.node.id,
-                                          edge.node.name,
-                                        )}
-                                    >
-                                      {t`Revoke`}
-                                    </Button>
                                   </div>
-                                )}
-                              </For>
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    class="cursor-pointer hover:bg-destructive/70"
+                                    onClick={() =>
+                                      openRevokeDialog(
+                                        edge.node.id,
+                                        edge.node.name,
+                                      )}
+                                  >
+                                    {t`Revoke`}
+                                  </Button>
+                                </div>
+                              )}
+                            </For>
 
-                              <Show
-                                when={passkeyData()?.passkeys.pageInfo
-                                  .hasNextPage}
+                            <Show
+                              when={passkeyData()?.passkeys.pageInfo
+                                .hasNextPage}
+                            >
+                              <Button
+                                type="button"
+                                variant="outline"
+                                disabled={loadingState() === "loading"}
+                                onClick={loadMorePasskeys}
+                                class="w-full cursor-pointer"
                               >
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  disabled={loadingState() === "loading"}
-                                  onClick={loadMorePasskeys}
-                                  class="w-full cursor-pointer"
-                                >
-                                  {loadingState() === "loading"
-                                    ? t`Loading more passkeys…`
-                                    : loadingState() === "errored"
-                                    ? t`Failed to load more passkeys; click to retry`
-                                    : t`Load more passkeys`}
-                                </Button>
-                              </Show>
-                            </div>
-                          </Show>
-                        </CardContent>
-                      </Card>
-                    </div>
+                                {loadingState() === "loading"
+                                  ? t`Loading more passkeys…`
+                                  : loadingState() === "errored"
+                                  ? t`Failed to load more passkeys; click to retry`
+                                  : t`Load more passkeys`}
+                              </Button>
+                            </Show>
+                          </div>
+                        </Show>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </>

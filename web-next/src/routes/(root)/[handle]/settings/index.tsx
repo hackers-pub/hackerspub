@@ -142,20 +142,18 @@ export default function SettingsPage() {
               <>
                 <Title>{t`Profile settings`}</Title>
                 <div class="p-4">
-                  <div class="mx-auto max-w-prose">
-                    <SettingsTabs selected="profile" $account={account()} />
-                    <Card class="mt-4">
-                      <CardHeader>
-                        <CardTitle>{t`Profile settings`}</CardTitle>
-                        <CardDescription>
-                          {t`Update your profile information, including your avatar, username, display name, bio, and links.`}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <SettingsForm $account={account()} />
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <SettingsTabs selected="profile" $account={account()} />
+                  <Card class="mt-4">
+                    <CardHeader>
+                      <CardTitle>{t`Profile settings`}</CardTitle>
+                      <CardDescription>
+                        {t`Update your profile information, including your avatar, username, display name, bio, and links.`}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <SettingsForm $account={account()} />
+                    </CardContent>
+                  </Card>
                 </div>
               </>
             )}

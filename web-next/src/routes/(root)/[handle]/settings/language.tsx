@@ -101,23 +101,21 @@ export default function LanguagePage() {
               <>
                 <Title>{t`Language settings`}</Title>
                 <div class="p-4">
-                  <div class="mx-auto max-w-prose">
-                    <SettingsTabs
-                      selected="language"
-                      $account={account()}
-                    />
-                    <Card class="mt-4">
-                      <CardHeader>
-                        <CardTitle>{t`Preferred languages`}</CardTitle>
-                        <CardDescription>
-                          {t`Select your preferred languages in order of preference. This will help tailor content to your preferences.`}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <PreferredLanguagesForm $locales={account()} />
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <SettingsTabs
+                    selected="language"
+                    $account={account()}
+                  />
+                  <Card class="mt-4">
+                    <CardHeader>
+                      <CardTitle>{t`Preferred languages`}</CardTitle>
+                      <CardDescription>
+                        {t`Select your preferred languages in order of preference. This will help tailor content to your preferences.`}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <PreferredLanguagesForm $locales={account()} />
+                    </CardContent>
+                  </Card>
                 </div>
               </>
             )}

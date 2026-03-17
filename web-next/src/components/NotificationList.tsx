@@ -54,7 +54,7 @@ export function NotificationList(props: NotificationListProps) {
     <Show when={notifications()}>
       {(data) => (
         <>
-          <ul class="flex flex-col border rounded-xl *:first-rounded-t-xl *:last:rounded-b-xl mx-auto max-w-prose">
+          <ul class="flex flex-col border rounded-xl *:first-rounded-t-xl *:last:rounded-b-xl">
             <For each={data().notifications.edges}>
               {(edge) => <NotificationCard $notification={edge.node} />}
             </For>

@@ -63,9 +63,7 @@ export default function LocalTimeline() {
           <Show when={data().viewer == null}>
             <AboutHackersPub />
           </Show>
-          <div class="p-4">
-            <PublicTimeline $posts={data()} />
-          </div>
+          <PublicTimeline $posts={data()} />
         </>
       )}
     </Show>

@@ -4,7 +4,7 @@ export function AboutHackersPub() {
   const { t } = useLingui();
   return (
     <div class="border-b">
-      <div class="flex flex-row gap-4 items-center max-w-prose mx-auto my-4">
+      <div class="flex flex-row gap-4 items-center my-4">
         <div>
           <svg
             xmlns="http://www.w3.org/2000/svg"

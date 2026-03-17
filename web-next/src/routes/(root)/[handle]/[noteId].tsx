@@ -240,12 +240,12 @@ function NoteInternal(props: NoteInternalProps) {
           <div class="my-4">
             <Show when={note().replyTarget}>
               {(parent) => (
-                <div class="border-x border-t rounded-t-xl max-w-prose mx-auto">
+                <div class="border-x border-t rounded-t-xl">
                   <NoteCard $note={parent()} />
                 </div>
               )}
             </Show>
-            <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto text-xl">
+            <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
               <NoteCard $note={note()} onDeleted={() => navigate(-1)} />
               <Show when={viewer() == null}>
                 <p class="p-4 text-sm text-muted-foreground">
@@ -263,7 +263,7 @@ function NoteInternal(props: NoteInternalProps) {
               </Show>
             </div>
             <Show when={note().replies?.edges.length}>
-              <div class="border-x border-b rounded-b-xl max-w-prose mx-auto">
+              <div class="border-x border-b rounded-b-xl">
                 <For each={note().replies?.edges}>
                   {(edge) => <NoteCard $note={edge.node} />}
                 </For>

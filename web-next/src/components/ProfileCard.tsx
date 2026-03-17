@@ -68,7 +68,7 @@ export function ProfileCard(props: ProfileCardProps) {
       {(actor) => (
         <>
           <div class="p-4">
-            <div class="flex items-center gap-4 mx-auto max-w-prose">
+            <div class="flex items-center gap-4">
               <Avatar class="size-16">
                 <a
                   href={actor().local
@@ -114,7 +114,7 @@ export function ProfileCard(props: ProfileCardProps) {
             fallback={
               <Show when={actor().fields.length > 0}>
                 <div class="p-4 pt-0">
-                  <ul class="mx-auto max-w-prose">
+                  <ul>
                     <For each={actor().fields}>
                       {(field) => (
                         <li class="flex flex-row items-center text-sm mb-1">
@@ -139,7 +139,7 @@ export function ProfileCard(props: ProfileCardProps) {
                 when={account().links.length > 0}
               >
                 <div class="p-4 pt-0">
-                  <ul class="mx-auto max-w-prose">
+                  <ul>
                     <For each={account().links}>
                       {(link) => (
                         <li class="flex flex-row items-center text-sm mb-1">
@@ -197,7 +197,7 @@ export function ProfileCard(props: ProfileCardProps) {
             )}
           </Show>
           <div class="p-4 pt-0 border-b">
-            <div class="mx-auto max-w-prose text-muted-foreground">
+            <div class="text-muted-foreground">
               <a
                 href={actor().local
                   ? `/@${actor().username}/following`

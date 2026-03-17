@@ -33,7 +33,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
     <Show when={account()}>
       {(account) => (
         <Tabs value={props.selected}>
-          <TabsList class="grid max-w-prose mx-auto grid-cols-5">
+          <TabsList class="grid grid-cols-5">
             <TabsTrigger
               as={A}
               value="profile"
