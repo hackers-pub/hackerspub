@@ -2,17 +2,17 @@
   "version": "5",
   "specifiers": {
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
-    "jsr:@fedify/fedify@2.0.3": "2.0.3",
-    "jsr:@fedify/fedify@^2.0.3": "2.0.3",
+    "jsr:@fedify/fedify@2.0.6": "2.0.6",
+    "jsr:@fedify/fedify@^2.0.6": "2.0.6",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
-    "jsr:@fedify/postgres@2.0.3": "2.0.3",
-    "jsr:@fedify/redis@2.0.3": "2.0.3",
-    "jsr:@fedify/vocab-runtime@2.0.3": "2.0.3",
-    "jsr:@fedify/vocab-runtime@^2.0.3": "2.0.3",
-    "jsr:@fedify/vocab@2.0.3": "2.0.3",
-    "jsr:@fedify/vocab@^2.0.3": "2.0.3",
-    "jsr:@fedify/webfinger@^2.0.3": "2.0.3",
+    "jsr:@fedify/postgres@2.0.6": "2.0.6",
+    "jsr:@fedify/redis@2.0.6": "2.0.6",
+    "jsr:@fedify/vocab-runtime@2.0.6": "2.0.6",
+    "jsr:@fedify/vocab-runtime@^2.0.6": "2.0.6",
+    "jsr:@fedify/vocab@2.0.6": "2.0.6",
+    "jsr:@fedify/vocab@^2.0.6": "2.0.6",
+    "jsr:@fedify/webfinger@^2.0.6": "2.0.6",
     "jsr:@fresh/core@2.0.0-alpha.34": "2.0.0-alpha.34",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7": "0.0.1-alpha.7",
@@ -26,8 +26,8 @@
     "jsr:@luca/esbuild-deno-loader@0.11": "0.11.1",
     "jsr:@onisaint/validate-email@^1.0.1": "1.0.1",
     "jsr:@schotsl/mailgun@^1.3.0": "1.3.0",
-    "jsr:@simplewebauthn/browser@^13.1.0": "13.2.2",
-    "jsr:@simplewebauthn/server@^13.1.1": "13.2.3",
+    "jsr:@simplewebauthn/browser@^13.1.0": "13.3.0",
+    "jsr:@simplewebauthn/server@^13.1.1": "13.3.0",
     "jsr:@std/assert@0.221": "0.221.0",
     "jsr:@std/assert@^1.0.12": "1.0.19",
     "jsr:@std/assert@~0.225.2": "0.225.3",
@@ -76,7 +76,7 @@
     "jsr:@upyo/core@~0.1.2": "0.1.2",
     "jsr:@upyo/mailgun@~0.1.1": "0.1.2",
     "jsr:@upyo/mock@~0.1.1": "0.1.2",
-    "jsr:@valibot/valibot@1": "1.2.0",
+    "jsr:@valibot/valibot@1": "1.3.0",
     "jsr:@vertana/core@~0.1.1": "0.1.1",
     "jsr:@vertana/facade@~0.1.1": "0.1.1",
     "npm:@ai-sdk/anthropic@^3.0.44": "3.0.44_zod@4.2.1",
@@ -181,8 +181,8 @@
     "npm:domhandler@^5.0.3": "5.0.3",
     "npm:drizzle-kit@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_esbuild@0.19.12",
     "npm:drizzle-orm@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7",
-    "npm:es-toolkit@^1.39.10": "1.44.0",
-    "npm:es-toolkit@^1.43.0": "1.44.0",
+    "npm:es-toolkit@^1.39.10": "1.45.0",
+    "npm:es-toolkit@^1.43.0": "1.45.0",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
     "npm:feed@^4.2.2": "4.2.2",
@@ -268,11 +268,11 @@
         "jsr:@std/assert@~0.225.2"
       ]
     },
-    "@fedify/fedify@2.0.3": {
-      "integrity": "19e105a6aebe9f250b2b58e3a459d25b7bba674a53fa52a63d8aa46e3c8be62b",
+    "@fedify/fedify@2.0.6": {
+      "integrity": "1f8f331d929b3bcac756e0285f37138a66e6d089fb182a445f7feb9d4f8d0855",
       "dependencies": [
-        "jsr:@fedify/vocab-runtime@^2.0.3",
-        "jsr:@fedify/vocab@^2.0.3",
+        "jsr:@fedify/vocab-runtime@^2.0.6",
+        "jsr:@fedify/vocab@^2.0.6",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@2",
         "npm:@opentelemetry/api",
@@ -302,26 +302,26 @@
         "npm:@types/markdown-it"
       ]
     },
-    "@fedify/postgres@2.0.3": {
-      "integrity": "036768b393ae77e9c61dba1a8d9f774195258b0f89a3fdc090b5a719b0cc51e3",
+    "@fedify/postgres@2.0.6": {
+      "integrity": "4ddc07326a0a9e439030cd712d25ca5652fa595e762604b40669a372f5d92c58",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.0.3",
+        "jsr:@fedify/fedify@^2.0.6",
         "jsr:@logtape/logtape@2",
         "npm:postgres@^3.4.7"
       ]
     },
-    "@fedify/redis@2.0.3": {
-      "integrity": "d46ec4eca552fcc610164bf46d31414e5c5e4d3a808bbdc4df703c61711a7eb2",
+    "@fedify/redis@2.0.6": {
+      "integrity": "2475a41abd2e768fa8012fec4772f68961e6d1528b1ff6785296cd8d9d25f310",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.0.3",
+        "jsr:@fedify/fedify@^2.0.6",
         "jsr:@logtape/logtape@2",
         "npm:ioredis@^5.8.2"
       ]
     },
-    "@fedify/vocab@2.0.3": {
-      "integrity": "9721b7c8a30962af87ce51de7edd640f689f83b0002cf7aff1f90abfa385e379",
+    "@fedify/vocab@2.0.6": {
+      "integrity": "e9f95eddaf4cd6ac73c9b9cb3d1758b726002ecd00efdd169b2b575ef5c15759",
       "dependencies": [
-        "jsr:@fedify/vocab-runtime@^2.0.3",
+        "jsr:@fedify/vocab-runtime@^2.0.6",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@2",
         "npm:@opentelemetry/api",
@@ -329,8 +329,8 @@
         "npm:jsonld"
       ]
     },
-    "@fedify/vocab-runtime@2.0.3": {
-      "integrity": "2fbe6e478afce88b6eecdd2eaca6de3111a29a705c5ddfa2f6d994ab5e6b45eb",
+    "@fedify/vocab-runtime@2.0.6": {
+      "integrity": "15fb2faea6bbf0f7a1586ab864099eba616e5e474a32c16bb14b4f7247a7b014",
       "dependencies": [
         "jsr:@logtape/logtape@2",
         "npm:@multiformats/base-x",
@@ -341,10 +341,10 @@
         "npm:pkijs"
       ]
     },
-    "@fedify/webfinger@2.0.3": {
-      "integrity": "dbc36ab439a091c766e325b7d58a747ecddb8f7a6a72009058041f77bb6a73c4",
+    "@fedify/webfinger@2.0.6": {
+      "integrity": "f699273969a99f4087ce32306f9294769f49e2085f930eb3dd2d3ec1a1510fc5",
       "dependencies": [
-        "jsr:@fedify/vocab-runtime@^2.0.3",
+        "jsr:@fedify/vocab-runtime@^2.0.6",
         "jsr:@logtape/logtape@2",
         "npm:@opentelemetry/api"
       ]
@@ -434,6 +434,9 @@
     "@simplewebauthn/browser@13.2.2": {
       "integrity": "9a7387f031b68abacef42b51e612bb23fec8e28e83f95ac5f1e8922bd9c15157"
     },
+    "@simplewebauthn/browser@13.3.0": {
+      "integrity": "2e837b14c06346e815dafa89270360c07a41411f62fa1ff3e0535de18ec2c8a5"
+    },
     "@simplewebauthn/server@13.2.0": {
       "integrity": "14c54e7bab97db5fa4158212219c9f7014014967698e73fe250917e2c2f31fa7",
       "dependencies": [
@@ -449,6 +452,19 @@
     },
     "@simplewebauthn/server@13.2.3": {
       "integrity": "8ab14d55c42a6c834ce14630e1500603f043291a7cccdd3f8dcc15d8cbee3264",
+      "dependencies": [
+        "npm:@hexagon/base64",
+        "npm:@levischuck/tiny-cbor",
+        "npm:@peculiar/asn1-android@^2.6.0",
+        "npm:@peculiar/asn1-ecc@^2.6.1",
+        "npm:@peculiar/asn1-rsa@^2.6.1",
+        "npm:@peculiar/asn1-schema@^2.6.0",
+        "npm:@peculiar/asn1-x509@^2.6.1",
+        "npm:@peculiar/x509@^1.14.3"
+      ]
+    },
+    "@simplewebauthn/server@13.3.0": {
+      "integrity": "05673d6ba63ee4c8b0a0c6d417ebabb8ac20c75c323cdbab76eeea996a34d75b",
       "dependencies": [
         "npm:@hexagon/base64",
         "npm:@levischuck/tiny-cbor",
@@ -643,6 +659,9 @@
     },
     "@valibot/valibot@1.2.0": {
       "integrity": "61c118a4d027ed55912caf381c78f0a178f335f46ad0c4bcb136498dc1ef2285"
+    },
+    "@valibot/valibot@1.3.0": {
+      "integrity": "257b10d53e5906449980d555c3dec3da23a610bd47833a6d87e0e9d43abd3276"
     },
     "@vertana/core@0.1.1": {
       "integrity": "8fb5318976cb65c0b69981fcfbafa9464bdd55d57db28a8537edaa923f304e44",
@@ -7955,8 +7974,8 @@
         "is-symbol"
       ]
     },
-    "es-toolkit@1.44.0": {
-      "integrity": "sha512-6penXeZalaV88MM3cGkFZZfOoLGWshWWfdy0tWw/RlVVyhvMaWSBTOvXNeiW3e5FwdS5ePW0LGEu17zT139ktg=="
+    "es-toolkit@1.45.0": {
+      "integrity": "sha512-RArCX+Zea16+R1jg4mH223Z8p/ivbJjIkU3oC6ld2bdUfmDxiCkFYSi9zLOR2anucWJUeH4Djnzgd0im0nD3dw=="
     },
     "esbuild-register@3.6.0_esbuild@0.19.12": {
       "integrity": "sha512-H2/S7Pm8a9CL1uhp9OvjwrBh5Pvx0H8qVOxNu8Wed9Y7qv56MPtq+GGM8RJpq6glYJn9Wspr8uw7l55uyinNeg==",
@@ -13316,13 +13335,13 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@2.0.3",
+      "jsr:@fedify/fedify@2.0.6",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
-      "jsr:@fedify/postgres@2.0.3",
-      "jsr:@fedify/redis@2.0.3",
-      "jsr:@fedify/vocab-runtime@2.0.3",
-      "jsr:@fedify/vocab@2.0.3",
+      "jsr:@fedify/postgres@2.0.6",
+      "jsr:@fedify/redis@2.0.6",
+      "jsr:@fedify/vocab-runtime@2.0.6",
+      "jsr:@fedify/vocab@2.0.6",
       "jsr:@fresh/core@2.0.0-alpha.34",
       "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",
