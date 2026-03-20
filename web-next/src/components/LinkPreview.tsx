@@ -75,7 +75,7 @@ export function LinkPreview(props: LinkPreviewProps) {
               target="_blank"
               rel="noopener noreferrer"
               data-layout={layoutMode}
-              class="border-t border-border bg-muted max-w-prose grid data-[layout=wide]:grid-cols-1 data-[layout=compact]:grid-cols-[auto_1fr] gap-0"
+              class="border-t border-border bg-muted grid data-[layout=wide]:grid-cols-1 data-[layout=compact]:grid-cols-[auto_1fr] gap-0"
             >
               <Show when={image}>
                 {(img) => (

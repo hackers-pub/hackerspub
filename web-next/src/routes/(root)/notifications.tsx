@@ -6,6 +6,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotificationList } from "~/components/NotificationList.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -36,7 +37,7 @@ export default function NotificationsPage() {
     () => loadPageQuery(),
   );
   return (
-    <>
+    <NarrowContainer>
       <Title>{t`Hackers' Pub: Notifications`}</Title>
       <div class="p-4">
         <Show when={data()}>
@@ -50,6 +51,6 @@ export default function NotificationsPage() {
           )}
         </Show>
       </div>
-    </>
+    </NarrowContainer>
   );
 }

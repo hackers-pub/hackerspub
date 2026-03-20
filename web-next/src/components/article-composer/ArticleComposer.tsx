@@ -40,7 +40,7 @@ function ArticleComposerInner() {
           </div>
         }
       >
-        <div class="mx-auto p-6 max-w-7xl">
+        <div class="p-6">
           <form
             onSubmit={(e) => {
               e.preventDefault();

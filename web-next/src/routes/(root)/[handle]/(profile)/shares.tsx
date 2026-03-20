@@ -8,6 +8,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorSharedPostList } from "~/components/ActorSharedPostList.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -63,7 +64,7 @@ export default function ProfileSharesPage() {
             when={data().actorByHandle}
           >
             {(actor) => (
-              <>
+              <NarrowContainer>
                 <Title>
                   {t`${actor().rawName ?? actor().username}'s shares`}
                 </Title>
@@ -79,7 +80,7 @@ export default function ProfileSharesPage() {
                   <ProfileTabs selected="shares" $actor={actor()} />
                   <ActorSharedPostList $sharedPosts={actor()} />
                 </div>
-              </>
+              </NarrowContainer>
             )}
           </Show>
         </>
