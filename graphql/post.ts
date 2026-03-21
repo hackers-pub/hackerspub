@@ -10,8 +10,10 @@ import {
 import { createNote } from "@hackerspub/models/note";
 import {
   deletePost,
+  isPostObject,
   isPostSharedBy,
   isPostVisibleTo,
+  persistPost,
   sharePost,
   unsharePost,
 } from "@hackerspub/models/post";
@@ -1245,9 +1247,6 @@ builder.queryField("postByUrl", (t) =>
         where: { OR: [{ iri: url }, { url }] },
       });
       if (post == null) {
-        const { isPostObject, persistPost } = await import(
-          "@hackerspub/models/post"
-        );
         const documentLoader = ctx.account == null
           ? ctx.fedCtx.documentLoader
           : await ctx.fedCtx.getDocumentLoader({
