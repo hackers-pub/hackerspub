@@ -203,6 +203,9 @@ export function NoteComposer(props: NoteComposerProps) {
           setPastedQuoteId(post.id);
         }
       },
+      error() {
+        // Silent failure — URL remains in textarea as plain text
+      },
     });
   };
 
