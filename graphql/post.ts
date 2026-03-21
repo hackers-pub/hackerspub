@@ -1215,6 +1215,9 @@ builder.queryField("postByUrl", (t) =>
       url: t.arg.string({ required: true }),
     },
     async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
       const raw = args.url.trim();
       if (!URL.canParse(raw)) return null;
       const parsed = new URL(raw);
