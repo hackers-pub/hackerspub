@@ -640,6 +640,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                               DATE: () => (
                                 <Timestamp
                                   value={expires()}
+                                  allowFuture
                                 />
                               ),
                             }}

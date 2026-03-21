@@ -332,6 +332,7 @@ export default function InvitationLinkPage() {
                                         DATE: () => (
                                           <Timestamp
                                             value={expires()}
+                                            allowFuture
                                           />
                                         ),
                                       }}
