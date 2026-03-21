@@ -96,6 +96,8 @@ export function NoteComposer(props: NoteComposerProps) {
     new Intl.Locale(i18n.locale),
   );
   const [manualLanguageChange, setManualLanguageChange] = createSignal(false);
+  const [pastedQuoteId, setPastedQuoteId] = createSignal<string | null>(null);
+  const effectiveQuotedPostId = () => props.quotedPostId ?? pastedQuoteId();
   const [quotedPost, setQuotedPost] = createSignal<
     QuotedPostPreview | null
   >(null);
@@ -106,7 +108,7 @@ export function NoteComposer(props: NoteComposerProps) {
 
   // Fetch quoted post preview when quotedPostId changes
   createEffect(() => {
-    const id = props.quotedPostId;
+    const id = effectiveQuotedPostId();
     if (!id) {
       setQuotedPost(null);
       return;
@@ -159,9 +161,33 @@ export function NoteComposer(props: NoteComposerProps) {
     }
   });
 
+  const handlePaste = (e: ClipboardEvent) => {
+    if (effectiveQuotedPostId()) return;
+    const text = e.clipboardData?.getData("text/plain");
+    if (!text || !URL.canParse(text)) return;
+    fetch(`/api/posts?iri=${encodeURIComponent(text)}`).then(async (r) => {
+      if (!r.ok) return;
+      const post = await r.json();
+      if (post.visibility !== "public" && post.visibility !== "unlisted") {
+        return;
+      }
+      const confirmMsg = post.type === "Article"
+        ? t`Do you want to quote this article?`
+        : t`Do you want to quote this note?`;
+      if (confirm(confirmMsg)) {
+        setPastedQuoteId(btoa(`${post.type}:${post.id}`));
+      }
+    });
+  };
+
   const handleLanguageChange = (locale?: Intl.Locale) => {
     setLanguage(locale);
     setManualLanguageChange(true);
+  };
+
+  const clearPastedQuote = () => {
+    setPastedQuoteId(null);
+    setQuotedPost(null);
   };
 
   const resetForm = () => {
@@ -170,6 +196,7 @@ export function NoteComposer(props: NoteComposerProps) {
     setLanguage(new Intl.Locale(i18n.locale));
     setManualLanguageChange(false);
     setQuotedPost(null);
+    setPastedQuoteId(null);
   };
 
   const handleSubmit = (e: Event) => {
@@ -191,7 +218,7 @@ export function NoteComposer(props: NoteComposerProps) {
           content: noteContent,
           language: language()?.baseName ?? i18n.locale,
           visibility: visibility(),
-          quotedPostId: quotedPost() ? (props.quotedPostId ?? null) : null,
+          quotedPostId: quotedPost() ? (effectiveQuotedPostId() ?? null) : null,
         },
       },
       onCompleted(response) {
@@ -233,7 +260,7 @@ export function NoteComposer(props: NoteComposerProps) {
     <form onSubmit={handleSubmit} class={props.class}>
       <div class="grid gap-4">
         {/* Quoted post preview */}
-        <Show when={props.quotedPostId}>
+        <Show when={effectiveQuotedPostId()}>
           <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
             <Show when={quotedPost()} fallback={
               <div class="flex-1 min-w-0">
@@ -273,7 +300,10 @@ export function NoteComposer(props: NoteComposerProps) {
             <button
               type="button"
               class="text-muted-foreground hover:text-foreground flex-shrink-0"
-              onClick={() => props.onQuoteRemoved?.()}
+              onClick={() => {
+                props.onQuoteRemoved?.();
+                clearPastedQuote();
+              }}
               title={t`Remove quote`}
               aria-label={t`Remove quote`}
             >
@@ -316,6 +346,7 @@ export function NoteComposer(props: NoteComposerProps) {
             ref={(el) => (textareaRef = el)}
             value={content()}
             onInput={(e) => setContent(e.currentTarget.value)}
+            onPaste={handlePaste}
             placeholder={props.placeholder ?? t`What's on your mind?`}
             required
             autofocus={props.autoFocus}
@@ -356,7 +387,7 @@ export function NoteComposer(props: NoteComposerProps) {
           </Show>
           <Button
             type="submit"
-            disabled={isCreating() || (!!props.quotedPostId && !quotedPost())}
+            disabled={isCreating() || (!!effectiveQuotedPostId() && !quotedPost())}
           >
             <Show when={isCreating()} fallback={t`Create Note`}>
               {t`Creating…`}
