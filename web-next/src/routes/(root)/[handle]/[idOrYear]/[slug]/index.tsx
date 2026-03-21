@@ -199,7 +199,7 @@ interface ArticleBodyProps {
 }
 
 function ArticleBody(props: ArticleBodyProps) {
-  const { t } = useLingui();
+  const { t, i18n } = useLingui();
   const navigate = useNavigate();
 
   const article = createFragment(
@@ -396,7 +396,7 @@ function ArticleBody(props: ArticleBodyProps) {
                               values={{
                                 LANGUAGE: () => (
                                   <a href={postUrl()}>
-                                    {new Intl.DisplayNames("en", {
+                                    {new Intl.DisplayNames(i18n.locale, {
                                       type: "language",
                                     }).of(originalLanguage())}
                                   </a>
