@@ -356,6 +356,8 @@ type BlockActorPayload {
 
 union BlockActorResult = BlockActorPayload | InvalidInputError | NotAuthenticatedError
 
+union CreateInvitationLinkResult = InvalidInputError | InvitationLink | NotAuthenticatedError
+
 input CreateNoteInput {
   clientMutationId: ID
   content: Markdown!
@@ -601,6 +603,7 @@ type Mutation {
     """The signup token."""
     token: UUID!
   ): SignupResult!
+  createInvitationLink(expires: String, invitationsLeft: Int!, message: Markdown): CreateInvitationLinkResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
   deletePost(input: DeletePostInput!): DeletePostResult!
@@ -968,6 +971,7 @@ type Query {
     locale: Locale!
   ): Document!
   instanceByHost(host: String!): Instance
+  invitationLink(id: UUID!): InvitationLink
 
   """Returns all accounts as a flat array for building the invitation tree."""
   invitationTree: [InvitationTreeNode!]!
