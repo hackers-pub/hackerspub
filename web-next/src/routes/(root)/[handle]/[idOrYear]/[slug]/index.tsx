@@ -446,6 +446,46 @@ function ArticleBody(props: ArticleBodyProps) {
                   $post={article()}
                   class="mt-8"
                 />
+
+                {/* Comments section */}
+                <div id="replies" class="my-8">
+                  <h2 class="text-xl font-bold mb-4">
+                    {t`Comments (${article().replies?.edges.length ?? 0})`}
+                  </h2>
+
+                  <Show when={viewer() != null}>
+                    <div class="mb-4">
+                      <NoteComposer
+                        replyTargetId={article().id}
+                        placeholder={t`Write a reply...`}
+                        onSuccess={() => location.reload()}
+                      />
+                    </div>
+                  </Show>
+
+                  <Show when={viewer() == null}>
+                    <p class="p-4 text-sm text-muted-foreground">
+                      <Trans
+                        message={t`If you have a fediverse account, you can reply to this article from your own instance. Search ${"ACTIVITYPUB_URI"} on your instance and reply to it.`}
+                        values={{
+                          ACTIVITYPUB_URI: () => (
+                            <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
+                              {article().iri}
+                            </span>
+                          ),
+                        }}
+                      />
+                    </p>
+                  </Show>
+
+                  <Show when={article().replies?.edges.length}>
+                    <div class="border rounded-xl">
+                      <For each={article().replies?.edges}>
+                        {(edge) => <NoteCard $note={edge.node} />}
+                      </For>
+                    </div>
+                  </Show>
+                </div>
               </article>
 
               {/* Sidebar (xl+ only) */}
@@ -482,46 +522,6 @@ function ArticleBody(props: ArticleBodyProps) {
                   </Show>
                 </div>
               </aside>
-            </div>
-
-            {/* Comments section */}
-            <div id="replies" class="my-4 max-w-prose px-4 mx-auto xl:mx-0">
-              <h2 class="text-xl font-bold mb-4">
-                {t`Comments (${article().replies?.edges.length ?? 0})`}
-              </h2>
-
-              <Show when={viewer() != null}>
-                <div class="mb-4">
-                  <NoteComposer
-                    replyTargetId={article().id}
-                    placeholder={t`Write a reply...`}
-                    onSuccess={() => location.reload()}
-                  />
-                </div>
-              </Show>
-
-              <Show when={viewer() == null}>
-                <p class="p-4 text-sm text-muted-foreground">
-                  <Trans
-                    message={t`If you have a fediverse account, you can reply to this article from your own instance. Search ${"ACTIVITYPUB_URI"} on your instance and reply to it.`}
-                    values={{
-                      ACTIVITYPUB_URI: () => (
-                        <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
-                          {article().iri}
-                        </span>
-                      ),
-                    }}
-                  />
-                </p>
-              </Show>
-
-              <Show when={article().replies?.edges.length}>
-                <div class="border rounded-xl">
-                  <For each={article().replies?.edges}>
-                    {(edge) => <NoteCard $note={edge.node} />}
-                  </For>
-                </div>
-              </Show>
             </div>
           </>
         );
