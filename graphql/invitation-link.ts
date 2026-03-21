@@ -371,24 +371,38 @@ builder.mutationField("redeemInvitationLink", (t) =>
       }
 
       // Create signup token and send email
-      const token = await createSignupToken(ctx.kv, email, {
-        inviterId: link.inviter.id,
-        expiration: EXPIRATION,
-      });
-      const message = await getEmailMessage({
-        locale: args.locale,
-        inviter: link.inviter,
-        verifyUrlTemplate: args.verifyUrl,
-        to: email,
-        token,
-        message: link.message ?? undefined,
-        expiration: EXPIRATION,
-      });
-      const receipt = await ctx.email.send(message);
-      if (!receipt.successful) {
+      try {
+        const token = await createSignupToken(ctx.kv, email, {
+          inviterId: link.inviter.id,
+          expiration: EXPIRATION,
+        });
+        const message = await getEmailMessage({
+          locale: args.locale,
+          inviter: link.inviter,
+          verifyUrlTemplate: args.verifyUrl,
+          to: email,
+          token,
+          message: link.message ?? undefined,
+          expiration: EXPIRATION,
+        });
+        const receipt = await ctx.email.send(message);
+        if (!receipt.successful) {
+          logger.error(
+            "Failed to send invitation link email: {errors}",
+            { errors: receipt.errorMessages },
+          );
+          // Credit back on failure
+          await ctx.db.update(invitationLinkTable)
+            .set({
+              invitationsLeft: sql`${invitationLinkTable.invitationsLeft} + 1`,
+            })
+            .where(eq(invitationLinkTable.id, link.id));
+          return { sendFailed: true } satisfies RedeemValidationErrors;
+        }
+      } catch (error) {
         logger.error(
-          "Failed to send invitation link email: {errors}",
-          { errors: receipt.errorMessages },
+          "Failed to create token or send invitation email: {error}",
+          { error },
         );
         // Credit back on failure
         await ctx.db.update(invitationLinkTable)
@@ -396,7 +410,7 @@ builder.mutationField("redeemInvitationLink", (t) =>
             invitationsLeft: sql`${invitationLinkTable.invitationsLeft} + 1`,
           })
           .where(eq(invitationLinkTable.id, link.id));
-        return { sendFailed: true } satisfies RedeemValidationErrors;
+        throw error;
       }
 
       return { linkId: link.id, email } satisfies RedeemSuccess;
