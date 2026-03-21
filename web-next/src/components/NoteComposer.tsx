@@ -8,7 +8,7 @@ import {
   PostVisibility,
   PostVisibilitySelect,
 } from "~/components/PostVisibilitySelect.tsx";
-import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   TextField,
@@ -244,6 +244,9 @@ export function NoteComposer(props: NoteComposerProps) {
                 <>
                   <Avatar class="size-8 flex-shrink-0">
                     <AvatarImage src={qp().actorAvatarUrl} />
+                    <AvatarFallback class="size-8">
+                      {qp().actorName?.charAt(0) ?? "?"}
+                    </AvatarFallback>
                   </Avatar>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1 text-sm">
