@@ -105,17 +105,22 @@ export async function getEmailMessage(
     return template.replaceAll(
       /\{\{(verifyUrl|code|expiration|inviter|inviterName|message)\}\}/g,
       (m) => {
-        return m === "{{verifyUrl}}"
-          ? verifyUrl
-          : m === "{{code}}"
-          ? token.code
-          : m === "{{expiration}}"
-          ? expirationStr
-          : m === "{{inviter}}"
-          ? `${inviter.name} (${inviter.actor.handle})`
-          : m === "{{inviterName}}"
-          ? inviter.name
-          : (message ?? "");
+        switch (m) {
+          case "{{verifyUrl}}":
+            return verifyUrl;
+          case "{{code}}":
+            return token.code;
+          case "{{expiration}}":
+            return expirationStr;
+          case "{{inviter}}":
+            return `${inviter.name} (${inviter.actor.handle})`;
+          case "{{inviterName}}":
+            return inviter.name;
+          case "{{message}}":
+            return message ?? "";
+          default:
+            return "";
+        }
       },
     );
   }
