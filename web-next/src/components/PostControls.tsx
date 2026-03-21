@@ -9,18 +9,19 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconHeart from "~icons/lucide/heart";
 import IconMessageSquare from "~icons/lucide/message-square";
 import IconMessageSquareQuote from "~icons/lucide/message-square-quote";
 import IconRepeat2 from "~icons/lucide/repeat-2";
-import type { PostControls_note$key } from "./__generated__/PostControls_note.graphql.ts";
+import type { PostControls_post$key } from "./__generated__/PostControls_post.graphql.ts";
 import type { PostControls_sharePost_Mutation } from "./__generated__/PostControls_sharePost_Mutation.graphql.ts";
 import type { PostControls_unsharePost_Mutation } from "./__generated__/PostControls_unsharePost_Mutation.graphql.ts";
 import { EmojiReactionPopover } from "./EmojiReactionPopover.tsx";
 
 export interface PostControlsProps {
-  $note: PostControls_note$key;
+  $post: PostControls_post$key;
   class?: string;
   classList?: Record<string, boolean>;
 }
@@ -71,9 +72,10 @@ const unsharePostMutation = graphql`
 
 export function PostControls(props: PostControlsProps) {
   const { t } = useLingui();
+  const { openWithQuote } = useNoteCompose();
   const note = createFragment(
     graphql`
-      fragment PostControls_note on Note {
+      fragment PostControls_post on Post {
         __id
         engagementStats {
           replies
@@ -105,7 +107,7 @@ export function PostControls(props: PostControlsProps) {
         }
       }
     `,
-    () => props.$note,
+    () => props.$post,
   );
 
   const [showEmojiPopover, setShowEmojiPopover] = createSignal(false);
@@ -191,6 +193,7 @@ export function PostControls(props: PostControlsProps) {
             size="sm"
             class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
             title={t`Quote`}
+            onClick={() => openWithQuote(note().id)}
           >
             <IconMessageSquareQuote class="size-4" />
             <span class="text-xs">{note().engagementStats.quotes}</span>

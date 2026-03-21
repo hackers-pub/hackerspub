@@ -5,11 +5,13 @@ import { renderMarkup } from "@hackerspub/models/markup";
 import {
   createArticle,
   deleteArticleDraft,
+  updateArticle,
   updateArticleDraft,
 } from "@hackerspub/models/article";
 import { createNote } from "@hackerspub/models/note";
 import {
   deletePost,
+  getPostVisibilityFilter,
   isPostSharedBy,
   isPostVisibleTo,
   sharePost,
@@ -28,7 +30,7 @@ import {
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
@@ -36,6 +38,7 @@ import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
+import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
@@ -355,6 +358,29 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           kv: ctx.kv,
         });
         return renderCustomEmojis(html.html, content.source.post.emojis);
+      },
+    }),
+    rawContent: t.field({
+      type: "Markdown",
+      description: "The raw markdown content for editing.",
+      select: {
+        columns: { content: true },
+      },
+      resolve(content) {
+        return content.content;
+      },
+    }),
+    toc: t.field({
+      type: "JSON",
+      description: "Table of contents for the article content.",
+      select: {
+        columns: { content: true },
+      },
+      async resolve(content, _, ctx) {
+        const rendered = await renderMarkup(ctx.fedCtx, content.content, {
+          kv: ctx.kv,
+        });
+        return rendered.toc;
       },
     }),
     originalLanguage: t.expose("originalLanguage", {
@@ -1205,6 +1231,188 @@ builder.queryField("articleDraft", (t) =>
       return drafts[0] ?? null;
     },
   }));
+
+builder.queryField("postByUrl", (t) =>
+  t.field({
+    type: Post,
+    nullable: true,
+    args: {
+      url: t.arg.string({ required: true }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      const parsed = parseHttpUrl(args.url.trim());
+      if (parsed == null) return null;
+      const url = parsed.href;
+      const account = ctx.account;
+      const looked = await lookupPostByUrl(ctx, url);
+      if (looked == null) return null;
+      const postId = looked.id;
+      const withRelations = {
+        actor: {
+          with: {
+            followers: {
+              where: account == null
+                ? { RAW: sql`false` }
+                : { followerId: account.actor.id },
+            },
+            blockees: {
+              where: account == null
+                ? { RAW: sql`false` }
+                : { blockeeId: account.actor.id },
+            },
+            blockers: {
+              where: account == null
+                ? { RAW: sql`false` }
+                : { blockerId: account.actor.id },
+            },
+          },
+        },
+        mentions: { with: { actor: true } },
+      } as const;
+      const post = await ctx.db.query.postTable.findFirst({
+        with: withRelations,
+        where: { id: postId },
+      });
+      if (post == null) return null;
+      if (!isPostVisibleTo(post, account?.actor)) return null;
+      return post;
+    },
+  }));
+
+builder.queryField("articleByYearAndSlug", (t) =>
+  t.drizzleField({
+    type: Article,
+    nullable: true,
+    args: {
+      handle: t.arg.string({ required: true }),
+      idOrYear: t.arg.string({ required: true }),
+      slug: t.arg.string({ required: true }),
+    },
+    async resolve(query, _, args, ctx) {
+      const year = parseInt(args.idOrYear, 10);
+      if (!Number.isFinite(year)) return null;
+
+      let handle = args.handle;
+      if (handle.startsWith("@")) handle = handle.substring(1);
+      const split = handle.split("@");
+
+      let actor;
+      if (split.length === 2) {
+        const [username, host] = split;
+        actor = await ctx.db.query.actorTable.findFirst({
+          where: {
+            username,
+            OR: [{ instanceHost: host }, { handleHost: host }],
+          },
+        });
+      } else if (split.length === 1) {
+        actor = await ctx.db.query.actorTable.findFirst({
+          where: { username: split[0], accountId: { isNotNull: true } },
+        });
+      }
+      if (actor == null) return null;
+
+      // Only local actors have articles with sources
+      if (actor.accountId == null) return null;
+
+      const account = await ctx.db.query.accountTable.findFirst({
+        where: { id: actor.accountId },
+      });
+      if (account == null) return null;
+
+      const source = await ctx.db.query.articleSourceTable.findFirst({
+        where: {
+          accountId: account.id,
+          publishedYear: year,
+          slug: args.slug,
+        },
+      });
+      if (source == null) return null;
+
+      const visibility = getPostVisibilityFilter(ctx.account?.actor ?? null);
+      return await ctx.db.query.postTable.findFirst(
+        query({
+          where: {
+            AND: [
+              {
+                type: "Article",
+                actorId: actor.id,
+                articleSourceId: source.id,
+              },
+              visibility,
+            ],
+          },
+        }),
+      ) ?? null;
+    },
+  }));
+
+builder.relayMutationField(
+  "updateArticle",
+  {
+    inputFields: (t) => ({
+      articleId: t.globalID({ for: [Article], required: true }),
+      title: t.string({ required: false }),
+      content: t.field({ type: "Markdown", required: false }),
+      tags: t.stringList({ required: false }),
+      language: t.field({ type: "Locale", required: false }),
+      allowLlmTranslation: t.boolean({ required: false }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const articleId = args.input.articleId.id;
+      // Find the post and its articleSource
+      const post = await ctx.db.query.postTable.findFirst({
+        where: { id: articleId },
+        with: { articleSource: true },
+      });
+      if (post == null || post.articleSource == null) {
+        throw new InvalidInputError("articleId");
+      }
+
+      // Verify ownership
+      if (post.articleSource.accountId !== session.accountId) {
+        throw new InvalidInputError("articleId");
+      }
+
+      const updated = await updateArticle(ctx.fedCtx, post.articleSource.id, {
+        title: args.input.title ?? undefined,
+        content: args.input.content ?? undefined,
+        tags: args.input.tags ?? undefined,
+        language: args.input.language?.baseName ?? undefined,
+        allowLlmTranslation: args.input.allowLlmTranslation ?? undefined,
+      });
+      if (updated == null) {
+        throw new InvalidInputError("articleId");
+      }
+
+      return updated;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      article: t.field({
+        type: Article,
+        resolve: (post) => post,
+      }),
+    }),
+  },
+);
 
 interface UploadMediaResult {
   url: string;
