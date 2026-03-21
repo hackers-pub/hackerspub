@@ -187,6 +187,7 @@ export function NoteComposer(props: NoteComposerProps) {
     if (effectiveQuotedPostId()) return;
     const text = e.clipboardData?.getData("text/plain")?.trim();
     if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
+    if (!confirm(t`Do you want to quote this link?`)) return;
     fetchQuery<NoteComposerPostByUrlQuery>(
       environment(),
       NoteComposerPostByUrlQuery,
@@ -194,18 +195,20 @@ export function NoteComposer(props: NoteComposerProps) {
     ).subscribe({
       next(data) {
         const post = data.postByUrl;
-        if (!post) return;
+        if (!post) {
+          showToast({
+            title: t`Error`,
+            description: t`Could not find a post at this URL`,
+            variant: "error",
+          });
+          return;
+        }
         if (post.__typename !== "Note" && post.__typename !== "Article") return;
         if (post.visibility !== "PUBLIC" && post.visibility !== "UNLISTED") {
           return;
         }
-        const confirmMsg = post.__typename === "Article"
-          ? t`Do you want to quote this article?`
-          : t`Do you want to quote this note?`;
-        if (confirm(confirmMsg)) {
-          setContent((prev) => prev.replace(text, "").trim());
-          setPastedQuoteId(post.id);
-        }
+        setContent((prev) => prev.replace(text, "").trim());
+        setPastedQuoteId(post.id);
       },
       error() {
         // Silent failure — URL remains in textarea as plain text
