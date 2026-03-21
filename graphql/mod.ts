@@ -7,6 +7,7 @@ import { builder } from "./builder.ts";
 import "./error.ts";
 import "./doc.ts";
 import "./invite.ts";
+import "./invitation-link.ts";
 import "./login.ts";
 import "./misc.ts";
 import "./notification.ts";
