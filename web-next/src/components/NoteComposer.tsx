@@ -245,7 +245,7 @@ export function NoteComposer(props: NoteComposerProps) {
           content: noteContent,
           language: language()?.baseName ?? i18n.locale,
           visibility: visibility(),
-          quotedPostId: quotedPost() ? (effectiveQuotedPostId() ?? null) : null,
+          quotedPostId: effectiveQuotedPostId() ?? null,
         },
       },
       onCompleted(response) {
