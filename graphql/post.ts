@@ -1217,8 +1217,12 @@ builder.queryField("postByUrl", (t) =>
     },
     async resolve(_root, args, ctx) {
       const raw = args.url.trim();
-      if (!URL.canParse(raw) || !raw.match(/^https?:/)) return null;
-      const url = new URL(raw).href;
+      if (!URL.canParse(raw)) return null;
+      const parsed = new URL(raw);
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        return null;
+      }
+      const url = parsed.href;
       const account = ctx.account;
       const withRelations = {
         actor: {
