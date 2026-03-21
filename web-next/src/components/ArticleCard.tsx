@@ -112,6 +112,8 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
         }
         language
         published
+        publishedYear
+        slug
         url
         iri
       }
@@ -197,85 +199,166 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                 undefined}
               class="text-xl font-semibold"
             >
-              <a
-                href={article().contents?.[0]?.url ?? article().url ??
-                  article().iri}
-                lang={article().contents?.[0]?.language ?? article().language ??
-                  undefined}
-                hreflang={article().contents?.[0]?.language ??
-                  article().language ??
-                  undefined}
-                target={article().contents?.[0]?.url == null
-                  ? "_blank"
-                  : undefined}
-                on:mouseover={() => props.setHover?.(true)}
-                on:mouseout={() => props.setHover?.(false)}
-                class="block p-4"
+              <Show
+                when={article().actor.local}
+                fallback={
+                  <a
+                    href={article().contents?.[0]?.url ?? article().url ??
+                      article().iri}
+                    lang={article().contents?.[0]?.language ??
+                      article().language ?? undefined}
+                    hreflang={article().contents?.[0]?.language ??
+                      article().language ?? undefined}
+                    target="_blank"
+                    on:mouseover={() => props.setHover?.(true)}
+                    on:mouseout={() => props.setHover?.(false)}
+                    class="block p-4"
+                  >
+                    {article().contents?.[0]?.title ?? article().name}
+                  </a>
+                }
               >
-                {article().contents?.[0]?.title ?? article().name}
-              </a>
+                <InternalLink
+                  href={article().contents?.[0]?.url ?? article().url ??
+                    article().iri}
+                  internalHref={`/@${article().actor.username}/${article().publishedYear}/${article().slug}`}
+                  lang={article().contents?.[0]?.language ??
+                    article().language ?? undefined}
+                  hreflang={article().contents?.[0]?.language ??
+                    article().language ?? undefined}
+                  on:mouseover={() => props.setHover?.(true)}
+                  on:mouseout={() => props.setHover?.(false)}
+                  class="block p-4"
+                >
+                  {article().contents?.[0]?.title ?? article().name}
+                </InternalLink>
+              </Show>
             </h1>
           </Show>
           <Show
             when={article().contents?.[0]?.summary ?? article().summary}
             fallback={
-              <a
-                href={article().url ?? article().iri}
-                lang={article().language ?? undefined}
-                hreflang={article().language ?? undefined}
-                target={article().contents?.[0]?.url == null
-                  ? "_blank"
-                  : undefined}
-                on:mouseover={() => props.setHover?.(true)}
-                on:mouseout={() => props.setHover?.(false)}
-                class="px-4 pb-4"
+              <Show
+                when={article().actor.local}
+                fallback={
+                  <a
+                    href={article().url ?? article().iri}
+                    lang={article().language ?? undefined}
+                    hreflang={article().language ?? undefined}
+                    target="_blank"
+                    on:mouseover={() => props.setHover?.(true)}
+                    on:mouseout={() => props.setHover?.(false)}
+                    class="px-4 pb-4"
+                  >
+                    <div
+                      innerHTML={article().content}
+                      class="line-clamp-4 overflow-hidden"
+                    />
+                  </a>
+                }
               >
-                <div
-                  innerHTML={article().content}
-                  class="line-clamp-4 overflow-hidden"
-                />
-              </a>
+                <InternalLink
+                  href={article().url ?? article().iri}
+                  internalHref={`/@${article().actor.username}/${article().publishedYear}/${article().slug}`}
+                  lang={article().language ?? undefined}
+                  hreflang={article().language ?? undefined}
+                  on:mouseover={() => props.setHover?.(true)}
+                  on:mouseout={() => props.setHover?.(false)}
+                  class="px-4 pb-4"
+                >
+                  <div
+                    innerHTML={article().content}
+                    class="line-clamp-4 overflow-hidden"
+                  />
+                </InternalLink>
+              </Show>
             }
           >
             {(summary) => (
+              <Show
+                when={article().actor.local}
+                fallback={
+                  <a
+                    href={article().contents?.[0]?.url ?? article().url ??
+                      article().iri}
+                    innerHTML={summary()}
+                    lang={article().contents?.[0]?.language ??
+                      article().language ?? undefined}
+                    hreflang={article().contents?.[0]?.language ??
+                      article().language ?? undefined}
+                    target="_blank"
+                    on:mouseover={() => props.setHover?.(true)}
+                    on:mouseout={() => props.setHover?.(false)}
+                    data-llm-summary-label={t`Summarized by LLM`}
+                    class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
+                    classList={{
+                      "before:border-transparent": !props.hover?.(),
+                    }}
+                  />
+                }
+              >
+                <InternalLink
+                  href={article().contents?.[0]?.url ?? article().url ??
+                    article().iri}
+                  internalHref={`/@${article().actor.username}/${article().publishedYear}/${article().slug}`}
+                  innerHTML={summary()}
+                  lang={article().contents?.[0]?.language ??
+                    article().language ?? undefined}
+                  hreflang={article().contents?.[0]?.language ??
+                    article().language ?? undefined}
+                  on:mouseover={() => props.setHover?.(true)}
+                  on:mouseout={() => props.setHover?.(false)}
+                  data-llm-summary-label={t`Summarized by LLM`}
+                  class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
+                  classList={{
+                    "before:border-transparent": !props.hover?.(),
+                  }}
+                />
+              </Show>
+            )}
+          </Show>
+          <Show
+            when={article().actor.local}
+            fallback={
               <a
                 href={article().contents?.[0]?.url ?? article().url ??
                   article().iri}
-                innerHTML={summary()}
-                lang={article().contents?.[0]?.language ?? article().language ??
-                  undefined}
                 hreflang={article().contents?.[0]?.language ??
-                  article().language ??
-                  undefined}
-                target={article().contents?.[0]?.url == null
-                  ? "_blank"
-                  : undefined}
+                  article().language ?? undefined}
+                target="_blank"
                 on:mouseover={() => props.setHover?.(true)}
                 on:mouseout={() => props.setHover?.(false)}
-                data-llm-summary-label={t`Summarized by LLM`}
-                class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
-                classList={{ "before:border-transparent": !props.hover?.() }}
-              />
-            )}
-          </Show>
-          <a
-            href={article().contents?.[0]?.url ?? article().url ??
-              article().iri}
-            hreflang={article().contents?.[0]?.language ?? article().language ??
-              undefined}
-            target={article().contents?.[0]?.url == null ? "_blank" : undefined}
-            on:mouseover={() => props.setHover?.(true)}
-            on:mouseout={() => props.setHover?.(false)}
-            class="block p-4 border-t bg-muted text-center group-last:rounded-b-xl"
-            classList={{
-              "text-muted-foreground": !props.hover?.(),
-              "text-accent-foreground": props.hover?.(),
-              "border-t-muted": !props.hover?.(),
-              "dark:border-t-black": props.hover?.(),
-            }}
+                class="block p-4 border-t bg-muted text-center group-last:rounded-b-xl"
+                classList={{
+                  "text-muted-foreground": !props.hover?.(),
+                  "text-accent-foreground": props.hover?.(),
+                  "border-t-muted": !props.hover?.(),
+                  "dark:border-t-black": props.hover?.(),
+                }}
+              >
+                {t`Read full article`}
+              </a>
+            }
           >
-            {t`Read full article`}
-          </a>
+            <InternalLink
+              href={article().contents?.[0]?.url ?? article().url ??
+                article().iri}
+              internalHref={`/@${article().actor.username}/${article().publishedYear}/${article().slug}`}
+              hreflang={article().contents?.[0]?.language ??
+                article().language ?? undefined}
+              on:mouseover={() => props.setHover?.(true)}
+              on:mouseout={() => props.setHover?.(false)}
+              class="block p-4 border-t bg-muted text-center group-last:rounded-b-xl"
+              classList={{
+                "text-muted-foreground": !props.hover?.(),
+                "text-accent-foreground": props.hover?.(),
+                "border-t-muted": !props.hover?.(),
+                "dark:border-t-black": props.hover?.(),
+              }}
+            >
+              {t`Read full article`}
+            </InternalLink>
+          </Show>
         </>
       )}
     </Show>
