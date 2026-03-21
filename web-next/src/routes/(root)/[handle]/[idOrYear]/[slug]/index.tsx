@@ -334,7 +334,13 @@ function ArticleBody(props: ArticleBodyProps) {
                           {t`Edit`}
                         </a>
                         <span>&middot;</span>
-                        <PostActionMenu $post={article()} />
+                        <PostActionMenu
+                          $post={article()}
+                          onDeleted={() =>
+                            navigate(
+                              `/@${article().actor.username}`,
+                            )}
+                        />
                       </Show>
                     </div>
                   </div>
