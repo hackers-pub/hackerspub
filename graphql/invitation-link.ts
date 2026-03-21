@@ -160,11 +160,6 @@ builder.objectType(InvitationLinkNotFoundError, {
 builder.mutationField("deleteInvitationLink", (t) =>
   t.field({
     type: "Boolean",
-    errors: {
-      types: [NotAuthenticatedError, InvitationLinkNotFoundError],
-      union: { name: "DeleteInvitationLinkResult" },
-      result: { name: "DeleteInvitationLinkSuccess" },
-    },
     args: {
       id: t.arg({ type: "UUID", required: true }),
     },
