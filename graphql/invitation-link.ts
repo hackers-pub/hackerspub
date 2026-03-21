@@ -134,3 +134,51 @@ builder.mutationField("createInvitationLink", (t) =>
       return link!;
     },
   }));
+
+class InvitationLinkNotFoundError extends Error {
+  public constructor() {
+    super("Invitation link not found");
+  }
+}
+
+builder.objectType(InvitationLinkNotFoundError, {
+  name: "InvitationLinkNotFoundError",
+  fields: (t) => ({
+    message: t.string({ resolve: () => "Invitation link not found" }),
+  }),
+});
+
+builder.mutationField("deleteInvitationLink", (t) =>
+  t.field({
+    type: "Boolean",
+    errors: {
+      types: [NotAuthenticatedError, InvitationLinkNotFoundError],
+      union: { name: "DeleteInvitationLinkResult" },
+      result: { name: "DeleteInvitationLinkSuccess" },
+    },
+    args: {
+      id: t.arg({ type: "UUID", required: true }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      await ctx.db.transaction(async (tx) => {
+        const deleted = await tx.delete(invitationLinkTable)
+          .where(and(
+            eq(invitationLinkTable.inviterId, ctx.account!.id),
+            eq(invitationLinkTable.id, args.id),
+          ))
+          .returning();
+        if (deleted.length < 1) {
+          throw new InvitationLinkNotFoundError();
+        }
+        await tx.update(accountTable)
+          .set({
+            leftInvitations: sql`${accountTable.leftInvitations} + ${
+              deleted[0].invitationsLeft
+            }`,
+          })
+          .where(eq(accountTable.id, ctx.account!.id));
+      });
+      return true;
+    },
+  }));
