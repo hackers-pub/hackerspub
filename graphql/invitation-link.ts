@@ -124,13 +124,17 @@ builder.mutationField("createInvitationLink", (t) =>
         if (leftInvitations < 0) {
           throw new Error("Not enough invitations left.");
         }
-        await tx.insert(invitationLinkTable).values({
-          id,
-          inviterId: ctx.account!.id,
-          invitationsLeft: args.invitationsLeft,
-          message: args.message?.trim() === "" ? null : (args.message ?? null),
-          expires: expiresDate,
-        } satisfies NewInvitationLink);
+        await tx.insert(invitationLinkTable).values(
+          {
+            id,
+            inviterId: ctx.account!.id,
+            invitationsLeft: args.invitationsLeft,
+            message: args.message?.trim() === ""
+              ? null
+              : (args.message ?? null),
+            expires: expiresDate,
+          } satisfies NewInvitationLink,
+        );
       });
       const link = await ctx.db.query.invitationLinkTable.findFirst({
         where: { id },
