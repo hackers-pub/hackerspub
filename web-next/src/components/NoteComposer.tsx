@@ -181,8 +181,8 @@ export function NoteComposer(props: NoteComposerProps) {
 
   const handlePaste = (e: ClipboardEvent) => {
     if (effectiveQuotedPostId()) return;
-    const text = e.clipboardData?.getData("text/plain");
-    if (!text || !URL.canParse(text)) return;
+    const text = e.clipboardData?.getData("text/plain")?.trim();
+    if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
     fetchQuery<NoteComposerPostByUrlQuery>(
       environment(),
       NoteComposerPostByUrlQuery,
