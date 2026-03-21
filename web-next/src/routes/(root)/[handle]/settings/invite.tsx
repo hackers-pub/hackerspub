@@ -5,7 +5,7 @@ import {
   useLocation,
   useParams,
 } from "@solidjs/router";
-import { graphql } from "relay-runtime";
+import { fetchQuery, graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
   createMutation,
@@ -20,6 +20,7 @@ import { SettingsTabs } from "~/components/SettingsTabs.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
+import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   Card,
@@ -39,7 +40,8 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
-import { Avatar, AvatarImage } from "../../../../components/ui/avatar.tsx";
+import type { inviteCreateLinkMutation } from "./__generated__/inviteCreateLinkMutation.graphql.ts";
+import type { inviteDeleteLinkMutation } from "./__generated__/inviteDeleteLinkMutation.graphql.ts";
 import type { inviteInviteeList_invitees$key } from "./__generated__/inviteInviteeList_invitees.graphql.ts";
 import type {
   InviteEmailError,
@@ -68,6 +70,15 @@ const invitePageQuery = graphql`
       invitationsLeft
       inviteesCount: invitees {
         totalCount
+      }
+      invitationLinks {
+        id
+        uuid
+        url
+        invitationsLeft
+        message
+        created
+        expires
       }
       ...SettingsTabs_account
       ...inviteInviteeList_invitees
@@ -120,10 +131,66 @@ const inviteMutation = graphql`
   }
 `;
 
+const createInvitationLinkMutation = graphql`
+  mutation inviteCreateLinkMutation(
+    $invitationsLeft: Int!,
+    $message: Markdown,
+    $expires: String
+  ) {
+    createInvitationLink(
+      invitationsLeft: $invitationsLeft,
+      message: $message,
+      expires: $expires,
+    ) {
+      __typename
+      ... on InvitationLink {
+        id
+        uuid
+        url
+        invitationsLeft
+        message
+        created
+        expires
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`;
+
+const deleteInvitationLinkMutation = graphql`
+  mutation inviteDeleteLinkMutation($id: UUID!) {
+    deleteInvitationLink(id: $id)
+  }
+`;
+
+const EXPIRATION_OPTIONS: {
+  unit: Intl.RelativeTimeFormatUnit;
+  value: number;
+  expiresString: string;
+}[] = [
+  { unit: "hour", value: 1, expiresString: "1 hours" },
+  { unit: "hour", value: 6, expiresString: "6 hours" },
+  { unit: "hour", value: 12, expiresString: "12 hours" },
+  { unit: "hour", value: 24, expiresString: "24 hours" },
+  { unit: "day", value: 2, expiresString: "2 days" },
+  { unit: "day", value: 3, expiresString: "3 days" },
+  { unit: "day", value: 7, expiresString: "7 days" },
+  { unit: "week", value: 2, expiresString: "2 weeks" },
+  { unit: "week", value: 3, expiresString: "3 weeks" },
+  { unit: "month", value: 1, expiresString: "1 months" },
+  { unit: "month", value: 2, expiresString: "2 months" },
+  { unit: "month", value: 3, expiresString: "3 months" },
+  { unit: "month", value: 6, expiresString: "6 months" },
+  { unit: "month", value: 12, expiresString: "12 months" },
+];
+
 export default function InvitePage() {
   const params = useParams();
   const location = useLocation();
   const { t, i18n } = useLingui();
+  const environment = useRelayEnvironment();
   const data = createPreloadedQuery<invitePageQuery>(
     invitePageQuery,
     () => loadInvitePageQuery(params.handle!),
@@ -189,6 +256,15 @@ export default function InvitePage() {
         });
       },
     });
+  }
+
+  function refetchPage() {
+    const username = params.handle?.replace(/^@/, "") ?? "";
+    fetchQuery<invitePageQuery>(
+      environment()!,
+      invitePageQuery,
+      { username },
+    ).subscribe({});
   }
 
   return (
@@ -367,6 +443,11 @@ export default function InvitePage() {
                         <InviteeList $invitees={account()} />
                       </CardContent>
                     </Card>
+                  <InvitationLinksCard
+                    invitationLinks={account().invitationLinks}
+                    invitationsLeft={account().invitationsLeft}
+                    onRefetch={refetchPage}
+                  />
                   </Show>
                 </NarrowContainer>
               </>
@@ -375,6 +456,263 @@ export default function InvitePage() {
         </>
       )}
     </Show>
+  );
+}
+
+type UUID = `${string}-${string}-${string}-${string}-${string}`;
+
+interface InvitationLinksCardProps {
+  readonly invitationLinks: ReadonlyArray<{
+    readonly id: string;
+    readonly uuid: UUID;
+    readonly url: string;
+    readonly invitationsLeft: number;
+    readonly message: string | null;
+    readonly created: string;
+    readonly expires: string | null;
+  }>;
+  readonly invitationsLeft: number;
+  readonly onRefetch: () => void;
+}
+
+function InvitationLinksCard(props: InvitationLinksCardProps) {
+  const { t, i18n } = useLingui();
+  const [createLink] = createMutation<inviteCreateLinkMutation>(
+    createInvitationLinkMutation,
+  );
+  const [deleteLink] = createMutation<inviteDeleteLinkMutation>(
+    deleteInvitationLinkMutation,
+  );
+  const [linkCount, setLinkCount] = createSignal(1);
+  const [linkMessage, setLinkMessage] = createSignal("");
+  const [linkExpires, setLinkExpires] = createSignal(
+    EXPIRATION_OPTIONS[0].expiresString,
+  );
+  const [creating, setCreating] = createSignal(false);
+  const [deletingId, setDeletingId] = createSignal<string | null>(null);
+
+  const rtf = new Intl.RelativeTimeFormat(i18n.locale, { numeric: "always" });
+
+  function onCreateLink(event: SubmitEvent) {
+    event.preventDefault();
+    setCreating(true);
+    createLink({
+      variables: {
+        invitationsLeft: linkCount(),
+        message: linkMessage().trim() === "" ? null : linkMessage().trim(),
+        expires: linkExpires() === "" ? null : linkExpires(),
+      },
+      onCompleted(data) {
+        setCreating(false);
+        if (
+          data.createInvitationLink.__typename === "InvitationLink"
+        ) {
+          setLinkCount(1);
+          setLinkMessage("");
+          setLinkExpires(EXPIRATION_OPTIONS[0].expiresString);
+          showToast({
+            title: t`Invitation link created`,
+            description: t`The invitation link has been created successfully.`,
+          });
+          props.onRefetch();
+        } else if (
+          data.createInvitationLink.__typename === "InvalidInputError"
+        ) {
+          showToast({
+            variant: "error",
+            title: t`Failed to create invitation link`,
+            description: t`Please correct the errors and try again.`,
+          });
+        }
+      },
+      onError(error) {
+        console.error(error);
+        setCreating(false);
+        showToast({
+          variant: "error",
+          title: t`Failed to create invitation link`,
+          description:
+            t`An unexpected error occurred. Please try again later.` +
+            (import.meta.env.DEV ? `\n\n${error.message}` : ""),
+        });
+      },
+    });
+  }
+
+  function onDeleteLink(id: UUID) {
+    setDeletingId(id);
+    deleteLink({
+      variables: { id },
+      onCompleted() {
+        setDeletingId(null);
+        showToast({
+          title: t`Invitation link deleted`,
+          description: t`The invitation link has been deleted successfully.`,
+        });
+        props.onRefetch();
+      },
+      onError(error) {
+        console.error(error);
+        setDeletingId(null);
+        showToast({
+          variant: "error",
+          title: t`Failed to delete invitation link`,
+          description:
+            t`An unexpected error occurred. Please try again later.` +
+            (import.meta.env.DEV ? `\n\n${error.message}` : ""),
+        });
+      },
+    });
+  }
+
+  function copyToClipboard(url: string) {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast({
+        title: t`Copied`,
+        description: t`The invitation link has been copied to the clipboard.`,
+      });
+    });
+  }
+
+  return (
+    <Card class="mt-4">
+      <CardHeader>
+        <CardTitle>{t`Invitation links`}</CardTitle>
+        <CardDescription>
+          {t`Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires.`}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Show when={props.invitationLinks.length > 0}>
+          <ul class="flex flex-col gap-3 mb-6">
+            <For each={props.invitationLinks}>
+              {(link) => (
+                <li class="flex flex-col gap-1.5 rounded-md border p-3">
+                  <div class="flex items-center gap-2">
+                    <code class="flex-1 truncate text-sm bg-muted px-2 py-1 rounded">
+                      {link.url}
+                    </code>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      class="cursor-pointer shrink-0"
+                      on:click={() => copyToClipboard(link.url)}
+                    >
+                      {t`Copy`}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      class="cursor-pointer shrink-0"
+                      disabled={deletingId() === link.uuid}
+                      on:click={() => onDeleteLink(link.uuid)}
+                    >
+                      {deletingId() === link.uuid ? t`Deleting…` : t`Delete`}
+                    </Button>
+                  </div>
+                  <Show when={link.message}>
+                    {(msg) => (
+                      <p class="text-sm text-muted-foreground truncate">
+                        {msg()}
+                      </p>
+                    )}
+                  </Show>
+                  <div class="flex gap-4 text-sm text-muted-foreground">
+                    <span>
+                      {i18n._(
+                        msg`${
+                          plural(link.invitationsLeft, {
+                            one: "# invitation left",
+                            other: "# invitations left",
+                          })
+                        }`,
+                      )}
+                    </span>
+                    <span>
+                      <Show
+                        when={link.expires}
+                        fallback={t`Never expires`}
+                      >
+                        {(expires) => (
+                          <Trans
+                            message={t`Expires ${"DATE"}`}
+                            values={{
+                              DATE: () => (
+                                <Timestamp
+                                  value={expires()}
+                                />
+                              ),
+                            }}
+                          />
+                        )}
+                      </Show>
+                    </span>
+                  </div>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+        <form on:submit={onCreateLink} class="flex flex-col gap-4">
+          <TextField class="grid w-full items-center gap-1.5">
+            <TextFieldLabel for="linkInvitationsLeft">
+              {t`Number of invitations`}
+            </TextFieldLabel>
+            <TextFieldInput
+              type="number"
+              id="linkInvitationsLeft"
+              min={1}
+              max={props.invitationsLeft}
+              value={linkCount()}
+              onInput={(e) =>
+                setLinkCount(parseInt(e.currentTarget.value) || 1)}
+            />
+          </TextField>
+          <TextField class="grid w-full items-center gap-1.5">
+            <TextFieldLabel for="linkMessage">
+              {t`Extra message`}
+            </TextFieldLabel>
+            <TextFieldTextArea
+              id="linkMessage"
+              value={linkMessage()}
+              onInput={(e) => setLinkMessage(e.currentTarget.value)}
+              placeholder={t`You can leave this field empty.`}
+            />
+          </TextField>
+          <div class="flex flex-col gap-1.5">
+            <Label for="linkExpires">{t`Expiry`}</Label>
+            <select
+              id="linkExpires"
+              class="flex h-10 w-full items-center rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              value={linkExpires()}
+              onChange={(e) => setLinkExpires(e.currentTarget.value)}
+            >
+              <For each={EXPIRATION_OPTIONS}>
+                {(opt) => (
+                  <option value={opt.expiresString}>
+                    {rtf.format(opt.value, opt.unit)}
+                  </option>
+                )}
+              </For>
+              <option value="">
+                {t`Never expires`}
+              </option>
+            </select>
+          </div>
+          <Button
+            type="submit"
+            class="cursor-pointer"
+            disabled={creating() || props.invitationsLeft <= 0}
+          >
+            {props.invitationsLeft <= 0
+              ? t`No invitations left`
+              : creating()
+              ? t`Creating…`
+              : t`Create invitation link`}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
