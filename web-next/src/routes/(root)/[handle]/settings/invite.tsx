@@ -583,6 +583,12 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
         title: t`Copied`,
         description: t`The invitation link has been copied to the clipboard.`,
       });
+    }).catch(() => {
+      showToast({
+        variant: "error",
+        title: t`Failed to copy`,
+        description: t`Could not copy the link to the clipboard.`,
+      });
     });
   }
 
