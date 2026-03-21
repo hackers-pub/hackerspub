@@ -64,12 +64,14 @@ const invitationLinkPageQuery = graphql`
   }
 `;
 
+type UUID = `${string}-${string}-${string}-${string}-${string}`;
+
 const loadInvitationLinkPageQuery = query(
   (id: string) =>
     loadQuery<IdInvitationLinkPageQuery>(
       useRelayEnvironment()(),
       invitationLinkPageQuery,
-      { id },
+      { id: id as UUID },
     ),
   "loadInvitationLinkPageQuery",
 );
@@ -144,7 +146,7 @@ export default function InvitationLinkPage() {
 
     redeemLink({
       variables: {
-        id: params.id!,
+        id: params.id! as UUID,
         email: email(),
         locale: locale(),
         verifyUrl,

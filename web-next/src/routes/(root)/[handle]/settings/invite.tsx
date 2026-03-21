@@ -469,9 +469,9 @@ interface InvitationLinksCardProps {
     readonly uuid: UUID;
     readonly url: string;
     readonly invitationsLeft: number;
-    readonly message: string | null;
+    readonly message: string | null | undefined;
     readonly created: string;
-    readonly expires: string | null;
+    readonly expires: string | null | undefined;
   }>;
   readonly invitationsLeft: number;
   readonly onRefetch: () => void;
