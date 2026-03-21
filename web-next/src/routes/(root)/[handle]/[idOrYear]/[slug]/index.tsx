@@ -264,8 +264,8 @@ function ArticleBody(props: ArticleBodyProps) {
 
         return (
           <>
-            <div class="relative mt-8 mb-4 px-4 max-w-prose mx-auto">
-              <article>
+            <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto xl:max-w-4xl 2xl:max-w-screen-lg 2xl:flex 2xl:gap-8">
+              <article class="2xl:flex-1 min-w-0">
                 <Show when={content()?.beingTranslated}>
                   <h1 class="text-4xl font-bold">
                     {t`Translating...`}
@@ -335,6 +335,7 @@ function ArticleBody(props: ArticleBodyProps) {
                 </div>
 
                 {/* Mobile/tablet: collapsible ToC */}
+                {/* Mobile: collapsible ToC */}
                 <Show
                   when={!content()?.beingTranslated && toc().length > 0}
                 >
@@ -346,6 +347,18 @@ function ArticleBody(props: ArticleBodyProps) {
                       <TocList items={toc()} />
                     </div>
                   </details>
+                </Show>
+
+                {/* xl: inline ToC (not collapsible, not sidebar) */}
+                <Show
+                  when={!content()?.beingTranslated && toc().length > 0}
+                >
+                  <nav class="hidden xl:block 2xl:hidden mt-4 p-4 bg-stone-100 dark:bg-stone-800 rounded-lg w-fit">
+                    <p class="font-bold text-sm leading-7 uppercase text-stone-500 dark:text-stone-400">
+                      {t`Table of contents`}
+                    </p>
+                    <TocList items={toc()} />
+                  </nav>
                 </Show>
 
                 {/* Language switcher */}
@@ -429,7 +442,7 @@ function ArticleBody(props: ArticleBodyProps) {
 
                 {/* Mobile/tablet tags */}
                 <Show when={article().tags.length > 0}>
-                  <div class="xl:hidden flex flex-wrap gap-1.5 mt-4">
+                  <div class="2xl:hidden flex flex-wrap gap-1.5 mt-4">
                     <For each={article().tags}>
                       {(tag) => (
                         <span class="bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full text-sm text-stone-600 dark:text-stone-400">
@@ -488,8 +501,8 @@ function ArticleBody(props: ArticleBodyProps) {
               </article>
 
               {/* Sidebar (xl+ only) */}
-              <aside class="hidden xl:block xl:absolute xl:left-full xl:top-0 xl:ml-8 xl:w-64">
-                <div class="xl:sticky xl:top-4">
+              <aside class="hidden 2xl:block 2xl:w-56 2xl:flex-shrink-0">
+                <div class="2xl:sticky 2xl:top-4">
                   {/* Desktop ToC */}
                   <Show
                     when={!content()?.beingTranslated && toc().length > 0}
