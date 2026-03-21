@@ -4,17 +4,25 @@ import type { UserContext } from "./builder.ts";
 
 /**
  * Look up a post by URL. Checks the local database first, then attempts
- * federation lookup if not found locally.  Returns the raw post row
+ * federation lookup if not found locally.  If the matched row is a share,
+ * dereferences to the original post.  Returns the raw post row
  * (without extra relations) or `null`.
  */
 export async function lookupPostByUrl(
   ctx: UserContext,
   url: string,
 ): Promise<Post | null> {
-  const existing = await ctx.db.query.postTable.findFirst({
+  let existing = await ctx.db.query.postTable.findFirst({
     where: { OR: [{ iri: url }, { url }] },
   });
-  if (existing != null) return existing;
+  if (existing != null) {
+    if (existing.sharedPostId != null) {
+      existing = await ctx.db.query.postTable.findFirst({
+        where: { id: existing.sharedPostId },
+      }) ?? null;
+    }
+    return existing;
+  }
 
   const documentLoader = ctx.account == null
     ? ctx.fedCtx.documentLoader

@@ -1225,7 +1225,7 @@ builder.queryField("postByUrl", (t) =>
       const account = ctx.account;
       const looked = await lookupPostByUrl(ctx, url);
       if (looked == null) return null;
-      const postId = looked.sharedPostId ?? looked.id;
+      const postId = looked.id;
       const withRelations = {
         actor: {
           with: {
