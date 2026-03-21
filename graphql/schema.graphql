@@ -321,6 +321,9 @@ type ArticleContent implements Node {
   language: Locale!
   originalLanguage: Locale
   published: DateTime!
+
+  """The raw markdown content for editing."""
+  rawContent: Markdown!
   summary: String
   summaryStarted: DateTime
   title: String!
@@ -689,6 +692,7 @@ type Mutation {
   unregisterApnsDeviceToken(input: UnregisterApnsDeviceTokenInput!): UnregisterApnsDeviceTokenResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
+  updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
   uploadMedia(input: UploadMediaInput!): UploadMediaResult!
   verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): PasskeyRegistrationResult!
 }
@@ -1440,6 +1444,23 @@ type UpdateAccountPayload {
   account: Account!
   clientMutationId: ID
 }
+
+input UpdateArticleInput {
+  allowLlmTranslation: Boolean
+  articleId: ID!
+  clientMutationId: ID
+  content: Markdown
+  language: Locale
+  tags: [String!]
+  title: String
+}
+
+type UpdateArticlePayload {
+  article: Article!
+  clientMutationId: ID
+}
+
+union UpdateArticleResult = InvalidInputError | NotAuthenticatedError | UpdateArticlePayload
 
 input UploadMediaInput {
   clientMutationId: ID
