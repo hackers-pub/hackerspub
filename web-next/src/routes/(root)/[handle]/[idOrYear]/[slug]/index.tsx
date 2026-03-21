@@ -264,7 +264,7 @@ function ArticleBody(props: ArticleBodyProps) {
 
         return (
           <>
-            <div class="flex flex-col xl:flex-row xl:gap-8 my-4">
+            <div class="flex flex-col xl:flex-row xl:gap-8 my-4 px-4 max-w-screen-xl mx-auto">
               {/* Main column */}
               <article class="flex-1 min-w-0 max-w-prose">
                 <Show when={content()?.beingTranslated}>
@@ -485,7 +485,7 @@ function ArticleBody(props: ArticleBodyProps) {
             </div>
 
             {/* Comments section */}
-            <div id="replies" class="my-4 max-w-prose">
+            <div id="replies" class="my-4 max-w-prose px-4 mx-auto xl:mx-0">
               <h2 class="text-xl font-bold mb-4">
                 {t`Comments (${article().replies?.edges.length ?? 0})`}
               </h2>
