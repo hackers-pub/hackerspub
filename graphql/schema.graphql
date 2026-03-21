@@ -8,6 +8,7 @@ type Account implements Node {
   defaultShareVisibility: PostVisibility!
   handle: String!
   id: ID!
+  invitationLinks: [InvitationLink!]!
   invitationsLeft: Int!
   invitees(after: String, before: String, first: Int, last: Int): AccountInviteesConnection!
   inviter: Account
@@ -498,6 +499,17 @@ type Invitation {
   inviter: Account!
   locale: Locale!
   message: Markdown
+}
+
+type InvitationLink implements Node {
+  created: DateTime!
+  expires: DateTime
+  id: ID!
+  invitationsLeft: Int!
+  inviter: Account!
+  message: Markdown
+  url: URL!
+  uuid: UUID!
 }
 
 """A node in the invitation tree."""
