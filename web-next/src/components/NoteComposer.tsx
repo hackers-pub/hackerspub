@@ -1,7 +1,7 @@
-import { detectLanguage } from "~/lib/langdet.ts";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEffect, createSignal, onCleanup, Show } from "solid-js";
 import { createMutation, useRelayEnvironment } from "solid-relay";
+import { detectLanguage } from "~/lib/langdet.ts";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { MentionAutocomplete } from "~/components/MentionAutocomplete.tsx";
 import {

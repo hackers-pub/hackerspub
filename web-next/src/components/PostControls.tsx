@@ -72,7 +72,7 @@ const unsharePostMutation = graphql`
 
 export function PostControls(props: PostControlsProps) {
   const { t } = useLingui();
-  const { open: openCompose } = useNoteCompose();
+  const { openWithQuote } = useNoteCompose();
   const note = createFragment(
     graphql`
       fragment PostControls_note on Note {
@@ -193,7 +193,7 @@ export function PostControls(props: PostControlsProps) {
             size="sm"
             class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
             title={t`Quote`}
-            onClick={() => openCompose(note().id)}
+            onClick={() => openWithQuote(note().id)}
           >
             <IconMessageSquareQuote class="size-4" />
             <span class="text-xs">{note().engagementStats.quotes}</span>

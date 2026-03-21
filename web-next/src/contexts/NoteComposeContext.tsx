@@ -10,7 +10,8 @@ type NoteCreatedCallback = () => void;
 interface NoteComposeContextValue {
   isOpen: () => boolean;
   quotedPostId: () => string | null;
-  open: (quotedPostId?: string) => void;
+  open: () => void;
+  openWithQuote: (quotedPostId: string) => void;
   close: () => void;
   clearQuote: () => void;
   onNoteCreated: (callback: NoteCreatedCallback) => () => void;
@@ -26,8 +27,12 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     new Set(),
   );
 
-  const open = (quotedPostId?: string) => {
-    setQuotedPostId(quotedPostId ?? null);
+  const open = () => {
+    setQuotedPostId(null);
+    setIsOpen(true);
+  };
+  const openWithQuote = (quotedPostId: string) => {
+    setQuotedPostId(quotedPostId);
     setIsOpen(true);
   };
   const close = () => {
@@ -60,6 +65,7 @@ export const NoteComposeProvider: ParentComponent = (props) => {
         isOpen,
         quotedPostId,
         open,
+        openWithQuote,
         close,
         clearQuote,
         onNoteCreated,
