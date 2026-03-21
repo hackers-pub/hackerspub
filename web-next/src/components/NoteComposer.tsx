@@ -47,7 +47,7 @@ const NoteComposerQuotedPostQuery = graphql`
     node(id: $id) {
       ... on Note {
         __typename
-        contentHtml: content
+        excerpt
         actor {
           name
           handle
@@ -57,7 +57,7 @@ const NoteComposerQuotedPostQuery = graphql`
       ... on Article {
         __typename
         name
-        contentHtml: content
+        excerpt
         actor {
           name
           handle
@@ -80,7 +80,7 @@ const NoteComposerPostByUrlQuery = graphql`
 
 interface QuotedPostPreview {
   typename: "Note" | "Article";
-  contentHtml: string;
+  excerpt: string;
   name?: string;
   actorName?: string;
   actorHandle: string;
@@ -144,7 +144,7 @@ export function NoteComposer(props: NoteComposerProps) {
         }
         setQuotedPost({
           typename: node.__typename,
-          contentHtml: node.contentHtml,
+          excerpt: node.excerpt,
           name: "name" in node ? (node.name ?? undefined) : undefined,
           actorName: node.actor.name ?? undefined,
           actorHandle: node.actor.handle,
@@ -302,12 +302,11 @@ export function NoteComposer(props: NoteComposerProps) {
                     <Show when={qp().typename === "Article" && qp().name}>
                       <div class="text-sm font-medium mt-1">{qp().name}</div>
                     </Show>
-                    <Show when={qp().contentHtml}>
-                      {(html) => (
-                        <div
-                          class="text-sm text-muted-foreground mt-1 line-clamp-3 prose prose-sm dark:prose-invert max-w-none"
-                          innerHTML={html()}
-                        />
+                    <Show when={qp().excerpt}>
+                      {(excerpt) => (
+                        <p class="text-sm text-muted-foreground mt-1 line-clamp-3">
+                          {excerpt()}
+                        </p>
                       )}
                     </Show>
                   </div>
