@@ -5,7 +5,7 @@ import {
   useLocation,
   useParams,
 } from "@solidjs/router";
-import { fetchQuery, graphql } from "relay-runtime";
+import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
   createMutation,
@@ -189,7 +189,7 @@ export default function InvitePage() {
   const params = useParams();
   const location = useLocation();
   const { t, i18n } = useLingui();
-  const environment = useRelayEnvironment();
+
   const data = createPreloadedQuery<invitePageQuery>(
     invitePageQuery,
     () => loadInvitePageQuery(params.handle!),
@@ -255,15 +255,6 @@ export default function InvitePage() {
         });
       },
     });
-  }
-
-  function refetchPage() {
-    const username = params.handle?.replace(/^@/, "") ?? "";
-    fetchQuery<invitePageQuery>(
-      environment()!,
-      invitePageQuery,
-      { username },
-    ).subscribe({});
   }
 
   return (
@@ -424,9 +415,9 @@ export default function InvitePage() {
                       </CardContent>
                     </Card>
                     <InvitationLinksCard
+                      accountId={account().id}
                       invitationLinks={account().invitationLinks}
                       invitationsLeft={account().invitationsLeft}
-                      onRefetch={refetchPage}
                     />
                     <Show when={account().inviteesCount.totalCount > 0}>
                       <Card class="mt-4">
@@ -464,6 +455,7 @@ export default function InvitePage() {
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
 interface InvitationLinksCardProps {
+  readonly accountId: string;
   readonly invitationLinks: ReadonlyArray<{
     readonly id: string;
     readonly uuid: UUID;
@@ -474,7 +466,6 @@ interface InvitationLinksCardProps {
     readonly expires: string | null | undefined;
   }>;
   readonly invitationsLeft: number;
-  readonly onRefetch: () => void;
 }
 
 function InvitationLinksCard(props: InvitationLinksCardProps) {
@@ -504,6 +495,17 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
         message: linkMessage().trim() === "" ? null : linkMessage().trim(),
         expires: linkExpires() === "" ? null : linkExpires(),
       },
+      updater(store) {
+        const payload = store.getRootField("createInvitationLink");
+        if (payload == null) return;
+        const account = store.get(props.accountId);
+        if (account == null) return;
+        const existingLinks = account.getLinkedRecords("invitationLinks") ?? [];
+        account.setLinkedRecords(
+          [payload, ...existingLinks],
+          "invitationLinks",
+        );
+      },
       onCompleted(data) {
         setCreating(false);
         if (
@@ -516,7 +518,6 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
             title: t`Invitation link created`,
             description: t`The invitation link has been created successfully.`,
           });
-          props.onRefetch();
         } else if (
           data.createInvitationLink.__typename === "InvalidInputError"
         ) {
@@ -541,17 +542,26 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
     });
   }
 
-  function onDeleteLink(id: UUID) {
+  function onDeleteLink(id: UUID, relayId: string) {
     setDeletingId(id);
     deleteLink({
       variables: { id },
+      updater(store) {
+        const account = store.get(props.accountId);
+        if (account == null) return;
+        const existingLinks = account.getLinkedRecords("invitationLinks") ?? [];
+        account.setLinkedRecords(
+          existingLinks.filter((link) => link.getDataID() !== relayId),
+          "invitationLinks",
+        );
+        store.delete(relayId);
+      },
       onCompleted() {
         setDeletingId(null);
         showToast({
           title: t`Invitation link deleted`,
           description: t`The invitation link has been deleted successfully.`,
         });
-        props.onRefetch();
       },
       onError(error) {
         console.error(error);
@@ -607,7 +617,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                       size="sm"
                       class="cursor-pointer shrink-0"
                       disabled={deletingId() === link.uuid}
-                      on:click={() => onDeleteLink(link.uuid)}
+                      on:click={() => onDeleteLink(link.uuid, link.id)}
                     >
                       {deletingId() === link.uuid ? t`Deleting…` : t`Delete`}
                     </Button>
