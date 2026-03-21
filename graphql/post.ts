@@ -1304,9 +1304,11 @@ builder.queryField("articleByYearAndSlug", (t) =>
       }
       if (actor == null) return null;
 
-      // Find the article source by account + year + slug
+      // Only local actors have articles with sources
+      if (actor.accountId == null) return null;
+
       const account = await ctx.db.query.accountTable.findFirst({
-        where: { id: actor.accountId! },
+        where: { id: actor.accountId },
       });
       if (account == null) return null;
 
