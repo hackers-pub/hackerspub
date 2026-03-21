@@ -36,7 +36,6 @@ async function loadEmailTemplates(): Promise<void> {
     const match = file.name.match(/^(.+)\.json$/);
     if (match == null) continue;
     const localeName = match[1];
-    availableLocales[localeName] = file.path;
 
     try {
       const json = await Deno.readTextFile(file.path);
@@ -46,6 +45,7 @@ async function loadEmailTemplates(): Promise<void> {
         emailContent: data.invite.emailContent,
         emailContentWithMessage: data.invite.emailContentWithMessage,
       });
+      availableLocales[localeName] = file.path;
     } catch (error) {
       console.warn(
         `Failed to load email template for locale ${localeName}:`,
