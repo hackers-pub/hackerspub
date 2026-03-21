@@ -264,7 +264,7 @@ function ArticleBody(props: ArticleBodyProps) {
 
         return (
           <>
-            <div class="flex flex-col xl:flex-row xl:gap-8 my-4 px-4 max-w-screen-xl mx-auto">
+            <div class="flex flex-col xl:flex-row xl:gap-8 mt-8 mb-4 px-4 max-w-screen-xl mx-auto">
               {/* Main column */}
               <article class="flex-1 min-w-0 max-w-prose">
                 <Show when={content()?.beingTranslated}>
