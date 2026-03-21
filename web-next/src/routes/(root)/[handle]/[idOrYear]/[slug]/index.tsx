@@ -11,6 +11,8 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { NoteCard } from "~/components/NoteCard.tsx";
+import { NoteComposer } from "~/components/NoteComposer.tsx";
+import { PostActionMenu } from "~/components/PostActionMenu.tsx";
 import { PostControls } from "~/components/PostControls.tsx";
 import { Title } from "~/components/Title.tsx";
 import { TocList } from "~/components/TocList.tsx";
@@ -197,6 +199,7 @@ function ArticleBody(props: ArticleBodyProps) {
   const article = createFragment(
     graphql`
       fragment Slug_body on Article {
+        id
         iri
         url
         actor {
@@ -208,6 +211,7 @@ function ArticleBody(props: ArticleBodyProps) {
           username
           url
           iri
+          isViewer
         }
         contents {
           title
@@ -225,6 +229,7 @@ function ArticleBody(props: ArticleBodyProps) {
         tags
         published
         ...PostControls_post
+        ...PostActionMenu_post
         replyTarget {
           ...NoteCard_note
         }
@@ -259,160 +264,242 @@ function ArticleBody(props: ArticleBodyProps) {
 
         return (
           <>
-            <article class="my-4">
-              <Show when={content()?.beingTranslated}>
-                <h1 class="text-4xl font-bold">
-                  {t`Translating...`}
-                </h1>
-              </Show>
-              <Show when={!content()?.beingTranslated}>
-                <h1
-                  class="text-4xl font-bold"
-                  lang={content()?.language ??
-                    article().contents?.[0]?.language ?? undefined}
-                >
-                  {content()?.title}
-                </h1>
-              </Show>
-
-              {/* Author metadata */}
-              <div class="flex gap-4 mt-4 items-center">
-                <Avatar class="size-12">
-                  <InternalLink
-                    href={article().actor.url ?? article().actor.iri}
-                    internalHref={article().actor.local
-                      ? `/@${article().actor.username}`
-                      : `/${article().actor.handle}`}
+            <div class="flex flex-col xl:flex-row xl:gap-8 my-4">
+              {/* Main column */}
+              <article class="flex-1 min-w-0">
+                <Show when={content()?.beingTranslated}>
+                  <h1 class="text-4xl font-bold">
+                    {t`Translating...`}
+                  </h1>
+                </Show>
+                <Show when={!content()?.beingTranslated}>
+                  <h1
+                    class="text-4xl font-bold"
+                    lang={content()?.language ??
+                      article().contents?.[0]?.language ?? undefined}
                   >
-                    <AvatarImage
-                      src={article().actor.avatarUrl}
-                      class="size-12"
-                    />
-                    <AvatarFallback class="size-12">
-                      {article().actor.avatarInitials}
-                    </AvatarFallback>
-                  </InternalLink>
-                </Avatar>
-                <div class="flex flex-col">
-                  <Show when={(article().actor.name ?? "").trim() !== ""}>
+                    {content()?.title}
+                  </h1>
+                </Show>
+
+                {/* Author metadata with edit/delete */}
+                <div class="flex gap-4 mt-4 items-center">
+                  <Avatar class="size-12">
                     <InternalLink
-                      innerHTML={article().actor.name ?? ""}
                       href={article().actor.url ?? article().actor.iri}
                       internalHref={article().actor.local
                         ? `/@${article().actor.username}`
                         : `/${article().actor.handle}`}
-                      class="font-semibold"
-                    />
-                  </Show>
-                  <div class="flex flex-row items-center text-muted-foreground gap-1">
-                    <span class="select-all">
-                      {article().actor.handle}
-                    </span>
-                    <span>&middot;</span>
-                    <Timestamp
-                      value={article().published}
-                      capitalizeFirstLetter
-                    />
+                    >
+                      <AvatarImage
+                        src={article().actor.avatarUrl}
+                        class="size-12"
+                      />
+                      <AvatarFallback class="size-12">
+                        {article().actor.avatarInitials}
+                      </AvatarFallback>
+                    </InternalLink>
+                  </Avatar>
+                  <div class="flex flex-col flex-1">
+                    <Show when={(article().actor.name ?? "").trim() !== ""}>
+                      <InternalLink
+                        innerHTML={article().actor.name ?? ""}
+                        href={article().actor.url ?? article().actor.iri}
+                        internalHref={article().actor.local
+                          ? `/@${article().actor.username}`
+                          : `/${article().actor.handle}`}
+                        class="font-semibold"
+                      />
+                    </Show>
+                    <div class="flex flex-row items-center text-muted-foreground gap-1 flex-wrap">
+                      <span class="select-all">
+                        {article().actor.handle}
+                      </span>
+                      <span>&middot;</span>
+                      <Timestamp
+                        value={article().published}
+                        capitalizeFirstLetter
+                      />
+                      <Show when={article().actor.isViewer}>
+                        <span>&middot;</span>
+                        <a
+                          href={`${postUrl()}/edit`}
+                          class="text-blue-500 hover:underline text-sm"
+                        >
+                          {t`Edit`}
+                        </a>
+                        <span>&middot;</span>
+                        <PostActionMenu $post={article()} />
+                      </Show>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Table of Contents */}
-              <Show when={!content()?.beingTranslated && toc().length > 0}>
-                <nav class="
-                    mt-4 p-4 bg-stone-100 dark:bg-stone-800 w-fit xl:max-w-md
-                    xl:absolute right-[calc((100%-1280px)/2)]
-                  ">
-                  <p class="font-bold text-sm leading-7 uppercase text-stone-500 dark:text-stone-400">
-                    {t`Table of contents`}
-                  </p>
-                  <TocList items={toc()} />
-                </nav>
-              </Show>
+                {/* Mobile/tablet: collapsible ToC */}
+                <Show
+                  when={!content()?.beingTranslated && toc().length > 0}
+                >
+                  <details class="xl:hidden mt-4 bg-stone-100 dark:bg-stone-800 rounded-lg">
+                    <summary class="p-4 cursor-pointer font-bold text-sm uppercase text-stone-500 dark:text-stone-400">
+                      {t`Table of contents`}
+                    </summary>
+                    <div class="px-4 pb-4">
+                      <TocList items={toc()} />
+                    </div>
+                  </details>
+                </Show>
 
-              {/* Language switcher */}
-              <Show
-                when={article().contents != null &&
-                  article().contents.length > 1}
-              >
-                <aside class="mt-8 p-4 max-w-[80ch] border border-stone-200 dark:border-stone-700 flex flex-row gap-4">
-                  <div>
-                    <Show when={content()?.originalLanguage}>
-                      {(originalLanguage) => (
-                        <p class="mb-4">
-                          <Trans
-                            message={t`Translated from ${"LANGUAGE"}`}
-                            values={{
-                              LANGUAGE: () => (
-                                <a href={postUrl()}>
-                                  {new Intl.DisplayNames("en", {
-                                    type: "language",
-                                  }).of(originalLanguage())}
-                                </a>
-                              ),
-                            }}
-                          />
-                        </p>
+                {/* Language switcher */}
+                <Show
+                  when={article().contents != null &&
+                    article().contents.length > 1}
+                >
+                  <aside class="mt-8 p-4 max-w-[80ch] border border-stone-200 dark:border-stone-700 flex flex-row gap-3 rounded-md">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="size-6 stroke-2 opacity-50 mt-0.5 flex-shrink-0"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="m10.5 21 5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 0 1 6-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 0 1-3.827-5.802"
+                      />
+                    </svg>
+                    <div>
+                      <Show when={content()?.originalLanguage}>
+                        {(originalLanguage) => (
+                          <p class="mb-4">
+                            <Trans
+                              message={t`Translated from ${"LANGUAGE"}`}
+                              values={{
+                                LANGUAGE: () => (
+                                  <a href={postUrl()}>
+                                    {new Intl.DisplayNames("en", {
+                                      type: "language",
+                                    }).of(originalLanguage())}
+                                  </a>
+                                ),
+                              }}
+                            />
+                          </p>
+                        )}
+                      </Show>
+                      <nav class="text-stone-600 dark:text-stone-400">
+                        <strong>{t`Other languages`}</strong> &rarr;{" "}
+                        <For
+                          each={article().contents.filter(
+                            (c) => c.language !== content()?.language,
+                          )}
+                        >
+                          {(otherContent, i) => (
+                            <>
+                              {i() > 0 && <>{" "}&middot;{" "}</>}
+                              <a
+                                href={otherContent.url}
+                                hreflang={otherContent.language}
+                                lang={otherContent.language}
+                                rel="alternate"
+                                class="text-stone-900 dark:text-stone-100"
+                              >
+                                {new Intl.DisplayNames(otherContent.language, {
+                                  type: "language",
+                                }).of(otherContent.language)}
+                              </a>
+                            </>
+                          )}
+                        </For>
+                      </nav>
+                    </div>
+                  </aside>
+                </Show>
+
+                {/* Article content */}
+                <Show when={!content()?.beingTranslated && content()?.content}>
+                  {(html) => (
+                    <div
+                      lang={content()?.language ?? undefined}
+                      class="prose dark:prose-invert mt-4 text-xl leading-8"
+                      innerHTML={html()}
+                    />
+                  )}
+                </Show>
+
+                {/* Mobile/tablet tags */}
+                <Show when={article().tags.length > 0}>
+                  <div class="xl:hidden flex flex-wrap gap-1.5 mt-4">
+                    <For each={article().tags}>
+                      {(tag) => (
+                        <span class="bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full text-sm text-stone-600 dark:text-stone-400">
+                          #{tag}
+                        </span>
                       )}
-                    </Show>
-                    <nav class="text-stone-600 dark:text-stone-400">
-                      <For
-                        each={article().contents.filter(
-                          (c) => c.language !== content()?.language,
-                        )}
-                      >
-                        {(otherContent, i) => (
-                          <>
-                            {i() > 0 && <>{" "}&middot;{" "}</>}
-                            <a
-                              href={otherContent.url}
-                              hreflang={otherContent.language}
-                              lang={otherContent.language}
-                              rel="alternate"
-                              class="text-stone-900 dark:text-stone-100"
-                            >
-                              {new Intl.DisplayNames(otherContent.language, {
-                                type: "language",
-                              }).of(otherContent.language)}
-                            </a>
-                          </>
-                        )}
-                      </For>
-                    </nav>
+                    </For>
                   </div>
-                </aside>
-              </Show>
+                </Show>
 
-              {/* Article content */}
-              <Show when={!content()?.beingTranslated && content()?.content}>
-                {(html) => (
-                  <div
-                    lang={content()?.language ?? undefined}
-                    class="prose dark:prose-invert mt-4 text-xl leading-8"
-                    innerHTML={html()}
-                  />
-                )}
-              </Show>
+                {/* Post controls */}
+                <PostControls
+                  $post={article()}
+                  class="mt-8"
+                />
+              </article>
 
-              {/* Post controls */}
-              <PostControls
-                $post={article()}
-                class="mt-8"
-              />
-            </article>
+              {/* Sidebar (xl+ only) */}
+              <aside class="hidden xl:block xl:w-64 xl:flex-shrink-0">
+                <div class="xl:sticky xl:top-4">
+                  {/* Desktop ToC */}
+                  <Show
+                    when={!content()?.beingTranslated && toc().length > 0}
+                  >
+                    <div>
+                      <p class="font-bold text-sm leading-7 uppercase text-stone-500 dark:text-stone-400">
+                        {t`Table of contents`}
+                      </p>
+                      <TocList items={toc()} />
+                    </div>
+                  </Show>
+
+                  {/* Desktop tags */}
+                  <Show when={article().tags.length > 0}>
+                    <div class="mt-6">
+                      <p class="font-bold text-sm uppercase text-stone-500 dark:text-stone-400 mb-2">
+                        {t`Tags`}
+                      </p>
+                      <div class="flex flex-wrap gap-1.5">
+                        <For each={article().tags}>
+                          {(tag) => (
+                            <span class="bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full text-sm text-stone-600 dark:text-stone-400">
+                              #{tag}
+                            </span>
+                          )}
+                        </For>
+                      </div>
+                    </div>
+                  </Show>
+                </div>
+              </aside>
+            </div>
 
             {/* Comments section */}
-            <div id="replies" class="my-4">
-              <Show when={article().replies?.edges.length}>
-                <h2 class="text-xl font-bold mb-4">
-                  {t`Comments (${article().replies?.edges.length ?? 0})`}
-                </h2>
-                <div class="border rounded-xl max-w-prose mx-auto">
-                  <For each={article().replies?.edges}>
-                    {(edge) => <NoteCard $note={edge.node} />}
-                  </For>
+            <div id="replies" class="my-4 max-w-prose">
+              <h2 class="text-xl font-bold mb-4">
+                {t`Comments (${article().replies?.edges.length ?? 0})`}
+              </h2>
+
+              <Show when={viewer() != null}>
+                <div class="mb-4">
+                  <NoteComposer
+                    replyTargetId={article().id}
+                    placeholder={t`Write a reply...`}
+                    onSuccess={() => location.reload()}
+                  />
                 </div>
               </Show>
+
               <Show when={viewer() == null}>
                 <p class="p-4 text-sm text-muted-foreground">
                   <Trans
@@ -426,6 +513,14 @@ function ArticleBody(props: ArticleBodyProps) {
                     }}
                   />
                 </p>
+              </Show>
+
+              <Show when={article().replies?.edges.length}>
+                <div class="border rounded-xl">
+                  <For each={article().replies?.edges}>
+                    {(edge) => <NoteCard $note={edge.node} />}
+                  </For>
+                </div>
               </Show>
             </div>
           </>
