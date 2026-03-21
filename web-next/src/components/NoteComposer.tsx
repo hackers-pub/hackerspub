@@ -233,42 +233,50 @@ export function NoteComposer(props: NoteComposerProps) {
     <form onSubmit={handleSubmit} class={props.class}>
       <div class="grid gap-4">
         {/* Quoted post preview */}
-        <Show when={quotedPost()}>
-          {(qp) => (
-            <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
-              <Avatar class="size-8 flex-shrink-0">
-                <AvatarImage src={qp().actorAvatarUrl} />
-              </Avatar>
+        <Show when={props.quotedPostId}>
+          <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
+            <Show when={quotedPost()} fallback={
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-1 text-sm">
-                  <span class="font-medium truncate">{qp().actorName}</span>
-                  <span class="text-muted-foreground truncate">
-                    {qp().actorHandle}
-                  </span>
-                </div>
-                <Show when={qp().typename === "Article" && qp().name}>
-                  <div class="text-sm font-medium mt-1">{qp().name}</div>
-                </Show>
-                <Show when={qp().contentHtml}>
-                  {(html) => (
-                    <div
-                      class="text-sm text-muted-foreground mt-1 line-clamp-3 prose prose-sm dark:prose-invert max-w-none"
-                      innerHTML={html()}
-                    />
-                  )}
-                </Show>
+                <span class="text-sm text-muted-foreground">{t`Loading quoted post…`}</span>
               </div>
-              <button
-                type="button"
-                class="text-muted-foreground hover:text-foreground flex-shrink-0"
-                onClick={() => props.onQuoteRemoved?.()}
-                title={t`Remove quote`}
-                aria-label={t`Remove quote`}
-              >
-                <IconX class="size-4" />
-              </button>
-            </div>
-          )}
+            }>
+              {(qp) => (
+                <>
+                  <Avatar class="size-8 flex-shrink-0">
+                    <AvatarImage src={qp().actorAvatarUrl} />
+                  </Avatar>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1 text-sm">
+                      <span class="font-medium truncate">{qp().actorName}</span>
+                      <span class="text-muted-foreground truncate">
+                        {qp().actorHandle}
+                      </span>
+                    </div>
+                    <Show when={qp().typename === "Article" && qp().name}>
+                      <div class="text-sm font-medium mt-1">{qp().name}</div>
+                    </Show>
+                    <Show when={qp().contentHtml}>
+                      {(html) => (
+                        <div
+                          class="text-sm text-muted-foreground mt-1 line-clamp-3 prose prose-sm dark:prose-invert max-w-none"
+                          innerHTML={html()}
+                        />
+                      )}
+                    </Show>
+                  </div>
+                </>
+              )}
+            </Show>
+            <button
+              type="button"
+              class="text-muted-foreground hover:text-foreground flex-shrink-0"
+              onClick={() => props.onQuoteRemoved?.()}
+              title={t`Remove quote`}
+              aria-label={t`Remove quote`}
+            >
+              <IconX class="size-4" />
+            </button>
+          </div>
         </Show>
 
         <TextField>
