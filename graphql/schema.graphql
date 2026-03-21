@@ -8,6 +8,7 @@ type Account implements Node {
   defaultShareVisibility: PostVisibility!
   handle: String!
   id: ID!
+  invitationLinks: [InvitationLink!]!
   invitationsLeft: Int!
   invitees(after: String, before: String, first: Int, last: Int): AccountInviteesConnection!
   inviter: Account
@@ -355,6 +356,8 @@ type BlockActorPayload {
 
 union BlockActorResult = BlockActorPayload | InvalidInputError | NotAuthenticatedError
 
+union CreateInvitationLinkResult = InvalidInputError | InvitationLink | NotAuthenticatedError
+
 input CreateNoteInput {
   clientMutationId: ID
   content: Markdown!
@@ -500,6 +503,21 @@ type Invitation {
   message: Markdown
 }
 
+type InvitationLink implements Node {
+  created: DateTime!
+  expires: DateTime
+  id: ID!
+  invitationsLeft: Int!
+  inviter: Account!
+  message: Markdown
+  url: URL!
+  uuid: UUID!
+}
+
+type InvitationLinkNotFoundError {
+  message: String!
+}
+
 """A node in the invitation tree."""
 type InvitationTreeNode {
   avatarUrl: URL!
@@ -589,8 +607,10 @@ type Mutation {
     """The signup token."""
     token: UUID!
   ): SignupResult!
+  createInvitationLink(expires: String, invitationsLeft: Int!, message: Markdown): CreateInvitationLinkResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
+  deleteInvitationLink(id: UUID!): Boolean!
   deletePost(input: DeletePostInput!): DeletePostResult!
   followActor(input: FollowActorInput!): FollowActorResult!
   getPasskeyAuthenticationOptions(
@@ -640,6 +660,7 @@ type Mutation {
     verifyUrl: URITemplate!
   ): LoginResult!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
+  redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!
   registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult!
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
@@ -956,6 +977,7 @@ type Query {
     locale: Locale!
   ): Document!
   instanceByHost(host: String!): Instance
+  invitationLink(id: UUID!): InvitationLink
 
   """Returns all accounts as a flat array for building the invitation tree."""
   invitationTree: [InvitationTreeNode!]!
@@ -1117,6 +1139,37 @@ type ReactionGroupReactorsConnection {
 type ReactionGroupReactorsConnectionEdge {
   cursor: String!
   node: Actor!
+}
+
+enum RedeemEmailError {
+  EMAIL_ALREADY_TAKEN
+  EMAIL_INVALID
+}
+
+union RedeemInvitationLinkResult = RedeemInvitationLinkSuccess | RedeemInvitationLinkValidationErrors
+
+type RedeemInvitationLinkSuccess {
+  email: Email!
+  invitationLink: InvitationLink!
+}
+
+type RedeemInvitationLinkValidationErrors {
+  email: RedeemEmailError
+  emailOwner: Account
+  link: RedeemLinkError
+  sendFailed: Boolean
+  verifyUrl: RedeemVerifyUrlError
+}
+
+enum RedeemLinkError {
+  LINK_EXHAUSTED
+  LINK_EXPIRED
+  LINK_NOT_FOUND
+}
+
+enum RedeemVerifyUrlError {
+  VERIFY_URL_NO_CODE
+  VERIFY_URL_NO_TOKEN
 }
 
 type RegisterApnsDeviceTokenFailedError {

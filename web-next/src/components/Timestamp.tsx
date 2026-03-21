@@ -4,6 +4,7 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 export interface TimestampProps {
   value: Date | string;
   capitalizeFirstLetter?: boolean;
+  allowFuture?: boolean;
 }
 
 export function Timestamp(props: TimestampProps) {
@@ -23,6 +24,7 @@ export function Timestamp(props: TimestampProps) {
     >
       {formatRelativeTime(targetDate(), date, i18n.locale, {
         capitalizeFirstLetter: props.capitalizeFirstLetter,
+        allowFuture: props.allowFuture,
       })}
     </time>
   );
