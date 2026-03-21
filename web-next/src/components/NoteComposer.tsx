@@ -46,7 +46,7 @@ const NoteComposerQuotedPostQuery = graphql`
     node(id: $id) {
       ... on Note {
         __typename
-        content
+        contentHtml: content
         actor {
           name
           handle
@@ -56,7 +56,7 @@ const NoteComposerQuotedPostQuery = graphql`
       ... on Article {
         __typename
         name
-        content
+        contentHtml: content
         actor {
           name
           handle
@@ -133,7 +133,7 @@ export function NoteComposer(props: NoteComposerProps) {
         }
         setQuotedPost({
           typename: node.__typename,
-          contentHtml: node.content,
+          contentHtml: node.contentHtml,
           name: "name" in node ? (node.name ?? undefined) : undefined,
           actorName: node.actor.name ?? undefined,
           actorHandle: node.actor.handle,
