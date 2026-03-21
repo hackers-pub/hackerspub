@@ -1,13 +1,16 @@
 import { isActor } from "@fedify/vocab";
+import { persistActor } from "@hackerspub/models/actor";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import { compileQuery, parseQuery } from "@hackerspub/models/search";
 import {
   FULL_HANDLE_REGEXP,
   HANDLE_REGEXP,
 } from "@hackerspub/models/searchPatterns";
+import { addPostToTimeline } from "@hackerspub/models/timeline";
 import { sql } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import { builder, type UserContext } from "./builder.ts";
+import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { Post } from "./post.ts";
 
 class EmptySearchQueryError extends Error {
@@ -29,65 +32,35 @@ const SearchedObject = builder.simpleObject("SearchedObject", {
   }),
 });
 
-async function searchAsUrl(ctx: UserContext, query: string) {
-  if (URL.canParse(query)) {
-    const url = new URL(query).href;
-    let post = await ctx.db.query.postTable.findFirst({
-      with: { actor: true },
-      where: { OR: [{ iri: url }, { url: url }] },
-    });
+async function searchAsUrl(
+  ctx: UserContext,
+  query: string,
+): Promise<{ url: string } | null> {
+  const parsed = parseHttpUrl(query);
+  if (parsed == null) return null;
 
-    if (post == null) {
-      // Try to fetch remote post using federation context
-      const documentLoader = ctx.account == null
-        ? ctx.fedCtx.documentLoader
-        : await ctx.fedCtx.getDocumentLoader({
-          identifier: ctx.account.id,
-        });
+  const post = await lookupPostByUrl(ctx, parsed);
+  if (post == null) return null;
 
-      let object;
-      try {
-        object = await ctx.fedCtx.lookupObject(url, { documentLoader });
-      } catch {
-        return null;
-      }
+  await addPostToTimeline(ctx.db, post);
 
-      const { isPostObject, persistPost } = await import(
-        "@hackerspub/models/post"
-      );
-      if (!isPostObject(object)) {
-        return null;
-      }
+  const actor = await ctx.db.query.actorTable.findFirst({
+    where: { id: post.actorId },
+  });
+  if (actor == null) return null;
 
-      post = await persistPost(ctx.fedCtx, object, {
-        contextLoader: ctx.fedCtx.contextLoader,
-        documentLoader,
-      });
-
-      if (post == null) {
-        return null;
-      }
-
-      // Add to posts
-      const { addPostToTimeline } = await import(
-        "@hackerspub/models/timeline"
-      );
-      await addPostToTimeline(ctx.db, post);
-    }
-
-    let redirectUrl: string;
-    if (post.actor.accountId == null) {
-      redirectUrl = `/${post.actor.handle}/${post.id}`;
-    } else if (post.noteSourceId != null) {
-      redirectUrl = `/@${post.actor.username}/${post.noteSourceId}`;
-    } else if (post.articleSourceId != null) {
-      redirectUrl = post.url ?? post.iri;
-    } else {
-      return null;
-    }
-
-    return { url: redirectUrl };
+  let redirectUrl: string;
+  if (actor.accountId == null) {
+    redirectUrl = `/${actor.handle}/${post.id}`;
+  } else if (post.noteSourceId != null) {
+    redirectUrl = `/@${actor.username}/${post.noteSourceId}`;
+  } else if (post.articleSourceId != null) {
+    redirectUrl = post.url ?? post.iri;
+  } else {
+    return null;
   }
+
+  return { url: redirectUrl };
 }
 
 async function searchAsHandle(ctx: UserContext, query: string) {
@@ -151,7 +124,6 @@ async function searchAsHandle(ctx: UserContext, query: string) {
     return null;
   }
 
-  const { persistActor } = await import("@hackerspub/models/actor");
   actor = await persistActor(ctx.fedCtx, object!, {
     contextLoader: ctx.fedCtx.contextLoader,
     documentLoader,

@@ -1,13 +1,18 @@
+import { fetchQuery, graphql } from "relay-runtime";
+import { createEffect, createSignal, onCleanup, Show } from "solid-js";
+import { createMutation, useRelayEnvironment } from "solid-relay";
 import { detectLanguage } from "~/lib/langdet.ts";
-import { graphql } from "relay-runtime";
-import { createEffect, createSignal, Show } from "solid-js";
-import { createMutation } from "solid-relay";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { MentionAutocomplete } from "~/components/MentionAutocomplete.tsx";
 import {
   PostVisibility,
   PostVisibilitySelect,
 } from "~/components/PostVisibilitySelect.tsx";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   TextField,
@@ -16,7 +21,10 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import IconX from "~icons/lucide/x";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
+import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
+import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
 
 const NoteComposerMutation = graphql`
   mutation NoteComposerMutation($input: CreateNoteInput!) {
@@ -38,6 +46,51 @@ const NoteComposerMutation = graphql`
   }
 `;
 
+const NoteComposerQuotedPostQuery = graphql`
+  query NoteComposerQuotedPostQuery($id: ID!) {
+    node(id: $id) {
+      ... on Note {
+        __typename
+        excerpt
+        actor {
+          rawName
+          handle
+          avatarUrl
+        }
+      }
+      ... on Article {
+        __typename
+        name
+        excerpt
+        actor {
+          rawName
+          handle
+          avatarUrl
+        }
+      }
+    }
+  }
+`;
+
+const NoteComposerPostByUrlQuery = graphql`
+  query NoteComposerPostByUrlQuery($url: String!) {
+    postByUrl(url: $url) {
+      __typename
+      id
+      visibility
+    }
+  }
+`;
+
+interface QuotedPostPreview {
+  typename: "Note" | "Article";
+  excerpt: string;
+  name?: string;
+  actorName?: string;
+  actorHandle: string;
+  actorAvatarUrl: string;
+}
+
 export interface NoteComposerProps {
   onSuccess?: () => void;
   onCancel?: () => void;
@@ -45,20 +98,76 @@ export interface NoteComposerProps {
   autoFocus?: boolean;
   placeholder?: string;
   class?: string;
+  quotedPostId?: string | null;
+  onQuoteRemoved?: () => void;
 }
 
 export function NoteComposer(props: NoteComposerProps) {
   const { t, i18n } = useLingui();
+  const environment = useRelayEnvironment();
   const [content, setContent] = createSignal("");
   const [visibility, setVisibility] = createSignal<PostVisibility>("PUBLIC");
   const [language, setLanguage] = createSignal<Intl.Locale | undefined>(
     new Intl.Locale(i18n.locale),
   );
   const [manualLanguageChange, setManualLanguageChange] = createSignal(false);
+  const [pastedQuoteId, setPastedQuoteId] = createSignal<string | null>(null);
+  const effectiveQuotedPostId = () => props.quotedPostId ?? pastedQuoteId();
+  const [quotedPost, setQuotedPost] = createSignal<
+    QuotedPostPreview | null
+  >(null);
+  const [quoteFetchError, setQuoteFetchError] = createSignal(false);
   const [createNote, isCreating] = createMutation<NoteComposerMutation>(
     NoteComposerMutation,
   );
   let textareaRef: HTMLTextAreaElement | undefined;
+
+  // Fetch quoted post preview when quotedPostId changes
+  createEffect(() => {
+    const id = effectiveQuotedPostId();
+    if (!id) {
+      setQuotedPost(null);
+      setQuoteFetchError(false);
+      return;
+    }
+    setQuotedPost(null);
+    setQuoteFetchError(false);
+    const subscription = fetchQuery<NoteComposerQuotedPostQuery>(
+      environment(),
+      NoteComposerQuotedPostQuery,
+      { id },
+    ).subscribe({
+      next(data) {
+        const node = data.node;
+        if (
+          !node ||
+          (node.__typename !== "Note" && node.__typename !== "Article")
+        ) {
+          setQuotedPost(null);
+          setQuoteFetchError(true);
+          return;
+        }
+        if (!node.actor) {
+          setQuotedPost(null);
+          setQuoteFetchError(true);
+          return;
+        }
+        setQuotedPost({
+          typename: node.__typename,
+          excerpt: node.excerpt,
+          name: "name" in node ? (node.name ?? undefined) : undefined,
+          actorName: node.actor.rawName ?? undefined,
+          actorHandle: node.actor.handle,
+          actorAvatarUrl: node.actor.avatarUrl,
+        });
+      },
+      error() {
+        setQuotedPost(null);
+        setQuoteFetchError(true);
+      },
+    });
+    onCleanup(() => subscription.unsubscribe());
+  });
 
   createEffect(() => {
     if (manualLanguageChange()) return;
@@ -74,9 +183,53 @@ export function NoteComposer(props: NoteComposerProps) {
     }
   });
 
+  const handlePaste = (e: ClipboardEvent) => {
+    if (effectiveQuotedPostId()) return;
+    const text = e.clipboardData?.getData("text/plain")?.trim();
+    if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
+    if (!confirm(t`Do you want to quote this link?`)) return;
+    e.preventDefault();
+    fetchQuery<NoteComposerPostByUrlQuery>(
+      environment(),
+      NoteComposerPostByUrlQuery,
+      { url: text },
+    ).subscribe({
+      next(data) {
+        const post = data.postByUrl;
+        if (!post) {
+          setContent((prev) => (prev ? `${prev}\n${text}` : text));
+          showToast({
+            title: t`Error`,
+            description: t`Could not find a post at this URL`,
+            variant: "error",
+          });
+          return;
+        }
+        if (post.__typename !== "Note" && post.__typename !== "Article") {
+          setContent((prev) => (prev ? `${prev}\n${text}` : text));
+          return;
+        }
+        if (post.visibility !== "PUBLIC" && post.visibility !== "UNLISTED") {
+          setContent((prev) => (prev ? `${prev}\n${text}` : text));
+          return;
+        }
+        setPastedQuoteId(post.id);
+      },
+      error() {
+        setContent((prev) => (prev ? `${prev}\n${text}` : text));
+      },
+    });
+  };
+
   const handleLanguageChange = (locale?: Intl.Locale) => {
     setLanguage(locale);
     setManualLanguageChange(true);
+  };
+
+  const clearPastedQuote = () => {
+    setPastedQuoteId(null);
+    setQuotedPost(null);
+    setQuoteFetchError(false);
   };
 
   const resetForm = () => {
@@ -84,6 +237,9 @@ export function NoteComposer(props: NoteComposerProps) {
     setVisibility("PUBLIC");
     setLanguage(new Intl.Locale(i18n.locale));
     setManualLanguageChange(false);
+    setQuotedPost(null);
+    setPastedQuoteId(null);
+    setQuoteFetchError(false);
   };
 
   const handleSubmit = (e: Event) => {
@@ -105,6 +261,7 @@ export function NoteComposer(props: NoteComposerProps) {
           content: noteContent,
           language: language()?.baseName ?? i18n.locale,
           visibility: visibility(),
+          quotedPostId: effectiveQuotedPostId() ?? null,
         },
       },
       onCompleted(response) {
@@ -145,6 +302,71 @@ export function NoteComposer(props: NoteComposerProps) {
   return (
     <form onSubmit={handleSubmit} class={props.class}>
       <div class="grid gap-4">
+        {/* Quoted post preview */}
+        <Show when={effectiveQuotedPostId()}>
+          <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
+            <Show
+              when={quotedPost()}
+              fallback={
+                <div class="flex-1 min-w-0">
+                  <span class="text-sm text-muted-foreground">
+                    {quoteFetchError()
+                      ? t`Failed to load quoted post`
+                      : t`Loading quoted post…`}
+                  </span>
+                </div>
+              }
+            >
+              {(qp) => (
+                <>
+                  <Avatar class="size-8 flex-shrink-0">
+                    <AvatarImage src={qp().actorAvatarUrl} />
+                    <AvatarFallback class="size-8">
+                      {qp().actorName?.charAt(0) ?? "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1 text-sm">
+                      <span class="font-medium truncate">
+                        {qp().actorName ?? qp().actorHandle}
+                      </span>
+                      <Show when={qp().actorName}>
+                        <span class="text-muted-foreground truncate">
+                          {qp().actorHandle}
+                        </span>
+                      </Show>
+                    </div>
+                    <Show when={qp().typename === "Article" && qp().name}>
+                      <div class="text-sm font-medium mt-1">{qp().name}</div>
+                    </Show>
+                    <Show when={qp().excerpt}>
+                      {(excerpt) => (
+                        <p class="text-sm text-muted-foreground mt-1 line-clamp-3">
+                          {excerpt()}
+                        </p>
+                      )}
+                    </Show>
+                  </div>
+                </>
+              )}
+            </Show>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="h-6 w-6 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
+              onClick={() => {
+                props.onQuoteRemoved?.();
+                clearPastedQuote();
+              }}
+              title={t`Remove quote`}
+              aria-label={t`Remove quote`}
+            >
+              <IconX class="size-4" />
+            </Button>
+          </div>
+        </Show>
+
         <TextField>
           <TextFieldLabel class="flex items-center justify-between">
             <span>{t`Content`}</span>
@@ -179,6 +401,7 @@ export function NoteComposer(props: NoteComposerProps) {
             ref={(el) => (textareaRef = el)}
             value={content()}
             onInput={(e) => setContent(e.currentTarget.value)}
+            onPaste={handlePaste}
             placeholder={props.placeholder ?? t`What's on your mind?`}
             required
             autofocus={props.autoFocus}
@@ -217,7 +440,12 @@ export function NoteComposer(props: NoteComposerProps) {
               {t`Cancel`}
             </Button>
           </Show>
-          <Button type="submit" disabled={isCreating()}>
+          <Button
+            type="submit"
+            disabled={isCreating() ||
+              (!!effectiveQuotedPostId() && !quotedPost() &&
+                !quoteFetchError())}
+          >
             <Show when={isCreating()} fallback={t`Create Note`}>
               {t`Creating…`}
             </Show>
