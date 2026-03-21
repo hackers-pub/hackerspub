@@ -10,6 +10,7 @@ import {
 import { createNote } from "@hackerspub/models/note";
 import {
   deletePost,
+  getPostVisibilityFilter,
   isPostSharedBy,
   isPostVisibleTo,
   sharePost,
@@ -356,6 +357,19 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           kv: ctx.kv,
         });
         return renderCustomEmojis(html.html, content.source.post.emojis);
+      },
+    }),
+    toc: t.field({
+      type: "JSON",
+      description: "Table of contents for the article content.",
+      select: {
+        columns: { content: true },
+      },
+      async resolve(content, _, ctx) {
+        const rendered = await renderMarkup(ctx.fedCtx, content.content, {
+          kv: ctx.kv,
+        });
+        return rendered.toc;
       },
     }),
     originalLanguage: t.expose("originalLanguage", {
@@ -1245,6 +1259,72 @@ builder.queryField("postByUrl", (t) =>
       if (post == null) return null;
       if (!isPostVisibleTo(post, account.actor)) return null;
       return post;
+    },
+  }));
+
+builder.queryField("articleByYearAndSlug", (t) =>
+  t.drizzleField({
+    type: Article,
+    nullable: true,
+    args: {
+      handle: t.arg.string({ required: true }),
+      idOrYear: t.arg.string({ required: true }),
+      slug: t.arg.string({ required: true }),
+    },
+    async resolve(query, _, args, ctx) {
+      const year = parseInt(args.idOrYear, 10);
+      if (!Number.isFinite(year)) return null;
+
+      let handle = args.handle;
+      if (handle.startsWith("@")) handle = handle.substring(1);
+      const split = handle.split("@");
+
+      let actor;
+      if (split.length === 2) {
+        const [username, host] = split;
+        actor = await ctx.db.query.actorTable.findFirst({
+          where: {
+            username,
+            OR: [{ instanceHost: host }, { handleHost: host }],
+          },
+        });
+      } else if (split.length === 1) {
+        actor = await ctx.db.query.actorTable.findFirst({
+          where: { username: split[0], accountId: { isNotNull: true } },
+        });
+      }
+      if (actor == null) return null;
+
+      // Find the article source by account + year + slug
+      const account = await ctx.db.query.accountTable.findFirst({
+        where: { id: actor.accountId! },
+      });
+      if (account == null) return null;
+
+      const source = await ctx.db.query.articleSourceTable.findFirst({
+        where: {
+          accountId: account.id,
+          publishedYear: year,
+          slug: args.slug,
+        },
+      });
+      if (source == null) return null;
+
+      const visibility = getPostVisibilityFilter(ctx.account?.actor ?? null);
+      return await ctx.db.query.postTable.findFirst(
+        query({
+          where: {
+            AND: [
+              {
+                type: "Article",
+                actorId: actor.id,
+                articleSourceId: source.id,
+              },
+              visibility,
+            ],
+          },
+        }),
+      ) ?? null;
     },
   }));
 

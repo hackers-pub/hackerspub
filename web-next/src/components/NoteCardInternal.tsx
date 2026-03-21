@@ -26,7 +26,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         actor {
           ...PostAvatar_actor
         }
-        ...PostControls_note
+        ...PostControls_post
         ...NoteMedia_note
         ...LinkPreview_note
         ...NoteHeader_note
@@ -59,7 +59,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
             <Show when={n().quotedPost}>
               {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
             </Show>
-            <PostControls $note={n()} />
+            <PostControls $post={n()} />
           </div>
         </div>
       )}
