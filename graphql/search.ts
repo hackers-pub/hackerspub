@@ -34,7 +34,11 @@ const SearchedObject = builder.simpleObject("SearchedObject", {
 
 async function searchAsUrl(ctx: UserContext, query: string) {
   if (URL.canParse(query)) {
-    const url = new URL(query).href;
+    const parsed = new URL(query);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return null;
+    }
+    const url = parsed.href;
     const post = await lookupPostByUrl(ctx, url);
     if (post == null) return null;
 
