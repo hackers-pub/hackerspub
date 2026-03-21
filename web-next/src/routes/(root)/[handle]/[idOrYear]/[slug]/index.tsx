@@ -1,6 +1,11 @@
 import type { Toc } from "@hackerspub/models/markup";
 import { Meta } from "@solidjs/meta";
-import { query, type RouteDefinition, useParams } from "@solidjs/router";
+import {
+  query,
+  type RouteDefinition,
+  useNavigate,
+  useParams,
+} from "@solidjs/router";
 import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
@@ -195,6 +200,7 @@ interface ArticleBodyProps {
 
 function ArticleBody(props: ArticleBodyProps) {
   const { t } = useLingui();
+  const navigate = useNavigate();
 
   const article = createFragment(
     graphql`
@@ -470,7 +476,7 @@ function ArticleBody(props: ArticleBodyProps) {
                       <NoteComposer
                         replyTargetId={article().id}
                         placeholder={t`Write a reply...`}
-                        onSuccess={() => location.reload()}
+                        onSuccess={() => navigate(postUrl(), { replace: true })}
                       />
                     </div>
                   </Show>
