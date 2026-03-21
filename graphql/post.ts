@@ -10,10 +10,8 @@ import {
 import { createNote } from "@hackerspub/models/note";
 import {
   deletePost,
-  isPostObject,
   isPostSharedBy,
   isPostVisibleTo,
-  persistPost,
   sharePost,
   unsharePost,
 } from "@hackerspub/models/post";
@@ -38,6 +36,7 @@ import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
+import { lookupPostByUrl } from "./lookup.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
@@ -1224,6 +1223,9 @@ builder.queryField("postByUrl", (t) =>
       }
       const url = parsed.href;
       const account = ctx.account;
+      const looked = await lookupPostByUrl(ctx, url);
+      if (looked == null) return null;
+      const postId = looked.sharedPostId ?? looked.id;
       const withRelations = {
         actor: {
           with: {
@@ -1246,41 +1248,11 @@ builder.queryField("postByUrl", (t) =>
         },
         mentions: { with: { actor: true } },
       } as const;
-      let post = await ctx.db.query.postTable.findFirst({
+      const post = await ctx.db.query.postTable.findFirst({
         with: withRelations,
-        where: { OR: [{ iri: url }, { url }] },
+        where: { id: postId },
       });
-      if (post == null) {
-        const documentLoader = ctx.account == null
-          ? ctx.fedCtx.documentLoader
-          : await ctx.fedCtx.getDocumentLoader({
-            identifier: ctx.account.id,
-          });
-        let object;
-        try {
-          object = await ctx.fedCtx.lookupObject(url, { documentLoader });
-        } catch {
-          return null;
-        }
-        if (!isPostObject(object)) return null;
-        const persisted = await persistPost(ctx.fedCtx, object, {
-          contextLoader: ctx.fedCtx.contextLoader,
-          documentLoader,
-        });
-        if (persisted == null) return null;
-        post = await ctx.db.query.postTable.findFirst({
-          with: withRelations,
-          where: { id: persisted.id },
-        });
-        if (post == null) return null;
-      }
-      if (post.sharedPostId != null) {
-        post = await ctx.db.query.postTable.findFirst({
-          with: withRelations,
-          where: { id: post.sharedPostId },
-        });
-        if (post == null) return null;
-      }
+      if (post == null) return null;
       if (!isPostVisibleTo(post, account?.actor)) return null;
       return post;
     },
