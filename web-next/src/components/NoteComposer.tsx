@@ -191,6 +191,7 @@ export function NoteComposer(props: NoteComposerProps) {
       next(data) {
         const post = data.postByUrl;
         if (!post) return;
+        if (post.__typename !== "Note" && post.__typename !== "Article") return;
         if (post.visibility !== "PUBLIC" && post.visibility !== "UNLISTED") {
           return;
         }
