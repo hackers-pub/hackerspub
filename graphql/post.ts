@@ -1214,8 +1214,9 @@ builder.queryField("postByUrl", (t) =>
       url: t.arg.string({ required: true }),
     },
     async resolve(_root, args, ctx) {
-      const url = args.url.trim();
-      if (!URL.canParse(url) || !url.match(/^https?:/)) return null;
+      const raw = args.url.trim();
+      if (!URL.canParse(raw) || !raw.match(/^https?:/)) return null;
+      const url = new URL(raw).href;
       const account = ctx.account;
       const withRelations = {
         actor: {
