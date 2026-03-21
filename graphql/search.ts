@@ -10,7 +10,7 @@ import { addPostToTimeline } from "@hackerspub/models/timeline";
 import { sql } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import { builder, type UserContext } from "./builder.ts";
-import { lookupPostByUrl } from "./lookup.ts";
+import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { Post } from "./post.ts";
 
 class EmptySearchQueryError extends Error {
@@ -33,11 +33,8 @@ const SearchedObject = builder.simpleObject("SearchedObject", {
 });
 
 async function searchAsUrl(ctx: UserContext, query: string) {
-  if (URL.canParse(query)) {
-    const parsed = new URL(query);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return null;
-    }
+  const parsed = parseHttpUrl(query);
+  if (parsed != null) {
     const url = parsed.href;
     const post = await lookupPostByUrl(ctx, url);
     if (post == null) return null;

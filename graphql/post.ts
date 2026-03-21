@@ -36,7 +36,7 @@ import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
-import { lookupPostByUrl } from "./lookup.ts";
+import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
@@ -1218,12 +1218,8 @@ builder.queryField("postByUrl", (t) =>
       if (ctx.account == null) {
         throw new NotAuthenticatedError();
       }
-      const raw = args.url.trim();
-      if (!URL.canParse(raw)) return null;
-      const parsed = new URL(raw);
-      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-        return null;
-      }
+      const parsed = parseHttpUrl(args.url.trim());
+      if (parsed == null) return null;
       const url = parsed.href;
       const account = ctx.account;
       const looked = await lookupPostByUrl(ctx, url);
