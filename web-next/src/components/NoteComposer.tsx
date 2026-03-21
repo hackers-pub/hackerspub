@@ -100,6 +100,7 @@ export interface NoteComposerProps {
   class?: string;
   quotedPostId?: string | null;
   onQuoteRemoved?: () => void;
+  replyTargetId?: string | null;
 }
 
 export function NoteComposer(props: NoteComposerProps) {
@@ -257,6 +258,7 @@ export function NoteComposer(props: NoteComposerProps) {
           language: language()?.baseName ?? i18n.locale,
           visibility: visibility(),
           quotedPostId: effectiveQuotedPostId() ?? null,
+          replyTargetId: props.replyTargetId ?? null,
         },
       },
       onCompleted(response) {
