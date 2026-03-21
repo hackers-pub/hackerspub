@@ -364,7 +364,8 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           response.publishArticleDraft.__typename ===
             "PublishArticleDraftPayload"
         ) {
-          navigate(response.publishArticleDraft.article.url!);
+          const articleUrl = response.publishArticleDraft.article.url!;
+          navigate(new URL(articleUrl).pathname);
           setIsDirty(false);
           showToast({
             title: t`Success`,

@@ -322,6 +322,9 @@ type ArticleContent implements Node {
   summary: String
   summaryStarted: DateTime
   title: String!
+
+  """Table of contents for the article content."""
+  toc: JSON!
   translationRequester: Account
   translator: Account
   updated: DateTime!
@@ -949,6 +952,7 @@ type Query {
     handle: String!
   ): Actor
   actorByUuid(uuid: UUID!): Actor
+  articleByYearAndSlug(handle: String!, idOrYear: String!, slug: String!): Article
   articleDraft(id: ID, uuid: UUID): ArticleDraft
   availableLocales: [Locale!]!
   codeOfConduct(
