@@ -1,8 +1,5 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
-import {
-  type Account as AccountTable,
-  type Actor,
-} from "@hackerspub/models/schema";
+import type { Account as AccountTable, Actor } from "@hackerspub/models/schema";
 import type { SignupToken } from "@hackerspub/models/signup";
 import { expandGlob } from "@std/fs";
 import { join } from "@std/path";
