@@ -19,6 +19,7 @@ import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconX from "~icons/lucide/x";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
+import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
 import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
 
 const NoteComposerMutation = graphql`
@@ -63,6 +64,16 @@ const NoteComposerQuotedPostQuery = graphql`
           avatarUrl
         }
       }
+    }
+  }
+`;
+
+const NoteComposerPostByUrlQuery = graphql`
+  query NoteComposerPostByUrlQuery($url: String!) {
+    postByUrl(url: $url) {
+      __typename
+      id
+      visibility
     }
   }
 `;
@@ -165,18 +176,24 @@ export function NoteComposer(props: NoteComposerProps) {
     if (effectiveQuotedPostId()) return;
     const text = e.clipboardData?.getData("text/plain");
     if (!text || !URL.canParse(text)) return;
-    fetch(`/api/posts?iri=${encodeURIComponent(text)}`).then(async (r) => {
-      if (!r.ok) return;
-      const post = await r.json();
-      if (post.visibility !== "public" && post.visibility !== "unlisted") {
-        return;
-      }
-      const confirmMsg = post.type === "Article"
-        ? t`Do you want to quote this article?`
-        : t`Do you want to quote this note?`;
-      if (confirm(confirmMsg)) {
-        setPastedQuoteId(btoa(`${post.type}:${post.id}`));
-      }
+    fetchQuery<NoteComposerPostByUrlQuery>(
+      environment(),
+      NoteComposerPostByUrlQuery,
+      { url: text },
+    ).subscribe({
+      next(data) {
+        const post = data.postByUrl;
+        if (!post) return;
+        if (post.visibility !== "PUBLIC" && post.visibility !== "UNLISTED") {
+          return;
+        }
+        const confirmMsg = post.__typename === "Article"
+          ? t`Do you want to quote this article?`
+          : t`Do you want to quote this note?`;
+        if (confirm(confirmMsg)) {
+          setPastedQuoteId(post.id);
+        }
+      },
     });
   };
 

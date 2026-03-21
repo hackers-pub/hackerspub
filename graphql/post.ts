@@ -28,7 +28,7 @@ import {
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
@@ -1203,6 +1203,82 @@ builder.queryField("articleDraft", (t) =>
         .limit(1);
 
       return drafts[0] ?? null;
+    },
+  }));
+
+builder.queryField("postByUrl", (t) =>
+  t.field({
+    type: Post,
+    nullable: true,
+    args: {
+      url: t.arg.string({ required: true }),
+    },
+    async resolve(_root, args, ctx) {
+      const url = args.url.trim();
+      if (!URL.canParse(url) || !url.match(/^https?:/)) return null;
+      const account = ctx.account;
+      const withRelations = {
+        actor: {
+          with: {
+            followers: {
+              where: account == null
+                ? { RAW: sql`false` }
+                : { followerId: account.actor.id },
+            },
+            blockees: {
+              where: account == null
+                ? { RAW: sql`false` }
+                : { blockeeId: account.actor.id },
+            },
+            blockers: {
+              where: account == null
+                ? { RAW: sql`false` }
+                : { blockerId: account.actor.id },
+            },
+          },
+        },
+        mentions: { with: { actor: true } },
+      } as const;
+      let post = await ctx.db.query.postTable.findFirst({
+        with: withRelations,
+        where: { OR: [{ iri: url }, { url }] },
+      });
+      if (post == null) {
+        const { isPostObject, persistPost } = await import(
+          "@hackerspub/models/post"
+        );
+        const documentLoader = ctx.account == null
+          ? ctx.fedCtx.documentLoader
+          : await ctx.fedCtx.getDocumentLoader({
+            identifier: ctx.account.id,
+          });
+        let object;
+        try {
+          object = await ctx.fedCtx.lookupObject(url, { documentLoader });
+        } catch {
+          return null;
+        }
+        if (!isPostObject(object)) return null;
+        const persisted = await persistPost(ctx.fedCtx, object, {
+          contextLoader: ctx.fedCtx.contextLoader,
+          documentLoader,
+        });
+        if (persisted == null) return null;
+        post = await ctx.db.query.postTable.findFirst({
+          with: withRelations,
+          where: { id: persisted.id },
+        });
+        if (post == null) return null;
+      }
+      if (post.sharedPostId != null) {
+        post = await ctx.db.query.postTable.findFirst({
+          with: withRelations,
+          where: { id: post.sharedPostId },
+        });
+        if (post == null) return null;
+      }
+      if (!isPostVisibleTo(post, account?.actor)) return null;
+      return post;
     },
   }));
 
