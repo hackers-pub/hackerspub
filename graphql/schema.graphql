@@ -514,6 +514,10 @@ type InvitationLink implements Node {
   uuid: UUID!
 }
 
+type InvitationLinkNotFoundError {
+  message: String!
+}
+
 """A node in the invitation tree."""
 type InvitationTreeNode {
   avatarUrl: URL!
@@ -606,6 +610,7 @@ type Mutation {
   createInvitationLink(expires: String, invitationsLeft: Int!, message: Markdown): CreateInvitationLinkResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
+  deleteInvitationLink(id: UUID!): Boolean!
   deletePost(input: DeletePostInput!): DeletePostResult!
   followActor(input: FollowActorInput!): FollowActorResult!
   getPasskeyAuthenticationOptions(
@@ -655,6 +660,7 @@ type Mutation {
     verifyUrl: URITemplate!
   ): LoginResult!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
+  redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!
   registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult!
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
@@ -1133,6 +1139,37 @@ type ReactionGroupReactorsConnection {
 type ReactionGroupReactorsConnectionEdge {
   cursor: String!
   node: Actor!
+}
+
+enum RedeemEmailError {
+  EMAIL_ALREADY_TAKEN
+  EMAIL_INVALID
+}
+
+union RedeemInvitationLinkResult = RedeemInvitationLinkSuccess | RedeemInvitationLinkValidationErrors
+
+type RedeemInvitationLinkSuccess {
+  email: Email!
+  invitationLink: InvitationLink!
+}
+
+type RedeemInvitationLinkValidationErrors {
+  email: RedeemEmailError
+  emailOwner: Account
+  link: RedeemLinkError
+  sendFailed: Boolean
+  verifyUrl: RedeemVerifyUrlError
+}
+
+enum RedeemLinkError {
+  LINK_EXHAUSTED
+  LINK_EXPIRED
+  LINK_NOT_FOUND
+}
+
+enum RedeemVerifyUrlError {
+  VERIFY_URL_NO_CODE
+  VERIFY_URL_NO_TOKEN
 }
 
 type RegisterApnsDeviceTokenFailedError {
