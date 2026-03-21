@@ -49,7 +49,7 @@ const NoteComposerQuotedPostQuery = graphql`
         __typename
         excerpt
         actor {
-          name
+          rawName
           handle
           avatarUrl
         }
@@ -59,7 +59,7 @@ const NoteComposerQuotedPostQuery = graphql`
         name
         excerpt
         actor {
-          name
+          rawName
           handle
           avatarUrl
         }
@@ -112,6 +112,7 @@ export function NoteComposer(props: NoteComposerProps) {
   const [quotedPost, setQuotedPost] = createSignal<
     QuotedPostPreview | null
   >(null);
+  const [quoteFetchError, setQuoteFetchError] = createSignal(false);
   const [createNote, isCreating] = createMutation<NoteComposerMutation>(
     NoteComposerMutation,
   );
@@ -122,8 +123,10 @@ export function NoteComposer(props: NoteComposerProps) {
     const id = effectiveQuotedPostId();
     if (!id) {
       setQuotedPost(null);
+      setQuoteFetchError(false);
       return;
     }
+    setQuoteFetchError(false);
     const subscription = fetchQuery<NoteComposerQuotedPostQuery>(
       environment(),
       NoteComposerQuotedPostQuery,
@@ -146,13 +149,14 @@ export function NoteComposer(props: NoteComposerProps) {
           typename: node.__typename,
           excerpt: node.excerpt,
           name: "name" in node ? (node.name ?? undefined) : undefined,
-          actorName: node.actor.name ?? undefined,
+          actorName: node.actor.rawName ?? undefined,
           actorHandle: node.actor.handle,
           actorAvatarUrl: node.actor.avatarUrl,
         });
       },
       error() {
         setQuotedPost(null);
+        setQuoteFetchError(true);
       },
     });
     onCleanup(() => subscription.unsubscribe());
@@ -205,6 +209,7 @@ export function NoteComposer(props: NoteComposerProps) {
   const clearPastedQuote = () => {
     setPastedQuoteId(null);
     setQuotedPost(null);
+    setQuoteFetchError(false);
   };
 
   const resetForm = () => {
@@ -214,6 +219,7 @@ export function NoteComposer(props: NoteComposerProps) {
     setManualLanguageChange(false);
     setQuotedPost(null);
     setPastedQuoteId(null);
+    setQuoteFetchError(false);
   };
 
   const handleSubmit = (e: Event) => {
@@ -281,7 +287,11 @@ export function NoteComposer(props: NoteComposerProps) {
           <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
             <Show when={quotedPost()} fallback={
               <div class="flex-1 min-w-0">
-                <span class="text-sm text-muted-foreground">{t`Loading quoted post…`}</span>
+                <span class="text-sm text-muted-foreground">
+                  {quoteFetchError()
+                    ? t`Failed to load quoted post`
+                    : t`Loading quoted post…`}
+                </span>
               </div>
             }>
               {(qp) => (
@@ -403,7 +413,7 @@ export function NoteComposer(props: NoteComposerProps) {
           </Show>
           <Button
             type="submit"
-            disabled={isCreating() || (!!effectiveQuotedPostId() && !quotedPost())}
+            disabled={isCreating() || (!!effectiveQuotedPostId() && !quotedPost() && !quoteFetchError())}
           >
             <Show when={isCreating()} fallback={t`Create Note`}>
               {t`Creating…`}
