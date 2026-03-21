@@ -8,7 +8,11 @@ import {
   PostVisibility,
   PostVisibilitySelect,
 } from "~/components/PostVisibilitySelect.tsx";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar.tsx";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   TextField,
@@ -293,15 +297,18 @@ export function NoteComposer(props: NoteComposerProps) {
         {/* Quoted post preview */}
         <Show when={effectiveQuotedPostId()}>
           <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
-            <Show when={quotedPost()} fallback={
-              <div class="flex-1 min-w-0">
-                <span class="text-sm text-muted-foreground">
-                  {quoteFetchError()
-                    ? t`Failed to load quoted post`
-                    : t`Loading quoted post…`}
-                </span>
-              </div>
-            }>
+            <Show
+              when={quotedPost()}
+              fallback={
+                <div class="flex-1 min-w-0">
+                  <span class="text-sm text-muted-foreground">
+                    {quoteFetchError()
+                      ? t`Failed to load quoted post`
+                      : t`Loading quoted post…`}
+                  </span>
+                </div>
+              }
+            >
               {(qp) => (
                 <>
                   <Avatar class="size-8 flex-shrink-0">
@@ -331,9 +338,11 @@ export function NoteComposer(props: NoteComposerProps) {
                 </>
               )}
             </Show>
-            <button
+            <Button
               type="button"
-              class="text-muted-foreground hover:text-foreground flex-shrink-0"
+              variant="ghost"
+              size="sm"
+              class="h-6 w-6 p-0 text-muted-foreground hover:text-foreground flex-shrink-0"
               onClick={() => {
                 props.onQuoteRemoved?.();
                 clearPastedQuote();
@@ -342,7 +351,7 @@ export function NoteComposer(props: NoteComposerProps) {
               aria-label={t`Remove quote`}
             >
               <IconX class="size-4" />
-            </button>
+            </Button>
           </div>
         </Show>
 
@@ -421,7 +430,9 @@ export function NoteComposer(props: NoteComposerProps) {
           </Show>
           <Button
             type="submit"
-            disabled={isCreating() || (!!effectiveQuotedPostId() && !quotedPost() && !quoteFetchError())}
+            disabled={isCreating() ||
+              (!!effectiveQuotedPostId() && !quotedPost() &&
+                !quoteFetchError())}
           >
             <Show when={isCreating()} fallback={t`Create Note`}>
               {t`Creating…`}
