@@ -126,6 +126,7 @@ export function NoteComposer(props: NoteComposerProps) {
       setQuoteFetchError(false);
       return;
     }
+    setQuotedPost(null);
     setQuoteFetchError(false);
     const subscription = fetchQuery<NoteComposerQuotedPostQuery>(
       environment(),
@@ -139,10 +140,12 @@ export function NoteComposer(props: NoteComposerProps) {
           (node.__typename !== "Note" && node.__typename !== "Article")
         ) {
           setQuotedPost(null);
+          setQuoteFetchError(true);
           return;
         }
         if (!node.actor) {
           setQuotedPost(null);
+          setQuoteFetchError(true);
           return;
         }
         setQuotedPost({
