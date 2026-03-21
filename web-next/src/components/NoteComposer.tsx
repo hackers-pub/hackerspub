@@ -195,6 +195,7 @@ export function NoteComposer(props: NoteComposerProps) {
           ? t`Do you want to quote this article?`
           : t`Do you want to quote this note?`;
         if (confirm(confirmMsg)) {
+          e.preventDefault();
           setPastedQuoteId(post.id);
         }
       },
