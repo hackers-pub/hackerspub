@@ -389,22 +389,30 @@ function ArticleBody(props: ArticleBodyProps) {
                     </svg>
                     <div>
                       <Show when={content()?.originalLanguage}>
-                        {(originalLanguage) => (
-                          <p class="mb-4">
-                            <Trans
-                              message={t`Translated from ${"LANGUAGE"}`}
-                              values={{
-                                LANGUAGE: () => (
-                                  <a href={postUrl()}>
-                                    {new Intl.DisplayNames(i18n.locale, {
-                                      type: "language",
-                                    }).of(originalLanguage())}
-                                  </a>
-                                ),
-                              }}
-                            />
-                          </p>
-                        )}
+                        {(originalLanguage) => {
+                          const sourceUrl = () => {
+                            const entry = article().contents.find(
+                              (c) => c.language === originalLanguage(),
+                            );
+                            return entry?.url ?? postUrl();
+                          };
+                          return (
+                            <p class="mb-4">
+                              <Trans
+                                message={t`Translated from ${"LANGUAGE"}`}
+                                values={{
+                                  LANGUAGE: () => (
+                                    <a href={sourceUrl()}>
+                                      {new Intl.DisplayNames(i18n.locale, {
+                                        type: "language",
+                                      }).of(originalLanguage())}
+                                    </a>
+                                  ),
+                                }}
+                              />
+                            </p>
+                          );
+                        }}
                       </Show>
                       <nav class="text-stone-600 dark:text-stone-400">
                         <strong>{t`Other languages`}</strong> &rarr;{" "}
