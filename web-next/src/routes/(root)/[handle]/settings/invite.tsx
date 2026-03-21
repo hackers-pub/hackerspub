@@ -416,6 +416,7 @@ export default function InvitePage() {
                     </Card>
                     <InvitationLinksCard
                       accountId={account().id}
+                      username={account().username}
                       invitationLinks={account().invitationLinks}
                       invitationsLeft={account().invitationsLeft}
                     />
@@ -456,6 +457,7 @@ type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
 interface InvitationLinksCardProps {
   readonly accountId: string;
+  readonly username: string;
   readonly invitationLinks: ReadonlyArray<{
     readonly id: string;
     readonly uuid: UUID;
@@ -598,71 +600,77 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
         <Show when={props.invitationLinks.length > 0}>
           <ul class="flex flex-col gap-3 mb-6">
             <For each={props.invitationLinks}>
-              {(link) => (
-                <li class="flex flex-col gap-1.5 rounded-md border p-3">
-                  <div class="flex items-center gap-2">
-                    <code class="flex-1 truncate text-sm bg-muted px-2 py-1 rounded">
-                      {link.url}
-                    </code>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      class="cursor-pointer shrink-0"
-                      on:click={() => copyToClipboard(link.url)}
-                    >
-                      {t`Copy`}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      class="cursor-pointer shrink-0"
-                      disabled={deletingId() === link.uuid}
-                      on:click={() => onDeleteLink(link.uuid, link.id)}
-                    >
-                      {deletingId() === link.uuid ? t`Deleting…` : t`Delete`}
-                    </Button>
-                  </div>
-                  <Show when={link.message}>
-                    {(msg) => (
-                      <p class="text-sm text-muted-foreground truncate">
-                        {msg()}
-                      </p>
-                    )}
-                  </Show>
-                  <div class="flex gap-4 text-sm text-muted-foreground">
-                    <span>
-                      {i18n._(
-                        msg`${
-                          plural(link.invitationsLeft, {
-                            one: "# invitation left",
-                            other: "# invitations left",
-                          })
-                        }`,
-                      )}
-                    </span>
-                    <span>
-                      <Show
-                        when={link.expires}
-                        fallback={t`Never expires`}
+              {(link) => {
+                const linkUrl = () =>
+                  `${
+                    globalThis.location?.origin ?? ""
+                  }/@${props.username}/invite/${link.uuid}`;
+                return (
+                  <li class="flex flex-col gap-1.5 rounded-md border p-3">
+                    <div class="flex items-center gap-2">
+                      <code class="flex-1 truncate text-sm bg-muted px-2 py-1 rounded">
+                        {linkUrl()}
+                      </code>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        class="cursor-pointer shrink-0"
+                        on:click={() => copyToClipboard(linkUrl())}
                       >
-                        {(expires) => (
-                          <Trans
-                            message={t`Expires ${"DATE"}`}
-                            values={{
-                              DATE: () => (
-                                <Timestamp
-                                  value={expires()}
-                                  allowFuture
-                                />
-                              ),
-                            }}
-                          />
+                        {t`Copy`}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        class="cursor-pointer shrink-0"
+                        disabled={deletingId() === link.uuid}
+                        on:click={() => onDeleteLink(link.uuid, link.id)}
+                      >
+                        {deletingId() === link.uuid ? t`Deleting…` : t`Delete`}
+                      </Button>
+                    </div>
+                    <Show when={link.message}>
+                      {(msg) => (
+                        <p class="text-sm text-muted-foreground truncate">
+                          {msg()}
+                        </p>
+                      )}
+                    </Show>
+                    <div class="flex gap-4 text-sm text-muted-foreground">
+                      <span>
+                        {i18n._(
+                          msg`${
+                            plural(link.invitationsLeft, {
+                              one: "# invitation left",
+                              other: "# invitations left",
+                            })
+                          }`,
                         )}
-                      </Show>
-                    </span>
-                  </div>
-                </li>
-              )}
+                      </span>
+                      <span>
+                        <Show
+                          when={link.expires}
+                          fallback={t`Never expires`}
+                        >
+                          {(expires) => (
+                            <Trans
+                              message={t`Expires ${"DATE"}`}
+                              values={{
+                                DATE: () => (
+                                  <Timestamp
+                                    value={expires()}
+                                    allowFuture
+                                  />
+                                ),
+                              }}
+                            />
+                          )}
+                        </Show>
+                      </span>
+                    </div>
+                  </li>
+                );
+              }}
             </For>
           </ul>
         </Show>
