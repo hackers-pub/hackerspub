@@ -264,9 +264,8 @@ function ArticleBody(props: ArticleBodyProps) {
 
         return (
           <>
-            <div class="flex flex-col xl:flex-row xl:gap-8 mt-8 mb-4 px-4 max-w-screen-xl mx-auto">
-              {/* Main column */}
-              <article class="flex-1 min-w-0 max-w-prose">
+            <div class="relative mt-8 mb-4 px-4 max-w-prose mx-auto">
+              <article>
                 <Show when={content()?.beingTranslated}>
                   <h1 class="text-4xl font-bold">
                     {t`Translating...`}
@@ -489,7 +488,7 @@ function ArticleBody(props: ArticleBodyProps) {
               </article>
 
               {/* Sidebar (xl+ only) */}
-              <aside class="hidden xl:block xl:w-64 xl:flex-shrink-0">
+              <aside class="hidden xl:block xl:absolute xl:left-full xl:top-0 xl:ml-8 xl:w-64">
                 <div class="xl:sticky xl:top-4">
                   {/* Desktop ToC */}
                   <Show
