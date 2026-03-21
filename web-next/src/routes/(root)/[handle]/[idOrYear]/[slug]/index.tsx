@@ -78,6 +78,7 @@ const loadPageQuery = query(
 );
 
 export default function ArticlePage() {
+  const { t } = useLingui();
   const params = useParams();
   const handle = params.handle!;
   const idOrYear = params.idOrYear!;
@@ -93,7 +94,19 @@ export default function ArticlePage() {
       {(data) => (
         <Show
           when={data().articleByYearAndSlug}
-          fallback={<HttpStatusCode code={404} />}
+          fallback={
+            <>
+              <HttpStatusCode code={404} />
+              <div class="mt-16 text-center">
+                <h1 class="text-4xl font-bold mb-4">
+                  {t`Page Not Found`}
+                </h1>
+                <p class="text-muted-foreground">
+                  {t`The article you're looking for doesn't exist or has been deleted.`}
+                </p>
+              </div>
+            </>
+          }
         >
           {(article) => (
             <>
