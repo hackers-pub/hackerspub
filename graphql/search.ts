@@ -1,10 +1,12 @@
 import { isActor } from "@fedify/vocab";
+import { persistActor } from "@hackerspub/models/actor";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import { compileQuery, parseQuery } from "@hackerspub/models/search";
 import {
   FULL_HANDLE_REGEXP,
   HANDLE_REGEXP,
 } from "@hackerspub/models/searchPatterns";
+import { addPostToTimeline } from "@hackerspub/models/timeline";
 import { sql } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import { builder, type UserContext } from "./builder.ts";
@@ -36,10 +38,6 @@ async function searchAsUrl(ctx: UserContext, query: string) {
     const post = await lookupPostByUrl(ctx, url);
     if (post == null) return null;
 
-    // Add to timeline if newly fetched
-    const { addPostToTimeline } = await import(
-      "@hackerspub/models/timeline"
-    );
     await addPostToTimeline(ctx.db, post);
 
     const actor = await ctx.db.query.actorTable.findFirst({
@@ -123,7 +121,6 @@ async function searchAsHandle(ctx: UserContext, query: string) {
     return null;
   }
 
-  const { persistActor } = await import("@hackerspub/models/actor");
   actor = await persistActor(ctx.fedCtx, object!, {
     contextLoader: ctx.fedCtx.contextLoader,
     documentLoader,
