@@ -3,26 +3,21 @@ import type { Post } from "@hackerspub/models/schema";
 import type { UserContext } from "./builder.ts";
 
 /**
- * Look up a post by URL. Checks the local database first, then attempts
- * federation lookup if not found locally.  If the matched row is a share,
- * dereferences to the original post.  Returns the raw post row
- * (without extra relations) or `null`.
+ * Look up a post by URL. Checks the local database first (excluding share
+ * rows), then attempts federation lookup if not found locally.  Returns
+ * the original post row (without extra relations) or `null`.
  */
 export async function lookupPostByUrl(
   ctx: UserContext,
   url: string,
 ): Promise<Post | null> {
-  let existing = await ctx.db.query.postTable.findFirst({
-    where: { OR: [{ iri: url }, { url }] },
+  const existing = await ctx.db.query.postTable.findFirst({
+    where: {
+      OR: [{ iri: url }, { url }],
+      sharedPostId: { isNull: true },
+    },
   });
-  if (existing != null) {
-    if (existing.sharedPostId != null) {
-      existing = await ctx.db.query.postTable.findFirst({
-        where: { id: existing.sharedPostId },
-      }) ?? null;
-    }
-    return existing;
-  }
+  if (existing != null) return existing;
 
   const documentLoader = ctx.account == null
     ? ctx.fedCtx.documentLoader
