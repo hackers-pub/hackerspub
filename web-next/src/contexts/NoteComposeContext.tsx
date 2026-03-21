@@ -9,8 +9,10 @@ type NoteCreatedCallback = () => void;
 
 interface NoteComposeContextValue {
   isOpen: () => boolean;
-  open: () => void;
+  quotedPostId: () => string | null;
+  open: (quotedPostId?: string) => void;
   close: () => void;
+  clearQuote: () => void;
   onNoteCreated: (callback: NoteCreatedCallback) => () => void;
   notifyNoteCreated: () => void;
 }
@@ -19,15 +21,21 @@ const NoteComposeContext = createContext<NoteComposeContextValue>();
 
 export const NoteComposeProvider: ParentComponent = (props) => {
   const [isOpen, setIsOpen] = createSignal(false);
+  const [quotedPostId, setQuotedPostId] = createSignal<string | null>(null);
   const [callbacks, setCallbacks] = createSignal<Set<NoteCreatedCallback>>(
     new Set(),
   );
 
-  const open = () => {
+  const open = (quotedPostId?: string) => {
+    setQuotedPostId(quotedPostId ?? null);
     setIsOpen(true);
   };
   const close = () => {
+    setQuotedPostId(null);
     setIsOpen(false);
+  };
+  const clearQuote = () => {
+    setQuotedPostId(null);
   };
 
   const onNoteCreated = (callback: NoteCreatedCallback) => {
@@ -48,7 +56,15 @@ export const NoteComposeProvider: ParentComponent = (props) => {
 
   return (
     <NoteComposeContext.Provider
-      value={{ isOpen, open, close, onNoteCreated, notifyNoteCreated }}
+      value={{
+        isOpen,
+        quotedPostId,
+        open,
+        close,
+        clearQuote,
+        onNoteCreated,
+        notifyNoteCreated,
+      }}
     >
       {props.children}
     </NoteComposeContext.Provider>

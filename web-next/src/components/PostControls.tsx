@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconHeart from "~icons/lucide/heart";
 import IconMessageSquare from "~icons/lucide/message-square";
@@ -71,6 +72,7 @@ const unsharePostMutation = graphql`
 
 export function PostControls(props: PostControlsProps) {
   const { t } = useLingui();
+  const { open: openCompose } = useNoteCompose();
   const note = createFragment(
     graphql`
       fragment PostControls_note on Note {
@@ -191,6 +193,7 @@ export function PostControls(props: PostControlsProps) {
             size="sm"
             class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
             title={t`Quote`}
+            onClick={() => openCompose(note().id)}
           >
             <IconMessageSquareQuote class="size-4" />
             <span class="text-xs">{note().engagementStats.quotes}</span>
