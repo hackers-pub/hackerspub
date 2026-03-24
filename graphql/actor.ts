@@ -1,7 +1,11 @@
 import { assert } from "@std/assert";
 import { isActor } from "@fedify/vocab";
 import { desc, eq } from "drizzle-orm";
-import { getAvatarUrl, persistActor } from "@hackerspub/models/actor";
+import {
+  getAvatarUrl,
+  persistActor,
+  recommendActors,
+} from "@hackerspub/models/actor";
 import { block, unblock } from "@hackerspub/models/blocking";
 import { renderCustomEmojis } from "@hackerspub/models/emoji";
 import {
@@ -915,3 +919,21 @@ builder.relayMutationField(
     }),
   },
 );
+
+builder.queryField("recommendedActors", (t) =>
+  t.field({
+    type: [Actor],
+    args: {
+      limit: t.arg.int({ required: false, defaultValue: 10 }),
+    },
+    async resolve(_root, args, ctx) {
+      const accountLocales = ctx.account?.locales;
+      const actors = await recommendActors(ctx.db, {
+        mainLocale: accountLocales?.[0],
+        locales: accountLocales,
+        account: ctx.account,
+        limit: Math.max(1, Math.min(args.limit ?? 10, 50)),
+      });
+      return actors;
+    },
+  }));
