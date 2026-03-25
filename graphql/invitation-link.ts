@@ -55,11 +55,18 @@ builder.queryField("invitationLink", (t) =>
     nullable: true,
     args: {
       id: t.arg({ type: "UUID", required: true }),
+      username: t.arg.string({ required: true }),
     },
-    resolve(query, _, args, ctx) {
-      return ctx.db.query.invitationLinkTable.findFirst(
-        query({ where: { id: args.id } }),
+    async resolve(query, _, args, ctx) {
+      const link = await ctx.db.query.invitationLinkTable.findFirst(
+        query({
+          where: { id: args.id },
+          with: { inviter: { columns: { username: true } } },
+        }),
       );
+      if (link == null) return null;
+      if (link.inviter.username !== args.username) return null;
+      return link;
     },
   }));
 

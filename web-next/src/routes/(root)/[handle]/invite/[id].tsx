@@ -37,13 +37,13 @@ export const route = {
     handle: /^@[^@]+$/,
   },
   preload(args) {
-    void loadInvitationLinkPageQuery(args.params.id!);
+    void loadInvitationLinkPageQuery(args.params.id!, args.params.handle!);
   },
 } satisfies RouteDefinition;
 
 const invitationLinkPageQuery = graphql`
-  query IdInvitationLinkPageQuery($id: UUID!) {
-    invitationLink(id: $id) {
+  query IdInvitationLinkPageQuery($id: UUID!, $username: String!) {
+    invitationLink(id: $id, username: $username) {
       id
       uuid
       invitationsLeft
@@ -67,11 +67,11 @@ const invitationLinkPageQuery = graphql`
 type UUID = `${string}-${string}-${string}-${string}-${string}`;
 
 const loadInvitationLinkPageQuery = query(
-  (id: string) =>
+  (id: string, handle: string) =>
     loadQuery<IdInvitationLinkPageQuery>(
       useRelayEnvironment()(),
       invitationLinkPageQuery,
-      { id: id as UUID },
+      { id: id as UUID, username: handle.replace(/^@/, "") },
     ),
   "loadInvitationLinkPageQuery",
 );
@@ -115,7 +115,7 @@ export default function InvitationLinkPage() {
   const { t, i18n } = useLingui();
   const data = createPreloadedQuery<IdInvitationLinkPageQuery>(
     invitationLinkPageQuery,
-    () => loadInvitationLinkPageQuery(params.id!),
+    () => loadInvitationLinkPageQuery(params.id!, params.handle!),
   );
   const [email, setEmail] = createSignal("");
   const [locale, setLocale] = createSignal(i18n.locale);

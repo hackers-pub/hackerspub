@@ -977,7 +977,7 @@ type Query {
     locale: Locale!
   ): Document!
   instanceByHost(host: String!): Instance
-  invitationLink(id: UUID!): InvitationLink
+  invitationLink(id: UUID!, username: String!): InvitationLink
 
   """Returns all accounts as a flat array for building the invitation tree."""
   invitationTree: [InvitationTreeNode!]!
