@@ -27,6 +27,7 @@
     "./post": "./post.ts",
     "./reaction": "./reaction.ts",
     "./relations": "./relations.ts",
+    "./robots": "./robots.ts",
     "./schema": "./schema.ts",
     "./search": "./search.ts",
     "./searchPatterns": "./searchPatterns.ts",

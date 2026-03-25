@@ -36,6 +36,7 @@ import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
+import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
@@ -1203,6 +1204,47 @@ builder.queryField("articleDraft", (t) =>
         .limit(1);
 
       return drafts[0] ?? null;
+    },
+  }));
+
+builder.queryField("postByUrl", (t) =>
+  t.field({
+    type: Post,
+    nullable: true,
+    args: {
+      url: t.arg.string({ required: true }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) return null;
+      const parsed = parseHttpUrl(args.url.trim());
+      if (parsed == null) return null;
+      const account = ctx.account;
+      const looked = await lookupPostByUrl(ctx, parsed);
+      if (looked == null) return null;
+      const postId = looked.id;
+      const withRelations = {
+        actor: {
+          with: {
+            followers: {
+              where: { followerId: account.actor.id },
+            },
+            blockees: {
+              where: { blockeeId: account.actor.id },
+            },
+            blockers: {
+              where: { blockerId: account.actor.id },
+            },
+          },
+        },
+        mentions: true,
+      } as const;
+      const post = await ctx.db.query.postTable.findFirst({
+        with: withRelations,
+        where: { id: postId },
+      });
+      if (post == null) return null;
+      if (!isPostVisibleTo(post, account.actor)) return null;
+      return post;
     },
   }));
 

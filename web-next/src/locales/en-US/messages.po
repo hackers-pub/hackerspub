@@ -271,7 +271,7 @@ msgid "Bold"
 msgstr "Bold"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:217
+#: src/components/NoteComposer.tsx:440
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:217
 #: src/components/RemoteFollowButton.tsx:279
@@ -301,13 +301,17 @@ msgid "Compose"
 msgstr "Compose"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:150
+#: src/components/NoteComposer.tsx:372
 msgid "Content"
 msgstr "Content"
 
-#: src/components/NoteComposer.tsx:96
+#: src/components/NoteComposer.tsx:252
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
+
+#: src/components/NoteComposer.tsx:203
+msgid "Could not find a post at this URL"
+msgstr "Could not find a post at this URL"
 
 #: src/components/AppSidebar.tsx:467
 #: src/components/FloatingComposeButton.tsx:123
@@ -316,8 +320,8 @@ msgstr "Create Article"
 
 #: src/components/AppSidebar.tsx:444
 #: src/components/FloatingComposeButton.tsx:99
-#: src/components/NoteComposeModal.tsx:24
-#: src/components/NoteComposer.tsx:221
+#: src/components/NoteComposeModal.tsx:26
+#: src/components/NoteComposer.tsx:449
 msgid "Create Note"
 msgstr "Create Note"
 
@@ -330,7 +334,7 @@ msgstr "Created {0}"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:222
+#: src/components/NoteComposer.tsx:450
 msgid "Creating…"
 msgstr "Creating…"
 
@@ -380,6 +384,10 @@ msgstr "Display name"
 #: src/routes/(root)/sign/index.tsx:425
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
+
+#: src/components/NoteComposer.tsx:190
+msgid "Do you want to quote this link?"
+msgstr "Do you want to quote this link?"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/routes/(root)/[handle]/drafts/index.tsx:175
@@ -442,13 +450,14 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/article-composer/ArticleComposerContext.tsx:452
 #: src/components/article-composer/ArticleComposerContext.tsx:460
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:95
-#: src/components/NoteComposer.tsx:121
-#: src/components/NoteComposer.tsx:129
-#: src/components/NoteComposer.tsx:137
-#: src/routes/(root)/[handle]/drafts/index.tsx:182
-#: src/routes/(root)/[handle]/drafts/index.tsx:191
-#: src/routes/(root)/[handle]/drafts/index.tsx:199
+#: src/components/NoteComposer.tsx:202
+#: src/components/NoteComposer.tsx:251
+#: src/components/NoteComposer.tsx:278
+#: src/components/NoteComposer.tsx:286
+#: src/components/NoteComposer.tsx:294
+#: src/routes/(root)/[handle]/drafts/index.tsx:181
+#: src/routes/(root)/[handle]/drafts/index.tsx:190
+#: src/routes/(root)/[handle]/drafts/index.tsx:198
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "Error"
@@ -506,6 +515,10 @@ msgstr "Failed to load more passkeys; click to retry"
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
+#: src/components/NoteComposer.tsx:314
+msgid "Failed to load quoted post"
+msgstr "Failed to load quoted post"
+
 #: src/components/RemoteFollowButton.tsx:126
 msgid "Failed to look up user."
 msgstr "Failed to look up user."
@@ -543,7 +556,7 @@ msgstr "Failed to save settings"
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
-#: src/components/PostControls.tsx:148
+#: src/components/PostControls.tsx:150
 msgid "Failed to share post"
 msgstr "Failed to share post"
 
@@ -556,7 +569,7 @@ msgstr "Failed to sign out: {0}"
 msgid "Failed to unfollow"
 msgstr "Failed to unfollow"
 
-#: src/components/PostControls.tsx:134
+#: src/components/PostControls.tsx:136
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
@@ -694,8 +707,8 @@ msgstr "Invalid Fediverse handle format."
 #: src/components/article-composer/ArticleComposerContext.tsx:309
 #: src/components/article-composer/ArticleComposerContext.tsx:380
 #: src/components/article-composer/ArticleComposerContext.tsx:445
-#: src/components/NoteComposer.tsx:122
-#: src/routes/(root)/[handle]/drafts/index.tsx:184
+#: src/components/NoteComposer.tsx:279
+#: src/routes/(root)/[handle]/drafts/index.tsx:183
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
 
@@ -733,7 +746,7 @@ msgstr "Joined on {0}"
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:36
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/components/NoteComposer.tsx:196
+#: src/components/NoteComposer.tsx:419
 msgid "Language"
 msgstr "Language"
 
@@ -847,7 +860,11 @@ msgstr "Loading more passkeys…"
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:323
+#: src/components/NoteComposer.tsx:315
+msgid "Loading quoted post…"
+msgstr "Loading quoted post…"
+
+#: src/routes/(root)/[handle]/drafts/index.tsx:322
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -868,7 +885,7 @@ msgid "Markdown guide"
 msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:175
+#: src/components/NoteComposer.tsx:397
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
@@ -970,7 +987,7 @@ msgstr "Not found."
 #~ msgid "Note"
 #~ msgstr "Note"
 
-#: src/components/NoteComposer.tsx:114
+#: src/components/NoteComposer.tsx:271
 msgid "Note created successfully"
 msgstr "Note created successfully"
 
@@ -1118,12 +1135,13 @@ msgstr "Query cannot be empty"
 msgid "Quiet public"
 msgstr "Quiet public"
 
-#: src/components/PostControls.tsx:193
+#: src/components/NoteComposeModal.tsx:26
+#: src/components/PostControls.tsx:195
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "Quote"
 
-#: src/components/PostControls.tsx:230
+#: src/components/PostControls.tsx:233
 msgid "React"
 msgstr "React"
 
@@ -1183,7 +1201,12 @@ msgstr "Remove"
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
-#: src/components/PostControls.tsx:182
+#: src/components/NoteComposer.tsx:362
+#: src/components/NoteComposer.tsx:363
+msgid "Remove quote"
+msgstr "Remove quote"
+
+#: src/components/PostControls.tsx:184
 msgid "Reply"
 msgstr "Reply"
 
@@ -1258,7 +1281,7 @@ msgstr "Set your personal preferences."
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/PostControls.tsx:210
+#: src/components/PostControls.tsx:213
 msgid "Share"
 msgstr "Share"
 
@@ -1318,8 +1341,8 @@ msgstr "Something went wrong—please try again."
 #: src/components/article-composer/ArticleComposerContext.tsx:298
 #: src/components/article-composer/ArticleComposerContext.tsx:370
 #: src/components/article-composer/ArticleComposerContext.tsx:435
-#: src/components/NoteComposer.tsx:113
-#: src/routes/(root)/[handle]/drafts/index.tsx:174
+#: src/components/NoteComposer.tsx:270
+#: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Success"
 msgstr "Success"
 
@@ -1455,7 +1478,7 @@ msgstr "Unable to remove reaction. Please try again."
 msgid "Unfollow"
 msgstr "Unfollow"
 
-#: src/components/PostControls.tsx:210
+#: src/components/PostControls.tsx:213
 msgid "Unshare"
 msgstr "Unshare"
 
@@ -1515,7 +1538,7 @@ msgstr "Verifying your invitation…"
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
-#: src/components/NoteComposer.tsx:203
+#: src/components/NoteComposer.tsx:426
 msgid "Visibility"
 msgstr "Visibility"
 
@@ -1547,7 +1570,7 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/NoteComposer.tsx:182
+#: src/components/NoteComposer.tsx:405
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
@@ -1602,7 +1625,7 @@ msgstr "You have no invitations left. Please wait until you receive more."
 msgid "You must be signed in"
 msgstr "You must be signed in"
 
-#: src/components/NoteComposer.tsx:130
+#: src/components/NoteComposer.tsx:287
 msgid "You must be signed in to create a note"
 msgstr "You must be signed in to create a note"
 

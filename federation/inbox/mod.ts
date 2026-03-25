@@ -38,6 +38,7 @@ import {
   onReactedOnPost,
   onReactionUndoneOnPost,
 } from "./subscribe.ts";
+import { onUnverifiedActivity } from "./unverified.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox"]);
 
@@ -46,6 +47,7 @@ builder
   .setSharedKeyDispatcher((ctx) => ({
     identifier: new URL(ctx.canonicalOrigin).hostname,
   }))
+  .onUnverifiedActivity(onUnverifiedActivity)
   .on(Accept, onFollowAccepted)
   .on(Reject, onFollowRejected)
   .on(Follow, onFollowed)
