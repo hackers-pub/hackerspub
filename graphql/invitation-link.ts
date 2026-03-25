@@ -171,31 +171,38 @@ builder.objectType(InvitationLinkNotFoundError, {
 
 builder.mutationField("deleteInvitationLink", (t) =>
   t.field({
-    type: "Boolean",
+    type: InvitationLink,
+    errors: {
+      types: [NotAuthenticatedError, InvitationLinkNotFoundError],
+      union: { name: "DeleteInvitationLinkResult" },
+      result: { name: "DeleteInvitationLinkSuccess" },
+    },
     args: {
       id: t.arg({ type: "UUID", required: true }),
     },
     async resolve(_root, args, ctx) {
       if (ctx.account == null) throw new NotAuthenticatedError();
+      const link = await ctx.db.query.invitationLinkTable.findFirst({
+        where: { id: args.id },
+        with: { inviter: true },
+      });
+      if (link == null || link.inviterId !== ctx.account.id) {
+        throw new InvitationLinkNotFoundError();
+      }
       await ctx.db.transaction(async (tx) => {
-        const deleted = await tx.delete(invitationLinkTable)
+        await tx.delete(invitationLinkTable)
           .where(and(
             eq(invitationLinkTable.inviterId, ctx.account!.id),
             eq(invitationLinkTable.id, args.id),
-          ))
-          .returning();
-        if (deleted.length < 1) {
-          throw new InvitationLinkNotFoundError();
-        }
+          ));
         await tx.update(accountTable)
           .set({
-            leftInvitations: sql`${accountTable.leftInvitations} + ${
-              deleted[0].invitationsLeft
-            }`,
+            leftInvitations:
+              sql`${accountTable.leftInvitations} + ${link.invitationsLeft}`,
           })
           .where(eq(accountTable.id, ctx.account!.id));
       });
-      return true;
+      return link;
     },
   }));
 

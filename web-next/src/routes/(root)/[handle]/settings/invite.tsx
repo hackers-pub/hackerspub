@@ -161,7 +161,15 @@ const createInvitationLinkMutation = graphql`
 
 const deleteInvitationLinkMutation = graphql`
   mutation inviteDeleteLinkMutation($id: UUID!) {
-    deleteInvitationLink(id: $id)
+    deleteInvitationLink(id: $id) {
+      __typename
+      ... on InvitationLink {
+        id
+      }
+      ... on InvitationLinkNotFoundError {
+        message
+      }
+    }
   }
 `;
 

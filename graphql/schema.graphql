@@ -409,6 +409,8 @@ type DeleteArticleDraftPayload {
 
 union DeleteArticleDraftResult = DeleteArticleDraftPayload | InvalidInputError | NotAuthenticatedError
 
+union DeleteInvitationLinkResult = InvitationLink | InvitationLinkNotFoundError | NotAuthenticatedError
+
 input DeletePostInput {
   clientMutationId: ID
   id: ID!
@@ -610,7 +612,7 @@ type Mutation {
   createInvitationLink(expires: String, invitationsLeft: Int!, message: Markdown): CreateInvitationLinkResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
-  deleteInvitationLink(id: UUID!): Boolean!
+  deleteInvitationLink(id: UUID!): DeleteInvitationLinkResult!
   deletePost(input: DeletePostInput!): DeletePostResult!
   followActor(input: FollowActorInput!): FollowActorResult!
   getPasskeyAuthenticationOptions(
