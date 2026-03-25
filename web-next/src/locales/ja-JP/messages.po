@@ -451,9 +451,9 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 #: src/components/NoteComposer.tsx:278
 #: src/components/NoteComposer.tsx:286
 #: src/components/NoteComposer.tsx:294
-#: src/routes/(root)/[handle]/drafts/index.tsx:181
-#: src/routes/(root)/[handle]/drafts/index.tsx:190
-#: src/routes/(root)/[handle]/drafts/index.tsx:198
+#: src/routes/(root)/[handle]/drafts/index.tsx:182
+#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:199
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "エラー"
@@ -704,7 +704,7 @@ msgstr "無効なフェディバースのハンドルの形式です。"
 #: src/components/article-composer/ArticleComposerContext.tsx:380
 #: src/components/article-composer/ArticleComposerContext.tsx:445
 #: src/components/NoteComposer.tsx:279
-#: src/routes/(root)/[handle]/drafts/index.tsx:183
+#: src/routes/(root)/[handle]/drafts/index.tsx:184
 msgid "Invalid input: {0}"
 msgstr "無効な入力：{0}"
 
@@ -860,7 +860,7 @@ msgstr "コンテンツを読み込み中…"
 msgid "Loading quoted post…"
 msgstr "引用コンテンツを読み込み中…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:322
+#: src/routes/(root)/[handle]/drafts/index.tsx:323
 msgid "Loading..."
 msgstr "読み込み中..."
 
@@ -1337,7 +1337,7 @@ msgstr "問題が発生しました。再度お試しください。"
 #: src/components/article-composer/ArticleComposerContext.tsx:370
 #: src/components/article-composer/ArticleComposerContext.tsx:435
 #: src/components/NoteComposer.tsx:270
-#: src/routes/(root)/[handle]/drafts/index.tsx:173
+#: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "成功"
 

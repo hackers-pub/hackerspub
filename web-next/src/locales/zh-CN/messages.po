@@ -451,9 +451,9 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/NoteComposer.tsx:278
 #: src/components/NoteComposer.tsx:286
 #: src/components/NoteComposer.tsx:294
-#: src/routes/(root)/[handle]/drafts/index.tsx:181
-#: src/routes/(root)/[handle]/drafts/index.tsx:190
-#: src/routes/(root)/[handle]/drafts/index.tsx:198
+#: src/routes/(root)/[handle]/drafts/index.tsx:182
+#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:199
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "错误"
@@ -704,7 +704,7 @@ msgstr "联邦宇宙用户名格式无效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:380
 #: src/components/article-composer/ArticleComposerContext.tsx:445
 #: src/components/NoteComposer.tsx:279
-#: src/routes/(root)/[handle]/drafts/index.tsx:183
+#: src/routes/(root)/[handle]/drafts/index.tsx:184
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
 
@@ -860,7 +860,7 @@ msgstr "加载更多内容中…"
 msgid "Loading quoted post…"
 msgstr "正在加载引用内容…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:322
+#: src/routes/(root)/[handle]/drafts/index.tsx:323
 msgid "Loading..."
 msgstr "加载中..."
 
@@ -1337,7 +1337,7 @@ msgstr "出现错误，请重试。"
 #: src/components/article-composer/ArticleComposerContext.tsx:370
 #: src/components/article-composer/ArticleComposerContext.tsx:435
 #: src/components/NoteComposer.tsx:270
-#: src/routes/(root)/[handle]/drafts/index.tsx:173
+#: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "成功"
 

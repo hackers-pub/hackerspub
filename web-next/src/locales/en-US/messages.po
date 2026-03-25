@@ -455,9 +455,9 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/NoteComposer.tsx:278
 #: src/components/NoteComposer.tsx:286
 #: src/components/NoteComposer.tsx:294
-#: src/routes/(root)/[handle]/drafts/index.tsx:181
-#: src/routes/(root)/[handle]/drafts/index.tsx:190
-#: src/routes/(root)/[handle]/drafts/index.tsx:198
+#: src/routes/(root)/[handle]/drafts/index.tsx:182
+#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:199
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
 msgstr "Error"
@@ -708,7 +708,7 @@ msgstr "Invalid Fediverse handle format."
 #: src/components/article-composer/ArticleComposerContext.tsx:380
 #: src/components/article-composer/ArticleComposerContext.tsx:445
 #: src/components/NoteComposer.tsx:279
-#: src/routes/(root)/[handle]/drafts/index.tsx:183
+#: src/routes/(root)/[handle]/drafts/index.tsx:184
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
 
@@ -864,7 +864,7 @@ msgstr "Loading more posts…"
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:322
+#: src/routes/(root)/[handle]/drafts/index.tsx:323
 msgid "Loading..."
 msgstr "Loading..."
 
@@ -1342,7 +1342,7 @@ msgstr "Something went wrong—please try again."
 #: src/components/article-composer/ArticleComposerContext.tsx:370
 #: src/components/article-composer/ArticleComposerContext.tsx:435
 #: src/components/NoteComposer.tsx:270
-#: src/routes/(root)/[handle]/drafts/index.tsx:173
+#: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "Success"
 
