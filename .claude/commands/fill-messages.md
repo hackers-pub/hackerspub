@@ -1,1 +1,0 @@
-Fill in the missing translations (entries with msgstr "") in all web-next/src/locales/*/messages.po files, referring to existing web/locales/*.json files (e.g., use web/locales/zh-TW.json for web-next/src/locales/zh-TW/messages.po). Before translating, you MUST consult the corresponding web-next/src/locales/*/glossary.txt file for each language to ensure consistent terminology.

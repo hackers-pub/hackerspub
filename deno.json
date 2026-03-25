@@ -165,6 +165,7 @@
   ],
   "nodeModulesDir": "auto",
   "exclude": [
+    ".claude/skills/",
     ".claude/worktrees/",
     ".github/",
     "drizzle/",
