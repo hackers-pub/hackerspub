@@ -143,14 +143,20 @@ const createInvitationLinkMutation = graphql`
       expires: $expires,
     ) {
       __typename
-      ... on InvitationLink {
-        id
-        uuid
-        url
-        invitationsLeft
-        message
-        created
-        expires
+      ... on InvitationLinkPayload {
+        invitationLink {
+          id
+          uuid
+          url
+          invitationsLeft
+          message
+          created
+          expires
+        }
+        account {
+          id
+          invitationsLeft
+        }
       }
       ... on InvalidInputError {
         inputPath
@@ -163,8 +169,11 @@ const deleteInvitationLinkMutation = graphql`
   mutation inviteDeleteLinkMutation($id: UUID!) {
     deleteInvitationLink(id: $id) {
       __typename
-      ... on InvitationLink {
-        id
+      ... on InvitationLinkPayload {
+        account {
+          id
+          invitationsLeft
+        }
       }
       ... on InvitationLinkNotFoundError {
         message
@@ -506,18 +515,20 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
       updater(store) {
         const payload = store.getRootField("createInvitationLink");
         if (payload == null) return;
+        const newLink = payload.getLinkedRecord("invitationLink");
+        if (newLink == null) return;
         const account = store.get(props.accountId);
         if (account == null) return;
         const existingLinks = account.getLinkedRecords("invitationLinks") ?? [];
         account.setLinkedRecords(
-          [payload, ...existingLinks],
+          [newLink, ...existingLinks],
           "invitationLinks",
         );
       },
       onCompleted(data) {
         setCreating(false);
         if (
-          data.createInvitationLink.__typename === "InvitationLink"
+          data.createInvitationLink.__typename === "InvitationLinkPayload"
         ) {
           setLinkCount(1);
           setLinkMessage("");

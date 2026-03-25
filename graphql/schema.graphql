@@ -356,7 +356,7 @@ type BlockActorPayload {
 
 union BlockActorResult = BlockActorPayload | InvalidInputError | NotAuthenticatedError
 
-union CreateInvitationLinkResult = InvalidInputError | InvitationLink | NotAuthenticatedError
+union CreateInvitationLinkResult = InvalidInputError | InvitationLinkPayload | NotAuthenticatedError
 
 input CreateNoteInput {
   clientMutationId: ID
@@ -409,7 +409,7 @@ type DeleteArticleDraftPayload {
 
 union DeleteArticleDraftResult = DeleteArticleDraftPayload | InvalidInputError | NotAuthenticatedError
 
-union DeleteInvitationLinkResult = InvitationLink | InvitationLinkNotFoundError | NotAuthenticatedError
+union DeleteInvitationLinkResult = InvitationLinkNotFoundError | InvitationLinkPayload | NotAuthenticatedError
 
 input DeletePostInput {
   clientMutationId: ID
@@ -518,6 +518,11 @@ type InvitationLink implements Node {
 
 type InvitationLinkNotFoundError {
   message: String!
+}
+
+type InvitationLinkPayload {
+  account: Account!
+  invitationLink: InvitationLink
 }
 
 """A node in the invitation tree."""

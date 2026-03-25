@@ -97,9 +97,44 @@ function parseExpires(expires: string | null | undefined): Date | null {
   return toDate(zoned.add(duration).toInstant())!;
 }
 
+interface InvitationLinkPayload {
+  linkId: Uuid | null;
+  accountId: Uuid;
+}
+
+const InvitationLinkPayloadRef = builder.objectRef<InvitationLinkPayload>(
+  "InvitationLinkPayload",
+);
+
+InvitationLinkPayloadRef.implement({
+  fields: (t) => ({
+    invitationLink: t.field({
+      type: InvitationLink,
+      nullable: true,
+      async resolve(payload, _, ctx) {
+        if (payload.linkId == null) return null;
+        return await ctx.db.query.invitationLinkTable.findFirst({
+          where: { id: payload.linkId },
+          with: { inviter: true },
+        });
+      },
+    }),
+    account: t.field({
+      type: Account,
+      async resolve(payload, _, ctx) {
+        const account = await ctx.db.query.accountTable.findFirst({
+          where: { id: payload.accountId },
+          with: { actor: true },
+        });
+        return account!;
+      },
+    }),
+  }),
+});
+
 builder.mutationField("createInvitationLink", (t) =>
   t.field({
-    type: InvitationLink,
+    type: InvitationLinkPayloadRef,
     errors: {
       types: [NotAuthenticatedError, InvalidInputError],
       union: { name: "CreateInvitationLinkResult" },
@@ -148,11 +183,7 @@ builder.mutationField("createInvitationLink", (t) =>
           } satisfies NewInvitationLink,
         );
       });
-      const link = await ctx.db.query.invitationLinkTable.findFirst({
-        where: { id },
-        with: { inviter: true },
-      });
-      return link!;
+      return { linkId: id, accountId: ctx.account.id };
     },
   }));
 
@@ -171,7 +202,7 @@ builder.objectType(InvitationLinkNotFoundError, {
 
 builder.mutationField("deleteInvitationLink", (t) =>
   t.field({
-    type: InvitationLink,
+    type: InvitationLinkPayloadRef,
     errors: {
       types: [NotAuthenticatedError, InvitationLinkNotFoundError],
       union: { name: "DeleteInvitationLinkResult" },
@@ -202,7 +233,7 @@ builder.mutationField("deleteInvitationLink", (t) =>
           })
           .where(eq(accountTable.id, ctx.account!.id));
       });
-      return link;
+      return { linkId: null, accountId: ctx.account.id };
     },
   }));
 
