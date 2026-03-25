@@ -927,9 +927,9 @@ builder.queryField("recommendedActors", (t) =>
       limit: t.arg.int({ required: false, defaultValue: 10 }),
     },
     async resolve(_root, args, ctx) {
-      const accountLocales = ctx.account?.locales;
+      const accountLocales = ctx.account?.locales ?? ["en"];
       const actors = await recommendActors(ctx.db, {
-        mainLocale: accountLocales?.[0],
+        mainLocale: accountLocales[0],
         locales: accountLocales,
         account: ctx.account,
         limit: Math.max(1, Math.min(args.limit ?? 10, 50)),
