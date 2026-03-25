@@ -8,7 +8,7 @@ import {
 import { createSignupToken } from "@hackerspub/models/signup";
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { parseTemplate } from "url-template";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
@@ -121,15 +121,20 @@ builder.mutationField("createInvitationLink", (t) =>
       const expiresDate = parseExpires(args.expires);
       const id = generateUuidV7();
       await ctx.db.transaction(async (tx) => {
-        const [{ leftInvitations }] = await tx.update(accountTable)
+        const updated = await tx.update(accountTable)
           .set({
             leftInvitations:
               sql`${accountTable.leftInvitations} - ${args.invitationsLeft}`,
           })
-          .where(eq(accountTable.id, ctx.account!.id))
+          .where(
+            and(
+              eq(accountTable.id, ctx.account!.id),
+              gte(accountTable.leftInvitations, args.invitationsLeft),
+            ),
+          )
           .returning();
-        if (leftInvitations < 0) {
-          throw new Error("Not enough invitations left.");
+        if (updated.length < 1) {
+          throw new InvalidInputError("invitationsLeft");
         }
         await tx.insert(invitationLinkTable).values(
           {
