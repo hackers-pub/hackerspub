@@ -8,6 +8,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorFollowerList } from "~/components/ActorFollowerList.tsx";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -62,7 +63,7 @@ export default function ProfileFollowersPage() {
             when={data().accountByUsername}
           >
             {(account) => (
-              <>
+              <NarrowContainer>
                 <Title>{t`${account().name}'s followers`}</Title>
                 <Meta
                   property="og:title"
@@ -74,7 +75,7 @@ export default function ProfileFollowersPage() {
                 <div class="p-4">
                   <ActorFollowerList $followers={account().actor} />
                 </div>
-              </>
+              </NarrowContainer>
             )}
           </Show>
         </>

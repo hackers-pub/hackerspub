@@ -6,6 +6,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -75,7 +76,7 @@ export default function TagPage() {
   return (
     <Show when={data()}>
       {(queryData) => (
-        <div class="p-4">
+        <NarrowContainer class="p-4">
           <h1 class="text-2xl font-bold mb-4">
             <Trans
               message={t`Posts tagged with ${"TAG"}`}
@@ -85,7 +86,7 @@ export default function TagPage() {
             />
           </h1>
           <SearchResults $posts={queryData} query={searchQuery} />
-        </div>
+        </NarrowContainer>
       )}
     </Show>
   );

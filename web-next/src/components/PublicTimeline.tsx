@@ -75,7 +75,7 @@ export function PublicTimeline(props: PublicTimelineProps) {
   }
 
   return (
-    <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl max-w-prose mx-auto my-4">
+    <div class="border-x">
       <Show when={posts()}>
         {(data) => (
           <>

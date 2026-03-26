@@ -9,6 +9,7 @@ import {
 } from "solid-relay";
 import { ArticleComposer } from "~/components/article-composer/index.ts";
 import { Title } from "~/components/Title.tsx";
+import { WideContainer } from "~/components/WideContainer.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { IdQuery } from "./__generated__/IdQuery.graphql.ts";
@@ -50,7 +51,7 @@ export default function EditArticleDraftPage() {
     <Show
       when={data()?.viewer?.username === params.handle!.substring(1)}
       fallback={
-        <div class="container mx-auto p-6">
+        <WideContainer class="p-6">
           <HttpStatusCode code={403} />
           <Title>{t`Permission Denied`}</Title>
           <h1 class="text-2xl font-bold mb-4">{t`Permission Denied`}</h1>
@@ -71,16 +72,16 @@ export default function EditArticleDraftPage() {
               )}
             </Show>
           </div>
-        </div>
+        </WideContainer>
       }
     >
-      <div class="container mx-auto">
+      <WideContainer>
         <Title>{t`Edit Draft`}</Title>
         <ArticleComposer
           draftUuid={params.id}
           viewerId={data()?.viewer?.id}
         />
-      </div>
+      </WideContainer>
     </Show>
   );
 }

@@ -73,7 +73,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
   }
 
   return (
-    <div class="border-x max-w-prose mx-auto">
+    <div class="border-x">
       <Show when={posts()}>
         {(data) => (
           <>

@@ -33,7 +33,7 @@ export function ProfileTabs(props: ProfileTabsProps) {
           actor().local ? `/@${actor().username}` : `/${actor().handle}`;
         return (
           <Tabs value={props.selected}>
-            <TabsList class="grid max-w-prose mx-auto grid-cols-4">
+            <TabsList class="grid grid-cols-4">
               <TabsTrigger as={A} value="posts" href={baseUrl()}>
                 {t`Posts`}
               </TabsTrigger>
