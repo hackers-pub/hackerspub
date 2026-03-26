@@ -2,16 +2,16 @@
   "version": "5",
   "specifiers": {
     "jsr:@c4spar/mock-fetch@1": "1.0.0",
-    "jsr:@fedify/fedify@2.1.0": "2.1.0",
-    "jsr:@fedify/fedify@^2.1.0": "2.1.0",
+    "jsr:@fedify/fedify@2.1.1": "2.1.1",
+    "jsr:@fedify/fedify@^2.1.1": "2.1.1",
     "jsr:@fedify/markdown-it-hashtag@0.3": "0.3.0",
     "jsr:@fedify/markdown-it-mention@0.3": "0.3.0",
-    "jsr:@fedify/postgres@2.1.0": "2.1.0",
-    "jsr:@fedify/redis@2.1.0": "2.1.0",
-    "jsr:@fedify/vocab-runtime@^2.1.0": "2.1.0",
-    "jsr:@fedify/vocab@2.1.0": "2.1.0",
-    "jsr:@fedify/vocab@^2.1.0": "2.1.0",
-    "jsr:@fedify/webfinger@^2.1.0": "2.1.0",
+    "jsr:@fedify/postgres@2.1.1": "2.1.1",
+    "jsr:@fedify/redis@2.1.1": "2.1.1",
+    "jsr:@fedify/vocab-runtime@^2.1.1": "2.1.1",
+    "jsr:@fedify/vocab@2.1.1": "2.1.1",
+    "jsr:@fedify/vocab@^2.1.1": "2.1.1",
+    "jsr:@fedify/webfinger@^2.1.1": "2.1.1",
     "jsr:@fresh/core@2.0.0-alpha.34": "2.0.0-alpha.34",
     "jsr:@fresh/core@^2.0.0-alpha.1": "2.0.0-alpha.34",
     "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7": "0.0.1-alpha.7",
@@ -177,8 +177,8 @@
     "npm:domhandler@^5.0.3": "5.0.3",
     "npm:drizzle-kit@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_esbuild@0.19.12",
     "npm:drizzle-orm@1.0.0-beta.1-5e64efc": "1.0.0-beta.1-5e64efc_@opentelemetry+api@1.9.0_postgres@3.4.7",
-    "npm:es-toolkit@^1.39.10": "1.45.0",
-    "npm:es-toolkit@^1.43.0": "1.45.0",
+    "npm:es-toolkit@^1.39.10": "1.45.1",
+    "npm:es-toolkit@^1.43.0": "1.45.1",
     "npm:esbuild-wasm@0.23.1": "0.23.1",
     "npm:esbuild@0.23.1": "0.23.1",
     "npm:feed@^4.2.2": "4.2.2",
@@ -212,7 +212,7 @@
     "npm:mdast@3": "3.0.0",
     "npm:open-graph-scraper@^6.9.0": "6.10.0",
     "npm:pdf-lib@^1.17.1": "1.17.1",
-    "npm:pkijs@^3.2.5": "3.3.3",
+    "npm:pkijs@^3.2.5": "3.4.0",
     "npm:postcss@8.4.35": "8.4.35",
     "npm:postgres@^3.4.5": "3.4.7",
     "npm:postgres@^3.4.7": "3.4.7",
@@ -263,12 +263,12 @@
         "jsr:@std/assert@~0.225.2"
       ]
     },
-    "@fedify/fedify@2.1.0": {
-      "integrity": "046b088537f64706f8f90cf22785730acaed9c7e1dcf1083051f114d954a1f68",
+    "@fedify/fedify@2.1.1": {
+      "integrity": "31a0155d6c0607bce003d911d4ff5e2e66a573c7c87e00af06b4320cce5837cc",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.1.0",
+        "jsr:@fedify/fedify@^2.1.1",
         "jsr:@fedify/vocab-runtime",
-        "jsr:@fedify/vocab@^2.1.0",
+        "jsr:@fedify/vocab@^2.1.1",
         "jsr:@fedify/webfinger",
         "jsr:@logtape/logtape@^2.0.5",
         "npm:@opentelemetry/api",
@@ -295,24 +295,24 @@
         "npm:@types/markdown-it"
       ]
     },
-    "@fedify/postgres@2.1.0": {
-      "integrity": "714fb45e38e0008ed014eb725a072e10a49c1989ace84fdb7375f8036866a559",
+    "@fedify/postgres@2.1.1": {
+      "integrity": "31fe12ffa5262d13699757cce42e7562da49e6dc9c0ee0deb57b1bf176f47996",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.1.0",
+        "jsr:@fedify/fedify@^2.1.1",
         "jsr:@logtape/logtape@^2.0.5",
         "npm:postgres@^3.4.7"
       ]
     },
-    "@fedify/redis@2.1.0": {
-      "integrity": "ab733826773e20a032bfe2bbb4b036055d796710c90c6588d74edfa624a22540",
+    "@fedify/redis@2.1.1": {
+      "integrity": "0638ce35b76b80c814b04e017e927de4dece5f82cb157c956bd837c5b27e8286",
       "dependencies": [
-        "jsr:@fedify/fedify@^2.1.0",
+        "jsr:@fedify/fedify@^2.1.1",
         "jsr:@logtape/logtape@^2.0.5",
         "npm:ioredis@^5.8.2"
       ]
     },
-    "@fedify/vocab@2.1.0": {
-      "integrity": "6e11744b1dd8f47cb3b268ca42777d839d5196af11a16363e428560a135d316b",
+    "@fedify/vocab@2.1.1": {
+      "integrity": "66a5d403ff80dbc7ed3f1ee0837531b72771f633ae76bbe53ed32a23dfd1feff",
       "dependencies": [
         "jsr:@fedify/vocab-runtime",
         "jsr:@fedify/webfinger",
@@ -321,8 +321,8 @@
         "npm:es-toolkit@^1.43.0"
       ]
     },
-    "@fedify/vocab-runtime@2.1.0": {
-      "integrity": "70367b910f1d00e1ffdb45514f6a28aa246c0a985b4b11c8955ea154c45e22af",
+    "@fedify/vocab-runtime@2.1.1": {
+      "integrity": "1a1fec0366e0fb2eb1146f52a1b843d690cc2aac174eb3d17ce8a68f933cfd98",
       "dependencies": [
         "jsr:@logtape/logtape@^2.0.5",
         "npm:@multiformats/base-x",
@@ -333,8 +333,8 @@
         "npm:pkijs"
       ]
     },
-    "@fedify/webfinger@2.1.0": {
-      "integrity": "3ca549daf7b383257644ec6e36b5654aa7ddd673eed2b186b8fc01108771507b",
+    "@fedify/webfinger@2.1.1": {
+      "integrity": "767b5e3a919a4f293ee9598c18188ebe84220380b5b734fb07a9f32249141a16",
       "dependencies": [
         "jsr:@fedify/vocab-runtime",
         "jsr:@logtape/logtape@^2.0.5",
@@ -7941,8 +7941,8 @@
         "is-symbol"
       ]
     },
-    "es-toolkit@1.45.0": {
-      "integrity": "sha512-RArCX+Zea16+R1jg4mH223Z8p/ivbJjIkU3oC6ld2bdUfmDxiCkFYSi9zLOR2anucWJUeH4Djnzgd0im0nD3dw=="
+    "es-toolkit@1.45.1": {
+      "integrity": "sha512-/jhoOj/Fx+A+IIyDNOvO3TItGmlMKhtX8ISAHKE90c4b/k1tqaqEZ+uUqfpU8DMnW5cgNJv606zS55jGvza0Xw=="
     },
     "esbuild-register@3.6.0_esbuild@0.19.12": {
       "integrity": "sha512-H2/S7Pm8a9CL1uhp9OvjwrBh5Pvx0H8qVOxNu8Wed9Y7qv56MPtq+GGM8RJpq6glYJn9Wspr8uw7l55uyinNeg==",
@@ -10792,8 +10792,8 @@
         "pathe@2.0.3"
       ]
     },
-    "pkijs@3.3.3": {
-      "integrity": "sha512-+KD8hJtqQMYoTuL1bbGOqxb4z+nZkTAwVdNtWwe8Tc2xNbEmdJYIYoc6Qt0uF55e6YW6KuTHw1DjQ18gMhzepw==",
+    "pkijs@3.4.0": {
+      "integrity": "sha512-emEcLuomt2j03vxD54giVB4SxTjnsqkU692xZOZXHDVoYyypEm+b3jpiTcc+Cf+myooc+/Ly0z01jqeNHVgJGw==",
       "dependencies": [
         "@noble/hashes",
         "asn1js",
@@ -13282,13 +13282,13 @@
   "workspace": {
     "dependencies": [
       "jsr:@c4spar/mock-fetch@1",
-      "jsr:@fedify/fedify@2.1.0",
+      "jsr:@fedify/fedify@2.1.1",
       "jsr:@fedify/markdown-it-hashtag@0.3",
       "jsr:@fedify/markdown-it-mention@0.3",
-      "jsr:@fedify/postgres@2.1.0",
-      "jsr:@fedify/redis@2.1.0",
-      "jsr:@fedify/vocab-runtime@2.1.0",
-      "jsr:@fedify/vocab@2.1.0",
+      "jsr:@fedify/postgres@2.1.1",
+      "jsr:@fedify/redis@2.1.1",
+      "jsr:@fedify/vocab-runtime@2.1.1",
+      "jsr:@fedify/vocab@2.1.1",
       "jsr:@fresh/core@2.0.0-alpha.34",
       "jsr:@fresh/plugin-tailwind@0.0.1-alpha.7",
       "jsr:@hongminhee/x-forwarded-fetch@0.2",
