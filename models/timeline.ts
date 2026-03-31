@@ -1,4 +1,14 @@
-import { and, eq, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  notInArray,
+  or,
+  sql,
+} from "drizzle-orm";
 import type { Database } from "./db.ts";
 import { getPostVisibilityFilter } from "./post.ts";
 import {
@@ -6,6 +16,7 @@ import {
   type Actor,
   actorTable,
   type Blocking,
+  blockingTable,
   type Following,
   followingTable,
   type Instance,
@@ -19,6 +30,7 @@ import {
   type Reaction,
   timelineItemTable,
 } from "./schema.ts";
+import type { Uuid } from "./uuid.ts";
 
 export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
   const envValue = Deno.env.get("FUTURE_TIMESTAMP_TOLERANCE");
@@ -255,6 +267,79 @@ export async function getPublicTimeline(
   }: PublicTimelineOptions,
 ): Promise<TimelineEntry[]> {
   const futureTimestampLimit = getFutureTimestampLimit();
+
+  // Step 0: Pre-fetch blocked actor IDs if currentAccount exists
+  let blockedActorIds: Uuid[] = [];
+  if (currentAccount) {
+    const blockRelations = await db
+      .select({ actorId: blockingTable.blockeeId })
+      .from(blockingTable)
+      .where(eq(blockingTable.blockerId, currentAccount.actor.id))
+      .union(
+        db
+          .select({ actorId: blockingTable.blockerId })
+          .from(blockingTable)
+          .where(eq(blockingTable.blockeeId, currentAccount.actor.id)),
+      );
+    blockedActorIds = blockRelations.map((r) => r.actorId);
+  }
+
+  // Step 1: Lightweight ID fetch with filters
+  // This query uses idx_post_visibility_published index for fast filtering
+  const filterConditions = [
+    // Simple visibility filter without complex subqueries
+    currentAccount
+      ? or(
+        eq(postTable.actorId, currentAccount.actor.id),
+        inArray(postTable.visibility, ["public", "unlisted"]),
+      )
+      : eq(postTable.visibility, "public"),
+    // Apply blocked actor filter as a simple notInArray
+    ...(blockedActorIds.length > 0
+      ? [notInArray(postTable.actorId, blockedActorIds)]
+      : []),
+    isNull(postTable.replyTargetId),
+    ...(languages.size > 0
+      ? [inArray(postTable.language, [...languages])]
+      : currentAccount?.hideForeignLanguages && currentAccount.locales != null
+      ? [inArray(postTable.language, currentAccount.locales)]
+      : []),
+    ...(local
+      ? [
+        or(
+          isNotNull(postTable.noteSourceId),
+          isNotNull(postTable.articleSourceId),
+        ),
+      ]
+      : []),
+    ...(withoutShares ? [isNull(postTable.sharedPostId)] : []),
+    ...(postType != null ? [eq(postTable.type, postType)] : []),
+    sql`${postTable.published} <= ${until ?? futureTimestampLimit}`,
+  ];
+
+  const idResults = await db
+    .select({
+      id: postTable.id,
+      published: postTable.published,
+    })
+    .from(postTable)
+    .where(and(...filterConditions))
+    .orderBy(desc(postTable.published))
+    .limit(window ?? 25);
+
+  // If no posts found, return early
+  if (idResults.length === 0) {
+    return [];
+  }
+
+  const postIds = idResults.map((r) => r.id);
+
+  // Handle local filter for shares (requires actor join check)
+  // Do this in application layer after fetching full data
+  const needsLocalShareFilter = local;
+
+  // Step 2: Hydrate posts with all relationships
+  // Only fetch the exact posts we need with all their relationships
   const posts = await db.query.postTable.findMany({
     with: {
       actor: {
@@ -390,47 +475,26 @@ export async function getPublicTimeline(
           : { RAW: sql`false` },
       },
     },
-    where: {
-      AND: [
-        currentAccount
-          ? getPostVisibilityFilter(currentAccount.actor)
-          : { visibility: "public" },
-        {
-          ...(
-            languages.size < 1
-              ? (currentAccount?.hideForeignLanguages &&
-                  currentAccount.locales != null
-                ? { language: { in: currentAccount.locales } }
-                : {})
-              : { language: { in: [...languages] } }
-          ),
-          replyTargetId: { isNull: true },
-          ...(
-            local
-              ? {
-                OR: [
-                  { noteSourceId: { isNotNull: true } },
-                  { articleSourceId: { isNotNull: true } },
-                  {
-                    sharedPostId: { isNotNull: true },
-                    actor: {
-                      accountId: { isNotNull: true },
-                    },
-                  },
-                ],
-              }
-              : undefined
-          ),
-          ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
-          ...(postType == null ? undefined : { type: postType }),
-          published: { lte: until == null ? futureTimestampLimit : until },
-        },
-      ],
-    },
-    orderBy: { published: "desc" },
-    limit: window,
+    where: { id: { in: postIds } },
   });
-  return posts.map((post) => ({
+
+  // Step 3: Sort posts back to original order from Step 1
+  const postMap = new Map(posts.map((p) => [p.id, p]));
+  let orderedPosts = idResults
+    .map((idResult) => postMap.get(idResult.id))
+    .filter((p): p is NonNullable<typeof p> => p != null);
+
+  // Step 4: Apply local share filter if needed (in application layer)
+  if (needsLocalShareFilter) {
+    orderedPosts = orderedPosts.filter((post) => {
+      // Allow non-shares (already filtered in Step 1)
+      if (post.sharedPostId == null) return true;
+      // For shares, check if the sharer has a local account
+      return post.actor.accountId != null;
+    });
+  }
+
+  return orderedPosts.map((post) => ({
     post,
     lastSharer: null,
     sharersCount: 0,
