@@ -483,7 +483,19 @@ export async function getPublicTimeline(
           : { RAW: sql`false` },
       },
     },
-    where: { id: { in: postIds } },
+    where: {
+      id: { in: postIds },
+      AND: [
+        currentAccount
+          ? {
+            OR: [
+              { actorId: currentAccount.actor.id },
+              { visibility: { in: ["public", "unlisted"] } },
+            ],
+          }
+          : { visibility: "public" },
+      ],
+    },
   });
 
   // Step 3: Sort posts back to original order from Step 1
