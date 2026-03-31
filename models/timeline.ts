@@ -6,7 +6,6 @@ import {
   inArray,
   isNotNull,
   isNull,
-  notInArray,
   or,
   sql,
 } from "drizzle-orm";
@@ -31,7 +30,6 @@ import {
   type Reaction,
   timelineItemTable,
 } from "./schema.ts";
-import type { Uuid } from "./uuid.ts";
 
 export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
   const envValue = Deno.env.get("FUTURE_TIMESTAMP_TOLERANCE");
@@ -500,7 +498,7 @@ export async function getPublicTimeline(
 
   // Step 3: Sort posts back to original order from Step 1
   const postMap = new Map(posts.map((p) => [p.id, p]));
-  let orderedPosts = idResults
+  const orderedPosts = idResults
     .map((idResult) => postMap.get(idResult.id))
     .filter((p): p is NonNullable<typeof p> => p != null);
 
