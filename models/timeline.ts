@@ -2,6 +2,7 @@ import {
   and,
   desc,
   eq,
+  exists,
   inArray,
   isNotNull,
   isNull,
@@ -268,35 +269,33 @@ export async function getPublicTimeline(
 ): Promise<TimelineEntry[]> {
   const futureTimestampLimit = getFutureTimestampLimit();
 
-  // Step 0: Pre-fetch blocked actor IDs if currentAccount exists
-  let blockedActorIds: Uuid[] = [];
-  if (currentAccount) {
-    const blockRelations = await db
-      .select({ actorId: blockingTable.blockeeId })
-      .from(blockingTable)
-      .where(eq(blockingTable.blockerId, currentAccount.actor.id))
-      .union(
-        db
-          .select({ actorId: blockingTable.blockerId })
-          .from(blockingTable)
-          .where(eq(blockingTable.blockeeId, currentAccount.actor.id)),
-      );
-    blockedActorIds = blockRelations.map((r) => r.actorId);
-  }
-
   // Step 1: Lightweight ID fetch with filters
   // This query uses idx_post_visibility_published index for fast filtering
   const filterConditions = [
-    // Simple visibility filter without complex subqueries
     currentAccount
       ? or(
         eq(postTable.actorId, currentAccount.actor.id),
         inArray(postTable.visibility, ["public", "unlisted"]),
       )
       : eq(postTable.visibility, "public"),
-    // Apply blocked actor filter as a simple notInArray
-    ...(blockedActorIds.length > 0
-      ? [notInArray(postTable.actorId, blockedActorIds)]
+    ...(currentAccount
+      ? [
+        // シェアした人がブロック対象でないか
+        sql`NOT EXISTS (
+            SELECT 1 FROM ${blockingTable}
+            WHERE (blocker_id = ${currentAccount.actor.id} AND blockee_id = ${postTable.actorId})
+              OR (blockee_id = ${currentAccount.actor.id} AND blocker_id = ${postTable.actorId})
+          )`,
+        // シェア元の投稿者もブロック対象でないか
+        sql`NOT EXISTS (
+            SELECT 1 FROM ${postTable} sp
+            JOIN ${blockingTable} ON (
+              (blocker_id = ${currentAccount.actor.id} AND blockee_id = sp.actor_id)
+              OR (blockee_id = ${currentAccount.actor.id} AND blocker_id = sp.actor_id)
+            )
+            WHERE sp.id = ${postTable.sharedPostId}
+          )`,
+      ]
       : []),
     isNull(postTable.replyTargetId),
     ...(languages.size > 0
@@ -309,6 +308,19 @@ export async function getPublicTimeline(
         or(
           isNotNull(postTable.noteSourceId),
           isNotNull(postTable.articleSourceId),
+          and(
+            isNotNull(postTable.sharedPostId),
+            exists(
+              db.select({ one: sql`1` })
+                .from(actorTable)
+                .where(
+                  and(
+                    eq(actorTable.id, postTable.actorId),
+                    isNotNull(actorTable.accountId),
+                  ),
+                ),
+            ),
+          ),
         ),
       ]
       : []),
@@ -333,10 +345,6 @@ export async function getPublicTimeline(
   }
 
   const postIds = idResults.map((r) => r.id);
-
-  // Handle local filter for shares (requires actor join check)
-  // Do this in application layer after fetching full data
-  const needsLocalShareFilter = local;
 
   // Step 2: Hydrate posts with all relationships
   // Only fetch the exact posts we need with all their relationships
@@ -483,16 +491,6 @@ export async function getPublicTimeline(
   let orderedPosts = idResults
     .map((idResult) => postMap.get(idResult.id))
     .filter((p): p is NonNullable<typeof p> => p != null);
-
-  // Step 4: Apply local share filter if needed (in application layer)
-  if (needsLocalShareFilter) {
-    orderedPosts = orderedPosts.filter((post) => {
-      // Allow non-shares (already filtered in Step 1)
-      if (post.sharedPostId == null) return true;
-      // For shares, check if the sharer has a local account
-      return post.actor.accountId != null;
-    });
-  }
 
   return orderedPosts.map((post) => ({
     post,
