@@ -925,9 +925,12 @@ builder.queryField("recommendedActors", (t) =>
     type: [Actor],
     args: {
       limit: t.arg.int({ required: false, defaultValue: 10 }),
+      locale: t.arg({ type: "Locale", required: false }),
     },
     async resolve(_root, args, ctx) {
-      const accountLocales = ctx.account?.locales ?? ["en"];
+      const accountLocales = args.locale != null
+        ? [args.locale.language]
+        : (ctx.account?.locales ?? ["en"]);
       const actors = await recommendActors(ctx.db, {
         mainLocale: accountLocales[0],
         locales: accountLocales,
