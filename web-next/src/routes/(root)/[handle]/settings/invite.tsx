@@ -431,6 +431,12 @@ export default function InvitePage() {
                       </form>
                     </CardContent>
                   </Card>
+                  <InvitationLinksCard
+                    accountId={account().id}
+                    username={account().username}
+                    invitationLinks={account().invitationLinks}
+                    invitationsLeft={account().invitationsLeft}
+                  />
                   <Show when={account().inviteesCount.totalCount > 0}>
                     <Card class="mt-4">
                       <CardHeader>
@@ -451,12 +457,6 @@ export default function InvitePage() {
                         <InviteeList $invitees={account()} />
                       </CardContent>
                     </Card>
-                    <InvitationLinksCard
-                      accountId={account().id}
-                      username={account().username}
-                      invitationLinks={account().invitationLinks}
-                      invitationsLeft={account().invitationsLeft}
-                    />
                   </Show>
                 </NarrowContainer>
               </>
