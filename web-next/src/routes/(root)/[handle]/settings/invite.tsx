@@ -451,12 +451,12 @@ export default function InvitePage() {
                         <InviteeList $invitees={account()} />
                       </CardContent>
                     </Card>
-                  <InvitationLinksCard
-                    accountId={account().id}
-                    username={account().username}
-                    invitationLinks={account().invitationLinks}
-                    invitationsLeft={account().invitationsLeft}
-                  />
+                    <InvitationLinksCard
+                      accountId={account().id}
+                      username={account().username}
+                      invitationLinks={account().invitationLinks}
+                      invitationsLeft={account().invitationsLeft}
+                    />
                   </Show>
                 </NarrowContainer>
               </>

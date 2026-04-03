@@ -230,8 +230,9 @@ builder.mutationField("deleteInvitationLink", (t) =>
         if (deleted.length < 1) return;
         await tx.update(accountTable)
           .set({
-            leftInvitations:
-              sql`${accountTable.leftInvitations} + ${deleted[0].invitationsLeft}`,
+            leftInvitations: sql`${accountTable.leftInvitations} + ${
+              deleted[0].invitationsLeft
+            }`,
           })
           .where(eq(accountTable.id, ctx.account!.id));
       });
