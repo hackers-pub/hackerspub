@@ -698,7 +698,7 @@ msgstr "关注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/AppSidebar.tsx:544
+#: src/components/AppSidebar.tsx:547
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
@@ -723,6 +723,7 @@ msgstr "前往我的草稿"
 #: src/routes/(root).tsx:82
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
+#: src/routes/(root)/privacy.tsx:48
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -1223,6 +1224,11 @@ msgstr "偏好语言"
 msgid "Priority"
 msgstr "优先级"
 
+#: src/components/AppSidebar.tsx:535
+#: src/routes/(root)/privacy.tsx:48
+msgid "Privacy policy"
+msgstr "隐私政策"
+
 #: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:144
 #: src/routes/(root)/[handle]/settings/index.tsx:149
@@ -1555,7 +1561,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:536
+#: src/components/AppSidebar.tsx:539
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 

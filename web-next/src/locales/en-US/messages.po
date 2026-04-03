@@ -702,7 +702,7 @@ msgstr "Following you"
 msgid "Formatting"
 msgstr "Formatting"
 
-#: src/components/AppSidebar.tsx:544
+#: src/components/AppSidebar.tsx:547
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -727,6 +727,7 @@ msgstr "Go to My Drafts"
 #: src/routes/(root).tsx:82
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
+#: src/routes/(root)/privacy.tsx:48
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -1228,6 +1229,11 @@ msgstr "Preferred languages"
 msgid "Priority"
 msgstr "Priority"
 
+#: src/components/AppSidebar.tsx:535
+#: src/routes/(root)/privacy.tsx:48
+msgid "Privacy policy"
+msgstr "Privacy policy"
+
 #: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:144
 #: src/routes/(root)/[handle]/settings/index.tsx:149
@@ -1560,7 +1566,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:536
+#: src/components/AppSidebar.tsx:539
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
