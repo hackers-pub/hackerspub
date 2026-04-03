@@ -26,7 +26,7 @@ msgstr "{0, plural, other {#フォロー}}"
 #. placeholder {0}: link().invitationsLeft
 #. placeholder {0}: link.invitationsLeft
 #: src/routes/(root)/[handle]/invite/[id].tsx:318
-#: src/routes/(root)/[handle]/settings/invite.tsx:665
+#: src/routes/(root)/[handle]/settings/invite.tsx:680
 msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {残り#件の招待}}"
 
@@ -41,7 +41,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, one {友達をHackers' Pubに招待しましょう。最大#人まで招待できます。} other {友達をHackers' Pubに招待しましょう。最大#人まで招待できます。}}"
 
 #. placeholder {0}: account().inviteesCount.totalCount
-#: src/routes/(root)/[handle]/settings/invite.tsx:440
+#: src/routes/(root)/[handle]/settings/invite.tsx:446
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, other {これまでに合計#人を招待しました。}}"
 
@@ -217,7 +217,7 @@ msgstr "設定の保存中にエラーが発生しました。再度お試しい
 #: src/routes/(root)/[handle]/invite/[id].tsx:201
 #: src/routes/(root)/[handle]/settings/invite.tsx:271
 #: src/routes/(root)/[handle]/settings/invite.tsx:557
-#: src/routes/(root)/[handle]/settings/invite.tsx:592
+#: src/routes/(root)/[handle]/settings/invite.tsx:607
 msgid "An unexpected error occurred. Please try again later."
 msgstr "予期しないエラーが発生しました。後でもう一度お試しください。"
 
@@ -331,15 +331,15 @@ msgstr "内容"
 msgid "Content cannot be empty"
 msgstr "内容を入力してください"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:602
+#: src/routes/(root)/[handle]/settings/invite.tsx:617
 msgid "Copied"
 msgstr "コピーしました"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:643
+#: src/routes/(root)/[handle]/settings/invite.tsx:658
 msgid "Copy"
 msgstr "コピー"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:609
+#: src/routes/(root)/[handle]/settings/invite.tsx:624
 msgid "Could not copy the link to the clipboard."
 msgstr "クリップボードにリンクをコピーできませんでした。"
 
@@ -352,7 +352,7 @@ msgstr "このURLのコンテンツが見つかりませんでした"
 msgid "Create Article"
 msgstr "記事を作成"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:755
+#: src/routes/(root)/[handle]/settings/invite.tsx:770
 msgid "Create invitation link"
 msgstr "招待リンクを作成"
 
@@ -363,7 +363,7 @@ msgstr "招待リンクを作成"
 msgid "Create Note"
 msgstr "投稿を作成"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:619
+#: src/routes/(root)/[handle]/settings/invite.tsx:634
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 msgstr "共有可能な招待リンクを作成できます。各リンクは、招待数がなくなるかリンクの有効期限が切れるまで複数回使用できます。"
 
@@ -377,7 +377,7 @@ msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
 #: src/components/NoteComposer.tsx:450
-#: src/routes/(root)/[handle]/settings/invite.tsx:754
+#: src/routes/(root)/[handle]/settings/invite.tsx:769
 msgid "Creating…"
 msgstr "作成中…"
 
@@ -400,7 +400,7 @@ msgstr "共有のデフォルト公開範囲"
 #: src/components/PostActionMenu.tsx:123
 #: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:302
-#: src/routes/(root)/[handle]/settings/invite.tsx:652
+#: src/routes/(root)/[handle]/settings/invite.tsx:667
 msgid "Delete"
 msgstr "削除"
 
@@ -416,7 +416,7 @@ msgstr "コンテンツを削除しますか？"
 msgid "Deleting..."
 msgstr "削除中..."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:652
+#: src/routes/(root)/[handle]/settings/invite.tsx:667
 msgid "Deleting…"
 msgstr "削除中…"
 
@@ -514,20 +514,20 @@ msgstr "エラー"
 
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:330
-#: src/routes/(root)/[handle]/settings/invite.tsx:680
+#: src/routes/(root)/[handle]/settings/invite.tsx:695
 msgid "Expires {0}"
 msgstr "{0}に期限切れ"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:727
+#: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Expiry"
 msgstr "有効期限"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:399
-#: src/routes/(root)/[handle]/settings/invite.tsx:717
+#: src/routes/(root)/[handle]/settings/invite.tsx:732
 msgid "Extra message"
 msgstr "追加メッセージ"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:608
+#: src/routes/(root)/[handle]/settings/invite.tsx:623
 msgid "Failed to copy"
 msgstr "コピーに失敗しました"
 
@@ -536,7 +536,8 @@ msgstr "コピーに失敗しました"
 msgid "Failed to create invitation link"
 msgstr "招待リンクの作成に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:590
+#: src/routes/(root)/[handle]/settings/invite.tsx:594
+#: src/routes/(root)/[handle]/settings/invite.tsx:605
 msgid "Failed to delete invitation link"
 msgstr "招待リンクの削除に失敗しました"
 
@@ -565,7 +566,7 @@ msgstr "フォロワーの読み込みに失敗しました。クリックして
 msgid "Failed to load more following; click to retry"
 msgstr "フォロー中の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:868
+#: src/routes/(root)/[handle]/settings/invite.tsx:883
 msgid "Failed to load more invitees; click to retry"
 msgstr "招待された人々の読み込みに失敗しました。クリックして再試行"
 
@@ -803,11 +804,11 @@ msgstr "招待状の言語"
 msgid "Invitation link created"
 msgstr "招待リンクを作成しました"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:581
+#: src/routes/(root)/[handle]/settings/invite.tsx:588
 msgid "Invitation link deleted"
 msgstr "招待リンクを削除しました"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:617
+#: src/routes/(root)/[handle]/settings/invite.tsx:632
 msgid "Invitation links"
 msgstr "招待リンク"
 
@@ -834,7 +835,7 @@ msgid "John Doe"
 msgstr "田中太郎"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:842
+#: src/routes/(root)/[handle]/settings/invite.tsx:857
 msgid "Joined on {0}"
 msgstr "{0}に参加"
 
@@ -895,7 +896,7 @@ msgstr "フォロワーをもっと読み込む"
 msgid "Load more following"
 msgstr "フォロー中をもっと読み込む"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:871
+#: src/routes/(root)/[handle]/settings/invite.tsx:886
 msgid "Load more invitees"
 msgstr "もっと招待された人々を読み込む"
 
@@ -935,7 +936,7 @@ msgstr "フォロワーを読み込み中…"
 msgid "Loading more following…"
 msgstr "フォロー中を読み込み中…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:865
+#: src/routes/(root)/[handle]/settings/invite.tsx:880
 msgid "Loading more invitees…"
 msgstr "招待された人々を読み込み中…"
 
@@ -1025,8 +1026,8 @@ msgstr "名前が長すぎます。最大50文字です。"
 msgid "Native name"
 msgstr "現地名"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:676
-#: src/routes/(root)/[handle]/settings/invite.tsx:742
+#: src/routes/(root)/[handle]/settings/invite.tsx:691
+#: src/routes/(root)/[handle]/settings/invite.tsx:757
 msgid "Never expires"
 msgstr "有効期限なし"
 
@@ -1057,7 +1058,7 @@ msgstr "フォロー中のユーザーはいません"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:263
 #: src/routes/(root)/[handle]/settings/invite.tsx:418
-#: src/routes/(root)/[handle]/settings/invite.tsx:752
+#: src/routes/(root)/[handle]/settings/invite.tsx:767
 msgid "No invitations left"
 msgstr "招待状が残っていません"
 
@@ -1118,7 +1119,7 @@ msgstr "投稿"
 msgid "Notifications"
 msgstr "通知"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:703
+#: src/routes/(root)/[handle]/settings/invite.tsx:718
 msgid "Number of invitations"
 msgstr "招待数"
 
@@ -1528,7 +1529,11 @@ msgstr "招待メールを送信できませんでした。後でもう一度お
 msgid "The invitation has been sent successfully."
 msgstr "招待状が正常に送信されました。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:603
+#: src/routes/(root)/[handle]/settings/invite.tsx:596
+msgid "The invitation link could not be found or you are not authorized to delete it."
+msgstr "招待リンクが見つからないか、削除する権限がありません。"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:618
 msgid "The invitation link has been copied to the clipboard."
 msgstr "招待リンクがクリップボードにコピーされました。"
 
@@ -1536,7 +1541,7 @@ msgstr "招待リンクがクリップボードにコピーされました。"
 msgid "The invitation link has been created successfully."
 msgstr "招待リンクが正常に作成されました。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:582
+#: src/routes/(root)/[handle]/settings/invite.tsx:589
 msgid "The invitation link has been deleted successfully."
 msgstr "招待リンクが正常に削除されました。"
 
@@ -1681,7 +1686,7 @@ msgstr "ユーザー名は必須です。"
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "ユーザー名が長すぎます。最大15文字です。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:437
+#: src/routes/(root)/[handle]/settings/invite.tsx:443
 msgid "Users you have invited"
 msgstr "招待したユーザー"
 
@@ -1757,7 +1762,7 @@ msgid "You can leave this empty to remove the link."
 msgstr "リンクを削除する場合は空にしてください。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:405
-#: src/routes/(root)/[handle]/settings/invite.tsx:723
+#: src/routes/(root)/[handle]/settings/invite.tsx:738
 msgid "You can leave this field empty."
 msgstr "このフィールドは空欄でも構いません。"
 

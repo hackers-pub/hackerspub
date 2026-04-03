@@ -26,7 +26,7 @@ msgstr "{0, plural, other {關注 # 人}}"
 #. placeholder {0}: link().invitationsLeft
 #. placeholder {0}: link.invitationsLeft
 #: src/routes/(root)/[handle]/invite/[id].tsx:318
-#: src/routes/(root)/[handle]/settings/invite.tsx:665
+#: src/routes/(root)/[handle]/settings/invite.tsx:680
 msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {剩餘 # 次邀請}}"
 
@@ -41,7 +41,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, other {邀請你的朋友加入 Hackers' Pub。你可以邀請最多 # 個人。}}"
 
 #. placeholder {0}: account().inviteesCount.totalCount
-#: src/routes/(root)/[handle]/settings/invite.tsx:440
+#: src/routes/(root)/[handle]/settings/invite.tsx:446
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, other {您已經邀請了總共 # 人。}}"
 
@@ -217,7 +217,7 @@ msgstr "儲存設定時發生錯誤。請重試，如果問題仍然存在，請
 #: src/routes/(root)/[handle]/invite/[id].tsx:201
 #: src/routes/(root)/[handle]/settings/invite.tsx:271
 #: src/routes/(root)/[handle]/settings/invite.tsx:557
-#: src/routes/(root)/[handle]/settings/invite.tsx:592
+#: src/routes/(root)/[handle]/settings/invite.tsx:607
 msgid "An unexpected error occurred. Please try again later."
 msgstr "發生了意外錯誤。請稍後再試。"
 
@@ -331,15 +331,15 @@ msgstr "內容"
 msgid "Content cannot be empty"
 msgstr "內容不能為空"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:602
+#: src/routes/(root)/[handle]/settings/invite.tsx:617
 msgid "Copied"
 msgstr "已複製"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:643
+#: src/routes/(root)/[handle]/settings/invite.tsx:658
 msgid "Copy"
 msgstr "複製"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:609
+#: src/routes/(root)/[handle]/settings/invite.tsx:624
 msgid "Could not copy the link to the clipboard."
 msgstr "無法將連結複製到剪貼簿。"
 
@@ -352,7 +352,7 @@ msgstr "無法在此URL找到內容"
 msgid "Create Article"
 msgstr "建立文章"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:755
+#: src/routes/(root)/[handle]/settings/invite.tsx:770
 msgid "Create invitation link"
 msgstr "建立邀請連結"
 
@@ -363,7 +363,7 @@ msgstr "建立邀請連結"
 msgid "Create Note"
 msgstr "建立貼文"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:619
+#: src/routes/(root)/[handle]/settings/invite.tsx:634
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 msgstr "建立可共享的邀請連結。每個連結可多次使用，直到邀請次數用完或連結過期。"
 
@@ -377,7 +377,7 @@ msgid "Creating account…"
 msgstr "創建帳戶…"
 
 #: src/components/NoteComposer.tsx:450
-#: src/routes/(root)/[handle]/settings/invite.tsx:754
+#: src/routes/(root)/[handle]/settings/invite.tsx:769
 msgid "Creating…"
 msgstr "正在建立…"
 
@@ -400,7 +400,7 @@ msgstr "預設轉貼隱私設定"
 #: src/components/PostActionMenu.tsx:123
 #: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:302
-#: src/routes/(root)/[handle]/settings/invite.tsx:652
+#: src/routes/(root)/[handle]/settings/invite.tsx:667
 msgid "Delete"
 msgstr "刪除"
 
@@ -416,7 +416,7 @@ msgstr "刪除內容？"
 msgid "Deleting..."
 msgstr "刪除中..."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:652
+#: src/routes/(root)/[handle]/settings/invite.tsx:667
 msgid "Deleting…"
 msgstr "正在刪除…"
 
@@ -514,20 +514,20 @@ msgstr "錯誤"
 
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:330
-#: src/routes/(root)/[handle]/settings/invite.tsx:680
+#: src/routes/(root)/[handle]/settings/invite.tsx:695
 msgid "Expires {0}"
 msgstr "{0}到期"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:727
+#: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Expiry"
 msgstr "到期時間"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:399
-#: src/routes/(root)/[handle]/settings/invite.tsx:717
+#: src/routes/(root)/[handle]/settings/invite.tsx:732
 msgid "Extra message"
 msgstr "額外訊息"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:608
+#: src/routes/(root)/[handle]/settings/invite.tsx:623
 msgid "Failed to copy"
 msgstr "複製失敗"
 
@@ -536,7 +536,8 @@ msgstr "複製失敗"
 msgid "Failed to create invitation link"
 msgstr "建立邀請連結失敗"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:590
+#: src/routes/(root)/[handle]/settings/invite.tsx:594
+#: src/routes/(root)/[handle]/settings/invite.tsx:605
 msgid "Failed to delete invitation link"
 msgstr "刪除邀請連結失敗"
 
@@ -565,7 +566,7 @@ msgstr "載入更多粉絲失敗，點擊重試"
 msgid "Failed to load more following; click to retry"
 msgstr "載入更多關注失敗，點擊重試"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:868
+#: src/routes/(root)/[handle]/settings/invite.tsx:883
 msgid "Failed to load more invitees; click to retry"
 msgstr "載入更多受邀者失敗；點擊重試"
 
@@ -803,11 +804,11 @@ msgstr "邀請語言"
 msgid "Invitation link created"
 msgstr "邀請連結已建立"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:581
+#: src/routes/(root)/[handle]/settings/invite.tsx:588
 msgid "Invitation link deleted"
 msgstr "邀請連結已刪除"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:617
+#: src/routes/(root)/[handle]/settings/invite.tsx:632
 msgid "Invitation links"
 msgstr "邀請連結"
 
@@ -834,7 +835,7 @@ msgid "John Doe"
 msgstr "張三"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:842
+#: src/routes/(root)/[handle]/settings/invite.tsx:857
 msgid "Joined on {0}"
 msgstr "於{0}加入"
 
@@ -895,7 +896,7 @@ msgstr "載入更多粉絲"
 msgid "Load more following"
 msgstr "載入更多關注"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:871
+#: src/routes/(root)/[handle]/settings/invite.tsx:886
 msgid "Load more invitees"
 msgstr "載入更多受邀者"
 
@@ -935,7 +936,7 @@ msgstr "載入更多粉絲中…"
 msgid "Loading more following…"
 msgstr "正在載入更多關注…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:865
+#: src/routes/(root)/[handle]/settings/invite.tsx:880
 msgid "Loading more invitees…"
 msgstr "正在載入更多受邀者…"
 
@@ -1025,8 +1026,8 @@ msgstr "使用者名稱太長。不能長於 50 字元。"
 msgid "Native name"
 msgstr "本地名稱"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:676
-#: src/routes/(root)/[handle]/settings/invite.tsx:742
+#: src/routes/(root)/[handle]/settings/invite.tsx:691
+#: src/routes/(root)/[handle]/settings/invite.tsx:757
 msgid "Never expires"
 msgstr "永不過期"
 
@@ -1057,7 +1058,7 @@ msgstr "沒有找到關注的使用者"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:263
 #: src/routes/(root)/[handle]/settings/invite.tsx:418
-#: src/routes/(root)/[handle]/settings/invite.tsx:752
+#: src/routes/(root)/[handle]/settings/invite.tsx:767
 msgid "No invitations left"
 msgstr "沒有剩餘邀請名額"
 
@@ -1118,7 +1119,7 @@ msgstr "貼文"
 msgid "Notifications"
 msgstr "通知"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:703
+#: src/routes/(root)/[handle]/settings/invite.tsx:718
 msgid "Number of invitations"
 msgstr "邀請次數"
 
@@ -1528,7 +1529,11 @@ msgstr "邀請信件傳送失敗。請稍後再試。"
 msgid "The invitation has been sent successfully."
 msgstr "邀請已成功發送。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:603
+#: src/routes/(root)/[handle]/settings/invite.tsx:596
+msgid "The invitation link could not be found or you are not authorized to delete it."
+msgstr "找不到該邀請連結，或您無權刪除該連結。"
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:618
 msgid "The invitation link has been copied to the clipboard."
 msgstr "邀請連結已複製到剪貼簿。"
 
@@ -1536,7 +1541,7 @@ msgstr "邀請連結已複製到剪貼簿。"
 msgid "The invitation link has been created successfully."
 msgstr "邀請連結已成功建立。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:582
+#: src/routes/(root)/[handle]/settings/invite.tsx:589
 msgid "The invitation link has been deleted successfully."
 msgstr "邀請連結已成功刪除。"
 
@@ -1681,7 +1686,7 @@ msgstr "需要使用者名稱"
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "使用者名稱太長。不能長於 15 字元。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:437
+#: src/routes/(root)/[handle]/settings/invite.tsx:443
 msgid "Users you have invited"
 msgstr "您邀請的使用者"
 
@@ -1757,7 +1762,7 @@ msgid "You can leave this empty to remove the link."
 msgstr "您可以將此處留空以刪除連結。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:405
-#: src/routes/(root)/[handle]/settings/invite.tsx:723
+#: src/routes/(root)/[handle]/settings/invite.tsx:738
 msgid "You can leave this field empty."
 msgstr "你可以留空此欄位。"
 

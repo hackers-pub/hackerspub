@@ -26,7 +26,7 @@ msgstr "{0, plural, other {# 팔로잉}}"
 #. placeholder {0}: link().invitationsLeft
 #. placeholder {0}: link.invitationsLeft
 #: src/routes/(root)/[handle]/invite/[id].tsx:318
-#: src/routes/(root)/[handle]/settings/invite.tsx:665
+#: src/routes/(root)/[handle]/settings/invite.tsx:680
 msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {남은 초대 #건}}"
 
@@ -41,7 +41,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, other {Hackers' Pub에 친구를 초대하세요. 최대 #명까지 초대할 수 있습니다.}}"
 
 #. placeholder {0}: account().inviteesCount.totalCount
-#: src/routes/(root)/[handle]/settings/invite.tsx:440
+#: src/routes/(root)/[handle]/settings/invite.tsx:446
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, other {지금까지 총 #명을 초대하셨습니다.}}"
 
@@ -217,7 +217,7 @@ msgstr "설정 저장 중 오류가 발생했습니다. 다시 시도하거나 �
 #: src/routes/(root)/[handle]/invite/[id].tsx:201
 #: src/routes/(root)/[handle]/settings/invite.tsx:271
 #: src/routes/(root)/[handle]/settings/invite.tsx:557
-#: src/routes/(root)/[handle]/settings/invite.tsx:592
+#: src/routes/(root)/[handle]/settings/invite.tsx:607
 msgid "An unexpected error occurred. Please try again later."
 msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도해주세요."
 
@@ -331,15 +331,15 @@ msgstr "내용"
 msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:602
+#: src/routes/(root)/[handle]/settings/invite.tsx:617
 msgid "Copied"
 msgstr "복사됨"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:643
+#: src/routes/(root)/[handle]/settings/invite.tsx:658
 msgid "Copy"
 msgstr "복사"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:609
+#: src/routes/(root)/[handle]/settings/invite.tsx:624
 msgid "Could not copy the link to the clipboard."
 msgstr "클립보드에 링크를 복사할 수 없습니다."
 
@@ -352,7 +352,7 @@ msgstr "이 URL에서 콘텐츠를 찾을 수 없습니다"
 msgid "Create Article"
 msgstr "게시글 작성"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:755
+#: src/routes/(root)/[handle]/settings/invite.tsx:770
 msgid "Create invitation link"
 msgstr "초대 링크 생성"
 
@@ -363,7 +363,7 @@ msgstr "초대 링크 생성"
 msgid "Create Note"
 msgstr "단문 작성"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:619
+#: src/routes/(root)/[handle]/settings/invite.tsx:634
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 msgstr "공유 가능한 초대 링크를 생성합니다. 각 링크는 초대 횟수가 소진되거나 유효기간이 만료될 때까지 여러 번 사용할 수 있습니다."
 
@@ -377,7 +377,7 @@ msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
 
 #: src/components/NoteComposer.tsx:450
-#: src/routes/(root)/[handle]/settings/invite.tsx:754
+#: src/routes/(root)/[handle]/settings/invite.tsx:769
 msgid "Creating…"
 msgstr "작성 중…"
 
@@ -400,7 +400,7 @@ msgstr "기본 공유 공개 범위"
 #: src/components/PostActionMenu.tsx:123
 #: src/components/PostActionMenu.tsx:143
 #: src/routes/(root)/[handle]/drafts/index.tsx:302
-#: src/routes/(root)/[handle]/settings/invite.tsx:652
+#: src/routes/(root)/[handle]/settings/invite.tsx:667
 msgid "Delete"
 msgstr "삭제"
 
@@ -416,7 +416,7 @@ msgstr "콘텐츠를 삭제할까요?"
 msgid "Deleting..."
 msgstr "삭제 중..."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:652
+#: src/routes/(root)/[handle]/settings/invite.tsx:667
 msgid "Deleting…"
 msgstr "삭제 중…"
 
@@ -514,20 +514,20 @@ msgstr "오류"
 
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:330
-#: src/routes/(root)/[handle]/settings/invite.tsx:680
+#: src/routes/(root)/[handle]/settings/invite.tsx:695
 msgid "Expires {0}"
 msgstr "{0}에 만료"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:727
+#: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Expiry"
 msgstr "유효기간"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:399
-#: src/routes/(root)/[handle]/settings/invite.tsx:717
+#: src/routes/(root)/[handle]/settings/invite.tsx:732
 msgid "Extra message"
 msgstr "추가 메시지"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:608
+#: src/routes/(root)/[handle]/settings/invite.tsx:623
 msgid "Failed to copy"
 msgstr "복사 실패"
 
@@ -536,7 +536,8 @@ msgstr "복사 실패"
 msgid "Failed to create invitation link"
 msgstr "초대 링크 생성에 실패했습니다"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:590
+#: src/routes/(root)/[handle]/settings/invite.tsx:594
+#: src/routes/(root)/[handle]/settings/invite.tsx:605
 msgid "Failed to delete invitation link"
 msgstr "초대 링크 삭제에 실패했습니다"
 
@@ -565,7 +566,7 @@ msgstr "팔로워 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more following; click to retry"
 msgstr "팔로잉 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:868
+#: src/routes/(root)/[handle]/settings/invite.tsx:883
 msgid "Failed to load more invitees; click to retry"
 msgstr "초대받은 사람들을 불러오지 못했습니다. 클릭하여 다시 시도"
 
@@ -803,11 +804,11 @@ msgstr "초대장 언어"
 msgid "Invitation link created"
 msgstr "초대 링크가 생성되었습니다"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:581
+#: src/routes/(root)/[handle]/settings/invite.tsx:588
 msgid "Invitation link deleted"
 msgstr "초대 링크가 삭제되었습니다"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:617
+#: src/routes/(root)/[handle]/settings/invite.tsx:632
 msgid "Invitation links"
 msgstr "초대 링크"
 
@@ -834,7 +835,7 @@ msgid "John Doe"
 msgstr "홍길동"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:842
+#: src/routes/(root)/[handle]/settings/invite.tsx:857
 msgid "Joined on {0}"
 msgstr "{0}에 가입"
 
@@ -895,7 +896,7 @@ msgstr "팔로워 더 불러오기"
 msgid "Load more following"
 msgstr "팔로잉 더 불러오기"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:871
+#: src/routes/(root)/[handle]/settings/invite.tsx:886
 msgid "Load more invitees"
 msgstr "초대받은 사람 더 보기"
 
@@ -935,7 +936,7 @@ msgstr "팔로워 불러오는 중…"
 msgid "Loading more following…"
 msgstr "팔로잉 불러오는 중…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:865
+#: src/routes/(root)/[handle]/settings/invite.tsx:880
 msgid "Loading more invitees…"
 msgstr "초대받은 사람들을 불러오는 중…"
 
@@ -1025,8 +1026,8 @@ msgstr "이름이 너무 깁니다. 최대 길이는 50자입니다."
 msgid "Native name"
 msgstr "현지명"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:676
-#: src/routes/(root)/[handle]/settings/invite.tsx:742
+#: src/routes/(root)/[handle]/settings/invite.tsx:691
+#: src/routes/(root)/[handle]/settings/invite.tsx:757
 msgid "Never expires"
 msgstr "유효기간 없음"
 
@@ -1057,7 +1058,7 @@ msgstr "팔로잉하는 사용자가 없습니다"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:263
 #: src/routes/(root)/[handle]/settings/invite.tsx:418
-#: src/routes/(root)/[handle]/settings/invite.tsx:752
+#: src/routes/(root)/[handle]/settings/invite.tsx:767
 msgid "No invitations left"
 msgstr "남은 초대장이 없습니다"
 
@@ -1118,7 +1119,7 @@ msgstr "단문"
 msgid "Notifications"
 msgstr "알림"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:703
+#: src/routes/(root)/[handle]/settings/invite.tsx:718
 msgid "Number of invitations"
 msgstr "초대 횟수"
 
@@ -1528,7 +1529,11 @@ msgstr "초대 이메일을 보내지 못했습니다. 나중에 다시 시도�
 msgid "The invitation has been sent successfully."
 msgstr "초대장이 성공적으로 발송되었습니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:603
+#: src/routes/(root)/[handle]/settings/invite.tsx:596
+msgid "The invitation link could not be found or you are not authorized to delete it."
+msgstr "초대 링크를 찾을 수 없거나 삭제할 권한이 없습니다."
+
+#: src/routes/(root)/[handle]/settings/invite.tsx:618
 msgid "The invitation link has been copied to the clipboard."
 msgstr "초대 링크가 클립보드에 복사되었습니다."
 
@@ -1536,7 +1541,7 @@ msgstr "초대 링크가 클립보드에 복사되었습니다."
 msgid "The invitation link has been created successfully."
 msgstr "초대 링크가 성공적으로 생성되었습니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:582
+#: src/routes/(root)/[handle]/settings/invite.tsx:589
 msgid "The invitation link has been deleted successfully."
 msgstr "초대 링크가 성공적으로 삭제되었습니다."
 
@@ -1681,7 +1686,7 @@ msgstr "아이디는 필수입니다."
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "아이디가 너무 깁니다. 최대 길이는 15자입니다."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:437
+#: src/routes/(root)/[handle]/settings/invite.tsx:443
 msgid "Users you have invited"
 msgstr "초대한 사용자"
 
@@ -1757,7 +1762,7 @@ msgid "You can leave this empty to remove the link."
 msgstr "링크를 삭제하려면 이곳을 비워두세요."
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:405
-#: src/routes/(root)/[handle]/settings/invite.tsx:723
+#: src/routes/(root)/[handle]/settings/invite.tsx:738
 msgid "You can leave this field empty."
 msgstr "이 필드는 비워둘 수 있습니다."
 
