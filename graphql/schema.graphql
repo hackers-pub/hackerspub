@@ -639,6 +639,11 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
+
+  """
+  Marks all notifications as seen up to the current time. Returns the timestamp.
+  """
+  markNotificationsAsSeen: DateTime!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
   registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult!
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
