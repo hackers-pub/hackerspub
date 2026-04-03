@@ -1098,6 +1098,11 @@ msgstr "선호 언어"
 msgid "Priority"
 msgstr "우선순위"
 
+#: src/components/AppSidebar.tsx:535
+#: src/routes/(root)/privacy.tsx:47
+msgid "Privacy policy"
+msgstr "개인정보 보호정책"
+
 #: src/components/SettingsTabs.tsx:42
 #: src/routes/(root)/[handle]/settings/index.tsx:144
 #: src/routes/(root)/[handle]/settings/index.tsx:149

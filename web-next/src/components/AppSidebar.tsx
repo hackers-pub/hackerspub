@@ -531,6 +531,9 @@ export function AppSidebar(props: AppSidebarProps) {
         <p class="m-2 mb-0 text-sm underline">
           <a href="/coc">{t`Code of conduct`}</a>
         </p>
+        <p class="m-2 mb-0 text-sm underline">
+          <a href="/privacy">{t`Privacy policy`}</a>
+        </p>
         <p class="m-2 text-sm">
           <Trans
             message={t`The source code of this website is available on ${"GITHUB_REPOSITORY"} under the ${"AGPL-3.0"} license.`}

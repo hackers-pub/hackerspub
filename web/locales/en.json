@@ -61,6 +61,7 @@
     "settings": "Settings",
     "signOut": "Sign out",
     "coc": "Code of conduct",
+    "privacy": "Privacy policy",
     "openSource": "The source code of this website is available on {{repository}} under the {{license}} license.",
     "githubRepository": "GitHub repository"
   },

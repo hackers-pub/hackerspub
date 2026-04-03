@@ -374,6 +374,13 @@ export default async function App(
                         <Msg $key="nav.coc" />
                       </a>{" "}
                       &middot;{" "}
+                      <a
+                        href="/privacy"
+                        class="text-black dark:text-white underline"
+                      >
+                        <Msg $key="nav.privacy" />
+                      </a>{" "}
+                      &middot;{" "}
                       <span class="text-black dark:text-white">
                         <Msg
                           $key="nav.openSource"

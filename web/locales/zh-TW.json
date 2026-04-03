@@ -59,6 +59,7 @@
     "settings": "設定",
     "signOut": "登出",
     "coc": "行為準則",
+    "privacy": "隱私權政策",
     "openSource": "可在 {{repository}} 上以 {{license}} 授權取得該網站的原始碼。",
     "githubRepository": "GitHub 儲存庫"
   },

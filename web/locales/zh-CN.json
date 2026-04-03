@@ -59,6 +59,7 @@
     "settings": "设置",
     "signOut": "退出登录",
     "coc": "行为准则",
+    "privacy": "隐私政策",
     "openSource": "可在 {{repository}} 上以 {{license}} 许可获取该网站的源代码。",
     "githubRepository": "GitHub 仓库"
   },

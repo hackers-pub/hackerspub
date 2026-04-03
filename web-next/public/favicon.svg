@@ -4,23 +4,36 @@
   height="341.333"
   viewBox="0 0 90.311 90.311"
 >
-  <defs><clipPath id="a" clipPathUnits="userSpaceOnUse"><path
+  <defs>
+    <clipPath id="a" clipPathUnits="userSpaceOnUse">
+      <path
         d="M0 982h1512V0H0Z"
-      /></clipPath><clipPath id="b" clipPathUnits="userSpaceOnUse"><path
+      />
+    </clipPath>
+    <clipPath id="b" clipPathUnits="userSpaceOnUse">
+      <path
         d="M-248.116 565.515h1512v-982h-1512Z"
-      /></clipPath><clipPath id="c" clipPathUnits="userSpaceOnUse"><path
+      />
+    </clipPath>
+    <clipPath id="c" clipPathUnits="userSpaceOnUse">
+      <path
         d="M-275.58 463.186h1512v-982h-1512Z"
-      /></clipPath></defs><path
+      />
+    </clipPath>
+  </defs>
+  <path
     d="M379.713 343.974h-256v256h256z"
     clip-path="url(#a)"
     style="fill: #000; fill-opacity: 1; fill-rule: nonzero; stroke: none"
     transform="matrix(.35278 0 0 -.35278 -43.643 211.657)"
-  /><path
+  />
+  <path
     d="M0 0c-40.67-5.905-86.332-3.947-87.722 9.462-1.39 13.41 44.839 28.046 85.367 34.87 42.335 7.128 84.834 9.614 91.551-4.536C95.882 25.711 43.811 6.361 0 0m-1.113 49.115c-62.293-10.207-101.872-26.739-103.24-46.504C-105.44-13.102-71.692-27.693 4.48-16.742 85.081-5.155 117.682 23.272 110.642 38.93 103.446 54.934 63.004 59.621-1.113 49.115"
     clip-path="url(#b)"
     style="fill: #fff; fill-opacity: 1; fill-rule: nonzero; stroke: none"
     transform="matrix(.35278 0 0 -.35278 43.887 64.73)"
-  /><path
+  />
+  <path
     d="M0 0c-14.536 13.347-10.437 29.2-24.855 29.2-14.009 0-9.908-14.486-24.804-29.2-9.977-10.706-38.951-2.233-38.951-19.428 0-14.784 21.831-12.227 36.901-26.538 11.922-11.322 11.376-32.715 26.854-32.715 14.145 0 14.419 24.242 25.352 35.175 15.306 14.214 36.078 9.244 36.078 24.078C36.575-3.599 12.797-10.433 0 0"
     clip-path="url(#c)"
     style="fill: #fff; fill-opacity: 1; fill-rule: nonzero; stroke: none"

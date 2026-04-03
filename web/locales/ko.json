@@ -59,6 +59,7 @@
     "invite": "$t(settings.invite.title)",
     "signOut": "로그아웃",
     "coc": "행동 강령",
+    "privacy": "개인정보 보호정책",
     "openSource": "이 웹사이트의 소스 코드는 {{license}} 라이선스로 {{repository}}에서 배포됩니다.",
     "githubRepository": "GitHub 저장소"
   },

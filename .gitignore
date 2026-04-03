@@ -10,6 +10,9 @@
 .env.production.local
 .env.local
 
+# Playwright MCP
+.playwright-mcp/
+
 # Fresh build directory
 _fresh/
 # npm + other dependencies
