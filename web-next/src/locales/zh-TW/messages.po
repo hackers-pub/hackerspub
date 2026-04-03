@@ -43,7 +43,7 @@ msgstr "{0, plural, other {邀請你的朋友加入 Hackers' Pub。你可以邀�
 #. placeholder {0}: account().inviteesCount.totalCount
 #: src/routes/(root)/[handle]/settings/invite.tsx:440
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
-msgstr "{0, plural, other {您已經邀請了總共#人。}}"
+msgstr "{0, plural, other {您已經邀請了總共 # 人。}}"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
@@ -793,7 +793,7 @@ msgstr "無效輸入：{0}"
 #. placeholder {0}: link().inviter.name ?? link().inviter.username
 #: src/routes/(root)/[handle]/invite/[id].tsx:235
 msgid "Invitation from {0}"
-msgstr "來自{0}的邀請"
+msgstr "來自 {0} 的邀請"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:387
 msgid "Invitation language"
