@@ -351,11 +351,11 @@ builder.mutationField("redeemInvitationLink", (t) =>
         where: { id: args.id },
       });
       if (link == null) {
-        errors.link = "LINK_NOT_FOUND";
+        return { link: "LINK_NOT_FOUND" } satisfies RedeemValidationErrors;
       } else if (link.expires && link.expires < new Date()) {
-        errors.link = "LINK_EXPIRED";
+        return { link: "LINK_EXPIRED" } satisfies RedeemValidationErrors;
       } else if (link.invitationsLeft < 1) {
-        errors.link = "LINK_EXHAUSTED";
+        return { link: "LINK_EXHAUSTED" } satisfies RedeemValidationErrors;
       }
 
       // Validate email
@@ -393,8 +393,8 @@ builder.mutationField("redeemInvitationLink", (t) =>
       if (a === c) errors.verifyUrl = "VERIFY_URL_NO_CODE";
 
       if (
-        errors.link != null || errors.email != null ||
-        errors.verifyUrl != null || link == null || email == null
+        errors.email != null ||
+        errors.verifyUrl != null || email == null
       ) {
         return errors;
       }
