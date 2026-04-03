@@ -26,12 +26,12 @@ msgstr "{0, plural, other {关注 # 人}}"
 #. placeholder {0}: link().invitationsLeft
 #. placeholder {0}: link.invitationsLeft
 #: src/routes/(root)/[handle]/invite/[id].tsx:318
-#: src/routes/(root)/[handle]/settings/invite.tsx:667
+#: src/routes/(root)/[handle]/settings/invite.tsx:665
 msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {剩余 # 次邀请}}"
 
 #. placeholder {0}: edge.node.tags.length - 3
-#: src/routes/(root)/[handle]/drafts/index.tsx:276
+#: src/routes/(root)/[handle]/drafts/index.tsx:277
 msgid "{0, plural, one {+1 more} other {+# more}}"
 msgstr "{0, plural, other {还有#个}}"
 
@@ -41,7 +41,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, other {邀请你的朋友加入 Hackers' Pub。你可以邀请最多 # 个人。}}"
 
 #. placeholder {0}: account().inviteesCount.totalCount
-#: src/routes/(root)/[handle]/settings/invite.tsx:446
+#: src/routes/(root)/[handle]/settings/invite.tsx:440
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, other {您已经邀请了总共#人。}}"
 
@@ -130,41 +130,41 @@ msgstr "{0} 转发了你的内容"
 
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
-#: src/routes/(root)/[handle]/[noteId].tsx:143
+#: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:66
-#: src/routes/(root)/[handle]/(profile)/articles.tsx:70
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:67
+#: src/routes/(root)/[handle]/(profile)/articles.tsx:71
 msgid "{0}'s articles"
 msgstr "{0}的文章"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:66
-#: src/routes/(root)/[handle]/(profile)/followers.tsx:69
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:67
+#: src/routes/(root)/[handle]/(profile)/followers.tsx:70
 msgid "{0}'s followers"
 msgstr "{0}的粉丝"
 
 #. placeholder {0}: account().name
-#: src/routes/(root)/[handle]/(profile)/following.tsx:66
-#: src/routes/(root)/[handle]/(profile)/following.tsx:69
+#: src/routes/(root)/[handle]/(profile)/following.tsx:67
+#: src/routes/(root)/[handle]/(profile)/following.tsx:70
 msgid "{0}'s following"
 msgstr "{0}的关注"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:67
-#: src/routes/(root)/[handle]/(profile)/notes.tsx:71
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:68
+#: src/routes/(root)/[handle]/(profile)/notes.tsx:72
 msgid "{0}'s notes"
 msgstr "{0}的帖子"
 
 #. placeholder {0}: actor().rawName ?? actor().username
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:68
-#: src/routes/(root)/[handle]/(profile)/shares.tsx:72
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:69
+#: src/routes/(root)/[handle]/(profile)/shares.tsx:73
 msgid "{0}'s shares"
 msgstr "{0}的转帖"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:565
+#: src/routes/(root)/[handle]/settings/index.tsx:564
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 
@@ -181,7 +181,7 @@ msgstr "账户"
 msgid "Actions"
 msgstr "操作"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:229
+#: src/routes/(root)/[handle]/settings/language.tsx:228
 msgid "Add"
 msgstr "添加"
 
@@ -194,34 +194,34 @@ msgstr "添加{0}"
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:285
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:286
 msgid "An error occurred while registering your passkey."
 msgstr "在注册您的通行密钥时发生错误。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:333
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:334
 msgid "An error occurred while revoking your passkey."
 msgstr "在撤销您的通行密钥时发生错误。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:142
+#: src/routes/(root)/[handle]/settings/preferences.tsx:143
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持团队。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:196
+#: src/routes/(root)/[handle]/settings/language.tsx:195
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "保存语言偏好时出现错误。请重试，如果问题仍然存在，请联系支持。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:342
+#: src/routes/(root)/[handle]/settings/index.tsx:341
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请联系客服。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:201
-#: src/routes/(root)/[handle]/settings/invite.tsx:270
-#: src/routes/(root)/[handle]/settings/invite.tsx:559
-#: src/routes/(root)/[handle]/settings/invite.tsx:594
+#: src/routes/(root)/[handle]/settings/invite.tsx:271
+#: src/routes/(root)/[handle]/settings/invite.tsx:557
+#: src/routes/(root)/[handle]/settings/invite.tsx:592
 msgid "An unexpected error occurred. Please try again later."
 msgstr "发生了意外错误。请稍后再试。"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:133
+#: src/routes/(root)/[handle]/drafts/index.tsx:134
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "您确定要删除\"{draftTitle}\"吗？此操作无法撤销。"
 
@@ -230,11 +230,11 @@ msgid "Are you sure you want to delete this draft? This action cannot be undone.
 msgstr "您确定要删除此草稿吗？此操作无法撤销。"
 
 #. placeholder {0}: passkeyToRevoke()?.name
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:522
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:521
 msgid "Are you sure you want to revoke passkey {0}? You won't be able to use it to sign in to your account anymore."
 msgstr "您确定要撤销通行密钥“{0}”吗？您将无法再使用它登录您的账户。"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:236
+#: src/routes/(root)/[handle]/drafts/index.tsx:237
 msgid "Article Drafts"
 msgstr "文章草稿"
 
@@ -255,7 +255,7 @@ msgid "Articles only"
 msgstr "仅文章"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:440
+#: src/routes/(root)/[handle]/settings/index.tsx:439
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 
@@ -263,11 +263,11 @@ msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 msgid "Authenticating…"
 msgstr "正在验证…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:356
+#: src/routes/(root)/[handle]/settings/index.tsx:355
 msgid "Avatar"
 msgstr "头像"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:469
+#: src/routes/(root)/[handle]/settings/index.tsx:468
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "个人简介"
@@ -285,8 +285,8 @@ msgstr "粗体"
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:217
 #: src/components/RemoteFollowButton.tsx:279
-#: src/routes/(root)/[handle]/settings/index.tsx:403
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:526
+#: src/routes/(root)/[handle]/settings/index.tsx:402
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:525
 #: src/routes/(root)/authorize_interaction.tsx:190
 msgid "Cancel"
 msgstr "取消"
@@ -312,7 +312,7 @@ msgid "Code"
 msgstr "代码"
 
 #: src/components/AppSidebar.tsx:532
-#: src/routes/(root)/coc.tsx:47
+#: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "行为准则"
@@ -331,15 +331,15 @@ msgstr "内容"
 msgid "Content cannot be empty"
 msgstr "内容不能为空"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:604
+#: src/routes/(root)/[handle]/settings/invite.tsx:602
 msgid "Copied"
 msgstr "已复制"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:645
+#: src/routes/(root)/[handle]/settings/invite.tsx:643
 msgid "Copy"
 msgstr "复制"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:611
+#: src/routes/(root)/[handle]/settings/invite.tsx:609
 msgid "Could not copy the link to the clipboard."
 msgstr "无法将链接复制到剪贴板。"
 
@@ -352,7 +352,7 @@ msgstr "无法在此URL找到内容"
 msgid "Create Article"
 msgstr "创建文章"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:757
+#: src/routes/(root)/[handle]/settings/invite.tsx:755
 msgid "Create invitation link"
 msgstr "创建邀请链接"
 
@@ -363,7 +363,7 @@ msgstr "创建邀请链接"
 msgid "Create Note"
 msgstr "创建帖子"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:621
+#: src/routes/(root)/[handle]/settings/invite.tsx:619
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 msgstr "创建可共享的邀请链接。每个链接可多次使用，直到邀请次数用完或链接过期。"
 
@@ -377,15 +377,15 @@ msgid "Creating account…"
 msgstr "正在创建账户…"
 
 #: src/components/NoteComposer.tsx:450
-#: src/routes/(root)/[handle]/settings/invite.tsx:756
+#: src/routes/(root)/[handle]/settings/invite.tsx:754
 msgid "Creating…"
 msgstr "正在创建…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:410
+#: src/routes/(root)/[handle]/settings/index.tsx:409
 msgid "Crop"
 msgstr "裁剪"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:383
+#: src/routes/(root)/[handle]/settings/index.tsx:382
 msgid "Crop your new avatar"
 msgstr "裁剪你的新头像"
 
@@ -399,8 +399,8 @@ msgstr "默认转帖隐私设置"
 
 #: src/components/PostActionMenu.tsx:123
 #: src/components/PostActionMenu.tsx:143
-#: src/routes/(root)/[handle]/drafts/index.tsx:301
-#: src/routes/(root)/[handle]/settings/invite.tsx:654
+#: src/routes/(root)/[handle]/drafts/index.tsx:302
+#: src/routes/(root)/[handle]/settings/invite.tsx:652
 msgid "Delete"
 msgstr "删除"
 
@@ -416,7 +416,7 @@ msgstr "删除内容？"
 msgid "Deleting..."
 msgstr "删除中..."
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:654
+#: src/routes/(root)/[handle]/settings/invite.tsx:652
 msgid "Deleting…"
 msgstr "正在删除…"
 
@@ -424,7 +424,7 @@ msgstr "正在删除…"
 msgid "Discard unsaved changes - are you sure?"
 msgstr "放弃未保存的更改 - 您确定吗？"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:453
+#: src/routes/(root)/[handle]/settings/index.tsx:452
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "昵称"
@@ -438,7 +438,7 @@ msgid "Do you want to quote this link?"
 msgstr "要引用此链接吗？"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:436
-#: src/routes/(root)/[handle]/drafts/index.tsx:174
+#: src/routes/(root)/[handle]/drafts/index.tsx:175
 msgid "Draft deleted"
 msgstr "草稿已删除"
 
@@ -454,7 +454,7 @@ msgstr "未找到草稿"
 msgid "Draft saved"
 msgstr "草稿已保存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:386
+#: src/routes/(root)/[handle]/settings/index.tsx:385
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的头像。"
 
@@ -462,8 +462,8 @@ msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:78
-#: src/routes/(root)/[handle]/drafts/new.tsx:94
+#: src/routes/(root)/[handle]/drafts/[id].tsx:79
+#: src/routes/(root)/[handle]/drafts/new.tsx:95
 msgid "Edit Draft"
 msgstr "编辑草稿"
 
@@ -504,9 +504,9 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/NoteComposer.tsx:278
 #: src/components/NoteComposer.tsx:286
 #: src/components/NoteComposer.tsx:294
-#: src/routes/(root)/[handle]/drafts/index.tsx:181
-#: src/routes/(root)/[handle]/drafts/index.tsx:190
-#: src/routes/(root)/[handle]/drafts/index.tsx:198
+#: src/routes/(root)/[handle]/drafts/index.tsx:182
+#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:199
 #: src/routes/(root)/[handle]/invite/[id].tsx:199
 #: src/routes/(root)/sign/up/[token].tsx:295
 msgid "Error"
@@ -514,29 +514,29 @@ msgstr "错误"
 
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:330
-#: src/routes/(root)/[handle]/settings/invite.tsx:682
+#: src/routes/(root)/[handle]/settings/invite.tsx:680
 msgid "Expires {0}"
 msgstr "{0}过期"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:729
+#: src/routes/(root)/[handle]/settings/invite.tsx:727
 msgid "Expiry"
 msgstr "到期时间"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:399
-#: src/routes/(root)/[handle]/settings/invite.tsx:719
+#: src/routes/(root)/[handle]/settings/invite.tsx:717
 msgid "Extra message"
 msgstr "额外消息"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:610
+#: src/routes/(root)/[handle]/settings/invite.tsx:608
 msgid "Failed to copy"
 msgstr "复制失败"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:547
-#: src/routes/(root)/[handle]/settings/invite.tsx:557
+#: src/routes/(root)/[handle]/settings/invite.tsx:545
+#: src/routes/(root)/[handle]/settings/invite.tsx:555
 msgid "Failed to create invitation link"
 msgstr "创建邀请链接失败"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:592
+#: src/routes/(root)/[handle]/settings/invite.tsx:590
 msgid "Failed to delete invitation link"
 msgstr "删除邀请链接失败"
 
@@ -553,7 +553,7 @@ msgstr "关注失败"
 msgid "Failed to load more articles; click to retry"
 msgstr "加载更多文章失败，点击重试"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:325
+#: src/routes/(root)/[handle]/drafts/index.tsx:326
 msgid "Failed to load more drafts; click to retry"
 msgstr "加载更多草稿失败，点击重试"
 
@@ -565,7 +565,7 @@ msgstr "加载更多粉丝失败，点击重试"
 msgid "Failed to load more following; click to retry"
 msgstr "加载更多关注失败，点击重试"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:870
+#: src/routes/(root)/[handle]/settings/invite.tsx:868
 msgid "Failed to load more invitees; click to retry"
 msgstr "加载更多受邀者失败；点击重试"
 
@@ -604,24 +604,24 @@ msgstr "查找用户失败。"
 msgid "Failed to react"
 msgstr "反应失败"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:282
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:283
 msgid "Failed to register passkey"
 msgstr "注册通行密钥失败"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:324
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:330
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:325
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:331
 msgid "Failed to revoke passkey"
 msgstr "撤销通行密钥失败"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:194
+#: src/routes/(root)/[handle]/settings/language.tsx:193
 msgid "Failed to save language preferences"
 msgstr "保存语言偏好失败"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:140
+#: src/routes/(root)/[handle]/settings/preferences.tsx:141
 msgid "Failed to save preferences"
 msgstr "保存设置失败"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:340
+#: src/routes/(root)/[handle]/settings/index.tsx:339
 msgid "Failed to save settings"
 msgstr "保存设置失败"
 
@@ -629,8 +629,8 @@ msgstr "保存设置失败"
 msgid "Failed to send email"
 msgstr "发送邮件失败"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:248
-#: src/routes/(root)/[handle]/settings/invite.tsx:268
+#: src/routes/(root)/[handle]/settings/invite.tsx:249
+#: src/routes/(root)/[handle]/settings/invite.tsx:269
 msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
@@ -701,9 +701,9 @@ msgstr "格式"
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:64
-#: src/routes/(root)/[handle]/drafts/index.tsx:221
-#: src/routes/(root)/[handle]/drafts/new.tsx:80
+#: src/routes/(root)/[handle]/drafts/[id].tsx:65
+#: src/routes/(root)/[handle]/drafts/index.tsx:222
+#: src/routes/(root)/[handle]/drafts/new.tsx:81
 msgid "Go Back"
 msgstr "返回"
 
@@ -711,17 +711,17 @@ msgstr "返回"
 msgid "Go to Drafts"
 msgstr "前往草稿"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:69
-#: src/routes/(root)/[handle]/drafts/index.tsx:226
-#: src/routes/(root)/[handle]/drafts/new.tsx:85
+#: src/routes/(root)/[handle]/drafts/[id].tsx:70
+#: src/routes/(root)/[handle]/drafts/index.tsx:227
+#: src/routes/(root)/[handle]/drafts/new.tsx:86
 msgid "Go to My Drafts"
 msgstr "前往我的草稿"
 
 #: src/components/AppSidebar.tsx:125
 #: src/components/AppSidebar.tsx:216
 #: src/routes/(root).tsx:82
-#: src/routes/(root)/coc.tsx:47
-#: src/routes/(root)/markdown.tsx:47
+#: src/routes/(root)/coc.tsx:48
+#: src/routes/(root)/markdown.tsx:48
 msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
@@ -733,7 +733,7 @@ msgstr "Hackers' Pub 首页"
 msgid "Hackers' Pub is a place for software engineers to share their knowledge and experience with each other. It's also an ActivityPub-enabled social network, so you can follow your favorite hackers in the fediverse and get their latest posts in your feed."
 msgstr "Hackers' Pub 是个为软件工程师共同分享知识和经验的地方。它也是启用了 ActivityPub 的社交网络，这样你可以在联邦宇宙里关注你喜爱的黑客，并获取最新的帖子。"
 
-#: src/routes/(root)/notifications.tsx:40
+#: src/routes/(root)/notifications.tsx:41
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
@@ -766,7 +766,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:253
+#: src/routes/(root)/[handle]/[noteId].tsx:254
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此帖子。在你的实例搜索 {0} 后回复。"
 
@@ -786,7 +786,7 @@ msgstr "联邦宇宙用户名格式无效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:380
 #: src/components/article-composer/ArticleComposerContext.tsx:445
 #: src/components/NoteComposer.tsx:279
-#: src/routes/(root)/[handle]/drafts/index.tsx:183
+#: src/routes/(root)/[handle]/drafts/index.tsx:184
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
 
@@ -799,25 +799,25 @@ msgstr "来自{0}的邀请"
 msgid "Invitation language"
 msgstr "邀请语言"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:539
+#: src/routes/(root)/[handle]/settings/invite.tsx:537
 msgid "Invitation link created"
 msgstr "邀请链接已创建"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:583
+#: src/routes/(root)/[handle]/settings/invite.tsx:581
 msgid "Invitation link deleted"
 msgstr "邀请链接已删除"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:619
+#: src/routes/(root)/[handle]/settings/invite.tsx:617
 msgid "Invitation links"
 msgstr "邀请链接"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:258
+#: src/routes/(root)/[handle]/settings/invite.tsx:259
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
 #: src/components/AppSidebar.tsx:355
 #: src/components/SettingsTabs.tsx:63
-#: src/routes/(root)/[handle]/settings/invite.tsx:302
+#: src/routes/(root)/[handle]/settings/invite.tsx:303
 msgid "Invite"
 msgstr "邀请"
 
@@ -829,12 +829,12 @@ msgstr "邀请朋友"
 msgid "Italic"
 msgstr "斜体"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:460
+#: src/routes/(root)/[handle]/settings/index.tsx:459
 msgid "John Doe"
 msgstr "张三"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:844
+#: src/routes/(root)/[handle]/settings/invite.tsx:842
 msgid "Joined on {0}"
 msgstr "于{0}加入"
 
@@ -850,7 +850,7 @@ msgid "Language code"
 msgstr "语言代码"
 
 #: src/components/SettingsTabs.tsx:56
-#: src/routes/(root)/[handle]/settings/language.tsx:102
+#: src/routes/(root)/[handle]/settings/language.tsx:103
 msgid "Language settings"
 msgstr "语言设置"
 
@@ -871,7 +871,7 @@ msgstr "链接作者："
 msgid "Link expired"
 msgstr "链接已过期"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:546
+#: src/routes/(root)/[handle]/settings/index.tsx:545
 msgid "Link name"
 msgstr "链接名"
 
@@ -879,7 +879,7 @@ msgstr "链接名"
 msgid "List"
 msgstr "列表"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:328
+#: src/routes/(root)/[handle]/drafts/index.tsx:329
 msgid "Load More"
 msgstr "加载更多"
 
@@ -895,7 +895,7 @@ msgstr "加载更多粉丝"
 msgid "Load more following"
 msgstr "加载更多关注"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:873
+#: src/routes/(root)/[handle]/settings/invite.tsx:871
 msgid "Load more invitees"
 msgstr "加载更多受邀者"
 
@@ -935,7 +935,7 @@ msgstr "加载更多粉丝中…"
 msgid "Loading more following…"
 msgstr "正在加载更多关注…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:867
+#: src/routes/(root)/[handle]/settings/invite.tsx:865
 msgid "Loading more invitees…"
 msgstr "正在加载更多受邀者…"
 
@@ -963,7 +963,7 @@ msgstr "加载更多内容中…"
 msgid "Loading quoted post…"
 msgstr "正在加载引用内容…"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:322
+#: src/routes/(root)/[handle]/drafts/index.tsx:323
 msgid "Loading..."
 msgstr "加载中..."
 
@@ -979,7 +979,7 @@ msgstr "查找用户"
 msgid "Looking up user..."
 msgstr "正在查找用户信息…"
 
-#: src/routes/(root)/markdown.tsx:47
+#: src/routes/(root)/markdown.tsx:48
 msgid "Markdown guide"
 msgstr "Markdown 指南"
 
@@ -1025,8 +1025,8 @@ msgstr "用户名太长。不能长于 50 字符。"
 msgid "Native name"
 msgstr "本地名称"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:678
-#: src/routes/(root)/[handle]/settings/invite.tsx:744
+#: src/routes/(root)/[handle]/settings/invite.tsx:676
+#: src/routes/(root)/[handle]/settings/invite.tsx:742
 msgid "Never expires"
 msgstr "永不过期"
 
@@ -1034,8 +1034,8 @@ msgstr "永不过期"
 msgid "Never used"
 msgstr "从未使用过"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:238
-#: src/routes/(root)/[handle]/drafts/new.tsx:94
+#: src/routes/(root)/[handle]/drafts/index.tsx:239
+#: src/routes/(root)/[handle]/drafts/new.tsx:95
 msgid "New Article"
 msgstr "新建文章"
 
@@ -1043,7 +1043,7 @@ msgstr "新建文章"
 msgid "No draft to delete"
 msgstr "没有要删除的草稿"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:248
+#: src/routes/(root)/[handle]/drafts/index.tsx:249
 msgid "No drafts yet. Create your first article!"
 msgstr "还没有草稿。创建您的第一篇文章！"
 
@@ -1057,7 +1057,7 @@ msgstr "没有找到关注的用户"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:263
 #: src/routes/(root)/[handle]/settings/invite.tsx:418
-#: src/routes/(root)/[handle]/settings/invite.tsx:754
+#: src/routes/(root)/[handle]/settings/invite.tsx:752
 msgid "No invitations left"
 msgstr "没有剩余邀请名额"
 
@@ -1090,7 +1090,7 @@ msgstr "未提供用户 URI。"
 msgid "Not found"
 msgstr "未找到"
 
-#: src/routes/(root)/search.tsx:257
+#: src/routes/(root)/search.tsx:258
 msgid "Not found."
 msgstr "未找到。"
 
@@ -1103,7 +1103,7 @@ msgid "Note created successfully"
 msgstr "帖子创建成功"
 
 #. placeholder {0}: "REL_ME_ATTR"
-#: src/routes/(root)/[handle]/settings/index.tsx:509
+#: src/routes/(root)/[handle]/settings/index.tsx:508
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "你可以验证这些链接确实属于你。在链接的页面上使用 {0} 属性链接回你的 Hackers' Pub 个人资料页。"
 
@@ -1118,7 +1118,7 @@ msgstr "帖子"
 msgid "Notifications"
 msgstr "通知"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:705
+#: src/routes/(root)/[handle]/settings/invite.tsx:703
 msgid "Number of invitations"
 msgstr "邀请次数"
 
@@ -1142,34 +1142,34 @@ msgstr "通行密钥验证失败"
 msgid "Passkey name"
 msgstr "通行密钥名称"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:270
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:271
 msgid "Passkey registered successfully"
 msgstr "通行密钥注册成功"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:317
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:318
 msgid "Passkey revoked"
 msgstr "通行密钥已撤销"
 
 #: src/components/SettingsTabs.tsx:70
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:366
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:367
 msgid "Passkeys"
 msgstr "通行密钥"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:55
 #: src/routes/(root)/[handle]/drafts/[id].tsx:56
-#: src/routes/(root)/[handle]/drafts/index.tsx:212
+#: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:213
-#: src/routes/(root)/[handle]/drafts/new.tsx:71
+#: src/routes/(root)/[handle]/drafts/index.tsx:214
 #: src/routes/(root)/[handle]/drafts/new.tsx:72
+#: src/routes/(root)/[handle]/drafts/new.tsx:73
 msgid "Permission Denied"
 msgstr "权限被拒绝"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:210
+#: src/routes/(root)/[handle]/settings/index.tsx:209
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "请选择小于 5 MiB 的图片文件。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:249
-#: src/routes/(root)/[handle]/settings/invite.tsx:548
+#: src/routes/(root)/[handle]/settings/invite.tsx:250
+#: src/routes/(root)/[handle]/settings/invite.tsx:546
 msgid "Please correct the errors and try again."
 msgstr "请修正错误并重试。"
 
@@ -1181,9 +1181,9 @@ msgstr "请输入文章标题。"
 msgid "Please enter your Fediverse handle."
 msgstr "请输入你的联邦宇宙用户名。"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:60
-#: src/routes/(root)/[handle]/drafts/index.tsx:217
-#: src/routes/(root)/[handle]/drafts/new.tsx:76
+#: src/routes/(root)/[handle]/drafts/[id].tsx:61
+#: src/routes/(root)/[handle]/drafts/index.tsx:218
+#: src/routes/(root)/[handle]/drafts/new.tsx:77
 msgid "Please sign in to access this page"
 msgstr "请登录以访问此页面"
 
@@ -1196,7 +1196,7 @@ msgid "Posts"
 msgstr "内容"
 
 #. placeholder {0}: "TAG"
-#: src/routes/(root)/tags/[tag].tsx:81
+#: src/routes/(root)/tags/[tag].tsx:82
 msgid "Posts tagged with {0}"
 msgstr "{0} 内容"
 
@@ -1205,7 +1205,7 @@ msgid "Prefer AI-generated summary"
 msgstr "优先使用 AI 生成的摘要"
 
 #: src/components/SettingsTabs.tsx:49
-#: src/routes/(root)/[handle]/settings/preferences.tsx:174
+#: src/routes/(root)/[handle]/settings/preferences.tsx:175
 #: src/routes/(root)/[handle]/settings/preferences.tsx:183
 msgid "Preferences"
 msgstr "偏好设置"
@@ -1223,7 +1223,7 @@ msgid "Priority"
 msgstr "优先级"
 
 #: src/components/SettingsTabs.tsx:42
-#: src/routes/(root)/[handle]/settings/index.tsx:143
+#: src/routes/(root)/[handle]/settings/index.tsx:144
 #: src/routes/(root)/[handle]/settings/index.tsx:149
 msgid "Profile settings"
 msgstr "个人资料设置"
@@ -1245,7 +1245,7 @@ msgstr "立即发布"
 msgid "Publishing..."
 msgstr "发布中..."
 
-#: src/routes/(root)/search.tsx:248
+#: src/routes/(root)/search.tsx:249
 msgid "Query cannot be empty"
 msgstr "搜索关键词不能为空"
 
@@ -1330,16 +1330,16 @@ msgid "Reply"
 msgstr "回复"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:480
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:531
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:530
 msgid "Revoke"
 msgstr "撤销"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:520
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:519
 msgid "Revoke passkey"
 msgstr "撤销通行密钥"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:521
-#: src/routes/(root)/[handle]/settings/language.tsx:234
+#: src/routes/(root)/[handle]/settings/index.tsx:520
+#: src/routes/(root)/[handle]/settings/language.tsx:233
 #: src/routes/(root)/[handle]/settings/preferences.tsx:236
 msgid "Save"
 msgstr "保存"
@@ -1356,14 +1356,14 @@ msgstr "保存草稿以查看预览"
 msgid "Saving..."
 msgstr "保存中..."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:521
-#: src/routes/(root)/[handle]/settings/language.tsx:234
+#: src/routes/(root)/[handle]/settings/index.tsx:520
+#: src/routes/(root)/[handle]/settings/language.tsx:233
 #: src/routes/(root)/[handle]/settings/preferences.tsx:236
 msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:257
-#: src/routes/(root)/search.tsx:151
+#: src/routes/(root)/search.tsx:152
 msgid "Search"
 msgstr "搜索"
 
@@ -1371,12 +1371,12 @@ msgstr "搜索"
 msgid "Search a language…"
 msgstr "搜索语言…"
 
-#: src/routes/(root)/search.tsx:144
+#: src/routes/(root)/search.tsx:145
 msgid "Search posts…"
 msgstr "搜索内容…"
 
 #. placeholder {0}: "KEYWORD"
-#: src/routes/(root)/search.tsx:183
+#: src/routes/(root)/search.tsx:184
 msgid "Search results for {0}"
 msgstr "{0}的搜索结果"
 
@@ -1463,19 +1463,19 @@ msgstr "出现错误，请重试。"
 #: src/components/article-composer/ArticleComposerContext.tsx:370
 #: src/components/article-composer/ArticleComposerContext.tsx:435
 #: src/components/NoteComposer.tsx:270
-#: src/routes/(root)/[handle]/drafts/index.tsx:173
+#: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "成功"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:181
+#: src/routes/(root)/[handle]/settings/language.tsx:180
 msgid "Successfully saved language preferences"
 msgstr "成功保存语言偏好"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:132
+#: src/routes/(root)/[handle]/settings/preferences.tsx:133
 msgid "Successfully saved preferences"
 msgstr "设置已成功保存"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:333
+#: src/routes/(root)/[handle]/settings/index.tsx:332
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
@@ -1524,23 +1524,23 @@ msgstr "以下通行密钥已注册到你的账户。你可以使用它们登录
 msgid "The invitation email could not be sent. Please try again later."
 msgstr "邀请邮件发送失败。请稍后再试。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:259
+#: src/routes/(root)/[handle]/settings/invite.tsx:260
 msgid "The invitation has been sent successfully."
 msgstr "邀请已成功发送。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:605
+#: src/routes/(root)/[handle]/settings/invite.tsx:603
 msgid "The invitation link has been copied to the clipboard."
 msgstr "邀请链接已复制到剪贴板。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:540
+#: src/routes/(root)/[handle]/settings/invite.tsx:538
 msgid "The invitation link has been created successfully."
 msgstr "邀请链接已成功创建。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:584
+#: src/routes/(root)/[handle]/settings/invite.tsx:582
 msgid "The invitation link has been deleted successfully."
 msgstr "邀请链接已成功删除。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:318
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:319
 msgid "The passkey has been successfully revoked."
 msgstr "通行密钥已成功撤销。"
 
@@ -1554,7 +1554,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:589
+#: src/routes/(root)/[handle]/settings/index.tsx:588
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "该链接的 URL，例如 https://github.com/nideyonghuming 。"
 
@@ -1648,11 +1648,11 @@ msgid "Update your profile information, including your avatar, username, display
 msgstr "更新您的个人资料信息，包括头像、用户名、昵称、个人简介和链接。"
 
 #. placeholder {0}: new Date(edge.node.updated).toLocaleDateString()
-#: src/routes/(root)/[handle]/drafts/index.tsx:287
+#: src/routes/(root)/[handle]/drafts/index.tsx:288
 msgid "Updated {0}"
 msgstr "更新于 {0}"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:571
+#: src/routes/(root)/[handle]/settings/index.tsx:570
 msgid "URL"
 msgstr "URL"
 
@@ -1660,7 +1660,7 @@ msgstr "URL"
 msgid "User not found."
 msgstr "未找到用户信息。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:418
+#: src/routes/(root)/[handle]/settings/index.tsx:417
 #: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "用户名"
@@ -1681,7 +1681,7 @@ msgstr "需要用户名"
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "用户名太长。不能长于 15 字符。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:443
+#: src/routes/(root)/[handle]/settings/invite.tsx:437
 msgid "Users you have invited"
 msgstr "您邀请的用户"
 
@@ -1719,7 +1719,7 @@ msgstr "所有人都可以看到，但不会出现在公共时间线中。只有
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "包括未注册用户在内的所有人都可以看到。内容也会出现在公共时间线中。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:552
+#: src/routes/(root)/[handle]/settings/index.tsx:551
 msgid "Website"
 msgstr "网站"
 
@@ -1748,28 +1748,28 @@ msgstr "在此撰写文章。您可以使用 Markdown。在您撰写时，文章
 msgid "You are about to follow {0}."
 msgstr "你即将从你的账户关注{0}。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:434
+#: src/routes/(root)/[handle]/settings/index.tsx:433
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使用。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:600
+#: src/routes/(root)/[handle]/settings/index.tsx:599
 msgid "You can leave this empty to remove the link."
 msgstr "您可以将此处留空以删除链接。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:405
-#: src/routes/(root)/[handle]/settings/invite.tsx:725
+#: src/routes/(root)/[handle]/settings/invite.tsx:723
 msgid "You can leave this field empty."
 msgstr "你可以留空此字段。"
 
-#: src/routes/(root)/[handle]/drafts/new.tsx:75
+#: src/routes/(root)/[handle]/drafts/new.tsx:76
 msgid "You can only create drafts for your own account"
 msgstr "您只能为自己的账户创建草稿"
 
-#: src/routes/(root)/[handle]/drafts/[id].tsx:59
+#: src/routes/(root)/[handle]/drafts/[id].tsx:60
 msgid "You can only edit your own drafts"
 msgstr "您只能编辑自己的草稿"
 
-#: src/routes/(root)/[handle]/drafts/index.tsx:216
+#: src/routes/(root)/[handle]/drafts/index.tsx:217
 msgid "You can only view your own drafts"
 msgstr "您只能查看自己的草稿"
 
@@ -1792,7 +1792,7 @@ msgid "You must be signed in to create a note"
 msgstr "你必须登录才能创建帖子"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:453
-#: src/routes/(root)/[handle]/drafts/index.tsx:191
+#: src/routes/(root)/[handle]/drafts/index.tsx:192
 msgid "You must be signed in to delete a draft"
 msgstr "您必须登录才能删除草稿"
 
@@ -1816,11 +1816,11 @@ msgstr "您在注册时将自动互相关注。"
 msgid "You've been invited to Hackers' Pub"
 msgstr "你被邀请加入 Hackers' Pub"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:358
+#: src/routes/(root)/[handle]/settings/index.tsx:357
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "你的头像将在你的个人资料页面和你的帖文中显示。可以上传大小不超过 5 MiB 的 PNG、JPEG、GIF 或 WebP 图片。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:478
+#: src/routes/(root)/[handle]/settings/index.tsx:477
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。"
 
@@ -1836,28 +1836,28 @@ msgstr "你的电子邮件地址将用于登录。"
 msgid "Your friend will see this message in the invitation email."
 msgstr "你的朋友将在邀请邮件中看到此信息。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:464
+#: src/routes/(root)/[handle]/settings/index.tsx:463
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
 
-#: src/routes/(root)/[handle]/settings/passkeys.tsx:272
+#: src/routes/(root)/[handle]/settings/passkeys.tsx:273
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "您的通行密钥已注册，现在可以用于身份验证。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:133
+#: src/routes/(root)/[handle]/settings/preferences.tsx:134
 msgid "Your preferences have been updated successfully."
 msgstr "您的设置已成功更新。"
 
-#: src/routes/(root)/[handle]/settings/language.tsx:182
+#: src/routes/(root)/[handle]/settings/language.tsx:181
 msgid "Your preferred languages have been updated."
 msgstr "您的偏好语言已更新。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:334
+#: src/routes/(root)/[handle]/settings/index.tsx:333
 msgid "Your profile settings have been updated successfully."
 msgstr "个人资料设置已成功更新。"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:431
+#: src/routes/(root)/[handle]/settings/index.tsx:430
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的用户名将被用来创建你的个人资料 URL 和你的 Fediverse 用户名（handle）。"
