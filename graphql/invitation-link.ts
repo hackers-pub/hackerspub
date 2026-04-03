@@ -221,15 +221,17 @@ builder.mutationField("deleteInvitationLink", (t) =>
         throw new InvitationLinkNotFoundError();
       }
       await ctx.db.transaction(async (tx) => {
-        await tx.delete(invitationLinkTable)
+        const deleted = await tx.delete(invitationLinkTable)
           .where(and(
             eq(invitationLinkTable.inviterId, ctx.account!.id),
             eq(invitationLinkTable.id, args.id),
-          ));
+          ))
+          .returning();
+        if (deleted.length < 1) return;
         await tx.update(accountTable)
           .set({
             leftInvitations:
-              sql`${accountTable.leftInvitations} + ${link.invitationsLeft}`,
+              sql`${accountTable.leftInvitations} + ${deleted[0].invitationsLeft}`,
           })
           .where(eq(accountTable.id, ctx.account!.id));
       });
