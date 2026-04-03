@@ -189,6 +189,10 @@ export const Account = builder.drizzleNode("accountTable", {
 builder.drizzleObjectField(Account, "invitationLinks", (t) =>
   t.field({
     type: [InvitationLink],
+    authScopes: (parent) => ({
+      moderator: true,
+      selfAccount: parent.id,
+    }),
     select: {
       columns: { id: true },
       with: {
@@ -197,13 +201,7 @@ builder.drizzleObjectField(Account, "invitationLinks", (t) =>
         },
       },
     },
-    resolve(account, _, ctx) {
-      if (
-        ctx.account?.id !== account.id &&
-        !ctx.account?.moderator
-      ) {
-        return [];
-      }
+    resolve(account) {
       return account.invitationLinks;
     },
   }));
