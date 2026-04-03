@@ -566,6 +566,10 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
     deleteLink({
       variables: { id },
       updater(store) {
+        const result = store.getRootField("deleteInvitationLink");
+        if (result == null) return;
+        const typename = result.getValue("__typename");
+        if (typename !== "InvitationLinkPayload") return;
         const account = store.get(props.accountId);
         if (account == null) return;
         const existingLinks = account.getLinkedRecords("invitationLinks") ?? [];
@@ -575,12 +579,23 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
         );
         store.delete(relayId);
       },
-      onCompleted() {
+      onCompleted(data) {
         setDeletingId(null);
-        showToast({
-          title: t`Invitation link deleted`,
-          description: t`The invitation link has been deleted successfully.`,
-        });
+        if (
+          data.deleteInvitationLink.__typename === "InvitationLinkPayload"
+        ) {
+          showToast({
+            title: t`Invitation link deleted`,
+            description: t`The invitation link has been deleted successfully.`,
+          });
+        } else {
+          showToast({
+            variant: "error",
+            title: t`Failed to delete invitation link`,
+            description:
+              t`The invitation link could not be found or you are not authorized to delete it.`,
+          });
+        }
       },
       onError(error) {
         console.error(error);
