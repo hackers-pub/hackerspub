@@ -248,7 +248,11 @@ const RedeemEmailError = builder.enumType("RedeemEmailError", {
 });
 
 const RedeemVerifyUrlError = builder.enumType("RedeemVerifyUrlError", {
-  values: ["VERIFY_URL_NO_TOKEN", "VERIFY_URL_NO_CODE"] as const,
+  values: [
+    "VERIFY_URL_NO_TOKEN",
+    "VERIFY_URL_NO_CODE",
+    "VERIFY_URL_INVALID_ORIGIN",
+  ] as const,
 });
 
 interface RedeemSuccess {
@@ -381,16 +385,28 @@ builder.mutationField("redeemInvitationLink", (t) =>
         token: "00000000-0000-0000-0000-000000000000",
         code: "AAAAAA",
       });
-      const b = verifyUrlTemplate.expand({
-        token: "ffffffff-ffff-ffff-ffff-ffffffffffff",
-        code: "AAAAAA",
-      });
-      if (a === b) errors.verifyUrl = "VERIFY_URL_NO_TOKEN";
-      const c = verifyUrlTemplate.expand({
-        token: "00000000-0000-0000-0000-000000000000",
-        code: "BBBBBB",
-      });
-      if (a === c) errors.verifyUrl = "VERIFY_URL_NO_CODE";
+      const canonicalOrigin = ctx.fedCtx.canonicalOrigin.replace(/\/$/, "");
+      try {
+        const expanded = new URL(a);
+        const origin = expanded.origin;
+        if (origin !== canonicalOrigin) {
+          errors.verifyUrl = "VERIFY_URL_INVALID_ORIGIN";
+        }
+      } catch {
+        errors.verifyUrl = "VERIFY_URL_INVALID_ORIGIN";
+      }
+      if (errors.verifyUrl == null) {
+        const b = verifyUrlTemplate.expand({
+          token: "ffffffff-ffff-ffff-ffff-ffffffffffff",
+          code: "AAAAAA",
+        });
+        if (a === b) errors.verifyUrl = "VERIFY_URL_NO_TOKEN";
+        const c = verifyUrlTemplate.expand({
+          token: "00000000-0000-0000-0000-000000000000",
+          code: "BBBBBB",
+        });
+        if (a === c) errors.verifyUrl = "VERIFY_URL_NO_CODE";
+      }
 
       if (
         errors.email != null ||
