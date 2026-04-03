@@ -1179,6 +1179,7 @@ enum RedeemLinkError {
 }
 
 enum RedeemVerifyUrlError {
+  VERIFY_URL_INVALID_ORIGIN
   VERIFY_URL_NO_CODE
   VERIFY_URL_NO_TOKEN
 }
