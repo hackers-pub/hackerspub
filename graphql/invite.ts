@@ -1,21 +1,13 @@
 import { normalizeEmail } from "@hackerspub/models/account";
-import { negotiateLocale } from "@hackerspub/models/i18n";
-import {
-  type Account as AccountTable,
-  accountTable,
-  type Actor,
-} from "@hackerspub/models/schema";
-import { createSignupToken, type SignupToken } from "@hackerspub/models/signup";
+import { accountTable } from "@hackerspub/models/schema";
+import { createSignupToken } from "@hackerspub/models/signup";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
-import { expandGlob } from "@std/fs";
-import { join } from "@std/path";
-import { createMessage, type Message } from "@upyo/core";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { parseTemplate } from "url-template";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
-import { EMAIL_FROM } from "./email.ts";
+import { getEmailMessage } from "./email-helpers.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "invite"]);
 
@@ -220,6 +212,7 @@ builder.mutationField("invite", (t) =>
         to: email,
         token,
         message: args.message ?? undefined,
+        expiration: EXPIRATION,
       });
       const receipt = await ctx.email.send(message);
       if (!receipt.successful) {
@@ -245,124 +238,3 @@ builder.mutationField("invite", (t) =>
       };
     },
   }));
-
-const LOCALES_DIR = join(import.meta.dirname!, "locales");
-
-// Cache for email templates
-let cachedTemplates:
-  | Map<
-    string,
-    { subject: string; emailContent: string; emailContentWithMessage: string }
-  >
-  | null = null;
-let cachedAvailableLocales: Record<string, string> | null = null;
-
-async function loadEmailTemplates(): Promise<void> {
-  if (cachedTemplates && cachedAvailableLocales) return;
-
-  const availableLocales: Record<string, string> = {};
-  const templates = new Map<
-    string,
-    { subject: string; emailContent: string; emailContentWithMessage: string }
-  >();
-
-  const files = expandGlob(join(LOCALES_DIR, "*.json"), {
-    includeDirs: false,
-  });
-
-  for await (const file of files) {
-    if (!file.isFile) continue;
-    const match = file.name.match(/^(.+)\.json$/);
-    if (match == null) continue;
-    const localeName = match[1];
-    availableLocales[localeName] = file.path;
-
-    try {
-      const json = await Deno.readTextFile(file.path);
-      const data = JSON.parse(json);
-      templates.set(localeName, {
-        subject: data.invite.emailSubject,
-        emailContent: data.invite.emailContent,
-        emailContentWithMessage: data.invite.emailContentWithMessage,
-      });
-    } catch (error) {
-      console.warn(
-        `Failed to load email template for locale ${localeName}:`,
-        error,
-      );
-    }
-  }
-
-  cachedTemplates = templates;
-  cachedAvailableLocales = availableLocales;
-}
-
-async function getEmailTemplate(
-  locale: Intl.Locale,
-  message: boolean,
-): Promise<{ subject: string; content: string }> {
-  await loadEmailTemplates();
-
-  const selectedLocale =
-    negotiateLocale(locale, Object.keys(cachedAvailableLocales!)) ??
-      new Intl.Locale("en");
-
-  const template = cachedTemplates!.get(selectedLocale.baseName);
-  if (!template) {
-    throw new Error(
-      `No email template found for locale ${selectedLocale.baseName}`,
-    );
-  }
-
-  return {
-    subject: template.subject,
-    content: message ? template.emailContentWithMessage : template.emailContent,
-  };
-}
-
-async function getEmailMessage(
-  { locale, inviter, to, verifyUrlTemplate, token, message }: {
-    locale: Intl.Locale;
-    inviter: AccountTable & { actor: Actor };
-    to: string;
-    verifyUrlTemplate: string;
-    token: SignupToken;
-    message?: string;
-  },
-): Promise<Message> {
-  const verifyUrl = parseTemplate(verifyUrlTemplate).expand({
-    token: token.token,
-    code: token.code,
-  });
-  const expiration = EXPIRATION.toLocaleString(locale.baseName, {
-    // @ts-ignore: DurationFormatOptions, not DateTimeFormatOptions
-    style: "long",
-  });
-  const template = await getEmailTemplate(locale, message != null);
-  function substitute(template: string): string {
-    return template.replaceAll(
-      /\{\{(verifyUrl|code|expiration|inviter|inviterName|message)\}\}/g,
-      (m) => {
-        return m === "{{verifyUrl}}"
-          ? verifyUrl
-          : m === "{{code}}"
-          ? token.code
-          : m === "{{expiration}}"
-          ? expiration
-          : m === "{{inviter}}"
-          ? `${inviter.name} (${inviter.actor.handle})`
-          : m === "{{inviterName}}"
-          ? inviter.name
-          : (message ?? "");
-      },
-    );
-  }
-  return createMessage({
-    from: EMAIL_FROM,
-    to,
-    subject: substitute(template.subject),
-    content: {
-      text: substitute(template.content),
-    },
-  });
-}

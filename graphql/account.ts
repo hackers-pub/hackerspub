@@ -19,6 +19,7 @@ import { assertNever } from "@std/assert/unstable-never";
 import { and, desc, eq, gt, lt, sql } from "drizzle-orm";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
+import { InvitationLink } from "./invitation-link.ts";
 import { Notification } from "./notification.ts";
 import { ArticleDraft } from "./post.ts";
 import {
@@ -184,6 +185,26 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
   }),
 });
+
+builder.drizzleObjectField(Account, "invitationLinks", (t) =>
+  t.field({
+    type: [InvitationLink],
+    authScopes: (parent) => ({
+      moderator: true,
+      selfAccount: parent.id,
+    }),
+    select: {
+      columns: { id: true },
+      with: {
+        invitationLinks: {
+          orderBy: { created: "desc" },
+        },
+      },
+    },
+    resolve(account) {
+      return account.invitationLinks;
+    },
+  }));
 
 const accountConnectionHelpers = drizzleConnectionHelpers(
   builder,
