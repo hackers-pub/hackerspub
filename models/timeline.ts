@@ -1,4 +1,14 @@
-import { and, eq, isNull, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  exists,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+} from "drizzle-orm";
 import type { Database } from "./db.ts";
 import { getPostVisibilityFilter } from "./post.ts";
 import {
@@ -6,6 +16,7 @@ import {
   type Actor,
   actorTable,
   type Blocking,
+  blockingTable,
   type Following,
   followingTable,
   type Instance,
@@ -255,6 +266,86 @@ export async function getPublicTimeline(
   }: PublicTimelineOptions,
 ): Promise<TimelineEntry[]> {
   const futureTimestampLimit = getFutureTimestampLimit();
+
+  // Step 1: Lightweight ID fetch with filters
+  // This query uses idx_post_visibility_published index for fast filtering
+  const filterConditions = [
+    currentAccount
+      ? or(
+        eq(postTable.actorId, currentAccount.actor.id),
+        inArray(postTable.visibility, ["public", "unlisted"]),
+      )
+      : eq(postTable.visibility, "public"),
+    ...(currentAccount
+      ? [
+        // シェアした人がブロック対象でないか
+        sql`NOT EXISTS (
+            SELECT 1 FROM ${blockingTable}
+            WHERE (blocker_id = ${currentAccount.actor.id} AND blockee_id = ${postTable.actorId})
+              OR (blockee_id = ${currentAccount.actor.id} AND blocker_id = ${postTable.actorId})
+          )`,
+        // シェア元の投稿者もブロック対象でないか
+        sql`NOT EXISTS (
+            SELECT 1 FROM ${postTable} sp
+            JOIN ${blockingTable} ON (
+              (blocker_id = ${currentAccount.actor.id} AND blockee_id = sp.actor_id)
+              OR (blockee_id = ${currentAccount.actor.id} AND blocker_id = sp.actor_id)
+            )
+            WHERE sp.id = ${postTable.sharedPostId}
+          )`,
+      ]
+      : []),
+    isNull(postTable.replyTargetId),
+    ...(languages.size > 0
+      ? [inArray(postTable.language, [...languages])]
+      : currentAccount?.hideForeignLanguages && currentAccount.locales != null
+      ? [inArray(postTable.language, currentAccount.locales)]
+      : []),
+    ...(local
+      ? [
+        or(
+          isNotNull(postTable.noteSourceId),
+          isNotNull(postTable.articleSourceId),
+          and(
+            isNotNull(postTable.sharedPostId),
+            exists(
+              db.select({ one: sql`1` })
+                .from(actorTable)
+                .where(
+                  and(
+                    eq(actorTable.id, postTable.actorId),
+                    isNotNull(actorTable.accountId),
+                  ),
+                ),
+            ),
+          ),
+        ),
+      ]
+      : []),
+    ...(withoutShares ? [isNull(postTable.sharedPostId)] : []),
+    ...(postType != null ? [eq(postTable.type, postType)] : []),
+    sql`${postTable.published} <= ${until ?? futureTimestampLimit}`,
+  ];
+
+  const idResults = await db
+    .select({
+      id: postTable.id,
+      published: postTable.published,
+    })
+    .from(postTable)
+    .where(and(...filterConditions))
+    .orderBy(desc(postTable.published))
+    .limit(window ?? 25);
+
+  // If no posts found, return early
+  if (idResults.length === 0) {
+    return [];
+  }
+
+  const postIds = idResults.map((r) => r.id);
+
+  // Step 2: Hydrate posts with all relationships
+  // Only fetch the exact posts we need with all their relationships
   const posts = await db.query.postTable.findMany({
     with: {
       actor: {
@@ -391,46 +482,27 @@ export async function getPublicTimeline(
       },
     },
     where: {
+      id: { in: postIds },
       AND: [
         currentAccount
-          ? getPostVisibilityFilter(currentAccount.actor)
+          ? {
+            OR: [
+              { actorId: currentAccount.actor.id },
+              { visibility: { in: ["public", "unlisted"] } },
+            ],
+          }
           : { visibility: "public" },
-        {
-          ...(
-            languages.size < 1
-              ? (currentAccount?.hideForeignLanguages &&
-                  currentAccount.locales != null
-                ? { language: { in: currentAccount.locales } }
-                : {})
-              : { language: { in: [...languages] } }
-          ),
-          replyTargetId: { isNull: true },
-          ...(
-            local
-              ? {
-                OR: [
-                  { noteSourceId: { isNotNull: true } },
-                  { articleSourceId: { isNotNull: true } },
-                  {
-                    sharedPostId: { isNotNull: true },
-                    actor: {
-                      accountId: { isNotNull: true },
-                    },
-                  },
-                ],
-              }
-              : undefined
-          ),
-          ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
-          ...(postType == null ? undefined : { type: postType }),
-          published: { lte: until == null ? futureTimestampLimit : until },
-        },
       ],
     },
-    orderBy: { published: "desc" },
-    limit: window,
   });
-  return posts.map((post) => ({
+
+  // Step 3: Sort posts back to original order from Step 1
+  const postMap = new Map(posts.map((p) => [p.id, p]));
+  const orderedPosts = idResults
+    .map((idResult) => postMap.get(idResult.id))
+    .filter((p): p is NonNullable<typeof p> => p != null);
+
+  return orderedPosts.map((post) => ({
     post,
     lastSharer: null,
     sharersCount: 0,
