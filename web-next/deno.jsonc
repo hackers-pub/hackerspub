@@ -4,13 +4,6 @@
     "~/": "./src/",
     "#i18n": "./src/lib/i18n/server.ts"
   },
-  "tasks": {
-    "codegen": "relay-compiler",
-    "dev": "vinxi dev",
-    "build": "vinxi build",
-    "extract": "pnpm dlx @lingui/cli extract",
-    "start": "vinxi start"
-  },
   "lint": {
     "rules": {
       "exclude": [

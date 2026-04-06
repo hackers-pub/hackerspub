@@ -63,10 +63,11 @@ To build the project, you need to have the following tools installed:
  -  [Anthropic] API key (optional; for translating posts)
  -  [Google Generative AI] API key (optional; for summarizing posts)
 
-Any other dependencies can be installed using Deno:
+Any other dependencies can be installed using Deno and pnpm:
 
 ~~~~ sh
 deno install
+pnpm install
 ~~~~
 
 [Mailgun]: https://www.mailgun.com/
@@ -242,7 +243,7 @@ To run web-next, the new web frontend for Hackers' Pub, follow these steps:
     changed.
 
  3. Run the development server with the command
-    `VITE_API_URL=http://localhost:8000/graphql deno task dev`.
+    `VITE_API_URL=http://localhost:8000/graphql pnpm dev`.
     The legacy server must be running at this point, as it also serves as
     the GraphQL API server for web-next.
 

@@ -1,7 +1,7 @@
 // Client-side language detection without @logtape/logtape dependency
 // This is a browser-compatible version of @hackerspub/models/langdet
 
-import { detectAll } from "tinyld.browser";
+import { detectAll } from "tinyld/light";
 
 export interface DetectLanguageOptions {
   text: string;

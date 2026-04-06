@@ -1,3 +1,4 @@
+import process from "node:process";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Database } from "./db.ts";
 import { getPostVisibilityFilter } from "./post.ts";
@@ -21,7 +22,7 @@ import {
 } from "./schema.ts";
 
 export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
-  const envValue = Deno.env.get("FUTURE_TIMESTAMP_TOLERANCE");
+  const envValue = process.env.FUTURE_TIMESTAMP_TOLERANCE;
   if (!envValue) return 300000;
 
   const parsed = parseInt(envValue, 10);

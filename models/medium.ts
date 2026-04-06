@@ -1,6 +1,8 @@
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { type Context, getUserAgent } from "@fedify/fedify";
 import * as vocab from "@fedify/vocab";
-import { join } from "@std/path/join";
 import ffmpeg from "fluent-ffmpeg";
 import type { ContextData } from "./context.ts";
 import metadata from "./deno.json" with { type: "json" };
@@ -74,37 +76,41 @@ export async function persistPostMedium(
   let height: number | null = document.height;
   let thumbnailKey: string | null = null;
   if (mediumType.startsWith("video/")) {
-    const tmp = await Deno.makeTempFile({ prefix: "hackerspub" });
-    const tmpFile = await Deno.open(tmp, { write: true });
-    await response.body.pipeTo(tmpFile.writable);
-    const tmpDir = await Deno.makeTempDir({ prefix: "hackerspub" });
-    if (width == null || height == null) {
-      let metadata: ffmpeg.FfprobeData;
-      try {
-        metadata = await new Promise((resolve, reject) =>
-          ffmpeg(tmp)
-            .ffprobe((err, data) => err ? reject(err) : resolve(data))
-        );
-      } catch {
-        return undefined;
+    const tmpDir = await mkdtemp(join(tmpdir(), "hackerspub-"));
+    const source = join(tmpDir, "source");
+    try {
+      if (response.body == null) return undefined;
+      await writeFile(source, response.body);
+      if (width == null || height == null) {
+        let metadata: ffmpeg.FfprobeData;
+        try {
+          metadata = await new Promise((resolve, reject) =>
+            ffmpeg(source)
+              .ffprobe((err, data) => err ? reject(err) : resolve(data))
+          );
+        } catch {
+          return undefined;
+        }
+        width = metadata.streams[0].width ?? null;
+        height = metadata.streams[0].height ?? null;
       }
-      width = metadata.streams[0].width ?? null;
-      height = metadata.streams[0].height ?? null;
+      await new Promise((resolve) =>
+        ffmpeg(source)
+          .on("end", resolve)
+          .screenshots({
+            timestamps: [0],
+            filename: "screenshot.png",
+            folder: tmpDir,
+          })
+      );
+      const screenshot = join(tmpDir, "screenshot.png");
+      await fedCtx.data.disk.put(
+        thumbnailKey = `videos/${crypto.randomUUID()}.png`,
+        await readFile(screenshot),
+      );
+    } finally {
+      await rm(tmpDir, { recursive: true, force: true });
     }
-    await new Promise((resolve) =>
-      ffmpeg(tmp)
-        .on("end", resolve)
-        .screenshots({
-          timestamps: [0],
-          filename: "screenshot.png",
-          folder: tmpDir,
-        })
-    );
-    const screenshot = join(tmpDir, "screenshot.png");
-    await fedCtx.data.disk.put(
-      thumbnailKey = `videos/${crypto.randomUUID()}.png`,
-      await Deno.readFile(screenshot),
-    );
   }
   const result = await fedCtx.data.db.insert(postMediumTable).values(
     {

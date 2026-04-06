@@ -1,3 +1,4 @@
+import process from "node:process";
 import { getLogger } from "@logtape/logtape";
 import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { ApnsClient, Errors, Host, Notification } from "apns2";
@@ -35,7 +36,7 @@ let apnsClient: ApnsClient | null | undefined;
 let hasLoggedApnsDisabled = false;
 
 function getEnvString(name: string): string | undefined {
-  const value = Deno.env.get(name)?.trim();
+  const value = process.env[name]?.trim();
   return value == null || value === "" ? undefined : value;
 }
 

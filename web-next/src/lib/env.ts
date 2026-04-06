@@ -1,5 +1,7 @@
+import process from "node:process";
+
 function getRequiredEnv(name: string): string {
-  const value = Deno.env.get(name);
+  const value = process.env[name];
   if (value === undefined) {
     throw new Error(`${name} environment variable is not set`);
   }
