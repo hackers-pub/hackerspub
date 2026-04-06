@@ -1,14 +1,16 @@
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
 import {
   findNearestLocale,
   isLocale,
   type Locale,
 } from "@hackerspub/models/i18n";
-import { join } from "@std/path/join";
 import { generateText, type LanguageModel } from "ai";
 
 const PROMPT_LANGUAGES: Locale[] = (
-  await Array.fromAsync(
-    Deno.readDir(join(import.meta.dirname!, "prompts", "summary")),
+  await readdir(
+    join(import.meta.dirname!, "prompts", "summary"),
+    { withFileTypes: true },
   )
 ).map((f) => f.name.replace(/\.md$/, "")).filter(isLocale);
 
@@ -24,7 +26,7 @@ async function getSummaryPrompt(
     "summary",
     `${promptLanguage}.md`,
   );
-  const promptTemplate = await Deno.readTextFile(promptPath);
+  const promptTemplate = await readFile(promptPath, "utf8");
   const displayNames = new Intl.DisplayNames(promptLanguage, {
     type: "language",
   });

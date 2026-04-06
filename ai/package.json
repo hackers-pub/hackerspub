@@ -1,0 +1,15 @@
+{
+  "name": "@hackerspub/ai",
+  "type": "module",
+  "exports": {
+    ".": "./mod.ts",
+    "./*": "./*.ts"
+  },
+  "dependencies": {
+    "@hackerspub/models": "workspace:*",
+    "@vertana/core": "catalog:",
+    "@vertana/context-web": "catalog:",
+    "@vertana/facade": "catalog:",
+    "ai": "catalog:"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@hackerspub/federation",
+  "type": "module",
+  "exports": {
+    ".": "./mod.ts",
+    "./*": "./*.ts"
+  },
+  "dependencies": {
+    "@std/assert": "catalog:",
+    "@std/html": "catalog:",
+    "@fedify/fedify": "catalog:",
+    "@fedify/vocab": "catalog:",
+    "@hackerspub/models": "workspace:*",
+    "@logtape/logtape": "catalog:",
+    "drizzle-orm": "catalog:"
+  }
+}

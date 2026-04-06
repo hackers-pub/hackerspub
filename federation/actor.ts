@@ -1,3 +1,4 @@
+import process from "node:process";
 import { exportJwk, generateCryptoKeyPair, importJwk } from "@fedify/fedify";
 import { Application, Endpoints, Image, Person } from "@fedify/vocab";
 import { getAvatarUrl, renderAccountLinks } from "@hackerspub/models/account";
@@ -6,7 +7,7 @@ import { accountKeyTable, type NewAccountKey } from "@hackerspub/models/schema";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { builder } from "./builder.ts";
 
-const INSTANCE_ACTOR_KEY = Deno.env.get("INSTANCE_ACTOR_KEY");
+const INSTANCE_ACTOR_KEY = process.env.INSTANCE_ACTOR_KEY;
 if (INSTANCE_ACTOR_KEY == null) {
   throw new Error("INSTANCE_ACTOR_KEY is required");
 }

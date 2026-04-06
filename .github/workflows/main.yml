@@ -17,12 +17,12 @@ jobs:
         deno-version: 2.7.1
         cache: true
     - uses: pnpm/action-setup@v4
-      with:
-        package_json_file: web-next/package.json
+    - name: Install dependencies
+      run: pnpm install
     - name: Run codegen
       run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
     - name: Build web-next
-      run: deno task build
+      run: pnpm build
       working-directory: web-next
     - name: Run tests
       if: always()
@@ -56,7 +56,7 @@ jobs:
         fi
     - name: Extract web-next translations
       if: always()
-      run: cd web-next && deno task extract
+      run: cd web-next && pnpm extract
     - name: Check for uncommitted changes
       if: always()
       run: |
