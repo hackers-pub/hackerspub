@@ -93,6 +93,7 @@
     "feed": "npm:feed@^4.2.2",
     "fluent-ffmpeg": "npm:fluent-ffmpeg@^2.1.3",
     "flydrive": "npm:flydrive@^1.3.0",
+    "gettext-parser": "npm:gettext-parser@9.0.2",
     "graphql": "npm:graphql@canary-pr-4364",
     "graphql-scalars": "npm:graphql-scalars@^1.24.2",
     "graphql-toe": "npm:graphql-toe@^1.0.0-rc.0",

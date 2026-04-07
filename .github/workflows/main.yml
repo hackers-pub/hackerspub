@@ -64,23 +64,30 @@ jobs:
     - name: Check for uncommitted changes
       if: always()
       run: |
-        if ! git diff --exit-code --quiet; then
-          echo "::error::Generated files have uncommitted changes. Please run the generators locally and commit the changes."
+        has_changes=false
 
-          # Get list of changed files and create annotations
-          git diff --name-only | while read -r file; do
-            echo "::error file=$file::Generated file has uncommitted changes - please run generators locally and commit"
-
-            # Show which lines were changed
-            git diff --unified=0 "$file" | grep '^@@' | while read -r hunk; do
-              # Extract line numbers from hunk header like @@ -1,3 +1,4 @@
-              line_info=$(echo "$hunk" | sed 's/.*+\([0-9]*\).*/\1/')
-              if [ -n "$line_info" ]; then
-                echo "::error file=$file,line=$line_info::Generated content differs from committed version"
-              fi
-            done
+        # Non-.po files: byte-for-byte git diff (covers schema.graphql etc.)
+        while IFS= read -r file; do
+          echo "::error file=$file::Generated file has uncommitted changes - please run generators locally and commit"
+          git diff --unified=0 "$file" | grep '^@@' | while read -r hunk; do
+            line_info=$(echo "$hunk" | sed 's/.*+\([0-9]*\).*/\1/')
+            [ -n "$line_info" ] && echo "::error file=$file,line=$line_info::Generated content differs from committed version"
           done
+          has_changes=true
+        done < <(git diff --name-only -- ':!*.po')
 
+        # .po files: semantic comparison via proper parser
+        # Ignores volatile-but-non-semantic changes (#: location comments,
+        # #. placeholder notes, POT-Creation-Date) caused by line number shifts.
+        mapfile -t changed_po < <(git diff --name-only -- '*.po')
+        if [ "${#changed_po[@]}" -gt 0 ]; then
+          if ! deno run --allow-read --allow-run=git scripts/check-po-changes.ts "${changed_po[@]}"; then
+            has_changes=true
+          fi
+        fi
+
+        if [ "$has_changes" = "true" ]; then
+          echo "::error::Generated files have uncommitted changes. Please run the generators locally and commit the changes."
           exit 1
         fi
 
