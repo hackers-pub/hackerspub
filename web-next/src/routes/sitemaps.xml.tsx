@@ -1,45 +1,32 @@
 import process from "node:process";
 import type { APIEvent } from "@solidjs/start/server";
-
-const SITEMAP_QUERY = `
-  query SitemapQuery {
-    accounts {
-      username
-      updated
-      actor {
-        latestPostUpdated
-      }
-    }
-  }
-`;
+import { fetchQuery, graphql } from "relay-runtime";
+import { createEnvironment } from "../RelayEnvironment.tsx";
+import type { sitemapsQuery } from "./__generated__/sitemapsQuery.graphql.ts";
 
 export async function GET(event: APIEvent) {
   const origin = process.env.ORIGIN ?? new URL(event.request.url).origin;
-  const response = await fetch(import.meta.env.VITE_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-    },
-    body: JSON.stringify({ query: SITEMAP_QUERY }),
-  });
+  const response = await fetchQuery<sitemapsQuery>(
+    createEnvironment(),
+    graphql`
+      query sitemapsQuery {
+        accounts {
+          username
+          updated
+          actor {
+            latestPostUpdated
+          }
+        }
+      }
+    `,
+    {},
+  ).toPromise();
 
-  if (!response.ok) {
-    return new Response("Internal Server Error", { status: 500 });
-  }
-
-  // deno-lint-ignore no-explicit-any
-  const { data, errors } = await response.json() as { data: any; errors: any };
-
-  if (errors || !data?.accounts) {
+  if (!response?.accounts) {
     return new Response("Failed to fetch sitemap", { status: 500 });
   }
 
-  const accounts: {
-    username: string;
-    updated: string;
-    actor: { latestPostUpdated: string | null };
-  }[] = data.accounts;
+  const accounts = response.accounts;
 
   let xml = `<?xml version="1.0" encoding="utf-8"?>\n`;
   xml += `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
