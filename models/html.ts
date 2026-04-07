@@ -2,9 +2,12 @@ import { invert } from "@std/collections/invert";
 import { escape, unescape } from "@std/html/entities";
 import { load } from "cheerio";
 import * as cssfilter from "cssfilter";
-import { FilterXSS, whiteList } from "xss";
+import xss from "xss";
+import type * as xssType from "xss";
 import { renderCustomEmojis } from "./emoji.ts";
 import type { Actor } from "./schema.ts";
+
+const { FilterXSS, whiteList } = xss as unknown as typeof xssType;
 
 const htmlXss = new FilterXSS({
   allowList: {

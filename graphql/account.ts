@@ -413,6 +413,12 @@ builder.queryFields((t) => ({
       );
     },
   }),
+  accounts: t.drizzleField({
+    type: [Account],
+    resolve(query, _, __, ctx) {
+      return ctx.db.query.accountTable.findMany(query());
+    },
+  }),
 }));
 
 interface InvitationTreeNode {

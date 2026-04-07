@@ -1,5 +1,5 @@
+import { resolve } from "node:path";
 import process from "node:process";
-
 import { lingui } from "@lingui/vite-plugin";
 import { solidStart } from "@solidjs/start/config";
 import { nitroV2Plugin } from "@solidjs/vite-plugin-nitro-2";
@@ -9,6 +9,12 @@ import Icons from "unplugin-icons/vite";
 import { cjsInterop } from "vite-plugin-cjs-interop";
 import { defineConfig } from "vite";
 import relay from "vite-plugin-relay-lite";
+
+try {
+  process.loadEnvFile(resolve(process.cwd(), "../.env"));
+} catch (e) {
+  console.warn("No .env file found.");
+}
 
 export default defineConfig(() => ({
   plugins: [

@@ -150,6 +150,22 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     updated: t.expose("updated", { type: "DateTime" }),
     published: t.expose("published", { type: "DateTime", nullable: true }),
+    latestPostUpdated: t.field({
+      type: "DateTime",
+      nullable: true,
+      select: (_args, _ctx, _nestedSelection) => ({
+        with: {
+          posts: {
+            columns: { updated: true },
+            orderBy: { updated: "desc" },
+            limit: 1,
+          },
+        },
+      }),
+      resolve(actor) {
+        return actor.posts?.[0]?.updated ?? null;
+      },
+    }),
     created: t.expose("created", { type: "DateTime" }),
     account: t.relation("account", { nullable: true }),
     instance: t.relation("instance", { type: Instance, nullable: true }),

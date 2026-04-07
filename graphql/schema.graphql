@@ -141,6 +141,7 @@ type Actor implements Node {
   iri: URL!
   isFollowedBy(followerId: ID): Boolean!
   isViewer: Boolean!
+  latestPostUpdated: DateTime
   local: Boolean!
   name: HTML
   noteByUuid(uuid: UUID!): Note
@@ -971,6 +972,7 @@ union PublishArticleDraftResult = InvalidInputError | NotAuthenticatedError | Pu
 
 type Query {
   accountByUsername(username: String!): Account
+  accounts: [Account!]!
   actorByHandle(
     """Whether to allow local handles (e.g. @username)."""
     allowLocalHandle: Boolean = false
