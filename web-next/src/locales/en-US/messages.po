@@ -172,7 +172,7 @@ msgstr "A name for the link that will be displayed on your profile, e.g., GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
-#: src/components/AppSidebar.tsx:264
+#: src/components/AppSidebar.tsx:268
 msgid "Account"
 msgstr "Account"
 
@@ -250,7 +250,7 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:195
+#: src/components/AppSidebar.tsx:199
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -311,13 +311,13 @@ msgstr "Choose your preferred language for the verification email."
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:532
+#: src/components/AppSidebar.tsx:536
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "Code of conduct"
 
-#: src/components/AppSidebar.tsx:422
+#: src/components/AppSidebar.tsx:426
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -347,7 +347,7 @@ msgstr "Could not copy the link to the clipboard."
 msgid "Could not find a post at this URL"
 msgstr "Could not find a post at this URL"
 
-#: src/components/AppSidebar.tsx:467
+#: src/components/AppSidebar.tsx:471
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create Article"
 msgstr "Create Article"
@@ -356,7 +356,7 @@ msgstr "Create Article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:444
+#: src/components/AppSidebar.tsx:448
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:26
 #: src/components/NoteComposer.tsx:449
@@ -644,7 +644,7 @@ msgid "Failed to share post"
 msgstr "Failed to share post"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:106
+#: src/components/AppSidebar.tsx:110
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
@@ -660,7 +660,7 @@ msgstr "Failed to unshare post"
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
 
-#: src/components/AppSidebar.tsx:238
+#: src/components/AppSidebar.tsx:242
 msgid "Fediverse"
 msgstr "Fediverse"
 
@@ -668,7 +668,7 @@ msgstr "Fediverse"
 msgid "Fediverse handle"
 msgstr "Fediverse handle"
 
-#: src/components/AppSidebar.tsx:157
+#: src/components/AppSidebar.tsx:161
 msgid "Feed"
 msgstr "Feed"
 
@@ -702,7 +702,7 @@ msgstr "Following you"
 msgid "Formatting"
 msgstr "Formatting"
 
-#: src/components/AppSidebar.tsx:547
+#: src/components/AppSidebar.tsx:551
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -722,8 +722,8 @@ msgstr "Go to Drafts"
 msgid "Go to My Drafts"
 msgstr "Go to My Drafts"
 
-#: src/components/AppSidebar.tsx:125
-#: src/components/AppSidebar.tsx:216
+#: src/components/AppSidebar.tsx:129
+#: src/components/AppSidebar.tsx:220
 #: src/routes/(root).tsx:82
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
@@ -821,7 +821,7 @@ msgstr "Invitation links"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:355
+#: src/components/AppSidebar.tsx:359
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:303
 msgid "Invite"
@@ -1121,7 +1121,7 @@ msgstr "Notes"
 #~ msgid "Nothing to preview"
 #~ msgstr "Nothing to preview"
 
-#: src/components/AppSidebar.tsx:317
+#: src/components/AppSidebar.tsx:321
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1229,7 +1229,7 @@ msgstr "Preferred languages"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:535
+#: src/components/AppSidebar.tsx:539
 #: src/routes/(root)/privacy.tsx:48
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -1293,7 +1293,7 @@ msgstr "Read full article"
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
-#: src/components/AppSidebar.tsx:480
+#: src/components/AppSidebar.tsx:484
 msgid "Recent Drafts"
 msgstr "Recent Drafts"
 
@@ -1374,7 +1374,7 @@ msgstr "Saving..."
 msgid "Saving…"
 msgstr "Saving…"
 
-#: src/components/AppSidebar.tsx:257
+#: src/components/AppSidebar.tsx:261
 #: src/routes/(root)/search.tsx:152
 msgid "Search"
 msgstr "Search"
@@ -1409,7 +1409,7 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:386
+#: src/components/AppSidebar.tsx:390
 msgid "Settings"
 msgstr "Settings"
 
@@ -1425,7 +1425,7 @@ msgstr "Shares"
 msgid "Show Preview"
 msgstr "Show Preview"
 
-#: src/components/AppSidebar.tsx:290
+#: src/components/AppSidebar.tsx:294
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "Sign in"
@@ -1434,7 +1434,7 @@ msgstr "Sign in"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:408
+#: src/components/AppSidebar.tsx:412
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -1566,7 +1566,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:539
+#: src/components/AppSidebar.tsx:543
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -1611,7 +1611,7 @@ msgstr "This service does not support remote follow."
 msgid "This will be part of the article URL"
 msgstr "This will be part of the article URL"
 
-#: src/components/AppSidebar.tsx:137
+#: src/components/AppSidebar.tsx:141
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -1711,7 +1711,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:522
+#: src/components/AppSidebar.tsx:526
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
@@ -1751,7 +1751,7 @@ msgstr "What is Hackers' Pub?"
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
-#: src/components/AppSidebar.tsx:176
+#: src/components/AppSidebar.tsx:180
 msgid "Without shares"
 msgstr "Without shares"
 

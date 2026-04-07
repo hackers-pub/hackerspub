@@ -1,7 +1,7 @@
 import type { FetchFunction, IEnvironment } from "relay-runtime";
+import { getCookie } from "@solidjs/start/http";
 import { Environment, Network, RecordSource, Store } from "relay-runtime";
 import { getRequestEvent } from "solid-js/web";
-import { getCookie } from "vinxi/http";
 
 const fetchFn: FetchFunction = async (
   params,

@@ -7,6 +7,7 @@ import {
 import type { Uuid } from "@hackerspub/models/uuid";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { type RouteSectionProps, useNavigate } from "@solidjs/router";
+import { getRequestProtocol, setCookie } from "@solidjs/start/http";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEffect, createSignal, Show } from "solid-js";
 import { getRequestEvent } from "solid-js/web";
@@ -16,7 +17,6 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { getRequestProtocol, setCookie } from "vinxi/http";
 import { DocumentView } from "~/components/DocumentView.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {

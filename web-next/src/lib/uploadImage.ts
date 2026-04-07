@@ -1,5 +1,5 @@
+import { getCookie } from "@solidjs/start/http";
 import { getRequestEvent } from "solid-js/web";
-import { getCookie } from "vinxi/http";
 
 export interface ImageUploadResult {
   url: string;

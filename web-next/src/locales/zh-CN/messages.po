@@ -172,7 +172,7 @@ msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
 
-#: src/components/AppSidebar.tsx:264
+#: src/components/AppSidebar.tsx:268
 msgid "Account"
 msgstr "账户"
 
@@ -250,7 +250,7 @@ msgstr "文章网址别名"
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:195
+#: src/components/AppSidebar.tsx:199
 msgid "Articles only"
 msgstr "仅文章"
 
@@ -311,13 +311,13 @@ msgstr "请选择验证邮件的语言。"
 msgid "Code"
 msgstr "代码"
 
-#: src/components/AppSidebar.tsx:532
+#: src/components/AppSidebar.tsx:536
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
 msgstr "行为准则"
 
-#: src/components/AppSidebar.tsx:422
+#: src/components/AppSidebar.tsx:426
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "写作"
@@ -347,7 +347,7 @@ msgstr "无法将链接复制到剪贴板。"
 msgid "Could not find a post at this URL"
 msgstr "无法在此URL找到内容"
 
-#: src/components/AppSidebar.tsx:467
+#: src/components/AppSidebar.tsx:471
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create Article"
 msgstr "创建文章"
@@ -356,7 +356,7 @@ msgstr "创建文章"
 msgid "Create invitation link"
 msgstr "创建邀请链接"
 
-#: src/components/AppSidebar.tsx:444
+#: src/components/AppSidebar.tsx:448
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:26
 #: src/components/NoteComposer.tsx:449
@@ -640,7 +640,7 @@ msgid "Failed to share post"
 msgstr "转帖失败"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:106
+#: src/components/AppSidebar.tsx:110
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
@@ -656,7 +656,7 @@ msgstr "取消转帖失败"
 msgid "Failed to upload image"
 msgstr "图片上传失败"
 
-#: src/components/AppSidebar.tsx:238
+#: src/components/AppSidebar.tsx:242
 msgid "Fediverse"
 msgstr "联邦宇宙"
 
@@ -664,7 +664,7 @@ msgstr "联邦宇宙"
 msgid "Fediverse handle"
 msgstr "联邦宇宙用户名"
 
-#: src/components/AppSidebar.tsx:157
+#: src/components/AppSidebar.tsx:161
 msgid "Feed"
 msgstr "订阅流"
 
@@ -698,7 +698,7 @@ msgstr "关注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/AppSidebar.tsx:547
+#: src/components/AppSidebar.tsx:551
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
@@ -718,8 +718,8 @@ msgstr "前往草稿"
 msgid "Go to My Drafts"
 msgstr "前往我的草稿"
 
-#: src/components/AppSidebar.tsx:125
-#: src/components/AppSidebar.tsx:216
+#: src/components/AppSidebar.tsx:129
+#: src/components/AppSidebar.tsx:220
 #: src/routes/(root).tsx:82
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
@@ -817,7 +817,7 @@ msgstr "邀请链接"
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
-#: src/components/AppSidebar.tsx:355
+#: src/components/AppSidebar.tsx:359
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:303
 msgid "Invite"
@@ -1116,7 +1116,7 @@ msgstr "帖子"
 #~ msgid "Nothing to preview"
 #~ msgstr "没有可预览的内容"
 
-#: src/components/AppSidebar.tsx:317
+#: src/components/AppSidebar.tsx:321
 msgid "Notifications"
 msgstr "通知"
 
@@ -1224,7 +1224,7 @@ msgstr "偏好语言"
 msgid "Priority"
 msgstr "优先级"
 
-#: src/components/AppSidebar.tsx:535
+#: src/components/AppSidebar.tsx:539
 #: src/routes/(root)/privacy.tsx:48
 msgid "Privacy policy"
 msgstr "隐私政策"
@@ -1288,7 +1288,7 @@ msgstr "阅读完整文章"
 msgid "Read the full Code of conduct"
 msgstr "阅读完整的行为准则"
 
-#: src/components/AppSidebar.tsx:480
+#: src/components/AppSidebar.tsx:484
 msgid "Recent Drafts"
 msgstr "最近的草稿"
 
@@ -1369,7 +1369,7 @@ msgstr "保存中..."
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/components/AppSidebar.tsx:257
+#: src/components/AppSidebar.tsx:261
 #: src/routes/(root)/search.tsx:152
 msgid "Search"
 msgstr "搜索"
@@ -1404,7 +1404,7 @@ msgstr "发送中…"
 msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
-#: src/components/AppSidebar.tsx:386
+#: src/components/AppSidebar.tsx:390
 msgid "Settings"
 msgstr "设置"
 
@@ -1420,7 +1420,7 @@ msgstr "转帖"
 msgid "Show Preview"
 msgstr "显示预览"
 
-#: src/components/AppSidebar.tsx:290
+#: src/components/AppSidebar.tsx:294
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登录"
@@ -1429,7 +1429,7 @@ msgstr "登录"
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
-#: src/components/AppSidebar.tsx:408
+#: src/components/AppSidebar.tsx:412
 msgid "Sign out"
 msgstr "登出"
 
@@ -1561,7 +1561,7 @@ msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:539
+#: src/components/AppSidebar.tsx:543
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {1} 上以 {0} 许可获取该网站的源代码。"
 
@@ -1606,7 +1606,7 @@ msgstr "该服务不支持远程关注。"
 msgid "This will be part of the article URL"
 msgstr "这将成为文章 URL 的一部分"
 
-#: src/components/AppSidebar.tsx:137
+#: src/components/AppSidebar.tsx:141
 msgid "Timeline"
 msgstr "时间线"
 
@@ -1706,7 +1706,7 @@ msgstr "已于{1}验证此链接归{0}所有"
 msgid "Verifying your invitation…"
 msgstr "正在验证您的邀请…"
 
-#: src/components/AppSidebar.tsx:522
+#: src/components/AppSidebar.tsx:526
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
@@ -1746,7 +1746,7 @@ msgstr "什么是 Hackers' Pub？"
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
-#: src/components/AppSidebar.tsx:176
+#: src/components/AppSidebar.tsx:180
 msgid "Without shares"
 msgstr "不含转帖"
 

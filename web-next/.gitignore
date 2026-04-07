@@ -1,6 +1,5 @@
-# Vinxi outputs
+# SolidStart outputs
 dist
 .output
-.vinxi
-app.config.timestamp_*.js
+.nitro
 __generated__/
