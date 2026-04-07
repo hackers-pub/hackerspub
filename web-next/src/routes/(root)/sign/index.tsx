@@ -4,11 +4,11 @@ import {
   type PublicKeyCredentialRequestOptionsJSON,
   startAuthentication,
 } from "@simplewebauthn/browser";
+import { getRequestProtocol, setCookie } from "@solidjs/start/http";
 import { graphql } from "relay-runtime";
 import { createSignal, onMount, Show } from "solid-js";
 import { getRequestEvent } from "solid-js/web";
 import { createMutation } from "solid-relay";
-import { getRequestProtocol, setCookie } from "vinxi/http";
 import { Button } from "~/components/ui/button.tsx";
 import { Grid } from "~/components/ui/grid.tsx";
 import {

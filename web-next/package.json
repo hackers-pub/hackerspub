@@ -3,10 +3,10 @@
   "type": "module",
   "scripts": {
     "codegen": "relay-compiler",
-    "dev": "vinxi dev",
-    "build": "vinxi build",
+    "dev": "vite dev",
+    "build": "vite build",
     "extract": "lingui extract",
-    "start": "vinxi start"
+    "start": "vite start"
   },
   "imports": {
     "#i18n": {
@@ -28,7 +28,8 @@
     "@simplewebauthn/browser": "catalog:",
     "@solidjs/meta": "^0.29.4",
     "@solidjs/router": "^0.15.4",
-    "@solidjs/start": "^1.2.0",
+    "@solidjs/start": "2.0.0-alpha.2",
+    "@solidjs/vite-plugin-nitro-2": "^0.1.0",
     "@soorria/solid-dropzone": "^1.0.1",
     "@tailwindcss/typography": "^0.5.16",
     "class-variance-authority": "^0.7.1",
@@ -45,7 +46,7 @@
     "tailwindcss": "^4.1.11",
     "tinyld": "catalog:",
     "tw-animate-css": "^1.3.5",
-    "vinxi": "^0.5.8"
+    "vite": "^7.3.2"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.80",

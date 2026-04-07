@@ -17,6 +17,10 @@ jobs:
         deno-version: 2.7.1
         cache: true
     - uses: pnpm/action-setup@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: pnpm
     - name: Install dependencies
       run: pnpm install
     - name: Run codegen

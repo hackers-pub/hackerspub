@@ -1,9 +1,9 @@
 import { EXPIRATION } from "@hackerspub/models/session";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { redirect } from "@solidjs/router";
+import { getQuery, getRequestProtocol, setCookie } from "@solidjs/start/http";
 import type { APIEvent } from "@solidjs/start/server";
 import { commitMutation, graphql } from "relay-runtime";
-import { getQuery, getRequestProtocol, setCookie } from "vinxi/http";
 import { createEnvironment } from "~/RelayEnvironment.tsx";
 import type {
   TokenCompleteMutation,

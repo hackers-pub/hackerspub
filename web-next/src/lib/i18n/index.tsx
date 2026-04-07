@@ -3,10 +3,10 @@ import { negotiateLocale } from "@hackerspub/models/i18n";
 import { I18nProvider as KobalteI18nProvider } from "@kobalte/core/i18n";
 import { type I18n as LinguiI18n, setupI18n } from "@lingui/core";
 import { createAsync, query } from "@solidjs/router";
+import { getQuery, getRequestHeader } from "@solidjs/start/http";
 import { parseAcceptLanguage } from "intl-parse-accept-language";
 import { graphql, readInlineData } from "relay-runtime";
 import { createContext, type ParentProps, Show, useContext } from "solid-js";
-import { getQuery, getRequestHeader } from "vinxi/http";
 import linguiConfig from "../../../lingui.config.ts";
 import type { i18nProviderLoadI18n_query$key } from "./__generated__/i18nProviderLoadI18n_query.graphql.ts";
 

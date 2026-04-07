@@ -172,7 +172,7 @@
     "node_modules/",
     "web-next/node_modules/",
     "web-next/.output/",
-    "web-next/.vinxi/",
+    "web-next/.nitro/",
     "patches/"
   ],
   "fmt": {

@@ -18,7 +18,7 @@
     "jsx": "react-jsx",
     "jsxImportSource": "solid-js",
     "types": [
-      "vinxi/types/client",
+      "@solidjs/start/env",
       "unplugin-icons/types/solid"
     ]
   }
