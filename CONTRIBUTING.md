@@ -57,6 +57,7 @@ Prerequisites
 To build the project, you need to have the following tools installed:
 
  -  [Deno] 2.3 or higher
+ -  [Node.js] 24 or higher (for *web-next/*)
  -  [PostgreSQL] 17 or higher
  -  [ffmpeg] 5.0 or higher
  -  [Mailgun] account (optional; for sending emails)
@@ -70,6 +71,7 @@ deno install
 pnpm install
 ~~~~
 
+[Node.js]: https://nodejs.org/
 [Mailgun]: https://www.mailgun.com/
 [Anthropic]: https://console.anthropic.com/
 [Google Generative AI]: https://aistudio.google.com/apikey
@@ -239,8 +241,11 @@ To run web-next, the new web frontend for Hackers' Pub, follow these steps:
 
  1. Navigate to the *web-next/* directory.
 
- 2. Install [watchman]. This is to run `relay-compiler` whenever files are
-    changed.
+ 2. Optionally install [watchman].  If watchman is available, the Relay
+    compiler runs automatically as part of the Vite dev server via
+    [vite-plugin-relay-lite].  If watchman is not installed, set the
+    `NO_WATCHMAN=1` environment variable when running the dev server and
+    run `pnpm codegen` manually whenever GraphQL files change.
 
  3. Run the development server with the command
     `VITE_API_URL=http://localhost:8000/graphql pnpm dev`.
@@ -250,6 +255,7 @@ To run web-next, the new web frontend for Hackers' Pub, follow these steps:
  4. Access http://localhost:3000/ to see the new look of Hackers' Pub.
 
 [watchman]: https://facebook.github.io/watchman/docs/install
+[vite-plugin-relay-lite]: https://github.com/XiNiHa/vite-plugin-relay-lite
 
 
 Setting up Visual Studio Code

@@ -6,8 +6,8 @@ This file provides guidance to LLM-powered agents when working with code in this
 
 This project is currently in a transitional phase, migrating from an existing Fresh + Preact stack to a new SolidStart + Solid + GraphQL + Relay stack:
 
-- **Legacy Stack (web/)**: Fresh framework with Preact, JSX for templating, direct database queries
-- **New Stack (web-next/)**: SolidStart with Solid.js, GraphQL with Relay, Lingui for i18n
+- **Legacy Stack (web/)**: Fresh framework with Preact, JSX for templating, direct database queries; runs on Deno
+- **New Stack (web-next/)**: SolidStart v2 with Solid.js, GraphQL with Relay, Lingui for i18n; runs on Node.js (managed via pnpm workspaces)
 
 ### Working with Both Stacks
 
@@ -31,6 +31,7 @@ This project is currently in a transitional phase, migrating from an existing Fr
 
 ## Build/Lint/Test Commands
 
+### Legacy stack (web/) and backend — Deno
 - Build: `deno task build`
 - Lint/Format Check: `deno task check`
 - Run Dev Server: `deno task dev`
@@ -38,6 +39,12 @@ This project is currently in a transitional phase, migrating from an existing Fr
 - Database Migration: `deno task migrate`
 - Creating New Migration: `deno task migrate:generate`
 - Pre-commit Hook: `deno task hooks:pre-commit`
+
+### New stack (web-next/) — Node.js / pnpm
+- Dev Server: `VITE_API_URL=http://localhost:8000/graphql pnpm dev` (run from `web-next/`)
+- Build: `pnpm build` (run from `web-next/`)
+- Relay Codegen: `pnpm codegen` (run from `web-next/`; done automatically via Vite when watchman is installed)
+- Extract Translations: `pnpm extract` (run from `web-next/`)
 
 ## Code Style Guidelines
 

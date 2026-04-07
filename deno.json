@@ -173,6 +173,7 @@
     "web-next/node_modules/",
     "web-next/.output/",
     "web-next/.nitro/",
+    "web-next/vite.config.ts",
     "patches/"
   ],
   "fmt": {
