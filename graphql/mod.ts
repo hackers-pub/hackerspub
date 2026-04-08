@@ -15,6 +15,7 @@ import "./passkey.ts";
 import "./poll.ts";
 import "./post.ts";
 import "./reactable.ts";
+import "./report.ts";
 import "./search.ts";
 import "./signup.ts";
 import "./timeline.ts";
