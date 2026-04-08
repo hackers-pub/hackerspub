@@ -383,10 +383,21 @@ async function getEmailMessage({ locale, to, verifyUrlTemplate, token }: {
     content: {
       text: textContent,
       html: (() => {
+        const parsed = URL.canParse(verifyUrl) ? new URL(verifyUrl) : null;
+        if (
+          parsed == null ||
+          !["https:", "http:", "hackerspub:"].includes(parsed.protocol)
+        ) {
+          throw new Error(`Unsupported verify URL scheme: ${verifyUrl}`);
+        }
+        const safeVerifyUrl = parsed.toString();
         const escapedText = escape(textContent);
-        const escapedUrl = escape(verifyUrl);
+        const escapedUrl = escape(safeVerifyUrl);
         return escapedText
-          .replaceAll(escapedUrl, `<a href="${verifyUrl}">${escapedUrl}</a>`)
+          .replaceAll(
+            escapedUrl,
+            `<a href="${escapedUrl}">${escapedUrl}</a>`,
+          )
           .replaceAll("\n", "<br>\n");
       })(),
     },
