@@ -75,6 +75,7 @@ export const relations = defineRelations(schema, (r) => ({
     posts: r.many.postTable(),
     pins: r.many.pinTable(),
     votedPolls: r.many.pollTable(),
+    flags: r.many.flagTable(),
   },
   followingTable: {
     follower: r.one.actorTable({
@@ -213,6 +214,7 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.postTable.id,
       to: r.pollTable.postId,
     }),
+    flags: r.many.flagTable(),
   },
   pinTable: {
     post: r.one.postTable({
@@ -370,6 +372,22 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.invitationLinkTable.inviterId,
       to: r.accountTable.id,
       optional: false,
+    }),
+  },
+  flagTable: {
+    reporter: r.one.actorTable({
+      from: r.flagTable.reporterId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+    post: r.one.postTable({
+      from: r.flagTable.postId,
+      to: r.postTable.id,
+    }),
+    flaggedActor: r.one.actorTable({
+      alias: "flaggedActor",
+      from: r.flagTable.actorId,
+      to: r.actorTable.id,
     }),
   },
 }));
