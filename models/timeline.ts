@@ -1,7 +1,10 @@
 import process from "node:process";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Database } from "./db.ts";
-import { getPostVisibilityFilter } from "./post.ts";
+import {
+  getPostVisibilityFilter,
+  getPublicTimelineVisibilityFilter,
+} from "./post.ts";
 import {
   type Account,
   type Actor,
@@ -393,9 +396,7 @@ export async function getPublicTimeline(
     },
     where: {
       AND: [
-        currentAccount
-          ? getPostVisibilityFilter(currentAccount.actor)
-          : { visibility: "public" },
+        getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
         {
           ...(
             languages.size < 1

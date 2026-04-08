@@ -1352,6 +1352,19 @@ export function isPostVisibleTo(
   return false;
 }
 
+function getActorContentExclusionFilter(
+  actorId: Uuid,
+): RelationsFilter<"actorTable"> {
+  return {
+    NOT: {
+      OR: [
+        { blockees: { blockeeId: actorId } },
+        { blockers: { blockerId: actorId } },
+      ],
+    },
+  } satisfies RelationsFilter<"actorTable">;
+}
+
 export function getPostVisibilityFilter(
   actor: Actor | null,
 ): RelationsFilter<"postTable">;
@@ -1369,14 +1382,7 @@ export function getPostVisibilityFilter(
   }
   if ("accountId" in actorOrPost) {
     return {
-      actor: {
-        NOT: {
-          OR: [
-            { blockees: { blockeeId: actorOrPost.id } },
-            { blockers: { blockerId: actorOrPost.id } },
-          ],
-        },
-      },
+      actor: getActorContentExclusionFilter(actorOrPost.id),
       OR: [
         { actorId: actorOrPost.id },
         { visibility: { in: ["public", "unlisted"] } },
@@ -1397,25 +1403,11 @@ export function getPostVisibilityFilter(
       actorOrPost.visibility === "public" ||
       actorOrPost.visibility === "unlisted"
     ) {
-      return {
-        NOT: {
-          OR: [
-            { blockees: { blockeeId: actorOrPost.actorId } },
-            { blockers: { blockerId: actorOrPost.actorId } },
-          ],
-        },
-      } satisfies RelationsFilter<"actorTable">;
+      return getActorContentExclusionFilter(actorOrPost.actorId);
     }
     return {
       AND: [
-        {
-          NOT: {
-            OR: [
-              { blockees: { blockeeId: actorOrPost.actorId } },
-              { blockers: { blockerId: actorOrPost.actorId } },
-            ],
-          },
-        },
+        getActorContentExclusionFilter(actorOrPost.actorId),
         {
           OR: [
             { id: actorOrPost.actorId },
@@ -1433,6 +1425,20 @@ export function getPostVisibilityFilter(
       ],
     } satisfies RelationsFilter<"actorTable">;
   }
+}
+
+export function getPublicTimelineVisibilityFilter(
+  actor: Actor | null,
+): RelationsFilter<"postTable"> {
+  if (actor == null) {
+    return {
+      visibility: "public",
+    } satisfies RelationsFilter<"postTable">;
+  }
+  return {
+    actor: getActorContentExclusionFilter(actor.id),
+    visibility: "public",
+  } satisfies RelationsFilter<"postTable">;
 }
 
 export async function updateRepliesCount(
