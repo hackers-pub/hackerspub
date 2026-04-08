@@ -36,10 +36,14 @@ import { define } from "../utils.ts";
 
 const logger = getLogger(["hackerspub", "routes", "index"]);
 
-const DEFAULT_WINDOW = 50;
+const DEFAULT_PUBLIC_WINDOW = 20;
+const DEFAULT_AUTHENTICATED_WINDOW = 50;
 
 export const handler = define.handlers({
   async GET(ctx) {
+    const defaultWindow = ctx.state.account == null
+      ? DEFAULT_PUBLIC_WINDOW
+      : DEFAULT_AUTHENTICATED_WINDOW;
     const filterString = ctx.url.searchParams.get("filter");
     let filter: TimelineNavItem;
     if (
@@ -59,7 +63,7 @@ export const handler = define.handlers({
       : new Date(parseInt(untilString));
     const windowString = ctx.url.searchParams.get("window");
     const window = windowString == null || !windowString.match(/^\d+$/)
-      ? DEFAULT_WINDOW
+      ? defaultWindow
       : parseInt(windowString);
     let timeline: TimelineEntry[];
     const languages = new Set<string>(
@@ -155,6 +159,7 @@ export const handler = define.handlers({
       timeline,
       next,
       window,
+      defaultWindow,
       recommendedActors,
       recommendedActorMentions,
     });
@@ -227,6 +232,7 @@ interface HomeProps {
   })[];
   next?: Date;
   window: number;
+  defaultWindow: number;
   recommendedActors: (Actor & { account?: Account | null })[];
   recommendedActorMentions: { actor: Actor }[];
 }
@@ -235,7 +241,7 @@ export default define.page<typeof handler, HomeProps>(
   function Home({ state, data }) {
     const nextHref = data.next == null
       ? undefined
-      : data.window === DEFAULT_WINDOW
+      : data.window === data.defaultWindow
       ? `?filter=${data.filter}&until=${+data.next}`
       : `?filter=${data.filter}&until=${+data.next}&window=${data.window}`;
     return (
