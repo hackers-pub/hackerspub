@@ -124,12 +124,16 @@ export async function getEmailMessage(
       },
     );
   }
+  const textContent = substitute(template.content);
   return createMessage({
     from: EMAIL_FROM,
     to,
     subject: substitute(template.subject),
     content: {
-      text: substitute(template.content),
+      text: textContent,
+      html: textContent
+        .replaceAll(verifyUrl, `<a href="${verifyUrl}">${verifyUrl}</a>`)
+        .replaceAll("\n", "<br>\n"),
     },
   });
 }

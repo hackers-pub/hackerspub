@@ -367,19 +367,23 @@ async function getEmailMessage({ locale, to, verifyUrlTemplate, token }: {
     style: "long",
   });
   const template = await getEmailTemplate(locale);
+  const textContent = template.content
+    .replaceAll(/\{\{(verifyUrl|code|expiration)\}\}/g, (m) => {
+      return m === "{{verifyUrl}}"
+        ? verifyUrl
+        : m === "{{code}}"
+        ? token.code
+        : expiration;
+    });
   return createMessage({
     from: EMAIL_FROM,
     to,
     subject: template.subject,
     content: {
-      text: template.content
-        .replaceAll(/\{\{(verifyUrl|code|expiration)\}\}/g, (m) => {
-          return m === "{{verifyUrl}}"
-            ? verifyUrl
-            : m === "{{code}}"
-            ? token.code
-            : expiration;
-        }),
+      text: textContent,
+      html: textContent
+        .replaceAll(verifyUrl, `<a href="${verifyUrl}">${verifyUrl}</a>`)
+        .replaceAll("\n", "<br>\n"),
     },
   });
 }
