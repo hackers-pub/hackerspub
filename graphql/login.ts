@@ -19,6 +19,7 @@ import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 import { expandGlob } from "@std/fs";
+import { escape } from "@std/html/entities";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
 import { sql } from "drizzle-orm";
@@ -381,9 +382,13 @@ async function getEmailMessage({ locale, to, verifyUrlTemplate, token }: {
     subject: template.subject,
     content: {
       text: textContent,
-      html: textContent
-        .replaceAll(verifyUrl, `<a href="${verifyUrl}">${verifyUrl}</a>`)
-        .replaceAll("\n", "<br>\n"),
+      html: (() => {
+        const escapedText = escape(textContent);
+        const escapedUrl = escape(verifyUrl);
+        return escapedText
+          .replaceAll(escapedUrl, `<a href="${verifyUrl}">${escapedUrl}</a>`)
+          .replaceAll("\n", "<br>\n");
+      })(),
     },
   });
 }

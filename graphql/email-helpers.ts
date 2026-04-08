@@ -2,6 +2,7 @@ import { negotiateLocale } from "@hackerspub/models/i18n";
 import type { Account as AccountTable, Actor } from "@hackerspub/models/schema";
 import type { SignupToken } from "@hackerspub/models/signup";
 import { expandGlob } from "@std/fs";
+import { escape } from "@std/html/entities";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
 import { parseTemplate } from "url-template";
@@ -131,9 +132,13 @@ export async function getEmailMessage(
     subject: substitute(template.subject),
     content: {
       text: textContent,
-      html: textContent
-        .replaceAll(verifyUrl, `<a href="${verifyUrl}">${verifyUrl}</a>`)
-        .replaceAll("\n", "<br>\n"),
+      html: (() => {
+        const escapedText = escape(textContent);
+        const escapedUrl = escape(verifyUrl);
+        return escapedText
+          .replaceAll(escapedUrl, `<a href="${verifyUrl}">${escapedUrl}</a>`)
+          .replaceAll("\n", "<br>\n");
+      })(),
     },
   });
 }
