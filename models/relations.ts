@@ -75,7 +75,8 @@ export const relations = defineRelations(schema, (r) => ({
     posts: r.many.postTable(),
     pins: r.many.pinTable(),
     votedPolls: r.many.pollTable(),
-    flags: r.many.flagTable(),
+    reportedFlags: r.many.flagTable({ alias: "reporter" }),
+    receivedFlags: r.many.flagTable({ alias: "flaggedActor" }),
   },
   followingTable: {
     follower: r.one.actorTable({
@@ -376,6 +377,7 @@ export const relations = defineRelations(schema, (r) => ({
   },
   flagTable: {
     reporter: r.one.actorTable({
+      alias: "reporter",
       from: r.flagTable.reporterId,
       to: r.actorTable.id,
       optional: false,
