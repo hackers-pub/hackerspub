@@ -122,6 +122,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
         actor {
           handle
           name
+          rawName
           username
         }
         contents {
@@ -150,7 +151,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
         return (
           <>
             <Title>
-              {t`${article().actor.name}: ${title()}`}
+              {t`${article().actor.rawName}: ${title()}`}
             </Title>
             <Meta property="og:title" content={title()} />
             <Meta property="og:description" content={description()} />
@@ -163,7 +164,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
               property="article:modified_time"
               content={article().updated}
             />
-            <Show when={article().actor.name}>
+            <Show when={article().actor.rawName}>
               {(name) => <Meta property="article:author" content={name()} />}
             </Show>
             <Meta
