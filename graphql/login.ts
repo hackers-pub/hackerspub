@@ -19,6 +19,7 @@ import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 import { expandGlob } from "@std/fs";
+import { escape } from "@std/html/entities";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
 import { sql } from "drizzle-orm";
@@ -367,19 +368,38 @@ async function getEmailMessage({ locale, to, verifyUrlTemplate, token }: {
     style: "long",
   });
   const template = await getEmailTemplate(locale);
+  const textContent = template.content
+    .replaceAll(/\{\{(verifyUrl|code|expiration)\}\}/g, (m) => {
+      return m === "{{verifyUrl}}"
+        ? verifyUrl
+        : m === "{{code}}"
+        ? token.code
+        : expiration;
+    });
   return createMessage({
     from: EMAIL_FROM,
     to,
     subject: template.subject,
     content: {
-      text: template.content
-        .replaceAll(/\{\{(verifyUrl|code|expiration)\}\}/g, (m) => {
-          return m === "{{verifyUrl}}"
-            ? verifyUrl
-            : m === "{{code}}"
-            ? token.code
-            : expiration;
-        }),
+      text: textContent,
+      html: (() => {
+        const parsed = URL.canParse(verifyUrl) ? new URL(verifyUrl) : null;
+        if (
+          parsed == null ||
+          !["https:", "http:", "hackerspub:"].includes(parsed.protocol)
+        ) {
+          throw new Error(`Unsupported verify URL scheme: ${verifyUrl}`);
+        }
+        const safeVerifyUrl = parsed.toString();
+        const escapedText = escape(textContent);
+        const escapedUrl = escape(safeVerifyUrl);
+        return escapedText
+          .replaceAll(
+            escapedUrl,
+            `<a href="${escapedUrl}">${escapedUrl}</a>`,
+          )
+          .replaceAll("\n", "<br>\n");
+      })(),
     },
   });
 }

@@ -2,6 +2,7 @@ import { negotiateLocale } from "@hackerspub/models/i18n";
 import type { Account as AccountTable, Actor } from "@hackerspub/models/schema";
 import type { SignupToken } from "@hackerspub/models/signup";
 import { expandGlob } from "@std/fs";
+import { escape } from "@std/html/entities";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
 import { parseTemplate } from "url-template";
@@ -124,12 +125,31 @@ export async function getEmailMessage(
       },
     );
   }
+  const textContent = substitute(template.content);
   return createMessage({
     from: EMAIL_FROM,
     to,
     subject: substitute(template.subject),
     content: {
-      text: substitute(template.content),
+      text: textContent,
+      html: (() => {
+        const parsed = URL.canParse(verifyUrl) ? new URL(verifyUrl) : null;
+        if (
+          parsed == null ||
+          !["https:", "http:", "hackerspub:"].includes(parsed.protocol)
+        ) {
+          throw new Error(`Unsupported verify URL scheme: ${verifyUrl}`);
+        }
+        const safeVerifyUrl = parsed.toString();
+        const escapedText = escape(textContent);
+        const escapedUrl = escape(safeVerifyUrl);
+        return escapedText
+          .replaceAll(
+            escapedUrl,
+            `<a href="${escapedUrl}">${escapedUrl}</a>`,
+          )
+          .replaceAll("\n", "<br>\n");
+      })(),
     },
   });
 }
