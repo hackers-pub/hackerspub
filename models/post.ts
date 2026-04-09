@@ -573,11 +573,16 @@ export async function persistPost(
     updated: toDate(post.updated ?? post.published) ?? undefined,
     published: toDate(post.published) ?? undefined,
   };
+  const {
+    repliesCount: _repliesCount,
+    sharesCount: _sharesCount,
+    ...updateSet
+  } = values;
   const rows = await db.insert(postTable)
     .values({ id: generateUuidV7(), ...values })
     .onConflictDoUpdate({
       target: postTable.iri,
-      set: values,
+      set: updateSet,
       setWhere: eq(postTable.iri, post.id.href),
     })
     .returning();
@@ -652,9 +657,15 @@ export async function persistPost(
       }
       if (persistedPost.repliesCount < repliesCount) {
         await db.update(postTable)
-          .set({ repliesCount })
+          .set({
+            repliesCount:
+              sql`GREATEST(${postTable.repliesCount}, ${repliesCount})`,
+          })
           .where(eq(postTable.id, persistedPost.id));
-        persistedPost.repliesCount = repliesCount;
+        persistedPost.repliesCount = Math.max(
+          persistedPost.repliesCount,
+          repliesCount,
+        );
       }
     } else if (deferLargeReplies) {
       const lockKey = `reply-backfill/${persistedPost.iri}`;
@@ -680,6 +691,18 @@ export async function persistPost(
                   depth: depth + 1,
                 });
                 count++;
+              }
+              if (persistedPost.repliesCount < count) {
+                await db.update(postTable)
+                  .set({
+                    repliesCount:
+                      sql`GREATEST(${postTable.repliesCount}, ${count})`,
+                  })
+                  .where(eq(postTable.id, persistedPost.id));
+                persistedPost.repliesCount = Math.max(
+                  persistedPost.repliesCount,
+                  count,
+                );
               }
             } catch (error) {
               if (attempt < 1) {

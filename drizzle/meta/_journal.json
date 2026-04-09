@@ -624,6 +624,13 @@
       "when": 1775707878445,
       "tag": "0088_repair_nested_shares",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1775709718262,
+      "tag": "0089_fix_replies_count",
+      "breakpoints": true
     }
   ]
 }

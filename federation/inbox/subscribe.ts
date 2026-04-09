@@ -26,6 +26,7 @@ import {
   isPostObject,
   persistPost,
   persistSharedPost,
+  updateRepliesCount,
 } from "@hackerspub/models/post";
 import {
   deleteReaction,
@@ -59,6 +60,9 @@ export async function onPostCreated(
   });
   if (post != null) {
     await addPostToTimeline(db, post);
+    if (post.replyTarget != null) {
+      await updateRepliesCount(db, post.replyTarget, 1);
+    }
     if (post.replyTarget != null && post.replyTarget.actor.accountId != null) {
       await createReplyNotification(
         db,
