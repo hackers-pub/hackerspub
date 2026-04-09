@@ -381,6 +381,24 @@ export default async function App(
                         <Msg $key="nav.privacy" />
                       </a>{" "}
                       &middot;{" "}
+                      <a
+                        href="https://play.google.com/store/apps/details?id=pub.hackers.android"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-black dark:text-white underline"
+                      >
+                        Android
+                      </a>{" "}
+                      &middot;{" "}
+                      <a
+                        href="https://testflight.apple.com/join/wEBBtbzA"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="text-black dark:text-white underline"
+                      >
+                        iOS/iPadOS
+                      </a>{" "}
+                      &middot;{" "}
                       <span class="text-black dark:text-white">
                         <Msg
                           $key="nav.openSource"

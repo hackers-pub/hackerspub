@@ -538,6 +538,25 @@ export function AppSidebar(props: AppSidebarProps) {
         <p class="m-2 mb-0 text-sm underline">
           <a href="/privacy">{t`Privacy policy`}</a>
         </p>
+        <p class="m-2 mb-0 text-sm">
+          <a
+            href="https://play.google.com/store/apps/details?id=pub.hackers.android"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline"
+          >
+            Android
+          </a>{" "}
+          &middot;{" "}
+          <a
+            href="https://testflight.apple.com/join/wEBBtbzA"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="underline"
+          >
+            iOS/iPadOS
+          </a>
+        </p>
         <p class="m-2 text-sm">
           <Trans
             message={t`The source code of this website is available on ${"GITHUB_REPOSITORY"} under the ${"AGPL-3.0"} license.`}
