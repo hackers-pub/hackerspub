@@ -1272,6 +1272,7 @@ builder.queryField("articleByYearAndSlug", (t) =>
       slug: t.arg.string({ required: true }),
     },
     async resolve(query, _, args, ctx) {
+      if (!/^\d+$/.test(args.idOrYear)) return null;
       const year = parseInt(args.idOrYear, 10);
       if (!Number.isFinite(year)) return null;
 
