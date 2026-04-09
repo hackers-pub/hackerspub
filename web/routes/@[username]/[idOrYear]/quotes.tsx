@@ -109,6 +109,7 @@ export const handler = define.handlers({
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
+    const targetPost = post.sharedPost ?? post;
     const quotes = await db.query.postTable.findMany({
       with: {
         actor: { with: { instance: true } },
@@ -131,7 +132,7 @@ export const handler = define.handlers({
         },
       },
       where: {
-        quotedPostId: post.id,
+        quotedPostId: targetPost.id,
         sharedPostId: { isNull: true },
       },
       orderBy: { published: "desc" },
@@ -168,6 +169,7 @@ export const handler = define.handlers({
     if (!isPostVisibleTo(post, ctx.state.account?.actor)) {
       return ctx.next();
     }
+    const targetPost = post.sharedPost ?? post;
     const account = ctx.state.account;
     if (account == null) {
       return new Response("Forbidden", { status: 403 });
@@ -184,7 +186,7 @@ export const handler = define.handlers({
       const quote = await createNote(context, {
         ...parsed.output,
         accountId: account.id,
-      }, { quotedPost: post });
+      }, { quotedPost: targetPost });
       if (quote == null) {
         return new Response("Internal Server Error", { status: 500 });
       }
@@ -211,54 +213,57 @@ interface NoteQuotesProps {
 }
 
 export default define.page<typeof handler, NoteQuotesProps>(
-  ({ data: { post, quotes }, state }) => (
-    <>
-      <PostExcerpt
-        post={post}
-        noControls
-        signedAccount={state.account}
-      />
-      <PostControls
-        class="mt-4 ml-14"
-        language={state.language}
-        post={post}
-        active="quote"
-        signedAccount={state.account}
-      />
-      <div class="mt-8">
-        {state.account == null
-          ? (
-            <>
-              <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
-              <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400 break-words">
-                <Msg
-                  $key="note.remoteQuoteDescription"
-                  permalink={
-                    <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
-                      {post.iri}
-                    </span>
-                  }
-                />
-              </p>
-            </>
-          )
-          : (
-            <Composer
-              defaultVisibility={state.account!.noteVisibility}
-              language={state.language}
-              postUrl=""
-              noQuoteOnPaste
-              onPost="post.url"
+  ({ data: { post, quotes }, state }) => {
+    const targetPost = post.sharedPost ?? post;
+    return (
+      <>
+        <PostExcerpt
+          post={post}
+          noControls
+          signedAccount={state.account}
+        />
+        <PostControls
+          class="mt-4 ml-14"
+          language={state.language}
+          post={targetPost}
+          active="quote"
+          signedAccount={state.account}
+        />
+        <div class="mt-8">
+          {state.account == null
+            ? (
+              <>
+                <hr class="my-4 ml-14 opacity-50 dark:opacity-25" />
+                <p class="mt-4 leading-7 ml-14 text-stone-500 dark:text-stone-400 break-words">
+                  <Msg
+                    $key="note.remoteQuoteDescription"
+                    permalink={
+                      <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
+                        {targetPost.iri}
+                      </span>
+                    }
+                  />
+                </p>
+              </>
+            )
+            : (
+              <Composer
+                defaultVisibility={state.account!.noteVisibility}
+                language={state.language}
+                postUrl=""
+                noQuoteOnPaste
+                onPost="post.url"
+              />
+            )}
+          {quotes.map((quote) => (
+            <PostExcerpt
+              key={quote.id}
+              post={{ ...quote, sharedPost: null, replyTarget: null }}
+              noQuote
             />
-          )}
-        {quotes.map((quote) => (
-          <PostExcerpt
-            key={quote.id}
-            post={{ ...quote, sharedPost: null, replyTarget: null }}
-            noQuote
-          />
-        ))}
-      </div>
-    </>
-  ),
+          ))}
+        </div>
+      </>
+    );
+  },
 );

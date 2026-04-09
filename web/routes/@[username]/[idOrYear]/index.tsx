@@ -405,7 +405,7 @@ export const handler = define.handlers({
         ctx.state.account,
       );
       if (result == null) return ctx.next();
-      post = result;
+      post = result.sharedPost ?? result;
     } else {
       const note = await getNoteSource(
         db,
@@ -536,16 +536,18 @@ type NotePageProps = {
 
 export default define.page<typeof handler, NotePageProps>(
   ({ state, data: { post, postUrl, replies } }) => {
-    const commentTargets = post.mentions
+    const targetPost = post.sharedPost ?? post;
+    const commentTargets = targetPost.mentions
       .filter((m) =>
-        m.actorId !== post.actorId && m.actorId !== state.account?.actor.id
+        m.actorId !== targetPost.actorId &&
+        m.actorId !== state.account?.actor.id
       )
       .map((m) => m.actor.handle);
     if (
-      !commentTargets.includes(post.actor.handle) &&
-      state.account?.actor.id !== post.actorId
+      !commentTargets.includes(targetPost.actor.handle) &&
+      state.account?.actor.id !== targetPost.actorId
     ) {
-      commentTargets.unshift(post.actor.handle);
+      commentTargets.unshift(targetPost.actor.handle);
     }
     return (
       <>
@@ -553,7 +555,7 @@ export default define.page<typeof handler, NotePageProps>(
         <PostControls
           class="mt-4 ml-14"
           language={state.language}
-          post={post}
+          post={targetPost}
           active="reply"
           signedAccount={state.account}
         />
@@ -566,7 +568,7 @@ export default define.page<typeof handler, NotePageProps>(
                   $key="note.remoteReplyDescription"
                   permalink={
                     <span class="font-bold border-dashed border-b-[1px] select-all text-stone-950 dark:text-stone-50">
-                      {post.iri}
+                      {targetPost.iri}
                     </span>
                   }
                 />
@@ -581,7 +583,7 @@ export default define.page<typeof handler, NotePageProps>(
               commentTargets={commentTargets}
               textAreaId="reply"
               onPost="reload"
-              defaultVisibility={post.visibility}
+              defaultVisibility={targetPost.visibility}
             />
           )}
         {replies.map((reply) => (

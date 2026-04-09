@@ -39,7 +39,7 @@ export const handler = define.handlers({
         ctx.state.account,
       );
       if (result == null) return ctx.next();
-      post = result;
+      post = result.sharedPost ?? result;
     } else {
       const note = await getNoteSource(
         db,

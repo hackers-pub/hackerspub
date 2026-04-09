@@ -824,6 +824,37 @@ export async function persistSharedPost(
   return { ...rows[0], actor, sharedPost: post };
 }
 
+async function getOriginalSharedPost(
+  db: Database,
+  post: Post & { actor: Actor },
+): Promise<Post & { actor: Actor }> {
+  if (post.sharedPostId == null) return post;
+
+  const visited = new Set<Uuid>([post.id]);
+  let currentId: Uuid | null = post.sharedPostId;
+  while (currentId != null) {
+    if (visited.has(currentId)) return post;
+    visited.add(currentId);
+
+    const current: Pick<Post, "id" | "sharedPostId"> | undefined = await db
+      .query.postTable.findFirst({
+        columns: { id: true, sharedPostId: true },
+        where: { id: currentId },
+      });
+    if (current == null) return post;
+    if (current.sharedPostId == null) {
+      const original = await db.query.postTable.findFirst({
+        with: { actor: true },
+        where: { id: current.id },
+      });
+      return original ?? post;
+    }
+    currentId = current.sharedPostId;
+  }
+
+  return post;
+}
+
 export async function sharePost(
   fedCtx: Context<ContextData>,
   account: Account & {
@@ -834,54 +865,55 @@ export async function sharePost(
   visibility?: PostVisibility,
 ): Promise<Post> {
   const { db } = fedCtx.data;
+  const sharedPost = await getOriginalSharedPost(db, post);
   const actor = await syncActorFromAccount(fedCtx, account);
   const id = generateUuidV7();
   const posts = await db.insert(postTable).values({
     id,
     iri: fedCtx.getObjectUri(vocab.Announce, { id }).href,
-    type: post.type,
+    type: sharedPost.type,
     visibility: visibility || account.shareVisibility,
     actorId: actor.id,
-    sharedPostId: post.id,
-    name: post.name,
-    contentHtml: post.contentHtml,
-    language: post.language,
+    sharedPostId: sharedPost.id,
+    name: sharedPost.name,
+    contentHtml: sharedPost.contentHtml,
+    language: sharedPost.language,
     tags: {},
-    emojis: post.emojis,
-    sensitive: post.sensitive,
-    url: post.url,
+    emojis: sharedPost.emojis,
+    sensitive: sharedPost.sensitive,
+    url: sharedPost.url,
   }).onConflictDoNothing().returning();
   if (posts.length < 1) {
     const share = await db.query.postTable.findFirst({
       where: {
         actorId: actor.id,
-        sharedPostId: post.id,
+        sharedPostId: sharedPost.id,
       },
     });
     return share!;
   }
   const share = posts[0];
-  post.sharesCount = await updateSharesCount(db, post, 1);
-  share.sharesCount = post.sharesCount;
+  sharedPost.sharesCount = await updateSharesCount(db, sharedPost, 1);
+  share.sharesCount = sharedPost.sharesCount;
   await addPostToTimeline(db, share);
 
   // Create a share notification for the original post's author
-  if (post.actor.accountId != null) {
+  if (sharedPost.actor.accountId != null) {
     const notification = await createShareNotification(
       db,
-      post.actor.accountId,
-      post,
+      sharedPost.actor.accountId,
+      sharedPost,
       actor,
       share.published,
     );
     logger.debug("Created share notification for {accountId}: {notification}", {
-      accountId: post.actor.accountId,
+      accountId: sharedPost.actor.accountId,
       notification,
     });
   }
   const announce = getAnnounce(fedCtx, {
     ...share,
-    sharedPost: post,
+    sharedPost,
     actor: { ...actor, account },
     mentions: [],
   });
@@ -897,7 +929,7 @@ export async function sharePost(
   );
   await fedCtx.sendActivity(
     { identifier: account.id },
-    toRecipient(post.actor),
+    toRecipient(sharedPost.actor),
     announce,
     {
       orderingKey: share.iri,
@@ -915,30 +947,31 @@ export async function unsharePost(
   },
   sharedPost: Post & { actor: Actor },
 ): Promise<Post | undefined> {
-  if (sharedPost.sharedPostId != null) return;
   const { db } = fedCtx.data;
+  const originalPost = await getOriginalSharedPost(db, sharedPost);
+  if (originalPost.sharedPostId != null) return;
   const actor = await syncActorFromAccount(fedCtx, account);
   const unshared = await db.delete(postTable).where(
     and(
       eq(postTable.actorId, actor.id),
-      eq(postTable.sharedPostId, sharedPost.id),
+      eq(postTable.sharedPostId, originalPost.id),
     ),
   ).returning();
   if (unshared.length < 1) return undefined;
-  sharedPost.sharesCount = await updateSharesCount(db, sharedPost, -1);
+  originalPost.sharesCount = await updateSharesCount(db, originalPost, -1);
   await removeFromTimeline(db, unshared[0]);
-  if (sharedPost.actor.accountId != null) {
+  if (originalPost.actor.accountId != null) {
     await deleteShareNotification(
       db,
-      sharedPost.actor.accountId,
-      sharedPost,
+      originalPost.actor.accountId,
+      originalPost,
       actor,
     );
   }
   const announce = getAnnounce(fedCtx, {
     ...unshared[0],
     actor,
-    sharedPost,
+    sharedPost: originalPost,
     mentions: [],
   });
   const undo = new vocab.Undo({
@@ -959,7 +992,7 @@ export async function unsharePost(
   );
   await fedCtx.sendActivity(
     { identifier: account.id },
-    toRecipient(sharedPost.actor),
+    toRecipient(originalPost.actor),
     undo,
     {
       orderingKey: unshared[0].iri,
