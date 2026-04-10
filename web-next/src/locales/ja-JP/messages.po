@@ -132,7 +132,7 @@ msgstr "{0}さんがあなたのコンテンツを共有しました"
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:154
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:167
 #: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
@@ -330,7 +330,7 @@ msgid "Code of conduct"
 msgstr "行動規範"
 
 #. placeholder {0}: article().replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:480
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:499
 msgid "Comments ({0})"
 msgstr "コメント（{0}）"
 
@@ -480,7 +480,7 @@ msgstr "保持したい領域をドラッグして選択し、「切り抜き」
 msgid "e.g., @user@mastodon.social"
 msgstr "例: @user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:335
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:348
 msgid "Edit"
 msgstr "編集"
 
@@ -797,7 +797,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:496
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:515
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この記事に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当記事に返信してください。"
 
@@ -1169,10 +1169,11 @@ msgstr "または"
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:419
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:438
 msgid "Other languages"
 msgstr "他の言語"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:102
 #: src/routes/[...404].tsx:11
 msgid "Page Not Found"
 msgstr "ページが見つかりません"
@@ -1541,9 +1542,9 @@ msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:351
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:365
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:527
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:370
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:384
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:546
 msgid "Table of contents"
 msgstr "目次"
 
@@ -1553,13 +1554,17 @@ msgstr "目次"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:280
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:537
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:556
 msgid "Tags"
 msgstr "タグ"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "自己紹介をお聞かせください…"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:105
+msgid "The article you're looking for doesn't exist or has been deleted."
+msgstr "お探しの記事は存在しないか、削除されました。"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "The default privacy setting for your notes."
@@ -1685,11 +1690,11 @@ msgstr "サイドバーを切り替える"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:175
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:422
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:278
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:291
 msgid "Translating..."
 msgstr "翻訳中…"
 
@@ -1812,7 +1817,7 @@ msgstr "今何してる？"
 msgid "Without shares"
 msgstr "共有除外"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:487
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:506
 msgid "Write a reply..."
 msgstr "返信を書く…"
 

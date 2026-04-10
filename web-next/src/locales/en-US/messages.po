@@ -132,7 +132,7 @@ msgstr "{0} shared your post"
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:154
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:167
 #: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
@@ -330,7 +330,7 @@ msgid "Code of conduct"
 msgstr "Code of conduct"
 
 #. placeholder {0}: article().replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:480
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:499
 msgid "Comments ({0})"
 msgstr "Comments ({0})"
 
@@ -480,7 +480,7 @@ msgstr "Drag to select the area you want to keep, then click “Crop” to updat
 msgid "e.g., @user@mastodon.social"
 msgstr "e.g., @user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:335
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:348
 msgid "Edit"
 msgstr "Edit"
 
@@ -801,7 +801,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:496
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:515
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 
@@ -1174,10 +1174,11 @@ msgstr "Or"
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:419
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:438
 msgid "Other languages"
 msgstr "Other languages"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:102
 #: src/routes/[...404].tsx:11
 msgid "Page Not Found"
 msgstr "Page Not Found"
@@ -1546,9 +1547,9 @@ msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:351
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:365
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:527
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:370
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:384
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:546
 msgid "Table of contents"
 msgstr "Table of contents"
 
@@ -1558,13 +1559,17 @@ msgstr "Table of contents"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:280
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:537
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:556
 msgid "Tags"
 msgstr "Tags"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:105
+msgid "The article you're looking for doesn't exist or has been deleted."
+msgstr "The article you're looking for doesn't exist or has been deleted."
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "The default privacy setting for your notes."
@@ -1690,11 +1695,11 @@ msgstr "Toggle sidebar"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:175
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:422
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:278
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:291
 msgid "Translating..."
 msgstr "Translating..."
 
@@ -1817,7 +1822,7 @@ msgstr "What's on your mind?"
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:487
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:506
 msgid "Write a reply..."
 msgstr "Write a reply..."
 

@@ -132,7 +132,7 @@ msgstr "{0} 转发了你的内容"
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:154
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:167
 #: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
@@ -330,7 +330,7 @@ msgid "Code of conduct"
 msgstr "行为准则"
 
 #. placeholder {0}: article().replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:480
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:499
 msgid "Comments ({0})"
 msgstr "评论（{0}）"
 
@@ -480,7 +480,7 @@ msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:335
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:348
 msgid "Edit"
 msgstr "编辑"
 
@@ -797,7 +797,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:496
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:515
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此文章。在你的实例搜索 {0} 后回复。"
 
@@ -1169,10 +1169,11 @@ msgstr "或"
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:419
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:438
 msgid "Other languages"
 msgstr "其他语言"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:102
 #: src/routes/[...404].tsx:11
 msgid "Page Not Found"
 msgstr "页面未找到"
@@ -1541,9 +1542,9 @@ msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:351
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:365
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:527
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:370
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:384
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:546
 msgid "Table of contents"
 msgstr "目录"
 
@@ -1553,13 +1554,17 @@ msgstr "目录"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:280
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:537
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:556
 msgid "Tags"
 msgstr "标签"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "请告诉我们关于您自己的信息…"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:105
+msgid "The article you're looking for doesn't exist or has been deleted."
+msgstr "您查找的文章不存在或已被删除。"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "The default privacy setting for your notes."
@@ -1685,11 +1690,11 @@ msgstr "切换侧边栏"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:175
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:422
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:278
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:291
 msgid "Translating..."
 msgstr "正在翻译…"
 
@@ -1812,7 +1817,7 @@ msgstr "你在想啥？"
 msgid "Without shares"
 msgstr "不含转帖"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:487
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:506
 msgid "Write a reply..."
 msgstr "写个回复…"
 
