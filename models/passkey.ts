@@ -23,7 +23,25 @@ import {
 import type { Uuid } from "./uuid.ts";
 
 const RP_NAME = "Hackers' Pub";
+
 const KV_NAMESPACE = "passkey";
+
+export type PasskeyPlatform = "web" | "android" | "ios";
+
+const PLATFORM_ORIGINS: Record<string, string> = {
+  // Release signing key (pub.hackers.android)
+  android: "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
+};
+
+export function resolvePasskeyOrigin(
+  serverOrigin: string,
+  platform: PasskeyPlatform = "web",
+): string {
+  if (platform in PLATFORM_ORIGINS) {
+    return PLATFORM_ORIGINS[platform];
+  }
+  return new URL(serverOrigin).origin;
+}
 
 export async function getRegistrationOptions(
   kv: Keyv,
@@ -127,7 +145,7 @@ export async function verifyAuthentication(
   const result = await verifyAuthenticationResponse({
     response,
     expectedChallenge: options.challenge,
-    expectedOrigin: new URL(origin).origin,
+    expectedOrigin: origin,
     expectedRPID: new URL(origin).hostname,
     credential: {
       id: response.id,

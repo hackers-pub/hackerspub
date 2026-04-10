@@ -1,5 +1,7 @@
 import {
+  type PasskeyPlatform,
   getRegistrationOptions,
+  resolvePasskeyOrigin,
   verifyRegistration,
 } from "@hackerspub/models/passkey";
 import { passkeyTable } from "@hackerspub/models/schema";
@@ -117,6 +119,7 @@ builder.mutationFields((t) => ({
       accountId: t.arg.globalID({ for: Account, required: true }),
       name: t.arg.string({ required: true }),
       registrationResponse: t.arg({ type: "JSON", required: true }),
+      platform: t.arg.string({ required: false, defaultValue: "web" }),
     },
     async resolve(_, args, ctx) {
       const session = await ctx.session;
@@ -129,10 +132,14 @@ builder.mutationFields((t) => ({
         with: { passkeys: true },
       });
       if (account == null) throw new Error("Account not found.");
+      const origin = resolvePasskeyOrigin(
+        ctx.fedCtx.canonicalOrigin,
+        (args.platform ?? "web") as PasskeyPlatform,
+      );
       const result = await verifyRegistration(
         ctx.db,
         ctx.kv,
-        ctx.fedCtx.canonicalOrigin,
+        origin,
         account,
         args.name,
         args.registrationResponse as RegistrationResponseJSON,
