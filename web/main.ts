@@ -30,16 +30,25 @@ import { makeQueryGraphQL } from "./graphql/gql.ts";
 import { kv } from "./kv.ts";
 import "./logging.ts";
 import type { State } from "./utils.ts";
+import assetlinks from "./static/.well-known/assetlinks.json" with {
+  type: "json",
+};
 
 export const app = new App<State>();
 const staticHandler = staticFiles();
 const yogaServer = createYogaServer();
 app.use(async (ctx) => {
   // Work around a bug of Fresh's staticFiles middleware:
-  if (
-    ctx.url.pathname.startsWith("/.well-known/") &&
-    ctx.url.pathname !== "/.well-known/assetlinks.json"
-  ) {
+  if (ctx.url.pathname === "/.well-known/assetlinks.json") {
+    return new Response(
+      JSON.stringify(assetlinks),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  } else if (ctx.url.pathname.startsWith("/.well-known/")) {
     return await ctx.next();
   }
   return await staticHandler(ctx);
