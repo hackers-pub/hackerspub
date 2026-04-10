@@ -128,11 +128,11 @@ msgstr "{0}在{1}转帖了"
 msgid "{0} shared your post"
 msgstr "{0} 转发了你的内容"
 
-#. placeholder {0}: article().actor.name
+#. placeholder {0}: article().actor.rawName
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:153
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:167
 #: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
@@ -193,6 +193,10 @@ msgstr "添加"
 msgid "Add {0}"
 msgstr "添加{0}"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:308
+msgid "Allow automatic translation by AI"
+msgstr "允许 AI 自动翻译"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
@@ -245,6 +249,10 @@ msgstr "文章草稿"
 msgid "Article published"
 msgstr "文章已发布"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
+msgid "Article updated"
+msgstr "文章已更新"
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:24
 msgid "article-url-slug"
 msgstr "文章网址别名"
@@ -288,6 +296,7 @@ msgstr "粗体"
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:217
 #: src/components/RemoteFollowButton.tsx:279
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:325
 #: src/routes/(root)/[handle]/settings/index.tsx:402
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:525
 #: src/routes/(root)/authorize_interaction.tsx:190
@@ -321,7 +330,7 @@ msgid "Code of conduct"
 msgstr "行为准则"
 
 #. placeholder {0}: article().replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:479
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:499
 msgid "Comments ({0})"
 msgstr "评论（{0}）"
 
@@ -332,6 +341,7 @@ msgstr "写作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:374
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:241
 msgid "Content"
 msgstr "内容"
 
@@ -470,9 +480,13 @@ msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:334
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:348
 msgid "Edit"
 msgstr "编辑"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:223
+msgid "Edit Article"
+msgstr "编辑文章"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:79
 #: src/routes/(root)/[handle]/drafts/new.tsx:95
@@ -516,6 +530,9 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/NoteComposer.tsx:280
 #: src/components/NoteComposer.tsx:288
 #: src/components/NoteComposer.tsx:296
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:193
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:201
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:209
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 #: src/routes/(root)/[handle]/drafts/index.tsx:199
@@ -780,7 +797,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:495
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:515
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此文章。在你的实例搜索 {0} 后回复。"
 
@@ -805,6 +822,7 @@ msgstr "联邦宇宙用户名格式无效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:381
 #: src/components/article-composer/ArticleComposerContext.tsx:446
 #: src/components/NoteComposer.tsx:281
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:194
 #: src/routes/(root)/[handle]/drafts/index.tsx:184
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
@@ -861,6 +879,7 @@ msgstr "于{0}加入"
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:421
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:291
 msgid "Language"
 msgstr "语言"
 
@@ -1004,6 +1023,7 @@ msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:399
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:266
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -1149,10 +1169,11 @@ msgstr "或"
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:418
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:438
 msgid "Other languages"
 msgstr "其他语言"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:102
 #: src/routes/[...404].tsx:11
 msgid "Page Not Found"
 msgstr "页面未找到"
@@ -1197,6 +1218,7 @@ msgid "Please correct the errors and try again."
 msgstr "请修正错误并重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:44
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:232
 msgid "Please enter a title for your article."
 msgstr "请输入文章标题。"
 
@@ -1373,6 +1395,10 @@ msgstr "撤销通行密钥"
 msgid "Save"
 msgstr "保存"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
+msgid "Save Changes"
+msgstr "保存更改"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Save Draft"
 msgstr "保存草稿"
@@ -1382,6 +1408,7 @@ msgid "Save draft to see preview"
 msgstr "保存草稿以查看预览"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
 msgid "Saving..."
 msgstr "保存中..."
 
@@ -1492,6 +1519,7 @@ msgstr "出现错误，请重试。"
 #: src/components/article-composer/ArticleComposerContext.tsx:371
 #: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/components/NoteComposer.tsx:272
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "成功"
@@ -1514,9 +1542,9 @@ msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:350
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:364
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:526
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:370
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:384
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:546
 msgid "Table of contents"
 msgstr "目录"
 
@@ -1525,13 +1553,18 @@ msgstr "目录"
 #~ msgstr "标签"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:536
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:280
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:556
 msgid "Tags"
 msgstr "标签"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "请告诉我们关于您自己的信息…"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:105
+msgid "The article you're looking for doesn't exist or has been deleted."
+msgstr "您查找的文章不存在或已被删除。"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "The default privacy setting for your notes."
@@ -1638,6 +1671,7 @@ msgid "Timeline"
 msgstr "时间线"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:40
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:228
 msgid "Title"
 msgstr "标题"
 
@@ -1656,15 +1690,16 @@ msgstr "切换侧边栏"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:175
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:402
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:422
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:277
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:291
 msgid "Translating..."
 msgstr "正在翻译…"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:146
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:284
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
 
@@ -1782,9 +1817,13 @@ msgstr "你在想啥？"
 msgid "Without shares"
 msgstr "不含转帖"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:486
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:506
 msgid "Write a reply..."
 msgstr "写个回复…"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
+msgid "Write your article here."
+msgstr "在此撰写您的文章。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
@@ -1842,6 +1881,10 @@ msgstr "你必须登录才能创建帖子"
 #: src/routes/(root)/[handle]/drafts/index.tsx:192
 msgid "You must be signed in to delete a draft"
 msgstr "您必须登录才能删除草稿"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:202
+msgid "You must be signed in to edit an article"
+msgstr "您必须登录才能编辑文章"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:389
 msgid "You must be signed in to publish an article"

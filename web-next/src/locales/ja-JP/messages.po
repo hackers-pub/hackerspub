@@ -128,11 +128,11 @@ msgstr "{0}さんが{1}に共有"
 msgid "{0} shared your post"
 msgstr "{0}さんがあなたのコンテンツを共有しました"
 
-#. placeholder {0}: article().actor.name
+#. placeholder {0}: article().actor.rawName
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:153
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:167
 #: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
@@ -193,6 +193,10 @@ msgstr "追加"
 msgid "Add {0}"
 msgstr "{0}を追加"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:308
+msgid "Allow automatic translation by AI"
+msgstr "AIによる自動翻訳を許可"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "登録中にエラーが発生しました。もう一度お試しください。"
@@ -245,6 +249,10 @@ msgstr "記事の下書き"
 msgid "Article published"
 msgstr "記事を公開しました"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
+msgid "Article updated"
+msgstr "記事を更新しました"
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:24
 msgid "article-url-slug"
 msgstr "記事URLスラッグ"
@@ -288,6 +296,7 @@ msgstr "太字"
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:217
 #: src/components/RemoteFollowButton.tsx:279
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:325
 #: src/routes/(root)/[handle]/settings/index.tsx:402
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:525
 #: src/routes/(root)/authorize_interaction.tsx:190
@@ -321,7 +330,7 @@ msgid "Code of conduct"
 msgstr "行動規範"
 
 #. placeholder {0}: article().replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:479
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:499
 msgid "Comments ({0})"
 msgstr "コメント（{0}）"
 
@@ -332,6 +341,7 @@ msgstr "作成"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:374
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:241
 msgid "Content"
 msgstr "内容"
 
@@ -470,9 +480,13 @@ msgstr "保持したい領域をドラッグして選択し、「切り抜き」
 msgid "e.g., @user@mastodon.social"
 msgstr "例: @user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:334
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:348
 msgid "Edit"
 msgstr "編集"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:223
+msgid "Edit Article"
+msgstr "記事を編集"
 
 #: src/routes/(root)/[handle]/drafts/[id].tsx:79
 #: src/routes/(root)/[handle]/drafts/new.tsx:95
@@ -516,6 +530,9 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 #: src/components/NoteComposer.tsx:280
 #: src/components/NoteComposer.tsx:288
 #: src/components/NoteComposer.tsx:296
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:193
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:201
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:209
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 #: src/routes/(root)/[handle]/drafts/index.tsx:199
@@ -780,7 +797,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:495
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:515
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この記事に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当記事に返信してください。"
 
@@ -805,6 +822,7 @@ msgstr "無効なフェディバースのハンドルの形式です。"
 #: src/components/article-composer/ArticleComposerContext.tsx:381
 #: src/components/article-composer/ArticleComposerContext.tsx:446
 #: src/components/NoteComposer.tsx:281
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:194
 #: src/routes/(root)/[handle]/drafts/index.tsx:184
 msgid "Invalid input: {0}"
 msgstr "無効な入力：{0}"
@@ -861,6 +879,7 @@ msgstr "{0}に参加"
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:421
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:291
 msgid "Language"
 msgstr "言語"
 
@@ -1004,6 +1023,7 @@ msgstr "Markdown ガイド"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:399
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:266
 msgid "Markdown supported"
 msgstr "Markdown対応"
 
@@ -1149,10 +1169,11 @@ msgstr "または"
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:418
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:438
 msgid "Other languages"
 msgstr "他の言語"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:102
 #: src/routes/[...404].tsx:11
 msgid "Page Not Found"
 msgstr "ページが見つかりません"
@@ -1197,6 +1218,7 @@ msgid "Please correct the errors and try again."
 msgstr "エラーを修正して、もう一度お試しください。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:44
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:232
 msgid "Please enter a title for your article."
 msgstr "記事のタイトルを入力してください。"
 
@@ -1373,6 +1395,10 @@ msgstr "パスキーを取り消す"
 msgid "Save"
 msgstr "保存"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
+msgid "Save Changes"
+msgstr "変更を保存"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Save Draft"
 msgstr "下書きを保存"
@@ -1382,6 +1408,7 @@ msgid "Save draft to see preview"
 msgstr "下書きを保存するとプレビューが表示されます"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
 msgid "Saving..."
 msgstr "保存中..."
 
@@ -1492,6 +1519,7 @@ msgstr "問題が発生しました。再度お試しください。"
 #: src/components/article-composer/ArticleComposerContext.tsx:371
 #: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/components/NoteComposer.tsx:272
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "成功"
@@ -1514,9 +1542,9 @@ msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:350
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:364
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:526
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:370
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:384
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:546
 msgid "Table of contents"
 msgstr "目次"
 
@@ -1525,13 +1553,18 @@ msgstr "目次"
 #~ msgstr "タグ"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:536
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:280
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:556
 msgid "Tags"
 msgstr "タグ"
 
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "自己紹介をお聞かせください…"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:105
+msgid "The article you're looking for doesn't exist or has been deleted."
+msgstr "お探しの記事は存在しないか、削除されました。"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:215
 msgid "The default privacy setting for your notes."
@@ -1638,6 +1671,7 @@ msgid "Timeline"
 msgstr "タイムライン"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:40
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:228
 msgid "Title"
 msgstr "タイトル"
 
@@ -1656,15 +1690,16 @@ msgstr "サイドバーを切り替える"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:175
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:402
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:422
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:277
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:291
 msgid "Translating..."
 msgstr "翻訳中…"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:146
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:284
 msgid "Type tags separated by spaces"
 msgstr "スペースで区切ってタグを入力"
 
@@ -1782,9 +1817,13 @@ msgstr "今何してる？"
 msgid "Without shares"
 msgstr "共有除外"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:486
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:506
 msgid "Write a reply..."
 msgstr "返信を書く…"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
+msgid "Write your article here."
+msgstr "ここに記事を書いてください。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
@@ -1842,6 +1881,10 @@ msgstr "投稿を作成するにはログインが必要です"
 #: src/routes/(root)/[handle]/drafts/index.tsx:192
 msgid "You must be signed in to delete a draft"
 msgstr "下書きを削除するにはログインする必要があります"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:202
+msgid "You must be signed in to edit an article"
+msgstr "記事を編集するにはログインする必要があります"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:389
 msgid "You must be signed in to publish an article"
