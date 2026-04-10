@@ -1,6 +1,6 @@
 import {
-  type PasskeyPlatform,
   getRegistrationOptions,
+  type PasskeyPlatform,
   resolvePasskeyOrigin,
   verifyRegistration,
 } from "@hackerspub/models/passkey";

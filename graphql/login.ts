@@ -1,7 +1,7 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import {
-  type PasskeyPlatform,
   getAuthenticationOptions,
+  type PasskeyPlatform,
   resolvePasskeyOrigin,
   verifyAuthentication,
 } from "@hackerspub/models/passkey";
