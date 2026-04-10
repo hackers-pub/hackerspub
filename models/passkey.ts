@@ -23,7 +23,24 @@ import {
 import type { Uuid } from "./uuid.ts";
 
 const RP_NAME = "Hackers' Pub";
+
 const KV_NAMESPACE = "passkey";
+
+export type PasskeyPlatform = "web" | "android" | "ios";
+
+const PLATFORM_ORIGINS: Partial<Record<PasskeyPlatform, string>> = {
+  // Release signing key (pub.hackers.android)
+  android: "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
+};
+
+export function resolvePasskeyOrigin(
+  serverOrigin: string,
+  platform: PasskeyPlatform = "web",
+): string {
+  const platformOrigin = PLATFORM_ORIGINS[platform];
+  if (platformOrigin != null) return platformOrigin;
+  return new URL(serverOrigin).origin;
+}
 
 export async function getRegistrationOptions(
   kv: Keyv,
@@ -48,6 +65,7 @@ export async function verifyRegistration(
   db: Database,
   kv: Keyv,
   origin: string,
+  rpId: string,
   account: Account,
   name: string,
   response: RegistrationResponseJSON,
@@ -61,8 +79,8 @@ export async function verifyRegistration(
   const result = await verifyRegistrationResponse({
     response,
     expectedChallenge: options.challenge,
-    expectedOrigin: new URL(origin).origin,
-    expectedRPID: new URL(origin).hostname,
+    expectedOrigin: origin,
+    expectedRPID: rpId,
   });
   if (result.verified && result.registrationInfo != null) {
     const { credential, credentialDeviceType, credentialBackedUp } =
@@ -104,6 +122,7 @@ export async function verifyAuthentication(
   db: Database,
   kv: Keyv,
   origin: string,
+  rpId: string,
   sessionId: Uuid,
   response: AuthenticationResponseJSON,
 ): Promise<
@@ -127,8 +146,8 @@ export async function verifyAuthentication(
   const result = await verifyAuthenticationResponse({
     response,
     expectedChallenge: options.challenge,
-    expectedOrigin: new URL(origin).origin,
-    expectedRPID: new URL(origin).hostname,
+    expectedOrigin: origin,
+    expectedRPID: rpId,
     credential: {
       id: response.id,
       publicKey: new Uint8Array(passkey.publicKey),

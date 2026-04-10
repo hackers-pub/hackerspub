@@ -1,6 +1,8 @@
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import {
   getAuthenticationOptions,
+  type PasskeyPlatform,
+  resolvePasskeyOrigin,
   verifyAuthentication,
 } from "@hackerspub/models/passkey";
 import {
@@ -300,12 +302,19 @@ builder.mutationFields((t) => ({
         required: true,
         description: "WebAuthn authentication response from the client.",
       }),
+      platform: t.arg.string({ required: false, defaultValue: "web" }),
     },
     async resolve(_, args, ctx) {
+      const origin = resolvePasskeyOrigin(
+        ctx.fedCtx.canonicalOrigin,
+        (args.platform ?? "web") as PasskeyPlatform,
+      );
+      const rpId = new URL(ctx.fedCtx.canonicalOrigin).hostname;
       const result = await verifyAuthentication(
         ctx.db,
         ctx.kv,
-        ctx.fedCtx.canonicalOrigin,
+        origin,
+        rpId,
         args.sessionId as Uuid,
         args.authenticationResponse as AuthenticationResponseJSON,
       );

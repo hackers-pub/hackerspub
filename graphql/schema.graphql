@@ -654,6 +654,7 @@ type Mutation {
   loginByPasskey(
     """WebAuthn authentication response from the client."""
     authenticationResponse: JSON!
+    platform: String = "web"
 
     """Temporary session ID used for authentication options."""
     sessionId: UUID!
@@ -690,7 +691,7 @@ type Mutation {
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   uploadMedia(input: UploadMediaInput!): UploadMediaResult!
-  verifyPasskeyRegistration(accountId: ID!, name: String!, registrationResponse: JSON!): PasskeyRegistrationResult!
+  verifyPasskeyRegistration(accountId: ID!, name: String!, platform: String = "web", registrationResponse: JSON!): PasskeyRegistrationResult!
 }
 
 interface Node {
