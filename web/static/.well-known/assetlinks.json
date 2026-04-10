@@ -6,7 +6,7 @@
     ],
     "target": {
       "namespace": "android_app",
-      "package_name": "pub.hackers.app",
+      "package_name": "pub.hackers.android",
       "sha256_cert_fingerprints": [
         "52:A0:14:21:02:CD:30:FD:8B:29:A3:ED:80:2B:0A:BE:AF:AB:37:29:79:39:84:1A:B7:9E:39:05:AF:64:D5:1A"
       ]
