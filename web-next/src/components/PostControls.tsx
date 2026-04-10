@@ -15,13 +15,13 @@ import IconHeart from "~icons/lucide/heart";
 import IconMessageSquare from "~icons/lucide/message-square";
 import IconMessageSquareQuote from "~icons/lucide/message-square-quote";
 import IconRepeat2 from "~icons/lucide/repeat-2";
-import type { PostControls_note$key } from "./__generated__/PostControls_note.graphql.ts";
+import type { PostControls_post$key } from "./__generated__/PostControls_post.graphql.ts";
 import type { PostControls_sharePost_Mutation } from "./__generated__/PostControls_sharePost_Mutation.graphql.ts";
 import type { PostControls_unsharePost_Mutation } from "./__generated__/PostControls_unsharePost_Mutation.graphql.ts";
 import { EmojiReactionPopover } from "./EmojiReactionPopover.tsx";
 
 export interface PostControlsProps {
-  $note: PostControls_note$key;
+  $post: PostControls_post$key;
   class?: string;
   classList?: Record<string, boolean>;
 }
@@ -75,7 +75,7 @@ export function PostControls(props: PostControlsProps) {
   const { openWithQuote } = useNoteCompose();
   const note = createFragment(
     graphql`
-      fragment PostControls_note on Note {
+      fragment PostControls_post on Post {
         __id
         engagementStats {
           replies
@@ -107,7 +107,7 @@ export function PostControls(props: PostControlsProps) {
         }
       }
     `,
-    () => props.$note,
+    () => props.$post,
   );
 
   const [showEmojiPopover, setShowEmojiPopover] = createSignal(false);
