@@ -150,7 +150,7 @@ function ArticleEditForm(props: ArticleEditFormProps) {
   const content = () => article()?.contents?.[0];
   const [title, setTitle] = createSignal(content()?.title ?? "");
   const [markdown, setMarkdown] = createSignal(content()?.rawContent ?? "");
-  const [tags, setTags] = createSignal<string[]>(article()?.tags ?? []);
+  const [tags, setTags] = createSignal<string[]>([...(article()?.tags ?? [])]);
   const [language, setLanguage] = createSignal<Intl.Locale | undefined>(
     content()?.language ? new Intl.Locale(content()!.language) : undefined,
   );
