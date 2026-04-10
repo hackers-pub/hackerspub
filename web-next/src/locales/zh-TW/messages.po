@@ -193,6 +193,10 @@ msgstr "新增"
 msgid "Add {0}"
 msgstr "新增{0}"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:308
+msgid "Allow automatic translation by AI"
+msgstr "允許 AI 自動翻譯"
+
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
 msgstr "註冊過程中發生錯誤。請重試。"
@@ -245,6 +249,10 @@ msgstr "文章草稿"
 msgid "Article published"
 msgstr "文章已發布"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
+msgid "Article updated"
+msgstr "文章已更新"
+
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:24
 msgid "article-url-slug"
 msgstr "文章網址別名"
@@ -288,6 +296,7 @@ msgstr "粗體"
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:217
 #: src/components/RemoteFollowButton.tsx:279
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:325
 #: src/routes/(root)/[handle]/settings/index.tsx:402
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:525
 #: src/routes/(root)/authorize_interaction.tsx:190
@@ -332,16 +341,13 @@ msgstr "寫作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:374
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:241
 msgid "Content"
 msgstr "內容"
 
 #: src/components/NoteComposer.tsx:253
 msgid "Content cannot be empty"
 msgstr "內容不能為空"
-
-#: src/routes/applink/sign/in/[token].tsx:56
-msgid "Continue in browser"
-msgstr "在瀏覽器中繼續"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:617
 msgid "Copied"
@@ -478,6 +484,10 @@ msgstr "例如：@user@mastodon.social"
 msgid "Edit"
 msgstr "編輯"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:223
+msgid "Edit Article"
+msgstr "編輯文章"
+
 #: src/routes/(root)/[handle]/drafts/[id].tsx:79
 #: src/routes/(root)/[handle]/drafts/new.tsx:95
 msgid "Edit Draft"
@@ -520,6 +530,9 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 #: src/components/NoteComposer.tsx:280
 #: src/components/NoteComposer.tsx:288
 #: src/components/NoteComposer.tsx:296
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:193
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:201
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:209
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 #: src/routes/(root)/[handle]/drafts/index.tsx:199
@@ -809,6 +822,7 @@ msgstr "聯邦宇宙使用者名稱格式無效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:381
 #: src/components/article-composer/ArticleComposerContext.tsx:446
 #: src/components/NoteComposer.tsx:281
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:194
 #: src/routes/(root)/[handle]/drafts/index.tsx:184
 msgid "Invalid input: {0}"
 msgstr "無效輸入：{0}"
@@ -865,6 +879,7 @@ msgstr "於{0}加入"
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:421
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:291
 msgid "Language"
 msgstr "語言"
 
@@ -1008,6 +1023,7 @@ msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:399
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:266
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -1145,10 +1161,6 @@ msgstr "通知"
 msgid "Number of invitations"
 msgstr "邀請次數"
 
-#: src/routes/applink/sign/in/[token].tsx:47
-msgid "Open in app"
-msgstr "在應用程式中開啟"
-
 #: src/routes/(root)/sign/index.tsx:406
 msgid "Or"
 msgstr "或"
@@ -1205,6 +1217,7 @@ msgid "Please correct the errors and try again."
 msgstr "請修正錯誤並重試。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:44
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:232
 msgid "Please enter a title for your article."
 msgstr "請輸入文章標題。"
 
@@ -1381,6 +1394,10 @@ msgstr "撤銷通行金鑰"
 msgid "Save"
 msgstr "儲存"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
+msgid "Save Changes"
+msgstr "儲存變更"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Save Draft"
 msgstr "儲存草稿"
@@ -1390,6 +1407,7 @@ msgid "Save draft to see preview"
 msgstr "儲存草稿以查看預覽"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
 msgid "Saving..."
 msgstr "儲存中..."
 
@@ -1455,10 +1473,6 @@ msgstr "顯示預覽"
 msgid "Sign in"
 msgstr "登入"
 
-#: src/routes/applink/sign/in/[token].tsx:39
-msgid "Sign in to Hackers' Pub"
-msgstr "登入 Hackers' Pub"
-
 #: src/routes/(root)/sign/index.tsx:420
 msgid "Sign in with passkey"
 msgstr "使用通行金鑰登入"
@@ -1504,6 +1518,7 @@ msgstr "發生錯誤，請重試。"
 #: src/components/article-composer/ArticleComposerContext.tsx:371
 #: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/components/NoteComposer.tsx:272
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:181
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "成功"
@@ -1537,6 +1552,7 @@ msgstr "目錄"
 #~ msgstr "標籤"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:280
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:537
 msgid "Tags"
 msgstr "標籤"
@@ -1650,6 +1666,7 @@ msgid "Timeline"
 msgstr "時間軸"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:40
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:228
 msgid "Title"
 msgstr "標題"
 
@@ -1677,6 +1694,7 @@ msgid "Translating..."
 msgstr "正在翻譯…"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:146
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:284
 msgid "Type tags separated by spaces"
 msgstr "輸入標籤，用空格分隔"
 
@@ -1798,6 +1816,10 @@ msgstr "不含轉貼"
 msgid "Write a reply..."
 msgstr "寫個回覆…"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
+msgid "Write your article here."
+msgstr "在此撰寫您的文章。"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "在此撰寫文章。您可以使用 Markdown。在您撰寫時，文章將自動儲存為草稿。"
@@ -1854,6 +1876,10 @@ msgstr "你必須登入才能建立貼文"
 #: src/routes/(root)/[handle]/drafts/index.tsx:192
 msgid "You must be signed in to delete a draft"
 msgstr "您必須登入才能刪除草稿"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:202
+msgid "You must be signed in to edit an article"
+msgstr "您必須登入才能編輯文章"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:389
 msgid "You must be signed in to publish an article"
