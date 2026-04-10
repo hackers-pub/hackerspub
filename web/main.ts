@@ -36,7 +36,12 @@ const staticHandler = staticFiles();
 const yogaServer = createYogaServer();
 app.use(async (ctx) => {
   // Work around a bug of Fresh's staticFiles middleware:
-  if (ctx.url.pathname.startsWith("/.well-known/")) return await ctx.next();
+  if (
+    ctx.url.pathname.startsWith("/.well-known/") &&
+    ctx.url.pathname !== "/.well-known/assetlinks.json"
+  ) {
+    return await ctx.next();
+  }
   return await staticHandler(ctx);
 });
 
@@ -138,7 +143,8 @@ app.use((ctx) => {
 
 app.use(async (ctx) => {
   if (
-    ctx.url.pathname.startsWith("/.well-known/") ||
+    ctx.url.pathname.startsWith("/.well-known/") &&
+      ctx.url.pathname !== "/.well-known/assetlinks.json" ||
     ctx.url.pathname.startsWith("/ap/") ||
     ctx.url.pathname.startsWith("/nodeinfo/")
   ) {
