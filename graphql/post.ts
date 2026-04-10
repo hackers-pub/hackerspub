@@ -5,6 +5,7 @@ import { renderMarkup } from "@hackerspub/models/markup";
 import {
   createArticle,
   deleteArticleDraft,
+  updateArticle,
   updateArticleDraft,
 } from "@hackerspub/models/article";
 import { createNote } from "@hackerspub/models/note";
@@ -357,6 +358,16 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           kv: ctx.kv,
         });
         return renderCustomEmojis(html.html, content.source.post.emojis);
+      },
+    }),
+    rawContent: t.field({
+      type: "Markdown",
+      description: "The raw markdown content for editing.",
+      select: {
+        columns: { content: true },
+      },
+      resolve(content) {
+        return content.content;
       },
     }),
     toc: t.field({
@@ -1330,6 +1341,70 @@ builder.queryField("articleByYearAndSlug", (t) =>
       ) ?? null;
     },
   }));
+
+builder.relayMutationField(
+  "updateArticle",
+  {
+    inputFields: (t) => ({
+      articleId: t.globalID({ for: [Article], required: true }),
+      title: t.string({ required: false }),
+      content: t.field({ type: "Markdown", required: false }),
+      tags: t.stringList({ required: false }),
+      language: t.field({ type: "Locale", required: false }),
+      allowLlmTranslation: t.boolean({ required: false }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const articleId = args.input.articleId.id;
+      // Find the post and its articleSource
+      const post = await ctx.db.query.postTable.findFirst({
+        where: { id: articleId },
+        with: { articleSource: true },
+      });
+      if (post == null || post.articleSource == null) {
+        throw new InvalidInputError("articleId");
+      }
+
+      // Verify ownership
+      if (post.articleSource.accountId !== session.accountId) {
+        throw new InvalidInputError("articleId");
+      }
+
+      const updated = await updateArticle(ctx.fedCtx, post.articleSource.id, {
+        title: args.input.title ?? undefined,
+        content: args.input.content ?? undefined,
+        tags: args.input.tags ?? undefined,
+        language: args.input.language?.baseName ?? undefined,
+        allowLlmTranslation: args.input.allowLlmTranslation ?? undefined,
+      });
+      if (updated == null) {
+        throw new InvalidInputError("articleId");
+      }
+
+      return updated;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      article: t.field({
+        type: Article,
+        resolve: (post) => post,
+      }),
+    }),
+  },
+);
 
 interface UploadMediaResult {
   url: string;
