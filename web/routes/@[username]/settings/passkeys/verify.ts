@@ -16,10 +16,13 @@ export const handler = define.handlers({
       name: string;
       registrationResponse: RegistrationResponseJSON;
     } = await ctx.req.json();
+    const serverOrigin = new URL(ctx.state.fedCtx.canonicalOrigin).origin;
+    const rpId = new URL(ctx.state.fedCtx.canonicalOrigin).hostname;
     const verifyResponse = await verifyRegistration(
       db,
       kv,
-      ctx.state.fedCtx.canonicalOrigin,
+      serverOrigin,
+      rpId,
       account,
       registerResponse.name,
       registerResponse.registrationResponse,

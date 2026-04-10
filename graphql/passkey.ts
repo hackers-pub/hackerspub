@@ -136,10 +136,12 @@ builder.mutationFields((t) => ({
         ctx.fedCtx.canonicalOrigin,
         (args.platform ?? "web") as PasskeyPlatform,
       );
+      const rpId = new URL(ctx.fedCtx.canonicalOrigin).hostname;
       const result = await verifyRegistration(
         ctx.db,
         ctx.kv,
         origin,
+        rpId,
         account,
         args.name,
         args.registrationResponse as RegistrationResponseJSON,

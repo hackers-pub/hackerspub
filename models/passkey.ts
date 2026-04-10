@@ -66,6 +66,7 @@ export async function verifyRegistration(
   db: Database,
   kv: Keyv,
   origin: string,
+  rpId: string,
   account: Account,
   name: string,
   response: RegistrationResponseJSON,
@@ -79,8 +80,8 @@ export async function verifyRegistration(
   const result = await verifyRegistrationResponse({
     response,
     expectedChallenge: options.challenge,
-    expectedOrigin: new URL(origin).origin,
-    expectedRPID: new URL(origin).hostname,
+    expectedOrigin: origin,
+    expectedRPID: rpId,
   });
   if (result.verified && result.registrationInfo != null) {
     const { credential, credentialDeviceType, credentialBackedUp } =
@@ -122,6 +123,7 @@ export async function verifyAuthentication(
   db: Database,
   kv: Keyv,
   origin: string,
+  rpId: string,
   sessionId: Uuid,
   response: AuthenticationResponseJSON,
 ): Promise<
@@ -146,7 +148,7 @@ export async function verifyAuthentication(
     response,
     expectedChallenge: options.challenge,
     expectedOrigin: origin,
-    expectedRPID: new URL(origin).hostname,
+    expectedRPID: rpId,
     credential: {
       id: response.id,
       publicKey: new Uint8Array(passkey.publicKey),
