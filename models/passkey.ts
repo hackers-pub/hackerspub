@@ -28,7 +28,7 @@ const KV_NAMESPACE = "passkey";
 
 export type PasskeyPlatform = "web" | "android" | "ios";
 
-const PLATFORM_ORIGINS: Record<string, string> = {
+const PLATFORM_ORIGINS: Partial<Record<PasskeyPlatform, string>> = {
   // Release signing key (pub.hackers.android)
   android: "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
 };
@@ -37,9 +37,8 @@ export function resolvePasskeyOrigin(
   serverOrigin: string,
   platform: PasskeyPlatform = "web",
 ): string {
-  if (platform in PLATFORM_ORIGINS) {
-    return PLATFORM_ORIGINS[platform];
-  }
+  const platformOrigin = PLATFORM_ORIGINS[platform];
+  if (platformOrigin != null) return platformOrigin;
   return new URL(serverOrigin).origin;
 }
 
