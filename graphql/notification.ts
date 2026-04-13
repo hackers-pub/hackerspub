@@ -1,4 +1,3 @@
-import type { Uuid } from "@hackerspub/models/uuid";
 import {
   resolveCursorConnection,
   type ResolveCursorConnectionArgs,
@@ -49,22 +48,21 @@ export const Notification = builder.drizzleInterface("notificationTable", {
             args,
             toCursor: (actor) => actor.id,
           },
-          ({ before, after, limit, inverted }: ResolveCursorConnectionArgs) =>
-            ctx.db.query.actorTable.findMany(
-              {
-                limit,
-                where: {
-                  id: {
-                    in: notification.actorIds,
-                    lt: before as Uuid,
-                    gt: after as Uuid,
-                  },
-                },
-                orderBy: {
-                  id: (inverted ? "desc" : "asc") as "desc" | "asc",
-                },
+          async ({ limit }: ResolveCursorConnectionArgs) => {
+            const actors = await ctx.db.query.actorTable.findMany({
+              where: {
+                id: { in: notification.actorIds },
               },
-            ),
+            });
+            const positionMap = new Map(
+              notification.actorIds.map((id, index) => [id, index]),
+            );
+            actors.sort((a, b) =>
+              (positionMap.get(b.id) ?? -1) -
+              (positionMap.get(a.id) ?? -1)
+            );
+            return actors.slice(0, limit);
+          },
         );
       },
     }),
