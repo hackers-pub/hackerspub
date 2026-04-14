@@ -193,7 +193,7 @@ msgstr "Add"
 msgid "Add {0}"
 msgstr "Add {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:308
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:313
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
 
@@ -249,7 +249,7 @@ msgstr "Article Drafts"
 msgid "Article published"
 msgstr "Article published"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:184
 msgid "Article updated"
 msgstr "Article updated"
 
@@ -296,12 +296,16 @@ msgstr "Bold"
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:217
 #: src/components/RemoteFollowButton.tsx:279
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:325
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:330
 #: src/routes/(root)/[handle]/settings/index.tsx:402
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:525
 #: src/routes/(root)/authorize_interaction.tsx:190
 msgid "Cancel"
 msgstr "Cancel"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:198
+msgid "Cannot change the language because translations already exist"
+msgstr "Cannot change the language because translations already exist"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:242
 msgid "Check your email"
@@ -341,7 +345,7 @@ msgstr "Compose"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:374
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:241
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:246
 msgid "Content"
 msgstr "Content"
 
@@ -484,7 +488,7 @@ msgstr "e.g., @user@mastodon.social"
 msgid "Edit"
 msgstr "Edit"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:223
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:228
 msgid "Edit Article"
 msgstr "Edit Article"
 
@@ -534,9 +538,9 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/NoteComposer.tsx:280
 #: src/components/NoteComposer.tsx:288
 #: src/components/NoteComposer.tsx:296
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:193
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:201
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:209
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:206
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:214
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 #: src/routes/(root)/[handle]/drafts/index.tsx:199
@@ -826,10 +830,13 @@ msgstr "Invalid Fediverse handle format."
 #: src/components/article-composer/ArticleComposerContext.tsx:381
 #: src/components/article-composer/ArticleComposerContext.tsx:446
 #: src/components/NoteComposer.tsx:281
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:194
 #: src/routes/(root)/[handle]/drafts/index.tsx:184
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:199
+msgid "Invalid input: {inputPath}"
+msgstr "Invalid input: {inputPath}"
 
 #. placeholder {0}: link().inviter.name ?? link().inviter.username
 #: src/routes/(root)/[handle]/invite/[id].tsx:235
@@ -883,7 +890,7 @@ msgstr "Joined on {0}"
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:421
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:291
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:296
 msgid "Language"
 msgstr "Language"
 
@@ -1027,7 +1034,7 @@ msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:399
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:266
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:271
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
@@ -1222,7 +1229,7 @@ msgid "Please correct the errors and try again."
 msgstr "Please correct the errors and try again."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:44
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:232
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:237
 msgid "Please enter a title for your article."
 msgstr "Please enter a title for your article."
 
@@ -1399,7 +1406,7 @@ msgstr "Revoke passkey"
 msgid "Save"
 msgstr "Save"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:336
 msgid "Save Changes"
 msgstr "Save Changes"
 
@@ -1412,7 +1419,7 @@ msgid "Save draft to see preview"
 msgstr "Save draft to see preview"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:336
 msgid "Saving..."
 msgstr "Saving..."
 
@@ -1523,7 +1530,7 @@ msgstr "Something went wrong—please try again."
 #: src/components/article-composer/ArticleComposerContext.tsx:371
 #: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/components/NoteComposer.tsx:272
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:181
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:183
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "Success"
@@ -1557,7 +1564,7 @@ msgstr "Table of contents"
 #~ msgstr "Tag"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:280
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:285
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:537
 msgid "Tags"
 msgstr "Tags"
@@ -1671,7 +1678,7 @@ msgid "Timeline"
 msgstr "Timeline"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:40
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:228
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:233
 msgid "Title"
 msgstr "Title"
 
@@ -1699,7 +1706,7 @@ msgid "Translating..."
 msgstr "Translating..."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:146
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:284
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:289
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
@@ -1821,7 +1828,7 @@ msgstr "Without shares"
 msgid "Write a reply..."
 msgstr "Write a reply..."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:277
 msgid "Write your article here."
 msgstr "Write your article here."
 
@@ -1882,7 +1889,7 @@ msgstr "You must be signed in to create a note"
 msgid "You must be signed in to delete a draft"
 msgstr "You must be signed in to delete a draft"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:202
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:207
 msgid "You must be signed in to edit an article"
 msgstr "You must be signed in to edit an article"
 
