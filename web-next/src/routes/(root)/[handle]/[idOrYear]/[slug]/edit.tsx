@@ -132,6 +132,7 @@ function ArticleEditForm(props: ArticleEditFormProps) {
           title
           rawContent
           language
+          originalLanguage
         }
         tags
         allowLlmTranslation
@@ -146,8 +147,9 @@ function ArticleEditForm(props: ArticleEditFormProps) {
     edit_updateArticle_Mutation
   >(updateArticleMutation);
 
-  // Initialize form state from article data
-  const content = () => article()?.contents?.[0];
+  // Initialize form state from the original content (not translations)
+  const content = () =>
+    article()?.contents?.find((c) => c.originalLanguage == null);
   const [title, setTitle] = createSignal(content()?.title ?? "");
   const [markdown, setMarkdown] = createSignal(content()?.rawContent ?? "");
   const [tags, setTags] = createSignal<string[]>([...(article()?.tags ?? [])]);
