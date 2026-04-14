@@ -277,7 +277,7 @@ export async function updateArticleSource(
         source.language == null || source.title == null ||
         source.content == null
       ) {
-        return undefined;
+        throw new Error("Missing required fields for new article content");
       }
       await tx.insert(articleContentTable).values({
         sourceId: id,
