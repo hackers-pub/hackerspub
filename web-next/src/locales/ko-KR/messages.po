@@ -193,7 +193,7 @@ msgstr "추가"
 msgid "Add {0}"
 msgstr "{0} 추가"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:314
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:315
 msgid "Allow automatic translation by AI"
 msgstr "AI 자동 번역 허용"
 
@@ -249,7 +249,7 @@ msgstr "게시글 임시 보관"
 msgid "Article published"
 msgstr "게시글을 공개했습니다"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:184
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:185
 msgid "Article updated"
 msgstr "게시글이 수정되었습니다"
 
@@ -296,14 +296,14 @@ msgstr "굵게"
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:217
 #: src/components/RemoteFollowButton.tsx:279
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:333
 #: src/routes/(root)/[handle]/settings/index.tsx:402
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:525
 #: src/routes/(root)/authorize_interaction.tsx:190
 msgid "Cancel"
 msgstr "취소"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:198
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:199
 msgid "Cannot change the language because translations already exist"
 msgstr "번역이 이미 존재하므로 언어를 변경할 수 없습니다"
 
@@ -345,7 +345,7 @@ msgstr "작성"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:374
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:247
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:248
 msgid "Content"
 msgstr "내용"
 
@@ -488,7 +488,7 @@ msgstr "예: @user@mastodon.social"
 msgid "Edit"
 msgstr "수정"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:229
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:230
 msgid "Edit Article"
 msgstr "게시글 수정"
 
@@ -534,9 +534,9 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 #: src/components/NoteComposer.tsx:280
 #: src/components/NoteComposer.tsx:288
 #: src/components/NoteComposer.tsx:296
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:206
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:215
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:197
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:207
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:216
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 #: src/routes/(root)/[handle]/drafts/index.tsx:199
@@ -685,7 +685,7 @@ msgstr "언팔로에 실패했습니다"
 msgid "Failed to unshare post"
 msgstr "공유 취소 실패"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:216
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:217
 msgid "Failed to update the article. Please try again."
 msgstr "게시글을 수정하지 못했습니다. 다시 시도해 주세요."
 
@@ -834,7 +834,7 @@ msgstr "올바른 연합우주 핸들 형식이 아닙니다."
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:199
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:200
 msgid "Invalid input: {inputPath}"
 msgstr "잘못된 입력: {inputPath}"
 
@@ -890,7 +890,7 @@ msgstr "{0}에 가입"
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:421
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:298
 msgid "Language"
 msgstr "언어"
 
@@ -1034,7 +1034,7 @@ msgstr "Markdown 가이드"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:399
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:273
 msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
 
@@ -1228,7 +1228,7 @@ msgid "Please correct the errors and try again."
 msgstr "오류를 수정하고 다시 시도해주세요."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:44
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:238
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:239
 msgid "Please enter a title for your article."
 msgstr "게시글 제목을 입력해주세요."
 
@@ -1405,7 +1405,7 @@ msgstr "패스키를 취소"
 msgid "Save"
 msgstr "저장"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:337
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:339
 msgid "Save Changes"
 msgstr "변경사항 저장"
 
@@ -1418,7 +1418,7 @@ msgid "Save draft to see preview"
 msgstr "미리보기를 보려면 임시 보관하세요"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:337
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:339
 msgid "Saving..."
 msgstr "저장하는 중..."
 
@@ -1529,7 +1529,7 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 #: src/components/article-composer/ArticleComposerContext.tsx:371
 #: src/components/article-composer/ArticleComposerContext.tsx:436
 #: src/components/NoteComposer.tsx:272
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:183
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:184
 #: src/routes/(root)/[handle]/drafts/index.tsx:174
 msgid "Success"
 msgstr "성공"
@@ -1563,7 +1563,7 @@ msgstr "목차"
 #~ msgstr "태그"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:286
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:287
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:537
 msgid "Tags"
 msgstr "태그"
@@ -1677,7 +1677,7 @@ msgid "Timeline"
 msgstr "타임라인"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:40
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:234
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:235
 msgid "Title"
 msgstr "제목"
 
@@ -1705,7 +1705,7 @@ msgid "Translating..."
 msgstr "번역 중…"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:146
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:290
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:291
 msgid "Type tags separated by spaces"
 msgstr "공백으로 구분된 태그 입력"
 
@@ -1827,7 +1827,7 @@ msgstr "공유 제외"
 msgid "Write a reply..."
 msgstr "댓글을 입력하세요…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:278
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:279
 msgid "Write your article here."
 msgstr "여기에 게시글을 작성하세요."
 
@@ -1888,7 +1888,7 @@ msgstr "단문을 작성하려면 로그인해야 합니다"
 msgid "You must be signed in to delete a draft"
 msgstr "임시 보관을 삭제하려면 로그인해야 합니다"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:207
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:208
 msgid "You must be signed in to edit an article"
 msgstr "게시글을 수정하려면 로그인해야 합니다"
 
