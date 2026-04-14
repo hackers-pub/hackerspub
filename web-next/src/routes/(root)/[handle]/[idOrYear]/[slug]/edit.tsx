@@ -160,7 +160,8 @@ function ArticleEditForm(props: ArticleEditFormProps) {
     article()?.allowLlmTranslation ?? false,
   );
 
-  const handleSave = () => {
+  const handleSave = (e: SubmitEvent) => {
+    e.preventDefault();
     const a = article();
     if (!a) return;
 
@@ -228,7 +229,7 @@ function ArticleEditForm(props: ArticleEditFormProps) {
       <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto">
         <h1 class="text-2xl font-bold mb-6">{t`Edit Article`}</h1>
 
-        <div class="flex flex-col gap-6">
+        <form onSubmit={handleSave} class="flex flex-col gap-6">
           {/* Title */}
           <TextField>
             <TextFieldLabel>{t`Title`}</TextFieldLabel>
@@ -318,6 +319,7 @@ function ArticleEditForm(props: ArticleEditFormProps) {
           {/* Actions */}
           <div class="flex justify-end gap-3">
             <Button
+              type="button"
               variant="outline"
               onClick={() => {
                 const a = article();
@@ -331,13 +333,13 @@ function ArticleEditForm(props: ArticleEditFormProps) {
               {t`Cancel`}
             </Button>
             <Button
-              onClick={handleSave}
+              type="submit"
               disabled={isUpdating()}
             >
               {isUpdating() ? t`Saving...` : t`Save Changes`}
             </Button>
           </div>
-        </div>
+        </form>
       </div>
     </Show>
   );
