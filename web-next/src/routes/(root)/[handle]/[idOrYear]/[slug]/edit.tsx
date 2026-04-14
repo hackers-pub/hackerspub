@@ -210,9 +210,10 @@ function ArticleEditForm(props: ArticleEditFormProps) {
         }
       },
       onError(error) {
+        console.error("Failed to update article:", error);
         showToast({
           title: t`Error`,
-          description: error.message,
+          description: t`Failed to update the article. Please try again.`,
           variant: "error",
         });
       },

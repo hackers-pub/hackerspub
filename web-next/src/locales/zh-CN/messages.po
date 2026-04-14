@@ -193,7 +193,7 @@ msgstr "添加"
 msgid "Add {0}"
 msgstr "添加{0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:313
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:314
 msgid "Allow automatic translation by AI"
 msgstr "允许 AI 自动翻译"
 
@@ -296,7 +296,7 @@ msgstr "粗体"
 #: src/components/PostActionMenu.tsx:137
 #: src/components/RemoteFollowButton.tsx:217
 #: src/components/RemoteFollowButton.tsx:279
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:330
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:331
 #: src/routes/(root)/[handle]/settings/index.tsx:402
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:525
 #: src/routes/(root)/authorize_interaction.tsx:190
@@ -345,7 +345,7 @@ msgstr "写作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:374
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:246
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:247
 msgid "Content"
 msgstr "内容"
 
@@ -488,7 +488,7 @@ msgstr "例如：@user@mastodon.social"
 msgid "Edit"
 msgstr "编辑"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:228
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:229
 msgid "Edit Article"
 msgstr "编辑文章"
 
@@ -536,7 +536,7 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/NoteComposer.tsx:296
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:206
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:214
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:215
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 #: src/routes/(root)/[handle]/drafts/index.tsx:191
 #: src/routes/(root)/[handle]/drafts/index.tsx:199
@@ -684,6 +684,10 @@ msgstr "取消关注失败"
 #: src/components/PostControls.tsx:136
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:216
+msgid "Failed to update the article. Please try again."
+msgstr "文章更新失败，请重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
 msgid "Failed to upload image"
@@ -886,7 +890,7 @@ msgstr "于{0}加入"
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/components/NoteComposer.tsx:421
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:296
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
 msgid "Language"
 msgstr "语言"
 
@@ -1030,7 +1034,7 @@ msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:399
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:271
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -1224,7 +1228,7 @@ msgid "Please correct the errors and try again."
 msgstr "请修正错误并重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:44
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:237
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:238
 msgid "Please enter a title for your article."
 msgstr "请输入文章标题。"
 
@@ -1401,7 +1405,7 @@ msgstr "撤销通行密钥"
 msgid "Save"
 msgstr "保存"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:336
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:337
 msgid "Save Changes"
 msgstr "保存更改"
 
@@ -1414,7 +1418,7 @@ msgid "Save draft to see preview"
 msgstr "保存草稿以查看预览"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:336
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:337
 msgid "Saving..."
 msgstr "保存中..."
 
@@ -1559,7 +1563,7 @@ msgstr "目录"
 #~ msgstr "标签"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:285
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:286
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:537
 msgid "Tags"
 msgstr "标签"
@@ -1673,7 +1677,7 @@ msgid "Timeline"
 msgstr "时间线"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:40
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:233
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:234
 msgid "Title"
 msgstr "标题"
 
@@ -1701,7 +1705,7 @@ msgid "Translating..."
 msgstr "正在翻译…"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:146
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:289
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:290
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
 
@@ -1823,7 +1827,7 @@ msgstr "不含转帖"
 msgid "Write a reply..."
 msgstr "写个回复…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:277
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:278
 msgid "Write your article here."
 msgstr "在此撰写您的文章。"
 
