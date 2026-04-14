@@ -36,6 +36,13 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "article"]);
 
+export class LanguageChangeWithTranslationsError extends Error {
+  constructor() {
+    super("Cannot change language when translations already exist");
+    this.name = "LanguageChangeWithTranslationsError";
+  }
+}
+
 export async function updateArticleDraft(
   db: Database,
   draft: NewArticleDraft,
@@ -258,44 +265,62 @@ export async function updateArticleSource(
     language?: string;
   },
 ): Promise<ArticleSource & { contents: ArticleContent[] } | undefined> {
-  const sources = await db.update(articleSourceTable)
-    .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
-    .where(eq(articleSourceTable.id, id))
-    .returning();
-  if (sources.length < 1) return undefined;
-  const originalContent = await getOriginalArticleContent(db, sources[0]);
-  if (originalContent == null) {
-    if (
-      source.language == null || source.title == null || source.content == null
-    ) {
-      return undefined;
+  return await db.transaction(async (tx) => {
+    const sources = await tx.update(articleSourceTable)
+      .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
+      .where(eq(articleSourceTable.id, id))
+      .returning();
+    if (sources.length < 1) return undefined;
+    const originalContent = await getOriginalArticleContent(tx, sources[0]);
+    if (originalContent == null) {
+      if (
+        source.language == null || source.title == null ||
+        source.content == null
+      ) {
+        return undefined;
+      }
+      await tx.insert(articleContentTable).values({
+        sourceId: id,
+        language: source.language,
+        title: source.title,
+        content: source.content,
+      });
+    } else {
+      // Reject language change when translations already exist
+      if (
+        source.language != null &&
+        source.language !== originalContent.language
+      ) {
+        const contents = await tx.query.articleContentTable.findMany({
+          where: { sourceId: id },
+        });
+        const hasTranslations = contents.some(
+          (c) => c.originalLanguage != null,
+        );
+        if (hasTranslations) {
+          throw new LanguageChangeWithTranslationsError();
+        }
+      }
+      await tx.update(articleContentTable)
+        .set({
+          language: source.language ?? originalContent.language,
+          title: source.title ?? originalContent.title,
+          content: source.content ?? originalContent.content,
+          updated: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(
+          and(
+            eq(articleContentTable.sourceId, id),
+            eq(articleContentTable.language, originalContent.language),
+          ),
+        );
     }
-    await db.insert(articleContentTable).values({
-      sourceId: id,
-      language: source.language,
-      title: source.title,
-      content: source.content,
+    const contents = await tx.query.articleContentTable.findMany({
+      where: { sourceId: id },
+      orderBy: { published: "asc" },
     });
-  } else {
-    await db.update(articleContentTable)
-      .set({
-        language: source.language ?? originalContent.language,
-        title: source.title ?? originalContent.title,
-        content: source.content ?? originalContent.content,
-        updated: sql`CURRENT_TIMESTAMP`,
-      })
-      .where(
-        and(
-          eq(articleContentTable.sourceId, id),
-          eq(articleContentTable.language, originalContent.language),
-        ),
-      );
-  }
-  const contents = await db.query.articleContentTable.findMany({
-    where: { sourceId: id },
-    orderBy: { published: "asc" },
+    return { ...sources[0], contents };
   });
-  return { ...sources[0], contents };
 }
 
 export async function updateArticle(

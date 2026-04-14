@@ -5,6 +5,7 @@ import { renderMarkup } from "@hackerspub/models/markup";
 import {
   createArticle,
   deleteArticleDraft,
+  LanguageChangeWithTranslationsError,
   updateArticle,
   updateArticleDraft,
 } from "@hackerspub/models/article";
@@ -1382,31 +1383,21 @@ builder.relayMutationField(
         throw new InvalidInputError("articleId");
       }
 
-      // Reject language change when translations already exist
-      if (args.input.language != null) {
-        const newLang = args.input.language.baseName;
-        const contents = await ctx.db.query.articleContentTable.findMany({
-          where: { sourceId: post.articleSource.id },
+      let updated;
+      try {
+        updated = await updateArticle(ctx.fedCtx, post.articleSource.id, {
+          title: args.input.title ?? undefined,
+          content: args.input.content ?? undefined,
+          tags: args.input.tags ?? undefined,
+          language: args.input.language?.baseName ?? undefined,
+          allowLlmTranslation: args.input.allowLlmTranslation ?? undefined,
         });
-        const original = contents.find((c) => c.originalLanguage == null);
-        const hasTranslations = contents.some(
-          (c) => c.originalLanguage != null,
-        );
-        if (
-          hasTranslations && original != null &&
-          newLang !== original.language
-        ) {
+      } catch (e) {
+        if (e instanceof LanguageChangeWithTranslationsError) {
           throw new InvalidInputError("language");
         }
+        throw e;
       }
-
-      const updated = await updateArticle(ctx.fedCtx, post.articleSource.id, {
-        title: args.input.title ?? undefined,
-        content: args.input.content ?? undefined,
-        tags: args.input.tags ?? undefined,
-        language: args.input.language?.baseName ?? undefined,
-        allowLlmTranslation: args.input.allowLlmTranslation ?? undefined,
-      });
       if (updated == null) {
         throw new InvalidInputError("articleId");
       }
