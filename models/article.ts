@@ -7,6 +7,7 @@ import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
 import type { LanguageModel } from "ai";
 import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
+import postgres from "postgres";
 import type { ContextData, Models } from "./context.ts";
 import type { Database } from "./db.ts";
 import { syncPostFromArticleSource } from "./post.ts";
@@ -286,34 +287,28 @@ export async function updateArticleSource(
         content: source.content,
       });
     } else {
-      // Reject language change when translations already exist
-      if (
-        source.language != null &&
-        source.language !== originalContent.language
-      ) {
-        const contents = await tx.query.articleContentTable.findMany({
-          where: { sourceId: id },
-        });
-        const hasTranslations = contents.some(
-          (c) => c.originalLanguage != null,
-        );
-        if (hasTranslations) {
+      try {
+        await tx.update(articleContentTable)
+          .set({
+            language: source.language ?? originalContent.language,
+            title: source.title ?? originalContent.title,
+            content: source.content ?? originalContent.content,
+            updated: sql`CURRENT_TIMESTAMP`,
+          })
+          .where(
+            and(
+              eq(articleContentTable.sourceId, id),
+              eq(articleContentTable.language, originalContent.language),
+            ),
+          );
+      } catch (error) {
+        if (
+          error instanceof postgres.PostgresError && error.code === "23503"
+        ) {
           throw new LanguageChangeWithTranslationsError();
         }
+        throw error;
       }
-      await tx.update(articleContentTable)
-        .set({
-          language: source.language ?? originalContent.language,
-          title: source.title ?? originalContent.title,
-          content: source.content ?? originalContent.content,
-          updated: sql`CURRENT_TIMESTAMP`,
-        })
-        .where(
-          and(
-            eq(articleContentTable.sourceId, id),
-            eq(articleContentTable.language, originalContent.language),
-          ),
-        );
     }
     const contents = await tx.query.articleContentTable.findMany({
       where: { sourceId: id },
