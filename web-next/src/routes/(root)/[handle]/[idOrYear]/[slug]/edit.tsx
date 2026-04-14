@@ -191,9 +191,12 @@ function ArticleEditForm(props: ArticleEditFormProps) {
         } else if (
           response.updateArticle.__typename === "InvalidInputError"
         ) {
+          const inputPath = response.updateArticle.inputPath;
           showToast({
             title: t`Error`,
-            description: t`Invalid input: ${response.updateArticle.inputPath}`,
+            description: inputPath === "language"
+              ? t`Cannot change the language because translations already exist`
+              : t`Invalid input: ${inputPath}`,
             variant: "error",
           });
         } else if (

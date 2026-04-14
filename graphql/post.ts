@@ -1382,6 +1382,24 @@ builder.relayMutationField(
         throw new InvalidInputError("articleId");
       }
 
+      // Reject language change when translations already exist
+      if (args.input.language != null) {
+        const newLang = args.input.language.baseName;
+        const contents = await ctx.db.query.articleContentTable.findMany({
+          where: { sourceId: post.articleSource.id },
+        });
+        const original = contents.find((c) => c.originalLanguage == null);
+        const hasTranslations = contents.some(
+          (c) => c.originalLanguage != null,
+        );
+        if (
+          hasTranslations && original != null &&
+          newLang !== original.language
+        ) {
+          throw new InvalidInputError("language");
+        }
+      }
+
       const updated = await updateArticle(ctx.fedCtx, post.articleSource.id, {
         title: args.input.title ?? undefined,
         content: args.input.content ?? undefined,
