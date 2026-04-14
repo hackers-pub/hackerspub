@@ -48,7 +48,7 @@ export const Notification = builder.drizzleInterface("notificationTable", {
             args,
             toCursor: (actor) => actor.id,
           },
-          async ({ limit }: ResolveCursorConnectionArgs) => {
+          async (_args: ResolveCursorConnectionArgs) => {
             const actors = await ctx.db.query.actorTable.findMany({
               where: {
                 id: { in: notification.actorIds },
@@ -61,7 +61,7 @@ export const Notification = builder.drizzleInterface("notificationTable", {
               (positionMap.get(b.id) ?? -1) -
               (positionMap.get(a.id) ?? -1)
             );
-            return actors.slice(0, limit);
+            return actors;
           },
         );
       },
