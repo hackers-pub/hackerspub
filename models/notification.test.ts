@@ -1,8 +1,10 @@
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import {
+  createFollowNotification,
   createShareNotification,
   deleteShareNotification,
+  getNotifications,
 } from "./notification.ts";
 import {
   insertAccountWithActor,
@@ -154,6 +156,68 @@ Deno.test({
         },
       });
       assertEquals(removedNotification, undefined);
+    });
+  },
+});
+
+Deno.test({
+  name: "getNotifications() returns newest notifications with loaded relations",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const recipient = await insertAccountWithActor(tx, {
+        username: "notificationrecipient",
+        name: "Notification Recipient",
+        email: "notificationrecipient@example.com",
+      });
+      const follower = await insertAccountWithActor(tx, {
+        username: "notificationfollower",
+        name: "Notification Follower",
+        email: "notificationfollower@example.com",
+      });
+      const sharer = await insertAccountWithActor(tx, {
+        username: "notificationsharer",
+        name: "Notification Sharer",
+        email: "notificationsharer@example.com",
+      });
+      const { post } = await insertNotePost(tx, {
+        account: recipient.account,
+        content: "Shared in notification list",
+      });
+
+      await createShareNotification(
+        tx,
+        recipient.account.id,
+        post,
+        sharer.actor,
+        new Date("2026-04-15T00:00:00.000Z"),
+      );
+      await createFollowNotification(
+        tx,
+        recipient.account.id,
+        follower.actor,
+        new Date("2026-04-15T01:00:00.000Z"),
+      );
+
+      const notifications = await getNotifications(
+        tx,
+        recipient.account.id,
+        new Date("2026-04-15T23:59:59.000Z"),
+      );
+
+      assertEquals(notifications.length, 2);
+      assertEquals(notifications[0].type, "follow");
+      assertEquals(notifications[0].post, null);
+      assertEquals(notifications[0].account.id, recipient.account.id);
+
+      assertEquals(notifications[1].type, "share");
+      assert(notifications[1].post != null);
+      assertEquals(notifications[1].post.id, post.id);
+      assertEquals(notifications[1].post.actor.id, recipient.actor.id);
+      assertEquals(notifications[1].post.actor.instance.host, "localhost");
+      assertEquals(notifications[1].account.id, recipient.account.id);
+      assertEquals(notifications[1].customEmoji, null);
     });
   },
 });
