@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import * as vocab from "@fedify/vocab";
 import type { Transaction } from "./db.ts";
-import { vote } from "./poll.ts";
+import { persistPollVote, vote } from "./poll.ts";
 import {
   type NewPost,
   pollOptionTable,
@@ -187,5 +188,47 @@ test("vote() rejects multiple choices for single polls and allows them for multi
       multiOptions.map((option) => option.votesCount),
       [1, 0, 1],
     );
+  });
+});
+
+test("persistPollVote() stores an incoming vote for a persisted poll", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "persistpollauthor",
+      name: "Persist Poll Author",
+      email: "persistpollauthor@example.com",
+    });
+    const remoteLikeVoter = await insertAccountWithActor(tx, {
+      username: "persistpollvoter",
+      name: "Persist Poll Voter",
+      email: "persistpollvoter@example.com",
+    });
+    const { poll, post } = await insertQuestionPoll(tx, {
+      account: author.account,
+      multiple: false,
+      optionTitles: ["TypeScript", "Rust"],
+    });
+
+    const voteNote = new vocab.Note({
+      id: new URL(`http://localhost/objects/${generateUuidV7()}`),
+      attribution: new URL(remoteLikeVoter.actor.iri),
+      name: "Rust",
+      replyTarget: new URL(post.iri),
+    });
+
+    const storedVote = await persistPollVote(fedCtx, voteNote);
+
+    assert.ok(storedVote != null);
+    assert.equal(storedVote.postId, poll.postId);
+    assert.equal(storedVote.actorId, remoteLikeVoter.actor.id);
+    assert.equal(storedVote.optionIndex, 1);
+
+    const votes = await tx.query.pollVoteTable.findMany({
+      where: { postId: poll.postId },
+    });
+    assert.equal(votes.length, 1);
+    assert.equal(votes[0].actorId, remoteLikeVoter.actor.id);
+    assert.equal(votes[0].optionIndex, 1);
   });
 });
