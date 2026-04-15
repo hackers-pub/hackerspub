@@ -234,18 +234,8 @@ Deno.test({
         accountId: account.account.id,
         userAgent: "extra-session",
       });
-
-      await execute({
-        schema,
-        document: revokeSessionMutation,
-        variableValues: { sessionId: extraSession.id },
-        contextValue: currentContext,
-        onError: "NO_PROPAGATE",
-      });
-
-      assertEquals(await getSession(kv, extraSession.id), undefined);
-
       const otherContext = makeUserContext(tx, other.account, { kv });
+
       const foreignResult = await execute({
         schema,
         document: revokeSessionMutation,
@@ -259,6 +249,17 @@ Deno.test({
         (foreignResult.data as { revokeSession: null }).revokeSession,
         null,
       );
+      assert((await getSession(kv, extraSession.id)) != null);
+
+      await execute({
+        schema,
+        document: revokeSessionMutation,
+        variableValues: { sessionId: extraSession.id },
+        contextValue: currentContext,
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(await getSession(kv, extraSession.id), undefined);
     });
   },
 });
