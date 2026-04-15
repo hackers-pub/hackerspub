@@ -181,13 +181,25 @@ export async function insertNotePost(
 export function createFedCtx(
   tx: Transaction,
 ): RequestContext<ContextData> {
+  const kv = {
+    get() {
+      return Promise.resolve(undefined);
+    },
+    set() {
+      return Promise.resolve(true);
+    },
+    delete() {
+      return Promise.resolve(true);
+    },
+  };
+
   return {
     host: "localhost",
     origin: "http://localhost/",
     canonicalOrigin: "http://localhost/",
     data: {
       db: tx,
-      kv: {} as ContextData["kv"],
+      kv: kv as unknown as ContextData["kv"],
       disk: {
         getUrl(key: string) {
           return Promise.resolve(`http://localhost/media/${key}`);
@@ -229,9 +241,21 @@ export function makeUserContext(
   account: AuthenticatedAccount,
   overrides: Partial<UserContext> = {},
 ): UserContext {
+  const kv = {
+    get() {
+      return Promise.resolve(undefined);
+    },
+    set() {
+      return Promise.resolve(true);
+    },
+    delete() {
+      return Promise.resolve(true);
+    },
+  };
+
   return {
     db: tx,
-    kv: {} as UserContext["kv"],
+    kv: kv as unknown as UserContext["kv"],
     disk: {
       getUrl(key: string) {
         return Promise.resolve(`http://localhost/media/${key}`);
