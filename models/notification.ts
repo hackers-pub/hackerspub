@@ -55,6 +55,9 @@ export async function createNotification(
   emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
   const postId = post?.id;
+  const effectiveCreated = created == null
+    ? sql`CURRENT_TIMESTAMP`
+    : sql`${created.toISOString()}::timestamptz`;
   const getExistingFollowNotification = async () => {
     const rows = await db.select().from(notificationTable)
       .where(sql`
@@ -98,9 +101,8 @@ export async function createNotification(
             ELSE array_append(${notificationTable.actorIds}, ${actorId})
           END
         `,
-        created: sql`GREATEST(${notificationTable.created}, ${
-          created ?? sql`CURRENT_TIMESTAMP`
-        })`,
+        created:
+          sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
       })
       .where(notificationWhere)
       .returning();
@@ -164,9 +166,8 @@ export async function createNotification(
               ELSE array_append(${notificationTable.actorIds}, ${actorId})
             END
           `,
-          created: sql`GREATEST(${notificationTable.created}, ${
-            created ?? sql`CURRENT_TIMESTAMP`
-          })`,
+          created:
+            sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
         })
         .where(notificationWhere)
         .returning();
