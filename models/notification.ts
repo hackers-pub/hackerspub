@@ -55,6 +55,15 @@ export async function createNotification(
   emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
   const postId = post?.id;
+  const getExistingFollowNotification = async () => {
+    const rows = await db.select().from(notificationTable)
+      .where(sql`
+        ${notificationTable.accountId} = ${accountId}
+        AND ${notificationTable.type} = 'follow'
+        AND ${notificationTable.actorIds} = ARRAY[${actorId}]::uuid[]
+      `);
+    return rows[0];
+  };
   const notificationWhere = and(
     eq(notificationTable.accountId, accountId),
     eq(notificationTable.type, type),
@@ -67,6 +76,15 @@ export async function createNotification(
       ? eq(notificationTable.emoji, emoji)
       : eq(notificationTable.customEmojiId, emoji.id),
   );
+
+  // Follow notifications use a distinct uniqueness rule based on actorIds, so
+  // they need an exact pre-check instead of the generic merge/update path.
+  if (type === "follow") {
+    const existing = await getExistingFollowNotification();
+    if (existing != null) {
+      return existing;
+    }
+  }
 
   // Update first so mergeable notifications still work inside an existing
   // transaction, where a unique-violation insert would abort the transaction.
@@ -132,6 +150,9 @@ export async function createNotification(
       : typeof error === "object" && error != null &&
         "code" in error && error.code === "23505";
     if (isUniqueViolation) {
+      if (type === "follow") {
+        return await getExistingFollowNotification();
+      }
       const notificationRows = await db.update(notificationTable)
         .set({
           actorIds: sql`
