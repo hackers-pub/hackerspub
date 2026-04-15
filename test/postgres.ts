@@ -7,6 +7,7 @@ import {
   accountTable,
   actorTable,
   instanceTable,
+  mentionTable,
   type NewPost,
   noteSourceTable,
   postTable,
@@ -117,6 +118,42 @@ export async function insertAccountWithActor(
   };
 }
 
+export async function insertRemoteActor(
+  tx: Transaction,
+  values: {
+    username: string;
+    name: string;
+    host: string;
+    iri?: string;
+    inboxUrl?: string;
+  },
+) {
+  const actorId = generateUuidV7();
+  const timestamp = new Date("2026-04-15T00:00:00.000Z");
+
+  await seedLocalInstance(tx, values.host);
+
+  await tx.insert(actorTable).values({
+    id: actorId,
+    iri: values.iri ?? `https://${values.host}/users/${values.username}`,
+    type: "Person",
+    username: values.username,
+    instanceHost: values.host,
+    handleHost: values.host,
+    name: values.name,
+    inboxUrl: values.inboxUrl ??
+      `https://${values.host}/users/${values.username}/inbox`,
+    sharedInboxUrl: `https://${values.host}/inbox`,
+    created: timestamp,
+    updated: timestamp,
+    published: timestamp,
+  });
+
+  const actor = await tx.query.actorTable.findFirst({ where: { id: actorId } });
+  assert(actor != null);
+  return actor;
+}
+
 export async function insertNotePost(
   tx: Transaction,
   values: {
@@ -176,6 +213,54 @@ export async function insertNotePost(
   assert(post != null);
 
   return { noteSourceId, post };
+}
+
+export async function insertRemotePost(
+  tx: Transaction,
+  values: {
+    actorId: Uuid;
+    contentHtml?: string;
+    language?: string;
+    visibility?: "public" | "unlisted" | "followers" | "direct" | "none";
+    published?: Date;
+    updated?: Date;
+    replyTargetId?: Uuid;
+    quotedPostId?: Uuid;
+    sharedPostId?: Uuid;
+  },
+) {
+  const timestamp = values.published ?? new Date("2026-04-15T00:00:00.000Z");
+  const updated = values.updated ?? timestamp;
+  const postId = generateUuidV7();
+
+  const postValues: NewPost = {
+    id: postId,
+    iri: `https://remote.example/objects/${postId}`,
+    type: "Note",
+    visibility: values.visibility ?? "public",
+    actorId: values.actorId,
+    sharedPostId: values.sharedPostId,
+    replyTargetId: values.replyTargetId,
+    quotedPostId: values.quotedPostId,
+    contentHtml: values.contentHtml ?? "<p>Remote post</p>",
+    language: values.language ?? "en",
+    reactionsCounts: {},
+    published: timestamp,
+    updated,
+  };
+
+  await tx.insert(postTable).values(postValues);
+
+  const post = await tx.query.postTable.findFirst({ where: { id: postId } });
+  assert(post != null);
+  return post;
+}
+
+export async function insertMention(
+  tx: Transaction,
+  values: { postId: Uuid; actorId: Uuid },
+) {
+  await tx.insert(mentionTable).values(values);
 }
 
 export function createFedCtx(
