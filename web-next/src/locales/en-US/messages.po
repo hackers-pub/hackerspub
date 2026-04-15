@@ -128,11 +128,11 @@ msgstr "{0} shared {1}"
 msgid "{0} shared your post"
 msgstr "{0} shared your post"
 
-#. placeholder {0}: article().actor.name
+#. placeholder {0}: article().actor.rawName
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:153
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:154
 #: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
@@ -321,7 +321,7 @@ msgid "Code of conduct"
 msgstr "Code of conduct"
 
 #. placeholder {0}: article().replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:479
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:480
 msgid "Comments ({0})"
 msgstr "Comments ({0})"
 
@@ -338,6 +338,10 @@ msgstr "Content"
 #: src/components/NoteComposer.tsx:253
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
+
+#: src/routes/applink/sign/in/[token].tsx:56
+msgid "Continue in browser"
+msgstr "Continue in browser"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:617
 msgid "Copied"
@@ -470,7 +474,7 @@ msgstr "Drag to select the area you want to keep, then click “Crop” to updat
 msgid "e.g., @user@mastodon.social"
 msgstr "e.g., @user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:334
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:335
 msgid "Edit"
 msgstr "Edit"
 
@@ -784,7 +788,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:495
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:496
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 
@@ -1146,6 +1150,10 @@ msgstr "Notifications"
 msgid "Number of invitations"
 msgstr "Number of invitations"
 
+#: src/routes/applink/sign/in/[token].tsx:47
+msgid "Open in app"
+msgstr "Open in app"
+
 #: src/routes/(root)/sign/index.tsx:406
 msgid "Or"
 msgstr "Or"
@@ -1154,7 +1162,7 @@ msgstr "Or"
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:418
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:419
 msgid "Other languages"
 msgstr "Other languages"
 
@@ -1452,6 +1460,10 @@ msgstr "Show Preview"
 msgid "Sign in"
 msgstr "Sign in"
 
+#: src/routes/applink/sign/in/[token].tsx:39
+msgid "Sign in to Hackers' Pub"
+msgstr "Sign in to Hackers' Pub"
+
 #: src/routes/(root)/sign/index.tsx:420
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
@@ -1519,9 +1531,9 @@ msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:350
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:364
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:526
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:351
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:365
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:527
 msgid "Table of contents"
 msgstr "Table of contents"
 
@@ -1530,7 +1542,7 @@ msgstr "Table of contents"
 #~ msgstr "Tag"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:536
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:537
 msgid "Tags"
 msgstr "Tags"
 
@@ -1661,11 +1673,11 @@ msgstr "Toggle sidebar"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:175
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:402
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:277
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:278
 msgid "Translating..."
 msgstr "Translating..."
 
@@ -1787,7 +1799,7 @@ msgstr "What's on your mind?"
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:486
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:487
 msgid "Write a reply..."
 msgstr "Write a reply..."
 
