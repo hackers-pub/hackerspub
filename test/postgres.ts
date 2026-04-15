@@ -297,13 +297,19 @@ export function createTestKv(): TestKv {
 export function createTestEmailTransport(): TestEmailTransport {
   const messages: unknown[] = [];
 
+  const receipt = { successful: true, errorMessages: [] };
+
   return {
     messages,
     transport: {
+      send(message: unknown) {
+        messages.push(message);
+        return Promise.resolve(receipt);
+      },
       async *sendMany(batch: Iterable<unknown>) {
         for (const message of batch) {
           messages.push(message);
-          yield { successful: true, errorMessages: [] };
+          yield receipt;
         }
       },
     } as unknown as Transport,
