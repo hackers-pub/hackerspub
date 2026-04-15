@@ -203,8 +203,20 @@ export function createFedCtx(
         ? new URL("/inbox", "http://localhost/")
         : new URL(`/actors/${identifier}/inbox`, "http://localhost/");
     },
-    getObjectUri(_type: unknown, values: { id: string }) {
-      return new URL(`/objects/${values.id}`, "http://localhost/");
+    getFollowersUri(identifier: string) {
+      return new URL(`/actors/${identifier}/followers`, "http://localhost/");
+    },
+    getFollowingUri(identifier: string) {
+      return new URL(`/actors/${identifier}/following`, "http://localhost/");
+    },
+    getObjectUri(_type: unknown, values: Record<string, string>) {
+      if ("id" in values) {
+        return new URL(`/objects/${values.id}`, "http://localhost/");
+      }
+      return new URL(
+        `/objects/${Object.values(values).join("/")}`,
+        "http://localhost/",
+      );
     },
     sendActivity() {
       return Promise.resolve(undefined);
