@@ -55,6 +55,49 @@ export async function createNotification(
   emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
   const postId = post?.id;
+  const notificationWhere = and(
+    eq(notificationTable.accountId, accountId),
+    eq(notificationTable.type, type),
+    post == null
+      ? isNull(notificationTable.postId)
+      : eq(notificationTable.postId, post.id),
+    emoji == null
+      ? undefined
+      : typeof emoji === "string"
+      ? eq(notificationTable.emoji, emoji)
+      : eq(notificationTable.customEmojiId, emoji.id),
+  );
+
+  // Update first so mergeable notifications still work inside an existing
+  // transaction, where a unique-violation insert would abort the transaction.
+  if (type !== "follow") {
+    const mergedRows = await db.update(notificationTable)
+      .set({
+        actorIds: sql`
+          CASE
+            WHEN ${actorId} = ANY(${notificationTable.actorIds})
+            THEN ${notificationTable.actorIds}
+            ELSE array_append(${notificationTable.actorIds}, ${actorId})
+          END
+        `,
+        created: created ?? sql`CURRENT_TIMESTAMP`,
+      })
+      .where(notificationWhere)
+      .returning();
+    const merged = mergedRows[0];
+    if (merged != null) {
+      await sendApnsNotificationBestEffort(db, {
+        accountId,
+        notificationId: merged.id,
+        type,
+        actorId,
+        postId,
+        emoji,
+      });
+      return merged;
+    }
+  }
+
   try {
     const id = generateUuidV7();
     const notificationRows = await db.insert(notificationTable)
@@ -84,27 +127,23 @@ export async function createNotification(
     }
     return notification;
   } catch (error) {
-    if (error instanceof postgres.PostgresError && error.code === "23505") {
+    const isUniqueViolation = error instanceof postgres.PostgresError
+      ? error.code === "23505"
+      : typeof error === "object" && error != null &&
+        "code" in error && error.code === "23505";
+    if (isUniqueViolation) {
       const notificationRows = await db.update(notificationTable)
         .set({
-          actorIds:
-            sql`array_append(${notificationTable.actorIds}, ${actorId})`,
+          actorIds: sql`
+            CASE
+              WHEN ${actorId} = ANY(${notificationTable.actorIds})
+              THEN ${notificationTable.actorIds}
+              ELSE array_append(${notificationTable.actorIds}, ${actorId})
+            END
+          `,
           created: created ?? sql`CURRENT_TIMESTAMP`,
         })
-        .where(
-          and(
-            eq(notificationTable.accountId, accountId),
-            eq(notificationTable.type, type),
-            post == null
-              ? isNull(notificationTable.postId)
-              : eq(notificationTable.postId, post.id),
-            emoji == null
-              ? undefined
-              : typeof emoji === "string"
-              ? eq(notificationTable.emoji, emoji)
-              : eq(notificationTable.customEmojiId, emoji.id),
-          ),
-        )
+        .where(notificationWhere)
         .returning();
       const notification = notificationRows[0];
       if (notification != null) {
