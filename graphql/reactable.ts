@@ -72,16 +72,22 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
       type: Actor,
       async resolve(group, args, ctx, info) {
         const query = reactorConnectionHelpers.getQuery(args, ctx, info);
-        const reactions = query.where == null
-          ? []
-          : await ctx.db.query.reactionTable.findMany({
-            ...query,
-            where: {
-              ...query.where,
-              ...group.where,
-              postId: group.subject.id,
-            },
-          });
+        const where = query.where == null
+          ? {
+            ...group.where,
+            postId: group.subject.id,
+          }
+          : {
+            AND: [
+              query.where,
+              group.where,
+              { postId: group.subject.id },
+            ],
+          };
+        const reactions = await ctx.db.query.reactionTable.findMany({
+          ...query,
+          where,
+        });
         return {
           totalCount: group.count,
           postId: group.subject.id,
