@@ -84,12 +84,33 @@ export async function block(
     .onConflictDoNothing()
     .returning();
   if (rows.length < 1) {
-    return await db.query.blockingTable.findFirst({
+    const existing = await db.query.blockingTable.findFirst({
       where: {
         blockerId: blocker.actor.id,
         blockeeId: blockee.id,
       },
     });
+    if (blockee.accountId != null) {
+      const account = await db.query.accountTable.findFirst({
+        where: { id: blockee.accountId },
+        with: { actor: true },
+      });
+      if (account != null) {
+        await removeFollower(fedCtx, account, blocker.actor);
+        await unfollow(fedCtx, account, blocker.actor);
+      }
+    }
+    return existing;
+  }
+  if (blockee.accountId != null) {
+    const account = await db.query.accountTable.findFirst({
+      where: { id: blockee.accountId },
+      with: { actor: true },
+    });
+    if (account != null) {
+      await removeFollower(fedCtx, account, blocker.actor);
+      await unfollow(fedCtx, account, blocker.actor);
+    }
   }
   if (blockee.accountId == null) {
     const block = new vocab.Block({
