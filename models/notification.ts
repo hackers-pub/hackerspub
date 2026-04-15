@@ -98,7 +98,9 @@ export async function createNotification(
             ELSE array_append(${notificationTable.actorIds}, ${actorId})
           END
         `,
-        created: created ?? sql`CURRENT_TIMESTAMP`,
+        created: sql`GREATEST(${notificationTable.created}, ${
+          created ?? sql`CURRENT_TIMESTAMP`
+        })`,
       })
       .where(notificationWhere)
       .returning();
@@ -162,7 +164,9 @@ export async function createNotification(
               ELSE array_append(${notificationTable.actorIds}, ${actorId})
             END
           `,
-          created: created ?? sql`CURRENT_TIMESTAMP`,
+          created: sql`GREATEST(${notificationTable.created}, ${
+            created ?? sql`CURRENT_TIMESTAMP`
+          })`,
         })
         .where(notificationWhere)
         .returning();
