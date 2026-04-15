@@ -2,6 +2,7 @@ import { assert } from "@std/assert/assert";
 import type { RequestContext } from "@fedify/fedify";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
+import type { Transport } from "@upyo/core";
 import {
   accountEmailTable,
   accountTable,
@@ -18,6 +19,16 @@ import { db } from "../graphql/db.ts";
 import type { UserContext } from "../graphql/builder.ts";
 
 export type AuthenticatedAccount = NonNullable<UserContext["account"]>;
+
+export interface TestKv {
+  readonly store: Map<string, unknown>;
+  readonly kv: UserContext["kv"];
+}
+
+export interface TestEmailTransport {
+  readonly messages: unknown[];
+  readonly transport: UserContext["email"];
+}
 
 export async function withRollback(
   run: (tx: Transaction) => Promise<void>,
@@ -263,20 +274,47 @@ export async function insertMention(
   await tx.insert(mentionTable).values(values);
 }
 
+export function createTestKv(): TestKv {
+  const store = new Map<string, unknown>();
+
+  return {
+    store,
+    kv: {
+      get(key: string) {
+        return Promise.resolve(store.get(key));
+      },
+      set(key: string, value: unknown) {
+        store.set(key, value);
+        return Promise.resolve(true);
+      },
+      delete(key: string) {
+        return Promise.resolve(store.delete(key));
+      },
+    } as UserContext["kv"],
+  };
+}
+
+export function createTestEmailTransport(): TestEmailTransport {
+  const messages: unknown[] = [];
+
+  return {
+    messages,
+    transport: {
+      async *sendMany(batch: Iterable<unknown>) {
+        for (const message of batch) {
+          messages.push(message);
+          yield { successful: true, errorMessages: [] };
+        }
+      },
+    } as unknown as Transport,
+  };
+}
+
 export function createFedCtx(
   tx: Transaction,
+  options: { kv?: UserContext["kv"] } = {},
 ): RequestContext<ContextData> {
-  const kv = {
-    get() {
-      return Promise.resolve(undefined);
-    },
-    set() {
-      return Promise.resolve(true);
-    },
-    delete() {
-      return Promise.resolve(true);
-    },
-  };
+  const kv = options.kv ?? createTestKv().kv;
 
   return {
     host: "localhost",
@@ -326,32 +364,20 @@ export function makeUserContext(
   account: AuthenticatedAccount,
   overrides: Partial<UserContext> = {},
 ): UserContext {
-  const kv = {
-    get() {
-      return Promise.resolve(undefined);
-    },
-    set() {
-      return Promise.resolve(true);
-    },
-    delete() {
-      return Promise.resolve(true);
-    },
-  };
+  const kv = overrides.kv ?? createTestKv().kv;
+  const email = overrides.email ?? createTestEmailTransport().transport;
+  const fedCtx = overrides.fedCtx ?? createFedCtx(tx, { kv });
 
   return {
     db: tx,
-    kv: kv as unknown as UserContext["kv"],
+    kv,
     disk: {
       getUrl(key: string) {
         return Promise.resolve(`http://localhost/media/${key}`);
       },
     } as UserContext["disk"],
-    email: {
-      async *sendMany() {
-        yield* [];
-      },
-    } as unknown as UserContext["email"],
-    fedCtx: createFedCtx(tx),
+    email,
+    fedCtx,
     request: new Request("http://localhost/graphql"),
     session: {
       id: generateUuidV7(),
@@ -359,6 +385,31 @@ export function makeUserContext(
       created: new Date("2026-04-15T00:00:00.000Z"),
     },
     account,
+    ...overrides,
+  };
+}
+
+export function makeGuestContext(
+  tx: Transaction,
+  overrides: Partial<UserContext> = {},
+): UserContext {
+  const kv = overrides.kv ?? createTestKv().kv;
+  const email = overrides.email ?? createTestEmailTransport().transport;
+  const fedCtx = overrides.fedCtx ?? createFedCtx(tx, { kv });
+
+  return {
+    db: tx,
+    kv,
+    disk: {
+      getUrl(key: string) {
+        return Promise.resolve(`http://localhost/media/${key}`);
+      },
+    } as UserContext["disk"],
+    email,
+    fedCtx,
+    request: new Request("http://localhost/graphql"),
+    session: undefined,
+    account: undefined,
     ...overrides,
   };
 }
