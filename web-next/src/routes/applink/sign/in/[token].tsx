@@ -1,84 +1,61 @@
-import type { APIEvent } from "@solidjs/start/server";
+import { A, useParams, useSearchParams } from "@solidjs/router";
+import { onMount } from "solid-js";
+import { Button } from "~/components/ui/button.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+export default function AppLinkVerify() {
+  const { t } = useLingui();
+  const params = useParams();
+  const [searchParams] = useSearchParams();
 
-export function GET({ params, request }: APIEvent) {
-  const { token } = params;
-  const url = new URL(request.url);
-  const code = url.searchParams.get("code");
-  if (code == null) {
-    return new Response("Missing code", { status: 400 });
-  }
+  const token = () => params.token ?? "";
+  const code = () => {
+    const c = searchParams.code;
+    return Array.isArray(c) ? c[0] ?? "" : c ?? "";
+  };
 
-  const appLink = `hackerspub://verify?token=${
-    encodeURIComponent(token)
-  }&code=${encodeURIComponent(code)}`;
-  const webFallback = `/sign/in/${encodeURIComponent(token)}?code=${
-    encodeURIComponent(code)
-  }&platform=web`;
+  const appLink = () =>
+    `hackerspub://verify?token=${encodeURIComponent(token())}&code=${
+      encodeURIComponent(code())
+    }`;
 
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hackers' Pub</title>
-<style>
-  body {
-    margin: 0;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  }
-  .container {
-    text-align: center;
-    padding: 24px;
-  }
-  .btn {
-    display: inline-block;
-    padding: 14px 32px;
-    border-radius: 9999px;
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: 600;
-    margin: 8px;
-  }
-  .btn-primary {
-    background: #18181b;
-    color: #fff;
-  }
-  .btn-secondary {
-    background: #f4f4f5;
-    color: #18181b;
-  }
-</style>
-</head>
-<body>
-<script>
-  var appLink = ${JSON.stringify(appLink)};
-  try { window.location.href = appLink; } catch(e) {}
-</script>
-<div class="container">
-  <p>Sign in to Hackers' Pub</p>
-  <div>
-    <a href="${escapeHtml(appLink)}" class="btn btn-primary">Open in app</a>
-  </div>
-  <div style="margin-top: 8px;">
-    <a href="${
-    escapeHtml(webFallback)
-  }" class="btn btn-secondary">Continue in browser</a>
-  </div>
-</div>
-</body>
-</html>`;
+  const webFallback = () =>
+    `/sign/in/${encodeURIComponent(token())}?code=${
+      encodeURIComponent(code())
+    }&platform=web`;
 
-  return new Response(html, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+  onMount(() => {
+    try {
+      window.location.href = appLink();
+    } catch {
+      // Custom scheme not handled — fallback buttons are shown
+    }
   });
+
+  return (
+    <div class="flex min-h-screen items-center justify-center bg-background">
+      <div class="flex flex-col items-center gap-4 p-6 text-center">
+        <p class="text-lg font-medium">
+          {t`Sign in to Hackers' Pub`}
+        </p>
+        <Button
+          as="a"
+          href={appLink()}
+          size="lg"
+          class="w-full rounded-full"
+        >
+          {t`Open in app`}
+        </Button>
+        <Button
+          as={A}
+          href={webFallback()}
+          variant="secondary"
+          size="lg"
+          class="w-full rounded-full"
+        >
+          {t`Continue in browser`}
+        </Button>
+      </div>
+    </div>
+  );
 }

@@ -128,11 +128,11 @@ msgstr "{0}在{1}转帖了"
 msgid "{0} shared your post"
 msgstr "{0} 转发了你的内容"
 
-#. placeholder {0}: article().actor.name
+#. placeholder {0}: article().actor.rawName
 #. placeholder {0}: note().actor.name
 #. placeholder {1}: note().excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:153
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:154
 #: src/routes/(root)/[handle]/[noteId].tsx:144
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
@@ -321,7 +321,7 @@ msgid "Code of conduct"
 msgstr "行为准则"
 
 #. placeholder {0}: article().replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:479
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:480
 msgid "Comments ({0})"
 msgstr "评论（{0}）"
 
@@ -338,6 +338,10 @@ msgstr "内容"
 #: src/components/NoteComposer.tsx:253
 msgid "Content cannot be empty"
 msgstr "内容不能为空"
+
+#: src/routes/applink/sign/in/[token].tsx:56
+msgid "Continue in browser"
+msgstr "在浏览器中继续"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:617
 msgid "Copied"
@@ -470,7 +474,7 @@ msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:334
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:335
 msgid "Edit"
 msgstr "编辑"
 
@@ -780,7 +784,7 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:495
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:496
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此文章。在你的实例搜索 {0} 后回复。"
 
@@ -1141,6 +1145,10 @@ msgstr "通知"
 msgid "Number of invitations"
 msgstr "邀请次数"
 
+#: src/routes/applink/sign/in/[token].tsx:47
+msgid "Open in app"
+msgstr "在应用中打开"
+
 #: src/routes/(root)/sign/index.tsx:406
 msgid "Or"
 msgstr "或"
@@ -1149,7 +1157,7 @@ msgstr "或"
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:418
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:419
 msgid "Other languages"
 msgstr "其他语言"
 
@@ -1447,6 +1455,10 @@ msgstr "显示预览"
 msgid "Sign in"
 msgstr "登录"
 
+#: src/routes/applink/sign/in/[token].tsx:39
+msgid "Sign in to Hackers' Pub"
+msgstr "登录 Hackers' Pub"
+
 #: src/routes/(root)/sign/index.tsx:420
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
@@ -1514,9 +1526,9 @@ msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:350
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:364
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:526
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:351
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:365
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:527
 msgid "Table of contents"
 msgstr "目录"
 
@@ -1525,7 +1537,7 @@ msgstr "目录"
 #~ msgstr "标签"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:536
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:537
 msgid "Tags"
 msgstr "标签"
 
@@ -1656,11 +1668,11 @@ msgstr "切换侧边栏"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:175
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:402
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:277
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:278
 msgid "Translating..."
 msgstr "正在翻译…"
 
@@ -1782,7 +1794,7 @@ msgstr "你在想啥？"
 msgid "Without shares"
 msgstr "不含转帖"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:486
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:487
 msgid "Write a reply..."
 msgstr "写个回复…"
 
