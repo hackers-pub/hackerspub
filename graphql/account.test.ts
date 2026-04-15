@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { encodeGlobalID } from "@pothos/plugin-relay";
+import * as vocab from "@fedify/vocab";
 import { execute, parse } from "graphql";
 import { updateAccountData } from "@hackerspub/models/account";
 import { schema } from "./mod.ts";
 import {
+  createFedCtx,
   insertAccountWithActor,
   makeGuestContext,
   makeUserContext,
@@ -39,6 +42,21 @@ const invitationTreeQuery = parse(`
       avatarUrl
       inviterId
       hidden
+    }
+  }
+`);
+
+const updateAccountMutation = parse(`
+  mutation UpdateAccount($input: UpdateAccountInput!) {
+    updateAccount(input: $input) {
+      account {
+        username
+        bio
+        locales
+        preferAiSummary
+        defaultNoteVisibility
+        defaultShareVisibility
+      }
     }
   }
 `);
@@ -166,6 +184,105 @@ test("invitationTree redacts hidden accounts", async () => {
     assert.equal(
       hiddenNode.avatarUrl,
       "https://gravatar.com/avatar/?d=mp&s=128",
+    );
+  });
+});
+
+test("updateAccount updates profile preferences for the signed-in account", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updateaccountgraphql",
+      name: "Update Account GraphQL",
+      email: "updateaccountgraphql@example.com",
+    });
+
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(
+        new vocab.Person({
+          id: fedCtx.getActorUri(identifier),
+        }),
+      );
+
+    const result = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          bio: "Updated profile bio",
+          locales: ["ko-KR", "en-US"],
+          preferAiSummary: true,
+          hideFromInvitationTree: true,
+          hideForeignLanguages: true,
+          defaultNoteVisibility: "FOLLOWERS",
+          defaultShareVisibility: "UNLISTED",
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      updateAccount: {
+        account: {
+          username: "updateaccountgraphql",
+          bio: "Updated profile bio",
+          locales: ["ko-KR", "en-US"],
+          preferAiSummary: true,
+          defaultNoteVisibility: "FOLLOWERS",
+          defaultShareVisibility: "UNLISTED",
+        },
+      },
+    });
+
+    const stored = await tx.query.accountTable.findFirst({
+      where: { id: account.account.id },
+    });
+    assert.ok(stored != null);
+    assert.equal(stored.hideFromInvitationTree, true);
+    assert.equal(stored.hideForeignLanguages, true);
+    assert.deepEqual(stored.locales, ["ko-KR", "en-US"]);
+    assert.equal(stored.preferAiSummary, true);
+    assert.equal(stored.noteVisibility, "followers");
+    assert.equal(stored.shareVisibility, "unlisted");
+  });
+});
+
+test("updateAccount rejects a second username change", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "renameonce",
+      name: "Rename Once",
+      email: "renameonce@example.com",
+    });
+
+    const renamed = await updateAccountData(tx, {
+      id: account.account.id,
+      username: "renamedonce",
+    });
+    assert.ok(renamed != null);
+    assert.ok(renamed.usernameChanged != null);
+
+    const result = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          username: "renamedtwice",
+        },
+      },
+      contextValue: makeUserContext(tx, { ...account.account, ...renamed }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.deepEqual(toPlainJson(result.data), { updateAccount: null });
+    assert.equal(result.errors?.length, 1);
+    assert.equal(
+      result.errors?.[0].message,
+      "Username cannot be changed after it has been changed.",
     );
   });
 });
