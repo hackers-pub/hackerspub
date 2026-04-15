@@ -8,7 +8,7 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 
-const VALID_TOKEN = "0123456789abcdef".repeat(4);
+const validToken = "0123456789abcdef".repeat(4);
 
 const registerMutation = parse(`
   mutation RegisterApnsDeviceToken($deviceToken: String!) {
@@ -77,7 +77,7 @@ test("registerApnsDeviceToken and unregisterApnsDeviceToken round-trip through G
     const registerResult = await execute({
       schema,
       document: registerMutation,
-      variableValues: { deviceToken: VALID_TOKEN.toUpperCase() },
+      variableValues: { deviceToken: validToken.toUpperCase() },
       contextValue: makeUserContext(tx, account.account),
       onError: "NO_PROPAGATE",
     });
@@ -86,14 +86,14 @@ test("registerApnsDeviceToken and unregisterApnsDeviceToken round-trip through G
     assert.deepEqual(toPlainJson(registerResult.data), {
       registerApnsDeviceToken: {
         __typename: "RegisterApnsDeviceTokenPayload",
-        deviceToken: VALID_TOKEN,
+        deviceToken: validToken,
       },
     });
 
     const unregisterResult = await execute({
       schema,
       document: unregisterMutation,
-      variableValues: { deviceToken: VALID_TOKEN },
+      variableValues: { deviceToken: validToken },
       contextValue: makeUserContext(tx, account.account),
       onError: "NO_PROPAGATE",
     });
@@ -102,7 +102,7 @@ test("registerApnsDeviceToken and unregisterApnsDeviceToken round-trip through G
     assert.deepEqual(toPlainJson(unregisterResult.data), {
       unregisterApnsDeviceToken: {
         __typename: "UnregisterApnsDeviceTokenPayload",
-        deviceToken: VALID_TOKEN,
+        deviceToken: validToken,
         unregistered: true,
       },
     });

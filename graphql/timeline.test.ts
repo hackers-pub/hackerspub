@@ -4,6 +4,7 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { follow } from "@hackerspub/models/following";
 import { sharePost } from "@hackerspub/models/post";
+import { postTable } from "@hackerspub/models/schema";
 import { schema } from "./mod.ts";
 import {
   createFedCtx,
@@ -14,7 +15,6 @@ import {
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
-import { postTable } from "@hackerspub/models/schema";
 
 const publicTimelineQuery = parse(`
   query PublicTimelineTest(

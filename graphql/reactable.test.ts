@@ -14,6 +14,12 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 
+interface ReactedNoteSeedResult {
+  noteId: string;
+  viewerAccount: Awaited<ReturnType<typeof insertAccountWithActor>>["account"];
+  reactorIds: string[];
+}
+
 const reactorsQuery = parse(`
   query ReactorsQuery($id: ID!) {
     node(id: $id) {
@@ -85,7 +91,9 @@ Deno.test({
   },
 });
 
-async function seedReactedNote(tx: Transaction) {
+async function seedReactedNote(
+  tx: Transaction,
+): Promise<ReactedNoteSeedResult> {
   const timestamp = new Date("2026-04-15T00:00:00.000Z");
 
   await seedLocalInstance(tx);

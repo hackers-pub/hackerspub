@@ -5,6 +5,8 @@ import type { Transaction } from "./db.ts";
 import { persistPollVote, vote } from "./poll.ts";
 import {
   type NewPost,
+  type Poll,
+  type PollOption,
   pollOptionTable,
   pollTable,
   postTable,
@@ -13,8 +15,16 @@ import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
+  insertRemoteActor,
   withRollback,
 } from "../test/postgres.ts";
+
+type InsertQuestionPollResult = {
+  post: NonNullable<
+    Awaited<ReturnType<Transaction["query"]["postTable"]["findFirst"]>>
+  >;
+  poll: Poll & { options: PollOption[] };
+};
 
 async function insertQuestionPoll(
   tx: Transaction,
@@ -24,7 +34,7 @@ async function insertQuestionPoll(
     optionTitles: string[];
     ends?: Date;
   },
-) {
+): Promise<InsertQuestionPollResult> {
   const postId = generateUuidV7();
   const published = new Date("2026-04-15T00:00:00.000Z");
 
@@ -199,10 +209,11 @@ test("persistPollVote() stores an incoming vote for a persisted poll", async () 
       name: "Persist Poll Author",
       email: "persistpollauthor@example.com",
     });
-    const remoteLikeVoter = await insertAccountWithActor(tx, {
+    const remoteVoter = await insertRemoteActor(tx, {
       username: "persistpollvoter",
       name: "Persist Poll Voter",
-      email: "persistpollvoter@example.com",
+      host: "remote.example",
+      iri: "https://remote.example/users/persistpollvoter",
     });
     const { poll, post } = await insertQuestionPoll(tx, {
       account: author.account,
@@ -212,7 +223,7 @@ test("persistPollVote() stores an incoming vote for a persisted poll", async () 
 
     const voteNote = new vocab.Note({
       id: new URL(`http://localhost/objects/${generateUuidV7()}`),
-      attribution: new URL(remoteLikeVoter.actor.iri),
+      attribution: new URL(remoteVoter.iri),
       name: "Rust",
       replyTarget: new URL(post.iri),
     });
@@ -221,14 +232,14 @@ test("persistPollVote() stores an incoming vote for a persisted poll", async () 
 
     assert.ok(storedVote != null);
     assert.equal(storedVote.postId, poll.postId);
-    assert.equal(storedVote.actorId, remoteLikeVoter.actor.id);
+    assert.equal(storedVote.actorId, remoteVoter.id);
     assert.equal(storedVote.optionIndex, 1);
 
     const votes = await tx.query.pollVoteTable.findMany({
       where: { postId: poll.postId },
     });
     assert.equal(votes.length, 1);
-    assert.equal(votes[0].actorId, remoteLikeVoter.actor.id);
+    assert.equal(votes[0].actorId, remoteVoter.id);
     assert.equal(votes[0].optionIndex, 1);
   });
 });

@@ -157,5 +157,11 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
 
     assert.equal(updated.id, created.id);
     assert.match(updated.contentHtml, /Updated note body/);
+
+    const quotedAfterUpdate = await tx.query.postTable.findFirst({
+      where: { id: quotedPost.id },
+    });
+    assert.ok(quotedAfterUpdate != null);
+    assert.equal(quotedAfterUpdate.quotesCount, 1);
   });
 });
