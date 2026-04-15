@@ -1572,9 +1572,6 @@ export async function deletePost(
   for (const reply of replies) {
     await deletePost(fedCtx, { ...reply, replyTarget: post });
   }
-  if (post.replyTarget != null) {
-    await updateRepliesCount(db, post.replyTarget, -1);
-  }
   // Get posts quoting this post before deleting
   const quotingPosts = await db.query.postTable.findMany({
     where: {
@@ -1600,6 +1597,25 @@ export async function deletePost(
       ],
     },
   });
+
+  if (post.replyTargetId != null) {
+    const replyTarget = originalPosts.find((p) => p.id === post.replyTargetId);
+    if (replyTarget != null) {
+      await updateRepliesCount(db, replyTarget, -1);
+    }
+  }
+  if (post.sharedPostId != null) {
+    const sharedPost = originalPosts.find((p) => p.id === post.sharedPostId);
+    if (sharedPost != null) {
+      await updateSharesCount(db, sharedPost, -1);
+    }
+  }
+  if (post.quotedPostId != null) {
+    const quotedPost = originalPosts.find((p) => p.id === post.quotedPostId);
+    if (quotedPost != null) {
+      await updateQuotesCount(db, quotedPost, -1);
+    }
+  }
 
   // When a quoted post is deleted, update the quotes count of the original posts
   for (const quotingPost of quotingPosts) {
