@@ -36,7 +36,8 @@ async function insertQuestionPoll(
   },
 ): Promise<InsertQuestionPollResult> {
   const postId = generateUuidV7();
-  const published = new Date("2026-04-15T00:00:00.000Z");
+  const published = new Date();
+  const oneDayMs = 24 * 60 * 60 * 1000;
 
   await tx.insert(postTable).values(
     {
@@ -63,7 +64,7 @@ async function insertQuestionPoll(
     postId: post.id,
     multiple: values.multiple,
     votersCount: 0,
-    ends: values.ends ?? new Date("2026-04-16T00:00:00.000Z"),
+    ends: values.ends ?? new Date(published.getTime() + oneDayMs),
   });
   await tx.insert(pollOptionTable).values(
     values.optionTitles.map((title, index) => ({
