@@ -7,6 +7,7 @@ import {
   createFedCtx,
   insertAccountWithActor,
   makeGuestContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -22,10 +23,6 @@ const lookupRemoteFollowerQuery = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("lookupRemoteFollower builds a fallback result from WebFinger data", async () => {
   await withRollback(async (tx) => {

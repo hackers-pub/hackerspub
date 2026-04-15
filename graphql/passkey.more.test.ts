@@ -10,6 +10,7 @@ import {
   insertAccountWithActor,
   makeGuestContext,
   makeUserContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -44,10 +45,6 @@ const verifyPasskeyRegistrationMutation = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("Account.passkeys exposes the signed-in account's passkeys", async () => {
   await withRollback(async (tx) => {

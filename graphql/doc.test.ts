@@ -6,6 +6,7 @@ import {
   createFedCtx,
   createTestKv,
   makeGuestContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -53,29 +54,19 @@ const privacyPolicyQuery = parse(`
   }
 `);
 
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
-
 function makeDocContext(
   tx: Parameters<typeof withRollback>[0] extends (tx: infer T) => Promise<void>
     ? T
     : never,
 ) {
-  const { kv, store } = createTestKv();
-  const extendedKv = {
-    ...kv,
-    getMany(keys: string[]) {
-      return Promise.resolve(keys.map((key) => store.get(key)));
-    },
-  } as typeof kv;
-  const fedCtx = createFedCtx(tx, { kv: extendedKv });
+  const { kv } = createTestKv();
+  const fedCtx = createFedCtx(tx, { kv });
   fedCtx.getDocumentLoader = () => Promise.resolve({}) as never;
   fedCtx.lookupObject = () => Promise.resolve(null);
 
   return makeGuestContext(tx, {
     fedCtx,
-    kv: extendedKv,
+    kv,
   });
 }
 

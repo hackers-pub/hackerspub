@@ -283,6 +283,9 @@ export function createTestKv(): TestKv {
       get(key: string) {
         return Promise.resolve(store.get(key));
       },
+      getMany(keys: string[]) {
+        return Promise.resolve(keys.map((key) => store.get(key)));
+      },
       set(key: string, value: unknown) {
         store.set(key, value);
         return Promise.resolve(true);
@@ -292,6 +295,10 @@ export function createTestKv(): TestKv {
       },
     } as UserContext["kv"],
   };
+}
+
+export function toPlainJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
 }
 
 export function createTestEmailTransport(): TestEmailTransport {

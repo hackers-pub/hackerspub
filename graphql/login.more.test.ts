@@ -8,6 +8,7 @@ import {
   createTestKv,
   insertAccountWithActor,
   makeGuestContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -36,10 +37,6 @@ const completeLoginChallengeMutation = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("loginByUsername and loginByEmail return AccountNotFoundError for unknown accounts", async () => {
   await withRollback(async (tx) => {

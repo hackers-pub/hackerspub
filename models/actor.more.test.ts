@@ -53,13 +53,7 @@ test("persistActor() stores a remote actor and toRecipient() reflects inbox endp
 test("persistActorsByHandles() fetches missing handles and returns cached actors on repeat", async () => {
   await withRollback(async (tx) => {
     const { kv, store } = createTestKv();
-    const extendedKv = {
-      ...kv,
-      getMany(keys: string[]) {
-        return Promise.resolve(keys.map((key) => store.get(key)));
-      },
-    } as typeof kv;
-    const fedCtx = createFedCtx(tx, { kv: extendedKv });
+    const fedCtx = createFedCtx(tx, { kv });
     let lookups = 0;
     fedCtx.getDocumentLoader = () => Promise.resolve({}) as never;
     fedCtx.lookupObject = (handle: string) => {

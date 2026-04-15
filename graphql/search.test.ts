@@ -6,6 +6,7 @@ import {
   insertAccountWithActor,
   insertNotePost,
   makeGuestContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -22,10 +23,6 @@ const searchObjectQuery = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("searchObject returns an error union for empty queries", async () => {
   await withRollback(async (tx) => {

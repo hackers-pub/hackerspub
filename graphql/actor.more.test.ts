@@ -12,6 +12,7 @@ import {
   insertRemotePost,
   makeGuestContext,
   makeUserContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -57,10 +58,6 @@ const recommendedActorsQuery = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("actorByUuid and actorByHandle resolve local actors", async () => {
   await withRollback(async (tx) => {
