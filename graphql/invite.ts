@@ -191,11 +191,12 @@ builder.mutationField("invite", (t) =>
       ) {
         return errors;
       }
+      const inviter = ctx.account;
       const updated = await ctx.db.update(accountTable).set({
         leftInvitations: sql`${accountTable.leftInvitations} - 1`,
       }).where(
         and(
-          eq(accountTable.id, ctx.account.id),
+          eq(accountTable.id, inviter.id),
           gt(accountTable.leftInvitations, 0),
         ),
       ).returning();
@@ -205,13 +206,27 @@ builder.mutationField("invite", (t) =>
         } satisfies InviteValidationErrors;
       }
       const token = await createSignupToken(ctx.kv, email, {
-        inviterId: ctx.account.id,
+        inviterId: inviter.id,
         expiration: EXPIRATION,
       });
+      const refundInvitation = () =>
+        ctx.db.update(accountTable).set({
+          leftInvitations: sql`${accountTable.leftInvitations} + 1`,
+        }).where(eq(accountTable.id, inviter.id));
+      const cleanupSignupToken = async () => {
+        try {
+          await deleteSignupToken(ctx.kv, token.token);
+        } catch (error) {
+          logger.error(
+            "Failed to delete signup token after invite failure: {error}",
+            { error },
+          );
+        }
+      };
       try {
         const message = await getEmailMessage({
           locale: args.locale,
-          inviter: ctx.account,
+          inviter,
           verifyUrlTemplate: args.verifyUrl,
           to: email,
           token,
@@ -224,11 +239,8 @@ builder.mutationField("invite", (t) =>
             "Failed to send invitation email: {errors}",
             { errors: receipt.errorMessages },
           );
-          await deleteSignupToken(ctx.kv, token.token);
-          // Credit back the invitation on email send failure
-          await ctx.db.update(accountTable).set({
-            leftInvitations: sql`${accountTable.leftInvitations} + 1`,
-          }).where(eq(accountTable.id, ctx.account.id));
+          await refundInvitation();
+          await cleanupSignupToken();
 
           // Return validation error to inform the user
           return {
@@ -236,11 +248,12 @@ builder.mutationField("invite", (t) =>
           } satisfies InviteValidationErrors;
         }
       } catch (error) {
-        await deleteSignupToken(ctx.kv, token.token);
+        await refundInvitation();
+        await cleanupSignupToken();
         throw error;
       }
       return {
-        inviterId: ctx.account.id,
+        inviterId: inviter.id,
         email,
         locale: args.locale,
         message: args.message ?? undefined,

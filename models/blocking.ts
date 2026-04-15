@@ -71,6 +71,16 @@ export async function block(
 ): Promise<Blocking | undefined> {
   const id = generateUuidV7();
   const { db } = fedCtx.data;
+  const removeLocalFollowRelationships = async () => {
+    if (blockee.accountId == null) return;
+    const account = await db.query.accountTable.findFirst({
+      where: { id: blockee.accountId },
+      with: { actor: true },
+    });
+    if (account == null) return;
+    await removeFollower(fedCtx, account, blocker.actor);
+    await unfollow(fedCtx, account, blocker.actor);
+  };
   const rows = await db.insert(blockingTable)
     .values({
       id,
@@ -83,34 +93,14 @@ export async function block(
     })
     .onConflictDoNothing()
     .returning();
+  await removeLocalFollowRelationships();
   if (rows.length < 1) {
-    const existing = await db.query.blockingTable.findFirst({
+    return await db.query.blockingTable.findFirst({
       where: {
         blockerId: blocker.actor.id,
         blockeeId: blockee.id,
       },
     });
-    if (blockee.accountId != null) {
-      const account = await db.query.accountTable.findFirst({
-        where: { id: blockee.accountId },
-        with: { actor: true },
-      });
-      if (account != null) {
-        await removeFollower(fedCtx, account, blocker.actor);
-        await unfollow(fedCtx, account, blocker.actor);
-      }
-    }
-    return existing;
-  }
-  if (blockee.accountId != null) {
-    const account = await db.query.accountTable.findFirst({
-      where: { id: blockee.accountId },
-      with: { actor: true },
-    });
-    if (account != null) {
-      await removeFollower(fedCtx, account, blocker.actor);
-      await unfollow(fedCtx, account, blocker.actor);
-    }
   }
   if (blockee.accountId == null) {
     const block = new vocab.Block({
