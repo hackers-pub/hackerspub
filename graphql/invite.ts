@@ -1,6 +1,9 @@
 import { normalizeEmail } from "@hackerspub/models/account";
 import { accountTable } from "@hackerspub/models/schema";
-import { createSignupToken } from "@hackerspub/models/signup";
+import {
+  createSignupToken,
+  deleteSignupToken,
+} from "@hackerspub/models/signup";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, gt, sql } from "drizzle-orm";
@@ -184,7 +187,7 @@ builder.mutationField("invite", (t) =>
       }
       if (
         errors.inviter != null || errors.email != null ||
-        errors.email != null || ctx.account == null || email == null
+        errors.verifyUrl != null || ctx.account == null || email == null
       ) {
         return errors;
       }
@@ -205,30 +208,36 @@ builder.mutationField("invite", (t) =>
         inviterId: ctx.account.id,
         expiration: EXPIRATION,
       });
-      const message = await getEmailMessage({
-        locale: args.locale,
-        inviter: ctx.account,
-        verifyUrlTemplate: args.verifyUrl,
-        to: email,
-        token,
-        message: args.message ?? undefined,
-        expiration: EXPIRATION,
-      });
-      const receipt = await ctx.email.send(message);
-      if (!receipt.successful) {
-        logger.error(
-          "Failed to send invitation email: {errors}",
-          { errors: receipt.errorMessages },
-        );
-        // Credit back the invitation on email send failure
-        await ctx.db.update(accountTable).set({
-          leftInvitations: sql`${accountTable.leftInvitations} + 1`,
-        }).where(eq(accountTable.id, ctx.account.id));
+      try {
+        const message = await getEmailMessage({
+          locale: args.locale,
+          inviter: ctx.account,
+          verifyUrlTemplate: args.verifyUrl,
+          to: email,
+          token,
+          message: args.message ?? undefined,
+          expiration: EXPIRATION,
+        });
+        const receipt = await ctx.email.send(message);
+        if (!receipt.successful) {
+          logger.error(
+            "Failed to send invitation email: {errors}",
+            { errors: receipt.errorMessages },
+          );
+          await deleteSignupToken(ctx.kv, token.token);
+          // Credit back the invitation on email send failure
+          await ctx.db.update(accountTable).set({
+            leftInvitations: sql`${accountTable.leftInvitations} + 1`,
+          }).where(eq(accountTable.id, ctx.account.id));
 
-        // Return validation error to inform the user
-        return {
-          inviter: "INVITER_EMAIL_SEND_FAILED",
-        } satisfies InviteValidationErrors;
+          // Return validation error to inform the user
+          return {
+            inviter: "INVITER_EMAIL_SEND_FAILED",
+          } satisfies InviteValidationErrors;
+        }
+      } catch (error) {
+        await deleteSignupToken(ctx.kv, token.token);
+        throw error;
       }
       return {
         inviterId: ctx.account.id,
