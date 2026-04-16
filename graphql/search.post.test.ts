@@ -10,6 +10,7 @@ import {
   insertNotePost,
   makeGuestContext,
   makeUserContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -28,10 +29,6 @@ const searchPostQuery = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("searchPost returns matching public posts and respects language filters", async () => {
   await withRollback(async (tx) => {

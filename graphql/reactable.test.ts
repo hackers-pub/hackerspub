@@ -95,23 +95,24 @@ async function seedReactedNote(
   tx: Transaction,
 ): Promise<ReactedNoteSeedResult> {
   const timestamp = new Date("2026-04-15T00:00:00.000Z");
+  const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
 
   await seedLocalInstance(tx);
 
   const author = await insertAccountWithActor(tx, {
-    username: "author",
+    username: `author${suffix}`,
     name: "Author",
-    email: "author@example.com",
+    email: `author-${suffix}@example.com`,
   });
   const viewer = await insertAccountWithActor(tx, {
-    username: "viewer",
+    username: `viewer${suffix}`,
     name: "Viewer",
-    email: "viewer@example.com",
+    email: `viewer-${suffix}@example.com`,
   });
   const other = await insertAccountWithActor(tx, {
-    username: "other",
+    username: `other${suffix}`,
     name: "Other",
-    email: "other@example.com",
+    email: `other-${suffix}@example.com`,
   });
 
   const { post } = await insertNotePost(tx, {

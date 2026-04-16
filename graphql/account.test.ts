@@ -10,6 +10,7 @@ import {
   insertAccountWithActor,
   makeGuestContext,
   makeUserContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -60,10 +61,6 @@ const updateAccountMutation = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("viewer returns the signed-in account and null for guests", async () => {
   await withRollback(async (tx) => {

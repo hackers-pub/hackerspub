@@ -2,17 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
-import { makeGuestContext, withRollback } from "../test/postgres.ts";
+import {
+  makeGuestContext,
+  toPlainJson,
+  withRollback,
+} from "../test/postgres.ts";
 
 const availableLocalesQuery = parse(`
   query AvailableLocales {
     availableLocales
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("availableLocales returns the locale files exposed by the GraphQL layer", async () => {
   await withRollback(async (tx) => {

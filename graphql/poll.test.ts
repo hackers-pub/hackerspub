@@ -14,6 +14,7 @@ import { schema } from "./mod.ts";
 import {
   insertAccountWithActor,
   makeGuestContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -54,10 +55,6 @@ const questionPollQuery = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("Question.poll exposes ordered options and vote connections", async () => {
   await withRollback(async (tx) => {

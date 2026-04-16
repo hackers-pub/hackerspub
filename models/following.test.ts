@@ -18,15 +18,16 @@ Deno.test({
   async fn() {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
+      const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
       const follower = await insertAccountWithActor(tx, {
-        username: "follower",
+        username: `follower${suffix}`,
         name: "Follower",
-        email: "follower@example.com",
+        email: `follower-${suffix}@example.com`,
       });
       const followee = await insertAccountWithActor(tx, {
-        username: "followee",
+        username: `followee${suffix}`,
         name: "Followee",
-        email: "followee@example.com",
+        email: `followee-${suffix}@example.com`,
       });
 
       const created = await follow(fedCtx, follower.account, followee.actor);
@@ -73,10 +74,11 @@ Deno.test({
   async fn() {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
+      const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
       const follower = await insertAccountWithActor(tx, {
-        username: "pendingfollower",
+        username: `pendingfollower${suffix}`,
         name: "Pending Follower",
-        email: "pendingfollower@example.com",
+        email: `pendingfollower-${suffix}@example.com`,
       });
 
       await seedLocalInstance(tx, "remote.example");
@@ -85,7 +87,7 @@ Deno.test({
         id: remoteActorId,
         iri: "https://remote.example/users/remote",
         type: "Person",
-        username: "remote",
+        username: `remote${suffix}`,
         instanceHost: "remote.example",
         handleHost: "remote.example",
         name: "Remote",
@@ -139,15 +141,16 @@ Deno.test({
   async fn() {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
+      const suffix = crypto.randomUUID().replaceAll("-", "").slice(0, 8);
       const follower = await insertAccountWithActor(tx, {
-        username: "leaver",
+        username: `leaver${suffix}`,
         name: "Leaver",
-        email: "leaver@example.com",
+        email: `leaver-${suffix}@example.com`,
       });
       const followee = await insertAccountWithActor(tx, {
-        username: "target",
+        username: `target${suffix}`,
         name: "Target",
-        email: "target@example.com",
+        email: `target-${suffix}@example.com`,
       });
 
       await follow(fedCtx, follower.account, followee.actor);

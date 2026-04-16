@@ -5,6 +5,7 @@ import { schema } from "./mod.ts";
 import {
   insertAccountWithActor,
   makeUserContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -35,10 +36,6 @@ const unregisterMutation = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("registerApnsDeviceToken rejects invalid device tokens", async () => {
   await withRollback(async (tx) => {

@@ -17,6 +17,7 @@ import {
   insertAccountWithActor,
   insertNotePost,
   makeUserContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -117,10 +118,6 @@ const postByUrlQuery = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 function makeTransactionalUserContext(
   tx: Parameters<typeof withRollback>[0] extends (tx: infer T) => Promise<void>

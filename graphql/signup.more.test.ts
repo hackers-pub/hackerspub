@@ -7,6 +7,7 @@ import {
   createTestKv,
   insertAccountWithActor,
   makeGuestContext,
+  toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -33,10 +34,6 @@ const completeSignupMutation = parse(`
     }
   }
 `);
-
-function toPlainJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
 
 test("verifySignupToken returns null for wrong codes and already-registered emails", async () => {
   await withRollback(async (tx) => {
