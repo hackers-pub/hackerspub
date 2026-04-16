@@ -89,11 +89,12 @@ export async function createNotification(
   );
   const mergeableNotificationWhere = and(
     notificationWhere,
-    sql`NOT (${actorId} = ANY(${notificationTable.actorIds})) OR ${explicitCreatedIsNewer}`,
+    sql`(NOT (${actorId} = ANY(${notificationTable.actorIds})) OR ${explicitCreatedIsNewer})`,
   );
 
-  // Follow notifications use a distinct uniqueness rule based on actorIds, so
-  // they need an exact pre-check instead of the generic merge/update path.
+  // Follow notifications are unique by actorIds, not by post/emoji fields, so
+  // they need an exact actorIds lookup instead of the generic merge/update
+  // path used by notifications that collapse multiple actors into one row.
   if (type === "follow") {
     const existing = await getExistingFollowNotification();
     if (existing != null) {

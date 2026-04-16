@@ -113,3 +113,83 @@ test("createShareNotification() keeps the existing row unchanged for replayed sa
     assert.deepEqual(stored.actorIds, [sharer.actor.id]);
   });
 });
+
+test("createShareNotification() only merges the matching notification row", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "scopemergeauthor",
+      name: "Scope Merge Author",
+      email: "scopemergeauthor@example.com",
+    });
+    const firstSharer = await insertAccountWithActor(tx, {
+      username: "scopefirstsharer",
+      name: "Scope First Sharer",
+      email: "scopefirstsharer@example.com",
+    });
+    const secondSharer = await insertAccountWithActor(tx, {
+      username: "scopesecondsharer",
+      name: "Scope Second Sharer",
+      email: "scopesecondsharer@example.com",
+    });
+    const { post: firstPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "First scoped notification target",
+    });
+    const { post: secondPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Second scoped notification target",
+    });
+    const firstCreated = new Date("2026-04-15T00:00:00.000Z");
+    const secondCreated = new Date("2026-04-15T00:30:00.000Z");
+    const mergedCreated = new Date("2026-04-15T01:00:00.000Z");
+
+    const first = await createShareNotification(
+      tx,
+      author.account.id,
+      firstPost,
+      firstSharer.actor,
+      firstCreated,
+    );
+    const second = await createShareNotification(
+      tx,
+      author.account.id,
+      secondPost,
+      secondSharer.actor,
+      secondCreated,
+    );
+    const merged = await createShareNotification(
+      tx,
+      author.account.id,
+      firstPost,
+      secondSharer.actor,
+      mergedCreated,
+    );
+
+    assert.ok(first != null);
+    assert.ok(second != null);
+    assert.ok(merged != null);
+    assert.equal(merged.id, first.id);
+
+    const storedFirst = await tx.query.notificationTable.findFirst({
+      where: { id: first.id },
+    });
+    const storedSecond = await tx.query.notificationTable.findFirst({
+      where: { id: second.id },
+    });
+    assert.ok(storedFirst != null);
+    assert.ok(storedSecond != null);
+    assert.equal(
+      storedFirst.created.toISOString(),
+      mergedCreated.toISOString(),
+    );
+    assert.deepEqual(storedFirst.actorIds, [
+      firstSharer.actor.id,
+      secondSharer.actor.id,
+    ]);
+    assert.equal(
+      storedSecond.created.toISOString(),
+      secondCreated.toISOString(),
+    );
+    assert.deepEqual(storedSecond.actorIds, [secondSharer.actor.id]);
+  });
+});
