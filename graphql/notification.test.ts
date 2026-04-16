@@ -33,7 +33,7 @@ const notificationActorsQuery = parse(`
 `);
 
 Deno.test({
-  name: "Notification.actors preserves trigger order from actorIds",
+  name: "Notification.actors returns actors newest-first",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {

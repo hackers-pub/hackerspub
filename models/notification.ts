@@ -58,6 +58,9 @@ export async function createNotification(
   const effectiveCreated = created == null
     ? sql`CURRENT_TIMESTAMP`
     : sql`${created.toISOString()}::timestamptz`;
+  const explicitCreatedIsNewer = created == null
+    ? sql`FALSE`
+    : sql`${created.toISOString()}::timestamptz > ${notificationTable.created}`;
   const getExistingFollowNotification = async () => {
     const rows = await db.select().from(notificationTable)
       .where(sql`
@@ -65,6 +68,11 @@ export async function createNotification(
         AND ${notificationTable.type} = 'follow'
         AND ${notificationTable.actorIds} = ARRAY[${actorId}]::uuid[]
       `);
+    return rows[0];
+  };
+  const getExistingNotification = async () => {
+    const rows = await db.select().from(notificationTable)
+      .where(notificationWhere);
     return rows[0];
   };
   const notificationWhere = and(
@@ -78,6 +86,10 @@ export async function createNotification(
       : typeof emoji === "string"
       ? eq(notificationTable.emoji, emoji)
       : eq(notificationTable.customEmojiId, emoji.id),
+  );
+  const mergeableNotificationWhere = and(
+    notificationWhere,
+    sql`NOT (${actorId} = ANY(${notificationTable.actorIds})) OR ${explicitCreatedIsNewer}`,
   );
 
   // Follow notifications use a distinct uniqueness rule based on actorIds, so
@@ -104,7 +116,7 @@ export async function createNotification(
         created:
           sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
       })
-      .where(notificationWhere)
+      .where(mergeableNotificationWhere)
       .returning();
     const merged = mergedRows[0];
     if (merged != null) {
@@ -117,6 +129,10 @@ export async function createNotification(
         emoji,
       });
       return merged;
+    }
+    const existing = await getExistingNotification();
+    if (existing != null) {
+      return existing;
     }
   }
 
@@ -169,7 +185,7 @@ export async function createNotification(
           created:
             sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
         })
-        .where(notificationWhere)
+        .where(mergeableNotificationWhere)
         .returning();
       const notification = notificationRows[0];
       if (notification != null) {
@@ -182,7 +198,7 @@ export async function createNotification(
           emoji,
         });
       }
-      return notification;
+      return notification ?? await getExistingNotification();
     } else {
       logger.error("Failed to create notification: {error}", { error });
       return undefined;
