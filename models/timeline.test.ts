@@ -72,6 +72,10 @@ Deno.test({
   async fn() {
     await withRollback(async (tx) => {
       const fedCtx = createFedCtx(tx);
+      const remoteAuthorSuffix = crypto.randomUUID().replaceAll("-", "").slice(
+        0,
+        8,
+      );
       const viewer = await insertAccountWithActor(tx, {
         username: "timelineviewer",
         name: "Timeline Viewer",
@@ -88,7 +92,7 @@ Deno.test({
         email: "timelinesecondsharer@example.com",
       });
       const remoteActor = await insertRemoteActor(tx, {
-        username: "remoteauthor",
+        username: `remoteauthor${remoteAuthorSuffix}`,
         name: "Remote Author",
         host: "remote.example",
       });

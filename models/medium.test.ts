@@ -6,32 +6,9 @@ import {
   createFedCtx,
   insertAccountWithActor,
   insertNotePost,
+  withMockFetch,
   withRollback,
 } from "../test/postgres.ts";
-
-let mockFetchLock: Promise<void> = Promise.resolve();
-
-async function withMockFetch(
-  handler: typeof globalThis.fetch,
-  run: () => Promise<void>,
-) {
-  const previousLock = mockFetchLock;
-  let releaseLock!: () => void;
-  mockFetchLock = new Promise<void>((resolve) => {
-    releaseLock = resolve;
-  });
-
-  await previousLock;
-
-  const original = globalThis.fetch;
-  globalThis.fetch = handler;
-  try {
-    await run();
-  } finally {
-    globalThis.fetch = original;
-    releaseLock();
-  }
-}
 
 test("persistPostMedium() stores image attachments and infers media type from content-type", async () => {
   await withRollback(async (tx) => {

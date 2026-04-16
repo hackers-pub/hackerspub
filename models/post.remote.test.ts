@@ -52,8 +52,12 @@ test("getPostByUsernameAndId() requires a full handle and returns a matching pos
 
 test("deletePersistedPost() removes a remote reply and decrements the parent reply count", async () => {
   await withRollback(async (tx) => {
+    const remoteAuthorSuffix = crypto.randomUUID().replaceAll("-", "").slice(
+      0,
+      8,
+    );
     const remoteActor = await insertRemoteActor(tx, {
-      username: "remoteauthor",
+      username: `remoteauthor${remoteAuthorSuffix}`,
       name: "Remote Author",
       host: "remote.example",
     });
@@ -92,8 +96,12 @@ test("deletePersistedPost() removes a remote reply and decrements the parent rep
 
 test("deleteSharedPost() removes a remote share and decrements the target share count", async () => {
   await withRollback(async (tx) => {
+    const remoteSharerSuffix = crypto.randomUUID().replaceAll("-", "").slice(
+      0,
+      8,
+    );
     const remoteActor = await insertRemoteActor(tx, {
-      username: "remotesharer",
+      username: `remotesharer${remoteSharerSuffix}`,
       name: "Remote Sharer",
       host: "remote.example",
     });

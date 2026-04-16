@@ -301,6 +301,30 @@ export function toPlainJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
+let mockFetchLock: Promise<void> = Promise.resolve();
+
+export async function withMockFetch<T>(
+  handler: typeof globalThis.fetch,
+  run: () => Promise<T>,
+): Promise<T> {
+  const previousLock = mockFetchLock;
+  let releaseLock!: () => void;
+  mockFetchLock = new Promise<void>((resolve) => {
+    releaseLock = resolve;
+  });
+
+  await previousLock;
+
+  const original = globalThis.fetch;
+  globalThis.fetch = handler;
+  try {
+    return await run();
+  } finally {
+    globalThis.fetch = original;
+    releaseLock();
+  }
+}
+
 export function createTestEmailTransport(): TestEmailTransport {
   const messages: unknown[] = [];
 

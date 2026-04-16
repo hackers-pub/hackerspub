@@ -7,31 +7,11 @@ import {
   updateAccountLinks,
   verifyAccountLink,
 } from "./account.ts";
-import { insertAccountWithActor, withRollback } from "../test/postgres.ts";
-
-let mockFetchLock: Promise<void> = Promise.resolve();
-
-async function withMockFetch(
-  handler: typeof globalThis.fetch,
-  run: () => Promise<void>,
-) {
-  const previousLock = mockFetchLock;
-  let releaseLock!: () => void;
-  mockFetchLock = new Promise<void>((resolve) => {
-    releaseLock = resolve;
-  });
-
-  await previousLock;
-
-  const original = globalThis.fetch;
-  globalThis.fetch = handler;
-  try {
-    await run();
-  } finally {
-    globalThis.fetch = original;
-    releaseLock();
-  }
-}
+import {
+  insertAccountWithActor,
+  withMockFetch,
+  withRollback,
+} from "../test/postgres.ts";
 
 test("getAvatarUrl() prefers stored avatars and falls back to gravatar defaults", async () => {
   const disk = {
