@@ -193,3 +193,59 @@ test("createShareNotification() only merges the matching notification row", asyn
     assert.deepEqual(storedSecond.actorIds, [secondSharer.actor.id]);
   });
 });
+
+test("createShareNotification() keeps both actors when concurrent inserts race", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "concurrentauthor",
+      name: "Concurrent Author",
+      email: "concurrentauthor@example.com",
+    });
+    const firstSharer = await insertAccountWithActor(tx, {
+      username: "concurrentfirst",
+      name: "Concurrent First",
+      email: "concurrentfirst@example.com",
+    });
+    const secondSharer = await insertAccountWithActor(tx, {
+      username: "concurrentsecond",
+      name: "Concurrent Second",
+      email: "concurrentsecond@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Concurrent notification target",
+    });
+
+    const [first, second] = await Promise.all([
+      createShareNotification(
+        tx,
+        author.account.id,
+        post,
+        firstSharer.actor,
+      ),
+      createShareNotification(
+        tx,
+        author.account.id,
+        post,
+        secondSharer.actor,
+      ),
+    ]);
+
+    assert.ok(first != null);
+    assert.ok(second != null);
+    assert.equal(first.id, second.id);
+
+    const stored = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: author.account.id,
+        type: "share",
+        postId: post.id,
+      },
+    });
+    assert.ok(stored != null);
+    assert.deepEqual(
+      [...stored.actorIds].sort(),
+      [firstSharer.actor.id, secondSharer.actor.id].sort(),
+    );
+  });
+});

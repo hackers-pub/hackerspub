@@ -131,10 +131,6 @@ export async function createNotification(
       });
       return merged;
     }
-    const existing = await getExistingNotification();
-    if (existing != null) {
-      return existing;
-    }
   }
 
   try {
