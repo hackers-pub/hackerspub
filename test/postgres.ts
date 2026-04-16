@@ -301,6 +301,20 @@ export function toPlainJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
+export function createTestDisk(): ContextData["disk"] {
+  return {
+    getUrl(key: string) {
+      return Promise.resolve(`http://localhost/media/${key}`);
+    },
+    put() {
+      return Promise.resolve(undefined);
+    },
+    delete() {
+      return Promise.resolve(undefined);
+    },
+  } as unknown as ContextData["disk"];
+}
+
 let mockFetchLock: Promise<void> = Promise.resolve();
 
 export async function withMockFetch<T>(
@@ -360,11 +374,7 @@ export function createFedCtx(
     data: {
       db: tx,
       kv: kv as unknown as ContextData["kv"],
-      disk: {
-        getUrl(key: string) {
-          return Promise.resolve(`http://localhost/media/${key}`);
-        },
-      } as ContextData["disk"],
+      disk: createTestDisk(),
       models: {} as ContextData["models"],
     },
     getActorUri(identifier: string) {
@@ -408,11 +418,7 @@ export function makeUserContext(
   return {
     db: tx,
     kv,
-    disk: {
-      getUrl(key: string) {
-        return Promise.resolve(`http://localhost/media/${key}`);
-      },
-    } as UserContext["disk"],
+    disk: createTestDisk() as UserContext["disk"],
     email,
     fedCtx,
     request: new Request("http://localhost/graphql"),
@@ -437,11 +443,7 @@ export function makeGuestContext(
   return {
     db: tx,
     kv,
-    disk: {
-      getUrl(key: string) {
-        return Promise.resolve(`http://localhost/media/${key}`);
-      },
-    } as UserContext["disk"],
+    disk: createTestDisk() as UserContext["disk"],
     email,
     fedCtx,
     request: new Request("http://localhost/graphql"),
