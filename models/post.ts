@@ -1588,15 +1588,18 @@ export async function deletePost(
     ),
   ).returning();
 
-  const originalPosts = await db.query.postTable.findMany({
-    where: {
-      OR: [
-        ...post.replyTargetId == null ? [] : [{ id: post.replyTargetId }],
-        ...post.sharedPostId == null ? [] : [{ id: post.sharedPostId }],
-        ...post.quotedPostId == null ? [] : [{ id: post.quotedPostId }],
-      ],
-    },
-  });
+  const originalPostIds = [
+    post.replyTargetId,
+    post.sharedPostId,
+    post.quotedPostId,
+  ].filter((id): id is Uuid => id != null);
+  const originalPosts = originalPostIds.length < 1
+    ? []
+    : await db.query.postTable.findMany({
+      where: {
+        OR: originalPostIds.map((id) => ({ id })),
+      },
+    });
 
   if (post.replyTargetId != null) {
     const replyTarget = originalPosts.find((p) => p.id === post.replyTargetId);

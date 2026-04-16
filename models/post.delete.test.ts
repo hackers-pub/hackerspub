@@ -72,6 +72,58 @@ Deno.test({
 
 Deno.test({
   name:
+    "deletePost() deletes a standalone post without querying unrelated originals",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const author = await insertAccountWithActor(tx, {
+        username: "standaloneauthor",
+        name: "Standalone Author",
+        email: "standaloneauthor@example.com",
+      });
+      const other = await insertAccountWithActor(tx, {
+        username: "standaloneother",
+        name: "Standalone Other",
+        email: "standaloneother@example.com",
+      });
+      const { noteSourceId, post } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Standalone post",
+      });
+      const { post: unrelated } = await insertNotePost(tx, {
+        account: other.account,
+        content: "Unrelated post",
+      });
+
+      await deletePost(fedCtx, {
+        ...post,
+        actor: author.actor,
+        replyTarget: null,
+      });
+
+      const deleted = await tx.query.postTable.findFirst({
+        where: { id: post.id },
+      });
+      assertEquals(deleted, undefined);
+
+      const deletedSource = await tx.query.noteSourceTable.findFirst({
+        where: { id: noteSourceId },
+      });
+      assertEquals(deletedSource, undefined);
+
+      const unrelatedPost = await tx.query.postTable.findFirst({
+        where: { id: unrelated.id },
+      });
+      assert(unrelatedPost != null);
+      assertEquals(unrelatedPost.id, unrelated.id);
+    });
+  },
+});
+
+Deno.test({
+  name:
     "deletePost() cascades through local replies, shares, and notifications",
   sanitizeOps: false,
   sanitizeResources: false,
