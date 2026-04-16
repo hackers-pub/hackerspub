@@ -187,11 +187,12 @@ builder.mutationField("invite", (t) =>
       }
       if (
         errors.inviter != null || errors.email != null ||
-        errors.verifyUrl != null || ctx.account == null || email == null
+        errors.verifyUrl != null
       ) {
         return errors;
       }
-      const inviter = ctx.account;
+      const inviter = ctx.account!;
+      const normalizedEmail = email!;
       const updated = await ctx.db.update(accountTable).set({
         leftInvitations: sql`${accountTable.leftInvitations} - 1`,
       }).where(
@@ -205,7 +206,7 @@ builder.mutationField("invite", (t) =>
           inviter: "INVITER_NO_INVITATIONS_LEFT",
         } satisfies InviteValidationErrors;
       }
-      const token = await createSignupToken(ctx.kv, email, {
+      const token = await createSignupToken(ctx.kv, normalizedEmail, {
         inviterId: inviter.id,
         expiration: EXPIRATION,
       });
@@ -228,7 +229,7 @@ builder.mutationField("invite", (t) =>
           locale: args.locale,
           inviter,
           verifyUrlTemplate: args.verifyUrl,
-          to: email,
+          to: normalizedEmail,
           token,
           message: args.message ?? undefined,
           expiration: EXPIRATION,
@@ -254,7 +255,7 @@ builder.mutationField("invite", (t) =>
       }
       return {
         inviterId: inviter.id,
-        email,
+        email: normalizedEmail,
         locale: args.locale,
         message: args.message ?? undefined,
       };
