@@ -71,6 +71,10 @@ export async function block(
 ): Promise<Blocking | undefined> {
   const id = generateUuidV7();
   const { db } = fedCtx.data;
+  const removeLocalFollowRelationships = async () => {
+    await removeFollower(fedCtx, blocker, blockee);
+    await unfollow(fedCtx, blocker, blockee);
+  };
   const rows = await db.insert(blockingTable)
     .values({
       id,
@@ -83,6 +87,7 @@ export async function block(
     })
     .onConflictDoNothing()
     .returning();
+  await removeLocalFollowRelationships();
   if (rows.length < 1) {
     return await db.query.blockingTable.findFirst({
       where: {

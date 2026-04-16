@@ -1,6 +1,9 @@
 import { normalizeEmail } from "@hackerspub/models/account";
 import { accountTable } from "@hackerspub/models/schema";
-import { createSignupToken } from "@hackerspub/models/signup";
+import {
+  createSignupToken,
+  deleteSignupToken,
+} from "@hackerspub/models/signup";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, gt, sql } from "drizzle-orm";
@@ -184,15 +187,17 @@ builder.mutationField("invite", (t) =>
       }
       if (
         errors.inviter != null || errors.email != null ||
-        errors.email != null || ctx.account == null || email == null
+        errors.verifyUrl != null
       ) {
         return errors;
       }
+      const inviter = ctx.account!;
+      const normalizedEmail = email!;
       const updated = await ctx.db.update(accountTable).set({
         leftInvitations: sql`${accountTable.leftInvitations} - 1`,
       }).where(
         and(
-          eq(accountTable.id, ctx.account.id),
+          eq(accountTable.id, inviter.id),
           gt(accountTable.leftInvitations, 0),
         ),
       ).returning();
@@ -201,38 +206,56 @@ builder.mutationField("invite", (t) =>
           inviter: "INVITER_NO_INVITATIONS_LEFT",
         } satisfies InviteValidationErrors;
       }
-      const token = await createSignupToken(ctx.kv, email, {
-        inviterId: ctx.account.id,
+      const token = await createSignupToken(ctx.kv, normalizedEmail, {
+        inviterId: inviter.id,
         expiration: EXPIRATION,
       });
-      const message = await getEmailMessage({
-        locale: args.locale,
-        inviter: ctx.account,
-        verifyUrlTemplate: args.verifyUrl,
-        to: email,
-        token,
-        message: args.message ?? undefined,
-        expiration: EXPIRATION,
-      });
-      const receipt = await ctx.email.send(message);
-      if (!receipt.successful) {
-        logger.error(
-          "Failed to send invitation email: {errors}",
-          { errors: receipt.errorMessages },
-        );
-        // Credit back the invitation on email send failure
-        await ctx.db.update(accountTable).set({
+      const refundInvitation = () =>
+        ctx.db.update(accountTable).set({
           leftInvitations: sql`${accountTable.leftInvitations} + 1`,
-        }).where(eq(accountTable.id, ctx.account.id));
+        }).where(eq(accountTable.id, inviter.id));
+      const cleanupSignupToken = async () => {
+        try {
+          await deleteSignupToken(ctx.kv, token.token);
+        } catch (error) {
+          logger.error(
+            "Failed to delete signup token after invite failure: {error}",
+            { error },
+          );
+        }
+      };
+      try {
+        const message = await getEmailMessage({
+          locale: args.locale,
+          inviter,
+          verifyUrlTemplate: args.verifyUrl,
+          to: normalizedEmail,
+          token,
+          message: args.message ?? undefined,
+          expiration: EXPIRATION,
+        });
+        const receipt = await ctx.email.send(message);
+        if (!receipt.successful) {
+          logger.error(
+            "Failed to send invitation email: {errors}",
+            { errors: receipt.errorMessages },
+          );
+          await refundInvitation();
+          await cleanupSignupToken();
 
-        // Return validation error to inform the user
-        return {
-          inviter: "INVITER_EMAIL_SEND_FAILED",
-        } satisfies InviteValidationErrors;
+          // Return validation error to inform the user
+          return {
+            inviter: "INVITER_EMAIL_SEND_FAILED",
+          } satisfies InviteValidationErrors;
+        }
+      } catch (error) {
+        await refundInvitation();
+        await cleanupSignupToken();
+        throw error;
       }
       return {
-        inviterId: ctx.account.id,
-        email,
+        inviterId: inviter.id,
+        email: normalizedEmail,
         locale: args.locale,
         message: args.message ?? undefined,
       };

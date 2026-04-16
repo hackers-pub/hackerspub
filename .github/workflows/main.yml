@@ -10,6 +10,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: hackerspub
+        ports:
+        - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d hackerspub"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
     - uses: actions/checkout@v4
     - uses: denoland/setup-deno@v2
@@ -28,6 +42,8 @@ jobs:
     - name: Build web-next
       run: pnpm build
       working-directory: web-next
+    - name: Run database migrations
+      run: npx @dotenvx/dotenvx run -f .env.ci -- deno task migrate
     - name: Run tests
       if: always()
       run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test

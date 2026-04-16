@@ -1,6 +1,5 @@
 import { getLogger } from "@logtape/logtape";
 import { and, eq, isNull, sql } from "drizzle-orm";
-import postgres from "postgres";
 import { type ApnsNotificationOptions, sendApnsNotification } from "./apns.ts";
 import type { Database } from "./db.ts";
 import {
@@ -55,6 +54,84 @@ export async function createNotification(
   emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
   const postId = post?.id;
+  const effectiveCreated = created == null
+    ? sql`CURRENT_TIMESTAMP`
+    : sql`${created.toISOString()}::timestamptz`;
+  const explicitCreatedIsNewer = created == null
+    ? sql`FALSE`
+    : sql`${created.toISOString()}::timestamptz > ${notificationTable.created}`;
+  const getExistingFollowNotification = async () => {
+    const rows = await db.select().from(notificationTable)
+      .where(sql`
+        ${notificationTable.accountId} = ${accountId}
+        AND ${notificationTable.type} = 'follow'
+        AND ${notificationTable.actorIds} = ARRAY[${actorId}]::uuid[]
+      `);
+    return rows[0];
+  };
+  const getExistingNotification = async () => {
+    const rows = await db.select().from(notificationTable)
+      .where(notificationWhere);
+    return rows[0];
+  };
+  const notificationWhere = and(
+    eq(notificationTable.accountId, accountId),
+    eq(notificationTable.type, type),
+    post == null
+      ? isNull(notificationTable.postId)
+      : eq(notificationTable.postId, post.id),
+    emoji == null
+      ? undefined
+      : typeof emoji === "string"
+      ? eq(notificationTable.emoji, emoji)
+      : eq(notificationTable.customEmojiId, emoji.id),
+  );
+  const mergeableNotificationWhere = and(
+    notificationWhere,
+    sql`(NOT (${actorId} = ANY(${notificationTable.actorIds})) OR ${explicitCreatedIsNewer})`,
+  );
+
+  // Follow notifications are unique by actorIds, not by post/emoji fields, so
+  // they need an exact actorIds lookup instead of the generic merge/update
+  // path used by notifications that collapse multiple actors into one row.
+  if (type === "follow") {
+    const existing = await getExistingFollowNotification();
+    if (existing != null) {
+      return existing;
+    }
+  }
+
+  // Update first so mergeable notifications still work inside an existing
+  // transaction, where a unique-violation insert would abort the transaction.
+  if (type !== "follow") {
+    const mergedRows = await db.update(notificationTable)
+      .set({
+        actorIds: sql`
+          CASE
+            WHEN ${actorId} = ANY(${notificationTable.actorIds})
+            THEN ${notificationTable.actorIds}
+            ELSE array_append(${notificationTable.actorIds}, ${actorId})
+          END
+        `,
+        created:
+          sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
+      })
+      .where(mergeableNotificationWhere)
+      .returning();
+    const merged = mergedRows[0];
+    if (merged != null) {
+      await sendApnsNotificationBestEffort(db, {
+        accountId,
+        notificationId: merged.id,
+        type,
+        actorId,
+        postId,
+        emoji,
+      });
+      return merged;
+    }
+  }
+
   try {
     const id = generateUuidV7();
     const notificationRows = await db.insert(notificationTable)
@@ -70,58 +147,53 @@ export async function createNotification(
           : emoji.id,
         created: created ?? sql`CURRENT_TIMESTAMP`,
       })
+      .onConflictDoNothing()
       .returning();
-    const notification = notificationRows[0];
-    if (notification != null) {
+    const inserted = notificationRows[0];
+    if (inserted != null) {
       await sendApnsNotificationBestEffort(db, {
         accountId,
-        notificationId: notification.id,
+        notificationId: inserted.id,
         type,
         actorId,
         postId,
         emoji,
       });
+      return inserted;
     }
-    return notification;
+    if (type === "follow") {
+      return await getExistingFollowNotification();
+    }
+    const mergedRows = await db.update(notificationTable)
+      .set({
+        actorIds: sql`
+          CASE
+            WHEN ${actorId} = ANY(${notificationTable.actorIds})
+            THEN ${notificationTable.actorIds}
+            ELSE array_append(${notificationTable.actorIds}, ${actorId})
+          END
+        `,
+        created:
+          sql`GREATEST(${notificationTable.created}, ${effectiveCreated})`,
+      })
+      .where(mergeableNotificationWhere)
+      .returning();
+    const merged = mergedRows[0];
+    if (merged != null) {
+      await sendApnsNotificationBestEffort(db, {
+        accountId,
+        notificationId: merged.id,
+        type,
+        actorId,
+        postId,
+        emoji,
+      });
+      return merged;
+    }
+    return await getExistingNotification();
   } catch (error) {
-    if (error instanceof postgres.PostgresError && error.code === "23505") {
-      const notificationRows = await db.update(notificationTable)
-        .set({
-          actorIds:
-            sql`array_append(${notificationTable.actorIds}, ${actorId})`,
-          created: created ?? sql`CURRENT_TIMESTAMP`,
-        })
-        .where(
-          and(
-            eq(notificationTable.accountId, accountId),
-            eq(notificationTable.type, type),
-            post == null
-              ? isNull(notificationTable.postId)
-              : eq(notificationTable.postId, post.id),
-            emoji == null
-              ? undefined
-              : typeof emoji === "string"
-              ? eq(notificationTable.emoji, emoji)
-              : eq(notificationTable.customEmojiId, emoji.id),
-          ),
-        )
-        .returning();
-      const notification = notificationRows[0];
-      if (notification != null) {
-        await sendApnsNotificationBestEffort(db, {
-          accountId,
-          notificationId: notification.id,
-          type,
-          actorId,
-          postId,
-          emoji,
-        });
-      }
-      return notification;
-    } else {
-      logger.error("Failed to create notification: {error}", { error });
-      return undefined;
-    }
+    logger.error("Failed to create notification: {error}", { error });
+    return undefined;
   }
 }
 

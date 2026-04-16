@@ -453,7 +453,7 @@ export async function getActorStats(
           END
         ),
         0
-      )`,
+      )::integer`,
     notesWithReplies: sql<number>`
       coalesce(
         sum(
@@ -464,12 +464,12 @@ export async function getActorStats(
           END
         ),
         0
-      )`,
+      )::integer`,
     shares: sql<number>`
       coalesce(
         sum(CASE WHEN ${postTable.sharedPostId} IS NULL THEN 0 ELSE 1 END),
         0
-      )
+      )::integer
     `,
     articles: sql<number>`
       coalesce(
@@ -481,7 +481,7 @@ export async function getActorStats(
           END
         ),
         0
-      )
+      )::integer
     `,
   }).from(postTable).where(eq(postTable.actorId, actorId));
   if (rows.length > 0) return rows[0];
