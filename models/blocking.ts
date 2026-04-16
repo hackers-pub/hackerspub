@@ -72,14 +72,8 @@ export async function block(
   const id = generateUuidV7();
   const { db } = fedCtx.data;
   const removeLocalFollowRelationships = async () => {
-    if (blockee.accountId == null) return;
-    const account = await db.query.accountTable.findFirst({
-      where: { id: blockee.accountId },
-      with: { actor: true },
-    });
-    if (account == null) return;
-    await removeFollower(fedCtx, account, blocker.actor);
-    await unfollow(fedCtx, account, blocker.actor);
+    await removeFollower(fedCtx, blocker, blockee);
+    await unfollow(fedCtx, blocker, blockee);
   };
   const rows = await db.insert(blockingTable)
     .values({
