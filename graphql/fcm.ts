@@ -45,7 +45,7 @@ builder.relayMutationField(
       const session = await ctx.session;
       if (session == null) throw new NotAuthenticatedError();
       const trimmed = args.input.deviceToken.trim();
-      if (trimmed.length < 1 || trimmed.length > 256) {
+      if (trimmed.length < 1) {
         throw new InvalidInputError("deviceToken");
       }
       const result = await registerFcmDeviceToken(

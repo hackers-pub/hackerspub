@@ -158,7 +158,7 @@ export async function registerFcmDeviceToken(
   deviceToken: string,
 ): Promise<FcmDeviceToken | undefined> {
   const trimmed = deviceToken.trim();
-  if (trimmed.length < 1 || trimmed.length > 256) return undefined;
+  if (trimmed.length < 1) return undefined;
 
   return await db.transaction(async (tx) => {
     await tx.execute(
