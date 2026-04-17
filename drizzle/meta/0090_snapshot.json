@@ -1,5 +1,5 @@
 {
-  "id": "32e05c84-f5f4-4fe9-a3f6-bd2176b5f6f9",
+  "id": "b2c114b6-f567-44c3-b406-debaac534ecc",
   "prevId": "55391c60-7f22-41fc-980c-7b930a9ae06f",
   "version": "7",
   "dialect": "postgresql",
@@ -1420,7 +1420,7 @@
       "columns": {
         "device_token": {
           "name": "device_token",
-          "type": "varchar(256)",
+          "type": "text",
           "primaryKey": true,
           "notNull": true
         },

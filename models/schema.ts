@@ -1114,7 +1114,7 @@ export type NewApnsDeviceToken = typeof apnsDeviceTokenTable.$inferInsert;
 export const fcmDeviceTokenTable = pgTable(
   "fcm_device_token",
   {
-    deviceToken: varchar("device_token", { length: 256 }).primaryKey(),
+    deviceToken: text("device_token").primaryKey(),
     accountId: uuid("account_id")
       .$type<Uuid>()
       .notNull()

@@ -1,5 +1,5 @@
 CREATE TABLE "fcm_device_token" (
-	"device_token" varchar(256) PRIMARY KEY NOT NULL,
+	"device_token" text PRIMARY KEY NOT NULL,
 	"account_id" uuid NOT NULL,
 	"created" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	"updated" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
