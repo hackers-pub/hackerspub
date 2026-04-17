@@ -330,8 +330,7 @@ export async function sendFcmNotification(
             );
             if (
               errorCode === "UNREGISTERED" ||
-              errorCode === "INVALID_ARGUMENT" ||
-              resp.status === 404
+              errorCode === "INVALID_ARGUMENT"
             ) {
               staleTokens.add(deviceToken);
             }

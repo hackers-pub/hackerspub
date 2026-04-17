@@ -43,11 +43,13 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
   resetFcmStateForTesting();
 
   const staleToken = "fcm-stale-token";
+  const misconfiguredToken = "fcm-misconfigured-404-token";
   const activeTokens = [
     "fcm-active-1",
     "fcm-active-2",
     "fcm-active-3",
     "fcm-active-4",
+    misconfiguredToken,
   ];
   const allTokens = [...activeTokens, staleToken];
 
@@ -82,6 +84,15 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
                 details: [{ errorCode: "UNREGISTERED" }],
               },
             }),
+            {
+              status: 404,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+        if (token === misconfiguredToken) {
+          return new Response(
+            JSON.stringify({ error: { status: "NOT_FOUND" } }),
             {
               status: 404,
               headers: { "Content-Type": "application/json" },
@@ -136,9 +147,15 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
         columns: { deviceToken: true },
       });
       const remainingSet = new Set(remaining.map((row) => row.deviceToken));
-      assert.ok(!remainingSet.has(staleToken));
+      assert.ok(
+        !remainingSet.has(staleToken),
+        "expected UNREGISTERED token to be pruned",
+      );
       for (const activeToken of activeTokens) {
-        assert.ok(remainingSet.has(activeToken));
+        assert.ok(
+          remainingSet.has(activeToken),
+          `expected ${activeToken} to remain`,
+        );
       }
     });
   } finally {
