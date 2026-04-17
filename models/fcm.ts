@@ -77,14 +77,8 @@ async function getAccessToken(): Promise<string | null> {
 
   try {
     const now = Math.floor(Date.now() / 1000);
-    const toBase64Url = (str: string) => {
-      const bytes = new TextEncoder().encode(str);
-      const binary = String.fromCharCode(...bytes);
-      return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(
-        /=+$/,
-        "",
-      );
-    };
+    const toBase64Url = (str: string) =>
+      btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
     const header = toBase64Url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
     const payload = toBase64Url(JSON.stringify({
       iss: sa.clientEmail,
@@ -128,7 +122,7 @@ async function getAccessToken(): Promise<string | null> {
     });
 
     if (!resp.ok) {
-      const body = (await resp.text()).slice(0, 1000);
+      const body = await resp.text();
       logger.error("Failed to get FCM access token: {status} {body}", {
         status: resp.status,
         body,
