@@ -4,6 +4,7 @@
   "exports": {
     "./account": "./account.ts",
     "./apns": "./apns.ts",
+    "./fcm": "./fcm.ts",
     "./actor": "./actor.ts",
     "./article": "./article.ts",
     "./avatar": "./avatar.ts",
