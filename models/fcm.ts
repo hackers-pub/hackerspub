@@ -67,7 +67,8 @@ function getServiceAccount(): FcmServiceAccount | null {
 
 async function getAccessToken(): Promise<string | null> {
   if (
-    cachedAccessToken != null && cachedAccessToken.expiresAt > Date.now() + 60000
+    cachedAccessToken != null &&
+    cachedAccessToken.expiresAt > Date.now() + 60000
   ) {
     return cachedAccessToken.token;
   }
