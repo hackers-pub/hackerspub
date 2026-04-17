@@ -44,12 +44,14 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
 
   const staleToken = "fcm-stale-token";
   const misconfiguredToken = "fcm-misconfigured-404-token";
+  const invalidArgumentToken = "fcm-invalid-argument-token";
   const activeTokens = [
     "fcm-active-1",
     "fcm-active-2",
     "fcm-active-3",
     "fcm-active-4",
     misconfiguredToken,
+    invalidArgumentToken,
   ];
   const allTokens = [...activeTokens, staleToken];
 
@@ -95,6 +97,20 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
             JSON.stringify({ error: { status: "NOT_FOUND" } }),
             {
               status: 404,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        }
+        if (token === invalidArgumentToken) {
+          return new Response(
+            JSON.stringify({
+              error: {
+                status: "INVALID_ARGUMENT",
+                details: [{ errorCode: "INVALID_ARGUMENT" }],
+              },
+            }),
+            {
+              status: 400,
               headers: { "Content-Type": "application/json" },
             },
           );
