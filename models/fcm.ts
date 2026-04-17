@@ -32,6 +32,12 @@ let cachedServiceAccount: FcmServiceAccount | null | undefined;
 let cachedAccessToken: { token: string; expiresAt: number } | null = null;
 let hasLoggedFcmDisabled = false;
 
+export function resetFcmStateForTesting(): void {
+  cachedServiceAccount = undefined;
+  cachedAccessToken = null;
+  hasLoggedFcmDisabled = false;
+}
+
 function getEnvString(name: string): string | undefined {
   const value = process.env[name]?.trim();
   return value == null || value === "" ? undefined : value;
@@ -131,7 +137,10 @@ async function getAccessToken(): Promise<string | null> {
       return null;
     }
 
-    const data = await resp.json();
+    const data = await resp.json() as {
+      access_token: string;
+      expires_in: number;
+    };
     cachedAccessToken = {
       token: data.access_token,
       expiresAt: Date.now() + (data.expires_in * 1000),
@@ -274,63 +283,71 @@ export async function sendFcmNotification(
 
     const staleTokens = new Set<string>();
 
-    for (const { deviceToken } of tokens) {
-      try {
-        const resp = await fetch(
-          `https://fcm.googleapis.com/v1/projects/${sa.projectId}/messages:send`,
-          {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              message: {
-                token: deviceToken,
-                data: {
-                  notificationId: options.notificationId,
-                  type: options.type,
-                  actorId: options.actorId,
-                  postId: options.postId ?? "",
-                  emoji: emojiText ?? "",
-                  alert: getFcmAlert(options.type, options.emoji),
-                },
+    await Promise.allSettled(
+      tokens.map(async ({ deviceToken }) => {
+        try {
+          const resp = await fetch(
+            `https://fcm.googleapis.com/v1/projects/${sa.projectId}/messages:send`,
+            {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
               },
-            }),
-          },
-        );
+              body: JSON.stringify({
+                message: {
+                  token: deviceToken,
+                  data: {
+                    notificationId: options.notificationId,
+                    type: options.type,
+                    actorId: options.actorId,
+                    postId: options.postId ?? "",
+                    emoji: emojiText ?? "",
+                    alert: getFcmAlert(options.type, options.emoji),
+                  },
+                },
+              }),
+            },
+          );
 
-        if (!resp.ok) {
-          const body = await resp.json().catch(() => ({}));
-          const errorCode = body?.error?.details?.[0]?.errorCode ??
-            body?.error?.status;
+          if (!resp.ok) {
+            const body = await resp.json().catch(() => ({})) as {
+              error?: {
+                status?: string;
+                details?: Array<{ errorCode?: string }>;
+              };
+            };
+            const errorCode = body.error?.details?.[0]?.errorCode ??
+              body.error?.status;
+            logger.warn(
+              "FCM send failed for account {accountId}, token suffix {deviceTokenSuffix}: {status} {errorCode}",
+              {
+                accountId: options.accountId,
+                deviceTokenSuffix: getDeviceTokenSuffix(deviceToken),
+                status: resp.status,
+                errorCode,
+              },
+            );
+            if (
+              errorCode === "UNREGISTERED" ||
+              errorCode === "INVALID_ARGUMENT" ||
+              resp.status === 404
+            ) {
+              staleTokens.add(deviceToken);
+            }
+          }
+        } catch (error) {
           logger.warn(
-            "FCM send failed for account {accountId}, token suffix {deviceTokenSuffix}: {status} {errorCode}",
+            "FCM send error for account {accountId}, token suffix {deviceTokenSuffix}: {error}",
             {
               accountId: options.accountId,
               deviceTokenSuffix: getDeviceTokenSuffix(deviceToken),
-              status: resp.status,
-              errorCode,
+              error,
             },
           );
-          if (
-            errorCode === "UNREGISTERED" || errorCode === "INVALID_ARGUMENT" ||
-            resp.status === 404
-          ) {
-            staleTokens.add(deviceToken);
-          }
         }
-      } catch (error) {
-        logger.warn(
-          "FCM send error for account {accountId}, token suffix {deviceTokenSuffix}: {error}",
-          {
-            accountId: options.accountId,
-            deviceTokenSuffix: getDeviceTokenSuffix(deviceToken),
-            error,
-          },
-        );
-      }
-    }
+      }),
+    );
 
     if (staleTokens.size < 1) return;
     await db.delete(fcmDeviceTokenTable)
