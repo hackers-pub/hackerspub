@@ -25,6 +25,7 @@ export const relations = defineRelations(schema, (r) => ({
     invitationLinks: r.many.invitationLinkTable(),
     notifications: r.many.notificationTable(),
     apnsDeviceTokens: r.many.apnsDeviceTokenTable(),
+    fcmDeviceTokens: r.many.fcmDeviceTokenTable(),
     uploadedMedia: r.many.articleMediumTable(),
     bookmarks: r.many.bookmarkTable(),
   },
@@ -341,6 +342,13 @@ export const relations = defineRelations(schema, (r) => ({
   apnsDeviceTokenTable: {
     account: r.one.accountTable({
       from: r.apnsDeviceTokenTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+  },
+  fcmDeviceTokenTable: {
+    account: r.one.accountTable({
+      from: r.fcmDeviceTokenTable.accountId,
       to: r.accountTable.id,
       optional: false,
     }),

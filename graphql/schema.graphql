@@ -696,6 +696,7 @@ type Mutation {
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
   redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!
   registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult!
+  registerFcmDeviceToken(input: RegisterFcmDeviceTokenInput!): RegisterFcmDeviceTokenResult!
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   revokePasskey(passkeyId: ID!): ID
@@ -711,6 +712,7 @@ type Mutation {
   unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
   unregisterApnsDeviceToken(input: UnregisterApnsDeviceTokenInput!): UnregisterApnsDeviceTokenResult!
+  unregisterFcmDeviceToken(input: UnregisterFcmDeviceTokenInput!): UnregisterFcmDeviceTokenResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
@@ -1251,6 +1253,27 @@ type RegisterApnsDeviceTokenPayload {
 
 union RegisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | RegisterApnsDeviceTokenFailedError | RegisterApnsDeviceTokenPayload
 
+type RegisterFcmDeviceTokenFailedError {
+  limit: Int!
+  message: String!
+}
+
+input RegisterFcmDeviceTokenInput {
+  clientMutationId: ID
+
+  """The FCM device token."""
+  deviceToken: String!
+}
+
+type RegisterFcmDeviceTokenPayload {
+  clientMutationId: ID
+  created: DateTime!
+  deviceToken: String!
+  updated: DateTime!
+}
+
+union RegisterFcmDeviceTokenResult = InvalidInputError | NotAuthenticatedError | RegisterFcmDeviceTokenFailedError | RegisterFcmDeviceTokenPayload
+
 input RemoveFollowerInput {
   actorId: ID!
   clientMutationId: ID
@@ -1459,6 +1482,21 @@ type UnregisterApnsDeviceTokenPayload {
 }
 
 union UnregisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | UnregisterApnsDeviceTokenPayload
+
+input UnregisterFcmDeviceTokenInput {
+  clientMutationId: ID
+
+  """The FCM device token."""
+  deviceToken: String!
+}
+
+type UnregisterFcmDeviceTokenPayload {
+  clientMutationId: ID
+  deviceToken: String!
+  unregistered: Boolean!
+}
+
+union UnregisterFcmDeviceTokenResult = InvalidInputError | NotAuthenticatedError | UnregisterFcmDeviceTokenPayload
 
 input UnsharePostInput {
   clientMutationId: ID

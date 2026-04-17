@@ -1,5 +1,5 @@
 {
-  "id": "88af4123-9de8-4c56-964e-edc507d88b92",
+  "id": "32e05c84-f5f4-4fe9-a3f6-bd2176b5f6f9",
   "prevId": "55391c60-7f22-41fc-980c-7b930a9ae06f",
   "version": "7",
   "dialect": "postgresql",
@@ -1343,116 +1343,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.bookmark": {
-      "name": "bookmark",
-      "schema": "",
-      "columns": {
-        "account_id": {
-          "name": "account_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "post_id": {
-          "name": "post_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created": {
-          "name": "created",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
-        }
-      },
-      "indexes": {
-        "idx_bookmark_account_created": {
-          "name": "idx_bookmark_account_created",
-          "columns": [
-            {
-              "expression": "account_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "\"created\" desc",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "\"post_id\" desc",
-              "asc": true,
-              "isExpression": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "bookmark_post_id_index": {
-          "name": "bookmark_post_id_index",
-          "columns": [
-            {
-              "expression": "post_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "bookmark_account_id_account_id_fk": {
-          "name": "bookmark_account_id_account_id_fk",
-          "tableFrom": "bookmark",
-          "tableTo": "account",
-          "columnsFrom": [
-            "account_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "bookmark_post_id_post_id_fk": {
-          "name": "bookmark_post_id_post_id_fk",
-          "tableFrom": "bookmark",
-          "tableTo": "post",
-          "columnsFrom": [
-            "post_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "bookmark_account_id_post_id_pk": {
-          "name": "bookmark_account_id_post_id_pk",
-          "columns": [
-            "account_id",
-            "post_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.custom_emoji": {
       "name": "custom_emoji",
       "schema": "",
@@ -1522,6 +1412,75 @@
           "value": "\"custom_emoji\".\"image_url\" ~ '^https?://'"
         }
       },
+      "isRLSEnabled": false
+    },
+    "public.fcm_device_token": {
+      "name": "fcm_device_token",
+      "schema": "",
+      "columns": {
+        "device_token": {
+          "name": "device_token",
+          "type": "varchar(256)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created": {
+          "name": "created",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated": {
+          "name": "updated",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "fcm_device_token_account_id_index": {
+          "name": "fcm_device_token_account_id_index",
+          "columns": [
+            {
+              "expression": "account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "fcm_device_token_account_id_account_id_fk": {
+          "name": "fcm_device_token_account_id_account_id_fk",
+          "tableFrom": "fcm_device_token",
+          "tableTo": "account",
+          "columnsFrom": [
+            "account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.following": {
