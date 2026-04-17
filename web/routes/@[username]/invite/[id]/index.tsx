@@ -232,6 +232,7 @@ export default define.page<typeof handler, InvitationLinkPageProps>(
                       message.mentions,
                     ).map((actor) => ({ actor })),
                     tags: {},
+                    localDomain: new URL(fedCtx.canonicalOrigin),
                   },
                 ),
               }}

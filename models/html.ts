@@ -421,38 +421,79 @@ export interface PreprocessContentHtmlOptions {
   tags: Record<string, string>;
   emojis?: Record<string, string>;
   quote?: boolean;
+  localDomain?: string | URL;
 }
 
 export function preprocessContentHtml(
   html: string,
-  { mentions, tags, emojis = {}, quote }: PreprocessContentHtmlOptions,
+  { mentions, tags, emojis = {}, quote, localDomain }:
+    PreprocessContentHtmlOptions,
 ) {
   html = sanitizeHtml(html);
   html = transformMentions(html, mentions, tags);
   html = renderCustomEmojis(html, emojis);
   if (quote) html = transformMisskeyInlineQuote(html);
+  html = addExternalLinkTargets(html, localDomain ?? resolveLocalDomain());
   return html;
 }
 
+function resolveLocalDomain(): string {
+  return globalThis.location?.host || "hackers.pub";
+}
+
+// deno-lint-ignore no-explicit-any
+function parseContentAnchorUrl($el: any): URL | null {
+  const href = $el.attr("href");
+  if (href == null) return null;
+  if ($el.hasClass("mention") || $el.hasClass("hashtag")) return null;
+  const rel = $el.attr("rel")?.split(/\s+/g) ?? [];
+  if (rel.includes("tag")) return null;
+  if (href.startsWith("/") || href.startsWith("#")) return null;
+  const url = URL.parse(href);
+  if (url == null || (url.protocol !== "http:" && url.protocol !== "https:")) {
+    return null;
+  }
+  return url;
+}
+
 export function extractExternalLinks(html: string): URL[] {
-  // Extract external links from an HTML fragmenmt, except for mentions
-  // and hashtags.  This is used to extract links from the content of a post.
+  if (!html.includes("<a")) return [];
   const $ = load(html, null, false);
   const links: URL[] = [];
   $("a[href]").each((_, el) => {
-    const $el = $(el);
-    const href = $el.attr("href");
-    if (href == null) return;
-    if ($el.hasClass("mention") || $el.hasClass("hashtag")) return;
-    const rel = $el.attr("rel")?.split(/\s+/g) ?? [];
-    if (rel.includes("tag")) return;
-    if (href.startsWith("/")) return;
-    if (href.startsWith("#")) return;
-    const url = URL.parse(href);
-    if (url == null || url.protocol !== "http:" && url.protocol !== "https:") {
-      return;
-    }
-    links.push(url);
+    const url = parseContentAnchorUrl($(el));
+    if (url != null) links.push(url);
   });
   return links;
+}
+
+/**
+ * Marks external content links to open in a new tab. Same-origin links,
+ * mentions, hashtags, and relative paths are left alone so in-app
+ * navigation stays in the current tab.
+ */
+export function addExternalLinkTargets(
+  html: string,
+  localDomain?: string | URL,
+): string {
+  if (!html.includes("<a")) return html;
+  const localHost = localDomain instanceof URL ? localDomain.host : localDomain;
+  const $ = load(html, null, false);
+  $("a[href]").each((_, el) => {
+    const $el = $(el);
+    if ($el.attr("target") != null) return;
+    if ($el.attr("data-internal-href") != null) return;
+    const url = parseContentAnchorUrl($el);
+    if (url == null) return;
+    if (localHost != null && url.host === localHost) return;
+    $el.attr("target", "_blank");
+    const relTokens = $el.attr("rel")?.split(/\s+/g).filter((t: string) =>
+      t.length > 0
+    ) ?? [];
+    for (const token of ["noopener", "noreferrer"]) {
+      if (!relTokens.includes(token)) relTokens.push(token);
+    }
+    $el.attr("rel", relTokens.join(" "));
+  });
+  return $.html();
 }

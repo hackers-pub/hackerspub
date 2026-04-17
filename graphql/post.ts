@@ -1,5 +1,5 @@
 import { isReactionEmoji, renderCustomEmojis } from "@hackerspub/models/emoji";
-import { stripHtml } from "@hackerspub/models/html";
+import { addExternalLinkTargets, stripHtml } from "@hackerspub/models/html";
 import { negotiateLocale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
 import {
@@ -109,7 +109,11 @@ export const Post = builder.drizzleInterface("postTable", {
           emojis: true,
         },
       },
-      resolve: (post) => renderCustomEmojis(post.contentHtml, post.emojis),
+      resolve: (post, _, ctx) =>
+        addExternalLinkTargets(
+          renderCustomEmojis(post.contentHtml, post.emojis),
+          new URL(ctx.fedCtx.canonicalOrigin),
+        ),
     }),
     excerpt: t.string({
       select: {
@@ -316,7 +320,10 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
       },
       async resolve(draft, _, ctx) {
         const rendered = await renderMarkup(ctx.fedCtx, draft.content);
-        return rendered.html;
+        return addExternalLinkTargets(
+          rendered.html,
+          new URL(ctx.fedCtx.canonicalOrigin),
+        );
       },
     }),
     tags: t.exposeStringList("tags"),
@@ -372,7 +379,10 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
         const html = await renderMarkup(ctx.fedCtx, content.content, {
           kv: ctx.kv,
         });
-        return renderCustomEmojis(html.html, content.source.post.emojis);
+        return addExternalLinkTargets(
+          renderCustomEmojis(html.html, content.source.post.emojis),
+          new URL(ctx.fedCtx.canonicalOrigin),
+        );
       },
     }),
     rawContent: t.field({

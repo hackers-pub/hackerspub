@@ -1,5 +1,9 @@
 import { assertEquals } from "@std/assert/equals";
-import { extractExternalLinks, stripHtml } from "./html.ts";
+import {
+  addExternalLinkTargets,
+  extractExternalLinks,
+  stripHtml,
+} from "./html.ts";
 
 Deno.test("extractExternalLinks()", () => {
   assertEquals(
@@ -8,6 +12,115 @@ Deno.test("extractExternalLinks()", () => {
     ),
     [new URL("https://hongminhee.org/")],
   );
+});
+
+Deno.test("addExternalLinkTargets()", async (t) => {
+  await t.step("adds target and rel to external http(s) links", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="https://example.com">link</a></p>',
+        "hackers.pub",
+      ),
+      '<p><a href="https://example.com" target="_blank" rel="noopener noreferrer">link</a></p>',
+    );
+  });
+
+  await t.step("leaves same-origin absolute URLs untouched", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="https://hackers.pub/@user">user</a></p>',
+        "hackers.pub",
+      ),
+      '<p><a href="https://hackers.pub/@user">user</a></p>',
+    );
+  });
+
+  await t.step("skips mentions and hashtags", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="https://mastodon.social/@user" class="u-url mention">@user</a> <a href="https://example.com/tags/foo" class="mention hashtag" rel="tag">#foo</a></p>',
+        "hackers.pub",
+      ),
+      '<p><a href="https://mastodon.social/@user" class="u-url mention">@user</a> <a href="https://example.com/tags/foo" class="mention hashtag" rel="tag">#foo</a></p>',
+    );
+  });
+
+  await t.step("skips data-internal-href anchors", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="https://remote/@u" data-internal-href="/@u">@u</a></p>',
+        "hackers.pub",
+      ),
+      '<p><a href="https://remote/@u" data-internal-href="/@u">@u</a></p>',
+    );
+  });
+
+  await t.step("skips relative and fragment links", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="/path">relative</a> <a href="#section">fragment</a></p>',
+        "hackers.pub",
+      ),
+      '<p><a href="/path">relative</a> <a href="#section">fragment</a></p>',
+    );
+  });
+
+  await t.step("skips non-http(s) protocols", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="mailto:user@example.com">mail</a></p>',
+        "hackers.pub",
+      ),
+      '<p><a href="mailto:user@example.com">mail</a></p>',
+    );
+  });
+
+  await t.step("leaves anchors with an existing target untouched", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="https://example.com" target="_self">link</a></p>',
+        "hackers.pub",
+      ),
+      '<p><a href="https://example.com" target="_self">link</a></p>',
+    );
+  });
+
+  await t.step("merges rel tokens instead of overwriting", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="https://example.com" rel="nofollow">link</a></p>',
+        "hackers.pub",
+      ),
+      '<p><a href="https://example.com" rel="nofollow noopener noreferrer" target="_blank">link</a></p>',
+    );
+  });
+
+  await t.step(
+    "treats all http(s) links as external when no localDomain",
+    () => {
+      assertEquals(
+        addExternalLinkTargets(
+          '<p><a href="https://hackers.pub/x">x</a></p>',
+        ),
+        '<p><a href="https://hackers.pub/x" target="_blank" rel="noopener noreferrer">x</a></p>',
+      );
+    },
+  );
+
+  await t.step("accepts URL for localDomain", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="https://hackers.pub/@user">user</a></p>',
+        new URL("https://hackers.pub"),
+      ),
+      '<p><a href="https://hackers.pub/@user">user</a></p>',
+    );
+  });
+
+  await t.step("returns input unchanged when no anchors present", () => {
+    const html = "<p>no links here</p>";
+    assertEquals(addExternalLinkTargets(html, "hackers.pub"), html);
+  });
 });
 
 Deno.test("stripHtml()", async (t) => {
