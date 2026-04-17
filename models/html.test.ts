@@ -19,7 +19,7 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     assertEquals(
       addExternalLinkTargets(
         '<p><a href="https://example.com">link</a></p>',
-        "hackers.pub",
+        new URL("https://hackers.pub"),
       ),
       '<p><a href="https://example.com" target="_blank" rel="noopener noreferrer">link</a></p>',
     );
@@ -29,7 +29,7 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     assertEquals(
       addExternalLinkTargets(
         '<p><a href="https://hackers.pub/@user">user</a></p>',
-        "hackers.pub",
+        new URL("https://hackers.pub"),
       ),
       '<p><a href="https://hackers.pub/@user">user</a></p>',
     );
@@ -39,7 +39,7 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     assertEquals(
       addExternalLinkTargets(
         '<p><a href="https://mastodon.social/@user" class="u-url mention">@user</a> <a href="https://example.com/tags/foo" class="mention hashtag" rel="tag">#foo</a></p>',
-        "hackers.pub",
+        new URL("https://hackers.pub"),
       ),
       '<p><a href="https://mastodon.social/@user" class="u-url mention">@user</a> <a href="https://example.com/tags/foo" class="mention hashtag" rel="tag">#foo</a></p>',
     );
@@ -49,7 +49,7 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     assertEquals(
       addExternalLinkTargets(
         '<p><a href="https://remote/@u" data-internal-href="/@u">@u</a></p>',
-        "hackers.pub",
+        new URL("https://hackers.pub"),
       ),
       '<p><a href="https://remote/@u" data-internal-href="/@u">@u</a></p>',
     );
@@ -59,7 +59,7 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     assertEquals(
       addExternalLinkTargets(
         '<p><a href="/path">relative</a> <a href="#section">fragment</a></p>',
-        "hackers.pub",
+        new URL("https://hackers.pub"),
       ),
       '<p><a href="/path">relative</a> <a href="#section">fragment</a></p>',
     );
@@ -69,7 +69,7 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     assertEquals(
       addExternalLinkTargets(
         '<p><a href="mailto:user@example.com">mail</a></p>',
-        "hackers.pub",
+        new URL("https://hackers.pub"),
       ),
       '<p><a href="mailto:user@example.com">mail</a></p>',
     );
@@ -79,7 +79,7 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     assertEquals(
       addExternalLinkTargets(
         '<p><a href="https://example.com" target="_self">link</a></p>',
-        "hackers.pub",
+        new URL("https://hackers.pub"),
       ),
       '<p><a href="https://example.com" target="_self">link</a></p>',
     );
@@ -89,7 +89,7 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     assertEquals(
       addExternalLinkTargets(
         '<p><a href="https://example.com" rel="nofollow">link</a></p>',
-        "hackers.pub",
+        new URL("https://hackers.pub"),
       ),
       '<p><a href="https://example.com" rel="nofollow noopener noreferrer" target="_blank">link</a></p>',
     );
@@ -119,7 +119,10 @@ Deno.test("addExternalLinkTargets()", async (t) => {
 
   await t.step("returns input unchanged when no anchors present", () => {
     const html = "<p>no links here</p>";
-    assertEquals(addExternalLinkTargets(html, "hackers.pub"), html);
+    assertEquals(
+      addExternalLinkTargets(html, new URL("https://hackers.pub")),
+      html,
+    );
   });
 });
 

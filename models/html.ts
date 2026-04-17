@@ -421,7 +421,7 @@ export interface PreprocessContentHtmlOptions {
   tags: Record<string, string>;
   emojis?: Record<string, string>;
   quote?: boolean;
-  localDomain?: string | URL;
+  localDomain?: URL;
 }
 
 export function preprocessContentHtml(
@@ -437,8 +437,9 @@ export function preprocessContentHtml(
   return html;
 }
 
-function resolveLocalDomain(): string {
-  return globalThis.location?.host || "hackers.pub";
+function resolveLocalDomain(): URL {
+  const host = globalThis.location?.host || "hackers.pub";
+  return new URL(`https://${host}`);
 }
 
 // deno-lint-ignore no-explicit-any
@@ -474,10 +475,10 @@ export function extractExternalLinks(html: string): URL[] {
  */
 export function addExternalLinkTargets(
   html: string,
-  localDomain?: string | URL,
+  localDomain?: URL,
 ): string {
   if (!html.includes("<a")) return html;
-  const localHost = localDomain instanceof URL ? localDomain.host : localDomain;
+  const localHost = localDomain?.host;
   const $ = load(html, null, false);
   $("a[href]").each((_, el) => {
     const $el = $(el);
