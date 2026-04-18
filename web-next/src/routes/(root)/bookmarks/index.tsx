@@ -1,4 +1,9 @@
-import { query, type RouteDefinition, useSearchParams } from "@solidjs/router";
+import {
+  Navigate,
+  query,
+  type RouteDefinition,
+  useSearchParams,
+} from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -9,6 +14,7 @@ import {
 import { type BookmarkPostType, Bookmarks } from "~/components/Bookmarks.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs.tsx";
+import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { bookmarksQuery } from "./__generated__/bookmarksQuery.graphql.ts";
 
@@ -43,6 +49,7 @@ function mapTypeParam(value: string | undefined): BookmarkPostType {
 
 export default function BookmarksPage() {
   const { t, i18n } = useLingui();
+  const viewer = useViewer();
   const [searchParams, setSearchParams] = useSearchParams<{ type?: string }>();
   const data = createPreloadedQuery<bookmarksQuery>(
     bookmarksQuery,
@@ -53,24 +60,33 @@ export default function BookmarksPage() {
   const postType = () => mapTypeParam(searchParams.type);
 
   return (
-    <Show when={data()}>
-      {(data) => (
-        <NarrowContainer>
-          <Tabs
-            value={activeType()}
-            onChange={(value) =>
-              setSearchParams({ type: value === "all" ? undefined : value })}
-            class="px-4 py-3"
-          >
-            <TabsList>
-              <TabsTrigger value="all">{t`All`}</TabsTrigger>
-              <TabsTrigger value="articles">{t`Articles`}</TabsTrigger>
-              <TabsTrigger value="notes">{t`Notes`}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Bookmarks $posts={data()} postType={postType()} />
-        </NarrowContainer>
-      )}
+    <Show when={viewer.isLoaded()}>
+      <Show
+        when={viewer.isAuthenticated()}
+        fallback={<Navigate href="/sign?next=%2Fbookmarks" />}
+      >
+        <Show when={data()}>
+          {(data) => (
+            <NarrowContainer>
+              <Tabs
+                value={activeType()}
+                onChange={(value) =>
+                  setSearchParams({
+                    type: value === "all" ? undefined : value,
+                  })}
+                class="px-4 py-3"
+              >
+                <TabsList>
+                  <TabsTrigger value="all">{t`All`}</TabsTrigger>
+                  <TabsTrigger value="articles">{t`Articles`}</TabsTrigger>
+                  <TabsTrigger value="notes">{t`Notes`}</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <Bookmarks $posts={data()} postType={postType()} />
+            </NarrowContainer>
+          )}
+        </Show>
+      </Show>
     </Show>
   );
 }
