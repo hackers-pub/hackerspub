@@ -1,6 +1,7 @@
 import { getLogger } from "@logtape/logtape";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { type ApnsNotificationOptions, sendApnsNotification } from "./apns.ts";
+import { type FcmNotificationOptions, sendFcmNotification } from "./fcm.ts";
 import type { Database } from "./db.ts";
 import {
   type Account,
@@ -33,6 +34,35 @@ async function sendApnsNotificationBestEffort(
       },
     );
   }
+}
+
+async function sendFcmNotificationBestEffort(
+  db: Database,
+  options: FcmNotificationOptions,
+): Promise<void> {
+  try {
+    await sendFcmNotification(db, options);
+  } catch (error) {
+    logger.error(
+      "Failed to send FCM notification after persistence for account {accountId}, notification {notificationId}, type {type}: {error}",
+      {
+        accountId: options.accountId,
+        notificationId: options.notificationId,
+        type: options.type,
+        error,
+      },
+    );
+  }
+}
+
+async function sendPushNotificationsBestEffort(
+  db: Database,
+  options: ApnsNotificationOptions & FcmNotificationOptions,
+): Promise<void> {
+  await Promise.all([
+    sendApnsNotificationBestEffort(db, options),
+    sendFcmNotificationBestEffort(db, options),
+  ]);
 }
 
 /**
@@ -120,7 +150,7 @@ export async function createNotification(
       .returning();
     const merged = mergedRows[0];
     if (merged != null) {
-      await sendApnsNotificationBestEffort(db, {
+      await sendPushNotificationsBestEffort(db, {
         accountId,
         notificationId: merged.id,
         type,
@@ -151,7 +181,7 @@ export async function createNotification(
       .returning();
     const inserted = notificationRows[0];
     if (inserted != null) {
-      await sendApnsNotificationBestEffort(db, {
+      await sendPushNotificationsBestEffort(db, {
         accountId,
         notificationId: inserted.id,
         type,
@@ -180,7 +210,7 @@ export async function createNotification(
       .returning();
     const merged = mergedRows[0];
     if (merged != null) {
-      await sendApnsNotificationBestEffort(db, {
+      await sendPushNotificationsBestEffort(db, {
         accountId,
         notificationId: merged.id,
         type,

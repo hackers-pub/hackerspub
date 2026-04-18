@@ -2,6 +2,7 @@ import { type GraphQLSchema, printSchema } from "graphql";
 import path from "node:path";
 import "./account.ts";
 import "./apns.ts";
+import "./fcm.ts";
 import "./actor.ts";
 import { builder } from "./builder.ts";
 import "./error.ts";
