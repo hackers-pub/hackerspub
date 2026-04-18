@@ -3,7 +3,7 @@ import {
   resolveCursorConnection,
   type ResolveCursorConnectionArgs,
 } from "@pothos/plugin-relay";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { Post } from "./post.ts";
@@ -147,10 +147,12 @@ builder.mutationField("markNotificationsAsRead", (t) =>
       "Marks all notifications as read up to the current time. Returns the timestamp.",
     async resolve(_root, _args, ctx) {
       if (ctx.account == null) throw new NotAuthenticatedError();
-      const now = new Date();
-      await ctx.db.update(accountTable)
-        .set({ notificationRead: now })
-        .where(eq(accountTable.id, ctx.account.id));
-      return now;
+      const [row] = await ctx.db.update(accountTable)
+        .set({
+          notificationRead: sql`GREATEST(${accountTable.notificationRead}, CURRENT_TIMESTAMP)`,
+        })
+        .where(eq(accountTable.id, ctx.account.id))
+        .returning({ notificationRead: accountTable.notificationRead });
+      return row.notificationRead!;
     },
   }));
