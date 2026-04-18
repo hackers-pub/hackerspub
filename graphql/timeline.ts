@@ -1,3 +1,4 @@
+import { getBookmarks } from "@hackerspub/models/bookmark";
 import {
   getPersonalTimeline,
   getPublicTimeline,
@@ -79,6 +80,55 @@ builder.queryFields((t) => ({
       }),
     },
   ),
+
+  bookmarks: t.connection({
+    type: Post,
+    args: {
+      postType: t.arg({
+        type: PostType,
+        required: false,
+      }),
+    },
+    async resolve(_, args, ctx) {
+      if (ctx.account == null) {
+        throw new Error("Authentication required.");
+      } else if (args.last != null || args.before != null) {
+        throw new Error("Backward pagination is not supported.");
+      }
+      const window = args.first ?? 25;
+      const until = args.after == null ? undefined : new Date(args.after);
+      const bookmarks = await getBookmarks(ctx.db, {
+        account: ctx.account,
+        postType: args.postType == null
+          ? undefined
+          : args.postType === "ARTICLE"
+          ? "Article"
+          : args.postType === "NOTE"
+          ? "Note"
+          : args.postType === "QUESTION"
+          ? "Question"
+          : assertNever(args.postType),
+        window: window + 1,
+        until,
+      });
+      return {
+        pageInfo: {
+          hasNextPage: bookmarks.length > window,
+          hasPreviousPage: false,
+          startCursor: bookmarks.length < 2
+            ? null
+            : bookmarks[1].bookmarkedAt.toISOString(),
+          endCursor: bookmarks.length < 2
+            ? null
+            : bookmarks.at(-1)!.bookmarkedAt.toISOString(),
+        },
+        edges: bookmarks.slice(0, window).map((entry, i) => ({
+          node: entry.post,
+          cursor: bookmarks[i + 1]?.bookmarkedAt?.toISOString() ?? "",
+        })),
+      };
+    },
+  }),
 
   personalTimeline: t.connection(
     {
