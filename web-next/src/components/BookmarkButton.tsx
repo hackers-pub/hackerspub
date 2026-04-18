@@ -19,6 +19,7 @@ export interface BookmarkButtonProps {
 const bookmarkPostMutation = graphql`
   mutation BookmarkButton_bookmarkPost_Mutation($input: BookmarkPostInput!) {
     bookmarkPost(input: $input) {
+      __typename
       ... on BookmarkPostPayload {
         post {
           id
@@ -41,6 +42,7 @@ const unbookmarkPostMutation = graphql`
     $connections: [ID!]!
   ) {
     unbookmarkPost(input: $input) {
+      __typename
       ... on UnbookmarkPostPayload {
         post {
           id
@@ -87,6 +89,14 @@ export function BookmarkButton(props: BookmarkButtonProps) {
           input: { postId: p.id },
           connections: props.connections ?? [],
         },
+        onCompleted(response) {
+          if (response.unbookmarkPost.__typename !== "UnbookmarkPostPayload") {
+            showToast({
+              title: t`Failed to remove bookmark`,
+              variant: "destructive",
+            });
+          }
+        },
         onError(_error) {
           showToast({
             title: t`Failed to remove bookmark`,
@@ -98,6 +108,14 @@ export function BookmarkButton(props: BookmarkButtonProps) {
       bookmarkPost({
         variables: {
           input: { postId: p.id },
+        },
+        onCompleted(response) {
+          if (response.bookmarkPost.__typename !== "BookmarkPostPayload") {
+            showToast({
+              title: t`Failed to bookmark`,
+              variant: "destructive",
+            });
+          }
         },
         onError(_error) {
           showToast({
