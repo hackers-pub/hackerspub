@@ -738,7 +738,7 @@ export const bookmarkTable = pgTable(
   (table) => [
     primaryKey({ columns: [table.accountId, table.postId] }),
     index("idx_bookmark_account_created")
-      .on(table.accountId, desc(table.created)),
+      .on(table.accountId, desc(table.created), desc(table.postId)),
     index().on(table.postId),
   ],
 );
