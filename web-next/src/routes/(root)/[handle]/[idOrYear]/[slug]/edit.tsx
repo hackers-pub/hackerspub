@@ -1,5 +1,6 @@
 import {
   query,
+  revalidate,
   type RouteDefinition,
   useNavigate,
   useParams,
@@ -37,6 +38,7 @@ export const route = {
     const handle = args.params.handle!;
     const idOrYear = args.params.idOrYear!;
     const slug = args.params.slug!;
+    revalidate("loadArticleEditPageQuery");
     void loadPageQuery(handle, idOrYear, slug);
   },
 } satisfies RouteDefinition;
@@ -63,6 +65,7 @@ const loadPageQuery = query(
       useRelayEnvironment()(),
       editPageQueryDef,
       { handle, idOrYear, slug },
+      { fetchPolicy: "network-only" },
     ),
   "loadArticleEditPageQuery",
 );
@@ -104,6 +107,8 @@ const updateArticleMutation = graphql`
         article {
           id
           url
+          ...Slug_head
+          ...Slug_body
         }
       }
       ... on InvalidInputError {
@@ -187,6 +192,7 @@ function ArticleEditForm(props: ArticleEditFormProps) {
           });
           const articleUrl = response.updateArticle.article.url;
           if (articleUrl) {
+            revalidate("loadArticlePageQuery");
             navigate(new URL(articleUrl).pathname);
           }
         } else if (
