@@ -11,6 +11,7 @@ import {
   ArticleCard_article$key,
 } from "./__generated__/ArticleCard_article.graphql.ts";
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
+import { ArticleControls } from "./ArticleControls.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { PostActionMenu } from "./PostActionMenu.tsx";
 import { PostSharer } from "./PostSharer.tsx";
@@ -20,6 +21,7 @@ import { Trans } from "./Trans.tsx";
 export interface ArticleCardProps {
   $article: ArticleCard_article$key;
   connections?: string[];
+  bookmarkListConnections?: string[];
 }
 
 export function ArticleCard(props: ArticleCardProps) {
@@ -29,9 +31,11 @@ export function ArticleCard(props: ArticleCardProps) {
         @argumentDefinitions(locale: { type: "Locale" })
       {
         ...ArticleCardInternal_article @arguments(locale: $locale)
+        ...ArticleControls_article
         ...PostSharer_post
         sharedPost {
           ...ArticleCardInternal_article @arguments(locale: $locale)
+          ...ArticleControls_article
         }
       }
     `,
@@ -49,11 +53,17 @@ export function ArticleCard(props: ArticleCardProps) {
           <Show
             when={article().sharedPost}
             fallback={
-              <ArticleCardInternal
-                $article={article()}
-                setHover={setHover}
-                connections={props.connections}
-              />
+              <>
+                <ArticleCardInternal
+                  $article={article()}
+                  setHover={setHover}
+                  connections={props.connections}
+                />
+                <ArticleControls
+                  $article={article()}
+                  bookmarkListConnections={props.bookmarkListConnections}
+                />
+              </>
             }
           >
             {(sharedPost) => (
@@ -63,6 +73,10 @@ export function ArticleCard(props: ArticleCardProps) {
                   $article={sharedPost()}
                   setHover={setHover}
                   connections={props.connections}
+                />
+                <ArticleControls
+                  $article={sharedPost()}
+                  bookmarkListConnections={props.bookmarkListConnections}
                 />
               </>
             )}
