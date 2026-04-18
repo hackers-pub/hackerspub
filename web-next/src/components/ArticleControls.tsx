@@ -6,7 +6,7 @@ import { BookmarkButton } from "./BookmarkButton.tsx";
 
 export interface ArticleControlsProps {
   $article: ArticleControls_article$key;
-  connections?: string[];
+  bookmarkListConnections?: string[];
   class?: string;
 }
 
@@ -28,7 +28,10 @@ export function ArticleControls(props: ArticleControlsProps) {
             props.class ?? ""
           }`}
         >
-          <BookmarkButton $post={a()} connections={props.connections} />
+          <BookmarkButton
+            $post={a()}
+            bookmarkListConnections={props.bookmarkListConnections}
+          />
         </div>
       )}
     </Show>

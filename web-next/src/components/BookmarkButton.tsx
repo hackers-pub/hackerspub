@@ -12,7 +12,7 @@ import type { BookmarkButton_unbookmarkPost_Mutation } from "./__generated__/Boo
 
 export interface BookmarkButtonProps {
   $post: BookmarkButton_post$key;
-  connections?: string[];
+  bookmarkListConnections?: string[];
   class?: string;
 }
 
@@ -87,7 +87,7 @@ export function BookmarkButton(props: BookmarkButtonProps) {
       unbookmarkPost({
         variables: {
           input: { postId: p.id },
-          connections: props.connections ?? [],
+          connections: props.bookmarkListConnections ?? [],
         },
         onCompleted(response) {
           if (response.unbookmarkPost.__typename !== "UnbookmarkPostPayload") {

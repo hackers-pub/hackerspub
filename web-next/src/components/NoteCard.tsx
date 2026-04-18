@@ -8,6 +8,7 @@ import { PostSharer } from "./PostSharer.tsx";
 export interface NoteCardProps {
   $note: NoteCard_note$key;
   connections?: string[];
+  bookmarkListConnections?: string[];
   onDeleted?: () => void;
 }
 
@@ -37,6 +38,7 @@ export function NoteCard(props: NoteCardProps) {
               <NoteCardInternal
                 $note={displayPost()}
                 connections={props.connections}
+                bookmarkListConnections={props.bookmarkListConnections}
                 onDeleted={props.onDeleted}
               />
             </div>

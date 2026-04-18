@@ -23,7 +23,7 @@ import { EmojiReactionPopover } from "./EmojiReactionPopover.tsx";
 
 export interface PostControlsProps {
   $post: PostControls_post$key;
-  connections?: string[];
+  bookmarkListConnections?: string[];
   class?: string;
   classList?: Record<string, boolean>;
 }
@@ -252,7 +252,7 @@ export function PostControls(props: PostControlsProps) {
           {/* Bookmark Button */}
           <BookmarkButton
             $post={note()}
-            connections={props.connections}
+            bookmarkListConnections={props.bookmarkListConnections}
           />
         </div>
       )}

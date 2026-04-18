@@ -86,6 +86,7 @@ export function Bookmarks(props: BookmarksProps) {
                 <PostCard
                   $post={edge.node}
                   connections={[data().bookmarks.__id]}
+                  bookmarkListConnections={[data().bookmarks.__id]}
                 />
               )}
             </For>

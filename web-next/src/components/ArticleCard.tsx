@@ -21,6 +21,7 @@ import { Trans } from "./Trans.tsx";
 export interface ArticleCardProps {
   $article: ArticleCard_article$key;
   connections?: string[];
+  bookmarkListConnections?: string[];
 }
 
 export function ArticleCard(props: ArticleCardProps) {
@@ -60,7 +61,7 @@ export function ArticleCard(props: ArticleCardProps) {
                 />
                 <ArticleControls
                   $article={article()}
-                  connections={props.connections}
+                  bookmarkListConnections={props.bookmarkListConnections}
                 />
               </>
             }
@@ -75,7 +76,7 @@ export function ArticleCard(props: ArticleCardProps) {
                 />
                 <ArticleControls
                   $article={sharedPost()}
-                  connections={props.connections}
+                  bookmarkListConnections={props.bookmarkListConnections}
                 />
               </>
             )}
