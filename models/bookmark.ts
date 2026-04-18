@@ -76,7 +76,7 @@ export interface BookmarkListOptions {
 
 export interface BookmarkEntry {
   readonly post: Post;
-  readonly bookmarkedAt: Date;
+  readonly bookmarked: Date;
 }
 
 export async function getBookmarks(
@@ -86,7 +86,7 @@ export async function getBookmarks(
   const rows = await db
     .select({
       post: postTable,
-      bookmarkedAt: bookmarkTable.created,
+      bookmarked: bookmarkTable.created,
     })
     .from(bookmarkTable)
     .innerJoin(postTable, eq(bookmarkTable.postId, postTable.id))
@@ -107,6 +107,6 @@ export async function getBookmarks(
     .limit(window);
   return rows.map((row) => ({
     post: row.post,
-    bookmarkedAt: row.bookmarkedAt,
+    bookmarked: row.bookmarked,
   }));
 }

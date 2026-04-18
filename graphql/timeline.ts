@@ -25,7 +25,7 @@ function parseBookmarkCursor(raw: string): BookmarkCursor | undefined {
 }
 
 function formatBookmarkCursor(entry: BookmarkEntry): string {
-  return `${entry.bookmarkedAt.toISOString()}|${entry.post.id}`;
+  return `${entry.bookmarked.toISOString()}|${entry.post.id}`;
 }
 
 builder.queryFields((t) => ({
