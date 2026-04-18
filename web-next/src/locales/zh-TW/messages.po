@@ -175,7 +175,7 @@ msgstr "為顯示在你個人資料頁面的連結命名，例如 GitHub。"
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾郵件資料夾）"
 
-#: src/components/AppSidebar.tsx:268
+#: src/components/AppSidebar.tsx:287
 msgid "Account"
 msgstr "帳戶"
 
@@ -192,6 +192,10 @@ msgstr "新增"
 #: src/components/EmojiReactionPopover.tsx:293
 msgid "Add {0}"
 msgstr "新增{0}"
+
+#: src/routes/(root)/bookmarks/index.tsx:66
+msgid "All"
+msgstr "全部"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:321
 msgid "Allow automatic translation by AI"
@@ -258,6 +262,7 @@ msgid "article-url-slug"
 msgstr "文章網址別名"
 
 #: src/components/ProfileTabs.tsx:48
+#: src/routes/(root)/bookmarks/index.tsx:67
 msgid "Articles"
 msgstr "文章"
 
@@ -290,6 +295,14 @@ msgstr "個人簡介太長。不能長於 512 字元。"
 #: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "粗體"
+
+#: src/components/BookmarkButton.tsx:125
+msgid "Bookmark"
+msgstr "收藏"
+
+#: src/components/AppSidebar.tsx:218
+msgid "Bookmarks"
+msgstr "收藏"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:442
@@ -327,7 +340,7 @@ msgstr "請選擇驗證信件的語言。"
 msgid "Code"
 msgstr "程式碼"
 
-#: src/components/AppSidebar.tsx:536
+#: src/components/AppSidebar.tsx:555
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
@@ -338,7 +351,7 @@ msgstr "行為準則"
 msgid "Comments ({0})"
 msgstr "評論（{0}）"
 
-#: src/components/AppSidebar.tsx:426
+#: src/components/AppSidebar.tsx:445
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "寫作"
@@ -373,7 +386,7 @@ msgstr "無法將連結複製到剪貼簿。"
 msgid "Could not find a post at this URL"
 msgstr "無法在此URL找到內容"
 
-#: src/components/AppSidebar.tsx:471
+#: src/components/AppSidebar.tsx:490
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create Article"
 msgstr "建立文章"
@@ -382,7 +395,7 @@ msgstr "建立文章"
 msgid "Create invitation link"
 msgstr "建立邀請連結"
 
-#: src/components/AppSidebar.tsx:448
+#: src/components/AppSidebar.tsx:467
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:26
 #: src/components/NoteComposer.tsx:451
@@ -564,6 +577,10 @@ msgstr "到期時間"
 msgid "Extra message"
 msgstr "額外訊息"
 
+#: src/components/BookmarkButton.tsx:104
+msgid "Failed to bookmark"
+msgstr "收藏失敗"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:623
 msgid "Failed to copy"
 msgstr "複製失敗"
@@ -590,6 +607,10 @@ msgstr "關注失敗"
 #: src/components/ActorArticleList.tsx:81
 msgid "Failed to load more articles; click to retry"
 msgstr "載入更多文章失敗，點擊重試"
+
+#: src/components/Bookmarks.tsx:102
+msgid "Failed to load more bookmarks; click to retry"
+msgstr "載入更多收藏失敗，點擊重試"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:326
 msgid "Failed to load more drafts; click to retry"
@@ -646,6 +667,10 @@ msgstr "反應失敗"
 msgid "Failed to register passkey"
 msgstr "註冊通行金鑰失敗"
 
+#: src/components/BookmarkButton.tsx:92
+msgid "Failed to remove bookmark"
+msgstr "取消收藏失敗"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:325
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:331
 msgid "Failed to revoke passkey"
@@ -672,7 +697,7 @@ msgstr "傳送郵件失敗"
 msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
-#: src/components/PostControls.tsx:150
+#: src/components/PostControls.tsx:153
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
@@ -685,7 +710,7 @@ msgstr "登出失敗：{0}"
 msgid "Failed to unfollow"
 msgstr "取消關注失敗"
 
-#: src/components/PostControls.tsx:136
+#: src/components/PostControls.tsx:139
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
@@ -697,7 +722,7 @@ msgstr "文章更新失敗，請重試。"
 msgid "Failed to upload image"
 msgstr "圖片上傳失敗"
 
-#: src/components/AppSidebar.tsx:242
+#: src/components/AppSidebar.tsx:261
 msgid "Fediverse"
 msgstr "聯邦宇宙"
 
@@ -739,7 +764,7 @@ msgstr "關注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/AppSidebar.tsx:570
+#: src/components/AppSidebar.tsx:589
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
@@ -760,7 +785,7 @@ msgid "Go to My Drafts"
 msgstr "前往我的草稿"
 
 #: src/components/AppSidebar.tsx:129
-#: src/components/AppSidebar.tsx:220
+#: src/components/AppSidebar.tsx:239
 #: src/routes/(root).tsx:82
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
@@ -867,7 +892,7 @@ msgstr "邀請連結"
 msgid "Invitation sent"
 msgstr "邀請已發送"
 
-#: src/components/AppSidebar.tsx:359
+#: src/components/AppSidebar.tsx:378
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:303
 msgid "Invite"
@@ -940,6 +965,10 @@ msgstr "載入更多"
 msgid "Load more articles"
 msgstr "載入更多文章"
 
+#: src/components/Bookmarks.tsx:105
+msgid "Load more bookmarks"
+msgstr "載入更多收藏"
+
 #: src/components/ActorFollowerList.tsx:83
 msgid "Load more followers"
 msgstr "載入更多粉絲"
@@ -979,6 +1008,10 @@ msgstr "載入草稿中..."
 #: src/components/ActorArticleList.tsx:78
 msgid "Loading more articles…"
 msgstr "載入更多文章中…"
+
+#: src/components/Bookmarks.tsx:99
+msgid "Loading more bookmarks…"
+msgstr "載入更多收藏中…"
 
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
@@ -1093,6 +1126,10 @@ msgstr "從未使用過"
 msgid "New Article"
 msgstr "新建文章"
 
+#: src/components/Bookmarks.tsx:112
+msgid "No bookmarks yet"
+msgstr "暫無收藏"
+
 #: src/components/article-composer/ArticleComposerContext.tsx:408
 msgid "No draft to delete"
 msgstr "沒有要刪除的草稿"
@@ -1162,13 +1199,14 @@ msgid "Note that you can verify your links belong to you by making the linked pa
 msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用 {0} 屬性連結回你的 Hackers' Pub 個人資料頁。"
 
 #: src/components/ProfileTabs.tsx:41
+#: src/routes/(root)/bookmarks/index.tsx:68
 msgid "Notes"
 msgstr "貼文"
 
 #~ msgid "Nothing to preview"
 #~ msgstr "沒有可預覽的內容"
 
-#: src/components/AppSidebar.tsx:321
+#: src/components/AppSidebar.tsx:340
 msgid "Notifications"
 msgstr "通知"
 
@@ -1285,7 +1323,7 @@ msgstr "偏好語言"
 msgid "Priority"
 msgstr "優先級"
 
-#: src/components/AppSidebar.tsx:539
+#: src/components/AppSidebar.tsx:558
 #: src/routes/(root)/privacy.tsx:48
 msgid "Privacy policy"
 msgstr "隱私權政策"
@@ -1323,12 +1361,12 @@ msgid "Quiet public"
 msgstr "悄悄公開"
 
 #: src/components/NoteComposeModal.tsx:26
-#: src/components/PostControls.tsx:195
+#: src/components/PostControls.tsx:198
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:233
+#: src/components/PostControls.tsx:236
 msgid "React"
 msgstr "反應"
 
@@ -1341,8 +1379,8 @@ msgstr "用{emoji}反應"
 msgid "reaction"
 msgstr "反應"
 
-#: src/components/ArticleCard.tsx:339
-#: src/components/ArticleCard.tsx:359
+#: src/components/ArticleCard.tsx:352
+#: src/components/ArticleCard.tsx:372
 msgid "Read full article"
 msgstr "閱讀完整文章"
 
@@ -1350,7 +1388,7 @@ msgstr "閱讀完整文章"
 msgid "Read the full Code of conduct"
 msgstr "閱讀完整的行為守則"
 
-#: src/components/AppSidebar.tsx:484
+#: src/components/AppSidebar.tsx:503
 msgid "Recent Drafts"
 msgstr "最近的草稿"
 
@@ -1389,12 +1427,16 @@ msgstr "移除"
 msgid "Remove {0}"
 msgstr "移除{0}"
 
+#: src/components/BookmarkButton.tsx:125
+msgid "Remove bookmark"
+msgstr "取消收藏"
+
 #: src/components/NoteComposer.tsx:364
 #: src/components/NoteComposer.tsx:365
 msgid "Remove quote"
 msgstr "移除引用"
 
-#: src/components/PostControls.tsx:184
+#: src/components/PostControls.tsx:187
 msgid "Reply"
 msgstr "回覆"
 
@@ -1436,7 +1478,7 @@ msgstr "儲存中..."
 msgid "Saving…"
 msgstr "儲存中…"
 
-#: src/components/AppSidebar.tsx:261
+#: src/components/AppSidebar.tsx:280
 #: src/routes/(root)/search.tsx:152
 msgid "Search"
 msgstr "搜尋"
@@ -1471,11 +1513,11 @@ msgstr "發送中…"
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
-#: src/components/AppSidebar.tsx:390
+#: src/components/AppSidebar.tsx:409
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:213
+#: src/components/PostControls.tsx:216
 msgid "Share"
 msgstr "分享"
 
@@ -1487,7 +1529,7 @@ msgstr "轉貼"
 msgid "Show Preview"
 msgstr "顯示預覽"
 
-#: src/components/AppSidebar.tsx:294
+#: src/components/AppSidebar.tsx:313
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登入"
@@ -1500,7 +1542,7 @@ msgstr "登入 Hackers' Pub"
 msgid "Sign in with passkey"
 msgstr "使用通行金鑰登入"
 
-#: src/components/AppSidebar.tsx:412
+#: src/components/AppSidebar.tsx:431
 msgid "Sign out"
 msgstr "登出"
 
@@ -1558,8 +1600,8 @@ msgstr "設定已成功儲存"
 msgid "Successfully saved settings"
 msgstr "設定儲存成功"
 
-#: src/components/ArticleCard.tsx:292
-#: src/components/ArticleCard.tsx:311
+#: src/components/ArticleCard.tsx:305
+#: src/components/ArticleCard.tsx:324
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -1639,7 +1681,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:562
+#: src/components/AppSidebar.tsx:581
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
@@ -1707,7 +1749,7 @@ msgid "Toggle sidebar"
 msgstr "切換側邊欄"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:175
+#: src/components/ArticleCard.tsx:188
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
@@ -1735,7 +1777,7 @@ msgstr "無法移除反應。請重試。"
 msgid "Unfollow"
 msgstr "取消關注"
 
-#: src/components/PostControls.tsx:213
+#: src/components/PostControls.tsx:216
 msgid "Unshare"
 msgstr "取消轉貼"
 
@@ -1791,7 +1833,7 @@ msgstr "已於{1}驗證此連結歸{0}所有"
 msgid "Verifying your invitation…"
 msgstr "驗證您的邀請…"
 
-#: src/components/AppSidebar.tsx:526
+#: src/components/AppSidebar.tsx:545
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 

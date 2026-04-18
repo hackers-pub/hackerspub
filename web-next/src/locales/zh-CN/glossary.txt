@@ -8,6 +8,7 @@ reply → 回复
 comment → 评论
 share → 转帖
 quote → 引用
+bookmark → 收藏
 username → 用户名
 displayName → 昵称
 bio → 个人简介
