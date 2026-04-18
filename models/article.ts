@@ -7,6 +7,7 @@ import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
 import type { LanguageModel } from "ai";
 import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
+import postgres from "postgres";
 import type { ContextData, Models } from "./context.ts";
 import type { Database } from "./db.ts";
 import { syncPostFromArticleSource } from "./post.ts";
@@ -35,6 +36,13 @@ import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "article"]);
+
+export class LanguageChangeWithTranslationsError extends Error {
+  constructor() {
+    super("Cannot change language when translations already exist");
+    this.name = "LanguageChangeWithTranslationsError";
+  }
+}
 
 export async function updateArticleDraft(
   db: Database,
@@ -258,44 +266,56 @@ export async function updateArticleSource(
     language?: string;
   },
 ): Promise<ArticleSource & { contents: ArticleContent[] } | undefined> {
-  const sources = await db.update(articleSourceTable)
-    .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
-    .where(eq(articleSourceTable.id, id))
-    .returning();
-  if (sources.length < 1) return undefined;
-  const originalContent = await getOriginalArticleContent(db, sources[0]);
-  if (originalContent == null) {
-    if (
-      source.language == null || source.title == null || source.content == null
-    ) {
-      return undefined;
+  return await db.transaction(async (tx) => {
+    const sources = await tx.update(articleSourceTable)
+      .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
+      .where(eq(articleSourceTable.id, id))
+      .returning();
+    if (sources.length < 1) return undefined;
+    const originalContent = await getOriginalArticleContent(tx, sources[0]);
+    if (originalContent == null) {
+      if (
+        source.language == null || source.title == null ||
+        source.content == null
+      ) {
+        throw new Error("Missing required fields for new article content");
+      }
+      await tx.insert(articleContentTable).values({
+        sourceId: id,
+        language: source.language,
+        title: source.title,
+        content: source.content,
+      });
+    } else {
+      try {
+        await tx.update(articleContentTable)
+          .set({
+            language: source.language ?? originalContent.language,
+            title: source.title ?? originalContent.title,
+            content: source.content ?? originalContent.content,
+            updated: sql`CURRENT_TIMESTAMP`,
+          })
+          .where(
+            and(
+              eq(articleContentTable.sourceId, id),
+              eq(articleContentTable.language, originalContent.language),
+            ),
+          );
+      } catch (error) {
+        if (
+          error instanceof postgres.PostgresError && error.code === "23503"
+        ) {
+          throw new LanguageChangeWithTranslationsError();
+        }
+        throw error;
+      }
     }
-    await db.insert(articleContentTable).values({
-      sourceId: id,
-      language: source.language,
-      title: source.title,
-      content: source.content,
+    const contents = await tx.query.articleContentTable.findMany({
+      where: { sourceId: id },
+      orderBy: { published: "asc" },
     });
-  } else {
-    await db.update(articleContentTable)
-      .set({
-        language: source.language ?? originalContent.language,
-        title: source.title ?? originalContent.title,
-        content: source.content ?? originalContent.content,
-        updated: sql`CURRENT_TIMESTAMP`,
-      })
-      .where(
-        and(
-          eq(articleContentTable.sourceId, id),
-          eq(articleContentTable.language, originalContent.language),
-        ),
-      );
-  }
-  const contents = await db.query.articleContentTable.findMany({
-    where: { sourceId: id },
-    orderBy: { published: "asc" },
+    return { ...sources[0], contents };
   });
-  return { ...sources[0], contents };
 }
 
 export async function updateArticle(
