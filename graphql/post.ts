@@ -9,6 +9,11 @@ import {
   updateArticle,
   updateArticleDraft,
 } from "@hackerspub/models/article";
+import {
+  createBookmark,
+  deleteBookmark,
+  isPostBookmarkedBy,
+} from "@hackerspub/models/bookmark";
 import { createNote } from "@hackerspub/models/note";
 import {
   deletePost,
@@ -153,6 +158,15 @@ export const Post = builder.drizzleInterface("postTable", {
       async resolve(post, _, ctx) {
         if (ctx.account == null) return false;
         return await isPostSharedBy(ctx.db, post, ctx.account);
+      },
+    }),
+    viewerHasBookmarked: t.boolean({
+      select: {
+        columns: { id: true },
+      },
+      async resolve(post, _, ctx) {
+        if (ctx.account == null) return false;
+        return await isPostBookmarkedBy(ctx.db, post, ctx.account);
       },
     }),
   }),
@@ -1193,6 +1207,132 @@ builder.relayMutationField(
             query({ where: { id: result.originalPostId } }),
           );
           return post!;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "bookmarkPost",
+  {
+    inputFields: (t) => ({
+      postId: t.globalID({
+        for: [Note, Article, Question],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const { postId } = args.input;
+
+      const post = await ctx.db.query.postTable.findFirst({
+        with: {
+          actor: {
+            with: {
+              followers: true,
+              blockees: true,
+              blockers: true,
+            },
+          },
+          mentions: true,
+        },
+        where: { id: postId.id },
+      });
+
+      if (post == null) {
+        throw new InvalidInputError("postId");
+      }
+
+      if (!isPostVisibleTo(post, ctx.account.actor)) {
+        throw new InvalidInputError("postId");
+      }
+
+      await createBookmark(ctx.db, ctx.account, post);
+
+      return { postId: postId.id };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      post: t.drizzleField({
+        type: Post,
+        async resolve(query, result, _args, ctx) {
+          const post = await ctx.db.query.postTable.findFirst(
+            query({ where: { id: result.postId } }),
+          );
+          return post!;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "unbookmarkPost",
+  {
+    inputFields: (t) => ({
+      postId: t.globalID({
+        for: [Note, Article, Question],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const { postId } = args.input;
+
+      const post = await ctx.db.query.postTable.findFirst({
+        where: { id: postId.id },
+      });
+
+      if (post == null) {
+        throw new InvalidInputError("postId");
+      }
+
+      await deleteBookmark(ctx.db, ctx.account, post);
+
+      return { postId: postId.id, unbookmarkedPostId: postId };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      post: t.drizzleField({
+        type: Post,
+        async resolve(query, result, _args, ctx) {
+          const post = await ctx.db.query.postTable.findFirst(
+            query({ where: { id: result.postId } }),
+          );
+          return post!;
+        },
+      }),
+      unbookmarkedPostId: t.globalID({
+        resolve(result) {
+          return {
+            type: result.unbookmarkedPostId.typename,
+            id: result.unbookmarkedPostId.id,
+          };
         },
       }),
     }),

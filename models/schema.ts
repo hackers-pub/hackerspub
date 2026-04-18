@@ -720,6 +720,32 @@ export const pinTable = pgTable(
 export type Pin = typeof pinTable.$inferSelect;
 export type NewPin = typeof pinTable.$inferInsert;
 
+export const bookmarkTable = pgTable(
+  "bookmark",
+  {
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => postTable.id, { onDelete: "cascade" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.accountId, table.postId] }),
+    index("idx_bookmark_account_created")
+      .on(table.accountId, desc(table.created)),
+    index().on(table.postId),
+  ],
+);
+
+export type Bookmark = typeof bookmarkTable.$inferSelect;
+export type NewBookmark = typeof bookmarkTable.$inferInsert;
+
 export const mentionTable = pgTable(
   "mention",
   {
