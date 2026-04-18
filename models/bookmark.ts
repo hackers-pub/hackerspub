@@ -17,16 +17,12 @@ export async function createBookmark(
   const [row] = await db
     .insert(bookmarkTable)
     .values({ accountId: account.id, postId: post.id })
-    .onConflictDoNothing()
+    .onConflictDoUpdate({
+      target: [bookmarkTable.accountId, bookmarkTable.postId],
+      set: { accountId: account.id },
+    })
     .returning();
-  if (row != null) return row;
-  const existing = await db.query.bookmarkTable.findFirst({
-    where: {
-      accountId: account.id,
-      postId: post.id,
-    },
-  });
-  return existing!;
+  return row;
 }
 
 export async function deleteBookmark(
