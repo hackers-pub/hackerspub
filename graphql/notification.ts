@@ -149,7 +149,8 @@ builder.mutationField("markNotificationsAsRead", (t) =>
       if (ctx.account == null) throw new NotAuthenticatedError();
       const [row] = await ctx.db.update(accountTable)
         .set({
-          notificationRead: sql`GREATEST(${accountTable.notificationRead}, CURRENT_TIMESTAMP)`,
+          notificationRead:
+            sql`GREATEST(${accountTable.notificationRead}, CURRENT_TIMESTAMP)`,
         })
         .where(eq(accountTable.id, ctx.account.id))
         .returning({ notificationRead: accountTable.notificationRead });
