@@ -1,12 +1,32 @@
-import { getBookmarks } from "@hackerspub/models/bookmark";
+import {
+  type BookmarkCursor,
+  type BookmarkEntry,
+  getBookmarks,
+} from "@hackerspub/models/bookmark";
 import {
   getPersonalTimeline,
   getPublicTimeline,
 } from "@hackerspub/models/timeline";
+import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { assertNever } from "@std/assert/unstable-never";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 import { Post, PostType } from "./post.ts";
+
+function parseBookmarkCursor(raw: string): BookmarkCursor | undefined {
+  const i = raw.indexOf("|");
+  if (i < 0) return undefined;
+  const iso = raw.slice(0, i);
+  const postId = raw.slice(i + 1);
+  const created = new Date(iso);
+  if (isNaN(created.getTime())) return undefined;
+  if (!validateUuid(postId)) return undefined;
+  return { created, postId: postId as Uuid };
+}
+
+function formatBookmarkCursor(entry: BookmarkEntry): string {
+  return `${entry.bookmarkedAt.toISOString()}|${entry.post.id}`;
+}
 
 builder.queryFields((t) => ({
   publicTimeline: t.connection(
@@ -96,7 +116,9 @@ builder.queryFields((t) => ({
         throw new Error("Backward pagination is not supported.");
       }
       const window = args.first ?? 25;
-      const until = args.after == null ? undefined : new Date(args.after);
+      const until = args.after == null
+        ? undefined
+        : parseBookmarkCursor(args.after);
       const bookmarks = await getBookmarks(ctx.db, {
         account: ctx.account,
         postType: args.postType == null
@@ -111,20 +133,21 @@ builder.queryFields((t) => ({
         window: window + 1,
         until,
       });
+      const pageEntries = bookmarks.slice(0, window);
       return {
         pageInfo: {
           hasNextPage: bookmarks.length > window,
           hasPreviousPage: false,
-          startCursor: bookmarks.length < 2
+          startCursor: pageEntries.length < 1
             ? null
-            : bookmarks[1].bookmarkedAt.toISOString(),
-          endCursor: bookmarks.length < 2
+            : formatBookmarkCursor(pageEntries[0]),
+          endCursor: pageEntries.length < 1
             ? null
-            : bookmarks.at(-1)!.bookmarkedAt.toISOString(),
+            : formatBookmarkCursor(pageEntries[pageEntries.length - 1]),
         },
-        edges: bookmarks.slice(0, window).map((entry, i) => ({
+        edges: pageEntries.map((entry) => ({
           node: entry.post,
-          cursor: bookmarks[i + 1]?.bookmarkedAt?.toISOString() ?? "",
+          cursor: formatBookmarkCursor(entry),
         })),
       };
     },

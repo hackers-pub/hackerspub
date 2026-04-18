@@ -1,4 +1,4 @@
-import { and, desc, eq, lte } from "drizzle-orm";
+import { and, desc, eq, lt, or } from "drizzle-orm";
 import type { Database } from "./db.ts";
 import {
   type Account,
@@ -8,6 +8,7 @@ import {
   postTable,
   type PostType,
 } from "./schema.ts";
+import type { Uuid } from "./uuid.ts";
 
 export async function createBookmark(
   db: Database,
@@ -61,10 +62,15 @@ export async function isPostBookmarkedBy(
   return rows.length > 0;
 }
 
+export interface BookmarkCursor {
+  readonly created: Date;
+  readonly postId: Uuid;
+}
+
 export interface BookmarkListOptions {
   readonly account: Account;
   readonly postType?: PostType;
-  readonly until?: Date;
+  readonly until?: BookmarkCursor;
   readonly window: number;
 }
 
@@ -88,10 +94,16 @@ export async function getBookmarks(
       and(
         eq(bookmarkTable.accountId, account.id),
         postType == null ? undefined : eq(postTable.type, postType),
-        until == null ? undefined : lte(bookmarkTable.created, until),
+        until == null ? undefined : or(
+          lt(bookmarkTable.created, until.created),
+          and(
+            eq(bookmarkTable.created, until.created),
+            lt(bookmarkTable.postId, until.postId),
+          ),
+        ),
       ),
     )
-    .orderBy(desc(bookmarkTable.created))
+    .orderBy(desc(bookmarkTable.created), desc(bookmarkTable.postId))
     .limit(window);
   return rows.map((row) => ({
     post: row.post,
