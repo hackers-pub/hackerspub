@@ -1,6 +1,7 @@
 import {
   Navigate,
   query,
+  revalidate,
   type RouteDefinition,
   useSearchParams,
 } from "@solidjs/router";
@@ -21,6 +22,7 @@ import type { bookmarksQuery } from "./__generated__/bookmarksQuery.graphql.ts";
 export const route = {
   preload() {
     const { i18n } = useLingui();
+    void revalidate(loadBookmarksQuery.keyFor(i18n.locale));
     void loadBookmarksQuery(i18n.locale);
   },
 } satisfies RouteDefinition;
@@ -37,6 +39,7 @@ const loadBookmarksQuery = query(
       useRelayEnvironment()(),
       bookmarksQuery,
       { locale },
+      { fetchPolicy: "network-only" },
     ),
   "loadBookmarksQuery",
 );
