@@ -28,7 +28,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: denoland/setup-deno@v2
       with:
-        deno-version: 2.7.12
+        deno-version: 2.7.4
         cache: true
     - uses: pnpm/action-setup@v4
     - uses: actions/setup-node@v4
