@@ -59,7 +59,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
             <Show when={n().quotedPost}>
               {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
             </Show>
-            <PostControls $post={n()} />
+            <PostControls $post={n()} connections={props.connections} />
           </div>
         </div>
       )}

@@ -456,9 +456,9 @@ function ArticleBody(props: ArticleBodyProps) {
                 </Show>
 
                 {/* Mobile/tablet tags */}
-                <Show when={article().tags.length > 0}>
+                <Show when={(article().tags?.length ?? 0) > 0}>
                   <div class="2xl:hidden flex flex-wrap gap-1.5 mt-4">
-                    <For each={article().tags}>
+                    <For each={article().tags ?? []}>
                       {(tag) => (
                         <span class="bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full text-sm text-stone-600 dark:text-stone-400">
                           #{tag}
@@ -531,13 +531,13 @@ function ArticleBody(props: ArticleBodyProps) {
                   </Show>
 
                   {/* Desktop tags */}
-                  <Show when={article().tags.length > 0}>
+                  <Show when={(article().tags?.length ?? 0) > 0}>
                     <div class="mt-6">
                       <p class="font-bold text-sm uppercase text-stone-500 dark:text-stone-400 mb-2">
                         {t`Tags`}
                       </p>
                       <div class="flex flex-wrap gap-1.5">
-                        <For each={article().tags}>
+                        <For each={article().tags ?? []}>
                           {(tag) => (
                             <span class="bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full text-sm text-stone-600 dark:text-stone-400">
                               #{tag}

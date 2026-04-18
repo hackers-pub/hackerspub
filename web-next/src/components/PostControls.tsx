@@ -18,10 +18,12 @@ import IconRepeat2 from "~icons/lucide/repeat-2";
 import type { PostControls_post$key } from "./__generated__/PostControls_post.graphql.ts";
 import type { PostControls_sharePost_Mutation } from "./__generated__/PostControls_sharePost_Mutation.graphql.ts";
 import type { PostControls_unsharePost_Mutation } from "./__generated__/PostControls_unsharePost_Mutation.graphql.ts";
+import { BookmarkButton } from "./BookmarkButton.tsx";
 import { EmojiReactionPopover } from "./EmojiReactionPopover.tsx";
 
 export interface PostControlsProps {
   $post: PostControls_post$key;
+  connections?: string[];
   class?: string;
   classList?: Record<string, boolean>;
 }
@@ -85,6 +87,7 @@ export function PostControls(props: PostControlsProps) {
         }
         id
         viewerHasShared
+        ...BookmarkButton_post
         reactionGroups {
           ... on EmojiReactionGroup {
             emoji
@@ -245,6 +248,12 @@ export function PostControls(props: PostControlsProps) {
               />
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Bookmark Button */}
+          <BookmarkButton
+            $post={note()}
+            connections={props.connections}
+          />
         </div>
       )}
     </Show>

@@ -8,6 +8,7 @@
     "./article": "./article.ts",
     "./avatar": "./avatar.ts",
     "./blocking": "./blocking.ts",
+    "./bookmark": "./bookmark.ts",
     "./context": "./context.ts",
     "./date": "./date.ts",
     "./db": "./db.ts",
