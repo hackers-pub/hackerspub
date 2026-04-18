@@ -193,7 +193,7 @@ msgstr "添加"
 msgid "Add {0}"
 msgstr "添加{0}"
 
-#: src/routes/(root)/bookmarks/index.tsx:66
+#: src/routes/(root)/bookmarks/index.tsx:83
 msgid "All"
 msgstr "全部"
 
@@ -262,7 +262,7 @@ msgid "article-url-slug"
 msgstr "文章网址别名"
 
 #: src/components/ProfileTabs.tsx:48
-#: src/routes/(root)/bookmarks/index.tsx:67
+#: src/routes/(root)/bookmarks/index.tsx:84
 msgid "Articles"
 msgstr "文章"
 
@@ -296,7 +296,7 @@ msgstr "个人简介太长。不能长于 512 字符。"
 msgid "Bold"
 msgstr "粗体"
 
-#: src/components/BookmarkButton.tsx:125
+#: src/components/BookmarkButton.tsx:143
 msgid "Bookmark"
 msgstr "收藏"
 
@@ -577,7 +577,8 @@ msgstr "到期时间"
 msgid "Extra message"
 msgstr "额外消息"
 
-#: src/components/BookmarkButton.tsx:104
+#: src/components/BookmarkButton.tsx:115
+#: src/components/BookmarkButton.tsx:122
 msgid "Failed to bookmark"
 msgstr "收藏失败"
 
@@ -608,7 +609,7 @@ msgstr "关注失败"
 msgid "Failed to load more articles; click to retry"
 msgstr "加载更多文章失败，点击重试"
 
-#: src/components/Bookmarks.tsx:102
+#: src/components/Bookmarks.tsx:103
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "加载更多收藏失败，点击重试"
 
@@ -667,7 +668,8 @@ msgstr "反应失败"
 msgid "Failed to register passkey"
 msgstr "注册通行密钥失败"
 
-#: src/components/BookmarkButton.tsx:92
+#: src/components/BookmarkButton.tsx:95
+#: src/components/BookmarkButton.tsx:102
 msgid "Failed to remove bookmark"
 msgstr "取消收藏失败"
 
@@ -965,7 +967,7 @@ msgstr "加载更多"
 msgid "Load more articles"
 msgstr "加载更多文章"
 
-#: src/components/Bookmarks.tsx:105
+#: src/components/Bookmarks.tsx:106
 msgid "Load more bookmarks"
 msgstr "加载更多收藏"
 
@@ -1009,7 +1011,7 @@ msgstr "加载草稿中..."
 msgid "Loading more articles…"
 msgstr "加载更多文章中…"
 
-#: src/components/Bookmarks.tsx:99
+#: src/components/Bookmarks.tsx:100
 msgid "Loading more bookmarks…"
 msgstr "加载更多收藏中…"
 
@@ -1126,7 +1128,7 @@ msgstr "从未使用过"
 msgid "New Article"
 msgstr "新建文章"
 
-#: src/components/Bookmarks.tsx:112
+#: src/components/Bookmarks.tsx:113
 msgid "No bookmarks yet"
 msgstr "暂无收藏"
 
@@ -1199,7 +1201,7 @@ msgid "Note that you can verify your links belong to you by making the linked pa
 msgstr "你可以验证这些链接确实属于你。在链接的页面上使用 {0} 属性链接回你的 Hackers' Pub 个人资料页。"
 
 #: src/components/ProfileTabs.tsx:41
-#: src/routes/(root)/bookmarks/index.tsx:68
+#: src/routes/(root)/bookmarks/index.tsx:85
 msgid "Notes"
 msgstr "帖子"
 
@@ -1379,8 +1381,8 @@ msgstr "用{emoji}反应"
 msgid "reaction"
 msgstr "反应"
 
-#: src/components/ArticleCard.tsx:352
-#: src/components/ArticleCard.tsx:372
+#: src/components/ArticleCard.tsx:353
+#: src/components/ArticleCard.tsx:373
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -1427,7 +1429,7 @@ msgstr "移除"
 msgid "Remove {0}"
 msgstr "移除{0}"
 
-#: src/components/BookmarkButton.tsx:125
+#: src/components/BookmarkButton.tsx:143
 msgid "Remove bookmark"
 msgstr "取消收藏"
 
@@ -1600,8 +1602,8 @@ msgstr "设置已成功保存"
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
-#: src/components/ArticleCard.tsx:305
-#: src/components/ArticleCard.tsx:324
+#: src/components/ArticleCard.tsx:306
+#: src/components/ArticleCard.tsx:325
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -1749,7 +1751,7 @@ msgid "Toggle sidebar"
 msgstr "切换侧边栏"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:188
+#: src/components/ArticleCard.tsx:189
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
 msgid "Translated from {0}"
 msgstr "翻译自{0}"

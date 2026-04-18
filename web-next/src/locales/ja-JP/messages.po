@@ -193,7 +193,7 @@ msgstr "追加"
 msgid "Add {0}"
 msgstr "{0}を追加"
 
-#: src/routes/(root)/bookmarks/index.tsx:66
+#: src/routes/(root)/bookmarks/index.tsx:83
 msgid "All"
 msgstr "すべて"
 
@@ -262,7 +262,7 @@ msgid "article-url-slug"
 msgstr "記事URLスラッグ"
 
 #: src/components/ProfileTabs.tsx:48
-#: src/routes/(root)/bookmarks/index.tsx:67
+#: src/routes/(root)/bookmarks/index.tsx:84
 msgid "Articles"
 msgstr "記事"
 
@@ -296,7 +296,7 @@ msgstr "自己紹介が長すぎます。最大512文字です。"
 msgid "Bold"
 msgstr "太字"
 
-#: src/components/BookmarkButton.tsx:125
+#: src/components/BookmarkButton.tsx:143
 msgid "Bookmark"
 msgstr "ブックマーク"
 
@@ -577,7 +577,8 @@ msgstr "有効期限"
 msgid "Extra message"
 msgstr "追加メッセージ"
 
-#: src/components/BookmarkButton.tsx:104
+#: src/components/BookmarkButton.tsx:115
+#: src/components/BookmarkButton.tsx:122
 msgid "Failed to bookmark"
 msgstr "ブックマークに失敗しました"
 
@@ -608,7 +609,7 @@ msgstr "フォローに失敗しました"
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/Bookmarks.tsx:102
+#: src/components/Bookmarks.tsx:103
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "ブックマークの読み込みに失敗しました。クリックして再試行してください"
 
@@ -667,7 +668,8 @@ msgstr "リアクションに失敗しました"
 msgid "Failed to register passkey"
 msgstr "パスキーの登録に失敗しました"
 
-#: src/components/BookmarkButton.tsx:92
+#: src/components/BookmarkButton.tsx:95
+#: src/components/BookmarkButton.tsx:102
 msgid "Failed to remove bookmark"
 msgstr "ブックマークの削除に失敗しました"
 
@@ -965,7 +967,7 @@ msgstr "さらに読み込む"
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
 
-#: src/components/Bookmarks.tsx:105
+#: src/components/Bookmarks.tsx:106
 msgid "Load more bookmarks"
 msgstr "ブックマークをもっと読み込む"
 
@@ -1009,7 +1011,7 @@ msgstr "下書きを読み込み中..."
 msgid "Loading more articles…"
 msgstr "記事を読み込み中…"
 
-#: src/components/Bookmarks.tsx:99
+#: src/components/Bookmarks.tsx:100
 msgid "Loading more bookmarks…"
 msgstr "ブックマークを読み込み中…"
 
@@ -1126,7 +1128,7 @@ msgstr "使用履歴なし"
 msgid "New Article"
 msgstr "新しい記事"
 
-#: src/components/Bookmarks.tsx:112
+#: src/components/Bookmarks.tsx:113
 msgid "No bookmarks yet"
 msgstr "ブックマークはまだありません"
 
@@ -1199,7 +1201,7 @@ msgid "Note that you can verify your links belong to you by making the linked pa
 msgstr "リンクが実際にあなたのものであることを認証できます。リンク先のページでも{0}属性を使用してあなたのHackers' Pubプロフィールへリンクしてください。"
 
 #: src/components/ProfileTabs.tsx:41
-#: src/routes/(root)/bookmarks/index.tsx:68
+#: src/routes/(root)/bookmarks/index.tsx:85
 msgid "Notes"
 msgstr "投稿"
 
@@ -1379,8 +1381,8 @@ msgstr "{emoji}でリアクション"
 msgid "reaction"
 msgstr "リアクション"
 
-#: src/components/ArticleCard.tsx:352
-#: src/components/ArticleCard.tsx:372
+#: src/components/ArticleCard.tsx:353
+#: src/components/ArticleCard.tsx:373
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -1427,7 +1429,7 @@ msgstr "削除"
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
-#: src/components/BookmarkButton.tsx:125
+#: src/components/BookmarkButton.tsx:143
 msgid "Remove bookmark"
 msgstr "ブックマークを削除"
 
@@ -1600,8 +1602,8 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:305
-#: src/components/ArticleCard.tsx:324
+#: src/components/ArticleCard.tsx:306
+#: src/components/ArticleCard.tsx:325
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -1749,7 +1751,7 @@ msgid "Toggle sidebar"
 msgstr "サイドバーを切り替える"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:188
+#: src/components/ArticleCard.tsx:189
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"

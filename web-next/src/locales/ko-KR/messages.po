@@ -193,7 +193,7 @@ msgstr "추가"
 msgid "Add {0}"
 msgstr "{0} 추가"
 
-#: src/routes/(root)/bookmarks/index.tsx:66
+#: src/routes/(root)/bookmarks/index.tsx:83
 msgid "All"
 msgstr "전체"
 
@@ -262,7 +262,7 @@ msgid "article-url-slug"
 msgstr "게시글-url-슬러그"
 
 #: src/components/ProfileTabs.tsx:48
-#: src/routes/(root)/bookmarks/index.tsx:67
+#: src/routes/(root)/bookmarks/index.tsx:84
 msgid "Articles"
 msgstr "게시글"
 
@@ -296,7 +296,7 @@ msgstr "약력이 너무 깁니다. 최대 길이는 512자입니다."
 msgid "Bold"
 msgstr "굵게"
 
-#: src/components/BookmarkButton.tsx:125
+#: src/components/BookmarkButton.tsx:143
 msgid "Bookmark"
 msgstr "북마크"
 
@@ -577,7 +577,8 @@ msgstr "유효기간"
 msgid "Extra message"
 msgstr "추가 메시지"
 
-#: src/components/BookmarkButton.tsx:104
+#: src/components/BookmarkButton.tsx:115
+#: src/components/BookmarkButton.tsx:122
 msgid "Failed to bookmark"
 msgstr "북마크 실패"
 
@@ -608,7 +609,7 @@ msgstr "팔로에 실패했습니다"
 msgid "Failed to load more articles; click to retry"
 msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/components/Bookmarks.tsx:102
+#: src/components/Bookmarks.tsx:103
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "북마크 불러오기 실패. 클릭하여 재시도하세요"
 
@@ -667,7 +668,8 @@ msgstr "반응 실패"
 msgid "Failed to register passkey"
 msgstr "패스키 등록 실패"
 
-#: src/components/BookmarkButton.tsx:92
+#: src/components/BookmarkButton.tsx:95
+#: src/components/BookmarkButton.tsx:102
 msgid "Failed to remove bookmark"
 msgstr "북마크 해제 실패"
 
@@ -965,7 +967,7 @@ msgstr "더 보기"
 msgid "Load more articles"
 msgstr "게시글 더 불러오기"
 
-#: src/components/Bookmarks.tsx:105
+#: src/components/Bookmarks.tsx:106
 msgid "Load more bookmarks"
 msgstr "북마크 더 불러오기"
 
@@ -1009,7 +1011,7 @@ msgstr "임시 보관 불러오는 중..."
 msgid "Loading more articles…"
 msgstr "게시글 불러오는 중…"
 
-#: src/components/Bookmarks.tsx:99
+#: src/components/Bookmarks.tsx:100
 msgid "Loading more bookmarks…"
 msgstr "북마크 불러오는 중…"
 
@@ -1126,7 +1128,7 @@ msgstr "사용된 적 없음"
 msgid "New Article"
 msgstr "새 게시글"
 
-#: src/components/Bookmarks.tsx:112
+#: src/components/Bookmarks.tsx:113
 msgid "No bookmarks yet"
 msgstr "아직 북마크가 없습니다"
 
@@ -1199,7 +1201,7 @@ msgid "Note that you can verify your links belong to you by making the linked pa
 msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링크한 페이지에서도 {0} 속성을 사용해 당신의 Hackers' Pub 프로필로 링크를 걸어 주세요."
 
 #: src/components/ProfileTabs.tsx:41
-#: src/routes/(root)/bookmarks/index.tsx:68
+#: src/routes/(root)/bookmarks/index.tsx:85
 msgid "Notes"
 msgstr "단문"
 
@@ -1379,8 +1381,8 @@ msgstr "{emoji}로 반응"
 msgid "reaction"
 msgstr "반응"
 
-#: src/components/ArticleCard.tsx:352
-#: src/components/ArticleCard.tsx:372
+#: src/components/ArticleCard.tsx:353
+#: src/components/ArticleCard.tsx:373
 msgid "Read full article"
 msgstr "게시글 전체 읽기"
 
@@ -1427,7 +1429,7 @@ msgstr "제거"
 msgid "Remove {0}"
 msgstr "{0} 제거"
 
-#: src/components/BookmarkButton.tsx:125
+#: src/components/BookmarkButton.tsx:143
 msgid "Remove bookmark"
 msgstr "북마크 해제"
 
@@ -1600,8 +1602,8 @@ msgstr "환경 설정이 성공적으로 저장되었습니다"
 msgid "Successfully saved settings"
 msgstr "설정이 성공적으로 저장되었습니다"
 
-#: src/components/ArticleCard.tsx:305
-#: src/components/ArticleCard.tsx:324
+#: src/components/ArticleCard.tsx:306
+#: src/components/ArticleCard.tsx:325
 msgid "Summarized by LLM"
 msgstr "LLM 요약"
 
@@ -1749,7 +1751,7 @@ msgid "Toggle sidebar"
 msgstr "사이드바 전환"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:188
+#: src/components/ArticleCard.tsx:189
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
 msgid "Translated from {0}"
 msgstr "{0}에서 번역됨"
