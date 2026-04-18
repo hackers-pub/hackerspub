@@ -1,10 +1,13 @@
+import { accountTable } from "@hackerspub/models/schema";
 import {
   resolveCursorConnection,
   type ResolveCursorConnectionArgs,
 } from "@pothos/plugin-relay";
+import { eq, sql } from "drizzle-orm";
 import { Actor } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
 import { Post } from "./post.ts";
+import { NotAuthenticatedError } from "./session.ts";
 
 export const NotificationType = builder.enumType("NotificationType", {
   values: [
@@ -136,3 +139,20 @@ export const ReactNotification = builder.drizzleNode("notificationTable", {
     customEmoji: t.relation("customEmoji", { nullable: true }),
   }),
 });
+
+builder.mutationField("markNotificationsAsRead", (t) =>
+  t.field({
+    type: "DateTime",
+    description:
+      "Marks all notifications as read up to the current time. Returns the timestamp.",
+    async resolve(_root, _args, ctx) {
+      if (ctx.account == null) throw new NotAuthenticatedError();
+      const [row] = await ctx.db.update(accountTable)
+        .set({
+          notificationRead: sql`GREATEST(${accountTable.notificationRead}, CURRENT_TIMESTAMP)`,
+        })
+        .where(eq(accountTable.id, ctx.account.id))
+        .returning({ notificationRead: accountTable.notificationRead });
+      return row.notificationRead!;
+    },
+  }));

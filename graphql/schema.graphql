@@ -671,6 +671,11 @@ type Mutation {
     """
     verifyUrl: URITemplate!
   ): LoginResult!
+
+  """
+  Marks all notifications as read up to the current time. Returns the timestamp.
+  """
+  markNotificationsAsRead: DateTime!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
   redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!
   registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult!
