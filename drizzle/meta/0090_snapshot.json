@@ -1382,6 +1382,12 @@
               "asc": true,
               "isExpression": true,
               "nulls": "last"
+            },
+            {
+              "expression": "\"post_id\" desc",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
             }
           ],
           "isUnique": false,
