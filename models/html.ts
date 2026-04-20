@@ -494,12 +494,23 @@ export function addExternalLinkTargets(
   const $ = load(html, null, false);
   $("a[href]").each((_, el) => {
     const $el = $(el);
-    if ($el.attr("target") != null) return;
     if ($el.attr("data-internal-href") != null) return;
     const url = parseContentAnchorUrl($el);
     if (url == null) return;
     if (localHost != null && url.host === localHost) return;
-    $el.attr("target", "_blank");
+    const existingTarget = $el.attr("target");
+    // Respect explicit non-blank targets (_self, _parent, _top, named
+    // contexts). Those don't open a new browsing context, so rel hardening
+    // is unnecessary.
+    if (
+      existingTarget != null &&
+      existingTarget.trim().toLowerCase() !== "_blank"
+    ) {
+      return;
+    }
+    if (existingTarget == null) $el.attr("target", "_blank");
+    // Merge noopener/noreferrer even when target="_blank" was pre-existing,
+    // so sanitized remote HTML can't retain window.opener access.
     const relTokens = $el.attr("rel")?.split(/\s+/g).filter((t: string) =>
       t.length > 0
     ) ?? [];
