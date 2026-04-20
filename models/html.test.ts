@@ -5,13 +5,29 @@ import {
   stripHtml,
 } from "./html.ts";
 
-Deno.test("extractExternalLinks()", () => {
-  assertEquals(
-    extractExternalLinks(
-      '<p><a href="https://activitypub.academy/tags/%ED%95%B4%EC%8B%9C%ED%83%9C%EA%B7%B8" class="mention hashtag" rel="tag">#<span>해시태그</span></a> 테스트</p><p><span class="h-card"><a href="https://dorikom.squirrel-crocodile.ts.net/@h2t4" class="u-url mention">@<span>h2t4</span></a></span> 멘션 테스트</p><p><a href="https://hongminhee.org/" target="_blank" rel="nofollow noopener noreferrer"><span class="invisible">https://</span><span class="">hongminhee.org/</span><span class="invisible"></span></a> 링크 테스트</p>',
-    ),
-    [new URL("https://hongminhee.org/")],
-  );
+Deno.test("extractExternalLinks()", async (t) => {
+  await t.step("extracts http(s) links, ignoring mentions and hashtags", () => {
+    assertEquals(
+      extractExternalLinks(
+        '<p><a href="https://activitypub.academy/tags/%ED%95%B4%EC%8B%9C%ED%83%9C%EA%B7%B8" class="mention hashtag" rel="tag">#<span>해시태그</span></a> 테스트</p><p><span class="h-card"><a href="https://dorikom.squirrel-crocodile.ts.net/@h2t4" class="u-url mention">@<span>h2t4</span></a></span> 멘션 테스트</p><p><a href="https://hongminhee.org/" target="_blank" rel="nofollow noopener noreferrer"><span class="invisible">https://</span><span class="">hongminhee.org/</span><span class="invisible"></span></a> 링크 테스트</p>',
+      ),
+      [new URL("https://hongminhee.org/")],
+    );
+  });
+
+  await t.step("handles uppercase anchor tags and attributes", () => {
+    assertEquals(
+      extractExternalLinks('<P><A HREF="https://example.com">link</A></P>'),
+      [new URL("https://example.com")],
+    );
+  });
+
+  await t.step("resolves protocol-relative URLs as external links", () => {
+    assertEquals(
+      extractExternalLinks('<p><a href="//example.com/foo">x</a></p>'),
+      [new URL("https://example.com/foo")],
+    );
+  });
 });
 
 Deno.test("addExternalLinkTargets()", async (t) => {
@@ -122,6 +138,36 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     assertEquals(
       addExternalLinkTargets(html, new URL("https://hackers.pub")),
       html,
+    );
+  });
+
+  await t.step("processes uppercase anchor tags", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<P><A HREF="https://example.com">link</A></P>',
+        new URL("https://hackers.pub"),
+      ),
+      '<p><a href="https://example.com" target="_blank" rel="noopener noreferrer">link</a></p>',
+    );
+  });
+
+  await t.step("marks cross-origin protocol-relative URLs as external", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="//example.com/foo">x</a></p>',
+        new URL("https://hackers.pub"),
+      ),
+      '<p><a href="//example.com/foo" target="_blank" rel="noopener noreferrer">x</a></p>',
+    );
+  });
+
+  await t.step("leaves same-origin protocol-relative URLs untouched", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="//hackers.pub/@user">user</a></p>',
+        new URL("https://hackers.pub"),
+      ),
+      '<p><a href="//hackers.pub/@user">user</a></p>',
     );
   });
 });
