@@ -91,13 +91,49 @@ Deno.test("addExternalLinkTargets()", async (t) => {
     );
   });
 
-  await t.step("leaves anchors with an existing target untouched", () => {
+  await t.step(
+    "leaves anchors with an existing non-blank target untouched",
+    () => {
+      assertEquals(
+        addExternalLinkTargets(
+          '<p><a href="https://example.com" target="_self">link</a></p>',
+          new URL("https://hackers.pub"),
+        ),
+        '<p><a href="https://example.com" target="_self">link</a></p>',
+      );
+    },
+  );
+
+  await t.step(
+    "hardens rel on pre-existing target=_blank external links",
+    () => {
+      assertEquals(
+        addExternalLinkTargets(
+          '<p><a href="https://evil.example" target="_blank">link</a></p>',
+          new URL("https://hackers.pub"),
+        ),
+        '<p><a href="https://evil.example" target="_blank" rel="noopener noreferrer">link</a></p>',
+      );
+    },
+  );
+
+  await t.step("merges rel tokens on pre-existing target=_blank links", () => {
     assertEquals(
       addExternalLinkTargets(
-        '<p><a href="https://example.com" target="_self">link</a></p>',
+        '<p><a href="https://evil.example" target="_blank" rel="nofollow">link</a></p>',
         new URL("https://hackers.pub"),
       ),
-      '<p><a href="https://example.com" target="_self">link</a></p>',
+      '<p><a href="https://evil.example" target="_blank" rel="nofollow noopener noreferrer">link</a></p>',
+    );
+  });
+
+  await t.step("treats target value case-insensitively", () => {
+    assertEquals(
+      addExternalLinkTargets(
+        '<p><a href="https://evil.example" target=" _BLANK ">link</a></p>',
+        new URL("https://hackers.pub"),
+      ),
+      '<p><a href="https://evil.example" target=" _BLANK " rel="noopener noreferrer">link</a></p>',
     );
   });
 
