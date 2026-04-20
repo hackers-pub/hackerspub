@@ -2,6 +2,7 @@ import { invert } from "@std/collections/invert";
 import { escape, unescape } from "@std/html/entities";
 import { load } from "cheerio";
 import * as cssfilter from "cssfilter";
+import process from "node:process";
 import xss from "xss";
 import type * as xssType from "xss";
 import { renderCustomEmojis } from "./emoji.ts";
@@ -437,10 +438,17 @@ export function preprocessContentHtml(
   return html;
 }
 
-function resolveLocalDomain(): URL {
-  const host = globalThis.location?.host || "hackers.pub";
-  return new URL(`https://${host}`);
+function resolveLocalDomain(): URL | undefined {
+  if (globalThis.location?.host) {
+    const protocol = globalThis.location.protocol || "https:";
+    return URL.parse(`${protocol}//${globalThis.location.host}`) ?? undefined;
+  }
+  const origin = process.env.ORIGIN;
+  if (origin != null) return URL.parse(origin) ?? undefined;
+  return undefined;
 }
+
+const HTML_HAS_ANCHOR = /<a\b/i;
 
 // deno-lint-ignore no-explicit-any
 function parseContentAnchorUrl($el: any): URL | null {
@@ -449,8 +457,12 @@ function parseContentAnchorUrl($el: any): URL | null {
   if ($el.hasClass("mention") || $el.hasClass("hashtag")) return null;
   const rel = $el.attr("rel")?.split(/\s+/g) ?? [];
   if (rel.includes("tag")) return null;
-  if (href.startsWith("/") || href.startsWith("#")) return null;
-  const url = URL.parse(href);
+  if (href.startsWith("#")) return null;
+  if (href.startsWith("/") && !href.startsWith("//")) return null;
+  // Protocol-relative URLs (e.g. "//example.com/foo") need a base to parse.
+  // Using https: preserves the host for same-origin comparison.
+  const parseTarget = href.startsWith("//") ? `https:${href}` : href;
+  const url = URL.parse(parseTarget);
   if (url == null || (url.protocol !== "http:" && url.protocol !== "https:")) {
     return null;
   }
@@ -458,7 +470,7 @@ function parseContentAnchorUrl($el: any): URL | null {
 }
 
 export function extractExternalLinks(html: string): URL[] {
-  if (!html.includes("<a")) return [];
+  if (!HTML_HAS_ANCHOR.test(html)) return [];
   const $ = load(html, null, false);
   const links: URL[] = [];
   $("a[href]").each((_, el) => {
@@ -477,7 +489,7 @@ export function addExternalLinkTargets(
   html: string,
   localDomain?: URL,
 ): string {
-  if (!html.includes("<a")) return html;
+  if (!HTML_HAS_ANCHOR.test(html)) return html;
   const localHost = localDomain?.host;
   const $ = load(html, null, false);
   $("a[href]").each((_, el) => {
