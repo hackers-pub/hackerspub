@@ -26,6 +26,7 @@ export const relations = defineRelations(schema, (r) => ({
     notifications: r.many.notificationTable(),
     apnsDeviceTokens: r.many.apnsDeviceTokenTable(),
     uploadedMedia: r.many.articleMediumTable(),
+    bookmarks: r.many.bookmarkTable(),
   },
   accountEmailTable: {
     account: r.one.accountTable({
@@ -201,6 +202,7 @@ export const relations = defineRelations(schema, (r) => ({
     replies: r.many.postTable({ alias: "replyTarget" }),
     shares: r.many.postTable({ alias: "sharedPost" }),
     pins: r.many.pinTable(),
+    bookmarks: r.many.bookmarkTable(),
     reactions: r.many.reactionTable(),
     quotes: r.many.postTable({ alias: "quotedPost" }),
     mentions: r.many.mentionTable(),
@@ -223,6 +225,18 @@ export const relations = defineRelations(schema, (r) => ({
     actor: r.one.actorTable({
       from: r.pinTable.actorId,
       to: r.actorTable.id,
+      optional: false,
+    }),
+  },
+  bookmarkTable: {
+    account: r.one.accountTable({
+      from: r.bookmarkTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
+    post: r.one.postTable({
+      from: r.bookmarkTable.postId,
+      to: r.postTable.id,
       optional: false,
     }),
   },

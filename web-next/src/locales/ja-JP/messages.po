@@ -175,7 +175,7 @@ msgstr "プロフィールに表示されるリンクの名前。（例：GitHub
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
-#: src/components/AppSidebar.tsx:268
+#: src/components/AppSidebar.tsx:287
 msgid "Account"
 msgstr "アカウント"
 
@@ -192,6 +192,10 @@ msgstr "追加"
 #: src/components/EmojiReactionPopover.tsx:293
 msgid "Add {0}"
 msgstr "{0}を追加"
+
+#: src/routes/(root)/bookmarks/index.tsx:83
+msgid "All"
+msgstr "すべて"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:321
 msgid "Allow automatic translation by AI"
@@ -258,6 +262,7 @@ msgid "article-url-slug"
 msgstr "記事URLスラッグ"
 
 #: src/components/ProfileTabs.tsx:48
+#: src/routes/(root)/bookmarks/index.tsx:84
 msgid "Articles"
 msgstr "記事"
 
@@ -290,6 +295,14 @@ msgstr "自己紹介が長すぎます。最大512文字です。"
 #: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "太字"
+
+#: src/components/BookmarkButton.tsx:143
+msgid "Bookmark"
+msgstr "ブックマーク"
+
+#: src/components/AppSidebar.tsx:218
+msgid "Bookmarks"
+msgstr "ブックマーク"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
 #: src/components/NoteComposer.tsx:442
@@ -327,7 +340,7 @@ msgstr "確認メールの言語を選択してください。"
 msgid "Code"
 msgstr "コード"
 
-#: src/components/AppSidebar.tsx:536
+#: src/components/AppSidebar.tsx:555
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
@@ -338,7 +351,7 @@ msgstr "行動規範"
 msgid "Comments ({0})"
 msgstr "コメント（{0}）"
 
-#: src/components/AppSidebar.tsx:426
+#: src/components/AppSidebar.tsx:445
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "作成"
@@ -373,7 +386,7 @@ msgstr "クリップボードにリンクをコピーできませんでした。
 msgid "Could not find a post at this URL"
 msgstr "このURLのコンテンツが見つかりませんでした"
 
-#: src/components/AppSidebar.tsx:471
+#: src/components/AppSidebar.tsx:490
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create Article"
 msgstr "記事を作成"
@@ -382,7 +395,7 @@ msgstr "記事を作成"
 msgid "Create invitation link"
 msgstr "招待リンクを作成"
 
-#: src/components/AppSidebar.tsx:448
+#: src/components/AppSidebar.tsx:467
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:26
 #: src/components/NoteComposer.tsx:451
@@ -564,6 +577,11 @@ msgstr "有効期限"
 msgid "Extra message"
 msgstr "追加メッセージ"
 
+#: src/components/BookmarkButton.tsx:115
+#: src/components/BookmarkButton.tsx:122
+msgid "Failed to bookmark"
+msgstr "ブックマークに失敗しました"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:623
 msgid "Failed to copy"
 msgstr "コピーに失敗しました"
@@ -590,6 +608,10 @@ msgstr "フォローに失敗しました"
 #: src/components/ActorArticleList.tsx:81
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
+
+#: src/components/Bookmarks.tsx:103
+msgid "Failed to load more bookmarks; click to retry"
+msgstr "ブックマークの読み込みに失敗しました。クリックして再試行してください"
 
 #: src/routes/(root)/[handle]/drafts/index.tsx:326
 msgid "Failed to load more drafts; click to retry"
@@ -646,6 +668,11 @@ msgstr "リアクションに失敗しました"
 msgid "Failed to register passkey"
 msgstr "パスキーの登録に失敗しました"
 
+#: src/components/BookmarkButton.tsx:95
+#: src/components/BookmarkButton.tsx:102
+msgid "Failed to remove bookmark"
+msgstr "ブックマークの削除に失敗しました"
+
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:325
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:331
 msgid "Failed to revoke passkey"
@@ -672,7 +699,7 @@ msgstr "メールの送信に失敗しました"
 msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
-#: src/components/PostControls.tsx:150
+#: src/components/PostControls.tsx:153
 msgid "Failed to share post"
 msgstr "コンテンツの共有に失敗しました"
 
@@ -685,7 +712,7 @@ msgstr "ログアウトに失敗：{0}"
 msgid "Failed to unfollow"
 msgstr "フォロー解除に失敗しました"
 
-#: src/components/PostControls.tsx:136
+#: src/components/PostControls.tsx:139
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
@@ -697,7 +724,7 @@ msgstr "記事の更新に失敗しました。もう一度お試しください
 msgid "Failed to upload image"
 msgstr "画像のアップロードに失敗しました"
 
-#: src/components/AppSidebar.tsx:242
+#: src/components/AppSidebar.tsx:261
 msgid "Fediverse"
 msgstr "フェディバース"
 
@@ -739,7 +766,7 @@ msgstr "あなたをフォロー中"
 msgid "Formatting"
 msgstr "書式設定"
 
-#: src/components/AppSidebar.tsx:570
+#: src/components/AppSidebar.tsx:589
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -760,7 +787,7 @@ msgid "Go to My Drafts"
 msgstr "マイ下書きへ"
 
 #: src/components/AppSidebar.tsx:129
-#: src/components/AppSidebar.tsx:220
+#: src/components/AppSidebar.tsx:239
 #: src/routes/(root).tsx:82
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
@@ -867,7 +894,7 @@ msgstr "招待リンク"
 msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
-#: src/components/AppSidebar.tsx:359
+#: src/components/AppSidebar.tsx:378
 #: src/components/SettingsTabs.tsx:63
 #: src/routes/(root)/[handle]/settings/invite.tsx:303
 msgid "Invite"
@@ -940,6 +967,10 @@ msgstr "さらに読み込む"
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
 
+#: src/components/Bookmarks.tsx:106
+msgid "Load more bookmarks"
+msgstr "ブックマークをもっと読み込む"
+
 #: src/components/ActorFollowerList.tsx:83
 msgid "Load more followers"
 msgstr "フォロワーをもっと読み込む"
@@ -979,6 +1010,10 @@ msgstr "下書きを読み込み中..."
 #: src/components/ActorArticleList.tsx:78
 msgid "Loading more articles…"
 msgstr "記事を読み込み中…"
+
+#: src/components/Bookmarks.tsx:100
+msgid "Loading more bookmarks…"
+msgstr "ブックマークを読み込み中…"
 
 #: src/components/ActorFollowerList.tsx:77
 msgid "Loading more followers…"
@@ -1093,6 +1128,10 @@ msgstr "使用履歴なし"
 msgid "New Article"
 msgstr "新しい記事"
 
+#: src/components/Bookmarks.tsx:113
+msgid "No bookmarks yet"
+msgstr "ブックマークはまだありません"
+
 #: src/components/article-composer/ArticleComposerContext.tsx:408
 msgid "No draft to delete"
 msgstr "削除する下書きがありません"
@@ -1162,13 +1201,14 @@ msgid "Note that you can verify your links belong to you by making the linked pa
 msgstr "リンクが実際にあなたのものであることを認証できます。リンク先のページでも{0}属性を使用してあなたのHackers' Pubプロフィールへリンクしてください。"
 
 #: src/components/ProfileTabs.tsx:41
+#: src/routes/(root)/bookmarks/index.tsx:85
 msgid "Notes"
 msgstr "投稿"
 
 #~ msgid "Nothing to preview"
 #~ msgstr "プレビューする内容がありません"
 
-#: src/components/AppSidebar.tsx:321
+#: src/components/AppSidebar.tsx:340
 msgid "Notifications"
 msgstr "通知"
 
@@ -1285,7 +1325,7 @@ msgstr "優先言語"
 msgid "Priority"
 msgstr "優先度"
 
-#: src/components/AppSidebar.tsx:539
+#: src/components/AppSidebar.tsx:558
 #: src/routes/(root)/privacy.tsx:48
 msgid "Privacy policy"
 msgstr "プライバシーポリシー"
@@ -1323,12 +1363,12 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/NoteComposeModal.tsx:26
-#: src/components/PostControls.tsx:195
+#: src/components/PostControls.tsx:198
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:233
+#: src/components/PostControls.tsx:236
 msgid "React"
 msgstr "リアクション"
 
@@ -1341,8 +1381,8 @@ msgstr "{emoji}でリアクション"
 msgid "reaction"
 msgstr "リアクション"
 
-#: src/components/ArticleCard.tsx:339
-#: src/components/ArticleCard.tsx:359
+#: src/components/ArticleCard.tsx:353
+#: src/components/ArticleCard.tsx:373
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -1350,7 +1390,7 @@ msgstr "記事全文を読む"
 msgid "Read the full Code of conduct"
 msgstr "行動規範の全文を読む"
 
-#: src/components/AppSidebar.tsx:484
+#: src/components/AppSidebar.tsx:503
 msgid "Recent Drafts"
 msgstr "最近の下書き"
 
@@ -1389,12 +1429,16 @@ msgstr "削除"
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
+#: src/components/BookmarkButton.tsx:143
+msgid "Remove bookmark"
+msgstr "ブックマークを削除"
+
 #: src/components/NoteComposer.tsx:364
 #: src/components/NoteComposer.tsx:365
 msgid "Remove quote"
 msgstr "引用を削除"
 
-#: src/components/PostControls.tsx:184
+#: src/components/PostControls.tsx:187
 msgid "Reply"
 msgstr "返信"
 
@@ -1436,7 +1480,7 @@ msgstr "保存中..."
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/components/AppSidebar.tsx:261
+#: src/components/AppSidebar.tsx:280
 #: src/routes/(root)/search.tsx:152
 msgid "Search"
 msgstr "検索"
@@ -1471,11 +1515,11 @@ msgstr "送信中…"
 msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
-#: src/components/AppSidebar.tsx:390
+#: src/components/AppSidebar.tsx:409
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:213
+#: src/components/PostControls.tsx:216
 msgid "Share"
 msgstr "共有"
 
@@ -1487,7 +1531,7 @@ msgstr "共有"
 msgid "Show Preview"
 msgstr "プレビューを表示"
 
-#: src/components/AppSidebar.tsx:294
+#: src/components/AppSidebar.tsx:313
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "ログイン"
@@ -1500,7 +1544,7 @@ msgstr "Hackers' Pubにログイン"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:412
+#: src/components/AppSidebar.tsx:431
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -1558,8 +1602,8 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:292
-#: src/components/ArticleCard.tsx:311
+#: src/components/ArticleCard.tsx:306
+#: src/components/ArticleCard.tsx:325
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -1639,7 +1683,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:562
+#: src/components/AppSidebar.tsx:581
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -1707,7 +1751,7 @@ msgid "Toggle sidebar"
 msgstr "サイドバーを切り替える"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:175
+#: src/components/ArticleCard.tsx:189
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:403
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
@@ -1735,7 +1779,7 @@ msgstr "リアクションを削除できませんでした。もう一度お試
 msgid "Unfollow"
 msgstr "フォロー解除"
 
-#: src/components/PostControls.tsx:213
+#: src/components/PostControls.tsx:216
 msgid "Unshare"
 msgstr "共有を取り消す"
 
@@ -1791,7 +1835,7 @@ msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
 
-#: src/components/AppSidebar.tsx:526
+#: src/components/AppSidebar.tsx:545
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
 

@@ -8,6 +8,7 @@ reply → reply
 comment → comment
 share → share
 quote → quote
+bookmark → bookmark
 username → username
 displayName → name
 bio → bio

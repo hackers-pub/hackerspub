@@ -8,6 +8,7 @@ reply → 댓글
 comment → 댓글
 share → 공유
 quote → 인용
+bookmark → 북마크
 username → 아이디
 displayName → 이름
 bio → 약력

@@ -8,6 +8,7 @@ reply → 返信
 comment → コメント
 share → 共有
 quote → 引用
+bookmark → ブックマーク
 username → ユーザー名
 displayName → 名前
 bio → 自己紹介

@@ -12,6 +12,7 @@ import { QuotedPostCard } from "./QuotedPostCard.tsx";
 export interface NoteCardInternalProps {
   $note: NoteCardInternal_note$key;
   connections?: string[];
+  bookmarkListConnections?: string[];
   onDeleted?: () => void;
 }
 
@@ -59,7 +60,10 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
             <Show when={n().quotedPost}>
               {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
             </Show>
-            <PostControls $post={n()} />
+            <PostControls
+              $post={n()}
+              bookmarkListConnections={props.bookmarkListConnections}
+            />
           </div>
         </div>
       )}
