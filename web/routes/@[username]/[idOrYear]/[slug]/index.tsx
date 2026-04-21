@@ -240,6 +240,7 @@ export async function handleArticle(
       {
         ...article.post,
         quote: article.post.quotedPostId != null,
+        localDomain: new URL(ctx.state.canonicalOrigin),
       },
     ),
     toc: rendered.toc,

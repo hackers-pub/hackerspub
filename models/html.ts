@@ -2,6 +2,7 @@ import { invert } from "@std/collections/invert";
 import { escape, unescape } from "@std/html/entities";
 import { load } from "cheerio";
 import * as cssfilter from "cssfilter";
+import process from "node:process";
 import xss from "xss";
 import type * as xssType from "xss";
 import { renderCustomEmojis } from "./emoji.ts";
@@ -421,38 +422,102 @@ export interface PreprocessContentHtmlOptions {
   tags: Record<string, string>;
   emojis?: Record<string, string>;
   quote?: boolean;
+  localDomain?: URL;
 }
 
 export function preprocessContentHtml(
   html: string,
-  { mentions, tags, emojis = {}, quote }: PreprocessContentHtmlOptions,
+  { mentions, tags, emojis = {}, quote, localDomain }:
+    PreprocessContentHtmlOptions,
 ) {
   html = sanitizeHtml(html);
   html = transformMentions(html, mentions, tags);
   html = renderCustomEmojis(html, emojis);
   if (quote) html = transformMisskeyInlineQuote(html);
+  html = addExternalLinkTargets(html, localDomain ?? resolveLocalDomain());
   return html;
 }
 
+function resolveLocalDomain(): URL | undefined {
+  if (globalThis.location?.host) {
+    const protocol = globalThis.location.protocol || "https:";
+    return URL.parse(`${protocol}//${globalThis.location.host}`) ?? undefined;
+  }
+  const origin = process.env.ORIGIN;
+  if (origin != null) return URL.parse(origin) ?? undefined;
+  return undefined;
+}
+
+const HTML_HAS_ANCHOR = /<a\b/i;
+
+// deno-lint-ignore no-explicit-any
+function parseContentAnchorUrl($el: any): URL | null {
+  const href = $el.attr("href");
+  if (href == null) return null;
+  if ($el.hasClass("mention") || $el.hasClass("hashtag")) return null;
+  const rel = $el.attr("rel")?.split(/\s+/g) ?? [];
+  if (rel.includes("tag")) return null;
+  if (href.startsWith("#")) return null;
+  if (href.startsWith("/") && !href.startsWith("//")) return null;
+  // Protocol-relative URLs (e.g. "//example.com/foo") need a base to parse.
+  // Using https: preserves the host for same-origin comparison.
+  const parseTarget = href.startsWith("//") ? `https:${href}` : href;
+  const url = URL.parse(parseTarget);
+  if (url == null || (url.protocol !== "http:" && url.protocol !== "https:")) {
+    return null;
+  }
+  return url;
+}
+
 export function extractExternalLinks(html: string): URL[] {
-  // Extract external links from an HTML fragmenmt, except for mentions
-  // and hashtags.  This is used to extract links from the content of a post.
+  if (!HTML_HAS_ANCHOR.test(html)) return [];
   const $ = load(html, null, false);
   const links: URL[] = [];
   $("a[href]").each((_, el) => {
-    const $el = $(el);
-    const href = $el.attr("href");
-    if (href == null) return;
-    if ($el.hasClass("mention") || $el.hasClass("hashtag")) return;
-    const rel = $el.attr("rel")?.split(/\s+/g) ?? [];
-    if (rel.includes("tag")) return;
-    if (href.startsWith("/")) return;
-    if (href.startsWith("#")) return;
-    const url = URL.parse(href);
-    if (url == null || url.protocol !== "http:" && url.protocol !== "https:") {
-      return;
-    }
-    links.push(url);
+    const url = parseContentAnchorUrl($(el));
+    if (url != null) links.push(url);
   });
   return links;
+}
+
+/**
+ * Marks external content links to open in a new tab. Same-origin links,
+ * mentions, hashtags, and relative paths are left alone so in-app
+ * navigation stays in the current tab.
+ */
+export function addExternalLinkTargets(
+  html: string,
+  localDomain?: URL,
+): string {
+  if (!HTML_HAS_ANCHOR.test(html)) return html;
+  const localHost = localDomain?.host;
+  const $ = load(html, null, false);
+  $("a[href]").each((_, el) => {
+    const $el = $(el);
+    if ($el.attr("data-internal-href") != null) return;
+    const url = parseContentAnchorUrl($el);
+    if (url == null) return;
+    if (localHost != null && url.host === localHost) return;
+    const existingTarget = $el.attr("target");
+    // Respect explicit non-blank targets (_self, _parent, _top, named
+    // contexts). Those don't open a new browsing context, so rel hardening
+    // is unnecessary.
+    if (
+      existingTarget != null &&
+      existingTarget.trim().toLowerCase() !== "_blank"
+    ) {
+      return;
+    }
+    if (existingTarget == null) $el.attr("target", "_blank");
+    // Merge noopener/noreferrer even when target="_blank" was pre-existing,
+    // so sanitized remote HTML can't retain window.opener access.
+    const relTokens = $el.attr("rel")?.split(/\s+/g).filter((t: string) =>
+      t.length > 0
+    ) ?? [];
+    for (const token of ["noopener", "noreferrer"]) {
+      if (!relTokens.includes(token)) relTokens.push(token);
+    }
+    $el.attr("rel", relTokens.join(" "));
+  });
+  return $.html();
 }
