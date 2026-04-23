@@ -16,6 +16,7 @@ import { TagInput } from "./TagInput.tsx";
 
 export type EditorProps =
   & {
+    canonicalOrigin: string;
     language: Language;
     class?: string;
     previewUrl: string;
@@ -332,6 +333,7 @@ export function Editor(props: EditorProps) {
                         ],
                       ),
                     ),
+                    localDomain: new URL(props.canonicalOrigin),
                   },
                 ),
               }}

@@ -59,6 +59,7 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
   ({ data: { note, sharers, sharersMentions }, state }) => (
     <>
       <PostExcerpt
+        canonicalOrigin={state.canonicalOrigin}
         post={note.post}
         noControls
         signedAccount={state.account}
@@ -80,6 +81,7 @@ export default define.page<typeof handler, NoteSharedPeopleProps>(
           }}
         />
         <ActorList
+          canonicalOrigin={state.canonicalOrigin}
           actors={sharers}
           actorMentions={sharersMentions}
           class="mt-4"

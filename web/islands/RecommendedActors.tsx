@@ -12,6 +12,7 @@ import { Link } from "./Link.tsx";
 import { RemoteFollowButton } from "./RemoteFollowButton.tsx";
 
 export interface RecommendedActorsProps {
+  canonicalOrigin: string;
   language: Language;
   actors: (Actor & { account?: Account | null })[];
   actorMentions: { actor: Actor }[];
@@ -26,6 +27,7 @@ export function RecommendedActors(
     language,
     actors,
     actorMentions,
+    canonicalOrigin,
     window,
     title,
     class: klass,
@@ -137,6 +139,7 @@ export function RecommendedActors(
                             mentions: actorMentions,
                             emojis: actor.emojis,
                             tags: actor.tags,
+                            localDomain: new URL(canonicalOrigin),
                           },
                         ),
                       }}

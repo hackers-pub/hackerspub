@@ -89,6 +89,7 @@ export default define.page<typeof handler, DraftPageProps>(
     return (
       <main class="w-full h-[calc(100vh-3.75rem)]">
         <Editor
+          canonicalOrigin={state.canonicalOrigin}
           language={state.language}
           class="w-full h-full"
           previewUrl={new URL("/api/preview", url).href}

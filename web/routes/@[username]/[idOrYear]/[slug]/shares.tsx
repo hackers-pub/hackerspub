@@ -93,6 +93,7 @@ export default define.page<typeof handler, ArticleSharesProps>(
         }}
       />
       <ActorList
+        canonicalOrigin={state.canonicalOrigin}
         actors={sharers}
         actorMentions={sharersMentions}
         class="mt-4"

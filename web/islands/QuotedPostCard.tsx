@@ -20,6 +20,7 @@ import { PollCard } from "./PollCard.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 
 export interface QuotedPostCardProps {
+  canonicalOrigin: string;
   language: Language;
   id: Uuid;
   noLink?: boolean;
@@ -198,6 +199,7 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                           {
                             ...post,
                             quote: post.quotedPostId != null,
+                            localDomain: new URL(props.canonicalOrigin),
                           },
                         ),
                       }}
@@ -237,6 +239,7 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                     )}
                     {post.quotedPostId && (
                       <QuotedPostCard
+                        canonicalOrigin={props.canonicalOrigin}
                         language={props.language}
                         id={post.quotedPostId}
                         class="

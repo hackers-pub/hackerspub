@@ -20,6 +20,7 @@ import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
 
 export interface NoteExcerptProps {
+  canonicalOrigin: string;
   class?: string;
   post: Post & {
     actor: Actor;
@@ -159,7 +160,11 @@ export function NoteExcerpt(props: NoteExcerptProps) {
               dangerouslySetInnerHTML={{
                 __html: preprocessContentHtml(
                   post.contentHtml,
-                  { ...post, quote: post.quotedPostId != null },
+                  {
+                    ...post,
+                    quote: post.quotedPostId != null,
+                    localDomain: new URL(props.canonicalOrigin),
+                  },
                 ),
               }}
             />
@@ -330,6 +335,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 `}
               >
                 <QuotedPostCard
+                  canonicalOrigin={props.canonicalOrigin}
                   id={post.quotedPostId}
                   language={lang}
                   class={`

@@ -136,6 +136,7 @@ export default define.page<typeof handler, ArticleReactionsProps>(
               : <img src={emoji.imageUrl} alt={emoji.name} class="h-4" />}
           </PageTitle>
           <ActorList
+            canonicalOrigin={state.canonicalOrigin}
             actors={actors}
             actorMentions={reactorsMentions}
             class="mt-4"

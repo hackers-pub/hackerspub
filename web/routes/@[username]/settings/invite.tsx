@@ -241,6 +241,7 @@ export default define.page<typeof handler, InvitePageProps>(
         />
         <InviteForm {...formData}></InviteForm>
         <InvitationLinks
+          canonicalOrigin={state.canonicalOrigin}
           account={account}
           invitationLinks={invitationLinks}
           messages={Object.fromEntries(messages)}

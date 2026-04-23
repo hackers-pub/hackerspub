@@ -543,6 +543,7 @@ export default define.page<typeof handler, ProfilePageProps>(
     return (
       <div>
         <Profile
+          canonicalOrigin={state.canonicalOrigin}
           actor={data.actor}
           actorMentions={data.actorMentions}
           relationship={data.relationship}
@@ -578,6 +579,7 @@ export default define.page<typeof handler, ProfilePageProps>(
               </h2>
               {data.pinnedPosts.map((post) => (
                 <PostExcerpt
+                  canonicalOrigin={state.canonicalOrigin}
                   post={post}
                   signedAccount={state.account}
                   noReplyTarget
@@ -588,6 +590,7 @@ export default define.page<typeof handler, ProfilePageProps>(
         <div>
           {data.posts.map((post) => (
             <PostExcerpt
+              canonicalOrigin={state.canonicalOrigin}
               post={post}
               signedAccount={state.account}
             />

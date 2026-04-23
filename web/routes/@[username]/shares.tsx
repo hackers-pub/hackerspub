@@ -272,6 +272,7 @@ export default define.page<typeof handler, ProfileShareListProps>(
     return (
       <div>
         <Profile
+          canonicalOrigin={state.canonicalOrigin}
           actor={data.actor}
           actorMentions={data.actorMentions}
           profileHref={data.profileHref}
@@ -287,6 +288,7 @@ export default define.page<typeof handler, ProfileShareListProps>(
         <div>
           {data.posts.map((post) => (
             <PostExcerpt
+              canonicalOrigin={state.canonicalOrigin}
               post={post}
               signedAccount={state.account}
             />

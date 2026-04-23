@@ -166,6 +166,7 @@ export default define.page<typeof handler, ArticleQuotesProps>(
           )
           : (
             <Composer
+              canonicalOrigin={state.canonicalOrigin}
               defaultVisibility={state.account!.noteVisibility}
               language={state.language}
               postUrl=""
@@ -175,6 +176,7 @@ export default define.page<typeof handler, ArticleQuotesProps>(
           )}
         {quotes.map((quote) => (
           <PostExcerpt
+            canonicalOrigin={state.canonicalOrigin}
             key={quote.id}
             post={{ ...quote, sharedPost: null, replyTarget: null }}
             noQuote

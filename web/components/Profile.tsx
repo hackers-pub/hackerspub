@@ -13,6 +13,7 @@ import { Msg, Translation } from "./Msg.tsx";
 import { PageTitle } from "./PageTitle.tsx";
 
 export interface ProfileProps {
+  canonicalOrigin: string;
   actor: Actor & { successor: Actor | null };
   actorMentions: { actor: Actor }[];
   relationship: Relationship | null;
@@ -22,8 +23,15 @@ export interface ProfileProps {
 }
 
 export function Profile(
-  { actor, actorMentions, profileHref, relationship, links, signedAccount }:
-    ProfileProps,
+  {
+    actor,
+    actorMentions,
+    canonicalOrigin,
+    profileHref,
+    relationship,
+    links,
+    signedAccount,
+  }: ProfileProps,
 ) {
   const bioHtml = preprocessContentHtml(
     actor.bioHtml ?? "",
@@ -31,6 +39,7 @@ export function Profile(
       mentions: actorMentions,
       emojis: actor.emojis,
       tags: actor.tags,
+      localDomain: new URL(canonicalOrigin),
     },
   );
   return (

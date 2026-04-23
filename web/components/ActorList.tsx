@@ -7,6 +7,7 @@ import { Link } from "../islands/Link.tsx";
 import { Msg } from "./Msg.tsx";
 
 export interface ActorListProps {
+  canonicalOrigin: string;
   actors: (Actor & { account?: Account | null })[];
   actorMentions: { actor: Actor }[];
   nextUrl?: string;
@@ -17,8 +18,14 @@ export interface ActorListProps {
 }
 
 export function ActorList(
-  { actors, actorMentions, nextUrl, rightTopButton, class: cls }:
-    ActorListProps,
+  {
+    actors,
+    actorMentions,
+    canonicalOrigin,
+    nextUrl,
+    rightTopButton,
+    class: cls,
+  }: ActorListProps,
 ) {
   return (
     <div
@@ -82,6 +89,7 @@ export function ActorList(
                   mentions: actorMentions,
                   emojis: actor.emojis,
                   tags: actor.tags,
+                  localDomain: new URL(canonicalOrigin),
                 },
               ),
             }}

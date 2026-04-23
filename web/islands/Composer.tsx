@@ -30,6 +30,7 @@ const SUPPORTED_MEDIA_TYPES = [
 
 export interface ComposerProps {
   class?: string;
+  canonicalOrigin: string;
   language: Language;
   postUrl: string;
   commentTargets?: string[];
@@ -394,6 +395,7 @@ export function Composer(props: ComposerProps) {
           <QuotedPostCard
             id={quotedPostId}
             noLink
+            canonicalOrigin={props.canonicalOrigin}
             language={props.language}
             class="mb-4"
           />
@@ -412,6 +414,7 @@ export function Composer(props: ComposerProps) {
                       `/tags/${encodeURIComponent(tag.replace(/^#/, ""))}`,
                     ]),
                   ),
+                  localDomain: new URL(props.canonicalOrigin),
                 }),
               }}
             />

@@ -2,7 +2,6 @@ import { invert } from "@std/collections/invert";
 import { escape, unescape } from "@std/html/entities";
 import { load } from "cheerio";
 import * as cssfilter from "cssfilter";
-import process from "node:process";
 import xss from "xss";
 import type * as xssType from "xss";
 import { renderCustomEmojis } from "./emoji.ts";
@@ -422,7 +421,7 @@ export interface PreprocessContentHtmlOptions {
   tags: Record<string, string>;
   emojis?: Record<string, string>;
   quote?: boolean;
-  localDomain?: URL;
+  localDomain: URL;
 }
 
 export function preprocessContentHtml(
@@ -434,18 +433,8 @@ export function preprocessContentHtml(
   html = transformMentions(html, mentions, tags);
   html = renderCustomEmojis(html, emojis);
   if (quote) html = transformMisskeyInlineQuote(html);
-  html = addExternalLinkTargets(html, localDomain ?? resolveLocalDomain());
+  html = addExternalLinkTargets(html, localDomain);
   return html;
-}
-
-function resolveLocalDomain(): URL | undefined {
-  if (globalThis.location?.host) {
-    const protocol = globalThis.location.protocol || "https:";
-    return URL.parse(`${protocol}//${globalThis.location.host}`) ?? undefined;
-  }
-  const origin = process.env.ORIGIN;
-  if (origin != null) return URL.parse(origin) ?? undefined;
-  return undefined;
 }
 
 const HTML_HAS_ANCHOR = /<a\b/i;

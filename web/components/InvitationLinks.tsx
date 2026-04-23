@@ -31,12 +31,13 @@ const EXPIRATION_OPTIONS: {
 
 export interface InvitationLinksProps {
   account: { username: string; leftInvitations: number };
+  canonicalOrigin: string;
   invitationLinks: InvitationLink[];
   messages: Record<Uuid, RenderedMarkup>;
 }
 
 export function InvitationLinks(
-  { account, invitationLinks, messages }: InvitationLinksProps,
+  { account, canonicalOrigin, invitationLinks, messages }: InvitationLinksProps,
 ) {
   const { leftInvitations } = account;
   invitationLinks = invitationLinks.toSorted((a, b) => +a.created - +b.created);
@@ -98,6 +99,7 @@ export function InvitationLinks(
                                   messages[link.id].mentions,
                                 ).map((actor) => ({ actor })),
                                 tags: {},
+                                localDomain: new URL(canonicalOrigin),
                               },
                             ),
                           }}

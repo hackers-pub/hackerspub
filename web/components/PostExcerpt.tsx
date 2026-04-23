@@ -17,6 +17,7 @@ import { Translation } from "./Msg.tsx";
 import { NoteExcerpt } from "./NoteExcerpt.tsx";
 
 export interface PostExcerptProps {
+  canonicalOrigin: string;
   class?: string;
   post: Post & {
     actor: Actor & { instance: Instance };
@@ -98,6 +99,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                 reactions: [],
               }}
               replier={post.actor}
+              canonicalOrigin={props.canonicalOrigin}
               signedAccount={props.signedAccount}
             />
           )}
@@ -137,6 +139,7 @@ export function PostExcerpt(props: PostExcerptProps) {
                 )}
                 <div>
                   <NoteExcerpt
+                    canonicalOrigin={props.canonicalOrigin}
                     class={replyTarget?.type != "Article"
                       ? `${props.class} mt-2`
                       : props.class}

@@ -277,6 +277,7 @@ export default define.page<typeof handler, ProfileNoteListProps>(
     return (
       <div>
         <Profile
+          canonicalOrigin={state.canonicalOrigin}
           actor={data.actor}
           actorMentions={data.actorMentions}
           profileHref={data.profileHref}
@@ -292,6 +293,7 @@ export default define.page<typeof handler, ProfileNoteListProps>(
         <div>
           {data.posts.map((post) => (
             <PostExcerpt
+              canonicalOrigin={state.canonicalOrigin}
               post={post}
               signedAccount={state.account}
             />

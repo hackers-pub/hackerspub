@@ -382,7 +382,9 @@ export interface SearchResultsProps {
 }
 
 export default define.page<typeof handler, SearchResultsProps>(
-  function SearchResults({ state: { account }, data: { posts, nextHref } }) {
+  function SearchResults(
+    { state: { account, canonicalOrigin }, data: { posts, nextHref } },
+  ) {
     return (
       <div>
         <PageTitle>
@@ -411,7 +413,11 @@ export default define.page<typeof handler, SearchResultsProps>(
           : (
             <div>
               {posts.map((post) => (
-                <PostExcerpt post={post} signedAccount={account} />
+                <PostExcerpt
+                  canonicalOrigin={canonicalOrigin}
+                  post={post}
+                  signedAccount={account}
+                />
               ))}
             </div>
           )}

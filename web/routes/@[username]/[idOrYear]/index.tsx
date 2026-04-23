@@ -551,7 +551,12 @@ export default define.page<typeof handler, NotePageProps>(
     }
     return (
       <>
-        <PostExcerpt post={post} noControls signedAccount={state.account} />
+        <PostExcerpt
+          canonicalOrigin={state.canonicalOrigin}
+          post={post}
+          noControls
+          signedAccount={state.account}
+        />
         <PostControls
           class="mt-4 ml-14"
           language={state.language}
@@ -577,6 +582,7 @@ export default define.page<typeof handler, NotePageProps>(
           )
           : (
             <Composer
+              canonicalOrigin={state.canonicalOrigin}
               class="mt-8"
               language={state.language}
               postUrl={postUrl}
@@ -588,7 +594,11 @@ export default define.page<typeof handler, NotePageProps>(
           )}
         {replies.map((reply) => (
           <>
-            <NoteExcerpt post={reply} signedAccount={state.account} />
+            <NoteExcerpt
+              canonicalOrigin={state.canonicalOrigin}
+              post={reply}
+              signedAccount={state.account}
+            />
             <PostControls
               class="mt-4 ml-14"
               language={state.language}

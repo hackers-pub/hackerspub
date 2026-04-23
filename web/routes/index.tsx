@@ -248,6 +248,7 @@ export default define.page<typeof handler, HomeProps>(
       <>
         {data.composer && (
           <Composer
+            canonicalOrigin={state.canonicalOrigin}
             language={state.language}
             postUrl={`/@${state.account!.username}`}
             defaultVisibility={state.account!.noteVisibility}
@@ -272,6 +273,7 @@ export default define.page<typeof handler, HomeProps>(
           <>
             {data.timeline.map((item) => (
               <PostExcerpt
+                canonicalOrigin={state.canonicalOrigin}
                 post={item.post}
                 lastSharer={item.lastSharer}
                 sharersCount={item.sharersCount}
@@ -283,6 +285,7 @@ export default define.page<typeof handler, HomeProps>(
         )}
         {data.recommendedActors.length > 0 && (
           <RecommendedActors
+            canonicalOrigin={state.canonicalOrigin}
             language={state.language}
             actors={data.recommendedActors}
             actorMentions={data.recommendedActorMentions}

@@ -522,6 +522,7 @@ export function ArticlePage(
           )
           : (
             <Composer
+              canonicalOrigin={state.canonicalOrigin}
               defaultVisibility={state.account!.noteVisibility}
               class="mt-4"
               commentTargets={commentTargets}
@@ -532,6 +533,7 @@ export function ArticlePage(
           )}
         {comments.map((comment) => (
           <PostExcerpt
+            canonicalOrigin={state.canonicalOrigin}
             key={comment.id}
             post={{ ...comment, sharedPost: null, replyTarget: null }}
             signedAccount={state.account}

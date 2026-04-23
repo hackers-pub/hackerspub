@@ -218,6 +218,7 @@ export default define.page<typeof handler, NoteQuotesProps>(
     return (
       <>
         <PostExcerpt
+          canonicalOrigin={state.canonicalOrigin}
           post={post}
           noControls
           signedAccount={state.account}
@@ -248,6 +249,7 @@ export default define.page<typeof handler, NoteQuotesProps>(
             )
             : (
               <Composer
+                canonicalOrigin={state.canonicalOrigin}
                 defaultVisibility={state.account!.noteVisibility}
                 language={state.language}
                 postUrl=""
@@ -257,6 +259,7 @@ export default define.page<typeof handler, NoteQuotesProps>(
             )}
           {quotes.map((quote) => (
             <PostExcerpt
+              canonicalOrigin={state.canonicalOrigin}
               key={quote.id}
               post={{ ...quote, sharedPost: null, replyTarget: null }}
               noQuote

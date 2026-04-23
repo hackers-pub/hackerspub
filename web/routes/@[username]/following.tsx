@@ -72,7 +72,7 @@ interface FolloweeListProps {
 }
 
 export default define.page<typeof handler, FolloweeListProps>(
-  function FolloweeList({ data }) {
+  function FolloweeList({ data, state }) {
     return (
       <>
         <PageTitle>
@@ -86,6 +86,7 @@ export default define.page<typeof handler, FolloweeListProps>(
           />
         </PageTitle>
         <ActorList
+          canonicalOrigin={state.canonicalOrigin}
           actors={data.followees}
           actorMentions={data.followeesMentions}
           nextUrl={data.nextUrl}
