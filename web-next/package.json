@@ -6,7 +6,9 @@
     "dev": "vite dev",
     "build": "vite build",
     "extract": "lingui extract",
-    "start": "vite start"
+    "start": "vite start",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "imports": {
     "#i18n": {
@@ -54,11 +56,14 @@
     "@lingui/babel-plugin-lingui-macro": "^5.3.3",
     "@lingui/cli": "^5.3.3",
     "@lingui/vite-plugin": "^5.3.3",
+    "@storybook/addon-docs": "^10.3.5",
     "@tailwindcss/vite": "^4.1.11",
     "@types/relay-runtime": "^19.0.2",
     "react-jsx": "^1.0.0",
     "relay-compiler": "^19.0.0",
     "solid-devtools": "^0.34.4",
+    "storybook": "^10.3.5",
+    "storybook-solidjs-vite": "^10.0.12",
     "unplugin-icons": "^22.5.0",
     "vite-plugin-cjs-interop": "^2.2.0",
     "vite-plugin-relay-lite": "^0.11.0"

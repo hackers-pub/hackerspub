@@ -3,3 +3,6 @@ dist
 .output
 .nitro
 __generated__/
+
+# Storybook
+storybook-static/
