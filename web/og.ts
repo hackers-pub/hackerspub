@@ -5,6 +5,8 @@ import type { Disk } from "flydrive";
 import { canonicalize } from "json-canonicalize";
 import satori from "satori";
 
+type SatoriHtml = ReturnType<typeof import("satori-html").html>;
+
 async function loadFont(filename: string): Promise<ArrayBuffer> {
   const f = await Deno.readFile(join(
     import.meta.dirname!,
@@ -72,7 +74,7 @@ const FONTS: FontOptions[] = [
 export async function drawOgImage(
   disk: Disk,
   existingKey: string | null | undefined,
-  html: Parameters<typeof satori>[0],
+  html: SatoriHtml,
   size: { width: number; height: number } = { width: 1200, height: 630 },
 ): Promise<string> {
   const input = canonicalize({ html, size });
@@ -83,7 +85,12 @@ export async function drawOgImage(
   const key = `og/${encodeHex(digest)}.png`;
   if (existingKey === key) return key;
   if (existingKey != null) await disk.delete(existingKey);
-  const svg = await satori(html, { ...size, fonts: FONTS });
+  // satori-html emits the element tree Satori consumes, but its type is
+  // declared independently from Satori's ReactNode input type.
+  const svg = await satori(html as unknown as Parameters<typeof satori>[0], {
+    ...size,
+    fonts: FONTS,
+  });
   const resvg = new Resvg(svg, {
     fitTo: {
       mode: "width",
