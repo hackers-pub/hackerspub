@@ -7,6 +7,18 @@ We welcome contributions to the project. Please read the following guide to
 learn how to contribute.
 
 
+AI usage policy
+---------------
+
+If you use AI tools to contribute to Hackers' Pub, read the [AI usage policy]
+before opening an issue, discussion, pull request, or commit.  AI assistance
+must be disclosed in pull request descriptions and commit messages, and
+AI-assisted pull requests must be tied to accepted issues or maintainer-approved
+work items.
+
+[AI usage policy]: ./AI_POLICY.md
+
+
 Recommended reading
 -------------------
 
