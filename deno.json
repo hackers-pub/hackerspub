@@ -182,9 +182,12 @@
     "exclude": [
       "*.md",
       "*.yaml",
+      ".agents/skills/",
+      ".agents/commands/",
+      ".claude/skills/",
+      ".claude/commands/",
       "ai/prompts/",
-      "graphql/locales/markdown/*.md",
-      ".claude/commands/"
+      "graphql/locales/markdown/*.md"
     ]
   },
   "lint": {
