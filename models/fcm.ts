@@ -45,14 +45,27 @@ function getEnvString(name: string): string | undefined {
 
 function getServiceAccount(): FcmServiceAccount | null {
   if (cachedServiceAccount !== undefined) return cachedServiceAccount;
-  const keyJson = getEnvString("FCM_SERVICE_ACCOUNT_KEY");
-  if (keyJson == null) {
+  const encoded = getEnvString("GOOGLE_SERVICES_JSON_BASE64");
+  if (encoded == null) {
     if (!hasLoggedFcmDisabled) {
       logger.debug(
-        "FCM integration is disabled because FCM_SERVICE_ACCOUNT_KEY is not set.",
+        "FCM integration is disabled because GOOGLE_SERVICES_JSON_BASE64 is not set.",
       );
       hasLoggedFcmDisabled = true;
     }
+    cachedServiceAccount = null;
+    return null;
+  }
+  let keyJson: string;
+  try {
+    keyJson = new TextDecoder().decode(
+      Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0)),
+    );
+  } catch (error) {
+    logger.error(
+      "Failed to base64-decode GOOGLE_SERVICES_JSON_BASE64: {error}",
+      { error },
+    );
     cachedServiceAccount = null;
     return null;
   }
@@ -65,7 +78,9 @@ function getServiceAccount(): FcmServiceAccount | null {
     };
     return cachedServiceAccount;
   } catch (error) {
-    logger.error("Failed to parse FCM_SERVICE_ACCOUNT_KEY: {error}", { error });
+    logger.error("Failed to parse GOOGLE_SERVICES_JSON_BASE64: {error}", {
+      error,
+    });
     cachedServiceAccount = null;
     return null;
   }

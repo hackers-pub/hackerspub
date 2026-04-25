@@ -37,9 +37,11 @@ function resolveUrl(input: RequestInfo | URL): string {
 
 test("sendFcmNotification dispatches per-token requests concurrently and prunes stale tokens", async () => {
   const originalFetch = globalThis.fetch;
-  const originalKey = process.env.FCM_SERVICE_ACCOUNT_KEY;
+  const originalKey = process.env.GOOGLE_SERVICES_JSON_BASE64;
 
-  process.env.FCM_SERVICE_ACCOUNT_KEY = await buildServiceAccountJson();
+  process.env.GOOGLE_SERVICES_JSON_BASE64 = btoa(
+    await buildServiceAccountJson(),
+  );
   resetFcmStateForTesting();
 
   const staleToken = "fcm-stale-token";
@@ -177,9 +179,9 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
   } finally {
     globalThis.fetch = originalFetch;
     if (originalKey === undefined) {
-      delete process.env.FCM_SERVICE_ACCOUNT_KEY;
+      delete process.env.GOOGLE_SERVICES_JSON_BASE64;
     } else {
-      process.env.FCM_SERVICE_ACCOUNT_KEY = originalKey;
+      process.env.GOOGLE_SERVICES_JSON_BASE64 = originalKey;
     }
     resetFcmStateForTesting();
   }
