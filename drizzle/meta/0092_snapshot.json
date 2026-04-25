@@ -1,6 +1,6 @@
 {
-  "id": "88af4123-9de8-4c56-964e-edc507d88b92",
-  "prevId": "55391c60-7f22-41fc-980c-7b930a9ae06f",
+  "id": "462c6f61-4011-44b3-9e2e-109856567eec",
+  "prevId": "0360f354-8bf7-42cf-b91a-f71db3270d5e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1524,6 +1524,75 @@
       },
       "isRLSEnabled": false
     },
+    "public.fcm_device_token": {
+      "name": "fcm_device_token",
+      "schema": "",
+      "columns": {
+        "device_token": {
+          "name": "device_token",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "account_id": {
+          "name": "account_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created": {
+          "name": "created",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated": {
+          "name": "updated",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "fcm_device_token_account_id_index": {
+          "name": "fcm_device_token_account_id_index",
+          "columns": [
+            {
+              "expression": "account_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "fcm_device_token_account_id_account_id_fk": {
+          "name": "fcm_device_token_account_id_account_id_fk",
+          "tableFrom": "fcm_device_token",
+          "tableTo": "account",
+          "columnsFrom": [
+            "account_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.following": {
       "name": "following",
       "schema": "",
@@ -3019,6 +3088,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'{}'::jsonb"
+        },
+        "relayed_tags": {
+          "name": "relayed_tags",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "(ARRAY[]::text[])"
         },
         "emojis": {
           "name": "emojis",
