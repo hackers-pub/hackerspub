@@ -1244,3 +1244,36 @@ export const articleMediumTable = pgTable(
 
 export type ArticleMedium = typeof articleMediumTable.$inferSelect;
 export type NewArticleMedium = typeof articleMediumTable.$inferInsert;
+
+export const flagTable = pgTable(
+  "flag",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    iri: text().notNull().unique(),
+    reporterId: uuid("reporter_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    postId: uuid("post_id")
+      .$type<Uuid>()
+      .references(() => postTable.id, { onDelete: "cascade" }),
+    actorId: uuid("actor_id")
+      .$type<Uuid>()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    reason: text().notNull(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    unique().on(table.reporterId, table.postId),
+    unique().on(table.reporterId, table.actorId),
+    check(
+      "flag_target_check",
+      sql`(${table.postId} IS NOT NULL AND ${table.actorId} IS NULL) OR (${table.postId} IS NULL AND ${table.actorId} IS NOT NULL)`,
+    ),
+  ],
+);
+
+export type Flag = typeof flagTable.$inferSelect;
+export type NewFlag = typeof flagTable.$inferInsert;

@@ -278,6 +278,10 @@ type AddReactionToPostPayload {
 
 union AddReactionToPostResult = AddReactionToPostPayload | InvalidInputError | NotAuthenticatedError
 
+type AlreadyReportedError {
+  message: String!
+}
+
 type Article implements Node & Post & Reactable {
   account: Account!
   actor: Actor!
@@ -698,6 +702,7 @@ type Mutation {
   registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult!
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
+  reportPost(input: ReportPostInput!): ReportPostResult!
   revokePasskey(passkeyId: ID!): ID
 
   """Revoke a session by its ID."""
@@ -1285,6 +1290,19 @@ type ReplyNotification implements Node & Notification {
   post: Post
   uuid: UUID!
 }
+
+input ReportPostInput {
+  clientMutationId: ID
+  postId: ID!
+  reason: String!
+}
+
+type ReportPostPayload {
+  clientMutationId: ID
+  post: Post!
+}
+
+union ReportPostResult = AlreadyReportedError | InvalidInputError | NotAuthenticatedError | ReportPostPayload
 
 input SaveArticleDraftInput {
   clientMutationId: ID
