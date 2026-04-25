@@ -11,5 +11,18 @@
         "AD:C6:2C:B4:7B:C0:7D:26:48:D5:C8:E5:51:88:BF:1E:82:33:B4:CC:5A:A3:74:49:25:D0:C4:3C:32:D7:12:BB"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "pub.hackers.android.dev",
+      "sha256_cert_fingerprints": [
+        "CA:A4:96:E9:46:6C:68:29:7F:74:00:D6:33:45:F7:0B:F9:DD:81:B9:49:53:8B:94:32:B8:D0:60:B2:31:10:5B"
+      ]
+    }
   }
 ]
