@@ -1111,6 +1111,29 @@ export const apnsDeviceTokenTable = pgTable(
 export type ApnsDeviceToken = typeof apnsDeviceTokenTable.$inferSelect;
 export type NewApnsDeviceToken = typeof apnsDeviceTokenTable.$inferInsert;
 
+export const fcmDeviceTokenTable = pgTable(
+  "fcm_device_token",
+  {
+    deviceToken: text("device_token").primaryKey(),
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.accountId),
+  ],
+);
+
+export type FcmDeviceToken = typeof fcmDeviceTokenTable.$inferSelect;
+export type NewFcmDeviceToken = typeof fcmDeviceTokenTable.$inferInsert;
+
 export const notificationTypeEnum = pgEnum("notification_type", [
   "follow",
   "mention",
