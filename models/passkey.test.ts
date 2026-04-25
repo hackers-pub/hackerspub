@@ -5,7 +5,7 @@ import { Buffer } from "node:buffer";
 import {
   getAuthenticationOptions,
   getRegistrationOptions,
-  resolvePasskeyOrigin,
+  resolvePasskeyOrigins,
   verifyAuthentication,
   verifyRegistration,
 } from "./passkey.ts";
@@ -15,18 +15,21 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 
-Deno.test("resolvePasskeyOrigin() prefers platform-specific origins", () => {
+Deno.test("resolvePasskeyOrigins() prefers platform-specific origins", () => {
   assertEquals(
-    resolvePasskeyOrigin("https://pub.hackers.pub/sign/in", "web"),
-    "https://pub.hackers.pub",
+    resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "web"),
+    ["https://pub.hackers.pub"],
   );
   assertEquals(
-    resolvePasskeyOrigin("https://pub.hackers.pub/sign/in", "ios"),
-    "https://pub.hackers.pub",
+    resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "ios"),
+    ["https://pub.hackers.pub"],
   );
   assertEquals(
-    resolvePasskeyOrigin("https://pub.hackers.pub/sign/in", "android"),
-    "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
+    resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "android"),
+    [
+      "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
+      "android:apk-key-hash:yqSW6UZsaCl_dADWM0X3C_ndgblJU4uUMrjQYLIxEFs",
+    ],
   );
 });
 
@@ -98,7 +101,7 @@ Deno.test({
           verifyRegistration(
             tx,
             kv,
-            "https://pub.hackers.pub",
+            ["https://pub.hackers.pub"],
             "pub.hackers.pub",
             account.account,
             "Laptop",
@@ -144,7 +147,7 @@ Deno.test({
       const missingOptions = await verifyAuthentication(
         tx,
         kv,
-        "https://pub.hackers.pub",
+        ["https://pub.hackers.pub"],
         "pub.hackers.pub",
         sessionId,
         { id: "missing-passkey" } as never,
@@ -160,7 +163,7 @@ Deno.test({
       const missingPasskey = await verifyAuthentication(
         tx,
         kv,
-        "https://pub.hackers.pub",
+        ["https://pub.hackers.pub"],
         "pub.hackers.pub",
         sessionId,
         { id: "missing-passkey" } as never,

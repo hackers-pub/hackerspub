@@ -1,4 +1,7 @@
-import { verifyRegistration } from "@hackerspub/models/passkey";
+import {
+  resolvePasskeyOrigins,
+  verifyRegistration,
+} from "@hackerspub/models/passkey";
 import type { RegistrationResponseJSON } from "@simplewebauthn/server";
 import { db } from "../../../../db.ts";
 import { kv } from "../../../../kv.ts";
@@ -17,11 +20,12 @@ export const handler = define.handlers({
       registrationResponse: RegistrationResponseJSON;
     } = await ctx.req.json();
     const serverOrigin = new URL(ctx.state.fedCtx.canonicalOrigin).origin;
+    const origins = resolvePasskeyOrigins(serverOrigin, "web");
     const rpId = new URL(ctx.state.fedCtx.canonicalOrigin).hostname;
     const verifyResponse = await verifyRegistration(
       db,
       kv,
-      serverOrigin,
+      origins,
       rpId,
       account,
       registerResponse.name,

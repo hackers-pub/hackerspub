@@ -2,7 +2,7 @@ import { negotiateLocale } from "@hackerspub/models/i18n";
 import {
   getAuthenticationOptions,
   type PasskeyPlatform,
-  resolvePasskeyOrigin,
+  resolvePasskeyOrigins,
   verifyAuthentication,
 } from "@hackerspub/models/passkey";
 import {
@@ -305,7 +305,7 @@ builder.mutationFields((t) => ({
       platform: t.arg.string({ required: false, defaultValue: "web" }),
     },
     async resolve(_, args, ctx) {
-      const origin = resolvePasskeyOrigin(
+      const origins = resolvePasskeyOrigins(
         ctx.fedCtx.canonicalOrigin,
         (args.platform ?? "web") as PasskeyPlatform,
       );
@@ -313,7 +313,7 @@ builder.mutationFields((t) => ({
       const result = await verifyAuthentication(
         ctx.db,
         ctx.kv,
-        origin,
+        origins,
         rpId,
         args.sessionId as Uuid,
         args.authenticationResponse as AuthenticationResponseJSON,
