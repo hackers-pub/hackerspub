@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import process from "node:process";
 import test from "node:test";
 import type { Context } from "@fedify/fedify";
 import type { ContextData } from "./context.ts";
@@ -54,6 +55,50 @@ test("createNote() creates a post and timeline entry for the author", async () =
   });
 });
 
+test("createNote() stores tags relayed to tags.pub only for public posts", async () => {
+  await withTagsPubRelayEnabled(async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const author = await insertAccountWithActor(tx, {
+        username: "relayedtagsauthor",
+        name: "Relayed Tags Author",
+        email: "relayedtagsauthor@example.com",
+      });
+      const published = new Date("2026-04-15T00:00:00.000Z");
+
+      const publicNote = await createNote(
+        fedCtx as unknown as Context<ContextData<Transaction>>,
+        {
+          accountId: author.account.id,
+          visibility: "public",
+          content: "Hello #Fediverse",
+          language: "en",
+          media: [],
+          published,
+          updated: published,
+        },
+      );
+      const followersNote = await createNote(
+        fedCtx as unknown as Context<ContextData<Transaction>>,
+        {
+          accountId: author.account.id,
+          visibility: "followers",
+          content: "Private #Fediverse",
+          language: "en",
+          media: [],
+          published,
+          updated: published,
+        },
+      );
+
+      assert.ok(publicNote != null);
+      assert.deepEqual(publicNote.relayedTags, ["fediverse"]);
+      assert.ok(followersNote != null);
+      assert.deepEqual(followersNote.relayedTags, []);
+    });
+  });
+});
+
 test("updateNote() updates the persisted post for an existing note source", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
@@ -97,3 +142,19 @@ test("updateNote() updates the persisted post for an existing note source", asyn
     assert.match(storedPost.contentHtml, /<em>note<\/em>/);
   });
 });
+
+async function withTagsPubRelayEnabled(
+  run: () => Promise<void>,
+): Promise<void> {
+  const previous = process.env.TAGS_PUB_RELAY;
+  process.env.TAGS_PUB_RELAY = "true";
+  try {
+    await run();
+  } finally {
+    if (previous == null) {
+      delete process.env.TAGS_PUB_RELAY;
+    } else {
+      process.env.TAGS_PUB_RELAY = previous;
+    }
+  }
+}

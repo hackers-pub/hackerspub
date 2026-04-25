@@ -1,0 +1,1 @@
+ALTER TABLE "post" ADD COLUMN "relayed_tags" text[] DEFAULT (ARRAY[]::text[]) NOT NULL;

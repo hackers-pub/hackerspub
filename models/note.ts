@@ -2,6 +2,7 @@ import type { Context } from "@fedify/fedify";
 import type { Recipient } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { getNote } from "@hackerspub/federation/objects";
+import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
 import sharp from "sharp";
@@ -30,6 +31,7 @@ import {
   type Post,
   type PostLink,
   type PostMedium,
+  postTable,
   type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline } from "./timeline.ts";
@@ -391,6 +393,22 @@ export async function createNote(
       },
     );
   }
+  const relayedTags = await sendTagsPubRelayActivity(
+    fedCtx,
+    source.accountId,
+    activity,
+    {
+      orderingKey,
+      visibility: post.visibility,
+      accountBio: account.bio,
+    },
+  );
+  if (relayedTags != null) {
+    await db.update(postTable)
+      .set({ relayedTags: [...relayedTags] })
+      .where(eq(postTable.id, post.id));
+    post.relayedTags = [...relayedTags];
+  }
   if (
     post.replyTarget != null && post.replyTarget.actor.accountId != null &&
     post.replyTarget.actorId !== post.actorId
@@ -459,6 +477,9 @@ export async function updateNote(
   } | undefined
 > {
   const { db } = fedCtx.data;
+  const previousPost = await db.query.postTable.findFirst({
+    where: { noteSourceId },
+  });
   const noteSource = await updateNoteSource(db, noteSourceId, source);
   if (noteSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
@@ -490,19 +511,20 @@ export async function updateNote(
         }),
     },
   );
+  const activity = new vocab.Update({
+    id: new URL(
+      `#update/${noteSource.updated.toISOString()}`,
+      noteObject.id ?? fedCtx.canonicalOrigin,
+    ),
+    actors: noteObject.attributionIds,
+    tos: noteObject.toIds,
+    ccs: noteObject.ccIds,
+    object: noteObject,
+  });
   await fedCtx.sendActivity(
     { identifier: noteSource.accountId },
     "followers",
-    new vocab.Update({
-      id: new URL(
-        `#update/${noteSource.updated.toISOString()}`,
-        noteObject.id ?? fedCtx.canonicalOrigin,
-      ),
-      actors: noteObject.attributionIds,
-      tos: noteObject.toIds,
-      ccs: noteObject.ccIds,
-      object: noteObject,
-    }),
+    activity,
     {
       orderingKey: post.iri,
       preferSharedInbox: true,
@@ -512,5 +534,22 @@ export async function updateNote(
       ],
     },
   );
+  const relayedTags = await sendTagsPubRelayActivity(
+    fedCtx,
+    noteSource.accountId,
+    activity,
+    {
+      orderingKey: post.iri,
+      visibility: post.visibility,
+      accountBio: account.bio,
+      relayedTags: previousPost?.relayedTags,
+    },
+  );
+  if (relayedTags != null) {
+    await db.update(postTable)
+      .set({ relayedTags: [...relayedTags] })
+      .where(eq(postTable.id, post.id));
+    post.relayedTags = [...relayedTags];
+  }
   return post;
 }

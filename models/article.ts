@@ -3,6 +3,7 @@ import * as vocab from "@fedify/vocab";
 import { summarize } from "@hackerspub/ai/summary";
 import { translate } from "@hackerspub/ai/translate";
 import { getArticle } from "@hackerspub/federation/objects";
+import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
 import type { LanguageModel } from "ai";
@@ -237,22 +238,39 @@ export async function createArticle(
   });
   await addPostToTimeline(db, post);
   const articleObject = await getArticle(fedCtx, { ...articleSource, account });
+  const activity = new vocab.Create({
+    id: new URL("#create", articleObject.id ?? fedCtx.origin),
+    actors: articleObject.attributionIds,
+    tos: articleObject.toIds,
+    ccs: articleObject.ccIds,
+    object: articleObject,
+  });
   await fedCtx.sendActivity(
     { identifier: source.accountId },
     "followers",
-    new vocab.Create({
-      id: new URL("#create", articleObject.id ?? fedCtx.origin),
-      actors: articleObject.attributionIds,
-      tos: articleObject.toIds,
-      ccs: articleObject.ccIds,
-      object: articleObject,
-    }),
+    activity,
     {
       orderingKey: post.iri,
       preferSharedInbox: true,
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
+  const relayedTags = await sendTagsPubRelayActivity(
+    fedCtx,
+    source.accountId,
+    activity,
+    {
+      orderingKey: post.iri,
+      visibility: post.visibility,
+      accountBio: account.bio,
+    },
+  );
+  if (relayedTags != null) {
+    await db.update(postTable)
+      .set({ relayedTags: [...relayedTags] })
+      .where(eq(postTable.id, post.id));
+    post.relayedTags = [...relayedTags];
+  }
   // TODO: send Create(Article) to the mentioned actors too
   return post;
 }
@@ -338,6 +356,9 @@ export async function updateArticle(
   } | undefined
 > {
   const { db } = fedCtx.data;
+  const previousPost = await db.query.postTable.findFirst({
+    where: { articleSourceId },
+  });
   const articleSource = await updateArticleSource(db, articleSourceId, source);
   if (articleSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
@@ -350,19 +371,20 @@ export async function updateArticle(
     account,
   });
   const articleObject = await getArticle(fedCtx, { ...articleSource, account });
+  const activity = new vocab.Update({
+    id: new URL(
+      `#update/${articleSource.updated.toISOString()}`,
+      articleObject.id ?? fedCtx.canonicalOrigin,
+    ),
+    actors: articleObject.attributionIds,
+    tos: articleObject.toIds,
+    ccs: articleObject.ccIds,
+    object: articleObject,
+  });
   await fedCtx.sendActivity(
     { identifier: articleSource.accountId },
     "followers",
-    new vocab.Update({
-      id: new URL(
-        `#update/${articleSource.updated.toISOString()}`,
-        articleObject.id ?? fedCtx.canonicalOrigin,
-      ),
-      actors: articleObject.attributionIds,
-      tos: articleObject.toIds,
-      ccs: articleObject.ccIds,
-      object: articleObject,
-    }),
+    activity,
     {
       orderingKey: post.iri,
       preferSharedInbox: true,
@@ -372,6 +394,23 @@ export async function updateArticle(
       ],
     },
   );
+  const relayedTags = await sendTagsPubRelayActivity(
+    fedCtx,
+    articleSource.accountId,
+    activity,
+    {
+      orderingKey: post.iri,
+      visibility: post.visibility,
+      accountBio: account.bio,
+      relayedTags: previousPost?.relayedTags,
+    },
+  );
+  if (relayedTags != null) {
+    await db.update(postTable)
+      .set({ relayedTags: [...relayedTags] })
+      .where(eq(postTable.id, post.id));
+    post.relayedTags = [...relayedTags];
+  }
   // TODO: send Update(Article) to the mentioned actors too
   return post;
 }
@@ -574,6 +613,9 @@ export async function startArticleContentTranslation(
       },
     });
     if (article == null) return;
+    const post = await db.query.postTable.findFirst({
+      where: { articleSourceId: article.id },
+    });
     const articleObject = await getArticle(fedCtx, article);
     const update = new vocab.Update({
       id: new URL(
@@ -600,6 +642,24 @@ export async function startArticleContentTranslation(
         ],
       },
     );
+    if (post != null) {
+      const relayedTags = await sendTagsPubRelayActivity(
+        fedCtx,
+        article.accountId,
+        update,
+        {
+          orderingKey,
+          visibility: post.visibility,
+          accountBio: article.account.bio,
+          relayedTags: post.relayedTags,
+        },
+      );
+      if (relayedTags != null) {
+        await db.update(postTable)
+          .set({ relayedTags: [...relayedTags] })
+          .where(eq(postTable.id, post.id));
+      }
+    }
     // TODO: send Update(Article) to the mentioned actors too
     await startArticleContentSummary(
       db,

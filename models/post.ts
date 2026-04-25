@@ -13,6 +13,7 @@ import {
 } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
 import { getAnnounce } from "@hackerspub/federation/objects";
+import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { getLogger } from "@logtape/logtape";
 import { assertNever } from "@std/assert/unstable-never";
 import {
@@ -1681,6 +1682,12 @@ export async function deletePost(
       excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
     },
   );
+  await sendTagsPubRelayActivity(fedCtx, post.actor.accountId, activity, {
+    orderingKey: post.iri,
+    visibility: post.visibility,
+    accountBio: post.actor.bioHtml,
+    relayedTags: post.relayedTags,
+  });
   await fedCtx.sendActivity(
     { identifier: post.actor.accountId },
     recipients,

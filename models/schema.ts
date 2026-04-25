@@ -627,6 +627,9 @@ export const postTable = pgTable(
     contentHtml: text("content_html").notNull(),
     language: varchar(),
     tags: jsonb().$type<Record<string, string>>().notNull().default({}),
+    relayedTags: text("relayed_tags").array().notNull().default(
+      sql`(ARRAY[]::text[])`,
+    ),
     emojis: jsonb().$type<Record<string, string>>().notNull().default({}),
     sensitive: boolean().notNull().default(false),
     repliesCount: integer("replies_count").notNull().default(0),
