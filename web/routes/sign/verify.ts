@@ -1,4 +1,7 @@
-import { verifyAuthentication } from "@hackerspub/models/passkey";
+import {
+  resolvePasskeyOrigins,
+  verifyAuthentication,
+} from "@hackerspub/models/passkey";
 import { createSession, EXPIRATION } from "@hackerspub/models/session";
 import { validateUuid } from "@hackerspub/models/uuid";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
@@ -13,11 +16,12 @@ export const handler = define.handlers({
     if (!validateUuid(sessionId)) return ctx.next();
     const authResponse: AuthenticationResponseJSON = await ctx.req.json();
     const serverOrigin = new URL(ctx.state.fedCtx.canonicalOrigin).origin;
+    const origins = resolvePasskeyOrigins(serverOrigin, "web");
     const rpId = new URL(ctx.state.fedCtx.canonicalOrigin).hostname;
     const result = await verifyAuthentication(
       db,
       kv,
-      serverOrigin,
+      origins,
       rpId,
       sessionId,
       authResponse,

@@ -28,18 +28,22 @@ const KV_NAMESPACE = "passkey";
 
 export type PasskeyPlatform = "web" | "android" | "ios";
 
-const PLATFORM_ORIGINS: Partial<Record<PasskeyPlatform, string>> = {
-  // Release signing key (pub.hackers.android)
-  android: "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
+const PLATFORM_ORIGINS: Partial<Record<PasskeyPlatform, string[]>> = {
+  android: [
+    // Release signing key (pub.hackers.android)
+    "android:apk-key-hash:UqAUIQLNMP2LKaPtgCsKvq-rNyl5OYQat545Ba9k1Ro",
+    // Local debug keystore (pub.hackers.android.dev)
+    "android:apk-key-hash:yqSW6UZsaCl_dADWM0X3C_ndgblJU4uUMrjQYLIxEFs",
+  ],
 };
 
-export function resolvePasskeyOrigin(
+export function resolvePasskeyOrigins(
   serverOrigin: string,
   platform: PasskeyPlatform = "web",
-): string {
-  const platformOrigin = PLATFORM_ORIGINS[platform];
-  if (platformOrigin != null) return platformOrigin;
-  return new URL(serverOrigin).origin;
+): string[] {
+  const platformOrigins = PLATFORM_ORIGINS[platform];
+  if (platformOrigins != null) return platformOrigins;
+  return [new URL(serverOrigin).origin];
 }
 
 export async function getRegistrationOptions(
@@ -64,7 +68,7 @@ export async function getRegistrationOptions(
 export async function verifyRegistration(
   db: Database,
   kv: Keyv,
-  origin: string,
+  origins: string[],
   rpId: string,
   account: Account,
   name: string,
@@ -79,7 +83,7 @@ export async function verifyRegistration(
   const result = await verifyRegistrationResponse({
     response,
     expectedChallenge: options.challenge,
-    expectedOrigin: origin,
+    expectedOrigin: origins,
     expectedRPID: rpId,
   });
   if (result.verified && result.registrationInfo != null) {
@@ -121,7 +125,7 @@ export async function getAuthenticationOptions(
 export async function verifyAuthentication(
   db: Database,
   kv: Keyv,
-  origin: string,
+  origins: string[],
   rpId: string,
   sessionId: Uuid,
   response: AuthenticationResponseJSON,
@@ -146,7 +150,7 @@ export async function verifyAuthentication(
   const result = await verifyAuthenticationResponse({
     response,
     expectedChallenge: options.challenge,
-    expectedOrigin: origin,
+    expectedOrigin: origins,
     expectedRPID: rpId,
     credential: {
       id: response.id,
