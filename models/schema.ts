@@ -1078,6 +1078,8 @@ export const timelineItemTable = pgTable(
     primaryKey({ columns: [table.accountId, table.postId] }),
     index("idx_timeline_item_account_id_added")
       .on(table.accountId, desc(table.added)),
+    index("idx_timeline_item_account_id_appended")
+      .on(table.accountId, desc(table.appended)),
   ],
 );
 
