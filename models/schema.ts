@@ -684,6 +684,12 @@ export const postTable = pgTable(
     index("idx_post_actor_id_published")
       .on(table.actorId, desc(table.published)),
     index().on(table.replyTargetId),
+    index("post_shared_post_id_index")
+      .on(table.sharedPostId)
+      .where(isNotNull(table.sharedPostId)),
+    index("post_quoted_post_id_index")
+      .on(table.quotedPostId)
+      .where(isNotNull(table.quotedPostId)),
     index("idx_post_note_source_published")
       .on(desc(table.published))
       .where(isNotNull(table.noteSourceId)),
@@ -1080,6 +1086,7 @@ export const timelineItemTable = pgTable(
       .on(table.accountId, desc(table.added)),
     index("idx_timeline_item_account_id_appended")
       .on(table.accountId, desc(table.appended)),
+    index("timeline_item_post_id_index").on(table.postId),
   ],
 );
 
@@ -1186,6 +1193,9 @@ export const notificationTable = pgTable(
       table.accountId,
       desc(table.created),
     ),
+    index("notification_post_id_index")
+      .on(table.postId)
+      .where(isNotNull(table.postId)),
     check(
       "notification_post_id_check",
       sql`
