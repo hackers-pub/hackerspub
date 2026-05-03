@@ -36,9 +36,11 @@ export const route = {
   matchFilters: {
     handle: /^@[^@]+$/,
   },
-  preload() {
+  preload({ intent }) {
     const { i18n } = useLingui();
-    void revalidate(loadBookmarksPageQuery.keyFor(i18n.locale));
+    if (intent !== "preload") {
+      void revalidate(loadBookmarksPageQuery.keyFor(i18n.locale));
+    }
     void loadBookmarksPageQuery(i18n.locale);
   },
 } satisfies RouteDefinition;
