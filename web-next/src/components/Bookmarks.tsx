@@ -72,6 +72,11 @@ export function Bookmarks(props: BookmarksProps) {
     on(
       () => props.postType ?? null,
       (postType) => {
+        // Filter changes cancel any in-flight `loadNext` (solid-relay's
+        // `disposeFetchNext`), and the cancellation path doesn't call our
+        // `onComplete`. Reset the load-more CTA so it doesn't carry a stale
+        // "loading" or "errored" label into the new filter's button.
+        setLoadingState("loaded");
         posts.refetch({ postType });
       },
       { defer: true },
