@@ -326,7 +326,10 @@ export function AppSidebar(props: AppSidebarProps) {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem class="list-none">
-                    <SidebarMenuButton as={A} href="/bookmarks">
+                    <SidebarMenuButton
+                      as={A}
+                      href={`/@${signedAccount().username}/bookmarks`}
+                    >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
