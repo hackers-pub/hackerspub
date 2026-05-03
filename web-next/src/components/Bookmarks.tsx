@@ -61,8 +61,10 @@ export function Bookmarks(props: BookmarksProps) {
     "loaded" | "loading" | "errored"
   >("loaded");
 
+  // Read `posts.latest` instead of `posts()` so reading the fragment never
+  // suspends, even while the refetch is in flight.
   const stableData = createMemo<Bookmarks_posts$data | undefined>(
-    (prev) => posts() ?? prev,
+    (prev) => posts.latest ?? prev,
     undefined,
   );
 

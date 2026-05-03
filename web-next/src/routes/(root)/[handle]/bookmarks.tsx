@@ -9,7 +9,7 @@ import {
 } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
-import { Show } from "solid-js";
+import { Show, Suspense } from "solid-js";
 import {
   createPreloadedQuery,
   loadQuery,
@@ -145,7 +145,9 @@ export default function BookmarksPage() {
                     <TabsTrigger value="notes">{t`Notes`}</TabsTrigger>
                   </TabsList>
                 </Tabs>
-                <Bookmarks $posts={data()} postType={postType()} />
+                <Suspense>
+                  <Bookmarks $posts={data()} postType={postType()} />
+                </Suspense>
               </NarrowContainer>
             </Show>
           )}
