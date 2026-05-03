@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import {
   createEffect,
+  createMemo,
   createSignal,
   For,
   Match,
@@ -11,7 +12,10 @@ import {
 import { createPaginationFragment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { Bookmarks_posts$key } from "./__generated__/Bookmarks_posts.graphql.ts";
+import type {
+  Bookmarks_posts$data,
+  Bookmarks_posts$key,
+} from "./__generated__/Bookmarks_posts.graphql.ts";
 
 export type BookmarkPostType = "ARTICLE" | "NOTE" | null;
 
@@ -57,6 +61,11 @@ export function Bookmarks(props: BookmarksProps) {
     "loaded" | "loading" | "errored"
   >("loaded");
 
+  const stableData = createMemo<Bookmarks_posts$data | undefined>(
+    (prev) => posts() ?? prev,
+    undefined,
+  );
+
   createEffect(
     on(
       () => props.postType ?? null,
@@ -78,7 +87,7 @@ export function Bookmarks(props: BookmarksProps) {
 
   return (
     <div class="mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
-      <Show when={posts()}>
+      <Show when={stableData()}>
         {(data) => (
           <>
             <For each={data().bookmarks.edges}>
