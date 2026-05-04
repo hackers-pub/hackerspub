@@ -869,7 +869,22 @@ export async function restartArticleContentTranslations(
     // Fire-and-forget: `runArticleContentTranslation` schedules the
     // `translate()` chain on its own and the caller does not await
     // the model call.  Each translation runs concurrently.
-    void runArticleContentTranslation(fedCtx, reset[0]);
+    // The `.catch()` is here because the synchronous setup before
+    // the chain is installed (the claim UPDATE, the article-source
+    // fetch) can itself throw on a transient DB error; without it
+    // those rejections would surface as unhandled promise
+    // rejections.
+    const resetRow = reset[0];
+    runArticleContentTranslation(fedCtx, resetRow).catch((error) => {
+      logger.error(
+        "Failed to start retranslation for {sourceId} {language}: {error}",
+        {
+          sourceId: resetRow.sourceId,
+          language: resetRow.language,
+          error,
+        },
+      );
+    });
   }
 }
 
@@ -910,25 +925,49 @@ async function runArticleContentTranslation(
   }
 
   // Take ownership of the placeholder row by stamping it with a
-  // JS-side `Date` that becomes our claim id.  Subsequent success /
-  // failure writes from this run only land if the row's `updated`
-  // still equals this claim — a concurrent re-translation that resets
-  // the row out from under us bumps `updated` past this value, and
-  // our writes turn into no-ops instead of clobbering the fresher
-  // claim.  Using a JS `Date` (rather than PG `CURRENT_TIMESTAMP`)
-  // is what makes this CAS reliable: PG `timestamptz` keeps µs
-  // precision while the `postgres` driver hands back JS `Date`
-  // values truncated to ms, so a CAS against the round-tripped
-  // value of a `CURRENT_TIMESTAMP` write would never match.
+  // JS-side `Date` that becomes our claim id, and read the row's
+  // freshest title/content back via `RETURNING`.  Subsequent
+  // success / failure writes from this run only land if the row's
+  // `updated` still equals this claim — a concurrent re-translation
+  // that resets the row out from under us bumps `updated` past this
+  // value, and our writes turn into no-ops instead of clobbering
+  // the fresher claim.  Using a JS `Date` (rather than PG
+  // `CURRENT_TIMESTAMP`) is what makes this CAS reliable: PG
+  // `timestamptz` keeps µs precision while the `postgres` driver
+  // hands back JS `Date` values truncated to ms, so a CAS against
+  // the round-tripped value of a `CURRENT_TIMESTAMP` write would
+  // never match.
+  //
+  // Two further guards live here:
+  // - `beingTranslated=true` on the WHERE bails out silently if the
+  //   row has already been completed (or deleted) by another writer
+  //   between the caller queueing this run and the claim landing.
+  // - The translate input below is built from `claimed.title` /
+  //   `claimed.content` rather than the caller's `queued` snapshot.
+  //   When two `restartArticleContentTranslations` calls race, the
+  //   later one writes the freshest body into the placeholder; this
+  //   helper then translates *that* body instead of the stale body
+  //   from whichever caller it was queued for.
   const claim = new Date();
-  await db.update(articleContentTable)
+  const claimedRows = await db.update(articleContentTable)
     .set({ updated: claim })
     .where(
       and(
         eq(articleContentTable.sourceId, sourceId),
         eq(articleContentTable.language, targetLanguage),
+        eq(articleContentTable.beingTranslated, true),
       ),
+    )
+    .returning();
+  if (claimedRows.length < 1) {
+    logger.debug(
+      "Translation claim failed; row is not (or no longer) a " +
+        "placeholder ({sourceId} {language}).",
+      queued,
     );
+    return;
+  }
+  const claimed = claimedRows[0];
 
   // Fetch article source with author information for translation context.
   const articleSource = await db.query.articleSourceTable.findFirst({
@@ -942,11 +981,12 @@ async function runArticleContentTranslation(
     },
   });
 
-  // Combine title and content for translation.
-  const text = `# ${queued.title}\n\n${queued.content}`;
+  // Combine title and content for translation, using the freshest
+  // values read back from the claim above.
+  const text = `# ${claimed.title}\n\n${claimed.content}`;
   translate({
     model,
-    sourceLanguage: originalLanguage,
+    sourceLanguage: claimed.originalLanguage ?? originalLanguage,
     targetLanguage,
     text,
     // Pass context for better translation quality.
@@ -1010,9 +1050,19 @@ async function runArticleContentTranslation(
       where: { articleSourceId: article.id },
     });
     const articleObject = await getArticle(fedCtx, article);
+    // The id has to be unique across translation completions for
+    // this article — multiple locales can complete in close
+    // succession (especially after a body edit re-queues every
+    // existing translation), and they would all collide on
+    // `article.updated` since translation completions don't bump
+    // it.  Including both the target language and the translated
+    // row's own `updated` (a fresh `CURRENT_TIMESTAMP` from the
+    // success UPDATE just above) keeps the id distinct from the
+    // original-language Update activity and from every other
+    // translation's Update for the same edit.
     const update = new vocab.Update({
       id: new URL(
-        `#update/${article.updated.toISOString()}`,
+        `#update/${updated[0].updated.toISOString()}/${targetLanguage}`,
         articleObject.id ?? fedCtx.canonicalOrigin,
       ),
       actors: articleObject.attributionIds,
