@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { articleContentTable, articleSourceTable } from "./schema.ts";
 import {
+  restartArticleContentTranslations,
   startArticleContentSummary,
   startArticleContentTranslation,
 } from "./article.ts";
@@ -10,18 +11,8 @@ import {
   insertAccountWithActor,
   withRollback,
 } from "../test/postgres.ts";
+import { waitFor } from "../test/wait.ts";
 import { generateUuidV7 } from "./uuid.ts";
-
-async function waitFor(predicate: () => Promise<boolean>, timeoutMs = 10000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (await predicate()) return;
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  throw new Error(
-    `Timed out waiting for async background state after ${timeoutMs}ms`,
-  );
-}
 
 test("startArticleContentSummary() resets summaryStarted when summarization fails", async () => {
   await withRollback(async (tx) => {
@@ -134,3 +125,151 @@ test("startArticleContentTranslation() deletes queued rows when translation fail
     });
   });
 });
+
+test(
+  "restartArticleContentTranslations() resets each translation row to placeholder state and re-runs the translator",
+  async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      // Use the same `{} as never` translator stub as the existing
+      // failure-path test: it lets us observe the row pass through
+      // the placeholder state and then be cleaned up by the failure
+      // branch, which is enough to confirm
+      // restartArticleContentTranslations actually re-fired the
+      // translation pipeline against the reset row.
+      fedCtx.data.models = {
+        summarizer: {} as never,
+        translator: {} as never,
+      } as typeof fedCtx.data.models;
+      const author = await insertAccountWithActor(tx, {
+        username: "restarttranslator",
+        name: "Restart Translator",
+        email: "restarttranslator@example.com",
+      });
+      const requester = await insertAccountWithActor(tx, {
+        username: "restartrequester",
+        name: "Restart Requester",
+        email: "restartrequester@example.com",
+      });
+      const sourceId = generateUuidV7();
+      const published = new Date("2026-04-15T00:00:00.000Z");
+
+      const [articleSource] = await tx.insert(articleSourceTable).values({
+        id: sourceId,
+        accountId: author.account.id,
+        publishedYear: 2026,
+        slug: "restart-translation",
+        tags: [],
+        allowLlmTranslation: true,
+        published,
+        updated: published,
+      }).returning();
+      // The original row carries the *new* (post-edit) body — the
+      // shape updateArticleSource leaves behind for
+      // restartArticleContentTranslations to mirror into each
+      // translation placeholder.
+      await tx.insert(articleContentTable).values({
+        sourceId,
+        language: "en",
+        title: "New original title",
+        content: "New original body",
+        published,
+        updated: published,
+      });
+      // A previously completed translation that is now stale relative
+      // to the freshly edited original.
+      await tx.insert(articleContentTable).values({
+        sourceId,
+        language: "ko",
+        title: "Stale translated title",
+        content: "Stale translated body",
+        summary: "Stale summary.",
+        originalLanguage: "en",
+        translationRequesterId: requester.account.id,
+        beingTranslated: false,
+        published: new Date("2026-04-15T01:00:00.000Z"),
+        updated: new Date("2026-04-15T01:00:00.000Z"),
+      });
+
+      await restartArticleContentTranslations(fedCtx, articleSource);
+
+      // The row must briefly pass through placeholder state before
+      // the failing stub model causes the failure branch to delete
+      // it; assert on either observable.
+      await waitFor(async () => {
+        const current = await tx.query.articleContentTable.findFirst({
+          where: { sourceId, language: "ko" },
+        });
+        if (current == null) return true;
+        // Placeholder reset: title/content mirror the new original
+        // and beingTranslated has flipped back true with summary
+        // state cleared.  translationRequesterId is preserved.
+        return current.beingTranslated === true &&
+          current.title === "New original title" &&
+          current.content === "New original body" &&
+          current.summary === null &&
+          current.translationRequesterId === requester.account.id;
+      });
+
+      // Eventually the failing stub causes deletion via the
+      // run-translation failure branch.
+      await waitFor(async () => {
+        const current = await tx.query.articleContentTable.findFirst({
+          where: { sourceId, language: "ko" },
+        });
+        return current == null;
+      });
+    });
+  },
+);
+
+test(
+  "restartArticleContentTranslations() is a no-op when the article has no translations",
+  async () => {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      fedCtx.data.models = {
+        summarizer: {} as never,
+        translator: {} as never,
+      } as typeof fedCtx.data.models;
+      const author = await insertAccountWithActor(tx, {
+        username: "restartnotrans",
+        name: "Restart No Translations",
+        email: "restartnotrans@example.com",
+      });
+      const sourceId = generateUuidV7();
+      const published = new Date("2026-04-15T00:00:00.000Z");
+
+      const [articleSource] = await tx.insert(articleSourceTable).values({
+        id: sourceId,
+        accountId: author.account.id,
+        publishedYear: 2026,
+        slug: "restart-no-translations",
+        tags: [],
+        allowLlmTranslation: false,
+        published,
+        updated: published,
+      }).returning();
+      await tx.insert(articleContentTable).values({
+        sourceId,
+        language: "en",
+        title: "Original",
+        content: "Body",
+        published,
+        updated: published,
+      });
+
+      // Should return without throwing despite the deliberately bad
+      // translator stub.
+      await restartArticleContentTranslations(fedCtx, articleSource);
+
+      // Original row still in place and unchanged.
+      const original = await tx.query.articleContentTable.findFirst({
+        where: { sourceId, language: "en" },
+      });
+      assert.ok(original != null);
+      assert.equal(original.beingTranslated, false);
+      assert.equal(original.content, "Body");
+    });
+  },
+);

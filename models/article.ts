@@ -10,7 +10,7 @@ import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
 import type { LanguageModel } from "ai";
-import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import postgres from "postgres";
 import type { ContextData, Models } from "./context.ts";
 import type { Database } from "./db.ts";
@@ -300,6 +300,28 @@ export async function createArticle(
   return post;
 }
 
+export interface UpdateArticleSourceResult {
+  source: ArticleSource & { contents: ArticleContent[] };
+  /**
+   * `true` when the original-language `article_content` row's body
+   * actually changed during this update.  The caller uses this to
+   * decide whether to invalidate existing translation rows.
+   *
+   * Title-only edits do not set this flag, matching the existing
+   * summary-invalidation gate below.
+   *
+   * Language changes never reach this branch when translations exist:
+   * the self-FK on `article_content` (`schema.ts:524-527`) is
+   * `ON DELETE CASCADE` only, so any `UPDATE … SET language = …` on
+   * the original row aborts with 23503 (rethrown as
+   * {@link LanguageChangeWithTranslationsError}) whenever a row's
+   * `originalLanguage` references the old language.  A successful
+   * `languageChanged` therefore implies zero translations and there
+   * is nothing to retranslate.
+   */
+  originalContentChanged: boolean;
+}
+
 export async function updateArticleSource(
   db: Database,
   id: Uuid,
@@ -309,11 +331,12 @@ export async function updateArticleSource(
     language?: string;
   },
   models?: Models,
-): Promise<ArticleSource & { contents: ArticleContent[] } | undefined> {
+): Promise<UpdateArticleSourceResult | undefined> {
   // Captured inside the transaction and used after it commits so we
   // can enqueue a fresh summarization for the row whose body or
   // language just changed.
   let resummarizeTarget: ArticleContent | undefined;
+  let originalContentChanged = false;
   const result = await db.transaction(async (tx) => {
     const sources = await tx.update(articleSourceTable)
       .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
@@ -371,6 +394,9 @@ export async function updateArticleSource(
         ) {
           resummarizeTarget = updatedRows[0];
         }
+        if (contentChanged && updatedRows.length > 0) {
+          originalContentChanged = true;
+        }
       } catch (error) {
         if (
           error instanceof postgres.PostgresError && error.code === "23503"
@@ -386,13 +412,14 @@ export async function updateArticleSource(
     });
     return { ...sources[0], contents };
   });
+  if (result == null) return undefined;
   // Queue a fresh summarization outside of the transaction so the
   // claim is visible to other workers as soon as it is acquired and
   // the deferred apply step does not try to use a closed transaction.
   if (resummarizeTarget != null && models != null) {
     await startArticleContentSummary(db, models.summarizer, resummarizeTarget);
   }
-  return result;
+  return { source: result, originalContentChanged };
 }
 
 export async function updateArticle(
@@ -418,13 +445,14 @@ export async function updateArticle(
   const previousPost = await db.query.postTable.findFirst({
     where: { articleSourceId },
   });
-  const articleSource = await updateArticleSource(
+  const updateResult = await updateArticleSource(
     db,
     articleSourceId,
     source,
     models,
   );
-  if (articleSource == null) return undefined;
+  if (updateResult == null) return undefined;
+  const { source: articleSource, originalContentChanged } = updateResult;
   const account = await db.query.accountTable.findFirst({
     where: { id: articleSource.accountId },
     with: { emails: true, links: true },
@@ -476,6 +504,25 @@ export async function updateArticle(
     post.relayedTags = [...relayedTags];
   }
   // TODO: send Update(Article) to the mentioned actors too
+  // After federating the original-language Update, invalidate any
+  // existing translation rows so they retranslate against the new
+  // body.  Each restarted translation will fire its own Update on
+  // completion (correct ActivityPub semantics — peers see the
+  // original change first, then each translation's refresh as it
+  // becomes available).  We `await` the synchronous claim-and-reset
+  // step so the placeholders are visible by the time this function
+  // returns; the actual `translate()` calls run in the background.
+  //
+  // Gate on the article-level `allowLlmTranslation` switch so an
+  // edit that turns LLM translation off in the same update does
+  // not still enqueue background `translate()` runs against the
+  // author's just-expressed wish.  Existing translation rows from
+  // before the switch was flipped are left alone (stale, not
+  // refreshed); re-enabling the switch and editing the body again
+  // brings them back into sync.
+  if (originalContentChanged && articleSource.allowLlmTranslation) {
+    await restartArticleContentTranslations(fedCtx, articleSource);
+  }
   return post;
 }
 
@@ -722,7 +769,16 @@ export async function startArticleContentTranslation(
   fedCtx: Context<ContextData>,
   { content, targetLanguage, requester }: ArticleContentTranslationOptions,
 ): Promise<ArticleContent> {
-  const { db, models: { translator: model, summarizer } } = fedCtx.data;
+  const { db } = fedCtx.data;
+  // Stamp `updated` with a JS-side Date rather than letting it
+  // default to PG's `CURRENT_TIMESTAMP`.  See the long comment on
+  // the CAS in `runArticleContentTranslation` for why this matters:
+  // the helper's claim WHERE compares the row's stored `updated`
+  // against `queued.updated`, and the comparison is only reliable
+  // when both sides round-trip through the same precision (the
+  // `postgres` driver hands JS `Date` values back at ms precision
+  // while `timestamptz` keeps µs).
+  const queueStamp = new Date();
   const inserted = await db.insert(articleContentTable).values({
     sourceId: content.sourceId,
     language: targetLanguage,
@@ -731,6 +787,7 @@ export async function startArticleContentTranslation(
     originalLanguage: content.language,
     translationRequesterId: requester.id,
     beingTranslated: true,
+    updated: queueStamp,
   }).onConflictDoNothing().returning();
   let queued: ArticleContent;
   if (inserted.length < 1) {
@@ -748,18 +805,337 @@ export async function startArticleContentTranslation(
       logger.debug("Translation already started or not needed.");
       return translated!;
     }
-    queued = translated;
+    // The placeholder is stale (older than 30 min, presumably from
+    // a crashed previous run).  Refresh it before handing off to
+    // the helper:
+    //
+    // - Re-stamp `updated` with a fresh JS Date so the helper's
+    //   claim CAS has a value it can match (without this, the CAS
+    //   would be comparing against the row's possibly-µs-precision
+    //   DB timestamp via a ms-truncated round-trip and never hit).
+    // - Copy the caller-provided original title/content into the
+    //   placeholder.  The helper translates from `claimed.title` /
+    //   `claimed.content`, so without this refresh a placeholder
+    //   stuck since before a body edit would be retranslated from
+    //   the OLD body and publish a translation that no longer
+    //   matches the article.  Clear the matching summary / OG
+    //   image state for the same reason.
+    const reclaim = new Date();
+    const reclaimed = await db.update(articleContentTable)
+      .set({
+        updated: reclaim,
+        title: content.title,
+        content: content.content,
+        originalLanguage: content.language,
+        summary: null,
+        summaryStarted: null,
+        summaryUnnecessary: false,
+        ogImageKey: null,
+      })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, content.sourceId),
+          eq(articleContentTable.language, targetLanguage),
+          eq(articleContentTable.beingTranslated, true),
+          // Repeat the staleness check inside the UPDATE itself so
+          // the reclaim is CAS-safe.  If a concurrent worker just
+          // reclaimed the same stale placeholder between our SELECT
+          // above and this UPDATE, their reclaim wrote a fresh
+          // `updated` past the threshold and PG's UPDATE re-evals
+          // this WHERE on the new row state, which makes our
+          // UPDATE drop the row from the candidate set and return
+          // 0 rows.  That keeps us from stomping on the other
+          // worker's claim and double-firing `translate()`.
+          lt(
+            articleContentTable.updated,
+            sql`CURRENT_TIMESTAMP - INTERVAL '30 minutes'`,
+          ),
+        ),
+      )
+      .returning();
+    if (reclaimed.length < 1) {
+      // Lost the race to another writer that just reclaimed this
+      // row, or completed it, between our SELECT and our UPDATE.
+      // Return the row we observed; nothing further to do.
+      return translated;
+    }
+    queued = reclaimed[0];
   } else {
     queued = inserted[0];
   }
+  await runArticleContentTranslation(fedCtx, queued);
+  return queued;
+}
+
+/**
+ * Invalidates and re-runs every existing translation row for an
+ * article whose original-language body has changed.  For each
+ * translation row, atomically resets it to placeholder state
+ * (copying the new original title/content into it, flipping
+ * `beingTranslated` back to true, and clearing summary state), then
+ * fires {@link runArticleContentTranslation} against the freshly
+ * reset row to repopulate it from the model.  The actual translation
+ * runs in the background; the synchronous claim-and-reset is
+ * awaited so callers can rely on placeholders being in place by
+ * return time.
+ *
+ * No-ops when the article has no original-language content (e.g.,
+ * remote articles with no `articleSource.contents` row in the
+ * article's own language) or no translation rows at all.
+ *
+ * Used by {@link updateArticle} to satisfy
+ * <https://github.com/hackers-pub/hackerspub/issues/95>.
+ */
+export async function restartArticleContentTranslations(
+  fedCtx: Context<ContextData>,
+  articleSource: ArticleSource,
+): Promise<void> {
+  const { db } = fedCtx.data;
+  // Serialize the read-original-then-reset-translations sequence
+  // against any other writer to this article's source row.  Two
+  // concurrent restartArticleContentTranslations calls (driven by
+  // back-to-back edits to the same article) would otherwise read
+  // their own snapshot of the original and then overwrite each
+  // other's placeholder writes, leaving the translation rows
+  // pointing at whichever snapshot's UPDATE happened to land last.
+  // `SELECT … FOR UPDATE` on the article_source row holds the same
+  // row-level write lock that updateArticleSource takes during its
+  // own UPDATE, so concurrent edits and restarts queue up cleanly.
+  // The translate() calls themselves run after the transaction
+  // commits so the LLM round-trip doesn't extend the lock window.
+  const resetRows = await db.transaction(async (tx) => {
+    await tx.select({ id: articleSourceTable.id })
+      .from(articleSourceTable)
+      .where(eq(articleSourceTable.id, articleSource.id))
+      .for("update");
+    const original = await getOriginalArticleContent(tx, articleSource);
+    if (original == null) {
+      logger.debug(
+        "No original-language content for {sourceId}; nothing to retranslate.",
+        { sourceId: articleSource.id },
+      );
+      return [];
+    }
+    // Reset every translation row to placeholder state in a single
+    // statement, mirroring the shape an initial
+    // `startArticleContentTranslation` would have produced.  The
+    // `originalLanguage IS NOT NULL` filter targets exactly the
+    // translation rows for this article (the same set the previous
+    // implementation listed via `findMany` and then iterated over);
+    // the schema check `article_content_being_translated_check`
+    // requires `originalLanguage IS NOT NULL` whenever
+    // `beingTranslated=true`, which the filter already satisfies.
+    // `originalLanguage` and `translationRequesterId` are not in
+    // `set`, so each row's audit trail (who first asked for this
+    // translation) is preserved.
+    // Stamp `updated` with a JS-side Date rather than PG
+    // `CURRENT_TIMESTAMP` so it round-trips losslessly through the
+    // driver and the per-row claim CAS in
+    // `runArticleContentTranslation` can match it; see the long
+    // comment on that claim for the µs/ms precision rationale.
+    const restartStamp = new Date();
+    const reset = await tx.update(articleContentTable)
+      .set({
+        title: original.title,
+        content: original.content,
+        beingTranslated: true,
+        summary: null,
+        summaryStarted: null,
+        summaryUnnecessary: false,
+        // Clear the cached OG image too: it was rendered from the
+        // previous title/body and is now stale.  Lazy regeneration
+        // on the next OG-image request will rebuild it from the
+        // freshly translated content.
+        ogImageKey: null,
+        updated: restartStamp,
+      })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, articleSource.id),
+          isNotNull(articleContentTable.originalLanguage),
+          // Only LLM-requested translations.  Human translations
+          // carry `translatorId` instead of `translationRequesterId`
+          // (the schema check
+          // `article_content_translator_translation_requester_id_check`
+          // makes the two columns mutually exclusive), and resetting
+          // a curated human translation back to a source-language
+          // placeholder so the LLM can re-do it would silently
+          // destroy that contributor's work and mis-attribute the
+          // result.
+          isNull(articleContentTable.translatorId),
+        ),
+      )
+      .returning();
+    if (reset.length > 0) {
+      logger.debug(
+        "Restarted {count} translation(s) for {sourceId}.",
+        { count: reset.length, sourceId: articleSource.id },
+      );
+    }
+    return reset;
+  });
+  for (const resetRow of resetRows) {
+    // Fire-and-forget: `runArticleContentTranslation` schedules the
+    // `translate()` chain on its own and the caller does not await
+    // the model call.  Each translation runs concurrently.
+    // The `.catch()` is here because the synchronous setup before
+    // the chain is installed (the claim UPDATE, the article-source
+    // fetch) can itself throw on a transient DB error; without it
+    // those rejections would surface as unhandled promise
+    // rejections.
+    runArticleContentTranslation(fedCtx, resetRow).catch((error) => {
+      logger.error(
+        "Failed to start retranslation for {sourceId} {language}: {error}",
+        {
+          sourceId: resetRow.sourceId,
+          language: resetRow.language,
+          error,
+        },
+      );
+    });
+  }
+}
+
+/**
+ * Splits an LLM translation output into its title and body halves.
+ *
+ * The translator is prompted with `# {title}\n\n{body}` and is
+ * expected to return the same shape with both halves translated.
+ * In practice models usually do.  When they don't (e.g., they drop
+ * the H1 framing entirely), the strict behavior here is:
+ *
+ * - The first line is taken as the title.  If it begins with `# `,
+ *   the marker is stripped; otherwise the whole line becomes the
+ *   title verbatim.
+ * - Everything after the first line becomes the body.
+ *
+ * Scanning deeper for an H1 elsewhere in the output is *not* done
+ * on purpose: it would handle a "model put a preamble before the
+ * # Title" case nicely but at the cost of silently truncating
+ * content if the model omits the article-title H1 and the body
+ * happens to contain its own H1 section heading; that body H1
+ * would be mis-promoted to the title and the intro paragraphs
+ * would be dropped.  Leaving a preamble visible as the title is
+ * the lesser of those two failures.  The H1-marker detection on
+ * the first line is restricted to a single `#` followed by
+ * whitespace, so a first-line `## Section` is not mis-stripped.
+ */
+export function splitTranslationTitleAndContent(
+  translation: string,
+): { title: string; content: string } {
+  const trimmed = translation.trim();
+  if (trimmed === "") return { title: "", content: "" };
+  // `trimmed` is guaranteed non-empty and starts with a non-
+  // whitespace character, so `lines[0]` is the first non-empty
+  // line as text and there's no need to scan past it.
+  const lines = trimmed.split(/\r?\n/);
+  const firstLine = lines[0].trim();
+  const h1AtStart = firstLine.match(/^#\s+(.+)$/);
+  return {
+    title: (h1AtStart?.[1] ?? firstLine).trim(),
+    content: lines.slice(1).join("\n").trim(),
+  };
+}
+
+/**
+ * Runs the actual LLM translation for an `article_content` row that is
+ * already in the placeholder / `beingTranslated` state.  Awaits the
+ * synchronous setup (fetching author/tag context for the model), then
+ * schedules the `translate(...)` chain and returns; the caller does
+ * not await the translation itself.  When the model resolves, the
+ * row is overwritten with the translated title/body, a federation
+ * `Update` activity is sent, and post-translation summarization is
+ * kicked off.  On failure, the placeholder row is deleted so a future
+ * visit can re-queue.
+ *
+ * Should never be called with an original-language row
+ * (`originalLanguage IS NULL`); the caller is responsible for placing
+ * the row into the placeholder state first.
+ */
+async function runArticleContentTranslation(
+  fedCtx: Context<ContextData>,
+  queued: ArticleContent,
+): Promise<void> {
+  const { db, models: { translator: model, summarizer } } = fedCtx.data;
   logger.debug(
     "Starting translation for content: {sourceId} {language}",
     queued,
   );
+  const { sourceId, language: targetLanguage, originalLanguage } = queued;
+  if (originalLanguage == null) {
+    // Defensive: a row without `originalLanguage` is the original-
+    // language content itself and should never be passed in here.
+    logger.error(
+      "runArticleContentTranslation called for an original-language row; " +
+        "skipping ({sourceId} {language}).",
+      queued,
+    );
+    return;
+  }
 
-  // Fetch article source with author information for translation context
+  // Take ownership of the placeholder row by stamping it with a
+  // JS-side `Date` that becomes our claim id, and read the row's
+  // freshest title/content back via `RETURNING`.  Subsequent
+  // success / failure writes from this run only land if the row's
+  // `updated` still equals this claim — a concurrent re-translation
+  // that resets the row out from under us bumps `updated` past this
+  // value, and our writes turn into no-ops instead of clobbering
+  // the fresher claim.  Using a JS `Date` (rather than PG
+  // `CURRENT_TIMESTAMP`) is what makes this CAS reliable: PG
+  // `timestamptz` keeps µs precision while the `postgres` driver
+  // hands back JS `Date` values truncated to ms, so a CAS against
+  // the round-tripped value of a `CURRENT_TIMESTAMP` write would
+  // never match.
+  //
+  // Three further guards live here:
+  // - `beingTranslated=true` on the WHERE bails out silently if the
+  //   row has already been completed (or deleted) by another writer
+  //   between the caller queueing this run and the claim landing.
+  // - `updated = queued.updated` makes the claim itself
+  //   conditional on the row not having been re-stamped under us
+  //   by a concurrent `restartArticleContentTranslations` (or a
+  //   parallel run for the same row).  Without this, two runs
+  //   triggered by back-to-back edits both pass the
+  //   `beingTranslated` check and both end up calling `translate()`,
+  //   wasting an LLM round trip even though the success/failure
+  //   CAS below would still ensure only one write lands.  All
+  //   writers that produce a `queued` for this helper
+  //   (`startArticleContentTranslation`'s INSERT, its stuck-row
+  //   re-stamp branch, and `restartArticleContentTranslations`'s
+  //   reset UPDATE) explicitly stamp `updated` with a JS `Date`
+  //   for the same round-trip-precision reason as the claim above;
+  //   the comparison is lossless.
+  // - The translate input below is built from `claimed.title` /
+  //   `claimed.content` rather than the caller's `queued` snapshot.
+  //   When two `restartArticleContentTranslations` calls race, the
+  //   later one writes the freshest body into the placeholder; this
+  //   helper then translates *that* body instead of the stale body
+  //   from whichever caller it was queued for.
+  const claim = new Date();
+  const claimedRows = await db.update(articleContentTable)
+    .set({ updated: claim })
+    .where(
+      and(
+        eq(articleContentTable.sourceId, sourceId),
+        eq(articleContentTable.language, targetLanguage),
+        eq(articleContentTable.beingTranslated, true),
+        eq(articleContentTable.updated, queued.updated),
+      ),
+    )
+    .returning();
+  if (claimedRows.length < 1) {
+    logger.debug(
+      "Translation claim failed; row is not (or no longer) a " +
+        "placeholder ({sourceId} {language}).",
+      queued,
+    );
+    return;
+  }
+  const claimed = claimedRows[0];
+
+  // Fetch article source with author information for translation context.
   const articleSource = await db.query.articleSourceTable.findFirst({
-    where: { id: content.sourceId },
+    where: { id: sourceId },
     with: {
       account: {
         with: {
@@ -769,14 +1145,20 @@ export async function startArticleContentTranslation(
     },
   });
 
-  // Combine title and content for translation
-  const text = `# ${content.title}\n\n${content.content}`;
+  // Combine title and content for translation, using the freshest
+  // values read back from the claim above.
+  const text = `# ${claimed.title}\n\n${claimed.content}`;
+  // `claimed.originalLanguage` is non-null in practice: the claim
+  // WHERE required `beingTranslated=true`, and the schema check
+  // `article_content_being_translated_check` makes that imply
+  // `originalLanguage IS NOT NULL`.  Drizzle types it as nullable
+  // because the column is nullable in general, so assert.
   translate({
     model,
-    sourceLanguage: content.language,
+    sourceLanguage: claimed.originalLanguage!,
     targetLanguage,
     text,
-    // Pass context for better translation quality
+    // Pass context for better translation quality.
     authorName: articleSource?.account?.actor?.name ?? undefined,
     authorBio: articleSource?.account?.actor?.bioHtml ?? undefined,
     tags: articleSource?.tags,
@@ -785,9 +1167,7 @@ export async function startArticleContentTranslation(
       ...queued,
       translation,
     });
-    // Split the translation into title and content
-    const title = translation.match(/^\s*#\s+([^\n]*)/)?.[1] ?? "";
-    const content = translation.replace(/^\s*#\s+[^\n]*\s*/, "").trim();
+    const { title, content } = splitTranslationTitleAndContent(translation);
     const updated = await db.update(articleContentTable)
       .set({
         title,
@@ -801,17 +1181,37 @@ export async function startArticleContentTranslation(
         summary: null,
         summaryStarted: null,
         summaryUnnecessary: false,
+        // The cached OG image was rendered from the placeholder
+        // (or from a prior translation of an older body) and is
+        // now stale; clear it for the same reason as `summary` so
+        // the next request regenerates it from the translated text.
+        ogImageKey: null,
       })
       .where(
         and(
-          eq(articleContentTable.sourceId, queued.sourceId),
+          eq(articleContentTable.sourceId, sourceId),
           eq(articleContentTable.language, targetLanguage),
+          // CAS on the claim taken at the top of this function — see
+          // that comment for why a JS `Date` rather than the row's
+          // round-tripped `updated` is the safe reference.  If a
+          // concurrent re-translation took its own claim under us
+          // the `updated` will no longer match `claim` and this
+          // write becomes a no-op so we don't clobber its fresher
+          // placeholder with our stale text.
+          eq(articleContentTable.updated, claim),
         ),
       )
       .returning();
-    if (updated.length < 1) return;
+    if (updated.length < 1) {
+      logger.debug(
+        "Stale translation claim, skipping federation/summary " +
+          "({sourceId} {language}).",
+        queued,
+      );
+      return;
+    }
     const article = await db.query.articleSourceTable.findFirst({
-      where: { id: queued.sourceId },
+      where: { id: sourceId },
       with: {
         account: true,
         contents: true,
@@ -822,9 +1222,19 @@ export async function startArticleContentTranslation(
       where: { articleSourceId: article.id },
     });
     const articleObject = await getArticle(fedCtx, article);
+    // The id has to be unique across translation completions for
+    // this article — multiple locales can complete in close
+    // succession (especially after a body edit re-queues every
+    // existing translation), and they would all collide on
+    // `article.updated` since translation completions don't bump
+    // it.  Including both the target language and the translated
+    // row's own `updated` (a fresh `CURRENT_TIMESTAMP` from the
+    // success UPDATE just above) keeps the id distinct from the
+    // original-language Update activity and from every other
+    // translation's Update for the same edit.
     const update = new vocab.Update({
       id: new URL(
-        `#update/${article.updated.toISOString()}`,
+        `#update/${updated[0].updated.toISOString()}/${targetLanguage}`,
         articleObject.id ?? fedCtx.canonicalOrigin,
       ),
       actors: articleObject.attributionIds,
@@ -879,10 +1289,13 @@ export async function startArticleContentTranslation(
     await db.delete(articleContentTable)
       .where(
         and(
-          eq(articleContentTable.sourceId, queued.sourceId),
+          eq(articleContentTable.sourceId, sourceId),
           eq(articleContentTable.language, targetLanguage),
+          // CAS on the same claim as the success path — a stale
+          // failure must not delete a row another caller has since
+          // re-claimed.
+          eq(articleContentTable.updated, claim),
         ),
       );
   });
-  return queued;
 }
