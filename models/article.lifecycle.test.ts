@@ -235,3 +235,70 @@ test("updateArticle() leaves existing translations alone on title-only edits", a
     assert.equal(ko.summary, "Existing summary.");
   });
 });
+
+test("updateArticle() does not retranslate when allowLlmTranslation is false", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "noretranslateauthor",
+      name: "No Retranslate Author",
+      email: "noretranslateauthor@example.com",
+    });
+    const requester = await insertAccountWithActor(tx, {
+      username: "noretranslaterequester",
+      name: "No Retranslate Requester",
+      email: "noretranslaterequester@example.com",
+    });
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "no-retranslate-article",
+      tags: [],
+      // The author opted out of LLM translation: no placeholder
+      // resets, no background `translate()` calls.  This guards
+      // against re-enqueueing translation work in the same edit
+      // that flips the switch off (or any later body edit while
+      // the switch stays off).
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Original article",
+      content: "Original body",
+      language: "en",
+    });
+    assert.ok(article != null);
+    // A pre-existing translation row from before the switch was
+    // turned off (or seeded by a prior allowLlmTranslation=true
+    // window) — must remain unchanged.
+    await tx.insert(articleContentTable).values({
+      sourceId: article.articleSource.id,
+      language: "ko",
+      title: "Existing translated title",
+      content: "Existing translated body",
+      summary: "Existing summary.",
+      originalLanguage: "en",
+      translationRequesterId: requester.account.id,
+      beingTranslated: false,
+      published: new Date("2026-04-15T01:00:00.000Z"),
+      updated: new Date("2026-04-15T01:00:00.000Z"),
+    });
+
+    const updated = await updateArticle(fedCtx, article.articleSource.id, {
+      content: "Edited body",
+    });
+    assert.ok(updated != null);
+
+    // No placeholder reset, no `translate()` queued: the row
+    // stays exactly as it was.  No async waiting needed because
+    // the gate skips the synchronous claim-and-reset entirely.
+    const ko = await tx.query.articleContentTable.findFirst({
+      where: { sourceId: article.articleSource.id, language: "ko" },
+    });
+    assert.ok(ko != null);
+    assert.equal(ko.beingTranslated, false);
+    assert.equal(ko.title, "Existing translated title");
+    assert.equal(ko.content, "Existing translated body");
+    assert.equal(ko.summary, "Existing summary.");
+  });
+});

@@ -512,7 +512,15 @@ export async function updateArticle(
   // becomes available).  We `await` the synchronous claim-and-reset
   // step so the placeholders are visible by the time this function
   // returns; the actual `translate()` calls run in the background.
-  if (originalContentChanged) {
+  //
+  // Gate on the article-level `allowLlmTranslation` switch so an
+  // edit that turns LLM translation off in the same update does
+  // not still enqueue background `translate()` runs against the
+  // author's just-expressed wish.  Existing translation rows from
+  // before the switch was flipped are left alone (stale, not
+  // refreshed); re-enabling the switch and editing the body again
+  // brings them back into sync.
+  if (originalContentChanged && articleSource.allowLlmTranslation) {
     await restartArticleContentTranslations(fedCtx, articleSource);
   }
   return post;
