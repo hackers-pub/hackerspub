@@ -1,0 +1,3 @@
+[mcp_servers.sentry]
+command = "bash"
+args = ["-c", "[ -f \"$HOME/.sentry/mcp.json\" ] && exec sentry-mcp --organization-slug hackerspub || exit 0"]

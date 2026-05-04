@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "sentry": {
+      "type": "local",
+      "command": [
+        "bash",
+        "-c",
+        "[ -f \"$HOME/.sentry/mcp.json\" ] && exec sentry-mcp hackerspub || exit 0"
+      ]
+    }
+  }
+}

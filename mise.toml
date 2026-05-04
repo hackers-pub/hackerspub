@@ -2,6 +2,7 @@
 deno = "2.7.4"
 node = "24"
 pnpm = "10.12.4"
+"npm:@sentry/mcp-server" = "latest"
 
 [env]
 _.file = ".env"
