@@ -957,6 +957,46 @@ export async function restartArticleContentTranslations(
 }
 
 /**
+ * Splits an LLM translation output into its title and body halves.
+ *
+ * The translator is prompted with `# {title}\n\n{body}` and is
+ * expected to return the same shape with both halves translated.
+ * In practice models usually do; when they don't (e.g., they
+ * preface the output with a brief commentary line, or drop the H1
+ * heading altogether), a strict regex parser leaves `title` empty
+ * and stuffs the entire output, including the broken framing,
+ * into `content`.  Be more forgiving:
+ *
+ * - The first H1 line anywhere in the output is taken as the
+ *   title.  Any text before it is dropped on the assumption it is
+ *   model commentary, since the prompt did not contain anything
+ *   before `# Title`.
+ * - If the output has no H1 line at all, the first non-empty line
+ *   becomes the title and the rest becomes the body.
+ * - The H1 detection only matches lines that begin with exactly
+ *   `# ` (a single `#` followed by whitespace), so subsequent
+ *   `## Section` headings inside the body are not mis-extracted.
+ */
+export function splitTranslationTitleAndContent(
+  translation: string,
+): { title: string; content: string } {
+  const trimmed = translation.trim();
+  const h1Match = trimmed.match(/(?:^|\n)\s*#\s+([^\n]+)/);
+  if (h1Match != null) {
+    const title = h1Match[1].trim();
+    const matchEnd = trimmed.indexOf(h1Match[0]) + h1Match[0].length;
+    const content = trimmed.slice(matchEnd).trim();
+    return { title, content };
+  }
+  const lines = trimmed.split(/\r?\n/);
+  const firstNonEmpty = lines.findIndex((l) => l.trim().length > 0);
+  if (firstNonEmpty < 0) return { title: "", content: "" };
+  const title = lines[firstNonEmpty].trim();
+  const content = lines.slice(firstNonEmpty + 1).join("\n").trim();
+  return { title, content };
+}
+
+/**
  * Runs the actual LLM translation for an `article_content` row that is
  * already in the placeholder / `beingTranslated` state.  Awaits the
  * synchronous setup (fetching author/tag context for the model), then
@@ -1081,9 +1121,7 @@ async function runArticleContentTranslation(
       ...queued,
       translation,
     });
-    // Split the translation into title and content.
-    const title = translation.match(/^\s*#\s+([^\n]*)/)?.[1] ?? "";
-    const content = translation.replace(/^\s*#\s+[^\n]*\s*/, "").trim();
+    const { title, content } = splitTranslationTitleAndContent(translation);
     const updated = await db.update(articleContentTable)
       .set({
         title,
