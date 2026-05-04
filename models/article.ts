@@ -923,6 +923,16 @@ export async function restartArticleContentTranslations(
         and(
           eq(articleContentTable.sourceId, articleSource.id),
           isNotNull(articleContentTable.originalLanguage),
+          // Only LLM-requested translations.  Human translations
+          // carry `translatorId` instead of `translationRequesterId`
+          // (the schema check
+          // `article_content_translator_translation_requester_id_check`
+          // makes the two columns mutually exclusive), and resetting
+          // a curated human translation back to a source-language
+          // placeholder so the LLM can re-do it would silently
+          // destroy that contributor's work and mis-attribute the
+          // result.
+          isNull(articleContentTable.translatorId),
         ),
       )
       .returning();
