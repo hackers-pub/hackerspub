@@ -1,5 +1,5 @@
-import { fetchLinkedPages } from "@vertana/context-web";
-import type { RequiredContextSource } from "@vertana/core";
+import { fetchWebPage } from "@vertana/context-web";
+import type { ContextSource, RequiredContextSource } from "@vertana/core";
 import { translate as vertanaTranslate } from "@vertana/facade";
 import type { LanguageModel } from "ai";
 
@@ -64,7 +64,7 @@ function createTagsContextSource(
 
 export async function translate(options: TranslationOptions): Promise<string> {
   // Build context sources
-  const contextSources: RequiredContextSource[] = [];
+  const contextSources: ContextSource[] = [];
 
   const authorSource = createAuthorContextSource(
     options.authorName,
@@ -75,12 +75,11 @@ export async function translate(options: TranslationOptions): Promise<string> {
   const tagsSource = createTagsContextSource(options.tags);
   if (tagsSource) contextSources.push(tagsSource);
 
-  // Add web context to fetch linked pages
-  const webContext = fetchLinkedPages({
-    text: options.text,
-    mediaType: "text/markdown",
-  });
-  contextSources.push(webContext);
+  // Expose linked-page fetching as a passive tool the model can call
+  // when it actually needs context, instead of dumping every linked
+  // page's full body into the system prompt up front (which made the
+  // translator confuse the context for the text to translate).
+  contextSources.push(fetchWebPage);
 
   const result = await vertanaTranslate(
     options.model,
