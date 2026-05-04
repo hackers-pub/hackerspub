@@ -886,11 +886,10 @@ export async function restartArticleContentTranslations(
   // The translate() calls themselves run after the transaction
   // commits so the LLM round-trip doesn't extend the lock window.
   const resetRows = await db.transaction(async (tx) => {
-    await tx.execute(sql`
-      SELECT 1 FROM ${articleSourceTable}
-      WHERE ${articleSourceTable.id} = ${articleSource.id}
-      FOR UPDATE
-    `);
+    await tx.select({ id: articleSourceTable.id })
+      .from(articleSourceTable)
+      .where(eq(articleSourceTable.id, articleSource.id))
+      .for("update");
     const original = await getOriginalArticleContent(tx, articleSource);
     if (original == null) {
       logger.debug(
