@@ -10,7 +10,7 @@ import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
 import type { LanguageModel } from "ai";
-import { and, eq, isNull, lt, or, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import postgres from "postgres";
 import type { ContextData, Models } from "./context.ts";
 import type { Database } from "./db.ts";
@@ -853,46 +853,40 @@ export async function restartArticleContentTranslations(
       );
       return [];
     }
-    const translations = await tx.query.articleContentTable.findMany({
-      where: {
-        sourceId: articleSource.id,
-        originalLanguage: { isNotNull: true },
-      },
-    });
-    if (translations.length === 0) return [];
-    logger.debug(
-      "Restarting {count} translation(s) for {sourceId}.",
-      { count: translations.length, sourceId: articleSource.id },
-    );
-    const reset: ArticleContent[] = [];
-    for (const translation of translations) {
-      // Reset the row to placeholder state mirroring the shape an
-      // initial `startArticleContentTranslation` would have produced.
-      // Keep `originalLanguage` and `translationRequesterId` as-is so
-      // the row's audit trail (who first asked for this translation)
-      // is preserved.  The schema check
-      // `article_content_being_translated_check` requires
-      // `originalLanguage IS NOT NULL` whenever `beingTranslated=true`,
-      // which we already satisfy by selecting only rows with
-      // `originalLanguage IS NOT NULL` above.
-      const updated = await tx.update(articleContentTable)
-        .set({
-          title: original.title,
-          content: original.content,
-          beingTranslated: true,
-          summary: null,
-          summaryStarted: null,
-          summaryUnnecessary: false,
-          updated: sql`CURRENT_TIMESTAMP`,
-        })
-        .where(
-          and(
-            eq(articleContentTable.sourceId, translation.sourceId),
-            eq(articleContentTable.language, translation.language),
-          ),
-        )
-        .returning();
-      if (updated.length > 0) reset.push(updated[0]);
+    // Reset every translation row to placeholder state in a single
+    // statement, mirroring the shape an initial
+    // `startArticleContentTranslation` would have produced.  The
+    // `originalLanguage IS NOT NULL` filter targets exactly the
+    // translation rows for this article (the same set the previous
+    // implementation listed via `findMany` and then iterated over);
+    // the schema check `article_content_being_translated_check`
+    // requires `originalLanguage IS NOT NULL` whenever
+    // `beingTranslated=true`, which the filter already satisfies.
+    // `originalLanguage` and `translationRequesterId` are not in
+    // `set`, so each row's audit trail (who first asked for this
+    // translation) is preserved.
+    const reset = await tx.update(articleContentTable)
+      .set({
+        title: original.title,
+        content: original.content,
+        beingTranslated: true,
+        summary: null,
+        summaryStarted: null,
+        summaryUnnecessary: false,
+        updated: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, articleSource.id),
+          isNotNull(articleContentTable.originalLanguage),
+        ),
+      )
+      .returning();
+    if (reset.length > 0) {
+      logger.debug(
+        "Restarted {count} translation(s) for {sourceId}.",
+        { count: reset.length, sourceId: articleSource.id },
+      );
     }
     return reset;
   });
