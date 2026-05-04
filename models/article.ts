@@ -722,7 +722,7 @@ export async function startArticleContentTranslation(
   fedCtx: Context<ContextData>,
   { content, targetLanguage, requester }: ArticleContentTranslationOptions,
 ): Promise<ArticleContent> {
-  const { db, models: { translator: model, summarizer } } = fedCtx.data;
+  const { db } = fedCtx.data;
   const inserted = await db.insert(articleContentTable).values({
     sourceId: content.sourceId,
     language: targetLanguage,
@@ -752,14 +752,49 @@ export async function startArticleContentTranslation(
   } else {
     queued = inserted[0];
   }
+  await runArticleContentTranslation(fedCtx, queued);
+  return queued;
+}
+
+/**
+ * Runs the actual LLM translation for an `article_content` row that is
+ * already in the placeholder / `beingTranslated` state.  Awaits the
+ * synchronous setup (fetching author/tag context for the model), then
+ * schedules the `translate(...)` chain and returns; the caller does
+ * not await the translation itself.  When the model resolves, the
+ * row is overwritten with the translated title/body, a federation
+ * `Update` activity is sent, and post-translation summarization is
+ * kicked off.  On failure, the placeholder row is deleted so a future
+ * visit can re-queue.
+ *
+ * Should never be called with an original-language row
+ * (`originalLanguage IS NULL`); the caller is responsible for placing
+ * the row into the placeholder state first.
+ */
+async function runArticleContentTranslation(
+  fedCtx: Context<ContextData>,
+  queued: ArticleContent,
+): Promise<void> {
+  const { db, models: { translator: model, summarizer } } = fedCtx.data;
   logger.debug(
     "Starting translation for content: {sourceId} {language}",
     queued,
   );
+  const { sourceId, language: targetLanguage, originalLanguage } = queued;
+  if (originalLanguage == null) {
+    // Defensive: a row without `originalLanguage` is the original-
+    // language content itself and should never be passed in here.
+    logger.error(
+      "runArticleContentTranslation called for an original-language row; " +
+        "skipping ({sourceId} {language}).",
+      queued,
+    );
+    return;
+  }
 
-  // Fetch article source with author information for translation context
+  // Fetch article source with author information for translation context.
   const articleSource = await db.query.articleSourceTable.findFirst({
-    where: { id: content.sourceId },
+    where: { id: sourceId },
     with: {
       account: {
         with: {
@@ -769,14 +804,14 @@ export async function startArticleContentTranslation(
     },
   });
 
-  // Combine title and content for translation
-  const text = `# ${content.title}\n\n${content.content}`;
+  // Combine title and content for translation.
+  const text = `# ${queued.title}\n\n${queued.content}`;
   translate({
     model,
-    sourceLanguage: content.language,
+    sourceLanguage: originalLanguage,
     targetLanguage,
     text,
-    // Pass context for better translation quality
+    // Pass context for better translation quality.
     authorName: articleSource?.account?.actor?.name ?? undefined,
     authorBio: articleSource?.account?.actor?.bioHtml ?? undefined,
     tags: articleSource?.tags,
@@ -785,7 +820,7 @@ export async function startArticleContentTranslation(
       ...queued,
       translation,
     });
-    // Split the translation into title and content
+    // Split the translation into title and content.
     const title = translation.match(/^\s*#\s+([^\n]*)/)?.[1] ?? "";
     const content = translation.replace(/^\s*#\s+[^\n]*\s*/, "").trim();
     const updated = await db.update(articleContentTable)
@@ -804,14 +839,14 @@ export async function startArticleContentTranslation(
       })
       .where(
         and(
-          eq(articleContentTable.sourceId, queued.sourceId),
+          eq(articleContentTable.sourceId, sourceId),
           eq(articleContentTable.language, targetLanguage),
         ),
       )
       .returning();
     if (updated.length < 1) return;
     const article = await db.query.articleSourceTable.findFirst({
-      where: { id: queued.sourceId },
+      where: { id: sourceId },
       with: {
         account: true,
         contents: true,
@@ -879,10 +914,9 @@ export async function startArticleContentTranslation(
     await db.delete(articleContentTable)
       .where(
         and(
-          eq(articleContentTable.sourceId, queued.sourceId),
+          eq(articleContentTable.sourceId, sourceId),
           eq(articleContentTable.language, targetLanguage),
         ),
       );
   });
-  return queued;
 }
