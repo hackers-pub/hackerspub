@@ -819,12 +819,25 @@ export async function startArticleContentTranslation(
           eq(articleContentTable.sourceId, content.sourceId),
           eq(articleContentTable.language, targetLanguage),
           eq(articleContentTable.beingTranslated, true),
+          // Repeat the staleness check inside the UPDATE itself so
+          // the reclaim is CAS-safe.  If a concurrent worker just
+          // reclaimed the same stale placeholder between our SELECT
+          // above and this UPDATE, their reclaim wrote a fresh
+          // `updated` past the threshold and PG's UPDATE re-evals
+          // this WHERE on the new row state, which makes our
+          // UPDATE drop the row from the candidate set and return
+          // 0 rows.  That keeps us from stomping on the other
+          // worker's claim and double-firing `translate()`.
+          lt(
+            articleContentTable.updated,
+            sql`CURRENT_TIMESTAMP - INTERVAL '30 minutes'`,
+          ),
         ),
       )
       .returning();
     if (reclaimed.length < 1) {
-      // Lost the race to another writer that just completed (or
-      // restarted) this row between our SELECT and our UPDATE.
+      // Lost the race to another writer that just reclaimed this
+      // row, or completed it, between our SELECT and our UPDATE.
       // Return the row we observed; nothing further to do.
       return translated;
     }
