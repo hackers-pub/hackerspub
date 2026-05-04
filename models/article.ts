@@ -792,6 +792,27 @@ async function runArticleContentTranslation(
     return;
   }
 
+  // Take ownership of the placeholder row by stamping it with a
+  // JS-side `Date` that becomes our claim id.  Subsequent success /
+  // failure writes from this run only land if the row's `updated`
+  // still equals this claim — a concurrent re-translation that resets
+  // the row out from under us bumps `updated` past this value, and
+  // our writes turn into no-ops instead of clobbering the fresher
+  // claim.  Using a JS `Date` (rather than PG `CURRENT_TIMESTAMP`)
+  // is what makes this CAS reliable: PG `timestamptz` keeps µs
+  // precision while the `postgres` driver hands back JS `Date`
+  // values truncated to ms, so a CAS against the round-tripped
+  // value of a `CURRENT_TIMESTAMP` write would never match.
+  const claim = new Date();
+  await db.update(articleContentTable)
+    .set({ updated: claim })
+    .where(
+      and(
+        eq(articleContentTable.sourceId, sourceId),
+        eq(articleContentTable.language, targetLanguage),
+      ),
+    );
+
   // Fetch article source with author information for translation context.
   const articleSource = await db.query.articleSourceTable.findFirst({
     where: { id: sourceId },
@@ -841,10 +862,25 @@ async function runArticleContentTranslation(
         and(
           eq(articleContentTable.sourceId, sourceId),
           eq(articleContentTable.language, targetLanguage),
+          // CAS on the claim taken at the top of this function — see
+          // that comment for why a JS `Date` rather than the row's
+          // round-tripped `updated` is the safe reference.  If a
+          // concurrent re-translation took its own claim under us
+          // the `updated` will no longer match `claim` and this
+          // write becomes a no-op so we don't clobber its fresher
+          // placeholder with our stale text.
+          eq(articleContentTable.updated, claim),
         ),
       )
       .returning();
-    if (updated.length < 1) return;
+    if (updated.length < 1) {
+      logger.debug(
+        "Stale translation claim, skipping federation/summary " +
+          "({sourceId} {language}).",
+        queued,
+      );
+      return;
+    }
     const article = await db.query.articleSourceTable.findFirst({
       where: { id: sourceId },
       with: {
@@ -916,6 +952,10 @@ async function runArticleContentTranslation(
         and(
           eq(articleContentTable.sourceId, sourceId),
           eq(articleContentTable.language, targetLanguage),
+          // CAS on the same claim as the success path — a stale
+          // failure must not delete a row another caller has since
+          // re-claimed.
+          eq(articleContentTable.updated, claim),
         ),
       );
   });
