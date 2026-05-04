@@ -85,10 +85,10 @@ export function I18nProvider(props: ParentProps<I18nProviderProps>) {
   };
 
   return (
-    <Show when={i18n()}>
+    <Show keyed when={i18n()}>
       {(i18n) => (
-        <I18nContext.Provider value={i18n()}>
-          <KobalteI18nProvider locale={i18n().locale}>
+        <I18nContext.Provider value={i18n}>
+          <KobalteI18nProvider locale={i18n.locale}>
             {props.children}
           </KobalteI18nProvider>
         </I18nContext.Provider>

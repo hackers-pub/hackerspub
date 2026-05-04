@@ -22,12 +22,12 @@ export function FollowNotificationCard(props: FollowNotificationCardProps) {
   );
 
   return (
-    <Show when={notification()}>
+    <Show keyed when={notification()}>
       {(notification) => (
         <NotificationMessage
           singleActorMessage={t`${"ACTOR"} followed you`}
           multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others followed you`}
-          $notification={notification()}
+          $notification={notification}
         />
       )}
     </Show>

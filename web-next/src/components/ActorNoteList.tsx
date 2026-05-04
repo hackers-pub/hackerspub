@@ -54,12 +54,12 @@ export function ActorNoteList(props: ActorNoteListProps) {
 
   return (
     <div class="my-4 overflow-hidden rounded-lg border bg-card shadow-sm">
-      <Show when={notes()}>
+      <Show keyed when={notes()}>
         {(data) => (
           <>
-            <For each={data().notes.edges}>
+            <For each={data.notes.edges}>
               {(edge) => (
-                <NoteCard $note={edge.node} connections={[data().notes.__id]} />
+                <NoteCard $note={edge.node} connections={[data.notes.__id]} />
               )}
             </For>
             <Show when={notes.hasNext}>
@@ -82,7 +82,7 @@ export function ActorNoteList(props: ActorNoteListProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data().notes.edges.length < 1}>
+            <Show when={data.notes.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No notes found`}
               </div>

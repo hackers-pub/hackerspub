@@ -227,9 +227,9 @@ export default function ArticleDraftsListPage() {
               <Button onClick={() => window.history.back()}>
                 {t`Go back`}
               </Button>
-              <Show when={data()?.viewer?.username}>
+              <Show keyed when={data()?.viewer?.username}>
                 {(username) => (
-                  <A href={`/@${username()}/drafts`}>
+                  <A href={`/@${username}/drafts`}>
                     <Button variant="outline">{t`Go to my drafts`}</Button>
                   </A>
                 )}

@@ -59,11 +59,24 @@ export function ActorHoverCardLoader(props: ActorHoverCardLoaderProps) {
   );
 
   return withFallbacks(() => (
-    <Show when={data()} fallback={<ActorPreviewSkeleton />}>
+    <Show keyed when={data()} fallback={<ActorPreviewSkeleton />}>
       {(loaded) => (
-        <Show when={loaded().actorByHandle} fallback={<Unavailable />}>
-          {(actor) => <ActorPreviewCard $actor={actor()} />}
-        </Show>
+        <>
+          {
+            /*
+            `keyed` prevents a "Stale read from <Show>" race: when
+            solid-relay's fragment subscription publishes a new snapshot
+            inside `batch()`, a non-keyed `<Show>{(actor) => ...}` accessor
+            can throw if `actorByHandle` flips to falsy in the same tick
+            that an inner reactive computation re-runs. Reconcile keeps the
+            actor's identity stable (`key: "__id"`), so `keyed` only
+            re-mounts when navigating to a different actor.
+          */
+          }
+          <Show keyed when={loaded.actorByHandle} fallback={<Unavailable />}>
+            {(actor) => <ActorPreviewCard $actor={actor} />}
+          </Show>
+        </>
       )}
     </Show>
   ));
@@ -83,11 +96,24 @@ export function ActorHoverCardLoaderByUrl(
   );
 
   return withFallbacks(() => (
-    <Show when={data()} fallback={<ActorPreviewSkeleton />}>
+    <Show keyed when={data()} fallback={<ActorPreviewSkeleton />}>
       {(loaded) => (
-        <Show when={loaded().actorByUrl} fallback={<Unavailable />}>
-          {(actor) => <ActorPreviewCard $actor={actor()} />}
-        </Show>
+        <>
+          {
+            /*
+            `keyed` prevents a "Stale read from <Show>" race: when
+            solid-relay's fragment subscription publishes a new snapshot
+            inside `batch()`, a non-keyed `<Show>{(actor) => ...}` accessor
+            can throw if `actorByUrl` flips to falsy in the same tick that
+            an inner reactive computation re-runs. Reconcile keeps the
+            actor's identity stable (`key: "__id"`), so `keyed` only
+            re-mounts when navigating to a different actor.
+          */
+          }
+          <Show keyed when={loaded.actorByUrl} fallback={<Unavailable />}>
+            {(actor) => <ActorPreviewCard $actor={actor} />}
+          </Show>
+        </>
       )}
     </Show>
   ));

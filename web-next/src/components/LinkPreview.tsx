@@ -59,37 +59,39 @@ export function LinkPreview(props: LinkPreviewProps) {
   };
 
   return (
-    <Show when={shouldShowLink()}>
+    /* `keyed`: avoid Solid's stale-accessor race when this Relay-derived
+       field flips to null inside a `batch()` update. */
+    <Show keyed when={shouldShowLink()}>
       {(link) => {
-        const image = link().image;
+        const image = link.image;
         const layoutMode = image?.width != null && image?.height != null &&
             image.width / image.height > 1.5
           ? "wide"
           : "compact";
-        const author = link().author;
+        const author = link.author;
 
         return (
           <div class="mt-4 overflow-hidden rounded-lg border bg-card shadow-sm">
             <a
-              href={link().url}
+              href={link.url}
               target="_blank"
               rel="noopener noreferrer"
               data-layout={layoutMode}
               class="grid gap-0 bg-background transition-colors hover:bg-muted/30 data-[layout=compact]:grid-cols-[7rem_1fr] data-[layout=wide]:grid-cols-1 sm:data-[layout=compact]:grid-cols-[9rem_1fr]"
             >
-              <Show when={image}>
+              <Show keyed when={image}>
                 {(img) => (
                   <div
                     data-layout={layoutMode}
                     class="min-w-0 bg-muted/40 data-[layout=compact]:border-r data-[layout=wide]:border-b"
                   >
                     <img
-                      src={img().url}
-                      alt={img().alt ?? undefined}
-                      width={img().width ?? undefined}
-                      height={img().height ?? undefined}
-                      style={img().width != null && img().height != null
-                        ? `aspect-ratio: ${img().width} / ${img().height}`
+                      src={img.url}
+                      alt={img.alt ?? undefined}
+                      width={img.width ?? undefined}
+                      height={img.height ?? undefined}
+                      style={img.width != null && img.height != null
+                        ? `aspect-ratio: ${img.width} / ${img.height}`
                         : undefined}
                       class="h-full w-full object-cover data-[layout=wide]:max-h-64"
                       data-layout={layoutMode}
@@ -99,34 +101,35 @@ export function LinkPreview(props: LinkPreviewProps) {
               </Show>
               <div class="min-w-0 p-4">
                 <p class="font-semibold leading-snug break-words">
-                  {link().title}
+                  {link.title}
                 </p>
                 <Show
-                  when={link().description ||
+                  when={link.description ||
                     (author && !URL.canParse(author))}
                 >
                   <p class="mt-2 line-clamp-2 break-words text-sm leading-6 text-muted-foreground">
-                    <Show when={author}>
+                    <Show keyed when={author}>
                       {(author) => (
                         <>
-                          <span class="font-bold">{author()}</span>
-                          <Show when={link().description}>·</Show>
+                          <span class="font-bold">{author}</span>
+                          <Show when={link.description}>·</Show>
                         </>
                       )}
                     </Show>
-                    {link().description}
+                    {link.description}
                   </p>
                 </Show>
                 <p class="mt-3 text-xs">
                   <span class="font-medium uppercase text-muted-foreground">
-                    {new URL(link().url).host}
+                    {new URL(link.url).host}
                   </span>
-                  <Show when={link().siteName}>
+                  {/* `keyed`: same race shape; siteName can flip to null. */}
+                  <Show keyed when={link.siteName}>
                     {(siteName) => (
                       <>
                         <span class="text-muted-foreground">·</span>
                         <span class="text-muted-foreground font-bold">
-                          {siteName()}
+                          {siteName}
                         </span>
                       </>
                     )}
@@ -134,40 +137,41 @@ export function LinkPreview(props: LinkPreviewProps) {
                 </p>
               </div>
             </a>
-            <Show when={link().creator}>
+            {/* `keyed`: same race shape; creator can flip to null. */}
+            <Show keyed when={link.creator}>
               {(creator) => (
                 <div class="flex gap-1.5 border-t bg-muted/40 p-4">
                   <span>{t`Link author:`}</span>
                   <Avatar class="size-6">
                     <InternalLink
-                      href={creator().url ?? creator().iri}
-                      internalHref={creator().local
-                        ? `/@${creator().username}`
-                        : `/${creator().handle}`}
+                      href={creator.url ?? creator.iri}
+                      internalHref={creator.local
+                        ? `/@${creator.username}`
+                        : `/${creator.handle}`}
                     >
                       <AvatarImage
-                        src={creator().avatarUrl}
+                        src={creator.avatarUrl}
                         class="size-6"
                       />
                       <AvatarFallback class="size-6">
-                        {creator().avatarInitials}
+                        {creator.avatarInitials}
                       </AvatarFallback>
                     </InternalLink>
                   </Avatar>
                   <div>
-                    <Show when={(creator().name ?? "").trim() !== ""}>
+                    <Show when={(creator.name ?? "").trim() !== ""}>
                       <InternalLink
-                        href={creator().url ?? creator().iri}
-                        internalHref={creator().local
-                          ? `/@${creator().username}`
-                          : `/${creator().handle}`}
-                        innerHTML={creator().name ?? ""}
+                        href={creator.url ?? creator.iri}
+                        internalHref={creator.local
+                          ? `/@${creator.username}`
+                          : `/${creator.handle}`}
+                        innerHTML={creator.name ?? ""}
                         class="font-semibold"
                       />
                       {" "}
                     </Show>
                     <span class="select-all text-muted-foreground">
-                      {creator().handle}
+                      {creator.handle}
                     </span>
                   </div>
                 </div>

@@ -68,10 +68,10 @@ export function QuestionCard(props: QuestionCardProps) {
   const { t } = useLingui();
 
   return (
-    <Show when={question()}>
+    <Show keyed when={question()}>
       {(q) => {
         const sharedQuestion = (): QuestionCardContent_question$key | null => {
-          const sharedPost = q().sharedPost;
+          const sharedPost = q.sharedPost;
           return sharedPost?.__typename === "Question" ? sharedPost : null;
         };
         return (
@@ -83,26 +83,26 @@ export function QuestionCard(props: QuestionCardProps) {
                     message={t`${"SHARER"} shared ${"RELATIVE_TIME"}`}
                     values={{
                       SHARER: () => (
-                        <ActorHoverCard handle={q().actor.handle}>
+                        <ActorHoverCard handle={q.actor.handle}>
                           <a
                             href={`/${
-                              q().actor.local
-                                ? `@${q().actor.username}`
-                                : q().actor.handle
+                              q.actor.local
+                                ? `@${q.actor.username}`
+                                : q.actor.handle
                             }`}
                             class="font-semibold"
                           >
-                            {q().actor.name}
+                            {q.actor.name}
                           </a>
                         </ActorHoverCard>
                       ),
-                      RELATIVE_TIME: () => <Timestamp value={q().published} />,
+                      RELATIVE_TIME: () => <Timestamp value={q.published} />,
                     }}
                   />
                 </p>
               </Show>
               <QuestionCardContent
-                $question={sharedQuestion() ?? q()}
+                $question={sharedQuestion() ?? q}
                 connections={props.connections}
                 bookmarkListConnections={props.bookmarkListConnections}
                 pinConnections={props.pinConnections}
@@ -222,48 +222,46 @@ function QuestionCardContent(props: QuestionCardContentProps) {
   });
 
   return (
-    <Show when={question()}>
+    <Show keyed when={question()}>
       {(q) => (
         <div class="flex gap-4">
-          <PostAvatar $actor={q().actor} />
+          <PostAvatar $actor={q.actor} />
           <div class="min-w-0 grow">
             <div class="flex items-center gap-1 flex-wrap">
               <ActorHoverCard
-                handle={q().actor.handle}
+                handle={q.actor.handle}
                 class="min-w-0 grow flex flex-wrap items-baseline gap-x-1"
               >
-                <Show when={(q().actor.name ?? "").trim() !== ""}>
+                <Show when={(q.actor.name ?? "").trim() !== ""}>
                   <InternalLink
-                    href={q().actor.url ?? q().actor.iri}
-                    internalHref={q().actor.local
-                      ? `/@${q().actor.username}`
-                      : `/${q().actor.handle}`}
-                    innerHTML={q().actor.name ?? ""}
+                    href={q.actor.url ?? q.actor.iri}
+                    internalHref={q.actor.local
+                      ? `/@${q.actor.username}`
+                      : `/${q.actor.handle}`}
+                    innerHTML={q.actor.name ?? ""}
                     class="font-semibold"
                   />
                 </Show>
                 <span
                   class="min-w-0 truncate select-all text-muted-foreground"
-                  title={q().actor.handle}
+                  title={q.actor.handle}
                 >
-                  {q().actor.handle}
+                  {q.actor.handle}
                 </span>
               </ActorHoverCard>
               <span class="flex items-center text-sm text-muted-foreground/60 gap-1.5">
                 <InternalLink
-                  href={q().url ?? q().iri}
+                  href={q.url ?? q.iri}
                   internalHref={`/${
-                    q().actor.local
-                      ? "@" + q().actor.username
-                      : q().actor.handle
-                  }/${q().uuid}`}
+                    q.actor.local ? "@" + q.actor.username : q.actor.handle
+                  }/${q.uuid}`}
                 >
-                  <Timestamp value={q().published} capitalizeFirstLetter />
+                  <Timestamp value={q.published} capitalizeFirstLetter />
                 </InternalLink>
                 &middot;
-                <VisibilityTag visibility={q().visibility} />
+                <VisibilityTag visibility={q.visibility} />
                 <QuestionActionMenu
-                  $question={q()}
+                  $question={q}
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                   onDeleted={props.onDeleted}
@@ -272,24 +270,32 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             </div>
             <div
               ref={setProseRef}
-              innerHTML={q().content}
-              lang={q().language ?? undefined}
+              innerHTML={q.content}
+              lang={q.language ?? undefined}
               class="prose dark:prose-invert break-words overflow-wrap"
             />
             <MentionHoverCardLayer state={mentionState} />
-            <Show when={q().poll}>
+            {
+              /* `keyed`: avoid Solid's stale-accessor race when this
+               Relay field flips to null inside a `batch()` update. */
+            }
+            <Show keyed when={q.poll}>
               {(poll) => (
                 <PollPanel
-                  questionId={q().id}
-                  poll={poll()}
+                  questionId={q.id}
+                  poll={poll}
                 />
               )}
             </Show>
-            <Show when={q().quotedPost}>
-              {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
+            {
+              /* `keyed`: avoid Solid's stale-accessor race when this
+               Relay field flips to null inside a `batch()` update. */
+            }
+            <Show keyed when={q.quotedPost}>
+              {(quotedPost) => <QuotedPostCard $post={quotedPost} />}
             </Show>
             <PostControls
-              $post={q()}
+              $post={q}
               bookmarkListConnections={props.bookmarkListConnections}
             />
           </div>

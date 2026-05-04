@@ -46,6 +46,7 @@ const ComboboxItemIndicator = <T extends ValidComponent = "div">(
   return (
     <ComboboxPrimitive.ItemIndicator {...others}>
       <Show
+        keyed
         when={local.children}
         fallback={
           <svg
@@ -62,7 +63,7 @@ const ComboboxItemIndicator = <T extends ValidComponent = "div">(
           </svg>
         }
       >
-        {(children) => children()}
+        {(children) => children}
       </Show>
     </ComboboxPrimitive.ItemIndicator>
   );
@@ -148,6 +149,7 @@ const ComboboxTrigger = <T extends ValidComponent = "button">(
     >
       <ComboboxPrimitive.Icon>
         <Show
+          keyed
           when={local.children}
           fallback={
             <svg
@@ -165,7 +167,7 @@ const ComboboxTrigger = <T extends ValidComponent = "button">(
             </svg>
           }
         >
-          {(children) => children()}
+          {(children) => children}
         </Show>
       </ComboboxPrimitive.Icon>
     </ComboboxPrimitive.Trigger>

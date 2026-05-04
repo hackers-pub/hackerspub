@@ -48,31 +48,35 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
   const mentionState = useMentionHoverCards(proseRef);
 
   return (
-    <Show when={note()}>
+    <Show keyed when={note()}>
       {(n) => (
         <div class="flex gap-3 sm:gap-4">
-          <PostAvatar $actor={n().actor} />
+          <PostAvatar $actor={n.actor} />
           <div class="min-w-0 grow">
             <NoteHeader
-              $note={n()}
+              $note={n}
               connections={props.connections}
               pinConnections={props.pinConnections}
               onDeleted={props.onDeleted}
             />
             <div
               ref={setProseRef}
-              innerHTML={n().content}
-              lang={n().language ?? undefined}
+              innerHTML={n.content}
+              lang={n.language ?? undefined}
               class="prose dark:prose-invert mt-1 break-words overflow-wrap"
             />
             <MentionHoverCardLayer state={mentionState} />
-            <NoteMedia $note={n()} />
-            <LinkPreview $note={n()} />
-            <Show when={n().quotedPost}>
-              {(quotedPost) => <QuotedPostCard $post={quotedPost()} />}
+            <NoteMedia $note={n} />
+            <LinkPreview $note={n} />
+            {
+              /* `keyed`: avoid Solid's stale-accessor race when this
+               Relay field flips to null inside a `batch()` update. */
+            }
+            <Show keyed when={n.quotedPost}>
+              {(quotedPost) => <QuotedPostCard $post={quotedPost} />}
             </Show>
             <PostControls
-              $post={n()}
+              $post={n}
               bookmarkListConnections={props.bookmarkListConnections}
             />
           </div>

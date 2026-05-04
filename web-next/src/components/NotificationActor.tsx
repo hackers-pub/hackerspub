@@ -37,36 +37,43 @@ export function NotificationActor(props: NotificationActorProps) {
   };
 
   return (
-    <Show when={notification()}>
+    <Show keyed when={notification()}>
       {(notification) => (
-        <Show when={firstActor(notification())}>
-          {(firstActor) => (
-            <ActorHoverCard handle={firstActor().handle}>
-              <a href={`/${firstActor().handle}`} class="min-w-0">
-                <Show
-                  when={firstActor().name}
-                  fallback={
-                    <span class="font-semibold text-muted-foreground">
-                      {firstActor().handle}
-                    </span>
-                  }
-                >
-                  {(name) => (
-                    <span class="inline min-w-0">
-                      <span innerHTML={name()} class="font-semibold" />{" "}
-                      <span
-                        class="break-all text-muted-foreground"
-                        title={firstActor().handle}
-                      >
-                        ({firstActor().handle})
+        <>
+          {
+            /* `keyed`: avoid Solid's stale-accessor race when this
+             Relay-derived value flips to null inside a `batch()` update. */
+          }
+          <Show keyed when={firstActor(notification)}>
+            {(firstActor) => (
+              <ActorHoverCard handle={firstActor.handle}>
+                <a href={`/${firstActor.handle}`} class="min-w-0">
+                  <Show
+                    keyed
+                    when={firstActor.name}
+                    fallback={
+                      <span class="font-semibold text-muted-foreground">
+                        {firstActor.handle}
                       </span>
-                    </span>
-                  )}
-                </Show>
-              </a>
-            </ActorHoverCard>
-          )}
-        </Show>
+                    }
+                  >
+                    {(name) => (
+                      <span class="inline min-w-0">
+                        <span innerHTML={name} class="font-semibold" />{" "}
+                        <span
+                          class="break-all text-muted-foreground"
+                          title={firstActor.handle}
+                        >
+                          ({firstActor.handle})
+                        </span>
+                      </span>
+                    )}
+                  </Show>
+                </a>
+              </ActorHoverCard>
+            )}
+          </Show>
+        </>
       )}
     </Show>
   );

@@ -55,14 +55,14 @@ export function ActorArticleList(props: ActorArticleListProps) {
 
   return (
     <div class="my-4 overflow-hidden rounded-lg border bg-card shadow-sm">
-      <Show when={articles()}>
+      <Show keyed when={articles()}>
         {(data) => (
           <>
-            <For each={data().articles.edges}>
+            <For each={data.articles.edges}>
               {(edge) => (
                 <ArticleCard
                   $article={edge.node}
-                  connections={[data().articles.__id]}
+                  connections={[data.articles.__id]}
                 />
               )}
             </For>
@@ -88,7 +88,7 @@ export function ActorArticleList(props: ActorArticleListProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data().articles.edges.length < 1}>
+            <Show when={data.articles.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No notes articles`}
               </div>

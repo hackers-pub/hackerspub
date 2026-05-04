@@ -56,24 +56,33 @@ export default function ProfileFollowingPage() {
     () => loadPageQuery(username),
   );
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <>
-          <Show
-            when={data().accountByUsername}
-          >
+          {
+            /*
+            `keyed` prevents a "Stale read from <Show>" race: when
+            solid-relay's fragment subscription publishes a new snapshot
+            inside `batch()`, a non-keyed `<Show>{(account) => ...}`
+            accessor can throw if `accountByUsername` flips to falsy in the
+            same tick that an inner reactive computation re-runs. Reconcile
+            keeps the account's identity stable (`key: "__id"`), so `keyed`
+            only re-mounts when navigating to a different account.
+          */
+          }
+          <Show keyed when={data.accountByUsername}>
             {(account) => (
               <NarrowContainer>
-                <Title>{t`${account().name}'s following`}</Title>
+                <Title>{t`${account.name}'s following`}</Title>
                 <Meta
                   property="og:title"
-                  content={t`${account().name}'s following`}
+                  content={t`${account.name}'s following`}
                 />
                 <div>
-                  <ProfileCard $actor={account().actor} />
+                  <ProfileCard $actor={account.actor} />
                 </div>
                 <div class="p-4">
-                  <ActorFollowingList $following={account().actor} />
+                  <ActorFollowingList $following={account.actor} />
                 </div>
               </NarrowContainer>
             )}

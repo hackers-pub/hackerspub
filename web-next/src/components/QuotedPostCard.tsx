@@ -22,12 +22,12 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
   );
 
   return (
-    <Show when={post()}>
+    <Show keyed when={post()}>
       {(post) => (
         <Switch>
-          <Match when={post().__typename === "Note"}>
+          <Match when={post.__typename === "Note"}>
             <QuotedNoteCard
-              $note={post()}
+              $note={post}
               class={props.class}
               classList={props.classList}
             />

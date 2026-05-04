@@ -39,43 +39,43 @@ export function NoteHeader(props: NoteHeaderProps) {
   );
 
   return (
-    <Show when={note()}>
+    <Show keyed when={note()}>
       {(n) => (
         <div class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5">
           <ActorHoverCard
-            handle={n().actor.handle}
+            handle={n.actor.handle}
             class="min-w-0 grow flex flex-wrap items-baseline gap-x-1"
           >
-            <Show when={(n().actor.name ?? "").trim() !== ""}>
+            <Show when={(n.actor.name ?? "").trim() !== ""}>
               <InternalLink
-                href={n().actor.url ?? n().actor.iri}
-                internalHref={n().actor.local
-                  ? `/@${n().actor.username}`
-                  : `/${n().actor.handle}`}
-                innerHTML={n().actor.name ?? ""}
+                href={n.actor.url ?? n.actor.iri}
+                internalHref={n.actor.local
+                  ? `/@${n.actor.username}`
+                  : `/${n.actor.handle}`}
+                innerHTML={n.actor.name ?? ""}
                 class="font-semibold"
               />
             </Show>
             <span
               class="min-w-0 truncate select-all text-muted-foreground"
-              title={n().actor.handle}
+              title={n.actor.handle}
             >
-              {n().actor.handle}
+              {n.actor.handle}
             </span>
           </ActorHoverCard>
           <span class="flex items-center gap-1.5 text-sm text-muted-foreground/70">
             <InternalLink
-              href={n().url ?? n().iri}
+              href={n.url ?? n.iri}
               internalHref={`/${
-                n().actor.local ? "@" + n().actor.username : n().actor.handle
-              }/${n().uuid}`}
+                n.actor.local ? "@" + n.actor.username : n.actor.handle
+              }/${n.uuid}`}
             >
-              <Timestamp value={n().published} capitalizeFirstLetter />
+              <Timestamp value={n.published} capitalizeFirstLetter />
             </InternalLink>
             &middot;
-            <VisibilityTag visibility={n().visibility} />
+            <VisibilityTag visibility={n.visibility} />
             <PostActionMenu
-              $post={n()}
+              $post={n}
               connections={props.connections}
               pinConnections={props.pinConnections}
               onDeleted={props.onDeleted}

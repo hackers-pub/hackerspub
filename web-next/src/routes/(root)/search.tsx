@@ -205,7 +205,7 @@ function SearchPostsContent(props: { searchQuery: Accessor<string> }) {
   );
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(queryData) => (
         <SearchResults $posts={queryData} query={props.searchQuery} />
       )}

@@ -51,12 +51,12 @@ export function NotificationCard(props: NotificationCardProps) {
   );
 
   return (
-    <Show when={notification()}>
+    <Show keyed when={notification()}>
       {(notification) => (
         <li class="border-b last:border-0">
           <Dynamic
-            component={notificationCards[notification().__typename]}
-            $notification={notification()}
+            component={notificationCards[notification.__typename]}
+            $notification={notification}
           />
         </li>
       )}

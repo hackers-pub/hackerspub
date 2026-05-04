@@ -240,13 +240,13 @@ export function MentionHoverCardLayer(props: MentionHoverCardLayerProps) {
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
         >
-          <Show when={props.state.lookup()}>
+          <Show keyed when={props.state.lookup()}>
             {(lookup) => (
               <Show
-                when={lookup().kind === "url"}
-                fallback={<ActorHoverCardLoader handle={lookup().value} />}
+                when={lookup.kind === "url"}
+                fallback={<ActorHoverCardLoader handle={lookup.value} />}
               >
-                <ActorHoverCardLoaderByUrl url={lookup().value} />
+                <ActorHoverCardLoaderByUrl url={lookup.value} />
               </Show>
             )}
           </Show>

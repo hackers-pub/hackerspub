@@ -74,14 +74,14 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
 
   return (
     <div class="mt-4 mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
-      <Show when={posts()}>
+      <Show keyed when={posts()}>
         {(data) => (
           <>
-            <For each={data().personalTimeline.edges}>
+            <For each={data.personalTimeline.edges}>
               {(edge) => (
                 <PostCard
                   $post={edge.node}
-                  connections={[data().personalTimeline.__id]}
+                  connections={[data.personalTimeline.__id]}
                 />
               )}
             </For>
@@ -105,7 +105,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data().personalTimeline.edges.length < 1}>
+            <Show when={data.personalTimeline.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No posts found`}
               </div>

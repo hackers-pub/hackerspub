@@ -46,16 +46,16 @@ export default function AdminAccountsPage() {
   return (
     <WideContainer class="p-4">
       <Title>{t`Hackers' Pub: Admin · Accounts`}</Title>
-      <Show when={data()}>
+      <Show keyed when={data()}>
         {(data) => (
           <Show
-            when={data().viewer?.moderator}
+            when={data.viewer?.moderator}
             fallback={<Navigate href="/sign?next=%2Fadmin" />}
           >
             <h1 class="mb-4 text-2xl font-semibold tracking-tight">
               {t`Accounts`}
             </h1>
-            <AdminAccountsTable $query={data()} />
+            <AdminAccountsTable $query={data} />
           </Show>
         )}
       </Show>

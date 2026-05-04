@@ -53,9 +53,9 @@ function I18nProviderWrapper(props: ParentProps) {
   );
 
   return (
-    <Show when={!data.pending && data()}>
+    <Show keyed when={!data.pending && data()}>
       {(data) => (
-        <I18nProvider $query={data()}>
+        <I18nProvider $query={data}>
           {props.children}
         </I18nProvider>
       )}

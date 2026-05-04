@@ -118,19 +118,19 @@ export default function NotePage() {
   return (
     <Show when={noteData() != null}>
       <Switch fallback={<HttpStatusCode code={404} />}>
-        <Match when={note()}>
+        <Match keyed when={note()}>
           {(note) => (
             <>
-              <PostMetaHead $post={note()} />
-              <NoteInternal $note={note()} $viewer={viewer()} />
+              <PostMetaHead $post={note} />
+              <NoteInternal $note={note} $viewer={viewer()} />
             </>
           )}
         </Match>
-        <Match when={question()}>
+        <Match keyed when={question()}>
           {(question) => (
             <>
-              <PostMetaHead $post={question()} />
-              <QuestionInternal $question={question()} $viewer={viewer()} />
+              <PostMetaHead $post={question} />
+              <QuestionInternal $question={question} $viewer={viewer()} />
             </>
           )}
         </Match>
@@ -168,38 +168,38 @@ function PostMetaHead(props: PostMetaHeadProps) {
   );
 
   return (
-    <Show when={post()}>
+    <Show keyed when={post()}>
       {(post) => (
         <>
-          <Title>{t`${post().actor.name}: ${post().excerpt}`}</Title>
-          <Meta property="og:title" content={post().excerpt} />
-          <Meta property="og:description" content={post().excerpt} />
+          <Title>{t`${post.actor.name}: ${post.excerpt}`}</Title>
+          <Meta property="og:title" content={post.excerpt} />
+          <Meta property="og:description" content={post.excerpt} />
           <Meta property="og:type" content="article" />
           <Meta
             property="article:published_time"
-            content={post().published}
+            content={post.published}
           />
           <Meta
             property="article:modified_time"
-            content={post().updated}
+            content={post.updated}
           />
-          <Show when={post().actor.name}>
+          <Show keyed when={post.actor.name}>
             {(name) => (
               <Meta
                 property="article:author"
-                content={name()}
+                content={name}
               />
             )}
           </Show>
           <Meta
             property="article:author.username"
-            content={post().actor.username}
+            content={post.actor.username}
           />
           <Meta
             name="fediverse:creator"
-            content={post().actor.handle.replace(/^@/, "")}
+            content={post.actor.handle.replace(/^@/, "")}
           />
-          <For each={post().hashtags}>
+          <For each={post.hashtags}>
             {(hashtag) => (
               <Meta
                 property="article:tag"
@@ -207,18 +207,18 @@ function PostMetaHead(props: PostMetaHeadProps) {
               />
             )}
           </For>
-          <Show when={post().language}>
+          <Show keyed when={post.language}>
             {(language) => (
               <Meta
                 property="og:locale"
-                content={language()}
+                content={language}
               />
             )}
           </Show>
 
           <HttpHeader
             name="Link"
-            value={`<${post().iri}>; rel="alternate"; type="application/activity+json"`}
+            value={`<${post.iri}>; rel="alternate"; type="application/activity+json"`}
           />
         </>
       )}
@@ -256,19 +256,23 @@ function NoteInternal(props: NoteInternalProps) {
     () => props.$note,
   );
   return (
-    <Show when={note()}>
+    <Show keyed when={note()}>
       {(note) => (
         <NarrowContainer>
           <div class="my-4">
-            <Show when={note().replyTarget}>
+            {
+              /* `keyed`: avoid Solid's stale-accessor race when this
+               Relay field flips to null inside a `batch()` update. */
+            }
+            <Show keyed when={note.replyTarget}>
               {(parent) => (
                 <div class="border-x border-t rounded-t-xl">
-                  <PostCard $post={parent()} />
+                  <PostCard $post={parent} />
                 </div>
               )}
             </Show>
             <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
-              <NoteCard $note={note()} onDeleted={() => navigate(-1)} />
+              <NoteCard $note={note} onDeleted={() => navigate(-1)} />
               <Show when={props.$viewer == null}>
                 <p class="p-4 text-sm text-muted-foreground">
                   <Trans
@@ -276,7 +280,7 @@ function NoteInternal(props: NoteInternalProps) {
                     values={{
                       ACTIVITYPUB_URI: () => (
                         <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
-                          {note().iri}
+                          {note.iri}
                         </span>
                       ),
                     }}
@@ -284,12 +288,15 @@ function NoteInternal(props: NoteInternalProps) {
                 </p>
               </Show>
             </div>
-            <Show when={note().replies?.edges.length}>
+            <Show when={note.replies?.edges.length}>
               <div class="border-x border-b rounded-b-xl">
-                <For each={note().replies?.edges}>
+                <For each={note.replies?.edges}>
                   {(edge) => (
-                    <Show when={edge.node}>
-                      {(reply) => <PostCard $post={reply()} />}
+                    /* `keyed`: avoid Solid's stale-accessor race when
+                       this Relay edge node flips to null inside a
+                       `batch()` update. */
+                    <Show keyed when={edge.node}>
+                      {(reply) => <PostCard $post={reply} />}
                     </Show>
                   )}
                 </For>
@@ -332,20 +339,24 @@ function QuestionInternal(props: QuestionInternalProps) {
     () => props.$question,
   );
   return (
-    <Show when={question()}>
+    <Show keyed when={question()}>
       {(question) => (
         <NarrowContainer>
           <div class="my-4">
-            <Show when={question().replyTarget}>
+            {
+              /* `keyed`: avoid Solid's stale-accessor race when this
+               Relay field flips to null inside a `batch()` update. */
+            }
+            <Show keyed when={question.replyTarget}>
               {(parent) => (
                 <div class="border-x border-t rounded-t-xl">
-                  <PostCard $post={parent()} />
+                  <PostCard $post={parent} />
                 </div>
               )}
             </Show>
             <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
               <QuestionCard
-                $question={question()}
+                $question={question}
                 onDeleted={() => navigate(-1)}
               />
               <Show when={props.$viewer == null}>
@@ -355,7 +366,7 @@ function QuestionInternal(props: QuestionInternalProps) {
                     values={{
                       ACTIVITYPUB_URI: () => (
                         <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
-                          {question().iri}
+                          {question.iri}
                         </span>
                       ),
                     }}
@@ -363,12 +374,15 @@ function QuestionInternal(props: QuestionInternalProps) {
                 </p>
               </Show>
             </div>
-            <Show when={question().replies?.edges.length}>
+            <Show when={question.replies?.edges.length}>
               <div class="border-x border-b rounded-b-xl">
-                <For each={question().replies?.edges}>
+                <For each={question.replies?.edges}>
                   {(edge) => (
-                    <Show when={edge.node}>
-                      {(reply) => <PostCard $post={reply()} />}
+                    /* `keyed`: avoid Solid's stale-accessor race when
+                       this Relay edge node flips to null inside a
+                       `batch()` update. */
+                    <Show keyed when={edge.node}>
+                      {(reply) => <PostCard $post={reply} />}
                     </Show>
                   )}
                 </For>

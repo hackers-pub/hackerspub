@@ -321,11 +321,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   <Show
                     when={group.emoji}
                     fallback={
-                      <Show when={group.customEmoji}>
+                      <Show keyed when={group.customEmoji}>
                         {(customEmoji) => (
                           <img
-                            src={customEmoji().imageUrl}
-                            alt={customEmoji().name}
+                            src={customEmoji.imageUrl}
+                            alt={customEmoji.name}
                             class="size-4"
                           />
                         )}

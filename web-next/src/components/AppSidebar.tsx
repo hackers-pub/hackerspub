@@ -257,7 +257,7 @@ export function AppSidebar(props: AppSidebarProps) {
             {t`Account`}
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <Show when={props.signedAccountLoaded && !signedAccount()}>
+            <Show keyed when={props.signedAccountLoaded && !signedAccount()}>
               {(_) => (
                 <SidebarMenuItem class="list-none">
                   <SidebarMenuButton
@@ -285,7 +285,7 @@ export function AppSidebar(props: AppSidebarProps) {
                 </SidebarMenuItem>
               )}
             </Show>
-            <Show when={props.signedAccountLoaded && signedAccount()}>
+            <Show keyed when={props.signedAccountLoaded && signedAccount()}>
               {(signedAccount) => (
                 <>
                   <SidebarMenuItem class="list-none">
@@ -313,22 +313,22 @@ export function AppSidebar(props: AppSidebarProps) {
                   <SidebarMenuItem class="list-none">
                     <SidebarMenuButton
                       as={A}
-                      href={`/@${signedAccount().username}`}
+                      href={`/@${signedAccount.username}`}
                     >
                       <Avatar class="size-4">
                         <AvatarImage
-                          src={signedAccount().avatarUrl}
+                          src={signedAccount.avatarUrl}
                           width={16}
                           height={16}
                         />
                       </Avatar>
-                      {signedAccount().name}
+                      {signedAccount.name}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem class="list-none">
                     <SidebarMenuButton
                       as={A}
-                      href={`/@${signedAccount().username}/bookmarks`}
+                      href={`/@${signedAccount.username}/bookmarks`}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -347,11 +347,11 @@ export function AppSidebar(props: AppSidebarProps) {
                       {t`Bookmarks`}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  <Show when={signedAccount().invitationsLeft > 0}>
+                  <Show when={signedAccount.invitationsLeft > 0}>
                     <SidebarMenuItem class="list-none">
                       <SidebarMenuButton
                         as={A}
-                        href={`/@${signedAccount().username}/settings/invite`}
+                        href={`/@${signedAccount.username}/settings/invite`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -369,7 +369,7 @@ export function AppSidebar(props: AppSidebarProps) {
                         </svg>
                         {t`Invite`}
                         <span class="text-xs text-muted-foreground">
-                          ({signedAccount().invitationsLeft})
+                          ({signedAccount.invitationsLeft})
                         </span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -377,7 +377,7 @@ export function AppSidebar(props: AppSidebarProps) {
                   <SidebarMenuItem class="list-none">
                     <SidebarMenuButton
                       as={A}
-                      href={`/@${signedAccount().username}/settings`}
+                      href={`/@${signedAccount.username}/settings`}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -514,7 +514,7 @@ function ComposeSection(props: ComposeSectionProps) {
   const { t } = useLingui();
 
   return (
-    <Show when={props.visible && props.signedAccount}>
+    <Show keyed when={props.visible && props.signedAccount}>
       {(signedAccount) => (
         <SidebarGroup>
           <SidebarGroupLabel>
@@ -546,7 +546,7 @@ function ComposeSection(props: ComposeSectionProps) {
             <SidebarMenuItem class="list-none">
               <SidebarMenuButton
                 as={A}
-                href={`/@${signedAccount().username}/drafts/new`}
+                href={`/@${signedAccount.username}/drafts/new`}
                 class="cursor-pointer"
               >
                 <svg

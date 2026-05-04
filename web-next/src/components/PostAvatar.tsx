@@ -27,16 +27,16 @@ export function PostAvatar(props: PostAvatarProps) {
   );
 
   return (
-    <Show when={actor()}>
+    <Show keyed when={actor()}>
       {(a) => (
-        <ActorHoverCard handle={a().handle} class="shrink-0">
+        <ActorHoverCard handle={a.handle} class="shrink-0">
           <Avatar>
             <InternalLink
-              href={a().url ?? a().iri}
-              internalHref={a().local ? `/@${a().username}` : `/${a().handle}`}
+              href={a.url ?? a.iri}
+              internalHref={a.local ? `/@${a.username}` : `/${a.handle}`}
             >
-              <AvatarImage src={a().avatarUrl} />
-              <AvatarFallback>{a().avatarInitials}</AvatarFallback>
+              <AvatarImage src={a.avatarUrl} />
+              <AvatarFallback>{a.avatarInitials}</AvatarFallback>
             </InternalLink>
           </Avatar>
         </ActorHoverCard>

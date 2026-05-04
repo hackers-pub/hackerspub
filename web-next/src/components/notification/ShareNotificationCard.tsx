@@ -26,16 +26,22 @@ export function ShareNotificationCard(props: ShareNotificationCardProps) {
   );
 
   return (
-    <Show when={notification()}>
+    <Show keyed when={notification()}>
       {(notification) => (
         <div>
           <NotificationMessage
             singleActorMessage={t`${"ACTOR"} shared your post`}
             multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others shared your post`}
-            $notification={notification()}
+            $notification={notification}
           />
-          <Show when={notification().post}>
-            {(post) => <QuotedPostCard $post={post()} class="-mt-2" />}
+          {
+            /* `keyed` avoids a "Stale read from <Show>" race when this Relay
+             fragment publishes a snapshot inside `batch()` that nulls
+             `post` while descendant work reruns. Reconcile keeps the post's
+             identity stable, so `keyed` only re-mounts on record change. */
+          }
+          <Show keyed when={notification.post}>
+            {(post) => <QuotedPostCard $post={post} class="-mt-2" />}
           </Show>
         </div>
       )}

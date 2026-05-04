@@ -308,6 +308,7 @@ export function NoteComposer(props: NoteComposerProps) {
         <Show when={effectiveQuotedPostId()}>
           <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
             <Show
+              keyed
               when={quotedPost()}
               fallback={
                 <div class="flex-1 min-w-0">
@@ -322,29 +323,29 @@ export function NoteComposer(props: NoteComposerProps) {
               {(qp) => (
                 <>
                   <Avatar class="size-8 flex-shrink-0">
-                    <AvatarImage src={qp().actorAvatarUrl} />
+                    <AvatarImage src={qp.actorAvatarUrl} />
                     <AvatarFallback class="size-8">
-                      {qp().actorName?.charAt(0) ?? "?"}
+                      {qp.actorName?.charAt(0) ?? "?"}
                     </AvatarFallback>
                   </Avatar>
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-1 text-sm">
                       <span class="font-medium truncate">
-                        {qp().actorName ?? qp().actorHandle}
+                        {qp.actorName ?? qp.actorHandle}
                       </span>
-                      <Show when={qp().actorName}>
+                      <Show when={qp.actorName}>
                         <span class="text-muted-foreground truncate">
-                          {qp().actorHandle}
+                          {qp.actorHandle}
                         </span>
                       </Show>
                     </div>
-                    <Show when={qp().typename === "Article" && qp().name}>
-                      <div class="text-sm font-medium mt-1">{qp().name}</div>
+                    <Show when={qp.typename === "Article" && qp.name}>
+                      <div class="text-sm font-medium mt-1">{qp.name}</div>
                     </Show>
-                    <Show when={qp().excerpt}>
+                    <Show keyed when={qp.excerpt}>
                       {(excerpt) => (
                         <p class="text-sm text-muted-foreground mt-1 line-clamp-3">
-                          {excerpt()}
+                          {excerpt}
                         </p>
                       )}
                     </Show>

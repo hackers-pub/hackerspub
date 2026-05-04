@@ -184,6 +184,7 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
         </DialogHeader>
 
         <Show
+          keyed
           when={actorInfo()}
           fallback={
             <form onSubmit={handleLookup}>
@@ -227,10 +228,10 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
           {(info) => (
             <div class="space-y-4">
               <div class="flex items-start gap-3 rounded-md border p-3">
-                <Show when={info().iconUrl}>
+                <Show keyed when={info.iconUrl}>
                   {(iconUrl) => (
                     <Avatar class="size-10 flex-shrink-0">
-                      <AvatarImage src={iconUrl()} />
+                      <AvatarImage src={iconUrl} />
                       <AvatarFallback>
                         {actorDisplayName().charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -242,21 +243,21 @@ export function RemoteFollowButton(props: RemoteFollowButtonProps) {
                     {actorDisplayName()}
                   </h4>
                   <p class="text-sm text-muted-foreground truncate">
-                    {info().handle}
+                    {info.handle}
                   </p>
                   <Show
-                    when={info().software && info().software !== "unknown"}
+                    when={info.software && info.software !== "unknown"}
                   >
                     <p class="text-xs text-muted-foreground">
-                      {info().software!.charAt(0).toUpperCase() +
-                        info().software!.slice(1)}
+                      {info.software!.charAt(0).toUpperCase() +
+                        info.software!.slice(1)}
                     </p>
                   </Show>
-                  <Show when={info().summary}>
+                  <Show keyed when={info.summary}>
                     {(summary) => (
                       <p class="text-xs text-muted-foreground mt-1 line-clamp-2">
-                        {summary().replace(/<[^>]*>/g, "").substring(0, 100)}
-                        {summary().length > 100 ? "..." : ""}
+                        {summary.replace(/<[^>]*>/g, "").substring(0, 100)}
+                        {summary.length > 100 ? "..." : ""}
                       </p>
                     )}
                   </Show>

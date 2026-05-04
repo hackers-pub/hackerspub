@@ -42,10 +42,10 @@ export default function WithoutSharesFeedTimeline() {
   );
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <NarrowContainer>
-          <PersonalTimeline $posts={data()} />
+          <PersonalTimeline $posts={data} />
         </NarrowContainer>
       )}
     </Show>

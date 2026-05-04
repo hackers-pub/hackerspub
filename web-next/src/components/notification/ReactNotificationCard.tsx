@@ -31,21 +31,23 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
   );
 
   return (
-    <Show when={notification()}>
+    <Show keyed when={notification()}>
       {(notification) => {
         const emojiElement = () => (
+          // `keyed`: same Solid stale-accessor race as the `post` gate below.
           <Show
-            when={notification().customEmoji}
+            keyed
+            when={notification.customEmoji}
             fallback={
               <span class="inline-block text-lg">
-                {notification().emoji}
+                {notification.emoji}
               </span>
             }
           >
             {(customEmoji) => (
               <img
-                src={customEmoji().imageUrl}
-                alt={customEmoji().name}
+                src={customEmoji.imageUrl}
+                alt={customEmoji.name}
                 class="inline-block h-5 w-5"
               />
             )}
@@ -57,11 +59,18 @@ export function ReactNotificationCard(props: ReactNotificationCardProps) {
             <NotificationMessage
               singleActorMessage={t`${"ACTOR"} reacted to your post with ${"EMOJI"}`}
               multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others reacted to your post with ${"EMOJI"}`}
-              $notification={notification()}
+              $notification={notification}
               additionalValues={{ EMOJI: () => emojiElement() }}
             />
-            <Show when={notification().post}>
-              {(post) => <QuotedPostCard $post={post()} class="-mt-2" />}
+            {
+              /* `keyed` avoids a "Stale read from <Show>" race when this
+               Relay fragment publishes a snapshot inside `batch()` that
+               nulls `post` while descendant work reruns. Reconcile keeps
+               the post's identity stable, so `keyed` only re-mounts on
+               record change. */
+            }
+            <Show keyed when={notification.post}>
+              {(post) => <QuotedPostCard $post={post} class="-mt-2" />}
             </Show>
           </div>
         );

@@ -26,26 +26,26 @@ export function NoteMedia(props: NoteMediaProps) {
   );
 
   return (
-    <Show when={note()}>
+    <Show keyed when={note()}>
       {(note) => (
-        <Show when={note().media.length > 0}>
+        <Show when={note.media.length > 0}>
           <div class="flex flex-row my-0.5">
             <Switch>
-              <Match when={note().media.length === 1}>
+              <Match when={note.media.length === 1}>
                 <img
-                  src={note().media[0].url}
-                  alt={note().media[0].alt ?? undefined}
+                  src={note.media[0].url}
+                  alt={note.media[0].alt ?? undefined}
                   class="object-cover max-h-80"
                 />
               </Match>
               <Match
-                when={note().media.length >= 2 && note().media.length % 2 < 1}
+                when={note.media.length >= 2 && note.media.length % 2 < 1}
               >
                 <div class="flex flex-col">
-                  <For each={range(0, note().media.length / 2)}>
+                  <For each={range(0, note.media.length / 2)}>
                     {(i) => (
                       <div class="flex flex-row">
-                        <For each={note().media.slice(i * 2, i * 2 + 2)}>
+                        <For each={note.media.slice(i * 2, i * 2 + 2)}>
                           {(medium) => (
                             <img
                               src={medium.url}
@@ -60,18 +60,18 @@ export function NoteMedia(props: NoteMediaProps) {
                 </div>
               </Match>
               <Match
-                when={note().media.length >= 3 && note().media.length % 2 > 0}
+                when={note.media.length >= 3 && note.media.length % 2 > 0}
               >
                 <div class="flex flex-col">
                   <img
-                    src={note().media[0].url}
-                    alt={note().media[0].alt ?? undefined}
+                    src={note.media[0].url}
+                    alt={note.media[0].alt ?? undefined}
                     class="object-cover w-[65ch] h-[65ch]"
                   />
-                  <For each={range(0, (note().media.length - 1) / 2)}>
+                  <For each={range(0, (note.media.length - 1) / 2)}>
                     {(i) => (
                       <div class="flex flex-row">
-                        <For each={note().media.slice(1 + i * 2, i * 2 + 3)}>
+                        <For each={note.media.slice(1 + i * 2, i * 2 + 3)}>
                           {(medium) => (
                             <img
                               src={medium.url}

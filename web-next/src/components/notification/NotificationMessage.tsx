@@ -58,11 +58,11 @@ export function NotificationMessage(props: NotificationMessageProps) {
   );
 
   return (
-    <Show when={notification()}>
+    <Show keyed when={notification()}>
       {(notification) => (
         <div class="m-4 flex flex-row gap-4">
           <div class="group flex shrink-0 -space-x-8 hover:-space-x-5">
-            <For each={notification().actors.edges.slice(0, 4).toReversed()}>
+            <For each={notification.actors.edges.slice(0, 4).toReversed()}>
               {({ node }) => (
                 <ActorHoverCard
                   handle={node.handle}
@@ -84,28 +84,28 @@ export function NotificationMessage(props: NotificationMessageProps) {
             </For>
           </div>
           <Switch>
-            <Match when={notification().actors.edges.length === 1}>
+            <Match when={notification.actors.edges.length === 1}>
               <div class="min-w-0 leading-6">
                 <Trans
                   message={props.singleActorMessage}
                   values={{
                     ACTOR: () => (
-                      <NotificationActor $notification={notification()} />
+                      <NotificationActor $notification={notification} />
                     ),
                     ...props.additionalValues,
                   }}
                 />
               </div>
             </Match>
-            <Match when={notification().actors.edges.length > 1}>
+            <Match when={notification.actors.edges.length > 1}>
               <div class="min-w-0 leading-6">
                 <Trans
                   message={props.multipleActorMessage}
                   values={{
                     ACTOR: () => (
-                      <NotificationActor $notification={notification()} />
+                      <NotificationActor $notification={notification} />
                     ),
-                    COUNT: () => notification().actors.edges.length - 1,
+                    COUNT: () => notification.actors.edges.length - 1,
                     ...props.additionalValues,
                   }}
                 />

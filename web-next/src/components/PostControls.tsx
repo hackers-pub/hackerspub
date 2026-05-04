@@ -191,7 +191,7 @@ export function PostControls(props: PostControlsProps) {
   };
 
   return (
-    <Show when={note()}>
+    <Show keyed when={note()}>
       {(note) => (
         <div
           class={`mt-2 flex items-center justify-between gap-1 -mx-2 ${
@@ -207,7 +207,7 @@ export function PostControls(props: PostControlsProps) {
             title={t`Reply`}
           >
             <IconMessageSquare class="size-4" />
-            <span class="text-xs">{note().engagementStats.replies}</span>
+            <span class="text-xs">{note.engagementStats.replies}</span>
           </Button>
 
           {/* Quote Button */}
@@ -216,10 +216,10 @@ export function PostControls(props: PostControlsProps) {
             size="sm"
             class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
             title={t`Quote`}
-            onClick={() => openWithQuote(note().id)}
+            onClick={() => openWithQuote(note.id)}
           >
             <IconMessageSquareQuote class="size-4" />
-            <span class="text-xs">{note().engagementStats.quotes}</span>
+            <span class="text-xs">{note.engagementStats.quotes}</span>
           </Button>
 
           {/* Share Button */}
@@ -228,16 +228,16 @@ export function PostControls(props: PostControlsProps) {
             size="sm"
             class="h-8 px-2 cursor-pointer"
             classList={{
-              "text-muted-foreground hover:text-foreground": !note()
+              "text-muted-foreground hover:text-foreground": !note
                 .viewerHasShared,
               "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300":
-                note().viewerHasShared,
+                note.viewerHasShared,
             }}
-            title={note().viewerHasShared ? t`Unshare` : t`Share`}
+            title={note.viewerHasShared ? t`Unshare` : t`Share`}
             onClick={handleShareClick}
           >
             <IconRepeat2 class="size-4" />
-            <span class="text-xs">{note().engagementStats.shares}</span>
+            <span class="text-xs">{note.engagementStats.shares}</span>
           </Button>
 
           {/* Reactions Button */}
@@ -256,13 +256,13 @@ export function PostControls(props: PostControlsProps) {
               title={t`React`}
             >
               <IconHeart class="size-4" />
-              <span class="text-xs">{note().engagementStats.reactions}</span>
+              <span class="text-xs">{note.engagementStats.reactions}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent class="w-80 p-0">
-              <Show when={reactionPopoverData()}>
+              <Show keyed when={reactionPopoverData()}>
                 {(noteData) => (
                   <EmojiReactionPopover
-                    noteData={noteData()}
+                    noteData={noteData}
                     onClose={() => setShowEmojiPopover(false)}
                   />
                 )}
@@ -272,7 +272,7 @@ export function PostControls(props: PostControlsProps) {
 
           {/* Bookmark Button */}
           <BookmarkButton
-            $post={note()}
+            $post={note}
             bookmarkListConnections={props.bookmarkListConnections}
           />
         </div>

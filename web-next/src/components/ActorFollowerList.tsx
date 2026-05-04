@@ -53,11 +53,11 @@ export function ActorFollowerList(props: ActorFollowerListProps) {
 
   return (
     <div class="my-4 overflow-hidden rounded-lg border bg-card shadow-sm">
-      <Show when={followers()}>
+      <Show keyed when={followers()}>
         {(data) => (
           <>
             <ul class="divide-y divide-solid">
-              <For each={data().followers.edges}>
+              <For each={data.followers.edges}>
                 {(edge) => (
                   <li>
                     <SmallProfileCard $actor={edge.node} />
@@ -87,7 +87,7 @@ export function ActorFollowerList(props: ActorFollowerListProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data().followers.edges.length < 1}>
+            <Show when={data.followers.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No followers found`}
               </div>

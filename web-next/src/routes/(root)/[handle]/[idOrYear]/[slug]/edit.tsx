@@ -82,13 +82,14 @@ export default function ArticleEditPage() {
   );
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <Show
-          when={data().articleByYearAndSlug}
+          keyed
+          when={data.articleByYearAndSlug}
           fallback={<HttpStatusCode code={404} />}
         >
-          {(article) => <ArticleEditForm $article={article()} />}
+          {(article) => <ArticleEditForm $article={article} />}
         </Show>
       )}
     </Show>

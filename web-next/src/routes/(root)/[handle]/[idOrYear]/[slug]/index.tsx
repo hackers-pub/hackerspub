@@ -102,19 +102,20 @@ export default function ArticlePage() {
   );
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <Show
-          when={data().articleByYearAndSlug}
+          keyed
+          when={data.articleByYearAndSlug}
           fallback={<HttpStatusCode code={404} />}
         >
           {(article) => (
             <>
-              <ArticleMetaHead $article={article()} />
+              <ArticleMetaHead $article={article} />
               <ArticleBody
-                $article={article()}
-                $viewer={data().viewer ?? undefined}
-                viewerLocales={data().viewer?.locales}
+                $article={article}
+                $viewer={data.viewer ?? undefined}
+                viewerLocales={data.viewer?.locales}
               />
             </>
           )}
@@ -179,7 +180,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
   );
 
   return (
-    <Show when={article()}>
+    <Show keyed when={article()}>
       {(article) => {
         // The bare slug route doesn't pass a `language` argument to
         // `Slug_head`, so `contents` returns every completed row in
@@ -191,17 +192,17 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
         // returned set (e.g., the `[lang]` route filtered to a
         // specific translation).
         const content = () => {
-          const c = article().contents;
+          const c = article.contents;
           if (c == null) return undefined;
-          return c.find((entry) => entry.language === article().language) ??
+          return c.find((entry) => entry.language === article.language) ??
             c[0];
         };
         const title = () => content()?.title ?? "";
         const description = () => content()?.summary ?? "";
         const currentLanguage = () =>
-          content()?.language ?? article().language ?? undefined;
+          content()?.language ?? article.language ?? undefined;
         const canonicalUrl = () => {
-          const articleUrl = article().url;
+          const articleUrl = article.url;
           if (articleUrl == null) return null;
           if (props.canonicalLanguage == null) return articleUrl;
           try {
@@ -223,20 +224,20 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
         return (
           <>
             <Title>
-              {t`${article().actor.rawName}: ${title()}`}
+              {t`${article.actor.rawName}: ${title()}`}
             </Title>
-            <Show when={canonicalUrl()}>
+            <Show keyed when={canonicalUrl()}>
               {(href) => (
                 <>
-                  <Link rel="canonical" href={href()} />
-                  <Meta property="og:url" content={href()} />
+                  <Link rel="canonical" href={href} />
+                  <Meta property="og:url" content={href} />
                 </>
               )}
             </Show>
             <Meta property="og:title" content={title()} />
             <Meta property="og:description" content={description()} />
             <Meta property="og:type" content="article" />
-            <For each={articleOgImageUrls(article().url, article().contents)}>
+            <For each={articleOgImageUrls(article.url, article.contents)}>
               {(ogImageUrl) => (
                 <>
                   <Meta property="og:image" content={ogImageUrl} />
@@ -245,43 +246,43 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
                 </>
               )}
             </For>
-            <Show when={article().url}>
+            <Show when={article.url}>
               <Meta name="twitter:card" content="summary_large_image" />
             </Show>
             <Meta
               property="article:published_time"
-              content={article().published}
+              content={article.published}
             />
             <Meta
               property="article:modified_time"
-              content={article().updated}
+              content={article.updated}
             />
-            <Show when={article().actor.rawName}>
-              {(name) => <Meta property="article:author" content={name()} />}
+            <Show keyed when={article.actor.rawName}>
+              {(name) => <Meta property="article:author" content={name} />}
             </Show>
             <Meta
               property="article:author.username"
-              content={article().actor.username}
+              content={article.actor.username}
             />
             <Meta
               name="fediverse:creator"
-              content={article().actor.handle.replace(/^@/, "")}
+              content={article.actor.handle.replace(/^@/, "")}
             />
-            <For each={article().hashtags}>
+            <For each={article.hashtags}>
               {(hashtag) => (
                 <Meta property="article:tag" content={hashtag.name} />
               )}
             </For>
-            <Show when={currentLanguage()}>
+            <Show keyed when={currentLanguage()}>
               {(language) => (
                 <Meta
                   property="og:locale"
-                  content={language().replaceAll("-", "_")}
+                  content={language.replaceAll("-", "_")}
                 />
               )}
             </Show>
             <For
-              each={article().allContents.filter(
+              each={article.allContents.filter(
                 // In-progress placeholder rows aren't readable
                 // translations yet, so listing them as
                 // `og:locale:alternate` would advertise content the
@@ -298,7 +299,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
             </For>
             <HttpHeader
               name="Link"
-              value={`<${article().iri}>; rel="alternate"; type="application/activity+json"`}
+              value={`<${article.iri}>; rel="alternate"; type="application/activity+json"`}
             />
           </>
         );
@@ -362,7 +363,7 @@ function ArticleBody(props: ArticleBodyProps) {
   );
 
   return (
-    <Show when={article()}>
+    <Show keyed when={article()}>
       {(article) => {
         // Same deterministic picker as `ArticleMetaHead` uses: prefer
         // the row whose language matches the article's own
@@ -371,9 +372,9 @@ function ArticleBody(props: ArticleBodyProps) {
         // returned set (the `[lang]` route filters to one specific
         // translation).
         const content = () => {
-          const c = article().contents;
+          const c = article.contents;
           if (c == null) return undefined;
-          return c.find((entry) => entry.language === article().language) ??
+          return c.find((entry) => entry.language === article.language) ??
             c[0];
         };
         const toc = () => (content()?.toc ?? []) as Toc[];
@@ -386,13 +387,13 @@ function ArticleBody(props: ArticleBodyProps) {
                   title={content()?.title}
                   language={content()?.language ?? undefined}
                 />
-                <ArticleHeader $article={article()} />
+                <ArticleHeader $article={article} />
                 <ArticleInlineToc
                   items={toc()}
                   hidden={content()?.beingTranslated ?? false}
                 />
                 <ArticleLanguageSwitcher
-                  $article={article()}
+                  $article={article}
                   currentLanguage={content()?.language ?? undefined}
                   currentOriginalLanguage={content()?.originalLanguage}
                   viewerLocales={props.viewerLocales}
@@ -404,33 +405,36 @@ function ArticleBody(props: ArticleBodyProps) {
                   />
                 </Show>
 
-                <Show when={!content()?.beingTranslated && content()?.content}>
+                <Show
+                  keyed
+                  when={!content()?.beingTranslated && content()?.content}
+                >
                   {(html) => (
                     <div
                       ref={setProseRef}
                       lang={content()?.language ?? undefined}
                       class="prose dark:prose-invert mt-4 text-xl leading-8"
-                      innerHTML={html()}
+                      innerHTML={html}
                     />
                   )}
                 </Show>
                 <MentionHoverCardLayer state={mentionState} />
 
-                <ArticleTags tags={article().tags} class="2xl:hidden mt-4" />
+                <ArticleTags tags={article.tags} class="2xl:hidden mt-4" />
 
                 <PostControls
-                  $post={article()}
+                  $post={article}
                   class="mt-8"
                 />
                 <ArticleReplies
-                  $article={article()}
+                  $article={article}
                   $viewer={props.$viewer}
                 />
               </article>
 
               <ArticleAside
                 toc={toc()}
-                tags={article().tags}
+                tags={article.tags}
                 hidden={content()?.beingTranslated ?? false}
               />
             </div>
@@ -453,10 +457,10 @@ function ArticleTitle(props: ArticleTitleProps) {
   // placeholder card renders below this title rather than replacing
   // it.
   return (
-    <Show when={props.title}>
+    <Show keyed when={props.title}>
       {(title) => (
         <h1 class="text-4xl font-bold" lang={props.language}>
-          {title()}
+          {title}
         </h1>
       )}
     </Show>
@@ -490,12 +494,13 @@ export function ArticleTranslationPlaceholder(
     <div class="mt-4 border rounded-lg p-6 flex flex-col items-center gap-3 text-center">
       <IconLoader2 class="size-8 animate-spin opacity-60" aria-hidden="true" />
       <Show
+        keyed
         when={targetLanguageName()}
         fallback={<p class="text-lg font-semibold">{t`Translating…`}</p>}
       >
         {(name) => (
           <p class="text-lg font-semibold">
-            {t`Translating to ${name()}…`}
+            {t`Translating to ${name}…`}
           </p>
         )}
       </Show>
@@ -533,6 +538,7 @@ export function ArticleTranslationFailure(
   return (
     <div class="mt-4 border rounded-lg p-6 flex flex-col items-center gap-3 text-center">
       <Show
+        keyed
         when={targetLanguageName()}
         fallback={
           <p class="text-lg font-semibold">{t`Translation request failed`}</p>
@@ -540,7 +546,7 @@ export function ArticleTranslationFailure(
       >
         {(name) => (
           <p class="text-lg font-semibold">
-            {t`Translation request failed for ${name()}`}
+            {t`Translation request failed for ${name}`}
           </p>
         )}
       </Show>
@@ -584,20 +590,20 @@ function ArticleHeader(props: ArticleHeaderProps) {
   );
 
   return (
-    <Show when={article()}>
+    <Show keyed when={article()}>
       {(article) => {
-        const actorHref = () => article().actor.url ?? article().actor.iri;
+        const actorHref = () => article.actor.url ?? article.actor.iri;
         const actorInternalHref = () =>
-          article().actor.local
-            ? `/@${article().actor.username}`
-            : `/${article().actor.handle}`;
+          article.actor.local
+            ? `/@${article.actor.username}`
+            : `/${article.actor.handle}`;
         const postUrl = () =>
-          `/@${article().actor.username}/${article().publishedYear}/${article().slug}`;
+          `/@${article.actor.username}/${article.publishedYear}/${article.slug}`;
 
         return (
           <div class="flex gap-4 mt-4 items-center">
             <ActorHoverCard
-              handle={article().actor.handle}
+              handle={article.actor.handle}
               class="shrink-0"
             >
               <Avatar class="size-12">
@@ -606,21 +612,21 @@ function ArticleHeader(props: ArticleHeaderProps) {
                   internalHref={actorInternalHref()}
                 >
                   <AvatarImage
-                    src={article().actor.avatarUrl}
+                    src={article.actor.avatarUrl}
                     class="size-12"
                   />
                   <AvatarFallback class="size-12">
-                    {article().actor.avatarInitials}
+                    {article.actor.avatarInitials}
                   </AvatarFallback>
                 </InternalLink>
               </Avatar>
             </ActorHoverCard>
             <div class="flex flex-col flex-1">
-              <Show when={(article().actor.name ?? "").trim() !== ""}>
+              <Show when={(article.actor.name ?? "").trim() !== ""}>
                 {/* Actor names are sanitized HTML that may include custom emoji markup. */}
-                <ActorHoverCard handle={article().actor.handle}>
+                <ActorHoverCard handle={article.actor.handle}>
                   <InternalLink
-                    innerHTML={article().actor.name ?? ""}
+                    innerHTML={article.actor.name ?? ""}
                     href={actorHref()}
                     internalHref={actorInternalHref()}
                     class="font-semibold"
@@ -629,14 +635,14 @@ function ArticleHeader(props: ArticleHeaderProps) {
               </Show>
               <div class="flex flex-row items-center text-muted-foreground gap-1 flex-wrap">
                 <span class="select-all">
-                  {article().actor.handle}
+                  {article.actor.handle}
                 </span>
                 <span>&middot;</span>
                 <Timestamp
-                  value={article().published}
+                  value={article.published}
                   capitalizeFirstLetter
                 />
-                <Show when={article().actor.isViewer}>
+                <Show when={article.actor.isViewer}>
                   <span>&middot;</span>
                   <a
                     href={`${postUrl()}/edit`}
@@ -645,7 +651,7 @@ function ArticleHeader(props: ArticleHeaderProps) {
                     {t`Edit`}
                   </a>
                   <span>&middot;</span>
-                  <PostActionMenu $post={article()} />
+                  <PostActionMenu $post={article} />
                 </Show>
               </div>
             </div>
@@ -713,10 +719,10 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
   );
 
   return (
-    <Show when={article()}>
+    <Show keyed when={article()}>
       {(article) => {
         const postUrl = () =>
-          `/@${article().actor.username}/${article().publishedYear}/${article().slug}`;
+          `/@${article.actor.username}/${article.publishedYear}/${article.slug}`;
         // Extra links for the viewer's preferred locales that aren't
         // already represented in the existing translations and aren't
         // the article's original language.  Clicking one navigates to
@@ -734,7 +740,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
         // viewer should be offered a link for each.  This mirrors the
         // `requestArticleTranslation` mutation's same-language check.
         const extraLocales = () => {
-          if (!article().allowLlmTranslation) return [];
+          if (!article.allowLlmTranslation) return [];
           const locales = props.viewerLocales;
           if (locales == null || locales.length === 0) return [];
           const subtag = (locale: string | null | undefined) => {
@@ -747,9 +753,9 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
             }
           };
           const existing = new Set(
-            article().allContents.map((c) => subtag(c.language)),
+            article.allContents.map((c) => subtag(c.language)),
           );
-          const articleSubtag = subtag(article().language);
+          const articleSubtag = subtag(article.language);
           const currentSubtag = subtag(props.currentLanguage);
           const seen = new Set<string>();
           // Each entry is the (normalized) locale tag we'll use as
@@ -778,7 +784,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
 
         return (
           <Show
-            when={article().allContents.length > 1 ||
+            when={article.allContents.length > 1 ||
               extraLocales().length > 0}
           >
             <aside class="mt-8 p-4 max-w-[80ch] border border-stone-200 dark:border-stone-700 flex flex-row gap-3 rounded-md">
@@ -797,11 +803,11 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                 />
               </svg>
               <div>
-                <Show when={props.currentOriginalLanguage}>
+                <Show keyed when={props.currentOriginalLanguage}>
                   {(originalLanguage) => {
                     const sourceUrl = () => {
-                      const entry = article().allContents.find(
-                        (c) => c.language === originalLanguage(),
+                      const entry = article.allContents.find(
+                        (c) => c.language === originalLanguage,
                       );
                       return entry?.url ?? postUrl();
                     };
@@ -814,7 +820,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                               <a href={sourceUrl()}>
                                 {new Intl.DisplayNames(i18n.locale, {
                                   type: "language",
-                                }).of(originalLanguage())}
+                                }).of(originalLanguage)}
                               </a>
                             ),
                           }}
@@ -827,7 +833,7 @@ function ArticleLanguageSwitcher(props: ArticleLanguageSwitcherProps) {
                   <strong>{t`Other languages`}</strong> &rarr;{" "}
                   <For
                     each={[
-                      ...article().allContents.filter(
+                      ...article.allContents.filter(
                         (c) => c.language !== props.currentLanguage,
                       ).map((c) => ({
                         language: c.language,
@@ -934,17 +940,17 @@ function ArticleReplies(props: ArticleRepliesProps) {
   );
 
   return (
-    <Show when={article()}>
+    <Show keyed when={article()}>
       {(article) => {
         const postUrl = () =>
-          `/@${article().actor.username}/${article().publishedYear}/${article().slug}`;
+          `/@${article.actor.username}/${article.publishedYear}/${article.slug}`;
 
         return (
           <div id="replies" class="my-8">
             <h2 class="text-xl font-bold mb-4">
               {i18n._(
                 msg`${
-                  plural(article().replies?.edges.length ?? 0, {
+                  plural(article.replies?.edges.length ?? 0, {
                     one: "# comment",
                     other: "# comments",
                   })
@@ -955,7 +961,7 @@ function ArticleReplies(props: ArticleRepliesProps) {
             <Show when={viewer() != null}>
               <div class="mb-4">
                 <NoteComposer
-                  replyTargetId={article().id}
+                  replyTargetId={article.id}
                   placeholder={t`Write a reply…`}
                   onSuccess={() => navigate(postUrl(), { replace: true })}
                 />
@@ -969,7 +975,7 @@ function ArticleReplies(props: ArticleRepliesProps) {
                   values={{
                     ACTIVITYPUB_URI: () => (
                       <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
-                        {article().iri}
+                        {article.iri}
                       </span>
                     ),
                   }}
@@ -977,9 +983,9 @@ function ArticleReplies(props: ArticleRepliesProps) {
               </p>
             </Show>
 
-            <Show when={article().replies?.edges.length}>
+            <Show when={article.replies?.edges.length}>
               <div class="border rounded-xl">
-                <For each={article().replies?.edges}>
+                <For each={article.replies?.edges}>
                   {(edge) => <NoteCard $note={edge.node} />}
                 </For>
               </div>

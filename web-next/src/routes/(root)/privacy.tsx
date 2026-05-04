@@ -46,8 +46,8 @@ export default function PrivacyPage() {
   return (
     <WideContainer>
       <Title>{t`Privacy policy`} &mdash; {t`Hackers' Pub`}</Title>
-      <Show when={data()}>
-        {(data) => <DocumentView $document={data().privacyPolicy} />}
+      <Show keyed when={data()}>
+        {(data) => <DocumentView $document={data.privacyPolicy} />}
       </Show>
     </WideContainer>
   );

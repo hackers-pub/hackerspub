@@ -334,19 +334,27 @@ export default function passkeysPage() {
   }
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <>
           <SettingsOwnerGuard
-            accountId={data().accountByUsername?.id}
-            viewerId={data().viewer?.id}
+            accountId={data.accountByUsername?.id}
+            viewerId={data.viewer?.id}
           >
-            <Show when={data().accountByUsername}>
+            {
+              /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+               publishes a fragment snapshot inside `batch()` that flips
+               `accountByUsername` to falsy in the same tick as a downstream
+               reactive read. Reconcile keeps the account's identity stable
+               (`key: "__id"`), so `keyed` only re-mounts on navigation to
+               a different account. */
+            }
+            <Show keyed when={data.accountByUsername}>
               {(account) => (
                 <>
                   <Title>{t`Passkeys`}</Title>
                   <NarrowContainer class="p-4">
-                    <SettingsTabs selected="passkeys" $account={account()} />
+                    <SettingsTabs selected="passkeys" $account={account} />
 
                     <div class="mt-4 space-y-6">
                       <Card>
@@ -426,7 +434,14 @@ export default function passkeysPage() {
                                           />
                                         </div>
                                         <div>
+                                          {
+                                            /* `keyed`: avoid Solid's
+                                             stale-accessor race when this
+                                             Relay field flips to null
+                                             inside a `batch()` update. */
+                                          }
                                           <Show
+                                            keyed
                                             when={edge.node.lastUsed}
                                             fallback={t`Never used`}
                                           >
@@ -436,7 +451,7 @@ export default function passkeysPage() {
                                                 values={{
                                                   RELATIVE_DATE: () => (
                                                     <Timestamp
-                                                      value={lastUsed()}
+                                                      value={lastUsed}
                                                     />
                                                   ),
                                                 }}
