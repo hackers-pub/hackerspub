@@ -770,6 +770,15 @@ export async function startArticleContentTranslation(
   { content, targetLanguage, requester }: ArticleContentTranslationOptions,
 ): Promise<ArticleContent> {
   const { db } = fedCtx.data;
+  // Stamp `updated` with a JS-side Date rather than letting it
+  // default to PG's `CURRENT_TIMESTAMP`.  See the long comment on
+  // the CAS in `runArticleContentTranslation` for why this matters:
+  // the helper's claim WHERE compares the row's stored `updated`
+  // against `queued.updated`, and the comparison is only reliable
+  // when both sides round-trip through the same precision (the
+  // `postgres` driver hands JS `Date` values back at ms precision
+  // while `timestamptz` keeps µs).
+  const queueStamp = new Date();
   const inserted = await db.insert(articleContentTable).values({
     sourceId: content.sourceId,
     language: targetLanguage,
@@ -778,6 +787,7 @@ export async function startArticleContentTranslation(
     originalLanguage: content.language,
     translationRequesterId: requester.id,
     beingTranslated: true,
+    updated: queueStamp,
   }).onConflictDoNothing().returning();
   let queued: ArticleContent;
   if (inserted.length < 1) {
@@ -795,7 +805,30 @@ export async function startArticleContentTranslation(
       logger.debug("Translation already started or not needed.");
       return translated!;
     }
-    queued = translated;
+    // The placeholder is stale (older than 30 min, presumably from
+    // a crashed previous run).  Re-stamp it with a fresh JS Date
+    // before handing off to the helper so the helper's claim CAS
+    // has a value it can match — without this, the CAS would be
+    // comparing against the row's possibly-µs-precision DB
+    // timestamp via a ms-truncated round-trip and never hit.
+    const reclaim = new Date();
+    const reclaimed = await db.update(articleContentTable)
+      .set({ updated: reclaim })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, content.sourceId),
+          eq(articleContentTable.language, targetLanguage),
+          eq(articleContentTable.beingTranslated, true),
+        ),
+      )
+      .returning();
+    if (reclaimed.length < 1) {
+      // Lost the race to another writer that just completed (or
+      // restarted) this row between our SELECT and our UPDATE.
+      // Return the row we observed; nothing further to do.
+      return translated;
+    }
+    queued = reclaimed[0];
   } else {
     queued = inserted[0];
   }
@@ -865,6 +898,12 @@ export async function restartArticleContentTranslations(
     // `originalLanguage` and `translationRequesterId` are not in
     // `set`, so each row's audit trail (who first asked for this
     // translation) is preserved.
+    // Stamp `updated` with a JS-side Date rather than PG
+    // `CURRENT_TIMESTAMP` so it round-trips losslessly through the
+    // driver and the per-row claim CAS in
+    // `runArticleContentTranslation` can match it; see the long
+    // comment on that claim for the µs/ms precision rationale.
+    const restartStamp = new Date();
     const reset = await tx.update(articleContentTable)
       .set({
         title: original.title,
@@ -878,7 +917,7 @@ export async function restartArticleContentTranslations(
         // on the next OG-image request will rebuild it from the
         // freshly translated content.
         ogImageKey: null,
-        updated: sql`CURRENT_TIMESTAMP`,
+        updated: restartStamp,
       })
       .where(
         and(
@@ -967,10 +1006,24 @@ async function runArticleContentTranslation(
   // the round-tripped value of a `CURRENT_TIMESTAMP` write would
   // never match.
   //
-  // Two further guards live here:
+  // Three further guards live here:
   // - `beingTranslated=true` on the WHERE bails out silently if the
   //   row has already been completed (or deleted) by another writer
   //   between the caller queueing this run and the claim landing.
+  // - `updated = queued.updated` makes the claim itself
+  //   conditional on the row not having been re-stamped under us
+  //   by a concurrent `restartArticleContentTranslations` (or a
+  //   parallel run for the same row).  Without this, two runs
+  //   triggered by back-to-back edits both pass the
+  //   `beingTranslated` check and both end up calling `translate()`,
+  //   wasting an LLM round trip even though the success/failure
+  //   CAS below would still ensure only one write lands.  All
+  //   writers that produce a `queued` for this helper
+  //   (`startArticleContentTranslation`'s INSERT, its stuck-row
+  //   re-stamp branch, and `restartArticleContentTranslations`'s
+  //   reset UPDATE) explicitly stamp `updated` with a JS `Date`
+  //   for the same round-trip-precision reason as the claim above;
+  //   the comparison is lossless.
   // - The translate input below is built from `claimed.title` /
   //   `claimed.content` rather than the caller's `queued` snapshot.
   //   When two `restartArticleContentTranslations` calls race, the
@@ -985,6 +1038,7 @@ async function runArticleContentTranslation(
         eq(articleContentTable.sourceId, sourceId),
         eq(articleContentTable.language, targetLanguage),
         eq(articleContentTable.beingTranslated, true),
+        eq(articleContentTable.updated, queued.updated),
       ),
     )
     .returning();
