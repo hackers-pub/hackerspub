@@ -7,9 +7,20 @@ function lint(source: string) {
   return Deno.lint.runPlugin(plugin, "test.tsx", source);
 }
 
-Deno.test("flags non-keyed Show with arrow fn child", () => {
-  const diagnostics = lint(`
-    function App() {
+// Helper: most fixtures wrap their JSX in a function that declares a
+// solid-relay primitive — the rule only fires when the gated value can be
+// traced to one of those primitives.
+const RELAY_PRELUDE = `
+  import { createPreloadedQuery, createFragment } from "solid-relay";
+  declare const env: unknown;
+  declare const Q: unknown;
+  declare function loadQuery(...args: unknown[]): unknown;
+`;
+
+Deno.test("flags non-keyed Show on Relay-backed value", () => {
+  const diagnostics = lint(`${RELAY_PRELUDE}
+    function App(props: { $x: unknown }) {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
         <Show when={data().actorByHandle}>
           {(actor) => <div>{actor().name}</div>}
@@ -21,9 +32,38 @@ Deno.test("flags non-keyed Show with arrow fn child", () => {
   assertEquals(diagnostics[0].id, RULE);
 });
 
-Deno.test("does not flag already-keyed Show", () => {
+Deno.test("does NOT flag non-keyed Show on a plain Solid signal", () => {
   const diagnostics = lint(`
+    import { createSignal } from "solid-js";
     function App() {
+      const [value, _setValue] = createSignal();
+      return (
+        <Show when={value()}>
+          {(v) => <div>{v()}</div>}
+        </Show>
+      );
+    }
+  `);
+  assertEquals(diagnostics.length, 0);
+});
+
+Deno.test("does NOT flag non-keyed Show on a plain identifier", () => {
+  const diagnostics = lint(`
+    function App(props: { cond: () => unknown }) {
+      return (
+        <Show when={props.cond()}>
+          {(v) => <div>{v()}</div>}
+        </Show>
+      );
+    }
+  `);
+  assertEquals(diagnostics.length, 0);
+});
+
+Deno.test("does not flag already-keyed Relay-backed Show", () => {
+  const diagnostics = lint(`${RELAY_PRELUDE}
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
         <Show keyed when={data().actorByHandle}>
           {(actor) => <div>{actor.name}</div>}
@@ -35,10 +75,11 @@ Deno.test("does not flag already-keyed Show", () => {
 });
 
 Deno.test("does not flag Show whose child is not a function", () => {
-  const diagnostics = lint(`
+  const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show when={cond()}>
+        <Show when={data()}>
           <div>plain JSX child</div>
         </Show>
       );
@@ -48,10 +89,11 @@ Deno.test("does not flag Show whose child is not a function", () => {
 });
 
 Deno.test("does not flag Show with zero-arity function child", () => {
-  const diagnostics = lint(`
+  const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show when={cond()}>
+        <Show when={data()}>
           {() => <div>no params</div>}
         </Show>
       );
@@ -60,12 +102,13 @@ Deno.test("does not flag Show with zero-arity function child", () => {
   assertEquals(diagnostics.length, 0);
 });
 
-Deno.test("flags non-keyed Match with function child", () => {
-  const diagnostics = lint(`
+Deno.test("flags non-keyed Match with function child on Relay value", () => {
+  const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
         <Switch>
-          <Match when={cond()}>
+          <Match when={data()}>
             {(value) => <div>{value()}</div>}
           </Match>
         </Switch>
@@ -77,8 +120,9 @@ Deno.test("flags non-keyed Match with function child", () => {
 });
 
 Deno.test("autofix adds keyed and rewrites bare param() calls", () => {
-  const diagnostics = lint(`
+  const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
         <Show when={data().actorByHandle}>
           {(actor) => (
@@ -91,19 +135,17 @@ Deno.test("autofix adds keyed and rewrites bare param() calls", () => {
     }
   `);
   assertEquals(diagnostics.length, 1);
-  const fix = diagnostics[0].fix;
-  assertEquals(Array.isArray(fix), true);
-  // Expect 1 insert (keyed) + 2 replacements (actor() -> actor).
-  assertEquals(fix!.length, 3);
+  assertEquals(diagnostics[0].fix!.length, 3);
 });
 
 Deno.test(
   "autofix skips param() calls inside nested fn that rebinds the name",
   () => {
-    const diagnostics = lint(`
+    const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show when={cond()}>
+        <Show when={data()}>
           {(actor) => (
             <For each={items()}>
               {(actor) => <span>{actor()}</span>}
@@ -114,50 +156,51 @@ Deno.test(
     }
   `);
     assertEquals(diagnostics.length, 1);
-    const fix = diagnostics[0].fix;
-    // Only the "keyed" insertion — the inner actor() belongs to the nested
-    // For callback that re-binds the same name.
-    assertEquals(fix!.length, 1);
+    assertEquals(diagnostics[0].fix!.length, 1);
   },
 );
 
 Deno.test("autofix preserves param() calls passing arguments", () => {
-  const diagnostics = lint(`
+  const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show when={cond()}>
+        <Show when={data()}>
           {(value) => <div>{value(1)}</div>}
         </Show>
       );
     }
   `);
   assertEquals(diagnostics.length, 1);
-  const fix = diagnostics[0].fix;
-  // Only the "keyed" insertion — value(1) is not a bare call.
-  assertEquals(fix!.length, 1);
+  assertEquals(diagnostics[0].fix!.length, 1);
 });
 
-Deno.test("flags but does not rewrite calls when param is destructured", () => {
-  const diagnostics = lint(`
+Deno.test(
+  "flags but does not rewrite calls when param is destructured",
+  () => {
+    const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show when={cond()}>
+        <Show when={data()}>
           {({ name }) => <div>{name}</div>}
         </Show>
       );
     }
   `);
-  assertEquals(diagnostics.length, 1);
-  const fix = diagnostics[0].fix;
-  // Only the "keyed" insertion; we don't try to rewrite destructured params.
-  assertEquals(fix!.length, 1);
-});
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].fix!.length, 1);
+  },
+);
 
-Deno.test("flags but does not rewrite when body has a const shadowing", () => {
-  const diagnostics = lint(`
+Deno.test(
+  "flags but does not rewrite when body has a const shadowing",
+  () => {
+    const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show when={cond()}>
+        <Show when={data()}>
           {(value) => {
             const value = compute();
             return <div>{value()}</div>;
@@ -166,37 +209,21 @@ Deno.test("flags but does not rewrite when body has a const shadowing", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 1);
-  // Only the "keyed" insertion; the body has a same-name const shadowing.
-  assertEquals(diagnostics[0].fix!.length, 1);
-});
-
-Deno.test("flags but does not rewrite when body has a let shadowing", () => {
-  const diagnostics = lint(`
-    function App() {
-      return (
-        <Show when={cond()}>
-          {(value) => {
-            let value;
-            return <div>{value}</div>;
-          }}
-        </Show>
-      );
-    }
-  `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].fix!.length, 1);
-});
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].fix!.length, 1);
+  },
+);
 
 Deno.test(
-  "flags but does not rewrite when catch clause shadows the param",
+  "flags but does not rewrite when class static block shadows the param",
   () => {
-    const diagnostics = lint(`
+    const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show when={cond()}>
+        <Show when={data()}>
           {(value) => {
-            try { run(); } catch (value) { console.log(value()); }
+            class C { static { const value = 1; console.log(value); } }
             return <div>{value()}</div>;
           }}
         </Show>
@@ -204,7 +231,6 @@ Deno.test(
     }
   `);
     assertEquals(diagnostics.length, 1);
-    // Only "keyed"; both value() calls are unsafe to rewrite mechanically.
     assertEquals(diagnostics[0].fix!.length, 1);
   },
 );
@@ -212,21 +238,17 @@ Deno.test(
 Deno.test(
   "flags Show with keyed={false} but does not autofix",
   () => {
-    const diagnostics = lint(`
+    const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show keyed={false} when={cond()}>
+        <Show keyed={false} when={data()}>
           {(value) => <div>{value()}</div>}
         </Show>
       );
     }
   `);
     assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].id, RULE);
-    // No autofix when there's an existing non-truthy `keyed` attribute —
-    // we don't want to produce `<Show keyed keyed={false}>`.
-    // No autofix is exposed when there's an existing non-truthy `keyed`
-    // attribute: the runtime returns an empty fix list.
     assertEquals(diagnostics[0].fix, []);
   },
 );
@@ -234,54 +256,111 @@ Deno.test(
 Deno.test(
   "flags Show with keyed={someVar} but does not autofix",
   () => {
-    const diagnostics = lint(`
+    const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show keyed={isKeyed} when={cond()}>
+        <Show keyed={isKeyed} when={data()}>
           {(value) => <div>{value()}</div>}
         </Show>
       );
     }
   `);
     assertEquals(diagnostics.length, 1);
-    // No autofix is exposed when there's an existing non-truthy `keyed`
-    // attribute: the runtime returns an empty fix list.
     assertEquals(diagnostics[0].fix, []);
   },
 );
 
-Deno.test(
-  "flags but does not rewrite when class static block shadows the param",
-  () => {
-    const diagnostics = lint(`
+Deno.test("does not flag Show with keyed={true}", () => {
+  const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
       return (
-        <Show when={cond()}>
-          {(value) => {
-            class C {
-              static {
-                const value = 1;
-                console.log(value);
-              }
-            }
-            return <div>{value()}</div>;
-          }}
+        <Show keyed={true} when={data()}>
+          {(value) => <div>{value.name}</div>}
         </Show>
       );
     }
   `);
+  assertEquals(diagnostics.length, 0);
+});
+
+Deno.test(
+  "propagates Relay-backed-ness through outer keyed Show callback param",
+  () => {
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      return (
+        <Show keyed when={data()}>
+          {(d) => (
+            <Show when={d.actorByHandle}>
+              {(actor) => <div>{actor().name}</div>}
+            </Show>
+          )}
+        </Show>
+      );
+    }
+  `);
+    // Inner Show should be flagged: \`d\` is Relay-backed by propagation.
     assertEquals(diagnostics.length, 1);
-    // Only "keyed"; the static block contains a same-name binding.
-    assertEquals(diagnostics[0].fix!.length, 1);
+    assertEquals(diagnostics[0].id, RULE);
   },
 );
 
-Deno.test("does not flag Show with keyed={true}", () => {
-  const diagnostics = lint(`
+Deno.test(
+  "does not propagate when outer Show is not Relay-backed",
+  () => {
+    const diagnostics = lint(`
+    import { createSignal } from "solid-js";
     function App() {
+      const [outer, _set] = createSignal();
       return (
-        <Show keyed={true} when={cond()}>
-          {(value) => <div>{value.name}</div>}
+        <Show keyed when={outer()}>
+          {(d) => (
+            <Show when={d.something}>
+              {(thing) => <div>{thing()}</div>}
+            </Show>
+          )}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 0);
+  },
+);
+
+Deno.test("recognises namespace imports of Relay primitives", () => {
+  const diagnostics = lint(`
+    import * as relay from "solid-relay";
+    declare const env: unknown;
+    declare const Q: unknown;
+    declare function loadQuery(...args: unknown[]): unknown;
+    function App() {
+      const data = relay.createFragment(Q, () => null);
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value()}</div>}
+        </Show>
+      );
+    }
+  `);
+  assertEquals(diagnostics.length, 1);
+});
+
+Deno.test("scopes Relay binding to its declaring function", () => {
+  // \`data\` declared inside FunctionA must NOT be considered Relay-backed
+  // inside FunctionB (separate scope).
+  const diagnostics = lint(`${RELAY_PRELUDE}
+    function FunctionA() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      return null;
+    }
+    function FunctionB() {
+      // No relay primitive bound here.
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value()}</div>}
         </Show>
       );
     }

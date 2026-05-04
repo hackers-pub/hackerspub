@@ -1,39 +1,58 @@
 // deno-lint-ignore-file no-explicit-any
 //
-// Custom Deno lint plugin: enforce `<Show keyed>` and `<Match keyed>` whenever
-// the children is a function with arity ≥ 1.
+// Custom Deno lint plugin: enforce `<Show keyed>` and `<Match keyed>` when
+// the gated value comes from a solid-relay primitive and the children is a
+// function with arity ≥ 1.
 //
-// Why: Solid's non-keyed `<Show when={x}>{(value) => ...}` passes a guarded
-// accessor to the children. The accessor throws "Stale read from <Show>" if
-// it's invoked while the condition is falsy. solid-relay publishes fragment
-// snapshots inside `batch()`, so any descendant reactive computation that
-// shares dependencies with the gated field can race with the Show's own
-// re-evaluation and trip that throw. With `keyed`, the children receives the
-// value directly — no guarded accessor, no stale-read race. Relay's
-// `reconcile({ key: "__id", merge: true })` keeps record identity stable, so
-// `keyed` only re-mounts on actual record changes.
+// Why scoped to Relay: Solid's non-keyed `<Show when={x}>{(value) => ...}`
+// passes a guarded accessor that throws "Stale read from <Show>" when
+// invoked while the condition is falsy. solid-relay publishes fragment
+// snapshots inside `batch()`, so descendant reactive computations sharing
+// dependencies with the gated field can race with the Show's own
+// re-evaluation and trip that throw. With `keyed`, the children receives
+// the value directly — no guarded accessor, no stale-read race. Reconcile
+// keeps record identity stable (`key: "__id"`), so `keyed` only re-mounts
+// on actual record changes.
+//
+// For non-Relay reactive values the same theoretical race exists but in
+// practice is rare and the cost/benefit of forcing `keyed` (which would
+// re-mount children whenever the value's identity changes) doesn't favour
+// blanket conversion. So we only flag Shows whose `when` traces back to a
+// solid-relay primitive within the current lexical scope.
+//
+// What counts as Relay-backed:
+//   1. A binding `const x = createPreloadedQuery(...)` (or any of the
+//      tracked solid-relay primitives, named OR via namespace import).
+//   2. A first-param binding inside the children of a Show/Match whose
+//      own `when` was Relay-backed — i.e., propagation through nested
+//      Show callbacks.
 //
 // The autofix:
-//   1. Inserts a `keyed` attribute on the opening element.
-//   2. Replaces bare `param()` call expressions inside the children function
-//      body with `param`, so the body type-checks under the value form.
-//
-// The body rewrite is only applied when it's provably safe — i.e., the body
-// contains no lexical re-binding of the param name (no `const`/`let`/`var`,
-// no `catch (param)`, no nested function param, no function declaration). If
-// any rebind exists we still flag and add `keyed`, but we leave the body
-// alone for manual cleanup.
+//   - Inserts `keyed` on the opening element.
+//   - Replaces bare `param()` calls in the children body with `param`,
+//     respecting same-name lexical re-bindings (skips body rewrite when
+//     any rebind exists; only inserts `keyed`).
+//   - Skips autofix entirely when the element already has a non-truthy
+//     `keyed` attribute (`keyed={false}`, `keyed={someVar}`, …) so we
+//     don't end up with `<Show keyed keyed={false}>`.
 
 const TARGET_TAGS = new Set(["Show", "Match"]);
+
+const RELAY_PRIMITIVES = new Set([
+  "createPreloadedQuery",
+  "createFragment",
+  "createPaginationFragment",
+  "createRefetchableFragment",
+  "createLazyLoadQuery",
+  "createSubscription",
+  "createQueryLoader",
+]);
 
 type ShowEntry = {
   openingName: any;
   paramName: string | null;
   fnExpr: any;
   bodyHasRebinding: boolean;
-  // Existing `keyed={...}` attribute with a non-statically-true value, if
-  // any. When set, we report without autofix because we don't know whether
-  // the user wanted truthy or falsy and don't want to silently change it.
   existingKeyedAttr: any | null;
   calls: any[];
   reported: boolean;
@@ -44,28 +63,91 @@ const plugin: Deno.lint.Plugin = {
   rules: {
     "show-keyed-on-fn-child": {
       create(context) {
+        // Stack of lexical scopes. Each entry is the set of identifier names
+        // known to be Relay-backed in that scope. Lookup walks bottom-up.
+        const scopes: Set<string>[] = [];
+        const pushScope = () => scopes.push(new Set());
+        const popScope = () => scopes.pop();
+        const addToCurrentScope = (name: string) => {
+          scopes[scopes.length - 1]?.add(name);
+        };
+        const isRelayBacked = (name: string): boolean => {
+          for (let i = scopes.length - 1; i >= 0; i--) {
+            if (scopes[i].has(name)) return true;
+          }
+          return false;
+        };
+
         const shows = new Map<any, ShowEntry>();
 
         const message =
           "Use <Show keyed>/<Match keyed> when the children is a function " +
-          "to avoid Solid's stale-accessor race when the gated value flips " +
-          "to null inside a batch() update (e.g., a solid-relay publish). " +
-          "With keyed, the children receives the value directly; reconcile " +
-          "keeps the record's identity stable, so keyed only re-mounts on " +
-          "actual record changes.";
+          "and the gated value comes from solid-relay (createFragment / " +
+          "createPreloadedQuery / etc.). solid-relay publishes snapshots " +
+          "inside batch(), so a non-keyed accessor can throw 'Stale read " +
+          "from <Show>' if the value flips to null in the same tick as a " +
+          "downstream reactive read. With keyed, the children receives the " +
+          "value directly; reconcile keeps record identity stable, so " +
+          "keyed only re-mounts on actual record changes.";
 
         return {
+          Program: pushScope,
+          "Program:exit": popScope,
+          FunctionDeclaration: pushScope,
+          "FunctionDeclaration:exit": popScope,
+          FunctionExpression: pushScope,
+          "FunctionExpression:exit": popScope,
+
+          ArrowFunctionExpression(node: any) {
+            pushScope();
+            // If this arrow is the children of a Show/Match whose `when` is
+            // Relay-backed, the arrow's first param carries Relay-backed-
+            // ness into the body. (We check Relay-backed-ness of `when`
+            // against the OUTER scope, which is still the second-to-top of
+            // the stack at this point.)
+            const exprContainer = node.parent;
+            if (exprContainer?.type !== "JSXExpressionContainer") return;
+            const showJsx = exprContainer.parent;
+            if (showJsx?.type !== "JSXElement") return;
+            const opening = showJsx.openingElement;
+            const tagName = opening?.name;
+            if (
+              tagName?.type !== "JSXIdentifier" ||
+              !TARGET_TAGS.has(tagName.name)
+            ) return;
+            const whenExpr = getWhenExpression(opening);
+            if (!whenExpr) return;
+            // Evaluate Relay-backed-ness against the outer scope only.
+            const top = scopes.pop();
+            const outerSays = expressionIsRelayBacked(whenExpr, isRelayBacked);
+            if (top) scopes.push(top);
+            if (!outerSays) return;
+            const firstParam = node.params?.[0];
+            if (firstParam?.type === "Identifier") {
+              addToCurrentScope(firstParam.name);
+            }
+          },
+          "ArrowFunctionExpression:exit": popScope,
+
+          VariableDeclarator(node: any) {
+            const init = node.init;
+            if (init?.type === "CallExpression" && isRelayPrimitiveCall(init)) {
+              bindIdentifiersAsRelay(node.id, addToCurrentScope);
+            }
+          },
+
           JSXElement(node: any) {
             const opening = node.openingElement;
             const name = opening?.name;
             if (name?.type !== "JSXIdentifier") return;
             if (!TARGET_TAGS.has(name.name)) return;
 
-            // Skip when an explicitly-truthy `keyed` is already present.
-            // Treat `keyed={false}`, `keyed={someVar}`, etc. as still
-            // unsafe — only the shorthand `keyed` and `keyed={true}` count.
-            // Track a non-static-true `keyed` attribute so we don't try to
-            // autofix it (would produce `<Show keyed keyed={false}>`).
+            // Only flag when `when` is Relay-backed.
+            const whenExpr = getWhenExpression(opening);
+            if (!whenExpr) return;
+            if (!expressionIsRelayBacked(whenExpr, isRelayBacked)) return;
+
+            // Skip if explicitly-truthy `keyed` is already present.
             let existingKeyedAttr: any | null = null;
             for (const attr of opening.attributes ?? []) {
               if (
@@ -98,9 +180,6 @@ const plugin: Deno.lint.Plugin = {
               ? param.name
               : null;
 
-            // Conservatively detect any same-name rebinding inside the body
-            // (variable declarators, catch params, nested function params,
-            // function declaration ids). If found we skip the body rewrite.
             const bodyHasRebinding = paramName == null
               ? false
               : detectRebinding(fnExpr.body, paramName);
@@ -125,9 +204,6 @@ const plugin: Deno.lint.Plugin = {
             ) return;
             const calleeName: string = callee.name;
 
-            // Walk up function scopes from innermost to outermost; the first
-            // scope that binds `calleeName` owns this call. We only collect
-            // when that scope is one of our tracked Show callbacks.
             let cursor: any = node.parent;
             while (cursor) {
               const isFn = cursor.type === "ArrowFunctionExpression" ||
@@ -173,8 +249,6 @@ const plugin: Deno.lint.Plugin = {
 
             const { openingName, paramName, calls, existingKeyedAttr } = entry;
 
-            // If there's an explicit `keyed={non-static-true}` attribute, we
-            // don't know what the user wants — report without autofix.
             if (existingKeyedAttr) {
               context.report({ node: opening, message });
               return;
@@ -211,26 +285,171 @@ const plugin: Deno.lint.Plugin = {
   },
 };
 
-// True if attribute is `keyed` (shorthand) or `keyed={true}`.
+// Get the `when` JSX attribute's expression, if any.
+function getWhenExpression(opening: any): any | null {
+  for (const attr of opening?.attributes ?? []) {
+    if (
+      attr.type === "JSXAttribute" &&
+      attr.name?.type === "JSXIdentifier" &&
+      attr.name.name === "when" &&
+      attr.value?.type === "JSXExpressionContainer"
+    ) return attr.value.expression;
+  }
+  return null;
+}
+
+// True if `callee` references one of the tracked solid-relay primitives,
+// either as a bare identifier or via a namespace member access.
+function isRelayPrimitiveCall(call: any): boolean {
+  const callee = call.callee;
+  if (!callee) return false;
+  if (callee.type === "Identifier") {
+    return RELAY_PRIMITIVES.has(callee.name);
+  }
+  if (callee.type === "MemberExpression" && !callee.computed) {
+    const prop = callee.property;
+    return prop?.type === "Identifier" && RELAY_PRIMITIVES.has(prop.name);
+  }
+  return false;
+}
+
+// Walk a destructuring pattern and bind every identifier it introduces.
+function bindIdentifiersAsRelay(
+  pattern: any,
+  bind: (name: string) => void,
+): void {
+  if (!pattern || typeof pattern !== "object") return;
+  switch (pattern.type) {
+    case "Identifier":
+      bind(pattern.name);
+      return;
+    case "AssignmentPattern":
+      bindIdentifiersAsRelay(pattern.left, bind);
+      return;
+    case "RestElement":
+      bindIdentifiersAsRelay(pattern.argument, bind);
+      return;
+    case "ArrayPattern":
+      for (const e of pattern.elements ?? []) bindIdentifiersAsRelay(e, bind);
+      return;
+    case "ObjectPattern":
+      for (const p of pattern.properties ?? []) {
+        if (p.type === "RestElement") {
+          bindIdentifiersAsRelay(p.argument, bind);
+        } else if (p.type === "Property") {
+          bindIdentifiersAsRelay(p.value, bind);
+        }
+      }
+      return;
+  }
+}
+
+// Walk an expression and check whether any free identifier in it is
+// considered Relay-backed by the supplied resolver. Descends only through
+// expression positions (skips function bodies and non-computed member
+// property names) so that we don't drag in unrelated identifiers.
+function expressionIsRelayBacked(
+  expr: any,
+  isRelayBacked: (name: string) => boolean,
+): boolean {
+  const stack: any[] = [expr];
+  while (stack.length) {
+    const node = stack.pop();
+    if (!node || typeof node !== "object" || typeof node.type !== "string") {
+      continue;
+    }
+    if (node.type === "Identifier") {
+      if (isRelayBacked(node.name)) return true;
+      continue;
+    }
+    switch (node.type) {
+      case "CallExpression":
+      case "NewExpression":
+        stack.push(node.callee);
+        for (const a of node.arguments ?? []) stack.push(a);
+        break;
+      case "OptionalCallExpression":
+        stack.push(node.callee);
+        for (const a of node.arguments ?? []) stack.push(a);
+        break;
+      case "MemberExpression":
+      case "OptionalMemberExpression":
+        stack.push(node.object);
+        if (node.computed) stack.push(node.property);
+        break;
+      case "ChainExpression":
+        stack.push(node.expression);
+        break;
+      case "BinaryExpression":
+      case "LogicalExpression":
+      case "AssignmentExpression":
+        stack.push(node.left);
+        stack.push(node.right);
+        break;
+      case "ConditionalExpression":
+        stack.push(node.test);
+        stack.push(node.consequent);
+        stack.push(node.alternate);
+        break;
+      case "UnaryExpression":
+      case "UpdateExpression":
+      case "AwaitExpression":
+      case "YieldExpression":
+      case "SpreadElement":
+        if (node.argument) stack.push(node.argument);
+        break;
+      case "ArrayExpression":
+        for (const e of node.elements ?? []) stack.push(e);
+        break;
+      case "ObjectExpression":
+        for (const p of node.properties ?? []) stack.push(p);
+        break;
+      case "Property":
+        if (node.computed) stack.push(node.key);
+        stack.push(node.value);
+        break;
+      case "TemplateLiteral":
+        for (const e of node.expressions ?? []) stack.push(e);
+        break;
+      case "TaggedTemplateExpression":
+        stack.push(node.tag);
+        stack.push(node.quasi);
+        break;
+      case "SequenceExpression":
+        for (const e of node.expressions ?? []) stack.push(e);
+        break;
+      case "ImportExpression":
+        stack.push(node.source);
+        break;
+      case "TSAsExpression":
+      case "TSNonNullExpression":
+      case "TSSatisfiesExpression":
+      case "TSTypeAssertion":
+        stack.push(node.expression);
+        break;
+      case "ParenthesizedExpression":
+        stack.push(node.expression);
+        break;
+        // Don't descend into function bodies — they introduce new scopes
+        // and free-variable analysis there isn't trivial.
+    }
+  }
+  return false;
+}
+
 function isStaticTrueAttribute(attr: any): boolean {
   if (attr.value == null) return true;
   const v = attr.value;
   if (v.type === "JSXExpressionContainer") {
     const expr = v.expression;
-    if (
-      expr?.type === "Literal" && expr.value === true
-    ) return true;
-    if (
-      expr?.type === "BooleanLiteral" && expr.value === true
-    ) return true;
+    if (expr?.type === "Literal" && expr.value === true) return true;
+    if (expr?.type === "BooleanLiteral" && expr.value === true) return true;
   }
   return false;
 }
 
 function paramRebindsName(params: any[] | undefined, name: string): boolean {
-  for (const p of params ?? []) {
-    if (paramRebinds(p, name)) return true;
-  }
+  for (const p of params ?? []) if (paramRebinds(p, name)) return true;
   return false;
 }
 
@@ -256,22 +475,10 @@ function paramRebinds(param: any, name: string): boolean {
   }
 }
 
-// Walk the body subtree and report whether any node introduces a binding
-// for `name`. We don't try to model precise lexical scopes — this is a
-// conservative check meant to suppress the body rewrite whenever there is
-// any same-name binder anywhere in the subtree. Known binder sites:
-//   - VariableDeclarator with `id.name === name` (or destructuring binding).
-//   - CatchClause with `param.name === name` (or destructuring).
-//   - Nested function params with `name`.
-//   - FunctionDeclaration / FunctionExpression / ClassDeclaration whose
-//     own identifier is `name`.
-//   - Import declarations (rare inside function bodies, but harmless).
+// Same as before — conservatively detect any same-name binder anywhere in
+// the body subtree to suppress the body rewrite.
 function detectRebinding(root: any, name: string): boolean {
-  // Known fields per node type that we should descend into. The AST objects
-  // are lazy proxies in Deno's lint runtime, so we can't enumerate keys via
-  // Object.keys — every type-of-interest must list its child fields here.
   const FIELDS: Record<string, readonly string[]> = {
-    // Statements
     BlockStatement: ["body"],
     ExpressionStatement: ["expression"],
     IfStatement: ["test", "consequent", "alternate"],
@@ -290,7 +497,6 @@ function detectRebinding(root: any, name: string): boolean {
     WithStatement: ["object", "body"],
     VariableDeclaration: ["declarations"],
     VariableDeclarator: ["id", "init"],
-    // Functions / classes
     FunctionDeclaration: ["id", "params", "body"],
     FunctionExpression: ["id", "params", "body"],
     ArrowFunctionExpression: ["params", "body"],
@@ -300,7 +506,6 @@ function detectRebinding(root: any, name: string): boolean {
     MethodDefinition: ["key", "value"],
     PropertyDefinition: ["key", "value"],
     StaticBlock: ["body"],
-    // Expressions
     CallExpression: ["callee", "arguments"],
     NewExpression: ["callee", "arguments"],
     MemberExpression: ["object", "property"],
@@ -323,7 +528,6 @@ function detectRebinding(root: any, name: string): boolean {
     OptionalCallExpression: ["callee", "arguments"],
     OptionalMemberExpression: ["object", "property"],
     ImportExpression: ["source"],
-    // JSX
     JSXElement: ["openingElement", "closingElement", "children"],
     JSXFragment: ["openingFragment", "closingFragment", "children"],
     JSXOpeningElement: ["name", "attributes"],
@@ -332,12 +536,10 @@ function detectRebinding(root: any, name: string): boolean {
     JSXSpreadAttribute: ["argument"],
     JSXExpressionContainer: ["expression"],
     JSXSpreadChild: ["expression"],
-    // Patterns (within bindings)
     ArrayPattern: ["elements"],
     ObjectPattern: ["properties"],
     RestElement: ["argument"],
     AssignmentPattern: ["left", "right"],
-    // TS-specific (defensive)
     TSAsExpression: ["expression", "typeAnnotation"],
     TSNonNullExpression: ["expression"],
     TSSatisfiesExpression: ["expression", "typeAnnotation"],
@@ -354,7 +556,6 @@ function detectRebinding(root: any, name: string): boolean {
     }
     if (typeof node.type !== "string") continue;
 
-    // Binder sites:
     if (node.type === "VariableDeclarator" && bindsName(node.id, name)) {
       return true;
     }
@@ -387,7 +588,6 @@ function detectRebinding(root: any, name: string): boolean {
   return false;
 }
 
-// Identifier or destructuring pattern binding `name`?
 function bindsName(pattern: any, name: string): boolean {
   if (!pattern || typeof pattern !== "object") return false;
   switch (pattern.type) {
