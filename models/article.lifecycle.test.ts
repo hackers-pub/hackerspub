@@ -7,22 +7,12 @@ import {
   insertAccountWithActor,
   withRollback,
 } from "../test/postgres.ts";
+import { waitFor } from "../test/wait.ts";
 
 const fakeModels = {
   summarizer: {} as never,
   translator: {} as never,
 };
-
-async function waitFor(predicate: () => Promise<boolean>, timeoutMs = 10000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (await predicate()) return;
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  throw new Error(
-    `Timed out waiting for async background state after ${timeoutMs}ms`,
-  );
-}
 
 test("createArticle() creates a post and timeline entry for the author", async () => {
   await withRollback(async (tx) => {
