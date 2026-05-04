@@ -873,6 +873,11 @@ export async function restartArticleContentTranslations(
         summary: null,
         summaryStarted: null,
         summaryUnnecessary: false,
+        // Clear the cached OG image too: it was rendered from the
+        // previous title/body and is now stale.  Lazy regeneration
+        // on the next OG-image request will rebuild it from the
+        // freshly translated content.
+        ogImageKey: null,
         updated: sql`CURRENT_TIMESTAMP`,
       })
       .where(
@@ -1038,6 +1043,11 @@ async function runArticleContentTranslation(
         summary: null,
         summaryStarted: null,
         summaryUnnecessary: false,
+        // The cached OG image was rendered from the placeholder
+        // (or from a prior translation of an older body) and is
+        // now stale; clear it for the same reason as `summary` so
+        // the next request regenerates it from the translated text.
+        ogImageKey: null,
       })
       .where(
         and(
