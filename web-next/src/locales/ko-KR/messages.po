@@ -238,7 +238,7 @@ msgstr "{0} 추가"
 msgid "Admin"
 msgstr "관리"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:141
+#: src/routes/(root)/[handle]/bookmarks.tsx:144
 msgid "All"
 msgstr "전체"
 
@@ -320,7 +320,7 @@ msgid "article-url-slug"
 msgstr "게시글-url-슬러그"
 
 #: src/components/ProfileTabs.tsx:51
-#: src/routes/(root)/[handle]/bookmarks.tsx:142
+#: src/routes/(root)/[handle]/bookmarks.tsx:145
 msgid "Articles"
 msgstr "게시글"
 
@@ -369,6 +369,7 @@ msgid "Bookmark"
 msgstr "북마크"
 
 #: src/components/AppSidebar.tsx:347
+#: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "북마크"
 
@@ -712,7 +713,7 @@ msgstr "계정을 더 불러오지 못했습니다. 클릭하여 다시 시도"
 msgid "Failed to load more articles; click to retry"
 msgstr "게시글 불러오기 실패. 클릭하여 재시도하세요"
 
-#: src/components/Bookmarks.tsx:105
+#: src/components/Bookmarks.tsx:121
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "북마크 불러오기 실패. 클릭하여 재시도하세요"
 
@@ -901,7 +902,7 @@ msgstr "서식"
 msgid "GitHub repository"
 msgstr "GitHub 저장소"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:115
+#: src/routes/(root)/[handle]/bookmarks.tsx:117
 #: src/routes/(root)/[handle]/drafts/[id].tsx:65
 #: src/routes/(root)/[handle]/drafts/index.tsx:228
 #: src/routes/(root)/[handle]/drafts/new.tsx:81
@@ -916,7 +917,7 @@ msgstr "홈으로 가기"
 msgid "Go to Drafts"
 msgstr "임시 보관으로"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:121
+#: src/routes/(root)/[handle]/bookmarks.tsx:123
 msgid "Go to my bookmarks"
 msgstr "내 북마크로"
 
@@ -1155,7 +1156,7 @@ msgstr "계정 더 불러오기"
 msgid "Load more articles"
 msgstr "게시글 더 불러오기"
 
-#: src/components/Bookmarks.tsx:108
+#: src/components/Bookmarks.tsx:124
 msgid "Load more bookmarks"
 msgstr "북마크 더 불러오기"
 
@@ -1203,7 +1204,7 @@ msgstr "계정을 더 불러오는 중…"
 msgid "Loading more articles…"
 msgstr "게시글 불러오는 중…"
 
-#: src/components/Bookmarks.tsx:102
+#: src/components/Bookmarks.tsx:118
 msgid "Loading more bookmarks…"
 msgstr "북마크 불러오는 중…"
 
@@ -1325,7 +1326,7 @@ msgstr "사용된 적 없음"
 msgid "New article"
 msgstr "새 게시글"
 
-#: src/components/Bookmarks.tsx:115
+#: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "아직 북마크가 없습니다"
 
@@ -1406,7 +1407,7 @@ msgid "Note that you can verify your links belong to you by making the linked pa
 msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링크한 페이지에서도 {0} 속성을 사용해 당신의 Hackers' Pub 프로필로 링크를 걸어 주세요."
 
 #: src/components/ProfileTabs.tsx:44
-#: src/routes/(root)/[handle]/bookmarks.tsx:143
+#: src/routes/(root)/[handle]/bookmarks.tsx:146
 msgid "Notes"
 msgstr "단문"
 
@@ -1466,8 +1467,8 @@ msgstr "패스키 취소됨"
 msgid "Passkeys"
 msgstr "패스키"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:105
-#: src/routes/(root)/[handle]/bookmarks.tsx:108
+#: src/routes/(root)/[handle]/bookmarks.tsx:107
+#: src/routes/(root)/[handle]/bookmarks.tsx:110
 #: src/routes/(root)/[handle]/drafts/[id].tsx:56
 #: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:216
@@ -2270,7 +2271,7 @@ msgstr "자신의 계정에 대한 임시 보관만 만들 수 있습니다"
 msgid "You can only edit your own drafts"
 msgstr "자신의 임시 보관만 수정할 수 있습니다"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:110
+#: src/routes/(root)/[handle]/bookmarks.tsx:112
 msgid "You can only view your own bookmarks"
 msgstr "자신의 북마크만 볼 수 있습니다"
 

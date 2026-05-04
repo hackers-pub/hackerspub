@@ -131,6 +131,7 @@ export default function BookmarksPage() {
               }
             >
               <NarrowContainer>
+                <Title>{t`Bookmarks`}</Title>
                 <Tabs
                   value={activeType()}
                   onChange={(value) =>

@@ -238,7 +238,7 @@ msgstr "{0}を追加"
 msgid "Admin"
 msgstr "管理"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:141
+#: src/routes/(root)/[handle]/bookmarks.tsx:144
 msgid "All"
 msgstr "すべて"
 
@@ -320,7 +320,7 @@ msgid "article-url-slug"
 msgstr "記事URLスラッグ"
 
 #: src/components/ProfileTabs.tsx:51
-#: src/routes/(root)/[handle]/bookmarks.tsx:142
+#: src/routes/(root)/[handle]/bookmarks.tsx:145
 msgid "Articles"
 msgstr "記事"
 
@@ -369,6 +369,7 @@ msgid "Bookmark"
 msgstr "ブックマーク"
 
 #: src/components/AppSidebar.tsx:347
+#: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "ブックマーク"
 
@@ -712,7 +713,7 @@ msgstr "アカウントの追加読み込みに失敗しました。クリック
 msgid "Failed to load more articles; click to retry"
 msgstr "記事の読み込みに失敗しました。クリックして再試行してください"
 
-#: src/components/Bookmarks.tsx:105
+#: src/components/Bookmarks.tsx:121
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "ブックマークの読み込みに失敗しました。クリックして再試行してください"
 
@@ -901,7 +902,7 @@ msgstr "書式設定"
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:115
+#: src/routes/(root)/[handle]/bookmarks.tsx:117
 #: src/routes/(root)/[handle]/drafts/[id].tsx:65
 #: src/routes/(root)/[handle]/drafts/index.tsx:228
 #: src/routes/(root)/[handle]/drafts/new.tsx:81
@@ -916,7 +917,7 @@ msgstr "ホームに戻る"
 msgid "Go to Drafts"
 msgstr "下書きへ"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:121
+#: src/routes/(root)/[handle]/bookmarks.tsx:123
 msgid "Go to my bookmarks"
 msgstr "マイブックマークへ"
 
@@ -1155,7 +1156,7 @@ msgstr "さらにアカウントを読み込む"
 msgid "Load more articles"
 msgstr "記事をもっと読み込む"
 
-#: src/components/Bookmarks.tsx:108
+#: src/components/Bookmarks.tsx:124
 msgid "Load more bookmarks"
 msgstr "ブックマークをもっと読み込む"
 
@@ -1203,7 +1204,7 @@ msgstr "アカウントを追加で読み込み中…"
 msgid "Loading more articles…"
 msgstr "記事を読み込み中…"
 
-#: src/components/Bookmarks.tsx:102
+#: src/components/Bookmarks.tsx:118
 msgid "Loading more bookmarks…"
 msgstr "ブックマークを読み込み中…"
 
@@ -1325,7 +1326,7 @@ msgstr "使用履歴なし"
 msgid "New article"
 msgstr "新しい記事"
 
-#: src/components/Bookmarks.tsx:115
+#: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "ブックマークはまだありません"
 
@@ -1406,7 +1407,7 @@ msgid "Note that you can verify your links belong to you by making the linked pa
 msgstr "リンクが実際にあなたのものであることを認証できます。リンク先のページでも{0}属性を使用してあなたのHackers' Pubプロフィールへリンクしてください。"
 
 #: src/components/ProfileTabs.tsx:44
-#: src/routes/(root)/[handle]/bookmarks.tsx:143
+#: src/routes/(root)/[handle]/bookmarks.tsx:146
 msgid "Notes"
 msgstr "投稿"
 
@@ -1466,8 +1467,8 @@ msgstr "パスキーを取り消しました"
 msgid "Passkeys"
 msgstr "パスキー"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:105
-#: src/routes/(root)/[handle]/bookmarks.tsx:108
+#: src/routes/(root)/[handle]/bookmarks.tsx:107
+#: src/routes/(root)/[handle]/bookmarks.tsx:110
 #: src/routes/(root)/[handle]/drafts/[id].tsx:56
 #: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:216
@@ -2270,7 +2271,7 @@ msgstr "自分のアカウントの下書きのみ作成できます"
 msgid "You can only edit your own drafts"
 msgstr "自分の下書きのみ編集できます"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:110
+#: src/routes/(root)/[handle]/bookmarks.tsx:112
 msgid "You can only view your own bookmarks"
 msgstr "自分のブックマークのみ表示できます"
 

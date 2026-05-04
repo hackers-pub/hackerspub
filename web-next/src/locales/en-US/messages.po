@@ -238,7 +238,7 @@ msgstr "Add {0}"
 msgid "Admin"
 msgstr "Admin"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:141
+#: src/routes/(root)/[handle]/bookmarks.tsx:144
 msgid "All"
 msgstr "All"
 
@@ -320,7 +320,7 @@ msgid "article-url-slug"
 msgstr "article-url-slug"
 
 #: src/components/ProfileTabs.tsx:51
-#: src/routes/(root)/[handle]/bookmarks.tsx:142
+#: src/routes/(root)/[handle]/bookmarks.tsx:145
 msgid "Articles"
 msgstr "Articles"
 
@@ -369,6 +369,7 @@ msgid "Bookmark"
 msgstr "Bookmark"
 
 #: src/components/AppSidebar.tsx:347
+#: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "Bookmarks"
 
@@ -716,7 +717,7 @@ msgstr "Failed to load more accounts; click to retry"
 msgid "Failed to load more articles; click to retry"
 msgstr "Failed to load more articles; click to retry"
 
-#: src/components/Bookmarks.tsx:105
+#: src/components/Bookmarks.tsx:121
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "Failed to load more bookmarks; click to retry"
 
@@ -905,7 +906,7 @@ msgstr "Formatting"
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:115
+#: src/routes/(root)/[handle]/bookmarks.tsx:117
 #: src/routes/(root)/[handle]/drafts/[id].tsx:65
 #: src/routes/(root)/[handle]/drafts/index.tsx:228
 #: src/routes/(root)/[handle]/drafts/new.tsx:81
@@ -920,7 +921,7 @@ msgstr "Go home"
 msgid "Go to Drafts"
 msgstr "Go to Drafts"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:121
+#: src/routes/(root)/[handle]/bookmarks.tsx:123
 msgid "Go to my bookmarks"
 msgstr "Go to my bookmarks"
 
@@ -1159,7 +1160,7 @@ msgstr "Load more accounts"
 msgid "Load more articles"
 msgstr "Load more articles"
 
-#: src/components/Bookmarks.tsx:108
+#: src/components/Bookmarks.tsx:124
 msgid "Load more bookmarks"
 msgstr "Load more bookmarks"
 
@@ -1207,7 +1208,7 @@ msgstr "Loading more accounts…"
 msgid "Loading more articles…"
 msgstr "Loading more articles…"
 
-#: src/components/Bookmarks.tsx:102
+#: src/components/Bookmarks.tsx:118
 msgid "Loading more bookmarks…"
 msgstr "Loading more bookmarks…"
 
@@ -1329,7 +1330,7 @@ msgstr "Never used"
 msgid "New article"
 msgstr "New article"
 
-#: src/components/Bookmarks.tsx:115
+#: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "No bookmarks yet"
 
@@ -1410,7 +1411,7 @@ msgid "Note that you can verify your links belong to you by making the linked pa
 msgstr "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 
 #: src/components/ProfileTabs.tsx:44
-#: src/routes/(root)/[handle]/bookmarks.tsx:143
+#: src/routes/(root)/[handle]/bookmarks.tsx:146
 msgid "Notes"
 msgstr "Notes"
 
@@ -1471,8 +1472,8 @@ msgstr "Passkey revoked"
 msgid "Passkeys"
 msgstr "Passkeys"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:105
-#: src/routes/(root)/[handle]/bookmarks.tsx:108
+#: src/routes/(root)/[handle]/bookmarks.tsx:107
+#: src/routes/(root)/[handle]/bookmarks.tsx:110
 #: src/routes/(root)/[handle]/drafts/[id].tsx:56
 #: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:216
@@ -2275,7 +2276,7 @@ msgstr "You can only create drafts for your own account"
 msgid "You can only edit your own drafts"
 msgstr "You can only edit your own drafts"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:110
+#: src/routes/(root)/[handle]/bookmarks.tsx:112
 msgid "You can only view your own bookmarks"
 msgstr "You can only view your own bookmarks"
 

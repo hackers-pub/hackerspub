@@ -238,7 +238,7 @@ msgstr "新增{0}"
 msgid "Admin"
 msgstr "管理"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:141
+#: src/routes/(root)/[handle]/bookmarks.tsx:144
 msgid "All"
 msgstr "全部"
 
@@ -320,7 +320,7 @@ msgid "article-url-slug"
 msgstr "文章網址別名"
 
 #: src/components/ProfileTabs.tsx:51
-#: src/routes/(root)/[handle]/bookmarks.tsx:142
+#: src/routes/(root)/[handle]/bookmarks.tsx:145
 msgid "Articles"
 msgstr "文章"
 
@@ -369,6 +369,7 @@ msgid "Bookmark"
 msgstr "收藏"
 
 #: src/components/AppSidebar.tsx:347
+#: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "收藏"
 
@@ -712,7 +713,7 @@ msgstr "無法載入更多帳號；點擊以重試"
 msgid "Failed to load more articles; click to retry"
 msgstr "載入更多文章失敗，點擊重試"
 
-#: src/components/Bookmarks.tsx:105
+#: src/components/Bookmarks.tsx:121
 msgid "Failed to load more bookmarks; click to retry"
 msgstr "載入更多收藏失敗，點擊重試"
 
@@ -901,7 +902,7 @@ msgstr "格式"
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:115
+#: src/routes/(root)/[handle]/bookmarks.tsx:117
 #: src/routes/(root)/[handle]/drafts/[id].tsx:65
 #: src/routes/(root)/[handle]/drafts/index.tsx:228
 #: src/routes/(root)/[handle]/drafts/new.tsx:81
@@ -916,7 +917,7 @@ msgstr "返回首頁"
 msgid "Go to Drafts"
 msgstr "前往草稿"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:121
+#: src/routes/(root)/[handle]/bookmarks.tsx:123
 msgid "Go to my bookmarks"
 msgstr "前往我的收藏"
 
@@ -1155,7 +1156,7 @@ msgstr "載入更多帳號"
 msgid "Load more articles"
 msgstr "載入更多文章"
 
-#: src/components/Bookmarks.tsx:108
+#: src/components/Bookmarks.tsx:124
 msgid "Load more bookmarks"
 msgstr "載入更多收藏"
 
@@ -1203,7 +1204,7 @@ msgstr "正在載入更多帳號…"
 msgid "Loading more articles…"
 msgstr "載入更多文章中…"
 
-#: src/components/Bookmarks.tsx:102
+#: src/components/Bookmarks.tsx:118
 msgid "Loading more bookmarks…"
 msgstr "載入更多收藏中…"
 
@@ -1325,7 +1326,7 @@ msgstr "從未使用過"
 msgid "New article"
 msgstr "新建文章"
 
-#: src/components/Bookmarks.tsx:115
+#: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "暫無收藏"
 
@@ -1406,7 +1407,7 @@ msgid "Note that you can verify your links belong to you by making the linked pa
 msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用 {0} 屬性連結回你的 Hackers' Pub 個人資料頁。"
 
 #: src/components/ProfileTabs.tsx:44
-#: src/routes/(root)/[handle]/bookmarks.tsx:143
+#: src/routes/(root)/[handle]/bookmarks.tsx:146
 msgid "Notes"
 msgstr "貼文"
 
@@ -1466,8 +1467,8 @@ msgstr "通行金鑰已撤銷"
 msgid "Passkeys"
 msgstr "通行金鑰"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:105
-#: src/routes/(root)/[handle]/bookmarks.tsx:108
+#: src/routes/(root)/[handle]/bookmarks.tsx:107
+#: src/routes/(root)/[handle]/bookmarks.tsx:110
 #: src/routes/(root)/[handle]/drafts/[id].tsx:56
 #: src/routes/(root)/[handle]/drafts/[id].tsx:57
 #: src/routes/(root)/[handle]/drafts/index.tsx:216
@@ -2270,7 +2271,7 @@ msgstr "您只能為自己的帳戶建立草稿"
 msgid "You can only edit your own drafts"
 msgstr "您只能編輯自己的草稿"
 
-#: src/routes/(root)/[handle]/bookmarks.tsx:110
+#: src/routes/(root)/[handle]/bookmarks.tsx:112
 msgid "You can only view your own bookmarks"
 msgstr "您只能檢視自己的收藏"
 
