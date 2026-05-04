@@ -819,53 +819,76 @@ export async function restartArticleContentTranslations(
   articleSource: ArticleSource,
 ): Promise<void> {
   const { db } = fedCtx.data;
-  const original = await getOriginalArticleContent(db, articleSource);
-  if (original == null) {
+  // Serialize the read-original-then-reset-translations sequence
+  // against any other writer to this article's source row.  Two
+  // concurrent restartArticleContentTranslations calls (driven by
+  // back-to-back edits to the same article) would otherwise read
+  // their own snapshot of the original and then overwrite each
+  // other's placeholder writes, leaving the translation rows
+  // pointing at whichever snapshot's UPDATE happened to land last.
+  // `SELECT … FOR UPDATE` on the article_source row holds the same
+  // row-level write lock that updateArticleSource takes during its
+  // own UPDATE, so concurrent edits and restarts queue up cleanly.
+  // The translate() calls themselves run after the transaction
+  // commits so the LLM round-trip doesn't extend the lock window.
+  const resetRows = await db.transaction(async (tx) => {
+    await tx.execute(sql`
+      SELECT 1 FROM ${articleSourceTable}
+      WHERE ${articleSourceTable.id} = ${articleSource.id}
+      FOR UPDATE
+    `);
+    const original = await getOriginalArticleContent(tx, articleSource);
+    if (original == null) {
+      logger.debug(
+        "No original-language content for {sourceId}; nothing to retranslate.",
+        { sourceId: articleSource.id },
+      );
+      return [];
+    }
+    const translations = await tx.query.articleContentTable.findMany({
+      where: {
+        sourceId: articleSource.id,
+        originalLanguage: { isNotNull: true },
+      },
+    });
+    if (translations.length === 0) return [];
     logger.debug(
-      "No original-language content for {sourceId}; nothing to retranslate.",
-      { sourceId: articleSource.id },
+      "Restarting {count} translation(s) for {sourceId}.",
+      { count: translations.length, sourceId: articleSource.id },
     );
-    return;
-  }
-  const translations = await db.query.articleContentTable.findMany({
-    where: {
-      sourceId: articleSource.id,
-      originalLanguage: { isNotNull: true },
-    },
+    const reset: ArticleContent[] = [];
+    for (const translation of translations) {
+      // Reset the row to placeholder state mirroring the shape an
+      // initial `startArticleContentTranslation` would have produced.
+      // Keep `originalLanguage` and `translationRequesterId` as-is so
+      // the row's audit trail (who first asked for this translation)
+      // is preserved.  The schema check
+      // `article_content_being_translated_check` requires
+      // `originalLanguage IS NOT NULL` whenever `beingTranslated=true`,
+      // which we already satisfy by selecting only rows with
+      // `originalLanguage IS NOT NULL` above.
+      const updated = await tx.update(articleContentTable)
+        .set({
+          title: original.title,
+          content: original.content,
+          beingTranslated: true,
+          summary: null,
+          summaryStarted: null,
+          summaryUnnecessary: false,
+          updated: sql`CURRENT_TIMESTAMP`,
+        })
+        .where(
+          and(
+            eq(articleContentTable.sourceId, translation.sourceId),
+            eq(articleContentTable.language, translation.language),
+          ),
+        )
+        .returning();
+      if (updated.length > 0) reset.push(updated[0]);
+    }
+    return reset;
   });
-  if (translations.length === 0) return;
-  logger.debug(
-    "Restarting {count} translation(s) for {sourceId}.",
-    { count: translations.length, sourceId: articleSource.id },
-  );
-  for (const translation of translations) {
-    // Reset the row to placeholder state mirroring the shape an
-    // initial `startArticleContentTranslation` would have produced.
-    // Keep `originalLanguage` and `translationRequesterId` as-is so
-    // the row's audit trail (who first asked for this translation)
-    // is preserved.  The schema check
-    // `article_content_being_translated_check` requires
-    // `originalLanguage IS NOT NULL` whenever `beingTranslated=true`,
-    // which we already satisfy by selecting only rows with
-    // `originalLanguage IS NOT NULL` above.
-    const reset = await db.update(articleContentTable)
-      .set({
-        title: original.title,
-        content: original.content,
-        beingTranslated: true,
-        summary: null,
-        summaryStarted: null,
-        summaryUnnecessary: false,
-        updated: sql`CURRENT_TIMESTAMP`,
-      })
-      .where(
-        and(
-          eq(articleContentTable.sourceId, translation.sourceId),
-          eq(articleContentTable.language, translation.language),
-        ),
-      )
-      .returning();
-    if (reset.length < 1) continue;
+  for (const resetRow of resetRows) {
     // Fire-and-forget: `runArticleContentTranslation` schedules the
     // `translate()` chain on its own and the caller does not await
     // the model call.  Each translation runs concurrently.
@@ -874,7 +897,6 @@ export async function restartArticleContentTranslations(
     // fetch) can itself throw on a transient DB error; without it
     // those rejections would surface as unhandled promise
     // rejections.
-    const resetRow = reset[0];
     runArticleContentTranslation(fedCtx, resetRow).catch((error) => {
       logger.error(
         "Failed to start retranslation for {sourceId} {language}: {error}",
