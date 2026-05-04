@@ -806,14 +806,32 @@ export async function startArticleContentTranslation(
       return translated!;
     }
     // The placeholder is stale (older than 30 min, presumably from
-    // a crashed previous run).  Re-stamp it with a fresh JS Date
-    // before handing off to the helper so the helper's claim CAS
-    // has a value it can match — without this, the CAS would be
-    // comparing against the row's possibly-µs-precision DB
-    // timestamp via a ms-truncated round-trip and never hit.
+    // a crashed previous run).  Refresh it before handing off to
+    // the helper:
+    //
+    // - Re-stamp `updated` with a fresh JS Date so the helper's
+    //   claim CAS has a value it can match (without this, the CAS
+    //   would be comparing against the row's possibly-µs-precision
+    //   DB timestamp via a ms-truncated round-trip and never hit).
+    // - Copy the caller-provided original title/content into the
+    //   placeholder.  The helper translates from `claimed.title` /
+    //   `claimed.content`, so without this refresh a placeholder
+    //   stuck since before a body edit would be retranslated from
+    //   the OLD body and publish a translation that no longer
+    //   matches the article.  Clear the matching summary / OG
+    //   image state for the same reason.
     const reclaim = new Date();
     const reclaimed = await db.update(articleContentTable)
-      .set({ updated: reclaim })
+      .set({
+        updated: reclaim,
+        title: content.title,
+        content: content.content,
+        originalLanguage: content.language,
+        summary: null,
+        summaryStarted: null,
+        summaryUnnecessary: false,
+        ogImageKey: null,
+      })
       .where(
         and(
           eq(articleContentTable.sourceId, content.sourceId),
