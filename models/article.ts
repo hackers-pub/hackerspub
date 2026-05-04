@@ -1117,9 +1117,14 @@ async function runArticleContentTranslation(
   // Combine title and content for translation, using the freshest
   // values read back from the claim above.
   const text = `# ${claimed.title}\n\n${claimed.content}`;
+  // `claimed.originalLanguage` is non-null in practice: the claim
+  // WHERE required `beingTranslated=true`, and the schema check
+  // `article_content_being_translated_check` makes that imply
+  // `originalLanguage IS NOT NULL`.  Drizzle types it as nullable
+  // because the column is nullable in general, so assert.
   translate({
     model,
-    sourceLanguage: claimed.originalLanguage ?? originalLanguage,
+    sourceLanguage: claimed.originalLanguage!,
     targetLanguage,
     text,
     // Pass context for better translation quality.
