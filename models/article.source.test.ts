@@ -107,7 +107,7 @@ test("getOriginalArticleContent() picks the earliest non-translation content", (
   assert.deepEqual(selected, original);
 });
 
-test("updateArticleSource() updates the original content and preserves translations", async () => {
+test("updateArticleSource() flags originalContentChanged when the body changes and preserves existing translation rows in place", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
       username: "updatearticlesource",
@@ -149,29 +149,86 @@ test("updateArticleSource() updates the original content and preserves translati
       },
     ]);
 
-    const updated = await updateArticleSource(tx, sourceId, {
+    const result = await updateArticleSource(tx, sourceId, {
       title: "Updated title",
       content: "Updated content",
       slug: "updated-source",
     });
 
-    assert.ok(updated != null);
-    assert.equal(updated.slug, "updated-source");
-    assert.equal(updated.contents.length, 2);
+    assert.ok(result != null);
+    assert.equal(result.originalContentChanged, true);
+    assert.equal(result.source.slug, "updated-source");
+    assert.equal(result.source.contents.length, 2);
 
-    const originalContent = updated.contents.find((content) =>
+    const originalContent = result.source.contents.find((content) =>
       content.originalLanguage == null
     );
-    const translatedContent = updated.contents.find((content) =>
+    const translatedContent = result.source.contents.find((content) =>
       content.originalLanguage === "en"
     );
 
     assert.ok(originalContent != null);
     assert.equal(originalContent.title, "Updated title");
     assert.equal(originalContent.content, "Updated content");
+    // updateArticleSource itself does not touch translation rows; the
+    // retranslation step (restartArticleContentTranslations) lives in
+    // updateArticle so it has access to fedCtx for the federation
+    // Update side effects.  Here we only check that the existing
+    // translation row passes through unchanged and that the
+    // originalContentChanged signal is set so an outer caller can
+    // decide to invalidate it.
     assert.ok(translatedContent != null);
     assert.equal(translatedContent.title, "Translated title");
     assert.equal(translatedContent.content, "Translated content");
+    assert.equal(translatedContent.beingTranslated, false);
+  });
+});
+
+test("updateArticleSource() does not flag originalContentChanged on title-only edits", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "updatearticlesourcetitle",
+      name: "Title Only Edit",
+      email: "updatearticlesourcetitle@example.com",
+    });
+    const sourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+
+    await tx.insert(articleSourceTable).values({
+      id: sourceId,
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "title-only-edit",
+      tags: [],
+      allowLlmTranslation: false,
+      published,
+      updated: published,
+    });
+    await tx.insert(articleContentTable).values({
+      sourceId,
+      language: "en",
+      title: "Original title",
+      content: "Original content",
+      published,
+      updated: published,
+    });
+
+    const result = await updateArticleSource(tx, sourceId, {
+      title: "Renamed",
+    });
+
+    assert.ok(result != null);
+    // Title-only edits don't trigger retranslation, mirroring the
+    // existing summary-invalidation gate in updateArticleSource: the
+    // body is unchanged, so existing translations would still be
+    // accurate.
+    assert.equal(result.originalContentChanged, false);
+    const originalContent = result.source.contents.find((c) =>
+      c.originalLanguage == null
+    );
+    assert.ok(originalContent != null);
+    assert.equal(originalContent.title, "Renamed");
+    assert.equal(originalContent.content, "Original content");
   });
 });
 

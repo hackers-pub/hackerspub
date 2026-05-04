@@ -300,6 +300,28 @@ export async function createArticle(
   return post;
 }
 
+export interface UpdateArticleSourceResult {
+  source: ArticleSource & { contents: ArticleContent[] };
+  /**
+   * `true` when the original-language `article_content` row's body
+   * actually changed during this update.  The caller uses this to
+   * decide whether to invalidate existing translation rows.
+   *
+   * Title-only edits do not set this flag, matching the existing
+   * summary-invalidation gate below.
+   *
+   * Language changes never reach this branch when translations exist:
+   * the self-FK on `article_content` (`schema.ts:524-527`) is
+   * `ON DELETE CASCADE` only, so any `UPDATE … SET language = …` on
+   * the original row aborts with 23503 (rethrown as
+   * {@link LanguageChangeWithTranslationsError}) whenever a row's
+   * `originalLanguage` references the old language.  A successful
+   * `languageChanged` therefore implies zero translations and there
+   * is nothing to retranslate.
+   */
+  originalContentChanged: boolean;
+}
+
 export async function updateArticleSource(
   db: Database,
   id: Uuid,
@@ -309,11 +331,12 @@ export async function updateArticleSource(
     language?: string;
   },
   models?: Models,
-): Promise<ArticleSource & { contents: ArticleContent[] } | undefined> {
+): Promise<UpdateArticleSourceResult | undefined> {
   // Captured inside the transaction and used after it commits so we
   // can enqueue a fresh summarization for the row whose body or
   // language just changed.
   let resummarizeTarget: ArticleContent | undefined;
+  let originalContentChanged = false;
   const result = await db.transaction(async (tx) => {
     const sources = await tx.update(articleSourceTable)
       .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
@@ -371,6 +394,9 @@ export async function updateArticleSource(
         ) {
           resummarizeTarget = updatedRows[0];
         }
+        if (contentChanged && updatedRows.length > 0) {
+          originalContentChanged = true;
+        }
       } catch (error) {
         if (
           error instanceof postgres.PostgresError && error.code === "23503"
@@ -386,13 +412,14 @@ export async function updateArticleSource(
     });
     return { ...sources[0], contents };
   });
+  if (result == null) return undefined;
   // Queue a fresh summarization outside of the transaction so the
   // claim is visible to other workers as soon as it is acquired and
   // the deferred apply step does not try to use a closed transaction.
   if (resummarizeTarget != null && models != null) {
     await startArticleContentSummary(db, models.summarizer, resummarizeTarget);
   }
-  return result;
+  return { source: result, originalContentChanged };
 }
 
 export async function updateArticle(
@@ -418,13 +445,14 @@ export async function updateArticle(
   const previousPost = await db.query.postTable.findFirst({
     where: { articleSourceId },
   });
-  const articleSource = await updateArticleSource(
+  const updateResult = await updateArticleSource(
     db,
     articleSourceId,
     source,
     models,
   );
-  if (articleSource == null) return undefined;
+  if (updateResult == null) return undefined;
+  const { source: articleSource, originalContentChanged } = updateResult;
   const account = await db.query.accountTable.findFirst({
     where: { id: articleSource.accountId },
     with: { emails: true, links: true },
@@ -476,6 +504,17 @@ export async function updateArticle(
     post.relayedTags = [...relayedTags];
   }
   // TODO: send Update(Article) to the mentioned actors too
+  // After federating the original-language Update, invalidate any
+  // existing translation rows so they retranslate against the new
+  // body.  Each restarted translation will fire its own Update on
+  // completion (correct ActivityPub semantics — peers see the
+  // original change first, then each translation's refresh as it
+  // becomes available).  We `await` the synchronous claim-and-reset
+  // step so the placeholders are visible by the time this function
+  // returns; the actual `translate()` calls run in the background.
+  if (originalContentChanged) {
+    await restartArticleContentTranslations(fedCtx, articleSource);
+  }
   return post;
 }
 
@@ -754,6 +793,84 @@ export async function startArticleContentTranslation(
   }
   await runArticleContentTranslation(fedCtx, queued);
   return queued;
+}
+
+/**
+ * Invalidates and re-runs every existing translation row for an
+ * article whose original-language body has changed.  For each
+ * translation row, atomically resets it to placeholder state
+ * (copying the new original title/content into it, flipping
+ * `beingTranslated` back to true, and clearing summary state), then
+ * fires {@link runArticleContentTranslation} against the freshly
+ * reset row to repopulate it from the model.  The actual translation
+ * runs in the background; the synchronous claim-and-reset is
+ * awaited so callers can rely on placeholders being in place by
+ * return time.
+ *
+ * No-ops when the article has no original-language content (e.g.,
+ * remote articles with no `articleSource.contents` row in the
+ * article's own language) or no translation rows at all.
+ *
+ * Used by {@link updateArticle} to satisfy
+ * <https://github.com/hackers-pub/hackerspub/issues/95>.
+ */
+export async function restartArticleContentTranslations(
+  fedCtx: Context<ContextData>,
+  articleSource: ArticleSource,
+): Promise<void> {
+  const { db } = fedCtx.data;
+  const original = await getOriginalArticleContent(db, articleSource);
+  if (original == null) {
+    logger.debug(
+      "No original-language content for {sourceId}; nothing to retranslate.",
+      { sourceId: articleSource.id },
+    );
+    return;
+  }
+  const translations = await db.query.articleContentTable.findMany({
+    where: {
+      sourceId: articleSource.id,
+      originalLanguage: { isNotNull: true },
+    },
+  });
+  if (translations.length === 0) return;
+  logger.debug(
+    "Restarting {count} translation(s) for {sourceId}.",
+    { count: translations.length, sourceId: articleSource.id },
+  );
+  for (const translation of translations) {
+    // Reset the row to placeholder state mirroring the shape an
+    // initial `startArticleContentTranslation` would have produced.
+    // Keep `originalLanguage` and `translationRequesterId` as-is so
+    // the row's audit trail (who first asked for this translation)
+    // is preserved.  The schema check
+    // `article_content_being_translated_check` requires
+    // `originalLanguage IS NOT NULL` whenever `beingTranslated=true`,
+    // which we already satisfy by selecting only rows with
+    // `originalLanguage IS NOT NULL` above.
+    const reset = await db.update(articleContentTable)
+      .set({
+        title: original.title,
+        content: original.content,
+        beingTranslated: true,
+        summary: null,
+        summaryStarted: null,
+        summaryUnnecessary: false,
+        updated: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(
+        and(
+          eq(articleContentTable.sourceId, translation.sourceId),
+          eq(articleContentTable.language, translation.language),
+        ),
+      )
+      .returning();
+    if (reset.length < 1) continue;
+    // Fire-and-forget: `runArticleContentTranslation` schedules the
+    // `translate()` chain on its own and the caller does not await
+    // the model call.  Each translation runs concurrently.
+    void runArticleContentTranslation(fedCtx, reset[0]);
+  }
 }
 
 /**

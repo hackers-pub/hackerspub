@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createArticle, updateArticle } from "./article.ts";
+import { articleContentTable } from "./schema.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -11,6 +12,17 @@ const fakeModels = {
   summarizer: {} as never,
   translator: {} as never,
 };
+
+async function waitFor(predicate: () => Promise<boolean>, timeoutMs = 10000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await predicate()) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error(
+    `Timed out waiting for async background state after ${timeoutMs}ms`,
+  );
+}
 
 test("createArticle() creates a post and timeline entry for the author", async () => {
   await withRollback(async (tx) => {
@@ -98,5 +110,128 @@ test("updateArticle() rewrites the persisted article post", async () => {
     assert.equal(storedPost.articleSourceId, article.articleSource.id);
     assert.equal(storedPost.name, "Updated article");
     assert.match(storedPost.contentHtml, /<strong>body<\/strong>/);
+  });
+});
+
+test("updateArticle() resets existing translation rows when the body changes", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "retranslateauthor",
+      name: "Retranslate Author",
+      email: "retranslateauthor@example.com",
+    });
+    const requester = await insertAccountWithActor(tx, {
+      username: "retranslaterequester",
+      name: "Retranslate Requester",
+      email: "retranslaterequester@example.com",
+    });
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "retranslate-article",
+      tags: [],
+      allowLlmTranslation: true,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Original article",
+      content: "Original body",
+      language: "en",
+    });
+    assert.ok(article != null);
+    // Pre-existing completed translation row that the edit should
+    // invalidate.
+    await tx.insert(articleContentTable).values({
+      sourceId: article.articleSource.id,
+      language: "ko",
+      title: "Old translated title",
+      content: "Old translated body",
+      summary: "Old summary.",
+      originalLanguage: "en",
+      translationRequesterId: requester.account.id,
+      beingTranslated: false,
+      published: new Date("2026-04-15T01:00:00.000Z"),
+      updated: new Date("2026-04-15T01:00:00.000Z"),
+    });
+
+    const updated = await updateArticle(fedCtx, article.articleSource.id, {
+      content: "Edited body",
+    });
+    assert.ok(updated != null);
+
+    // The retranslation runs in the background.  The placeholder
+    // reset is awaited synchronously, then the failing stub
+    // translator deletes the row via the failure-cleanup branch.
+    // Either observable is acceptable.
+    await waitFor(async () => {
+      const ko = await tx.query.articleContentTable.findFirst({
+        where: { sourceId: article.articleSource.id, language: "ko" },
+      });
+      if (ko == null) return true;
+      return ko.beingTranslated === true &&
+        ko.title === "Original article" &&
+        ko.content === "Edited body" &&
+        ko.summary === null;
+    });
+  });
+});
+
+test("updateArticle() leaves existing translations alone on title-only edits", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "retranslatetitleauthor",
+      name: "Retranslate Title Author",
+      email: "retranslatetitleauthor@example.com",
+    });
+    const requester = await insertAccountWithActor(tx, {
+      username: "retranslatetitlerequester",
+      name: "Retranslate Title Requester",
+      email: "retranslatetitlerequester@example.com",
+    });
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "retranslate-title-article",
+      tags: [],
+      allowLlmTranslation: true,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Original article",
+      content: "Original body",
+      language: "en",
+    });
+    assert.ok(article != null);
+    await tx.insert(articleContentTable).values({
+      sourceId: article.articleSource.id,
+      language: "ko",
+      title: "Existing translated title",
+      content: "Existing translated body",
+      summary: "Existing summary.",
+      originalLanguage: "en",
+      translationRequesterId: requester.account.id,
+      beingTranslated: false,
+      published: new Date("2026-04-15T01:00:00.000Z"),
+      updated: new Date("2026-04-15T01:00:00.000Z"),
+    });
+
+    const updated = await updateArticle(fedCtx, article.articleSource.id, {
+      title: "Renamed only",
+    });
+    assert.ok(updated != null);
+
+    // Title-only edits don't trigger retranslation; the ko row stays
+    // exactly as it was — no placeholder, no deletion, original
+    // summary preserved.
+    const ko = await tx.query.articleContentTable.findFirst({
+      where: { sourceId: article.articleSource.id, language: "ko" },
+    });
+    assert.ok(ko != null);
+    assert.equal(ko.beingTranslated, false);
+    assert.equal(ko.title, "Existing translated title");
+    assert.equal(ko.content, "Existing translated body");
+    assert.equal(ko.summary, "Existing summary.");
   });
 });
