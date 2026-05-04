@@ -13,11 +13,16 @@ test("splitTranslationTitleAndContent() splits clean # Title + body", () => {
   );
 });
 
-test("splitTranslationTitleAndContent() drops preamble before the H1", () => {
-  // The translator is prompted with `# Title\n\nbody`, so any text
-  // before the matching H1 in the output is model commentary
-  // (apologies, hedging, "translator's note" preambles, etc.) and
-  // shouldn't end up in the persisted body.
+test("splitTranslationTitleAndContent() keeps preamble as the title rather than scanning deeper for an H1", () => {
+  // The previous implementation took the first H1 anywhere in the
+  // output, which handled this preamble case nicely but at the
+  // cost of silently truncating content when the model omitted
+  // the article-title H1 entirely and the body happened to
+  // contain its own H1 section heading.  We deliberately accept
+  // an uglier title here in exchange for never dropping body
+  // content; the preamble stays visible (as the title) instead
+  // of disappearing onto the floor, and the body keeps its `# `
+  // framing intact.
   const { title, content } = splitTranslationTitleAndContent(
     "Note: I have preserved technical terms in their original form.\n" +
       "\n" +
@@ -25,15 +30,17 @@ test("splitTranslationTitleAndContent() drops preamble before the H1", () => {
       "\n" +
       "Translated body.",
   );
-  assert.equal(title, "Translated title");
-  assert.equal(content, "Translated body.");
+  assert.equal(
+    title,
+    "Note: I have preserved technical terms in their original form.",
+  );
+  assert.equal(content, "# Translated title\n\nTranslated body.");
 });
 
-test("splitTranslationTitleAndContent() falls back to first non-empty line when no H1", () => {
-  // Some models occasionally drop the H1 framing entirely.  Without
-  // a fallback the old strict-regex parser left `title=""` and put
-  // the entire output into `content`, which renders as a
-  // titleless article in the UI.
+test("splitTranslationTitleAndContent() uses the first line as the title when there is no H1 marker", () => {
+  // Some models occasionally drop the H1 framing entirely.  The
+  // first line stands in as the title so the article isn't
+  // persisted titleless.
   const { title, content } = splitTranslationTitleAndContent(
     "\n" +
       "Translated title\n" +
@@ -48,19 +55,14 @@ test("splitTranslationTitleAndContent() falls back to first non-empty line when 
   );
 });
 
-test("splitTranslationTitleAndContent() ignores ## H2 headings as title candidates", () => {
-  // The regex must only match `# ` (single hash followed by
-  // whitespace), not `## `, so a body whose first line is a
-  // section heading rather than a document title doesn't have its
-  // first H2 mis-promoted to the article title.
+test("splitTranslationTitleAndContent() does not strip a leading ## H2 marker from the first line", () => {
+  // The H1-marker regex only matches `# ` (single hash followed by
+  // whitespace), not `## `, so a first-line H2 is taken verbatim
+  // as the title.  Mis-stripping would have produced a title
+  // starting with `# Section`, which would render very wrong.
   const { title, content } = splitTranslationTitleAndContent(
     "## Section\n\nBody under section.",
   );
-  // No H1 anywhere: fall back to first non-empty line.  The first
-  // non-empty line is the H2, which gets used as the title.  Not
-  // ideal but matches the no-H1 fallback behavior; the caller
-  // upstream of this helper is supposed to prompt with `# Title`
-  // and this is just a defensive tail.
   assert.equal(title, "## Section");
   assert.equal(content, "Body under section.");
 });

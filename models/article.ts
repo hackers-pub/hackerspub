@@ -983,39 +983,40 @@ export async function restartArticleContentTranslations(
  *
  * The translator is prompted with `# {title}\n\n{body}` and is
  * expected to return the same shape with both halves translated.
- * In practice models usually do; when they don't (e.g., they
- * preface the output with a brief commentary line, or drop the H1
- * heading altogether), a strict regex parser leaves `title` empty
- * and stuffs the entire output, including the broken framing,
- * into `content`.  Be more forgiving:
+ * In practice models usually do.  When they don't (e.g., they drop
+ * the H1 framing entirely), the strict behavior here is:
  *
- * - The first H1 line anywhere in the output is taken as the
- *   title.  Any text before it is dropped on the assumption it is
- *   model commentary, since the prompt did not contain anything
- *   before `# Title`.
- * - If the output has no H1 line at all, the first non-empty line
- *   becomes the title and the rest becomes the body.
- * - The H1 detection only matches lines that begin with exactly
- *   `# ` (a single `#` followed by whitespace), so subsequent
- *   `## Section` headings inside the body are not mis-extracted.
+ * - The first line is taken as the title.  If it begins with `# `,
+ *   the marker is stripped; otherwise the whole line becomes the
+ *   title verbatim.
+ * - Everything after the first line becomes the body.
+ *
+ * Scanning deeper for an H1 elsewhere in the output is *not* done
+ * on purpose: it would handle a "model put a preamble before the
+ * # Title" case nicely but at the cost of silently truncating
+ * content if the model omits the article-title H1 and the body
+ * happens to contain its own H1 section heading; that body H1
+ * would be mis-promoted to the title and the intro paragraphs
+ * would be dropped.  Leaving a preamble visible as the title is
+ * the lesser of those two failures.  The H1-marker detection on
+ * the first line is restricted to a single `#` followed by
+ * whitespace, so a first-line `## Section` is not mis-stripped.
  */
 export function splitTranslationTitleAndContent(
   translation: string,
 ): { title: string; content: string } {
   const trimmed = translation.trim();
-  const h1Match = trimmed.match(/(?:^|\n)\s*#\s+([^\n]+)/);
-  if (h1Match != null) {
-    const title = h1Match[1].trim();
-    const matchEnd = trimmed.indexOf(h1Match[0]) + h1Match[0].length;
-    const content = trimmed.slice(matchEnd).trim();
-    return { title, content };
-  }
+  if (trimmed === "") return { title: "", content: "" };
+  // `trimmed` is guaranteed non-empty and starts with a non-
+  // whitespace character, so `lines[0]` is the first non-empty
+  // line as text and there's no need to scan past it.
   const lines = trimmed.split(/\r?\n/);
-  const firstNonEmpty = lines.findIndex((l) => l.trim().length > 0);
-  if (firstNonEmpty < 0) return { title: "", content: "" };
-  const title = lines[firstNonEmpty].trim();
-  const content = lines.slice(firstNonEmpty + 1).join("\n").trim();
-  return { title, content };
+  const firstLine = lines[0].trim();
+  const h1AtStart = firstLine.match(/^#\s+(.+)$/);
+  return {
+    title: (h1AtStart?.[1] ?? firstLine).trim(),
+    content: lines.slice(1).join("\n").trim(),
+  };
 }
 
 /**
