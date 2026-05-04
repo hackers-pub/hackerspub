@@ -97,7 +97,7 @@ export default function BookmarksPage() {
           />
         }
       >
-        <Show when={data()}>
+        <Show when={data.latest}>
           {(data) => (
             <Show
               when={data().viewer?.username === handleUsername()}
