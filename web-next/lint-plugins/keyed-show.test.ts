@@ -250,6 +250,31 @@ Deno.test(
 );
 
 Deno.test(
+  "flags but suppresses autofix on assignment to the param",
+  () => {
+    // Reassigning `value` is unusual but valid; after the assignment the
+    // identifier no longer refers to the keyed value, so the autofix
+    // can't safely rewrite later `value()` calls.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    declare function compute(): unknown;
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      return (
+        <Show when={data()}>
+          {(value) => {
+            value = compute();
+            return <div>{value()}</div>;
+          }}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].fix, []);
+  },
+);
+
+Deno.test(
   "flags but suppresses autofix entirely on static-block shadow",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}

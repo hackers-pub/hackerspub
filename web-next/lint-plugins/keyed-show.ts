@@ -695,6 +695,14 @@ function detectRebinding(root: any, name: string): boolean {
     if (node.type === "CatchClause" && bindsName(node.param, name)) {
       return true;
     }
+    // `value = ...` reassigns the param itself; after the keyed flip the
+    // body would carry the reassigned value rather than the keyed value,
+    // so the autofix can't safely rewrite calls below the assignment.
+    if (
+      node.type === "AssignmentExpression" &&
+      node.left?.type === "Identifier" &&
+      node.left.name === name
+    ) return true;
     if (
       (node.type === "FunctionDeclaration" ||
         node.type === "FunctionExpression" ||
