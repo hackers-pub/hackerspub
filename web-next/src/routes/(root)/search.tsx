@@ -148,17 +148,19 @@ export default function SearchPage() {
           >
             {t`Search`}
           </button>
-          <div class="absolute left-0 right-0 top-full z-10 mt-2 hidden peer-focus:block">
-            <SearchGuide />
-          </div>
+          <Show when={searchQuery()}>
+            <div class="absolute left-0 right-0 top-full z-10 mt-2 hidden peer-focus:block">
+              <SearchGuide />
+            </div>
+          </Show>
         </form>
       </div>
 
-      <Show when={searchQuery()}>
-        <SearchPageContent
-          searchQuery={searchQuery}
-          searchType={searchType}
-        />
+      <Show
+        when={searchQuery()}
+        fallback={<SearchGuide />}
+      >
+        <SearchPageContent searchQuery={searchQuery} searchType={searchType} />
       </Show>
     </NarrowContainer>
   );
