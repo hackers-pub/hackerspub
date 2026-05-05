@@ -759,13 +759,18 @@ function detectRebinding(
     if (node.type === "CatchClause" && bindsName(node.param, name)) {
       return true;
     }
-    // `value = ...` reassigns the param itself; after the keyed flip the
-    // body would carry the reassigned value rather than the keyed value,
-    // so the autofix can't safely rewrite calls below the assignment.
+    // `value = ...` (including destructuring `[value] = ...` /
+    // `({ value } = ...)`) reassigns the param itself; after the keyed
+    // flip the body would carry the reassigned value rather than the
+    // keyed one, so the autofix can't safely rewrite calls below the
+    // assignment. `value++` / `value--` mutate the binding the same way.
     if (
-      node.type === "AssignmentExpression" &&
-      node.left?.type === "Identifier" &&
-      node.left.name === name
+      node.type === "AssignmentExpression" && bindsName(node.left, name)
+    ) return true;
+    if (
+      node.type === "UpdateExpression" &&
+      node.argument?.type === "Identifier" &&
+      node.argument.name === name
     ) return true;
     if (
       (node.type === "FunctionDeclaration" ||

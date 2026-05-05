@@ -275,6 +275,49 @@ Deno.test(
 );
 
 Deno.test(
+  "flags but suppresses autofix on destructuring assignment to the param",
+  () => {
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    declare function compute(): [unknown];
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      return (
+        <Show when={data()}>
+          {(value) => {
+            [value] = compute();
+            return <div>{value()}</div>;
+          }}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].fix, []);
+  },
+);
+
+Deno.test(
+  "flags but suppresses autofix on update-expression on the param",
+  () => {
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      return (
+        <Show when={data()}>
+          {(value) => {
+            value++;
+            return <div>{value()}</div>;
+          }}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].fix, []);
+  },
+);
+
+Deno.test(
   "flags but suppresses autofix entirely on static-block shadow",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
