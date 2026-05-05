@@ -32,6 +32,13 @@ import type {
 import { Avatar, AvatarImage } from "./ui/avatar.tsx";
 import metadata from "../../package.json" with { type: "json" };
 
+const sidebarNavigationLinkProps = {
+  // Solid Router preloads internal links on hover by default. In the sidebar,
+  // that makes ordinary menu scanning start route/data loads, which can briefly
+  // trip the root Suspense fallback and flash the page white.
+  preload: false,
+} as const;
+
 const AppSidebarSignOutMutation = graphql`
   mutation AppSidebarSignOutMutation($sessionId: UUID!) {
     revokeSession(sessionId: $sessionId) {
@@ -132,7 +139,11 @@ export function AppSidebar(props: AppSidebarProps) {
           <SidebarGroupContent>
             <Show when={props.signedAccountLoaded && signedAccount()}>
               <SidebarMenuItem class="list-none">
-                <SidebarMenuButton as={A} href="/feed">
+                <SidebarMenuButton
+                  as={A}
+                  href="/feed"
+                  {...sidebarNavigationLinkProps}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -151,7 +162,11 @@ export function AppSidebar(props: AppSidebarProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem class="list-none">
-                <SidebarMenuButton as={A} href="/feed/without-shares">
+                <SidebarMenuButton
+                  as={A}
+                  href="/feed/without-shares"
+                  {...sidebarNavigationLinkProps}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -170,7 +185,11 @@ export function AppSidebar(props: AppSidebarProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem class="list-none">
-                <SidebarMenuButton as={A} href="/feed/articles">
+                <SidebarMenuButton
+                  as={A}
+                  href="/feed/articles"
+                  {...sidebarNavigationLinkProps}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -190,7 +209,11 @@ export function AppSidebar(props: AppSidebarProps) {
               </SidebarMenuItem>
             </Show>
             <SidebarMenuItem class="list-none">
-              <SidebarMenuButton as={A} href="/local">
+              <SidebarMenuButton
+                as={A}
+                href="/local"
+                {...sidebarNavigationLinkProps}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -213,6 +236,7 @@ export function AppSidebar(props: AppSidebarProps) {
               <SidebarMenuButton
                 as={A}
                 href="/fediverse"
+                {...sidebarNavigationLinkProps}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -232,7 +256,11 @@ export function AppSidebar(props: AppSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem class="list-none">
-              <SidebarMenuButton as={A} href="/search">
+              <SidebarMenuButton
+                as={A}
+                href="/search"
+                {...sidebarNavigationLinkProps}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -265,6 +293,7 @@ export function AppSidebar(props: AppSidebarProps) {
                     href={`/sign?next=${
                       encodeURIComponent(location?.href ?? "/")
                     }`}
+                    {...sidebarNavigationLinkProps}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -292,6 +321,7 @@ export function AppSidebar(props: AppSidebarProps) {
                     <SidebarMenuButton
                       as={A}
                       href={`/notifications`}
+                      {...sidebarNavigationLinkProps}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -314,6 +344,7 @@ export function AppSidebar(props: AppSidebarProps) {
                     <SidebarMenuButton
                       as={A}
                       href={`/@${signedAccount.username}`}
+                      {...sidebarNavigationLinkProps}
                     >
                       <Avatar class="size-4">
                         <AvatarImage
@@ -329,6 +360,7 @@ export function AppSidebar(props: AppSidebarProps) {
                     <SidebarMenuButton
                       as={A}
                       href={`/@${signedAccount.username}/bookmarks`}
+                      {...sidebarNavigationLinkProps}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -352,6 +384,7 @@ export function AppSidebar(props: AppSidebarProps) {
                       <SidebarMenuButton
                         as={A}
                         href={`/@${signedAccount.username}/settings/invite`}
+                        {...sidebarNavigationLinkProps}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -378,6 +411,7 @@ export function AppSidebar(props: AppSidebarProps) {
                     <SidebarMenuButton
                       as={A}
                       href={`/@${signedAccount.username}/settings`}
+                      {...sidebarNavigationLinkProps}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -430,7 +464,7 @@ function AppSidebarLogo() {
 
   return (
     <h1 class="font-bold m-2">
-      <a href="/">
+      <A href="/" {...sidebarNavigationLinkProps}>
         <picture>
           <source
             srcset="/logo-dark.svg"
@@ -444,7 +478,7 @@ function AppSidebarLogo() {
             class="w-[139px] h-[35px]"
           />
         </picture>
-      </a>
+      </A>
     </h1>
   );
 }
@@ -461,7 +495,11 @@ function AdminSection(props: AdminSectionProps) {
         <SidebarGroupLabel>{t`Admin`}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenuItem class="list-none">
-            <SidebarMenuButton as={A} href="/admin">
+            <SidebarMenuButton
+              as={A}
+              href="/admin"
+              {...sidebarNavigationLinkProps}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -480,7 +518,11 @@ function AdminSection(props: AdminSectionProps) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem class="list-none">
-            <SidebarMenuButton as={A} href="/admin/invitations">
+            <SidebarMenuButton
+              as={A}
+              href="/admin/invitations"
+              {...sidebarNavigationLinkProps}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -548,6 +590,7 @@ function ComposeSection(props: ComposeSectionProps) {
                 as={A}
                 href={`/@${signedAccount.username}/drafts/new`}
                 class="cursor-pointer"
+                {...sidebarNavigationLinkProps}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -609,6 +652,7 @@ function RecentDraftsSection(props: RecentDraftsSectionProps) {
                   href={`/@${
                     props.signedAccount!.username
                   }/drafts/${edge.node.uuid}`}
+                  {...sidebarNavigationLinkProps}
                 >
                   {edge.node.title}
                 </SidebarMenuButton>
@@ -621,6 +665,7 @@ function RecentDraftsSection(props: RecentDraftsSectionProps) {
                 as={A}
                 href={`/@${props.signedAccount!.username}/drafts`}
                 class="text-muted-foreground"
+                {...sidebarNavigationLinkProps}
               >
                 {t`View all drafts →`}
               </SidebarMenuButton>
@@ -671,10 +716,14 @@ function AppSidebarFooter() {
   return (
     <SidebarFooter>
       <p class="m-2 mb-0 text-sm underline">
-        <a href="/coc">{t`Code of conduct`}</a>
+        <A href="/coc" {...sidebarNavigationLinkProps}>
+          {t`Code of conduct`}
+        </A>
       </p>
       <p class="m-2 mb-0 text-sm underline">
-        <a href="/privacy">{t`Privacy policy`}</a>
+        <A href="/privacy" {...sidebarNavigationLinkProps}>
+          {t`Privacy policy`}
+        </A>
       </p>
       <p class="m-2 mb-0 text-sm">
         <a
