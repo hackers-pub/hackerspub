@@ -466,6 +466,53 @@ Deno.test(
 );
 
 Deno.test(
+  "does not flag when an inner scope shadows an outer Relay binding",
+  () => {
+    // Outer App has a Relay-backed `data`; inner Inner shadows `data`
+    // with a non-Relay value. The Show inside Inner must not be flagged.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    declare function compute(): unknown;
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      function Inner() {
+        const data = compute();
+        return (
+          <Show when={data()}>
+            {(value) => <div>{value()}</div>}
+          </Show>
+        );
+      }
+      return <Inner />;
+    }
+  `);
+    assertEquals(diagnostics.length, 0);
+  },
+);
+
+Deno.test(
+  "still flags inner Show when outer Relay binding is not shadowed",
+  () => {
+    // Same shape as above but the inner function does NOT redeclare
+    // `data`; the outer Relay binding should still be visible.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      function Inner() {
+        return (
+          <Show when={data()}>
+            {(value) => <div>{value()}</div>}
+          </Show>
+        );
+      }
+      return <Inner />;
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].id, RULE);
+  },
+);
+
+Deno.test(
   "does not flag when an enclosing function param shadows the import",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}

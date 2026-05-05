@@ -63,17 +63,26 @@ const plugin: Deno.lint.Plugin = {
   rules: {
     "show-keyed-on-fn-child": {
       create(context) {
-        // Stack of lexical scopes. Each entry is the set of identifier names
-        // known to be Relay-backed in that scope. Lookup walks bottom-up.
-        const scopes: Set<string>[] = [];
-        const pushScope = () => scopes.push(new Set());
+        // Stack of lexical scopes. Each entry maps an identifier name to
+        // either "relay" (a binding known to come from a solid-relay
+        // primitive) or "shadow" (any other binding for that name). Lookup
+        // walks bottom-up; the innermost binding wins, so a non-Relay
+        // shadow in an inner scope correctly hides an outer Relay binding.
+        type BindingKind = "relay" | "shadow";
+        const scopes: Map<string, BindingKind>[] = [];
+        const pushScope = () => scopes.push(new Map());
         const popScope = () => scopes.pop();
-        const addToCurrentScope = (name: string) => {
-          scopes[scopes.length - 1]?.add(name);
+        const recordBinding = (name: string, kind: BindingKind) => {
+          const top = scopes[scopes.length - 1];
+          if (!top) return;
+          // Don't downgrade a "relay" already present in the same scope.
+          if (top.get(name) === "relay" && kind === "shadow") return;
+          top.set(name, kind);
         };
         const isRelayBacked = (name: string): boolean => {
           for (let i = scopes.length - 1; i >= 0; i--) {
-            if (scopes[i].has(name)) return true;
+            const kind = scopes[i].get(name);
+            if (kind != null) return kind === "relay";
           }
           return false;
         };
@@ -100,6 +109,24 @@ const plugin: Deno.lint.Plugin = {
           "value directly; reconcile keeps record identity stable, so " +
           "keyed only re-mounts on actual record changes.";
 
+        // Walk a destructuring/identifier pattern and record every name
+        // it introduces with the given kind.
+        const recordPatternBindings = (
+          pattern: any,
+          kind: BindingKind,
+        ): void => {
+          walkPatternIdentifiers(pattern, (name) => recordBinding(name, kind));
+        };
+
+        // Record every parameter of a function as a "shadow" binding in
+        // the current (just-pushed) scope. The Show propagation step may
+        // upgrade the first param to "relay" afterward.
+        const recordParamShadows = (params: any[] | undefined): void => {
+          for (const p of params ?? []) {
+            recordPatternBindings(p, "shadow");
+          }
+        };
+
         // Shared by ArrowFunctionExpression and FunctionExpression: when
         // the function is the children of a Show/Match whose `when` is
         // Relay-backed in the OUTER scope, mark the function's first
@@ -123,7 +150,7 @@ const plugin: Deno.lint.Plugin = {
           if (!outerSays) return;
           const firstParam = node.params?.[0];
           if (firstParam?.type === "Identifier") {
-            addToCurrentScope(firstParam.name);
+            recordBinding(firstParam.name, "relay");
           }
         };
 
@@ -175,10 +202,19 @@ const plugin: Deno.lint.Plugin = {
         return {
           Program: pushScope,
           "Program:exit": popScope,
-          FunctionDeclaration: pushScope,
+          FunctionDeclaration(node: any) {
+            // The function id binds in the *enclosing* scope (record before
+            // pushing the function's own scope).
+            if (node.id?.type === "Identifier") {
+              recordBinding(node.id.name, "shadow");
+            }
+            pushScope();
+            recordParamShadows(node.params);
+          },
           "FunctionDeclaration:exit": popScope,
           FunctionExpression(node: any) {
             pushScope();
+            recordParamShadows(node.params);
             propagateRelayBindingFromShowParent(node);
           },
           "FunctionExpression:exit": popScope,
@@ -203,18 +239,20 @@ const plugin: Deno.lint.Plugin = {
 
           ArrowFunctionExpression(node: any) {
             pushScope();
+            recordParamShadows(node.params);
             propagateRelayBindingFromShowParent(node);
           },
           "ArrowFunctionExpression:exit": popScope,
 
           VariableDeclarator(node: any) {
             const init = node.init;
-            if (
-              init?.type === "CallExpression" &&
-              isRelayPrimitiveCallResolved(init)
-            ) {
-              bindIdentifiersAsRelay(node.id, addToCurrentScope);
-            }
+            const isRelay = init?.type === "CallExpression" &&
+              isRelayPrimitiveCallResolved(init);
+            // Record the binding either way: relay if the init is a tracked
+            // solid-relay primitive call, shadow otherwise. Recording shadow
+            // bindings lets isRelayBacked detect when a closer scope hides
+            // an outer Relay-backed name.
+            recordPatternBindings(node.id, isRelay ? "relay" : "shadow");
           },
 
           JSXElement(node: any) {
@@ -390,8 +428,9 @@ function getWhenExpression(opening: any): any | null {
   return null;
 }
 
-// Walk a destructuring pattern and bind every identifier it introduces.
-function bindIdentifiersAsRelay(
+// Walk a destructuring pattern and invoke `bind` for every identifier it
+// introduces.
+function walkPatternIdentifiers(
   pattern: any,
   bind: (name: string) => void,
 ): void {
@@ -401,20 +440,20 @@ function bindIdentifiersAsRelay(
       bind(pattern.name);
       return;
     case "AssignmentPattern":
-      bindIdentifiersAsRelay(pattern.left, bind);
+      walkPatternIdentifiers(pattern.left, bind);
       return;
     case "RestElement":
-      bindIdentifiersAsRelay(pattern.argument, bind);
+      walkPatternIdentifiers(pattern.argument, bind);
       return;
     case "ArrayPattern":
-      for (const e of pattern.elements ?? []) bindIdentifiersAsRelay(e, bind);
+      for (const e of pattern.elements ?? []) walkPatternIdentifiers(e, bind);
       return;
     case "ObjectPattern":
       for (const p of pattern.properties ?? []) {
         if (p.type === "RestElement") {
-          bindIdentifiersAsRelay(p.argument, bind);
+          walkPatternIdentifiers(p.argument, bind);
         } else if (p.type === "Property") {
-          bindIdentifiersAsRelay(p.value, bind);
+          walkPatternIdentifiers(p.value, bind);
         }
       }
       return;
