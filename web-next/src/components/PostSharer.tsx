@@ -46,7 +46,7 @@ export function PostSharer(props: PostSharerProps) {
                     }`}
                     class="font-semibold"
                   >
-                    {post.actor.name}
+                    <span innerHTML={post.actor.name ?? ""} />
                   </a>
                 </ActorHoverCard>
               ),
