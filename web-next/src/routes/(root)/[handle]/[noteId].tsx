@@ -6,7 +6,7 @@ import {
   useNavigate,
   useParams,
 } from "@solidjs/router";
-import { HttpHeader, HttpStatusCode } from "@solidjs/start";
+import { HttpHeader } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import {
   createSignal,
@@ -29,6 +29,7 @@ import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
+import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostAvatar } from "~/components/PostAvatar.tsx";
 import { QuestionCard } from "~/components/QuestionCard.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
@@ -133,7 +134,7 @@ export default function NotePage() {
   const username = decodeURIComponent(params.handle!).replace(/^@/, "");
 
   if (!validateUuid(noteId)) {
-    return <HttpStatusCode code={404} />;
+    return <NotFoundPage embedded />;
   }
 
   const noteData = createPreloadedQuery<NoteIdPageQuery>(
@@ -158,7 +159,7 @@ export default function NotePage() {
 
   return (
     <Show when={noteData() != null}>
-      <Switch fallback={<HttpStatusCode code={404} />}>
+      <Switch fallback={<NotFoundPage embedded />}>
         <Match keyed when={note()}>
           {(note) => (
             <>
