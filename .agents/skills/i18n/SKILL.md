@@ -120,10 +120,11 @@ Before translating, run the extraction command to ensure `.po` files are
 up to date with the latest source code:
 
 ~~~~ sh
-cd web-next && deno task extract
+cd web-next && pnpm extract
 ~~~~
 
-This runs `@lingui/cli extract`, which scans `web-next/src/` for
+This runs the `extract` script from `web-next/package.json`
+(`lingui extract`), which scans `web-next/src/` for
 translatable strings (`` t`...` ``, `` msg`...` ``, `plural(...)`) and
 updates all `web-next/src/locales/*/messages.po` files.  New strings
 appear as entries with empty `msgstr ""`.
@@ -135,7 +136,7 @@ or changed strings.
 Workflow
 --------
 
-1.  Run `cd web-next && deno task extract` to update `.po` files.
+1.  Run `cd web-next && pnpm extract` to update `.po` files.
 2.  For each locale, read **both** of these before translating:
      -  `web-next/src/locales/{locale}/glossary.txt` — mandatory terminology
      -  `web/locales/{corresponding-legacy-locale}.json` — reference
