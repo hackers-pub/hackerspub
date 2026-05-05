@@ -24,14 +24,14 @@ interface NotificationMessageProps {
  * <NotificationMessage
  *   singleActorMessage={t`${"ACTOR"} mentioned you`}
  *   multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others mentioned you`}
- *   $notification={notification()}
+ *   $notification={notification}
  * />
  *
  * @example Extra placeholder (e.g., React)
  * <NotificationMessage
  *   singleActorMessage={t`${"ACTOR"} reacted to your post with ${"EMOJI"}`}
  *   multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others reacted to your post with ${"EMOJI"}`}
- *   $notification={notification()}
+ *   $notification={notification}
  *   additionalValues={{ EMOJI: () => emojiElement() }}
  * />
  */

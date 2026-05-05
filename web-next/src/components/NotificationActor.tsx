@@ -25,10 +25,7 @@ export function NotificationActor(props: NotificationActorProps) {
     () => props.$notification,
   );
 
-  type Notification = Exclude<
-    ReturnType<typeof notification>,
-    undefined
-  >;
+  type Notification = NonNullable<ReturnType<typeof notification>>;
 
   const firstActor = (
     notification: Notification,
