@@ -93,6 +93,18 @@ const plugin: Deno.lint.Plugin = {
           }
           return false;
         };
+        // Returns the innermost binding kind for `name` in the current
+        // scope chain, or null if no scope binds it. The scope chain at
+        // any visit reflects the call site's actual lexical scope, so
+        // sibling-block declarations that have already been popped do
+        // not leak into the answer.
+        const lookupBinding = (name: string): BindingKind | null => {
+          for (let i = scopes.length - 1; i >= 0; i--) {
+            const kind = scopes[i].get(name);
+            if (kind != null) return kind;
+          }
+          return null;
+        };
 
         const shows = new Map<any, ShowEntry>();
 
@@ -163,9 +175,12 @@ const plugin: Deno.lint.Plugin = {
 
         // Verify the call's callee resolves through a tracked solid-relay
         // import binding before claiming it's a Relay primitive call.
-        // Also rejects the call if any enclosing function locally rebinds
-        // the identifier (param or body declaration), so a same-name local
-        // shadow doesn't get misclassified as the import.
+        // Rejects the call when a closer lexical binding (any kind) for
+        // the identifier exists, so a local shadow does not get
+        // misclassified as the import. The shadow check uses the active
+        // `scopes` stack, which already reflects the call's true lexical
+        // scope (sibling blocks have been pushed-and-popped, so they do
+        // not leak in).
         const isRelayPrimitiveCallResolved = (call: any): boolean => {
           const callee = call.callee;
           if (!callee) return false;
@@ -188,32 +203,21 @@ const plugin: Deno.lint.Plugin = {
           } else {
             return false;
           }
-          // Walk enclosing functions; if any binds `bindingName` (param,
-          // own id, or body declaration outside nested functions), the
-          // import is shadowed at this call site. The body walk stops at
-          // nested function boundaries so a same-named binding inside an
-          // unrelated nested function is not mistaken for a shadow of
-          // this call.
+          // Closer lexical binding wins over the module-level import.
+          if (lookupBinding(bindingName) != null) return false;
+          // Named FunctionExpression / FunctionDeclaration self-binding
+          // is visible inside the function's own body. The `scopes` stack
+          // does not record FunctionExpression ids (they don't
+          // necessarily survive past the literal), so we walk enclosing
+          // functions to handle this corner case explicitly.
           let cursor = call.parent;
           while (cursor) {
-            const isFn = cursor.type === "ArrowFunctionExpression" ||
-              cursor.type === "FunctionExpression" ||
-              cursor.type === "FunctionDeclaration";
-            if (isFn) {
-              if (
-                (cursor.type === "FunctionExpression" ||
-                  cursor.type === "FunctionDeclaration") &&
-                cursor.id?.type === "Identifier" &&
-                cursor.id.name === bindingName
-              ) return false;
-              if (paramRebindsName(cursor.params, bindingName)) return false;
-              if (
-                cursor.body &&
-                detectRebinding(cursor.body, bindingName, {
-                  enterNestedFunctions: false,
-                })
-              ) return false;
-            }
+            if (
+              (cursor.type === "FunctionExpression" ||
+                cursor.type === "FunctionDeclaration") &&
+              cursor.id?.type === "Identifier" &&
+              cursor.id.name === bindingName
+            ) return false;
             cursor = cursor.parent;
           }
           return true;

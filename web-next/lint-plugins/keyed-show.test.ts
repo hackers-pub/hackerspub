@@ -654,6 +654,32 @@ Deno.test(
 );
 
 Deno.test(
+  "still flags when a sibling block (not the call's scope) shadows the import",
+  () => {
+    // The if-block declares its own \`createFragment\`, but it is
+    // popped by the time control reaches the outer call site, so the
+    // outer \`createFragment(...)\` still resolves to the import.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    declare function compute(): unknown;
+    function App() {
+      if (true) {
+        const createFragment = compute;
+        void createFragment;
+      }
+      const data = createFragment(env, () => null);
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value()}</div>}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].id, RULE);
+  },
+);
+
+Deno.test(
   "still flags when only a nested sibling function shadows the import",
   () => {
     // `App` does not rebind createPreloadedQuery; the inner Helper
