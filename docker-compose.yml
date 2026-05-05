@@ -35,6 +35,7 @@ services:
       NO_WATCHMAN: "1"
       API_URL: http://app:8000/graphql
       HOST: "0.0.0.0"
+      PLAUSIBLE: ${PLAUSIBLE}
     ports:
       - "3000:3000"
     depends_on:

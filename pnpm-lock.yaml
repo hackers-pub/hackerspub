@@ -25,8 +25,8 @@ catalogs:
       specifier: ^1.0.1
       version: 1.0.1
     '@logtape/logtape':
-      specifier: jsr:2.0.0
-      version: 2.0.0
+      specifier: jsr:2.0.6
+      version: 2.0.6
     '@mdit-vue/plugin-title':
       specifier: ^2.1.4
       version: 2.1.4
@@ -195,7 +195,7 @@ importers:
         version: link:../models
       '@logtape/logtape':
         specifier: 'catalog:'
-        version: '@jsr/logtape__logtape@2.0.0'
+        version: '@jsr/logtape__logtape@2.0.6'
       '@std/assert':
         specifier: 'catalog:'
         version: '@jsr/std__assert@1.0.19'
@@ -234,7 +234,7 @@ importers:
         version: 1.0.1
       '@logtape/logtape':
         specifier: 'catalog:'
-        version: '@jsr/logtape__logtape@2.0.0'
+        version: '@jsr/logtape__logtape@2.0.6'
       '@mdit-vue/plugin-title':
         specifier: 'catalog:'
         version: 2.1.4
@@ -388,6 +388,9 @@ importers:
       '@lingui/core':
         specifier: ^5.3.3
         version: 5.9.4(@lingui/babel-plugin-lingui-macro@5.9.4(typescript@6.0.3))
+      '@plausible-analytics/tracker':
+        specifier: ^0.4.4
+        version: 0.4.4
       '@sentry/solidstart':
         specifier: ^10.51.0
         version: 10.51.0(@solidjs/router@0.15.4(solid-js@1.9.12))(@solidjs/start@2.0.0-alpha.2(@testing-library/jest-dom@6.9.1)(vite@7.3.2(@types/node@25.5.2)(jiti@2.6.1)(lightningcss@1.32.0)(terser@5.46.1)))(rollup@4.60.1)(solid-js@1.9.12)
@@ -1356,11 +1359,11 @@ packages:
   '@jsr/logtape__logtape@1.3.7':
     resolution: {integrity: sha512-5bK97jZGkIn0UBuqy8Jroei1imZtOmFAeJAjB22NBBr2KsuaoLHgXBe9o6WkwlYUb4LRayH050UgDVw/uCP5zQ==, tarball: https://npm.jsr.io/~/11/@jsr/logtape__logtape/1.3.7.tgz}
 
-  '@jsr/logtape__logtape@2.0.0':
-    resolution: {integrity: sha512-PYUzoBNu0TVJnQa4oE8sY1YmNie9TWNKxaDzTktv7+y63gL3C9midwnb0PAr8HZ5kLaqsIHPBmWgrB8kYJm4aw==, tarball: https://npm.jsr.io/~/11/@jsr/logtape__logtape/2.0.0.tgz}
-
   '@jsr/logtape__logtape@2.0.5':
     resolution: {integrity: sha512-0aP3+87bWAsqoaa8l4siqF8AonEzv8frV6oawXsFhFtXK16ttiSMj0yMMjy3BDNW2EMHQPRoifzGGWQFHKx+kA==, tarball: https://npm.jsr.io/~/11/@jsr/logtape__logtape/2.0.5.tgz}
+
+  '@jsr/logtape__logtape@2.0.6':
+    resolution: {integrity: sha512-Lw0+sFlpD9U+WzE/77diiDzEoYkhTuhrE53Fl5sXcNqWnlOJNi2x3K2elF+EhqdrZub2mHGSYznPRttlf/ah7Q==, tarball: https://npm.jsr.io/~/11/@jsr/logtape__logtape/2.0.6.tgz}
 
   '@jsr/simplewebauthn__browser@13.3.0':
     resolution: {integrity: sha512-gpkJOfaq69RjBbs3UkOCa3ENQ+8TM3vt+52SUGaq/ZkSpmabc9R6XNoo4penXis1cWGpKBwo+KYmctPmmSVOSg==, tarball: https://npm.jsr.io/~/11/@jsr/simplewebauthn__browser/13.3.0.tgz}
@@ -2044,6 +2047,9 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@plausible-analytics/tracker@0.4.4':
+    resolution: {integrity: sha512-fz0NOYUEYXtg1TBaPEEvtcBq3FfmLFuTe1VZw4M8sTWX129br5dguu3M15+plOQnc181ShYe67RfwhKgK89VnA==}
 
   '@poppinss/colors@4.1.6':
     resolution: {integrity: sha512-H9xkIdFswbS8n1d6vmRd8+c10t2Qe+rZITbbDHHkQixH5+2x1FDGmi/0K+WgWiqQFKPSlIYB7jlH6Kpfn6Fleg==}
@@ -7221,9 +7227,9 @@ snapshots:
 
   '@jsr/logtape__logtape@1.3.7': {}
 
-  '@jsr/logtape__logtape@2.0.0': {}
-
   '@jsr/logtape__logtape@2.0.5': {}
+
+  '@jsr/logtape__logtape@2.0.6': {}
 
   '@jsr/simplewebauthn__browser@13.3.0': {}
 
@@ -8077,6 +8083,8 @@ snapshots:
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
+
+  '@plausible-analytics/tracker@0.4.4': {}
 
   '@poppinss/colors@4.1.6':
     dependencies:
