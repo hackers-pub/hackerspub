@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createArticle, updateArticle } from "./article.ts";
-import { articleContentTable } from "./schema.ts";
+import { articleContentTable, mediumTable } from "./schema.ts";
+import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -53,6 +54,51 @@ test("createArticle() creates a post and timeline entry for the author", async (
     assert.ok(timelineItem != null);
     assert.equal(timelineItem.originalAuthorId, author.actor.id);
     assert.equal(timelineItem.lastSharerId, null);
+  });
+});
+
+test("createArticle() copies source media before rendering the post", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "createarticlemediaauthor",
+      name: "Create Article Media Author",
+      email: "createarticlemediaauthor@example.com",
+    });
+    const mediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: mediumId,
+      key: "media/create-article-media.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
+
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "create-article-media",
+      tags: [],
+      allowLlmTranslation: false,
+      title: "Article with media",
+      content: "![Hero](hp-medium:hero)",
+      language: "en",
+      media: [{ key: "hero", mediumId }],
+    });
+
+    assert.ok(article != null);
+    assert.match(
+      article.contentHtml,
+      /http:\/\/localhost\/media\/media\/create-article-media\.webp/,
+    );
+    assert.doesNotMatch(article.contentHtml, /hp-medium:hero/);
+
+    const media = await tx.query.articleSourceMediumTable.findFirst({
+      where: { articleSourceId: article.articleSource.id, key: "hero" },
+    });
+    assert.ok(media != null);
+    assert.equal(media.mediumId, mediumId);
   });
 });
 

@@ -48,7 +48,6 @@ import {
   articleContentTable,
   articleDraftMediumTable,
   articleDraftTable,
-  articleSourceMediumTable,
 } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
@@ -1085,6 +1084,10 @@ builder.relayMutationField(
 
       // Create article from draft
       const article = await withTransaction(ctx.fedCtx, async (context) => {
+        const media = await context.data.db.query.articleDraftMediumTable
+          .findMany({
+            where: { articleDraftId: draft.id },
+          });
         return await createArticle(context, {
           accountId: session.accountId,
           publishedYear: new Date().getFullYear(),
@@ -1094,27 +1097,12 @@ builder.relayMutationField(
           title: draft.title,
           content: draft.content,
           language: language.baseName,
+          media,
         });
       });
 
       if (!article) {
         throw new Error("Failed to publish article");
-      }
-
-      // Migrate media tracking from draft to published article.
-      const draftMedia = await ctx.db.query.articleDraftMediumTable.findMany({
-        where: { articleDraftId: draft.id },
-      });
-      const publishedMedia = draftMedia
-        .filter((medium) => draft.content.includes(`hp-medium:${medium.key}`))
-        .map((medium) => ({
-          articleSourceId: article.articleSource.id,
-          key: medium.key,
-          mediumId: medium.mediumId,
-        }));
-      if (publishedMedia.length > 0) {
-        await ctx.db.insert(articleSourceMediumTable).values(publishedMedia)
-          .onConflictDoNothing();
       }
 
       // Delete draft after successful publish

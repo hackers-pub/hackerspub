@@ -34,6 +34,9 @@ export const handler = define.handlers({
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
+    const media = await db.query.articleDraftMediumTable.findMany({
+      where: { articleDraftId: draft.id },
+    });
     const post = await createArticle(ctx.state.fedCtx, {
       accountId: ctx.state.session.accountId,
       title: draft.title,
@@ -42,6 +45,7 @@ export const handler = define.handlers({
       slug: result.output.slug,
       language: result.output.language,
       allowLlmTranslation: result.output.allowLlmTranslation,
+      media,
     });
     if (post == null) {
       return new Response(

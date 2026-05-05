@@ -26,6 +26,7 @@ import {
   type ArticleDraft,
   articleDraftTable,
   type ArticleSource,
+  articleSourceMediumTable,
   articleSourceTable,
   type Blocking,
   type Following,
@@ -271,6 +272,10 @@ export async function createArticle(
     title: string;
     content: string;
     language: string;
+    media?: readonly {
+      key: string;
+      mediumId: Uuid;
+    }[];
   },
 ): Promise<
   Post & {
@@ -285,12 +290,24 @@ export async function createArticle(
   } | undefined
 > {
   const { db } = fedCtx.data;
+  const { media: sourceMedia, ...articleSourceInput } = source;
   const articleSource = await createArticleSource(
     db,
     fedCtx.data.models,
-    source,
+    articleSourceInput,
   );
   if (articleSource == null) return undefined;
+  const media = sourceMedia
+    ?.filter((medium) => source.content.includes(`hp-medium:${medium.key}`))
+    .map((medium) => ({
+      articleSourceId: articleSource.id,
+      key: medium.key,
+      mediumId: medium.mediumId,
+    })) ?? [];
+  if (media.length > 0) {
+    await db.insert(articleSourceMediumTable).values(media)
+      .onConflictDoNothing();
+  }
   const account = await db.query.accountTable.findFirst({
     where: { id: source.accountId },
     with: { avatarMedium: true, emails: true, links: true },
