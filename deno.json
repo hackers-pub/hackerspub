@@ -214,7 +214,7 @@
       ],
       "command": "deno fmt --check && deno lint && deno check ."
     },
-    "test": "deno test --env-file=.env.test --allow-all --parallel",
+    "test": "sh -c 'if [ -f .env.test ]; then godotenv -f .env.test -o deno test --allow-all --parallel; else deno test --allow-all --parallel; fi'",
     "dev": "cd web && deno task dev",
     "build": "cd web && deno task build",
     "start": "cd web && deno task start",

@@ -3,6 +3,7 @@ deno = "2.7.4"
 node = "24"
 pnpm = "10.12.4"
 "npm:@sentry/mcp-server" = "latest"
+"github:joho/godotenv" = "latest"
 
 [env]
 _.file = ".env"
@@ -61,7 +62,7 @@ run = "deno run -A drizzle-kit generate"
 
 [tasks."migrate:test"]
 description = "Run database migrations against the test database"
-run = "deno run --env-file=.env.test -A drizzle-kit migrate"
+run = "godotenv -f .env.test -o deno run -A drizzle-kit migrate"
 
 [tasks."keygen"]
 description = "Generate an instance actor key pair (prints a JWK to stdout)"
