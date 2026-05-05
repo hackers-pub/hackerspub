@@ -139,8 +139,13 @@ Deno.test("autofix adds keyed and rewrites bare param() calls", () => {
 });
 
 Deno.test(
-  "autofix skips param() calls inside nested fn that rebinds the name",
+  "suppresses autofix when a nested fn rebinds the param name",
   () => {
+    // The outer `actor` param has no calls outside the shadowed inner
+    // For callback in this fixture, but the rule can't see that
+    // distinction; it conservatively reports without autofix whenever
+    // any same-name binder exists in the body, since inserting `keyed`
+    // alongside an outer `actor()` call would break at runtime.
     const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
       const data = createPreloadedQuery(env, () => loadQuery());
@@ -156,7 +161,7 @@ Deno.test(
     }
   `);
     assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix!.length, 1);
+    assertEquals(diagnostics[0].fix, []);
   },
 );
 
@@ -216,8 +221,11 @@ Deno.test(
 );
 
 Deno.test(
-  "flags but does not rewrite when body has a const shadowing",
+  "flags but suppresses autofix entirely on const-shadow body",
   () => {
+    // Inserting `keyed` while leaving the outer `value()` calls would
+    // turn them into runtime calls on a non-function. When we can't
+    // safely rewrite the body, we skip the keyed insertion too.
     const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
       const data = createPreloadedQuery(env, () => loadQuery());
@@ -232,12 +240,12 @@ Deno.test(
     }
   `);
     assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix!.length, 1);
+    assertEquals(diagnostics[0].fix, []);
   },
 );
 
 Deno.test(
-  "flags but does not rewrite when class static block shadows the param",
+  "flags but suppresses autofix entirely on static-block shadow",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
@@ -253,7 +261,7 @@ Deno.test(
     }
   `);
     assertEquals(diagnostics.length, 1);
-    assertEquals(diagnostics[0].fix!.length, 1);
+    assertEquals(diagnostics[0].fix, []);
   },
 );
 

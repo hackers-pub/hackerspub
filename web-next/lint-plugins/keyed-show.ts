@@ -310,7 +310,14 @@ const plugin: Deno.lint.Plugin = {
 
             const { openingName, paramName, calls, existingKeyedAttr } = entry;
 
-            if (existingKeyedAttr) {
+            // Skip autofix when we can't safely rewrite the body:
+            //   - existing non-truthy `keyed={...}` (don't know intent), or
+            //   - body has a same-name lexical rebinding (we conservatively
+            //     skip the param() replacements, but inserting `keyed`
+            //     alone would leave any non-shadowed `param()` calls
+            //     pointing at the now-keyed value, which is no longer a
+            //     function and would throw at runtime).
+            if (existingKeyedAttr || entry.bodyHasRebinding) {
               context.report({ node: opening, message });
               return;
             }
@@ -326,7 +333,7 @@ const plugin: Deno.lint.Plugin = {
                     " keyed",
                   ),
                 );
-                if (paramName && !entry.bodyHasRebinding) {
+                if (paramName) {
                   for (const call of calls) {
                     fixes.push(
                       fixer.replaceTextRange(
