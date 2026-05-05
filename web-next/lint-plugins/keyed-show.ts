@@ -80,6 +80,16 @@ const plugin: Deno.lint.Plugin = {
 
         const shows = new Map<any, ShowEntry>();
 
+        // Names imported from "solid-relay". For named imports we record
+        // the local binding -> { kind: "named", imported }; for namespace
+        // imports we record the local binding -> { kind: "namespace" }.
+        // Only references resolved through one of these bindings count as
+        // a Relay primitive call.
+        type RelayImport =
+          | { kind: "named"; imported: string }
+          | { kind: "namespace" };
+        const relayImports = new Map<string, RelayImport>();
+
         const message =
           "Use <Show keyed>/<Match keyed> when the children is a function " +
           "and the gated value comes from solid-relay (createFragment / " +
@@ -117,6 +127,29 @@ const plugin: Deno.lint.Plugin = {
           }
         };
 
+        // Verify the call's callee resolves through a tracked solid-relay
+        // import binding before claiming it's a Relay primitive call.
+        const isRelayPrimitiveCallResolved = (call: any): boolean => {
+          const callee = call.callee;
+          if (!callee) return false;
+          if (callee.type === "Identifier") {
+            if (!RELAY_PRIMITIVES.has(callee.name)) return false;
+            const imp = relayImports.get(callee.name);
+            return imp != null && imp.kind === "named" &&
+              imp.imported === callee.name;
+          }
+          if (callee.type === "MemberExpression" && !callee.computed) {
+            const prop = callee.property;
+            if (prop?.type !== "Identifier") return false;
+            if (!RELAY_PRIMITIVES.has(prop.name)) return false;
+            const obj = callee.object;
+            if (obj?.type !== "Identifier") return false;
+            const imp = relayImports.get(obj.name);
+            return imp?.kind === "namespace";
+          }
+          return false;
+        };
+
         return {
           Program: pushScope,
           "Program:exit": popScope,
@@ -128,6 +161,24 @@ const plugin: Deno.lint.Plugin = {
           },
           "FunctionExpression:exit": popScope,
 
+          ImportDeclaration(node: any) {
+            if (node.source?.value !== "solid-relay") return;
+            for (const spec of node.specifiers ?? []) {
+              if (spec.type === "ImportSpecifier") {
+                const local = spec.local?.name;
+                const imported = spec.imported?.name ?? spec.imported?.value;
+                if (typeof local === "string" && typeof imported === "string") {
+                  relayImports.set(local, { kind: "named", imported });
+                }
+              } else if (spec.type === "ImportNamespaceSpecifier") {
+                const local = spec.local?.name;
+                if (typeof local === "string") {
+                  relayImports.set(local, { kind: "namespace" });
+                }
+              }
+            }
+          },
+
           ArrowFunctionExpression(node: any) {
             pushScope();
             propagateRelayBindingFromShowParent(node);
@@ -136,7 +187,10 @@ const plugin: Deno.lint.Plugin = {
 
           VariableDeclarator(node: any) {
             const init = node.init;
-            if (init?.type === "CallExpression" && isRelayPrimitiveCall(init)) {
+            if (
+              init?.type === "CallExpression" &&
+              isRelayPrimitiveCallResolved(init)
+            ) {
               bindIdentifiersAsRelay(node.id, addToCurrentScope);
             }
           },
@@ -301,21 +355,6 @@ function getWhenExpression(opening: any): any | null {
     ) return attr.value.expression;
   }
   return null;
-}
-
-// True if `callee` references one of the tracked solid-relay primitives,
-// either as a bare identifier or via a namespace member access.
-function isRelayPrimitiveCall(call: any): boolean {
-  const callee = call.callee;
-  if (!callee) return false;
-  if (callee.type === "Identifier") {
-    return RELAY_PRIMITIVES.has(callee.name);
-  }
-  if (callee.type === "MemberExpression" && !callee.computed) {
-    const prop = callee.property;
-    return prop?.type === "Identifier" && RELAY_PRIMITIVES.has(prop.name);
-  }
-  return false;
 }
 
 // Walk a destructuring pattern and bind every identifier it introduces.

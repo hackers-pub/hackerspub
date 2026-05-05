@@ -349,6 +349,69 @@ Deno.test("recognises namespace imports of Relay primitives", () => {
 });
 
 Deno.test(
+  "recognises every tracked solid-relay primitive as Relay-backed",
+  () => {
+    const source = `
+    import {
+      createPreloadedQuery,
+      createFragment,
+      createPaginationFragment,
+      createRefetchableFragment,
+      createLazyLoadQuery,
+      createSubscription,
+      createQueryLoader,
+    } from "solid-relay";
+    declare const env: unknown;
+    declare const Q: unknown;
+    declare function loadQuery(...args: unknown[]): unknown;
+    function App() {
+      const a = createPreloadedQuery(env, () => loadQuery());
+      const b = createFragment(Q, () => null);
+      const c = createPaginationFragment(Q, () => null);
+      const d = createRefetchableFragment(Q, () => null);
+      const e = createLazyLoadQuery(Q, {});
+      const f = createSubscription(Q, () => null);
+      const g = createQueryLoader(Q);
+      return (
+        <>
+          <Show when={a()}>{(v) => <div>{v()}</div>}</Show>
+          <Show when={b()}>{(v) => <div>{v()}</div>}</Show>
+          <Show when={c()}>{(v) => <div>{v()}</div>}</Show>
+          <Show when={d()}>{(v) => <div>{v()}</div>}</Show>
+          <Show when={e()}>{(v) => <div>{v()}</div>}</Show>
+          <Show when={f()}>{(v) => <div>{v()}</div>}</Show>
+          <Show when={g()}>{(v) => <div>{v()}</div>}</Show>
+        </>
+      );
+    }
+  `;
+    const diagnostics = lint(source);
+    // One diagnostic per non-keyed Show on a Relay-backed value (7 total).
+    assertEquals(diagnostics.length, 7);
+  },
+);
+
+Deno.test(
+  "does not flag a same-named primitive imported from another module",
+  () => {
+    // A local module exports something named `createFragment`; the rule
+    // must not treat its return value as Relay-backed.
+    const diagnostics = lint(`
+    import { createFragment } from "./my-utils.ts";
+    function App() {
+      const data = createFragment();
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value()}</div>}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 0);
+  },
+);
+
+Deno.test(
   "flags FunctionExpression children of Relay-backed Show",
   () => {
     const diagnostics = lint(`${RELAY_PRELUDE}
