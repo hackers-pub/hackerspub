@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:952
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:977
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {# 則評論}}"
 
@@ -166,8 +166,8 @@ msgstr "{0} 轉貼了你的內容"
 #. placeholder {0}: post.actor.name
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:227
-#: src/routes/(root)/[handle]/[noteId].tsx:174
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:238
+#: src/routes/(root)/[handle]/[noteId].tsx:221
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -210,11 +210,11 @@ msgid "A sign-in link has been sent to your email. Please check your inbox (or s
 msgstr "登入連結已傳送至您的郵箱。請檢查收件匣。（或垃圾郵件資料夾）"
 
 #: src/components/admin/AdminAccountsTable.tsx:104
-#: src/components/AppSidebar.tsx:257
+#: src/components/AppSidebar.tsx:404
 msgid "Account"
 msgstr "帳戶"
 
-#: src/components/AppSidebar.tsx:479
+#: src/components/AppSidebar.tsx:608
 #: src/routes/(root)/admin/index.tsx:56
 msgid "Accounts"
 msgstr "帳號"
@@ -233,7 +233,7 @@ msgstr "新增"
 msgid "Add {0}"
 msgstr "新增{0}"
 
-#: src/components/AppSidebar.tsx:461
+#: src/components/AppSidebar.tsx:586
 msgid "Admin"
 msgstr "管理"
 
@@ -323,7 +323,7 @@ msgstr "文章網址別名"
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:188
+#: src/components/AppSidebar.tsx:264
 msgid "Articles only"
 msgstr "僅文章"
 
@@ -367,7 +367,7 @@ msgstr "粗體"
 msgid "Bookmark"
 msgstr "收藏"
 
-#: src/components/AppSidebar.tsx:347
+#: src/components/AppSidebar.tsx:509
 #: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "收藏"
@@ -414,7 +414,7 @@ msgstr "已結束"
 msgid "Code"
 msgstr "程式碼"
 
-#: src/components/AppSidebar.tsx:674
+#: src/components/AppSidebar.tsx:811
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
@@ -424,7 +424,7 @@ msgstr "行為準則"
 #~ msgid "Comments ({0})"
 #~ msgstr "評論（{0}）"
 
-#: src/components/AppSidebar.tsx:521
+#: src/components/AppSidebar.tsx:654
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "寫作"
@@ -467,7 +467,7 @@ msgstr "無法載入個人資料。"
 msgid "Could not vote on this poll"
 msgstr "無法提交此投票"
 
-#: src/components/AppSidebar.tsx:566
+#: src/components/AppSidebar.tsx:700
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "建立文章"
@@ -476,7 +476,7 @@ msgstr "建立文章"
 msgid "Create invitation link"
 msgstr "建立邀請連結"
 
-#: src/components/AppSidebar.tsx:543
+#: src/components/AppSidebar.tsx:676
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:26
 #: src/components/NoteComposer.tsx:452
@@ -587,7 +587,7 @@ msgstr "拖動選擇要保留的區域，然後點擊「裁剪」來更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:651
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:676
 msgid "Edit"
 msgstr "編輯"
 
@@ -736,7 +736,7 @@ msgstr "載入更多受邀者失敗；點擊重試"
 msgid "Failed to load more notes; click to retry"
 msgstr "載入更多貼文失敗，點擊重試"
 
-#: src/components/NotificationList.tsx:80
+#: src/components/NotificationList.tsx:126
 msgid "Failed to load more notifications; click to retry"
 msgstr "無法載入更多通知；點擊重試"
 
@@ -751,6 +751,10 @@ msgstr "載入更多通行金鑰失敗；點擊重試"
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
+
+#: src/routes/(root)/[handle]/[noteId].tsx:480
+msgid "Failed to load more replies; click to retry"
+msgstr "載入更多回覆失敗，點擊重試"
 
 #: src/components/NoteComposer.tsx:317
 msgid "Failed to load quoted post"
@@ -816,7 +820,7 @@ msgid "Failed to share post"
 msgstr "轉貼失敗"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:115
+#: src/components/AppSidebar.tsx:179
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
@@ -850,7 +854,7 @@ msgstr "圖片上傳失敗"
 msgid "Failed to vote"
 msgstr "投票失敗"
 
-#: src/components/AppSidebar.tsx:231
+#: src/components/AppSidebar.tsx:312
 msgid "Fediverse"
 msgstr "聯邦宇宙"
 
@@ -858,7 +862,7 @@ msgstr "聯邦宇宙"
 msgid "Fediverse handle"
 msgstr "聯邦宇宙使用者名稱"
 
-#: src/components/AppSidebar.tsx:150
+#: src/components/AppSidebar.tsx:218
 msgid "Feed"
 msgstr "訂閱流"
 
@@ -897,7 +901,7 @@ msgstr "關注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/AppSidebar.tsx:709
+#: src/components/AppSidebar.tsx:849
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
 
@@ -930,8 +934,8 @@ msgstr "前往我的草稿"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "向自上次重新發放截止時間以來最活躍的帳號（按內容數排名前三分之一）額外發放一份邀請。"
 
-#: src/components/AppSidebar.tsx:209
-#: src/components/AppSidebar.tsx:441
+#: src/components/AppSidebar.tsx:289
+#: src/components/AppSidebar.tsx:377
 #: src/routes/(root).tsx:91
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
@@ -956,7 +960,7 @@ msgstr "Hackers' Pub：管理 · 帳號"
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub：管理 · 邀請"
 
-#: src/routes/(root)/notifications.tsx:41
+#: src/routes/(root)/notifications.tsx:44
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
@@ -989,17 +993,17 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "啟用後，AI 將為您生成文章摘要。否則，將使用文章的前幾行作為摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:974
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:999
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在聯邦宇宙有個帳戶，你可以在你自己的站台裡評論此文章。在你的站台搜尋 {0} 後回覆。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:279
+#: src/routes/(root)/[handle]/[noteId].tsx:308
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡評論此貼文。在你的實例搜尋 {0} 後回覆。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:365
+#: src/routes/(root)/[handle]/[noteId].tsx:363
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你有聯邦宇宙帳號，可以從自己的站台回覆此內容。在你的站台中搜尋 {0} 並回覆。"
 
@@ -1053,12 +1057,12 @@ msgid "Invitation sent"
 msgstr "邀請已發送"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
-#: src/components/AppSidebar.tsx:498
+#: src/components/AppSidebar.tsx:631
 #: src/routes/(root)/admin/invitations.tsx:155
 msgid "Invitations"
 msgstr "邀請"
 
-#: src/components/AppSidebar.tsx:370
+#: src/components/AppSidebar.tsx:533
 #: src/components/SettingsTabs.tsx:68
 #: src/routes/(root)/[handle]/settings/invite.tsx:290
 msgid "Invite"
@@ -1175,7 +1179,7 @@ msgstr "載入更多受邀者"
 msgid "Load more notes"
 msgstr "載入更多貼文"
 
-#: src/components/NotificationList.tsx:83
+#: src/components/NotificationList.tsx:129
 msgid "Load more notifications"
 msgstr "載入更多通知"
 
@@ -1190,6 +1194,10 @@ msgstr "載入更多通行金鑰"
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "載入更多內容"
+
+#: src/routes/(root)/[handle]/[noteId].tsx:483
+msgid "Load more replies"
+msgstr "載入更多回覆"
 
 #: src/components/article-composer/ArticleComposer.tsx:31
 msgid "Loading draft…"
@@ -1223,7 +1231,7 @@ msgstr "正在載入更多受邀者…"
 msgid "Loading more notes…"
 msgstr "載入更多貼文中…"
 
-#: src/components/NotificationList.tsx:77
+#: src/components/NotificationList.tsx:123
 msgid "Loading more notifications"
 msgstr "正在載入更多通知…"
 
@@ -1238,6 +1246,10 @@ msgstr "正在載入更多通行金鑰…"
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
+
+#: src/routes/(root)/[handle]/[noteId].tsx:477
+msgid "Loading more replies…"
+msgstr "正在載入更多回覆…"
 
 #: src/components/NoteComposer.tsx:318
 msgid "Loading quoted post…"
@@ -1351,7 +1363,7 @@ msgstr "沒有找到關注的使用者"
 msgid "No invitations left"
 msgstr "沒有剩餘邀請名額"
 
-#: src/routes/(root)/search.tsx:261
+#: src/routes/(root)/search.tsx:263
 msgid "No matching object found"
 msgstr "找不到相符的物件"
 
@@ -1413,7 +1425,7 @@ msgstr "貼文"
 #~ msgid "Nothing to preview"
 #~ msgstr "沒有可預覽的內容"
 
-#: src/components/AppSidebar.tsx:310
+#: src/components/AppSidebar.tsx:465
 msgid "Notifications"
 msgstr "通知"
 
@@ -1437,7 +1449,7 @@ msgstr "或"
 msgid "Or enter the code from the email"
 msgstr "或輸入郵件中的驗證碼"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:833
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:858
 msgid "Other languages"
 msgstr "其他語言"
 
@@ -1561,7 +1573,7 @@ msgstr "偏好語言"
 msgid "Priority"
 msgstr "優先級"
 
-#: src/components/AppSidebar.tsx:677
+#: src/components/AppSidebar.tsx:816
 #: src/routes/(root)/privacy.tsx:48
 msgid "Privacy policy"
 msgstr "隱私權政策"
@@ -1593,7 +1605,7 @@ msgstr "立即發布"
 msgid "Publishing…"
 msgstr "發布中…"
 
-#: src/routes/(root)/search.tsx:257
+#: src/routes/(root)/search.tsx:259
 msgid "Query cannot be empty"
 msgstr "搜尋關鍵詞不能為空"
 
@@ -1630,7 +1642,7 @@ msgstr "閱讀完整文章"
 msgid "Read the full Code of conduct"
 msgstr "閱讀完整的行為守則"
 
-#: src/components/AppSidebar.tsx:601
+#: src/components/AppSidebar.tsx:735
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
@@ -1733,7 +1745,7 @@ msgstr "儲存草稿以查看預覽"
 msgid "Saving…"
 msgstr "儲存中…"
 
-#: src/components/AppSidebar.tsx:250
+#: src/components/AppSidebar.tsx:335
 #: src/routes/(root)/search.tsx:149
 msgid "Search"
 msgstr "搜尋"
@@ -1747,7 +1759,7 @@ msgid "Search posts…"
 msgstr "搜尋內容…"
 
 #. placeholder {0}: "KEYWORD"
-#: src/routes/(root)/search.tsx:179
+#: src/routes/(root)/search.tsx:181
 msgid "Search results for {0}"
 msgstr "{0}的搜尋結果"
 
@@ -1776,7 +1788,7 @@ msgstr "發送中…"
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
-#: src/components/AppSidebar.tsx:401
+#: src/components/AppSidebar.tsx:565
 msgid "Settings"
 msgstr "設定"
 
@@ -1792,7 +1804,7 @@ msgstr "轉貼"
 msgid "Show preview"
 msgstr "顯示預覽"
 
-#: src/components/AppSidebar.tsx:283
+#: src/components/AppSidebar.tsx:429
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "登入"
@@ -1809,7 +1821,7 @@ msgstr "登入後投票"
 msgid "Sign in with passkey"
 msgstr "使用通行金鑰登入"
 
-#: src/components/AppSidebar.tsx:662
+#: src/components/AppSidebar.tsx:798
 msgid "Sign out"
 msgstr "登出"
 
@@ -1877,9 +1889,9 @@ msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:677
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:685
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1017
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:702
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:710
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1042
 msgid "Table of contents"
 msgstr "目錄"
 
@@ -1889,7 +1901,7 @@ msgstr "目錄"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:293
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1026
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
 msgid "Tags"
 msgstr "標籤"
 
@@ -1956,7 +1968,7 @@ msgstr "註冊連結無效。請確保你使用的是你收到的正確郵件連
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:700
+#: src/components/AppSidebar.tsx:840
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
@@ -1997,7 +2009,7 @@ msgstr "未找到此邀請連結。"
 msgid "This service does not support remote follow."
 msgstr "該服務不支援遠端關注。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:508
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:533
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常需要一分鐘左右。翻譯完成後頁面將自動更新。"
 
@@ -2005,7 +2017,7 @@ msgstr "通常需要一分鐘左右。翻譯完成後頁面將自動更新。"
 msgid "This will be part of the article URL"
 msgstr "這將成為文章網址的一部分"
 
-#: src/components/AppSidebar.tsx:130
+#: src/components/AppSidebar.tsx:194
 msgid "Timeline"
 msgstr "時間軸"
 
@@ -2034,7 +2046,7 @@ msgstr "共 {0} 個"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:215
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:817
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:842
 msgid "Translated from {0}"
 msgstr "翻譯自{0}"
 
@@ -2042,18 +2054,18 @@ msgstr "翻譯自{0}"
 #~ msgid "Translating to {0}…"
 #~ msgstr "正在翻譯為{0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:503
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:528
 msgid "Translating to {name}…"
 msgstr "正在翻譯為{name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:499
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:524
 msgid "Translating…"
 msgstr "正在翻譯…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:392
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:415
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:424
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:544
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:569
 msgid "Translation request failed"
 msgstr "翻譯請求失敗"
 
@@ -2061,11 +2073,11 @@ msgstr "翻譯請求失敗"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "向{0}的翻譯請求失敗"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:549
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:574
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻譯請求失敗"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:557
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
 msgid "Try again"
 msgstr "重試"
 
@@ -2166,7 +2178,7 @@ msgstr "已於{1}驗證此連結歸{0}所有"
 msgid "Verifying your invitation…"
 msgstr "驗證您的邀請…"
 
-#: src/components/AppSidebar.tsx:625
+#: src/components/AppSidebar.tsx:761
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
@@ -2206,7 +2218,7 @@ msgstr "已投票"
 msgid "Voting…"
 msgstr "正在投票…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:554
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "無法連接到翻譯服務。請重試或幾分鐘後再來。"
 
@@ -2226,11 +2238,11 @@ msgstr "什麼是 Hackers' Pub？"
 msgid "What's on your mind?"
 msgstr "你在想什麼？"
 
-#: src/components/AppSidebar.tsx:169
+#: src/components/AppSidebar.tsx:241
 msgid "Without shares"
 msgstr "不含轉貼"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:965
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:990
 msgid "Write a reply…"
 msgstr "寫個回覆…"
 

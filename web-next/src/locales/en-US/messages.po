@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:952
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:977
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, one {# comment} other {# comments}}"
 
@@ -166,8 +166,8 @@ msgstr "{0} shared your post"
 #. placeholder {0}: post.actor.name
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:227
-#: src/routes/(root)/[handle]/[noteId].tsx:174
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:238
+#: src/routes/(root)/[handle]/[noteId].tsx:221
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -210,11 +210,11 @@ msgid "A sign-in link has been sent to your email. Please check your inbox (or s
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
 #: src/components/admin/AdminAccountsTable.tsx:104
-#: src/components/AppSidebar.tsx:257
+#: src/components/AppSidebar.tsx:404
 msgid "Account"
 msgstr "Account"
 
-#: src/components/AppSidebar.tsx:479
+#: src/components/AppSidebar.tsx:608
 #: src/routes/(root)/admin/index.tsx:56
 msgid "Accounts"
 msgstr "Accounts"
@@ -233,7 +233,7 @@ msgstr "Add"
 msgid "Add {0}"
 msgstr "Add {0}"
 
-#: src/components/AppSidebar.tsx:461
+#: src/components/AppSidebar.tsx:586
 msgid "Admin"
 msgstr "Admin"
 
@@ -323,7 +323,7 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:188
+#: src/components/AppSidebar.tsx:264
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -367,7 +367,7 @@ msgstr "Bold"
 msgid "Bookmark"
 msgstr "Bookmark"
 
-#: src/components/AppSidebar.tsx:347
+#: src/components/AppSidebar.tsx:509
 #: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "Bookmarks"
@@ -414,7 +414,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:674
+#: src/components/AppSidebar.tsx:811
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/sign/up/[token].tsx:457
 msgid "Code of conduct"
@@ -424,7 +424,7 @@ msgstr "Code of conduct"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:521
+#: src/components/AppSidebar.tsx:654
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -467,7 +467,7 @@ msgstr "Could not load profile."
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:566
+#: src/components/AppSidebar.tsx:700
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -476,7 +476,7 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:543
+#: src/components/AppSidebar.tsx:676
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:26
 #: src/components/NoteComposer.tsx:452
@@ -587,7 +587,7 @@ msgstr "Drag to select the area you want to keep, then click “Crop” to updat
 msgid "e.g., @user@mastodon.social"
 msgstr "e.g., @user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:651
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:676
 msgid "Edit"
 msgstr "Edit"
 
@@ -740,7 +740,7 @@ msgstr "Failed to load more invitees; click to retry"
 msgid "Failed to load more notes; click to retry"
 msgstr "Failed to load more notes; click to retry"
 
-#: src/components/NotificationList.tsx:80
+#: src/components/NotificationList.tsx:126
 msgid "Failed to load more notifications; click to retry"
 msgstr "Failed to load more notifications; click to retry"
 
@@ -755,6 +755,10 @@ msgstr "Failed to load more passkeys; click to retry"
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
+
+#: src/routes/(root)/[handle]/[noteId].tsx:480
+msgid "Failed to load more replies; click to retry"
+msgstr "Failed to load more replies; click to retry"
 
 #: src/components/NoteComposer.tsx:317
 msgid "Failed to load quoted post"
@@ -820,7 +824,7 @@ msgid "Failed to share post"
 msgstr "Failed to share post"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:115
+#: src/components/AppSidebar.tsx:179
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
@@ -854,7 +858,7 @@ msgstr "Failed to upload image"
 msgid "Failed to vote"
 msgstr "Failed to vote"
 
-#: src/components/AppSidebar.tsx:231
+#: src/components/AppSidebar.tsx:312
 msgid "Fediverse"
 msgstr "Fediverse"
 
@@ -862,7 +866,7 @@ msgstr "Fediverse"
 msgid "Fediverse handle"
 msgstr "Fediverse handle"
 
-#: src/components/AppSidebar.tsx:150
+#: src/components/AppSidebar.tsx:218
 msgid "Feed"
 msgstr "Feed"
 
@@ -901,7 +905,7 @@ msgstr "Following you"
 msgid "Formatting"
 msgstr "Formatting"
 
-#: src/components/AppSidebar.tsx:709
+#: src/components/AppSidebar.tsx:849
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -934,8 +938,8 @@ msgstr "Go to my drafts"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 
-#: src/components/AppSidebar.tsx:209
-#: src/components/AppSidebar.tsx:441
+#: src/components/AppSidebar.tsx:289
+#: src/components/AppSidebar.tsx:377
 #: src/routes/(root).tsx:91
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
@@ -960,7 +964,7 @@ msgstr "Hackers' Pub: Admin · Accounts"
 msgid "Hackers' Pub: Admin · Invitations"
 msgstr "Hackers' Pub: Admin · Invitations"
 
-#: src/routes/(root)/notifications.tsx:41
+#: src/routes/(root)/notifications.tsx:44
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
 
@@ -993,17 +997,17 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:974
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:999
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:279
+#: src/routes/(root)/[handle]/[noteId].tsx:308
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:365
+#: src/routes/(root)/[handle]/[noteId].tsx:363
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 
@@ -1057,12 +1061,12 @@ msgid "Invitation sent"
 msgstr "Invitation sent"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
-#: src/components/AppSidebar.tsx:498
+#: src/components/AppSidebar.tsx:631
 #: src/routes/(root)/admin/invitations.tsx:155
 msgid "Invitations"
 msgstr "Invitations"
 
-#: src/components/AppSidebar.tsx:370
+#: src/components/AppSidebar.tsx:533
 #: src/components/SettingsTabs.tsx:68
 #: src/routes/(root)/[handle]/settings/invite.tsx:290
 msgid "Invite"
@@ -1179,7 +1183,7 @@ msgstr "Load more invitees"
 msgid "Load more notes"
 msgstr "Load more notes"
 
-#: src/components/NotificationList.tsx:83
+#: src/components/NotificationList.tsx:129
 msgid "Load more notifications"
 msgstr "Load more notifications"
 
@@ -1194,6 +1198,10 @@ msgstr "Load more passkeys"
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "Load more posts"
+
+#: src/routes/(root)/[handle]/[noteId].tsx:483
+msgid "Load more replies"
+msgstr "Load more replies"
 
 #: src/components/article-composer/ArticleComposer.tsx:31
 msgid "Loading draft…"
@@ -1227,7 +1235,7 @@ msgstr "Loading more invitees…"
 msgid "Loading more notes…"
 msgstr "Loading more notes…"
 
-#: src/components/NotificationList.tsx:77
+#: src/components/NotificationList.tsx:123
 msgid "Loading more notifications"
 msgstr "Loading more notifications"
 
@@ -1242,6 +1250,10 @@ msgstr "Loading more passkeys…"
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
+
+#: src/routes/(root)/[handle]/[noteId].tsx:477
+msgid "Loading more replies…"
+msgstr "Loading more replies…"
 
 #: src/components/NoteComposer.tsx:318
 msgid "Loading quoted post…"
@@ -1355,7 +1367,7 @@ msgstr "No following found"
 msgid "No invitations left"
 msgstr "No invitations left"
 
-#: src/routes/(root)/search.tsx:261
+#: src/routes/(root)/search.tsx:263
 msgid "No matching object found"
 msgstr "No matching object found"
 
@@ -1418,7 +1430,7 @@ msgstr "Notes"
 #~ msgid "Nothing to preview"
 #~ msgstr "Nothing to preview"
 
-#: src/components/AppSidebar.tsx:310
+#: src/components/AppSidebar.tsx:465
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1442,7 +1454,7 @@ msgstr "Or"
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:833
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:858
 msgid "Other languages"
 msgstr "Other languages"
 
@@ -1566,7 +1578,7 @@ msgstr "Preferred languages"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:677
+#: src/components/AppSidebar.tsx:816
 #: src/routes/(root)/privacy.tsx:48
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -1598,7 +1610,7 @@ msgstr "Publish now"
 msgid "Publishing…"
 msgstr "Publishing…"
 
-#: src/routes/(root)/search.tsx:257
+#: src/routes/(root)/search.tsx:259
 msgid "Query cannot be empty"
 msgstr "Query cannot be empty"
 
@@ -1635,7 +1647,7 @@ msgstr "Read full article"
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
-#: src/components/AppSidebar.tsx:601
+#: src/components/AppSidebar.tsx:735
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -1738,7 +1750,7 @@ msgstr "Save draft to see preview"
 msgid "Saving…"
 msgstr "Saving…"
 
-#: src/components/AppSidebar.tsx:250
+#: src/components/AppSidebar.tsx:335
 #: src/routes/(root)/search.tsx:149
 msgid "Search"
 msgstr "Search"
@@ -1752,7 +1764,7 @@ msgid "Search posts…"
 msgstr "Search posts…"
 
 #. placeholder {0}: "KEYWORD"
-#: src/routes/(root)/search.tsx:179
+#: src/routes/(root)/search.tsx:181
 msgid "Search results for {0}"
 msgstr "Search results for {0}"
 
@@ -1781,7 +1793,7 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:401
+#: src/components/AppSidebar.tsx:565
 msgid "Settings"
 msgstr "Settings"
 
@@ -1797,7 +1809,7 @@ msgstr "Shares"
 msgid "Show preview"
 msgstr "Show preview"
 
-#: src/components/AppSidebar.tsx:283
+#: src/components/AppSidebar.tsx:429
 #: src/routes/(root)/sign/index.tsx:396
 msgid "Sign in"
 msgstr "Sign in"
@@ -1814,7 +1826,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:662
+#: src/components/AppSidebar.tsx:798
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -1882,9 +1894,9 @@ msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:677
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:685
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1017
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:702
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:710
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1042
 msgid "Table of contents"
 msgstr "Table of contents"
 
@@ -1894,7 +1906,7 @@ msgstr "Table of contents"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:293
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1026
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
 msgid "Tags"
 msgstr "Tags"
 
@@ -1961,7 +1973,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:700
+#: src/components/AppSidebar.tsx:840
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -2002,7 +2014,7 @@ msgstr "This invitation link was not found."
 msgid "This service does not support remote follow."
 msgstr "This service does not support remote follow."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:508
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:533
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "This usually takes about a minute. The page will update automatically when the translation is ready."
 
@@ -2010,7 +2022,7 @@ msgstr "This usually takes about a minute. The page will update automatically wh
 msgid "This will be part of the article URL"
 msgstr "This will be part of the article URL"
 
-#: src/components/AppSidebar.tsx:130
+#: src/components/AppSidebar.tsx:194
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -2039,7 +2051,7 @@ msgstr "Total: {0}"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:215
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:817
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:842
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
@@ -2047,18 +2059,18 @@ msgstr "Translated from {0}"
 #~ msgid "Translating to {0}…"
 #~ msgstr "Translating to {0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:503
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:528
 msgid "Translating to {name}…"
 msgstr "Translating to {name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:499
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:524
 msgid "Translating…"
 msgstr "Translating…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:392
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:415
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:424
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:544
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:569
 msgid "Translation request failed"
 msgstr "Translation request failed"
 
@@ -2066,11 +2078,11 @@ msgstr "Translation request failed"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "Translation request failed for {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:549
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:574
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:557
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
 msgid "Try again"
 msgstr "Try again"
 
@@ -2171,7 +2183,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:625
+#: src/components/AppSidebar.tsx:761
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
@@ -2211,7 +2223,7 @@ msgstr "Voted"
 msgid "Voting…"
 msgstr "Voting…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:554
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "We couldn't reach the translation service. Try again, or come back in a few minutes."
 
@@ -2231,11 +2243,11 @@ msgstr "What is Hackers' Pub?"
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
-#: src/components/AppSidebar.tsx:169
+#: src/components/AppSidebar.tsx:241
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:965
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:990
 msgid "Write a reply…"
 msgstr "Write a reply…"
 
