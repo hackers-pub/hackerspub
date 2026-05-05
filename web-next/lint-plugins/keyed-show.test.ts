@@ -187,8 +187,12 @@ Deno.test(
   },
 );
 
-Deno.test("autofix preserves param() calls passing arguments", () => {
-  const diagnostics = lint(`${RELAY_PRELUDE}
+Deno.test(
+  "suppresses autofix when body calls the param with arguments",
+  () => {
+    // value(arg) cannot be safely rewritten under the keyed flip,
+    // since `value` becomes a concrete value rather than an accessor.
+    const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {
       const data = createPreloadedQuery(env, () => loadQuery());
       return (
@@ -198,9 +202,10 @@ Deno.test("autofix preserves param() calls passing arguments", () => {
       );
     }
   `);
-  assertEquals(diagnostics.length, 1);
-  assertEquals(diagnostics[0].fix!.length, 1);
-});
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].fix, []);
+  },
+);
 
 Deno.test(
   "flags but does not rewrite calls when param is destructured",

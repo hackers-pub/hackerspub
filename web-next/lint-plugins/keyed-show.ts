@@ -54,6 +54,13 @@ type ShowEntry = {
   fnExpr: any;
   bodyHasRebinding: boolean;
   existingKeyedAttr: any | null;
+  // True when the body uses the param in a way that the value-form
+  // rewrite cannot safely express. The only safe forms are zero-argument
+  // calls (`param()` or `param?.()`) which are explicitly rewritten in
+  // `calls`. A non-zero-argument call (`param(arg)`) on the param would
+  // turn into `param(arg)` after the keyed flip, calling the now-keyed
+  // value as a function with arguments and crashing at runtime.
+  hasUnsafeParamUse: boolean;
   calls: any[];
   reported: boolean;
 };
@@ -309,6 +316,7 @@ const plugin: Deno.lint.Plugin = {
               fnExpr,
               bodyHasRebinding,
               existingKeyedAttr,
+              hasUnsafeParamUse: false,
               calls: [],
               reported: false,
             });
@@ -316,10 +324,8 @@ const plugin: Deno.lint.Plugin = {
 
           CallExpression(node: any) {
             const callee = node.callee;
-            if (
-              callee?.type !== "Identifier" ||
-              (node.arguments?.length ?? 0) !== 0
-            ) return;
+            if (callee?.type !== "Identifier") return;
+            const argCount = node.arguments?.length ?? 0;
             // Note: optional calls (`value?.()`) are intentionally
             // included. Under the keyed conversion `value` is a concrete
             // value, not a function, so leaving `value?.()` in place would
@@ -335,12 +341,14 @@ const plugin: Deno.lint.Plugin = {
               if (isFn) {
                 if (paramRebindsName(cursor.params, calleeName)) {
                   const entry = shows.get(cursor);
-                  if (
-                    entry &&
-                    entry.paramName === calleeName &&
-                    !entry.bodyHasRebinding
-                  ) {
-                    entry.calls.push(node);
+                  if (entry && entry.paramName === calleeName) {
+                    if (argCount === 0 && !entry.bodyHasRebinding) {
+                      entry.calls.push(node);
+                    } else if (argCount > 0) {
+                      // `value(arg)` cannot be safely rewritten: after the
+                      // keyed flip `value` is not callable.
+                      entry.hasUnsafeParamUse = true;
+                    }
                   }
                   return;
                 }
@@ -382,8 +390,13 @@ const plugin: Deno.lint.Plugin = {
             //     skip the param() replacements, but inserting `keyed`
             //     alone would leave any non-shadowed `param()` calls
             //     pointing at the now-keyed value, which is no longer a
-            //     function and would throw at runtime).
-            if (existingKeyedAttr || entry.bodyHasRebinding) {
+            //     function and would throw at runtime), or
+            //   - body uses the param in a way the rewrite cannot express
+            //     safely (e.g., `param(arg)` with non-zero arguments).
+            if (
+              existingKeyedAttr || entry.bodyHasRebinding ||
+              entry.hasUnsafeParamUse
+            ) {
               context.report({ node: opening, message });
               return;
             }
