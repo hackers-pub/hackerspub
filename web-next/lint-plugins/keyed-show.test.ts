@@ -348,6 +348,24 @@ Deno.test("recognises namespace imports of Relay primitives", () => {
   assertEquals(diagnostics.length, 1);
 });
 
+Deno.test(
+  "flags FunctionExpression children of Relay-backed Show",
+  () => {
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      return (
+        <Show when={data()}>
+          {function (value) { return <div>{value()}</div>; }}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].id, RULE);
+  },
+);
+
 Deno.test("scopes Relay binding to its declaring function", () => {
   // \`data\` declared inside FunctionA must NOT be considered Relay-backed
   // inside FunctionB (separate scope).

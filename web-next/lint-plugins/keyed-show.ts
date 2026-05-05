@@ -90,42 +90,47 @@ const plugin: Deno.lint.Plugin = {
           "value directly; reconcile keeps record identity stable, so " +
           "keyed only re-mounts on actual record changes.";
 
+        // Shared by ArrowFunctionExpression and FunctionExpression: when
+        // the function is the children of a Show/Match whose `when` is
+        // Relay-backed in the OUTER scope, mark the function's first
+        // param as Relay-backed in the new (just-pushed) scope.
+        const propagateRelayBindingFromShowParent = (node: any): void => {
+          const exprContainer = node.parent;
+          if (exprContainer?.type !== "JSXExpressionContainer") return;
+          const showJsx = exprContainer.parent;
+          if (showJsx?.type !== "JSXElement") return;
+          const opening = showJsx.openingElement;
+          const tagName = opening?.name;
+          if (
+            tagName?.type !== "JSXIdentifier" ||
+            !TARGET_TAGS.has(tagName.name)
+          ) return;
+          const whenExpr = getWhenExpression(opening);
+          if (!whenExpr) return;
+          const top = scopes.pop();
+          const outerSays = expressionIsRelayBacked(whenExpr, isRelayBacked);
+          if (top) scopes.push(top);
+          if (!outerSays) return;
+          const firstParam = node.params?.[0];
+          if (firstParam?.type === "Identifier") {
+            addToCurrentScope(firstParam.name);
+          }
+        };
+
         return {
           Program: pushScope,
           "Program:exit": popScope,
           FunctionDeclaration: pushScope,
           "FunctionDeclaration:exit": popScope,
-          FunctionExpression: pushScope,
+          FunctionExpression(node: any) {
+            pushScope();
+            propagateRelayBindingFromShowParent(node);
+          },
           "FunctionExpression:exit": popScope,
 
           ArrowFunctionExpression(node: any) {
             pushScope();
-            // If this arrow is the children of a Show/Match whose `when` is
-            // Relay-backed, the arrow's first param carries Relay-backed-
-            // ness into the body. (We check Relay-backed-ness of `when`
-            // against the OUTER scope, which is still the second-to-top of
-            // the stack at this point.)
-            const exprContainer = node.parent;
-            if (exprContainer?.type !== "JSXExpressionContainer") return;
-            const showJsx = exprContainer.parent;
-            if (showJsx?.type !== "JSXElement") return;
-            const opening = showJsx.openingElement;
-            const tagName = opening?.name;
-            if (
-              tagName?.type !== "JSXIdentifier" ||
-              !TARGET_TAGS.has(tagName.name)
-            ) return;
-            const whenExpr = getWhenExpression(opening);
-            if (!whenExpr) return;
-            // Evaluate Relay-backed-ness against the outer scope only.
-            const top = scopes.pop();
-            const outerSays = expressionIsRelayBacked(whenExpr, isRelayBacked);
-            if (top) scopes.push(top);
-            if (!outerSays) return;
-            const firstParam = node.params?.[0];
-            if (firstParam?.type === "Identifier") {
-              addToCurrentScope(firstParam.name);
-            }
+            propagateRelayBindingFromShowParent(node);
           },
           "ArrowFunctionExpression:exit": popScope,
 
