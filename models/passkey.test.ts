@@ -22,7 +22,7 @@ Deno.test("resolvePasskeyOrigins() prefers platform-specific origins", () => {
   );
   assertEquals(
     resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "ios"),
-    ["https://pub.hackers.pub"],
+    ["ios:pub.hackers.HackersPub"],
   );
   assertEquals(
     resolvePasskeyOrigins("https://pub.hackers.pub/sign/in", "android"),

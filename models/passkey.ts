@@ -35,6 +35,9 @@ const PLATFORM_ORIGINS: Partial<Record<PasskeyPlatform, string[]>> = {
     // Local debug keystore (pub.hackers.android.dev)
     "android:apk-key-hash:yqSW6UZsaCl_dADWM0X3C_ndgblJU4uUMrjQYLIxEFs",
   ],
+  ios: [
+    "ios:pub.hackers.HackersPub",
+  ],
 };
 
 export function resolvePasskeyOrigins(

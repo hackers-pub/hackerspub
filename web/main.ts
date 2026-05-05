@@ -33,6 +33,12 @@ import type { State } from "./utils.ts";
 import assetlinks from "../graphql/static/.well-known/assetlinks.json" with {
   type: "json",
 };
+const appleAppSiteAssociationJson = Deno.readTextFileSync(
+  new URL(
+    "../graphql/static/.well-known/apple-app-site-association",
+    import.meta.url,
+  ),
+);
 
 export const app = new App<State>();
 const staticHandler = staticFiles();
@@ -42,6 +48,15 @@ app.use(async (ctx) => {
   if (ctx.url.pathname === "/.well-known/assetlinks.json") {
     return new Response(
       JSON.stringify(assetlinks),
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  } else if (ctx.url.pathname === "/.well-known/apple-app-site-association") {
+    return new Response(
+      appleAppSiteAssociationJson,
       {
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +168,8 @@ app.use((ctx) => {
 app.use(async (ctx) => {
   if (
     ctx.url.pathname.startsWith("/.well-known/") &&
-      ctx.url.pathname !== "/.well-known/assetlinks.json" ||
+      ctx.url.pathname !== "/.well-known/assetlinks.json" &&
+      ctx.url.pathname !== "/.well-known/apple-app-site-association" ||
     ctx.url.pathname.startsWith("/ap/") ||
     ctx.url.pathname.startsWith("/nodeinfo/")
   ) {

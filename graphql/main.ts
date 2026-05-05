@@ -11,6 +11,9 @@ import { createYogaServer } from "./mod.ts";
 import assetlinks from "./static/.well-known/assetlinks.json" with {
   type: "json",
 };
+const appleAppSiteAssociationJson = Deno.readTextFileSync(
+  new URL("./static/.well-known/apple-app-site-association", import.meta.url),
+);
 
 const yogaServer = createYogaServer();
 
@@ -19,6 +22,11 @@ Deno.serve({ port: 8080 }, async (req, info) => {
   const disk = drive.use();
   if (url.pathname === "/.well-known/assetlinks.json") {
     return new Response(JSON.stringify(assetlinks), {
+      headers: { "content-type": "application/json" },
+    });
+  }
+  if (url.pathname === "/.well-known/apple-app-site-association") {
+    return new Response(appleAppSiteAssociationJson, {
       headers: { "content-type": "application/json" },
     });
   }
