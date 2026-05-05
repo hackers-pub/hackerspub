@@ -161,6 +161,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
           title
           summary
           language
+          url
         }
         allContents: contents(includeBeingTranslated: true) {
           language
@@ -202,6 +203,8 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
         const currentLanguage = () =>
           content()?.language ?? article.language ?? undefined;
         const canonicalUrl = () => {
+          const contentUrl = content()?.url;
+          if (contentUrl != null) return contentUrl;
           const articleUrl = article.url;
           if (articleUrl == null) return null;
           if (props.canonicalLanguage == null) return articleUrl;
@@ -221,6 +224,14 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
             return null;
           }
         };
+        const ogImageUrls = () =>
+          articleOgImageUrls(
+            article.url,
+            content()?.url,
+            article.language,
+            content()?.language,
+            article.contents,
+          );
         return (
           <>
             <Title>
@@ -237,7 +248,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
             <Meta property="og:title" content={title()} />
             <Meta property="og:description" content={description()} />
             <Meta property="og:type" content="article" />
-            <For each={articleOgImageUrls(article.url, article.contents)}>
+            <For each={ogImageUrls()}>
               {(ogImageUrl) => (
                 <>
                   <Meta property="og:image" content={ogImageUrl} />
@@ -246,7 +257,7 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
                 </>
               )}
             </For>
-            <Show when={article.url}>
+            <Show when={ogImageUrls().length > 0}>
               <Meta name="twitter:card" content="summary_large_image" />
             </Show>
             <Meta
@@ -310,15 +321,29 @@ function ArticleMetaHead(props: ArticleMetaHeadProps) {
 
 function articleOgImageUrls(
   articleUrl: string | null | undefined,
-  contents: readonly { readonly language: string }[] | null | undefined,
+  fallbackContentUrl: string | null | undefined,
+  articleLanguage: string | null | undefined,
+  fallbackContentLanguage: string | null | undefined,
+  contents:
+    | readonly { readonly language: string; readonly url: string }[]
+    | null
+    | undefined,
 ) {
-  if (articleUrl == null) return [];
-  const ogImageUrl = new URL(articleUrl);
-  ogImageUrl.pathname = `${ogImageUrl.pathname.replace(/\/$/, "")}/ogimage`;
-  if (contents == null || contents.length < 1) return [ogImageUrl.toString()];
+  const baseUrl = articleUrl ?? fallbackContentUrl;
+  if (baseUrl == null || contents == null || contents.length < 1) return [];
   return contents.map((content) => {
-    const url = new URL(ogImageUrl);
-    url.searchParams.set("l", content.language);
+    const url = new URL(baseUrl);
+    if (
+      articleUrl == null &&
+      articleLanguage != null &&
+      fallbackContentLanguage !== articleLanguage
+    ) {
+      url.pathname = url.pathname.replace(/\/+$/, "").replace(/\/[^/]+$/, "");
+    }
+    url.pathname = `${url.pathname.replace(/\/+$/, "")}/ogimage`;
+    if (articleLanguage == null || content.language !== articleLanguage) {
+      url.searchParams.set("l", content.language);
+    }
     return url.toString();
   });
 }
