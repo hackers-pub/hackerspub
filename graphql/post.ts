@@ -398,7 +398,6 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
       select: {
         columns: {
           content: true,
-          sourceId: true,
         },
       },
       async resolve(draft, _, ctx) {
