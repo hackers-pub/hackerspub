@@ -231,6 +231,39 @@ export const Account = builder.drizzleNode("accountTable", {
         );
       },
     }),
+    unreadNotificationsCount: t.int({
+      authScopes: (parent) => ({
+        selfAccount: parent.id,
+      }),
+      select: {
+        columns: {
+          id: true,
+        },
+      },
+      resolve(account, _, ctx) {
+        return ctx.db.$count(
+          notificationTable,
+          and(
+            eq(notificationTable.accountId, account.id),
+            sql`${notificationTable.created} > COALESCE(
+              (
+                SELECT ${accountTable.notificationRead}
+                FROM ${accountTable}
+                WHERE ${accountTable.id} = ${account.id}
+              ),
+              '-infinity'::timestamptz
+            )`,
+            gt(
+              ctx.db.$count(
+                actorTable,
+                sql`${actorTable.id} = ANY(${notificationTable.actorIds})`,
+              ),
+              0,
+            ),
+          ),
+        );
+      },
+    }),
   }),
 });
 

@@ -5,10 +5,14 @@ import {
   getCookie,
   getRequestProtocol,
 } from "@solidjs/start/http";
-import { graphql } from "relay-runtime";
-import { For, Show } from "solid-js";
+import { fetchQuery, graphql, type Subscription } from "relay-runtime";
+import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import { getRequestEvent } from "solid-js/web";
-import { createFragment, createMutation } from "solid-relay";
+import {
+  createFragment,
+  createMutation,
+  useRelayEnvironment,
+} from "solid-relay";
 import {
   Sidebar,
   SidebarContent,
@@ -25,6 +29,7 @@ import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { Trans } from "./Trans.tsx";
 import type { AppSidebarSignOutMutation } from "./__generated__/AppSidebarSignOutMutation.graphql.ts";
+import type { AppSidebarUnreadNotificationsQuery } from "./__generated__/AppSidebarUnreadNotificationsQuery.graphql.ts";
 import type {
   AppSidebar_signedAccount$data,
   AppSidebar_signedAccount$key,
@@ -43,6 +48,14 @@ const AppSidebarSignOutMutation = graphql`
   mutation AppSidebarSignOutMutation($sessionId: UUID!) {
     revokeSession(sessionId: $sessionId) {
       id
+    }
+  }
+`;
+
+const AppSidebarUnreadNotificationsQuery = graphql`
+  query AppSidebarUnreadNotificationsQuery {
+    viewer {
+      unreadNotificationsCount
     }
   }
 `;
@@ -73,6 +86,10 @@ export function AppSidebar(props: AppSidebarProps) {
   const { t } = useLingui();
   const { open: openNoteCompose } = useNoteCompose();
   const { isMobile, state } = useSidebar();
+  const environment = useRelayEnvironment();
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = createSignal<
+    number
+  >();
   const signedAccount = createFragment(
     graphql`
       fragment AppSidebar_signedAccount on Account
@@ -84,6 +101,7 @@ export function AppSidebar(props: AppSidebarProps) {
         username
         avatarUrl
         invitationsLeft
+        unreadNotificationsCount
         moderator
         articleDrafts(after: $cursor, first: $count)
           @connection(key: "SignedAccount_articleDrafts") {
@@ -104,6 +122,45 @@ export function AppSidebar(props: AppSidebarProps) {
     `,
     () => props.$signedAccount,
   );
+
+  createEffect(() => {
+    setUnreadNotificationsCount(signedAccount()?.unreadNotificationsCount);
+  });
+
+  createEffect(() => {
+    if (!props.signedAccountLoaded || signedAccount()?.username == null) {
+      return;
+    }
+
+    let pending: Subscription | null = null;
+    const poll = () => {
+      if (pending != null) return;
+      pending = fetchQuery<AppSidebarUnreadNotificationsQuery>(
+        environment(),
+        AppSidebarUnreadNotificationsQuery,
+        {},
+      ).subscribe({
+        next(data) {
+          setUnreadNotificationsCount(
+            data.viewer?.unreadNotificationsCount ?? undefined,
+          );
+        },
+        complete() {
+          pending = null;
+        },
+        error(error: unknown) {
+          pending = null;
+          console.error("Notification count polling failed:", error);
+        },
+      });
+    };
+
+    const interval = setInterval(poll, 10_000);
+    onCleanup(() => {
+      clearInterval(interval);
+      pending?.unsubscribe();
+    });
+  });
 
   const [signOut] = createMutation<AppSidebarSignOutMutation>(
     AppSidebarSignOutMutation,
@@ -295,6 +352,7 @@ export function AppSidebar(props: AppSidebarProps) {
         <AccountSection
           signedAccount={signedAccount()}
           signedAccountLoaded={props.signedAccountLoaded}
+          unreadNotificationsCount={unreadNotificationsCount()}
           onSignOut={onSignOut}
         />
       </SidebarContent>
@@ -330,11 +388,15 @@ function AppSidebarLogo() {
 interface AccountSectionProps {
   signedAccount?: AppSidebar_signedAccount$data | null;
   signedAccountLoaded?: boolean;
+  unreadNotificationsCount?: number;
   onSignOut: () => void;
 }
 
 function AccountSection(props: AccountSectionProps) {
   const { t } = useLingui();
+  const unreadNotificationsCount = () =>
+    props.unreadNotificationsCount ??
+      props.signedAccount?.unreadNotificationsCount ?? 0;
 
   return (
     <SidebarGroup>
@@ -391,8 +453,21 @@ function AccountSection(props: AccountSectionProps) {
                       stroke-linejoin="round"
                       d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h3.218a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 0 0-2.15-1.588H6.911a2.25 2.25 0 0 0-2.15 1.588L2.35 13.177a2.25 2.25 0 0 0-.1.661Z"
                     />
+                    <Show when={unreadNotificationsCount() > 0}>
+                      <circle
+                        class="fill-red-500 stroke-background stroke-2"
+                        cx="19"
+                        cy="19"
+                        r="3.5"
+                      />
+                    </Show>
                   </svg>
                   {t`Notifications`}
+                  <Show when={unreadNotificationsCount() > 0}>
+                    <span class="text-xs text-muted-foreground">
+                      ({unreadNotificationsCount()})
+                    </span>
+                  </Show>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem class="list-none">

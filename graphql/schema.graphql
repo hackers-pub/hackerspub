@@ -30,6 +30,7 @@ type Account implements Node {
   """
   postCount: Int
   preferAiSummary: Boolean!
+  unreadNotificationsCount: Int!
   updated: DateTime!
   username: String!
   usernameChanged: DateTime
@@ -760,9 +761,14 @@ type Mutation {
   ): LoginResult!
 
   """
-  Marks all notifications as read up to the current time. Returns the timestamp.
+  Marks notifications as read up to a notification, or the current time when omitted. Returns the timestamp.
   """
-  markNotificationsAsRead: DateTime!
+  markNotificationsAsRead(
+    """
+    The UUID of the newest loaded notification to mark as read through.  When omitted, marks notifications read through the current time.
+    """
+    upTo: UUID
+  ): DateTime!
   pinPost(input: PinPostInput!): PinPostResult!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
   redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!

@@ -1,14 +1,16 @@
 import {
   accountTable,
   type Actor as ActorRow,
+  notificationTable,
 } from "@hackerspub/models/schema";
 import {
   resolveCursorConnection,
   type ResolveCursorConnectionArgs,
 } from "@pothos/plugin-relay";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { Actor, getActorById } from "./actor.ts";
 import { builder, Node } from "./builder.ts";
+import { InvalidInputError } from "./error.ts";
 import { Post } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
@@ -154,16 +156,43 @@ builder.mutationField("markNotificationsAsRead", (t) =>
   t.field({
     type: "DateTime",
     description:
-      "Marks all notifications as read up to the current time. Returns the timestamp.",
-    async resolve(_root, _args, ctx) {
+      "Marks notifications as read up to a notification, or the current time when omitted. Returns the timestamp.",
+    args: {
+      upTo: t.arg({
+        type: "UUID",
+        required: false,
+        description:
+          "The UUID of the newest loaded notification to mark as read through.  When omitted, marks notifications read through the current time.",
+      }),
+    },
+    async resolve(_root, { upTo }, ctx) {
       if (ctx.account == null) throw new NotAuthenticatedError();
+      const readThrough = upTo == null ? sql`CURRENT_TIMESTAMP` : sql`(
+          SELECT ${notificationTable.created}
+          FROM ${notificationTable}
+          WHERE ${notificationTable.id} = ${upTo}
+            AND ${notificationTable.accountId} = ${ctx.account.id}
+        )`;
       const [row] = await ctx.db.update(accountTable)
         .set({
-          notificationRead:
-            sql`GREATEST(${accountTable.notificationRead}, CURRENT_TIMESTAMP)`,
+          notificationRead: sql`GREATEST(
+            COALESCE(${accountTable.notificationRead}, '-infinity'::timestamptz),
+            ${readThrough}
+          )`,
         })
-        .where(eq(accountTable.id, ctx.account.id))
+        .where(
+          and(
+            eq(accountTable.id, ctx.account.id),
+            upTo == null ? undefined : sql`EXISTS (
+                SELECT 1
+                FROM ${notificationTable}
+                WHERE ${notificationTable.id} = ${upTo}
+                  AND ${notificationTable.accountId} = ${ctx.account.id}
+              )`,
+          ),
+        )
         .returning({ notificationRead: accountTable.notificationRead });
+      if (row == null) throw new InvalidInputError("upTo");
       return row.notificationRead!;
     },
   }));

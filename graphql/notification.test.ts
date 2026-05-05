@@ -1,6 +1,7 @@
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import {
+  accountTable,
   type Actor as ActorRow,
   actorTable,
   notificationTable,
@@ -8,7 +9,7 @@ import {
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import DataLoader from "dataloader";
-import { inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
 import {
@@ -38,6 +39,263 @@ const notificationActorsQuery = parse(`
     }
   }
 `);
+
+const unreadNotificationsCountQuery = parse(`
+  query UnreadNotificationsCountQuery {
+    viewer {
+      unreadNotificationsCount
+    }
+  }
+`);
+
+const markNotificationsAsReadMutation = parse(`
+  mutation MarkNotificationsAsRead($upTo: UUID) {
+    markNotificationsAsRead(upTo: $upTo)
+  }
+`);
+
+Deno.test({
+  name:
+    "Account.unreadNotificationsCount counts notifications newer than notificationRead",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const recipient = await insertAccountWithActor(tx, {
+        username: "notifycountme",
+        name: "Notify Count Me",
+        email: "notifycountme@example.com",
+      });
+      const actor = await insertAccountWithActor(tx, {
+        username: "notifycountactor",
+        name: "Notify Count Actor",
+        email: "notifycountactor@example.com",
+      });
+      const otherActor = await insertAccountWithActor(tx, {
+        username: "notifycountother",
+        name: "Notify Count Other",
+        email: "notifycountother@example.com",
+      });
+
+      await tx.update(accountTable)
+        .set({ notificationRead: new Date("2026-04-15T00:00:01.000Z") })
+        .where(eq(accountTable.id, recipient.account.id));
+      await tx.insert(notificationTable).values([
+        {
+          id: generateUuidV7(),
+          accountId: recipient.account.id,
+          type: "follow",
+          actorIds: [actor.actor.id],
+          created: new Date("2026-04-15T00:00:00.000Z"),
+        },
+        {
+          id: generateUuidV7(),
+          accountId: recipient.account.id,
+          type: "follow",
+          actorIds: [otherActor.actor.id],
+          created: new Date("2026-04-15T00:00:02.000Z"),
+        },
+      ]);
+
+      const result = await execute({
+        schema,
+        document: unreadNotificationsCountQuery,
+        contextValue: makeUserContext(tx, recipient.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(result.errors, undefined);
+      assertEquals(result.data, {
+        viewer: {
+          unreadNotificationsCount: 1,
+        },
+      });
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "Account.unreadNotificationsCount counts all notifications when never read",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const recipient = await insertAccountWithActor(tx, {
+        username: "notifyallme",
+        name: "Notify All Me",
+        email: "notifyallme@example.com",
+      });
+      const actor = await insertAccountWithActor(tx, {
+        username: "notifyallactor",
+        name: "Notify All Actor",
+        email: "notifyallactor@example.com",
+      });
+      const otherActor = await insertAccountWithActor(tx, {
+        username: "notifyallother",
+        name: "Notify All Other",
+        email: "notifyallother@example.com",
+      });
+
+      await tx.insert(notificationTable).values([
+        {
+          id: generateUuidV7(),
+          accountId: recipient.account.id,
+          type: "follow",
+          actorIds: [actor.actor.id],
+          created: new Date("2026-04-15T00:00:00.000Z"),
+        },
+        {
+          id: generateUuidV7(),
+          accountId: recipient.account.id,
+          type: "follow",
+          actorIds: [otherActor.actor.id],
+          created: new Date("2026-04-15T00:00:01.000Z"),
+        },
+      ]);
+
+      const result = await execute({
+        schema,
+        document: unreadNotificationsCountQuery,
+        contextValue: makeUserContext(tx, recipient.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(result.errors, undefined);
+      assertEquals(result.data, {
+        viewer: {
+          unreadNotificationsCount: 2,
+        },
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "markNotificationsAsRead respects the optional upTo notification",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const recipient = await insertAccountWithActor(tx, {
+        username: "notifymarkme",
+        name: "Notify Mark Me",
+        email: "notifymarkme@example.com",
+      });
+      const actor = await insertAccountWithActor(tx, {
+        username: "notifymarkactor",
+        name: "Notify Mark Actor",
+        email: "notifymarkactor@example.com",
+      });
+      const otherActor = await insertAccountWithActor(tx, {
+        username: "notifymarkother",
+        name: "Notify Mark Other",
+        email: "notifymarkother@example.com",
+      });
+      const olderNotificationId = generateUuidV7();
+      const newerNotificationId = generateUuidV7();
+
+      await tx.insert(notificationTable).values([
+        {
+          id: olderNotificationId,
+          accountId: recipient.account.id,
+          type: "follow",
+          actorIds: [actor.actor.id],
+          created: new Date("2026-04-15T00:00:00.000Z"),
+        },
+        {
+          id: newerNotificationId,
+          accountId: recipient.account.id,
+          type: "follow",
+          actorIds: [otherActor.actor.id],
+          created: new Date("2026-04-15T00:00:02.000Z"),
+        },
+      ]);
+
+      const markResult = await execute({
+        schema,
+        document: markNotificationsAsReadMutation,
+        variableValues: { upTo: olderNotificationId },
+        contextValue: makeUserContext(tx, recipient.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(markResult.errors, undefined);
+
+      const countResult = await execute({
+        schema,
+        document: unreadNotificationsCountQuery,
+        contextValue: makeUserContext(tx, recipient.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(countResult.errors, undefined);
+      assertEquals(countResult.data, {
+        viewer: {
+          unreadNotificationsCount: 1,
+        },
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "markNotificationsAsRead preserves database timestamp precision",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const recipient = await insertAccountWithActor(tx, {
+        username: "notifyprecisionme",
+        name: "Notify Precision Me",
+        email: "notifyprecisionme@example.com",
+      });
+      const actor = await insertAccountWithActor(tx, {
+        username: "notifyprecisionactor",
+        name: "Notify Precision Actor",
+        email: "notifyprecisionactor@example.com",
+      });
+      const notificationId = generateUuidV7();
+
+      await tx.insert(notificationTable).values({
+        id: notificationId,
+        accountId: recipient.account.id,
+        type: "follow",
+        actorIds: [actor.actor.id],
+        created: new Date("2026-04-15T00:00:00.000Z"),
+      });
+      await tx.update(notificationTable)
+        .set({
+          created: sql`'2026-04-15T00:00:00.123456Z'::timestamptz`,
+        })
+        .where(eq(notificationTable.id, notificationId));
+
+      const markResult = await execute({
+        schema,
+        document: markNotificationsAsReadMutation,
+        variableValues: { upTo: notificationId },
+        contextValue: makeUserContext(tx, recipient.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(markResult.errors, undefined);
+
+      const countResult = await execute({
+        schema,
+        document: unreadNotificationsCountQuery,
+        contextValue: makeUserContext(tx, recipient.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(countResult.errors, undefined);
+      assertEquals(countResult.data, {
+        viewer: {
+          unreadNotificationsCount: 0,
+        },
+      });
+    });
+  },
+});
 
 Deno.test({
   name: "Notification.actors returns actors newest-first",

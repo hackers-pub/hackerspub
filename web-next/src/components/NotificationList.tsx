@@ -1,7 +1,13 @@
-import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
-import { createPaginationFragment } from "solid-relay";
+import { fetchQuery, graphql } from "relay-runtime";
+import { createEffect, createSignal, For, Match, Show, Switch } from "solid-js";
+import {
+  createMutation,
+  createPaginationFragment,
+  useRelayEnvironment,
+} from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import type { NotificationListMarkAsReadMutation } from "./__generated__/NotificationListMarkAsReadMutation.graphql.ts";
+import type { NotificationListUnreadNotificationsQuery } from "./__generated__/NotificationListUnreadNotificationsQuery.graphql.ts";
 import type { NotificationList_notifications$key } from "./__generated__/NotificationList_notifications.graphql.ts";
 import { NotificationCard } from "./NotificationCard.tsx";
 
@@ -9,8 +15,28 @@ export interface NotificationListProps {
   $account: NotificationList_notifications$key;
 }
 
+const NotificationListMarkAsReadMutation = graphql`
+  mutation NotificationListMarkAsReadMutation($upTo: UUID) {
+    markNotificationsAsRead(upTo: $upTo)
+  }
+`;
+
+const NotificationListUnreadNotificationsQuery = graphql`
+  query NotificationListUnreadNotificationsQuery {
+    viewer {
+      unreadNotificationsCount
+    }
+  }
+`;
+
 export function NotificationList(props: NotificationListProps) {
   const { t } = useLingui();
+  const environment = useRelayEnvironment();
+  const [markNotificationsAsRead] = createMutation<
+    NotificationListMarkAsReadMutation
+  >(
+    NotificationListMarkAsReadMutation,
+  );
   const notifications = createPaginationFragment(
     graphql`
       fragment NotificationList_notifications on Account
@@ -25,6 +51,7 @@ export function NotificationList(props: NotificationListProps) {
         {
           edges {
             node {
+              uuid
               ...NotificationCard_notification
             }
           }
@@ -40,6 +67,25 @@ export function NotificationList(props: NotificationListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
+  let markedNotificationsAsRead = false;
+
+  createEffect(() => {
+    const data = notifications();
+    if (markedNotificationsAsRead || data == null) return;
+    const readThrough = data.notifications.edges[0]?.node.uuid;
+    if (readThrough == null) return;
+    markedNotificationsAsRead = true;
+    markNotificationsAsRead({
+      variables: { upTo: readThrough },
+      onCompleted() {
+        fetchQuery<NotificationListUnreadNotificationsQuery>(
+          environment(),
+          NotificationListUnreadNotificationsQuery,
+          {},
+        ).subscribe({});
+      },
+    });
+  });
 
   function onLoadMore() {
     setLoadingState("loading");

@@ -26,6 +26,9 @@ const loadPageQuery = query(
       useRelayEnvironment()(),
       notificationsPageQuery,
       {},
+      // NotificationList marks notifications as read through the first loaded
+      // edge, so it must not run against a stale cached connection snapshot.
+      { fetchPolicy: "network-only" },
     ),
   "loadNotificationsPageQuery",
 );
