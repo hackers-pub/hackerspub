@@ -133,10 +133,8 @@ const plugin: Deno.lint.Plugin = {
           const callee = call.callee;
           if (!callee) return false;
           if (callee.type === "Identifier") {
-            if (!RELAY_PRIMITIVES.has(callee.name)) return false;
             const imp = relayImports.get(callee.name);
-            return imp != null && imp.kind === "named" &&
-              imp.imported === callee.name;
+            return imp?.kind === "named" && RELAY_PRIMITIVES.has(imp.imported);
           }
           if (callee.type === "MemberExpression" && !callee.computed) {
             const prop = callee.property;

@@ -392,6 +392,28 @@ Deno.test(
 );
 
 Deno.test(
+  "recognises aliased solid-relay imports",
+  () => {
+    // `import { createFragment as frag } from "solid-relay"` should still
+    // be detected even though the local binding is renamed.
+    const diagnostics = lint(`
+    import { createFragment as frag } from "solid-relay";
+    declare const Q: unknown;
+    function App() {
+      const data = frag(Q, () => null);
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value()}</div>}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].id, RULE);
+  },
+);
+
+Deno.test(
   "does not flag a same-named primitive imported from another module",
   () => {
     // A local module exports something named `createFragment`; the rule
