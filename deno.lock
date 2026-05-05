@@ -137,6 +137,7 @@
     "npm:@peculiar/asn1-x509@^2.6.1": "2.6.1",
     "npm:@peculiar/x509@^1.13.0": "1.14.3",
     "npm:@peculiar/x509@^1.14.3": "1.14.3",
+    "npm:@plausible-analytics/tracker@~0.4.4": "0.4.4",
     "npm:@pothos/core@^4.12.0": "4.12.0_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-complexity@^4.1.2": "4.1.2_@pothos+core@4.12.0__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
     "npm:@pothos/plugin-dataloader@^4.4.3": "4.4.3_@pothos+core@4.12.0__graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02_dataloader@2.2.3_graphql@16.11.0-canary.pr.4364.2b4ffe237616247a733274dfdcb404c3d55d9f02",
@@ -4476,6 +4477,9 @@
     },
     "@pkgjs/parseargs@0.11.0": {
       "integrity": "sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg=="
+    },
+    "@plausible-analytics/tracker@0.4.4": {
+      "integrity": "sha512-fz0NOYUEYXtg1TBaPEEvtcBq3FfmLFuTe1VZw4M8sTWX129br5dguu3M15+plOQnc181ShYe67RfwhKgK89VnA=="
     },
     "@poppinss/colors@4.1.6": {
       "integrity": "sha512-H9xkIdFswbS8n1d6vmRd8+c10t2Qe+rZITbbDHHkQixH5+2x1FDGmi/0K+WgWiqQFKPSlIYB7jlH6Kpfn6Fleg==",
@@ -13509,6 +13513,7 @@
             "npm:@lingui/cli@^5.3.3",
             "npm:@lingui/core@^5.3.3",
             "npm:@lingui/vite-plugin@^5.3.3",
+            "npm:@plausible-analytics/tracker@~0.4.4",
             "npm:@sentry/solidstart@^10.51.0",
             "npm:@sentry/vite-plugin@^5.2.1",
             "npm:@solidjs/meta@~0.29.4",

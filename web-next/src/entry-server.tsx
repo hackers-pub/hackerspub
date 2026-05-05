@@ -25,6 +25,17 @@ const SENTRY_DSN_SCRIPT = `window.__SENTRY_DSN__=${
   JSON.stringify(nodeProcess.env.SENTRY_DSN ?? "")
 };`;
 
+function isEnabledRuntimeFlag(name: string): boolean {
+  const value = nodeProcess.env[name]?.trim().toLowerCase();
+  return value != null && value !== "" && value !== "false" && value !== "0";
+}
+
+// Keep Plausible opt-in runtime-only for the same reason as Sentry: the
+// public Docker image should not decide analytics behavior at build time.
+const PLAUSIBLE_SCRIPT = `window.__PLAUSIBLE__=${
+  JSON.stringify(isEnabledRuntimeFlag("PLAUSIBLE"))
+};`;
+
 // Sentry's automatic instrumentation (set up in instrument.server.mjs and
 // activated by `node --import` before this module loads) hooks the Node
 // HTTP server, uncaught exceptions, and unhandled rejections via
@@ -55,6 +66,7 @@ export default createHandler(() => (
           <link rel="manifest" href="/manifest.json" />
           <meta name="theme-color" content="#000000" />
           <script innerHTML={SENTRY_DSN_SCRIPT} />
+          <script innerHTML={PLAUSIBLE_SCRIPT} />
           {assets}
         </head>
         <body>

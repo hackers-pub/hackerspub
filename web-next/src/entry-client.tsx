@@ -1,4 +1,5 @@
 // @refresh reload
+import { init as initPlausible } from "@plausible-analytics/tracker";
 import * as Sentry from "@sentry/solidstart";
 import { solidRouterBrowserTracingIntegration } from "@sentry/solidstart/solidrouter";
 import { mount, StartClient } from "@solidjs/start/client";
@@ -29,6 +30,17 @@ if (sentryDsn) {
     // Send default PII (e.g. IP address) so we can correlate errors with
     // users where useful.
     sendDefaultPii: true,
+  });
+}
+
+// PLAUSIBLE is injected at runtime by the SSR document (entry-server.tsx).
+// Keep initialization client-only because the tracker relies on browser APIs.
+const plausibleEnabled =
+  (window as { __PLAUSIBLE__?: boolean }).__PLAUSIBLE__ ?? false;
+if (plausibleEnabled) {
+  initPlausible({
+    domain: window.location.hostname,
+    outboundLinks: true,
   });
 }
 

@@ -28,6 +28,7 @@
     "@hackerspub/models": "workspace:*",
     "@kobalte/core": "^0.13.10",
     "@lingui/core": "^5.3.3",
+    "@plausible-analytics/tracker": "^0.4.4",
     "@sentry/solidstart": "^10.51.0",
     "@simplewebauthn/browser": "catalog:",
     "@solidjs/meta": "^0.29.4",
