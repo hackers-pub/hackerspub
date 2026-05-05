@@ -188,17 +188,30 @@ const plugin: Deno.lint.Plugin = {
           } else {
             return false;
           }
-          // Walk enclosing functions; if any binds `bindingName` (param or
-          // body declaration), the import is shadowed at this call site.
+          // Walk enclosing functions; if any binds `bindingName` (param,
+          // own id, or body declaration outside nested functions), the
+          // import is shadowed at this call site. The body walk stops at
+          // nested function boundaries so a same-named binding inside an
+          // unrelated nested function is not mistaken for a shadow of
+          // this call.
           let cursor = call.parent;
           while (cursor) {
             const isFn = cursor.type === "ArrowFunctionExpression" ||
               cursor.type === "FunctionExpression" ||
               cursor.type === "FunctionDeclaration";
             if (isFn) {
+              if (
+                (cursor.type === "FunctionExpression" ||
+                  cursor.type === "FunctionDeclaration") &&
+                cursor.id?.type === "Identifier" &&
+                cursor.id.name === bindingName
+              ) return false;
               if (paramRebindsName(cursor.params, bindingName)) return false;
               if (
-                cursor.body && detectRebinding(cursor.body, bindingName)
+                cursor.body &&
+                detectRebinding(cursor.body, bindingName, {
+                  enterNestedFunctions: false,
+                })
               ) return false;
             }
             cursor = cursor.parent;
@@ -635,7 +648,20 @@ function paramRebinds(param: any, name: string): boolean {
 
 // Same as before — conservatively detect any same-name binder anywhere in
 // the body subtree to suppress the body rewrite.
-function detectRebinding(root: any, name: string): boolean {
+interface DetectRebindingOptions {
+  // When false, the walker stops at nested ArrowFunctionExpression /
+  // FunctionExpression / FunctionDeclaration boundaries (it doesn't
+  // descend into their bodies). Default true preserves the original
+  // conservative behaviour used by the body-rebinding check.
+  enterNestedFunctions?: boolean;
+}
+
+function detectRebinding(
+  root: any,
+  name: string,
+  options: DetectRebindingOptions = {},
+): boolean {
+  const enterNestedFunctions = options.enterNestedFunctions ?? true;
   const FIELDS: Record<string, readonly string[]> = {
     BlockStatement: ["body"],
     ExpressionStatement: ["expression"],
@@ -742,6 +768,18 @@ function detectRebinding(root: any, name: string): boolean {
         node.type === "ArrowFunctionExpression") &&
       paramRebindsName(node.params, name)
     ) return true;
+
+    // When `enterNestedFunctions` is false and we're standing on a
+    // nested function/arrow node that is not the root, skip descending
+    // into it so its inner bindings don't count as shadowing the call
+    // site outside the function.
+    if (
+      !enterNestedFunctions &&
+      node !== root &&
+      (node.type === "ArrowFunctionExpression" ||
+        node.type === "FunctionExpression" ||
+        node.type === "FunctionDeclaration")
+    ) continue;
 
     const fields = FIELDS[node.type];
     if (fields) {

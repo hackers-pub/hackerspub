@@ -611,6 +611,58 @@ Deno.test(
 );
 
 Deno.test(
+  "still flags when only a nested sibling function shadows the import",
+  () => {
+    // `App` does not rebind createPreloadedQuery; the inner Helper
+    // does, but Helper is a sibling of the call site, not an enclosing
+    // scope. The outer `data = createPreloadedQuery(...)` should still
+    // be classified as Relay-backed.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    declare function compute(): unknown;
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      function Helper() {
+        const createPreloadedQuery = compute;
+        void createPreloadedQuery;
+      }
+      void Helper;
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value()}</div>}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].id, RULE);
+  },
+);
+
+Deno.test(
+  "does not flag when a named function expression self-binding shadows the import",
+  () => {
+    // The named function expression \`createFragment\` introduces its
+    // own \`createFragment\` binding inside its body, which shadows the
+    // solid-relay import. The inner \`createFragment(...)\` call is
+    // self-recursion, not the import.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    function App() {
+      const helper = function createFragment() {
+        const data = createFragment();
+        return (
+          <Show when={data()}>
+            {(value) => <div>{value()}</div>}
+          </Show>
+        );
+      };
+      return helper;
+    }
+  `);
+    assertEquals(diagnostics.length, 0);
+  },
+);
+
+Deno.test(
   "does not flag a same-named primitive imported from another module",
   () => {
     // A local module exports something named `createFragment`; the rule
