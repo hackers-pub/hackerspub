@@ -35,14 +35,14 @@ export default function Home() {
   );
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <>
           <Switch>
-            <Match when={data().viewer != null}>
+            <Match when={data.viewer != null}>
               <Navigate href="/feed" />
             </Match>
-            <Match when={data().viewer == null}>
+            <Match when={data.viewer == null}>
               <Navigate href="/local" />
             </Match>
           </Switch>

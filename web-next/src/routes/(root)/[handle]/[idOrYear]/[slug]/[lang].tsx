@@ -173,6 +173,7 @@ export default function ArticleLangPage() {
 
   return (
     <Show
+      keyed
       when={normalizeLocale(params.lang!)}
       fallback={<HttpStatusCode code={404} />}
     >
@@ -181,7 +182,7 @@ export default function ArticleLangPage() {
           handle={params.handle!}
           idOrYear={params.idOrYear!}
           slug={params.slug!}
-          language={language()}
+          language={language}
         />
       )}
     </Show>

@@ -76,14 +76,14 @@ export function PublicTimeline(props: PublicTimelineProps) {
 
   return (
     <div class="mt-4 mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
-      <Show when={posts()}>
+      <Show keyed when={posts()}>
         {(data) => (
           <>
-            <For each={data().publicTimeline.edges}>
+            <For each={data.publicTimeline.edges}>
               {(edge) => (
                 <PostCard
                   $post={edge.node}
-                  connections={[data().publicTimeline.__id]}
+                  connections={[data.publicTimeline.__id]}
                 />
               )}
             </For>
@@ -107,7 +107,7 @@ export function PublicTimeline(props: PublicTimelineProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data().publicTimeline.edges.length < 1}>
+            <Show when={data.publicTimeline.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No posts found`}
               </div>

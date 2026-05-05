@@ -464,12 +464,13 @@ export default function SignupPage(props: RouteSectionProps) {
                       </summary>
                       <div class="mt-2 p-3 bg-muted rounded prose prose-sm max-w-none">
                         <Show
+                          keyed
                           when={codeOfConductData()?.codeOfConduct}
                           fallback={
                             <p class="text-muted-foreground">{t`Loading…`}</p>
                           }
                         >
-                          {(doc) => <DocumentView $document={doc()} />}
+                          {(doc) => <DocumentView $document={doc} />}
                         </Show>
                       </div>
                     </details>

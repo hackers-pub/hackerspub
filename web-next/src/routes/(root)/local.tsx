@@ -58,13 +58,13 @@ export default function LocalTimeline() {
   );
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <NarrowContainer>
-          <Show when={data().viewer == null}>
+          <Show when={data.viewer == null}>
             <AboutHackersPub />
           </Show>
-          <PublicTimeline $posts={data()} />
+          <PublicTimeline $posts={data} />
         </NarrowContainer>
       )}
     </Show>

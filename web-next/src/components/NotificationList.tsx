@@ -51,11 +51,11 @@ export function NotificationList(props: NotificationListProps) {
   }
 
   return (
-    <Show when={notifications()}>
+    <Show keyed when={notifications()}>
       {(data) => (
         <>
           <ul class="mb-10 flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm md:mb-12">
-            <For each={data().notifications.edges}>
+            <For each={data.notifications.edges}>
               {(edge) => <NotificationCard $notification={edge.node} />}
             </For>
             <Show when={notifications.hasNext}>

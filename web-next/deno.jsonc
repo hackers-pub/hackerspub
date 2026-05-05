@@ -5,6 +5,7 @@
     "#i18n": "./src/lib/i18n/server.ts"
   },
   "lint": {
+    "plugins": ["./lint-plugins/keyed-show.ts"],
     "rules": {
       "exclude": [
         // SolidStart server functions must be async functions at all time

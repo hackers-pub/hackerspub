@@ -91,11 +91,11 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
   const formatNumber = (n: number) => n.toLocaleString(i18n.locale);
 
   return (
-    <Show when={data()?.adminAccounts}>
+    <Show keyed when={data()?.adminAccounts}>
       {(conn) => (
         <>
           <p class="mb-4 text-sm text-muted-foreground">
-            {t`Total: ${formatNumber(conn().totalCount)}`}
+            {t`Total: ${formatNumber(conn.totalCount)}`}
           </p>
           <div class="rounded-lg border bg-card shadow-sm">
             <Table>
@@ -123,7 +123,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <For each={conn().edges}>
+                <For each={conn.edges}>
                   {(edge) => (
                     <TableRow>
                       <TableCell>
@@ -175,25 +175,30 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                         {formatNumber(edge.node.invitationsLeft)}
                       </TableCell>
                       <TableCell>
-                        <Show when={edge.node.inviter}>
+                        {
+                          /* `keyed`: avoid Solid's stale-accessor race
+                           when this Relay field flips to null inside a
+                           `batch()` update. */
+                        }
+                        <Show keyed when={edge.node.inviter}>
                           {(inviter) => (
                             <A
-                              href={`/@${inviter().username}`}
+                              href={`/@${inviter.username}`}
                               class="flex items-center gap-2 hover:underline"
                             >
                               <Avatar class="size-4 shrink-0">
                                 <AvatarImage
-                                  src={inviter().avatarUrl}
+                                  src={inviter.avatarUrl}
                                   width={16}
                                   height={16}
                                 />
                               </Avatar>
                               <span class="flex items-baseline gap-1">
                                 <span class="font-semibold">
-                                  {inviter().name}
+                                  {inviter.name}
                                 </span>
                                 <span class="text-xs text-muted-foreground/70">
-                                  {inviter().handle}
+                                  {inviter.handle}
                                 </span>
                               </span>
                             </A>

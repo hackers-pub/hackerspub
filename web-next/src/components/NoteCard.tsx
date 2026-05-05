@@ -27,14 +27,14 @@ export function NoteCard(props: NoteCardProps) {
     () => props.$note,
   );
   return (
-    <Show when={note()}>
+    <Show keyed when={note()}>
       {(note) => {
-        const displayPost = () => note().sharedPost ?? note();
+        const displayPost = () => note.sharedPost ?? note;
         return (
           <article class="border-b px-4 py-4 transition-colors hover:bg-muted/30 last:border-none">
             <div class="flex flex-col gap-0.5">
-              <Show when={note().sharedPost}>
-                <PostSharer $post={note()} class="ml-14" />
+              <Show when={note.sharedPost}>
+                <PostSharer $post={note} class="ml-14" />
               </Show>
               <NoteCardInternal
                 $note={displayPost()}

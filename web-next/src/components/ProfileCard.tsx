@@ -74,7 +74,7 @@ export function ProfileCard(props: ProfileCardProps) {
   );
 
   return (
-    <Show when={actor()}>
+    <Show keyed when={actor()}>
       {(actor) => (
         <>
           <div class="p-4">
@@ -82,75 +82,76 @@ export function ProfileCard(props: ProfileCardProps) {
               <Avatar
                 classList={{
                   "size-16": true,
-                  "grayscale": actor().viewerBlocks,
-                  "opacity-40": actor().viewerBlocks,
+                  "grayscale": actor.viewerBlocks,
+                  "opacity-40": actor.viewerBlocks,
                 }}
               >
                 <a
-                  href={actor().local
-                    ? `/@${actor().username}`
-                    : actor().url ?? actor().iri}
-                  target={actor().local ? undefined : "_blank"}
+                  href={actor.local
+                    ? `/@${actor.username}`
+                    : actor.url ?? actor.iri}
+                  target={actor.local ? undefined : "_blank"}
                 >
-                  <AvatarImage src={actor().avatarUrl} class="size-16" />
+                  <AvatarImage src={actor.avatarUrl} class="size-16" />
                   <AvatarFallback class="size-16">
-                    {actor().avatarInitials}
+                    {actor.avatarInitials}
                   </AvatarFallback>
                 </a>
               </Avatar>
               <div class="flex-1">
                 <h1 class="text-xl font-semibold">
                   <a
-                    innerHTML={actor().name ?? actor().username}
-                    href={actor().local
-                      ? `/@${actor().username}`
-                      : actor().url ?? actor().iri}
-                    target={actor().local ? undefined : "_blank"}
+                    innerHTML={actor.name ?? actor.username}
+                    href={actor.local
+                      ? `/@${actor.username}`
+                      : actor.url ?? actor.iri}
+                    target={actor.local ? undefined : "_blank"}
                   />
                 </h1>
                 <div class="text-muted-foreground">
                   <span class="select-all">
-                    {actor().handle}
+                    {actor.handle}
                   </span>
                 </div>
               </div>
               <div class="flex shrink-0 items-center gap-1">
-                <FollowButton $actor={actor()} />
-                <ProfileActionMenu $actor={actor()} />
+                <FollowButton $actor={actor} />
+                <ProfileActionMenu $actor={actor} />
               </div>
             </div>
           </div>
-          <Show when={actor().viewerBlocks}>
+          <Show when={actor.viewerBlocks}>
             <div class="px-4 pb-4">
               <div class="rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
                 {t`You are blocking this user. They can't follow you or see your posts.`}
               </div>
             </div>
           </Show>
-          <Show when={actor().blocksViewer}>
+          <Show when={actor.blocksViewer}>
             <div class="px-4 pb-4">
               <div class="rounded-md border border-warning-foreground bg-warning px-3 py-2 text-sm text-warning-foreground">
                 {t`You are blocked by this user. You can't follow them or see their posts.`}
               </div>
             </div>
           </Show>
-          <Show when={(actor().bio?.trim() ?? "") !== ""}>
+          <Show when={(actor.bio?.trim() ?? "") !== ""}>
             <div class="p-4 pt-0">
               <div
                 ref={setBioRef}
-                innerHTML={actor().bio ?? ""}
+                innerHTML={actor.bio ?? ""}
                 class="mx-auto prose dark:prose-invert"
               />
               <MentionHoverCardLayer state={mentionState} />
             </div>
           </Show>
           <Show
-            when={actor().account}
+            keyed
+            when={actor.account}
             fallback={
-              <Show when={actor().fields.length > 0}>
+              <Show when={actor.fields.length > 0}>
                 <div class="p-4 pt-0">
                   <ul>
-                    <For each={actor().fields}>
+                    <For each={actor.fields}>
                       {(field) => (
                         <li class="flex flex-row items-center text-sm mb-1">
                           <img
@@ -171,11 +172,11 @@ export function ProfileCard(props: ProfileCardProps) {
           >
             {(account) => (
               <Show
-                when={account().links.length > 0}
+                when={account.links.length > 0}
               >
                 <div class="p-4 pt-0">
                   <ul>
-                    <For each={account().links}>
+                    <For each={account.links}>
                       {(link) => (
                         <li class="flex flex-row items-center text-sm mb-1">
                           <img
@@ -188,7 +189,7 @@ export function ProfileCard(props: ProfileCardProps) {
                           <a href={link.url}>
                             {link.handle ?? compactUrl(link.url)}
                           </a>
-                          <Show when={link.verified}>
+                          <Show keyed when={link.verified}>
                             {(verified) => (
                               <Tooltip>
                                 <TooltipTrigger>
@@ -211,11 +212,10 @@ export function ProfileCard(props: ProfileCardProps) {
                                   <Trans
                                     message={t`Verified that this link is owned by ${"OWNER"} ${"RELATIVE_TIME"}`}
                                     values={{
-                                      OWNER: () => (
-                                        <strong>{actor().name}</strong>
-                                      ),
+                                      OWNER: () => <strong>{actor.name}
+                                      </strong>,
                                       RELATIVE_TIME: () => (
-                                        <Timestamp value={verified()} />
+                                        <Timestamp value={verified} />
                                       ),
                                     }}
                                   />
@@ -234,13 +234,11 @@ export function ProfileCard(props: ProfileCardProps) {
           <div class="p-4 pt-0 border-b">
             <div class="text-muted-foreground">
               <a
-                href={actor().local
-                  ? `/@${actor().username}/following`
-                  : undefined}
+                href={actor.local ? `/@${actor.username}/following` : undefined}
               >
                 {i18n._(
                   msg`${
-                    plural(actor().followeesCount.totalCount, {
+                    plural(actor.followeesCount.totalCount, {
                       one: "# following",
                       other: "# following",
                     })
@@ -249,20 +247,18 @@ export function ProfileCard(props: ProfileCardProps) {
               </a>{" "}
               &middot;{" "}
               <a
-                href={actor().local
-                  ? `/@${actor().username}/followers`
-                  : undefined}
+                href={actor.local ? `/@${actor.username}/followers` : undefined}
               >
                 {i18n._(
                   msg`${
-                    plural(actor().followersCount.totalCount, {
+                    plural(actor.followersCount.totalCount, {
                       one: "# follower",
                       other: "# followers",
                     })
                   }`,
                 )}
               </a>
-              <Show when={actor().followsViewer}>
+              <Show when={actor.followsViewer}>
                 {" "}
                 &middot; {t`Following you`}
               </Show>

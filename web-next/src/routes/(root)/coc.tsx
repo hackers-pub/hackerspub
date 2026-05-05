@@ -46,8 +46,8 @@ export default function CocPage() {
   return (
     <WideContainer>
       <Title>{t`Code of conduct`} &mdash; {t`Hackers' Pub`}</Title>
-      <Show when={data()}>
-        {(data) => <DocumentView $document={data().codeOfConduct} />}
+      <Show keyed when={data()}>
+        {(data) => <DocumentView $document={data.codeOfConduct} />}
       </Show>
     </WideContainer>
   );

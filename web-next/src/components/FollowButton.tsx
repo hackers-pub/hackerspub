@@ -166,31 +166,31 @@ export function FollowButton(props: FollowButtonProps) {
   };
 
   return (
-    <Show when={actor()}>
+    <Show keyed when={actor()}>
       {(actor) => (
         <Show
-          when={!isCurrentViewerActor() && !actor().viewerBlocks &&
-            !actor().blocksViewer && viewer.isLoaded()}
+          when={!isCurrentViewerActor() && !actor.viewerBlocks &&
+            !actor.blocksViewer && viewer.isLoaded()}
         >
           <Show
             when={viewer.isAuthenticated()}
             fallback={
               <RemoteFollowButton
-                actorId={actor().id}
-                actorHandle={actor().handle}
-                actorName={actor().rawName}
+                actorId={actor.id}
+                actorHandle={actor.handle}
+                actorName={actor.rawName}
               />
             }
           >
             <Button
-              variant={actor().viewerFollows ? "outline" : "default"}
+              variant={actor.viewerFollows ? "outline" : "default"}
               size="sm"
               class="cursor-pointer"
               onClick={handleClick}
             >
-              {actor().viewerFollows
+              {actor.viewerFollows
                 ? t`Unfollow`
-                : actor().followsViewer
+                : actor.followsViewer
                 ? t`Follow back`
                 : t`Follow`}
             </Button>

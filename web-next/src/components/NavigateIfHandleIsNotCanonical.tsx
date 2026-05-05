@@ -24,17 +24,17 @@ export function NavigateIfHandleIsNotCanonical(
   );
 
   return (
-    <Show when={actor()}>
+    <Show keyed when={actor()}>
       {(actor) => (
         <Show
-          when={actor().local && params.handle != null &&
+          when={actor.local && params.handle != null &&
             params.handle.indexOf("@", 1) > 0}
           fallback={null}
         >
           <Navigate
             href={location.pathname.replace(
               /^\/@[^/]+/,
-              `/@${actor().username}`,
+              `/@${actor.username}`,
             ) + location.search + location.hash}
           />
         </Show>

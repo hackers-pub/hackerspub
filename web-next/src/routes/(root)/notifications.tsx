@@ -40,13 +40,14 @@ export default function NotificationsPage() {
     <NarrowContainer>
       <Title>{t`Hackers' Pub: Notifications`}</Title>
       <div class="p-4">
-        <Show when={data()}>
+        <Show keyed when={data()}>
           {(data) => (
             <Show
-              when={data().viewer}
+              keyed
+              when={data.viewer}
               fallback={<Navigate href="/sign?next=%2Fnotifications" />}
             >
-              {(viewer) => <NotificationList $account={viewer()} />}
+              {(viewer) => <NotificationList $account={viewer} />}
             </Show>
           )}
         </Show>

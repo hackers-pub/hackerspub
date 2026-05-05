@@ -206,15 +206,20 @@ export default function InvitationLinkPage() {
   }
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <div
           lang={i18n.locale}
           class="lg:p-8 min-h-screen flex items-center justify-center"
         >
           <div class="w-full max-w-md p-4">
+            {
+              /* `keyed`: avoid Solid's stale-accessor race when this
+               Relay field flips to null inside a `batch()` update. */
+            }
             <Show
-              when={data().invitationLink}
+              keyed
+              when={data.invitationLink}
               fallback={
                 <>
                   <Title>{t`Not found`}</Title>
@@ -233,7 +238,7 @@ export default function InvitationLinkPage() {
                 <>
                   <Title>
                     {t`Invitation from ${
-                      link().inviter.name ?? link().inviter.username
+                      link.inviter.name ?? link.inviter.username
                     }`}
                   </Title>
                   <Show when={success()}>
@@ -257,7 +262,7 @@ export default function InvitationLinkPage() {
                         </CardHeader>
                       </Card>
                     </Show>
-                    <Show when={!isExpired() && link().invitationsLeft < 1}>
+                    <Show when={!isExpired() && link.invitationsLeft < 1}>
                       <Card>
                         <CardHeader>
                           <CardTitle>{t`No invitations left`}</CardTitle>
@@ -267,7 +272,7 @@ export default function InvitationLinkPage() {
                         </CardHeader>
                       </Card>
                     </Show>
-                    <Show when={!isExpired() && link().invitationsLeft >= 1}>
+                    <Show when={!isExpired() && link.invitationsLeft >= 1}>
                       <Card>
                         <CardHeader>
                           <CardTitle>
@@ -280,34 +285,36 @@ export default function InvitationLinkPage() {
                         <CardContent>
                           <div class="flex flex-col gap-6">
                             <div class="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                              <Show when={link().inviter.avatarUrl}>
+                              {/* `keyed`: same race shape; avatarUrl can flip to null. */}
+                              <Show keyed when={link.inviter.avatarUrl}>
                                 {(avatarUrl) => (
                                   <Avatar>
                                     <a
-                                      href={`/@${link().inviter.username}`}
+                                      href={`/@${link.inviter.username}`}
                                     >
-                                      <AvatarImage src={avatarUrl()} />
+                                      <AvatarImage src={avatarUrl} />
                                     </a>
                                   </Avatar>
                                 )}
                               </Show>
                               <div>
                                 <a
-                                  href={`/@${link().inviter.username}`}
+                                  href={`/@${link.inviter.username}`}
                                   class="font-semibold hover:underline"
                                 >
-                                  {link().inviter.name}
+                                  {link.inviter.name}
                                 </a>
                                 <p class="text-sm text-muted-foreground">
-                                  {link().inviter.actor.handle}
+                                  {link.inviter.actor.handle}
                                 </p>
                               </div>
                             </div>
-                            <Show when={link().message}>
+                            {/* `keyed`: same race shape; message can flip to null. */}
+                            <Show keyed when={link.message}>
                               {(message) => (
                                 <div class="p-3 bg-muted rounded-lg">
                                   <p class="text-sm whitespace-pre-wrap">
-                                    {message()}
+                                    {message}
                                   </p>
                                 </div>
                               )}
@@ -316,14 +323,15 @@ export default function InvitationLinkPage() {
                               <span>
                                 {i18n._(
                                   msg`${
-                                    plural(link().invitationsLeft, {
+                                    plural(link.invitationsLeft, {
                                       one: "# invitation left",
                                       other: "# invitations left",
                                     })
                                   }`,
                                 )}
                               </span>
-                              <Show when={link().expires}>
+                              {/* `keyed`: same race shape; expires can flip to null. */}
+                              <Show keyed when={link.expires}>
                                 {(expires) => (
                                   <span>
                                     <Trans
@@ -331,7 +339,7 @@ export default function InvitationLinkPage() {
                                       values={{
                                         DATE: () => (
                                           <Timestamp
-                                            value={expires()}
+                                            value={expires}
                                             allowFuture
                                           />
                                         ),
@@ -341,10 +349,10 @@ export default function InvitationLinkPage() {
                                 )}
                               </Show>
                             </div>
-                            <Show when={linkError()}>
+                            <Show keyed when={linkError()}>
                               {(error) => (
                                 <p class="text-sm text-destructive">
-                                  {error()}
+                                  {error}
                                 </p>
                               )}
                             </Show>
@@ -370,10 +378,10 @@ export default function InvitationLinkPage() {
                                   onInput={(e) =>
                                     setEmail(e.currentTarget.value)}
                                 />
-                                <Show when={emailError()}>
+                                <Show keyed when={emailError()}>
                                   {(error) => (
                                     <TextFieldErrorMessage class="leading-6">
-                                      {error()}
+                                      {error}
                                     </TextFieldErrorMessage>
                                   )}
                                 </Show>
@@ -383,7 +391,7 @@ export default function InvitationLinkPage() {
                                   {t`Preferred language`}
                                 </Label>
                                 <LocaleSelect
-                                  $availableLocales={data()}
+                                  $availableLocales={data}
                                   value={locale()}
                                   onChange={setLocale}
                                 />

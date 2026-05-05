@@ -33,61 +33,59 @@ export function SmallProfileCard(props: SmallProfileCardProps) {
   );
 
   return (
-    <Show when={actor()}>
+    <Show keyed when={actor()}>
       {(actor) => (
         <div class="flex flex-col gap-4 p-4">
           <div class="flex min-w-0 flex-row items-start gap-4">
-            <ActorHoverCard handle={actor().handle} class="shrink-0">
+            <ActorHoverCard handle={actor.handle} class="shrink-0">
               <Avatar class="size-16 shrink-0">
                 <a
-                  href={`/${
-                    actor().local ? `@${actor().username}` : actor().handle
-                  }`}
+                  href={`/${actor.local ? `@${actor.username}` : actor.handle}`}
                 >
-                  <AvatarImage src={actor().avatarUrl} class="size-16" />
+                  <AvatarImage src={actor.avatarUrl} class="size-16" />
                 </a>
               </Avatar>
             </ActorHoverCard>
             <div class="flex min-w-0 flex-1 flex-col">
-              <ActorHoverCard handle={actor().handle}>
+              <ActorHoverCard handle={actor.handle}>
                 <Show
-                  when={(actor().name ?? "").trim() !== ""}
+                  when={(actor.name ?? "").trim() !== ""}
                   fallback={
                     <a
                       href={`/${
-                        actor().local ? `@${actor().username}` : actor().handle
+                        actor.local ? `@${actor.username}` : actor.handle
                       }`}
                       class="truncate text-lg font-semibold"
                     >
-                      {actor().username}
+                      {actor.username}
                     </a>
                   }
                 >
                   <a
                     href={`/${
-                      actor().local ? `@${actor().username}` : actor().handle
+                      actor.local ? `@${actor.username}` : actor.handle
                     }`}
-                    innerHTML={actor().name ?? ""}
+                    innerHTML={actor.name ?? ""}
                     class="truncate text-lg font-semibold"
                   />
                 </Show>
               </ActorHoverCard>
               <span
                 class="truncate text-muted-foreground select-all"
-                title={actor().handle}
+                title={actor.handle}
               >
-                {actor().handle}
+                {actor.handle}
               </span>
             </div>
             <div class="shrink-0">
-              <FollowButton $actor={actor()} />
+              <FollowButton $actor={actor} />
             </div>
           </div>
-          <Show when={actor().bio}>
+          <Show keyed when={actor.bio}>
             {(bio) => (
               <div
                 ref={setBioRef}
-                innerHTML={bio()}
+                innerHTML={bio}
                 class="prose dark:prose-invert break-words"
               >
               </div>

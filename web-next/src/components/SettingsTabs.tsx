@@ -30,7 +30,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
   );
 
   return (
-    <Show when={account()}>
+    <Show keyed when={account()}>
       {(account) => (
         <Tabs value={props.selected}>
           <div class="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
@@ -38,7 +38,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
               <TabsTrigger
                 as={A}
                 value="profile"
-                href={`/@${account().username}/settings`}
+                href={`/@${account.username}/settings`}
                 class="shrink-0"
               >
                 {t`Profile settings`}
@@ -46,7 +46,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
               <TabsTrigger
                 as={A}
                 value="preferences"
-                href={`/@${account().username}/settings/preferences`}
+                href={`/@${account.username}/settings/preferences`}
                 class="shrink-0"
               >
                 {t`Preferences`}
@@ -54,7 +54,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
               <TabsTrigger
                 as={A}
                 value="language"
-                href={`/@${account().username}/settings/language`}
+                href={`/@${account.username}/settings/language`}
                 class="shrink-0"
               >
                 {t`Language settings`}
@@ -62,7 +62,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
               <TabsTrigger
                 as={A}
                 value="invite"
-                href={`/@${account().username}/settings/invite`}
+                href={`/@${account.username}/settings/invite`}
                 class="shrink-0"
               >
                 {t`Invite`}
@@ -70,7 +70,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
               <TabsTrigger
                 as={A}
                 value="passkeys"
-                href={`/@${account().username}/settings/passkeys`}
+                href={`/@${account.username}/settings/passkeys`}
                 class="shrink-0"
               >
                 {t`Passkeys`}

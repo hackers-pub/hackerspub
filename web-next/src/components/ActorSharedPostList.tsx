@@ -55,14 +55,14 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
 
   return (
     <div class="my-4 overflow-hidden rounded-lg border bg-card shadow-sm">
-      <Show when={sharedPosts()}>
+      <Show keyed when={sharedPosts()}>
         {(data) => (
           <>
-            <For each={data().sharedPosts.edges}>
+            <For each={data.sharedPosts.edges}>
               {(edge) => (
                 <PostCard
                   $post={edge.node}
-                  connections={[data().sharedPosts.__id]}
+                  connections={[data.sharedPosts.__id]}
                 />
               )}
             </For>
@@ -88,7 +88,7 @@ export function ActorSharedPostList(props: ActorSharedPostListProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data().sharedPosts.edges.length < 1}>
+            <Show when={data.sharedPosts.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No posts found`}
               </div>

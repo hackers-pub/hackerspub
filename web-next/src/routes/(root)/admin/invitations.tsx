@@ -140,14 +140,15 @@ export default function AdminInvitationsPage() {
   return (
     <NarrowContainer class="p-4">
       <Title>{t`Hackers' Pub: Admin · Invitations`}</Title>
-      <Show when={data()}>
+      <Show keyed when={data()}>
         {(data) => (
           <Show
-            when={data().viewer?.moderator}
+            keyed
+            when={data.viewer?.moderator}
             fallback={<Navigate href="/sign?next=%2Fadmin%2Finvitations" />}
           >
             {(_) => {
-              const status = () => data().invitationRegenerationStatus;
+              const status = () => data.invitationRegenerationStatus;
               return (
                 <>
                   <h1 class="mb-4 text-2xl font-semibold tracking-tight">
@@ -166,6 +167,7 @@ export default function AdminInvitationsPage() {
                           {t`Last regenerated:`}
                         </span>{" "}
                         <Show
+                          keyed
                           when={status()?.lastRegeneratedAt}
                           fallback={
                             <span class="text-muted-foreground/70">
@@ -173,15 +175,15 @@ export default function AdminInvitationsPage() {
                             </span>
                           }
                         >
-                          {(ts) => <Timestamp value={ts()} />}
+                          {(ts) => <Timestamp value={ts} />}
                         </Show>
                       </p>
                       <p>
                         <span class="text-muted-foreground">
                           {t`Cutoff:`}
                         </span>{" "}
-                        <Show when={status()?.cutoffDate}>
-                          {(ts) => <Timestamp value={ts()} />}
+                        <Show keyed when={status()?.cutoffDate}>
+                          {(ts) => <Timestamp value={ts} />}
                         </Show>
                       </p>
                       <p>

@@ -1,6 +1,6 @@
 import { graphql } from "relay-runtime";
 import {
-  Accessor,
+  type Accessor,
   createEffect,
   createSignal,
   For,
@@ -16,7 +16,7 @@ import type { SearchResults_posts$key } from "./__generated__/SearchResults_post
 
 export interface SearchResultsProps {
   query: Accessor<string>;
-  $posts: Accessor<SearchResults_posts$key>;
+  $posts: SearchResults_posts$key;
 }
 
 export function SearchResults(props: SearchResultsProps) {
@@ -54,7 +54,7 @@ export function SearchResults(props: SearchResultsProps) {
         }
       }
     `,
-    () => props.$posts(),
+    () => props.$posts,
   );
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
@@ -78,10 +78,10 @@ export function SearchResults(props: SearchResultsProps) {
 
   return (
     <div class="mb-10 mt-4 overflow-hidden rounded-lg border bg-card shadow-sm md:mb-12">
-      <Show when={posts()}>
+      <Show keyed when={posts()}>
         {(data) => (
           <>
-            <For each={data().searchPost.edges}>
+            <For each={data.searchPost.edges}>
               {(edge) => <PostCard $post={edge.node} />}
             </For>
             <Show when={posts.hasNext}>
@@ -104,7 +104,7 @@ export function SearchResults(props: SearchResultsProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data().searchPost.edges.length < 1}>
+            <Show when={data.searchPost.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No posts found`}
               </div>

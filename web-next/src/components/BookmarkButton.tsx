@@ -128,23 +128,23 @@ export function BookmarkButton(props: BookmarkButtonProps) {
   };
 
   return (
-    <Show when={post()}>
+    <Show keyed when={post()}>
       {(p) => (
         <Button
           variant="ghost"
           size="sm"
           class={`h-8 px-2 cursor-pointer ${props.class ?? ""}`}
           classList={{
-            "text-muted-foreground hover:text-foreground": !p()
+            "text-muted-foreground hover:text-foreground": !p
               .viewerHasBookmarked,
             "text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300":
-              p().viewerHasBookmarked,
+              p.viewerHasBookmarked,
           }}
-          title={p().viewerHasBookmarked ? t`Remove bookmark` : t`Bookmark`}
+          title={p.viewerHasBookmarked ? t`Remove bookmark` : t`Bookmark`}
           onClick={handleClick}
         >
           <Show
-            when={p().viewerHasBookmarked}
+            when={p.viewerHasBookmarked}
             fallback={<IconBookmark class="size-4" />}
           >
             <IconBookmarkCheck class="size-4" />

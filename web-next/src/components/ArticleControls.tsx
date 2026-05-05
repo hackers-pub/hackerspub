@@ -21,7 +21,7 @@ export function ArticleControls(props: ArticleControlsProps) {
   );
 
   return (
-    <Show when={article()}>
+    <Show keyed when={article()}>
       {(a) => (
         <div
           class={`flex items-center justify-end gap-1 px-2 py-1 border-t ${
@@ -29,7 +29,7 @@ export function ArticleControls(props: ArticleControlsProps) {
           }`}
         >
           <BookmarkButton
-            $post={a()}
+            $post={a}
             bookmarkListConnections={props.bookmarkListConnections}
           />
         </div>

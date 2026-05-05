@@ -44,15 +44,15 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
   );
 
   return (
-    <Show when={actor()}>
+    <Show keyed when={actor()}>
       {(a) => {
-        const actorHref = () => a().url ?? a().iri;
+        const actorHref = () => a.url ?? a.iri;
         const actorInternalHref = () =>
-          a().local ? `/@${a().username}` : `/${a().handle}`;
+          a.local ? `/@${a.username}` : `/${a.handle}`;
         const followingText = () =>
           i18n._(
             msg`${
-              plural(a().followeesCount.totalCount, {
+              plural(a.followeesCount.totalCount, {
                 one: "# following",
                 other: "# following",
               })
@@ -61,7 +61,7 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
         const followersText = () =>
           i18n._(
             msg`${
-              plural(a().followersCount.totalCount, {
+              plural(a.followersCount.totalCount, {
                 one: "# follower",
                 other: "# followers",
               })
@@ -75,76 +75,76 @@ export function ActorPreviewCard(props: ActorPreviewCardProps) {
                   href={actorHref()}
                   internalHref={actorInternalHref()}
                 >
-                  <AvatarImage src={a().avatarUrl} class="size-12" />
+                  <AvatarImage src={a.avatarUrl} class="size-12" />
                   <AvatarFallback class="size-12">
-                    {a().avatarInitials}
+                    {a.avatarInitials}
                   </AvatarFallback>
                 </InternalLink>
               </Avatar>
               <div class="flex min-w-0 flex-1 flex-col">
                 <Show
-                  when={(a().name ?? "").trim() !== ""}
+                  when={(a.name ?? "").trim() !== ""}
                   fallback={
                     <InternalLink
                       href={actorHref()}
                       internalHref={actorInternalHref()}
                       class="truncate font-semibold"
                     >
-                      {a().username}
+                      {a.username}
                     </InternalLink>
                   }
                 >
                   <InternalLink
                     href={actorHref()}
                     internalHref={actorInternalHref()}
-                    innerHTML={a().name ?? ""}
+                    innerHTML={a.name ?? ""}
                     class="truncate font-semibold"
                   />
                 </Show>
                 <span
                   class="truncate text-sm text-muted-foreground select-all"
-                  title={a().handle}
+                  title={a.handle}
                 >
-                  {a().handle}
+                  {a.handle}
                 </span>
               </div>
               <div class="shrink-0">
-                <FollowButton $actor={a()} />
+                <FollowButton $actor={a} />
               </div>
             </div>
-            <Show when={(a().bio?.trim() ?? "") !== ""}>
+            <Show when={(a.bio?.trim() ?? "") !== ""}>
               <div class="px-4 pb-3">
                 <div
-                  innerHTML={a().bio ?? ""}
+                  innerHTML={a.bio ?? ""}
                   class="prose prose-sm dark:prose-invert max-w-none break-words line-clamp-4"
                 />
               </div>
             </Show>
             <div class="px-4 pb-4 text-sm text-muted-foreground">
               <Show
-                when={a().local}
+                when={a.local}
                 fallback={<span>{followingText()}</span>}
               >
                 <InternalLink
-                  href={`/@${a().username}/following`}
-                  internalHref={`/@${a().username}/following`}
+                  href={`/@${a.username}/following`}
+                  internalHref={`/@${a.username}/following`}
                 >
                   {followingText()}
                 </InternalLink>
               </Show>
               {" · "}
               <Show
-                when={a().local}
+                when={a.local}
                 fallback={<span>{followersText()}</span>}
               >
                 <InternalLink
-                  href={`/@${a().username}/followers`}
-                  internalHref={`/@${a().username}/followers`}
+                  href={`/@${a.username}/followers`}
+                  internalHref={`/@${a.username}/followers`}
                 >
                   {followersText()}
                 </InternalLink>
               </Show>
-              <Show when={a().followsViewer}>
+              <Show when={a.followsViewer}>
                 {" · "}
                 {t`Following you`}
               </Show>

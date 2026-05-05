@@ -133,27 +133,35 @@ export default function PreferencesPage() {
     });
   }
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <SettingsOwnerGuard
-          accountId={data().accountByUsername?.id}
-          viewerId={data().viewer?.id}
+          accountId={data.accountByUsername?.id}
+          viewerId={data.viewer?.id}
         >
-          <Show when={data().accountByUsername}>
+          {
+            /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+             publishes a fragment snapshot inside `batch()` that flips
+             `accountByUsername` to falsy in the same tick as a downstream
+             reactive read. Reconcile keeps the account's identity stable
+             (`key: "__id"`), so `keyed` only re-mounts on navigation to
+             a different account. */
+          }
+          <Show keyed when={data.accountByUsername}>
             {(account) => (
               <SettingsCardPage
                 selected="preferences"
                 title={t`Preferences`}
                 cardTitle={t`Preferences`}
                 description={t`Set your personal preferences.`}
-                $account={account()}
+                $account={account}
               >
                 <form on:submit={onSubmit} class="flex flex-col gap-4">
                   <div class="flex items-start space-x-2">
                     <Checkbox
                       id="prefer-ai-summary"
                       ref={preferAiSummaryDiv}
-                      defaultChecked={account().preferAiSummary}
+                      defaultChecked={account.preferAiSummary}
                     />
                     <div class="grid gap-1.5 leading-none">
                       <Label for="prefer-ai-summary">
@@ -169,7 +177,7 @@ export default function PreferencesPage() {
                       <Label>{t`Default note privacy`}</Label>
                       <PostVisibilitySelect
                         value={noteVisibility() ??
-                          account()
+                          account
                             .defaultNoteVisibility as PostVisibility}
                         onChange={setNoteVisibility}
                       />
@@ -181,7 +189,7 @@ export default function PreferencesPage() {
                       <Label>{t`Default share privacy`}</Label>
                       <PostVisibilitySelect
                         value={shareVisibility() ??
-                          account()
+                          account
                             .defaultShareVisibility as PostVisibility}
                         onChange={setShareVisibility}
                       />

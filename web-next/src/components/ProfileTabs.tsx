@@ -29,12 +29,12 @@ export function ProfileTabs(props: ProfileTabsProps) {
   );
 
   return (
-    <Show when={actor()}>
+    <Show keyed when={actor()}>
       {(actor) => {
         const baseUrl = () =>
-          actor().local ? `/@${actor().username}` : `/${actor().handle}`;
+          actor.local ? `/@${actor.username}` : `/${actor.handle}`;
         return (
-          <Show when={!actor().viewerBlocks && !actor().blocksViewer}>
+          <Show when={!actor.viewerBlocks && !actor.blocksViewer}>
             <Tabs value={props.selected}>
               <TabsList class="grid grid-cols-4">
                 <TabsTrigger as={A} value="posts" href={baseUrl()}>

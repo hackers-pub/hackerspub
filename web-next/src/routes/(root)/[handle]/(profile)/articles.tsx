@@ -64,30 +64,41 @@ export default function ProfileArticlesPage() {
     () => loadPageQuery(params.handle!, i18n.locale),
   );
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <>
-          <Show when={data().actorByHandle}>
+          {
+            /*
+            `keyed` prevents a "Stale read from <Show>" race: when
+            solid-relay's fragment subscription publishes a new snapshot
+            inside `batch()`, a non-keyed `<Show>{(actor) => ...}` accessor
+            can throw if `actorByHandle` flips to falsy in the same tick
+            that an inner reactive computation re-runs. Reconcile keeps the
+            actor's identity stable (`key: "__id"`), so `keyed` only
+            re-mounts when navigating to a different actor.
+          */
+          }
+          <Show keyed when={data.actorByHandle}>
             {(actor) => (
               <NarrowContainer>
                 <Title>
-                  {t`${actor().rawName ?? actor().username}'s articles`}
+                  {t`${actor.rawName ?? actor.username}'s articles`}
                 </Title>
                 <Meta
                   property="og:title"
-                  content={t`${actor().rawName ?? actor().username}'s articles`}
+                  content={t`${actor.rawName ?? actor.username}'s articles`}
                 />
-                <NavigateIfHandleIsNotCanonical $actor={actor()} />
+                <NavigateIfHandleIsNotCanonical $actor={actor} />
                 <div>
-                  <ProfileCard $actor={actor()} />
+                  <ProfileCard $actor={actor} />
                 </div>
                 <Show
-                  when={!actor().viewerBlocks && !actor().blocksViewer &&
+                  when={!actor.viewerBlocks && !actor.blocksViewer &&
                     !profileContentRevalidating()}
                 >
                   <div class="p-4">
-                    <ProfileTabs selected="articles" $actor={actor()} />
-                    <ActorArticleList $articles={actor()} />
+                    <ProfileTabs selected="articles" $actor={actor} />
+                    <ActorArticleList $articles={actor} />
                   </div>
                 </Show>
               </NarrowContainer>

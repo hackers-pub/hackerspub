@@ -81,6 +81,7 @@ export default function AuthorizeInteractionPage() {
       <Title>{t`Follow from your account`}</Title>
       <div class="max-w-2xl mx-auto">
         <Show
+          keyed
           when={uri()}
           fallback={
             <div class="rounded-lg border p-6" role="alert">
@@ -88,7 +89,7 @@ export default function AuthorizeInteractionPage() {
             </div>
           }
         >
-          {(validUri) => <AuthorizeInteractionContent uri={validUri()} />}
+          {(validUri) => <AuthorizeInteractionContent uri={validUri} />}
         </Show>
       </div>
     </div>
@@ -118,16 +119,17 @@ function AuthorizeInteractionContent(props: { uri: string }) {
   });
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(result) => (
-        <Show when={result().viewer}>
+        <Show when={result.viewer}>
           <div class="rounded-lg border p-6 space-y-4">
             <h1 class="text-lg font-semibold">
               {t`Follow from your account`}
             </h1>
 
             <Show
-              when={result().actorByHandle}
+              keyed
+              when={result.actorByHandle}
               fallback={
                 <div class="rounded-md border p-4">
                   <code class="text-sm break-all">{props.uri}</code>
@@ -137,38 +139,36 @@ function AuthorizeInteractionContent(props: { uri: string }) {
               {(actor) => (
                 <>
                   <p class="text-sm text-muted-foreground">
-                    {t`You are about to follow ${
-                      actor().name ?? actor().handle
-                    }.`}
+                    {t`You are about to follow ${actor.name ?? actor.handle}.`}
                   </p>
 
                   <div class="rounded-md border p-4">
                     <div class="flex items-start gap-3">
                       <Avatar class="size-12 flex-shrink-0">
-                        <AvatarImage src={actor().avatarUrl} />
+                        <AvatarImage src={actor.avatarUrl} />
                         <AvatarFallback>
-                          {actor().avatarInitials}
+                          {actor.avatarInitials}
                         </AvatarFallback>
                       </Avatar>
                       <div class="flex-1 min-w-0">
-                        <Show when={actor().name}>
+                        <Show keyed when={actor.name}>
                           {(name) => (
                             <h2
                               class="font-semibold truncate"
-                              aria-label={actor().rawName ??
-                                actor().username}
+                              aria-label={actor.rawName ??
+                                actor.username}
                             >
-                              {name()}
+                              {name}
                             </h2>
                           )}
                         </Show>
                         <p class="text-sm text-muted-foreground truncate">
-                          {actor().handle}
+                          {actor.handle}
                         </p>
-                        <Show when={actor().instance}>
+                        <Show keyed when={actor.instance}>
                           {(instance) => (
                             <p class="text-xs text-muted-foreground mt-1">
-                              {instance().host}
+                              {instance.host}
                             </p>
                           )}
                         </Show>
@@ -179,20 +179,20 @@ function AuthorizeInteractionContent(props: { uri: string }) {
                   <div class="flex items-center justify-between">
                     <p class="text-sm text-muted-foreground">
                       {t`Signed in as`}{" "}
-                      <strong>@{result().viewer?.username}</strong>
+                      <strong>@{result.viewer?.username}</strong>
                     </p>
                     <div class="flex gap-3 items-center justify-between">
                       <Button
                         variant="outline"
                         as="a"
-                        href={actor().url ?? actor().iri}
+                        href={actor.url ?? actor.iri}
                       >
                         {t`Cancel`}
                       </Button>
                       <FollowButton
-                        $actor={actor()}
+                        $actor={actor}
                         onFollowed={() =>
-                          navigate(`/${actor().handle}`, {
+                          navigate(`/${actor.handle}`, {
                             replace: true,
                           })}
                       />

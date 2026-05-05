@@ -63,32 +63,41 @@ export default function ProfileNotesPage() {
     () => loadPageQuery(params.handle!),
   );
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <>
-          <Show
-            when={data().actorByHandle}
-          >
+          {
+            /*
+            `keyed` prevents a "Stale read from <Show>" race: when
+            solid-relay's fragment subscription publishes a new snapshot
+            inside `batch()`, a non-keyed `<Show>{(actor) => ...}` accessor
+            can throw if `actorByHandle` flips to falsy in the same tick
+            that an inner reactive computation re-runs. Reconcile keeps the
+            actor's identity stable (`key: "__id"`), so `keyed` only
+            re-mounts when navigating to a different actor.
+          */
+          }
+          <Show keyed when={data.actorByHandle}>
             {(actor) => (
               <NarrowContainer>
                 <Title>
-                  {t`${actor().rawName ?? actor().username}'s notes`}
+                  {t`${actor.rawName ?? actor.username}'s notes`}
                 </Title>
                 <Meta
                   property="og:title"
-                  content={t`${actor().rawName ?? actor().username}'s notes`}
+                  content={t`${actor.rawName ?? actor.username}'s notes`}
                 />
-                <NavigateIfHandleIsNotCanonical $actor={actor()} />
+                <NavigateIfHandleIsNotCanonical $actor={actor} />
                 <div>
-                  <ProfileCard $actor={actor()} />
+                  <ProfileCard $actor={actor} />
                 </div>
                 <Show
-                  when={!actor().viewerBlocks && !actor().blocksViewer &&
+                  when={!actor.viewerBlocks && !actor.blocksViewer &&
                     !profileContentRevalidating()}
                 >
                   <div class="p-4">
-                    <ProfileTabs selected="notes" $actor={actor()} />
-                    <ActorNoteList $notes={actor()} />
+                    <ProfileTabs selected="notes" $actor={actor} />
+                    <ActorNoteList $notes={actor} />
                   </div>
                 </Show>
               </NarrowContainer>

@@ -152,58 +152,71 @@ export default function ProfilePage() {
   };
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <>
-          <Show
-            when={data().actorByHandle}
-          >
+          {
+            /*
+            `keyed` prevents a "Stale read from <Show>" race: when
+            solid-relay's fragment subscription publishes a new snapshot
+            inside `batch()`, a non-keyed `<Show>{(actor) => ...}` accessor
+            can throw if `actorByHandle` flips to falsy in the same tick
+            that an inner reactive computation re-runs. Reconcile keeps the
+            actor's identity stable (`key: "__id"`), so `keyed` only
+            re-mounts when navigating to a different actor.
+          */
+          }
+          <Show keyed when={data.actorByHandle}>
             {(actor) => (
               <NarrowContainer>
-                <Link rel="canonical" href={actor().url ?? actor().iri} />
+                <Link rel="canonical" href={actor.url ?? actor.iri} />
                 <Link
                   rel="alternate"
                   type="application/activity+json"
-                  href={actor().iri}
+                  href={actor.iri}
                 />
-                <Title>{actor().rawName ?? actor().username}</Title>
+                <Title>{actor.rawName ?? actor.username}</Title>
                 <Meta property="og:type" content="profile" />
-                <Meta property="og:url" content={actor().url ?? actor().iri} />
+                <Meta property="og:url" content={actor.url ?? actor.iri} />
                 <Meta
                   property="og:title"
-                  content={actor().rawName ?? actor().username}
+                  content={actor.rawName ?? actor.username}
                 />
-                <Show when={profileOgImageUrl(actor())}>
+                <Show keyed when={profileOgImageUrl(actor)}>
                   {(ogImageUrl) => (
                     <>
-                      <Meta property="og:image" content={ogImageUrl()} />
+                      <Meta property="og:image" content={ogImageUrl} />
                       <Meta property="og:image:width" content="1200" />
                       <Meta property="og:image:height" content="630" />
                       <Meta name="twitter:card" content="summary_large_image" />
                     </>
                   )}
                 </Show>
-                <Meta property="profile:username" content={actor().username} />
-                <NavigateIfHandleIsNotCanonical $actor={actor()} />
+                <Meta property="profile:username" content={actor.username} />
+                <NavigateIfHandleIsNotCanonical $actor={actor} />
                 <div>
-                  <ProfileCard $actor={actor()} />
+                  <ProfileCard $actor={actor} />
                 </div>
                 <Show
-                  when={!actor().viewerBlocks && !actor().blocksViewer &&
+                  when={!actor.viewerBlocks && !actor.blocksViewer &&
                     !profileContentRevalidating()}
                 >
                   <div class="p-4">
-                    <ProfileTabs selected="posts" $actor={actor()} />
-                    <Show when={pinnedPostsData()?.actorByHandle?.pins}>
+                    <ProfileTabs selected="posts" $actor={actor} />
+                    {
+                      /* See note above on `keyed`; same race shape applies to
+                       these Relay-backed gates over `pins` and `postsActor`. */
+                    }
+                    <Show keyed when={pinnedPostsData()?.actorByHandle?.pins}>
                       {(pins) => (
-                        <Show when={pins().edges.length > 0}>
+                        <Show when={pins.edges.length > 0}>
                           <section class="my-4">
                             <h2 class="mb-2 flex items-center gap-2 px-1 text-sm font-medium text-muted-foreground">
                               <IconPin class="size-4" />
                               {t`Pinned posts`}
                             </h2>
                             <div class="overflow-hidden rounded-lg border bg-card shadow-sm">
-                              <For each={pins().edges}>
+                              <For each={pins.edges}>
                                 {(edge) => (
                                   <PostCard
                                     $post={edge.node}
@@ -217,10 +230,10 @@ export default function ProfilePage() {
                         </Show>
                       )}
                     </Show>
-                    <Show when={postsActor()}>
+                    <Show keyed when={postsActor()}>
                       {(postsActor) => (
                         <ActorPostList
-                          $posts={postsActor()}
+                          $posts={postsActor}
                           pinConnections={viewerPinConnections()}
                         />
                       )}

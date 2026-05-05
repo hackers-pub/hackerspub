@@ -102,22 +102,30 @@ export default function SettingsPage() {
     () => loadPageQuery(params.handle!),
   );
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <SettingsOwnerGuard
-          accountId={data().accountByUsername?.id}
-          viewerId={data().viewer?.id}
+          accountId={data.accountByUsername?.id}
+          viewerId={data.viewer?.id}
         >
-          <Show when={data().accountByUsername}>
+          {
+            /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+             publishes a fragment snapshot inside `batch()` that flips
+             `accountByUsername` to falsy in the same tick as a downstream
+             reactive read. Reconcile keeps the account's identity stable
+             (`key: "__id"`), so `keyed` only re-mounts on navigation to
+             a different account. */
+          }
+          <Show keyed when={data.accountByUsername}>
             {(account) => (
               <SettingsCardPage
                 selected="profile"
                 title={t`Profile settings`}
                 cardTitle={t`Profile settings`}
                 description={t`Update your profile information, including your avatar, username, display name, bio, and links.`}
-                $account={account()}
+                $account={account}
               >
-                <SettingsForm $account={account()} />
+                <SettingsForm $account={account} />
               </SettingsCardPage>
             )}
           </Show>
@@ -393,14 +401,14 @@ function SettingsForm(props: SettingsFormProps) {
             {" "}
             <strong>
               {t`You can change it only once, and the old username will become available to others.`}
-              <Show when={account()?.usernameChanged}>
+              <Show keyed when={account()?.usernameChanged}>
                 {(changed) => (
                   <>
                     {" "}
                     <Trans
                       message={t`As you have already changed it ${"CHANGED"}, you can't change it again.`}
                       values={{
-                        CHANGED: () => <Timestamp value={changed()} />,
+                        CHANGED: () => <Timestamp value={changed} />,
                       }}
                     />
                   </>

@@ -61,22 +61,30 @@ export default function LanguagePage() {
   );
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <SettingsOwnerGuard
-          accountId={data().accountByUsername?.id}
-          viewerId={data().viewer?.id}
+          accountId={data.accountByUsername?.id}
+          viewerId={data.viewer?.id}
         >
-          <Show when={data().accountByUsername}>
+          {
+            /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+             publishes a fragment snapshot inside `batch()` that flips
+             `accountByUsername` to falsy in the same tick as a downstream
+             reactive read. Reconcile keeps the account's identity stable
+             (`key: "__id"`), so `keyed` only re-mounts on navigation to
+             a different account. */
+          }
+          <Show keyed when={data.accountByUsername}>
             {(account) => (
               <SettingsCardPage
                 selected="language"
                 title={t`Language settings`}
                 cardTitle={t`Preferred languages`}
                 description={t`Select your preferred languages in order of preference. This will help tailor content to your preferences.`}
-                $account={account()}
+                $account={account}
               >
-                <PreferredLanguagesForm $locales={account()} />
+                <PreferredLanguagesForm $locales={account} />
               </SettingsCardPage>
             )}
           </Show>

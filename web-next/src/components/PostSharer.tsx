@@ -30,27 +30,27 @@ export function PostSharer(props: PostSharerProps) {
   );
 
   return (
-    <Show when={post()}>
+    <Show keyed when={post()}>
       {(post) => (
         <p class={`text-sm text-muted-foreground ${props.class ?? ""}`}>
           <Trans
             message={t`${"SHARER"} shared ${"RELATIVE_TIME"}`}
             values={{
               SHARER: () => (
-                <ActorHoverCard handle={post().actor.handle}>
+                <ActorHoverCard handle={post.actor.handle}>
                   <a
                     href={`/${
-                      post().actor.local
-                        ? `@${post().actor.username}`
-                        : post().actor.handle
+                      post.actor.local
+                        ? `@${post.actor.username}`
+                        : post.actor.handle
                     }`}
                     class="font-semibold"
                   >
-                    {post().actor.name}
+                    {post.actor.name}
                   </a>
                 </ActorHoverCard>
               ),
-              RELATIVE_TIME: () => <Timestamp value={post().published} />,
+              RELATIVE_TIME: () => <Timestamp value={post.published} />,
             }}
           />
         </p>

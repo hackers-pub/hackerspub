@@ -46,8 +46,8 @@ export default function MarkdownPage() {
   return (
     <WideContainer>
       <Title>{t`Markdown guide`} &mdash; {t`Hackers' Pub`}</Title>
-      <Show when={data()}>
-        {(data) => <DocumentView $document={data().markdownGuide} />}
+      <Show keyed when={data()}>
+        {(data) => <DocumentView $document={data.markdownGuide} />}
       </Show>
     </WideContainer>
   );

@@ -94,15 +94,15 @@ export function Bookmarks(props: BookmarksProps) {
 
   return (
     <div class="mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
-      <Show when={stableData()}>
+      <Show keyed when={stableData()}>
         {(data) => (
           <>
-            <For each={data().bookmarks.edges}>
+            <For each={data.bookmarks.edges}>
               {(edge) => (
                 <PostCard
                   $post={edge.node}
-                  connections={[data().bookmarks.__id]}
-                  bookmarkListConnections={[data().bookmarks.__id]}
+                  connections={[data.bookmarks.__id]}
+                  bookmarkListConnections={[data.bookmarks.__id]}
                 />
               )}
             </For>
@@ -126,7 +126,7 @@ export function Bookmarks(props: BookmarksProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data().bookmarks.edges.length < 1}>
+            <Show when={data.bookmarks.edges.length < 1}>
               <div class="px-4 py-16 text-center text-muted-foreground">
                 {t`No bookmarks yet`}
               </div>

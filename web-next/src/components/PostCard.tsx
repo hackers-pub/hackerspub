@@ -32,29 +32,29 @@ export function PostCard(props: PostCardProps) {
   );
 
   return (
-    <Show when={post()}>
+    <Show keyed when={post()}>
       {(post) => (
         <Switch>
-          <Match when={post().__typename === "Note"}>
+          <Match when={post.__typename === "Note"}>
             <NoteCard
-              $note={post()}
+              $note={post}
               connections={props.connections}
               bookmarkListConnections={props.bookmarkListConnections}
               pinConnections={props.pinConnections}
               onDeleted={props.onDeleted}
             />
           </Match>
-          <Match when={post().__typename === "Article"}>
+          <Match when={post.__typename === "Article"}>
             <ArticleCard
-              $article={post()}
+              $article={post}
               connections={props.connections}
               bookmarkListConnections={props.bookmarkListConnections}
               pinConnections={props.pinConnections}
             />
           </Match>
-          <Match when={post().__typename === "Question"}>
+          <Match when={post.__typename === "Question"}>
             <QuestionCard
-              $question={post()}
+              $question={post}
               connections={props.connections}
               bookmarkListConnections={props.bookmarkListConnections}
               pinConnections={props.pinConnections}

@@ -57,20 +57,21 @@ export function ArticleCard(props: ArticleCardProps) {
       class="group flex flex-col border-b transition-colors last:border-none"
       classList={{ "bg-muted/40": hover() }}
     >
-      <Show when={article()}>
+      <Show keyed when={article()}>
         {(article) => (
           <Show
-            when={article().sharedPost}
+            keyed
+            when={article.sharedPost}
             fallback={
               <>
                 <ArticleCardInternal
-                  $article={article()}
+                  $article={article}
                   setHover={setHover}
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
                 <ArticleControls
-                  $article={article()}
+                  $article={article}
                   bookmarkListConnections={props.bookmarkListConnections}
                 />
               </>
@@ -78,15 +79,15 @@ export function ArticleCard(props: ArticleCardProps) {
           >
             {(sharedPost) => (
               <>
-                <PostSharer $post={article()} class="p-4 pb-0" />
+                <PostSharer $post={article} class="p-4 pb-0" />
                 <ArticleCardInternal
-                  $article={sharedPost()}
+                  $article={sharedPost}
                   setHover={setHover}
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
                 <ArticleControls
-                  $article={sharedPost()}
+                  $article={sharedPost}
                   bookmarkListConnections={props.bookmarkListConnections}
                 />
               </>
@@ -149,61 +150,62 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
   );
 
   return (
-    <Show when={article()}>
+    <Show keyed when={article()}>
       {(article) => (
         <>
           <div class="m-4 mb-0 flex gap-3 sm:gap-4">
-            <ActorHoverCard handle={article().actor.handle} class="shrink-0">
+            <ActorHoverCard handle={article.actor.handle} class="shrink-0">
               <Avatar class="size-12">
                 <InternalLink
-                  href={article().actor.url ?? article().actor.iri}
-                  internalHref={article().actor.local
-                    ? `/@${article().actor.username}`
-                    : `/${article().actor.handle}`}
+                  href={article.actor.url ?? article.actor.iri}
+                  internalHref={article.actor.local
+                    ? `/@${article.actor.username}`
+                    : `/${article.actor.handle}`}
                 >
                   <AvatarImage
-                    src={article().actor.avatarUrl}
+                    src={article.actor.avatarUrl}
                     class="size-12"
                   />
                   <AvatarFallback class="size-12">
-                    {article().actor.avatarInitials}
+                    {article.actor.avatarInitials}
                   </AvatarFallback>
                 </InternalLink>
               </Avatar>
             </ActorHoverCard>
             <div class="flex min-w-0 flex-col">
               <ActorHoverCard
-                handle={article().actor.handle}
+                handle={article.actor.handle}
                 class="flex min-w-0 items-baseline gap-x-1"
               >
-                <Show when={(article().actor.name ?? "").trim() !== ""}>
+                <Show when={(article.actor.name ?? "").trim() !== ""}>
                   <InternalLink
-                    innerHTML={article().actor.name ?? ""}
-                    href={article().actor.url ?? article().actor.iri}
-                    internalHref={article().actor.local
-                      ? `/@${article().actor.username}`
-                      : `/${article().actor.handle}`}
+                    innerHTML={article.actor.name ?? ""}
+                    href={article.actor.url ?? article.actor.iri}
+                    internalHref={article.actor.local
+                      ? `/@${article.actor.username}`
+                      : `/${article.actor.handle}`}
                     class="shrink-0 font-semibold"
                   />
                 </Show>
                 <span
                   class="min-w-0 truncate select-all text-muted-foreground"
-                  title={article().actor.handle}
+                  title={article.actor.handle}
                 >
-                  {article().actor.handle}
+                  {article.actor.handle}
                 </span>
               </ActorHoverCard>
               <div class="flex flex-row items-center gap-1 text-sm text-muted-foreground/70">
-                <Timestamp value={article().published} capitalizeFirstLetter />
+                <Timestamp value={article.published} capitalizeFirstLetter />
                 <PostActionMenu
-                  $post={article()}
+                  $post={article}
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
                 <Show
-                  when={article().contents != null &&
-                    article().contents.length > 0 &&
-                    article().contents[0].originalLanguage}
+                  keyed
+                  when={article.contents != null &&
+                    article.contents.length > 0 &&
+                    article.contents[0].originalLanguage}
                 >
                   {(originalLanguage) => (
                     <>
@@ -216,10 +218,10 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                               // FIXME: There are multiple original languages,
                               //        so the link should refer to the one for
                               //        the originalLanguage.
-                              <a href={article().url ?? article().iri}>
+                              <a href={article.url ?? article.iri}>
                                 {new Intl.DisplayNames(i18n.locale, {
                                   type: "language",
-                                }).of(originalLanguage())}
+                                }).of(originalLanguage)}
                               </a>
                             ),
                           }}
@@ -231,81 +233,82 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
               </div>
             </div>
           </div>
-          <Show when={article().contents?.[0]?.title ?? article().name}>
+          <Show when={article.contents?.[0]?.title ?? article.name}>
             <h1
-              lang={article().contents?.[0]?.language ?? article().language ??
+              lang={article.contents?.[0]?.language ?? article.language ??
                 undefined}
               class="text-xl font-semibold leading-snug"
             >
               <Show
-                when={article().actor.local}
+                when={article.actor.local}
                 fallback={
                   <a
-                    href={article().contents?.[0]?.url ?? article().url ??
-                      article().iri}
-                    lang={article().contents?.[0]?.language ??
-                      article().language ?? undefined}
-                    hreflang={article().contents?.[0]?.language ??
-                      article().language ?? undefined}
+                    href={article.contents?.[0]?.url ?? article.url ??
+                      article.iri}
+                    lang={article.contents?.[0]?.language ??
+                      article.language ?? undefined}
+                    hreflang={article.contents?.[0]?.language ??
+                      article.language ?? undefined}
                     target="_blank"
                     on:mouseover={() => props.setHover?.(true)}
                     on:mouseout={() => props.setHover?.(false)}
                     class="block p-4"
                   >
-                    {article().contents?.[0]?.title ?? article().name}
+                    {article.contents?.[0]?.title ?? article.name}
                   </a>
                 }
               >
                 <InternalLink
-                  href={article().contents?.[0]?.url ?? article().url ??
-                    article().iri}
-                  internalHref={`/@${article().actor.username}/${article().publishedYear}/${article().slug}`}
-                  lang={article().contents?.[0]?.language ??
-                    article().language ?? undefined}
-                  hreflang={article().contents?.[0]?.language ??
-                    article().language ?? undefined}
+                  href={article.contents?.[0]?.url ?? article.url ??
+                    article.iri}
+                  internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+                  lang={article.contents?.[0]?.language ??
+                    article.language ?? undefined}
+                  hreflang={article.contents?.[0]?.language ??
+                    article.language ?? undefined}
                   on:mouseover={() => props.setHover?.(true)}
                   on:mouseout={() => props.setHover?.(false)}
                   class="block p-4"
                 >
-                  {article().contents?.[0]?.title ?? article().name}
+                  {article.contents?.[0]?.title ?? article.name}
                 </InternalLink>
               </Show>
             </h1>
           </Show>
           <Show
-            when={article().contents?.[0]?.summary ?? article().summary}
+            keyed
+            when={article.contents?.[0]?.summary ?? article.summary}
             fallback={
               <Show
-                when={article().actor.local}
+                when={article.actor.local}
                 fallback={
                   <a
-                    href={article().url ?? article().iri}
-                    lang={article().language ?? undefined}
-                    hreflang={article().language ?? undefined}
+                    href={article.url ?? article.iri}
+                    lang={article.language ?? undefined}
+                    hreflang={article.language ?? undefined}
                     target="_blank"
                     on:mouseover={() => props.setHover?.(true)}
                     on:mouseout={() => props.setHover?.(false)}
                     class="px-4 pb-4"
                   >
                     <div
-                      innerHTML={article().content}
+                      innerHTML={article.content}
                       class="line-clamp-4 overflow-hidden"
                     />
                   </a>
                 }
               >
                 <InternalLink
-                  href={article().url ?? article().iri}
-                  internalHref={`/@${article().actor.username}/${article().publishedYear}/${article().slug}`}
-                  lang={article().language ?? undefined}
-                  hreflang={article().language ?? undefined}
+                  href={article.url ?? article.iri}
+                  internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+                  lang={article.language ?? undefined}
+                  hreflang={article.language ?? undefined}
                   on:mouseover={() => props.setHover?.(true)}
                   on:mouseout={() => props.setHover?.(false)}
                   class="px-4 pb-4"
                 >
                   <div
-                    innerHTML={article().content}
+                    innerHTML={article.content}
                     class="line-clamp-4 overflow-hidden"
                   />
                 </InternalLink>
@@ -314,16 +317,16 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           >
             {(summary) => (
               <Show
-                when={article().actor.local}
+                when={article.actor.local}
                 fallback={
                   <a
-                    href={article().contents?.[0]?.url ?? article().url ??
-                      article().iri}
-                    innerHTML={summary()}
-                    lang={article().contents?.[0]?.language ??
-                      article().language ?? undefined}
-                    hreflang={article().contents?.[0]?.language ??
-                      article().language ?? undefined}
+                    href={article.contents?.[0]?.url ?? article.url ??
+                      article.iri}
+                    innerHTML={summary}
+                    lang={article.contents?.[0]?.language ??
+                      article.language ?? undefined}
+                    hreflang={article.contents?.[0]?.language ??
+                      article.language ?? undefined}
                     target="_blank"
                     on:mouseover={() => props.setHover?.(true)}
                     on:mouseout={() => props.setHover?.(false)}
@@ -336,14 +339,14 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                 }
               >
                 <InternalLink
-                  href={article().contents?.[0]?.url ?? article().url ??
-                    article().iri}
-                  internalHref={`/@${article().actor.username}/${article().publishedYear}/${article().slug}`}
-                  innerHTML={summary()}
-                  lang={article().contents?.[0]?.language ??
-                    article().language ?? undefined}
-                  hreflang={article().contents?.[0]?.language ??
-                    article().language ?? undefined}
+                  href={article.contents?.[0]?.url ?? article.url ??
+                    article.iri}
+                  internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+                  innerHTML={summary}
+                  lang={article.contents?.[0]?.language ??
+                    article.language ?? undefined}
+                  hreflang={article.contents?.[0]?.language ??
+                    article.language ?? undefined}
                   on:mouseover={() => props.setHover?.(true)}
                   on:mouseout={() => props.setHover?.(false)}
                   data-llm-summary-label={t`Summarized by LLM`}
@@ -356,13 +359,13 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
             )}
           </Show>
           <Show
-            when={article().actor.local}
+            when={article.actor.local}
             fallback={
               <a
-                href={article().contents?.[0]?.url ?? article().url ??
-                  article().iri}
-                hreflang={article().contents?.[0]?.language ??
-                  article().language ?? undefined}
+                href={article.contents?.[0]?.url ?? article.url ??
+                  article.iri}
+                hreflang={article.contents?.[0]?.language ??
+                  article.language ?? undefined}
                 target="_blank"
                 on:mouseover={() => props.setHover?.(true)}
                 on:mouseout={() => props.setHover?.(false)}
@@ -379,11 +382,11 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
             }
           >
             <InternalLink
-              href={article().contents?.[0]?.url ?? article().url ??
-                article().iri}
-              internalHref={`/@${article().actor.username}/${article().publishedYear}/${article().slug}`}
-              hreflang={article().contents?.[0]?.language ??
-                article().language ?? undefined}
+              href={article.contents?.[0]?.url ?? article.url ??
+                article.iri}
+              internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+              hreflang={article.contents?.[0]?.language ??
+                article.language ?? undefined}
               on:mouseover={() => props.setHover?.(true)}
               on:mouseout={() => props.setHover?.(false)}
               class="block p-4 border-t bg-muted text-center"

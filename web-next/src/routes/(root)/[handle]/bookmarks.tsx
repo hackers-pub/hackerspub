@@ -97,10 +97,10 @@ export default function BookmarksPage() {
           />
         }
       >
-        <Show when={data()}>
+        <Show keyed when={data()}>
           {(data) => (
             <Show
-              when={data().viewer?.username === handleUsername()}
+              when={data.viewer?.username === handleUsername()}
               fallback={
                 <WideContainer class="px-4 py-6 sm:px-6 lg:py-8">
                   <HttpStatusCode code={403} />
@@ -116,9 +116,9 @@ export default function BookmarksPage() {
                       <Button onClick={() => window.history.back()}>
                         {t`Go back`}
                       </Button>
-                      <Show when={data().viewer?.username}>
+                      <Show keyed when={data.viewer?.username}>
                         {(username) => (
-                          <A href={`/@${username()}/bookmarks`}>
+                          <A href={`/@${username}/bookmarks`}>
                             <Button variant="outline">
                               {t`Go to my bookmarks`}
                             </Button>
@@ -147,7 +147,7 @@ export default function BookmarksPage() {
                   </TabsList>
                 </Tabs>
                 <Suspense>
-                  <Bookmarks $posts={data()} postType={postType()} />
+                  <Bookmarks $posts={data} postType={postType()} />
                 </Suspense>
               </NarrowContainer>
             </Show>

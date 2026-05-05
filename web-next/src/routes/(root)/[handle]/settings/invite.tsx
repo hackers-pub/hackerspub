@@ -270,20 +270,28 @@ export default function InvitePage() {
   }
 
   return (
-    <Show when={data()}>
+    <Show keyed when={data()}>
       {(data) => (
         <SettingsOwnerGuard
-          accountId={data().accountByUsername?.id}
-          viewerId={data().viewer?.id}
+          accountId={data.accountByUsername?.id}
+          viewerId={data.viewer?.id}
         >
-          <Show when={data().accountByUsername}>
+          {
+            /* `keyed` avoids a "Stale read from <Show>" race when solid-relay
+             publishes a fragment snapshot inside `batch()` that flips
+             `accountByUsername` to falsy in the same tick as a downstream
+             reactive read. Reconcile keeps the account's identity stable
+             (`key: "__id"`), so `keyed` only re-mounts on navigation to
+             a different account. */
+          }
+          <Show keyed when={data.accountByUsername}>
             {(account) => (
               <>
                 <Title>{t`Invite`}</Title>
                 <NarrowContainer class="p-4">
                   <SettingsTabs
                     selected="invite"
-                    $account={account()}
+                    $account={account}
                   />
                   <Card class="mt-4">
                     <CardHeader>
@@ -292,11 +300,11 @@ export default function InvitePage() {
                       </CardTitle>
                       <CardDescription>
                         <Show
-                          when={account().invitationsLeft > 0}
+                          when={account.invitationsLeft > 0}
                           fallback={t`You have no invitations left. Please wait until you receive more.`}
                         >
                           {i18n._(msg`${
-                            plural(account().invitationsLeft, {
+                            plural(account.invitationsLeft, {
                               one:
                                 "Invite your friends to Hackers' Pub. You can invite up to # person.",
                               other:
@@ -365,7 +373,7 @@ export default function InvitePage() {
                         <div class="flex flex-col gap-1.5">
                           <Label>{t`Invitation language`}</Label>
                           <LocaleSelect
-                            $availableLocales={data()}
+                            $availableLocales={data}
                             value={invitationLanguage()}
                             onChange={setInvitationLanguage}
                           />
@@ -391,9 +399,9 @@ export default function InvitePage() {
                           type="submit"
                           class="cursor-pointer"
                           disabled={sending() ||
-                            account().invitationsLeft <= 0}
+                            account.invitationsLeft <= 0}
                         >
-                          {account().invitationsLeft <= 0
+                          {account.invitationsLeft <= 0
                             ? t`No invitations left`
                             : sending()
                             ? t`Sending…`
@@ -411,19 +419,19 @@ export default function InvitePage() {
                     </CardContent>
                   </Card>
                   <InvitationLinksCard
-                    accountId={account().id}
-                    username={account().username}
-                    invitationLinks={account().invitationLinks}
-                    invitationsLeft={account().invitationsLeft}
+                    accountId={account.id}
+                    username={account.username}
+                    invitationLinks={account.invitationLinks}
+                    invitationsLeft={account.invitationsLeft}
                   />
-                  <Show when={account().inviteesCount.totalCount > 0}>
+                  <Show when={account.inviteesCount.totalCount > 0}>
                     <Card class="mt-4">
                       <CardHeader>
                         <CardTitle>{t`Users you have invited`}</CardTitle>
                         <CardDescription>
                           {i18n._(
                             msg`${
-                              plural(account().inviteesCount.totalCount, {
+                              plural(account.inviteesCount.totalCount, {
                                 one: "You have invited total # person so far.",
                                 other:
                                   "You have invited total # people so far.",
@@ -433,7 +441,7 @@ export default function InvitePage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <InviteeList $invitees={account()} />
+                        <InviteeList $invitees={account} />
                       </CardContent>
                     </Card>
                   </Show>
@@ -646,10 +654,15 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                         {deletingId() === link.uuid ? t`Deleting…` : t`Delete`}
                       </Button>
                     </div>
-                    <Show when={link.message}>
+                    {
+                      /* `keyed`: avoid Solid's stale-accessor race when
+                       this Relay field flips to null inside a `batch()`
+                       update. */
+                    }
+                    <Show keyed when={link.message}>
                       {(msg) => (
                         <p class="text-sm text-muted-foreground truncate">
-                          {msg()}
+                          {msg}
                         </p>
                       )}
                     </Show>
@@ -665,7 +678,9 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                         )}
                       </span>
                       <span>
+                        {/* `keyed`: same race shape; expires can flip to null. */}
                         <Show
+                          keyed
                           when={link.expires}
                           fallback={t`Never expires`}
                         >
@@ -675,7 +690,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                               values={{
                                 DATE: () => (
                                   <Timestamp
-                                    value={expires()}
+                                    value={expires}
                                     allowFuture
                                   />
                                 ),
@@ -809,11 +824,11 @@ function InviteeList(props: InviteeListProps) {
 
   return (
     <div>
-      <Show when={invitees()}>
+      <Show keyed when={invitees()}>
         {(data) => (
           <>
             <ul class="flex flex-col gap-2">
-              <For each={data().invitees.edges}>
+              <For each={data.invitees.edges}>
                 {({ node }) => (
                   <li class="flex flex-row gap-1.5">
                     <Avatar>
@@ -844,7 +859,7 @@ function InviteeList(props: InviteeListProps) {
                 )}
               </For>
             </ul>
-            <Show when={data().invitees.pageInfo.hasNextPage}>
+            <Show when={data.invitees.pageInfo.hasNextPage}>
               <Button
                 variant="outline"
                 class="mt-4 cursor-pointer w-full"
