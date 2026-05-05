@@ -3,6 +3,7 @@ import { type FreshContext, page } from "@fresh/core";
 import { getAvatarUrl } from "@hackerspub/models/account";
 import {
   getArticleSource,
+  getArticleSourceMediumUrls,
   getOriginalArticleContent,
   startArticleContentSummary,
   updateArticle,
@@ -132,12 +133,14 @@ export async function handleArticle(
   content: ArticleContent,
   permalink: URL,
 ): Promise<ArticlePageProps> {
+  const disk = drive.use();
   const rendered = await renderMarkup(
     ctx.state.fedCtx,
     content.content,
     {
       docId: article.id,
       kv,
+      mediumUrls: await getArticleSourceMediumUrls(db, disk, article.id),
       refresh: ctx.url.searchParams.has("refresh") &&
         ctx.state.account?.moderator,
     },
@@ -228,7 +231,6 @@ export async function handleArticle(
     where: { replyTargetId: article.post.id },
     orderBy: { published: "asc" },
   });
-  const disk = drive.use();
   return {
     article,
     content,
