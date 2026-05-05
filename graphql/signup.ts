@@ -276,6 +276,7 @@ builder.mutationFields((t) => ({
 
       const actor = await syncActorFromAccount(ctx.fedCtx, {
         ...account,
+        avatarMedium: null,
         links: [],
       });
 

@@ -33,6 +33,7 @@ import type {
   AccountEmail,
   AccountLink,
   Actor,
+  Medium,
 } from "@hackerspub/models/schema";
 import type { Session } from "@hackerspub/models/session";
 import type { Uuid } from "@hackerspub/models/uuid";
@@ -58,7 +59,12 @@ export interface AdminAccountStats {
 export interface UserContext extends ServerContext {
   session: Session | undefined;
   account:
-    | Account & { actor: Actor; emails: AccountEmail[]; links: AccountLink[] }
+    | Account & {
+      actor: Actor;
+      avatarMedium: Medium | null;
+      emails: AccountEmail[];
+      links: AccountLink[];
+    }
     | undefined;
   pollViewerVotes?: Map<Uuid, Promise<ReadonlySet<number>>>;
   adminAccountStatsLoader?: DataLoader<Uuid, AdminAccountStats>;

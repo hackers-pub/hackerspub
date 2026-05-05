@@ -119,6 +119,7 @@ export async function insertAccountWithActor(
     where: { id: accountId },
     with: {
       actor: true,
+      avatarMedium: true,
       emails: true,
       links: true,
     },

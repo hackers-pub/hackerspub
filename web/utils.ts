@@ -8,6 +8,7 @@ import type {
   AccountEmail,
   AccountLink,
   Actor,
+  Medium,
 } from "@hackerspub/models/schema";
 import type { Session } from "@hackerspub/models/session";
 import type { QueryGraphQL } from "./graphql/gql.ts";
@@ -38,6 +39,7 @@ export interface State {
     account:
       | (Account & {
         actor: Actor;
+        avatarMedium: Medium | null;
         emails: AccountEmail[];
         links: AccountLink[];
       })
@@ -46,6 +48,7 @@ export interface State {
   session?: Session;
   account?: Account & {
     actor: Actor;
+    avatarMedium: Medium | null;
     emails: AccountEmail[];
     links: AccountLink[];
   };

@@ -99,6 +99,7 @@ export const handler = define.handlers({
     }
     const actor = await syncActorFromAccount(ctx.state.fedCtx, {
       ...account,
+      avatarMedium: null,
       links: [],
     });
     await deleteSignupToken(kv, token.token);

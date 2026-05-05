@@ -151,7 +151,7 @@ export async function syncPostFromArticleSource(
   fedCtx: Context<ContextData>,
   articleSource: ArticleSource & {
     account: Account & {
-      avatarMedium?: Medium | null;
+      avatarMedium: Medium | null;
       emails: AccountEmail[];
       links: AccountLink[];
     };
@@ -161,7 +161,7 @@ export async function syncPostFromArticleSource(
   Post & {
     actor: Actor & {
       account: Account & {
-        avatarMedium?: Medium | null;
+        avatarMedium: Medium | null;
         emails: AccountEmail[];
         links: AccountLink[];
       };
@@ -169,7 +169,7 @@ export async function syncPostFromArticleSource(
     };
     articleSource: ArticleSource & {
       account: Account & {
-        avatarMedium?: Medium | null;
+        avatarMedium: Medium | null;
         emails: AccountEmail[];
         links: AccountLink[];
       };
@@ -241,7 +241,7 @@ export async function syncPostFromNoteSource(
   fedCtx: Context<ContextData>,
   noteSource: NoteSource & {
     account: Account & {
-      avatarMedium?: Medium | null;
+      avatarMedium: Medium | null;
       emails: AccountEmail[];
       links: AccountLink[];
     };
@@ -255,7 +255,7 @@ export async function syncPostFromNoteSource(
   Post & {
     actor: Actor & {
       account: Account & {
-        avatarMedium?: Medium | null;
+        avatarMedium: Medium | null;
         emails: AccountEmail[];
         links: AccountLink[];
       };
@@ -263,7 +263,7 @@ export async function syncPostFromNoteSource(
     };
     noteSource: NoteSource & {
       account: Account & {
-        avatarMedium?: Medium | null;
+        avatarMedium: Medium | null;
         emails: AccountEmail[];
         links: AccountLink[];
       };
@@ -913,6 +913,7 @@ async function getOriginalSharedPost(
 export async function sharePost(
   fedCtx: Context<ContextData>,
   account: Account & {
+    avatarMedium: Medium | null;
     emails: AccountEmail[];
     links: AccountLink[];
   },
@@ -997,6 +998,7 @@ export async function sharePost(
 export async function unsharePost(
   fedCtx: Context<ContextData>,
   account: Account & {
+    avatarMedium: Medium | null;
     emails: AccountEmail[];
     links: AccountLink[];
   },

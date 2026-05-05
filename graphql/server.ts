@@ -4,6 +4,7 @@ import type {
   AccountEmail,
   AccountLink,
   Actor,
+  Medium,
 } from "@hackerspub/models/schema";
 import { getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
@@ -44,6 +45,7 @@ export function createYogaServer(): YogaServerInstance<
       let account:
         | Account & {
           actor: Actor;
+          avatarMedium: Medium | null;
           emails: AccountEmail[];
           links: AccountLink[];
         }
@@ -54,6 +56,7 @@ export function createYogaServer(): YogaServerInstance<
           where: { id: session.accountId },
           with: {
             actor: true,
+            avatarMedium: true,
             emails: true,
             links: true,
           },

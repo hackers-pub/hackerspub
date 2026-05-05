@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { eq } from "drizzle-orm";
 import {
+  accountTable,
   articleContentTable,
   articleSourceTable,
+  mediumTable,
   noteSourceTable,
 } from "./schema.ts";
 import { syncPostFromArticleSource, syncPostFromNoteSource } from "./post.ts";
@@ -48,7 +50,7 @@ test("syncPostFromArticleSource() upserts the post when source content changes",
     const source = await tx.query.articleSourceTable.findFirst({
       where: { id: sourceId },
       with: {
-        account: { with: { emails: true, links: true } },
+        account: { with: { avatarMedium: true, emails: true, links: true } },
         contents: true,
       },
     });
@@ -71,7 +73,7 @@ test("syncPostFromArticleSource() upserts the post when source content changes",
     const updatedSource = await tx.query.articleSourceTable.findFirst({
       where: { id: sourceId },
       with: {
-        account: { with: { emails: true, links: true } },
+        account: { with: { avatarMedium: true, emails: true, links: true } },
         contents: true,
       },
     });
@@ -102,6 +104,17 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
       account: quotedAuthor.account,
       content: "Quoted target",
     });
+    const avatarMediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: avatarMediumId,
+      key: "avatars/sync-note-owner.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
+    await tx.update(accountTable)
+      .set({ avatarMediumId })
+      .where(eq(accountTable.id, author.account.id));
 
     const noteSourceId = generateUuidV7();
     const published = new Date("2026-04-15T00:00:00.000Z");
@@ -118,7 +131,7 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
     const noteSource = await tx.query.noteSourceTable.findFirst({
       where: { id: noteSourceId },
       with: {
-        account: { with: { emails: true, links: true } },
+        account: { with: { avatarMedium: true, emails: true, links: true } },
         media: { with: { medium: true } },
       },
     });
@@ -130,6 +143,10 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
 
     assert.equal(created.noteSourceId, noteSourceId);
     assert.equal(created.quotedPost?.id, quotedPost.id);
+    assert.equal(
+      created.actor.avatarUrl,
+      "http://localhost/media/avatars/sync-note-owner.webp",
+    );
     assert.ok("hackerspub" in created.tags);
 
     const quotedAfterCreate = await tx.query.postTable.findFirst({
@@ -145,7 +162,7 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
     const updatedSource = await tx.query.noteSourceTable.findFirst({
       where: { id: noteSourceId },
       with: {
-        account: { with: { emails: true, links: true } },
+        account: { with: { avatarMedium: true, emails: true, links: true } },
         media: { with: { medium: true } },
       },
     });

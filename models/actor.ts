@@ -80,14 +80,14 @@ async function mapWithConcurrencyLimit<T, TResult>(
 export async function syncActorFromAccount(
   fedCtx: Context<ContextData>,
   account: Account & {
-    avatarMedium?: Medium | null;
+    avatarMedium: Medium | null;
     emails: AccountEmail[];
     links: AccountLink[];
   },
 ): Promise<
   Actor & {
     account: Account & {
-      avatarMedium?: Medium | null;
+      avatarMedium: Medium | null;
       emails: AccountEmail[];
       links: AccountLink[];
     };

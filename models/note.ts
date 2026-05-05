@@ -134,7 +134,7 @@ export async function getNoteSource(
   return await db.query.noteSourceTable.findFirst({
     with: {
       account: {
-        with: { emails: true, links: true },
+        with: { avatarMedium: true, emails: true, links: true },
       },
       post: {
         with: {
@@ -339,7 +339,7 @@ export async function createNote(
   }
   const account = await db.query.accountTable.findFirst({
     where: { id: source.accountId },
-    with: { emails: true, links: true },
+    with: { avatarMedium: true, emails: true, links: true },
   });
   if (account == undefined) return undefined;
   const post = await syncPostFromNoteSource(fedCtx, {
@@ -491,7 +491,7 @@ export async function updateNote(
   if (noteSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
     where: { id: noteSource.accountId },
-    with: { emails: true, links: true },
+    with: { avatarMedium: true, emails: true, links: true },
   });
   const media = await db.query.noteSourceMediumTable.findMany({
     where: { sourceId: noteSourceId },
