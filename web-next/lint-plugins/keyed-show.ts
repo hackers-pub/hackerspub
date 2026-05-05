@@ -129,23 +129,47 @@ const plugin: Deno.lint.Plugin = {
 
         // Verify the call's callee resolves through a tracked solid-relay
         // import binding before claiming it's a Relay primitive call.
+        // Also rejects the call if any enclosing function locally rebinds
+        // the identifier (param or body declaration), so a same-name local
+        // shadow doesn't get misclassified as the import.
         const isRelayPrimitiveCallResolved = (call: any): boolean => {
           const callee = call.callee;
           if (!callee) return false;
+          let bindingName: string;
           if (callee.type === "Identifier") {
             const imp = relayImports.get(callee.name);
-            return imp?.kind === "named" && RELAY_PRIMITIVES.has(imp.imported);
-          }
-          if (callee.type === "MemberExpression" && !callee.computed) {
+            if (
+              !(imp?.kind === "named" && RELAY_PRIMITIVES.has(imp.imported))
+            ) return false;
+            bindingName = callee.name;
+          } else if (callee.type === "MemberExpression" && !callee.computed) {
             const prop = callee.property;
             if (prop?.type !== "Identifier") return false;
             if (!RELAY_PRIMITIVES.has(prop.name)) return false;
             const obj = callee.object;
             if (obj?.type !== "Identifier") return false;
             const imp = relayImports.get(obj.name);
-            return imp?.kind === "namespace";
+            if (imp?.kind !== "namespace") return false;
+            bindingName = obj.name;
+          } else {
+            return false;
           }
-          return false;
+          // Walk enclosing functions; if any binds `bindingName` (param or
+          // body declaration), the import is shadowed at this call site.
+          let cursor = call.parent;
+          while (cursor) {
+            const isFn = cursor.type === "ArrowFunctionExpression" ||
+              cursor.type === "FunctionExpression" ||
+              cursor.type === "FunctionDeclaration";
+            if (isFn) {
+              if (paramRebindsName(cursor.params, bindingName)) return false;
+              if (
+                cursor.body && detectRebinding(cursor.body, bindingName)
+              ) return false;
+            }
+            cursor = cursor.parent;
+          }
+          return true;
         };
 
         return {

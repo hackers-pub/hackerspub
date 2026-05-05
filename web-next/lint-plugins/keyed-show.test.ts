@@ -444,6 +444,46 @@ Deno.test(
 );
 
 Deno.test(
+  "does not flag when a same-named local binding shadows the import",
+  () => {
+    // The import binding is shadowed by an enclosing function-local
+    // const, so the call resolves to the local, not the solid-relay
+    // primitive. The rule must not classify `data` as Relay-backed.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    declare function compute(): unknown;
+    function App() {
+      const createFragment = compute;
+      const data = createFragment();
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value()}</div>}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 0);
+  },
+);
+
+Deno.test(
+  "does not flag when an enclosing function param shadows the import",
+  () => {
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    declare function compute(): unknown;
+    function App({ createFragment }: { createFragment: () => unknown }) {
+      const data = createFragment();
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value()}</div>}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 0);
+  },
+);
+
+Deno.test(
   "does not flag a same-named primitive imported from another module",
   () => {
     // A local module exports something named `createFragment`; the rule
