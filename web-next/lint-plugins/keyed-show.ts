@@ -355,12 +355,16 @@ const plugin: Deno.lint.Plugin = {
             if (name?.type !== "JSXIdentifier") return;
             if (!TARGET_TAGS.has(name.name)) return;
 
+            // Mirror the entry-side selection (arity ≥ 1) so a Show with
+            // a leading zero-arity child followed by a real callback still
+            // resolves to the same fnExpr that JSXElement(node) recorded.
             let fnExpr: any | undefined;
             for (const child of node.children ?? []) {
               if (
                 child.type === "JSXExpressionContainer" &&
                 (child.expression?.type === "ArrowFunctionExpression" ||
-                  child.expression?.type === "FunctionExpression")
+                  child.expression?.type === "FunctionExpression") &&
+                child.expression.params.length >= 1
               ) {
                 fnExpr = child.expression;
                 break;

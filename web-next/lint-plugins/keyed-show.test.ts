@@ -568,6 +568,30 @@ Deno.test(
   },
 );
 
+Deno.test(
+  "flags when a leading zero-arity child precedes the real callback",
+  () => {
+    // Show has two function children: the first has arity 0 and would
+    // be picked up by a naive "first function child" selector. The
+    // entry-side selector skips it (requires arity ≥ 1) and records
+    // the second; the exit-side selector must use the same filter so
+    // shows.get() finds the entry and the diagnostic fires.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      return (
+        <Show when={data()}>
+          {() => null}
+          {(value) => <div>{value()}</div>}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].id, RULE);
+  },
+);
+
 Deno.test("scopes Relay binding to its declaring function", () => {
   // \`data\` declared inside FunctionA must NOT be considered Relay-backed
   // inside FunctionB (separate scope).
