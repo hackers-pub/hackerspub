@@ -20,6 +20,7 @@ const HoverCardTrigger = HoverCardPrimitive.Trigger;
 const HoverCard: Component<HoverCardPrimitive.HoverCardRootProps> = (props) => {
   return (
     <HoverCardPrimitive.Root
+      placement="bottom"
       gutter={4}
       openDelay={400}
       closeDelay={200}
