@@ -390,6 +390,23 @@ type ArticleDraft implements Node {
   uuid: UUID!
 }
 
+input AttachArticleDraftMediumInput {
+  clientMutationId: ID
+  draftId: UUID!
+
+  """Key used in article markdown as hp-medium:KEY. Defaults to mediumId."""
+  key: String
+  mediumId: UUID!
+}
+
+type AttachArticleDraftMediumPayload {
+  clientMutationId: ID
+  key: String!
+  medium: Medium!
+}
+
+union AttachArticleDraftMediumResult = AttachArticleDraftMediumPayload | InvalidInputError | NotAuthenticatedError
+
 input BlockActorInput {
   actorId: ID!
   clientMutationId: ID
@@ -417,13 +434,38 @@ union BookmarkPostResult = BookmarkPostPayload | InvalidInputError | NotAuthenti
 
 union CreateInvitationLinkResult = InvalidInputError | InvitationLinkPayload | NotAuthenticatedError
 
+input CreateMediumInput {
+  clientMutationId: ID
+
+  """Image URL to import. Data URLs, HTTP, and HTTPS are supported."""
+  url: URL!
+}
+
+type CreateMediumPayload {
+  clientMutationId: ID
+  medium: Medium!
+}
+
+union CreateMediumResult = CreateMediumPayload | InvalidInputError | NotAuthenticatedError
+
 input CreateNoteInput {
   clientMutationId: ID
   content: Markdown!
   language: Locale!
+
+  """Media to attach to the note, in display order."""
+  media: [CreateNoteMediumInput!] = []
   quotedPostId: ID
   replyTargetId: ID
   visibility: PostVisibility!
+}
+
+input CreateNoteMediumInput {
+  """Alternative text for this note's use of the medium."""
+  alt: String!
+
+  """UUID of a Medium to attach to the note."""
+  mediumId: UUID!
 }
 
 type CreateNotePayload {
@@ -508,6 +550,18 @@ type EmojiReactionGroup implements ReactionGroup {
 type EmptySearchQueryError {
   message: String!
 }
+
+input FinishMediumUploadInput {
+  clientMutationId: ID
+  uploadId: UUID!
+}
+
+type FinishMediumUploadPayload {
+  clientMutationId: ID
+  medium: Medium!
+}
+
+union FinishMediumUploadResult = FinishMediumUploadPayload | InvalidInputError | NotAuthenticatedError
 
 input FollowActorInput {
   actorId: ID!
@@ -674,6 +728,27 @@ scalar Markdown
 
 scalar MediaType
 
+type Medium implements Node {
+  """SHA-256 hash of the normalized stored content, if known."""
+  contentHash: String
+  created: DateTime!
+  height: Int
+  id: ID!
+
+  """The medium's media type. Local uploads are stored as WebP."""
+  type: MediaType!
+
+  """Public URL for the stored medium."""
+  url: URL!
+  uuid: UUID!
+  width: Int
+}
+
+type MediumUploadHeader {
+  name: String!
+  value: String!
+}
+
 type MentionNotification implements Node & Notification {
   account: Account!
   actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
@@ -685,6 +760,7 @@ type MentionNotification implements Node & Notification {
 
 type Mutation {
   addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
+  attachArticleDraftMedium(input: AttachArticleDraftMediumInput!): AttachArticleDraftMediumResult!
   blockActor(input: BlockActorInput!): BlockActorResult!
   bookmarkPost(input: BookmarkPostInput!): BookmarkPostResult!
   completeLoginChallenge(
@@ -707,10 +783,12 @@ type Mutation {
     token: UUID!
   ): SignupResult!
   createInvitationLink(expires: String, invitationsLeft: Int!, message: Markdown): CreateInvitationLinkResult!
+  createMedium(input: CreateMediumInput!): CreateMediumResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
   deleteInvitationLink(id: UUID!): DeleteInvitationLinkResult!
   deletePost(input: DeletePostInput!): DeletePostResult!
+  finishMediumUpload(input: FinishMediumUploadInput!): FinishMediumUploadResult!
   followActor(input: FollowActorInput!): FollowActorResult!
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
@@ -791,6 +869,7 @@ type Mutation {
   ): Session
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
   sharePost(input: SharePostInput!): SharePostResult!
+  startMediumUpload(input: StartMediumUploadInput!): StartMediumUploadResult!
   unblockActor(input: UnblockActorInput!): UnblockActorResult!
   unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
@@ -800,7 +879,6 @@ type Mutation {
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
-  uploadMedia(input: UploadMediaInput!): UploadMediaResult!
   verifyPasskeyRegistration(accountId: ID!, name: String!, platform: String = "web", registrationResponse: JSON!): PasskeyRegistrationResult!
   voteOnPoll(input: VoteOnPollInput!): VoteOnPollResult!
 }
@@ -1461,6 +1539,9 @@ input SaveArticleDraftInput {
   id: ID
   tags: [String!]!
   title: String!
+
+  """Draft UUID to use when creating a new draft."""
+  uuid: UUID
 }
 
 type SaveArticleDraftPayload {
@@ -1562,6 +1643,27 @@ type SignupValidationErrors {
 type StandardEmoji {
   raw: String!
 }
+
+input StartMediumUploadInput {
+  clientMutationId: ID
+
+  """Exact number of bytes the client will upload."""
+  contentLength: Int!
+
+  """Original image content type."""
+  contentType: MediaType!
+}
+
+type StartMediumUploadPayload {
+  clientMutationId: ID
+  expiresAt: DateTime!
+  headers: [MediumUploadHeader!]!
+  method: String!
+  uploadId: UUID!
+  uploadUrl: URL!
+}
+
+union StartMediumUploadResult = InvalidInputError | NotAuthenticatedError | StartMediumUploadPayload
 
 scalar URITemplate
 
@@ -1670,7 +1772,8 @@ type UnsharePostPayload {
 union UnsharePostResult = InvalidInputError | NotAuthenticatedError | UnsharePostPayload
 
 input UpdateAccountInput {
-  avatarUrl: URL
+  avatarMediumId: UUID
+  avatarUrl: URL @deprecated(reason: "Use avatarMediumId instead.")
   bio: String
   clientMutationId: ID
   defaultNoteVisibility: PostVisibility
@@ -1706,21 +1809,6 @@ type UpdateArticlePayload {
 }
 
 union UpdateArticleResult = InvalidInputError | NotAuthenticatedError | UpdateArticlePayload
-
-input UploadMediaInput {
-  clientMutationId: ID
-  draftId: UUID
-  mediaUrl: URL!
-}
-
-type UploadMediaPayload {
-  clientMutationId: ID
-  height: Int!
-  url: URL!
-  width: Int!
-}
-
-union UploadMediaResult = InvalidInputError | NotAuthenticatedError | UploadMediaPayload
 
 input VoteOnPollInput {
   clientMutationId: ID

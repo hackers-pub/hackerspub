@@ -14,9 +14,10 @@ import type {
   Actor,
   ArticleContent,
   ArticleSource,
+  Medium,
   Mention,
-  NoteMedium,
   NoteSource,
+  NoteSourceMedium,
   Post,
   PostVisibility,
   Reaction,
@@ -32,6 +33,20 @@ export async function getArticle(
     contents: ArticleContent[];
   },
 ): Promise<vocab.Article> {
+  const sourceMedia = await ctx.data.db.query.articleSourceMediumTable.findMany(
+    {
+      where: { articleSourceId: articleSource.id },
+      with: { medium: true },
+    },
+  );
+  const mediumUrls = Object.fromEntries(
+    await Promise.all(
+      sourceMedia.map(async (relation) => [
+        relation.key,
+        await ctx.data.disk.getUrl(relation.medium.key),
+      ]),
+    ),
+  );
   const url = new URL(
     `/@${articleSource.account.username}/${articleSource.publishedYear}/${
       encodeURIComponent(articleSource.slug)
@@ -43,6 +58,7 @@ export async function getArticle(
       ...(await renderMarkup(ctx, content.content, {
         docId: articleSource.id,
         kv: ctx.data.kv,
+        mediumUrls,
       })),
       ...content,
     })),
@@ -150,7 +166,10 @@ export function getPostRecipients(
 
 export async function getNote(
   ctx: Context<ContextData>,
-  note: NoteSource & { account: Account; media: NoteMedium[] },
+  note: NoteSource & {
+    account: Account;
+    media: (NoteSourceMedium & { medium: Medium })[];
+  },
   relations: {
     replyTargetId?: URL;
     quotedPost?: Post;
@@ -165,11 +184,11 @@ export async function getNote(
   for (const medium of note.media) {
     attachments.push(
       new vocab.Document({
-        mediaType: "image/webp",
-        url: new URL(await disk.getUrl(medium.key)),
+        mediaType: medium.medium.type,
+        url: new URL(await disk.getUrl(medium.medium.key)),
         name: medium.alt,
-        width: medium.width,
-        height: medium.height,
+        width: medium.medium.width ?? undefined,
+        height: medium.medium.height ?? undefined,
       }),
     );
   }
@@ -248,7 +267,7 @@ builder
       const note = await ctx.data.db.query.noteSourceTable.findFirst({
         with: {
           account: true,
-          media: true,
+          media: { with: { medium: true } },
           post: { with: { replyTarget: true, quotedPost: true } },
         },
         where: { id: values.id },

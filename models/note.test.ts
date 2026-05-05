@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { updateAccountData } from "./account.ts";
 import { createNoteSource, getNoteSource, updateNoteSource } from "./note.ts";
-import { noteMediumTable } from "./schema.ts";
+import { mediumTable, noteSourceMediumTable } from "./schema.ts";
+import { generateUuidV7 } from "./uuid.ts";
 import {
   insertAccountWithActor,
   insertNotePost,
@@ -61,13 +62,19 @@ test("getNoteSource() resolves renamed accounts and loads media relations", asyn
       content: "Readable note source",
     });
 
-    await tx.insert(noteMediumTable).values({
-      sourceId: noteSourceId,
-      index: 0,
+    const [medium] = await tx.insert(mediumTable).values({
+      id: generateUuidV7(),
       key: "note-media/test.webp",
-      alt: "Readable alt text",
+      type: "image/webp",
       width: 320,
       height: 180,
+    }).returning();
+
+    await tx.insert(noteSourceMediumTable).values({
+      sourceId: noteSourceId,
+      index: 0,
+      mediumId: medium.id,
+      alt: "Readable alt text",
     });
 
     const renamed = await updateAccountData(tx, {
@@ -90,7 +97,7 @@ test("getNoteSource() resolves renamed accounts and loads media relations", asyn
     assert.equal(source.post.id, post.id);
     assert.equal(source.post.actor.id, author.actor.id);
     assert.equal(source.media.length, 1);
-    assert.equal(source.media[0].key, "note-media/test.webp");
+    assert.equal(source.media[0].medium.key, "note-media/test.webp");
     assert.equal(source.media[0].alt, "Readable alt text");
   });
 });

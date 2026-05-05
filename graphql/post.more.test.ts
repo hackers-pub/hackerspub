@@ -9,6 +9,7 @@ import {
   articleContentTable,
   articleDraftTable,
   articleSourceTable,
+  mediumTable,
   type NewPost,
   postTable,
 } from "@hackerspub/models/schema";
@@ -129,6 +130,49 @@ const articleContentOgImageBulkByLanguageQuery = parse(`
             }
           }
         }
+      }
+    }
+  }
+`);
+
+const createMediumMutation = parse(`
+  mutation CreateMedium($input: CreateMediumInput!) {
+    createMedium(input: $input) {
+      __typename
+      ... on CreateMediumPayload {
+        medium {
+          uuid
+          url
+          type
+          width
+          height
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`);
+
+const attachArticleDraftMediumMutation = parse(`
+  mutation AttachArticleDraftMedium($input: AttachArticleDraftMediumInput!) {
+    attachArticleDraftMedium(input: $input) {
+      __typename
+      ... on AttachArticleDraftMediumPayload {
+        key
+        medium {
+          uuid
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
       }
     }
   }
@@ -324,6 +368,81 @@ test("saveArticleDraft, articleDraft, and deleteArticleDraft round-trip a draft"
   });
 });
 
+test("createMedium and attachArticleDraftMedium create draft media relations", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "mediumgraphql",
+      name: "Medium GraphQL",
+      email: "mediumgraphql@example.com",
+    });
+    const disk = createOgTestDisk();
+
+    const createResult = await execute({
+      schema,
+      document: createMediumMutation,
+      variableValues: { input: { url: smallPngDataUrl } },
+      contextValue: makeUserContext(tx, account.account, { disk: disk.disk }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(createResult.errors, undefined);
+    const medium = (toPlainJson(createResult.data) as {
+      createMedium: {
+        __typename: string;
+        medium: {
+          uuid: string;
+          url: string;
+          type: string;
+          width: number;
+          height: number;
+        };
+      };
+    }).createMedium.medium;
+    assert.equal(medium.type, "image/webp");
+    assert.equal(medium.width, 1);
+    assert.equal(medium.height, 1);
+    assert.match(medium.url, /^http:\/\/localhost\/media\/media\/.+\.webp$/);
+    assert.equal(disk.putKeys.length, 1);
+
+    const draftId = generateUuidV7();
+    const attachResult = await execute({
+      schema,
+      document: attachArticleDraftMediumMutation,
+      variableValues: {
+        input: {
+          draftId,
+          mediumId: medium.uuid,
+        },
+      },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(attachResult.errors, undefined);
+    const attached = (toPlainJson(attachResult.data) as {
+      attachArticleDraftMedium: {
+        __typename: string;
+        key: string;
+        medium: { uuid: string };
+      };
+    }).attachArticleDraftMedium;
+    assert.equal(attached.__typename, "AttachArticleDraftMediumPayload");
+    assert.equal(attached.key, medium.uuid);
+    assert.equal(attached.medium.uuid, medium.uuid);
+
+    const relation = await tx.query.articleDraftMediumTable.findFirst({
+      where: { articleDraftId: draftId },
+    });
+    assert.equal(relation?.mediumId, medium.uuid);
+    assert.equal(relation?.key, medium.uuid);
+    const draft = await tx.query.articleDraftTable.findFirst({
+      where: { id: draftId },
+    });
+    assert.equal(draft?.title, "");
+    assert.equal(draft?.content, "");
+  });
+});
+
 test("publishArticleDraft publishes an article and removes the draft", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {
@@ -401,8 +520,15 @@ test("ArticleContent.ogImageUrl keys do not collide across articles", async () =
       name: "Article OG Collision",
       email: "articleogcollision@example.com",
     });
+    const [avatarMedium] = await tx.insert(mediumTable).values({
+      id: generateUuidV7(),
+      key: "article-avatar-og-test",
+      type: "image/webp",
+      width: null,
+      height: null,
+    }).returning();
     await tx.update(accountTable)
-      .set({ avatarKey: "article-avatar-og-test" })
+      .set({ avatarMediumId: avatarMedium.id })
       .where(eq(accountTable.id, author.account.id));
     const published = new Date("2026-04-15T00:00:00.000Z");
 
@@ -522,8 +648,15 @@ test("ArticleContent.ogImageUrl renders per-language article images", async () =
       name: "Article OG GraphQL",
       email: "articleoggraphql@example.com",
     });
+    const [avatarMedium] = await tx.insert(mediumTable).values({
+      id: generateUuidV7(),
+      key: "article-avatar-og-test",
+      type: "image/webp",
+      width: null,
+      height: null,
+    }).returning();
     await tx.update(accountTable)
-      .set({ avatarKey: "article-avatar-og-test" })
+      .set({ avatarMediumId: avatarMedium.id })
       .where(eq(accountTable.id, author.account.id));
     const sourceId = generateUuidV7();
     const postId = generateUuidV7();

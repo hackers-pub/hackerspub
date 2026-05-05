@@ -122,7 +122,8 @@ export interface ArticleComposerProps {
 
 export interface ArticleComposerContextValue {
   // Draft data
-  draftUuid: string | undefined;
+  draftUuid: string;
+  isExistingDraft: boolean;
   draftDataLoaded: Accessor<boolean>;
   draft: Accessor<
     | {
@@ -176,6 +177,9 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   const { t, i18n } = useLingui();
   const navigate = useNavigate();
   const env = useRelayEnvironment();
+  const draftUuid = (props.draftUuid ??
+    crypto
+      .randomUUID()) as `${string}-${string}-${string}-${string}-${string}`;
 
   // Draft loading
   const draftData = props.draftUuid
@@ -265,6 +269,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       variables: {
         input: {
           id: draft()?.id,
+          uuid: draft()?.id == null ? draftUuid : undefined,
           title: title().trim(),
           content: content().trim(),
           tags: tags(),
@@ -521,7 +526,8 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   // --- Context value ---
 
   const contextValue: ArticleComposerContextValue = {
-    draftUuid: props.draftUuid,
+    draftUuid,
+    isExistingDraft: props.draftUuid != null,
     draftDataLoaded,
     draft,
 

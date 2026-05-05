@@ -2,7 +2,8 @@
   "name": "@hackerspub/graphql",
   "version": "0.2.0",
   "exports": {
-    ".": "./mod.ts"
+    ".": "./mod.ts",
+    "./medium-upload": "./medium-upload.ts"
   },
   "fmt": {
     "exclude": [

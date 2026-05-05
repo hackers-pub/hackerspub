@@ -40,7 +40,10 @@ import {
   syncActorFromAccount,
   toRecipient,
 } from "./actor.ts";
-import { getOriginalArticleContent } from "./article.ts";
+import {
+  getArticleSourceMediumUrls,
+  getOriginalArticleContent,
+} from "./article.ts";
 import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, RelationsFilter } from "./db.ts";
@@ -64,12 +67,13 @@ import {
   type Blocking,
   type Following,
   type Instance,
+  type Medium,
   type Mention,
   mentionTable,
   type NewPost,
   type NewPostLink,
-  type NoteMedium,
   type NoteSource,
+  type NoteSourceMedium,
   noteSourceTable,
   type Poll,
   type Post,
@@ -93,6 +97,8 @@ const REPLIES_BACKFILL_RETRY_DELAY_MS = 30_000;
 const SCRAPE_IMAGE_METADATA_BYTES_LIMIT = 128 * 1024;
 
 export type PostObject = vocab.Article | vocab.Note | vocab.Question;
+
+type NoteSourceMediumWithMedium = NoteSourceMedium & { medium: Medium };
 
 export function isPostObject(object: unknown): object is PostObject {
   return object instanceof vocab.Article || object instanceof vocab.Note ||
@@ -144,23 +150,35 @@ async function readResponseBytesAtMost(
 export async function syncPostFromArticleSource(
   fedCtx: Context<ContextData>,
   articleSource: ArticleSource & {
-    account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    account: Account & {
+      avatarMedium?: Medium | null;
+      emails: AccountEmail[];
+      links: AccountLink[];
+    };
     contents: ArticleContent[];
   },
 ): Promise<
   Post & {
     actor: Actor & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      account: Account & {
+        avatarMedium?: Medium | null;
+        emails: AccountEmail[];
+        links: AccountLink[];
+      };
       instance: Instance;
     };
     articleSource: ArticleSource & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      account: Account & {
+        avatarMedium?: Medium | null;
+        emails: AccountEmail[];
+        links: AccountLink[];
+      };
       contents: ArticleContent[];
     };
     mentions: Mention[];
   }
 > {
-  const { db, kv } = fedCtx.data;
+  const { db, kv, disk } = fedCtx.data;
   const actor = await syncActorFromAccount(fedCtx, articleSource.account);
   const content = getOriginalArticleContent(articleSource);
   if (content == null) {
@@ -169,6 +187,7 @@ export async function syncPostFromArticleSource(
   const rendered = await renderMarkup(fedCtx, content.content, {
     docId: articleSource.id,
     kv,
+    mediumUrls: await getArticleSourceMediumUrls(db, disk, articleSource.id),
   });
   const url =
     `${fedCtx.origin}/@${articleSource.account.username}/${articleSource.publishedYear}/${
@@ -221,8 +240,12 @@ export async function syncPostFromArticleSource(
 export async function syncPostFromNoteSource(
   fedCtx: Context<ContextData>,
   noteSource: NoteSource & {
-    account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-    media: NoteMedium[];
+    account: Account & {
+      avatarMedium?: Medium | null;
+      emails: AccountEmail[];
+      links: AccountLink[];
+    };
+    media: NoteSourceMediumWithMedium[];
   },
   relations: {
     replyTarget?: Post & { actor: Actor };
@@ -231,12 +254,20 @@ export async function syncPostFromNoteSource(
 ): Promise<
   Post & {
     actor: Actor & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+      account: Account & {
+        avatarMedium?: Medium | null;
+        emails: AccountEmail[];
+        links: AccountLink[];
+      };
       instance: Instance;
     };
     noteSource: NoteSource & {
-      account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      media: NoteMedium[];
+      account: Account & {
+        avatarMedium?: Medium | null;
+        emails: AccountEmail[];
+        links: AccountLink[];
+      };
+      media: NoteSourceMediumWithMedium[];
     };
     replyTarget: Post & { actor: Actor } | null;
     quotedPost: Post & { actor: Actor } | null;
@@ -320,10 +351,10 @@ export async function syncPostFromNoteSource(
         postId: post.id,
         index: medium.index,
         type: "image/webp" as const,
-        url: await disk.getUrl(medium.key),
+        url: await disk.getUrl(medium.medium.key),
         alt: medium.alt,
-        width: medium.width,
-        height: medium.height,
+        width: medium.medium.width,
+        height: medium.medium.height,
       }))),
     ).returning()
     : [];

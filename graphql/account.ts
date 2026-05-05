@@ -6,14 +6,11 @@ import {
 import { assertNever } from "@std/assert/unstable-never";
 import DataLoader from "dataloader";
 import { and, desc, eq, gt, inArray, lt, sql } from "drizzle-orm";
-import {
-  getAvatarUrl,
-  transformAvatar,
-  updateAccount,
-} from "@hackerspub/models/account";
+import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import type { Locale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
+import { createMediumFromUrl } from "@hackerspub/models/medium";
 import {
   accountTable,
   actorTable,
@@ -69,9 +66,10 @@ export const Account = builder.drizzleNode("accountTable", {
       type: "URL",
       select: {
         columns: {
-          avatarKey: true,
+          avatarMediumId: true,
         },
         with: {
+          avatarMedium: true,
           emails: true,
         },
       },
@@ -85,7 +83,7 @@ export const Account = builder.drizzleNode("accountTable", {
       complexity: profileOgImageComplexity,
       select: {
         columns: {
-          avatarKey: true,
+          avatarMediumId: true,
           bio: true,
           id: true,
           name: true,
@@ -93,6 +91,7 @@ export const Account = builder.drizzleNode("accountTable", {
           username: true,
         },
         with: {
+          avatarMedium: true,
           actor: {
             columns: {
               handleHost: true,
@@ -108,7 +107,7 @@ export const Account = builder.drizzleNode("accountTable", {
         });
         const handle = `@${account.username}@${account.actor.handleHost}`;
         const key = await putProfileOgImage(ctx.disk, account.ogImageKey, {
-          avatarKey: account.avatarKey ?? avatarUrl,
+          avatarKey: account.avatarMedium?.key ?? avatarUrl,
           avatarUrl,
           bio: bio.text,
           displayName: account.name,
@@ -564,6 +563,7 @@ builder.queryField("invitationTree", (t) =>
       const accounts = await ctx.db.query.accountTable.findMany({
         with: {
           actor: true,
+          avatarMedium: true,
           emails: true,
         },
       });
@@ -590,13 +590,6 @@ const AccountLinkInput = builder.inputType("AccountLinkInput", {
   }),
 });
 
-const SUPPORTED_AVATAR_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-];
-
 builder.relayMutationField(
   "updateAccount",
   {
@@ -605,7 +598,11 @@ builder.relayMutationField(
       username: t.string(),
       name: t.string(),
       bio: t.string(),
-      avatarUrl: t.field({ type: "URL" }),
+      avatarUrl: t.field({
+        type: "URL",
+        deprecationReason: "Use avatarMediumId instead.",
+      }),
+      avatarMediumId: t.field({ type: "UUID" }),
       locales: t.field({ type: ["Locale"] }),
       hideFromInvitationTree: t.boolean(),
       hideForeignLanguages: t.boolean(),
@@ -635,31 +632,29 @@ builder.relayMutationField(
           "Username cannot be changed after it has been changed.",
         );
       }
-      let avatarKey: string | undefined;
-      const promises: Promise<void>[] = [];
+      let avatarMediumId: Uuid | undefined;
       if (args.input.avatarUrl != null) {
-        const response = await fetch(args.input.avatarUrl);
-        if (response.status !== 200) {
-          throw new Error("Failed to fetch the avatar URL.");
+        if (args.input.avatarMediumId != null) {
+          throw new Error(
+            "avatarUrl and avatarMediumId are mutually exclusive.",
+          );
         }
-        const contentType = response.headers.get("Content-Type");
-        if (
-          contentType == null || !SUPPORTED_AVATAR_TYPES.includes(contentType)
-        ) {
+        const medium = await createMediumFromUrl(
+          ctx.db,
+          ctx.disk,
+          args.input.avatarUrl,
+          { userAgentUrl: new URL(ctx.fedCtx.canonicalOrigin) },
+        );
+        if (medium == null) {
           throw new Error("Avatar URL must point to an image.");
         }
-        const disk = ctx.disk;
-        if (account.avatarKey != null) {
-          promises.push(disk.delete(account.avatarKey));
-        }
-        const { buffer, format } = await transformAvatar(
-          await response.arrayBuffer(),
-        );
-        const key = `avatars/${crypto.randomUUID()}.${
-          format === "jpeg" ? "jpg" : format
-        }`;
-        promises.push(disk.put(key, buffer));
-        avatarKey = key;
+        avatarMediumId = medium.id;
+      } else if (args.input.avatarMediumId != null) {
+        const medium = await ctx.db.query.mediumTable.findFirst({
+          where: { id: args.input.avatarMediumId },
+        });
+        if (medium == null) throw new Error("Medium not found.");
+        avatarMediumId = medium.id;
       }
       const result = await updateAccount(
         ctx.fedCtx,
@@ -668,7 +663,7 @@ builder.relayMutationField(
           username: args.input.username ?? undefined,
           name: args.input.name ?? undefined,
           bio: args.input.bio ?? undefined,
-          avatarKey,
+          avatarMediumId,
           locales: args.input.locales?.map((loc) => loc.baseName as Locale) ??
             undefined,
           hideFromInvitationTree: args.input.hideFromInvitationTree ??
@@ -684,12 +679,20 @@ builder.relayMutationField(
           links: args.input.links ?? undefined,
         },
       );
-      await Promise.all(promises);
       if (result == null) throw new Error("Account not found");
       const emails = await ctx.db.query.accountEmailTable.findMany({
         where: { accountId: result.id },
       });
-      await syncActorFromAccount(ctx.fedCtx, { ...result, emails });
+      const avatarMedium = result.avatarMediumId == null
+        ? null
+        : await ctx.db.query.mediumTable.findFirst({
+          where: { id: result.avatarMediumId },
+        }) ?? null;
+      await syncActorFromAccount(ctx.fedCtx, {
+        ...result,
+        emails,
+        avatarMedium,
+      });
       return result;
     },
   },

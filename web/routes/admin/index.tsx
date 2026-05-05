@@ -5,6 +5,7 @@ import {
   type AccountEmail,
   type Actor,
   actorTable,
+  type Medium,
   postTable,
 } from "@hackerspub/models/schema";
 import type { Uuid } from "@hackerspub/models/uuid";
@@ -18,7 +19,13 @@ import { define } from "../../utils.ts";
 export const handler = define.handlers({
   async GET(_ctx) {
     const accounts = await db.query.accountTable.findMany({
-      with: { emails: true, actor: true, inviter: true, invitees: true },
+      with: {
+        emails: true,
+        avatarMedium: true,
+        actor: true,
+        inviter: true,
+        invitees: true,
+      },
       orderBy: { created: "desc" },
     });
     const postsMetadata: Record<
@@ -60,6 +67,7 @@ export const handler = define.handlers({
 interface AccountListProps {
   accounts: (Account & {
     actor: Actor;
+    avatarMedium: Medium | null;
     emails: AccountEmail[];
     inviter: Account | null;
     invitees: Account[];

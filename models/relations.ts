@@ -26,7 +26,10 @@ export const relations = defineRelations(schema, (r) => ({
     notifications: r.many.notificationTable(),
     apnsDeviceTokens: r.many.apnsDeviceTokenTable(),
     fcmDeviceTokens: r.many.fcmDeviceTokenTable(),
-    uploadedMedia: r.many.articleMediumTable(),
+    avatarMedium: r.one.mediumTable({
+      from: r.accountTable.avatarMediumId,
+      to: r.mediumTable.id,
+    }),
     bookmarks: r.many.bookmarkTable(),
   },
   accountEmailTable: {
@@ -115,7 +118,7 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.accountTable.id,
       optional: false,
     }),
-    uploadedMedia: r.many.articleMediumTable(),
+    media: r.many.articleDraftMediumTable(),
   },
   articleSourceTable: {
     account: r.one.accountTable({
@@ -129,7 +132,7 @@ export const relations = defineRelations(schema, (r) => ({
       optional: false,
     }),
     contents: r.many.articleContentTable(),
-    uploadedMedia: r.many.articleMediumTable(),
+    media: r.many.articleSourceMediumTable(),
   },
   articleContentTable: {
     source: r.one.articleSourceTable({
@@ -167,12 +170,23 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.postTable.noteSourceId,
       optional: false,
     }),
-    media: r.many.noteMediumTable(),
+    media: r.many.noteSourceMediumTable(),
   },
-  noteMediumTable: {
+  mediumTable: {
+    avatarAccounts: r.many.accountTable(),
+    noteSources: r.many.noteSourceMediumTable(),
+    articleDrafts: r.many.articleDraftMediumTable(),
+    articleSources: r.many.articleSourceMediumTable(),
+  },
+  noteSourceMediumTable: {
     source: r.one.noteSourceTable({
-      from: r.noteMediumTable.sourceId,
+      from: r.noteSourceMediumTable.sourceId,
       to: r.noteSourceTable.id,
+    }),
+    medium: r.one.mediumTable({
+      from: r.noteSourceMediumTable.mediumId,
+      to: r.mediumTable.id,
+      optional: false,
     }),
   },
   postTable: {
@@ -370,21 +384,28 @@ export const relations = defineRelations(schema, (r) => ({
       optional: true,
     }),
   },
-  articleMediumTable: {
-    account: r.one.accountTable({
-      from: r.articleMediumTable.accountId,
-      to: r.accountTable.id,
+  articleDraftMediumTable: {
+    articleDraft: r.one.articleDraftTable({
+      from: r.articleDraftMediumTable.articleDraftId,
+      to: r.articleDraftTable.id,
       optional: false,
     }),
-    articleDraft: r.one.articleDraftTable({
-      from: r.articleMediumTable.articleDraftId,
-      to: r.articleDraftTable.id,
-      optional: true,
+    medium: r.one.mediumTable({
+      from: r.articleDraftMediumTable.mediumId,
+      to: r.mediumTable.id,
+      optional: false,
     }),
+  },
+  articleSourceMediumTable: {
     articleSource: r.one.articleSourceTable({
-      from: r.articleMediumTable.articleSourceId,
+      from: r.articleSourceMediumTable.articleSourceId,
       to: r.articleSourceTable.id,
-      optional: true,
+      optional: false,
+    }),
+    medium: r.one.mediumTable({
+      from: r.articleSourceMediumTable.mediumId,
+      to: r.mediumTable.id,
+      optional: false,
     }),
   },
   invitationLinkTable: {

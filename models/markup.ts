@@ -170,6 +170,7 @@ export interface RenderMarkupOptions {
   kv?: Keyv | null;
   docId?: string | null;
   refresh?: boolean;
+  mediumUrls?: Record<string, string>;
 }
 
 export async function renderMarkup(
@@ -177,12 +178,15 @@ export async function renderMarkup(
   markup: string,
   options: RenderMarkupOptions = {},
 ): Promise<RenderedMarkup> {
+  const resolvedMarkup = resolveMediumUrls(markup, options.mediumUrls ?? {});
   let cacheKey: string | undefined;
   if (options.kv != null) {
     const digest = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(
-        `${JSON.stringify(options.docId ?? null)}\n${markup}`,
+        `${JSON.stringify(options.docId ?? null)}\n${
+          JSON.stringify(options.mediumUrls ?? {})
+        }\n${resolvedMarkup}`,
       ),
     );
     cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/markup/${
@@ -202,7 +206,7 @@ export async function renderMarkup(
     },
   });
   const tmpEnv: { mentions: string[] } = { mentions: [] };
-  await tmpMd.renderAsync(markup, tmpEnv);
+  await tmpMd.renderAsync(resolvedMarkup, tmpEnv);
   const mentions = new Set(tmpEnv.mentions);
   logger.trace("Mentions: {mentions}", { mentions });
   const mentionedActors = fedCtx == null
@@ -218,7 +222,7 @@ export async function renderMarkup(
     hashtags: [],
     macros: {},
   };
-  const rawHtml = (await md.renderAsync(markup, env))
+  const rawHtml = (await md.renderAsync(resolvedMarkup, env))
     .replaceAll('<?xml version="1.0" encoding="UTF-8" standalone="no"?>', "")
     .replaceAll(
       '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"\n' +
@@ -242,6 +246,16 @@ export async function renderMarkup(
     await options.kv.set(cacheKey, rendered);
   }
   return rendered;
+}
+
+function resolveMediumUrls(
+  markup: string,
+  mediumUrls: Record<string, string>,
+): string {
+  return markup.replaceAll(
+    /hp-medium:([A-Za-z0-9._:/-]+)/g,
+    (matched, key: string) => mediumUrls[key] ?? matched,
+  );
 }
 
 function slugifyTitle(title: string, docId?: string | null): string {

@@ -4,6 +4,8 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import * as vocab from "@fedify/vocab";
 import { execute, parse } from "graphql";
 import { updateAccountData } from "@hackerspub/models/account";
+import { mediumTable } from "@hackerspub/models/schema";
+import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { UserContext } from "./builder.ts";
 import { schema } from "./mod.ts";
 import { putProfileOgImage } from "./og.ts";
@@ -172,9 +174,16 @@ test("Account.ogImageUrl renders and reuses a cached profile image", async () =>
       name: "Profile OG GraphQL",
       email: "profileoggraphql@example.com",
     });
+    const [avatarMedium] = await tx.insert(mediumTable).values({
+      id: generateUuidV7(),
+      key: "avatar-og-test",
+      type: "image/webp",
+      width: null,
+      height: null,
+    }).returning();
     const updated = await updateAccountData(tx, {
       id: account.account.id,
-      avatarKey: "avatar-og-test",
+      avatarMediumId: avatarMedium.id,
       bio: "Mixed script bio: Hello, 안녕하세요, こんにちは, 你好, 😀",
       ogImageKey: "og/v2/stale-profile.png",
     });

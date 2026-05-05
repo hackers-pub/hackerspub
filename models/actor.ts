@@ -43,6 +43,7 @@ import {
   followingTable,
   type Instance,
   instanceTable,
+  type Medium,
   type NewActor,
   type NewInstance,
   pinTable,
@@ -78,10 +79,18 @@ async function mapWithConcurrencyLimit<T, TResult>(
 
 export async function syncActorFromAccount(
   fedCtx: Context<ContextData>,
-  account: Account & { emails: AccountEmail[]; links: AccountLink[] },
+  account: Account & {
+    avatarMedium?: Medium | null;
+    emails: AccountEmail[];
+    links: AccountLink[];
+  },
 ): Promise<
   Actor & {
-    account: Account & { emails: AccountEmail[]; links: AccountLink[] };
+    account: Account & {
+      avatarMedium?: Medium | null;
+      emails: AccountEmail[];
+      links: AccountLink[];
+    };
     instance: Instance;
   }
 > {

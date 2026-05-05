@@ -11,6 +11,7 @@ import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
 import type { LanguageModel } from "ai";
 import { and, eq, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
+import type { Disk } from "flydrive";
 import postgres from "postgres";
 import type { ContextData, Models } from "./context.ts";
 import type { Database } from "./db.ts";
@@ -40,6 +41,44 @@ import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "article"]);
+
+export async function getArticleDraftMediumUrls(
+  db: Database,
+  disk: Disk,
+  draftId: Uuid,
+): Promise<Record<string, string>> {
+  const media = await db.query.articleDraftMediumTable.findMany({
+    where: { articleDraftId: draftId },
+    with: { medium: true },
+  });
+  return Object.fromEntries(
+    await Promise.all(
+      media.map(async (relation) => [
+        relation.key,
+        await disk.getUrl(relation.medium.key),
+      ]),
+    ),
+  );
+}
+
+export async function getArticleSourceMediumUrls(
+  db: Database,
+  disk: Disk,
+  sourceId: Uuid,
+): Promise<Record<string, string>> {
+  const media = await db.query.articleSourceMediumTable.findMany({
+    where: { articleSourceId: sourceId },
+    with: { medium: true },
+  });
+  return Object.fromEntries(
+    await Promise.all(
+      media.map(async (relation) => [
+        relation.key,
+        await disk.getUrl(relation.medium.key),
+      ]),
+    ),
+  );
+}
 
 /**
  * Counts the number of user-perceived characters (extended grapheme
@@ -159,7 +198,7 @@ export async function getArticleSource(
   return await db.query.articleSourceTable.findFirst({
     with: {
       account: {
-        with: { emails: true, links: true },
+        with: { avatarMedium: true, emails: true, links: true },
       },
       contents: {
         orderBy: { published: "asc" },
@@ -254,7 +293,7 @@ export async function createArticle(
   if (articleSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
     where: { id: source.accountId },
-    with: { emails: true, links: true },
+    with: { avatarMedium: true, emails: true, links: true },
   });
   if (account == undefined) return undefined;
   const post = await syncPostFromArticleSource(fedCtx, {
@@ -455,7 +494,7 @@ export async function updateArticle(
   const { source: articleSource, originalContentChanged } = updateResult;
   const account = await db.query.accountTable.findFirst({
     where: { id: articleSource.accountId },
-    with: { emails: true, links: true },
+    with: { avatarMedium: true, emails: true, links: true },
   });
   if (account == null) return undefined;
   const post = await syncPostFromArticleSource(fedCtx, {

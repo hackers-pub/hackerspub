@@ -119,7 +119,7 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
       where: { id: noteSourceId },
       with: {
         account: { with: { emails: true, links: true } },
-        media: true,
+        media: { with: { medium: true } },
       },
     });
     assert.ok(noteSource != null);
@@ -146,7 +146,7 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
       where: { id: noteSourceId },
       with: {
         account: { with: { emails: true, links: true } },
-        media: true,
+        media: { with: { medium: true } },
       },
     });
     assert.ok(updatedSource != null);

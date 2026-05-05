@@ -12,7 +12,7 @@ import { define } from "../../utils.ts";
 export const handler = define.handlers({
   async GET(ctx) {
     const account = await db.query.accountTable.findFirst({
-      with: { emails: true },
+      with: { avatarMedium: true, emails: true },
       where: { username: ctx.params.username },
     });
     if (account == null) return ctx.next();
