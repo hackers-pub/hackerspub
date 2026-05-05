@@ -206,6 +206,18 @@ const plugin: Deno.lint.Plugin = {
           return true;
         };
 
+        // BlockStatement push/pop. Function bodies are themselves
+        // BlockStatements, but the enclosing function visitor has already
+        // pushed a scope for them, so we skip the BlockStatement push for
+        // a node whose parent is a function. Every other block (an `if`,
+        // `for`, `while`, plain `{ ... }`, or `try`/`finally` body) gets
+        // its own block scope so block-scoped `let`/`const` bindings stay
+        // local and shadow outer same-name bindings as expected.
+        const isFunctionParent = (parent: any): boolean =>
+          parent?.type === "ArrowFunctionExpression" ||
+          parent?.type === "FunctionExpression" ||
+          parent?.type === "FunctionDeclaration";
+
         return {
           Program: pushScope,
           "Program:exit": popScope,
@@ -225,6 +237,19 @@ const plugin: Deno.lint.Plugin = {
             propagateRelayBindingFromShowParent(node);
           },
           "FunctionExpression:exit": popScope,
+          BlockStatement(node: any) {
+            if (isFunctionParent(node.parent)) return;
+            pushScope();
+            // If this is a catch-clause body, hoist the catch param into
+            // the just-pushed block scope so `e` in `catch (e) { ... }`
+            // shadows outer bindings inside the catch body.
+            if (node.parent?.type === "CatchClause" && node.parent.param) {
+              recordPatternBindings(node.parent.param, "shadow");
+            }
+          },
+          "BlockStatement:exit"(node: any) {
+            if (!isFunctionParent(node.parent)) popScope();
+          },
 
           ImportDeclaration(node: any) {
             if (node.source?.value !== "solid-relay") return;

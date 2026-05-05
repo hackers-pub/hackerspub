@@ -496,6 +496,56 @@ Deno.test(
 );
 
 Deno.test(
+  "does not flag when an inner block shadows an outer Relay binding",
+  () => {
+    // The if-block declares a same-named non-Relay `data`; inside that
+    // block, `data` refers to the block-scoped const, not the outer
+    // Relay binding. The Show inside the block must not be flagged.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    declare function compute(): unknown;
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      if (true) {
+        const data = compute();
+        return (
+          <Show when={data()}>
+            {(value) => <div>{value()}</div>}
+          </Show>
+        );
+      }
+      return null;
+    }
+  `);
+    assertEquals(diagnostics.length, 0);
+  },
+);
+
+Deno.test(
+  "still flags after a sibling block re-declares the Relay name",
+  () => {
+    // Sibling block ends; the original Relay binding is still in scope
+    // for a Show that follows the block.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    declare function compute(): unknown;
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      if (false) {
+        const data = compute();
+        void data;
+      }
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value()}</div>}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    assertEquals(diagnostics[0].id, RULE);
+  },
+);
+
+Deno.test(
   "does not flag when an inner scope shadows an outer Relay binding",
   () => {
     // Outer App has a Relay-backed `data`; inner Inner shadows `data`
