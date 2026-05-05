@@ -219,6 +219,39 @@ const plugin: Deno.lint.Plugin = {
           return true;
         };
 
+        // Shared handler for `value()` and `value?.()`. Walks up to the
+        // nearest function scope that binds `calleeName` as a param; if
+        // that function is a tracked Show callback, records the call for
+        // rewrite (zero-arg, no body rebinding) or marks the param use
+        // as unsafe (any non-zero-arg invocation).
+        const handleParamCall = (node: any): void => {
+          const callee = node.callee;
+          if (callee?.type !== "Identifier") return;
+          const argCount = node.arguments?.length ?? 0;
+          const calleeName: string = callee.name;
+
+          let cursor: any = node.parent;
+          while (cursor) {
+            const isFn = cursor.type === "ArrowFunctionExpression" ||
+              cursor.type === "FunctionExpression" ||
+              cursor.type === "FunctionDeclaration";
+            if (isFn) {
+              if (paramRebindsName(cursor.params, calleeName)) {
+                const entry = shows.get(cursor);
+                if (entry && entry.paramName === calleeName) {
+                  if (argCount === 0 && !entry.bodyHasRebinding) {
+                    entry.calls.push(node);
+                  } else if (argCount > 0) {
+                    entry.hasUnsafeParamUse = true;
+                  }
+                }
+                return;
+              }
+            }
+            cursor = cursor.parent;
+          }
+        };
+
         // BlockStatement push/pop. Function bodies are themselves
         // BlockStatements, but the enclosing function visitor has already
         // pushed a scope for them, so we skip the BlockStatement push for
@@ -360,39 +393,19 @@ const plugin: Deno.lint.Plugin = {
             });
           },
 
+          // Both bare `value()` and optional `value?.()` calls need the
+          // same handling. In deno_ast, `value?.()` is a `CallExpression`
+          // with `optional: true` (wrapped in a `ChainExpression`), so
+          // the `CallExpression` visitor below already catches both. The
+          // `OptionalCallExpression` visitor is wired defensively in case
+          // a future AST revision splits them out: same handler, no-op
+          // today. Either way, the CallExpression's range covers the
+          // entire `value?.()` text, so the autofix replaces uniformly.
           CallExpression(node: any) {
-            const callee = node.callee;
-            if (callee?.type !== "Identifier") return;
-            const argCount = node.arguments?.length ?? 0;
-            // Note: optional calls (`value?.()`) are intentionally
-            // included. Under the keyed conversion `value` is a concrete
-            // value, not a function, so leaving `value?.()` in place would
-            // try to invoke a non-callable at runtime. Replace those calls
-            // with the bare param too.
-            const calleeName: string = callee.name;
-
-            let cursor: any = node.parent;
-            while (cursor) {
-              const isFn = cursor.type === "ArrowFunctionExpression" ||
-                cursor.type === "FunctionExpression" ||
-                cursor.type === "FunctionDeclaration";
-              if (isFn) {
-                if (paramRebindsName(cursor.params, calleeName)) {
-                  const entry = shows.get(cursor);
-                  if (entry && entry.paramName === calleeName) {
-                    if (argCount === 0 && !entry.bodyHasRebinding) {
-                      entry.calls.push(node);
-                    } else if (argCount > 0) {
-                      // `value(arg)` cannot be safely rewritten: after the
-                      // keyed flip `value` is not callable.
-                      entry.hasUnsafeParamUse = true;
-                    }
-                  }
-                  return;
-                }
-              }
-              cursor = cursor.parent;
-            }
+            handleParamCall(node);
+          },
+          OptionalCallExpression(node: any) {
+            handleParamCall(node);
           },
 
           "JSXElement:exit"(node: any) {
