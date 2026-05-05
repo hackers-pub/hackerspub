@@ -160,6 +160,28 @@ Deno.test(
   },
 );
 
+Deno.test(
+  "autofix rewrites optional bare param?.() calls too",
+  () => {
+    // Without rewriting `value?.()`, the post-fix body would try to
+    // call the keyed value (a concrete record) as a function and crash
+    // at runtime.
+    const diagnostics = lint(`${RELAY_PRELUDE}
+    function App() {
+      const data = createPreloadedQuery(env, () => loadQuery());
+      return (
+        <Show when={data()}>
+          {(value) => <div>{value?.()}</div>}
+        </Show>
+      );
+    }
+  `);
+    assertEquals(diagnostics.length, 1);
+    // 1 keyed insertion + 1 rewrite of value?.() to value.
+    assertEquals(diagnostics[0].fix!.length, 2);
+  },
+);
+
 Deno.test("autofix preserves param() calls passing arguments", () => {
   const diagnostics = lint(`${RELAY_PRELUDE}
     function App() {

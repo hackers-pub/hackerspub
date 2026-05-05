@@ -256,9 +256,13 @@ const plugin: Deno.lint.Plugin = {
             const callee = node.callee;
             if (
               callee?.type !== "Identifier" ||
-              (node.arguments?.length ?? 0) !== 0 ||
-              node.optional === true
+              (node.arguments?.length ?? 0) !== 0
             ) return;
+            // Note: optional calls (`value?.()`) are intentionally
+            // included. Under the keyed conversion `value` is a concrete
+            // value, not a function, so leaving `value?.()` in place would
+            // try to invoke a non-callable at runtime. Replace those calls
+            // with the bare param too.
             const calleeName: string = callee.name;
 
             let cursor: any = node.parent;
