@@ -259,7 +259,7 @@ msgstr "在撤销您的通行密钥时发生错误。"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:128
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
-msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持团队。"
+msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持。"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:162
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
@@ -267,7 +267,7 @@ msgstr "保存语言偏好时出现错误。请重试，如果问题仍然存在
 
 #: src/routes/(root)/[handle]/settings/index.tsx:311
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
-msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请联系客服。"
+msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请联系支持。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:201
 #: src/routes/(root)/[handle]/settings/invite.tsx:265
