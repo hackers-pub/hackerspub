@@ -138,7 +138,22 @@ export const handler = define.handlers({
       const medium = await createAvatarMediumFromBlob(db, disk, avatar, {
         maxSize: MAX_AVATAR_SIZE,
       });
-      if (medium != null) values.avatarMediumId = medium.id;
+      if (medium == null) {
+        errors.avatar = t("settings.profile.avatarInvalid");
+        return page<ProfileSettingsPageProps>({
+          avatarUrl: await getAvatarUrl(disk, account),
+          usernameChanged: account.usernameChanged,
+          values: {
+            username,
+            name,
+            bio,
+            leftInvitations: account.leftInvitations,
+          },
+          links,
+          errors,
+        });
+      }
+      values.avatarMediumId = medium.id;
     }
     const updatedAccount = await updateAccount(ctx.state.fedCtx, values);
     if (updatedAccount == null) {

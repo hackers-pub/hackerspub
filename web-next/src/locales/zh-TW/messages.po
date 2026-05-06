@@ -2019,7 +2019,7 @@ msgstr "可在 {0} 上以 {1} 授權取得該網站的原始碼。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:580
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
-msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱 。"
+msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱。"
 
 #: src/components/PostActionMenu.tsx:351
 msgid "This action cannot be undone. This will permanently delete this post."
@@ -2433,4 +2433,4 @@ msgstr "個人資料設定已成功更新。"
 #: src/routes/(root)/[handle]/settings/index.tsx:422
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
-msgstr "你的使用者名稱將被用來創建你的個人資料 URL 和你的 Fediverse 使用者名稱（handle）。"
+msgstr "你的使用者名稱將用於建立你的個人資料 URL 和你的聯邦宇宙識別碼。"
