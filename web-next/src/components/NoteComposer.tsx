@@ -1,5 +1,12 @@
 import { fetchQuery, graphql } from "relay-runtime";
-import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
 import { createMutation, useRelayEnvironment } from "solid-relay";
 import { detectLanguage } from "~/lib/langdet.ts";
 import {
@@ -164,18 +171,71 @@ export function NoteComposer(props: NoteComposerProps) {
   );
   const [mediaItems, setMediaItems] = createSignal<MediaItem[]>([]);
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
-  // Counter tracks nested dragenter/dragleave pairs so moving into a child
-  // element (e.g. the textarea) doesn't prematurely clear isDraggingOver.
-  let dragCounter = 0;
+  let formRef: HTMLFormElement | undefined;
+  let removeDragListeners: (() => void) | undefined;
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileInputRef: HTMLInputElement | undefined;
 
-  // Cancel in-flight uploads and revoke object URLs on unmount.
   onCleanup(() => {
+    removeDragListeners?.();
     for (const item of mediaItems()) {
       item.abortUpload?.();
       URL.revokeObjectURL(item.previewUrl);
     }
+  });
+
+  // Use capture-phase listeners so Firefox's native textarea drag handling
+  // cannot block our handlers.  relatedTarget in dragleave tells us whether
+  // the drag is still inside the form, avoiding the need for a counter.
+  onMount(() => {
+    const form = formRef;
+    if (!form) return;
+
+    const hasFiles = (e: DragEvent) =>
+      e.dataTransfer != null &&
+      Array.from(e.dataTransfer.types).includes("Files");
+
+    const onDragEnter = (e: DragEvent) => {
+      if (hasFiles(e) && mediaItems().length < MAX_MEDIA) {
+        setIsDraggingOver(true);
+      }
+    };
+
+    const onDragOver = (e: DragEvent) => {
+      if (hasFiles(e) && mediaItems().length < MAX_MEDIA) {
+        e.preventDefault();
+      }
+    };
+
+    const onDragLeave = (e: DragEvent) => {
+      if (
+        e.relatedTarget == null ||
+        !form.contains(e.relatedTarget as Node)
+      ) {
+        setIsDraggingOver(false);
+      }
+    };
+
+    const onDrop = (e: DragEvent) => {
+      setIsDraggingOver(false);
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      const files = e.dataTransfer!.files;
+      if (files) addFiles(files);
+    };
+
+    const opts = { capture: true } as const;
+    form.addEventListener("dragenter", onDragEnter, opts);
+    form.addEventListener("dragover", onDragOver, opts);
+    form.addEventListener("dragleave", onDragLeave, opts);
+    form.addEventListener("drop", onDrop, opts);
+
+    removeDragListeners = () => {
+      form.removeEventListener("dragenter", onDragEnter, opts);
+      form.removeEventListener("dragover", onDragOver, opts);
+      form.removeEventListener("dragleave", onDragLeave, opts);
+      form.removeEventListener("drop", onDrop, opts);
+    };
   });
 
   // Fetch quoted post preview when quotedPostId changes
@@ -531,44 +591,9 @@ export function NoteComposer(props: NoteComposerProps) {
 
   return (
     <form
+      ref={(el) => (formRef = el)}
       onSubmit={handleSubmit}
       class={props.class}
-      onDragEnter={(e) => {
-        // dataTransfer.types is a DOMStringList in Firefox — use Array.from.
-        if (
-          e.dataTransfer &&
-          Array.from(e.dataTransfer.types).includes("Files")
-        ) {
-          dragCounter++;
-          if (mediaItems().length < MAX_MEDIA) setIsDraggingOver(true);
-        }
-      }}
-      onDragOver={(e) => {
-        if (
-          e.dataTransfer &&
-          Array.from(e.dataTransfer.types).includes("Files") &&
-          mediaItems().length < MAX_MEDIA
-        ) {
-          e.preventDefault();
-        }
-      }}
-      onDragLeave={() => {
-        dragCounter = Math.max(0, dragCounter - 1);
-        if (dragCounter === 0) setIsDraggingOver(false);
-      }}
-      onDrop={(e) => {
-        dragCounter = 0;
-        setIsDraggingOver(false);
-        if (
-          !e.dataTransfer ||
-          !Array.from(e.dataTransfer.types).includes("Files")
-        ) {
-          return;
-        }
-        e.preventDefault();
-        const files = e.dataTransfer.files;
-        if (files) addFiles(files);
-      }}
     >
       <div
         class={`grid gap-4 rounded-lg transition-colors ${
