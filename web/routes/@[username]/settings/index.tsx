@@ -62,7 +62,13 @@ export const handler = define.handlers({
       where: { username: ctx.params.username },
       with: { avatarMedium: true, emails: true, links: true },
     });
-    if (account == null) return ctx.next();
+    if (
+      account == null ||
+      ctx.state.session == null ||
+      account.id !== ctx.state.session.accountId
+    ) {
+      return ctx.next();
+    }
     const form = await ctx.req.formData();
     const avatar = form.get("avatar");
     const username = form.get("username")?.toString()?.trim()?.toLowerCase();
