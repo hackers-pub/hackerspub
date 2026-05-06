@@ -627,7 +627,6 @@ export const noteSourceMediumTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.sourceId, table.index] }),
-    unique().on(table.sourceId, table.mediumId),
     check("note_source_medium_index_check", sql`${table.index} >= 0`),
   ],
 );

@@ -5,6 +5,8 @@ import type { Context } from "@fedify/fedify";
 import type { ContextData } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createNote, updateNote } from "./note.ts";
+import { mediumTable } from "./schema.ts";
+import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -52,6 +54,48 @@ test("createNote() creates a post and timeline entry for the author", async () =
     assert.equal(timelineItem.originalAuthorId, author.actor.id);
     assert.equal(timelineItem.lastSharerId, null);
     assert.equal(timelineItem.sharersCount, 0);
+  });
+});
+
+test("createNote() allows the same medium at multiple indexes", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "duplicatenotemedia",
+      name: "Duplicate Note Media",
+      email: "duplicatenotemedia@example.com",
+    });
+    const [medium] = await tx.insert(mediumTable).values({
+      id: generateUuidV7(),
+      key: "note-media/duplicate.webp",
+      type: "image/webp",
+      width: 320,
+      height: 180,
+    }).returning();
+
+    const note = await createNote(
+      fedCtx as unknown as Context<ContextData<Transaction>>,
+      {
+        accountId: author.account.id,
+        visibility: "public",
+        content: "Same image twice",
+        language: "en",
+        media: [
+          { mediumId: medium.id, alt: "First occurrence" },
+          { mediumId: medium.id, alt: "Second occurrence" },
+        ],
+      },
+    );
+
+    assert.ok(note != null);
+    assert.equal(note.noteSource.media.length, 2);
+    assert.equal(note.noteSource.media[0].index, 0);
+    assert.equal(note.noteSource.media[0].mediumId, medium.id);
+    assert.equal(note.noteSource.media[0].alt, "First occurrence");
+    assert.equal(note.noteSource.media[1].index, 1);
+    assert.equal(note.noteSource.media[1].mediumId, medium.id);
+    assert.equal(note.noteSource.media[1].alt, "Second occurrence");
+    assert.equal(note.media.length, 2);
   });
 });
 
