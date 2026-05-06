@@ -1,3 +1,4 @@
+import { generateAltText } from "@hackerspub/ai/alttext";
 import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
@@ -714,6 +715,31 @@ export const Medium = builder.drizzleNode("mediumTable", {
     created: t.expose("created", { type: "DateTime" }),
   }),
 });
+
+builder.drizzleObjectField(Medium, "generatedAltText", (t) =>
+  t.string({
+    nullable: true,
+    description: "AI-generated alternative text for this medium. " +
+      "Requires authentication. High-complexity operation (cost 1000). " +
+      "The context argument is truncated server-side to 1000 characters. " +
+      "Note: authorization is based on knowing the medium's ID (UUID); " +
+      "the mediumTable has no owner column.",
+    complexity: 1000,
+    args: {
+      language: t.arg({ type: "Locale", required: true }),
+      context: t.arg({ type: "String", required: false }),
+    },
+    async resolve(medium, args, ctx) {
+      if ((await ctx.session) == null) throw new NotAuthenticatedError();
+      const imageUrl = await ctx.disk.getUrl(medium.key);
+      return await generateAltText({
+        model: ctx.altTextGenerator,
+        imageUrl,
+        language: (args.language as Intl.Locale).baseName,
+        context: args.context ?? undefined,
+      });
+    },
+  }));
 
 const MediumUploadHeader = builder.simpleObject("MediumUploadHeader", {
   fields: (t) => ({

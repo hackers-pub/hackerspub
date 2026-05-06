@@ -177,6 +177,7 @@
     "npm:@types/node@*": "24.2.0",
     "npm:@types/relay-runtime@^19.0.2": "19.0.2",
     "npm:@vertana/context-web@~0.1.1": "0.1.1_@standard-schema+spec@1.1.0_ai@6.0.108__zod@4.2.1",
+    "npm:ai@6": "6.0.108_zod@4.2.1",
     "npm:ai@^6.0.3": "6.0.108_zod@4.2.1",
     "npm:ai@^6.0.86": "6.0.108_zod@4.2.1",
     "npm:apns2@^12.2.0": "12.2.0",

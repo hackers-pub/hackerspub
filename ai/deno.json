@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "exports": {
     ".": "./mod.ts",
+    "./alttext": "./alttext.ts",
     "./summary": "./summary.ts",
     "./translate": "./translate.ts"
   }

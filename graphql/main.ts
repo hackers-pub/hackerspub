@@ -41,6 +41,7 @@ Deno.serve({ port: 8080 }, async (req, info) => {
     return federation.fetch(req, { contextData: { db, kv, disk, models } });
   }
   return yogaServer.fetch(req, {
+    altTextGenerator: models.altTextGenerator,
     db,
     kv,
     disk,

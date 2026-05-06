@@ -13,6 +13,7 @@ import type { Transport } from "@upyo/core";
 import { getTableConfig } from "drizzle-orm/pg-core";
 import type DataLoader from "dataloader";
 import type { Disk } from "flydrive";
+import type { LanguageModel } from "ai";
 import { GraphQLScalarType, Kind } from "graphql";
 import {
   DateResolver,
@@ -42,6 +43,7 @@ export type ValuesOfEnumType<T> = T extends
   PothosSchemaTypes.EnumRef<never, unknown, infer V> ? V : never;
 
 export interface ServerContext {
+  altTextGenerator: LanguageModel;
   db: Database;
   kv: Keyv;
   disk: Disk;

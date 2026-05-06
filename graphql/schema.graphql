@@ -754,6 +754,11 @@ type Medium implements Node {
   """SHA-256 hash of the normalized stored content, if known."""
   contentHash: Sha256
   created: DateTime!
+
+  """
+  AI-generated alternative text for this medium. Requires authentication. High-complexity operation (cost 1000). The context argument is truncated server-side to 1000 characters. Note: authorization is based on knowing the medium's ID (UUID); the mediumTable has no owner column.
+  """
+  generatedAltText(context: String, language: Locale!): String
   height: Int
   id: ID!
 

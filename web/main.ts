@@ -188,6 +188,7 @@ app.use(async (ctx) => {
 
   const disk = drive.use();
   const graphqlContext: Context = {
+    altTextGenerator: models.altTextGenerator,
     db,
     kv,
     disk,
