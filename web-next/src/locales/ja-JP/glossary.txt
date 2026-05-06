@@ -28,6 +28,8 @@ handle → ハンドル
 invitation → 招待
 invitationLink → 招待リンク
 medium → メディア
+disk object → ディスクオブジェクト
+orphan media → 孤立したメディア
 preferences → 環境設定
 notification → 通知
 moderator → モデレーター

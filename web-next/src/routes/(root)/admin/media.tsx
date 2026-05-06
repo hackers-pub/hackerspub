@@ -146,7 +146,9 @@ export default function AdminMediaPage() {
           <Show
             keyed
             when={data.viewer?.moderator}
-            fallback={<Navigate href="/sign?next=%2Fadmin%2Fmedia" />}
+            fallback={data.viewer == null
+              ? <Navigate href="/sign?next=%2Fadmin%2Fmedia" />
+              : <Navigate href="/" />}
           >
             {(_) => {
               const status = () => data.orphanMediaStatus;

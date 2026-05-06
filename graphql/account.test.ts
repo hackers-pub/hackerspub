@@ -27,6 +27,7 @@ const viewerQuery = parse(`
       username
       name
       handle
+      avatarMediumId
     }
   }
 `);
@@ -154,6 +155,7 @@ test("viewer returns the signed-in account and null for guests", async () => {
           username: "viewerquery",
           name: "Viewer Query",
           handle: "@viewerquery@localhost",
+          avatarMediumId: null,
         },
       },
     );

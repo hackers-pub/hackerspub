@@ -66,6 +66,11 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     name: t.exposeString("name"),
     bio: t.expose("bio", { type: "Markdown" }),
+    avatarMediumId: t.expose("avatarMediumId", {
+      type: "UUID",
+      nullable: true,
+      description: "UUID of the medium used as this account's avatar.",
+    }),
     avatarUrl: t.field({
       type: "URL",
       select: {
