@@ -1,5 +1,6 @@
 import {
   getInvitationRegenerationStatus,
+  type InvitationRegenerationStatus as ModelInvitationRegenerationStatus,
   regenerateInvitations,
 } from "@hackerspub/models/admin";
 import { accountTable, actorTable, postTable } from "@hackerspub/models/schema";
@@ -342,7 +343,7 @@ const InvitationRegenerationStatus = builder.simpleObject(
       "A snapshot of the invitation-regeneration state used by the admin UI " +
       "to preview a regeneration before triggering it.",
     fields: (t) => ({
-      lastRegeneratedAt: t.field({
+      lastRegenerated: t.field({
         type: "DateTime",
         nullable: true,
         description:
@@ -353,7 +354,7 @@ const InvitationRegenerationStatus = builder.simpleObject(
         type: "DateTime",
         description:
           "The earliest `published` timestamp a post must have to count " +
-          "an account as eligible.  Equals `lastRegeneratedAt` once a " +
+          "an account as eligible.  Equals `lastRegenerated` once a " +
           "regeneration has been recorded; otherwise defaults to one " +
           "week before now.",
       }),
@@ -369,6 +370,24 @@ const InvitationRegenerationStatus = builder.simpleObject(
   },
 );
 
+interface InvitationRegenerationStatusShape {
+  lastRegenerated: Date | null;
+  cutoffDate: Date;
+  eligibleAccountsCount: number;
+  topThirdCount: number;
+}
+
+function toInvitationRegenerationStatusShape(
+  status: ModelInvitationRegenerationStatus,
+): InvitationRegenerationStatusShape {
+  return {
+    lastRegenerated: status.lastRegeneratedAt,
+    cutoffDate: status.cutoffDate,
+    eligibleAccountsCount: status.eligibleAccountsCount,
+    topThirdCount: status.topThirdCount,
+  };
+}
+
 builder.queryField("invitationRegenerationStatus", (t) =>
   t.field({
     type: InvitationRegenerationStatus,
@@ -380,7 +399,9 @@ builder.queryField("invitationRegenerationStatus", (t) =>
     async resolve(_root, _args, ctx) {
       if (ctx.session == null) return null;
       if (!ctx.account?.moderator) return null;
-      return await getInvitationRegenerationStatus(ctx.db, ctx.kv);
+      return toInvitationRegenerationStatusShape(
+        await getInvitationRegenerationStatus(ctx.db, ctx.kv),
+      );
     },
   }));
 
@@ -389,7 +410,7 @@ const RegenerateInvitationsPayload = builder.simpleObject(
   {
     description: "The result of a successful invitations regeneration.",
     fields: (t) => ({
-      regeneratedAt: t.field({
+      regenerated: t.field({
         type: "DateTime",
         description: "When the regeneration ran.",
       }),
@@ -429,9 +450,9 @@ builder.mutationField("regenerateInvitations", (t) =>
       // pay one aggregate query and report the actual numbers.
       const status = await getInvitationRegenerationStatus(ctx.db, ctx.kv);
       return {
-        regeneratedAt: result.regeneratedAt,
+        regenerated: result.regeneratedAt,
         accountsAffected: result.accountsAffected,
-        status,
+        status: toInvitationRegenerationStatusShape(status),
       };
     },
   }));

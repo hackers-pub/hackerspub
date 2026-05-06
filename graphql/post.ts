@@ -2096,7 +2096,7 @@ interface MediumUploadStart {
   uploadUrl: URL;
   method: string;
   headers: { name: string; value: string }[];
-  expiresAt: Date;
+  expires: Date;
 }
 
 builder.relayMutationField(
@@ -2156,7 +2156,7 @@ builder.relayMutationField(
         uploadUrl,
         method: "PUT",
         headers: [{ name: "Content-Type", value: upload.contentType }],
-        expiresAt: new Date(Date.now() + MEDIUM_UPLOAD_TTL_MS),
+        expires: new Date(Date.now() + MEDIUM_UPLOAD_TTL_MS),
       } satisfies MediumUploadStart;
     },
   },
@@ -2175,9 +2175,9 @@ builder.relayMutationField(
         type: [MediumUploadHeader],
         resolve: (result) => result.headers,
       }),
-      expiresAt: t.field({
+      expires: t.field({
         type: "DateTime",
-        resolve: (result) => result.expiresAt,
+        resolve: (result) => result.expires,
       }),
     }),
   },

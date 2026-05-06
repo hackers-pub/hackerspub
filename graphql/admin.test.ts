@@ -788,7 +788,7 @@ Deno.test({
 const invitationRegenStatusQuery = parse(`
   query InvitationRegenerationStatus {
     invitationRegenerationStatus {
-      lastRegeneratedAt
+      lastRegenerated
       cutoffDate
       eligibleAccountsCount
       topThirdCount
@@ -849,7 +849,7 @@ Deno.test({
 
 Deno.test({
   name:
-    "invitationRegenerationStatus returns null lastRegeneratedAt when KV empty",
+    "invitationRegenerationStatus returns null lastRegenerated when KV empty",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -865,11 +865,11 @@ Deno.test({
       assertEquals(result.errors, undefined);
       const status = (result.data as {
         invitationRegenerationStatus: {
-          lastRegeneratedAt: unknown;
+          lastRegenerated: unknown;
         } | null;
       }).invitationRegenerationStatus;
       assert(status != null);
-      assertEquals(status.lastRegeneratedAt, null);
+      assertEquals(status.lastRegenerated, null);
     });
   },
 });
@@ -893,15 +893,15 @@ Deno.test({
       assertEquals(result.errors, undefined);
       const status = (result.data as {
         invitationRegenerationStatus: {
-          lastRegeneratedAt: Date | string | null;
+          lastRegenerated: Date | string | null;
           cutoffDate: Date | string;
         } | null;
       }).invitationRegenerationStatus;
       assert(status != null);
-      assert(status.lastRegeneratedAt != null);
-      const lastIso = status.lastRegeneratedAt instanceof Date
-        ? status.lastRegeneratedAt.toISOString()
-        : status.lastRegeneratedAt;
+      assert(status.lastRegenerated != null);
+      const lastIso = status.lastRegenerated instanceof Date
+        ? status.lastRegenerated.toISOString()
+        : status.lastRegenerated;
       assertEquals(lastIso, stored.toISOString());
       const cutoffIso = status.cutoffDate instanceof Date
         ? status.cutoffDate.toISOString()
@@ -974,9 +974,9 @@ const regenerateMutation = parse(`
       __typename
       ... on RegenerateInvitationsPayload {
         accountsAffected
-        regeneratedAt
+        regenerated
         status {
-          lastRegeneratedAt
+          lastRegenerated
           cutoffDate
           eligibleAccountsCount
           topThirdCount
@@ -1094,15 +1094,15 @@ Deno.test({
         regenerateInvitations: {
           __typename: string;
           accountsAffected: number;
-          regeneratedAt: Date | string;
+          regenerated: Date | string;
           status: {
-            lastRegeneratedAt: Date | string | null;
+            lastRegenerated: Date | string | null;
           };
         };
       }).regenerateInvitations;
       assertEquals(payload.__typename, "RegenerateInvitationsPayload");
       assertEquals(payload.accountsAffected, 1);
-      assert(payload.status.lastRegeneratedAt != null);
+      assert(payload.status.lastRegenerated != null);
 
       // KV is updated.
       assert(typeof store.get(INVITATIONS_LAST_REGEN_KEY) === "string");
@@ -1142,18 +1142,18 @@ Deno.test({
       assertEquals(result.errors, undefined);
       const payload = (result.data as {
         regenerateInvitations: {
-          regeneratedAt: Date | string;
+          regenerated: Date | string;
           status: {
-            lastRegeneratedAt: Date | string | null;
+            lastRegenerated: Date | string | null;
           };
         };
       }).regenerateInvitations;
-      const regenIso = payload.regeneratedAt instanceof Date
-        ? payload.regeneratedAt.toISOString()
-        : payload.regeneratedAt;
-      const lastIso = payload.status.lastRegeneratedAt instanceof Date
-        ? payload.status.lastRegeneratedAt.toISOString()
-        : payload.status.lastRegeneratedAt;
+      const regenIso = payload.regenerated instanceof Date
+        ? payload.regenerated.toISOString()
+        : payload.regenerated;
+      const lastIso = payload.status.lastRegenerated instanceof Date
+        ? payload.status.lastRegenerated.toISOString()
+        : payload.status.lastRegenerated;
       assertEquals(regenIso, lastIso);
     });
   },

@@ -643,7 +643,7 @@ A snapshot of the invitation-regeneration state used by the admin UI to preview 
 """
 type InvitationRegenerationStatus {
   """
-  The earliest `published` timestamp a post must have to count an account as eligible.  Equals `lastRegeneratedAt` once a regeneration has been recorded; otherwise defaults to one week before now.
+  The earliest `published` timestamp a post must have to count an account as eligible.  Equals `lastRegenerated` once a regeneration has been recorded; otherwise defaults to one week before now.
   """
   cutoffDate: DateTime!
 
@@ -653,7 +653,7 @@ type InvitationRegenerationStatus {
   """
   When the regeneration was last triggered, or null if it has never been run.
   """
-  lastRegeneratedAt: DateTime
+  lastRegenerated: DateTime
 
   """
   Number of accounts that would receive an invitation if a regeneration were triggered now (ceil(eligible / 3)).
@@ -1435,7 +1435,7 @@ type RegenerateInvitationsPayload {
   accountsAffected: Int!
 
   """When the regeneration ran."""
-  regeneratedAt: DateTime!
+  regenerated: DateTime!
 
   """The updated regeneration status reflecting the just-recorded run."""
   status: InvitationRegenerationStatus!
@@ -1656,7 +1656,7 @@ input StartMediumUploadInput {
 
 type StartMediumUploadPayload {
   clientMutationId: ID
-  expiresAt: DateTime!
+  expires: DateTime!
   headers: [MediumUploadHeader!]!
   method: String!
   uploadId: UUID!
