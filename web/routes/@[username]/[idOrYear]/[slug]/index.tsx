@@ -9,7 +9,11 @@ import {
   updateArticle,
 } from "@hackerspub/models/article";
 import { preprocessContentHtml } from "@hackerspub/models/html";
-import { renderMarkup, type Toc } from "@hackerspub/models/markup";
+import {
+  getMissingArticleMediumLabel,
+  renderMarkup,
+  type Toc,
+} from "@hackerspub/models/markup";
 import { createNote } from "@hackerspub/models/note";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type {
@@ -141,6 +145,7 @@ export async function handleArticle(
       docId: article.id,
       kv,
       mediumUrls: await getArticleSourceMediumUrls(db, disk, article.id),
+      missingMediumLabel: getMissingArticleMediumLabel(content.language),
       refresh: ctx.url.searchParams.has("refresh") &&
         ctx.state.account?.moderator,
     },

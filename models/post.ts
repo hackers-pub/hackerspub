@@ -48,7 +48,7 @@ import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
 import type { Database, RelationsFilter } from "./db.ts";
 import { extractExternalLinks } from "./html.ts";
-import { renderMarkup } from "./markup.ts";
+import { getMissingArticleMediumLabel, renderMarkup } from "./markup.ts";
 import { persistPostMedium } from "./medium.ts";
 import {
   createShareNotification,
@@ -188,6 +188,7 @@ export async function syncPostFromArticleSource(
     docId: articleSource.id,
     kv,
     mediumUrls: await getArticleSourceMediumUrls(db, disk, articleSource.id),
+    missingMediumLabel: getMissingArticleMediumLabel(content.language),
   });
   const url =
     `${fedCtx.origin}/@${articleSource.account.username}/${articleSource.publishedYear}/${

@@ -23,7 +23,10 @@ import {
 import { isReactionEmoji, renderCustomEmojis } from "@hackerspub/models/emoji";
 import { addExternalLinkTargets, stripHtml } from "@hackerspub/models/html";
 import { negotiateLocale, normalizeLocale } from "@hackerspub/models/i18n";
-import { renderMarkup } from "@hackerspub/models/markup";
+import {
+  getMissingArticleMediumLabel,
+  renderMarkup,
+} from "@hackerspub/models/markup";
 import {
   createMediumFromBytes,
   createMediumFromUrl,
@@ -409,6 +412,9 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
             ctx.disk,
             draft.id,
           ),
+          missingMediumLabel: getMissingArticleMediumLabel(
+            ctx.account?.locales?.[0],
+          ),
         });
         return addExternalLinkTargets(
           rendered.html,
@@ -449,6 +455,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       select: {
         columns: {
           content: true,
+          language: true,
         },
         with: {
           source: {
@@ -470,6 +477,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
             ctx.disk,
             content.sourceId,
           ),
+          missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
         return addExternalLinkTargets(
           renderCustomEmojis(html.html, content.source.post.emojis),
@@ -491,7 +499,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       type: "JSON",
       description: "Table of contents for the article content.",
       select: {
-        columns: { content: true, sourceId: true },
+        columns: { content: true, language: true, sourceId: true },
       },
       async resolve(content, _, ctx) {
         const rendered = await renderMarkup(ctx.fedCtx, content.content, {
@@ -501,6 +509,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
             ctx.disk,
             content.sourceId,
           ),
+          missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
         return rendered.toc;
       },
@@ -555,6 +564,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
             ctx.disk,
             content.sourceId,
           ),
+          missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
         const avatarUrl = await getAvatarUrl(ctx.disk, account);
         const key = await putArticleOgImage(ctx.disk, content.ogImageKey, {

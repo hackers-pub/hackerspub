@@ -7,7 +7,11 @@ import {
   isReactionEmoji,
   type ReactionEmoji,
 } from "@hackerspub/models/emoji";
-import { renderMarkup } from "@hackerspub/models/markup";
+import {
+  getMissingArticleMediumLabel,
+  renderMarkup,
+  resolveMediumUrls,
+} from "@hackerspub/models/markup";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type {
   Account,
@@ -55,18 +59,21 @@ export async function getArticle(
   );
   const contents = await Promise.all(
     articleSource.contents.map(async (content) => {
+      const missingMediumLabel = getMissingArticleMediumLabel(
+        content.language,
+      );
       const rendered = await renderMarkup(ctx, content.content, {
         docId: articleSource.id,
         kv: ctx.data.kv,
         mediumUrls,
+        missingMediumLabel,
       });
       return {
         ...content,
         ...rendered,
-        content: content.content.replaceAll(
-          /hp-medium:([A-Za-z0-9._:/-]+)/g,
-          (matched, key: string) => mediumUrls[key] ?? matched,
-        ),
+        content: resolveMediumUrls(content.content, mediumUrls, {
+          missingMediumLabel,
+        }),
       };
     }),
   );

@@ -3,7 +3,10 @@ import {
   getArticleSource,
   getOriginalArticleContent,
 } from "@hackerspub/models/article";
-import { renderMarkup } from "@hackerspub/models/markup";
+import {
+  getMissingArticleMediumLabel,
+  renderMarkup,
+} from "@hackerspub/models/markup";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import {
   type ArticleContent,
@@ -47,7 +50,10 @@ export const handler = define.handlers({
     const rendered = await renderMarkup(
       ctx.state.fedCtx,
       content.content,
-      { kv },
+      {
+        kv,
+        missingMediumLabel: getMissingArticleMediumLabel(content.language),
+      },
     );
     const ogImageKey = await drawOgImage(
       disk,
