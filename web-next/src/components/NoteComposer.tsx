@@ -164,6 +164,9 @@ export function NoteComposer(props: NoteComposerProps) {
   );
   const [mediaItems, setMediaItems] = createSignal<MediaItem[]>([]);
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
+  // Counter tracks nested dragenter/dragleave pairs so moving into a child
+  // element (e.g. the textarea) doesn't prematurely clear isDraggingOver.
+  let dragCounter = 0;
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileInputRef: HTMLInputElement | undefined;
 
@@ -530,19 +533,38 @@ export function NoteComposer(props: NoteComposerProps) {
     <form
       onSubmit={handleSubmit}
       class={props.class}
+      onDragEnter={(e) => {
+        // dataTransfer.types is a DOMStringList in Firefox — use Array.from.
+        if (
+          e.dataTransfer &&
+          Array.from(e.dataTransfer.types).includes("Files")
+        ) {
+          dragCounter++;
+          if (mediaItems().length < MAX_MEDIA) setIsDraggingOver(true);
+        }
+      }}
       onDragOver={(e) => {
         if (
-          e.dataTransfer?.types.includes("Files") &&
+          e.dataTransfer &&
+          Array.from(e.dataTransfer.types).includes("Files") &&
           mediaItems().length < MAX_MEDIA
         ) {
           e.preventDefault();
-          setIsDraggingOver(true);
         }
       }}
-      onDragLeave={() => setIsDraggingOver(false)}
+      onDragLeave={() => {
+        dragCounter = Math.max(0, dragCounter - 1);
+        if (dragCounter === 0) setIsDraggingOver(false);
+      }}
       onDrop={(e) => {
+        dragCounter = 0;
         setIsDraggingOver(false);
-        if (!e.dataTransfer?.types.includes("Files")) return;
+        if (
+          !e.dataTransfer ||
+          !Array.from(e.dataTransfer.types).includes("Files")
+        ) {
+          return;
+        }
         e.preventDefault();
         const files = e.dataTransfer.files;
         if (files) addFiles(files);
