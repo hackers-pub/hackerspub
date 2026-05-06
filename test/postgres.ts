@@ -316,6 +316,16 @@ export function createTestDisk(): ContextData["disk"] {
       if (bytes == null) throw new Error(`No test disk file for key: ${key}`);
       return Promise.resolve(bytes);
     },
+    getMetaData(key: string) {
+      const bytes = files.get(key);
+      if (bytes == null) throw new Error(`No test disk file for key: ${key}`);
+      return Promise.resolve({
+        contentLength: bytes.byteLength,
+        contentType: undefined,
+        etag: `"${key}"`,
+        lastModified: new Date("2026-04-15T00:00:00.000Z"),
+      });
+    },
     put(key: string, contents: Uint8Array) {
       files.set(key, contents);
       return Promise.resolve(undefined);

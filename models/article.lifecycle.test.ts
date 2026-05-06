@@ -117,6 +117,36 @@ test("createArticle() copies source media before rendering the post", async () =
   });
 });
 
+test("createArticle() rejects content with missing source media", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "missingarticlemediaauthor",
+      name: "Missing Article Media Author",
+      email: "missingarticlemediaauthor@example.com",
+    });
+
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "missing-article-media",
+      tags: [],
+      allowLlmTranslation: false,
+      title: "Article with missing media",
+      content: "![Hero](hp-medium:missing)",
+      language: "en",
+      media: [],
+    });
+
+    assert.equal(article, undefined);
+    const source = await tx.query.articleSourceTable.findFirst({
+      where: { slug: "missing-article-media" },
+    });
+    assert.equal(source, undefined);
+  });
+});
+
 test("updateArticle() rewrites the persisted article post", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);

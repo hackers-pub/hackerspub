@@ -46,6 +46,7 @@ export const SUPPORTED_MEDIUM_IMAGE_TYPES = [
 
 export const MAX_MEDIUM_IMAGE_SIZE = 10 * 1024 * 1024;
 export const MAX_STREAMING_MEDIUM_IMAGE_SIZE = 50 * 1024 * 1024;
+const REMOTE_MEDIUM_FETCH_TIMEOUT_MS = 30_000;
 
 const localMediumType: MediumType = "image/webp";
 
@@ -83,15 +84,26 @@ async function fetchMediumUrl(
   let current = url;
   for (let redirects = 0; redirects < 6; redirects++) {
     assertSafeRemoteMediumUrl(current);
-    const response = await fetch(current, {
-      headers: {
-        "User-Agent": getUserAgent({
-          software: `HackersPub/${metadata.version}`,
-          url: userAgentUrl ?? new URL("https://hackers.pub/"),
-        }),
-      },
-      redirect: "manual",
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      REMOTE_MEDIUM_FETCH_TIMEOUT_MS,
+    );
+    let response: Response;
+    try {
+      response = await fetch(current, {
+        headers: {
+          "User-Agent": getUserAgent({
+            software: `HackersPub/${metadata.version}`,
+            url: userAgentUrl ?? new URL("https://hackers.pub/"),
+          }),
+        },
+        redirect: "manual",
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
     if (![301, 302, 303, 307, 308].includes(response.status)) {
       return response;
     }

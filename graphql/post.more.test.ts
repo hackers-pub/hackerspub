@@ -261,6 +261,17 @@ const createNoteMutation = parse(`
   }
 `);
 
+const createNoteWithErrorMutation = parse(`
+  mutation CreateNoteWithError($input: CreateNoteInput!) {
+    createNote(input: $input) {
+      __typename
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
 const deletePostMutation = parse(`
   mutation DeletePost($id: ID!) {
     deletePost(input: { id: $id }) {
@@ -548,6 +559,43 @@ test("finishMediumUpload cleans up invalid uploaded bytes", async () => {
       4,
     );
     await disk.put(upload.key, new Uint8Array([1, 2, 3, 4]));
+
+    const result = await execute({
+      schema,
+      document: finishMediumUploadMutation,
+      variableValues: { input: { uploadId: upload.id } },
+      contextValue: makeUserContext(tx, account.account, { kv, disk }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      finishMediumUpload: {
+        __typename: "InvalidInputError",
+        inputPath: "uploadId",
+      },
+    });
+    assert.throws(() => disk.getBytes(upload.key));
+    assert.equal(await getMediumUploadSession(kv, upload.id), undefined);
+  });
+});
+
+test("finishMediumUpload rejects unexpected uploaded size before reading", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "mismatcheduploadgraphql",
+      name: "Mismatched Upload GraphQL",
+      email: "mismatcheduploadgraphql@example.com",
+    });
+    const { kv } = createTestKv();
+    const disk = createTestDisk();
+    const upload = await createMediumUploadSession(
+      kv,
+      account.account.id,
+      "image/png",
+      4,
+    );
+    await disk.put(upload.key, new Uint8Array([1, 2, 3, 4, 5]));
 
     const result = await execute({
       schema,
@@ -1140,6 +1188,42 @@ test("createNote creates a note for the signed-in account", async () => {
       },
     });
     assert.equal(createdSources.length, 1);
+  });
+});
+
+test("createNote validates attached media inside the transaction", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "createnotemissingmedia",
+      name: "Create Note Missing Media",
+      email: "createnotemissingmedia@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "note with missing media",
+          language: "en",
+          visibility: "PUBLIC",
+          media: [{
+            mediumId: crypto.randomUUID(),
+            alt: "Missing image",
+          }],
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      createNote: {
+        __typename: "InvalidInputError",
+        inputPath: "media.0.mediumId",
+      },
+    });
   });
 });
 

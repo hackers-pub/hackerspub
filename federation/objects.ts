@@ -274,7 +274,7 @@ builder
       const note = await ctx.data.db.query.noteSourceTable.findFirst({
         with: {
           account: true,
-          media: { with: { medium: true } },
+          media: { with: { medium: true }, orderBy: { index: "asc" } },
           post: { with: { replyTarget: true, quotedPost: true } },
         },
         where: { id: values.id },

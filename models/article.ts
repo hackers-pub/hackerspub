@@ -295,6 +295,12 @@ export async function createArticle(
     [...source.content.matchAll(/hp-medium:([A-Za-z0-9._:/-]+)/g)]
       .map((match) => match[1]),
   );
+  const sourceMediaByKey = new Map(
+    (sourceMedia ?? []).map((medium) => [medium.key, medium]),
+  );
+  for (const key of referencedMediumKeys) {
+    if (!sourceMediaByKey.has(key)) return undefined;
+  }
   const articleSource = await createArticleSource(
     db,
     fedCtx.data.models,

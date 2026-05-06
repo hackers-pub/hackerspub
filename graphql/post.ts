@@ -813,15 +813,6 @@ builder.relayMutationField(
         quotedPostId,
       } = args.input;
       const attachedMedia = media ?? [];
-      for (let i = 0; i < attachedMedia.length; i++) {
-        if (attachedMedia[i].alt.trim() === "") {
-          throw new InvalidInputError(`media.${i}.alt`);
-        }
-        const medium = await ctx.db.query.mediumTable.findFirst({
-          where: { id: attachedMedia[i].mediumId },
-        });
-        if (medium == null) throw new InvalidInputError(`media.${i}.mediumId`);
-      }
       let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
       if (replyTargetId != null) {
         replyTarget = await ctx.db.query.postTable.findFirst({
@@ -843,6 +834,20 @@ builder.relayMutationField(
         }
       }
       return await withTransaction(ctx.fedCtx, async (context) => {
+        const noteMedia = await Promise.all(
+          attachedMedia.map(async (medium, i) => {
+            const alt = medium.alt.trim();
+            if (alt === "") throw new InvalidInputError(`media.${i}.alt`);
+            const storedMedium = await context.data.db.query.mediumTable
+              .findFirst({
+                where: { id: medium.mediumId },
+              });
+            if (storedMedium == null) {
+              throw new InvalidInputError(`media.${i}.mediumId`);
+            }
+            return { mediumId: medium.mediumId, alt };
+          }),
+        );
         const note = await createNote(
           context,
           {
@@ -863,10 +868,7 @@ builder.relayMutationField(
               ),
             content,
             language: language.baseName,
-            media: attachedMedia.map((medium) => ({
-              mediumId: medium.mediumId,
-              alt: medium.alt.trim(),
-            })),
+            media: noteMedia,
           },
           { replyTarget, quotedPost },
         );
@@ -2151,6 +2153,7 @@ builder.relayMutationField(
           await ctx.disk.getSignedUploadUrl(upload.key, {
             contentType: upload.contentType,
             contentSize: upload.contentLength,
+            contentLength: upload.contentLength,
             expiresIn: "30mins",
           }),
         );
@@ -2207,10 +2210,25 @@ builder.relayMutationField(
         throw new InvalidInputError("uploadId");
       }
       try {
+        let metadata: { contentLength: number };
+        try {
+          metadata = await ctx.disk.getMetaData(upload.key);
+        } catch {
+          throw new InvalidInputError("uploadId");
+        }
+        if (
+          metadata.contentLength !== upload.contentLength ||
+          metadata.contentLength > MAX_STREAMING_MEDIUM_IMAGE_SIZE
+        ) {
+          throw new InvalidInputError("uploadId");
+        }
         let bytes: Uint8Array;
         try {
           bytes = await ctx.disk.getBytes(upload.key);
         } catch {
+          throw new InvalidInputError("uploadId");
+        }
+        if (bytes.byteLength !== upload.contentLength) {
           throw new InvalidInputError("uploadId");
         }
         const medium = await createMediumFromBytes(ctx.db, ctx.disk, bytes, {
