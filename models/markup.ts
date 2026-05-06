@@ -37,12 +37,23 @@ import { codeToHtml } from "shiki";
 import { persistActor, persistActorsByHandles } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import { sanitizeExcerptHtml, sanitizeHtml, stripHtml } from "./html.ts";
+import { negotiateLocale } from "./i18n.ts";
 import { type Actor, actorTable } from "./schema.ts";
 
 const logger = getLogger(["hackerspub", "models", "markup"]);
 
 const KV_NAMESPACE = "markup";
 const KV_CACHE_VERSION = "2025-06-08";
+
+const MISSING_ARTICLE_MEDIUM_LABELS = {
+  en: "This medium has not been attached to this article.",
+  ja: "この記事に添付されていないメディアです。",
+  ko: "이 게시글에 첨부된 적 없는 미디어입니다.",
+  "zh-CN": "此媒体未附加到这篇文章。",
+  "zh-TW": "此媒體未附加到這篇文章。",
+} as const;
+
+const DEFAULT_MISSING_ARTICLE_MEDIUM_LABEL = MISSING_ARTICLE_MEDIUM_LABELS.en;
 
 let tocTree: InternalToc = { l: 0, n: "", c: [] };
 
@@ -170,6 +181,16 @@ export interface RenderMarkupOptions {
   kv?: Keyv | null;
   docId?: string | null;
   refresh?: boolean;
+  mediumUrls?: Record<string, string>;
+  missingMediumLabel?: string;
+}
+
+function canonicalizeMediumUrls(mediumUrls: Record<string, string>): string {
+  return JSON.stringify(Object.fromEntries(
+    Object.entries(mediumUrls).sort(([left], [right]) =>
+      left < right ? -1 : left > right ? 1 : 0
+    ),
+  ));
 }
 
 export async function renderMarkup(
@@ -177,12 +198,17 @@ export async function renderMarkup(
   markup: string,
   options: RenderMarkupOptions = {},
 ): Promise<RenderedMarkup> {
+  const mediumUrls = options.mediumUrls ?? {};
+  const missingMediumLabel = options.missingMediumLabel ??
+    DEFAULT_MISSING_ARTICLE_MEDIUM_LABEL;
   let cacheKey: string | undefined;
   if (options.kv != null) {
     const digest = await crypto.subtle.digest(
       "SHA-256",
       new TextEncoder().encode(
-        `${JSON.stringify(options.docId ?? null)}\n${markup}`,
+        `${JSON.stringify(options.docId ?? null)}\n${
+          canonicalizeMediumUrls(mediumUrls)
+        }\n${JSON.stringify(missingMediumLabel)}\n${markup}`,
       ),
     );
     cacheKey = `${KV_NAMESPACE}/${KV_CACHE_VERSION}/markup/${
@@ -225,9 +251,12 @@ export async function renderMarkup(
         ' "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">',
       "",
     );
-  const html = sanitizeHtml(rawHtml);
-  const excerptHtml = sanitizeExcerptHtml(rawHtml);
-  const text = stripHtml(rawHtml);
+  const resolvedHtml = resolveMediumUrlsInHtml(rawHtml, mediumUrls, {
+    missingMediumLabel,
+  });
+  const html = sanitizeHtml(resolvedHtml);
+  const excerptHtml = sanitizeExcerptHtml(resolvedHtml);
+  const text = stripHtml(resolvedHtml);
   const toc = toToc(tocTree, options.docId);
   const rendered: RenderedMarkup = {
     html,
@@ -242,6 +271,126 @@ export async function renderMarkup(
     await options.kv.set(cacheKey, rendered);
   }
   return rendered;
+}
+
+export function getMissingArticleMediumLabel(
+  locale?: Intl.Locale | string | null,
+): string {
+  if (locale == null) return DEFAULT_MISSING_ARTICLE_MEDIUM_LABEL;
+  try {
+    const matched = negotiateLocale(
+      locale,
+      Object.keys(MISSING_ARTICLE_MEDIUM_LABELS),
+    )?.baseName as keyof typeof MISSING_ARTICLE_MEDIUM_LABELS | undefined;
+    return matched == null
+      ? DEFAULT_MISSING_ARTICLE_MEDIUM_LABEL
+      : MISSING_ARTICLE_MEDIUM_LABELS[matched];
+  } catch {
+    return DEFAULT_MISSING_ARTICLE_MEDIUM_LABEL;
+  }
+}
+
+export function resolveMediumUrls(
+  markup: string,
+  mediumUrls: Record<string, string>,
+  options: { missingMediumLabel?: string } = {},
+): string {
+  const missingMediumUrl = createMissingMediumDataUrl(
+    options.missingMediumLabel ?? DEFAULT_MISSING_ARTICLE_MEDIUM_LABEL,
+  );
+  return markup.replaceAll(
+    /hp-medium:([A-Za-z0-9._:/-]+)/g,
+    (_matched, key: string) => mediumUrls[key] ?? missingMediumUrl,
+  );
+}
+
+function resolveMediumUrlsInHtml(
+  html: string,
+  mediumUrls: Record<string, string>,
+  options: { missingMediumLabel: string },
+): string {
+  const missingMediumUrl = createMissingMediumDataUrl(
+    options.missingMediumLabel,
+  );
+  const $ = load(html, null, false);
+  // Medium currently only supports images. If audio or video uploads become
+  // supported, extend this list to media-specific attributes such as
+  // audio[src], video[src], and video[poster] with type-appropriate fallbacks.
+  $("a[href]").each((_, el) => {
+    const $el = $(el);
+    const href = $el.attr("href");
+    if (href == null) return;
+    $el.attr("href", resolveMediumUrl(href, mediumUrls, missingMediumUrl));
+  });
+  $("img[src], source[src]").each((_, el) => {
+    const $el = $(el);
+    const src = $el.attr("src");
+    if (src == null) return;
+    $el.attr("src", resolveMediumUrl(src, mediumUrls, missingMediumUrl));
+  });
+  $("img[srcset], source[srcset]").each((_, el) => {
+    const $el = $(el);
+    const srcset = $el.attr("srcset");
+    if (srcset == null) return;
+    $el.attr(
+      "srcset",
+      resolveMediumSrcset(srcset, mediumUrls, missingMediumUrl),
+    );
+  });
+  return $.root().html() ?? "";
+}
+
+function resolveMediumUrl(
+  url: string,
+  mediumUrls: Record<string, string>,
+  missingMediumUrl: string,
+): string {
+  const matched = /^hp-medium:([A-Za-z0-9._:/-]+)$/.exec(url);
+  if (matched == null) return url;
+  return mediumUrls[matched[1]] ?? missingMediumUrl;
+}
+
+function resolveMediumSrcset(
+  srcset: string,
+  mediumUrls: Record<string, string>,
+  missingMediumUrl: string,
+): string {
+  return srcset.split(",").map((candidate) => {
+    const trimmed = candidate.trim();
+    if (trimmed === "") return candidate;
+    const matched = /^(\S+)(.*)$/.exec(trimmed);
+    if (matched == null) return candidate;
+    return `${resolveMediumUrl(matched[1], mediumUrls, missingMediumUrl)}${
+      matched[2]
+    }`;
+  }).join(", ");
+}
+
+function createMissingMediumDataUrl(label: string): string {
+  const text = escapeSvgText(label);
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">${text}</title>
+  <desc id="desc">${text}</desc>
+  <rect width="1200" height="675" rx="16" fill="#fafafa"/>
+  <rect x="1" y="1" width="1198" height="673" rx="15" fill="none" stroke="#d4d4d4" stroke-width="2"/>
+  <g fill="none" stroke="#525252" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="455" y="190" width="290" height="210" rx="22"/>
+    <circle cx="535" cy="265" r="28"/>
+    <path d="M480 365l72-72 58 58 38-38 72 72"/>
+    <path d="M430 440l340-340"/>
+  </g>
+  <text x="600" y="500" fill="#171717" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="36" font-weight="600" text-anchor="middle">${text}</text>
+</svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function escapeSvgText(text: string): string {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 function slugifyTitle(title: string, docId?: string | null): string {

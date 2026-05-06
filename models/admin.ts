@@ -9,8 +9,10 @@ import {
   inArray,
   isNotNull,
   lte,
+  type SQL,
   sql,
 } from "drizzle-orm";
+import type { Disk } from "flydrive";
 import type Keyv from "keyv";
 
 const logger = getLogger(["hackerspub", "models", "admin"]);
@@ -19,6 +21,12 @@ import {
   accountTable,
   actorTable,
   adminStateTable,
+  articleContentTable,
+  articleDraftMediumTable,
+  articleDraftTable,
+  articleSourceMediumTable,
+  mediumTable,
+  noteSourceMediumTable,
   postTable,
 } from "./schema.ts";
 import { type Uuid, validateUuid } from "./uuid.ts";
@@ -35,6 +43,10 @@ const INVITATIONS_REGEN_LOCK_KEY = 0x69_6e_76_72;
 
 export const DEFAULT_REGEN_CUTOFF_DURATION: Temporal.Duration = Temporal
   .Duration.from({ days: 7 });
+
+export const DEFAULT_ORPHAN_MEDIA_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
+const ORPHAN_MEDIA_DELETE_BATCH_SIZE = 1000;
+const ORPHAN_MEDIA_STORAGE_DELETE_CONCURRENCY = 8;
 
 function isTransaction(db: Database): db is Transaction {
   return "rollback" in db;
@@ -56,6 +68,22 @@ export interface InvitationRegenerationStatus {
 export interface RegenerateOptions {
   now?: Date;
   defaultCutoffDuration?: Temporal.Duration;
+}
+
+export interface OrphanMediaStatus {
+  cutoffDate: Date;
+  orphanMediaCount: number;
+}
+
+export interface OrphanMediaOptions {
+  now?: Date;
+  gracePeriodMs?: number;
+}
+
+export interface DeleteOrphanMediaResult {
+  cutoffDate: Date;
+  deletedCount: number;
+  failedDiskDeletes: number;
 }
 
 export async function getInvitationsLastRegen(
@@ -228,4 +256,142 @@ export async function regenerateInvitations(
     }
   }
   return result;
+}
+
+function resolveOrphanMediaCutoff(options: OrphanMediaOptions): Date {
+  const now = options.now ?? new Date();
+  const gracePeriodMs = options.gracePeriodMs ??
+    DEFAULT_ORPHAN_MEDIA_GRACE_PERIOD_MS;
+  return new Date(now.getTime() - gracePeriodMs);
+}
+
+function orphanMediaWhere(cutoffDate: Date): SQL {
+  const cutoffDateSql = sql`${cutoffDate.toISOString()}::timestamptz`;
+  const mediumKeyPattern = sql`replace(${mediumTable.key}, '.', '[.]')`;
+  const mediumReferenceBoundary = sql`'([^A-Za-z0-9._:/-]|$)'`;
+  const hpMediumReferencePattern =
+    sql`'hp-medium:' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
+  const directMediumReferencePattern =
+    sql`'/media/' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
+  const keyPathMediumReferencePattern =
+    sql`'/' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
+  return sql`
+    ${mediumTable.created} < ${cutoffDateSql} AND
+    NOT EXISTS (
+      SELECT 1 FROM ${accountTable}
+      WHERE ${accountTable.avatarMediumId} = ${mediumTable.id}
+    ) AND
+    NOT EXISTS (
+      SELECT 1 FROM ${noteSourceMediumTable}
+      WHERE ${noteSourceMediumTable.mediumId} = ${mediumTable.id}
+    ) AND
+    NOT EXISTS (
+      SELECT 1 FROM ${articleDraftMediumTable}
+      WHERE ${articleDraftMediumTable.mediumId} = ${mediumTable.id}
+    ) AND
+    NOT EXISTS (
+      SELECT 1 FROM ${articleSourceMediumTable}
+      WHERE ${articleSourceMediumTable.mediumId} = ${mediumTable.id}
+    ) AND
+    NOT EXISTS (
+      SELECT 1 FROM ${articleDraftTable}
+      WHERE
+        ${articleDraftTable.content} ~ (${hpMediumReferencePattern}) OR
+        ${articleDraftTable.content} ~ (${directMediumReferencePattern}) OR
+        ${articleDraftTable.content} ~ (${keyPathMediumReferencePattern})
+    ) AND
+    NOT EXISTS (
+      SELECT 1 FROM ${articleContentTable}
+      WHERE
+        ${articleContentTable.content} ~ (${hpMediumReferencePattern}) OR
+        ${articleContentTable.content} ~ (${directMediumReferencePattern}) OR
+        ${articleContentTable.content} ~ (${keyPathMediumReferencePattern})
+    )
+  `;
+}
+
+async function mapWithConcurrency<T, U>(
+  items: readonly T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<U>,
+): Promise<U[]> {
+  const results = new Array<U>(items.length);
+  let nextIndex = 0;
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    async () => {
+      while (nextIndex < items.length) {
+        const index = nextIndex++;
+        results[index] = await mapper(items[index]);
+      }
+    },
+  );
+  await Promise.all(workers);
+  return results;
+}
+
+export async function getOrphanMediaStatus(
+  db: Database,
+  options: OrphanMediaOptions = {},
+): Promise<OrphanMediaStatus> {
+  const cutoffDate = resolveOrphanMediaCutoff(options);
+  const [row] = await db
+    .select({ count: count() })
+    .from(mediumTable)
+    .where(orphanMediaWhere(cutoffDate));
+  return {
+    cutoffDate,
+    orphanMediaCount: Number(row?.count ?? 0),
+  };
+}
+
+export async function deleteOrphanMedia(
+  db: Database,
+  disk: Disk,
+  options: OrphanMediaOptions = {},
+): Promise<DeleteOrphanMediaResult> {
+  const cutoffDate = resolveOrphanMediaCutoff(options);
+  const runDeletion = async (tx: Database | Transaction) => {
+    const orphanMedia = await tx
+      .select({ id: mediumTable.id, key: mediumTable.key })
+      .from(mediumTable)
+      .where(orphanMediaWhere(cutoffDate))
+      .orderBy(mediumTable.created)
+      .limit(ORPHAN_MEDIA_DELETE_BATCH_SIZE)
+      .for("update");
+    const candidateIds = orphanMedia.map((medium) => medium.id);
+    return candidateIds.length < 1 ? [] : await tx
+      .delete(mediumTable)
+      .where(and(
+        inArray(mediumTable.id, candidateIds),
+        orphanMediaWhere(cutoffDate),
+      ))
+      .returning({ key: mediumTable.key });
+  };
+  const deleted = isTransaction(db)
+    ? await runDeletion(db)
+    : await db.transaction(runDeletion);
+
+  const deleteResults = await mapWithConcurrency(
+    deleted,
+    ORPHAN_MEDIA_STORAGE_DELETE_CONCURRENCY,
+    async ({ key }) => {
+      try {
+        await disk.delete(key);
+        return { key, deleted: true };
+      } catch (error) {
+        logger.warn(
+          "Failed to delete orphan medium object {key}: {error}",
+          { key, error },
+        );
+        return { key, deleted: false };
+      }
+    },
+  );
+  return {
+    cutoffDate,
+    deletedCount: deleted.length,
+    failedDiskDeletes: deleteResults.filter((result) => !result.deleted)
+      .length,
+  };
 }

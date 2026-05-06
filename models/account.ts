@@ -16,6 +16,11 @@ import sharp from "sharp";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import {
+  createMediumFromBlob,
+  createMediumFromBytes,
+  createMediumFromUrl,
+} from "./medium.ts";
+import {
   type Account,
   type AccountEmail,
   type AccountLink,
@@ -23,6 +28,7 @@ import {
   accountLinkTable,
   accountTable,
   type Actor,
+  type Medium,
   type NewAccount,
 } from "./schema.ts";
 import { compactUrl } from "./url.ts";
@@ -32,9 +38,14 @@ const logger = getLogger(["hackerspub", "models", "account"]);
 
 export async function getAvatarUrl(
   disk: Disk,
-  account: Account & { emails: AccountEmail[] },
+  account: Account & {
+    emails: AccountEmail[];
+    avatarMedium?: Medium | null;
+  },
 ): Promise<string> {
-  if (account.avatarKey != null) return await disk.getUrl(account.avatarKey);
+  if (account.avatarMedium != null) {
+    return await disk.getUrl(account.avatarMedium.key);
+  }
   const emails = account.emails
     .filter((e) => e.verified != null);
   emails.sort((a, b) => a.public ? 1 : b.public ? -1 : 0);
@@ -52,12 +63,61 @@ export async function getAvatarUrl(
   return url == "mp" ? "https://gravatar.com/avatar/?d=mp&s=128" : url;
 }
 
+async function preprocessAvatarMedium(
+  bytes: Uint8Array,
+): Promise<{ bytes: Uint8Array; contentType: string }> {
+  const { buffer, format } = await transformAvatar(bytes);
+  return {
+    bytes: buffer,
+    contentType: `image/${format}`,
+  };
+}
+
+export async function createAvatarMediumFromBlob(
+  db: Database,
+  disk: Disk,
+  blob: Blob,
+  options: { maxSize?: number } = {},
+): Promise<Medium | undefined> {
+  return await createMediumFromBlob(db, disk, blob, {
+    ...options,
+    preprocess: preprocessAvatarMedium,
+  });
+}
+
+export async function createAvatarMediumFromUrl(
+  db: Database,
+  disk: Disk,
+  url: URL,
+  options: { maxSize?: number; userAgentUrl?: URL } = {},
+): Promise<Medium | undefined> {
+  return await createMediumFromUrl(db, disk, url, {
+    ...options,
+    preprocess: preprocessAvatarMedium,
+  });
+}
+
+export async function createAvatarMediumFromMedium(
+  db: Database,
+  disk: Disk,
+  medium: Medium,
+  options: { maxSize?: number } = {},
+): Promise<Medium | undefined> {
+  const bytes = await disk.getBytes(medium.key);
+  return await createMediumFromBytes(db, disk, bytes, {
+    ...options,
+    contentType: medium.type,
+    preprocess: preprocessAvatarMedium,
+  });
+}
+
 export async function getAccountByUsername(
   db: Database,
   username: string,
 ): Promise<
   | Account & {
     actor: Actor & { successor: Actor | null };
+    avatarMedium: Medium | null;
     emails: AccountEmail[];
     links: AccountLink[];
   }
@@ -66,6 +126,7 @@ export async function getAccountByUsername(
   const account = await db.query.accountTable.findFirst({
     with: {
       actor: { with: { successor: true } },
+      avatarMedium: true,
       emails: true,
       links: { orderBy: { index: "asc" } },
     },
@@ -75,6 +136,7 @@ export async function getAccountByUsername(
   return await db.query.accountTable.findFirst({
     with: {
       actor: { with: { successor: true } },
+      avatarMedium: true,
       emails: true,
       links: { orderBy: { index: "asc" } },
     },
@@ -565,5 +627,5 @@ export async function transformAvatar(
     format = "jpeg";
   }
   const buffer = await image.toBuffer();
-  return { buffer: new Uint8Array(buffer.buffer), format };
+  return { buffer: new Uint8Array(buffer), format };
 }

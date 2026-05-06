@@ -1,7 +1,7 @@
 import { page } from "@fresh/core";
 import {
+  createAvatarMediumFromBlob,
   getAvatarUrl,
-  transformAvatar,
   updateAccount,
 } from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
@@ -37,7 +37,11 @@ export const handler = define.handlers({
     if (ctx.state.session == null) return ctx.next();
     const account = await db.query.accountTable.findFirst({
       where: { username: ctx.params.username },
-      with: { emails: true, links: { orderBy: { index: "asc" } } },
+      with: {
+        avatarMedium: true,
+        emails: true,
+        links: { orderBy: { index: "asc" } },
+      },
     });
     if (account?.id !== ctx.state.session.accountId) return ctx.next();
     ctx.state.title = ctx.state.t("settings.profile.title");
@@ -56,9 +60,15 @@ export const handler = define.handlers({
     const disk = drive.use();
     const account = await db.query.accountTable.findFirst({
       where: { username: ctx.params.username },
-      with: { emails: true, links: true },
+      with: { avatarMedium: true, emails: true, links: true },
     });
-    if (account == null) return ctx.next();
+    if (
+      account == null ||
+      ctx.state.session == null ||
+      account.id !== ctx.state.session.accountId
+    ) {
+      return ctx.next();
+    }
     const form = await ctx.req.formData();
     const avatar = form.get("avatar");
     const username = form.get("username")?.toString()?.trim()?.toLowerCase();
@@ -124,20 +134,26 @@ export const handler = define.handlers({
       bio,
       links,
     };
-    const promises: Promise<void>[] = [];
     if (avatar instanceof File) {
-      const disk = drive.use();
-      if (account.avatarKey != null) {
-        promises.push(disk.delete(account.avatarKey));
+      const medium = await createAvatarMediumFromBlob(db, disk, avatar, {
+        maxSize: MAX_AVATAR_SIZE,
+      });
+      if (medium == null) {
+        errors.avatar = t("settings.profile.avatarInvalid");
+        return page<ProfileSettingsPageProps>({
+          avatarUrl: await getAvatarUrl(disk, account),
+          usernameChanged: account.usernameChanged,
+          values: {
+            username,
+            name,
+            bio,
+            leftInvitations: account.leftInvitations,
+          },
+          links,
+          errors,
+        });
       }
-      const { buffer, format } = await transformAvatar(
-        await avatar.arrayBuffer(),
-      );
-      const key = `avatars/${crypto.randomUUID()}.${
-        format === "jpeg" ? "jpg" : format
-      }`;
-      promises.push(disk.put(key, buffer));
-      values.avatarKey = key;
+      values.avatarMediumId = medium.id;
     }
     const updatedAccount = await updateAccount(ctx.state.fedCtx, values);
     if (updatedAccount == null) {
@@ -147,15 +163,27 @@ export const handler = define.handlers({
     const emails = await db.query.accountEmailTable.findMany({
       where: { accountId: updatedAccount.id },
     });
-    await syncActorFromAccount(ctx.state.fedCtx, { ...updatedAccount, emails });
-    await Promise.all(promises);
+    const avatarMedium = updatedAccount.avatarMediumId == null
+      ? null
+      : await db.query.mediumTable.findFirst({
+        where: { id: updatedAccount.avatarMediumId },
+      }) ?? null;
+    await syncActorFromAccount(ctx.state.fedCtx, {
+      ...updatedAccount,
+      emails,
+      avatarMedium,
+    });
     if (account.username !== updatedAccount.username) {
       return Response.redirect(
         new URL(`/@${updatedAccount.username}/settings`, ctx.url),
       );
     }
     return page<ProfileSettingsPageProps>({
-      avatarUrl: await getAvatarUrl(disk, { ...updatedAccount, emails }),
+      avatarUrl: await getAvatarUrl(disk, {
+        ...updatedAccount,
+        emails,
+        avatarMedium,
+      }),
       usernameChanged: updatedAccount.usernameChanged,
       values: updatedAccount,
       links: updatedAccount.links,

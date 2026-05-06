@@ -21,13 +21,13 @@ test("getAvatarUrl() prefers stored avatars and falls back to gravatar defaults"
   };
 
   const stored = await getAvatarUrl(disk as never, {
-    avatarKey: "avatars/existing.webp",
+    avatarMedium: { key: "avatars/existing.webp" },
     emails: [],
   } as never);
   assert.equal(stored, "http://localhost/media/avatars/existing.webp");
 
   const fallback = await getAvatarUrl(disk as never, {
-    avatarKey: null,
+    avatarMedium: null,
     emails: [],
   } as never);
   assert.equal(fallback, "https://gravatar.com/avatar/?d=mp&s=128");

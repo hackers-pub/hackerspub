@@ -22,6 +22,7 @@ const config: CodegenConfig = {
           Locale: "Intl.Locale | string",
           Markdown: "string",
           MediaType: "string",
+          Sha256: "string",
           URL: "URL",
           URITemplate: "string",
           UUID: "`${string}-${string}-${string}-${string}-${string}`",

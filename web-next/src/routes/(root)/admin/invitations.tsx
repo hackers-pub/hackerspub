@@ -30,7 +30,7 @@ const invitationsPageQuery = graphql`
       moderator
     }
     invitationRegenerationStatus {
-      lastRegeneratedAt
+      lastRegenerated
       cutoffDate
       eligibleAccountsCount
       topThirdCount
@@ -61,9 +61,9 @@ const invitationsRegenerateMutation = graphql`
       __typename
       ... on RegenerateInvitationsPayload {
         accountsAffected
-        regeneratedAt
+        regenerated
         status {
-          lastRegeneratedAt
+          lastRegenerated
           cutoffDate
           eligibleAccountsCount
           topThirdCount
@@ -168,7 +168,7 @@ export default function AdminInvitationsPage() {
                         </span>{" "}
                         <Show
                           keyed
-                          when={status()?.lastRegeneratedAt}
+                          when={status()?.lastRegenerated}
                           fallback={
                             <span class="text-muted-foreground/70">
                               {t`Never`}

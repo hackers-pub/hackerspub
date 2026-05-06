@@ -5,6 +5,7 @@ import {
   type Account,
   type AccountEmail,
   articleDraftTable,
+  type Medium,
 } from "@hackerspub/models/schema";
 import { dirname } from "@std/path/dirname";
 import { join } from "@std/path/join";
@@ -70,12 +71,17 @@ const APPLE_STARTUP_IMAGE_LINKS = APPLE_STARTUP_CONFIGS.flatMap((
 export default async function App(
   { Component, state, url }: PageProps<unknown, State>,
 ) {
-  let account: Account & { emails: AccountEmail[] } | undefined = undefined;
+  let account:
+    | Account & {
+      emails: AccountEmail[];
+      avatarMedium?: Medium | null;
+    }
+    | undefined = undefined;
   let drafts = 0;
   let avatarUrl: string | undefined = undefined;
   if (state.session != null) {
     account = await db.query.accountTable.findFirst({
-      with: { emails: true },
+      with: { avatarMedium: true, emails: true },
       where: { id: state.session.accountId },
     });
     drafts = (await db.select({ cnt: count() })

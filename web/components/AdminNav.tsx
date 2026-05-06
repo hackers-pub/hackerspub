@@ -1,6 +1,6 @@
 import { Tab, TabNav } from "./TabNav.tsx";
 
-export type AdminNavItem = "accounts" | "invitations";
+export type AdminNavItem = "accounts" | "invitations" | "media";
 
 export interface AdminNavProps {
   active: AdminNavItem;
@@ -14,6 +14,9 @@ export function AdminNav({ active }: AdminNavProps) {
       </Tab>
       <Tab selected={active === "invitations"} href="/admin/invitations">
         Invitations
+      </Tab>
+      <Tab selected={active === "media"} href="/admin/media">
+        Media
       </Tab>
     </TabNav>
   );

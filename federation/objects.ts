@@ -7,16 +7,21 @@ import {
   isReactionEmoji,
   type ReactionEmoji,
 } from "@hackerspub/models/emoji";
-import { renderMarkup } from "@hackerspub/models/markup";
+import {
+  getMissingArticleMediumLabel,
+  renderMarkup,
+  resolveMediumUrls,
+} from "@hackerspub/models/markup";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type {
   Account,
   Actor,
   ArticleContent,
   ArticleSource,
+  Medium,
   Mention,
-  NoteMedium,
   NoteSource,
+  NoteSourceMedium,
   Post,
   PostVisibility,
   Reaction,
@@ -32,6 +37,20 @@ export async function getArticle(
     contents: ArticleContent[];
   },
 ): Promise<vocab.Article> {
+  const sourceMedia = await ctx.data.db.query.articleSourceMediumTable.findMany(
+    {
+      where: { articleSourceId: articleSource.id },
+      with: { medium: true },
+    },
+  );
+  const mediumUrls = Object.fromEntries(
+    await Promise.all(
+      sourceMedia.map(async (relation) => [
+        relation.key,
+        await ctx.data.disk.getUrl(relation.medium.key),
+      ]),
+    ),
+  );
   const url = new URL(
     `/@${articleSource.account.username}/${articleSource.publishedYear}/${
       encodeURIComponent(articleSource.slug)
@@ -39,13 +58,24 @@ export async function getArticle(
     ctx.canonicalOrigin,
   );
   const contents = await Promise.all(
-    articleSource.contents.map(async (content) => ({
-      ...(await renderMarkup(ctx, content.content, {
+    articleSource.contents.map(async (content) => {
+      const missingMediumLabel = getMissingArticleMediumLabel(
+        content.language,
+      );
+      const rendered = await renderMarkup(ctx, content.content, {
         docId: articleSource.id,
         kv: ctx.data.kv,
-      })),
-      ...content,
-    })),
+        mediumUrls,
+        missingMediumLabel,
+      });
+      return {
+        ...content,
+        ...rendered,
+        content: resolveMediumUrls(content.content, mediumUrls, {
+          missingMediumLabel,
+        }),
+      };
+    }),
   );
   const hashtags = contents.flatMap((c) => c.hashtags);
   contents.sort((a, b) => a.published.valueOf() - b.published.valueOf());
@@ -150,7 +180,10 @@ export function getPostRecipients(
 
 export async function getNote(
   ctx: Context<ContextData>,
-  note: NoteSource & { account: Account; media: NoteMedium[] },
+  note: NoteSource & {
+    account: Account;
+    media: (NoteSourceMedium & { medium: Medium })[];
+  },
   relations: {
     replyTargetId?: URL;
     quotedPost?: Post;
@@ -165,11 +198,11 @@ export async function getNote(
   for (const medium of note.media) {
     attachments.push(
       new vocab.Document({
-        mediaType: "image/webp",
-        url: new URL(await disk.getUrl(medium.key)),
+        mediaType: medium.medium.type,
+        url: new URL(await disk.getUrl(medium.medium.key)),
         name: medium.alt,
-        width: medium.width,
-        height: medium.height,
+        width: medium.medium.width ?? undefined,
+        height: medium.medium.height ?? undefined,
       }),
     );
   }
@@ -248,7 +281,7 @@ builder
       const note = await ctx.data.db.query.noteSourceTable.findFirst({
         with: {
           account: true,
-          media: true,
+          media: { with: { medium: true }, orderBy: { index: "asc" } },
           post: { with: { replyTarget: true, quotedPost: true } },
         },
         where: { id: values.id },

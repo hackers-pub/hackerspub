@@ -1,5 +1,8 @@
 import { page } from "@fresh/core";
-import { renderMarkup } from "@hackerspub/models/markup";
+import {
+  getMissingArticleMediumLabel,
+  renderMarkup,
+} from "@hackerspub/models/markup";
 import { desc } from "drizzle-orm";
 import { Excerpt } from "../../../components/Excerpt.tsx";
 import { Msg } from "../../../components/Msg.tsx";
@@ -32,6 +35,9 @@ export const handler = define.handlers({
         excerptHtml: (await renderMarkup(ctx.state.fedCtx, draft.content, {
           docId: draft.id,
           kv,
+          missingMediumLabel: getMissingArticleMediumLabel(
+            ctx.state.language,
+          ),
         })).excerptHtml,
       }))),
     });

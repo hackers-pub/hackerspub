@@ -1,8 +1,9 @@
 import {
-  MAX_IMAGE_SIZE,
-  SUPPORTED_IMAGE_TYPES,
-  uploadImage,
-} from "@hackerspub/models/upload";
+  createMediumFromBlob,
+  MAX_MEDIUM_IMAGE_SIZE,
+  SUPPORTED_MEDIUM_IMAGE_TYPES,
+} from "@hackerspub/models/medium";
+import { db } from "../../db.ts";
 import { drive } from "../../drive.ts";
 import { define } from "../../utils.ts";
 
@@ -31,28 +32,33 @@ export const handler = define.handlers({
       return jsonResponse({ error: "No file provided" }, 400);
     }
 
-    if (!SUPPORTED_IMAGE_TYPES.includes(file.type)) {
+    if (
+      !SUPPORTED_MEDIUM_IMAGE_TYPES.includes(
+        file.type as typeof SUPPORTED_MEDIUM_IMAGE_TYPES[number],
+      )
+    ) {
       return jsonResponse({
         error: "Unsupported image type",
-        supported: SUPPORTED_IMAGE_TYPES,
+        supported: SUPPORTED_MEDIUM_IMAGE_TYPES,
       }, 400);
     }
 
-    if (file.size > MAX_IMAGE_SIZE) {
+    if (file.size > MAX_MEDIUM_IMAGE_SIZE) {
       return jsonResponse(
-        { error: "File too large", maxSize: MAX_IMAGE_SIZE },
+        { error: "File too large", maxSize: MAX_MEDIUM_IMAGE_SIZE },
         400,
       );
     }
 
     const disk = drive.use();
-    const result = await uploadImage(disk, file);
+    const result = await createMediumFromBlob(db, disk, file);
     if (result == null) {
       return jsonResponse({ error: "Failed to process image" }, 500);
     }
 
     return jsonResponse({
-      url: result.url,
+      mediumId: result.id,
+      url: await disk.getUrl(result.key),
       width: result.width,
       height: result.height,
     });

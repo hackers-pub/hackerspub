@@ -7,6 +7,7 @@ import {
   trailingSlashes,
 } from "@fresh/core";
 import { type Context, createYogaServer } from "@hackerspub/graphql";
+import { handleMediumUploadProxy } from "@hackerspub/graphql/medium-upload";
 import { getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
@@ -153,7 +154,7 @@ app.use((ctx) => {
         if (session == null) return { account: undefined, session: undefined };
         const account = await db.query.accountTable.findFirst({
           where: { id: session.accountId },
-          with: { actor: true, emails: true, links: true },
+          with: { actor: true, avatarMedium: true, emails: true, links: true },
         });
         return {
           account,
@@ -166,6 +167,12 @@ app.use((ctx) => {
 });
 
 app.use(async (ctx) => {
+  const uploadResponse = await handleMediumUploadProxy(
+    ctx.req,
+    kv,
+    drive.use(),
+  );
+  if (uploadResponse != null) return uploadResponse;
   if (
     ctx.url.pathname.startsWith("/.well-known/") &&
       ctx.url.pathname !== "/.well-known/assetlinks.json" &&

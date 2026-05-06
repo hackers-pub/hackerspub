@@ -33,7 +33,7 @@ function ArticleComposerInner() {
       }
     >
       <Show
-        when={!ctx.draftUuid || ctx.draft()}
+        when={!ctx.isExistingDraft || ctx.draft()}
         fallback={
           <div class="max-w-4xl mx-auto p-6 text-center text-muted-foreground">
             {t`Draft not found`}

@@ -14,6 +14,7 @@
     "Locale": "string",
     "Markdown": "string",
     "MediaType": "string",
+    "Sha256": "string",
     "URL": "string",
     "URITemplate": "string",
     "UUID": "`${string}-${string}-${string}-${string}-${string}`"

@@ -687,6 +687,20 @@
       "when": 1777642390574,
       "tag": "0097_clear_oversized_summaries",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1778025600000,
+      "tag": "0098_unified_medium",
+      "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1778025700000,
+      "tag": "0099_drop_note_source_medium_unique",
+      "breakpoints": true
     }
   ]
 }

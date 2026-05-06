@@ -1,3 +1,4 @@
+import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
@@ -6,6 +7,8 @@ import { getAvatarUrl } from "@hackerspub/models/account";
 import {
   createArticle,
   deleteArticleDraft,
+  getArticleDraftMediumUrls,
+  getArticleSourceMediumUrls,
   getOriginalArticleContent,
   LanguageChangeWithTranslationsError,
   startArticleContentTranslation,
@@ -20,7 +23,17 @@ import {
 import { isReactionEmoji, renderCustomEmojis } from "@hackerspub/models/emoji";
 import { addExternalLinkTargets, stripHtml } from "@hackerspub/models/html";
 import { negotiateLocale, normalizeLocale } from "@hackerspub/models/i18n";
-import { renderMarkup } from "@hackerspub/models/markup";
+import {
+  getMissingArticleMediumLabel,
+  renderMarkup,
+} from "@hackerspub/models/markup";
+import {
+  createMediumFromBytes,
+  createMediumFromUrl,
+  MAX_STREAMING_MEDIUM_IMAGE_SIZE,
+  SUPPORTED_MEDIUM_IMAGE_TYPES,
+  UnsafeMediumUrlError,
+} from "@hackerspub/models/medium";
 import { createNote } from "@hackerspub/models/note";
 import {
   arePostsPinnedBy,
@@ -38,17 +51,18 @@ import {
 import { react, undoReaction } from "@hackerspub/models/reaction";
 import {
   articleContentTable,
+  articleDraftMediumTable,
   articleDraftTable,
-  articleMediumTable,
 } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
-import {
-  MAX_IMAGE_SIZE,
-  SUPPORTED_IMAGE_TYPES,
-  uploadImage,
-} from "@hackerspub/models/upload";
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
+import {
+  createMediumUploadSession,
+  deleteMediumUploadSession,
+  getMediumUploadSession,
+  MEDIUM_UPLOAD_TTL_MS,
+} from "./medium-upload.ts";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
@@ -60,6 +74,7 @@ import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 const articleContentOgImageComplexity = 2_000;
+const logger = getLogger(["hackerspub", "graphql", "post"]);
 
 class SharedPostDeletionNotAllowedError extends Error {
   public constructor(public readonly inputPath: string) {
@@ -391,7 +406,16 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
         },
       },
       async resolve(draft, _, ctx) {
-        const rendered = await renderMarkup(ctx.fedCtx, draft.content);
+        const rendered = await renderMarkup(ctx.fedCtx, draft.content, {
+          mediumUrls: await getArticleDraftMediumUrls(
+            ctx.db,
+            ctx.disk,
+            draft.id,
+          ),
+          missingMediumLabel: getMissingArticleMediumLabel(
+            ctx.account?.locales?.[0],
+          ),
+        });
         return addExternalLinkTargets(
           rendered.html,
           new URL(ctx.fedCtx.canonicalOrigin),
@@ -431,6 +455,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       select: {
         columns: {
           content: true,
+          language: true,
         },
         with: {
           source: {
@@ -447,6 +472,12 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       async resolve(content, _, ctx) {
         const html = await renderMarkup(ctx.fedCtx, content.content, {
           kv: ctx.kv,
+          mediumUrls: await getArticleSourceMediumUrls(
+            ctx.db,
+            ctx.disk,
+            content.sourceId,
+          ),
+          missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
         return addExternalLinkTargets(
           renderCustomEmojis(html.html, content.source.post.emojis),
@@ -468,11 +499,17 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
       type: "JSON",
       description: "Table of contents for the article content.",
       select: {
-        columns: { content: true },
+        columns: { content: true, language: true, sourceId: true },
       },
       async resolve(content, _, ctx) {
         const rendered = await renderMarkup(ctx.fedCtx, content.content, {
           kv: ctx.kv,
+          mediumUrls: await getArticleSourceMediumUrls(
+            ctx.db,
+            ctx.disk,
+            content.sourceId,
+          ),
+          missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
         return rendered.toc;
       },
@@ -510,6 +547,7 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
                       handleHost: true,
                     },
                   },
+                  avatarMedium: true,
                   emails: true,
                 },
               },
@@ -521,11 +559,17 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
         const account = content.source.account;
         const rendered = await renderMarkup(ctx.fedCtx, content.content, {
           kv: ctx.kv,
+          mediumUrls: await getArticleSourceMediumUrls(
+            ctx.db,
+            ctx.disk,
+            content.sourceId,
+          ),
+          missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
         const avatarUrl = await getAvatarUrl(ctx.disk, account);
         const key = await putArticleOgImage(ctx.disk, content.ogImageKey, {
           authorName: account.name,
-          avatarKey: account.avatarKey ?? avatarUrl,
+          avatarKey: account.avatarMedium?.key ?? avatarUrl,
           avatarUrl,
           excerpt: content.summary ?? rendered.text,
           handle: `@${account.username}@${account.actor.handleHost}`,
@@ -643,6 +687,41 @@ builder.drizzleNode("postMediumTable", {
   }),
 });
 
+export const Medium = builder.drizzleNode("mediumTable", {
+  name: "Medium",
+  id: {
+    column: (medium) => medium.id,
+  },
+  fields: (t) => ({
+    uuid: t.expose("id", { type: "UUID" }),
+    url: t.field({
+      type: "URL",
+      description: "Public URL for the stored medium.",
+      resolve: async (medium, _, ctx) =>
+        new URL(await ctx.disk.getUrl(medium.key)),
+    }),
+    type: t.expose("type", {
+      type: "MediaType",
+      description: "The medium's media type. Local uploads are stored as WebP.",
+    }),
+    contentHash: t.expose("contentHash", {
+      type: "Sha256",
+      nullable: true,
+      description: "SHA-256 hash of the normalized stored content, if known.",
+    }),
+    width: t.exposeInt("width", { nullable: true }),
+    height: t.exposeInt("height", { nullable: true }),
+    created: t.expose("created", { type: "DateTime" }),
+  }),
+});
+
+const MediumUploadHeader = builder.simpleObject("MediumUploadHeader", {
+  fields: (t) => ({
+    name: t.string(),
+    value: t.string(),
+  }),
+});
+
 const PostLink = builder.drizzleNode("postLinkTable", {
   variant: "PostLink",
   id: {
@@ -686,6 +765,20 @@ const PostLinkImage = builder.drizzleObject("postLinkTable", {
 
 builder.drizzleObjectField(PostLinkImage, "post", (t) => t.variant(PostLink));
 
+const CreateNoteMediumInput = builder.inputType("CreateNoteMediumInput", {
+  fields: (t) => ({
+    mediumId: t.field({
+      type: "UUID",
+      required: true,
+      description: "UUID of a Medium to attach to the note.",
+    }),
+    alt: t.string({
+      required: true,
+      description: "Alternative text for this note's use of the medium.",
+    }),
+  }),
+});
+
 builder.relayMutationField(
   "createNote",
   {
@@ -693,7 +786,12 @@ builder.relayMutationField(
       visibility: t.field({ type: PostVisibility, required: true }),
       content: t.field({ type: "Markdown", required: true }),
       language: t.field({ type: "Locale", required: true }),
-      // TODO: media
+      media: t.field({
+        type: [CreateNoteMediumInput],
+        required: false,
+        defaultValue: [],
+        description: "Media to attach to the note, in display order.",
+      }),
       replyTargetId: t.globalID({
         for: [Note, Article, Question],
         required: false,
@@ -716,8 +814,15 @@ builder.relayMutationField(
       if (session == null) {
         throw new NotAuthenticatedError();
       }
-      const { visibility, content, language, replyTargetId, quotedPostId } =
-        args.input;
+      const {
+        visibility,
+        content,
+        language,
+        media,
+        replyTargetId,
+        quotedPostId,
+      } = args.input;
+      const attachedMedia = media ?? [];
       let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
       if (replyTargetId != null) {
         replyTarget = await ctx.db.query.postTable.findFirst({
@@ -739,6 +844,20 @@ builder.relayMutationField(
         }
       }
       return await withTransaction(ctx.fedCtx, async (context) => {
+        const noteMedia = await Promise.all(
+          attachedMedia.map(async (medium, i) => {
+            const alt = medium.alt.trim();
+            if (alt === "") throw new InvalidInputError(`media.${i}.alt`);
+            const storedMedium = await context.data.db.query.mediumTable
+              .findFirst({
+                where: { id: medium.mediumId },
+              });
+            if (storedMedium == null) {
+              throw new InvalidInputError(`media.${i}.mediumId`);
+            }
+            return { mediumId: medium.mediumId, alt };
+          }),
+        );
         const note = await createNote(
           context,
           {
@@ -759,7 +878,7 @@ builder.relayMutationField(
               ),
             content,
             language: language.baseName,
-            media: [], // TODO
+            media: noteMedia,
           },
           { replyTarget, quotedPost },
         );
@@ -787,6 +906,11 @@ builder.relayMutationField(
   {
     inputFields: (t) => ({
       id: t.globalID({ for: [ArticleDraft], required: false }),
+      uuid: t.field({
+        type: "UUID",
+        required: false,
+        description: "Draft UUID to use when creating a new draft.",
+      }),
       title: t.string({ required: true }),
       content: t.field({ type: "Markdown", required: true }),
       tags: t.stringList({ required: true }),
@@ -805,14 +929,20 @@ builder.relayMutationField(
         throw new NotAuthenticatedError();
       }
       const { id, title, content, tags } = args.input;
+      if (id != null && args.input.uuid != null) {
+        throw new InvalidInputError("uuid");
+      }
 
       const draft = await updateArticleDraft(ctx.db, {
-        id: id?.id ?? generateUuidV7(),
+        id: id?.id ?? args.input.uuid ?? generateUuidV7(),
         accountId: session.accountId,
         title,
         content,
         tags,
       });
+      if (draft == null) {
+        throw new InvalidInputError(args.input.uuid == null ? "id" : "uuid");
+      }
 
       return draft;
     },
@@ -973,6 +1103,10 @@ builder.relayMutationField(
 
       // Create article from draft
       const article = await withTransaction(ctx.fedCtx, async (context) => {
+        const media = await context.data.db.query.articleDraftMediumTable
+          .findMany({
+            where: { articleDraftId: draft.id },
+          });
         return await createArticle(context, {
           accountId: session.accountId,
           publishedYear: new Date().getFullYear(),
@@ -982,17 +1116,13 @@ builder.relayMutationField(
           title: draft.title,
           content: draft.content,
           language: language.baseName,
+          media,
         });
       });
 
       if (!article) {
         throw new Error("Failed to publish article");
       }
-
-      // Migrate media tracking from draft to published article
-      await ctx.db.update(articleMediumTable)
-        .set({ articleSourceId: article.articleSource.id })
-        .where(eq(articleMediumTable.articleDraftId, draft.id));
 
       // Delete draft after successful publish
       await deleteArticleDraft(ctx.db, session.accountId, draft.id);
@@ -1738,6 +1868,21 @@ builder.queryField("articleByYearAndSlug", (t) =>
     },
   }));
 
+const UpdateArticleMediumInput = builder.inputType("UpdateArticleMediumInput", {
+  fields: (t) => ({
+    mediumId: t.field({
+      type: "UUID",
+      required: true,
+      description: "UUID of a Medium to make available to the article source.",
+    }),
+    key: t.string({
+      required: false,
+      description:
+        "Key used in article markdown as hp-medium:KEY. Defaults to mediumId.",
+    }),
+  }),
+});
+
 builder.relayMutationField(
   "updateArticle",
   {
@@ -1748,6 +1893,12 @@ builder.relayMutationField(
       tags: t.stringList({ required: false }),
       language: t.field({ type: "Locale", required: false }),
       allowLlmTranslation: t.boolean({ required: false }),
+      media: t.field({
+        type: [UpdateArticleMediumInput],
+        required: false,
+        description:
+          "Media to make available to hp-medium:KEY references in the updated article markdown.",
+      }),
     }),
   },
   {
@@ -1778,6 +1929,21 @@ builder.relayMutationField(
         throw new InvalidInputError("articleId");
       }
 
+      const media: { key: string; mediumId: Uuid }[] = [];
+      for (const [i, mediumInput] of (args.input.media ?? []).entries()) {
+        const medium = await ctx.db.query.mediumTable.findFirst({
+          where: { id: mediumInput.mediumId },
+        });
+        if (medium == null) {
+          throw new InvalidInputError(`media.${i}.mediumId`);
+        }
+        const key = mediumInput.key?.trim() || medium.id;
+        if (!key.match(/^[A-Za-z0-9._:/-]+$/)) {
+          throw new InvalidInputError(`media.${i}.key`);
+        }
+        media.push({ key, mediumId: medium.id });
+      }
+
       let updated;
       try {
         updated = await updateArticle(ctx.fedCtx, post.articleSource.id, {
@@ -1786,6 +1952,7 @@ builder.relayMutationField(
           tags: args.input.tags ?? undefined,
           language: args.input.language?.baseName ?? undefined,
           allowLlmTranslation: args.input.allowLlmTranslation ?? undefined,
+          media: args.input.media == null ? undefined : media,
         });
       } catch (e) {
         if (e instanceof LanguageChangeWithTranslationsError) {
@@ -1930,18 +2097,16 @@ builder.relayMutationField(
   },
 );
 
-interface UploadMediaResult {
-  url: string;
-  width: number;
-  height: number;
-}
-
 builder.relayMutationField(
-  "uploadMedia",
+  "createMedium",
   {
     inputFields: (t) => ({
-      mediaUrl: t.field({ type: "URL", required: true }),
-      draftId: t.field({ type: "UUID", required: false }),
+      url: t.field({
+        type: "URL",
+        required: true,
+        description:
+          "Image URL to import. Data URLs, HTTP, and HTTPS are supported.",
+      }),
     }),
   },
   {
@@ -1956,62 +2121,275 @@ builder.relayMutationField(
       if (session == null) {
         throw new NotAuthenticatedError();
       }
-      const response = await fetch(args.input.mediaUrl);
-      if (response.status !== 200) {
-        throw new InvalidInputError("mediaUrl");
+      let medium: schema.Medium | undefined;
+      try {
+        medium = await createMediumFromUrl(
+          ctx.db,
+          ctx.disk,
+          args.input.url,
+          { userAgentUrl: new URL(ctx.fedCtx.canonicalOrigin) },
+        );
+      } catch (error) {
+        if (!(error instanceof UnsafeMediumUrlError)) throw error;
       }
-      const contentType = response.headers.get("Content-Type")?.split(";")[0]
-        ?.trim();
+      if (medium == null) {
+        throw new InvalidInputError("url");
+      }
+      return medium;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      medium: t.field({
+        type: Medium,
+        resolve(result) {
+          return result;
+        },
+      }),
+    }),
+  },
+);
+
+interface MediumUploadStart {
+  uploadId: Uuid;
+  uploadUrl: URL;
+  method: string;
+  headers: { name: string; value: string }[];
+  expires: Date;
+}
+
+builder.relayMutationField(
+  "startMediumUpload",
+  {
+    inputFields: (t) => ({
+      contentType: t.field({
+        type: "MediaType",
+        required: true,
+        description: "Original image content type.",
+      }),
+      contentLength: t.int({
+        required: true,
+        description: "Exact number of bytes the client will upload.",
+      }),
+    }),
+  },
+  {
+    errors: { types: [NotAuthenticatedError, InvalidInputError] },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) throw new NotAuthenticatedError();
       if (
-        contentType == null || !SUPPORTED_IMAGE_TYPES.includes(contentType)
+        !SUPPORTED_MEDIUM_IMAGE_TYPES.includes(
+          args.input.contentType as typeof SUPPORTED_MEDIUM_IMAGE_TYPES[number],
+        )
       ) {
-        throw new InvalidInputError("mediaUrl");
+        throw new InvalidInputError("contentType");
       }
-      const blob = await response.blob();
-      if (blob.size > MAX_IMAGE_SIZE) {
-        throw new InvalidInputError("mediaUrl");
+      if (
+        args.input.contentLength < 1 ||
+        args.input.contentLength > MAX_STREAMING_MEDIUM_IMAGE_SIZE
+      ) {
+        throw new InvalidInputError("contentLength");
+      }
+      const upload = await createMediumUploadSession(
+        ctx.kv,
+        session.accountId,
+        args.input.contentType,
+        args.input.contentLength,
+      );
+      let uploadUrl: URL;
+      try {
+        uploadUrl = new URL(
+          await ctx.disk.getSignedUploadUrl(upload.key, {
+            contentType: upload.contentType,
+            contentSize: upload.contentLength,
+            contentLength: upload.contentLength,
+            expiresIn: "30mins",
+          }),
+        );
+      } catch {
+        uploadUrl = new URL(`/medium-uploads/${upload.id}`, ctx.request.url);
+        uploadUrl.searchParams.set("token", upload.token);
+      }
+      return {
+        uploadId: upload.id,
+        uploadUrl,
+        method: "PUT",
+        headers: [{ name: "Content-Type", value: upload.contentType }],
+        expires: new Date(Date.now() + MEDIUM_UPLOAD_TTL_MS),
+      } satisfies MediumUploadStart;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      uploadId: t.field({
+        type: "UUID",
+        resolve: (result) => result.uploadId,
+      }),
+      uploadUrl: t.field({
+        type: "URL",
+        resolve: (result) => result.uploadUrl,
+      }),
+      method: t.string({ resolve: (result) => result.method }),
+      headers: t.field({
+        type: [MediumUploadHeader],
+        resolve: (result) => result.headers,
+      }),
+      expires: t.field({
+        type: "DateTime",
+        resolve: (result) => result.expires,
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "finishMediumUpload",
+  {
+    inputFields: (t) => ({
+      uploadId: t.field({ type: "UUID", required: true }),
+    }),
+  },
+  {
+    errors: { types: [NotAuthenticatedError, InvalidInputError] },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) throw new NotAuthenticatedError();
+      const upload = await getMediumUploadSession(ctx.kv, args.input.uploadId);
+      if (upload == null || upload.accountId !== session.accountId) {
+        throw new InvalidInputError("uploadId");
       }
       try {
-        const result = await uploadImage(ctx.disk, blob);
-        if (result == null) {
-          throw new InvalidInputError("mediaUrl");
+        let metadata: { contentLength: number };
+        try {
+          metadata = await ctx.disk.getMetaData(upload.key);
+        } catch {
+          throw new InvalidInputError("uploadId");
         }
-        await ctx.db.insert(articleMediumTable).values({
-          key: result.key,
-          accountId: session.accountId,
-          articleDraftId: args.input.draftId ?? undefined,
-          url: result.url,
-          width: result.width,
-          height: result.height,
-        }).onConflictDoUpdate({
-          target: articleMediumTable.key,
-          set: {
-            articleDraftId: args.input.draftId ?? undefined,
-          },
+        if (
+          metadata.contentLength !== upload.contentLength ||
+          metadata.contentLength > MAX_STREAMING_MEDIUM_IMAGE_SIZE
+        ) {
+          throw new InvalidInputError("uploadId");
+        }
+        let bytes: Uint8Array;
+        try {
+          bytes = await ctx.disk.getBytes(upload.key);
+        } catch {
+          throw new InvalidInputError("uploadId");
+        }
+        if (bytes.byteLength !== upload.contentLength) {
+          throw new InvalidInputError("uploadId");
+        }
+        const medium = await createMediumFromBytes(ctx.db, ctx.disk, bytes, {
+          maxSize: MAX_STREAMING_MEDIUM_IMAGE_SIZE,
+          contentType: upload.contentType,
         });
-        return result;
-      } catch {
-        throw new InvalidInputError("mediaUrl");
+        if (medium == null) throw new InvalidInputError("uploadId");
+        return medium;
+      } finally {
+        try {
+          await ctx.disk.delete(upload.key);
+        } catch (error) {
+          logger.warn(
+            "Failed to delete temporary medium upload {key}: {error}",
+            {
+              key: upload.key,
+              error,
+            },
+          );
+        }
+        try {
+          await deleteMediumUploadSession(ctx.kv, upload.id);
+        } catch (error) {
+          logger.warn("Failed to delete medium upload session {id}: {error}", {
+            id: upload.id,
+            error,
+          });
+        }
       }
     },
   },
   {
     outputFields: (t) => ({
-      url: t.field({
-        type: "URL",
-        resolve(result: UploadMediaResult) {
-          return new URL(result.url);
+      medium: t.field({
+        type: Medium,
+        resolve(result) {
+          return result;
         },
       }),
-      width: t.int({
-        resolve(result: UploadMediaResult) {
-          return result.width;
-        },
+    }),
+  },
+);
+
+interface AttachedArticleDraftMedium {
+  key: string;
+  medium: schema.Medium;
+}
+
+builder.relayMutationField(
+  "attachArticleDraftMedium",
+  {
+    inputFields: (t) => ({
+      draftId: t.field({ type: "UUID", required: true }),
+      mediumId: t.field({ type: "UUID", required: true }),
+      key: t.string({
+        required: false,
+        description:
+          "Key used in article markdown as hp-medium:KEY. Defaults to mediumId.",
       }),
-      height: t.int({
-        resolve(result: UploadMediaResult) {
-          return result.height;
+    }),
+  },
+  {
+    errors: { types: [NotAuthenticatedError, InvalidInputError] },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) throw new NotAuthenticatedError();
+      let draft = await ctx.db.query.articleDraftTable.findFirst({
+        where: {
+          id: args.input.draftId,
+          accountId: session.accountId,
         },
+      });
+      if (draft == null) {
+        const inserted = await ctx.db.insert(articleDraftTable).values({
+          id: args.input.draftId,
+          accountId: session.accountId,
+          title: "",
+          content: "",
+          tags: [],
+        }).onConflictDoNothing().returning();
+        draft = inserted[0];
+      }
+      if (draft == null) throw new InvalidInputError("draftId");
+      const medium = await ctx.db.query.mediumTable.findFirst({
+        where: { id: args.input.mediumId },
+      });
+      if (medium == null) throw new InvalidInputError("mediumId");
+      const key = args.input.key?.trim() || medium.id;
+      if (!key.match(/^[A-Za-z0-9._:/-]+$/)) {
+        throw new InvalidInputError("key");
+      }
+      await ctx.db.insert(articleDraftMediumTable).values({
+        articleDraftId: draft.id,
+        key,
+        mediumId: medium.id,
+      }).onConflictDoUpdate({
+        target: [
+          articleDraftMediumTable.articleDraftId,
+          articleDraftMediumTable.key,
+        ],
+        set: { mediumId: medium.id },
+      });
+      return { key, medium } satisfies AttachedArticleDraftMedium;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      key: t.string({ resolve: (result) => result.key }),
+      medium: t.field({
+        type: Medium,
+        resolve: (result) => result.medium,
       }),
     }),
   },

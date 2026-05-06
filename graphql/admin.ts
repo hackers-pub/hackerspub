@@ -1,5 +1,8 @@
 import {
+  deleteOrphanMedia,
   getInvitationRegenerationStatus,
+  getOrphanMediaStatus,
+  type InvitationRegenerationStatus as ModelInvitationRegenerationStatus,
   regenerateInvitations,
 } from "@hackerspub/models/admin";
 import { accountTable, actorTable, postTable } from "@hackerspub/models/schema";
@@ -342,9 +345,17 @@ const InvitationRegenerationStatus = builder.simpleObject(
       "A snapshot of the invitation-regeneration state used by the admin UI " +
       "to preview a regeneration before triggering it.",
     fields: (t) => ({
+      lastRegenerated: t.field({
+        type: "DateTime",
+        nullable: true,
+        description:
+          "When the regeneration was last triggered, or null if it has " +
+          "never been run.",
+      }),
       lastRegeneratedAt: t.field({
         type: "DateTime",
         nullable: true,
+        deprecationReason: "Use lastRegenerated",
         description:
           "When the regeneration was last triggered, or null if it has " +
           "never been run.",
@@ -353,7 +364,7 @@ const InvitationRegenerationStatus = builder.simpleObject(
         type: "DateTime",
         description:
           "The earliest `published` timestamp a post must have to count " +
-          "an account as eligible.  Equals `lastRegeneratedAt` once a " +
+          "an account as eligible.  Equals `lastRegenerated` once a " +
           "regeneration has been recorded; otherwise defaults to one " +
           "week before now.",
       }),
@@ -369,6 +380,26 @@ const InvitationRegenerationStatus = builder.simpleObject(
   },
 );
 
+interface InvitationRegenerationStatusShape {
+  lastRegenerated: Date | null;
+  lastRegeneratedAt: Date | null;
+  cutoffDate: Date;
+  eligibleAccountsCount: number;
+  topThirdCount: number;
+}
+
+function toInvitationRegenerationStatusShape(
+  status: ModelInvitationRegenerationStatus,
+): InvitationRegenerationStatusShape {
+  return {
+    lastRegenerated: status.lastRegeneratedAt,
+    lastRegeneratedAt: status.lastRegeneratedAt,
+    cutoffDate: status.cutoffDate,
+    eligibleAccountsCount: status.eligibleAccountsCount,
+    topThirdCount: status.topThirdCount,
+  };
+}
+
 builder.queryField("invitationRegenerationStatus", (t) =>
   t.field({
     type: InvitationRegenerationStatus,
@@ -380,7 +411,9 @@ builder.queryField("invitationRegenerationStatus", (t) =>
     async resolve(_root, _args, ctx) {
       if (ctx.session == null) return null;
       if (!ctx.account?.moderator) return null;
-      return await getInvitationRegenerationStatus(ctx.db, ctx.kv);
+      return toInvitationRegenerationStatusShape(
+        await getInvitationRegenerationStatus(ctx.db, ctx.kv),
+      );
     },
   }));
 
@@ -389,8 +422,13 @@ const RegenerateInvitationsPayload = builder.simpleObject(
   {
     description: "The result of a successful invitations regeneration.",
     fields: (t) => ({
+      regenerated: t.field({
+        type: "DateTime",
+        description: "When the regeneration ran.",
+      }),
       regeneratedAt: t.field({
         type: "DateTime",
+        deprecationReason: "Use regenerated",
         description: "When the regeneration ran.",
       }),
       accountsAffected: t.int({
@@ -429,8 +467,85 @@ builder.mutationField("regenerateInvitations", (t) =>
       // pay one aggregate query and report the actual numbers.
       const status = await getInvitationRegenerationStatus(ctx.db, ctx.kv);
       return {
+        regenerated: result.regeneratedAt,
         regeneratedAt: result.regeneratedAt,
         accountsAffected: result.accountsAffected,
+        status: toInvitationRegenerationStatusShape(status),
+      };
+    },
+  }));
+
+const OrphanMediaStatus = builder.simpleObject(
+  "OrphanMediaStatus",
+  {
+    description:
+      "A snapshot of media objects old enough to delete and not referenced " +
+      "by accounts, notes, article drafts, or article sources.",
+    fields: (t) => ({
+      cutoffDate: t.field({
+        type: "DateTime",
+        description:
+          "Only unreferenced media created before this timestamp are counted.",
+      }),
+      orphanMediaCount: t.int({
+        description:
+          "Number of unreferenced media objects older than the cutoff.",
+      }),
+    }),
+  },
+);
+
+builder.queryField("orphanMediaStatus", (t) =>
+  t.field({
+    type: OrphanMediaStatus,
+    nullable: true,
+    description:
+      "Moderator-only orphan media preview.  Returns null when the viewer " +
+      "is not a moderator.",
+    async resolve(_root, _args, ctx) {
+      if (ctx.session == null) return null;
+      if (!ctx.account?.moderator) return null;
+      return await getOrphanMediaStatus(ctx.db);
+    },
+  }));
+
+const DeleteOrphanMediaPayload = builder.simpleObject(
+  "DeleteOrphanMediaPayload",
+  {
+    description: "The result of deleting orphan media.",
+    fields: (t) => ({
+      deletedCount: t.int({
+        description: "Number of orphan media database rows deleted.",
+      }),
+      failedStorageDeletes: t.int({
+        description:
+          "Number of stored media objects that could not be deleted.",
+      }),
+      status: t.field({
+        type: OrphanMediaStatus,
+        description: "The orphan media status after the deletion attempt.",
+      }),
+    }),
+  },
+);
+
+builder.mutationField("deleteOrphanMedia", (t) =>
+  t.field({
+    type: DeleteOrphanMediaPayload,
+    description:
+      "Delete unreferenced media older than the grace period.  Requires a " +
+      "moderator account.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError],
+    },
+    async resolve(_root, _args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      const result = await deleteOrphanMedia(ctx.db, ctx.disk);
+      const status = await getOrphanMediaStatus(ctx.db);
+      return {
+        deletedCount: result.deletedCount,
+        failedStorageDeletes: result.failedDiskDeletes,
         status,
       };
     },

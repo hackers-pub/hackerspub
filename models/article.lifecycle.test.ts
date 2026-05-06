@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createArticle, updateArticle } from "./article.ts";
-import { articleContentTable } from "./schema.ts";
+import { articleContentTable, mediumTable } from "./schema.ts";
+import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -56,6 +57,96 @@ test("createArticle() creates a post and timeline entry for the author", async (
   });
 });
 
+test("createArticle() copies source media before rendering the post", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "createarticlemediaauthor",
+      name: "Create Article Media Author",
+      email: "createarticlemediaauthor@example.com",
+    });
+    const mediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: mediumId,
+      key: "media/create-article-media.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
+    const prefixMediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: prefixMediumId,
+      key: "media/create-article-prefix.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
+
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "create-article-media",
+      tags: [],
+      allowLlmTranslation: false,
+      title: "Article with media",
+      content: "![Hero](hp-medium:hero)",
+      language: "en",
+      media: [
+        { key: "hero", mediumId },
+        { key: "her", mediumId: prefixMediumId },
+      ],
+    });
+
+    assert.ok(article != null);
+    assert.match(
+      article.contentHtml,
+      /http:\/\/localhost\/media\/media\/create-article-media\.webp/,
+    );
+    assert.doesNotMatch(article.contentHtml, /hp-medium:hero/);
+
+    const media = await tx.query.articleSourceMediumTable.findFirst({
+      where: { articleSourceId: article.articleSource.id, key: "hero" },
+    });
+    assert.ok(media != null);
+    assert.equal(media.mediumId, mediumId);
+    const prefixMedia = await tx.query.articleSourceMediumTable.findFirst({
+      where: { articleSourceId: article.articleSource.id, key: "her" },
+    });
+    assert.equal(prefixMedia, undefined);
+  });
+});
+
+test("createArticle() rejects content with missing source media", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "missingarticlemediaauthor",
+      name: "Missing Article Media Author",
+      email: "missingarticlemediaauthor@example.com",
+    });
+
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "missing-article-media",
+      tags: [],
+      allowLlmTranslation: false,
+      title: "Article with missing media",
+      content: "![Hero](hp-medium:missing)",
+      language: "en",
+      media: [],
+    });
+
+    assert.equal(article, undefined);
+    const source = await tx.query.articleSourceTable.findFirst({
+      where: { slug: "missing-article-media" },
+    });
+    assert.equal(source, undefined);
+  });
+});
+
 test("updateArticle() rewrites the persisted article post", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
@@ -100,6 +191,97 @@ test("updateArticle() rewrites the persisted article post", async () => {
     assert.equal(storedPost.articleSourceId, article.articleSource.id);
     assert.equal(storedPost.name, "Updated article");
     assert.match(storedPost.contentHtml, /<strong>body<\/strong>/);
+  });
+});
+
+test("updateArticle() attaches source media before rendering the post", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "updatearticlemediaauthor",
+      name: "Update Article Media Author",
+      email: "updatearticlemediaauthor@example.com",
+    });
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "update-article-media",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Original article",
+      content: "Original body",
+      language: "en",
+    });
+    assert.ok(article != null);
+    const mediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: mediumId,
+      key: "media/update-article-media.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
+
+    const updated = await updateArticle(fedCtx, article.articleSource.id, {
+      content: "![Hero](hp-medium:hero)",
+      media: [{ key: "hero", mediumId }],
+    });
+
+    assert.ok(updated != null);
+    assert.match(
+      updated.contentHtml,
+      /http:\/\/localhost\/media\/media\/update-article-media\.webp/,
+    );
+    assert.doesNotMatch(updated.contentHtml, /hp-medium:hero/);
+
+    const relation = await tx.query.articleSourceMediumTable.findFirst({
+      where: { articleSourceId: article.articleSource.id, key: "hero" },
+    });
+    assert.ok(relation != null);
+    assert.equal(relation.mediumId, mediumId);
+  });
+});
+
+test("updateArticle() rejects missing source media without saving content", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "updatearticlemissingmedia",
+      name: "Update Article Missing Media",
+      email: "updatearticlemissingmedia@example.com",
+    });
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "update-article-missing-media",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Original article",
+      content: "Original body",
+      language: "en",
+    });
+    assert.ok(article != null);
+
+    const updated = await updateArticle(fedCtx, article.articleSource.id, {
+      content: "![Missing](hp-medium:missing)",
+      media: [],
+    });
+
+    assert.equal(updated, undefined);
+    const originalContent = await tx.query.articleContentTable.findFirst({
+      where: {
+        sourceId: article.articleSource.id,
+        originalLanguage: { isNull: true },
+      },
+    });
+    assert.ok(originalContent != null);
+    assert.equal(originalContent.content, "Original body");
   });
 });
 

@@ -59,6 +59,7 @@ builder
       const account = await ctx.data.db.query.accountTable.findFirst({
         where: { id: identifier },
         with: {
+          avatarMedium: true,
           emails: true,
           links: { orderBy: { index: "asc" } },
         },

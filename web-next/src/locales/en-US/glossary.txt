@@ -28,6 +28,8 @@ handle → handle
 invitation → invitation
 invitationLink → invitation link
 medium → medium
+disk object → disk object
+orphan media → orphan media
 preferences → preferences
 notification → notification
 moderator → moderator

@@ -38,6 +38,7 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { createMediumFromDataUrl } from "~/lib/uploadImage.ts";
 import { SettingsCardPage } from "~/components/SettingsCardPage.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import type { settingsForm_account$key } from "./__generated__/settingsForm_account.graphql.ts";
@@ -77,13 +78,13 @@ const loadPageQuery = query(
 );
 
 const settingsMutation = graphql`
-  mutation settingsMutation($id: ID!, $username: String, $name: String!, $bio: String!, $avatarUrl: URL, $links: [AccountLinkInput!]!) {
+  mutation settingsMutation($id: ID!, $username: String, $name: String!, $bio: String!, $avatarMediumId: UUID, $links: [AccountLinkInput!]!) {
     updateAccount(input: {
       id: $id,
       username: $username,
       name: $name,
       bio: $bio,
-      avatarUrl: $avatarUrl,
+      avatarMediumId: $avatarMediumId,
       links: $links,
     }) {
       account {
@@ -262,8 +263,9 @@ function SettingsForm(props: SettingsFormProps) {
   }
   const [save] = createMutation<settingsMutation>(settingsMutation);
   const [saving, setSaving] = createSignal(false);
-  function onSubmit(event: SubmitEvent) {
+  async function onSubmit(event: SubmitEvent) {
     event.preventDefault();
+    if (saving()) return;
     const id = account()?.id;
     const usernameChanged = account()?.usernameChanged;
     if (
@@ -274,6 +276,27 @@ function SettingsForm(props: SettingsFormProps) {
     const username = usernameInput.value;
     const name = nameInput.value;
     const bio = bioInput.value;
+    let avatarMediumId:
+      | `${string}-${string}-${string}-${string}-${string}`
+      | undefined;
+    const pendingAvatarUrl = avatarUrl();
+    if (pendingAvatarUrl != null) {
+      try {
+        avatarMediumId = (await createMediumFromDataUrl(pendingAvatarUrl))
+          .uuid as `${string}-${string}-${string}-${string}-${string}`;
+      } catch (error) {
+        console.error(error);
+        showToast({
+          title: t`Failed to save settings`,
+          description: error instanceof Error
+            ? error.message
+            : t`An error occurred while saving your settings. Please try again, or contact support if the problem persists.`,
+          variant: "error",
+        });
+        setSaving(false);
+        return;
+      }
+    }
     setLinks((links) => {
       const newLinks = links.links.filter((l) =>
         l.name.trim() !== "" && l.url.trim() !== ""
@@ -291,7 +314,7 @@ function SettingsForm(props: SettingsFormProps) {
         username: usernameChanged == null ? username : undefined,
         name,
         bio,
-        avatarUrl: avatarUrl(),
+        avatarMediumId,
         links: links.links.filter((l) =>
           l.name.trim() !== "" && l.url.trim() !== ""
         ).map((l) => ({ name: l.name, url: l.url })),

@@ -7,6 +7,7 @@ import {
   type AccountEmail,
   type InvitationLink,
   invitationLinkTable,
+  type Medium,
 } from "@hackerspub/models/schema";
 import { createSignupToken } from "@hackerspub/models/signup";
 import { validateUuid } from "@hackerspub/models/uuid";
@@ -29,7 +30,7 @@ export const handler = define.handlers({
     const { id } = ctx.params;
     if (!validateUuid(id)) return ctx.next();
     const invitationLink = await db.query.invitationLinkTable.findFirst({
-      with: { inviter: { with: { emails: true } } },
+      with: { inviter: { with: { avatarMedium: true, emails: true } } },
       where: { id },
     });
     if (invitationLink == null) return ctx.next();
@@ -46,7 +47,7 @@ export const handler = define.handlers({
     const { id } = ctx.params;
     if (!validateUuid(id)) return ctx.next();
     const invitationLink = await db.query.invitationLinkTable.findFirst({
-      with: { inviter: { with: { emails: true } } },
+      with: { inviter: { with: { avatarMedium: true, emails: true } } },
       where: { id },
     });
     if (invitationLink == null) return ctx.next();
@@ -140,7 +141,7 @@ export const handler = define.handlers({
 });
 
 interface InvitationLinkPageProps {
-  inviter: Account & { emails: AccountEmail[] };
+  inviter: Account & { avatarMedium: Medium | null; emails: AccountEmail[] };
   invitationLink: InvitationLink;
   result?:
     | { duplicateEmail: string }

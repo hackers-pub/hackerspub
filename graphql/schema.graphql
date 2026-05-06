@@ -1,7 +1,10 @@
 type Account implements Node {
   actor: Actor!
   articleDrafts(after: String, before: String, first: Int, last: Int): AccountArticleDraftsConnection!
-  avatarUrl: URL!
+
+  """UUID of the medium used as this account's avatar."""
+  avatarMediumId: UUID
+  avatarUrl: URL! @deprecated(reason: "Use avatarMediumId instead.")
   bio: Markdown!
   created: DateTime!
   defaultNoteVisibility: PostVisibility!
@@ -390,6 +393,23 @@ type ArticleDraft implements Node {
   uuid: UUID!
 }
 
+input AttachArticleDraftMediumInput {
+  clientMutationId: ID
+  draftId: UUID!
+
+  """Key used in article markdown as hp-medium:KEY. Defaults to mediumId."""
+  key: String
+  mediumId: UUID!
+}
+
+type AttachArticleDraftMediumPayload {
+  clientMutationId: ID
+  key: String!
+  medium: Medium!
+}
+
+union AttachArticleDraftMediumResult = AttachArticleDraftMediumPayload | InvalidInputError | NotAuthenticatedError
+
 input BlockActorInput {
   actorId: ID!
   clientMutationId: ID
@@ -417,13 +437,38 @@ union BookmarkPostResult = BookmarkPostPayload | InvalidInputError | NotAuthenti
 
 union CreateInvitationLinkResult = InvalidInputError | InvitationLinkPayload | NotAuthenticatedError
 
+input CreateMediumInput {
+  clientMutationId: ID
+
+  """Image URL to import. Data URLs, HTTP, and HTTPS are supported."""
+  url: URL!
+}
+
+type CreateMediumPayload {
+  clientMutationId: ID
+  medium: Medium!
+}
+
+union CreateMediumResult = CreateMediumPayload | InvalidInputError | NotAuthenticatedError
+
 input CreateNoteInput {
   clientMutationId: ID
   content: Markdown!
   language: Locale!
+
+  """Media to attach to the note, in display order."""
+  media: [CreateNoteMediumInput!] = []
   quotedPostId: ID
   replyTargetId: ID
   visibility: PostVisibility!
+}
+
+input CreateNoteMediumInput {
+  """Alternative text for this note's use of the medium."""
+  alt: String!
+
+  """UUID of a Medium to attach to the note."""
+  mediumId: UUID!
 }
 
 type CreateNotePayload {
@@ -470,6 +515,20 @@ union DeleteArticleDraftResult = DeleteArticleDraftPayload | InvalidInputError |
 
 union DeleteInvitationLinkResult = InvitationLinkNotFoundError | InvitationLinkPayload | NotAuthenticatedError
 
+"""The result of deleting orphan media."""
+type DeleteOrphanMediaPayload {
+  """Number of orphan media database rows deleted."""
+  deletedCount: Int!
+
+  """Number of stored media objects that could not be deleted."""
+  failedStorageDeletes: Int!
+
+  """The orphan media status after the deletion attempt."""
+  status: OrphanMediaStatus!
+}
+
+union DeleteOrphanMediaResult = DeleteOrphanMediaPayload | NotAuthenticatedError | NotAuthorizedError
+
 input DeletePostInput {
   clientMutationId: ID
   id: ID!
@@ -508,6 +567,18 @@ type EmojiReactionGroup implements ReactionGroup {
 type EmptySearchQueryError {
   message: String!
 }
+
+input FinishMediumUploadInput {
+  clientMutationId: ID
+  uploadId: UUID!
+}
+
+type FinishMediumUploadPayload {
+  clientMutationId: ID
+  medium: Medium!
+}
+
+union FinishMediumUploadResult = FinishMediumUploadPayload | InvalidInputError | NotAuthenticatedError
 
 input FollowActorInput {
   actorId: ID!
@@ -589,7 +660,7 @@ A snapshot of the invitation-regeneration state used by the admin UI to preview 
 """
 type InvitationRegenerationStatus {
   """
-  The earliest `published` timestamp a post must have to count an account as eligible.  Equals `lastRegeneratedAt` once a regeneration has been recorded; otherwise defaults to one week before now.
+  The earliest `published` timestamp a post must have to count an account as eligible.  Equals `lastRegenerated` once a regeneration has been recorded; otherwise defaults to one week before now.
   """
   cutoffDate: DateTime!
 
@@ -599,7 +670,12 @@ type InvitationRegenerationStatus {
   """
   When the regeneration was last triggered, or null if it has never been run.
   """
-  lastRegeneratedAt: DateTime
+  lastRegenerated: DateTime
+
+  """
+  When the regeneration was last triggered, or null if it has never been run.
+  """
+  lastRegeneratedAt: DateTime @deprecated(reason: "Use lastRegenerated")
 
   """
   Number of accounts that would receive an invitation if a regeneration were triggered now (ceil(eligible / 3)).
@@ -674,6 +750,27 @@ scalar Markdown
 
 scalar MediaType
 
+type Medium implements Node {
+  """SHA-256 hash of the normalized stored content, if known."""
+  contentHash: Sha256
+  created: DateTime!
+  height: Int
+  id: ID!
+
+  """The medium's media type. Local uploads are stored as WebP."""
+  type: MediaType!
+
+  """Public URL for the stored medium."""
+  url: URL!
+  uuid: UUID!
+  width: Int
+}
+
+type MediumUploadHeader {
+  name: String!
+  value: String!
+}
+
 type MentionNotification implements Node & Notification {
   account: Account!
   actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
@@ -685,6 +782,7 @@ type MentionNotification implements Node & Notification {
 
 type Mutation {
   addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
+  attachArticleDraftMedium(input: AttachArticleDraftMediumInput!): AttachArticleDraftMediumResult!
   blockActor(input: BlockActorInput!): BlockActorResult!
   bookmarkPost(input: BookmarkPostInput!): BookmarkPostResult!
   completeLoginChallenge(
@@ -707,10 +805,17 @@ type Mutation {
     token: UUID!
   ): SignupResult!
   createInvitationLink(expires: String, invitationsLeft: Int!, message: Markdown): CreateInvitationLinkResult!
+  createMedium(input: CreateMediumInput!): CreateMediumResult!
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
   deleteInvitationLink(id: UUID!): DeleteInvitationLinkResult!
+
+  """
+  Delete unreferenced media older than the grace period.  Requires a moderator account.
+  """
+  deleteOrphanMedia: DeleteOrphanMediaResult!
   deletePost(input: DeletePostInput!): DeletePostResult!
+  finishMediumUpload(input: FinishMediumUploadInput!): FinishMediumUploadResult!
   followActor(input: FollowActorInput!): FollowActorResult!
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
@@ -791,6 +896,7 @@ type Mutation {
   ): Session
   saveArticleDraft(input: SaveArticleDraftInput!): SaveArticleDraftResult!
   sharePost(input: SharePostInput!): SharePostResult!
+  startMediumUpload(input: StartMediumUploadInput!): StartMediumUploadResult!
   unblockActor(input: UnblockActorInput!): UnblockActorResult!
   unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
@@ -800,7 +906,6 @@ type Mutation {
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
-  uploadMedia(input: UploadMediaInput!): UploadMediaResult!
   verifyPasskeyRegistration(accountId: ID!, name: String!, platform: String = "web", registrationResponse: JSON!): PasskeyRegistrationResult!
   voteOnPoll(input: VoteOnPollInput!): VoteOnPollResult!
 }
@@ -874,6 +979,17 @@ enum NotificationType {
   REACT
   REPLY
   SHARE
+}
+
+"""
+A snapshot of media objects old enough to delete and not referenced by accounts, notes, article drafts, or article sources.
+"""
+type OrphanMediaStatus {
+  """Only unreferenced media created before this timestamp are counted."""
+  cutoffDate: DateTime!
+
+  """Number of unreferenced media objects older than the cutoff."""
+  orphanMediaCount: Int!
 }
 
 type PageInfo {
@@ -1161,6 +1277,11 @@ type Query {
   ): Document!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+
+  """
+  Moderator-only orphan media preview.  Returns null when the viewer is not a moderator.
+  """
+  orphanMediaStatus: OrphanMediaStatus
   personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
   postByUrl(url: String!): Post
   privacyPolicy(
@@ -1357,7 +1478,10 @@ type RegenerateInvitationsPayload {
   accountsAffected: Int!
 
   """When the regeneration ran."""
-  regeneratedAt: DateTime!
+  regenerated: DateTime!
+
+  """When the regeneration ran."""
+  regeneratedAt: DateTime! @deprecated(reason: "Use regenerated")
 
   """The updated regeneration status reflecting the just-recorded run."""
   status: InvitationRegenerationStatus!
@@ -1461,6 +1585,9 @@ input SaveArticleDraftInput {
   id: ID
   tags: [String!]!
   title: String!
+
+  """Draft UUID to use when creating a new draft."""
+  uuid: UUID
 }
 
 type SaveArticleDraftPayload {
@@ -1492,6 +1619,9 @@ type Session {
   """The user agent of the session."""
   userAgent: String
 }
+
+"""A lowercase hex-encoded SHA-256 digest."""
+scalar Sha256
 
 type ShareNotification implements Node & Notification {
   account: Account!
@@ -1562,6 +1692,27 @@ type SignupValidationErrors {
 type StandardEmoji {
   raw: String!
 }
+
+input StartMediumUploadInput {
+  clientMutationId: ID
+
+  """Exact number of bytes the client will upload."""
+  contentLength: Int!
+
+  """Original image content type."""
+  contentType: MediaType!
+}
+
+type StartMediumUploadPayload {
+  clientMutationId: ID
+  expires: DateTime!
+  headers: [MediumUploadHeader!]!
+  method: String!
+  uploadId: UUID!
+  uploadUrl: URL!
+}
+
+union StartMediumUploadResult = InvalidInputError | NotAuthenticatedError | StartMediumUploadPayload
 
 scalar URITemplate
 
@@ -1670,7 +1821,8 @@ type UnsharePostPayload {
 union UnsharePostResult = InvalidInputError | NotAuthenticatedError | UnsharePostPayload
 
 input UpdateAccountInput {
-  avatarUrl: URL
+  avatarMediumId: UUID
+  avatarUrl: URL @deprecated(reason: "Use avatarMediumId instead.")
   bio: String
   clientMutationId: ID
   defaultNoteVisibility: PostVisibility
@@ -1696,8 +1848,21 @@ input UpdateArticleInput {
   clientMutationId: ID
   content: Markdown
   language: Locale
+
+  """
+  Media to make available to hp-medium:KEY references in the updated article markdown.
+  """
+  media: [UpdateArticleMediumInput!]
   tags: [String!]
   title: String
+}
+
+input UpdateArticleMediumInput {
+  """Key used in article markdown as hp-medium:KEY. Defaults to mediumId."""
+  key: String
+
+  """UUID of a Medium to make available to the article source."""
+  mediumId: UUID!
 }
 
 type UpdateArticlePayload {
@@ -1706,21 +1871,6 @@ type UpdateArticlePayload {
 }
 
 union UpdateArticleResult = InvalidInputError | NotAuthenticatedError | UpdateArticlePayload
-
-input UploadMediaInput {
-  clientMutationId: ID
-  draftId: UUID
-  mediaUrl: URL!
-}
-
-type UploadMediaPayload {
-  clientMutationId: ID
-  height: Int!
-  url: URL!
-  width: Int!
-}
-
-union UploadMediaResult = InvalidInputError | NotAuthenticatedError | UploadMediaPayload
 
 input VoteOnPollInput {
   clientMutationId: ID

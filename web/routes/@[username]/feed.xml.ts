@@ -11,7 +11,7 @@ export const handler = define.handlers(async (ctx) => {
   const { username } = ctx.params;
   if (username.includes("@")) return ctx.next();
   const account = await db.query.accountTable.findFirst({
-    with: { actor: true, emails: true },
+    with: { actor: true, avatarMedium: true, emails: true },
     where: { username },
   });
   if (account == null) return ctx.next();

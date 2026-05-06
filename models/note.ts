@@ -5,7 +5,6 @@ import { getNote } from "@hackerspub/federation/objects";
 import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
-import sharp from "sharp";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import {
@@ -22,11 +21,12 @@ import {
   type Blocking,
   type Following,
   type Instance,
+  type Medium,
   type Mention,
   type NewNoteSource,
-  type NoteMedium,
-  noteMediumTable,
   type NoteSource,
+  type NoteSourceMedium,
+  noteSourceMediumTable,
   noteSourceTable,
   type Post,
   type PostLink,
@@ -36,6 +36,11 @@ import {
 } from "./schema.ts";
 import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
+import { createMediumFromBlob } from "./medium.ts";
+
+export type NoteSourceMediumWithMedium = NoteSourceMedium & {
+  medium: Medium;
+};
 
 export async function createNoteSource(
   db: Database,
@@ -110,7 +115,7 @@ export async function getNoteSource(
       shares: Post[];
       reactions: Reaction[];
     };
-    media: NoteMedium[];
+    media: NoteSourceMediumWithMedium[];
   } | undefined
 > {
   let account = await db.query.accountTable.findFirst({
@@ -129,7 +134,7 @@ export async function getNoteSource(
   return await db.query.noteSourceTable.findFirst({
     with: {
       account: {
-        with: { emails: true, links: true },
+        with: { avatarMedium: true, emails: true, links: true },
       },
       post: {
         with: {
@@ -267,41 +272,37 @@ export async function getNoteSource(
           },
         },
       },
-      media: true,
+      media: { with: { medium: true }, orderBy: { index: "asc" } },
     },
     where: { id, accountId: account.id },
   });
 }
 
-export async function createNoteMedium(
+export async function createNoteSourceMedium(
   db: Database,
   disk: Disk,
   sourceId: Uuid,
   index: number,
-  medium: { blob: Blob; alt: string },
-): Promise<NoteMedium | undefined> {
-  const image = sharp(await medium.blob.arrayBuffer()).rotate();
-  const { width, height } = await image.metadata();
-  if (width == null || height == null) return undefined;
-  const buffer = await image.webp().toBuffer();
-  const key = `note-media/${crypto.randomUUID()}.webp`;
-  await disk.put(key, new Uint8Array(buffer));
-  const result = await db.insert(noteMediumTable).values({
+  input: { blob: Blob; alt: string } | { mediumId: Uuid; alt: string },
+): Promise<NoteSourceMediumWithMedium | undefined> {
+  const medium = "blob" in input
+    ? await createMediumFromBlob(db, disk, input.blob)
+    : await db.query.mediumTable.findFirst({ where: { id: input.mediumId } });
+  if (medium == null) return undefined;
+  const result = await db.insert(noteSourceMediumTable).values({
     sourceId,
     index,
-    key,
-    alt: medium.alt,
-    width,
-    height,
+    mediumId: medium.id,
+    alt: input.alt,
   }).returning();
-  return result.length > 0 ? result[0] : undefined;
+  return result.length > 0 ? { ...result[0], medium } : undefined;
 }
 
 export async function createNote(
   fedCtx: Context<ContextData<Transaction>>,
   source: Omit<NewNoteSource, "id"> & {
     id?: Uuid;
-    media: { blob: Blob; alt: string }[];
+    media: ({ blob: Blob; alt: string } | { mediumId: Uuid; alt: string })[];
   },
   relations: {
     replyTarget?: Post & { actor: Actor };
@@ -315,7 +316,7 @@ export async function createNote(
     };
     noteSource: NoteSource & {
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      media: NoteMedium[];
+      media: NoteSourceMediumWithMedium[];
     };
     media: PostMedium[];
   } | undefined
@@ -324,15 +325,22 @@ export async function createNote(
   const noteSource = await createNoteSource(db, source);
   if (noteSource == null) return undefined;
   let index = 0;
-  const media = [];
+  const media: NoteSourceMediumWithMedium[] = [];
   for (const medium of source.media) {
-    const m = await createNoteMedium(db, disk, noteSource.id, index, medium);
-    if (m != null) media.push(m);
+    const m = await createNoteSourceMedium(
+      db,
+      disk,
+      noteSource.id,
+      index,
+      medium,
+    );
+    if (m == null) return undefined;
+    media.push(m);
     index++;
   }
   const account = await db.query.accountTable.findFirst({
     where: { id: source.accountId },
-    with: { emails: true, links: true },
+    with: { avatarMedium: true, emails: true, links: true },
   });
   if (account == undefined) return undefined;
   const post = await syncPostFromNoteSource(fedCtx, {
@@ -470,7 +478,7 @@ export async function updateNote(
     };
     noteSource: NoteSource & {
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
-      media: NoteMedium[];
+      media: NoteSourceMediumWithMedium[];
     };
     mentions: Mention[];
     media: PostMedium[];
@@ -484,10 +492,12 @@ export async function updateNote(
   if (noteSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
     where: { id: noteSource.accountId },
-    with: { emails: true, links: true },
+    with: { avatarMedium: true, emails: true, links: true },
   });
-  const media = await db.query.noteMediumTable.findMany({
+  const media = await db.query.noteSourceMediumTable.findMany({
     where: { sourceId: noteSourceId },
+    with: { medium: true },
+    orderBy: { index: "asc" },
   });
   if (account == null) return undefined;
   const post = await syncPostFromNoteSource(fedCtx, {

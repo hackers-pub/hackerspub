@@ -47,7 +47,9 @@ export const accountTable = pgTable(
     usernameChanged: timestamp("username_changed", { withTimezone: true }),
     name: varchar({ length: 50 }).notNull(),
     bio: text().notNull(),
-    avatarKey: text("avatar_key").unique(),
+    avatarMediumId: uuid("avatar_medium_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => mediumTable.id, { onDelete: "set null" }),
     ogImageKey: text("og_image_key").unique(),
     locales: varchar().array().$type<Locale[] | null>(),
     moderator: boolean().notNull().default(false),
@@ -80,6 +82,7 @@ export const accountTable = pgTable(
       .default(currentTimestamp),
   },
   (table) => [
+    index("account_avatar_medium_id_idx").on(table.avatarMediumId),
     check(
       "account_username_check",
       sql`${table.username} ~ '^[a-z0-9_]{1,50}$'`,
@@ -566,26 +569,72 @@ export const noteSourceTable = pgTable("note_source", {
 export type NoteSource = typeof noteSourceTable.$inferSelect;
 export type NewNoteSource = typeof noteSourceTable.$inferInsert;
 
-export const noteMediumTable = pgTable(
-  "note_medium",
+export const mediumTypeEnum = pgEnum("medium_type", [
+  "image/gif",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
+export type MediumType = (typeof mediumTypeEnum.enumValues)[number];
+
+export function isMediumType(value: unknown): value is MediumType {
+  return mediumTypeEnum.enumValues.includes(value as MediumType);
+}
+
+export const mediumTable = pgTable(
+  "medium",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    key: text().notNull().unique(),
+    type: mediumTypeEnum().notNull(),
+    contentHash: text("content_hash").unique(),
+    width: integer(),
+    height: integer(),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    check(
+      "medium_width_height_check",
+      sql`
+        CASE
+          WHEN ${table.width} IS NULL THEN ${table.height} IS NULL
+          ELSE ${table.height} IS NOT NULL AND
+               ${table.width} > 0 AND ${table.height} > 0
+        END
+      `,
+    ),
+  ],
+);
+
+export type Medium = typeof mediumTable.$inferSelect;
+export type NewMedium = typeof mediumTable.$inferInsert;
+
+export const noteSourceMediumTable = pgTable(
+  "note_source_medium",
   {
     sourceId: uuid("note_source_id")
       .$type<Uuid>()
       .notNull()
       .references(() => noteSourceTable.id, { onDelete: "cascade" }),
     index: smallint().notNull(),
-    key: text().notNull().unique(),
+    mediumId: uuid("medium_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => mediumTable.id, { onDelete: "restrict" }),
     alt: text().notNull(),
-    width: integer().notNull(),
-    height: integer().notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.sourceId, table.index] }),
+    index("note_source_medium_medium_id_idx").on(table.mediumId),
+    check("note_source_medium_index_check", sql`${table.index} >= 0`),
   ],
 );
 
-export type NoteMedium = typeof noteMediumTable.$inferSelect;
-export type NewNoteMedium = typeof noteMediumTable.$inferInsert;
+export type NoteSourceMedium = typeof noteSourceMediumTable.$inferSelect;
+export type NewNoteSourceMedium = typeof noteSourceMediumTable.$inferInsert;
 
 export const postTypeEnum = pgEnum("post_type", [
   "Article",
@@ -1257,31 +1306,56 @@ export const invitationLinkTable = pgTable(
 export type InvitationLink = typeof invitationLinkTable.$inferSelect;
 export type NewInvitationLink = typeof invitationLinkTable.$inferInsert;
 
-export const articleMediumTable = pgTable(
-  "article_medium",
+export const articleDraftMediumTable = pgTable(
+  "article_draft_medium",
   {
-    key: text().primaryKey(),
-    accountId: uuid("account_id")
-      .$type<Uuid>()
-      .notNull()
-      .references(() => accountTable.id, { onDelete: "cascade" }),
     articleDraftId: uuid("article_draft_id")
       .$type<Uuid>()
-      .references(() => articleDraftTable.id, { onDelete: "set null" }),
-    articleSourceId: uuid("article_source_id")
+      .notNull()
+      .references(() => articleDraftTable.id, { onDelete: "cascade" }),
+    key: text().notNull(),
+    mediumId: uuid("medium_id")
       .$type<Uuid>()
-      .references(() => articleSourceTable.id, { onDelete: "set null" }),
-    url: text().notNull(),
-    width: integer().notNull(),
-    height: integer().notNull(),
+      .notNull()
+      .references(() => mediumTable.id, { onDelete: "restrict" }),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
   },
+  (table) => [
+    primaryKey({ columns: [table.articleDraftId, table.key] }),
+    index("article_draft_medium_medium_id_idx").on(table.mediumId),
+  ],
 );
 
-export type ArticleMedium = typeof articleMediumTable.$inferSelect;
-export type NewArticleMedium = typeof articleMediumTable.$inferInsert;
+export type ArticleDraftMedium = typeof articleDraftMediumTable.$inferSelect;
+export type NewArticleDraftMedium = typeof articleDraftMediumTable.$inferInsert;
+
+export const articleSourceMediumTable = pgTable(
+  "article_source_medium",
+  {
+    articleSourceId: uuid("article_source_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => articleSourceTable.id, { onDelete: "cascade" }),
+    key: text().notNull(),
+    mediumId: uuid("medium_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => mediumTable.id, { onDelete: "restrict" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.articleSourceId, table.key] }),
+    index("article_source_medium_medium_id_idx").on(table.mediumId),
+  ],
+);
+
+export type ArticleSourceMedium = typeof articleSourceMediumTable.$inferSelect;
+export type NewArticleSourceMedium =
+  typeof articleSourceMediumTable.$inferInsert;
 
 export const adminStateTable = pgTable("admin_state", {
   key: text().primaryKey(),

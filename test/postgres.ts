@@ -119,6 +119,7 @@ export async function insertAccountWithActor(
     where: { id: accountId },
     with: {
       actor: true,
+      avatarMedium: true,
       emails: true,
       links: true,
     },
@@ -305,14 +306,32 @@ export function toPlainJson<T>(value: T): T {
 }
 
 export function createTestDisk(): ContextData["disk"] {
+  const files = new Map<string, Uint8Array>();
   return {
     getUrl(key: string) {
       return Promise.resolve(`http://localhost/media/${key}`);
     },
-    put() {
+    getBytes(key: string) {
+      const bytes = files.get(key);
+      if (bytes == null) throw new Error(`No test disk file for key: ${key}`);
+      return Promise.resolve(bytes);
+    },
+    getMetaData(key: string) {
+      const bytes = files.get(key);
+      if (bytes == null) throw new Error(`No test disk file for key: ${key}`);
+      return Promise.resolve({
+        contentLength: bytes.byteLength,
+        contentType: undefined,
+        etag: `"${key}"`,
+        lastModified: new Date("2026-04-15T00:00:00.000Z"),
+      });
+    },
+    put(key: string, contents: Uint8Array) {
+      files.set(key, contents);
       return Promise.resolve(undefined);
     },
-    delete() {
+    delete(key: string) {
+      files.delete(key);
       return Promise.resolve(undefined);
     },
   } as unknown as ContextData["disk"];

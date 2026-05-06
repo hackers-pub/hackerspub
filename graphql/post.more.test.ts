@@ -4,18 +4,26 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import type { UserContext } from "./builder.ts";
+import { createArticle, updateArticleDraft } from "@hackerspub/models/article";
 import {
   accountTable,
   articleContentTable,
   articleDraftTable,
   articleSourceTable,
+  mediumTable,
   type NewPost,
   postTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
+import {
+  createMediumUploadSession,
+  getMediumUploadSession,
+} from "./medium-upload.ts";
 import { schema } from "./mod.ts";
 import {
   createFedCtx,
+  createTestDisk,
+  createTestKv,
   insertAccountWithActor,
   insertNotePost,
   makeGuestContext,
@@ -35,6 +43,9 @@ const saveArticleDraftMutation = parse(`
           title
           tags
         }
+      }
+      ... on InvalidInputError {
+        inputPath
       }
     }
   }
@@ -134,6 +145,112 @@ const articleContentOgImageBulkByLanguageQuery = parse(`
   }
 `);
 
+const createMediumMutation = parse(`
+  mutation CreateMedium($input: CreateMediumInput!) {
+    createMedium(input: $input) {
+      __typename
+      ... on CreateMediumPayload {
+        medium {
+          uuid
+          url
+          type
+          contentHash
+          width
+          height
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`);
+
+const mediumContentHashTypeQuery = parse(`
+  query MediumContentHashType {
+    medium: __type(name: "Medium") {
+      fields {
+        name
+        type {
+          kind
+          name
+          ofType {
+            kind
+            name
+          }
+        }
+      }
+    }
+    sha256: __type(name: "Sha256") {
+      kind
+      name
+      description
+    }
+  }
+`);
+
+const attachArticleDraftMediumMutation = parse(`
+  mutation AttachArticleDraftMedium($input: AttachArticleDraftMediumInput!) {
+    attachArticleDraftMedium(input: $input) {
+      __typename
+      ... on AttachArticleDraftMediumPayload {
+        key
+        medium {
+          uuid
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`);
+
+const updateArticleWithMediaMutation = parse(`
+  mutation UpdateArticleWithMedia($input: UpdateArticleInput!) {
+    updateArticle(input: $input) {
+      __typename
+      ... on UpdateArticlePayload {
+        article {
+          id
+          content
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`);
+
+const finishMediumUploadMutation = parse(`
+  mutation FinishMediumUpload($input: FinishMediumUploadInput!) {
+    finishMediumUpload(input: $input) {
+      __typename
+      ... on FinishMediumUploadPayload {
+        medium {
+          uuid
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`);
+
 const articleContentOgImageCollisionQuery = parse(`
   query ArticleContentOgImageCollision(
     $handle: String!
@@ -163,6 +280,17 @@ const createNoteMutation = parse(`
           id
           excerpt
         }
+      }
+    }
+  }
+`);
+
+const createNoteWithErrorMutation = parse(`
+  mutation CreateNoteWithError($input: CreateNoteInput!) {
+    createNote(input: $input) {
+      __typename
+      ... on InvalidInputError {
+        inputPath
       }
     }
   }
@@ -324,6 +452,306 @@ test("saveArticleDraft, articleDraft, and deleteArticleDraft round-trip a draft"
   });
 });
 
+test("saveArticleDraft rejects draft UUIDs owned by another account", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "draftuuidowner",
+      name: "Draft UUID Owner",
+      email: "draftuuidowner@example.com",
+    });
+    const other = await insertAccountWithActor(tx, {
+      username: "draftuuidother",
+      name: "Draft UUID Other",
+      email: "draftuuidother@example.com",
+    });
+    const draftId = generateUuidV7();
+    await updateArticleDraft(tx, {
+      id: draftId,
+      accountId: owner.account.id,
+      title: "Owned draft",
+      content: "Owned content",
+      tags: [],
+    });
+
+    const result = await execute({
+      schema,
+      document: saveArticleDraftMutation,
+      variableValues: {
+        input: {
+          uuid: draftId,
+          title: "Conflicting draft",
+          content: "Conflicting content",
+          tags: [],
+        },
+      },
+      contextValue: makeUserContext(tx, other.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      saveArticleDraft: {
+        __typename: "InvalidInputError",
+        inputPath: "uuid",
+      },
+    });
+  });
+});
+
+test("Medium.contentHash is exposed as Sha256", async () => {
+  const result = await execute({
+    schema,
+    document: mediumContentHashTypeQuery,
+    onError: "NO_PROPAGATE",
+  });
+
+  assert.equal(result.errors, undefined);
+  const data = toPlainJson(result.data) as {
+    medium: {
+      fields: {
+        name: string;
+        type: {
+          kind: string;
+          name: string | null;
+          ofType: { kind: string; name: string | null } | null;
+        };
+      }[];
+    };
+    sha256: {
+      kind: string;
+      name: string;
+      description: string;
+    };
+  };
+  assert.equal(data.sha256.kind, "SCALAR");
+  assert.equal(data.sha256.name, "Sha256");
+  assert.match(data.sha256.description, /SHA-256/);
+  const contentHash = data.medium.fields.find((field) =>
+    field.name === "contentHash"
+  );
+  assert.deepEqual(contentHash?.type, {
+    kind: "SCALAR",
+    name: "Sha256",
+    ofType: null,
+  });
+});
+
+test("createMedium and attachArticleDraftMedium create draft media relations", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "mediumgraphql",
+      name: "Medium GraphQL",
+      email: "mediumgraphql@example.com",
+    });
+    const disk = createOgTestDisk();
+
+    const createResult = await execute({
+      schema,
+      document: createMediumMutation,
+      variableValues: { input: { url: smallPngDataUrl } },
+      contextValue: makeUserContext(tx, account.account, { disk: disk.disk }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(createResult.errors, undefined);
+    const medium = (toPlainJson(createResult.data) as {
+      createMedium: {
+        __typename: string;
+        medium: {
+          uuid: string;
+          url: string;
+          type: string;
+          contentHash: string;
+          width: number;
+          height: number;
+        };
+      };
+    }).createMedium.medium;
+    assert.equal(medium.type, "image/webp");
+    assert.match(medium.contentHash, /^[0-9a-f]{64}$/);
+    assert.equal(medium.width, 1);
+    assert.equal(medium.height, 1);
+    assert.match(medium.url, /^http:\/\/localhost\/media\/media\/.+\.webp$/);
+    assert.equal(disk.putKeys.length, 1);
+
+    const draftId = generateUuidV7();
+    const attachResult = await execute({
+      schema,
+      document: attachArticleDraftMediumMutation,
+      variableValues: {
+        input: {
+          draftId,
+          mediumId: medium.uuid,
+        },
+      },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(attachResult.errors, undefined);
+    const attached = (toPlainJson(attachResult.data) as {
+      attachArticleDraftMedium: {
+        __typename: string;
+        key: string;
+        medium: { uuid: string };
+      };
+    }).attachArticleDraftMedium;
+    assert.equal(attached.__typename, "AttachArticleDraftMediumPayload");
+    assert.equal(attached.key, medium.uuid);
+    assert.equal(attached.medium.uuid, medium.uuid);
+
+    const relation = await tx.query.articleDraftMediumTable.findFirst({
+      where: { articleDraftId: draftId },
+    });
+    assert.equal(relation?.mediumId, medium.uuid);
+    assert.equal(relation?.key, medium.uuid);
+    const draft = await tx.query.articleDraftTable.findFirst({
+      where: { id: draftId },
+    });
+    assert.equal(draft?.title, "");
+    assert.equal(draft?.content, "");
+  });
+});
+
+test("updateArticle accepts media for new article source references", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updatearticlemediumgraphql",
+      name: "Update Article Medium GraphQL",
+      email: "updatearticlemediumgraphql@example.com",
+    });
+    const fedCtx = createFedCtx(tx);
+    const article = await createArticle(fedCtx, {
+      accountId: account.account.id,
+      publishedYear: 2026,
+      slug: "update-article-medium-graphql",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Original article",
+      content: "Original body",
+      language: "en",
+    });
+    assert.ok(article != null);
+    const mediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: mediumId,
+      key: "media/update-article-medium-graphql.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
+
+    const result = await execute({
+      schema,
+      document: updateArticleWithMediaMutation,
+      variableValues: {
+        input: {
+          articleId: encodeGlobalID("Article", article.id),
+          content: "![Hero](hp-medium:hero)",
+          media: [{ key: "hero", mediumId }],
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const updated = (toPlainJson(result.data) as {
+      updateArticle: {
+        __typename: string;
+        article: { content: string };
+      };
+    }).updateArticle;
+    assert.equal(updated.__typename, "UpdateArticlePayload");
+    assert.match(
+      updated.article.content,
+      /http:\/\/localhost\/media\/media\/update-article-medium-graphql\.webp/,
+    );
+    assert.doesNotMatch(updated.article.content, /hp-medium:hero/);
+
+    const relation = await tx.query.articleSourceMediumTable.findFirst({
+      where: { articleSourceId: article.articleSource.id, key: "hero" },
+    });
+    assert.equal(relation?.mediumId, mediumId);
+  });
+});
+
+test("finishMediumUpload cleans up invalid uploaded bytes", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "invaliduploadgraphql",
+      name: "Invalid Upload GraphQL",
+      email: "invaliduploadgraphql@example.com",
+    });
+    const { kv } = createTestKv();
+    const disk = createTestDisk();
+    const upload = await createMediumUploadSession(
+      kv,
+      account.account.id,
+      "image/png",
+      4,
+    );
+    await disk.put(upload.key, new Uint8Array([1, 2, 3, 4]));
+
+    const result = await execute({
+      schema,
+      document: finishMediumUploadMutation,
+      variableValues: { input: { uploadId: upload.id } },
+      contextValue: makeUserContext(tx, account.account, { kv, disk }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      finishMediumUpload: {
+        __typename: "InvalidInputError",
+        inputPath: "uploadId",
+      },
+    });
+    assert.throws(() => disk.getBytes(upload.key));
+    assert.equal(await getMediumUploadSession(kv, upload.id), undefined);
+  });
+});
+
+test("finishMediumUpload rejects unexpected uploaded size before reading", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "mismatcheduploadgraphql",
+      name: "Mismatched Upload GraphQL",
+      email: "mismatcheduploadgraphql@example.com",
+    });
+    const { kv } = createTestKv();
+    const disk = createTestDisk();
+    const upload = await createMediumUploadSession(
+      kv,
+      account.account.id,
+      "image/png",
+      4,
+    );
+    await disk.put(upload.key, new Uint8Array([1, 2, 3, 4, 5]));
+
+    const result = await execute({
+      schema,
+      document: finishMediumUploadMutation,
+      variableValues: { input: { uploadId: upload.id } },
+      contextValue: makeUserContext(tx, account.account, { kv, disk }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      finishMediumUpload: {
+        __typename: "InvalidInputError",
+        inputPath: "uploadId",
+      },
+    });
+    assert.throws(() => disk.getBytes(upload.key));
+    assert.equal(await getMediumUploadSession(kv, upload.id), undefined);
+  });
+});
+
 test("publishArticleDraft publishes an article and removes the draft", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {
@@ -401,8 +829,15 @@ test("ArticleContent.ogImageUrl keys do not collide across articles", async () =
       name: "Article OG Collision",
       email: "articleogcollision@example.com",
     });
+    const [avatarMedium] = await tx.insert(mediumTable).values({
+      id: generateUuidV7(),
+      key: "article-avatar-og-test",
+      type: "image/webp",
+      width: null,
+      height: null,
+    }).returning();
     await tx.update(accountTable)
-      .set({ avatarKey: "article-avatar-og-test" })
+      .set({ avatarMediumId: avatarMedium.id })
       .where(eq(accountTable.id, author.account.id));
     const published = new Date("2026-04-15T00:00:00.000Z");
 
@@ -522,8 +957,15 @@ test("ArticleContent.ogImageUrl renders per-language article images", async () =
       name: "Article OG GraphQL",
       email: "articleoggraphql@example.com",
     });
+    const [avatarMedium] = await tx.insert(mediumTable).values({
+      id: generateUuidV7(),
+      key: "article-avatar-og-test",
+      type: "image/webp",
+      width: null,
+      height: null,
+    }).returning();
     await tx.update(accountTable)
-      .set({ avatarKey: "article-avatar-og-test" })
+      .set({ avatarMediumId: avatarMedium.id })
       .where(eq(accountTable.id, author.account.id));
     const sourceId = generateUuidV7();
     const postId = generateUuidV7();
@@ -881,6 +1323,42 @@ test("createNote creates a note for the signed-in account", async () => {
       },
     });
     assert.equal(createdSources.length, 1);
+  });
+});
+
+test("createNote validates attached media inside the transaction", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "createnotemissingmedia",
+      name: "Create Note Missing Media",
+      email: "createnotemissingmedia@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "note with missing media",
+          language: "en",
+          visibility: "PUBLIC",
+          media: [{
+            mediumId: crypto.randomUUID(),
+            alt: "Missing image",
+          }],
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      createNote: {
+        __typename: "InvalidInputError",
+        inputPath: "media.0.mediumId",
+      },
+    });
   });
 });
 

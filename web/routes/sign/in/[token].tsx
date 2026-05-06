@@ -37,6 +37,7 @@ export const handler = define.handlers(
     const account = await db.query.accountTable.findFirst({
       where: { id: token.accountId },
       with: {
+        avatarMedium: true,
         emails: true,
         links: { orderBy: { index: "asc" } },
       },
