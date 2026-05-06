@@ -265,6 +265,7 @@ function SettingsForm(props: SettingsFormProps) {
   const [saving, setSaving] = createSignal(false);
   async function onSubmit(event: SubmitEvent) {
     event.preventDefault();
+    if (saving()) return;
     const id = account()?.id;
     const usernameChanged = account()?.usernameChanged;
     if (
