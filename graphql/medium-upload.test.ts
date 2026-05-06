@@ -1,0 +1,74 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import type { Uuid } from "@hackerspub/models/uuid";
+import {
+  createMediumUploadSession,
+  handleMediumUploadProxy,
+} from "./medium-upload.ts";
+import { createTestDisk, createTestKv } from "../test/postgres.ts";
+
+test("handleMediumUploadProxy rejects missing content length before reading", async () => {
+  const { kv } = createTestKv();
+  const disk = createTestDisk();
+  const accountId = crypto.randomUUID() as Uuid;
+  const session = await createMediumUploadSession(
+    kv,
+    accountId,
+    "image/png",
+    4,
+  );
+  const body = new ReadableStream<Uint8Array>({
+    pull() {
+      throw new Error("request body should not be read");
+    },
+  });
+
+  const response = await handleMediumUploadProxy(
+    new Request(
+      `http://localhost/medium-uploads/${session.id}?token=${session.token}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "image/png" },
+        body,
+      },
+    ),
+    kv,
+    disk,
+  );
+
+  assert.ok(response != null);
+  assert.equal(response.status, 411);
+});
+
+test("handleMediumUploadProxy accepts exact content length", async () => {
+  const { kv } = createTestKv();
+  const disk = createTestDisk();
+  const accountId = crypto.randomUUID() as Uuid;
+  const session = await createMediumUploadSession(
+    kv,
+    accountId,
+    "image/png",
+    4,
+  );
+  const bytes = new Uint8Array([1, 2, 3, 4]);
+
+  const response = await handleMediumUploadProxy(
+    new Request(
+      `http://localhost/medium-uploads/${session.id}?token=${session.token}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "image/png",
+          "Content-Length": String(bytes.byteLength),
+        },
+        body: bytes,
+      },
+    ),
+    kv,
+    disk,
+  );
+
+  assert.ok(response != null);
+  assert.equal(response.status, 204);
+  assert.deepEqual(await disk.getBytes(session.key), bytes);
+});

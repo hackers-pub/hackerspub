@@ -98,9 +98,14 @@ export async function handleMediumUploadProxy(
     return new Response("Unsupported Media Type", { status: 415 });
   }
   const contentLength = request.headers.get("Content-Length");
+  if (contentLength == null || !/^\d+$/.test(contentLength)) {
+    return new Response("Length Required", { status: 411 });
+  }
+  const length = Number(contentLength);
   if (
-    contentLength != null &&
-    Number(contentLength) > MAX_STREAMING_MEDIUM_IMAGE_SIZE
+    !Number.isSafeInteger(length) ||
+    length !== session.contentLength ||
+    length > MAX_STREAMING_MEDIUM_IMAGE_SIZE
   ) {
     return new Response("Payload Too Large", { status: 413 });
   }
