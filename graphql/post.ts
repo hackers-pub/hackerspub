@@ -691,7 +691,8 @@ export const Medium = builder.drizzleNode("mediumTable", {
       type: "MediaType",
       description: "The medium's media type. Local uploads are stored as WebP.",
     }),
-    contentHash: t.exposeString("contentHash", {
+    contentHash: t.expose("contentHash", {
+      type: "Sha256",
       nullable: true,
       description: "SHA-256 hash of the normalized stored content, if known.",
     }),

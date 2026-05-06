@@ -118,6 +118,10 @@ export interface PothosTypes {
       Input: string;
       Output: string;
     };
+    Sha256: {
+      Input: string;
+      Output: string;
+    };
     URITemplate: {
       Input: string;
       Output: string;
@@ -341,6 +345,43 @@ builder.scalarType("MediaType", {
   serialize: (v) => v,
   parseValue: (v) => String(v),
 });
+
+const sha256Pattern = /^[0-9a-f]{64}$/;
+
+function normalizeSha256(value: unknown): string {
+  if (typeof value !== "string" || !sha256Pattern.test(value)) {
+    throw createGraphQLError(
+      "Expected a lowercase hex-encoded SHA-256 digest.",
+    );
+  }
+  return value;
+}
+
+builder.addScalarType(
+  "Sha256",
+  new GraphQLScalarType<string, string>({
+    name: "Sha256",
+    description: "A lowercase hex-encoded SHA-256 digest.",
+    serialize: normalizeSha256,
+    parseValue: normalizeSha256,
+    parseLiteral(ast) {
+      if (ast.kind !== Kind.STRING) {
+        throw createGraphQLError(
+          `Can only validate strings as SHA-256 digests but got a: ${ast.kind}`,
+          { nodes: ast },
+        );
+      }
+      return normalizeSha256(ast.value);
+    },
+    extensions: {
+      codegenScalarType: "string",
+      jsonSchema: {
+        type: "string",
+        pattern: "^[0-9a-f]{64}$",
+      },
+    },
+  }),
+);
 
 builder.queryType({});
 builder.mutationType({});

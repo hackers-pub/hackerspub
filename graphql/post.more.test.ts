@@ -144,6 +144,7 @@ const createMediumMutation = parse(`
           uuid
           url
           type
+          contentHash
           width
           height
         }
@@ -154,6 +155,29 @@ const createMediumMutation = parse(`
       ... on NotAuthenticatedError {
         notAuthenticated
       }
+    }
+  }
+`);
+
+const mediumContentHashTypeQuery = parse(`
+  query MediumContentHashType {
+    medium: __type(name: "Medium") {
+      fields {
+        name
+        type {
+          kind
+          name
+          ofType {
+            kind
+            name
+          }
+        }
+      }
+    }
+    sha256: __type(name: "Sha256") {
+      kind
+      name
+      description
     }
   }
 `);
@@ -368,6 +392,44 @@ test("saveArticleDraft, articleDraft, and deleteArticleDraft round-trip a draft"
   });
 });
 
+test("Medium.contentHash is exposed as Sha256", async () => {
+  const result = await execute({
+    schema,
+    document: mediumContentHashTypeQuery,
+    onError: "NO_PROPAGATE",
+  });
+
+  assert.equal(result.errors, undefined);
+  const data = toPlainJson(result.data) as {
+    medium: {
+      fields: {
+        name: string;
+        type: {
+          kind: string;
+          name: string | null;
+          ofType: { kind: string; name: string | null } | null;
+        };
+      }[];
+    };
+    sha256: {
+      kind: string;
+      name: string;
+      description: string;
+    };
+  };
+  assert.equal(data.sha256.kind, "SCALAR");
+  assert.equal(data.sha256.name, "Sha256");
+  assert.match(data.sha256.description, /SHA-256/);
+  const contentHash = data.medium.fields.find((field) =>
+    field.name === "contentHash"
+  );
+  assert.deepEqual(contentHash?.type, {
+    kind: "SCALAR",
+    name: "Sha256",
+    ofType: null,
+  });
+});
+
 test("createMedium and attachArticleDraftMedium create draft media relations", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {
@@ -393,12 +455,14 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
           uuid: string;
           url: string;
           type: string;
+          contentHash: string;
           width: number;
           height: number;
         };
       };
     }).createMedium.medium;
     assert.equal(medium.type, "image/webp");
+    assert.match(medium.contentHash, /^[0-9a-f]{64}$/);
     assert.equal(medium.width, 1);
     assert.equal(medium.height, 1);
     assert.match(medium.url, /^http:\/\/localhost\/media\/media\/.+\.webp$/);

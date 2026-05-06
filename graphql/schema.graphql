@@ -730,7 +730,7 @@ scalar MediaType
 
 type Medium implements Node {
   """SHA-256 hash of the normalized stored content, if known."""
-  contentHash: String
+  contentHash: Sha256
   created: DateTime!
   height: Int
   id: ID!
@@ -1573,6 +1573,9 @@ type Session {
   """The user agent of the session."""
   userAgent: String
 }
+
+"""A lowercase hex-encoded SHA-256 digest."""
+scalar Sha256
 
 type ShareNotification implements Node & Notification {
   account: Account!
