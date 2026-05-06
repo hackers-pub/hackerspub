@@ -1,9 +1,11 @@
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { INVITATIONS_LAST_REGEN_KEY } from "@hackerspub/models/admin";
-import { accountTable } from "@hackerspub/models/schema";
+import { accountTable, mediumTable } from "@hackerspub/models/schema";
+import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import { eq, inArray, sql } from "drizzle-orm";
 import { execute, parse } from "graphql";
+import type { UserContext } from "./builder.ts";
 import { schema } from "./mod.ts";
 import {
   createTestKv,
@@ -13,6 +15,37 @@ import {
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
+
+function createTrackingDisk() {
+  const deleteKeys: string[] = [];
+  return {
+    deleteKeys,
+    disk: {
+      delete(key: string) {
+        deleteKeys.push(key);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as UserContext["disk"],
+  };
+}
+
+async function insertTestMedium(
+  tx: Parameters<Parameters<typeof withRollback>[0]>[0],
+  key: string,
+  created: Date,
+): Promise<Uuid> {
+  const id = generateUuidV7();
+  await tx.insert(mediumTable).values({
+    id,
+    key,
+    type: "image/webp",
+    contentHash: null,
+    width: 1,
+    height: 1,
+    created,
+  });
+  return id;
+}
 
 const adminAccountsQuery = parse(`
   query AdminAccounts(
@@ -1228,6 +1261,166 @@ Deno.test({
         where: { id: future.account.id },
       });
       assertEquals(futureRow?.leftInvitations, 0);
+    });
+  },
+});
+
+const orphanMediaStatusQuery = parse(`
+  query OrphanMediaStatus {
+    orphanMediaStatus {
+      cutoffDate
+      orphanMediaCount
+    }
+  }
+`);
+
+Deno.test({
+  name: "orphanMediaStatus returns null for guest",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const result = await execute({
+        schema,
+        document: orphanMediaStatusQuery,
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(result.errors, undefined);
+      assertEquals(
+        (result.data as { orphanMediaStatus: unknown }).orphanMediaStatus,
+        null,
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "orphanMediaStatus counts old unreferenced media for moderators",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const mod = await makeModerator(tx, "orphanstatusmod");
+      await insertTestMedium(
+        tx,
+        "media/graphql-orphan-status.webp",
+        new Date("2020-01-01T00:00:00.000Z"),
+      );
+      await insertTestMedium(
+        tx,
+        "media/graphql-recent-status.webp",
+        new Date(),
+      );
+
+      const result = await execute({
+        schema,
+        document: orphanMediaStatusQuery,
+        contextValue: makeUserContext(tx, mod.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(result.errors, undefined);
+      const status = (result.data as {
+        orphanMediaStatus: {
+          orphanMediaCount: number;
+          cutoffDate: Date | string;
+        } | null;
+      }).orphanMediaStatus;
+      assert(status != null);
+      assertEquals(status.orphanMediaCount, 1);
+    });
+  },
+});
+
+const deleteOrphanMediaMutation = parse(`
+  mutation DeleteOrphanMedia {
+    deleteOrphanMedia {
+      __typename
+      ... on DeleteOrphanMediaPayload {
+        deletedCount
+        failedDiskDeletes
+        status {
+          orphanMediaCount
+        }
+      }
+      ... on NotAuthenticatedError { notAuthenticated }
+      ... on NotAuthorizedError { notAuthorized }
+    }
+  }
+`);
+
+Deno.test({
+  name: "deleteOrphanMedia returns NotAuthenticatedError for guest",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const result = await execute({
+        schema,
+        document: deleteOrphanMediaMutation,
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(result.errors, undefined);
+      assertEquals(
+        (result.data as {
+          deleteOrphanMedia: { __typename: string };
+        }).deleteOrphanMedia.__typename,
+        "NotAuthenticatedError",
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "deleteOrphanMedia deletes old unreferenced media for moderators",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const mod = await makeModerator(tx, "orphanmutmod");
+      const orphanId = await insertTestMedium(
+        tx,
+        "media/graphql-orphan-delete.webp",
+        new Date("2020-01-01T00:00:00.000Z"),
+      );
+      const recentId = await insertTestMedium(
+        tx,
+        "media/graphql-recent-keep.webp",
+        new Date(),
+      );
+      const disk = createTrackingDisk();
+
+      const result = await execute({
+        schema,
+        document: deleteOrphanMediaMutation,
+        contextValue: makeUserContext(tx, mod.account, { disk: disk.disk }),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(result.errors, undefined);
+      const payload = (result.data as {
+        deleteOrphanMedia: {
+          __typename: string;
+          deletedCount: number;
+          failedDiskDeletes: number;
+          status: { orphanMediaCount: number };
+        };
+      }).deleteOrphanMedia;
+      assertEquals(payload.__typename, "DeleteOrphanMediaPayload");
+      assertEquals(payload.deletedCount, 1);
+      assertEquals(payload.failedDiskDeletes, 0);
+      assertEquals(payload.status.orphanMediaCount, 0);
+      assertEquals(disk.deleteKeys, ["media/graphql-orphan-delete.webp"]);
+      assertEquals(
+        await tx.query.mediumTable.findFirst({ where: { id: orphanId } }),
+        undefined,
+      );
+      assert(
+        await tx.query.mediumTable.findFirst({ where: { id: recentId } }) !=
+          null,
+      );
     });
   },
 });

@@ -8,12 +8,56 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 import {
+  deleteOrphanMedia,
   getInvitationRegenerationStatus,
   getInvitationsLastRegen,
+  getOrphanMediaStatus,
   INVITATIONS_LAST_REGEN_KEY,
   regenerateInvitations,
 } from "./admin.ts";
-import { accountTable, adminStateTable } from "./schema.ts";
+import {
+  accountTable,
+  adminStateTable,
+  articleDraftMediumTable,
+  articleDraftTable,
+  articleSourceMediumTable,
+  articleSourceTable,
+  mediumTable,
+  noteSourceMediumTable,
+  noteSourceTable,
+} from "./schema.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
+
+function createTrackingDisk() {
+  const deleteKeys: string[] = [];
+  return {
+    deleteKeys,
+    disk: {
+      delete(key: string) {
+        deleteKeys.push(key);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as Parameters<typeof deleteOrphanMedia>[1],
+  };
+}
+
+async function insertTestMedium(
+  tx: Parameters<Parameters<typeof withRollback>[0]>[0],
+  key: string,
+  created: Date,
+): Promise<Uuid> {
+  const id = generateUuidV7();
+  await tx.insert(mediumTable).values({
+    id,
+    key,
+    type: "image/webp",
+    contentHash: null,
+    width: 1,
+    height: 1,
+    created,
+  });
+  return id;
+}
 
 Deno.test({
   name: "getInvitationsLastRegen returns null when DB and KV are empty",
@@ -260,6 +304,128 @@ Deno.test({
       });
       assert(row != null);
       assertEquals(row.value, now.toISOString());
+    });
+  },
+});
+
+Deno.test({
+  name: "getOrphanMediaStatus counts only old unreferenced media",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const account = await insertAccountWithActor(tx, {
+        username: "orphanstatus",
+        name: "Orphan Status",
+        email: "orphanstatus@example.com",
+      });
+      const now = new Date("2026-04-15T00:00:00.000Z");
+      const old = new Date("2026-04-13T00:00:00.000Z");
+      const cutoff = new Date("2026-04-14T00:00:00.000Z");
+      const recent = new Date("2026-04-14T12:00:00.000Z");
+
+      await insertTestMedium(tx, "media/orphan.webp", old);
+      await insertTestMedium(tx, "media/recent.webp", recent);
+
+      const avatarMediumId = await insertTestMedium(
+        tx,
+        "media/avatar.webp",
+        old,
+      );
+      await tx.update(accountTable).set({ avatarMediumId }).where(
+        eq(accountTable.id, account.account.id),
+      );
+
+      const noteMediumId = await insertTestMedium(tx, "media/note.webp", old);
+      const noteSourceId = generateUuidV7();
+      await tx.insert(noteSourceTable).values({
+        id: noteSourceId,
+        accountId: account.account.id,
+        content: "note",
+        language: "en",
+      });
+      await tx.insert(noteSourceMediumTable).values({
+        sourceId: noteSourceId,
+        index: 0,
+        mediumId: noteMediumId,
+        alt: "",
+      });
+
+      const draftMediumId = await insertTestMedium(tx, "media/draft.webp", old);
+      const draftId = generateUuidV7();
+      await tx.insert(articleDraftTable).values({
+        id: draftId,
+        accountId: account.account.id,
+        title: "Draft",
+        content: "draft",
+      });
+      await tx.insert(articleDraftMediumTable).values({
+        articleDraftId: draftId,
+        key: "draft-key",
+        mediumId: draftMediumId,
+      });
+
+      const sourceMediumId = await insertTestMedium(
+        tx,
+        "media/source.webp",
+        old,
+      );
+      const sourceId = generateUuidV7();
+      await tx.insert(articleSourceTable).values({
+        id: sourceId,
+        accountId: account.account.id,
+        slug: "source",
+        published: new Date("2026-04-15T00:00:00.000Z"),
+      });
+      await tx.insert(articleSourceMediumTable).values({
+        articleSourceId: sourceId,
+        key: "source-key",
+        mediumId: sourceMediumId,
+      });
+
+      const status = await getOrphanMediaStatus(tx, { now });
+      assertEquals(status.cutoffDate.toISOString(), cutoff.toISOString());
+      assertEquals(status.orphanMediaCount, 1);
+    });
+  },
+});
+
+Deno.test({
+  name: "deleteOrphanMedia removes old unreferenced rows and disk objects",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const now = new Date("2026-04-15T00:00:00.000Z");
+      const old = new Date("2026-04-13T00:00:00.000Z");
+      const cutoff = new Date("2026-04-14T00:00:00.000Z");
+      const recent = new Date("2026-04-14T12:00:00.000Z");
+      const orphanId = await insertTestMedium(
+        tx,
+        "media/orphan-delete.webp",
+        old,
+      );
+      const recentId = await insertTestMedium(
+        tx,
+        "media/recent-keep.webp",
+        recent,
+      );
+      const disk = createTrackingDisk();
+
+      const result = await deleteOrphanMedia(tx, disk.disk, { now });
+
+      assertEquals(result.cutoffDate.toISOString(), cutoff.toISOString());
+      assertEquals(result.deletedCount, 1);
+      assertEquals(result.failedDiskDeletes, 0);
+      assertEquals(disk.deleteKeys, ["media/orphan-delete.webp"]);
+      assertEquals(
+        await tx.query.mediumTable.findFirst({ where: { id: orphanId } }),
+        undefined,
+      );
+      assert(
+        await tx.query.mediumTable.findFirst({ where: { id: recentId } }) !=
+          null,
+      );
     });
   },
 });

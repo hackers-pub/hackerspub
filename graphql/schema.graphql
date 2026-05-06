@@ -512,6 +512,20 @@ union DeleteArticleDraftResult = DeleteArticleDraftPayload | InvalidInputError |
 
 union DeleteInvitationLinkResult = InvitationLinkNotFoundError | InvitationLinkPayload | NotAuthenticatedError
 
+"""The result of deleting orphan media."""
+type DeleteOrphanMediaPayload {
+  """Number of orphan media database rows deleted."""
+  deletedCount: Int!
+
+  """Number of stored media objects that could not be deleted from disk."""
+  failedDiskDeletes: Int!
+
+  """The orphan media status after the deletion attempt."""
+  status: OrphanMediaStatus!
+}
+
+union DeleteOrphanMediaResult = DeleteOrphanMediaPayload | NotAuthenticatedError | NotAuthorizedError
+
 input DeletePostInput {
   clientMutationId: ID
   id: ID!
@@ -787,6 +801,11 @@ type Mutation {
   createNote(input: CreateNoteInput!): CreateNoteResult!
   deleteArticleDraft(input: DeleteArticleDraftInput!): DeleteArticleDraftResult!
   deleteInvitationLink(id: UUID!): DeleteInvitationLinkResult!
+
+  """
+  Delete unreferenced media older than the grace period.  Requires a moderator account.
+  """
+  deleteOrphanMedia: DeleteOrphanMediaResult!
   deletePost(input: DeletePostInput!): DeletePostResult!
   finishMediumUpload(input: FinishMediumUploadInput!): FinishMediumUploadResult!
   followActor(input: FollowActorInput!): FollowActorResult!
@@ -952,6 +971,17 @@ enum NotificationType {
   REACT
   REPLY
   SHARE
+}
+
+"""
+A snapshot of media objects old enough to delete and not referenced by accounts, notes, article drafts, or article sources.
+"""
+type OrphanMediaStatus {
+  """Only unreferenced media created before this timestamp are counted."""
+  cutoffDate: DateTime!
+
+  """Number of unreferenced media objects older than the cutoff."""
+  orphanMediaCount: Int!
 }
 
 type PageInfo {
@@ -1239,6 +1269,11 @@ type Query {
   ): Document!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
+
+  """
+  Moderator-only orphan media preview.  Returns null when the viewer is not a moderator.
+  """
+  orphanMediaStatus: OrphanMediaStatus
   personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
   postByUrl(url: String!): Post
   privacyPolicy(

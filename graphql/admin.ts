@@ -1,5 +1,7 @@
 import {
+  deleteOrphanMedia,
   getInvitationRegenerationStatus,
+  getOrphanMediaStatus,
   type InvitationRegenerationStatus as ModelInvitationRegenerationStatus,
   regenerateInvitations,
 } from "@hackerspub/models/admin";
@@ -453,6 +455,82 @@ builder.mutationField("regenerateInvitations", (t) =>
         regenerated: result.regeneratedAt,
         accountsAffected: result.accountsAffected,
         status: toInvitationRegenerationStatusShape(status),
+      };
+    },
+  }));
+
+const OrphanMediaStatus = builder.simpleObject(
+  "OrphanMediaStatus",
+  {
+    description:
+      "A snapshot of media objects old enough to delete and not referenced " +
+      "by accounts, notes, article drafts, or article sources.",
+    fields: (t) => ({
+      cutoffDate: t.field({
+        type: "DateTime",
+        description:
+          "Only unreferenced media created before this timestamp are counted.",
+      }),
+      orphanMediaCount: t.int({
+        description:
+          "Number of unreferenced media objects older than the cutoff.",
+      }),
+    }),
+  },
+);
+
+builder.queryField("orphanMediaStatus", (t) =>
+  t.field({
+    type: OrphanMediaStatus,
+    nullable: true,
+    description:
+      "Moderator-only orphan media preview.  Returns null when the viewer " +
+      "is not a moderator.",
+    async resolve(_root, _args, ctx) {
+      if (ctx.session == null) return null;
+      if (!ctx.account?.moderator) return null;
+      return await getOrphanMediaStatus(ctx.db);
+    },
+  }));
+
+const DeleteOrphanMediaPayload = builder.simpleObject(
+  "DeleteOrphanMediaPayload",
+  {
+    description: "The result of deleting orphan media.",
+    fields: (t) => ({
+      deletedCount: t.int({
+        description: "Number of orphan media database rows deleted.",
+      }),
+      failedDiskDeletes: t.int({
+        description:
+          "Number of stored media objects that could not be deleted from disk.",
+      }),
+      status: t.field({
+        type: OrphanMediaStatus,
+        description: "The orphan media status after the deletion attempt.",
+      }),
+    }),
+  },
+);
+
+builder.mutationField("deleteOrphanMedia", (t) =>
+  t.field({
+    type: DeleteOrphanMediaPayload,
+    description:
+      "Delete unreferenced media older than the grace period.  Requires a " +
+      "moderator account.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError],
+    },
+    async resolve(_root, _args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      const result = await deleteOrphanMedia(ctx.db, ctx.disk);
+      const status = await getOrphanMediaStatus(ctx.db);
+      return {
+        deletedCount: result.deletedCount,
+        failedDiskDeletes: result.failedDiskDeletes,
+        status,
       };
     },
   }));
