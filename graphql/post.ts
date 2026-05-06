@@ -2206,34 +2206,40 @@ builder.relayMutationField(
       if (upload == null || upload.accountId !== session.accountId) {
         throw new InvalidInputError("uploadId");
       }
-      let bytes: Uint8Array;
       try {
-        bytes = await ctx.disk.getBytes(upload.key);
-      } catch {
-        throw new InvalidInputError("uploadId");
-      }
-      const medium = await createMediumFromBytes(ctx.db, ctx.disk, bytes, {
-        maxSize: MAX_STREAMING_MEDIUM_IMAGE_SIZE,
-        contentType: upload.contentType,
-      });
-      if (medium == null) throw new InvalidInputError("uploadId");
-      try {
-        await ctx.disk.delete(upload.key);
-      } catch (error) {
-        logger.warn("Failed to delete temporary medium upload {key}: {error}", {
-          key: upload.key,
-          error,
+        let bytes: Uint8Array;
+        try {
+          bytes = await ctx.disk.getBytes(upload.key);
+        } catch {
+          throw new InvalidInputError("uploadId");
+        }
+        const medium = await createMediumFromBytes(ctx.db, ctx.disk, bytes, {
+          maxSize: MAX_STREAMING_MEDIUM_IMAGE_SIZE,
+          contentType: upload.contentType,
         });
+        if (medium == null) throw new InvalidInputError("uploadId");
+        return medium;
+      } finally {
+        try {
+          await ctx.disk.delete(upload.key);
+        } catch (error) {
+          logger.warn(
+            "Failed to delete temporary medium upload {key}: {error}",
+            {
+              key: upload.key,
+              error,
+            },
+          );
+        }
+        try {
+          await deleteMediumUploadSession(ctx.kv, upload.id);
+        } catch (error) {
+          logger.warn("Failed to delete medium upload session {id}: {error}", {
+            id: upload.id,
+            error,
+          });
+        }
       }
-      try {
-        await deleteMediumUploadSession(ctx.kv, upload.id);
-      } catch (error) {
-        logger.warn("Failed to delete medium upload session {id}: {error}", {
-          id: upload.id,
-          error,
-        });
-      }
-      return medium;
     },
   },
   {

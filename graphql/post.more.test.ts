@@ -14,9 +14,15 @@ import {
   postTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
+import {
+  createMediumUploadSession,
+  getMediumUploadSession,
+} from "./medium-upload.ts";
 import { schema } from "./mod.ts";
 import {
   createFedCtx,
+  createTestDisk,
+  createTestKv,
   insertAccountWithActor,
   insertNotePost,
   makeGuestContext,
@@ -188,6 +194,25 @@ const attachArticleDraftMediumMutation = parse(`
       __typename
       ... on AttachArticleDraftMediumPayload {
         key
+        medium {
+          uuid
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`);
+
+const finishMediumUploadMutation = parse(`
+  mutation FinishMediumUpload($input: FinishMediumUploadInput!) {
+    finishMediumUpload(input: $input) {
+      __typename
+      ... on FinishMediumUploadPayload {
         medium {
           uuid
         }
@@ -504,6 +529,43 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
     });
     assert.equal(draft?.title, "");
     assert.equal(draft?.content, "");
+  });
+});
+
+test("finishMediumUpload cleans up invalid uploaded bytes", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "invaliduploadgraphql",
+      name: "Invalid Upload GraphQL",
+      email: "invaliduploadgraphql@example.com",
+    });
+    const { kv } = createTestKv();
+    const disk = createTestDisk();
+    const upload = await createMediumUploadSession(
+      kv,
+      account.account.id,
+      "image/png",
+      4,
+    );
+    await disk.put(upload.key, new Uint8Array([1, 2, 3, 4]));
+
+    const result = await execute({
+      schema,
+      document: finishMediumUploadMutation,
+      variableValues: { input: { uploadId: upload.id } },
+      contextValue: makeUserContext(tx, account.account, { kv, disk }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      finishMediumUpload: {
+        __typename: "InvalidInputError",
+        inputPath: "uploadId",
+      },
+    });
+    assert.throws(() => disk.getBytes(upload.key));
+    assert.equal(await getMediumUploadSession(kv, upload.id), undefined);
   });
 });
 
