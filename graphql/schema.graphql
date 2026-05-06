@@ -4,7 +4,7 @@ type Account implements Node {
 
   """UUID of the medium used as this account's avatar."""
   avatarMediumId: UUID
-  avatarUrl: URL!
+  avatarUrl: URL! @deprecated(reason: "Use avatarMediumId instead.")
   bio: Markdown!
   created: DateTime!
   defaultNoteVisibility: PostVisibility!
@@ -520,8 +520,8 @@ type DeleteOrphanMediaPayload {
   """Number of orphan media database rows deleted."""
   deletedCount: Int!
 
-  """Number of stored media objects that could not be deleted from disk."""
-  failedDiskDeletes: Int!
+  """Number of stored media objects that could not be deleted."""
+  failedStorageDeletes: Int!
 
   """The orphan media status after the deletion attempt."""
   status: OrphanMediaStatus!
@@ -671,6 +671,11 @@ type InvitationRegenerationStatus {
   When the regeneration was last triggered, or null if it has never been run.
   """
   lastRegenerated: DateTime
+
+  """
+  When the regeneration was last triggered, or null if it has never been run.
+  """
+  lastRegeneratedAt: DateTime @deprecated(reason: "Use lastRegenerated")
 
   """
   Number of accounts that would receive an invitation if a regeneration were triggered now (ceil(eligible / 3)).
@@ -1474,6 +1479,9 @@ type RegenerateInvitationsPayload {
 
   """When the regeneration ran."""
   regenerated: DateTime!
+
+  """When the regeneration ran."""
+  regeneratedAt: DateTime! @deprecated(reason: "Use regenerated")
 
   """The updated regeneration status reflecting the just-recorded run."""
   status: InvitationRegenerationStatus!

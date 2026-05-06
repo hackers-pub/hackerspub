@@ -352,6 +352,14 @@ const InvitationRegenerationStatus = builder.simpleObject(
           "When the regeneration was last triggered, or null if it has " +
           "never been run.",
       }),
+      lastRegeneratedAt: t.field({
+        type: "DateTime",
+        nullable: true,
+        deprecationReason: "Use lastRegenerated",
+        description:
+          "When the regeneration was last triggered, or null if it has " +
+          "never been run.",
+      }),
       cutoffDate: t.field({
         type: "DateTime",
         description:
@@ -374,6 +382,7 @@ const InvitationRegenerationStatus = builder.simpleObject(
 
 interface InvitationRegenerationStatusShape {
   lastRegenerated: Date | null;
+  lastRegeneratedAt: Date | null;
   cutoffDate: Date;
   eligibleAccountsCount: number;
   topThirdCount: number;
@@ -384,6 +393,7 @@ function toInvitationRegenerationStatusShape(
 ): InvitationRegenerationStatusShape {
   return {
     lastRegenerated: status.lastRegeneratedAt,
+    lastRegeneratedAt: status.lastRegeneratedAt,
     cutoffDate: status.cutoffDate,
     eligibleAccountsCount: status.eligibleAccountsCount,
     topThirdCount: status.topThirdCount,
@@ -414,6 +424,11 @@ const RegenerateInvitationsPayload = builder.simpleObject(
     fields: (t) => ({
       regenerated: t.field({
         type: "DateTime",
+        description: "When the regeneration ran.",
+      }),
+      regeneratedAt: t.field({
+        type: "DateTime",
+        deprecationReason: "Use regenerated",
         description: "When the regeneration ran.",
       }),
       accountsAffected: t.int({
@@ -453,6 +468,7 @@ builder.mutationField("regenerateInvitations", (t) =>
       const status = await getInvitationRegenerationStatus(ctx.db, ctx.kv);
       return {
         regenerated: result.regeneratedAt,
+        regeneratedAt: result.regeneratedAt,
         accountsAffected: result.accountsAffected,
         status: toInvitationRegenerationStatusShape(status),
       };
@@ -501,9 +517,9 @@ const DeleteOrphanMediaPayload = builder.simpleObject(
       deletedCount: t.int({
         description: "Number of orphan media database rows deleted.",
       }),
-      failedDiskDeletes: t.int({
+      failedStorageDeletes: t.int({
         description:
-          "Number of stored media objects that could not be deleted from disk.",
+          "Number of stored media objects that could not be deleted.",
       }),
       status: t.field({
         type: OrphanMediaStatus,
@@ -529,7 +545,7 @@ builder.mutationField("deleteOrphanMedia", (t) =>
       const status = await getOrphanMediaStatus(ctx.db);
       return {
         deletedCount: result.deletedCount,
-        failedDiskDeletes: result.failedDiskDeletes,
+        failedStorageDeletes: result.failedDiskDeletes,
         status,
       };
     },

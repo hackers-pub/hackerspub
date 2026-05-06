@@ -59,7 +59,7 @@ const mediaDeleteOrphanMediaMutation = graphql`
       __typename
       ... on DeleteOrphanMediaPayload {
         deletedCount
-        failedDiskDeletes
+        failedStorageDeletes
         status {
           cutoffDate
           orphanMediaCount
@@ -104,17 +104,17 @@ export default function AdminMediaPage() {
                 })
               }`,
             ),
-            description: result.failedDiskDeletes! > 0
+            description: result.failedStorageDeletes! > 0
               ? i18n._(
                 msg`${
-                  plural(result.failedDiskDeletes!, {
+                  plural(result.failedStorageDeletes!, {
                     one: "# disk object could not be deleted.",
                     other: "# disk objects could not be deleted.",
                   })
                 }`,
               )
               : undefined,
-            variant: result.failedDiskDeletes! > 0 ? "error" : undefined,
+            variant: result.failedStorageDeletes! > 0 ? "error" : undefined,
           });
           void revalidate("loadAdminMediaPageQuery");
         } else if (result.__typename === "NotAuthenticatedError") {

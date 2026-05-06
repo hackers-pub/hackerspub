@@ -18,7 +18,7 @@ msgstr ""
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {#コメント}}"
 
-#. placeholder {0}: result.failedDiskDeletes!
+#. placeholder {0}: result.failedStorageDeletes!
 #: src/routes/(root)/admin/media.tsx:109
 msgid "{0, plural, one {# disk object could not be deleted.} other {# disk objects could not be deleted.}}"
 msgstr "{0, plural, other {#個のディスクオブジェクトを削除できませんでした。}}"
@@ -50,7 +50,7 @@ msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {残り#件の招待}}"
 
 #. placeholder {0}: count()
-#: src/routes/(root)/admin/media.tsx:177
+#: src/routes/(root)/admin/media.tsx:179
 msgid "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
 msgstr "{0, plural, other {#件の孤立したメディアを削除できます。}}"
 
@@ -530,7 +530,7 @@ msgid "Crop your new avatar"
 msgstr "新しいアイコンを切り抜く"
 
 #: src/routes/(root)/admin/invitations.tsx:183
-#: src/routes/(root)/admin/media.tsx:169
+#: src/routes/(root)/admin/media.tsx:171
 msgid "Cutoff:"
 msgstr "カットオフ："
 
@@ -553,8 +553,8 @@ msgstr "削除"
 msgid "Delete draft"
 msgstr "下書きを削除"
 
-#: src/routes/(root)/admin/media.tsx:161
-#: src/routes/(root)/admin/media.tsx:192
+#: src/routes/(root)/admin/media.tsx:163
+#: src/routes/(root)/admin/media.tsx:194
 msgid "Delete orphan media"
 msgstr "孤立したメディアを削除"
 
@@ -564,7 +564,7 @@ msgstr "コンテンツを削除しますか？"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 #: src/routes/(root)/[handle]/settings/invite.tsx:654
-#: src/routes/(root)/admin/media.tsx:192
+#: src/routes/(root)/admin/media.tsx:194
 msgid "Deleting…"
 msgstr "削除中…"
 
@@ -1311,7 +1311,7 @@ msgid "Markdown supported"
 msgstr "Markdown対応"
 
 #: src/components/AppSidebar.tsx:654
-#: src/routes/(root)/admin/media.tsx:157
+#: src/routes/(root)/admin/media.tsx:159
 msgid "Media"
 msgstr "メディア"
 
@@ -1747,7 +1747,7 @@ msgstr "ブックマークを削除"
 msgid "Remove quote"
 msgstr "引用を削除"
 
-#: src/routes/(root)/admin/media.tsx:163
+#: src/routes/(root)/admin/media.tsx:165
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "作成から十分な時間が経過し、アイコン、投稿、記事の下書き、記事のいずれにも添付されていない保存済みメディアを削除します。"
 

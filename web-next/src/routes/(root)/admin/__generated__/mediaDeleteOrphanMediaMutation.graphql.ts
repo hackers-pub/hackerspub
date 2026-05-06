@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<e331df5e60caee1a58e0077d6cf98d1b>>
+ * @generated SignedSource<<d9db2f91d92b791f9f788754993a60f4>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -14,7 +14,7 @@ export type mediaDeleteOrphanMediaMutation$data = {
   readonly deleteOrphanMedia: {
     readonly __typename: "DeleteOrphanMediaPayload";
     readonly deletedCount: number;
-    readonly failedDiskDeletes: number;
+    readonly failedStorageDeletes: number;
     readonly status: {
       readonly cutoffDate: string;
       readonly orphanMediaCount: number;
@@ -67,7 +67,7 @@ var v0 = [
             "alias": null,
             "args": null,
             "kind": "ScalarField",
-            "name": "failedDiskDeletes",
+            "name": "failedStorageDeletes",
             "storageKey": null
           },
           {
@@ -149,16 +149,16 @@ return {
     "selections": (v0/*: any*/)
   },
   "params": {
-    "cacheID": "1364fbb899b298804448ce1a4f889d65",
+    "cacheID": "c8b140a298ff0a8c9b5093b190e70ed5",
     "id": null,
     "metadata": {},
     "name": "mediaDeleteOrphanMediaMutation",
     "operationKind": "mutation",
-    "text": "mutation mediaDeleteOrphanMediaMutation {\n  deleteOrphanMedia {\n    __typename\n    ... on DeleteOrphanMediaPayload {\n      deletedCount\n      failedDiskDeletes\n      status {\n        cutoffDate\n        orphanMediaCount\n      }\n    }\n    ... on NotAuthenticatedError {\n      notAuthenticated\n    }\n    ... on NotAuthorizedError {\n      notAuthorized\n    }\n  }\n}\n"
+    "text": "mutation mediaDeleteOrphanMediaMutation {\n  deleteOrphanMedia {\n    __typename\n    ... on DeleteOrphanMediaPayload {\n      deletedCount\n      failedStorageDeletes\n      status {\n        cutoffDate\n        orphanMediaCount\n      }\n    }\n    ... on NotAuthenticatedError {\n      notAuthenticated\n    }\n    ... on NotAuthorizedError {\n      notAuthorized\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "81a2de26df26cc625848d35c9bd884a5";
+(node as any).hash = "cc7784dd692929a263e9631ff1e07e91";
 
 export default node;

@@ -73,6 +73,7 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     avatarUrl: t.field({
       type: "URL",
+      deprecationReason: "Use avatarMediumId instead.",
       select: {
         columns: {
           avatarMediumId: true,

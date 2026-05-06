@@ -1339,7 +1339,7 @@ const deleteOrphanMediaMutation = parse(`
       __typename
       ... on DeleteOrphanMediaPayload {
         deletedCount
-        failedDiskDeletes
+        failedStorageDeletes
         status {
           orphanMediaCount
         }
@@ -1404,13 +1404,13 @@ Deno.test({
         deleteOrphanMedia: {
           __typename: string;
           deletedCount: number;
-          failedDiskDeletes: number;
+          failedStorageDeletes: number;
           status: { orphanMediaCount: number };
         };
       }).deleteOrphanMedia;
       assertEquals(payload.__typename, "DeleteOrphanMediaPayload");
       assertEquals(payload.deletedCount, 1);
-      assertEquals(payload.failedDiskDeletes, 0);
+      assertEquals(payload.failedStorageDeletes, 0);
       assertEquals(payload.status.orphanMediaCount, 0);
       assertEquals(disk.deleteKeys, ["media/graphql-orphan-delete.webp"]);
       assertEquals(

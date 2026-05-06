@@ -18,7 +18,7 @@ msgstr ""
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, one {# comment} other {# comments}}"
 
-#. placeholder {0}: result.failedDiskDeletes!
+#. placeholder {0}: result.failedStorageDeletes!
 #: src/routes/(root)/admin/media.tsx:109
 msgid "{0, plural, one {# disk object could not be deleted.} other {# disk objects could not be deleted.}}"
 msgstr "{0, plural, one {# disk object could not be deleted.} other {# disk objects could not be deleted.}}"
@@ -50,7 +50,7 @@ msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, one {# invitation left} other {# invitations left}}"
 
 #. placeholder {0}: count()
-#: src/routes/(root)/admin/media.tsx:177
+#: src/routes/(root)/admin/media.tsx:179
 msgid "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
 msgstr "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
 
@@ -530,7 +530,7 @@ msgid "Crop your new avatar"
 msgstr "Crop your new avatar"
 
 #: src/routes/(root)/admin/invitations.tsx:183
-#: src/routes/(root)/admin/media.tsx:169
+#: src/routes/(root)/admin/media.tsx:171
 msgid "Cutoff:"
 msgstr "Cutoff:"
 
@@ -553,8 +553,8 @@ msgstr "Delete"
 msgid "Delete draft"
 msgstr "Delete draft"
 
-#: src/routes/(root)/admin/media.tsx:161
-#: src/routes/(root)/admin/media.tsx:192
+#: src/routes/(root)/admin/media.tsx:163
+#: src/routes/(root)/admin/media.tsx:194
 msgid "Delete orphan media"
 msgstr "Delete orphan media"
 
@@ -564,7 +564,7 @@ msgstr "Delete post?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 #: src/routes/(root)/[handle]/settings/invite.tsx:654
-#: src/routes/(root)/admin/media.tsx:192
+#: src/routes/(root)/admin/media.tsx:194
 msgid "Deleting…"
 msgstr "Deleting…"
 
@@ -1315,7 +1315,7 @@ msgid "Markdown supported"
 msgstr "Markdown supported"
 
 #: src/components/AppSidebar.tsx:654
-#: src/routes/(root)/admin/media.tsx:157
+#: src/routes/(root)/admin/media.tsx:159
 msgid "Media"
 msgstr "Media"
 
@@ -1752,7 +1752,7 @@ msgstr "Remove bookmark"
 msgid "Remove quote"
 msgstr "Remove quote"
 
-#: src/routes/(root)/admin/media.tsx:163
+#: src/routes/(root)/admin/media.tsx:165
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 

@@ -18,7 +18,7 @@ msgstr ""
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {# 댓글}}"
 
-#. placeholder {0}: result.failedDiskDeletes!
+#. placeholder {0}: result.failedStorageDeletes!
 #: src/routes/(root)/admin/media.tsx:109
 msgid "{0, plural, one {# disk object could not be deleted.} other {# disk objects could not be deleted.}}"
 msgstr "{0, plural, other {디스크 객체 #개를 삭제하지 못했습니다.}}"
@@ -50,7 +50,7 @@ msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {남은 초대 #건}}"
 
 #. placeholder {0}: count()
-#: src/routes/(root)/admin/media.tsx:177
+#: src/routes/(root)/admin/media.tsx:179
 msgid "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
 msgstr "{0, plural, other {연결되지 않은 미디어 #개를 삭제할 수 있습니다.}}"
 
@@ -530,7 +530,7 @@ msgid "Crop your new avatar"
 msgstr "새 프로필 사진 자르기"
 
 #: src/routes/(root)/admin/invitations.tsx:183
-#: src/routes/(root)/admin/media.tsx:169
+#: src/routes/(root)/admin/media.tsx:171
 msgid "Cutoff:"
 msgstr "기준 시각:"
 
@@ -553,8 +553,8 @@ msgstr "삭제"
 msgid "Delete draft"
 msgstr "임시 보관 삭제"
 
-#: src/routes/(root)/admin/media.tsx:161
-#: src/routes/(root)/admin/media.tsx:192
+#: src/routes/(root)/admin/media.tsx:163
+#: src/routes/(root)/admin/media.tsx:194
 msgid "Delete orphan media"
 msgstr "연결되지 않은 미디어 삭제"
 
@@ -564,7 +564,7 @@ msgstr "콘텐츠를 삭제할까요?"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:20
 #: src/routes/(root)/[handle]/settings/invite.tsx:654
-#: src/routes/(root)/admin/media.tsx:192
+#: src/routes/(root)/admin/media.tsx:194
 msgid "Deleting…"
 msgstr "삭제 중…"
 
@@ -1311,7 +1311,7 @@ msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
 
 #: src/components/AppSidebar.tsx:654
-#: src/routes/(root)/admin/media.tsx:157
+#: src/routes/(root)/admin/media.tsx:159
 msgid "Media"
 msgstr "미디어"
 
@@ -1747,7 +1747,7 @@ msgstr "북마크 해제"
 msgid "Remove quote"
 msgstr "인용 삭제"
 
-#: src/routes/(root)/admin/media.tsx:163
+#: src/routes/(root)/admin/media.tsx:165
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "생성된 지 충분히 오래되었고 프로필 사진, 단문, 게시글 임시 보관, 게시글에 더 이상 첨부되어 있지 않은 저장된 미디어를 제거합니다."
 
