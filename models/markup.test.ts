@@ -40,6 +40,34 @@ Welcome to #HackersPub.`;
   assert.deepEqual(second, first);
 });
 
+test("renderMarkup() canonicalizes medium URLs before caching", async () => {
+  const { kv, store } = createTestKv();
+  const markup = `![a](hp-medium:a)
+
+![b](hp-medium:b)`;
+
+  const first = await renderMarkup(null, markup, {
+    kv: kv as never,
+    docId: "doc-with-media",
+    mediumUrls: {
+      a: "https://cdn.example/a.webp",
+      b: "https://cdn.example/b.webp",
+    },
+  });
+
+  const second = await renderMarkup(null, markup, {
+    kv: kv as never,
+    docId: "doc-with-media",
+    mediumUrls: {
+      b: "https://cdn.example/b.webp",
+      a: "https://cdn.example/a.webp",
+    },
+  });
+
+  assert.deepEqual(second, first);
+  assert.equal(store.size, 1);
+});
+
 test("renderMarkup() renders unresolved medium references as an SVG placeholder", async () => {
   const rendered = await renderMarkup(null, "![missing](hp-medium:elsewhere)", {
     missingMediumLabel: getMissingArticleMediumLabel("ko-KR"),

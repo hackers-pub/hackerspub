@@ -185,6 +185,14 @@ export interface RenderMarkupOptions {
   missingMediumLabel?: string;
 }
 
+function canonicalizeMediumUrls(mediumUrls: Record<string, string>): string {
+  return JSON.stringify(Object.fromEntries(
+    Object.entries(mediumUrls).sort(([left], [right]) =>
+      left < right ? -1 : left > right ? 1 : 0
+    ),
+  ));
+}
+
 export async function renderMarkup(
   fedCtx: Context<ContextData> | null | undefined,
   markup: string,
@@ -199,7 +207,7 @@ export async function renderMarkup(
       "SHA-256",
       new TextEncoder().encode(
         `${JSON.stringify(options.docId ?? null)}\n${
-          JSON.stringify(mediumUrls)
+          canonicalizeMediumUrls(mediumUrls)
         }\n${JSON.stringify(missingMediumLabel)}\n${markup}`,
       ),
     );
