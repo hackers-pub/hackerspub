@@ -4,7 +4,7 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import type { UserContext } from "./builder.ts";
-import { createArticle } from "@hackerspub/models/article";
+import { createArticle, updateArticleDraft } from "@hackerspub/models/article";
 import {
   accountTable,
   articleContentTable,
@@ -43,6 +43,9 @@ const saveArticleDraftMutation = parse(`
           title
           tags
         }
+      }
+      ... on InvalidInputError {
+        inputPath
       }
     }
   }
@@ -446,6 +449,52 @@ test("saveArticleDraft, articleDraft, and deleteArticleDraft round-trip a draft"
       },
     });
     assert.equal(storedDraft, undefined);
+  });
+});
+
+test("saveArticleDraft rejects draft UUIDs owned by another account", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "draftuuidowner",
+      name: "Draft UUID Owner",
+      email: "draftuuidowner@example.com",
+    });
+    const other = await insertAccountWithActor(tx, {
+      username: "draftuuidother",
+      name: "Draft UUID Other",
+      email: "draftuuidother@example.com",
+    });
+    const draftId = generateUuidV7();
+    await updateArticleDraft(tx, {
+      id: draftId,
+      accountId: owner.account.id,
+      title: "Owned draft",
+      content: "Owned content",
+      tags: [],
+    });
+
+    const result = await execute({
+      schema,
+      document: saveArticleDraftMutation,
+      variableValues: {
+        input: {
+          uuid: draftId,
+          title: "Conflicting draft",
+          content: "Conflicting content",
+          tags: [],
+        },
+      },
+      contextValue: makeUserContext(tx, other.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      saveArticleDraft: {
+        __typename: "InvalidInputError",
+        inputPath: "uuid",
+      },
+    });
   });
 });
 

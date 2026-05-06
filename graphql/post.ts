@@ -930,6 +930,9 @@ builder.relayMutationField(
         content,
         tags,
       });
+      if (draft == null) {
+        throw new InvalidInputError(args.input.uuid == null ? "id" : "uuid");
+      }
 
       return draft;
     },
