@@ -28,13 +28,14 @@ import {
 } from "./schema.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
-function createTrackingDisk() {
+function createTrackingDisk(failingKeys = new Set<string>()) {
   const deleteKeys: string[] = [];
   return {
     deleteKeys,
     disk: {
       delete(key: string) {
         deleteKeys.push(key);
+        if (failingKeys.has(key)) return Promise.reject(new Error("failed"));
         return Promise.resolve(undefined);
       },
     } as unknown as Parameters<typeof deleteOrphanMedia>[1],
@@ -425,6 +426,48 @@ Deno.test({
       assert(
         await tx.query.mediumTable.findFirst({ where: { id: recentId } }) !=
           null,
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "deleteOrphanMedia keeps rows whose disk object failed to delete",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const now = new Date("2026-04-15T00:00:00.000Z");
+      const old = new Date("2026-04-13T00:00:00.000Z");
+      const failedId = await insertTestMedium(
+        tx,
+        "media/orphan-delete-fail.webp",
+        old,
+      );
+      const deletedId = await insertTestMedium(
+        tx,
+        "media/orphan-delete-ok.webp",
+        old,
+      );
+      const disk = createTrackingDisk(
+        new Set(["media/orphan-delete-fail.webp"]),
+      );
+
+      const result = await deleteOrphanMedia(tx, disk.disk, { now });
+
+      assertEquals(result.deletedCount, 1);
+      assertEquals(result.failedDiskDeletes, 1);
+      assertEquals(disk.deleteKeys.toSorted(), [
+        "media/orphan-delete-fail.webp",
+        "media/orphan-delete-ok.webp",
+      ]);
+      assert(
+        await tx.query.mediumTable.findFirst({ where: { id: failedId } }) !=
+          null,
+      );
+      assertEquals(
+        await tx.query.mediumTable.findFirst({ where: { id: deletedId } }),
+        undefined,
       );
     });
   },

@@ -291,6 +291,10 @@ export async function createArticle(
 > {
   const { db } = fedCtx.data;
   const { media: sourceMedia, ...articleSourceInput } = source;
+  const referencedMediumKeys = new Set(
+    [...source.content.matchAll(/hp-medium:([A-Za-z0-9._:/-]+)/g)]
+      .map((match) => match[1]),
+  );
   const articleSource = await createArticleSource(
     db,
     fedCtx.data.models,
@@ -298,7 +302,7 @@ export async function createArticle(
   );
   if (articleSource == null) return undefined;
   const media = sourceMedia
-    ?.filter((medium) => source.content.includes(`hp-medium:${medium.key}`))
+    ?.filter((medium) => referencedMediumKeys.has(medium.key))
     .map((medium) => ({
       articleSourceId: articleSource.id,
       key: medium.key,

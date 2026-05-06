@@ -305,15 +305,18 @@ export async function deleteOrphanMedia(
   options: OrphanMediaOptions = {},
 ): Promise<DeleteOrphanMediaResult> {
   const cutoffDate = resolveOrphanMediaCutoff(options);
-  const deleted = await db
-    .delete(mediumTable)
+  const orphanMedia = await db
+    .select({ key: mediumTable.key })
+    .from(mediumTable)
     .where(orphanMediaWhere(cutoffDate))
-    .returning({ key: mediumTable.key });
+    .orderBy(mediumTable.created);
 
   let failedDiskDeletes = 0;
-  for (const { key } of deleted) {
+  const deletedKeys: string[] = [];
+  for (const { key } of orphanMedia) {
     try {
       await disk.delete(key);
+      deletedKeys.push(key);
     } catch (error) {
       failedDiskDeletes++;
       logger.warn(
@@ -322,6 +325,13 @@ export async function deleteOrphanMedia(
       );
     }
   }
+  const deleted = deletedKeys.length < 1 ? [] : await db
+    .delete(mediumTable)
+    .where(and(
+      inArray(mediumTable.key, deletedKeys),
+      orphanMediaWhere(cutoffDate),
+    ))
+    .returning({ key: mediumTable.key });
 
   return {
     cutoffDate,

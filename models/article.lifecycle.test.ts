@@ -74,6 +74,14 @@ test("createArticle() copies source media before rendering the post", async () =
       width: 2,
       height: 2,
     });
+    const prefixMediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: prefixMediumId,
+      key: "media/create-article-prefix.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
 
     const article = await createArticle(fedCtx, {
       accountId: author.account.id,
@@ -84,7 +92,10 @@ test("createArticle() copies source media before rendering the post", async () =
       title: "Article with media",
       content: "![Hero](hp-medium:hero)",
       language: "en",
-      media: [{ key: "hero", mediumId }],
+      media: [
+        { key: "hero", mediumId },
+        { key: "her", mediumId: prefixMediumId },
+      ],
     });
 
     assert.ok(article != null);
@@ -99,6 +110,10 @@ test("createArticle() copies source media before rendering the post", async () =
     });
     assert.ok(media != null);
     assert.equal(media.mediumId, mediumId);
+    const prefixMedia = await tx.query.articleSourceMediumTable.findFirst({
+      where: { articleSourceId: article.articleSource.id, key: "her" },
+    });
+    assert.equal(prefixMedia, undefined);
   });
 });
 

@@ -143,6 +143,7 @@ SELECT DISTINCT ON ("key")
   "height"::integer,
   "created"
 FROM "article_medium"
+ORDER BY "key", "created" DESC
 ON CONFLICT ("key") DO UPDATE SET
   "content_hash" = COALESCE("medium"."content_hash", EXCLUDED."content_hash"),
   "width" = COALESCE("medium"."width", EXCLUDED."width"::integer),

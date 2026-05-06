@@ -334,7 +334,8 @@ export async function createNote(
       index,
       medium,
     );
-    if (m != null) media.push(m);
+    if (m == null) return undefined;
+    media.push(m);
     index++;
   }
   const account = await db.query.accountTable.findFirst({

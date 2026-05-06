@@ -99,6 +99,32 @@ test("createNote() allows the same medium at multiple indexes", async () => {
   });
 });
 
+test("createNote() fails when a requested medium cannot be attached", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "missingnotemedia",
+      name: "Missing Note Media",
+      email: "missingnotemedia@example.com",
+    });
+
+    const note = await createNote(
+      fedCtx as unknown as Context<ContextData<Transaction>>,
+      {
+        accountId: author.account.id,
+        visibility: "public",
+        content: "Missing image",
+        language: "en",
+        media: [
+          { mediumId: generateUuidV7(), alt: "Missing medium" },
+        ],
+      },
+    );
+
+    assert.equal(note, undefined);
+  });
+});
+
 test("createNote() stores tags relayed to tags.pub only for public posts", async () => {
   await withTagsPubRelayEnabled(async () => {
     await withRollback(async (tx) => {
