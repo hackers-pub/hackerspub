@@ -194,16 +194,90 @@ SET "avatar_medium_id" = m."id"
 FROM "medium" m
 WHERE a."avatar_key" = m."key";
 --> statement-breakpoint
+WITH RECURSIVE "article_draft_medium_replacements" AS (
+  SELECT
+    am."article_draft_id",
+    am."url",
+    am."key",
+    row_number() OVER (
+      PARTITION BY am."article_draft_id"
+      ORDER BY am."created", am."key"
+    ) AS "index"
+  FROM "article_medium" am
+  WHERE am."article_draft_id" IS NOT NULL AND am."url" IS NOT NULL
+),
+"rewritten_article_draft" AS (
+  SELECT ad."id", ad."content", 0::bigint AS "index"
+  FROM "article_draft" ad
+  WHERE EXISTS (
+    SELECT 1
+    FROM "article_draft_medium_replacements" r
+    WHERE r."article_draft_id" = ad."id"
+  )
+  UNION ALL
+  SELECT
+    draft."id",
+    replace(draft."content", r."url", 'hp-medium:' || r."key"),
+    r."index"
+  FROM "rewritten_article_draft" draft
+  JOIN "article_draft_medium_replacements" r
+    ON r."article_draft_id" = draft."id" AND
+       r."index" = draft."index" + 1
+),
+"final_article_draft" AS (
+  SELECT DISTINCT ON ("id") "id", "content"
+  FROM "rewritten_article_draft"
+  ORDER BY "id", "index" DESC
+)
 UPDATE "article_draft" ad
-SET "content" = replace(ad."content", am."url", 'hp-medium:' || am."key")
-FROM "article_medium" am
-WHERE am."article_draft_id" = ad."id";
+SET "content" = f."content"
+FROM "final_article_draft" f
+WHERE f."id" = ad."id";
 --> statement-breakpoint
+WITH RECURSIVE "article_content_medium_replacements" AS (
+  SELECT
+    am."article_source_id",
+    am."url",
+    am."key",
+    row_number() OVER (
+      PARTITION BY am."article_source_id"
+      ORDER BY am."created", am."key"
+    ) AS "index"
+  FROM "article_medium" am
+  WHERE am."article_source_id" IS NOT NULL AND am."url" IS NOT NULL
+),
+"rewritten_article_content" AS (
+  SELECT
+    ac."source_id",
+    ac."language",
+    ac."content",
+    0::bigint AS "index"
+  FROM "article_content" ac
+  WHERE EXISTS (
+    SELECT 1
+    FROM "article_content_medium_replacements" r
+    WHERE r."article_source_id" = ac."source_id"
+  )
+  UNION ALL
+  SELECT
+    content."source_id",
+    content."language",
+    replace(content."content", r."url", 'hp-medium:' || r."key"),
+    r."index"
+  FROM "rewritten_article_content" content
+  JOIN "article_content_medium_replacements" r
+    ON r."article_source_id" = content."source_id" AND
+       r."index" = content."index" + 1
+),
+"final_article_content" AS (
+  SELECT DISTINCT ON ("source_id", "language") "source_id", "language", "content"
+  FROM "rewritten_article_content"
+  ORDER BY "source_id", "language", "index" DESC
+)
 UPDATE "article_content" ac
-SET "content" = replace(ac."content", am."url", 'hp-medium:' || am."key")
-FROM "article_source" src
-JOIN "article_medium" am ON am."article_source_id" = src."id"
-WHERE ac."source_id" = src."id";
+SET "content" = f."content"
+FROM "final_article_content" f
+WHERE f."source_id" = ac."source_id" AND f."language" = ac."language";
 --> statement-breakpoint
 DROP TABLE "note_medium";
 --> statement-breakpoint
