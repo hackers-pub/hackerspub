@@ -54,14 +54,21 @@ export async function getArticle(
     ctx.canonicalOrigin,
   );
   const contents = await Promise.all(
-    articleSource.contents.map(async (content) => ({
-      ...(await renderMarkup(ctx, content.content, {
+    articleSource.contents.map(async (content) => {
+      const rendered = await renderMarkup(ctx, content.content, {
         docId: articleSource.id,
         kv: ctx.data.kv,
         mediumUrls,
-      })),
-      ...content,
-    })),
+      });
+      return {
+        ...content,
+        ...rendered,
+        content: content.content.replaceAll(
+          /hp-medium:([A-Za-z0-9._:/-]+)/g,
+          (matched, key: string) => mediumUrls[key] ?? matched,
+        ),
+      };
+    }),
   );
   const hashtags = contents.flatMap((c) => c.hashtags);
   contents.sort((a, b) => a.published.valueOf() - b.published.valueOf());

@@ -117,6 +117,7 @@ export async function getAccountByUsername(
 ): Promise<
   | Account & {
     actor: Actor & { successor: Actor | null };
+    avatarMedium: Medium | null;
     emails: AccountEmail[];
     links: AccountLink[];
   }

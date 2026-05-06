@@ -350,7 +350,7 @@ export async function syncPostFromNoteSource(
       await Promise.all(noteSource.media.map(async (medium) => ({
         postId: post.id,
         index: medium.index,
-        type: "image/webp" as const,
+        type: medium.medium.type,
         url: await disk.getUrl(medium.medium.key),
         alt: medium.alt,
         width: medium.medium.width,

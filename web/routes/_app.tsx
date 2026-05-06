@@ -5,6 +5,7 @@ import {
   type Account,
   type AccountEmail,
   articleDraftTable,
+  type Medium,
 } from "@hackerspub/models/schema";
 import { dirname } from "@std/path/dirname";
 import { join } from "@std/path/join";
@@ -73,7 +74,7 @@ export default async function App(
   let account:
     | Account & {
       emails: AccountEmail[];
-      avatarMedium?: import("@hackerspub/models/schema").Medium | null;
+      avatarMedium?: Medium | null;
     }
     | undefined = undefined;
   let drafts = 0;
