@@ -305,37 +305,46 @@ export async function deleteOrphanMedia(
   options: OrphanMediaOptions = {},
 ): Promise<DeleteOrphanMediaResult> {
   const cutoffDate = resolveOrphanMediaCutoff(options);
-  const orphanMedia = await db
-    .select({ key: mediumTable.key })
-    .from(mediumTable)
-    .where(orphanMediaWhere(cutoffDate))
-    .orderBy(mediumTable.created);
+  const runDeletion = async (tx: Database | Transaction) => {
+    const orphanMedia = await tx
+      .select({ key: mediumTable.key })
+      .from(mediumTable)
+      .where(orphanMediaWhere(cutoffDate))
+      .orderBy(mediumTable.created)
+      .for("update");
 
-  let failedDiskDeletes = 0;
-  const deletedKeys: string[] = [];
-  for (const { key } of orphanMedia) {
-    try {
-      await disk.delete(key);
-      deletedKeys.push(key);
-    } catch (error) {
-      failedDiskDeletes++;
-      logger.warn(
-        "Failed to delete orphan medium object {key}: {error}",
-        { key, error },
-      );
-    }
-  }
-  const deleted = deletedKeys.length < 1 ? [] : await db
-    .delete(mediumTable)
-    .where(and(
-      inArray(mediumTable.key, deletedKeys),
-      orphanMediaWhere(cutoffDate),
-    ))
-    .returning({ key: mediumTable.key });
+    const deleteResults = await Promise.all(
+      orphanMedia.map(async ({ key }) => {
+        try {
+          await disk.delete(key);
+          return { key, deleted: true };
+        } catch (error) {
+          logger.warn(
+            "Failed to delete orphan medium object {key}: {error}",
+            { key, error },
+          );
+          return { key, deleted: false };
+        }
+      }),
+    );
+    const deletedKeys = deleteResults
+      .filter((result) => result.deleted)
+      .map((result) => result.key);
+    const deleted = deletedKeys.length < 1 ? [] : await tx
+      .delete(mediumTable)
+      .where(and(
+        inArray(mediumTable.key, deletedKeys),
+        orphanMediaWhere(cutoffDate),
+      ))
+      .returning({ key: mediumTable.key });
 
-  return {
-    cutoffDate,
-    deletedCount: deleted.length,
-    failedDiskDeletes,
+    return {
+      cutoffDate,
+      deletedCount: deleted.length,
+      failedDiskDeletes: deleteResults.length - deletedKeys.length,
+    };
   };
+  return isTransaction(db)
+    ? await runDeletion(db)
+    : await db.transaction(runDeletion);
 }
