@@ -8,11 +8,18 @@ export type { MediumUploadResult };
 
 const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
+export class UploadAbortedError extends Error {
+  constructor() {
+    super("Upload was aborted");
+  }
+}
+
 function xhrUpload(
   method: string,
   url: string,
   data: Blob,
   headers: { name: string; value: string }[],
+  signal: AbortSignal,
   onProgress?: (progress: number) => void,
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
@@ -38,22 +45,39 @@ function xhrUpload(
     };
     xhr.onerror = () => reject(new Error("Network error during upload"));
     xhr.ontimeout = () => reject(new Error("Upload timed out"));
-    xhr.onabort = () => reject(new Error("Upload was aborted"));
+    xhr.onabort = () => reject(new UploadAbortedError());
+
+    signal.addEventListener("abort", () => xhr.abort(), { once: true });
+
     xhr.send(data);
   });
 }
 
-export async function uploadMediumFile(
+export interface UploadHandle {
+  result: Promise<MediumUploadResult>;
+  abort: () => void;
+}
+
+export function uploadMediumFile(
   file: File,
   onProgress?: (progress: number) => void,
-): Promise<MediumUploadResult> {
-  const session = await startMediumUploadOnServer(file.size, file.type);
-  await xhrUpload(
-    session.method,
-    session.uploadUrl,
-    file,
-    session.headers,
-    onProgress,
-  );
-  return await finishMediumUploadOnServer(session.uploadId);
+): UploadHandle {
+  const controller = new AbortController();
+
+  const result = (async () => {
+    const session = await startMediumUploadOnServer(file.size, file.type);
+    if (controller.signal.aborted) throw new UploadAbortedError();
+    await xhrUpload(
+      session.method,
+      session.uploadUrl,
+      file,
+      session.headers,
+      controller.signal,
+      onProgress,
+    );
+    if (controller.signal.aborted) throw new UploadAbortedError();
+    return await finishMediumUploadOnServer(session.uploadId);
+  })();
+
+  return { result, abort: () => controller.abort() };
 }

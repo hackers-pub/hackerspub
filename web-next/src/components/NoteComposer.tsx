@@ -2,7 +2,10 @@ import { fetchQuery, graphql } from "relay-runtime";
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
 import { createMutation, useRelayEnvironment } from "solid-relay";
 import { detectLanguage } from "~/lib/langdet.ts";
-import { uploadMediumFile } from "~/lib/uploadMediumWithProgress.ts";
+import {
+  UploadAbortedError,
+  uploadMediumFile,
+} from "~/lib/uploadMediumWithProgress.ts";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { MentionAutocomplete } from "~/components/MentionAutocomplete.tsx";
 import {
@@ -117,6 +120,7 @@ interface MediaItem {
   uploading: boolean;
   uploadProgress: number;
   generatingAlt: boolean;
+  abortUpload?: () => void;
 }
 
 interface QuotedPostPreview {
@@ -163,9 +167,10 @@ export function NoteComposer(props: NoteComposerProps) {
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileInputRef: HTMLInputElement | undefined;
 
-  // Revoke all object URLs on cleanup to avoid memory leaks.
+  // Cancel in-flight uploads and revoke object URLs on unmount.
   onCleanup(() => {
     for (const item of mediaItems()) {
+      item.abortUpload?.();
       URL.revokeObjectURL(item.previewUrl);
     }
   });
@@ -262,13 +267,22 @@ export function NoteComposer(props: NoteComposerProps) {
     setMediaItems((prev) => [...prev, ...newItems]);
 
     for (const item of newItems) {
-      uploadMediumFile(item.file, (progress) => {
+      const handle = uploadMediumFile(item.file, (progress) => {
         setMediaItems((prev) =>
           prev.map((m) =>
             m.localId === item.localId ? { ...m, uploadProgress: progress } : m
           )
         );
-      }).then((result) => {
+      });
+
+      // Store abort handle so remove/unmount can cancel in-flight uploads.
+      setMediaItems((prev) =>
+        prev.map((m) =>
+          m.localId === item.localId ? { ...m, abortUpload: handle.abort } : m
+        )
+      );
+
+      handle.result.then((result) => {
         setMediaItems((prev) =>
           prev.map((m) =>
             m.localId === item.localId
@@ -278,11 +292,13 @@ export function NoteComposer(props: NoteComposerProps) {
                 uploadProgress: 100,
                 uuid: result.uuid,
                 mediumRelayId: result.mediumRelayId,
+                abortUpload: undefined,
               }
               : m
           )
         );
-      }).catch(() => {
+      }).catch((err) => {
+        if (err instanceof UploadAbortedError) return;
         setMediaItems((prev) => {
           const failed = prev.find((m) => m.localId === item.localId);
           if (failed) URL.revokeObjectURL(failed.previewUrl);
@@ -362,6 +378,7 @@ export function NoteComposer(props: NoteComposerProps) {
 
   const resetForm = () => {
     for (const item of mediaItems()) {
+      item.abortUpload?.();
       URL.revokeObjectURL(item.previewUrl);
     }
     setContent("");
@@ -713,7 +730,7 @@ export function NoteComposer(props: NoteComposerProps) {
         <Show when={mediaItems().length > 0}>
           <div class="flex flex-col gap-3">
             <For each={mediaItems()}>
-              {(item) => (
+              {(item, index) => (
                 <div class="flex gap-3 items-start">
                   {/* Thumbnail with progress overlay */}
                   <div class="relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden bg-muted">
@@ -741,6 +758,7 @@ export function NoteComposer(props: NoteComposerProps) {
                   <div class="flex-1 flex flex-col gap-1.5">
                     <textarea
                       value={item.alt}
+                      aria-label={t`Alt text for image ${index() + 1}`}
                       onInput={(e) => {
                         const v = e.currentTarget.value;
                         setMediaItems((prev) =>
@@ -799,6 +817,7 @@ export function NoteComposer(props: NoteComposerProps) {
                         aria-label={t`Remove image`}
                         title={t`Remove image`}
                         onClick={() => {
+                          item.abortUpload?.();
                           URL.revokeObjectURL(item.previewUrl);
                           setMediaItems((prev) =>
                             prev.filter((m) => m.localId !== item.localId)

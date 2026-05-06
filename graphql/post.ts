@@ -849,6 +849,9 @@ builder.relayMutationField(
         quotedPostId,
       } = args.input;
       const attachedMedia = media ?? [];
+      if (attachedMedia.length > 20) {
+        throw new InvalidInputError("media");
+      }
       let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
       if (replyTargetId != null) {
         replyTarget = await ctx.db.query.postTable.findFirst({
