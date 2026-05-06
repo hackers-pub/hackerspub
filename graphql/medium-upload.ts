@@ -10,6 +10,29 @@ import { validateUuid } from "@hackerspub/models/uuid";
 const KV_NAMESPACE = "medium-upload";
 export const MEDIUM_UPLOAD_TTL_MS = 30 * 60 * 1000;
 
+const MEDIUM_OWNER_NAMESPACE = "medium-owner";
+// Long enough for a user to compose and post a note with the image.
+const MEDIUM_OWNER_TTL_MS = 2 * 60 * 60 * 1000;
+
+export function getMediumOwnerKey(mediumId: Uuid): string {
+  return `${MEDIUM_OWNER_NAMESPACE}/${mediumId}`;
+}
+
+export async function setMediumOwner(
+  kv: Keyv,
+  mediumId: Uuid,
+  accountId: Uuid,
+): Promise<void> {
+  await kv.set(getMediumOwnerKey(mediumId), accountId, MEDIUM_OWNER_TTL_MS);
+}
+
+export async function getMediumOwner(
+  kv: Keyv,
+  mediumId: Uuid,
+): Promise<Uuid | undefined> {
+  return await kv.get<Uuid>(getMediumOwnerKey(mediumId));
+}
+
 export interface MediumUploadSession {
   id: Uuid;
   accountId: Uuid;

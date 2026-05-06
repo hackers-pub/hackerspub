@@ -61,13 +61,15 @@ import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import {
   createMediumUploadSession,
   deleteMediumUploadSession,
+  getMediumOwner,
   getMediumUploadSession,
   MEDIUM_UPLOAD_TTL_MS,
+  setMediumOwner,
 } from "./medium-upload.ts";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
-import { InvalidInputError } from "./error.ts";
+import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { putArticleOgImage } from "./og.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
@@ -720,17 +722,22 @@ builder.drizzleObjectField(Medium, "generatedAltText", (t) =>
   t.string({
     nullable: true,
     description: "AI-generated alternative text for this medium. " +
-      "Requires authentication. High-complexity operation (cost 1000). " +
-      "The context argument is truncated server-side to 1000 characters. " +
-      "Note: authorization is based on knowing the medium's ID (UUID); " +
-      "the mediumTable has no owner column.",
+      "Requires authentication. Only the account that uploaded the medium " +
+      "may call this field within 2 hours of upload (KV ownership window). " +
+      "High-complexity operation (cost 1000). " +
+      "The context argument is truncated server-side to 1000 characters.",
     complexity: 1000,
     args: {
       language: t.arg({ type: "Locale", required: true }),
       context: t.arg({ type: "String", required: false }),
     },
     async resolve(medium, args, ctx) {
-      if ((await ctx.session) == null) throw new NotAuthenticatedError();
+      const session = await ctx.session;
+      if (session == null) throw new NotAuthenticatedError();
+      const owner = await getMediumOwner(ctx.kv, medium.id);
+      if (owner != null && owner !== session.accountId) {
+        throw new NotAuthorizedError();
+      }
       const imageUrl = await ctx.disk.getUrl(medium.key);
       return await generateAltText({
         model: ctx.altTextGenerator,
@@ -2315,6 +2322,7 @@ builder.relayMutationField(
           contentType: upload.contentType,
         });
         if (medium == null) throw new InvalidInputError("uploadId");
+        await setMediumOwner(ctx.kv, medium.id, session.accountId);
         return medium;
       } finally {
         try {
