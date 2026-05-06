@@ -2,6 +2,7 @@ import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { eq } from "drizzle-orm";
 import {
+  createTestDisk,
   createTestKv,
   insertAccountWithActor,
   insertNotePost,
@@ -30,15 +31,15 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 function createTrackingDisk(failingKeys = new Set<string>()) {
   const deleteKeys: string[] = [];
+  const disk = createTestDisk();
+  disk.delete = (key: string) => {
+    deleteKeys.push(key);
+    if (failingKeys.has(key)) return Promise.reject(new Error("failed"));
+    return Promise.resolve(undefined);
+  };
   return {
     deleteKeys,
-    disk: {
-      delete(key: string) {
-        deleteKeys.push(key);
-        if (failingKeys.has(key)) return Promise.reject(new Error("failed"));
-        return Promise.resolve(undefined);
-      },
-    } as unknown as Parameters<typeof deleteOrphanMedia>[1],
+    disk,
   };
 }
 

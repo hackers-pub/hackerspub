@@ -320,7 +320,8 @@ export function createTestDisk(): ContextData["disk"] {
       files.set(key, contents);
       return Promise.resolve(undefined);
     },
-    delete() {
+    delete(key: string) {
+      files.delete(key);
       return Promise.resolve(undefined);
     },
   } as unknown as ContextData["disk"];
