@@ -4,6 +4,7 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
 import type { UserContext } from "./builder.ts";
+import { createArticle } from "@hackerspub/models/article";
 import {
   accountTable,
   articleContentTable,
@@ -196,6 +197,26 @@ const attachArticleDraftMediumMutation = parse(`
         key
         medium {
           uuid
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`);
+
+const updateArticleWithMediaMutation = parse(`
+  mutation UpdateArticleWithMedia($input: UpdateArticleInput!) {
+    updateArticle(input: $input) {
+      __typename
+      ... on UpdateArticlePayload {
+        article {
+          id
+          content
         }
       }
       ... on InvalidInputError {
@@ -540,6 +561,71 @@ test("createMedium and attachArticleDraftMedium create draft media relations", a
     });
     assert.equal(draft?.title, "");
     assert.equal(draft?.content, "");
+  });
+});
+
+test("updateArticle accepts media for new article source references", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updatearticlemediumgraphql",
+      name: "Update Article Medium GraphQL",
+      email: "updatearticlemediumgraphql@example.com",
+    });
+    const fedCtx = createFedCtx(tx);
+    const article = await createArticle(fedCtx, {
+      accountId: account.account.id,
+      publishedYear: 2026,
+      slug: "update-article-medium-graphql",
+      tags: [],
+      allowLlmTranslation: false,
+      published: new Date("2026-04-15T00:00:00.000Z"),
+      updated: new Date("2026-04-15T00:00:00.000Z"),
+      title: "Original article",
+      content: "Original body",
+      language: "en",
+    });
+    assert.ok(article != null);
+    const mediumId = generateUuidV7();
+    await tx.insert(mediumTable).values({
+      id: mediumId,
+      key: "media/update-article-medium-graphql.webp",
+      type: "image/webp",
+      width: 2,
+      height: 2,
+    });
+
+    const result = await execute({
+      schema,
+      document: updateArticleWithMediaMutation,
+      variableValues: {
+        input: {
+          articleId: encodeGlobalID("Article", article.id),
+          content: "![Hero](hp-medium:hero)",
+          media: [{ key: "hero", mediumId }],
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const updated = (toPlainJson(result.data) as {
+      updateArticle: {
+        __typename: string;
+        article: { content: string };
+      };
+    }).updateArticle;
+    assert.equal(updated.__typename, "UpdateArticlePayload");
+    assert.match(
+      updated.article.content,
+      /http:\/\/localhost\/media\/media\/update-article-medium-graphql\.webp/,
+    );
+    assert.doesNotMatch(updated.article.content, /hp-medium:hero/);
+
+    const relation = await tx.query.articleSourceMediumTable.findFirst({
+      where: { articleSourceId: article.articleSource.id, key: "hero" },
+    });
+    assert.equal(relation?.mediumId, mediumId);
   });
 });
 

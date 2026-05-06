@@ -1848,8 +1848,21 @@ input UpdateArticleInput {
   clientMutationId: ID
   content: Markdown
   language: Locale
+
+  """
+  Media to make available to hp-medium:KEY references in the updated article markdown.
+  """
+  media: [UpdateArticleMediumInput!]
   tags: [String!]
   title: String
+}
+
+input UpdateArticleMediumInput {
+  """Key used in article markdown as hp-medium:KEY. Defaults to mediumId."""
+  key: String
+
+  """UUID of a Medium to make available to the article source."""
+  mediumId: UUID!
 }
 
 type UpdateArticlePayload {

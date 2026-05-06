@@ -10,11 +10,20 @@ import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { getLogger } from "@logtape/logtape";
 import { minBy } from "@std/collections/min-by";
 import type { LanguageModel } from "ai";
-import { and, eq, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
+import {
+  and,
+  eq,
+  isNotNull,
+  isNull,
+  lt,
+  notInArray,
+  or,
+  sql,
+} from "drizzle-orm";
 import type { Disk } from "flydrive";
 import postgres from "postgres";
 import type { ContextData, Models } from "./context.ts";
-import type { Database } from "./db.ts";
+import type { Database, Transaction } from "./db.ts";
 import { syncPostFromArticleSource } from "./post.ts";
 import {
   type Account,
@@ -42,6 +51,89 @@ import { addPostToTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "article"]);
+const articleMediumReferencePattern = /hp-medium:([A-Za-z0-9._:/-]+)/g;
+const articleMediumKeyPattern = /^[A-Za-z0-9._:/-]+$/;
+
+interface ArticleMediumInput {
+  key: string;
+  mediumId: Uuid;
+}
+
+class InvalidArticleSourceMediumError extends Error {
+}
+
+function extractArticleMediumKeys(content: string): Set<string> {
+  return new Set(
+    [...content.matchAll(articleMediumReferencePattern)].map((match) =>
+      match[1]
+    ),
+  );
+}
+
+async function updateArticleSourceMedia(
+  db: Database | Transaction,
+  articleSourceId: Uuid,
+  content: string,
+  sourceMedia: readonly ArticleMediumInput[] | undefined,
+): Promise<boolean> {
+  const referencedMediumKeys = extractArticleMediumKeys(content);
+  const existingMedia = await db.query.articleSourceMediumTable.findMany({
+    where: { articleSourceId },
+  });
+  const existingMediaByKey = new Map(
+    existingMedia.map((medium) => [medium.key, medium]),
+  );
+  const sourceMediaByKey = new Map<string, ArticleMediumInput>();
+  for (const medium of sourceMedia ?? []) {
+    if (!articleMediumKeyPattern.test(medium.key)) return false;
+    sourceMediaByKey.set(medium.key, medium);
+  }
+  const missingKeys = [...referencedMediumKeys].filter((key) =>
+    !existingMediaByKey.has(key) && !sourceMediaByKey.has(key)
+  );
+  if (missingKeys.length > 0) return false;
+  const referencedSourceMedia = [...referencedMediumKeys]
+    .map((key) => sourceMediaByKey.get(key))
+    .filter((medium) => medium != null);
+  const referencedMediumIds = [
+    ...new Set(
+      referencedSourceMedia.map((medium) => medium.mediumId),
+    ),
+  ];
+  if (referencedMediumIds.length > 0) {
+    const storedMedia = await db.query.mediumTable.findMany({
+      where: { id: { in: referencedMediumIds } },
+      columns: { id: true },
+    });
+    if (storedMedia.length !== referencedMediumIds.length) return false;
+  }
+  if (referencedMediumKeys.size < 1) {
+    await db.delete(articleSourceMediumTable)
+      .where(eq(articleSourceMediumTable.articleSourceId, articleSourceId));
+  } else {
+    await db.delete(articleSourceMediumTable)
+      .where(and(
+        eq(articleSourceMediumTable.articleSourceId, articleSourceId),
+        notInArray(articleSourceMediumTable.key, [...referencedMediumKeys]),
+      ));
+  }
+  if (referencedSourceMedia.length > 0) {
+    await db.insert(articleSourceMediumTable).values(
+      referencedSourceMedia.map((medium) => ({
+        articleSourceId,
+        key: medium.key,
+        mediumId: medium.mediumId,
+      })),
+    ).onConflictDoUpdate({
+      target: [
+        articleSourceMediumTable.articleSourceId,
+        articleSourceMediumTable.key,
+      ],
+      set: { mediumId: sql`excluded.medium_id` },
+    });
+  }
+  return true;
+}
 
 export async function getArticleDraftMediumUrls(
   db: Database,
@@ -291,10 +383,7 @@ export async function createArticle(
 > {
   const { db } = fedCtx.data;
   const { media: sourceMedia, ...articleSourceInput } = source;
-  const referencedMediumKeys = new Set(
-    [...source.content.matchAll(/hp-medium:([A-Za-z0-9._:/-]+)/g)]
-      .map((match) => match[1]),
-  );
+  const referencedMediumKeys = extractArticleMediumKeys(source.content);
   const sourceMediaByKey = new Map(
     (sourceMedia ?? []).map((medium) => [medium.key, medium]),
   );
@@ -395,89 +484,114 @@ export async function updateArticleSource(
     title?: string;
     content?: string;
     language?: string;
+    media?: readonly ArticleMediumInput[];
   },
   models?: Models,
 ): Promise<UpdateArticleSourceResult | undefined> {
+  const { media: sourceMedia, ...sourceFields } = source;
   // Captured inside the transaction and used after it commits so we
   // can enqueue a fresh summarization for the row whose body or
   // language just changed.
   let resummarizeTarget: ArticleContent | undefined;
   let originalContentChanged = false;
-  const result = await db.transaction(async (tx) => {
-    const sources = await tx.update(articleSourceTable)
-      .set({ ...source, updated: sql`CURRENT_TIMESTAMP` })
-      .where(eq(articleSourceTable.id, id))
-      .returning();
-    if (sources.length < 1) return undefined;
-    const originalContent = await getOriginalArticleContent(tx, sources[0]);
-    if (originalContent == null) {
-      if (
-        source.language == null || source.title == null ||
-        source.content == null
-      ) {
-        throw new Error("Missing required fields for new article content");
+  let result: (ArticleSource & { contents: ArticleContent[] }) | undefined;
+  try {
+    result = await db.transaction(async (tx) => {
+      const sources = await tx.update(articleSourceTable)
+        .set({ ...sourceFields, updated: sql`CURRENT_TIMESTAMP` })
+        .where(eq(articleSourceTable.id, id))
+        .returning();
+      if (sources.length < 1) return undefined;
+      const originalContent = await getOriginalArticleContent(tx, sources[0]);
+      if (originalContent == null) {
+        if (
+          sourceFields.language == null || sourceFields.title == null ||
+          sourceFields.content == null
+        ) {
+          throw new Error("Missing required fields for new article content");
+        }
+        await tx.insert(articleContentTable).values({
+          sourceId: id,
+          language: sourceFields.language,
+          title: sourceFields.title,
+          content: sourceFields.content,
+        });
+      } else {
+        const newContent = sourceFields.content ?? originalContent.content;
+        const newLanguage = sourceFields.language ?? originalContent.language;
+        const contentChanged = newContent !== originalContent.content;
+        const languageChanged = newLanguage !== originalContent.language;
+        try {
+          const updatedRows = await tx.update(articleContentTable)
+            .set({
+              language: newLanguage,
+              title: sourceFields.title ?? originalContent.title,
+              content: newContent,
+              updated: sql`CURRENT_TIMESTAMP`,
+              // When the body or language actually changes, clear the
+              // previous summary state so a fresh attempt can run with
+              // the new content/language, including unsticking any
+              // earlier `summaryUnnecessary` mark and discarding any
+              // summary that would now be in the wrong language.
+              ...(contentChanged || languageChanged
+                ? {
+                  summary: null,
+                  summaryStarted: null,
+                  summaryUnnecessary: false,
+                }
+                : {}),
+            })
+            .where(
+              and(
+                eq(articleContentTable.sourceId, id),
+                eq(articleContentTable.language, originalContent.language),
+              ),
+            )
+            .returning();
+          if (
+            (contentChanged || languageChanged) && updatedRows.length > 0
+          ) {
+            resummarizeTarget = updatedRows[0];
+          }
+          if (contentChanged && updatedRows.length > 0) {
+            originalContentChanged = true;
+          }
+        } catch (error) {
+          if (
+            error instanceof postgres.PostgresError && error.code === "23503"
+          ) {
+            throw new LanguageChangeWithTranslationsError();
+          }
+          throw error;
+        }
       }
-      await tx.insert(articleContentTable).values({
-        sourceId: id,
-        language: source.language,
-        title: source.title,
-        content: source.content,
+      const contents = await tx.query.articleContentTable.findMany({
+        where: { sourceId: id },
+        orderBy: { published: "asc" },
       });
-    } else {
-      const newContent = source.content ?? originalContent.content;
-      const newLanguage = source.language ?? originalContent.language;
-      const contentChanged = newContent !== originalContent.content;
-      const languageChanged = newLanguage !== originalContent.language;
-      try {
-        const updatedRows = await tx.update(articleContentTable)
-          .set({
-            language: newLanguage,
-            title: source.title ?? originalContent.title,
-            content: newContent,
-            updated: sql`CURRENT_TIMESTAMP`,
-            // When the body or language actually changes, clear the
-            // previous summary state so a fresh attempt can run with
-            // the new content/language, including unsticking any
-            // earlier `summaryUnnecessary` mark and discarding any
-            // summary that would now be in the wrong language.
-            ...(contentChanged || languageChanged
-              ? {
-                summary: null,
-                summaryStarted: null,
-                summaryUnnecessary: false,
-              }
-              : {}),
-          })
-          .where(
-            and(
-              eq(articleContentTable.sourceId, id),
-              eq(articleContentTable.language, originalContent.language),
-            ),
-          )
-          .returning();
-        if (
-          (contentChanged || languageChanged) && updatedRows.length > 0
-        ) {
-          resummarizeTarget = updatedRows[0];
+      if (sourceFields.content != null || sourceMedia != null) {
+        const originalContent = contents.find((content) =>
+          content.originalLanguage == null &&
+          content.translatorId == null &&
+          content.translationRequesterId == null
+        );
+        if (originalContent == null) {
+          throw new Error("Missing original article content");
         }
-        if (contentChanged && updatedRows.length > 0) {
-          originalContentChanged = true;
-        }
-      } catch (error) {
-        if (
-          error instanceof postgres.PostgresError && error.code === "23503"
-        ) {
-          throw new LanguageChangeWithTranslationsError();
-        }
-        throw error;
+        const mediaUpdated = await updateArticleSourceMedia(
+          tx,
+          id,
+          originalContent.content,
+          sourceMedia,
+        );
+        if (!mediaUpdated) throw new InvalidArticleSourceMediumError();
       }
-    }
-    const contents = await tx.query.articleContentTable.findMany({
-      where: { sourceId: id },
-      orderBy: { published: "asc" },
+      return { ...sources[0], contents };
     });
-    return { ...sources[0], contents };
-  });
+  } catch (error) {
+    if (error instanceof InvalidArticleSourceMediumError) return undefined;
+    throw error;
+  }
   if (result == null) return undefined;
   // Queue a fresh summarization outside of the transaction so the
   // claim is visible to other workers as soon as it is acquired and
@@ -495,6 +609,7 @@ export async function updateArticle(
     title?: string;
     content?: string;
     language?: string;
+    media?: readonly ArticleMediumInput[];
   },
 ): Promise<
   Post & {

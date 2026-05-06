@@ -1855,6 +1855,21 @@ builder.queryField("articleByYearAndSlug", (t) =>
     },
   }));
 
+const UpdateArticleMediumInput = builder.inputType("UpdateArticleMediumInput", {
+  fields: (t) => ({
+    mediumId: t.field({
+      type: "UUID",
+      required: true,
+      description: "UUID of a Medium to make available to the article source.",
+    }),
+    key: t.string({
+      required: false,
+      description:
+        "Key used in article markdown as hp-medium:KEY. Defaults to mediumId.",
+    }),
+  }),
+});
+
 builder.relayMutationField(
   "updateArticle",
   {
@@ -1865,6 +1880,12 @@ builder.relayMutationField(
       tags: t.stringList({ required: false }),
       language: t.field({ type: "Locale", required: false }),
       allowLlmTranslation: t.boolean({ required: false }),
+      media: t.field({
+        type: [UpdateArticleMediumInput],
+        required: false,
+        description:
+          "Media to make available to hp-medium:KEY references in the updated article markdown.",
+      }),
     }),
   },
   {
@@ -1895,6 +1916,21 @@ builder.relayMutationField(
         throw new InvalidInputError("articleId");
       }
 
+      const media: { key: string; mediumId: Uuid }[] = [];
+      for (const [i, mediumInput] of (args.input.media ?? []).entries()) {
+        const medium = await ctx.db.query.mediumTable.findFirst({
+          where: { id: mediumInput.mediumId },
+        });
+        if (medium == null) {
+          throw new InvalidInputError(`media.${i}.mediumId`);
+        }
+        const key = mediumInput.key?.trim() || medium.id;
+        if (!key.match(/^[A-Za-z0-9._:/-]+$/)) {
+          throw new InvalidInputError(`media.${i}.key`);
+        }
+        media.push({ key, mediumId: medium.id });
+      }
+
       let updated;
       try {
         updated = await updateArticle(ctx.fedCtx, post.articleSource.id, {
@@ -1903,6 +1939,7 @@ builder.relayMutationField(
           tags: args.input.tags ?? undefined,
           language: args.input.language?.baseName ?? undefined,
           allowLlmTranslation: args.input.allowLlmTranslation ?? undefined,
+          media: args.input.media == null ? undefined : media,
         });
       } catch (e) {
         if (e instanceof LanguageChangeWithTranslationsError) {
