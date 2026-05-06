@@ -373,13 +373,18 @@ Deno.test({
         "media/direct-draft.webp",
         old,
       );
+      const directFsDraftMediumId = await insertTestMedium(
+        tx,
+        "media/direct-fs-draft.webp",
+        old,
+      );
       const directDraftId = generateUuidV7();
       await tx.insert(articleDraftTable).values({
         id: directDraftId,
         accountId: account.account.id,
         title: "Direct draft",
         content:
-          `![direct](/media/media/direct-draft.webp) ![prefix](/media/media/prefix.webp-extra)`,
+          `![direct](/media/direct-draft.webp) ![fs](/media/media/direct-fs-draft.webp) ![prefix](/media/media/prefix.webp-extra)`,
       });
 
       const sourceMediumId = await insertTestMedium(
@@ -418,6 +423,11 @@ Deno.test({
       assert(
         await tx.query.mediumTable.findFirst({
           where: { id: directDraftMediumId },
+        }) != null,
+      );
+      assert(
+        await tx.query.mediumTable.findFirst({
+          where: { id: directFsDraftMediumId },
         }) != null,
       );
       assert(

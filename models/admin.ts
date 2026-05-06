@@ -273,6 +273,8 @@ function orphanMediaWhere(cutoffDate: Date): SQL {
     sql`'hp-medium:' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
   const directMediumReferencePattern =
     sql`'/media/' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
+  const keyPathMediumReferencePattern =
+    sql`'/' || ${mediumKeyPattern} || ${mediumReferenceBoundary}`;
   return sql`
     ${mediumTable.created} < ${cutoffDateSql} AND
     NOT EXISTS (
@@ -295,13 +297,15 @@ function orphanMediaWhere(cutoffDate: Date): SQL {
       SELECT 1 FROM ${articleDraftTable}
       WHERE
         ${articleDraftTable.content} ~ (${hpMediumReferencePattern}) OR
-        ${articleDraftTable.content} ~ (${directMediumReferencePattern})
+        ${articleDraftTable.content} ~ (${directMediumReferencePattern}) OR
+        ${articleDraftTable.content} ~ (${keyPathMediumReferencePattern})
     ) AND
     NOT EXISTS (
       SELECT 1 FROM ${articleContentTable}
       WHERE
         ${articleContentTable.content} ~ (${hpMediumReferencePattern}) OR
-        ${articleContentTable.content} ~ (${directMediumReferencePattern})
+        ${articleContentTable.content} ~ (${directMediumReferencePattern}) OR
+        ${articleContentTable.content} ~ (${keyPathMediumReferencePattern})
     )
   `;
 }
