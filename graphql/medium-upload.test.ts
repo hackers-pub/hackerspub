@@ -144,3 +144,78 @@ test("handleMediumUploadProxy rejects bodies shorter than content length", async
   assert.equal(response.status, 413);
   assert.throws(() => disk.getBytes(session.key));
 });
+
+test("handleMediumUploadProxy responds to OPTIONS preflight with CORS headers", async () => {
+  const { kv } = createTestKv();
+  const disk = createTestDisk();
+  const accountId = crypto.randomUUID() as Uuid;
+  const session = await createMediumUploadSession(
+    kv,
+    accountId,
+    "image/png",
+    4,
+  );
+
+  const response = await handleMediumUploadProxy(
+    new Request(
+      `http://localhost/medium-uploads/${session.id}?token=${session.token}`,
+      {
+        method: "OPTIONS",
+        headers: {
+          "Origin": "http://localhost:5173",
+          "Access-Control-Request-Method": "PUT",
+          "Access-Control-Request-Headers": "Content-Type",
+        },
+      },
+    ),
+    kv,
+    disk,
+  );
+
+  assert.ok(response != null);
+  assert.equal(response.status, 204);
+  assert.equal(
+    response.headers.get("Access-Control-Allow-Origin"),
+    "http://localhost:5173",
+  );
+  assert.ok(
+    response.headers.get("Access-Control-Allow-Methods")?.includes("PUT"),
+  );
+});
+
+test("handleMediumUploadProxy includes CORS origin header on successful PUT", async () => {
+  const { kv } = createTestKv();
+  const disk = createTestDisk();
+  const accountId = crypto.randomUUID() as Uuid;
+  const session = await createMediumUploadSession(
+    kv,
+    accountId,
+    "image/png",
+    4,
+  );
+  const bytes = new Uint8Array([1, 2, 3, 4]);
+
+  const response = await handleMediumUploadProxy(
+    new Request(
+      `http://localhost/medium-uploads/${session.id}?token=${session.token}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "image/png",
+          "Content-Length": "4",
+          "Origin": "http://localhost:5173",
+        },
+        body: bytes,
+      },
+    ),
+    kv,
+    disk,
+  );
+
+  assert.ok(response != null);
+  assert.equal(response.status, 204);
+  assert.equal(
+    response.headers.get("Access-Control-Allow-Origin"),
+    "http://localhost:5173",
+  );
+});
