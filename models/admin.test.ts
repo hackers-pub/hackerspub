@@ -328,6 +328,7 @@ Deno.test({
       const recent = new Date("2026-04-14T12:00:00.000Z");
 
       await insertTestMedium(tx, "media/orphan.webp", old);
+      await insertTestMedium(tx, "media/prefix.webp", old);
       await insertTestMedium(tx, "media/recent.webp", recent);
 
       const avatarMediumId = await insertTestMedium(
@@ -377,7 +378,8 @@ Deno.test({
         id: directDraftId,
         accountId: account.account.id,
         title: "Direct draft",
-        content: `![direct](/media/media/direct-draft.webp)`,
+        content:
+          `![direct](/media/media/direct-draft.webp) ![prefix](/media/media/prefix.webp-extra)`,
       });
 
       const sourceMediumId = await insertTestMedium(
@@ -406,12 +408,13 @@ Deno.test({
         sourceId,
         language: "en",
         title: "Direct source",
-        content: `![direct](/media/media/direct-source.webp)`,
+        content:
+          `![direct](hp-medium:media/direct-source.webp) ![prefix](hp-medium:media/prefix.webp-extra)`,
       });
 
       const status = await getOrphanMediaStatus(tx, { now });
       assertEquals(status.cutoffDate.toISOString(), cutoff.toISOString());
-      assertEquals(status.orphanMediaCount, 1);
+      assertEquals(status.orphanMediaCount, 2);
       assert(
         await tx.query.mediumTable.findFirst({
           where: { id: directDraftMediumId },
