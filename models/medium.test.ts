@@ -54,6 +54,17 @@ test("createMediumFromBytes() stores webp media once by content hash", async () 
   });
 });
 
+test("createMediumFromBytes() rejects corrupt image bytes", async () => {
+  const medium = await createMediumFromBytes(
+    undefined as never,
+    undefined as never,
+    new Uint8Array([1, 2, 3, 4]),
+    { contentType: "image/png" },
+  );
+
+  assert.equal(medium, undefined);
+});
+
 test("createMediumFromUrl() rejects redirects to unsafe network targets", async () => {
   await withRollback(async (tx) => {
     const disk = {
@@ -79,6 +90,38 @@ test("createMediumFromUrl() rejects redirects to unsafe network targets", async 
         UnsafeMediumUrlError,
       );
     });
+  });
+});
+
+test("createMediumFromUrl() stops reading remote bodies over the size limit", async () => {
+  const disk = {
+    put() {
+      throw new Error("oversized media should not be stored");
+    },
+  };
+  await withMockFetch((_input) => {
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array([1, 2, 3, 4]));
+        controller.enqueue(new Uint8Array([5]));
+        controller.close();
+      },
+    });
+    return Promise.resolve(
+      new Response(body, {
+        status: 200,
+        headers: { "Content-Type": "image/png" },
+      }),
+    );
+  }, async () => {
+    const medium = await createMediumFromUrl(
+      undefined as never,
+      disk as never,
+      new URL("https://example.com/image.png"),
+      { maxSize: 4 },
+    );
+
+    assert.equal(medium, undefined);
   });
 });
 

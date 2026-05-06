@@ -1,3 +1,4 @@
+import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
 import { assertNever } from "@std/assert/unstable-never";
@@ -28,6 +29,7 @@ import {
   createMediumFromUrl,
   MAX_STREAMING_MEDIUM_IMAGE_SIZE,
   SUPPORTED_MEDIUM_IMAGE_TYPES,
+  UnsafeMediumUrlError,
 } from "@hackerspub/models/medium";
 import { createNote } from "@hackerspub/models/note";
 import {
@@ -69,6 +71,7 @@ import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 const articleContentOgImageComplexity = 2_000;
+const logger = getLogger(["hackerspub", "graphql", "post"]);
 
 class SharedPostDeletionNotAllowedError extends Error {
   public constructor(public readonly inputPath: string) {
@@ -2066,18 +2069,21 @@ builder.relayMutationField(
       if (session == null) {
         throw new NotAuthenticatedError();
       }
+      let medium: schema.Medium | undefined;
       try {
-        const medium = await createMediumFromUrl(
+        medium = await createMediumFromUrl(
           ctx.db,
           ctx.disk,
           args.input.url,
           { userAgentUrl: new URL(ctx.fedCtx.canonicalOrigin) },
         );
-        if (medium == null) throw new InvalidInputError("url");
-        return medium;
-      } catch {
+      } catch (error) {
+        if (!(error instanceof UnsafeMediumUrlError)) throw error;
+      }
+      if (medium == null) {
         throw new InvalidInputError("url");
       }
+      return medium;
     },
   },
   {
@@ -2200,19 +2206,34 @@ builder.relayMutationField(
       if (upload == null || upload.accountId !== session.accountId) {
         throw new InvalidInputError("uploadId");
       }
+      let bytes: Uint8Array;
       try {
-        const bytes = await ctx.disk.getBytes(upload.key);
-        const medium = await createMediumFromBytes(ctx.db, ctx.disk, bytes, {
-          maxSize: MAX_STREAMING_MEDIUM_IMAGE_SIZE,
-          contentType: upload.contentType,
-        });
-        if (medium == null) throw new InvalidInputError("uploadId");
-        await ctx.disk.delete(upload.key);
-        await deleteMediumUploadSession(ctx.kv, upload.id);
-        return medium;
+        bytes = await ctx.disk.getBytes(upload.key);
       } catch {
         throw new InvalidInputError("uploadId");
       }
+      const medium = await createMediumFromBytes(ctx.db, ctx.disk, bytes, {
+        maxSize: MAX_STREAMING_MEDIUM_IMAGE_SIZE,
+        contentType: upload.contentType,
+      });
+      if (medium == null) throw new InvalidInputError("uploadId");
+      try {
+        await ctx.disk.delete(upload.key);
+      } catch (error) {
+        logger.warn("Failed to delete temporary medium upload {key}: {error}", {
+          key: upload.key,
+          error,
+        });
+      }
+      try {
+        await deleteMediumUploadSession(ctx.kv, upload.id);
+      } catch (error) {
+        logger.warn("Failed to delete medium upload session {id}: {error}", {
+          id: upload.id,
+          error,
+        });
+      }
+      return medium;
     },
   },
   {

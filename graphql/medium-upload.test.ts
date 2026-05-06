@@ -72,3 +72,42 @@ test("handleMediumUploadProxy accepts exact content length", async () => {
   assert.equal(response.status, 204);
   assert.deepEqual(await disk.getBytes(session.key), bytes);
 });
+
+test("handleMediumUploadProxy stops reading when body exceeds session length", async () => {
+  const { kv } = createTestKv();
+  const disk = createTestDisk();
+  const accountId = crypto.randomUUID() as Uuid;
+  const session = await createMediumUploadSession(
+    kv,
+    accountId,
+    "image/png",
+    4,
+  );
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(new Uint8Array([1, 2, 3, 4]));
+      controller.enqueue(new Uint8Array([5]));
+      controller.close();
+    },
+  });
+
+  const response = await handleMediumUploadProxy(
+    new Request(
+      `http://localhost/medium-uploads/${session.id}?token=${session.token}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "image/png",
+          "Content-Length": "4",
+        },
+        body,
+      },
+    ),
+    kv,
+    disk,
+  );
+
+  assert.ok(response != null);
+  assert.equal(response.status, 413);
+  assert.throws(() => disk.getBytes(session.key));
+});

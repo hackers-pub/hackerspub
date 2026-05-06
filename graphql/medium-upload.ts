@@ -63,6 +63,33 @@ export async function deleteMediumUploadSession(
   await kv.delete(getMediumUploadSessionKey(id));
 }
 
+async function readRequestBody(
+  request: Request,
+  maxSize: number,
+): Promise<Uint8Array | undefined> {
+  const reader = request.body?.getReader();
+  if (reader == null) return undefined;
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxSize) {
+      await reader.cancel();
+      return undefined;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes;
+}
+
 export async function handleMediumUploadProxy(
   request: Request,
   kv: Keyv,
@@ -109,8 +136,12 @@ export async function handleMediumUploadProxy(
   ) {
     return new Response("Payload Too Large", { status: 413 });
   }
-  const bytes = new Uint8Array(await request.arrayBuffer());
+  const bytes = await readRequestBody(
+    request,
+    Math.min(session.contentLength, MAX_STREAMING_MEDIUM_IMAGE_SIZE),
+  );
   if (
+    bytes == null ||
     bytes.byteLength !== session.contentLength ||
     bytes.byteLength > MAX_STREAMING_MEDIUM_IMAGE_SIZE
   ) {

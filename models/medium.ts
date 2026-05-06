@@ -111,6 +111,33 @@ async function sha256Hex(data: Uint8Array): Promise<string> {
     .join("");
 }
 
+async function readResponseBytes(
+  response: Response,
+  maxSize: number,
+): Promise<Uint8Array | undefined> {
+  const reader = response.body?.getReader();
+  if (reader == null) return undefined;
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxSize) {
+      await reader.cancel();
+      return undefined;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return bytes;
+}
+
 export async function createMediumFromBytes(
   db: Database,
   disk: Disk,
@@ -132,22 +159,31 @@ export async function createMediumFromBytes(
   ) {
     return undefined;
   }
-  if (options.preprocess != null) {
-    const processed = await options.preprocess(input);
-    input = processed.bytes;
-    contentType = processed.contentType ?? contentType;
-    if (input.byteLength > (options.maxSize ?? MAX_MEDIUM_IMAGE_SIZE)) {
-      return undefined;
+  let data: Uint8Array;
+  let width: number | undefined;
+  let height: number | undefined;
+  try {
+    if (options.preprocess != null) {
+      const processed = await options.preprocess(input);
+      input = processed.bytes;
+      contentType = processed.contentType ?? contentType;
+      if (input.byteLength > (options.maxSize ?? MAX_MEDIUM_IMAGE_SIZE)) {
+        return undefined;
+      }
+      if (contentType != null && !isSupportedMediumImageType(contentType)) {
+        return undefined;
+      }
     }
-    if (contentType != null && !isSupportedMediumImageType(contentType)) {
-      return undefined;
-    }
+    const result = await sharp(input, { animated: true })
+      .rotate()
+      .webp()
+      .toBuffer({ resolveWithObject: true });
+    data = result.data;
+    width = result.info.width;
+    height = result.info.height;
+  } catch {
+    return undefined;
   }
-  const { data, info } = await sharp(input, { animated: true })
-    .rotate()
-    .webp()
-    .toBuffer({ resolveWithObject: true });
-  const { width, height } = info;
   if (width == null || height == null) return undefined;
   const contentHash = await sha256Hex(new Uint8Array(data));
   const existing = await db.query.mediumTable.findFirst({
@@ -217,9 +253,9 @@ export async function createMediumFromUrl(
   if (contentLength != null && Number(contentLength) > maxSize) {
     return undefined;
   }
-  const blob = await response.blob();
-  if (blob.size > maxSize) return undefined;
-  return await createMediumFromBytes(db, disk, await blob.arrayBuffer(), {
+  const bytes = await readResponseBytes(response, maxSize);
+  if (bytes == null) return undefined;
+  return await createMediumFromBytes(db, disk, bytes, {
     maxSize,
     contentType,
     preprocess: options.preprocess,
