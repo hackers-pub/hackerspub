@@ -57,7 +57,19 @@ CREATE TABLE IF NOT EXISTS "article_source_medium" (
     PRIMARY KEY("article_source_id","key")
 );
 --> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "note_source_medium_medium_id_idx"
+ON "note_source_medium" ("medium_id");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "article_draft_medium_medium_id_idx"
+ON "article_draft_medium" ("medium_id");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "article_source_medium_medium_id_idx"
+ON "article_source_medium" ("medium_id");
+--> statement-breakpoint
 ALTER TABLE "account" ADD COLUMN "avatar_medium_id" uuid;
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "account_avatar_medium_id_idx"
+ON "account" ("avatar_medium_id");
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "account" ADD CONSTRAINT "account_avatar_medium_id_medium_id_fk"

@@ -82,6 +82,7 @@ export const accountTable = pgTable(
       .default(currentTimestamp),
   },
   (table) => [
+    index("account_avatar_medium_id_idx").on(table.avatarMediumId),
     check(
       "account_username_check",
       sql`${table.username} ~ '^[a-z0-9_]{1,50}$'`,
@@ -627,6 +628,7 @@ export const noteSourceMediumTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.sourceId, table.index] }),
+    index("note_source_medium_medium_id_idx").on(table.mediumId),
     check("note_source_medium_index_check", sql`${table.index} >= 0`),
   ],
 );
@@ -1322,6 +1324,7 @@ export const articleDraftMediumTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.articleDraftId, table.key] }),
+    index("article_draft_medium_medium_id_idx").on(table.mediumId),
   ],
 );
 
@@ -1346,6 +1349,7 @@ export const articleSourceMediumTable = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.articleSourceId, table.key] }),
+    index("article_source_medium_medium_id_idx").on(table.mediumId),
   ],
 );
 

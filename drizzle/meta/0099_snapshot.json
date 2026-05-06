@@ -381,7 +381,23 @@
           "default": "CURRENT_TIMESTAMP"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "account_avatar_medium_id_idx": {
+          "name": "account_avatar_medium_id_idx",
+          "columns": [
+            {
+              "expression": "avatar_medium_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "account_avatar_medium_id_medium_id_fk": {
           "name": "account_avatar_medium_id_medium_id_fk",
@@ -1038,7 +1054,23 @@
           "default": "CURRENT_TIMESTAMP"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "article_draft_medium_medium_id_idx": {
+          "name": "article_draft_medium_medium_id_idx",
+          "columns": [
+            {
+              "expression": "medium_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "article_draft_medium_article_draft_id_article_draft_id_fk": {
           "name": "article_draft_medium_article_draft_id_article_draft_id_fk",
@@ -1202,7 +1234,23 @@
           "default": "CURRENT_TIMESTAMP"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "article_source_medium_medium_id_idx": {
+          "name": "article_source_medium_medium_id_idx",
+          "columns": [
+            {
+              "expression": "medium_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "article_source_medium_article_source_id_article_source_id_fk": {
           "name": "article_source_medium_article_source_id_article_source_id_fk",
@@ -2074,7 +2122,23 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "note_source_medium_medium_id_idx": {
+          "name": "note_source_medium_medium_id_idx",
+          "columns": [
+            {
+              "expression": "medium_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "note_source_medium_note_source_id_note_source_id_fk": {
           "name": "note_source_medium_note_source_id_note_source_id_fk",
