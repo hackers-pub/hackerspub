@@ -3,7 +3,9 @@ import test from "node:test";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import * as vocab from "@fedify/vocab";
 import { execute, parse } from "graphql";
+import sharp from "sharp";
 import { updateAccountData } from "@hackerspub/models/account";
+import { createMediumFromBytes } from "@hackerspub/models/medium";
 import { mediumTable } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import type { UserContext } from "./builder.ts";
@@ -11,6 +13,7 @@ import { schema } from "./mod.ts";
 import { putProfileOgImage } from "./og.ts";
 import {
   createFedCtx,
+  createTestDisk,
   insertAccountWithActor,
   makeGuestContext,
   makeUserContext,
@@ -388,6 +391,112 @@ test("updateAccount updates profile preferences for the signed-in account", asyn
     assert.equal(stored.preferAiSummary, true);
     assert.equal(stored.noteVisibility, "followers");
     assert.equal(stored.shareVisibility, "unlisted");
+  });
+});
+
+test("updateAccount transforms avatarUrl before assigning a medium", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updateaccountavatarurl",
+      name: "Update Account Avatar URL",
+      email: "updateaccountavatarurl@example.com",
+    });
+    const input = await sharp({
+      create: {
+        width: 200,
+        height: 100,
+        channels: 3,
+        background: { r: 255, g: 0, b: 0 },
+      },
+    }).png().toBuffer();
+    const avatarUrl = `data:image/png;base64,${input.toString("base64")}`;
+    const disk = createTestDisk();
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.disk = disk;
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(
+        new vocab.Person({
+          id: fedCtx.getActorUri(identifier),
+        }),
+      );
+
+    const result = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          avatarUrl,
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { disk, fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const updated = await tx.query.accountTable.findFirst({
+      where: { id: account.account.id },
+      with: { avatarMedium: true },
+    });
+    assert.ok(updated?.avatarMedium != null);
+    assert.equal(updated.avatarMedium.width, 100);
+    assert.equal(updated.avatarMedium.height, 100);
+  });
+});
+
+test("updateAccount transforms avatarMediumId before assigning it", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updateaccountavatarid",
+      name: "Update Account Avatar ID",
+      email: "updateaccountavatarid@example.com",
+    });
+    const input = await sharp({
+      create: {
+        width: 200,
+        height: 100,
+        channels: 3,
+        background: { r: 0, g: 255, b: 0 },
+      },
+    }).png().toBuffer();
+    const disk = createTestDisk();
+    const genericMedium = await createMediumFromBytes(tx, disk, input, {
+      contentType: "image/png",
+    });
+    assert.ok(genericMedium != null);
+    assert.equal(genericMedium.width, 200);
+    assert.equal(genericMedium.height, 100);
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.disk = disk;
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(
+        new vocab.Person({
+          id: fedCtx.getActorUri(identifier),
+        }),
+      );
+
+    const result = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          avatarMediumId: genericMedium.id,
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { disk, fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const updated = await tx.query.accountTable.findFirst({
+      where: { id: account.account.id },
+      with: { avatarMedium: true },
+    });
+    assert.ok(updated?.avatarMedium != null);
+    assert.notEqual(updated.avatarMedium.id, genericMedium.id);
+    assert.equal(updated.avatarMedium.width, 100);
+    assert.equal(updated.avatarMedium.height, 100);
   });
 });
 

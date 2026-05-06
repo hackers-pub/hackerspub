@@ -1,7 +1,10 @@
 import { page } from "@fresh/core";
-import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
+import {
+  createAvatarMediumFromBlob,
+  getAvatarUrl,
+  updateAccount,
+} from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
-import { createMediumFromBlob } from "@hackerspub/models/medium";
 import { getLogger } from "@logtape/logtape";
 import { zip } from "@std/collections/zip";
 import { Button } from "../../../components/Button.tsx";
@@ -126,7 +129,9 @@ export const handler = define.handlers({
       links,
     };
     if (avatar instanceof File) {
-      const medium = await createMediumFromBlob(db, disk, avatar);
+      const medium = await createAvatarMediumFromBlob(db, disk, avatar, {
+        maxSize: MAX_AVATAR_SIZE,
+      });
       if (medium != null) values.avatarMediumId = medium.id;
     }
     const updatedAccount = await updateAccount(ctx.state.fedCtx, values);

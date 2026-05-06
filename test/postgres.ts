@@ -306,11 +306,18 @@ export function toPlainJson<T>(value: T): T {
 }
 
 export function createTestDisk(): ContextData["disk"] {
+  const files = new Map<string, Uint8Array>();
   return {
     getUrl(key: string) {
       return Promise.resolve(`http://localhost/media/${key}`);
     },
-    put() {
+    getBytes(key: string) {
+      const bytes = files.get(key);
+      if (bytes == null) throw new Error(`No test disk file for key: ${key}`);
+      return Promise.resolve(bytes);
+    },
+    put(key: string, contents: Uint8Array) {
+      files.set(key, contents);
       return Promise.resolve(undefined);
     },
     delete() {

@@ -49,6 +49,10 @@ export const MAX_STREAMING_MEDIUM_IMAGE_SIZE = 50 * 1024 * 1024;
 
 const localMediumType: MediumType = "image/webp";
 
+type MediumPreprocess = (
+  bytes: Uint8Array,
+) => Promise<{ bytes: Uint8Array; contentType?: string | null }>;
+
 export class UnsafeMediumUrlError extends Error {
   constructor(url: string) {
     super(`Unsafe medium URL: ${url}`);
@@ -111,17 +115,33 @@ export async function createMediumFromBytes(
   db: Database,
   disk: Disk,
   bytes: Uint8Array | ArrayBuffer,
-  options: { maxSize?: number; contentType?: string | null } = {},
+  options: {
+    maxSize?: number;
+    contentType?: string | null;
+    preprocess?: MediumPreprocess;
+  } = {},
 ): Promise<Medium | undefined> {
-  const input = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let input = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let contentType = options.contentType;
   if (input.byteLength > (options.maxSize ?? MAX_MEDIUM_IMAGE_SIZE)) {
     return undefined;
   }
   if (
-    options.contentType != null &&
-    !isSupportedMediumImageType(options.contentType)
+    contentType != null &&
+    !isSupportedMediumImageType(contentType)
   ) {
     return undefined;
+  }
+  if (options.preprocess != null) {
+    const processed = await options.preprocess(input);
+    input = processed.bytes;
+    contentType = processed.contentType ?? contentType;
+    if (input.byteLength > (options.maxSize ?? MAX_MEDIUM_IMAGE_SIZE)) {
+      return undefined;
+    }
+    if (contentType != null && !isSupportedMediumImageType(contentType)) {
+      return undefined;
+    }
   }
   const { data, info } = await sharp(input, { animated: true })
     .rotate()
@@ -161,7 +181,7 @@ export async function createMediumFromBlob(
   db: Database,
   disk: Disk,
   blob: Blob,
-  options: { maxSize?: number } = {},
+  options: { maxSize?: number; preprocess?: MediumPreprocess } = {},
 ): Promise<Medium | undefined> {
   if (!isSupportedMediumImageType(blob.type)) return undefined;
   return await createMediumFromBytes(db, disk, await blob.arrayBuffer(), {
@@ -174,7 +194,11 @@ export async function createMediumFromUrl(
   db: Database,
   disk: Disk,
   url: URL,
-  options: { maxSize?: number; userAgentUrl?: URL } = {},
+  options: {
+    maxSize?: number;
+    userAgentUrl?: URL;
+    preprocess?: MediumPreprocess;
+  } = {},
 ): Promise<Medium | undefined> {
   if (
     url.protocol !== "data:" && url.protocol !== "http:" &&
@@ -198,6 +222,7 @@ export async function createMediumFromUrl(
   return await createMediumFromBytes(db, disk, await blob.arrayBuffer(), {
     maxSize,
     contentType,
+    preprocess: options.preprocess,
   });
 }
 

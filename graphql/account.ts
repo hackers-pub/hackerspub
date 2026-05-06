@@ -6,11 +6,15 @@ import {
 import { assertNever } from "@std/assert/unstable-never";
 import DataLoader from "dataloader";
 import { and, desc, eq, gt, inArray, lt, sql } from "drizzle-orm";
-import { getAvatarUrl, updateAccount } from "@hackerspub/models/account";
+import {
+  createAvatarMediumFromMedium,
+  createAvatarMediumFromUrl,
+  getAvatarUrl,
+  updateAccount,
+} from "@hackerspub/models/account";
 import { syncActorFromAccount } from "@hackerspub/models/actor";
 import type { Locale } from "@hackerspub/models/i18n";
 import { renderMarkup } from "@hackerspub/models/markup";
-import { createMediumFromUrl } from "@hackerspub/models/medium";
 import {
   accountTable,
   actorTable,
@@ -639,7 +643,7 @@ builder.relayMutationField(
             "avatarUrl and avatarMediumId are mutually exclusive.",
           );
         }
-        const medium = await createMediumFromUrl(
+        const medium = await createAvatarMediumFromUrl(
           ctx.db,
           ctx.disk,
           args.input.avatarUrl,
@@ -654,7 +658,15 @@ builder.relayMutationField(
           where: { id: args.input.avatarMediumId },
         });
         if (medium == null) throw new Error("Medium not found.");
-        avatarMediumId = medium.id;
+        const avatarMedium = await createAvatarMediumFromMedium(
+          ctx.db,
+          ctx.disk,
+          medium,
+        );
+        if (avatarMedium == null) {
+          throw new Error("Avatar medium must point to an image.");
+        }
+        avatarMediumId = avatarMedium.id;
       }
       const result = await updateAccount(
         ctx.fedCtx,

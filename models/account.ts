@@ -16,6 +16,11 @@ import sharp from "sharp";
 import type { ContextData } from "./context.ts";
 import type { Database } from "./db.ts";
 import {
+  createMediumFromBlob,
+  createMediumFromBytes,
+  createMediumFromUrl,
+} from "./medium.ts";
+import {
   type Account,
   type AccountEmail,
   type AccountLink,
@@ -56,6 +61,54 @@ export async function getAvatarUrl(
     }`;
   }
   return url == "mp" ? "https://gravatar.com/avatar/?d=mp&s=128" : url;
+}
+
+async function preprocessAvatarMedium(
+  bytes: Uint8Array,
+): Promise<{ bytes: Uint8Array; contentType: string }> {
+  const { buffer, format } = await transformAvatar(bytes);
+  return {
+    bytes: buffer,
+    contentType: `image/${format}`,
+  };
+}
+
+export async function createAvatarMediumFromBlob(
+  db: Database,
+  disk: Disk,
+  blob: Blob,
+  options: { maxSize?: number } = {},
+): Promise<Medium | undefined> {
+  return await createMediumFromBlob(db, disk, blob, {
+    ...options,
+    preprocess: preprocessAvatarMedium,
+  });
+}
+
+export async function createAvatarMediumFromUrl(
+  db: Database,
+  disk: Disk,
+  url: URL,
+  options: { maxSize?: number; userAgentUrl?: URL } = {},
+): Promise<Medium | undefined> {
+  return await createMediumFromUrl(db, disk, url, {
+    ...options,
+    preprocess: preprocessAvatarMedium,
+  });
+}
+
+export async function createAvatarMediumFromMedium(
+  db: Database,
+  disk: Disk,
+  medium: Medium,
+  options: { maxSize?: number } = {},
+): Promise<Medium | undefined> {
+  const bytes = await disk.getBytes(medium.key);
+  return await createMediumFromBytes(db, disk, bytes, {
+    ...options,
+    contentType: medium.type,
+    preprocess: preprocessAvatarMedium,
+  });
 }
 
 export async function getAccountByUsername(
@@ -573,5 +626,5 @@ export async function transformAvatar(
     format = "jpeg";
   }
   const buffer = await image.toBuffer();
-  return { buffer: new Uint8Array(buffer.buffer), format };
+  return { buffer: new Uint8Array(buffer), format };
 }
