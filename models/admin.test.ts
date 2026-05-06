@@ -19,6 +19,7 @@ import {
 import {
   accountTable,
   adminStateTable,
+  articleContentTable,
   articleDraftMediumTable,
   articleDraftTable,
   articleSourceMediumTable,
@@ -366,6 +367,18 @@ Deno.test({
         key: "draft-key",
         mediumId: draftMediumId,
       });
+      const directDraftMediumId = await insertTestMedium(
+        tx,
+        "media/direct-draft.webp",
+        old,
+      );
+      const directDraftId = generateUuidV7();
+      await tx.insert(articleDraftTable).values({
+        id: directDraftId,
+        accountId: account.account.id,
+        title: "Direct draft",
+        content: `![direct](/media/media/direct-draft.webp)`,
+      });
 
       const sourceMediumId = await insertTestMedium(
         tx,
@@ -384,10 +397,31 @@ Deno.test({
         key: "source-key",
         mediumId: sourceMediumId,
       });
+      const directSourceMediumId = await insertTestMedium(
+        tx,
+        "media/direct-source.webp",
+        old,
+      );
+      await tx.insert(articleContentTable).values({
+        sourceId,
+        language: "en",
+        title: "Direct source",
+        content: `![direct](/media/media/direct-source.webp)`,
+      });
 
       const status = await getOrphanMediaStatus(tx, { now });
       assertEquals(status.cutoffDate.toISOString(), cutoff.toISOString());
       assertEquals(status.orphanMediaCount, 1);
+      assert(
+        await tx.query.mediumTable.findFirst({
+          where: { id: directDraftMediumId },
+        }) != null,
+      );
+      assert(
+        await tx.query.mediumTable.findFirst({
+          where: { id: directSourceMediumId },
+        }) != null,
+      );
     });
   },
 });
@@ -433,7 +467,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "deleteOrphanMedia keeps rows whose disk object failed to delete",
+  name: "deleteOrphanMedia reports disk failures after deleting rows",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -456,15 +490,15 @@ Deno.test({
 
       const result = await deleteOrphanMedia(tx, disk.disk, { now });
 
-      assertEquals(result.deletedCount, 1);
+      assertEquals(result.deletedCount, 2);
       assertEquals(result.failedDiskDeletes, 1);
       assertEquals(disk.deleteKeys.toSorted(), [
         "media/orphan-delete-fail.webp",
         "media/orphan-delete-ok.webp",
       ]);
-      assert(
-        await tx.query.mediumTable.findFirst({ where: { id: failedId } }) !=
-          null,
+      assertEquals(
+        await tx.query.mediumTable.findFirst({ where: { id: failedId } }),
+        undefined,
       );
       assertEquals(
         await tx.query.mediumTable.findFirst({ where: { id: deletedId } }),

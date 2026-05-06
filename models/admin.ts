@@ -21,7 +21,9 @@ import {
   accountTable,
   actorTable,
   adminStateTable,
+  articleContentTable,
   articleDraftMediumTable,
+  articleDraftTable,
   articleSourceMediumTable,
   mediumTable,
   noteSourceMediumTable,
@@ -43,6 +45,8 @@ export const DEFAULT_REGEN_CUTOFF_DURATION: Temporal.Duration = Temporal
   .Duration.from({ days: 7 });
 
 export const DEFAULT_ORPHAN_MEDIA_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
+const ORPHAN_MEDIA_DELETE_BATCH_SIZE = 1000;
+const ORPHAN_MEDIA_STORAGE_DELETE_CONCURRENCY = 8;
 
 function isTransaction(db: Database): db is Transaction {
   return "rollback" in db;
@@ -280,8 +284,36 @@ function orphanMediaWhere(cutoffDate: Date): SQL {
     NOT EXISTS (
       SELECT 1 FROM ${articleSourceMediumTable}
       WHERE ${articleSourceMediumTable.mediumId} = ${mediumTable.id}
+    ) AND
+    NOT EXISTS (
+      SELECT 1 FROM ${articleDraftTable}
+      WHERE strpos(${articleDraftTable.content}, ${mediumTable.key}) > 0
+    ) AND
+    NOT EXISTS (
+      SELECT 1 FROM ${articleContentTable}
+      WHERE strpos(${articleContentTable.content}, ${mediumTable.key}) > 0
     )
   `;
+}
+
+async function mapWithConcurrency<T, U>(
+  items: readonly T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<U>,
+): Promise<U[]> {
+  const results = new Array<U>(items.length);
+  let nextIndex = 0;
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    async () => {
+      while (nextIndex < items.length) {
+        const index = nextIndex++;
+        results[index] = await mapper(items[index]);
+      }
+    },
+  );
+  await Promise.all(workers);
+  return results;
 }
 
 export async function getOrphanMediaStatus(
@@ -307,44 +339,45 @@ export async function deleteOrphanMedia(
   const cutoffDate = resolveOrphanMediaCutoff(options);
   const runDeletion = async (tx: Database | Transaction) => {
     const orphanMedia = await tx
-      .select({ key: mediumTable.key })
+      .select({ id: mediumTable.id, key: mediumTable.key })
       .from(mediumTable)
       .where(orphanMediaWhere(cutoffDate))
       .orderBy(mediumTable.created)
+      .limit(ORPHAN_MEDIA_DELETE_BATCH_SIZE)
       .for("update");
-
-    const deleteResults = await Promise.all(
-      orphanMedia.map(async ({ key }) => {
-        try {
-          await disk.delete(key);
-          return { key, deleted: true };
-        } catch (error) {
-          logger.warn(
-            "Failed to delete orphan medium object {key}: {error}",
-            { key, error },
-          );
-          return { key, deleted: false };
-        }
-      }),
-    );
-    const deletedKeys = deleteResults
-      .filter((result) => result.deleted)
-      .map((result) => result.key);
-    const deleted = deletedKeys.length < 1 ? [] : await tx
+    const candidateIds = orphanMedia.map((medium) => medium.id);
+    return candidateIds.length < 1 ? [] : await tx
       .delete(mediumTable)
       .where(and(
-        inArray(mediumTable.key, deletedKeys),
+        inArray(mediumTable.id, candidateIds),
         orphanMediaWhere(cutoffDate),
       ))
       .returning({ key: mediumTable.key });
-
-    return {
-      cutoffDate,
-      deletedCount: deleted.length,
-      failedDiskDeletes: deleteResults.length - deletedKeys.length,
-    };
   };
-  return isTransaction(db)
+  const deleted = isTransaction(db)
     ? await runDeletion(db)
     : await db.transaction(runDeletion);
+
+  const deleteResults = await mapWithConcurrency(
+    deleted,
+    ORPHAN_MEDIA_STORAGE_DELETE_CONCURRENCY,
+    async ({ key }) => {
+      try {
+        await disk.delete(key);
+        return { key, deleted: true };
+      } catch (error) {
+        logger.warn(
+          "Failed to delete orphan medium object {key}: {error}",
+          { key, error },
+        );
+        return { key, deleted: false };
+      }
+    },
+  );
+  return {
+    cutoffDate,
+    deletedCount: deleted.length,
+    failedDiskDeletes: deleteResults.filter((result) => !result.deleted)
+      .length,
+  };
 }
