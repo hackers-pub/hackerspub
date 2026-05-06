@@ -11,11 +11,21 @@ const KV_NAMESPACE = "medium-upload";
 export const MEDIUM_UPLOAD_TTL_MS = 30 * 60 * 1000;
 
 const MEDIUM_OWNER_NAMESPACE = "medium-owner";
+// A shared "upload active" marker lets us distinguish "no one has uploaded
+// this medium recently" (window expired for all) from "someone else uploaded
+// it and the window is still open".  Keyed separately from per-account
+// entries so that two users uploading the same image (content-hash dedup)
+// each retain independent ownership markers.
+const MEDIUM_UPLOAD_WINDOW_NAMESPACE = "medium-upload-window";
 // Long enough for a user to compose and post a note with the image.
 const MEDIUM_OWNER_TTL_MS = 2 * 60 * 60 * 1000;
 
-export function getMediumOwnerKey(mediumId: Uuid): string {
-  return `${MEDIUM_OWNER_NAMESPACE}/${mediumId}`;
+export function getMediumOwnerKey(mediumId: Uuid, accountId: Uuid): string {
+  return `${MEDIUM_OWNER_NAMESPACE}/${mediumId}/${accountId}`;
+}
+
+export function getMediumUploadWindowKey(mediumId: Uuid): string {
+  return `${MEDIUM_UPLOAD_WINDOW_NAMESPACE}/${mediumId}`;
 }
 
 export async function setMediumOwner(
@@ -23,14 +33,32 @@ export async function setMediumOwner(
   mediumId: Uuid,
   accountId: Uuid,
 ): Promise<void> {
-  await kv.set(getMediumOwnerKey(mediumId), accountId, MEDIUM_OWNER_TTL_MS);
+  await kv.set(
+    getMediumOwnerKey(mediumId, accountId),
+    true,
+    MEDIUM_OWNER_TTL_MS,
+  );
+  await kv.set(
+    getMediumUploadWindowKey(mediumId),
+    true,
+    MEDIUM_OWNER_TTL_MS,
+  );
 }
 
-export async function getMediumOwner(
+export async function isMediumOwner(
   kv: Keyv,
   mediumId: Uuid,
-): Promise<Uuid | undefined> {
-  return await kv.get<Uuid>(getMediumOwnerKey(mediumId));
+  accountId: Uuid,
+): Promise<boolean> {
+  return (await kv.get<boolean>(getMediumOwnerKey(mediumId, accountId))) ===
+    true;
+}
+
+export async function isMediumUploadWindowActive(
+  kv: Keyv,
+  mediumId: Uuid,
+): Promise<boolean> {
+  return (await kv.get<boolean>(getMediumUploadWindowKey(mediumId))) === true;
 }
 
 export interface MediumUploadSession {

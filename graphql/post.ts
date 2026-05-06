@@ -61,8 +61,9 @@ import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import {
   createMediumUploadSession,
   deleteMediumUploadSession,
-  getMediumOwner,
   getMediumUploadSession,
+  isMediumOwner,
+  isMediumUploadWindowActive,
   MEDIUM_UPLOAD_TTL_MS,
   setMediumOwner,
 } from "./medium-upload.ts";
@@ -722,8 +723,13 @@ builder.drizzleObjectField(Medium, "generatedAltText", (t) =>
   t.string({
     nullable: true,
     description: "AI-generated alternative text for this medium. " +
-      "Requires authentication. Only the account that uploaded the medium " +
-      "may call this field within 2 hours of upload (KV ownership window). " +
+      "Requires authentication. " +
+      "Within the 2-hour upload window only the uploader may call this " +
+      "field; after the window expires any authenticated user may call it " +
+      "(the medium is either publicly referenced or pending orphan cleanup). " +
+      "Multiple uploaders of identical content each get independent " +
+      "ownership entries, so content-hash deduplication does not grant " +
+      "the later uploader access to the earlier one's window. " +
       "High-complexity operation (cost 1000). " +
       "The context argument is truncated server-side to 1000 characters.",
     complexity: 1000,
@@ -734,9 +740,13 @@ builder.drizzleObjectField(Medium, "generatedAltText", (t) =>
     async resolve(medium, args, ctx) {
       const session = await ctx.session;
       if (session == null) throw new NotAuthenticatedError();
-      const owner = await getMediumOwner(ctx.kv, medium.id);
-      if (owner != null && owner !== session.accountId) {
-        throw new NotAuthorizedError();
+      const isOwner = await isMediumOwner(ctx.kv, medium.id, session.accountId);
+      if (!isOwner) {
+        const windowActive = await isMediumUploadWindowActive(
+          ctx.kv,
+          medium.id,
+        );
+        if (windowActive) throw new NotAuthorizedError();
       }
       const imageUrl = await ctx.disk.getUrl(medium.key);
       return await generateAltText({
