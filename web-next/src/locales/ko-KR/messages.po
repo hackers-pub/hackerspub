@@ -256,11 +256,11 @@ msgstr "관리"
 msgid "All"
 msgstr "전체"
 
-#: src/components/NoteComposer.tsx:400
+#: src/components/NoteComposer.tsx:481
 msgid "All images must finish uploading before posting"
 msgstr "투고하기 전에 모든 이미지 업로드를 완료해야 합니다."
 
-#: src/components/NoteComposer.tsx:408
+#: src/components/NoteComposer.tsx:489
 msgid "All images require alt text"
 msgstr "모든 이미지에 대체 텍스트가 필요합니다."
 
@@ -268,9 +268,14 @@ msgstr "모든 이미지에 대체 텍스트가 필요합니다."
 msgid "Allow automatic translation by AI"
 msgstr "AI 자동 번역 허용"
 
-#: src/components/NoteComposer.tsx:756
+#: src/components/NoteComposer.tsx:824
 msgid "Alt text (required)"
 msgstr "대체 텍스트 (필수)"
+
+#. placeholder {0}: index() + 1
+#: src/components/NoteComposer.tsx:815
+msgid "Alt text for image {0}"
+msgstr "이미지 {0}의 대체 텍스트"
 
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
@@ -360,8 +365,8 @@ msgstr "게시글만"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "이미 {0} 변경하였기 때문에 다시 변경할 수 없습니다."
 
-#: src/components/NoteComposer.tsx:680
-#: src/components/NoteComposer.tsx:681
+#: src/components/NoteComposer.tsx:747
+#: src/components/NoteComposer.tsx:748
 msgid "Attach image"
 msgstr "이미지 첨부"
 
@@ -369,12 +374,12 @@ msgstr "이미지 첨부"
 msgid "Authenticating…"
 msgstr "인증중…"
 
-#: src/components/NoteComposer.tsx:775
+#: src/components/NoteComposer.tsx:843
 msgid "Auto-fill"
 msgstr "자동 입력"
 
-#: src/components/NoteComposer.tsx:768
-#: src/components/NoteComposer.tsx:769
+#: src/components/NoteComposer.tsx:836
+#: src/components/NoteComposer.tsx:837
 msgid "Auto-fill alt text"
 msgstr "대체 텍스트 자동 입력"
 
@@ -415,7 +420,7 @@ msgid "Bookmarks"
 msgstr "북마크"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:830
+#: src/components/NoteComposer.tsx:899
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
@@ -472,12 +477,12 @@ msgid "Compose"
 msgstr "작성"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:613
+#: src/components/NoteComposer.tsx:680
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:254
 msgid "Content"
 msgstr "내용"
 
-#: src/components/NoteComposer.tsx:390
+#: src/components/NoteComposer.tsx:471
 msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
@@ -497,7 +502,7 @@ msgstr "복사"
 msgid "Could not copy the link to the clipboard."
 msgstr "클립보드에 링크를 복사할 수 없습니다."
 
-#: src/components/NoteComposer.tsx:337
+#: src/components/NoteComposer.tsx:417
 msgid "Could not find a post at this URL"
 msgstr "이 URL에서 콘텐츠를 찾을 수 없습니다"
 
@@ -521,7 +526,7 @@ msgstr "초대 링크 생성"
 #: src/components/AppSidebar.tsx:699
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:26
-#: src/components/NoteComposer.tsx:840
+#: src/components/NoteComposer.tsx:909
 msgid "Create note"
 msgstr "단문 작성"
 
@@ -542,7 +547,7 @@ msgstr "{0}에 생성됨"
 msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
 
-#: src/components/NoteComposer.tsx:841
+#: src/components/NoteComposer.tsx:910
 #: src/routes/(root)/[handle]/settings/invite.tsx:763
 msgid "Creating…"
 msgstr "작성 중…"
@@ -607,7 +612,7 @@ msgstr "이름"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
-#: src/components/NoteComposer.tsx:324
+#: src/components/NoteComposer.tsx:404
 msgid "Do you want to quote this link?"
 msgstr "이 링크를 인용하시겠습니까?"
 
@@ -689,16 +694,16 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 #: src/components/article-composer/ArticleComposerContext.tsx:450
 #: src/components/article-composer/ArticleComposerContext.tsx:458
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:250
-#: src/components/NoteComposer.tsx:298
-#: src/components/NoteComposer.tsx:336
-#: src/components/NoteComposer.tsx:389
-#: src/components/NoteComposer.tsx:399
-#: src/components/NoteComposer.tsx:407
-#: src/components/NoteComposer.tsx:440
-#: src/components/NoteComposer.tsx:448
-#: src/components/NoteComposer.tsx:456
-#: src/components/NoteComposer.tsx:512
+#: src/components/NoteComposer.tsx:312
+#: src/components/NoteComposer.tsx:378
+#: src/components/NoteComposer.tsx:416
+#: src/components/NoteComposer.tsx:470
+#: src/components/NoteComposer.tsx:480
+#: src/components/NoteComposer.tsx:488
+#: src/components/NoteComposer.tsx:521
+#: src/components/NoteComposer.tsx:529
+#: src/components/NoteComposer.tsx:537
+#: src/components/NoteComposer.tsx:591
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:203
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:213
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:222
@@ -762,7 +767,7 @@ msgstr "콘텐츠 삭제에 실패했습니다"
 msgid "Failed to follow"
 msgstr "팔로에 실패했습니다"
 
-#: src/components/NoteComposer.tsx:513
+#: src/components/NoteComposer.tsx:592
 msgid "Failed to generate alt text"
 msgstr "대체 텍스트 생성에 실패했습니다"
 
@@ -818,7 +823,7 @@ msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more replies; click to retry"
 msgstr "댓글을 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
 
-#: src/components/NoteComposer.tsx:555
+#: src/components/NoteComposer.tsx:622
 msgid "Failed to load quoted post"
 msgstr "인용 콘텐츠를 불러오지 못했습니다"
 
@@ -910,7 +915,7 @@ msgid "Failed to update the article. Please try again."
 msgstr "게시글을 수정하지 못했습니다. 다시 시도해 주세요."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
-#: src/components/NoteComposer.tsx:299
+#: src/components/NoteComposer.tsx:379
 msgid "Failed to upload image"
 msgstr "이미지 업로드에 실패했습니다"
 
@@ -965,7 +970,7 @@ msgstr "당신을 팔로우합니다"
 msgid "Formatting"
 msgstr "서식"
 
-#: src/components/NoteComposer.tsx:794
+#: src/components/NoteComposer.tsx:862
 msgid "Generating…"
 msgstr "생성 중…"
 
@@ -1094,7 +1099,7 @@ msgstr "올바른 연합우주 핸들 형식이 아닙니다."
 #: src/components/article-composer/ArticleComposerContext.tsx:306
 #: src/components/article-composer/ArticleComposerContext.tsx:378
 #: src/components/article-composer/ArticleComposerContext.tsx:443
-#: src/components/NoteComposer.tsx:441
+#: src/components/NoteComposer.tsx:522
 #: src/routes/(root)/[handle]/drafts/index.tsx:187
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
@@ -1322,7 +1327,7 @@ msgstr "콘텐츠 불러오는 중…"
 msgid "Loading more replies…"
 msgstr "댓글을 더 불러오는 중…"
 
-#: src/components/NoteComposer.tsx:556
+#: src/components/NoteComposer.tsx:623
 msgid "Loading quoted post…"
 msgstr "인용 콘텐츠를 불러오는 중…"
 
@@ -1344,7 +1349,7 @@ msgid "Markdown guide"
 msgstr "Markdown 가이드"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:638
+#: src/components/NoteComposer.tsx:705
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:279
 msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
@@ -1488,7 +1493,7 @@ msgstr "찾을 수 없음"
 #~ msgid "Note"
 #~ msgstr "단문"
 
-#: src/components/NoteComposer.tsx:433
+#: src/components/NoteComposer.tsx:514
 msgid "Note created successfully"
 msgstr "단문이 작성되었습니다"
 
@@ -1781,13 +1786,13 @@ msgstr "{0} 제거"
 msgid "Remove bookmark"
 msgstr "북마크 해제"
 
-#: src/components/NoteComposer.tsx:803
-#: src/components/NoteComposer.tsx:804
+#: src/components/NoteComposer.tsx:871
+#: src/components/NoteComposer.tsx:872
 msgid "Remove image"
 msgstr "이미지 제거"
 
-#: src/components/NoteComposer.tsx:603
-#: src/components/NoteComposer.tsx:604
+#: src/components/NoteComposer.tsx:670
+#: src/components/NoteComposer.tsx:671
 msgid "Remove quote"
 msgstr "인용 삭제"
 
@@ -1947,6 +1952,10 @@ msgstr "슬러그 (URL)"
 msgid "Slug cannot be empty"
 msgstr "슬러그는 비워둘 수 없습니다"
 
+#: src/components/NoteComposer.tsx:323
+msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
+msgstr "이미지 {MAX_MEDIA}개 제한에 도달하여 일부 이미지가 건너뛰어졌습니다"
+
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "문제가 발생했습니다. 다시 시도해주세요."
@@ -1954,7 +1963,7 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 #: src/components/article-composer/ArticleComposerContext.tsx:295
 #: src/components/article-composer/ArticleComposerContext.tsx:368
 #: src/components/article-composer/ArticleComposerContext.tsx:433
-#: src/components/NoteComposer.tsx:432
+#: src/components/NoteComposer.tsx:513
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:189
 #: src/routes/(root)/[handle]/drafts/index.tsx:177
 msgid "Success"
@@ -2216,7 +2225,7 @@ msgstr "프로필 사진, 아이디, 이름, 약력, 링크 등의 프로필 정
 msgid "Updated {0}"
 msgstr "{0}에 업데이트됨"
 
-#: src/components/NoteComposer.tsx:735
+#: src/components/NoteComposer.tsx:802
 msgid "Upload progress"
 msgstr "업로드 진행률"
 
@@ -2275,7 +2284,7 @@ msgstr "초대장을 확인하고 있습니다…"
 msgid "View all drafts →"
 msgstr "모든 임시 보관 보기 →"
 
-#: src/components/NoteComposer.tsx:668
+#: src/components/NoteComposer.tsx:735
 msgid "Visibility"
 msgstr "공개 범위"
 
@@ -2311,6 +2320,10 @@ msgstr "투표함"
 msgid "Voting…"
 msgstr "투표 중…"
 
+#: src/components/NoteComposer.tsx:322
+msgid "Warning"
+msgstr "경고"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "번역 서비스에 연결하지 못했습니다. 다시 시도하거나 몇 분 후에 다시 방문해 주세요."
@@ -2327,7 +2340,7 @@ msgstr "Hackers' Pub에 오신 것을 환영합니다! 가입을 완료하려면
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pub이란?"
 
-#: src/components/NoteComposer.tsx:646
+#: src/components/NoteComposer.tsx:713
 msgid "What's on your mind?"
 msgstr "무슨 생각 해요?"
 
@@ -2360,7 +2373,7 @@ msgstr "이 사용자에게서 차단당했습니다. 이 사용자를 팔로하
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "이 사용자를 차단했습니다. 이 사용자는 회원님을 팔로하거나 콘텐츠를 볼 수 없습니다."
 
-#: src/components/NoteComposer.tsx:251
+#: src/components/NoteComposer.tsx:313
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "이미지는 최대 {MAX_MEDIA}장까지 첨부할 수 있습니다"
 
@@ -2408,7 +2421,7 @@ msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려�
 msgid "You must be signed in"
 msgstr "로그인이 필요합니다"
 
-#: src/components/NoteComposer.tsx:449
+#: src/components/NoteComposer.tsx:530
 msgid "You must be signed in to create a note"
 msgstr "단문을 작성하려면 로그인해야 합니다"
 

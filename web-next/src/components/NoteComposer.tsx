@@ -202,7 +202,7 @@ export function NoteComposer(props: NoteComposerProps) {
     };
 
     const onDragOver = (e: DragEvent) => {
-      if (hasFiles(e) && mediaItems().length < MAX_MEDIA) {
+      if (hasFiles(e)) {
         e.preventDefault();
       }
     };
@@ -317,6 +317,14 @@ export function NoteComposer(props: NoteComposerProps) {
     }
 
     const toAdd = fileArray.slice(0, remaining);
+    if (toAdd.length < fileArray.length) {
+      showToast({
+        title: t`Warning`,
+        description:
+          t`Some images were skipped because the limit of ${MAX_MEDIA} was reached`,
+        variant: "warning",
+      });
+    }
     const newItems: MediaItem[] = toAdd.map((file) => ({
       localId: crypto.randomUUID(),
       file,
