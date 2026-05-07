@@ -36,9 +36,10 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconSquare from "~icons/lucide/square";
 import IconX from "~icons/lucide/x";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
+import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
 import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
-import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
+import type { NoteComposerReplyTargetQuery } from "./__generated__/NoteComposerReplyTargetQuery.graphql.ts";
 
 const NoteComposerMutation = graphql`
   mutation NoteComposerMutation($input: CreateNoteInput!) {
@@ -75,6 +76,41 @@ const NoteComposerQuotedPostQuery = graphql`
       ... on Article {
         __typename
         name
+        excerpt
+        actor {
+          rawName
+          handle
+          avatarUrl
+        }
+      }
+    }
+  }
+`;
+
+const NoteComposerReplyTargetQuery = graphql`
+  query NoteComposerReplyTargetQuery($id: ID!) {
+    node(id: $id) {
+      ... on Note {
+        __typename
+        excerpt
+        actor {
+          rawName
+          handle
+          avatarUrl
+        }
+      }
+      ... on Article {
+        __typename
+        name
+        excerpt
+        actor {
+          rawName
+          handle
+          avatarUrl
+        }
+      }
+      ... on Question {
+        __typename
         excerpt
         actor {
           rawName
@@ -177,6 +213,10 @@ export function NoteComposer(props: NoteComposerProps) {
     QuotedPostPreview | null
   >(null);
   const [quoteFetchError, setQuoteFetchError] = createSignal(false);
+  const [replyTargetPost, setReplyTargetPost] = createSignal<
+    QuotedPostPreview | null
+  >(null);
+  const [replyTargetFetchError, setReplyTargetFetchError] = createSignal(false);
   const [createNote, isCreating] = createMutation<NoteComposerMutation>(
     NoteComposerMutation,
   );
@@ -301,6 +341,55 @@ export function NoteComposer(props: NoteComposerProps) {
       error() {
         setQuotedPost(null);
         setQuoteFetchError(true);
+      },
+    });
+    onCleanup(() => subscription.unsubscribe());
+  });
+
+  // Fetch reply target preview when replyTargetId changes
+  createEffect(() => {
+    const id = props.replyTargetId;
+    if (!id) {
+      setReplyTargetPost(null);
+      setReplyTargetFetchError(false);
+      return;
+    }
+    setReplyTargetPost(null);
+    setReplyTargetFetchError(false);
+    const subscription = fetchQuery<NoteComposerReplyTargetQuery>(
+      environment(),
+      NoteComposerReplyTargetQuery,
+      { id },
+    ).subscribe({
+      next(data) {
+        const node = data.node;
+        if (
+          !node ||
+          (node.__typename !== "Note" &&
+            node.__typename !== "Article" &&
+            node.__typename !== "Question")
+        ) {
+          setReplyTargetPost(null);
+          setReplyTargetFetchError(true);
+          return;
+        }
+        if (!node.actor) {
+          setReplyTargetPost(null);
+          setReplyTargetFetchError(true);
+          return;
+        }
+        setReplyTargetPost({
+          typename: node.__typename === "Article" ? "Article" : "Note",
+          excerpt: node.excerpt,
+          name: "name" in node ? (node.name ?? undefined) : undefined,
+          actorName: node.actor.rawName ?? undefined,
+          actorHandle: node.actor.handle,
+          actorAvatarUrl: node.actor.avatarUrl,
+        });
+      },
+      error() {
+        setReplyTargetPost(null);
+        setReplyTargetFetchError(true);
       },
     });
     onCleanup(() => subscription.unsubscribe());
@@ -645,6 +734,57 @@ export function NoteComposer(props: NoteComposerProps) {
             : ""
         }`}
       >
+        {/* Reply target preview */}
+        <Show when={props.replyTargetId}>
+          <div class="rounded-md border border-input bg-muted/50 p-3">
+            <p class="text-xs text-muted-foreground mb-2">{t`Replying to`}</p>
+            <Show
+              keyed
+              when={replyTargetPost()}
+              fallback={
+                <span class="text-sm text-muted-foreground">
+                  {replyTargetFetchError()
+                    ? t`Failed to load post`
+                    : t`Loading…`}
+                </span>
+              }
+            >
+              {(rtp) => (
+                <div class="flex items-start gap-3">
+                  <Avatar class="size-8 flex-shrink-0">
+                    <AvatarImage src={rtp.actorAvatarUrl} />
+                    <AvatarFallback class="size-8">
+                      {rtp.actorName?.charAt(0) ?? "?"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1 text-sm">
+                      <span class="font-medium truncate">
+                        {rtp.actorName ?? rtp.actorHandle}
+                      </span>
+                      <Show when={rtp.actorName}>
+                        <span class="text-muted-foreground truncate">
+                          {rtp.actorHandle}
+                        </span>
+                      </Show>
+                    </div>
+                    <Show when={rtp.typename === "Article" && rtp.name}>
+                      <div class="text-sm font-medium mt-1">{rtp.name}</div>
+                    </Show>
+                    <Show keyed when={rtp.excerpt}>
+                      {(excerpt) => (
+                        <p class="text-sm text-muted-foreground mt-1 line-clamp-3">
+                          {excerpt}
+                        </p>
+                      )}
+                    </Show>
+                  </div>
+                </div>
+              )}
+            </Show>
+          </div>
+        </Show>
+
         {/* Quoted post preview */}
         <Show when={effectiveQuotedPostId()}>
           <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
