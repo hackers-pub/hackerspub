@@ -11,7 +11,7 @@ export function WebNextBanner({ text, action }: WebNextBannerProps) {
   useEffect(() => {
     const hasWebNext = document.cookie
       .split(";")
-      .some((c) => c.trim().startsWith("web-next="));
+      .some((c) => c.trim() === "web-next=true");
     if (!hasWebNext) setVisible(true);
   }, []);
 
