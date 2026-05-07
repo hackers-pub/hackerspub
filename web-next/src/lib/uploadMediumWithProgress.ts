@@ -29,7 +29,7 @@ function xhrUpload(
     if (onProgress != null) {
       xhr.upload.onprogress = (e) => {
         if (e.lengthComputable) {
-          onProgress(Math.round((e.loaded / e.total) * 100));
+          onProgress(e.total > 0 ? Math.round((e.loaded / e.total) * 100) : 0);
         }
       };
     }
