@@ -33,6 +33,7 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import IconSquare from "~icons/lucide/square";
 import IconX from "~icons/lucide/x";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
@@ -612,6 +613,17 @@ export function NoteComposer(props: NoteComposerProps) {
     }));
   };
 
+  const handleCancelAlt = (localId: string) => {
+    setMediaItems(produce((items) => {
+      const m = items.find((m) => m.localId === localId);
+      if (m) {
+        m.altSubscription?.unsubscribe();
+        m.altSubscription = undefined;
+        m.generatingAlt = false;
+      }
+    }));
+  };
+
   return (
     <form
       ref={(el) => (formRef = el)}
@@ -880,6 +892,18 @@ export function NoteComposer(props: NoteComposerProps) {
                             </svg>
                             <span class="text-xs ml-1">{t`Generating…`}</span>
                           </Show>
+                        </Button>
+                      </Show>
+                      <Show when={item.generatingAlt}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          aria-label={t`Cancel`}
+                          title={t`Cancel`}
+                          onClick={() => handleCancelAlt(item.localId)}
+                        >
+                          <IconSquare class="size-4" />
                         </Button>
                       </Show>
                       <Button
