@@ -174,12 +174,14 @@ export async function handleMediumUploadProxy(
   if (request.method !== "PUT") {
     return new Response("Method Not Allowed", {
       status: 405,
+      headers: corsHeaders(request),
     });
   }
   const uploadId = match[1];
   if (!validateUuid(uploadId)) {
     return new Response("Not Found", {
       status: 404,
+      headers: corsHeaders(request),
     });
   }
   const session = await getMediumUploadSession(kv, uploadId);

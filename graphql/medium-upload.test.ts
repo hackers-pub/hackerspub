@@ -181,6 +181,16 @@ test("handleMediumUploadProxy responds to OPTIONS preflight with CORS headers", 
   assert.ok(
     response.headers.get("Access-Control-Allow-Methods")?.includes("PUT"),
   );
+  assert.ok(
+    response.headers.get("Vary")?.includes("Origin"),
+    "preflight should include Vary: Origin",
+  );
+  assert.ok(
+    response.headers.get("Access-Control-Allow-Headers")?.includes(
+      "Content-Type",
+    ),
+    "preflight should allow Content-Type header",
+  );
 });
 
 test("handleMediumUploadProxy includes CORS origin header on successful PUT", async () => {
@@ -217,5 +227,9 @@ test("handleMediumUploadProxy includes CORS origin header on successful PUT", as
   assert.equal(
     response.headers.get("Access-Control-Allow-Origin"),
     "http://localhost:5173",
+  );
+  assert.ok(
+    response.headers.get("Vary")?.includes("Origin"),
+    "PUT success should include Vary: Origin",
   );
 });
