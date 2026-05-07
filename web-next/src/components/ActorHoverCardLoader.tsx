@@ -1,5 +1,5 @@
 import { graphql } from "relay-runtime";
-import { ErrorBoundary, type JSX, Show } from "solid-js";
+import { ErrorBoundary, type JSX, Show, Suspense } from "solid-js";
 import {
   createPreloadedQuery,
   loadQuery,
@@ -39,7 +39,9 @@ function Unavailable() {
 function withFallbacks(loaded: () => JSX.Element) {
   return (
     <ErrorBoundary fallback={() => <Unavailable />}>
-      {loaded()}
+      <Suspense fallback={<ActorPreviewSkeleton />}>
+        {loaded()}
+      </Suspense>
     </ErrorBoundary>
   );
 }
