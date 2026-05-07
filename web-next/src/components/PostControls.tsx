@@ -9,6 +9,11 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip.tsx";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -221,16 +226,26 @@ export function PostControls(props: PostControlsProps) {
           </Button>
 
           {/* Quote Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
-            title={t`Quote`}
-            onClick={() => openWithQuote(note.id)}
-          >
-            <IconMessageSquareQuote class="size-4" />
-            <span class="text-xs">{note.engagementStats.quotes}</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger as="span" class="inline-flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={note.visibility !== "PUBLIC" &&
+                  note.visibility !== "UNLISTED"}
+                class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                onClick={() => openWithQuote(note.id)}
+              >
+                <IconMessageSquareQuote class="size-4" />
+                <span class="text-xs">{note.engagementStats.quotes}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {note.visibility === "PUBLIC" || note.visibility === "UNLISTED"
+                ? t`Quote`
+                : t`Quoting is not available for this post`}
+            </TooltipContent>
+          </Tooltip>
 
           {/* Share Button */}
           <Button

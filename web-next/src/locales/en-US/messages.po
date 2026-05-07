@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:977
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:978
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, one {# comment} other {# comments}}"
 
@@ -181,8 +181,8 @@ msgstr "{0} shared your post"
 #. placeholder {0}: post.actor.name
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:238
-#: src/routes/(root)/[handle]/[noteId].tsx:228
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:248
+#: src/routes/(root)/[handle]/[noteId].tsx:245
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -643,7 +643,7 @@ msgstr "Drag to select the area you want to keep, then click “Crop” to updat
 msgid "e.g., @user@mastodon.social"
 msgstr "e.g., @user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:676
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:686
 msgid "Edit"
 msgstr "Edit"
 
@@ -825,7 +825,7 @@ msgstr "Failed to load more passkeys; click to retry"
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:539
+#: src/routes/(root)/[handle]/[noteId].tsx:548
 msgid "Failed to load more replies; click to retry"
 msgstr "Failed to load more replies; click to retry"
 
@@ -1080,17 +1080,17 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:999
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1000
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:340
+#: src/routes/(root)/[handle]/[noteId].tsx:353
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:421
+#: src/routes/(root)/[handle]/[noteId].tsx:430
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 
@@ -1281,7 +1281,7 @@ msgstr "Load more passkeys"
 msgid "Load more posts"
 msgstr "Load more posts"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:542
+#: src/routes/(root)/[handle]/[noteId].tsx:551
 msgid "Load more replies"
 msgstr "Load more replies"
 
@@ -1333,7 +1333,7 @@ msgstr "Loading more passkeys…"
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:536
+#: src/routes/(root)/[handle]/[noteId].tsx:545
 msgid "Loading more replies…"
 msgstr "Loading more replies…"
 
@@ -1546,7 +1546,7 @@ msgstr "Or"
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:858
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:868
 msgid "Other languages"
 msgstr "Other languages"
 
@@ -1712,12 +1712,16 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostControls.tsx:228
+#: src/components/PostControls.tsx:233
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "Quote"
 
-#: src/components/PostControls.tsx:266
+#: src/components/PostControls.tsx:234
+msgid "Quoting is not available for this post"
+msgstr "Quoting is not available for this post"
+
+#: src/components/PostControls.tsx:273
 msgid "React"
 msgstr "React"
 
@@ -1907,7 +1911,7 @@ msgstr "Set your personal preferences."
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/PostControls.tsx:246
+#: src/components/PostControls.tsx:253
 msgid "Share"
 msgstr "Share"
 
@@ -2008,9 +2012,9 @@ msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:702
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:710
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1042
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:712
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:720
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1043
 msgid "Table of contents"
 msgstr "Table of contents"
 
@@ -2020,7 +2024,7 @@ msgstr "Table of contents"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:293
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1052
 msgid "Tags"
 msgstr "Tags"
 
@@ -2128,7 +2132,7 @@ msgstr "This invitation link was not found."
 msgid "This service does not support remote follow."
 msgstr "This service does not support remote follow."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:533
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:543
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "This usually takes about a minute. The page will update automatically when the translation is ready."
 
@@ -2165,7 +2169,7 @@ msgstr "Total: {0}"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:215
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:842
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:852
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
 
@@ -2173,18 +2177,18 @@ msgstr "Translated from {0}"
 #~ msgid "Translating to {0}…"
 #~ msgstr "Translating to {0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:528
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:538
 msgid "Translating to {name}…"
 msgstr "Translating to {name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:524
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:534
 msgid "Translating…"
 msgstr "Translating…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:392
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:415
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:424
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:569
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
 msgid "Translation request failed"
 msgstr "Translation request failed"
 
@@ -2192,11 +2196,11 @@ msgstr "Translation request failed"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "Translation request failed for {0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:574
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:584
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:592
 msgid "Try again"
 msgstr "Try again"
 
@@ -2233,7 +2237,7 @@ msgstr "Unfollow"
 msgid "Unpin from profile"
 msgstr "Unpin from profile"
 
-#: src/components/PostControls.tsx:246
+#: src/components/PostControls.tsx:253
 msgid "Unshare"
 msgstr "Unshare"
 
@@ -2345,7 +2349,7 @@ msgstr "Voting…"
 msgid "Warning"
 msgstr "Warning"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:589
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "We couldn't reach the translation service. Try again, or come back in a few minutes."
 
@@ -2370,9 +2374,9 @@ msgid "Without shares"
 msgstr "Without shares"
 
 #: src/components/NoteComposeModal.tsx:50
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:990
-#: src/routes/(root)/[handle]/[noteId].tsx:328
-#: src/routes/(root)/[handle]/[noteId].tsx:409
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:991
+#: src/routes/(root)/[handle]/[noteId].tsx:345
+#: src/routes/(root)/[handle]/[noteId].tsx:422
 msgid "Write a reply…"
 msgstr "Write a reply…"
 

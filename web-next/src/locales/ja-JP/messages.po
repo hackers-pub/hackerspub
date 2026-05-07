@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:977
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:978
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {#コメント}}"
 
@@ -181,8 +181,8 @@ msgstr "{0}さんがあなたのコンテンツを共有しました"
 #. placeholder {0}: post.actor.name
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:238
-#: src/routes/(root)/[handle]/[noteId].tsx:228
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:248
+#: src/routes/(root)/[handle]/[noteId].tsx:245
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -643,7 +643,7 @@ msgstr "保持したい領域をドラッグして選択し、「切り抜き」
 msgid "e.g., @user@mastodon.social"
 msgstr "例: @user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:676
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:686
 msgid "Edit"
 msgstr "編集"
 
@@ -821,7 +821,7 @@ msgstr "パスキーの読み込みに失敗しました。クリックして再
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:539
+#: src/routes/(root)/[handle]/[noteId].tsx:548
 msgid "Failed to load more replies; click to retry"
 msgstr "返信の読み込みに失敗しました。クリックして再試行してください"
 
@@ -1076,17 +1076,17 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:999
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1000
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この記事に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当記事に返信してください。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:340
+#: src/routes/(root)/[handle]/[noteId].tsx:353
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この投稿に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当投稿に返信してください。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:421
+#: src/routes/(root)/[handle]/[noteId].tsx:430
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバースのアカウントをお持ちの場合、自分のインスタンスからこのコンテンツに返信できます。お使いのインスタンスで{0}を検索して返信してください。"
 
@@ -1277,7 +1277,7 @@ msgstr "パスキーを読み込む"
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:542
+#: src/routes/(root)/[handle]/[noteId].tsx:551
 msgid "Load more replies"
 msgstr "返信をもっと読み込む"
 
@@ -1329,7 +1329,7 @@ msgstr "パスキーを読み込み中…"
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:536
+#: src/routes/(root)/[handle]/[noteId].tsx:545
 msgid "Loading more replies…"
 msgstr "返信を読み込み中…"
 
@@ -1541,7 +1541,7 @@ msgstr "または"
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:858
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:868
 msgid "Other languages"
 msgstr "他の言語"
 
@@ -1707,12 +1707,16 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostControls.tsx:228
+#: src/components/PostControls.tsx:233
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:266
+#: src/components/PostControls.tsx:234
+msgid "Quoting is not available for this post"
+msgstr "このコンテンツは引用できません。"
+
+#: src/components/PostControls.tsx:273
 msgid "React"
 msgstr "リアクション"
 
@@ -1902,7 +1906,7 @@ msgstr "個人の環境設定を設定してください。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:246
+#: src/components/PostControls.tsx:253
 msgid "Share"
 msgstr "共有"
 
@@ -2003,9 +2007,9 @@ msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:702
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:710
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1042
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:712
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:720
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1043
 msgid "Table of contents"
 msgstr "目次"
 
@@ -2015,7 +2019,7 @@ msgstr "目次"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:293
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1052
 msgid "Tags"
 msgstr "タグ"
 
@@ -2123,7 +2127,7 @@ msgstr "この招待リンクが見つかりませんでした。"
 msgid "This service does not support remote follow."
 msgstr "このサービスはリモートフォローに対応していません。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:533
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:543
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常1分ほどかかります。翻訳が完了するとページが自動的に更新されます。"
 
@@ -2160,7 +2164,7 @@ msgstr "合計：{0}"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:215
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:842
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:852
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
@@ -2168,18 +2172,18 @@ msgstr "{0}から翻訳"
 #~ msgid "Translating to {0}…"
 #~ msgstr "{0}に翻訳中…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:528
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:538
 msgid "Translating to {name}…"
 msgstr "{name}に翻訳中…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:524
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:534
 msgid "Translating…"
 msgstr "翻訳中…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:392
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:415
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:424
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:569
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
 msgid "Translation request failed"
 msgstr "翻訳のリクエストに失敗しました"
 
@@ -2187,11 +2191,11 @@ msgstr "翻訳のリクエストに失敗しました"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "{0}への翻訳リクエストに失敗しました"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:574
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:584
 msgid "Translation request failed for {name}"
 msgstr "{name}への翻訳リクエストに失敗しました"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:592
 msgid "Try again"
 msgstr "再試行"
 
@@ -2228,7 +2232,7 @@ msgstr "フォロー解除"
 msgid "Unpin from profile"
 msgstr "プロフィールから固定解除"
 
-#: src/components/PostControls.tsx:246
+#: src/components/PostControls.tsx:253
 msgid "Unshare"
 msgstr "共有を取り消す"
 
@@ -2340,7 +2344,7 @@ msgstr "投票中…"
 msgid "Warning"
 msgstr "警告"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:589
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "翻訳サービスに接続できませんでした。再試行するか、数分後に再度お試しください。"
 
@@ -2365,9 +2369,9 @@ msgid "Without shares"
 msgstr "共有除外"
 
 #: src/components/NoteComposeModal.tsx:50
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:990
-#: src/routes/(root)/[handle]/[noteId].tsx:328
-#: src/routes/(root)/[handle]/[noteId].tsx:409
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:991
+#: src/routes/(root)/[handle]/[noteId].tsx:345
+#: src/routes/(root)/[handle]/[noteId].tsx:422
 msgid "Write a reply…"
 msgstr "返信を書く…"
 

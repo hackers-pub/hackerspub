@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:977
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:978
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {# 条评论}}"
 
@@ -181,8 +181,8 @@ msgstr "{0} 转发了你的内容"
 #. placeholder {0}: post.actor.name
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:238
-#: src/routes/(root)/[handle]/[noteId].tsx:228
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:248
+#: src/routes/(root)/[handle]/[noteId].tsx:245
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -643,7 +643,7 @@ msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:676
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:686
 msgid "Edit"
 msgstr "编辑"
 
@@ -821,7 +821,7 @@ msgstr "加载更多通行密钥失败，点击重试"
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:539
+#: src/routes/(root)/[handle]/[noteId].tsx:548
 msgid "Failed to load more replies; click to retry"
 msgstr "加载更多回复失败，点击重试"
 
@@ -1076,17 +1076,17 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:999
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1000
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此文章。在你的实例搜索 {0} 后回复。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:340
+#: src/routes/(root)/[handle]/[noteId].tsx:353
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此帖子。在你的实例搜索 {0} 后回复。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:421
+#: src/routes/(root)/[handle]/[noteId].tsx:430
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你有联邦宇宙账号，可以从自己的实例回复此内容。在你的实例中搜索 {0} 并回复。"
 
@@ -1277,7 +1277,7 @@ msgstr "加载更多通行密钥"
 msgid "Load more posts"
 msgstr "加载更多内容"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:542
+#: src/routes/(root)/[handle]/[noteId].tsx:551
 msgid "Load more replies"
 msgstr "加载更多回复"
 
@@ -1329,7 +1329,7 @@ msgstr "正在加载更多通行密钥…"
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:536
+#: src/routes/(root)/[handle]/[noteId].tsx:545
 msgid "Loading more replies…"
 msgstr "正在加载更多回复…"
 
@@ -1541,7 +1541,7 @@ msgstr "或"
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:858
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:868
 msgid "Other languages"
 msgstr "其他语言"
 
@@ -1707,12 +1707,16 @@ msgid "Quiet public"
 msgstr "悄悄公开"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostControls.tsx:228
+#: src/components/PostControls.tsx:233
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:266
+#: src/components/PostControls.tsx:234
+msgid "Quoting is not available for this post"
+msgstr "无法引用此内容。"
+
+#: src/components/PostControls.tsx:273
 msgid "React"
 msgstr "反应"
 
@@ -1902,7 +1906,7 @@ msgstr "设置您的个人偏好设置。"
 msgid "Settings"
 msgstr "设置"
 
-#: src/components/PostControls.tsx:246
+#: src/components/PostControls.tsx:253
 msgid "Share"
 msgstr "分享"
 
@@ -2003,9 +2007,9 @@ msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:702
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:710
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1042
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:712
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:720
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1043
 msgid "Table of contents"
 msgstr "目录"
 
@@ -2015,7 +2019,7 @@ msgstr "目录"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:293
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1051
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1052
 msgid "Tags"
 msgstr "标签"
 
@@ -2123,7 +2127,7 @@ msgstr "未找到此邀请链接。"
 msgid "This service does not support remote follow."
 msgstr "该服务不支持远程关注。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:533
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:543
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 
@@ -2160,7 +2164,7 @@ msgstr "共 {0} 个"
 
 #. placeholder {0}: "LANGUAGE"
 #: src/components/ArticleCard.tsx:215
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:842
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:852
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
 
@@ -2168,18 +2172,18 @@ msgstr "翻译自{0}"
 #~ msgid "Translating to {0}…"
 #~ msgstr "正在翻译为{0}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:528
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:538
 msgid "Translating to {name}…"
 msgstr "正在翻译为{name}…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:524
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:534
 msgid "Translating…"
 msgstr "正在翻译…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:392
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:415
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:424
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:569
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
 msgid "Translation request failed"
 msgstr "翻译请求失败"
 
@@ -2187,11 +2191,11 @@ msgstr "翻译请求失败"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "向{0}的翻译请求失败"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:574
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:584
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻译请求失败"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:582
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:592
 msgid "Try again"
 msgstr "重试"
 
@@ -2228,7 +2232,7 @@ msgstr "取消关注"
 msgid "Unpin from profile"
 msgstr "从个人资料取消置顶"
 
-#: src/components/PostControls.tsx:246
+#: src/components/PostControls.tsx:253
 msgid "Unshare"
 msgstr "取消转帖"
 
@@ -2340,7 +2344,7 @@ msgstr "正在投票…"
 msgid "Warning"
 msgstr "警告"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:589
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "无法连接到翻译服务。请重试或几分钟后再来。"
 
@@ -2365,9 +2369,9 @@ msgid "Without shares"
 msgstr "不含转帖"
 
 #: src/components/NoteComposeModal.tsx:50
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:990
-#: src/routes/(root)/[handle]/[noteId].tsx:328
-#: src/routes/(root)/[handle]/[noteId].tsx:409
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:991
+#: src/routes/(root)/[handle]/[noteId].tsx:345
+#: src/routes/(root)/[handle]/[noteId].tsx:422
 msgid "Write a reply…"
 msgstr "写个回复…"
 

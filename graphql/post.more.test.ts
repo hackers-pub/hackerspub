@@ -1392,6 +1392,184 @@ test("createNote rejects invisible reply and quote targets", async () => {
   });
 });
 
+test("createNote rejects quoting none-visibility posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quotenoneauthor",
+      name: "Quote None Author",
+      email: "quotenoneauthor@example.com",
+    });
+    const { post: nonePost } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "none",
+      content: "none-visibility post",
+    });
+
+    const quoteResult = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "attempted none quote",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", nonePost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(quoteResult.errors, undefined);
+    assert.deepEqual(toPlainJson(quoteResult.data), {
+      createNote: {
+        __typename: "InvalidInputError",
+        inputPath: "quotedPostId",
+      },
+    });
+  });
+});
+
+test("createNote rejects quoting followers-only posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quotefollowersauthor",
+      name: "Quote Followers Author",
+      email: "quotefollowersauthor@example.com",
+    });
+    const requester = await insertAccountWithActor(tx, {
+      username: "quotefollowersrequester",
+      name: "Quote Followers Requester",
+      email: "quotefollowersrequester@example.com",
+    });
+    const { post: followersPost } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      content: "followers-only post",
+    });
+
+    const quoteResult = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "attempted followers quote",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", followersPost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, requester.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(quoteResult.errors, undefined);
+    assert.deepEqual(toPlainJson(quoteResult.data), {
+      createNote: {
+        __typename: "InvalidInputError",
+        inputPath: "quotedPostId",
+      },
+    });
+
+    // Even the author themselves cannot quote their own followers-only post
+    const selfQuoteResult = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "author self-quoting followers post",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", followersPost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(selfQuoteResult.errors, undefined);
+    assert.deepEqual(toPlainJson(selfQuoteResult.data), {
+      createNote: {
+        __typename: "InvalidInputError",
+        inputPath: "quotedPostId",
+      },
+    });
+  });
+});
+
+test("createNote allows quoting public and unlisted posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quotepublicauthor",
+      name: "Quote Public Author",
+      email: "quotepublicauthor@example.com",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quotepublicquoter",
+      name: "Quote Public Quoter",
+      email: "quotepublicquoter@example.com",
+    });
+    const { post: publicPost } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "public",
+      content: "public post to quote",
+    });
+    const { post: unlistedPost } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "unlisted",
+      content: "unlisted post to quote",
+    });
+
+    const publicQuoteResult = await execute({
+      schema,
+      document: createNoteMutation,
+      variableValues: {
+        input: {
+          content: "quoting a public post",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", publicPost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(publicQuoteResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(publicQuoteResult.data) as {
+        createNote: { __typename: string };
+      })
+        .createNote.__typename,
+      "CreateNotePayload",
+    );
+
+    const unlistedQuoteResult = await execute({
+      schema,
+      document: createNoteMutation,
+      variableValues: {
+        input: {
+          content: "quoting an unlisted post",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", unlistedPost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(unlistedQuoteResult.errors, undefined);
+    assert.equal(
+      (toPlainJson(unlistedQuoteResult.data) as {
+        createNote: { __typename: string };
+      })
+        .createNote.__typename,
+      "CreateNotePayload",
+    );
+  });
+});
+
 test("createNote validates attached media inside the transaction", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {
