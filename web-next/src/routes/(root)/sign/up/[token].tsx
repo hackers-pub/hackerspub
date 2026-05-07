@@ -1,4 +1,3 @@
-import { EXPIRATION } from "@hackerspub/models/session";
 import {
   validateBio,
   validateDisplayName,
@@ -6,11 +5,9 @@ import {
 } from "@hackerspub/models/userValidation";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { validateUuid } from "@hackerspub/models/uuid";
-import { type RouteSectionProps, useNavigate } from "@solidjs/router";
-import { getRequestProtocol, setCookie } from "@solidjs/start/http";
+import { type RouteSectionProps } from "@solidjs/router";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEffect, createSignal, Show } from "solid-js";
-import { getRequestEvent } from "solid-js/web";
 import {
   createMutation,
   createPreloadedQuery,
@@ -80,26 +77,12 @@ const codeOfConductQuery = graphql`
   }
 `;
 
-const setSessionCookie = async (sessionId: Uuid) => {
-  "use server";
-  const event = getRequestEvent();
-  if (event == null) return false;
-  setCookie(event.nativeEvent, "session", sessionId, {
-    httpOnly: true,
-    path: "/",
-    expires: new Date(Date.now() + EXPIRATION.total("millisecond")),
-    secure: getRequestProtocol(event.nativeEvent) === "https",
-  });
-  return true;
-};
-
 type SignupInfo = NonNullable<
   TokenVerifySignupTokenQuery["response"]["verifySignupToken"]
 >;
 
 export default function SignupPage(props: RouteSectionProps) {
   const { t, i18n } = useLingui();
-  const navigate = useNavigate();
   const [signupInfo, setSignupInfo] = createSignal<SignupInfo | null>(null);
   const [verifying, setVerifying] = createSignal(true);
   const [invalid, setInvalid] = createSignal(false);
@@ -265,17 +248,18 @@ export default function SignupPage(props: RouteSectionProps) {
         code: new URLSearchParams(window.location.search).get("code")!,
         input: { username, name, bio },
       },
-      onCompleted(response) {
+      async onCompleted(response) {
         setSubmitting(false);
         if (response.completeSignup) {
           // Check if it's a Session (success) or SignupValidationErrors
           if (response.completeSignup.__typename === "Session") {
             // Session created successfully, set cookie and redirect
-            setSessionCookie(response.completeSignup.id).then((success) => {
-              if (success) {
-                navigate("/?filter=recommendations");
-              }
+            await fetch("/sign/session", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: response.completeSignup.id }),
             });
+            window.location.href = "/?filter=recommendations";
           } else if (
             response.completeSignup.__typename === "SignupValidationErrors"
           ) {

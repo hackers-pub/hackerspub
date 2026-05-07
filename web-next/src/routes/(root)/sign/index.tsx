@@ -4,10 +4,8 @@ import {
   type PublicKeyCredentialRequestOptionsJSON,
   startAuthentication,
 } from "@simplewebauthn/browser";
-import { getRequestProtocol, setCookie } from "@solidjs/start/http";
 import { graphql } from "relay-runtime";
 import { createSignal, onMount, Show } from "solid-js";
-import { getRequestEvent } from "solid-js/web";
 import { createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { Grid } from "~/components/ui/grid.tsx";
@@ -96,19 +94,6 @@ const signByPasskeyMutation = graphql`
     }
   }
 `;
-
-const setSessionCookie = async (sessionId: Uuid) => {
-  "use server";
-  const event = getRequestEvent();
-  if (event == null) return false;
-  setCookie(event.nativeEvent, "session", sessionId, {
-    httpOnly: true,
-    path: "/",
-    expires: new Date(Date.now() + 365 * 60 * 60 * 24 * 1000), // 365 days
-    secure: getRequestProtocol(event.nativeEvent) === "https",
-  });
-  return true;
-};
 
 const enum LoginError {
   ACCOUNT_NOT_FOUND,
@@ -255,22 +240,22 @@ export default function SignPage() {
             code: codeInput.value,
             token: token()!,
           },
-          onCompleted(response) {
+          async onCompleted(response) {
             if (response.completeLoginChallenge == null) {
               setCompleting(false);
             } else {
-              setSessionCookie(response.completeLoginChallenge.id).then(
-                (success) => {
-                  if (success) {
-                    const searchParams = location == null
-                      ? new URLSearchParams()
-                      : new URL(location.href).searchParams;
-                    window.location.href = searchParams.get("next") ?? "/";
-                  } else {
-                    setCompleting(false);
-                  }
-                },
-              );
+              const searchParams = location == null
+                ? new URLSearchParams()
+                : new URL(location.href).searchParams;
+              const next = searchParams.get("next") ?? "/";
+              await fetch("/sign/session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  id: response.completeLoginChallenge.id,
+                }),
+              });
+              window.location.href = next;
             }
           },
         });
@@ -328,15 +313,16 @@ export default function SignPage() {
       });
 
       if (loginResponse.loginByPasskey?.id) {
-        const success = await setSessionCookie(loginResponse.loginByPasskey.id);
-        if (success) {
-          const searchParams = location == null
-            ? new URLSearchParams()
-            : new URL(location.href).searchParams;
-          window.location.href = searchParams.get("next") ?? "/";
-        } else {
-          throw new Error("Failed to set session cookie");
-        }
+        const searchParams = location == null
+          ? new URLSearchParams()
+          : new URL(location.href).searchParams;
+        const next = searchParams.get("next") ?? "/";
+        await fetch("/sign/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: loginResponse.loginByPasskey.id }),
+        });
+        window.location.href = next;
       } else {
         throw new Error("Authentication verification failed");
       }
