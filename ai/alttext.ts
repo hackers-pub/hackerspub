@@ -20,7 +20,12 @@ const PROMPT_LANGUAGES: Locale[] = (
 const promptCache = new Map<string, string>();
 
 async function getAltTextPrompt(language: string): Promise<string> {
-  const locale = new Intl.Locale(language);
+  let locale: Intl.Locale;
+  try {
+    locale = new Intl.Locale(language);
+  } catch {
+    locale = new Intl.Locale("en");
+  }
   const promptLocale = negotiateLocale(locale, PROMPT_LANGUAGES) ??
     new Intl.Locale("en");
   const cacheKey = promptLocale.baseName;
