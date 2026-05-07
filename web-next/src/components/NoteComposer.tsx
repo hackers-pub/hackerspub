@@ -362,7 +362,9 @@ export function NoteComposer(props: NoteComposerProps) {
         });
         showToast({
           title: t`Error`,
-          description: t`Failed to upload image`,
+          description: err instanceof Error && err.message
+            ? err.message
+            : t`Failed to upload image`,
           variant: "error",
         });
       });
@@ -583,7 +585,7 @@ export function NoteComposer(props: NoteComposerProps) {
           );
         }
       },
-      error() {
+      error(err: Error) {
         setMediaItems((prev) =>
           prev.map((m) =>
             m.localId === localId
@@ -593,7 +595,7 @@ export function NoteComposer(props: NoteComposerProps) {
         );
         showToast({
           title: t`Error`,
-          description: t`Failed to generate alt text`,
+          description: err?.message || t`Failed to generate alt text`,
           variant: "error",
         });
       },
@@ -822,6 +824,8 @@ export function NoteComposer(props: NoteComposerProps) {
                     <textarea
                       value={item.alt}
                       aria-label={t`Alt text for image ${index() + 1}`}
+                      aria-required="true"
+                      required
                       onInput={(e) => {
                         const v = e.currentTarget.value;
                         setMediaItems((prev) =>
