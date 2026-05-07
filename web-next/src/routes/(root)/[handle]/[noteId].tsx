@@ -80,9 +80,7 @@ export const route = {
   preload(args) {
     const username = decodeURIComponent(args.params.handle!);
     const noteId = args.params.noteId!;
-    if (!validateUuid(noteId)) {
-      throw new Error("Invalid Request"); // FIXME
-    }
+    if (!validateUuid(noteId)) return;
 
     void loadNotePageQuery(username.replace(/^@/, ""), noteId);
     void loadNoteThreadQuery(username.replace(/^@/, ""), noteId);
@@ -142,6 +140,25 @@ const loadNoteThreadQuery = query(
 
 export default function NotePage() {
   const params = useParams();
+  return (
+    <Show
+      when={validateUuid(params.noteId!)}
+      fallback={<NotFoundPage embedded />}
+    >
+      <NotePageLoaded
+        noteId={params.noteId! as Uuid}
+        username={decodeURIComponent(params.handle!).replace(/^@/, "")}
+      />
+    </Show>
+  );
+}
+
+interface NotePageLoadedProps {
+  noteId: Uuid;
+  username: string;
+}
+
+function NotePageLoaded(props: NotePageLoadedProps) {
   const { onNoteCreated } = useNoteCompose();
 
   onMount(() =>
@@ -152,11 +169,7 @@ export default function NotePage() {
 
   const noteData = createPreloadedQuery<NoteIdPageQuery>(
     NoteIdPageQuery,
-    () =>
-      loadNotePageQuery(
-        decodeURIComponent(params.handle!).replace(/^@/, ""),
-        params.noteId! as Uuid,
-      ),
+    () => loadNotePageQuery(props.username, props.noteId),
   );
 
   const post = () => noteData()?.actorByHandle?.postByUuid;
@@ -175,46 +188,35 @@ export default function NotePage() {
   const viewer = () => noteData()?.viewer ?? undefined;
 
   return (
-    <Show
-      when={validateUuid(params.noteId!)}
-      fallback={<NotFoundPage embedded />}
-    >
-      <Show when={noteData() != null}>
-        <Switch fallback={<NotFoundPage embedded />}>
-          <Match keyed when={note()}>
-            {(note) => (
-              <>
-                <PostMetaHead $post={note} />
-                <NoteInternal
-                  $note={note}
-                  $viewer={viewer()}
-                  noteId={params.noteId! as Uuid}
-                  username={decodeURIComponent(params.handle!).replace(
-                    /^@/,
-                    "",
-                  )}
-                />
-              </>
-            )}
-          </Match>
-          <Match keyed when={question()}>
-            {(question) => (
-              <>
-                <PostMetaHead $post={question} />
-                <QuestionInternal
-                  $question={question}
-                  $viewer={viewer()}
-                  noteId={params.noteId! as Uuid}
-                  username={decodeURIComponent(params.handle!).replace(
-                    /^@/,
-                    "",
-                  )}
-                />
-              </>
-            )}
-          </Match>
-        </Switch>
-      </Show>
+    <Show when={noteData() != null}>
+      <Switch fallback={<NotFoundPage embedded />}>
+        <Match keyed when={note()}>
+          {(note) => (
+            <>
+              <PostMetaHead $post={note} />
+              <NoteInternal
+                $note={note}
+                $viewer={viewer()}
+                noteId={props.noteId}
+                username={props.username}
+              />
+            </>
+          )}
+        </Match>
+        <Match keyed when={question()}>
+          {(question) => (
+            <>
+              <PostMetaHead $post={question} />
+              <QuestionInternal
+                $question={question}
+                $viewer={viewer()}
+                noteId={props.noteId}
+                username={props.username}
+              />
+            </>
+          )}
+        </Match>
+      </Switch>
     </Show>
   );
 }
