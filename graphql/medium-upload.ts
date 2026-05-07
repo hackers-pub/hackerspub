@@ -35,11 +35,16 @@ export async function setMediumOwner(
 ): Promise<void> {
   const ownerKey = getMediumOwnerKey(mediumId, accountId);
   const windowKey = getMediumUploadWindowKey(mediumId);
-  await kv.set(ownerKey, true, MEDIUM_OWNER_TTL_MS);
+  // Keyv adapters can return false (not throw) when throwOnErrors is disabled.
+  if ((await kv.set(ownerKey, true, MEDIUM_OWNER_TTL_MS)) !== true) {
+    throw new Error("KV write failed for medium owner key");
+  }
   try {
-    await kv.set(windowKey, true, MEDIUM_OWNER_TTL_MS);
+    if ((await kv.set(windowKey, true, MEDIUM_OWNER_TTL_MS)) !== true) {
+      throw new Error("KV write failed for medium upload window key");
+    }
   } catch (error) {
-    await kv.delete(ownerKey);
+    await kv.delete(ownerKey).catch(() => {});
     throw error;
   }
 }
