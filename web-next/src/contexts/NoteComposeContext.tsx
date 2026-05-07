@@ -4,14 +4,21 @@ import {
   ParentComponent,
   useContext,
 } from "solid-js";
+import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 
 type NoteCreatedCallback = () => void;
 
 interface NoteComposeContextValue {
   isOpen: () => boolean;
   quotedPostId: () => string | null;
+  replyTargetId: () => string | null;
+  replyDefaultVisibility: () => PostVisibility | null;
   open: () => void;
   openWithQuote: (quotedPostId: string) => void;
+  openWithReply: (
+    replyTargetId: string,
+    defaultVisibility: PostVisibility,
+  ) => void;
   close: () => void;
   clearQuote: () => void;
   onNoteCreated: (callback: NoteCreatedCallback) => () => void;
@@ -23,20 +30,39 @@ const NoteComposeContext = createContext<NoteComposeContextValue>();
 export const NoteComposeProvider: ParentComponent = (props) => {
   const [isOpen, setIsOpen] = createSignal(false);
   const [quotedPostId, setQuotedPostId] = createSignal<string | null>(null);
+  const [replyTargetId, setReplyTargetId] = createSignal<string | null>(null);
+  const [replyDefaultVisibility, setReplyDefaultVisibility] = createSignal<
+    PostVisibility | null
+  >(null);
   const [callbacks, setCallbacks] = createSignal<Set<NoteCreatedCallback>>(
     new Set(),
   );
 
   const open = () => {
     setQuotedPostId(null);
+    setReplyTargetId(null);
+    setReplyDefaultVisibility(null);
     setIsOpen(true);
   };
   const openWithQuote = (quotedPostId: string) => {
     setQuotedPostId(quotedPostId);
+    setReplyTargetId(null);
+    setReplyDefaultVisibility(null);
+    setIsOpen(true);
+  };
+  const openWithReply = (
+    id: string,
+    defaultVisibility: PostVisibility,
+  ) => {
+    setQuotedPostId(null);
+    setReplyTargetId(id);
+    setReplyDefaultVisibility(defaultVisibility);
     setIsOpen(true);
   };
   const close = () => {
     setQuotedPostId(null);
+    setReplyTargetId(null);
+    setReplyDefaultVisibility(null);
     setIsOpen(false);
   };
   const clearQuote = () => {
@@ -64,8 +90,11 @@ export const NoteComposeProvider: ParentComponent = (props) => {
       value={{
         isOpen,
         quotedPostId,
+        replyTargetId,
+        replyDefaultVisibility,
         open,
         openWithQuote,
+        openWithReply,
         close,
         clearQuote,
         onNoteCreated,

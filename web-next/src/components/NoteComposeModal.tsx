@@ -10,21 +10,32 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export function NoteComposeModal() {
   const { t } = useLingui();
-  const { isOpen, quotedPostId, close, clearQuote, notifyNoteCreated } =
-    useNoteCompose();
+  const {
+    isOpen,
+    quotedPostId,
+    replyTargetId,
+    replyDefaultVisibility,
+    close,
+    clearQuote,
+    notifyNoteCreated,
+  } = useNoteCompose();
 
   const handleSuccess = () => {
     notifyNoteCreated();
     close();
   };
 
+  const dialogTitle = () => {
+    if (replyTargetId()) return t`Reply`;
+    if (quotedPostId()) return t`Quote`;
+    return t`Create note`;
+  };
+
   return (
     <Dialog open={isOpen()} onOpenChange={(open) => open ? null : close()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>
-            {quotedPostId() ? t`Quote` : t`Create note`}
-          </DialogTitle>
+          <DialogTitle>{dialogTitle()}</DialogTitle>
         </DialogHeader>
         <div class="py-4">
           <NoteComposer
@@ -34,6 +45,9 @@ export function NoteComposeModal() {
             autoFocus
             quotedPostId={quotedPostId()}
             onQuoteRemoved={clearQuote}
+            replyTargetId={replyTargetId()}
+            defaultVisibility={replyDefaultVisibility() ?? undefined}
+            placeholder={replyTargetId() ? t`Write a reply…` : undefined}
           />
         </div>
       </DialogContent>

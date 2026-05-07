@@ -152,13 +152,21 @@ export interface NoteComposerProps {
   quotedPostId?: string | null;
   onQuoteRemoved?: () => void;
   replyTargetId?: string | null;
+  defaultVisibility?: PostVisibility | null;
 }
 
 export function NoteComposer(props: NoteComposerProps) {
   const { t, i18n } = useLingui();
   const environment = useRelayEnvironment();
   const [content, setContent] = createSignal("");
-  const [visibility, setVisibility] = createSignal<PostVisibility>("PUBLIC");
+  const [visibility, setVisibility] = createSignal<PostVisibility>(
+    props.defaultVisibility ?? "PUBLIC",
+  );
+  // Keep visibility in sync when the modal is reused for a different reply/quote
+  createEffect(() => {
+    const v = props.defaultVisibility;
+    if (v != null) setVisibility(v);
+  });
   const [language, setLanguage] = createSignal<Intl.Locale | undefined>(
     new Intl.Locale(i18n.locale),
   );
@@ -463,7 +471,7 @@ export function NoteComposer(props: NoteComposerProps) {
       URL.revokeObjectURL(item.previewUrl);
     }
     setContent("");
-    setVisibility("PUBLIC");
+    setVisibility(props.defaultVisibility ?? "PUBLIC");
     setLanguage(new Intl.Locale(i18n.locale));
     setManualLanguageChange(false);
     setQuotedPost(null);
