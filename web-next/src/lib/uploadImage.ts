@@ -8,6 +8,10 @@ export interface ImageUploadResult {
   height: number;
 }
 
+export interface MediumUploadResult extends ImageUploadResult {
+  mediumRelayId: string;
+}
+
 function fileToDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -178,4 +182,143 @@ export async function uploadImage(
   if (draftId == null) return medium;
   const key = await attachArticleDraftMediumOnServer(draftId, medium.uuid);
   return { ...medium, url: `hp-medium:${key}` };
+}
+
+export interface MediumUploadSession {
+  uploadId: string;
+  uploadUrl: string;
+  method: string;
+  headers: { name: string; value: string }[];
+}
+
+export async function startMediumUploadOnServer(
+  contentLength: number,
+  contentType: string,
+): Promise<MediumUploadSession> {
+  "use server";
+
+  const result = await graphqlRequest<{
+    data?: {
+      startMediumUpload: {
+        __typename: string;
+        uploadId?: string;
+        uploadUrl?: string;
+        method?: string;
+        headers?: { name: string; value: string }[];
+        inputPath?: string;
+      };
+    };
+    errors?: { message: string }[];
+  }>(
+    `
+      mutation startMediumUpload($input: StartMediumUploadInput!) {
+        startMediumUpload(input: $input) {
+          __typename
+          ... on StartMediumUploadPayload {
+            uploadId
+            uploadUrl
+            method
+            headers { name value }
+          }
+          ... on InvalidInputError {
+            inputPath
+          }
+          ... on NotAuthenticatedError {
+            notAuthenticated
+          }
+        }
+      }
+    `,
+    { input: { contentLength, contentType } },
+  );
+
+  const data = result.data?.startMediumUpload;
+  if (data == null) throw new Error("Upload failed");
+  if (
+    data.__typename === "StartMediumUploadPayload" &&
+    data.uploadId != null &&
+    data.uploadUrl != null &&
+    data.method != null &&
+    data.headers != null
+  ) {
+    return {
+      uploadId: data.uploadId,
+      uploadUrl: data.uploadUrl,
+      method: data.method,
+      headers: data.headers,
+    };
+  }
+  if (data.__typename === "NotAuthenticatedError") {
+    throw new Error("Not authenticated");
+  }
+  if (data.__typename === "InvalidInputError" && "inputPath" in data) {
+    throw new Error(`Upload failed: InvalidInputError at ${data.inputPath}`);
+  }
+  throw new Error(`Upload failed: ${data.__typename}`);
+}
+
+export async function finishMediumUploadOnServer(
+  uploadId: string,
+): Promise<MediumUploadResult> {
+  "use server";
+
+  const result = await graphqlRequest<{
+    data?: {
+      finishMediumUpload: {
+        __typename: string;
+        medium?: {
+          id: string;
+          uuid: string;
+          url: string;
+          width: number | null;
+          height: number | null;
+        };
+        inputPath?: string;
+      };
+    };
+    errors?: { message: string }[];
+  }>(
+    `
+      mutation finishMediumUpload($input: FinishMediumUploadInput!) {
+        finishMediumUpload(input: $input) {
+          __typename
+          ... on FinishMediumUploadPayload {
+            medium {
+              id
+              uuid
+              url
+              width
+              height
+            }
+          }
+          ... on InvalidInputError {
+            inputPath
+          }
+          ... on NotAuthenticatedError {
+            notAuthenticated
+          }
+        }
+      }
+    `,
+    { input: { uploadId } },
+  );
+
+  const data = result.data?.finishMediumUpload;
+  if (data == null) throw new Error("Upload failed");
+  if (data.__typename === "FinishMediumUploadPayload" && data.medium != null) {
+    return {
+      mediumRelayId: data.medium.id,
+      uuid: data.medium.uuid,
+      url: data.medium.url,
+      width: data.medium.width ?? 0,
+      height: data.medium.height ?? 0,
+    };
+  }
+  if (data.__typename === "NotAuthenticatedError") {
+    throw new Error("Not authenticated");
+  }
+  if (data.__typename === "InvalidInputError" && "inputPath" in data) {
+    throw new Error(`Upload failed: InvalidInputError at ${data.inputPath}`);
+  }
+  throw new Error(`Upload failed: ${data.__typename}`);
 }

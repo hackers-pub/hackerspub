@@ -3,6 +3,7 @@
   "type": "module",
   "exports": {
     ".": "./mod.ts",
+    "./alttext": "./alttext.ts",
     "./*": "./*.ts"
   },
   "dependencies": {

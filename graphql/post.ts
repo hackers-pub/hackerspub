@@ -1,3 +1,4 @@
+import { generateAltText } from "@hackerspub/ai/alttext";
 import { getLogger } from "@logtape/logtape";
 import { drizzleConnectionHelpers } from "@pothos/plugin-drizzle";
 import { unreachable } from "@std/assert";
@@ -61,12 +62,15 @@ import {
   createMediumUploadSession,
   deleteMediumUploadSession,
   getMediumUploadSession,
+  isMediumOwner,
+  isMediumUploadWindowActive,
   MEDIUM_UPLOAD_TTL_MS,
+  setMediumOwner,
 } from "./medium-upload.ts";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
-import { InvalidInputError } from "./error.ts";
+import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { putArticleOgImage } from "./og.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
@@ -715,6 +719,45 @@ export const Medium = builder.drizzleNode("mediumTable", {
   }),
 });
 
+builder.drizzleObjectField(Medium, "generatedAltText", (t) =>
+  t.string({
+    nullable: true,
+    description: "AI-generated alternative text for this medium. " +
+      "Requires authentication. " +
+      "Within the 2-hour upload window only the uploader may call this " +
+      "field; after the window expires any authenticated user may call it " +
+      "(the medium is either publicly referenced or pending orphan cleanup). " +
+      "Multiple uploaders of identical content each get independent " +
+      "ownership entries, so content-hash deduplication does not grant " +
+      "the later uploader access to the earlier one's window. " +
+      "High-complexity operation (cost 1000). " +
+      "The context argument is truncated server-side to 1000 characters.",
+    complexity: 1000,
+    args: {
+      language: t.arg({ type: "Locale", required: true }),
+      context: t.arg({ type: "String", required: false }),
+    },
+    async resolve(medium, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) throw new NotAuthenticatedError();
+      const isOwner = await isMediumOwner(ctx.kv, medium.id, session.accountId);
+      if (!isOwner) {
+        const windowActive = await isMediumUploadWindowActive(
+          ctx.kv,
+          medium.id,
+        );
+        if (windowActive) throw new NotAuthorizedError();
+      }
+      const imageUrl = await ctx.disk.getUrl(medium.key);
+      return await generateAltText({
+        model: ctx.altTextGenerator,
+        imageUrl,
+        language: (args.language as Intl.Locale).baseName,
+        context: args.context ?? undefined,
+      });
+    },
+  }));
+
 const MediumUploadHeader = builder.simpleObject("MediumUploadHeader", {
   fields: (t) => ({
     name: t.string(),
@@ -823,6 +866,9 @@ builder.relayMutationField(
         quotedPostId,
       } = args.input;
       const attachedMedia = media ?? [];
+      if (attachedMedia.length > 20) {
+        throw new InvalidInputError("media");
+      }
       let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
       if (replyTargetId != null) {
         replyTarget = await ctx.db.query.postTable.findFirst({
@@ -2286,6 +2332,7 @@ builder.relayMutationField(
           contentType: upload.contentType,
         });
         if (medium == null) throw new InvalidInputError("uploadId");
+        await setMediumOwner(ctx.kv, medium.id, session.accountId);
         return medium;
       } finally {
         try {

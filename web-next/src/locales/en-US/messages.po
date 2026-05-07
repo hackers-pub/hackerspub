@@ -216,7 +216,7 @@ msgstr "{0}'s notes"
 msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:556
+#: src/routes/(root)/[handle]/settings/index.tsx:557
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "A name for the link that will be displayed on your profile, e.g., GitHub."
 
@@ -256,9 +256,26 @@ msgstr "Admin"
 msgid "All"
 msgstr "All"
 
+#: src/components/NoteComposer.tsx:481
+msgid "All images must finish uploading before posting"
+msgstr "All images must finish uploading before posting"
+
+#: src/components/NoteComposer.tsx:489
+msgid "All images require alt text"
+msgstr "All images require alt text"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:321
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
+
+#: src/components/NoteComposer.tsx:824
+msgid "Alt text (required)"
+msgstr "Alt text (required)"
+
+#. placeholder {0}: index() + 1
+#: src/components/NoteComposer.tsx:815
+msgid "Alt text for image {0}"
+msgstr "Alt text for image {0}"
 
 #: src/routes/(root)/sign/up/[token].tsx:296
 msgid "An error occurred during signup. Please try again."
@@ -280,8 +297,8 @@ msgstr "An error occurred while saving your preferences. Please try again, or co
 msgid "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferred languages. Please try again, or contact support if the problem persists."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:292
-#: src/routes/(root)/[handle]/settings/index.tsx:333
+#: src/routes/(root)/[handle]/settings/index.tsx:293
+#: src/routes/(root)/[handle]/settings/index.tsx:334
 msgid "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your settings. Please try again, or contact support if the problem persists."
 
@@ -344,19 +361,33 @@ msgid "Articles only"
 msgstr "Articles only"
 
 #. placeholder {0}: "CHANGED"
-#: src/routes/(root)/[handle]/settings/index.tsx:431
+#: src/routes/(root)/[handle]/settings/index.tsx:432
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "As you have already changed it {0}, you can't change it again."
+
+#: src/components/NoteComposer.tsx:747
+#: src/components/NoteComposer.tsx:748
+msgid "Attach image"
+msgstr "Attach image"
 
 #: src/routes/(root)/sign/index.tsx:419
 msgid "Authenticating…"
 msgstr "Authenticating…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:347
+#: src/components/NoteComposer.tsx:843
+msgid "Auto-fill"
+msgstr "Auto-fill"
+
+#: src/components/NoteComposer.tsx:836
+#: src/components/NoteComposer.tsx:837
+msgid "Auto-fill alt text"
+msgstr "Auto-fill alt text"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:348
 msgid "Avatar"
 msgstr "Avatar"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:460
+#: src/routes/(root)/[handle]/settings/index.tsx:461
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Bio"
 msgstr "Bio"
@@ -389,14 +420,14 @@ msgid "Bookmarks"
 msgstr "Bookmarks"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:443
+#: src/components/NoteComposer.tsx:899
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:339
-#: src/routes/(root)/[handle]/settings/index.tsx:394
+#: src/routes/(root)/[handle]/settings/index.tsx:395
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:521
 #: src/routes/(root)/authorize_interaction.tsx:190
 msgid "Cancel"
@@ -446,12 +477,12 @@ msgid "Compose"
 msgstr "Compose"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:375
+#: src/components/NoteComposer.tsx:680
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:254
 msgid "Content"
 msgstr "Content"
 
-#: src/components/NoteComposer.tsx:253
+#: src/components/NoteComposer.tsx:471
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
@@ -471,7 +502,7 @@ msgstr "Copy"
 msgid "Could not copy the link to the clipboard."
 msgstr "Could not copy the link to the clipboard."
 
-#: src/components/NoteComposer.tsx:204
+#: src/components/NoteComposer.tsx:417
 msgid "Could not find a post at this URL"
 msgstr "Could not find a post at this URL"
 
@@ -495,7 +526,7 @@ msgstr "Create invitation link"
 #: src/components/AppSidebar.tsx:699
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:26
-#: src/components/NoteComposer.tsx:452
+#: src/components/NoteComposer.tsx:909
 msgid "Create note"
 msgstr "Create note"
 
@@ -516,16 +547,16 @@ msgstr "Created {0}"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:453
+#: src/components/NoteComposer.tsx:910
 #: src/routes/(root)/[handle]/settings/invite.tsx:763
 msgid "Creating…"
 msgstr "Creating…"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:401
+#: src/routes/(root)/[handle]/settings/index.tsx:402
 msgid "Crop"
 msgstr "Crop"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:374
+#: src/routes/(root)/[handle]/settings/index.tsx:375
 msgid "Crop your new avatar"
 msgstr "Crop your new avatar"
 
@@ -572,7 +603,7 @@ msgstr "Deleting…"
 msgid "Discard unsaved changes - are you sure?"
 msgstr "Discard unsaved changes - are you sure?"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:444
+#: src/routes/(root)/[handle]/settings/index.tsx:445
 #: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Display name"
 msgstr "Display name"
@@ -581,7 +612,7 @@ msgstr "Display name"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
-#: src/components/NoteComposer.tsx:191
+#: src/components/NoteComposer.tsx:404
 msgid "Do you want to quote this link?"
 msgstr "Do you want to quote this link?"
 
@@ -602,7 +633,7 @@ msgstr "Draft not found"
 msgid "Draft saved"
 msgstr "Draft saved"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:377
+#: src/routes/(root)/[handle]/settings/index.tsx:378
 msgid "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 msgstr "Drag to select the area you want to keep, then click “Crop” to update your avatar."
 
@@ -667,11 +698,16 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/article-composer/ArticleComposerContext.tsx:450
 #: src/components/article-composer/ArticleComposerContext.tsx:458
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:203
-#: src/components/NoteComposer.tsx:252
-#: src/components/NoteComposer.tsx:280
-#: src/components/NoteComposer.tsx:288
-#: src/components/NoteComposer.tsx:296
+#: src/components/NoteComposer.tsx:312
+#: src/components/NoteComposer.tsx:378
+#: src/components/NoteComposer.tsx:416
+#: src/components/NoteComposer.tsx:470
+#: src/components/NoteComposer.tsx:480
+#: src/components/NoteComposer.tsx:488
+#: src/components/NoteComposer.tsx:521
+#: src/components/NoteComposer.tsx:529
+#: src/components/NoteComposer.tsx:537
+#: src/components/NoteComposer.tsx:591
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:203
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:213
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:222
@@ -735,6 +771,10 @@ msgstr "Failed to delete post"
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
+#: src/components/NoteComposer.tsx:592
+msgid "Failed to generate alt text"
+msgstr "Failed to generate alt text"
+
 #: src/components/admin/AdminAccountsTable.tsx:236
 msgid "Failed to load more accounts; click to retry"
 msgstr "Failed to load more accounts; click to retry"
@@ -787,7 +827,7 @@ msgstr "Failed to load more posts; click to retry"
 msgid "Failed to load more replies; click to retry"
 msgstr "Failed to load more replies; click to retry"
 
-#: src/components/NoteComposer.tsx:317
+#: src/components/NoteComposer.tsx:622
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
@@ -833,8 +873,8 @@ msgstr "Failed to save language preferences"
 msgid "Failed to save preferences"
 msgstr "Failed to save preferences"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:289
-#: src/routes/(root)/[handle]/settings/index.tsx:331
+#: src/routes/(root)/[handle]/settings/index.tsx:290
+#: src/routes/(root)/[handle]/settings/index.tsx:332
 msgid "Failed to save settings"
 msgstr "Failed to save settings"
 
@@ -879,6 +919,7 @@ msgid "Failed to update the article. Please try again."
 msgstr "Failed to update the article. Please try again."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
+#: src/components/NoteComposer.tsx:379
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
 
@@ -932,6 +973,10 @@ msgstr "Following you"
 #: src/components/ui/markdown-editor.tsx:519
 msgid "Formatting"
 msgstr "Formatting"
+
+#: src/components/NoteComposer.tsx:862
+msgid "Generating…"
+msgstr "Generating…"
 
 #: src/components/AppSidebar.tsx:872
 msgid "GitHub repository"
@@ -1058,7 +1103,7 @@ msgstr "Invalid Fediverse handle format."
 #: src/components/article-composer/ArticleComposerContext.tsx:306
 #: src/components/article-composer/ArticleComposerContext.tsx:378
 #: src/components/article-composer/ArticleComposerContext.tsx:443
-#: src/components/NoteComposer.tsx:281
+#: src/components/NoteComposer.tsx:522
 #: src/routes/(root)/[handle]/drafts/index.tsx:187
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
@@ -1120,7 +1165,7 @@ msgstr "Invited by"
 msgid "Italic"
 msgstr "Italic"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:451
+#: src/routes/(root)/[handle]/settings/index.tsx:452
 msgid "John Doe"
 msgstr "John Doe"
 
@@ -1132,7 +1177,6 @@ msgstr "Joined on {0}"
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:36
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/components/NoteComposer.tsx:422
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:304
 msgid "Language"
 msgstr "Language"
@@ -1175,7 +1219,7 @@ msgstr "Link author:"
 msgid "Link expired"
 msgstr "Link expired"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:537
+#: src/routes/(root)/[handle]/settings/index.tsx:538
 msgid "Link name"
 msgstr "Link name"
 
@@ -1287,7 +1331,7 @@ msgstr "Loading more posts…"
 msgid "Loading more replies…"
 msgstr "Loading more replies…"
 
-#: src/components/NoteComposer.tsx:318
+#: src/components/NoteComposer.tsx:623
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
 
@@ -1309,7 +1353,7 @@ msgid "Markdown guide"
 msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:400
+#: src/components/NoteComposer.tsx:705
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:279
 msgid "Markdown supported"
 msgstr "Markdown supported"
@@ -1453,12 +1497,12 @@ msgstr "Not found"
 #~ msgid "Note"
 #~ msgstr "Note"
 
-#: src/components/NoteComposer.tsx:273
+#: src/components/NoteComposer.tsx:514
 msgid "Note created successfully"
 msgstr "Note created successfully"
 
 #. placeholder {0}: "REL_ME_ATTR"
-#: src/routes/(root)/[handle]/settings/index.tsx:500
+#: src/routes/(root)/[handle]/settings/index.tsx:501
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 
@@ -1747,8 +1791,13 @@ msgstr "Remove {0}"
 msgid "Remove bookmark"
 msgstr "Remove bookmark"
 
-#: src/components/NoteComposer.tsx:365
-#: src/components/NoteComposer.tsx:366
+#: src/components/NoteComposer.tsx:871
+#: src/components/NoteComposer.tsx:872
+msgid "Remove image"
+msgstr "Remove image"
+
+#: src/components/NoteComposer.tsx:670
+#: src/components/NoteComposer.tsx:671
 msgid "Remove quote"
 msgstr "Remove quote"
 
@@ -1769,7 +1818,7 @@ msgstr "Revoke"
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:512
+#: src/routes/(root)/[handle]/settings/index.tsx:513
 #: src/routes/(root)/[handle]/settings/language.tsx:200
 #: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Save"
@@ -1789,7 +1838,7 @@ msgstr "Save draft to see preview"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:345
-#: src/routes/(root)/[handle]/settings/index.tsx:512
+#: src/routes/(root)/[handle]/settings/index.tsx:513
 #: src/routes/(root)/[handle]/settings/language.tsx:200
 #: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Saving…"
@@ -1908,6 +1957,10 @@ msgstr "Slug (URL)"
 msgid "Slug cannot be empty"
 msgstr "Slug cannot be empty"
 
+#: src/components/NoteComposer.tsx:323
+msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
+msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
+
 #: src/routes/(root)/sign/index.tsx:243
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
@@ -1915,7 +1968,7 @@ msgstr "Something went wrong—please try again."
 #: src/components/article-composer/ArticleComposerContext.tsx:295
 #: src/components/article-composer/ArticleComposerContext.tsx:368
 #: src/components/article-composer/ArticleComposerContext.tsx:433
-#: src/components/NoteComposer.tsx:272
+#: src/components/NoteComposer.tsx:513
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:189
 #: src/routes/(root)/[handle]/drafts/index.tsx:177
 msgid "Success"
@@ -1929,7 +1982,7 @@ msgstr "Successfully saved language preferences"
 msgid "Successfully saved preferences"
 msgstr "Successfully saved preferences"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:324
+#: src/routes/(root)/[handle]/settings/index.tsx:325
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
@@ -2022,7 +2075,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:580
+#: src/routes/(root)/[handle]/settings/index.tsx:581
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
@@ -2177,7 +2230,11 @@ msgstr "Update your profile information, including your avatar, username, displa
 msgid "Updated {0}"
 msgstr "Updated {0}"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:562
+#: src/components/NoteComposer.tsx:802
+msgid "Upload progress"
+msgstr "Upload progress"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:563
 msgid "URL"
 msgstr "URL"
 
@@ -2193,7 +2250,7 @@ msgstr "User not found."
 msgid "User unblocked"
 msgstr "User unblocked"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:409
+#: src/routes/(root)/[handle]/settings/index.tsx:410
 #: src/routes/(root)/sign/up/[token].tsx:357
 msgid "Username"
 msgstr "Username"
@@ -2232,7 +2289,7 @@ msgstr "Verifying your invitation…"
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
-#: src/components/NoteComposer.tsx:429
+#: src/components/NoteComposer.tsx:735
 msgid "Visibility"
 msgstr "Visibility"
 
@@ -2268,11 +2325,15 @@ msgstr "Voted"
 msgid "Voting…"
 msgstr "Voting…"
 
+#: src/components/NoteComposer.tsx:322
+msgid "Warning"
+msgstr "Warning"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:579
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "We couldn't reach the translation service. Try again, or come back in a few minutes."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:543
+#: src/routes/(root)/[handle]/settings/index.tsx:544
 msgid "Website"
 msgstr "Website"
 
@@ -2284,7 +2345,7 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/NoteComposer.tsx:408
+#: src/components/NoteComposer.tsx:713
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
@@ -2317,11 +2378,15 @@ msgstr "You are blocked by this user. You can't follow them or see their posts."
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "You are blocking this user. They can't follow you or see your posts."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:425
+#: src/components/NoteComposer.tsx:313
+msgid "You can attach up to {MAX_MEDIA} images"
+msgstr "You can attach up to {MAX_MEDIA} images"
+
+#: src/routes/(root)/[handle]/settings/index.tsx:426
 msgid "You can change it only once, and the old username will become available to others."
 msgstr "You can change it only once, and the old username will become available to others."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:591
+#: src/routes/(root)/[handle]/settings/index.tsx:592
 msgid "You can leave this empty to remove the link."
 msgstr "You can leave this empty to remove the link."
 
@@ -2361,7 +2426,7 @@ msgstr "You have no invitations left. Please wait until you receive more."
 msgid "You must be signed in"
 msgstr "You must be signed in"
 
-#: src/components/NoteComposer.tsx:289
+#: src/components/NoteComposer.tsx:530
 msgid "You must be signed in to create a note"
 msgstr "You must be signed in to create a note"
 
@@ -2394,11 +2459,11 @@ msgstr "You'll automatically follow each other when you sign up."
 msgid "You've been invited to Hackers' Pub"
 msgstr "You've been invited to Hackers' Pub"
 
-#: src/routes/(root)/[handle]/settings/index.tsx:349
+#: src/routes/(root)/[handle]/settings/index.tsx:350
 msgid "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 msgstr "Your avatar will be displayed on your profile and in your posts. You can upload a PNG, JPEG, GIF, or WebP image up to 5 MiB in size."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:469
+#: src/routes/(root)/[handle]/settings/index.tsx:470
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it."
 
@@ -2414,7 +2479,7 @@ msgstr "Your email address will be used to sign in to your account."
 msgid "Your friend will see this message in the invitation email."
 msgstr "Your friend will see this message in the invitation email."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:455
+#: src/routes/(root)/[handle]/settings/index.tsx:456
 #: src/routes/(root)/sign/up/[token].tsx:400
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
@@ -2431,11 +2496,11 @@ msgstr "Your preferences have been updated successfully."
 msgid "Your preferred languages have been updated."
 msgstr "Your preferred languages have been updated."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:325
+#: src/routes/(root)/[handle]/settings/index.tsx:326
 msgid "Your profile settings have been updated successfully."
 msgstr "Your profile settings have been updated successfully."
 
-#: src/routes/(root)/[handle]/settings/index.tsx:422
+#: src/routes/(root)/[handle]/settings/index.tsx:423
 #: src/routes/(root)/sign/up/[token].tsx:374
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "Your username will be used to create your profile URL and your fediverse handle."

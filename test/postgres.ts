@@ -4,6 +4,7 @@ import { sql } from "drizzle-orm";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Transaction } from "@hackerspub/models/db";
 import type { Transport } from "@upyo/core";
+import { MockLanguageModelV3 } from "ai/test";
 import {
   accountEmailTable,
   accountTable,
@@ -460,6 +461,17 @@ export function createFedCtx(
   } as unknown as RequestContext<ContextData>;
 }
 
+function createNoopAltTextModel(): MockLanguageModelV3 {
+  return new MockLanguageModelV3({
+    doGenerate: async () => {
+      throw new Error(
+        "altTextGenerator was called in a test that did not expect it. " +
+          "Pass altTextGenerator in overrides to handle this.",
+      );
+    },
+  });
+}
+
 export function makeUserContext(
   tx: Transaction,
   account: AuthenticatedAccount,
@@ -470,6 +482,7 @@ export function makeUserContext(
   const fedCtx = overrides.fedCtx ?? createFedCtx(tx, { kv });
 
   return {
+    altTextGenerator: createNoopAltTextModel(),
     db: tx,
     kv,
     disk: createTestDisk() as UserContext["disk"],
@@ -495,6 +508,7 @@ export function makeGuestContext(
   const fedCtx = overrides.fedCtx ?? createFedCtx(tx, { kv });
 
   return {
+    altTextGenerator: createNoopAltTextModel(),
     db: tx,
     kv,
     disk: createTestDisk() as UserContext["disk"],
