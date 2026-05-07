@@ -251,7 +251,10 @@ export async function startMediumUploadOnServer(
   if (data.__typename === "NotAuthenticatedError") {
     throw new Error("Not authenticated");
   }
-  throw new Error("Upload failed");
+  if (data.__typename === "InvalidInputError" && "inputPath" in data) {
+    throw new Error(`Upload failed: InvalidInputError at ${data.inputPath}`);
+  }
+  throw new Error(`Upload failed: ${data.__typename}`);
 }
 
 export async function finishMediumUploadOnServer(
@@ -314,5 +317,8 @@ export async function finishMediumUploadOnServer(
   if (data.__typename === "NotAuthenticatedError") {
     throw new Error("Not authenticated");
   }
-  throw new Error("Upload failed");
+  if (data.__typename === "InvalidInputError" && "inputPath" in data) {
+    throw new Error(`Upload failed: InvalidInputError at ${data.inputPath}`);
+  }
+  throw new Error(`Upload failed: ${data.__typename}`);
 }
