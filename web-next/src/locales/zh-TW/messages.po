@@ -1882,6 +1882,10 @@ msgstr "發送中…"
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
 
+#: src/components/AppSidebar.tsx
+msgid "Return to old UI"
+msgstr "返回舊介面"
+
 #: src/components/AppSidebar.tsx:565
 msgid "Settings"
 msgstr "設定"

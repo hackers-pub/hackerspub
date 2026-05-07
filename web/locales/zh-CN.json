@@ -457,6 +457,10 @@
       "templateNotFoundError": "未找到该联邦宇宙用户名的远程关注模板。"
     }
   },
+  "webNextBanner": {
+    "text": "试试全新的 Hackers' Pub！",
+    "action": "立即体验"
+  },
   "authorizedInteraction": {
     "title": "远程关注",
     "subtitle": "从你的账户关注",

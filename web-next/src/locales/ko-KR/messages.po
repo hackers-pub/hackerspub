@@ -1882,6 +1882,10 @@ msgstr "보내는 중…"
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
+#: src/components/AppSidebar.tsx
+msgid "Return to old UI"
+msgstr "예전 UI로 돌아가기"
+
 #: src/components/AppSidebar.tsx:565
 msgid "Settings"
 msgstr "설정"

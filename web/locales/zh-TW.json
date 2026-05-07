@@ -458,6 +458,10 @@
       "templateNotFoundError": "未找到該聯邦宇宙使用者名稱的遠端關注範本。"
     }
   },
+  "webNextBanner": {
+    "text": "試試全新的 Hackers' Pub！",
+    "action": "立即體驗"
+  },
   "authorizedInteraction": {
     "title": "遠端關注",
     "subtitle": "從你的帳戶關注",

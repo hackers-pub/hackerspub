@@ -15,6 +15,7 @@ import { db } from "../db.ts";
 import metadata from "../deno.json" with { type: "json" };
 import { drive } from "../drive.ts";
 import { NotificationIcon } from "../islands/NotificationIcon.tsx";
+import { WebNextBanner } from "../islands/WebNextBanner.tsx";
 import { kv } from "../kv.ts";
 import { MODE, type State } from "../utils.ts";
 
@@ -365,6 +366,10 @@ export default async function App(
                   </div>
                 </nav>
               </header>
+              <WebNextBanner
+                text={t("webNextBanner.text")}
+                action={t("webNextBanner.action")}
+              />
               {state.withoutMain ? <Component /> : (
                 <>
                   <main class="w-full grow">

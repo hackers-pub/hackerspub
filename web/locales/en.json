@@ -465,6 +465,10 @@
       "templateNotFoundError": "remoteFollowUrl was not found for this Fediverse handle."
     }
   },
+  "webNextBanner": {
+    "text": "Try the new Hackers' Pub!",
+    "action": "Try it now"
+  },
   "authorizedInteraction": {
     "title": "Remote Follow",
     "subtitle": "Follow from your account",

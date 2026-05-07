@@ -456,6 +456,10 @@
       "templateNotFoundError": "該当するフェディバースハンドルのリモートフォローのテンプレートが見つかりませんでした。"
     }
   },
+  "webNextBanner": {
+    "text": "新しい Hackers' Pub を試してみよう！",
+    "action": "試してみる"
+  },
   "authorizedInteraction": {
     "title": "リモートフォロー",
     "subtitle": "あなたのアカウントからフォロー",
