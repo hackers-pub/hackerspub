@@ -77,12 +77,8 @@ async function removeSessionCookie(): Promise<Uuid | null> {
   return null;
 }
 
-async function removeWebNextCookie(): Promise<void> {
-  "use server";
-  const event = getRequestEvent();
-  if (event != null) {
-    deleteCookie(event.nativeEvent, "web-next", { path: "/" });
-  }
+function removeWebNextCookie(): void {
+  document.cookie = "web-next=; max-age=0; path=/; SameSite=Lax";
 }
 
 export interface AppSidebarProps {
@@ -406,8 +402,8 @@ function AccountSection(props: AccountSectionProps) {
     props.unreadNotificationsCount ??
       props.signedAccount?.unreadNotificationsCount ?? 0;
 
-  async function onReturnToOldUI() {
-    await removeWebNextCookie();
+  function onReturnToOldUI() {
+    removeWebNextCookie();
     location.reload();
   }
 
