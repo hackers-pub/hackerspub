@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
+import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconHeart from "~icons/lucide/heart";
@@ -74,7 +75,7 @@ const unsharePostMutation = graphql`
 
 export function PostControls(props: PostControlsProps) {
   const { t } = useLingui();
-  const { openWithQuote } = useNoteCompose();
+  const { openWithQuote, openWithReply } = useNoteCompose();
   const note = createFragment(
     graphql`
       fragment PostControls_post on Post {
@@ -86,6 +87,7 @@ export function PostControls(props: PostControlsProps) {
           reactions
         }
         id
+        visibility
         viewerHasShared
         ...BookmarkButton_post
         reactionGroups {
@@ -205,6 +207,14 @@ export function PostControls(props: PostControlsProps) {
             size="sm"
             class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
             title={t`Reply`}
+            onClick={() => {
+              const v = note.visibility;
+              const vis: PostVisibility = v === "PUBLIC" || v === "UNLISTED" ||
+                  v === "FOLLOWERS" || v === "DIRECT"
+                ? v
+                : "PUBLIC";
+              openWithReply(note.id, vis);
+            }}
           >
             <IconMessageSquare class="size-4" />
             <span class="text-xs">{note.engagementStats.replies}</span>

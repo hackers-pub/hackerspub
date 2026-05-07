@@ -29,8 +29,10 @@ import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
+import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostAvatar } from "~/components/PostAvatar.tsx";
+import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 import { QuestionCard } from "~/components/QuestionCard.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -292,6 +294,8 @@ function NoteInternal(props: NoteInternalProps) {
   const note = createFragment(
     graphql`
       fragment NoteId_noteBody on Note {
+        id
+        visibility
         iri
         url
         ...NoteCard_note
@@ -301,31 +305,55 @@ function NoteInternal(props: NoteInternalProps) {
   );
   return (
     <Show keyed when={note()}>
-      {(note) => (
-        <NarrowContainer>
-          <div class="my-4">
-            <PermalinkThread noteId={props.noteId} username={props.username}>
-              <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
-                <NoteCard $note={note} onDeleted={() => navigate(-1)} />
-                <Show when={props.$viewer == null}>
-                  <p class="p-4 text-sm text-muted-foreground">
-                    <Trans
-                      message={t`If you have a fediverse account, you can reply to this note from your own instance. Search ${"ACTIVITYPUB_URI"} on your instance and reply to it.`}
-                      values={{
-                        ACTIVITYPUB_URI: () => (
-                          <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
-                            {note.iri}
-                          </span>
-                        ),
-                      }}
-                    />
-                  </p>
-                </Show>
-              </div>
-            </PermalinkThread>
-          </div>
-        </NarrowContainer>
-      )}
+      {(note) => {
+        const defaultVisibility = (): PostVisibility => {
+          const v = note.visibility;
+          if (
+            v === "PUBLIC" || v === "UNLISTED" ||
+            v === "FOLLOWERS" || v === "DIRECT"
+          ) return v;
+          return "PUBLIC";
+        };
+        return (
+          <NarrowContainer>
+            <div class="my-4">
+              <PermalinkThread noteId={props.noteId} username={props.username}>
+                <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
+                  <NoteCard $note={note} onDeleted={() => navigate(-1)} />
+                  <Show when={props.$viewer != null}>
+                    <div class="px-4 pb-4 border-t pt-4 text-base">
+                      <NoteComposer
+                        replyTargetId={note.id}
+                        defaultVisibility={defaultVisibility()}
+                        placeholder={t`Write a reply…`}
+                        onSuccess={() =>
+                          navigate(
+                            `/@${props.username}/${props.noteId}`,
+                            { replace: true },
+                          )}
+                      />
+                    </div>
+                  </Show>
+                  <Show when={props.$viewer == null}>
+                    <p class="p-4 text-sm text-muted-foreground">
+                      <Trans
+                        message={t`If you have a fediverse account, you can reply to this note from your own instance. Search ${"ACTIVITYPUB_URI"} on your instance and reply to it.`}
+                        values={{
+                          ACTIVITYPUB_URI: () => (
+                            <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
+                              {note.iri}
+                            </span>
+                          ),
+                        }}
+                      />
+                    </p>
+                  </Show>
+                </div>
+              </PermalinkThread>
+            </div>
+          </NarrowContainer>
+        );
+      }}
     </Show>
   );
 }
@@ -344,6 +372,8 @@ function QuestionInternal(props: QuestionInternalProps) {
   const question = createFragment(
     graphql`
       fragment NoteId_questionBody on Question {
+        id
+        visibility
         iri
         url
         ...QuestionCard_question
@@ -353,34 +383,58 @@ function QuestionInternal(props: QuestionInternalProps) {
   );
   return (
     <Show keyed when={question()}>
-      {(question) => (
-        <NarrowContainer>
-          <div class="my-4">
-            <PermalinkThread noteId={props.noteId} username={props.username}>
-              <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
-                <QuestionCard
-                  $question={question}
-                  onDeleted={() => navigate(-1)}
-                />
-                <Show when={props.$viewer == null}>
-                  <p class="p-4 text-sm text-muted-foreground">
-                    <Trans
-                      message={t`If you have a fediverse account, you can reply to this post from your own instance. Search ${"ACTIVITYPUB_URI"} on your instance and reply to it.`}
-                      values={{
-                        ACTIVITYPUB_URI: () => (
-                          <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
-                            {question.iri}
-                          </span>
-                        ),
-                      }}
-                    />
-                  </p>
-                </Show>
-              </div>
-            </PermalinkThread>
-          </div>
-        </NarrowContainer>
-      )}
+      {(question) => {
+        const defaultVisibility = (): PostVisibility => {
+          const v = question.visibility;
+          if (
+            v === "PUBLIC" || v === "UNLISTED" ||
+            v === "FOLLOWERS" || v === "DIRECT"
+          ) return v;
+          return "PUBLIC";
+        };
+        return (
+          <NarrowContainer>
+            <div class="my-4">
+              <PermalinkThread noteId={props.noteId} username={props.username}>
+                <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
+                  <QuestionCard
+                    $question={question}
+                    onDeleted={() => navigate(-1)}
+                  />
+                  <Show when={props.$viewer != null}>
+                    <div class="px-4 pb-4 border-t pt-4 text-base">
+                      <NoteComposer
+                        replyTargetId={question.id}
+                        defaultVisibility={defaultVisibility()}
+                        placeholder={t`Write a reply…`}
+                        onSuccess={() =>
+                          navigate(
+                            `/@${props.username}/${props.noteId}`,
+                            { replace: true },
+                          )}
+                      />
+                    </div>
+                  </Show>
+                  <Show when={props.$viewer == null}>
+                    <p class="p-4 text-sm text-muted-foreground">
+                      <Trans
+                        message={t`If you have a fediverse account, you can reply to this post from your own instance. Search ${"ACTIVITYPUB_URI"} on your instance and reply to it.`}
+                        values={{
+                          ACTIVITYPUB_URI: () => (
+                            <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
+                              {question.iri}
+                            </span>
+                          ),
+                        }}
+                      />
+                    </p>
+                  </Show>
+                </div>
+              </PermalinkThread>
+            </div>
+          </NarrowContainer>
+        );
+      }}
     </Show>
   );
 }
