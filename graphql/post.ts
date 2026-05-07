@@ -901,17 +901,42 @@ builder.relayMutationField(
               },
             },
             mentions: true,
+            sharedPost: {
+              with: {
+                actor: {
+                  with: {
+                    followers: true,
+                    blockees: true,
+                    blockers: true,
+                  },
+                },
+                mentions: true,
+              },
+            },
           },
           where: { id: quotedPostId.id },
         });
+        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
+          throw new InvalidInputError("quotedPostId");
+        }
+        // Validate against the effective original post to prevent bypassing
+        // via a public share wrapper of a non-quotable original.
+        const effectivePost = post.sharedPost ?? post;
+        if (effectivePost.sharedPostId != null) {
+          throw new InvalidInputError("quotedPostId");
+        }
+        if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+          throw new InvalidInputError("quotedPostId");
+        }
         if (
-          post == null ||
-          (post.visibility !== "public" && post.visibility !== "unlisted") ||
-          !isPostVisibleTo(post, ctx.account.actor)
+          effectivePost.visibility !== "public" &&
+          effectivePost.visibility !== "unlisted" &&
+          !(effectivePost.visibility === "followers" &&
+            effectivePost.actorId === ctx.account.actor.id)
         ) {
           throw new InvalidInputError("quotedPostId");
         }
-        quotedPost = post;
+        quotedPost = effectivePost;
       }
       return await withTransaction(ctx.fedCtx, async (context) => {
         const noteMedia = await Promise.all(

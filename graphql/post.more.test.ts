@@ -1447,17 +1447,25 @@ test("createNote rejects quoting none-visibility posts", async () => {
   });
 });
 
-test("createNote rejects quoting followers-only posts", async () => {
+test("createNote rejects quoting followers-only posts by non-authors", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
       username: "quotefollowersauthor",
       name: "Quote Followers Author",
       email: "quotefollowersauthor@example.com",
     });
-    const requester = await insertAccountWithActor(tx, {
-      username: "quotefollowersrequester",
-      name: "Quote Followers Requester",
-      email: "quotefollowersrequester@example.com",
+    // A follower who can see the post should still not be able to quote it
+    const follower = await insertAccountWithActor(tx, {
+      username: "quotefollowersfollower",
+      name: "Quote Followers Follower",
+      email: "quotefollowersfollower@example.com",
+    });
+    await tx.insert(followingTable).values({
+      iri:
+        `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
+      followerId: follower.actor.id,
+      followeeId: author.actor.id,
+      accepted: new Date(),
     });
     const { post: followersPost } = await insertNotePost(tx, {
       account: author.account,
@@ -1470,13 +1478,13 @@ test("createNote rejects quoting followers-only posts", async () => {
       document: createNoteWithErrorMutation,
       variableValues: {
         input: {
-          content: "attempted followers quote",
+          content: "attempted followers quote by follower",
           language: "en",
           visibility: "PUBLIC",
           quotedPostId: encodeGlobalID("Note", followersPost.id),
         },
       },
-      contextValue: makeTransactionalUserContext(tx, requester.account),
+      contextValue: makeTransactionalUserContext(tx, follower.account),
       onError: "NO_PROPAGATE",
     });
 
@@ -1487,14 +1495,28 @@ test("createNote rejects quoting followers-only posts", async () => {
         inputPath: "quotedPostId",
       },
     });
+  });
+});
 
-    // Even the author themselves cannot quote their own followers-only post
-    const selfQuoteResult = await execute({
+test("createNote allows author to quote their own followers-only post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quotefollowersselfauthor",
+      name: "Quote Followers Self Author",
+      email: "quotefollowersselfauthor@example.com",
+    });
+    const { post: followersPost } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      content: "followers-only post to self-quote",
+    });
+
+    const result = await execute({
       schema,
-      document: createNoteWithErrorMutation,
+      document: createNoteMutation,
       variableValues: {
         input: {
-          content: "author self-quoting followers post",
+          content: "author quoting own followers post",
           language: "en",
           visibility: "PUBLIC",
           quotedPostId: encodeGlobalID("Note", followersPost.id),
@@ -1504,13 +1526,67 @@ test("createNote rejects quoting followers-only posts", async () => {
       onError: "NO_PROPAGATE",
     });
 
-    assert.equal(selfQuoteResult.errors, undefined);
-    assert.deepEqual(toPlainJson(selfQuoteResult.data), {
-      createNote: {
-        __typename: "InvalidInputError",
-        inputPath: "quotedPostId",
-      },
+    assert.equal(result.errors, undefined);
+    assert.equal(
+      (toPlainJson(result.data) as { createNote: { __typename: string } })
+        .createNote.__typename,
+      "CreateNotePayload",
+    );
+  });
+});
+
+test("createNote rejects quoting via a public wrapper of a non-quotable original", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quotewrapperauthor",
+      name: "Quote Wrapper Author",
+      email: "quotewrapperauthor@example.com",
     });
+    const attacker = await insertAccountWithActor(tx, {
+      username: "quotewrapperattacker",
+      name: "Quote Wrapper Attacker",
+      email: "quotewrapperattacker@example.com",
+    });
+
+    // Author creates a followers-only post and shares it (creating a public wrapper)
+    const { post: original } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      content: "followers-only original for quote bypass test",
+    });
+    const { post: wrapper } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "public",
+      sharedPostId: original.id,
+    });
+
+    // Attacker tries to quote the original by submitting the wrapper's ID
+    const result = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "quoting via public wrapper",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", wrapper.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, attacker.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(
+      toPlainJson(result.data),
+      {
+        createNote: {
+          __typename: "InvalidInputError",
+          inputPath: "quotedPostId",
+        },
+      },
+      "quoting via a public wrapper of a non-quotable original should be rejected",
+    );
   });
 });
 

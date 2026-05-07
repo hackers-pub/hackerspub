@@ -236,9 +236,11 @@ export function PostControls(props: PostControlsProps) {
                 variant="ghost"
                 size="sm"
                 disabled={note.visibility !== "PUBLIC" &&
-                  note.visibility !== "UNLISTED"}
+                  note.visibility !== "UNLISTED" &&
+                  !(note.visibility === "FOLLOWERS" && note.actor.isViewer)}
                 aria-label={note.visibility === "PUBLIC" ||
-                    note.visibility === "UNLISTED"
+                    note.visibility === "UNLISTED" ||
+                    (note.visibility === "FOLLOWERS" && note.actor.isViewer)
                   ? t`Quote`
                   : t`Quoting is not available for this post`}
                 class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
@@ -249,7 +251,9 @@ export function PostControls(props: PostControlsProps) {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {note.visibility === "PUBLIC" || note.visibility === "UNLISTED"
+              {note.visibility === "PUBLIC" ||
+                  note.visibility === "UNLISTED" ||
+                  (note.visibility === "FOLLOWERS" && note.actor.isViewer)
                 ? t`Quote`
                 : t`Quoting is not available for this post`}
             </TooltipContent>
