@@ -2,6 +2,7 @@ import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { Meta } from "@solidjs/meta";
 import {
   query,
+  revalidate,
   type RouteDefinition,
   useNavigate,
   useParams,
@@ -14,6 +15,7 @@ import {
   For,
   type JSX,
   Match,
+  onMount,
   Show,
   splitProps,
   Switch,
@@ -37,6 +39,7 @@ import { QuestionCard } from "~/components/QuestionCard.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type {
   NoteId_contextPost$data,
@@ -62,6 +65,13 @@ type NoteIdPageQuestion = Extract<
   NoteIdPagePost,
   { readonly __typename: "Question" }
 >;
+
+const NOTE_PAGE_QUERY_KEY = "loadNotePageQuery";
+const NOTE_THREAD_QUERY_KEY = "loadNoteThreadQuery";
+
+function revalidateNotePageQueries() {
+  return revalidate([NOTE_PAGE_QUERY_KEY, NOTE_THREAD_QUERY_KEY]);
+}
 
 export const route = {
   matchFilters: {
@@ -106,7 +116,7 @@ const loadNotePageQuery = query(
       NoteIdPageQuery,
       { handle: username, noteId },
     ),
-  "loadNotePageQuery",
+  NOTE_PAGE_QUERY_KEY,
 );
 
 const NoteIdThreadQuery = graphql`
@@ -127,17 +137,24 @@ const loadNoteThreadQuery = query(
       { handle: username, noteId },
       { fetchPolicy: "store-and-network" },
     ),
-  "loadNoteThreadQuery",
+  NOTE_THREAD_QUERY_KEY,
 );
 
 export default function NotePage() {
   const params = useParams();
   const noteId = params.noteId!;
   const username = decodeURIComponent(params.handle!).replace(/^@/, "");
+  const { onNoteCreated } = useNoteCompose();
 
   if (!validateUuid(noteId)) {
     return <NotFoundPage embedded />;
   }
+
+  onMount(() =>
+    onNoteCreated(() => {
+      void revalidateNotePageQueries();
+    })
+  );
 
   const noteData = createPreloadedQuery<NoteIdPageQuery>(
     NoteIdPageQuery,
@@ -326,11 +343,7 @@ function NoteInternal(props: NoteInternalProps) {
                         replyTargetId={note.id}
                         defaultVisibility={defaultVisibility()}
                         placeholder={t`Write a reply…`}
-                        onSuccess={() =>
-                          navigate(
-                            `/@${props.username}/${props.noteId}`,
-                            { replace: true },
-                          )}
+                        onSuccess={() => void revalidateNotePageQueries()}
                       />
                     </div>
                   </Show>
@@ -407,11 +420,7 @@ function QuestionInternal(props: QuestionInternalProps) {
                         replyTargetId={question.id}
                         defaultVisibility={defaultVisibility()}
                         placeholder={t`Write a reply…`}
-                        onSuccess={() =>
-                          navigate(
-                            `/@${props.username}/${props.noteId}`,
-                            { replace: true },
-                          )}
+                        onSuccess={() => void revalidateNotePageQueries()}
                       />
                     </div>
                   </Show>

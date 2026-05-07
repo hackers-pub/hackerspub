@@ -854,7 +854,7 @@ builder.relayMutationField(
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
-      if (session == null) {
+      if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
       }
       const {
@@ -871,23 +871,47 @@ builder.relayMutationField(
       }
       let replyTarget: schema.Post & { actor: schema.Actor } | undefined;
       if (replyTargetId != null) {
-        replyTarget = await ctx.db.query.postTable.findFirst({
-          with: { actor: true },
+        const post = await ctx.db.query.postTable.findFirst({
+          with: {
+            actor: {
+              with: {
+                followers: true,
+                blockees: true,
+                blockers: true,
+              },
+            },
+            mentions: true,
+          },
           where: { id: replyTargetId.id },
         });
-        if (replyTarget == null) {
+        if (post == null || !isPostVisibleTo(post, ctx.account.actor)) {
           throw new InvalidInputError("replyTargetId");
         }
+        replyTarget = post;
       }
       let quotedPost: schema.Post & { actor: schema.Actor } | undefined;
       if (quotedPostId != null) {
-        quotedPost = await ctx.db.query.postTable.findFirst({
-          with: { actor: true },
+        const post = await ctx.db.query.postTable.findFirst({
+          with: {
+            actor: {
+              with: {
+                followers: true,
+                blockees: true,
+                blockers: true,
+              },
+            },
+            mentions: true,
+          },
           where: { id: quotedPostId.id },
         });
-        if (quotedPost == null) {
+        if (
+          post == null ||
+          (post.visibility !== "public" && post.visibility !== "unlisted") ||
+          !isPostVisibleTo(post, ctx.account.actor)
+        ) {
           throw new InvalidInputError("quotedPostId");
         }
+        quotedPost = post;
       }
       return await withTransaction(ctx.fedCtx, async (context) => {
         const noteMedia = await Promise.all(

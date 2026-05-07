@@ -182,7 +182,7 @@ msgstr "{0} shared your post"
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:238
-#: src/routes/(root)/[handle]/[noteId].tsx:226
+#: src/routes/(root)/[handle]/[noteId].tsx:228
 msgid "{0}: {1}"
 msgstr "{0}: {1}"
 
@@ -220,16 +220,16 @@ msgstr "{0}'s shares"
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "A name for the link that will be displayed on your profile, e.g., GitHub."
 
-#: src/routes/(root)/sign/index.tsx:233
+#: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
 #: src/components/admin/AdminAccountsTable.tsx:104
-#: src/components/AppSidebar.tsx:404
+#: src/components/AppSidebar.tsx:413
 msgid "Account"
 msgstr "Account"
 
-#: src/components/AppSidebar.tsx:608
+#: src/components/AppSidebar.tsx:636
 #: src/routes/(root)/admin/index.tsx:56
 msgid "Accounts"
 msgstr "Accounts"
@@ -248,7 +248,7 @@ msgstr "Add"
 msgid "Add {0}"
 msgstr "Add {0}"
 
-#: src/components/AppSidebar.tsx:586
+#: src/components/AppSidebar.tsx:614
 msgid "Admin"
 msgstr "Admin"
 
@@ -256,11 +256,11 @@ msgstr "Admin"
 msgid "All"
 msgstr "All"
 
-#: src/components/NoteComposer.tsx:481
+#: src/components/NoteComposer.tsx:659
 msgid "All images must finish uploading before posting"
 msgstr "All images must finish uploading before posting"
 
-#: src/components/NoteComposer.tsx:489
+#: src/components/NoteComposer.tsx:667
 msgid "All images require alt text"
 msgstr "All images require alt text"
 
@@ -268,16 +268,16 @@ msgstr "All images require alt text"
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
 
-#: src/components/NoteComposer.tsx:824
-msgid "Alt text for visually impaired people (required)"
-msgstr "Alt text for visually impaired people (required)"
-
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:815
+#: src/components/NoteComposer.tsx:1061
 msgid "Alt text for image {0}"
 msgstr "Alt text for image {0}"
 
-#: src/routes/(root)/sign/up/[token].tsx:296
+#: src/components/NoteComposer.tsx:1073
+msgid "Alt text for visually impaired people (required)"
+msgstr "Alt text for visually impaired people (required)"
+
+#: src/routes/(root)/sign/up/[token].tsx:280
 msgid "An error occurred during signup. Please try again."
 msgstr "An error occurred during signup. Please try again."
 
@@ -356,7 +356,7 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:264
+#: src/components/AppSidebar.tsx:268
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -365,21 +365,21 @@ msgstr "Articles only"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "As you have already changed it {0}, you can't change it again."
 
-#: src/components/NoteComposer.tsx:747
-#: src/components/NoteComposer.tsx:748
+#: src/components/NoteComposer.tsx:993
+#: src/components/NoteComposer.tsx:994
 msgid "Attach image"
 msgstr "Attach image"
 
-#: src/routes/(root)/sign/index.tsx:419
+#: src/routes/(root)/sign/index.tsx:405
 msgid "Authenticating…"
 msgstr "Authenticating…"
 
-#: src/components/NoteComposer.tsx:843
+#: src/components/NoteComposer.tsx:1092
 msgid "Auto-fill"
 msgstr "Auto-fill"
 
-#: src/components/NoteComposer.tsx:836
-#: src/components/NoteComposer.tsx:837
+#: src/components/NoteComposer.tsx:1085
+#: src/components/NoteComposer.tsx:1086
 msgid "Auto-fill alt text"
 msgstr "Auto-fill alt text"
 
@@ -388,11 +388,11 @@ msgid "Avatar"
 msgstr "Avatar"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:461
-#: src/routes/(root)/sign/up/[token].tsx:410
+#: src/routes/(root)/sign/up/[token].tsx:394
 msgid "Bio"
 msgstr "Bio"
 
-#: src/routes/(root)/sign/up/[token].tsx:167
+#: src/routes/(root)/sign/up/[token].tsx:150
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
@@ -414,13 +414,15 @@ msgstr "Bold"
 msgid "Bookmark"
 msgstr "Bookmark"
 
-#: src/components/AppSidebar.tsx:509
+#: src/components/AppSidebar.tsx:537
 #: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "Bookmarks"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:899
+#: src/components/NoteComposer.tsx:1120
+#: src/components/NoteComposer.tsx:1121
+#: src/components/NoteComposer.tsx:1164
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
@@ -461,9 +463,9 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:834
+#: src/components/AppSidebar.tsx:862
 #: src/routes/(root)/coc.tsx:48
-#: src/routes/(root)/sign/up/[token].tsx:457
+#: src/routes/(root)/sign/up/[token].tsx:441
 msgid "Code of conduct"
 msgstr "Code of conduct"
 
@@ -471,18 +473,18 @@ msgstr "Code of conduct"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:677
+#: src/components/AppSidebar.tsx:705
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:680
+#: src/components/NoteComposer.tsx:926
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:254
 msgid "Content"
 msgstr "Content"
 
-#: src/components/NoteComposer.tsx:471
+#: src/components/NoteComposer.tsx:649
 msgid "Content cannot be empty"
 msgstr "Content cannot be empty"
 
@@ -502,7 +504,7 @@ msgstr "Copy"
 msgid "Could not copy the link to the clipboard."
 msgstr "Could not copy the link to the clipboard."
 
-#: src/components/NoteComposer.tsx:417
+#: src/components/NoteComposer.tsx:591
 msgid "Could not find a post at this URL"
 msgstr "Could not find a post at this URL"
 
@@ -514,7 +516,7 @@ msgstr "Could not load profile."
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:723
+#: src/components/AppSidebar.tsx:751
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -523,10 +525,10 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:699
+#: src/components/AppSidebar.tsx:727
 #: src/components/FloatingComposeButton.tsx:99
-#: src/components/NoteComposeModal.tsx:26
-#: src/components/NoteComposer.tsx:909
+#: src/components/NoteComposeModal.tsx:31
+#: src/components/NoteComposer.tsx:1176
 msgid "Create note"
 msgstr "Create note"
 
@@ -543,11 +545,11 @@ msgstr "Created"
 msgid "Created {0}"
 msgstr "Created {0}"
 
-#: src/routes/(root)/sign/up/[token].tsx:486
+#: src/routes/(root)/sign/up/[token].tsx:470
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:910
+#: src/components/NoteComposer.tsx:1177
 #: src/routes/(root)/[handle]/settings/invite.tsx:763
 msgid "Creating…"
 msgstr "Creating…"
@@ -604,15 +606,15 @@ msgid "Discard unsaved changes - are you sure?"
 msgstr "Discard unsaved changes - are you sure?"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:445
-#: src/routes/(root)/sign/up/[token].tsx:384
+#: src/routes/(root)/sign/up/[token].tsx:368
 msgid "Display name"
 msgstr "Display name"
 
-#: src/routes/(root)/sign/index.tsx:425
+#: src/routes/(root)/sign/index.tsx:411
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 
-#: src/components/NoteComposer.tsx:404
+#: src/components/NoteComposer.tsx:578
 msgid "Do you want to quote this link?"
 msgstr "Do you want to quote this link?"
 
@@ -656,11 +658,11 @@ msgstr "Edit draft"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:370
 #: src/routes/(root)/[handle]/settings/invite.tsx:329
-#: src/routes/(root)/sign/up/[token].tsx:337
+#: src/routes/(root)/sign/up/[token].tsx:321
 msgid "Email address"
 msgstr "Email address"
 
-#: src/routes/(root)/sign/index.tsx:380
+#: src/routes/(root)/sign/index.tsx:366
 msgid "Email or username"
 msgstr "Email or username"
 
@@ -680,7 +682,7 @@ msgstr "Ends"
 msgid "Enter your email address below to get started."
 msgstr "Enter your email address below to get started."
 
-#: src/routes/(root)/sign/index.tsx:241
+#: src/routes/(root)/sign/index.tsx:226
 msgid "Enter your email or username below to sign in."
 msgstr "Enter your email or username below to sign in."
 
@@ -698,16 +700,16 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/article-composer/ArticleComposerContext.tsx:450
 #: src/components/article-composer/ArticleComposerContext.tsx:458
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:312
-#: src/components/NoteComposer.tsx:378
-#: src/components/NoteComposer.tsx:416
-#: src/components/NoteComposer.tsx:470
-#: src/components/NoteComposer.tsx:480
-#: src/components/NoteComposer.tsx:488
-#: src/components/NoteComposer.tsx:521
-#: src/components/NoteComposer.tsx:529
-#: src/components/NoteComposer.tsx:537
-#: src/components/NoteComposer.tsx:591
+#: src/components/NoteComposer.tsx:489
+#: src/components/NoteComposer.tsx:536
+#: src/components/NoteComposer.tsx:590
+#: src/components/NoteComposer.tsx:648
+#: src/components/NoteComposer.tsx:658
+#: src/components/NoteComposer.tsx:666
+#: src/components/NoteComposer.tsx:699
+#: src/components/NoteComposer.tsx:707
+#: src/components/NoteComposer.tsx:715
+#: src/components/NoteComposer.tsx:771
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:203
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:213
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:222
@@ -715,7 +717,7 @@ msgstr "Enter your email or username below to sign in."
 #: src/routes/(root)/[handle]/drafts/index.tsx:194
 #: src/routes/(root)/[handle]/drafts/index.tsx:202
 #: src/routes/(root)/[handle]/invite/[id].tsx:199
-#: src/routes/(root)/sign/up/[token].tsx:295
+#: src/routes/(root)/sign/up/[token].tsx:279
 msgid "Error"
 msgstr "Error"
 
@@ -771,7 +773,7 @@ msgstr "Failed to delete post"
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
-#: src/components/NoteComposer.tsx:592
+#: src/components/NoteComposer.tsx:772
 msgid "Failed to generate alt text"
 msgstr "Failed to generate alt text"
 
@@ -823,11 +825,15 @@ msgstr "Failed to load more passkeys; click to retry"
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:485
+#: src/routes/(root)/[handle]/[noteId].tsx:539
 msgid "Failed to load more replies; click to retry"
 msgstr "Failed to load more replies; click to retry"
 
-#: src/components/NoteComposer.tsx:622
+#: src/components/NoteComposer.tsx:817
+msgid "Failed to load post"
+msgstr "Failed to load post"
+
+#: src/components/NoteComposer.tsx:868
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
@@ -887,12 +893,12 @@ msgstr "Failed to send email"
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
-#: src/components/PostControls.tsx:153
+#: src/components/PostControls.tsx:155
 msgid "Failed to share post"
 msgstr "Failed to share post"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:179
+#: src/components/AppSidebar.tsx:183
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
@@ -910,7 +916,7 @@ msgstr "Failed to unfollow"
 msgid "Failed to unpin post"
 msgstr "Failed to unpin post"
 
-#: src/components/PostControls.tsx:139
+#: src/components/PostControls.tsx:141
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
@@ -919,7 +925,7 @@ msgid "Failed to update the article. Please try again."
 msgstr "Failed to update the article. Please try again."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
-#: src/components/NoteComposer.tsx:379
+#: src/components/NoteComposer.tsx:539
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
 
@@ -927,7 +933,7 @@ msgstr "Failed to upload image"
 msgid "Failed to vote"
 msgstr "Failed to vote"
 
-#: src/components/AppSidebar.tsx:312
+#: src/components/AppSidebar.tsx:316
 msgid "Fediverse"
 msgstr "Fediverse"
 
@@ -935,7 +941,7 @@ msgstr "Fediverse"
 msgid "Fediverse handle"
 msgstr "Fediverse handle"
 
-#: src/components/AppSidebar.tsx:218
+#: src/components/AppSidebar.tsx:222
 msgid "Feed"
 msgstr "Feed"
 
@@ -974,11 +980,11 @@ msgstr "Following you"
 msgid "Formatting"
 msgstr "Formatting"
 
-#: src/components/NoteComposer.tsx:862
+#: src/components/NoteComposer.tsx:1111
 msgid "Generating…"
 msgstr "Generating…"
 
-#: src/components/AppSidebar.tsx:872
+#: src/components/AppSidebar.tsx:900
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1011,8 +1017,8 @@ msgstr "Go to my drafts"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 
-#: src/components/AppSidebar.tsx:289
-#: src/components/AppSidebar.tsx:377
+#: src/components/AppSidebar.tsx:293
+#: src/components/AppSidebar.tsx:381
 #: src/routes/(root).tsx:91
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
@@ -1065,7 +1071,7 @@ msgstr "Hide preview"
 #~ msgid "Home"
 #~ msgstr "Home"
 
-#: src/routes/(root)/sign/up/[token].tsx:459
+#: src/routes/(root)/sign/up/[token].tsx:443
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
@@ -1079,12 +1085,12 @@ msgid "If you have a fediverse account, you can reply to this article from your 
 msgstr "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:313
+#: src/routes/(root)/[handle]/[noteId].tsx:340
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:368
+#: src/routes/(root)/[handle]/[noteId].tsx:421
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 
@@ -1103,7 +1109,7 @@ msgstr "Invalid Fediverse handle format."
 #: src/components/article-composer/ArticleComposerContext.tsx:306
 #: src/components/article-composer/ArticleComposerContext.tsx:378
 #: src/components/article-composer/ArticleComposerContext.tsx:443
-#: src/components/NoteComposer.tsx:522
+#: src/components/NoteComposer.tsx:700
 #: src/routes/(root)/[handle]/drafts/index.tsx:187
 msgid "Invalid input: {0}"
 msgstr "Invalid input: {0}"
@@ -1138,12 +1144,12 @@ msgid "Invitation sent"
 msgstr "Invitation sent"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
-#: src/components/AppSidebar.tsx:631
+#: src/components/AppSidebar.tsx:659
 #: src/routes/(root)/admin/invitations.tsx:155
 msgid "Invitations"
 msgstr "Invitations"
 
-#: src/components/AppSidebar.tsx:533
+#: src/components/AppSidebar.tsx:561
 #: src/components/SettingsTabs.tsx:68
 #: src/routes/(root)/[handle]/settings/invite.tsx:290
 msgid "Invite"
@@ -1275,7 +1281,7 @@ msgstr "Load more passkeys"
 msgid "Load more posts"
 msgstr "Load more posts"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:488
+#: src/routes/(root)/[handle]/[noteId].tsx:542
 msgid "Load more replies"
 msgstr "Load more replies"
 
@@ -1327,16 +1333,17 @@ msgstr "Loading more passkeys…"
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:482
+#: src/routes/(root)/[handle]/[noteId].tsx:536
 msgid "Loading more replies…"
 msgstr "Loading more replies…"
 
-#: src/components/NoteComposer.tsx:623
+#: src/components/NoteComposer.tsx:869
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
 
+#: src/components/NoteComposer.tsx:818
 #: src/routes/(root)/[handle]/drafts/index.tsx:345
-#: src/routes/(root)/sign/up/[token].tsx:470
+#: src/routes/(root)/sign/up/[token].tsx:454
 msgid "Loading…"
 msgstr "Loading…"
 
@@ -1353,12 +1360,12 @@ msgid "Markdown guide"
 msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:705
+#: src/components/NoteComposer.tsx:951
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:279
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
-#: src/components/AppSidebar.tsx:654
+#: src/components/AppSidebar.tsx:682
 #: src/routes/(root)/admin/media.tsx:159
 msgid "Media"
 msgstr "Media"
@@ -1392,11 +1399,11 @@ msgstr "Multiple choice"
 msgid "My passkey"
 msgstr "My passkey"
 
-#: src/routes/(root)/sign/up/[token].tsx:154
+#: src/routes/(root)/sign/up/[token].tsx:137
 msgid "Name is required."
 msgstr "Name is required."
 
-#: src/routes/(root)/sign/up/[token].tsx:156
+#: src/routes/(root)/sign/up/[token].tsx:139
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "Name is too long. Maximum length is 50 characters."
 
@@ -1468,7 +1475,7 @@ msgstr "No notes found"
 msgid "No posts found"
 msgstr "No posts found"
 
-#: src/routes/(root)/sign/index.tsx:238
+#: src/routes/(root)/sign/index.tsx:223
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "No such account in Hackers' Pub—please try again."
 
@@ -1497,7 +1504,7 @@ msgstr "Not found"
 #~ msgid "Note"
 #~ msgstr "Note"
 
-#: src/components/NoteComposer.tsx:514
+#: src/components/NoteComposer.tsx:692
 msgid "Note created successfully"
 msgstr "Note created successfully"
 
@@ -1515,7 +1522,7 @@ msgstr "Notes"
 #~ msgid "Nothing to preview"
 #~ msgstr "Nothing to preview"
 
-#: src/components/AppSidebar.tsx:465
+#: src/components/AppSidebar.tsx:493
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1531,11 +1538,11 @@ msgstr "Open"
 msgid "Open in app"
 msgstr "Open in app"
 
-#: src/routes/(root)/sign/index.tsx:406
+#: src/routes/(root)/sign/index.tsx:392
 msgid "Or"
 msgstr "Or"
 
-#: src/routes/(root)/sign/index.tsx:436
+#: src/routes/(root)/sign/index.tsx:422
 msgid "Or enter the code from the email"
 msgstr "Or enter the code from the email"
 
@@ -1547,7 +1554,7 @@ msgstr "Other languages"
 msgid "Page not found"
 msgstr "Page not found"
 
-#: src/routes/(root)/sign/index.tsx:346
+#: src/routes/(root)/sign/index.tsx:332
 msgid "Passkey authentication failed"
 msgstr "Passkey authentication failed"
 
@@ -1663,7 +1670,7 @@ msgstr "Preferred languages"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:839
+#: src/components/AppSidebar.tsx:867
 #: src/routes/(root)/privacy.tsx:48
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -1704,13 +1711,13 @@ msgstr "Query cannot be empty"
 msgid "Quiet public"
 msgstr "Quiet public"
 
-#: src/components/NoteComposeModal.tsx:26
-#: src/components/PostControls.tsx:218
+#: src/components/NoteComposeModal.tsx:30
+#: src/components/PostControls.tsx:228
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "Quote"
 
-#: src/components/PostControls.tsx:256
+#: src/components/PostControls.tsx:266
 msgid "React"
 msgstr "React"
 
@@ -1728,11 +1735,11 @@ msgstr "reaction"
 msgid "Read full article"
 msgstr "Read full article"
 
-#: src/routes/(root)/sign/up/[token].tsx:463
+#: src/routes/(root)/sign/up/[token].tsx:447
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
-#: src/components/AppSidebar.tsx:758
+#: src/components/AppSidebar.tsx:786
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -1791,13 +1798,13 @@ msgstr "Remove {0}"
 msgid "Remove bookmark"
 msgstr "Remove bookmark"
 
-#: src/components/NoteComposer.tsx:871
-#: src/components/NoteComposer.tsx:872
+#: src/components/NoteComposer.tsx:1132
+#: src/components/NoteComposer.tsx:1133
 msgid "Remove image"
 msgstr "Remove image"
 
-#: src/components/NoteComposer.tsx:670
-#: src/components/NoteComposer.tsx:671
+#: src/components/NoteComposer.tsx:916
+#: src/components/NoteComposer.tsx:917
 msgid "Remove quote"
 msgstr "Remove quote"
 
@@ -1805,9 +1812,18 @@ msgstr "Remove quote"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 
-#: src/components/PostControls.tsx:207
+#: src/components/NoteComposeModal.tsx:29
+#: src/components/PostControls.tsx:209
 msgid "Reply"
 msgstr "Reply"
+
+#: src/components/NoteComposer.tsx:810
+msgid "Replying to"
+msgstr "Replying to"
+
+#: src/components/AppSidebar.tsx:432
+msgid "Return to old UI"
+msgstr "Return to old UI"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:475
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
@@ -1844,7 +1860,7 @@ msgstr "Save draft to see preview"
 msgid "Saving…"
 msgstr "Saving…"
 
-#: src/components/AppSidebar.tsx:335
+#: src/components/AppSidebar.tsx:339
 #: src/routes/(root)/search.tsx:149
 msgid "Search"
 msgstr "Search"
@@ -1887,15 +1903,11 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx
-msgid "Return to old UI"
-msgstr "Return to old UI"
-
-#: src/components/AppSidebar.tsx:565
+#: src/components/AppSidebar.tsx:593
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/PostControls.tsx:236
+#: src/components/PostControls.tsx:246
 msgid "Share"
 msgstr "Share"
 
@@ -1907,8 +1919,8 @@ msgstr "Shares"
 msgid "Show preview"
 msgstr "Show preview"
 
-#: src/components/AppSidebar.tsx:429
-#: src/routes/(root)/sign/index.tsx:396
+#: src/components/AppSidebar.tsx:457
+#: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
 msgstr "Sign in"
 
@@ -1920,16 +1932,16 @@ msgstr "Sign in to Hackers' Pub"
 msgid "Sign in to vote"
 msgstr "Sign in to vote"
 
-#: src/routes/(root)/sign/index.tsx:420
+#: src/routes/(root)/sign/index.tsx:406
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:821
+#: src/components/AppSidebar.tsx:849
 msgid "Sign out"
 msgstr "Sign out"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:408
-#: src/routes/(root)/sign/up/[token].tsx:486
+#: src/routes/(root)/sign/up/[token].tsx:470
 msgid "Sign up"
 msgstr "Sign up"
 
@@ -1937,15 +1949,15 @@ msgstr "Sign up"
 msgid "Signed in as"
 msgstr "Signed in as"
 
-#: src/routes/(root)/sign/index.tsx:363
+#: src/routes/(root)/sign/index.tsx:349
 msgid "Signing in Hackers' Pub"
 msgstr "Signing in Hackers' Pub"
 
-#: src/routes/(root)/sign/index.tsx:396
+#: src/routes/(root)/sign/index.tsx:382
 msgid "Signing in…"
 msgstr "Signing in…"
 
-#: src/routes/(root)/sign/up/[token].tsx:313
+#: src/routes/(root)/sign/up/[token].tsx:297
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
@@ -1961,18 +1973,18 @@ msgstr "Slug (URL)"
 msgid "Slug cannot be empty"
 msgstr "Slug cannot be empty"
 
-#: src/components/NoteComposer.tsx:323
+#: src/components/NoteComposer.tsx:501
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 
-#: src/routes/(root)/sign/index.tsx:243
+#: src/routes/(root)/sign/index.tsx:228
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
 
 #: src/components/article-composer/ArticleComposerContext.tsx:295
 #: src/components/article-composer/ArticleComposerContext.tsx:368
 #: src/components/article-composer/ArticleComposerContext.tsx:433
-#: src/components/NoteComposer.tsx:513
+#: src/components/NoteComposer.tsx:691
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:189
 #: src/routes/(root)/[handle]/drafts/index.tsx:177
 msgid "Success"
@@ -2012,7 +2024,7 @@ msgstr "Table of contents"
 msgid "Tags"
 msgstr "Tags"
 
-#: src/routes/(root)/sign/up/[token].tsx:414
+#: src/routes/(root)/sign/up/[token].tsx:398
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
 
@@ -2069,13 +2081,13 @@ msgstr "The page you're looking for doesn't exist or has been moved."
 msgid "The passkey has been successfully revoked."
 msgstr "The passkey has been successfully revoked."
 
-#: src/routes/(root)/sign/up/[token].tsx:322
+#: src/routes/(root)/sign/up/[token].tsx:306
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
 msgstr "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:863
+#: src/components/AppSidebar.tsx:891
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -2124,7 +2136,7 @@ msgstr "This usually takes about a minute. The page will update automatically wh
 msgid "This will be part of the article URL"
 msgstr "This will be part of the article URL"
 
-#: src/components/AppSidebar.tsx:194
+#: src/components/AppSidebar.tsx:198
 msgid "Timeline"
 msgstr "Timeline"
 
@@ -2221,7 +2233,7 @@ msgstr "Unfollow"
 msgid "Unpin from profile"
 msgstr "Unpin from profile"
 
-#: src/components/PostControls.tsx:236
+#: src/components/PostControls.tsx:246
 msgid "Unshare"
 msgstr "Unshare"
 
@@ -2234,7 +2246,7 @@ msgstr "Update your profile information, including your avatar, username, displa
 msgid "Updated {0}"
 msgstr "Updated {0}"
 
-#: src/components/NoteComposer.tsx:802
+#: src/components/NoteComposer.tsx:1048
 msgid "Upload progress"
 msgstr "Upload progress"
 
@@ -2255,23 +2267,23 @@ msgid "User unblocked"
 msgstr "User unblocked"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:410
-#: src/routes/(root)/sign/up/[token].tsx:357
+#: src/routes/(root)/sign/up/[token].tsx:341
 msgid "Username"
 msgstr "Username"
 
-#: src/routes/(root)/sign/up/[token].tsx:141
+#: src/routes/(root)/sign/up/[token].tsx:124
 msgid "Username can only contain lowercase letters, numbers, and underscores."
 msgstr "Username can only contain lowercase letters, numbers, and underscores."
 
-#: src/routes/(root)/sign/up/[token].tsx:143
+#: src/routes/(root)/sign/up/[token].tsx:126
 msgid "Username is already taken."
 msgstr "Username is already taken."
 
-#: src/routes/(root)/sign/up/[token].tsx:137
+#: src/routes/(root)/sign/up/[token].tsx:120
 msgid "Username is required."
 msgstr "Username is required."
 
-#: src/routes/(root)/sign/up/[token].tsx:139
+#: src/routes/(root)/sign/up/[token].tsx:122
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "Username is too long. Maximum length is 15 characters."
 
@@ -2285,15 +2297,15 @@ msgstr "Users you have invited"
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "Verified that this link is owned by {0} {1}"
 
-#: src/routes/(root)/sign/up/[token].tsx:317
+#: src/routes/(root)/sign/up/[token].tsx:301
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:784
+#: src/components/AppSidebar.tsx:812
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
-#: src/components/NoteComposer.tsx:735
+#: src/components/NoteComposer.tsx:981
 msgid "Visibility"
 msgstr "Visibility"
 
@@ -2329,7 +2341,7 @@ msgstr "Voted"
 msgid "Voting…"
 msgstr "Voting…"
 
-#: src/components/NoteComposer.tsx:322
+#: src/components/NoteComposer.tsx:499
 msgid "Warning"
 msgstr "Warning"
 
@@ -2341,7 +2353,7 @@ msgstr "We couldn't reach the translation service. Try again, or come back in a 
 msgid "Website"
 msgstr "Website"
 
-#: src/routes/(root)/sign/up/[token].tsx:327
+#: src/routes/(root)/sign/up/[token].tsx:311
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 
@@ -2349,15 +2361,18 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/NoteComposer.tsx:713
+#: src/components/NoteComposer.tsx:959
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
-#: src/components/AppSidebar.tsx:241
+#: src/components/AppSidebar.tsx:245
 msgid "Without shares"
 msgstr "Without shares"
 
+#: src/components/NoteComposeModal.tsx:50
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:990
+#: src/routes/(root)/[handle]/[noteId].tsx:328
+#: src/routes/(root)/[handle]/[noteId].tsx:409
 msgid "Write a reply…"
 msgstr "Write a reply…"
 
@@ -2382,7 +2397,7 @@ msgstr "You are blocked by this user. You can't follow them or see their posts."
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "You are blocking this user. They can't follow you or see your posts."
 
-#: src/components/NoteComposer.tsx:313
+#: src/components/NoteComposer.tsx:490
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "You can attach up to {MAX_MEDIA} images"
 
@@ -2430,7 +2445,7 @@ msgstr "You have no invitations left. Please wait until you receive more."
 msgid "You must be signed in"
 msgstr "You must be signed in"
 
-#: src/components/NoteComposer.tsx:530
+#: src/components/NoteComposer.tsx:708
 msgid "You must be signed in to create a note"
 msgstr "You must be signed in to create a note"
 
@@ -2451,11 +2466,11 @@ msgstr "You must be signed in to publish an article"
 msgid "You must be signed in to save a draft"
 msgstr "You must be signed in to save a draft"
 
-#: src/routes/(root)/sign/up/[token].tsx:433
+#: src/routes/(root)/sign/up/[token].tsx:417
 msgid "You were invited by"
 msgstr "You were invited by"
 
-#: src/routes/(root)/sign/up/[token].tsx:450
+#: src/routes/(root)/sign/up/[token].tsx:434
 msgid "You'll automatically follow each other when you sign up."
 msgstr "You'll automatically follow each other when you sign up."
 
@@ -2471,11 +2486,11 @@ msgstr "Your avatar will be displayed on your profile and in your posts. You can
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it."
 
-#: src/routes/(root)/sign/up/[token].tsx:426
+#: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 
-#: src/routes/(root)/sign/up/[token].tsx:346
+#: src/routes/(root)/sign/up/[token].tsx:330
 msgid "Your email address will be used to sign in to your account."
 msgstr "Your email address will be used to sign in to your account."
 
@@ -2484,7 +2499,7 @@ msgid "Your friend will see this message in the invitation email."
 msgstr "Your friend will see this message in the invitation email."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:456
-#: src/routes/(root)/sign/up/[token].tsx:400
+#: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "Your name will be displayed on your profile and in your posts."
 
@@ -2505,6 +2520,6 @@ msgid "Your profile settings have been updated successfully."
 msgstr "Your profile settings have been updated successfully."
 
 #: src/routes/(root)/[handle]/settings/index.tsx:423
-#: src/routes/(root)/sign/up/[token].tsx:374
+#: src/routes/(root)/sign/up/[token].tsx:358
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "Your username will be used to create your profile URL and your fediverse handle."

@@ -3,13 +3,13 @@ import type { Toc } from "@hackerspub/models/markup";
 import { Link, Meta } from "@solidjs/meta";
 import {
   query,
+  revalidate,
   type RouteDefinition,
-  useNavigate,
   useParams,
 } from "@solidjs/router";
 import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, For, onMount, Show } from "solid-js";
 import {
   createFragment,
   createPreloadedQuery,
@@ -32,6 +32,7 @@ import {
 import { Button } from "~/components/ui/button.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import IconLoader2 from "~icons/lucide/loader-2";
 import {
@@ -57,6 +58,8 @@ export const route = {
     void loadPageQuery(handle, idOrYear, slug);
   },
 } satisfies RouteDefinition;
+
+const ARTICLE_PAGE_QUERY_KEY = "loadArticlePageQuery";
 
 const SlugPageQueryDef = graphql`
   query SlugPageQuery(
@@ -87,7 +90,7 @@ const loadPageQuery = query(
       SlugPageQueryDef,
       { handle, idOrYear, slug, language: null },
     ),
-  "loadArticlePageQuery",
+  ARTICLE_PAGE_QUERY_KEY,
 );
 
 export default function ArticlePage() {
@@ -95,6 +98,13 @@ export default function ArticlePage() {
   const handle = params.handle!;
   const idOrYear = params.idOrYear!;
   const slug = params.slug!;
+  const { onNoteCreated } = useNoteCompose();
+
+  onMount(() =>
+    onNoteCreated(() => {
+      void revalidate(ARTICLE_PAGE_QUERY_KEY);
+    })
+  );
 
   const data = createPreloadedQuery<SlugPageQuery>(
     SlugPageQueryDef,
@@ -933,17 +943,11 @@ interface ArticleRepliesProps {
 
 function ArticleReplies(props: ArticleRepliesProps) {
   const { t, i18n } = useLingui();
-  const navigate = useNavigate();
   const article = createFragment(
     graphql`
       fragment Slug_replies on Article {
         id
         iri
-        actor {
-          username
-        }
-        publishedYear
-        slug
         replies {
           edges {
             node {
@@ -967,9 +971,6 @@ function ArticleReplies(props: ArticleRepliesProps) {
   return (
     <Show keyed when={article()}>
       {(article) => {
-        const postUrl = () =>
-          `/@${article.actor.username}/${article.publishedYear}/${article.slug}`;
-
         return (
           <div id="replies" class="my-8">
             <h2 class="text-xl font-bold mb-4">
@@ -988,7 +989,7 @@ function ArticleReplies(props: ArticleRepliesProps) {
                 <NoteComposer
                   replyTargetId={article.id}
                   placeholder={t`Write a reply…`}
-                  onSuccess={() => navigate(postUrl(), { replace: true })}
+                  onSuccess={() => void revalidate(ARTICLE_PAGE_QUERY_KEY)}
                 />
               </div>
             </Show>

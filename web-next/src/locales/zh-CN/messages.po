@@ -182,7 +182,7 @@ msgstr "{0} 转发了你的内容"
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:238
-#: src/routes/(root)/[handle]/[noteId].tsx:226
+#: src/routes/(root)/[handle]/[noteId].tsx:228
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -220,16 +220,16 @@ msgstr "{0}的转帖"
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "为显示在你个人资料页面的链接命名，例如 GitHub。"
 
-#: src/routes/(root)/sign/index.tsx:233
+#: src/routes/(root)/sign/index.tsx:218
 msgid "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 msgstr "登录链接已发送至您的邮箱。请检查收件箱。（或垃圾邮件文件夹）"
 
 #: src/components/admin/AdminAccountsTable.tsx:104
-#: src/components/AppSidebar.tsx:404
+#: src/components/AppSidebar.tsx:413
 msgid "Account"
 msgstr "账户"
 
-#: src/components/AppSidebar.tsx:608
+#: src/components/AppSidebar.tsx:636
 #: src/routes/(root)/admin/index.tsx:56
 msgid "Accounts"
 msgstr "账号"
@@ -248,7 +248,7 @@ msgstr "添加"
 msgid "Add {0}"
 msgstr "添加{0}"
 
-#: src/components/AppSidebar.tsx:586
+#: src/components/AppSidebar.tsx:614
 msgid "Admin"
 msgstr "管理"
 
@@ -256,11 +256,11 @@ msgstr "管理"
 msgid "All"
 msgstr "全部"
 
-#: src/components/NoteComposer.tsx:481
+#: src/components/NoteComposer.tsx:659
 msgid "All images must finish uploading before posting"
 msgstr "发布前，所有图片必须完成上传。"
 
-#: src/components/NoteComposer.tsx:489
+#: src/components/NoteComposer.tsx:667
 msgid "All images require alt text"
 msgstr "所有图片均需提供替代文字。"
 
@@ -268,16 +268,16 @@ msgstr "所有图片均需提供替代文字。"
 msgid "Allow automatic translation by AI"
 msgstr "允许 AI 自动翻译"
 
-#: src/components/NoteComposer.tsx:824
-msgid "Alt text for visually impaired people (required)"
-msgstr "供视力障碍人士使用的替代文字（必填）"
-
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:815
+#: src/components/NoteComposer.tsx:1061
 msgid "Alt text for image {0}"
 msgstr "图片 {0} 的替代文字"
 
-#: src/routes/(root)/sign/up/[token].tsx:296
+#: src/components/NoteComposer.tsx:1073
+msgid "Alt text for visually impaired people (required)"
+msgstr "供视力障碍人士使用的替代文字（必填）"
+
+#: src/routes/(root)/sign/up/[token].tsx:280
 msgid "An error occurred during signup. Please try again."
 msgstr "注册过程中发生错误。请重新尝试。"
 
@@ -356,7 +356,7 @@ msgstr "文章网址别名"
 msgid "Articles"
 msgstr "文章"
 
-#: src/components/AppSidebar.tsx:264
+#: src/components/AppSidebar.tsx:268
 msgid "Articles only"
 msgstr "仅文章"
 
@@ -365,21 +365,21 @@ msgstr "仅文章"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 
-#: src/components/NoteComposer.tsx:747
-#: src/components/NoteComposer.tsx:748
+#: src/components/NoteComposer.tsx:993
+#: src/components/NoteComposer.tsx:994
 msgid "Attach image"
 msgstr "附加图片"
 
-#: src/routes/(root)/sign/index.tsx:419
+#: src/routes/(root)/sign/index.tsx:405
 msgid "Authenticating…"
 msgstr "正在验证…"
 
-#: src/components/NoteComposer.tsx:843
+#: src/components/NoteComposer.tsx:1092
 msgid "Auto-fill"
 msgstr "自动填写"
 
-#: src/components/NoteComposer.tsx:836
-#: src/components/NoteComposer.tsx:837
+#: src/components/NoteComposer.tsx:1085
+#: src/components/NoteComposer.tsx:1086
 msgid "Auto-fill alt text"
 msgstr "自动填写替代文字"
 
@@ -388,11 +388,11 @@ msgid "Avatar"
 msgstr "头像"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:461
-#: src/routes/(root)/sign/up/[token].tsx:410
+#: src/routes/(root)/sign/up/[token].tsx:394
 msgid "Bio"
 msgstr "个人简介"
 
-#: src/routes/(root)/sign/up/[token].tsx:167
+#: src/routes/(root)/sign/up/[token].tsx:150
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "个人简介太长。不能长于 512 字符。"
 
@@ -414,13 +414,15 @@ msgstr "粗体"
 msgid "Bookmark"
 msgstr "收藏"
 
-#: src/components/AppSidebar.tsx:509
+#: src/components/AppSidebar.tsx:537
 #: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "收藏"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:899
+#: src/components/NoteComposer.tsx:1120
+#: src/components/NoteComposer.tsx:1121
+#: src/components/NoteComposer.tsx:1164
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
@@ -461,9 +463,9 @@ msgstr "已结束"
 msgid "Code"
 msgstr "代码"
 
-#: src/components/AppSidebar.tsx:834
+#: src/components/AppSidebar.tsx:862
 #: src/routes/(root)/coc.tsx:48
-#: src/routes/(root)/sign/up/[token].tsx:457
+#: src/routes/(root)/sign/up/[token].tsx:441
 msgid "Code of conduct"
 msgstr "行为准则"
 
@@ -471,18 +473,18 @@ msgstr "行为准则"
 #~ msgid "Comments ({0})"
 #~ msgstr "评论（{0}）"
 
-#: src/components/AppSidebar.tsx:677
+#: src/components/AppSidebar.tsx:705
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "写作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:680
+#: src/components/NoteComposer.tsx:926
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:254
 msgid "Content"
 msgstr "内容"
 
-#: src/components/NoteComposer.tsx:471
+#: src/components/NoteComposer.tsx:649
 msgid "Content cannot be empty"
 msgstr "内容不能为空"
 
@@ -502,7 +504,7 @@ msgstr "复制"
 msgid "Could not copy the link to the clipboard."
 msgstr "无法将链接复制到剪贴板。"
 
-#: src/components/NoteComposer.tsx:417
+#: src/components/NoteComposer.tsx:591
 msgid "Could not find a post at this URL"
 msgstr "无法在此URL找到内容"
 
@@ -514,7 +516,7 @@ msgstr "无法加载个人资料。"
 msgid "Could not vote on this poll"
 msgstr "无法提交此投票"
 
-#: src/components/AppSidebar.tsx:723
+#: src/components/AppSidebar.tsx:751
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "创建文章"
@@ -523,10 +525,10 @@ msgstr "创建文章"
 msgid "Create invitation link"
 msgstr "创建邀请链接"
 
-#: src/components/AppSidebar.tsx:699
+#: src/components/AppSidebar.tsx:727
 #: src/components/FloatingComposeButton.tsx:99
-#: src/components/NoteComposeModal.tsx:26
-#: src/components/NoteComposer.tsx:909
+#: src/components/NoteComposeModal.tsx:31
+#: src/components/NoteComposer.tsx:1176
 msgid "Create note"
 msgstr "创建帖子"
 
@@ -543,11 +545,11 @@ msgstr "创建时间"
 msgid "Created {0}"
 msgstr "{0}创建"
 
-#: src/routes/(root)/sign/up/[token].tsx:486
+#: src/routes/(root)/sign/up/[token].tsx:470
 msgid "Creating account…"
 msgstr "正在创建账户…"
 
-#: src/components/NoteComposer.tsx:910
+#: src/components/NoteComposer.tsx:1177
 #: src/routes/(root)/[handle]/settings/invite.tsx:763
 msgid "Creating…"
 msgstr "正在创建…"
@@ -604,15 +606,15 @@ msgid "Discard unsaved changes - are you sure?"
 msgstr "放弃未保存的更改 - 您确定吗？"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:445
-#: src/routes/(root)/sign/up/[token].tsx:384
+#: src/routes/(root)/sign/up/[token].tsx:368
 msgid "Display name"
 msgstr "昵称"
 
-#: src/routes/(root)/sign/index.tsx:425
+#: src/routes/(root)/sign/index.tsx:411
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀请您。"
 
-#: src/components/NoteComposer.tsx:404
+#: src/components/NoteComposer.tsx:578
 msgid "Do you want to quote this link?"
 msgstr "要引用此链接吗？"
 
@@ -656,11 +658,11 @@ msgstr "编辑草稿"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:370
 #: src/routes/(root)/[handle]/settings/invite.tsx:329
-#: src/routes/(root)/sign/up/[token].tsx:337
+#: src/routes/(root)/sign/up/[token].tsx:321
 msgid "Email address"
 msgstr "电子邮件地址"
 
-#: src/routes/(root)/sign/index.tsx:380
+#: src/routes/(root)/sign/index.tsx:366
 msgid "Email or username"
 msgstr "邮箱或用户名"
 
@@ -676,7 +678,7 @@ msgstr "截止"
 msgid "Enter your email address below to get started."
 msgstr "请在下方输入你的电子邮件地址以开始。"
 
-#: src/routes/(root)/sign/index.tsx:241
+#: src/routes/(root)/sign/index.tsx:226
 msgid "Enter your email or username below to sign in."
 msgstr "请在下方输入您的邮箱或用户名以登录。"
 
@@ -694,16 +696,16 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/article-composer/ArticleComposerContext.tsx:450
 #: src/components/article-composer/ArticleComposerContext.tsx:458
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:312
-#: src/components/NoteComposer.tsx:378
-#: src/components/NoteComposer.tsx:416
-#: src/components/NoteComposer.tsx:470
-#: src/components/NoteComposer.tsx:480
-#: src/components/NoteComposer.tsx:488
-#: src/components/NoteComposer.tsx:521
-#: src/components/NoteComposer.tsx:529
-#: src/components/NoteComposer.tsx:537
-#: src/components/NoteComposer.tsx:591
+#: src/components/NoteComposer.tsx:489
+#: src/components/NoteComposer.tsx:536
+#: src/components/NoteComposer.tsx:590
+#: src/components/NoteComposer.tsx:648
+#: src/components/NoteComposer.tsx:658
+#: src/components/NoteComposer.tsx:666
+#: src/components/NoteComposer.tsx:699
+#: src/components/NoteComposer.tsx:707
+#: src/components/NoteComposer.tsx:715
+#: src/components/NoteComposer.tsx:771
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:203
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:213
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:222
@@ -711,7 +713,7 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/routes/(root)/[handle]/drafts/index.tsx:194
 #: src/routes/(root)/[handle]/drafts/index.tsx:202
 #: src/routes/(root)/[handle]/invite/[id].tsx:199
-#: src/routes/(root)/sign/up/[token].tsx:295
+#: src/routes/(root)/sign/up/[token].tsx:279
 msgid "Error"
 msgstr "错误"
 
@@ -767,7 +769,7 @@ msgstr "删除内容失败"
 msgid "Failed to follow"
 msgstr "关注失败"
 
-#: src/components/NoteComposer.tsx:592
+#: src/components/NoteComposer.tsx:772
 msgid "Failed to generate alt text"
 msgstr "替代文字生成失败"
 
@@ -819,11 +821,15 @@ msgstr "加载更多通行密钥失败，点击重试"
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:485
+#: src/routes/(root)/[handle]/[noteId].tsx:539
 msgid "Failed to load more replies; click to retry"
 msgstr "加载更多回复失败，点击重试"
 
-#: src/components/NoteComposer.tsx:622
+#: src/components/NoteComposer.tsx:817
+msgid "Failed to load post"
+msgstr "无法加载内容"
+
+#: src/components/NoteComposer.tsx:868
 msgid "Failed to load quoted post"
 msgstr "无法加载引用内容"
 
@@ -883,12 +889,12 @@ msgstr "发送邮件失败"
 msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
-#: src/components/PostControls.tsx:153
+#: src/components/PostControls.tsx:155
 msgid "Failed to share post"
 msgstr "转帖失败"
 
 #. placeholder {0}: error.message
-#: src/components/AppSidebar.tsx:179
+#: src/components/AppSidebar.tsx:183
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
@@ -906,7 +912,7 @@ msgstr "取消关注失败"
 msgid "Failed to unpin post"
 msgstr "无法取消置顶内容"
 
-#: src/components/PostControls.tsx:139
+#: src/components/PostControls.tsx:141
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
 
@@ -915,7 +921,7 @@ msgid "Failed to update the article. Please try again."
 msgstr "文章更新失败，请重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
-#: src/components/NoteComposer.tsx:379
+#: src/components/NoteComposer.tsx:539
 msgid "Failed to upload image"
 msgstr "图片上传失败"
 
@@ -923,7 +929,7 @@ msgstr "图片上传失败"
 msgid "Failed to vote"
 msgstr "投票失败"
 
-#: src/components/AppSidebar.tsx:312
+#: src/components/AppSidebar.tsx:316
 msgid "Fediverse"
 msgstr "联邦宇宙"
 
@@ -931,7 +937,7 @@ msgstr "联邦宇宙"
 msgid "Fediverse handle"
 msgstr "联邦宇宙用户名"
 
-#: src/components/AppSidebar.tsx:218
+#: src/components/AppSidebar.tsx:222
 msgid "Feed"
 msgstr "订阅流"
 
@@ -970,11 +976,11 @@ msgstr "关注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/NoteComposer.tsx:862
+#: src/components/NoteComposer.tsx:1111
 msgid "Generating…"
 msgstr "生成中…"
 
-#: src/components/AppSidebar.tsx:872
+#: src/components/AppSidebar.tsx:900
 msgid "GitHub repository"
 msgstr "GitHub 仓库"
 
@@ -1007,8 +1013,8 @@ msgstr "前往我的草稿"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "向自上次重新发放截止时间以来最活跃的账号（按内容数排名前三分之一）额外发放一份邀请。"
 
-#: src/components/AppSidebar.tsx:289
-#: src/components/AppSidebar.tsx:377
+#: src/components/AppSidebar.tsx:293
+#: src/components/AppSidebar.tsx:381
 #: src/routes/(root).tsx:91
 #: src/routes/(root)/coc.tsx:48
 #: src/routes/(root)/markdown.tsx:48
@@ -1061,7 +1067,7 @@ msgstr "隐藏预览"
 #~ msgid "Home"
 #~ msgstr "首页"
 
-#: src/routes/(root)/sign/up/[token].tsx:459
+#: src/routes/(root)/sign/up/[token].tsx:443
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行为准则。"
 
@@ -1075,12 +1081,12 @@ msgid "If you have a fediverse account, you can reply to this article from your 
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此文章。在你的实例搜索 {0} 后回复。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:313
+#: src/routes/(root)/[handle]/[noteId].tsx:340
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在联邦宇宙有个账户，你可以在你自己的实例里评论此帖子。在你的实例搜索 {0} 后回复。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:368
+#: src/routes/(root)/[handle]/[noteId].tsx:421
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你有联邦宇宙账号，可以从自己的实例回复此内容。在你的实例中搜索 {0} 并回复。"
 
@@ -1099,7 +1105,7 @@ msgstr "联邦宇宙用户名格式无效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:306
 #: src/components/article-composer/ArticleComposerContext.tsx:378
 #: src/components/article-composer/ArticleComposerContext.tsx:443
-#: src/components/NoteComposer.tsx:522
+#: src/components/NoteComposer.tsx:700
 #: src/routes/(root)/[handle]/drafts/index.tsx:187
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
@@ -1134,12 +1140,12 @@ msgid "Invitation sent"
 msgstr "邀请已发送"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
-#: src/components/AppSidebar.tsx:631
+#: src/components/AppSidebar.tsx:659
 #: src/routes/(root)/admin/invitations.tsx:155
 msgid "Invitations"
 msgstr "邀请"
 
-#: src/components/AppSidebar.tsx:533
+#: src/components/AppSidebar.tsx:561
 #: src/components/SettingsTabs.tsx:68
 #: src/routes/(root)/[handle]/settings/invite.tsx:290
 msgid "Invite"
@@ -1271,7 +1277,7 @@ msgstr "加载更多通行密钥"
 msgid "Load more posts"
 msgstr "加载更多内容"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:488
+#: src/routes/(root)/[handle]/[noteId].tsx:542
 msgid "Load more replies"
 msgstr "加载更多回复"
 
@@ -1323,16 +1329,17 @@ msgstr "正在加载更多通行密钥…"
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:482
+#: src/routes/(root)/[handle]/[noteId].tsx:536
 msgid "Loading more replies…"
 msgstr "正在加载更多回复…"
 
-#: src/components/NoteComposer.tsx:623
+#: src/components/NoteComposer.tsx:869
 msgid "Loading quoted post…"
 msgstr "正在加载引用内容…"
 
+#: src/components/NoteComposer.tsx:818
 #: src/routes/(root)/[handle]/drafts/index.tsx:345
-#: src/routes/(root)/sign/up/[token].tsx:470
+#: src/routes/(root)/sign/up/[token].tsx:454
 msgid "Loading…"
 msgstr "正在加载…"
 
@@ -1349,12 +1356,12 @@ msgid "Markdown guide"
 msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:705
+#: src/components/NoteComposer.tsx:951
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:279
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
-#: src/components/AppSidebar.tsx:654
+#: src/components/AppSidebar.tsx:682
 #: src/routes/(root)/admin/media.tsx:159
 msgid "Media"
 msgstr "媒体"
@@ -1388,11 +1395,11 @@ msgstr "多选"
 msgid "My passkey"
 msgstr "我的通行密钥"
 
-#: src/routes/(root)/sign/up/[token].tsx:154
+#: src/routes/(root)/sign/up/[token].tsx:137
 msgid "Name is required."
 msgstr "需要昵称"
 
-#: src/routes/(root)/sign/up/[token].tsx:156
+#: src/routes/(root)/sign/up/[token].tsx:139
 msgid "Name is too long. Maximum length is 50 characters."
 msgstr "用户名太长。不能长于 50 字符。"
 
@@ -1464,7 +1471,7 @@ msgstr "未找到帖子"
 msgid "No posts found"
 msgstr "未找到内容"
 
-#: src/routes/(root)/sign/index.tsx:238
+#: src/routes/(root)/sign/index.tsx:223
 msgid "No such account in Hackers' Pub—please try again."
 msgstr "Hackers' Pub 中无此账户，请重试。"
 
@@ -1493,7 +1500,7 @@ msgstr "未找到"
 #~ msgid "Note"
 #~ msgstr "帖子"
 
-#: src/components/NoteComposer.tsx:514
+#: src/components/NoteComposer.tsx:692
 msgid "Note created successfully"
 msgstr "帖子创建成功"
 
@@ -1510,7 +1517,7 @@ msgstr "帖子"
 #~ msgid "Nothing to preview"
 #~ msgstr "没有可预览的内容"
 
-#: src/components/AppSidebar.tsx:465
+#: src/components/AppSidebar.tsx:493
 msgid "Notifications"
 msgstr "通知"
 
@@ -1526,11 +1533,11 @@ msgstr "进行中"
 msgid "Open in app"
 msgstr "在应用中打开"
 
-#: src/routes/(root)/sign/index.tsx:406
+#: src/routes/(root)/sign/index.tsx:392
 msgid "Or"
 msgstr "或"
 
-#: src/routes/(root)/sign/index.tsx:436
+#: src/routes/(root)/sign/index.tsx:422
 msgid "Or enter the code from the email"
 msgstr "或输入邮件中的验证码"
 
@@ -1542,7 +1549,7 @@ msgstr "其他语言"
 msgid "Page not found"
 msgstr "页面未找到"
 
-#: src/routes/(root)/sign/index.tsx:346
+#: src/routes/(root)/sign/index.tsx:332
 msgid "Passkey authentication failed"
 msgstr "通行密钥验证失败"
 
@@ -1658,7 +1665,7 @@ msgstr "偏好语言"
 msgid "Priority"
 msgstr "优先级"
 
-#: src/components/AppSidebar.tsx:839
+#: src/components/AppSidebar.tsx:867
 #: src/routes/(root)/privacy.tsx:48
 msgid "Privacy policy"
 msgstr "隐私政策"
@@ -1699,13 +1706,13 @@ msgstr "搜索关键词不能为空"
 msgid "Quiet public"
 msgstr "悄悄公开"
 
-#: src/components/NoteComposeModal.tsx:26
-#: src/components/PostControls.tsx:218
+#: src/components/NoteComposeModal.tsx:30
+#: src/components/PostControls.tsx:228
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:256
+#: src/components/PostControls.tsx:266
 msgid "React"
 msgstr "反应"
 
@@ -1723,11 +1730,11 @@ msgstr "反应"
 msgid "Read full article"
 msgstr "阅读完整文章"
 
-#: src/routes/(root)/sign/up/[token].tsx:463
+#: src/routes/(root)/sign/up/[token].tsx:447
 msgid "Read the full Code of conduct"
 msgstr "阅读完整的行为准则"
 
-#: src/components/AppSidebar.tsx:758
+#: src/components/AppSidebar.tsx:786
 msgid "Recent drafts"
 msgstr "最近的草稿"
 
@@ -1786,13 +1793,13 @@ msgstr "移除{0}"
 msgid "Remove bookmark"
 msgstr "取消收藏"
 
-#: src/components/NoteComposer.tsx:871
-#: src/components/NoteComposer.tsx:872
+#: src/components/NoteComposer.tsx:1132
+#: src/components/NoteComposer.tsx:1133
 msgid "Remove image"
 msgstr "移除图片"
 
-#: src/components/NoteComposer.tsx:670
-#: src/components/NoteComposer.tsx:671
+#: src/components/NoteComposer.tsx:916
+#: src/components/NoteComposer.tsx:917
 msgid "Remove quote"
 msgstr "移除引用"
 
@@ -1800,9 +1807,18 @@ msgstr "移除引用"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "移除已过期且不再附加到头像、帖子、文章草稿或文章的已存储媒体。"
 
-#: src/components/PostControls.tsx:207
+#: src/components/NoteComposeModal.tsx:29
+#: src/components/PostControls.tsx:209
 msgid "Reply"
 msgstr "回复"
+
+#: src/components/NoteComposer.tsx:810
+msgid "Replying to"
+msgstr "回复给"
+
+#: src/components/AppSidebar.tsx:432
+msgid "Return to old UI"
+msgstr "返回旧界面"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:475
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:526
@@ -1839,7 +1855,7 @@ msgstr "保存草稿以查看预览"
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/components/AppSidebar.tsx:335
+#: src/components/AppSidebar.tsx:339
 #: src/routes/(root)/search.tsx:149
 msgid "Search"
 msgstr "搜索"
@@ -1882,15 +1898,11 @@ msgstr "发送中…"
 msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
-#: src/components/AppSidebar.tsx
-msgid "Return to old UI"
-msgstr "返回旧界面"
-
-#: src/components/AppSidebar.tsx:565
+#: src/components/AppSidebar.tsx:593
 msgid "Settings"
 msgstr "设置"
 
-#: src/components/PostControls.tsx:236
+#: src/components/PostControls.tsx:246
 msgid "Share"
 msgstr "分享"
 
@@ -1902,8 +1914,8 @@ msgstr "转帖"
 msgid "Show preview"
 msgstr "显示预览"
 
-#: src/components/AppSidebar.tsx:429
-#: src/routes/(root)/sign/index.tsx:396
+#: src/components/AppSidebar.tsx:457
+#: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
 msgstr "登录"
 
@@ -1915,16 +1927,16 @@ msgstr "登录 Hackers' Pub"
 msgid "Sign in to vote"
 msgstr "登录后投票"
 
-#: src/routes/(root)/sign/index.tsx:420
+#: src/routes/(root)/sign/index.tsx:406
 msgid "Sign in with passkey"
 msgstr "使用通行密钥登录"
 
-#: src/components/AppSidebar.tsx:821
+#: src/components/AppSidebar.tsx:849
 msgid "Sign out"
 msgstr "登出"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:408
-#: src/routes/(root)/sign/up/[token].tsx:486
+#: src/routes/(root)/sign/up/[token].tsx:470
 msgid "Sign up"
 msgstr "注册"
 
@@ -1932,15 +1944,15 @@ msgstr "注册"
 msgid "Signed in as"
 msgstr "当前登录账户："
 
-#: src/routes/(root)/sign/index.tsx:363
+#: src/routes/(root)/sign/index.tsx:349
 msgid "Signing in Hackers' Pub"
 msgstr "登录 Hackers' Pub"
 
-#: src/routes/(root)/sign/index.tsx:396
+#: src/routes/(root)/sign/index.tsx:382
 msgid "Signing in…"
 msgstr "登录中…"
 
-#: src/routes/(root)/sign/up/[token].tsx:313
+#: src/routes/(root)/sign/up/[token].tsx:297
 msgid "Signing up for Hackers' Pub"
 msgstr "注册 Hackers' Pub"
 
@@ -1956,18 +1968,18 @@ msgstr "URL 别名"
 msgid "Slug cannot be empty"
 msgstr "URL 别名不能为空"
 
-#: src/components/NoteComposer.tsx:323
+#: src/components/NoteComposer.tsx:501
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "已达到 {MAX_MEDIA} 张图片上限，部分图片已被跳过"
 
-#: src/routes/(root)/sign/index.tsx:243
+#: src/routes/(root)/sign/index.tsx:228
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
 
 #: src/components/article-composer/ArticleComposerContext.tsx:295
 #: src/components/article-composer/ArticleComposerContext.tsx:368
 #: src/components/article-composer/ArticleComposerContext.tsx:433
-#: src/components/NoteComposer.tsx:513
+#: src/components/NoteComposer.tsx:691
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:189
 #: src/routes/(root)/[handle]/drafts/index.tsx:177
 msgid "Success"
@@ -2007,7 +2019,7 @@ msgstr "目录"
 msgid "Tags"
 msgstr "标签"
 
-#: src/routes/(root)/sign/up/[token].tsx:414
+#: src/routes/(root)/sign/up/[token].tsx:398
 msgid "Tell us about yourself…"
 msgstr "请告诉我们关于您自己的信息…"
 
@@ -2064,13 +2076,13 @@ msgstr "您访问的页面不存在或已被移动。"
 msgid "The passkey has been successfully revoked."
 msgstr "通行密钥已成功撤销。"
 
-#: src/routes/(root)/sign/up/[token].tsx:322
+#: src/routes/(root)/sign/up/[token].tsx:306
 msgid "The sign-up link is invalid. Please make sure you're using the correct link from the email you received."
 msgstr "注册链接无效。请确保你使用的是你收到的正确邮件链接。"
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:863
+#: src/components/AppSidebar.tsx:891
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "可在 {0} 上以 {1} 许可获取该网站的源代码。"
 
@@ -2119,7 +2131,7 @@ msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 msgid "This will be part of the article URL"
 msgstr "这将成为文章 URL 的一部分"
 
-#: src/components/AppSidebar.tsx:194
+#: src/components/AppSidebar.tsx:198
 msgid "Timeline"
 msgstr "时间线"
 
@@ -2216,7 +2228,7 @@ msgstr "取消关注"
 msgid "Unpin from profile"
 msgstr "从个人资料取消置顶"
 
-#: src/components/PostControls.tsx:236
+#: src/components/PostControls.tsx:246
 msgid "Unshare"
 msgstr "取消转帖"
 
@@ -2229,7 +2241,7 @@ msgstr "更新您的个人资料信息，包括头像、用户名、昵称、个
 msgid "Updated {0}"
 msgstr "更新于 {0}"
 
-#: src/components/NoteComposer.tsx:802
+#: src/components/NoteComposer.tsx:1048
 msgid "Upload progress"
 msgstr "上传进度"
 
@@ -2250,23 +2262,23 @@ msgid "User unblocked"
 msgstr "已取消屏蔽用户"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:410
-#: src/routes/(root)/sign/up/[token].tsx:357
+#: src/routes/(root)/sign/up/[token].tsx:341
 msgid "Username"
 msgstr "用户名"
 
-#: src/routes/(root)/sign/up/[token].tsx:141
+#: src/routes/(root)/sign/up/[token].tsx:124
 msgid "Username can only contain lowercase letters, numbers, and underscores."
 msgstr "用户名只能包含小写字母、数字以及下划线。"
 
-#: src/routes/(root)/sign/up/[token].tsx:143
+#: src/routes/(root)/sign/up/[token].tsx:126
 msgid "Username is already taken."
 msgstr "用户名已被占用。"
 
-#: src/routes/(root)/sign/up/[token].tsx:137
+#: src/routes/(root)/sign/up/[token].tsx:120
 msgid "Username is required."
 msgstr "需要用户名"
 
-#: src/routes/(root)/sign/up/[token].tsx:139
+#: src/routes/(root)/sign/up/[token].tsx:122
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "用户名太长。不能长于 15 字符。"
 
@@ -2280,15 +2292,15 @@ msgstr "您邀请的用户"
 msgid "Verified that this link is owned by {0} {1}"
 msgstr "已于{1}验证此链接归{0}所有"
 
-#: src/routes/(root)/sign/up/[token].tsx:317
+#: src/routes/(root)/sign/up/[token].tsx:301
 msgid "Verifying your invitation…"
 msgstr "正在验证您的邀请…"
 
-#: src/components/AppSidebar.tsx:784
+#: src/components/AppSidebar.tsx:812
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
-#: src/components/NoteComposer.tsx:735
+#: src/components/NoteComposer.tsx:981
 msgid "Visibility"
 msgstr "内容隐私度"
 
@@ -2324,7 +2336,7 @@ msgstr "已投票"
 msgid "Voting…"
 msgstr "正在投票…"
 
-#: src/components/NoteComposer.tsx:322
+#: src/components/NoteComposer.tsx:499
 msgid "Warning"
 msgstr "警告"
 
@@ -2336,7 +2348,7 @@ msgstr "无法连接到翻译服务。请重试或几分钟后再来。"
 msgid "Website"
 msgstr "网站"
 
-#: src/routes/(root)/sign/up/[token].tsx:327
+#: src/routes/(root)/sign/up/[token].tsx:311
 msgid "Welcome to Hackers' Pub! Please fill out the form below to complete your sign-up."
 msgstr "欢迎来到 Hackers' Pub！请填写以下表单完成注册。"
 
@@ -2344,15 +2356,18 @@ msgstr "欢迎来到 Hackers' Pub！请填写以下表单完成注册。"
 msgid "What is Hackers' Pub?"
 msgstr "什么是 Hackers' Pub？"
 
-#: src/components/NoteComposer.tsx:713
+#: src/components/NoteComposer.tsx:959
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
-#: src/components/AppSidebar.tsx:241
+#: src/components/AppSidebar.tsx:245
 msgid "Without shares"
 msgstr "不含转帖"
 
+#: src/components/NoteComposeModal.tsx:50
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:990
+#: src/routes/(root)/[handle]/[noteId].tsx:328
+#: src/routes/(root)/[handle]/[noteId].tsx:409
 msgid "Write a reply…"
 msgstr "写个回复…"
 
@@ -2377,7 +2392,7 @@ msgstr "你已被此用户屏蔽。你无法关注该用户或查看该用户的
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "你正在屏蔽此用户。该用户无法关注你或查看你的内容。"
 
-#: src/components/NoteComposer.tsx:313
+#: src/components/NoteComposer.tsx:490
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "最多可附加 {MAX_MEDIA} 张图片"
 
@@ -2425,7 +2440,7 @@ msgstr "你没有剩余邀请名额。请稍后再试。"
 msgid "You must be signed in"
 msgstr "请先登录"
 
-#: src/components/NoteComposer.tsx:530
+#: src/components/NoteComposer.tsx:708
 msgid "You must be signed in to create a note"
 msgstr "你必须登录才能创建帖子"
 
@@ -2446,11 +2461,11 @@ msgstr "您必须登录才能发布文章"
 msgid "You must be signed in to save a draft"
 msgstr "您必须登录才能保存草稿"
 
-#: src/routes/(root)/sign/up/[token].tsx:433
+#: src/routes/(root)/sign/up/[token].tsx:417
 msgid "You were invited by"
 msgstr "您被以下用户邀请"
 
-#: src/routes/(root)/sign/up/[token].tsx:450
+#: src/routes/(root)/sign/up/[token].tsx:434
 msgid "You'll automatically follow each other when you sign up."
 msgstr "您在注册时将自动互相关注。"
 
@@ -2466,11 +2481,11 @@ msgstr "你的头像将在你的个人资料页面和你的帖文中显示。可
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。"
 
-#: src/routes/(root)/sign/up/[token].tsx:426
+#: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。最大 512 字符。"
 
-#: src/routes/(root)/sign/up/[token].tsx:346
+#: src/routes/(root)/sign/up/[token].tsx:330
 msgid "Your email address will be used to sign in to your account."
 msgstr "你的电子邮件地址将用于登录。"
 
@@ -2479,7 +2494,7 @@ msgid "Your friend will see this message in the invitation email."
 msgstr "你的朋友将在邀请邮件中看到此信息。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:456
-#: src/routes/(root)/sign/up/[token].tsx:400
+#: src/routes/(root)/sign/up/[token].tsx:384
 msgid "Your name will be displayed on your profile and in your posts."
 msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
 
@@ -2500,6 +2515,6 @@ msgid "Your profile settings have been updated successfully."
 msgstr "个人资料设置已成功更新。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:423
-#: src/routes/(root)/sign/up/[token].tsx:374
+#: src/routes/(root)/sign/up/[token].tsx:358
 msgid "Your username will be used to create your profile URL and your fediverse handle."
 msgstr "你的用户名将被用来创建你的个人资料 URL 和你的 Fediverse 用户名（handle）。"

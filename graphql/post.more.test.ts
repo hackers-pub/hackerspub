@@ -1326,6 +1326,72 @@ test("createNote creates a note for the signed-in account", async () => {
   });
 });
 
+test("createNote rejects invisible reply and quote targets", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "createnoteprivateauthor",
+      name: "Create Note Private Author",
+      email: "createnoteprivateauthor@example.com",
+    });
+    const requester = await insertAccountWithActor(tx, {
+      username: "createnoteprivaterequester",
+      name: "Create Note Private Requester",
+      email: "createnoteprivaterequester@example.com",
+    });
+    const { post: privateTarget } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "direct",
+      content: "private target",
+    });
+
+    const replyResult = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "attempted private reply",
+          language: "en",
+          visibility: "PUBLIC",
+          replyTargetId: encodeGlobalID("Note", privateTarget.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, requester.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(replyResult.errors, undefined);
+    assert.deepEqual(toPlainJson(replyResult.data), {
+      createNote: {
+        __typename: "InvalidInputError",
+        inputPath: "replyTargetId",
+      },
+    });
+
+    const quoteResult = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "attempted private quote",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", privateTarget.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(quoteResult.errors, undefined);
+    assert.deepEqual(toPlainJson(quoteResult.data), {
+      createNote: {
+        __typename: "InvalidInputError",
+        inputPath: "quotedPostId",
+      },
+    });
+  });
+});
+
 test("createNote validates attached media inside the transaction", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {
