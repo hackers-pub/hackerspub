@@ -142,13 +142,7 @@ const loadNoteThreadQuery = query(
 
 export default function NotePage() {
   const params = useParams();
-  const noteId = params.noteId!;
-  const username = decodeURIComponent(params.handle!).replace(/^@/, "");
   const { onNoteCreated } = useNoteCompose();
-
-  if (!validateUuid(noteId)) {
-    return <NotFoundPage embedded />;
-  }
 
   onMount(() =>
     onNoteCreated(() => {
@@ -158,7 +152,11 @@ export default function NotePage() {
 
   const noteData = createPreloadedQuery<NoteIdPageQuery>(
     NoteIdPageQuery,
-    () => loadNotePageQuery(username, noteId),
+    () =>
+      loadNotePageQuery(
+        decodeURIComponent(params.handle!).replace(/^@/, ""),
+        params.noteId! as Uuid,
+      ),
   );
 
   const post = () => noteData()?.actorByHandle?.postByUuid;
@@ -177,35 +175,46 @@ export default function NotePage() {
   const viewer = () => noteData()?.viewer ?? undefined;
 
   return (
-    <Show when={noteData() != null}>
-      <Switch fallback={<NotFoundPage embedded />}>
-        <Match keyed when={note()}>
-          {(note) => (
-            <>
-              <PostMetaHead $post={note} />
-              <NoteInternal
-                $note={note}
-                $viewer={viewer()}
-                noteId={noteId}
-                username={username}
-              />
-            </>
-          )}
-        </Match>
-        <Match keyed when={question()}>
-          {(question) => (
-            <>
-              <PostMetaHead $post={question} />
-              <QuestionInternal
-                $question={question}
-                $viewer={viewer()}
-                noteId={noteId}
-                username={username}
-              />
-            </>
-          )}
-        </Match>
-      </Switch>
+    <Show
+      when={validateUuid(params.noteId!)}
+      fallback={<NotFoundPage embedded />}
+    >
+      <Show when={noteData() != null}>
+        <Switch fallback={<NotFoundPage embedded />}>
+          <Match keyed when={note()}>
+            {(note) => (
+              <>
+                <PostMetaHead $post={note} />
+                <NoteInternal
+                  $note={note}
+                  $viewer={viewer()}
+                  noteId={params.noteId! as Uuid}
+                  username={decodeURIComponent(params.handle!).replace(
+                    /^@/,
+                    "",
+                  )}
+                />
+              </>
+            )}
+          </Match>
+          <Match keyed when={question()}>
+            {(question) => (
+              <>
+                <PostMetaHead $post={question} />
+                <QuestionInternal
+                  $question={question}
+                  $viewer={viewer()}
+                  noteId={params.noteId! as Uuid}
+                  username={decodeURIComponent(params.handle!).replace(
+                    /^@/,
+                    "",
+                  )}
+                />
+              </>
+            )}
+          </Match>
+        </Switch>
+      </Show>
     </Show>
   );
 }
