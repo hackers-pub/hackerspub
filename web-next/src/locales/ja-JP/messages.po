@@ -269,8 +269,8 @@ msgid "Allow automatic translation by AI"
 msgstr "AIによる自動翻訳を許可"
 
 #: src/components/NoteComposer.tsx:824
-msgid "Alt text (required)"
-msgstr "代替テキスト（必須）"
+msgid "Alt text for visually impaired people (required)"
+msgstr "視覚障碍者向けの代替テキスト（必須）"
 
 #. placeholder {0}: index() + 1
 #: src/components/NoteComposer.tsx:815

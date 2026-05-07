@@ -840,7 +840,7 @@ export function NoteComposer(props: NoteComposerProps) {
                           if (m) m.alt = v;
                         }));
                       }}
-                      placeholder={t`Alt text (required)`}
+                      placeholder={t`Alt text for visually impaired people (required)`}
                       disabled={item.generatingAlt}
                       rows={3}
                       class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
