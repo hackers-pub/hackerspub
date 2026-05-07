@@ -6,7 +6,7 @@ import {
   FULL_HANDLE_REGEXP,
   HANDLE_REGEXP,
 } from "@hackerspub/models/searchPatterns";
-import { addPostToTimeline } from "@hackerspub/models/timeline";
+import { addPostToTimeline, expandLocales } from "@hackerspub/models/timeline";
 import { sql } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import { builder, type UserContext } from "./builder.ts";
@@ -183,9 +183,19 @@ builder.queryFields((t) => ({
             languages.length < 1
               ? (signedAccount?.hideForeignLanguages &&
                   signedAccount.locales != null
-                ? { language: { in: signedAccount.locales } }
+                ? { language: { in: expandLocales(signedAccount.locales) } }
                 : {})
-              : { language: { in: [...languages.map((l) => l.baseName)] } },
+              : {
+                language: {
+                  in: expandLocales(
+                    languages.flatMap((l) =>
+                      l.language !== l.baseName
+                        ? [l.baseName, l.language]
+                        : [l.baseName]
+                    ),
+                  ),
+                },
+              },
             until == null ? {} : { published: { lte: until } },
           ],
         },

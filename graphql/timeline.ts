@@ -52,7 +52,13 @@ builder.queryFields((t) => ({
         const until = args.after == null ? undefined : new Date(args.after);
         const timeline = await getPublicTimeline(ctx.db, {
           currentAccount: ctx.account,
-          languages: new Set((args.languages ?? []).map((l) => l.baseName)),
+          languages: new Set(
+            (args.languages ?? []).flatMap((l) =>
+              l.language !== l.baseName
+                ? [l.baseName, l.language]
+                : [l.baseName]
+            ),
+          ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,
           postType: args.postType == null

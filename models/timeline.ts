@@ -43,6 +43,17 @@ function getFutureTimestampLimit(): Date {
   return new Date(Date.now() + FUTURE_TIMESTAMP_TOLERANCE);
 }
 
+export function expandLocales(locales: string[]): string[] {
+  return [
+    ...new Set(
+      locales.flatMap((l) => {
+        const dashIdx = l.indexOf("-");
+        return dashIdx > 0 ? [l, l.slice(0, dashIdx)] : [l];
+      }),
+    ),
+  ];
+}
+
 export async function addPostToTimeline(
   db: Database,
   post: Post,
@@ -402,9 +413,9 @@ export async function getPublicTimeline(
             languages.size < 1
               ? (currentAccount?.hideForeignLanguages &&
                   currentAccount.locales != null
-                ? { language: { in: currentAccount.locales } }
+                ? { language: { in: expandLocales(currentAccount.locales) } }
                 : {})
-              : { language: { in: [...languages] } }
+              : { language: { in: expandLocales([...languages]) } }
           ),
           replyTargetId: { isNull: true },
           ...(
@@ -583,7 +594,7 @@ export async function getPersonalTimeline(
             : {},
           postType == null ? {} : { type: postType },
           currentAccount.hideForeignLanguages && currentAccount.locales != null
-            ? { language: { in: currentAccount.locales } }
+            ? { language: { in: expandLocales(currentAccount.locales) } }
             : {},
           {
             published: {

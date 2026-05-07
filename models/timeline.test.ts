@@ -4,7 +4,11 @@ import { eq } from "drizzle-orm";
 import { follow } from "./following.ts";
 import { sharePost } from "./post.ts";
 import { postTable } from "./schema.ts";
-import { addPostToTimeline, removeFromTimeline } from "./timeline.ts";
+import {
+  addPostToTimeline,
+  expandLocales,
+  removeFromTimeline,
+} from "./timeline.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -14,6 +18,34 @@ import {
   insertRemotePost,
   withRollback,
 } from "../test/postgres.ts";
+
+Deno.test("expandLocales() returns the locale unchanged when no region", () => {
+  assertEquals(expandLocales(["ko"]), ["ko"]);
+  assertEquals(expandLocales(["en"]), ["en"]);
+  assertEquals(expandLocales(["zh"]), ["zh"]);
+});
+
+Deno.test(
+  "expandLocales() adds base language when region-specific locale is given",
+  () => {
+    assertEquals(expandLocales(["ko-KR"]), ["ko-KR", "ko"]);
+    assertEquals(expandLocales(["en-US"]), ["en-US", "en"]);
+    assertEquals(expandLocales(["zh-TW"]), ["zh-TW", "zh"]);
+  },
+);
+
+Deno.test("expandLocales() deduplicates when base locale is also listed", () => {
+  assertEquals(expandLocales(["ko-KR", "ko"]), ["ko-KR", "ko"]);
+});
+
+Deno.test("expandLocales() expands multiple region-specific locales", () => {
+  assertEquals(expandLocales(["ko-KR", "en-US"]), [
+    "ko-KR",
+    "ko",
+    "en-US",
+    "en",
+  ]);
+});
 
 Deno.test({
   name:
