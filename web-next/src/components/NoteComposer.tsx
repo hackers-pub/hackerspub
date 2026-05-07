@@ -197,7 +197,15 @@ export function NoteComposer(props: NoteComposerProps) {
       e.dataTransfer != null &&
       Array.from(e.dataTransfer.types).includes("Files");
 
+    // Debounce dragleave instead of relying on relatedTarget, which browsers
+    // set to null for OS-file drags even when the cursor is still inside the
+    // form.  dragenter always fires before dragleave, so if the cursor moves
+    // to a descendant the next dragenter cancels the timer before it fires.
+    let dragLeaveTimer: ReturnType<typeof setTimeout> | undefined;
+
     const onDragEnter = (e: DragEvent) => {
+      clearTimeout(dragLeaveTimer);
+      dragLeaveTimer = undefined;
       if (hasFiles(e) && mediaItems().length < MAX_MEDIA) {
         setIsDraggingOver(true);
       }
@@ -209,16 +217,16 @@ export function NoteComposer(props: NoteComposerProps) {
       }
     };
 
-    const onDragLeave = (e: DragEvent) => {
-      if (
-        e.relatedTarget == null ||
-        !form.contains(e.relatedTarget as Node)
-      ) {
+    const onDragLeave = () => {
+      dragLeaveTimer = setTimeout(() => {
+        dragLeaveTimer = undefined;
         setIsDraggingOver(false);
-      }
+      }, 50);
     };
 
     const onDrop = (e: DragEvent) => {
+      clearTimeout(dragLeaveTimer);
+      dragLeaveTimer = undefined;
       setIsDraggingOver(false);
       if (!hasFiles(e)) return;
       e.preventDefault();
@@ -233,6 +241,7 @@ export function NoteComposer(props: NoteComposerProps) {
     form.addEventListener("drop", onDrop, opts);
 
     removeDragListeners = () => {
+      clearTimeout(dragLeaveTimer);
       form.removeEventListener("dragenter", onDragEnter, opts);
       form.removeEventListener("dragover", onDragOver, opts);
       form.removeEventListener("dragleave", onDragLeave, opts);
