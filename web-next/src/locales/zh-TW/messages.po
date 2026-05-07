@@ -889,7 +889,7 @@ msgstr "傳送郵件失敗"
 msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
-#: src/components/PostControls.tsx:155
+#: src/components/PostControls.tsx:163
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
@@ -912,7 +912,7 @@ msgstr "取消關注失敗"
 msgid "Failed to unpin post"
 msgstr "無法取消釘選內容"
 
-#: src/components/PostControls.tsx:141
+#: src/components/PostControls.tsx:149
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
@@ -1707,16 +1707,16 @@ msgid "Quiet public"
 msgstr "悄悄公開"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostControls.tsx:233
+#: src/components/PostControls.tsx:248
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:234
+#: src/components/PostControls.tsx:249
 msgid "Quoting is not available for this post"
 msgstr "無法引用此內容。"
 
-#: src/components/PostControls.tsx:273
+#: src/components/PostControls.tsx:302
 msgid "React"
 msgstr "反應"
 
@@ -1812,7 +1812,7 @@ msgid "Removes stored media that are old enough and no longer attached to an ava
 msgstr "移除已足夠舊且不再附加到頭像、貼文、文章草稿或文章的已儲存媒體。"
 
 #: src/components/NoteComposeModal.tsx:29
-#: src/components/PostControls.tsx:209
+#: src/components/PostControls.tsx:217
 msgid "Reply"
 msgstr "回覆"
 
@@ -1906,13 +1906,17 @@ msgstr "設定您的個人偏好設定。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:253
+#: src/components/PostControls.tsx:284
 msgid "Share"
 msgstr "分享"
 
 #: src/components/ProfileTabs.tsx:54
 msgid "Shares"
 msgstr "轉貼"
+
+#: src/components/PostControls.tsx:285
+msgid "Sharing is not available for this post"
+msgstr "無法轉貼此內容。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show preview"
@@ -2232,7 +2236,7 @@ msgstr "取消關注"
 msgid "Unpin from profile"
 msgstr "從個人資料取消釘選"
 
-#: src/components/PostControls.tsx:253
+#: src/components/PostControls.tsx:280
 msgid "Unshare"
 msgstr "取消轉貼"
 

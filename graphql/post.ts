@@ -1428,6 +1428,18 @@ builder.relayMutationField(
             with: { actor: true },
           },
           mentions: true,
+          sharedPost: {
+            with: {
+              actor: {
+                with: {
+                  followers: true,
+                  blockees: true,
+                  blockers: true,
+                },
+              },
+              mentions: true,
+            },
+          },
         },
         where: { id: postId.id },
       });
@@ -1437,6 +1449,27 @@ builder.relayMutationField(
       }
 
       if (!isPostVisibleTo(post, ctx.account.actor)) {
+        throw new InvalidInputError("postId");
+      }
+
+      // Validate sharing eligibility against the effective original post.
+      // When the submitted post is itself a share wrapper, the sharing rules
+      // apply to the original post's visibility, not the wrapper's.
+      // Reject nested wrappers (share-of-share chains) outright; only
+      // direct originals (sharedPostId == null) are authoritative.
+      const effectivePost = post.sharedPost ?? post;
+      if (effectivePost.sharedPostId != null) {
+        throw new InvalidInputError("postId");
+      }
+      if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
+        throw new InvalidInputError("postId");
+      }
+      if (
+        effectivePost.visibility !== "public" &&
+        effectivePost.visibility !== "unlisted" &&
+        !(effectivePost.visibility === "followers" &&
+          effectivePost.actorId === ctx.account.actor.id)
+      ) {
         throw new InvalidInputError("postId");
       }
 

@@ -889,7 +889,7 @@ msgstr "이메일 전송에 실패했습니다"
 msgid "Failed to send invitation"
 msgstr "초대장 발송에 실패했습니다"
 
-#: src/components/PostControls.tsx:155
+#: src/components/PostControls.tsx:163
 msgid "Failed to share post"
 msgstr "콘텐츠 공유 실패"
 
@@ -912,7 +912,7 @@ msgstr "언팔로에 실패했습니다"
 msgid "Failed to unpin post"
 msgstr "콘텐츠 고정을 해제하지 못했습니다"
 
-#: src/components/PostControls.tsx:141
+#: src/components/PostControls.tsx:149
 msgid "Failed to unshare post"
 msgstr "공유 취소 실패"
 
@@ -1707,16 +1707,16 @@ msgid "Quiet public"
 msgstr "조용히 공개"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostControls.tsx:233
+#: src/components/PostControls.tsx:248
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "인용"
 
-#: src/components/PostControls.tsx:234
+#: src/components/PostControls.tsx:249
 msgid "Quoting is not available for this post"
 msgstr "이 콘텐츠는 인용할 수 없습니다."
 
-#: src/components/PostControls.tsx:273
+#: src/components/PostControls.tsx:302
 msgid "React"
 msgstr "반응"
 
@@ -1812,7 +1812,7 @@ msgid "Removes stored media that are old enough and no longer attached to an ava
 msgstr "생성된 지 충분히 오래되었고 프로필 사진, 단문, 게시글 임시 보관, 게시글에 더 이상 첨부되어 있지 않은 저장된 미디어를 제거합니다."
 
 #: src/components/NoteComposeModal.tsx:29
-#: src/components/PostControls.tsx:209
+#: src/components/PostControls.tsx:217
 msgid "Reply"
 msgstr "댓글"
 
@@ -1906,13 +1906,17 @@ msgstr "개인의 환경 설정을 설정하세요."
 msgid "Settings"
 msgstr "설정"
 
-#: src/components/PostControls.tsx:253
+#: src/components/PostControls.tsx:284
 msgid "Share"
 msgstr "공유"
 
 #: src/components/ProfileTabs.tsx:54
 msgid "Shares"
 msgstr "공유"
+
+#: src/components/PostControls.tsx:285
+msgid "Sharing is not available for this post"
+msgstr "이 콘텐츠는 공유할 수 없습니다."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show preview"
@@ -2232,7 +2236,7 @@ msgstr "언팔로"
 msgid "Unpin from profile"
 msgstr "프로필에서 고정 해제"
 
-#: src/components/PostControls.tsx:253
+#: src/components/PostControls.tsx:280
 msgid "Unshare"
 msgstr "공유 취소"
 

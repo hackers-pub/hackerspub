@@ -10,6 +10,7 @@ import {
   articleContentTable,
   articleDraftTable,
   articleSourceTable,
+  followingTable,
   mediumTable,
   type NewPost,
   postTable,
@@ -289,6 +290,22 @@ const createNoteWithErrorMutation = parse(`
   mutation CreateNoteWithError($input: CreateNoteInput!) {
     createNote(input: $input) {
       __typename
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
+const sharePostMutation = parse(`
+  mutation SharePost($postId: ID!) {
+    sharePost(input: { postId: $postId }) {
+      __typename
+      ... on SharePostPayload {
+        originalPost {
+          id
+        }
+      }
       ... on InvalidInputError {
         inputPath
       }
@@ -2314,5 +2331,243 @@ test("requestArticleTranslation skips enqueueing when a completed translation al
     assert.ok(stored != null);
     assert.equal(stored.beingTranslated, false);
     assert.equal(stored.translationRequesterId, author.account.id);
+  });
+});
+
+test("sharePost rejects sharing non-public posts by non-authors", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "shareprivateauthor",
+      name: "Share Private Author",
+      email: "shareprivateauthor@example.com",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "shareprivatesharer",
+      name: "Share Private Sharer",
+      email: "shareprivatesharer@example.com",
+    });
+
+    // Set up an accepted follow so the follower can see followers-only posts
+    await tx.insert(followingTable).values({
+      iri:
+        `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
+      followerId: follower.actor.id,
+      followeeId: author.actor.id,
+      accepted: new Date(),
+    });
+
+    for (
+      const [visibility, label] of [
+        ["followers", "followers-only"],
+        ["direct", "direct"],
+        ["none", "none-visibility"],
+      ] as const
+    ) {
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        visibility,
+        content: `${label} post`,
+      });
+
+      const result = await execute({
+        schema,
+        document: sharePostMutation,
+        variableValues: {
+          postId: encodeGlobalID("Note", post.id),
+        },
+        contextValue: makeTransactionalUserContext(tx, follower.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.equal(result.errors, undefined, `${label} share should not throw`);
+      assert.deepEqual(
+        toPlainJson(result.data),
+        {
+          sharePost: {
+            __typename: "InvalidInputError",
+            inputPath: "postId",
+          },
+        },
+        `${label} share by non-author should be rejected`,
+      );
+    }
+  });
+});
+
+test("sharePost allows author to share their own followers-only posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "shareownfollowersauthor",
+      name: "Share Own Followers Author",
+      email: "shareownfollowersauthor@example.com",
+    });
+
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      content: "own followers-only post",
+    });
+
+    const result = await execute({
+      schema,
+      document: sharePostMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", post.id),
+      },
+      contextValue: makeTransactionalUserContext(tx, author.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.equal(
+      (toPlainJson(result.data) as {
+        sharePost: { __typename: string };
+      }).sharePost.__typename,
+      "SharePostPayload",
+      "author should be able to share their own followers-only post",
+    );
+  });
+});
+
+test("sharePost rejects sharing direct posts even by their author", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "sharedirectauthor",
+      name: "Share Direct Author",
+      email: "sharedirectauthor@example.com",
+    });
+
+    for (
+      const [visibility, label] of [
+        ["direct", "direct"],
+        ["none", "none-visibility"],
+      ] as const
+    ) {
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        visibility,
+        content: `own ${label} post`,
+      });
+
+      const result = await execute({
+        schema,
+        document: sharePostMutation,
+        variableValues: {
+          postId: encodeGlobalID("Note", post.id),
+        },
+        contextValue: makeTransactionalUserContext(tx, author.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.equal(result.errors, undefined);
+      assert.deepEqual(
+        toPlainJson(result.data),
+        {
+          sharePost: {
+            __typename: "InvalidInputError",
+            inputPath: "postId",
+          },
+        },
+        `${label} post should not be shareable even by the author`,
+      );
+    }
+  });
+});
+
+test("sharePost rejects sharing via a public wrapper of a non-shareable original", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "sharewrapperauthor",
+      name: "Share Wrapper Author",
+      email: "sharewrapperauthor@example.com",
+    });
+    const attacker = await insertAccountWithActor(tx, {
+      username: "sharewrapperattacker",
+      name: "Share Wrapper Attacker",
+      email: "sharewrapperattacker@example.com",
+    });
+
+    // Author creates a followers-only post and then shares it themselves
+    // (creating a public share wrapper)
+    const { post: original } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      content: "followers-only original",
+    });
+    const { post: wrapper } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "public",
+      sharedPostId: original.id,
+    });
+
+    // Attacker attempts to share the original by submitting the wrapper's ID
+    const result = await execute({
+      schema,
+      document: sharePostMutation,
+      variableValues: {
+        postId: encodeGlobalID("Note", wrapper.id),
+      },
+      contextValue: makeTransactionalUserContext(tx, attacker.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(
+      toPlainJson(result.data),
+      {
+        sharePost: {
+          __typename: "InvalidInputError",
+          inputPath: "postId",
+        },
+      },
+      "sharing via a public wrapper of a non-shareable original should be rejected",
+    );
+  });
+});
+
+test("sharePost allows sharing public and unlisted posts", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "sharepublicauthor",
+      name: "Share Public Author",
+      email: "sharepublicauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "sharepublicsharer",
+      name: "Share Public Sharer",
+      email: "sharepublicsharer@example.com",
+    });
+
+    for (
+      const [visibility, label] of [
+        ["public", "public"],
+        ["unlisted", "unlisted"],
+      ] as const
+    ) {
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        visibility,
+        content: `${label} post to share`,
+      });
+
+      const result = await execute({
+        schema,
+        document: sharePostMutation,
+        variableValues: {
+          postId: encodeGlobalID("Note", post.id),
+        },
+        contextValue: makeTransactionalUserContext(tx, sharer.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.equal(result.errors, undefined);
+      assert.equal(
+        (toPlainJson(result.data) as {
+          sharePost: { __typename: string };
+        }).sharePost.__typename,
+        "SharePostPayload",
+        `${label} post should be shareable`,
+      );
+    }
   });
 });

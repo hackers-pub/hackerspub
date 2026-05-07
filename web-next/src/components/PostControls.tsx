@@ -85,6 +85,9 @@ export function PostControls(props: PostControlsProps) {
     graphql`
       fragment PostControls_post on Post {
         __id
+        actor {
+          isViewer
+        }
         engagementStats {
           replies
           shares
@@ -211,6 +214,7 @@ export function PostControls(props: PostControlsProps) {
             variant="ghost"
             size="sm"
             class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
+            aria-label={t`Reply`}
             title={t`Reply`}
             onClick={() => {
               const v = note.visibility;
@@ -233,6 +237,10 @@ export function PostControls(props: PostControlsProps) {
                 size="sm"
                 disabled={note.visibility !== "PUBLIC" &&
                   note.visibility !== "UNLISTED"}
+                aria-label={note.visibility === "PUBLIC" ||
+                    note.visibility === "UNLISTED"
+                  ? t`Quote`
+                  : t`Quoting is not available for this post`}
                 class="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
                 onClick={() => openWithQuote(note.id)}
               >
@@ -248,22 +256,45 @@ export function PostControls(props: PostControlsProps) {
           </Tooltip>
 
           {/* Share Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            class="h-8 px-2 cursor-pointer"
-            classList={{
-              "text-muted-foreground hover:text-foreground": !note
-                .viewerHasShared,
-              "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300":
-                note.viewerHasShared,
-            }}
-            title={note.viewerHasShared ? t`Unshare` : t`Share`}
-            onClick={handleShareClick}
-          >
-            <IconRepeat2 class="size-4" />
-            <span class="text-xs">{note.engagementStats.shares}</span>
-          </Button>
+          <Tooltip>
+            <TooltipTrigger as="span" class="inline-flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!note.viewerHasShared &&
+                  note.visibility !== "PUBLIC" &&
+                  note.visibility !== "UNLISTED" &&
+                  !(note.visibility === "FOLLOWERS" && note.actor.isViewer)}
+                aria-label={note.viewerHasShared
+                  ? t`Unshare`
+                  : note.visibility === "PUBLIC" ||
+                      note.visibility === "UNLISTED" ||
+                      (note.visibility === "FOLLOWERS" && note.actor.isViewer)
+                  ? t`Share`
+                  : t`Sharing is not available for this post`}
+                class="h-8 px-2 cursor-pointer"
+                classList={{
+                  "text-muted-foreground hover:text-foreground": !note
+                    .viewerHasShared,
+                  "text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300":
+                    note.viewerHasShared,
+                }}
+                onClick={handleShareClick}
+              >
+                <IconRepeat2 class="size-4" />
+                <span class="text-xs">{note.engagementStats.shares}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {note.viewerHasShared
+                ? t`Unshare`
+                : note.visibility === "PUBLIC" ||
+                    note.visibility === "UNLISTED" ||
+                    (note.visibility === "FOLLOWERS" && note.actor.isViewer)
+                ? t`Share`
+                : t`Sharing is not available for this post`}
+            </TooltipContent>
+          </Tooltip>
 
           {/* Reactions Button */}
           <DropdownMenu
@@ -278,6 +309,7 @@ export function PostControls(props: PostControlsProps) {
                 "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300":
                   userHasReacted(),
               }}
+              aria-label={t`React`}
               title={t`React`}
             >
               <IconHeart class="size-4" />

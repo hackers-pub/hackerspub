@@ -889,7 +889,7 @@ msgstr "发送邮件失败"
 msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
-#: src/components/PostControls.tsx:155
+#: src/components/PostControls.tsx:163
 msgid "Failed to share post"
 msgstr "转帖失败"
 
@@ -912,7 +912,7 @@ msgstr "取消关注失败"
 msgid "Failed to unpin post"
 msgstr "无法取消置顶内容"
 
-#: src/components/PostControls.tsx:141
+#: src/components/PostControls.tsx:149
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
 
@@ -1707,16 +1707,16 @@ msgid "Quiet public"
 msgstr "悄悄公开"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostControls.tsx:233
+#: src/components/PostControls.tsx:248
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:234
+#: src/components/PostControls.tsx:249
 msgid "Quoting is not available for this post"
 msgstr "无法引用此内容。"
 
-#: src/components/PostControls.tsx:273
+#: src/components/PostControls.tsx:302
 msgid "React"
 msgstr "反应"
 
@@ -1812,7 +1812,7 @@ msgid "Removes stored media that are old enough and no longer attached to an ava
 msgstr "移除已过期且不再附加到头像、帖子、文章草稿或文章的已存储媒体。"
 
 #: src/components/NoteComposeModal.tsx:29
-#: src/components/PostControls.tsx:209
+#: src/components/PostControls.tsx:217
 msgid "Reply"
 msgstr "回复"
 
@@ -1906,13 +1906,17 @@ msgstr "设置您的个人偏好设置。"
 msgid "Settings"
 msgstr "设置"
 
-#: src/components/PostControls.tsx:253
+#: src/components/PostControls.tsx:284
 msgid "Share"
 msgstr "分享"
 
 #: src/components/ProfileTabs.tsx:54
 msgid "Shares"
 msgstr "转帖"
+
+#: src/components/PostControls.tsx:285
+msgid "Sharing is not available for this post"
+msgstr "无法转帖此内容。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show preview"
@@ -2232,7 +2236,7 @@ msgstr "取消关注"
 msgid "Unpin from profile"
 msgstr "从个人资料取消置顶"
 
-#: src/components/PostControls.tsx:253
+#: src/components/PostControls.tsx:280
 msgid "Unshare"
 msgstr "取消转帖"
 
