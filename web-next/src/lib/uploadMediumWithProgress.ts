@@ -39,6 +39,10 @@ function xhrUpload(
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve();
+      } else if (xhr.status === 413) {
+        reject(new Error(`File is too large (status 413)`));
+      } else if (xhr.status === 415) {
+        reject(new Error(`File type is not supported (status 415)`));
       } else {
         reject(new Error(`Upload failed with status ${xhr.status}`));
       }

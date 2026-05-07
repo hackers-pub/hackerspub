@@ -128,6 +128,7 @@ interface MediaItem {
   uploadProgress: number;
   generatingAlt: boolean;
   abortUpload?: () => void;
+  altSubscription?: { unsubscribe: () => void };
 }
 
 interface QuotedPostPreview {
@@ -180,6 +181,7 @@ export function NoteComposer(props: NoteComposerProps) {
     removeDragListeners?.();
     for (const item of mediaItems()) {
       item.abortUpload?.();
+      item.altSubscription?.unsubscribe();
       URL.revokeObjectURL(item.previewUrl);
     }
   });
@@ -325,38 +327,21 @@ export function NoteComposer(props: NoteComposerProps) {
         variant: "warning",
       });
     }
-    const newItems: MediaItem[] = toAdd.map((file) => ({
-      localId: crypto.randomUUID(),
-      file,
-      previewUrl: URL.createObjectURL(file),
-      alt: "",
-      uploading: true,
-      uploadProgress: 0,
-      generatingAlt: false,
-    }));
-
-    setMediaItems((prev) => [...prev, ...newItems]);
-
-    for (const item of newItems) {
-      const handle = uploadMediumFile(item.file, (progress) => {
+    // Create handles before inserting items so abortUpload is set from the
+    // start, avoiding a second setMediaItems pass for each file.
+    const newItems: MediaItem[] = toAdd.map((file) => {
+      const localId = crypto.randomUUID();
+      const handle = uploadMediumFile(file, (progress) => {
         setMediaItems((prev) =>
           prev.map((m) =>
-            m.localId === item.localId ? { ...m, uploadProgress: progress } : m
+            m.localId === localId ? { ...m, uploadProgress: progress } : m
           )
         );
       });
-
-      // Store abort handle so remove/unmount can cancel in-flight uploads.
-      setMediaItems((prev) =>
-        prev.map((m) =>
-          m.localId === item.localId ? { ...m, abortUpload: handle.abort } : m
-        )
-      );
-
       handle.result.then((result) => {
         setMediaItems((prev) =>
           prev.map((m) =>
-            m.localId === item.localId
+            m.localId === localId
               ? {
                 ...m,
                 uploading: false,
@@ -371,9 +356,9 @@ export function NoteComposer(props: NoteComposerProps) {
       }).catch((err) => {
         if (err instanceof UploadAbortedError) return;
         setMediaItems((prev) => {
-          const failed = prev.find((m) => m.localId === item.localId);
+          const failed = prev.find((m) => m.localId === localId);
           if (failed) URL.revokeObjectURL(failed.previewUrl);
-          return prev.filter((m) => m.localId !== item.localId);
+          return prev.filter((m) => m.localId !== localId);
         });
         showToast({
           title: t`Error`,
@@ -381,7 +366,19 @@ export function NoteComposer(props: NoteComposerProps) {
           variant: "error",
         });
       });
-    }
+      return {
+        localId,
+        file,
+        previewUrl: URL.createObjectURL(file),
+        alt: "",
+        uploading: true,
+        uploadProgress: 0,
+        generatingAlt: false,
+        abortUpload: handle.abort,
+      };
+    });
+
+    setMediaItems((prev) => [...prev, ...newItems]);
   };
 
   const handlePaste = (e: ClipboardEvent) => {
@@ -450,6 +447,7 @@ export function NoteComposer(props: NoteComposerProps) {
   const resetForm = () => {
     for (const item of mediaItems()) {
       item.abortUpload?.();
+      item.altSubscription?.unsubscribe();
       URL.revokeObjectURL(item.previewUrl);
     }
     setContent("");
@@ -551,7 +549,7 @@ export function NoteComposer(props: NoteComposerProps) {
       prev.map((m) => m.localId === localId ? { ...m, generatingAlt: true } : m)
     );
 
-    fetchQuery<NoteComposerGeneratedAltTextQuery>(
+    const subscription = fetchQuery<NoteComposerGeneratedAltTextQuery>(
       environment(),
       NoteComposerGeneratedAltTextQuery,
       {
@@ -570,6 +568,7 @@ export function NoteComposer(props: NoteComposerProps) {
                   ...m,
                   generatingAlt: false,
                   alt: medium.generatedAltText ?? m.alt,
+                  altSubscription: undefined,
                 }
                 : m
             )
@@ -577,7 +576,9 @@ export function NoteComposer(props: NoteComposerProps) {
         } else {
           setMediaItems((prev) =>
             prev.map((m) =>
-              m.localId === localId ? { ...m, generatingAlt: false } : m
+              m.localId === localId
+                ? { ...m, generatingAlt: false, altSubscription: undefined }
+                : m
             )
           );
         }
@@ -585,7 +586,9 @@ export function NoteComposer(props: NoteComposerProps) {
       error() {
         setMediaItems((prev) =>
           prev.map((m) =>
-            m.localId === localId ? { ...m, generatingAlt: false } : m
+            m.localId === localId
+              ? { ...m, generatingAlt: false, altSubscription: undefined }
+              : m
           )
         );
         showToast({
@@ -595,6 +598,11 @@ export function NoteComposer(props: NoteComposerProps) {
         });
       },
     });
+    setMediaItems((prev) =>
+      prev.map((m) =>
+        m.localId === localId ? { ...m, altSubscription: subscription } : m
+      )
+    );
   };
 
   return (
@@ -873,6 +881,7 @@ export function NoteComposer(props: NoteComposerProps) {
                         title={t`Remove image`}
                         onClick={() => {
                           item.abortUpload?.();
+                          item.altSubscription?.unsubscribe();
                           URL.revokeObjectURL(item.previewUrl);
                           setMediaItems((prev) =>
                             prev.filter((m) => m.localId !== item.localId)
