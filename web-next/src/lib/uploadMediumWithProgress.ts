@@ -6,8 +6,6 @@ import {
 
 export type { MediumUploadResult };
 
-const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
-
 export class UploadAbortedError extends Error {
   constructor() {
     super("Upload was aborted");
@@ -25,7 +23,6 @@ function xhrUpload(
   return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open(method, url, true);
-    xhr.timeout = UPLOAD_TIMEOUT_MS;
     for (const { name, value } of headers) {
       xhr.setRequestHeader(name, value);
     }
@@ -48,7 +45,6 @@ function xhrUpload(
       }
     };
     xhr.onerror = () => reject(new Error("Network error during upload"));
-    xhr.ontimeout = () => reject(new Error("Upload timed out"));
     xhr.onabort = () => reject(new UploadAbortedError());
 
     signal.addEventListener("abort", () => xhr.abort(), { once: true });
