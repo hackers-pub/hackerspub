@@ -33,16 +33,15 @@ export async function setMediumOwner(
   mediumId: Uuid,
   accountId: Uuid,
 ): Promise<void> {
-  await kv.set(
-    getMediumOwnerKey(mediumId, accountId),
-    true,
-    MEDIUM_OWNER_TTL_MS,
-  );
-  await kv.set(
-    getMediumUploadWindowKey(mediumId),
-    true,
-    MEDIUM_OWNER_TTL_MS,
-  );
+  const ownerKey = getMediumOwnerKey(mediumId, accountId);
+  const windowKey = getMediumUploadWindowKey(mediumId);
+  await kv.set(ownerKey, true, MEDIUM_OWNER_TTL_MS);
+  try {
+    await kv.set(windowKey, true, MEDIUM_OWNER_TTL_MS);
+  } catch (error) {
+    await kv.delete(ownerKey);
+    throw error;
+  }
 }
 
 export async function isMediumOwner(
