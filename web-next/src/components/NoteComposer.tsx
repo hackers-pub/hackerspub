@@ -1,4 +1,5 @@
 import { fetchQuery, graphql } from "relay-runtime";
+import { createStore, produce } from "solid-js/store";
 import {
   createEffect,
   createSignal,
@@ -170,7 +171,7 @@ export function NoteComposer(props: NoteComposerProps) {
   const [createNote, isCreating] = createMutation<NoteComposerMutation>(
     NoteComposerMutation,
   );
-  const [mediaItems, setMediaItems] = createSignal<MediaItem[]>([]);
+  const [mediaItems, setMediaItems] = createStore<MediaItem[]>([]);
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
   let formRef: HTMLFormElement | undefined;
   let removeDragListeners: (() => void) | undefined;
@@ -179,7 +180,7 @@ export function NoteComposer(props: NoteComposerProps) {
 
   onCleanup(() => {
     removeDragListeners?.();
-    for (const item of mediaItems()) {
+    for (const item of mediaItems) {
       item.abortUpload?.();
       item.altSubscription?.unsubscribe();
       URL.revokeObjectURL(item.previewUrl);
@@ -206,7 +207,7 @@ export function NoteComposer(props: NoteComposerProps) {
     const onDragEnter = (e: DragEvent) => {
       clearTimeout(dragLeaveTimer);
       dragLeaveTimer = undefined;
-      if (hasFiles(e) && mediaItems().length < MAX_MEDIA) {
+      if (hasFiles(e) && mediaItems.length < MAX_MEDIA) {
         setIsDraggingOver(true);
       }
     };
@@ -316,7 +317,7 @@ export function NoteComposer(props: NoteComposerProps) {
     );
     if (fileArray.length === 0) return;
 
-    const current = mediaItems();
+    const current = mediaItems;
     const remaining = MAX_MEDIA - current.length;
     if (remaining <= 0) {
       showToast({
@@ -341,34 +342,31 @@ export function NoteComposer(props: NoteComposerProps) {
     const newItems: MediaItem[] = toAdd.map((file) => {
       const localId = crypto.randomUUID();
       const handle = uploadMediumFile(file, (progress) => {
-        setMediaItems((prev) =>
-          prev.map((m) =>
-            m.localId === localId ? { ...m, uploadProgress: progress } : m
-          )
-        );
+        setMediaItems(produce((items) => {
+          const m = items.find((m) => m.localId === localId);
+          if (m) m.uploadProgress = progress;
+        }));
       });
       handle.result.then((result) => {
-        setMediaItems((prev) =>
-          prev.map((m) =>
-            m.localId === localId
-              ? {
-                ...m,
-                uploading: false,
-                uploadProgress: 100,
-                uuid: result.uuid,
-                mediumRelayId: result.mediumRelayId,
-                abortUpload: undefined,
-              }
-              : m
-          )
-        );
+        setMediaItems(produce((items) => {
+          const m = items.find((m) => m.localId === localId);
+          if (m) {
+            m.uploading = false;
+            m.uploadProgress = 100;
+            m.uuid = result.uuid;
+            m.mediumRelayId = result.mediumRelayId;
+            m.abortUpload = undefined;
+          }
+        }));
       }).catch((err) => {
         if (err instanceof UploadAbortedError) return;
-        setMediaItems((prev) => {
-          const failed = prev.find((m) => m.localId === localId);
-          if (failed) URL.revokeObjectURL(failed.previewUrl);
-          return prev.filter((m) => m.localId !== localId);
-        });
+        setMediaItems(produce((items) => {
+          const idx = items.findIndex((m) => m.localId === localId);
+          if (idx !== -1) {
+            URL.revokeObjectURL(items[idx].previewUrl);
+            items.splice(idx, 1);
+          }
+        }));
         showToast({
           title: t`Error`,
           description: err instanceof Error && err.message
@@ -389,7 +387,9 @@ export function NoteComposer(props: NoteComposerProps) {
       };
     });
 
-    setMediaItems((prev) => [...prev, ...newItems]);
+    setMediaItems(produce((items) => {
+      items.push(...newItems);
+    }));
   };
 
   const handlePaste = (e: ClipboardEvent) => {
@@ -456,7 +456,7 @@ export function NoteComposer(props: NoteComposerProps) {
   };
 
   const resetForm = () => {
-    for (const item of mediaItems()) {
+    for (const item of mediaItems) {
       item.abortUpload?.();
       item.altSubscription?.unsubscribe();
       URL.revokeObjectURL(item.previewUrl);
@@ -484,7 +484,7 @@ export function NoteComposer(props: NoteComposerProps) {
       return;
     }
 
-    const items = mediaItems();
+    const items = mediaItems;
     if (items.some((m) => m.uploading)) {
       showToast({
         title: t`Error`,
@@ -553,12 +553,13 @@ export function NoteComposer(props: NoteComposerProps) {
   };
 
   const handleGenerateAlt = (localId: string) => {
-    const item = mediaItems().find((m) => m.localId === localId);
+    const item = mediaItems.find((m) => m.localId === localId);
     if (!item?.mediumRelayId) return;
 
-    setMediaItems((prev) =>
-      prev.map((m) => m.localId === localId ? { ...m, generatingAlt: true } : m)
-    );
+    setMediaItems(produce((items) => {
+      const m = items.find((m) => m.localId === localId);
+      if (m) m.generatingAlt = true;
+    }));
 
     const subscription = fetchQuery<NoteComposerGeneratedAltTextQuery>(
       environment(),
@@ -572,36 +573,32 @@ export function NoteComposer(props: NoteComposerProps) {
       next(data) {
         const medium = data.node;
         if (medium && "generatedAltText" in medium) {
-          setMediaItems((prev) =>
-            prev.map((m) =>
-              m.localId === localId
-                ? {
-                  ...m,
-                  generatingAlt: false,
-                  alt: medium.generatedAltText ?? m.alt,
-                  altSubscription: undefined,
-                }
-                : m
-            )
-          );
+          setMediaItems(produce((items) => {
+            const m = items.find((m) => m.localId === localId);
+            if (m) {
+              m.generatingAlt = false;
+              m.alt = medium.generatedAltText ?? m.alt;
+              m.altSubscription = undefined;
+            }
+          }));
         } else {
-          setMediaItems((prev) =>
-            prev.map((m) =>
-              m.localId === localId
-                ? { ...m, generatingAlt: false, altSubscription: undefined }
-                : m
-            )
-          );
+          setMediaItems(produce((items) => {
+            const m = items.find((m) => m.localId === localId);
+            if (m) {
+              m.generatingAlt = false;
+              m.altSubscription = undefined;
+            }
+          }));
         }
       },
       error(err: Error) {
-        setMediaItems((prev) =>
-          prev.map((m) =>
-            m.localId === localId
-              ? { ...m, generatingAlt: false, altSubscription: undefined }
-              : m
-          )
-        );
+        setMediaItems(produce((items) => {
+          const m = items.find((m) => m.localId === localId);
+          if (m) {
+            m.generatingAlt = false;
+            m.altSubscription = undefined;
+          }
+        }));
         showToast({
           title: t`Error`,
           description: err?.message || t`Failed to generate alt text`,
@@ -609,11 +606,10 @@ export function NoteComposer(props: NoteComposerProps) {
         });
       },
     });
-    setMediaItems((prev) =>
-      prev.map((m) =>
-        m.localId === localId ? { ...m, altSubscription: subscription } : m
-      )
-    );
+    setMediaItems(produce((items) => {
+      const m = items.find((m) => m.localId === localId);
+      if (m) m.altSubscription = subscription;
+    }));
   };
 
   return (
@@ -763,7 +759,7 @@ export function NoteComposer(props: NoteComposerProps) {
             type="button"
             variant="ghost"
             size="icon"
-            disabled={mediaItems().length >= MAX_MEDIA}
+            disabled={mediaItems.length >= MAX_MEDIA}
             title={t`Attach image`}
             aria-label={t`Attach image`}
             onClick={() => fileInputRef?.click()}
@@ -801,9 +797,9 @@ export function NoteComposer(props: NoteComposerProps) {
         </div>
 
         {/* Media previews */}
-        <Show when={mediaItems().length > 0}>
+        <Show when={mediaItems.length > 0}>
           <div class="flex flex-col gap-3">
-            <For each={mediaItems()}>
+            <For each={mediaItems}>
               {(item, index) => (
                 <div class="flex gap-3 items-start">
                   {/* Thumbnail with progress overlay */}
@@ -837,11 +833,12 @@ export function NoteComposer(props: NoteComposerProps) {
                       required
                       onInput={(e) => {
                         const v = e.currentTarget.value;
-                        setMediaItems((prev) =>
-                          prev.map((m) =>
-                            m.localId === item.localId ? { ...m, alt: v } : m
-                          )
-                        );
+                        setMediaItems(produce((items) => {
+                          const m = items.find((m) =>
+                            m.localId === item.localId
+                          );
+                          if (m) m.alt = v;
+                        }));
                       }}
                       placeholder={t`Alt text (required)`}
                       disabled={item.generatingAlt}
@@ -896,9 +893,12 @@ export function NoteComposer(props: NoteComposerProps) {
                           item.abortUpload?.();
                           item.altSubscription?.unsubscribe();
                           URL.revokeObjectURL(item.previewUrl);
-                          setMediaItems((prev) =>
-                            prev.filter((m) => m.localId !== item.localId)
-                          );
+                          setMediaItems(produce((items) => {
+                            const idx = items.findIndex(
+                              (m) => m.localId === item.localId,
+                            );
+                            if (idx !== -1) items.splice(idx, 1);
+                          }));
                         }}
                       >
                         <IconX class="size-4" />
@@ -925,7 +925,7 @@ export function NoteComposer(props: NoteComposerProps) {
           <Button
             type="submit"
             disabled={isCreating() ||
-              mediaItems().some((m) => m.uploading) ||
+              mediaItems.some((m) => m.uploading) ||
               (!!effectiveQuotedPostId() && !quotedPost() &&
                 !quoteFetchError())}
           >
