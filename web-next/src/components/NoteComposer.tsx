@@ -89,14 +89,28 @@ const NoteComposerQuotedPostQuery = graphql`
 
 const NoteComposerReplyTargetQuery = graphql`
   query NoteComposerReplyTargetQuery($id: ID!) {
+    viewer {
+      actor {
+        id
+      }
+    }
     node(id: $id) {
       ... on Note {
         __typename
         excerpt
         actor {
+          id
           rawName
           handle
           avatarUrl
+        }
+        mentions {
+          edges {
+            node {
+              id
+              handle
+            }
+          }
         }
       }
       ... on Article {
@@ -104,18 +118,36 @@ const NoteComposerReplyTargetQuery = graphql`
         name
         excerpt
         actor {
+          id
           rawName
           handle
           avatarUrl
+        }
+        mentions {
+          edges {
+            node {
+              id
+              handle
+            }
+          }
         }
       }
       ... on Question {
         __typename
         excerpt
         actor {
+          id
           rawName
           handle
           avatarUrl
+        }
+        mentions {
+          edges {
+            node {
+              id
+              handle
+            }
+          }
         }
       }
     }
@@ -217,6 +249,9 @@ export function NoteComposer(props: NoteComposerProps) {
     QuotedPostPreview | null
   >(null);
   const [replyTargetFetchError, setReplyTargetFetchError] = createSignal(false);
+  // Tracks the currently pre-filled mention string so we can detect whether
+  // the user has edited the content away from the auto-fill.
+  let prefillRef = "";
   const [createNote, isCreating] = createMutation<NoteComposerMutation>(
     NoteComposerMutation,
   );
@@ -346,12 +381,15 @@ export function NoteComposer(props: NoteComposerProps) {
     onCleanup(() => subscription.unsubscribe());
   });
 
-  // Fetch reply target preview when replyTargetId changes
+  // Fetch reply target preview and mention targets when replyTargetId changes
   createEffect(() => {
     const id = props.replyTargetId;
     if (!id) {
       setReplyTargetPost(null);
       setReplyTargetFetchError(false);
+      // Clear the pre-filled mentions if the user hasn't overwritten them
+      if (content() === prefillRef) setContent("");
+      prefillRef = "";
       return;
     }
     setReplyTargetPost(null);
@@ -386,6 +424,35 @@ export function NoteComposer(props: NoteComposerProps) {
           actorHandle: node.actor.handle,
           actorAvatarUrl: node.actor.avatarUrl,
         });
+
+        // Compute mention targets following the same logic as the legacy web:
+        // start with mentions on the target post, excluding the post's own
+        // author (added separately below) and the current viewer.
+        const viewerActorId = data.viewer?.actor?.id;
+        const postActorId = node.actor.id;
+        const mentionHandles = (node.mentions?.edges ?? [])
+          .map((e) => e?.node)
+          .filter(
+            (a) =>
+              a != null &&
+              a.id !== postActorId &&
+              a.id !== viewerActorId,
+          )
+          .map((a) => a!.handle);
+
+        // Add the post's author at the front unless the viewer IS the author
+        if (postActorId !== viewerActorId) {
+          mentionHandles.unshift(node.actor.handle);
+        }
+
+        // Pre-fill content with the mention handles if the user hasn't typed
+        // anything beyond the previous auto-fill (or the field is still empty)
+        const newPrefill = mentionHandles.map((h) => `${h} `).join("");
+        const oldPrefill = prefillRef;
+        prefillRef = newPrefill;
+        if (content() === "" || content() === oldPrefill) {
+          setContent(newPrefill);
+        }
       },
       error() {
         setReplyTargetPost(null);
@@ -559,6 +626,7 @@ export function NoteComposer(props: NoteComposerProps) {
       item.altSubscription?.unsubscribe();
       URL.revokeObjectURL(item.previewUrl);
     }
+    prefillRef = "";
     setContent("");
     setVisibility(props.defaultVisibility ?? "PUBLIC");
     setLanguage(new Intl.Locale(i18n.locale));
@@ -566,6 +634,8 @@ export function NoteComposer(props: NoteComposerProps) {
     setQuotedPost(null);
     setPastedQuoteId(null);
     setQuoteFetchError(false);
+    setReplyTargetPost(null);
+    setReplyTargetFetchError(false);
     setMediaItems([]);
   };
 
@@ -1099,7 +1169,9 @@ export function NoteComposer(props: NoteComposerProps) {
             disabled={isCreating() ||
               mediaItems.some((m) => m.uploading) ||
               (!!effectiveQuotedPostId() && !quotedPost() &&
-                !quoteFetchError())}
+                !quoteFetchError()) ||
+              (!!props.replyTargetId && !replyTargetPost() &&
+                !replyTargetFetchError())}
           >
             <Show when={isCreating()} fallback={t`Create note`}>
               {t`Creating…`}
