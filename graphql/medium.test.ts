@@ -3,9 +3,14 @@ import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { MockLanguageModelV3 } from "ai/test";
 import { mediumTable } from "@hackerspub/models/schema";
-import { generateUuidV7 } from "@hackerspub/models/uuid";
+import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
+import {
+  getMediumOwnerKey,
+  getMediumUploadWindowKey,
+} from "./medium-upload.ts";
 import { schema } from "./mod.ts";
 import {
+  createTestKv,
   insertAccountWithActor,
   makeGuestContext,
   makeUserContext,
@@ -198,6 +203,174 @@ Deno.test({
         true,
         "context should be passed to the AI model",
       );
+    });
+  },
+});
+
+// Helper: insert a medium row and return its relay ID.
+async function insertTestMedium(
+  tx: Parameters<typeof makeUserContext>[0],
+  id: Uuid,
+): Promise<string> {
+  await tx.insert(mediumTable).values({
+    id,
+    key: `test/medium-${id}.webp`,
+    type: "image/webp",
+  });
+  return encodeGlobalID("Medium", id);
+}
+
+Deno.test({
+  name: "generatedAltText: owner allowed while upload window is active",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const { account } = await insertAccountWithActor(tx, {
+        username: "owner_window_ok",
+        name: "Owner",
+        email: "owner_window_ok@example.com",
+      });
+      const mediumId = generateUuidV7();
+      const relayId = await insertTestMedium(tx, mediumId);
+
+      const { kv, store } = createTestKv();
+      store.set(getMediumOwnerKey(mediumId, account.id), true);
+      store.set(getMediumUploadWindowKey(mediumId), true);
+
+      const ctx = makeUserContext(tx, account, {
+        kv,
+        altTextGenerator: makeAltTextModel("Owner's image."),
+      });
+      const result = await execute({
+        schema,
+        document: generatedAltTextQuery,
+        contextValue: ctx,
+        variableValues: { id: relayId, language: "en" },
+      });
+      assertEquals(result.errors, undefined, "owner should be allowed");
+    });
+  },
+});
+
+Deno.test({
+  name: "generatedAltText: non-owner denied while upload window is active",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const { account: owner } = await insertAccountWithActor(tx, {
+        username: "window_owner",
+        name: "Owner",
+        email: "window_owner@example.com",
+      });
+      const { account: other } = await insertAccountWithActor(tx, {
+        username: "window_other",
+        name: "Other",
+        email: "window_other@example.com",
+      });
+      const mediumId = generateUuidV7();
+      const relayId = await insertTestMedium(tx, mediumId);
+
+      const { kv, store } = createTestKv();
+      store.set(getMediumOwnerKey(mediumId, owner.id), true);
+      store.set(getMediumUploadWindowKey(mediumId), true);
+
+      const ctx = makeUserContext(tx, other, {
+        kv,
+        altTextGenerator: makeAltTextModel("Should not be called."),
+      });
+      const result = await execute({
+        schema,
+        document: generatedAltTextQuery,
+        contextValue: ctx,
+        variableValues: { id: relayId, language: "en" },
+      });
+      assertEquals(
+        result.errors != null,
+        true,
+        "non-owner should be denied during active window",
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "generatedAltText: any authenticated user allowed after window expires",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const { account } = await insertAccountWithActor(tx, {
+        username: "expired_window_user",
+        name: "User",
+        email: "expired_window_user@example.com",
+      });
+      const mediumId = generateUuidV7();
+      const relayId = await insertTestMedium(tx, mediumId);
+
+      // No KV entries at all — simulates the window having expired.
+      const ctx = makeUserContext(tx, account, {
+        altTextGenerator: makeAltTextModel("Old image."),
+      });
+      const result = await execute({
+        schema,
+        document: generatedAltTextQuery,
+        contextValue: ctx,
+        variableValues: { id: relayId, language: "en" },
+      });
+      assertEquals(
+        result.errors,
+        undefined,
+        "any authenticated user should succeed after window expires",
+      );
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "generatedAltText: two accounts uploading identical content both get access",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const { account: accountA } = await insertAccountWithActor(tx, {
+        username: "dedup_account_a",
+        name: "Account A",
+        email: "dedup_a@example.com",
+      });
+      const { account: accountB } = await insertAccountWithActor(tx, {
+        username: "dedup_account_b",
+        name: "Account B",
+        email: "dedup_b@example.com",
+      });
+      // Same medium row shared by content-hash deduplication.
+      const mediumId = generateUuidV7();
+      const relayId = await insertTestMedium(tx, mediumId);
+
+      const { kv, store } = createTestKv();
+      store.set(getMediumOwnerKey(mediumId, accountA.id), true);
+      store.set(getMediumOwnerKey(mediumId, accountB.id), true);
+      store.set(getMediumUploadWindowKey(mediumId), true);
+
+      for (const account of [accountA, accountB]) {
+        const ctx = makeUserContext(tx, account, {
+          kv,
+          altTextGenerator: makeAltTextModel("Shared image."),
+        });
+        const result = await execute({
+          schema,
+          document: generatedAltTextQuery,
+          contextValue: ctx,
+          variableValues: { id: relayId, language: "en" },
+        });
+        assertEquals(
+          result.errors,
+          undefined,
+          `${account.username} should be allowed`,
+        );
+      }
     });
   },
 });

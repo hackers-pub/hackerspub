@@ -756,7 +756,7 @@ type Medium implements Node {
   created: DateTime!
 
   """
-  AI-generated alternative text for this medium. Requires authentication. High-complexity operation (cost 1000). The context argument is truncated server-side to 1000 characters. Note: authorization is based on knowing the medium's ID (UUID); the mediumTable has no owner column.
+  AI-generated alternative text for this medium. Requires authentication. Within the 2-hour upload window only the uploader may call this field; after the window expires any authenticated user may call it (the medium is either publicly referenced or pending orphan cleanup). Multiple uploaders of identical content each get independent ownership entries, so content-hash deduplication does not grant the later uploader access to the earlier one's window. High-complexity operation (cost 1000). The context argument is truncated server-side to 1000 characters.
   """
   generatedAltText(context: String, language: Locale!): String
   height: Int
