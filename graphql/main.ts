@@ -1,6 +1,7 @@
 // Must be the first import — see instrument.ts for the rationale.
 import "./instrument.ts";
 
+import { getXForwardedRequest } from "@hongminhee/x-forwarded-fetch";
 import * as models from "./ai.ts";
 import { db } from "./db.ts";
 import { drive } from "./drive.ts";
@@ -19,6 +20,7 @@ const appleAppSiteAssociationJson = Deno.readTextFileSync(
 const yogaServer = createYogaServer();
 
 Deno.serve({ port: 8080 }, async (req, info) => {
+  req = await getXForwardedRequest(req);
   const url = new URL(req.url);
   const disk = drive.use();
   const uploadResponse = await handleMediumUploadProxy(req, kv, disk);
