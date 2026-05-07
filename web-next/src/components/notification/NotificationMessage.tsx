@@ -71,6 +71,7 @@ export function NotificationMessage(props: NotificationMessageProps) {
                   <Avatar
                     as={A}
                     href={node.local ? `/@${node.username}` : `/${node.handle}`}
+                    preload={false}
                   >
                     <AvatarImage
                       src={node.avatarUrl}
