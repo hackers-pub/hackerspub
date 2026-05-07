@@ -3,6 +3,7 @@ import { init as initPlausible } from "@plausible-analytics/tracker";
 import * as Sentry from "@sentry/solidstart";
 import { solidRouterBrowserTracingIntegration } from "@sentry/solidstart/solidrouter";
 import { mount, StartClient } from "@solidjs/start/client";
+import { render } from "solid-js/web";
 import "solid-devtools";
 import packageJson from "../package.json" with { type: "json" };
 
@@ -44,4 +45,26 @@ if (plausibleEnabled) {
   });
 }
 
-mount(() => <StartClient />, document.getElementById("app")!);
+const app = document.getElementById("app");
+if (app == null) throw new Error("#app element not found");
+
+const disposeHydration = mount(() => <StartClient />, app);
+
+function hasRenderedContent(element: Element): boolean {
+  return Array.from(element.childNodes).some((node) =>
+    node.nodeType === Node.ELEMENT_NODE ||
+    (node.nodeType === Node.TEXT_NODE && node.textContent?.trim())
+  );
+}
+
+setTimeout(() => {
+  if (hasRenderedContent(app)) return;
+
+  // Some browser extensions inject nodes outside <head>/<body> before the
+  // app boots, which can leave Solid's hydration stuck with an empty #app.
+  // Client rendering still works in that state, so recover instead of showing
+  // a permanent blank page.
+  disposeHydration();
+  app.replaceChildren();
+  render(() => <StartClient />, app);
+}, 1500);
