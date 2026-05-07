@@ -1,15 +1,18 @@
 import { EXPIRATION } from "@hackerspub/models/session";
 import { validateUuid } from "@hackerspub/models/uuid";
-import { getRequestProtocol, setCookie } from "@solidjs/start/http";
 import type { APIEvent } from "@solidjs/start/server";
 
-// Sets the session cookie server-side and returns 200.
-// This exists because setCookie() inside an inline "use server" function
-// produces a malformed Set-Cookie header in production builds when the
-// function is called as an RPC from the client (/_server endpoint).
+// Sets the session cookie server-side and returns 204.
 // The session ID is sent in the POST body to avoid it appearing in
 // browser history, server access logs, and Referer headers.
-export async function POST({ nativeEvent, request }: APIEvent) {
+//
+// Note: setCookie(nativeEvent, ...) from @solidjs/start/http is intentionally
+// NOT used here. In @solidjs/start 2.0.0-alpha.2, that function produces a
+// malformed Set-Cookie header in both "use server" RPCs and POST API route
+// handlers — the cookie name becomes "[METHOD] URL" instead of the intended
+// name. The workaround is to set the Set-Cookie header directly on the
+// Response object, bypassing the nativeEvent entirely.
+export async function POST({ request }: APIEvent) {
   const body = await request.json().catch(() => null) as
     | Record<string, unknown>
     | null;
@@ -17,11 +20,18 @@ export async function POST({ nativeEvent, request }: APIEvent) {
   if (id == null || !validateUuid(id)) {
     return new Response(null, { status: 400 });
   }
-  setCookie(nativeEvent, "session", id, {
-    httpOnly: true,
-    path: "/",
-    expires: new Date(Date.now() + EXPIRATION.total("millisecond")),
-    secure: getRequestProtocol(nativeEvent) === "https",
+  const secure = new URL(request.url).protocol === "https:";
+  const expires = new Date(Date.now() + EXPIRATION.total("millisecond"));
+  const cookie = [
+    `session=${id}`,
+    "HttpOnly",
+    "Path=/",
+    `Expires=${expires.toUTCString()}`,
+    "SameSite=Lax",
+    ...(secure ? ["Secure"] : []),
+  ].join("; ");
+  return new Response(null, {
+    status: 204,
+    headers: { "Set-Cookie": cookie },
   });
-  return new Response(null, { status: 204 });
 }
