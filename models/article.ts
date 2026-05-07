@@ -1336,6 +1336,7 @@ async function runArticleContentTranslation(
   // because the column is nullable in general, so assert.
   translate({
     model,
+    summarizationModel: summarizer,
     sourceLanguage: claimed.originalLanguage!,
     targetLanguage,
     text,

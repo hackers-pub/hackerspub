@@ -5,6 +5,7 @@ import type { LanguageModel } from "ai";
 
 export interface TranslationOptions {
   model: LanguageModel;
+  summarizationModel?: LanguageModel;
   sourceLanguage: string;
   targetLanguage: string;
   text: string;
@@ -79,7 +80,13 @@ export async function translate(options: TranslationOptions): Promise<string> {
   // when it actually needs context, instead of dumping every linked
   // page's full body into the system prompt up front (which made the
   // translator confuse the context for the text to translate).
-  contextSources.push(fetchWebPage);
+  contextSources.push(fetchWebPage({
+    maxCharsPerPage: 10_000,
+    maxTotalChars: 30_000,
+    ...(options.summarizationModel && {
+      summarize: { model: options.summarizationModel, maxChars: 3_000 },
+    }),
+  }));
 
   const result = await vertanaTranslate(
     options.model,
