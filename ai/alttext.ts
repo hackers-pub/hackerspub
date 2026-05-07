@@ -17,17 +17,24 @@ const PROMPT_LANGUAGES: Locale[] = (
   )
 ).map((f) => f.name.replace(/\.md$/, "")).filter(isLocale);
 
+const promptCache = new Map<string, string>();
+
 async function getAltTextPrompt(language: string): Promise<string> {
   const locale = new Intl.Locale(language);
   const promptLocale = negotiateLocale(locale, PROMPT_LANGUAGES) ??
     new Intl.Locale("en");
+  const cacheKey = promptLocale.baseName;
+  const cached = promptCache.get(cacheKey);
+  if (cached != null) return cached;
   const promptPath = join(
     import.meta.dirname!,
     "prompts",
     "alttext",
-    `${promptLocale.baseName}.md`,
+    `${cacheKey}.md`,
   );
-  return await readFile(promptPath, "utf8");
+  const content = await readFile(promptPath, "utf8");
+  promptCache.set(cacheKey, content);
+  return content;
 }
 
 export interface AltTextOptions {
