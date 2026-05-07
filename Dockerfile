@@ -17,7 +17,8 @@ RUN curl https://mise.run | sh
 
 WORKDIR /app
 COPY mise.toml /app/mise.toml
-RUN mise trust && mise install
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN \
+  mise trust && mise install
 
 COPY web/fonts /app/web/fonts
 

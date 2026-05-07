@@ -149,6 +149,7 @@ jobs:
         # don't get repo secrets, and PR builds don't need to upload
         # ephemeral source maps anyway.
         secrets: |
+          github_token=${{ github.token }}
           sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}
         tags: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-${{ steps.arch.outputs.arch }}
         labels: |
@@ -173,6 +174,8 @@ jobs:
         no-cache: "true"
         build-args:
           GIT_COMMIT=${{ github.sha }}
+        secrets: |
+          github_token=${{ github.token }}
         tags: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-${{ steps.arch.outputs.arch }}
         labels: |
           org.opencontainers.image.revision=${{ github.sha }}
