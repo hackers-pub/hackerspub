@@ -1,4 +1,4 @@
-import { query, type RouteDefinition } from "@solidjs/router";
+import { type RouteDefinition } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -8,6 +8,7 @@ import {
 } from "solid-relay";
 import { ForceGraph } from "~/components/ForceGraph.tsx";
 import type { treeQuery } from "./__generated__/treeQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   preload() {
@@ -28,7 +29,7 @@ const TreeQueryDocument = graphql`
   }
 `;
 
-const loadTreeQuery = query(
+const loadTreeQuery = routePreloadedQuery(
   () => loadQuery<treeQuery>(useRelayEnvironment()(), TreeQueryDocument, {}),
   "loadTreeQuery",
 );
