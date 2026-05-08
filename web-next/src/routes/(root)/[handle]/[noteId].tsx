@@ -15,6 +15,7 @@ import {
   For,
   type JSX,
   Match,
+  onCleanup,
   onMount,
   Show,
   splitProps,
@@ -113,7 +114,6 @@ const loadNotePageQuery = query(
       useRelayEnvironment()(),
       NoteIdPageQuery,
       { handle: username, noteId },
-      { fetchPolicy: "store-and-network" },
     ),
   NOTE_PAGE_QUERY_KEY,
 );
@@ -162,11 +162,9 @@ interface NotePageLoadedProps {
 function NotePageLoaded(props: NotePageLoadedProps) {
   const { onNoteCreated } = useNoteCompose();
 
-  onMount(() =>
-    onNoteCreated(() => {
-      void revalidateNotePageQueries();
-    })
-  );
+  onMount(() => {
+    onCleanup(onNoteCreated(() => void revalidateNotePageQueries()));
+  });
 
   const noteData = createPreloadedQuery<NoteIdPageQuery>(
     NoteIdPageQuery,
