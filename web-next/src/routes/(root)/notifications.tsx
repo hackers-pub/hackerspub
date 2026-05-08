@@ -1,4 +1,4 @@
-import { Navigate, query } from "@solidjs/router";
+import { Navigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -11,6 +11,7 @@ import { NotificationList } from "~/components/NotificationList.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { notificationsPageQuery } from "./__generated__/notificationsPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const notificationsPageQuery = graphql`
   query notificationsPageQuery {
@@ -20,7 +21,7 @@ const notificationsPageQuery = graphql`
   }
 `;
 
-const loadPageQuery = query(
+const loadPageQuery = routePreloadedQuery(
   () =>
     loadQuery<notificationsPageQuery>(
       useRelayEnvironment()(),
