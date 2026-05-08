@@ -20,6 +20,7 @@ export function NoteHeader(props: NoteHeaderProps) {
     graphql`
       fragment NoteHeader_note on Note {
         uuid
+        sourceId
         visibility
         published
         url
@@ -68,7 +69,7 @@ export function NoteHeader(props: NoteHeaderProps) {
               href={n.url ?? n.iri}
               internalHref={`/${
                 n.actor.local ? "@" + n.actor.username : n.actor.handle
-              }/${n.uuid}`}
+              }/${n.sourceId ?? n.uuid}`}
             >
               <Timestamp value={n.published} capitalizeFirstLetter />
             </InternalLink>

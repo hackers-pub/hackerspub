@@ -135,7 +135,23 @@ export const Post = builder.drizzleInterface("postTable", {
     }
   },
   fields: (t) => ({
-    uuid: t.expose("id", { type: "UUID" }),
+    uuid: t.expose("id", {
+      type: "UUID",
+      description:
+        "The post row's primary key, stable for the lifetime of the post. " +
+        "⚠️ This is **not** the UUID embedded in `Post.url` for source-backed " +
+        "local posts: local notes that originate here use `Note.sourceId` " +
+        "(= `noteSourceTable.id`) and local articles use " +
+        "`Article.publishedYear` + `Article.slug`. The row PK is the right " +
+        "token whenever there is no local source row — federated remote " +
+        "posts, local share wrappers (boosts, which carry no source and copy " +
+        "the shared post's URL), and Questions (whose originals come only " +
+        "from remote instances and whose local rows exist solely as share " +
+        "wrappers) — and for the internal route that resolves them. " +
+        "`actorByHandle.postByUuid` accepts either the row PK or a source " +
+        "UUID, but resolving by `uuid` for a source-backed local post yields " +
+        "a URL that differs from `Post.url`.",
+    }),
     iri: t.field({
       type: "URL",
       select: {
@@ -198,6 +214,16 @@ export const Post = builder.drizzleInterface("postTable", {
     url: t.field({
       type: "URL",
       nullable: true,
+      description:
+        "The canonical, human-readable URL of this post. For source-backed " +
+        "local posts the path encodes the local source identifier — " +
+        "`Note.sourceId` for notes, `Article.publishedYear` + `Article.slug` " +
+        "for articles — **not** `Post.uuid`. For federated remote posts and " +
+        "local share wrappers (boosts) this is whatever URL the originating " +
+        "instance advertised — copied from the shared post in the boost case " +
+        "— and is unrelated to the wrapper's own row PK. Prefer this field " +
+        "over hand-building a path from `Post.uuid`: `uuid` is the row PK and " +
+        "does not match the path here for source-backed local posts.",
       select: {
         columns: { url: true },
       },
@@ -277,6 +303,19 @@ export const Note = builder.drizzleNode("postTable", {
   id: {
     column: (post) => post.id,
   },
+  fields: (t) => ({
+    sourceId: t.expose("noteSourceId", {
+      type: "UUID",
+      nullable: true,
+      description:
+        "The local source UUID for this note — `noteSourceTable.id`, the " +
+        "identifier embedded in `Post.url` (`/@username/<sourceId>`). " +
+        "Non-null only for source-backed local notes (notes originally " +
+        "composed on this instance). Null for federated remote notes and for " +
+        "local share wrappers (boosts), since neither carries a " +
+        "`noteSourceTable` row; for those, fall back to `Post.uuid`.",
+    }),
+  }),
 });
 
 export const Article = builder.drizzleNode("postTable", {
@@ -433,6 +472,16 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
   }),
 });
 
+// Question originals are only persisted from federated remote instances
+// (see `persistPost` in models/post.ts) — there is no local question
+// creation pipeline. Local Question rows can still exist as share
+// wrappers when a local user boosts a remote question (`sharePost` in
+// models/post.ts copies the shared post's `type`). Neither case carries
+// a local source row, and the `post_note_source_id_check` constraint in
+// models/schema.ts forbids `noteSourceId` on rows whose `type` isn't
+// `'Note'`. So Question intentionally exposes no `sourceId`: callers
+// should always use `Post.uuid` (the row PK) when building internal
+// permalinks for questions.
 export const Question = builder.drizzleNode("postTable", {
   variant: "Question",
   interfaces: [Post, Reactable],

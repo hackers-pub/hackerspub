@@ -294,10 +294,27 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     postByUuid: t.drizzleField({
       type: Post,
+      description:
+        "Look up one of this actor's posts by any of its UUIDs. Resolves a " +
+        "match against any of the three UUIDs a post can carry: `Post.uuid` " +
+        "(the post row's PK), `Note.sourceId` (= `noteSourceTable.id`, set " +
+        "only on source-backed local notes), or the local article source's " +
+        "id. The canonical permalink in `Post.url` uses the source UUID for " +
+        "source-backed local posts; for everything else (federated remote " +
+        "posts, local share wrappers, Questions) the row PK is the only " +
+        "token they can be looked up by, and is what the web-next route " +
+        "uses. The OR-match here keeps both styles working. Returns null if " +
+        "no post matches.",
       select: { columns: { id: true } },
       nullable: true,
       args: {
-        uuid: t.arg({ type: "UUID", required: true }),
+        uuid: t.arg({
+          type: "UUID",
+          required: true,
+          description:
+            "Any of `Post.uuid`, `Note.sourceId`, or the local article " +
+            "source's id.",
+        }),
       },
       async resolve(query, actor, args, ctx) {
         if (!validateUuid(args.uuid)) return null;

@@ -27,6 +27,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
       fragment QuotedNoteCard_note on Note {
         __id
         uuid
+        sourceId
         actor {
           name
           handle
@@ -92,8 +93,8 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                   <InternalLink
                     href={note.url ?? note.iri}
                     internalHref={note.actor.local
-                      ? `/@${note.actor.username}/${note.uuid}`
-                      : `/${note.actor.handle}/${note.uuid}`}
+                      ? `/@${note.actor.username}/${note.sourceId ?? note.uuid}`
+                      : `/${note.actor.handle}/${note.sourceId ?? note.uuid}`}
                   >
                     <Timestamp value={note.published} capitalizeFirstLetter />
                   </InternalLink>{" "}

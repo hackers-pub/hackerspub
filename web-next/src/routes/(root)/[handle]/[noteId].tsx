@@ -589,6 +589,9 @@ function ContextPostCard(props: ContextPostCardProps) {
           publishedYear
           slug
         }
+        ... on Note {
+          sourceId
+        }
         actor {
           name
           handle
@@ -681,8 +684,20 @@ function getContextPostInternalHref(
         return `/@${post.actor.username}/${post.publishedYear}/${post.slug}`;
       }
       return null;
-    case "Note":
+    case "Note": {
+      // Source-backed local notes: canonical permalink uses `sourceId`
+      // (= `noteSourceTable.id`), matching the path embedded in
+      // `Post.url`. For everything else — remote notes and local share
+      // wrappers (boosts), neither of which carries a source row — fall
+      // back to `uuid` (= `postTable.id`), the internal route token.
+      const id = post.sourceId ?? post.uuid;
+      return `/${actorSegment}/${id}`;
+    }
     case "Question":
+      // Question originals only come from remote instances, and any
+      // local Question rows exist solely as share wrappers (boosts).
+      // Neither case carries a local source row, so the row PK is the
+      // right token for our internal route.
       return `/${actorSegment}/${post.uuid}`;
     default:
       return null;

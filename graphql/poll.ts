@@ -17,8 +17,25 @@ import { NotAuthenticatedError } from "./session.ts";
 const pollBranchComplexity = { field: 0, multiplier: 0 } as const;
 const questionPollComplexity = { field: 0, multiplier: 0 } as const;
 
+// These re-declare a few fields that already exist on the `Post` interface
+// so they can carry the lower `questionPollComplexity` cost. Keep
+// descriptions in sync with the `Post` interface so consumers browsing
+// `Question` directly still see the warnings.
 builder.drizzleObjectFields(Question, (t) => ({
-  uuid: t.expose("id", { type: "UUID", complexity: questionPollComplexity }),
+  uuid: t.expose("id", {
+    type: "UUID",
+    complexity: questionPollComplexity,
+    description:
+      "The post row's primary key, stable for the lifetime of the post. " +
+      "Question originals are only persisted from federated remote " +
+      "instances; local Question rows may also exist as share wrappers " +
+      "(boosts) when a local user reshares a remote question. Neither case " +
+      "carries a local source row (a DB check constraint forbids " +
+      "`noteSourceId` on non-Note rows), so this row PK is the right token " +
+      "to use when building internal permalinks for questions — though " +
+      "`Post.url` will still reflect whatever URL the originating instance " +
+      "advertised, which generally won't share this UUID.",
+  }),
   iri: t.field({
     type: "URL",
     complexity: questionPollComplexity,
@@ -60,6 +77,12 @@ builder.drizzleObjectFields(Question, (t) => ({
     type: "URL",
     nullable: true,
     complexity: questionPollComplexity,
+    description:
+      "The canonical, human-readable URL of this question, as advertised by " +
+      "the originating instance. Question originals are only persisted from " +
+      "federated remote instances, and local share wrappers copy the shared " +
+      "post's URL, so this never encodes a local-source identifier — do not " +
+      "assume any relationship between its path and `Post.uuid`.",
     select: {
       columns: { url: true },
     },
