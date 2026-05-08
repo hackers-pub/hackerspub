@@ -354,6 +354,7 @@ function NoteInternal(props: NoteInternalProps) {
                         defaultVisibility={defaultVisibility()}
                         placeholder={t`Write a reply…`}
                         onSuccess={() => void revalidateNotePageQueries()}
+                        showReplyTarget={false}
                       />
                     </div>
                   </Show>
@@ -431,6 +432,7 @@ function QuestionInternal(props: QuestionInternalProps) {
                         defaultVisibility={defaultVisibility()}
                         placeholder={t`Write a reply…`}
                         onSuccess={() => void revalidateNotePageQueries()}
+                        showReplyTarget={false}
                       />
                     </div>
                   </Show>

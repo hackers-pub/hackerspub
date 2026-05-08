@@ -221,6 +221,7 @@ export interface NoteComposerProps {
   onQuoteRemoved?: () => void;
   replyTargetId?: string | null;
   defaultVisibility?: PostVisibility | null;
+  showReplyTarget?: boolean;
 }
 
 export function NoteComposer(props: NoteComposerProps) {
@@ -805,7 +806,7 @@ export function NoteComposer(props: NoteComposerProps) {
         }`}
       >
         {/* Reply target preview */}
-        <Show when={props.replyTargetId}>
+        <Show when={props.replyTargetId && props.showReplyTarget !== false}>
           <div class="rounded-md border border-input bg-muted/50 p-3">
             <p class="text-xs text-muted-foreground mb-2">{t`Replying to`}</p>
             <Show
@@ -1170,8 +1171,8 @@ export function NoteComposer(props: NoteComposerProps) {
               mediaItems.some((m) => m.uploading) ||
               (!!effectiveQuotedPostId() && !quotedPost() &&
                 !quoteFetchError()) ||
-              (!!props.replyTargetId && !replyTargetPost() &&
-                !replyTargetFetchError())}
+              (!!props.replyTargetId && props.showReplyTarget !== false &&
+                !replyTargetPost() && !replyTargetFetchError())}
           >
             <Show when={isCreating()} fallback={t`Create note`}>
               {t`Creating…`}
