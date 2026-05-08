@@ -4,7 +4,6 @@ import {
 } from "@hackerspub/models/searchPatterns";
 import {
   Navigate,
-  query,
   type RouteDefinition,
   useNavigate,
   useSearchParams,
@@ -24,6 +23,7 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { searchObjectPageQuery } from "./__generated__/searchObjectPageQuery.graphql.ts";
 import type { searchObjectPageQuery$data } from "./__generated__/searchObjectPageQuery.graphql.ts";
 import type { searchPostsPageQuery } from "./__generated__/searchPostsPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   preload({ location }) {
@@ -82,7 +82,7 @@ function getSearchType(searchQuery: string): "handle" | "url" | "posts" {
   return "posts";
 }
 
-const loadSearchPostsQuery = query(
+const loadSearchPostsQuery = routePreloadedQuery(
   (
     searchQuery: string,
     locale: string,
@@ -102,7 +102,7 @@ const loadSearchPostsQuery = query(
   "loadSearchPostsQuery",
 );
 
-const loadSearchObjectQuery = query(
+const loadSearchObjectQuery = routePreloadedQuery(
   (searchQuery: string) =>
     loadQuery<searchObjectPageQuery>(
       useRelayEnvironment()(),
