@@ -1,5 +1,5 @@
 import { Link, Meta } from "@solidjs/meta";
-import { query, type RouteDefinition, useParams } from "@solidjs/router";
+import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
 import {
@@ -24,6 +24,7 @@ import IconPin from "~icons/lucide/pin";
 import type { ProfilePagePinsQuery } from "./__generated__/ProfilePagePinsQuery.graphql.ts";
 import type { ProfilePagePostsQuery } from "./__generated__/ProfilePagePostsQuery.graphql.ts";
 import type { ProfilePageQuery } from "./__generated__/ProfilePageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -85,7 +86,7 @@ const ProfilePagePostsQuery = graphql`
   }
 `;
 
-const loadPageQuery = query(
+const loadPageQuery = routePreloadedQuery(
   (handle: string) =>
     loadQuery<ProfilePageQuery>(
       useRelayEnvironment()(),
@@ -95,7 +96,7 @@ const loadPageQuery = query(
   "loadProfilePageQuery",
 );
 
-const loadPagePinsQuery = query(
+const loadPagePinsQuery = routePreloadedQuery(
   (handle: string, locale: string) =>
     loadQuery<ProfilePagePinsQuery>(
       useRelayEnvironment()(),
@@ -106,7 +107,7 @@ const loadPagePinsQuery = query(
   PROFILE_PAGE_PINS_QUERY_KEY,
 );
 
-const loadPagePostsQuery = query(
+const loadPagePostsQuery = routePreloadedQuery(
   (handle: string, locale: string) =>
     loadQuery<ProfilePagePostsQuery>(
       useRelayEnvironment()(),
