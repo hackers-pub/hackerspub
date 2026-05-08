@@ -1,5 +1,6 @@
 import { isActor } from "@fedify/vocab";
 import { persistActor } from "@hackerspub/models/actor";
+import type { RelationsFilter } from "@hackerspub/models/db";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import { compileQuery, parseQuery } from "@hackerspub/models/search";
 import {
@@ -172,174 +173,188 @@ builder.queryFields((t) => ({
 
       const languages = args.languages ?? [];
 
-      const posts = await ctx.db.query.postTable.findMany({
-        where: {
-          AND: [
-            searchFilter,
-            signedAccount
-              ? getPostVisibilityFilter(signedAccount.actor)
-              : { visibility: "public" },
-            { sharedPostId: { isNull: true } },
-            languages.length < 1
-              ? (signedAccount?.hideForeignLanguages &&
-                  signedAccount.locales != null
-                ? { language: { in: expandLocales(signedAccount.locales) } }
-                : {})
-              : {
-                language: {
-                  in: expandLocales(
-                    languages.flatMap((l) =>
-                      l.language !== l.baseName
-                        ? [l.baseName, l.language]
-                        : [l.baseName]
-                    ),
+      const postFilter: RelationsFilter<"postTable"> = {
+        AND: [
+          searchFilter,
+          signedAccount
+            ? getPostVisibilityFilter(signedAccount.actor)
+            : { visibility: "public" },
+          { sharedPostId: { isNull: true } },
+          languages.length < 1
+            ? (signedAccount?.hideForeignLanguages &&
+                signedAccount.locales != null
+              ? { language: { in: expandLocales(signedAccount.locales) } }
+              : {})
+            : {
+              language: {
+                in: expandLocales(
+                  languages.flatMap((l) =>
+                    l.language !== l.baseName
+                      ? [l.baseName, l.language]
+                      : [l.baseName]
                   ),
-                },
-              },
-            until == null ? {} : { published: { lte: until } },
-          ],
-        },
-        with: {
-          actor: {
-            with: {
-              instance: true,
-              followers: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { followerId: signedAccount.actor.id },
-              },
-              blockees: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { blockeeId: signedAccount.actor.id },
-              },
-              blockers: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { blockerId: signedAccount.actor.id },
+                ),
               },
             },
-          },
-          link: { with: { creator: true } },
-          mentions: {
-            with: { actor: true },
-          },
-          media: true,
-          shares: {
-            where: signedAccount == null
-              ? { RAW: sql`false` }
-              : { actorId: signedAccount.actor.id },
-          },
-          reactions: {
-            where: signedAccount == null
-              ? { RAW: sql`false` }
-              : { actorId: signedAccount.actor.id },
-          },
-          replyTarget: {
-            with: {
-              actor: {
-                with: {
-                  instance: true,
-                  followers: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { followerId: signedAccount.actor.id },
-                  },
-                  blockees: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { blockeeId: signedAccount.actor.id },
-                  },
-                  blockers: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { blockerId: signedAccount.actor.id },
-                  },
-                },
-              },
-              link: { with: { creator: true } },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
-            },
-          },
-          sharedPost: {
-            with: {
-              actor: {
-                with: {
-                  instance: true,
-                  followers: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { followerId: signedAccount.actor.id },
-                  },
-                  blockees: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { blockeeId: signedAccount.actor.id },
-                  },
-                  blockers: {
-                    where: signedAccount == null
-                      ? { RAW: sql`false` }
-                      : { blockerId: signedAccount.actor.id },
-                  },
-                },
-              },
-              link: { with: { creator: true } },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
-              shares: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { actorId: signedAccount.actor.id },
-              },
-              reactions: {
-                where: signedAccount == null
-                  ? { RAW: sql`false` }
-                  : { actorId: signedAccount.actor.id },
-              },
-              replyTarget: {
-                with: {
-                  actor: {
-                    with: {
-                      instance: true,
-                      followers: {
-                        where: signedAccount == null
-                          ? { RAW: sql`false` }
-                          : { followerId: signedAccount.actor.id },
-                      },
-                      blockees: {
-                        where: signedAccount == null
-                          ? { RAW: sql`false` }
-                          : { blockeeId: signedAccount.actor.id },
-                      },
-                      blockers: {
-                        where: signedAccount == null
-                          ? { RAW: sql`false` }
-                          : { blockerId: signedAccount.actor.id },
-                      },
-                    },
-                  },
-                  link: { with: { creator: true } },
-                  mentions: {
-                    with: { actor: true },
-                  },
-                  media: true,
-                },
-              },
-            },
-          },
-        },
+          until == null ? {} : { published: { lte: until } },
+        ],
+      };
+
+      const postPage = await ctx.db.query.postTable.findMany({
+        where: postFilter,
         orderBy: { published: "desc" },
         limit: window + 1,
       });
 
+      const postIds = postPage.map(({ id }) => id);
+      const loadedPosts = postIds.length < 1 ? [] : await ctx.db.query.postTable
+        .findMany({
+          where: { id: { in: postIds } },
+          with: {
+            actor: {
+              with: {
+                instance: true,
+                followers: {
+                  where: signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { followerId: signedAccount.actor.id },
+                },
+                blockees: {
+                  where: signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { blockeeId: signedAccount.actor.id },
+                },
+                blockers: {
+                  where: signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { blockerId: signedAccount.actor.id },
+                },
+              },
+            },
+            link: { with: { creator: true } },
+            mentions: {
+              with: { actor: true },
+            },
+            media: true,
+            shares: {
+              where: signedAccount == null
+                ? { RAW: sql`false` }
+                : { actorId: signedAccount.actor.id },
+            },
+            reactions: {
+              where: signedAccount == null
+                ? { RAW: sql`false` }
+                : { actorId: signedAccount.actor.id },
+            },
+            replyTarget: {
+              with: {
+                actor: {
+                  with: {
+                    instance: true,
+                    followers: {
+                      where: signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { followerId: signedAccount.actor.id },
+                    },
+                    blockees: {
+                      where: signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockeeId: signedAccount.actor.id },
+                    },
+                    blockers: {
+                      where: signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockerId: signedAccount.actor.id },
+                    },
+                  },
+                },
+                link: { with: { creator: true } },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
+              },
+            },
+            sharedPost: {
+              with: {
+                actor: {
+                  with: {
+                    instance: true,
+                    followers: {
+                      where: signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { followerId: signedAccount.actor.id },
+                    },
+                    blockees: {
+                      where: signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockeeId: signedAccount.actor.id },
+                    },
+                    blockers: {
+                      where: signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockerId: signedAccount.actor.id },
+                    },
+                  },
+                },
+                link: { with: { creator: true } },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
+                shares: {
+                  where: signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { actorId: signedAccount.actor.id },
+                },
+                reactions: {
+                  where: signedAccount == null
+                    ? { RAW: sql`false` }
+                    : { actorId: signedAccount.actor.id },
+                },
+                replyTarget: {
+                  with: {
+                    actor: {
+                      with: {
+                        instance: true,
+                        followers: {
+                          where: signedAccount == null
+                            ? { RAW: sql`false` }
+                            : { followerId: signedAccount.actor.id },
+                        },
+                        blockees: {
+                          where: signedAccount == null
+                            ? { RAW: sql`false` }
+                            : { blockeeId: signedAccount.actor.id },
+                        },
+                        blockers: {
+                          where: signedAccount == null
+                            ? { RAW: sql`false` }
+                            : { blockerId: signedAccount.actor.id },
+                        },
+                      },
+                    },
+                    link: { with: { creator: true } },
+                    mentions: {
+                      with: { actor: true },
+                    },
+                    media: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { published: "desc" },
+        });
+      const postsById = new Map(loadedPosts.map((post) => [post.id, post]));
+      const posts = postPage.flatMap(({ id }) => {
+        const post = postsById.get(id);
+        return post == null ? [] : [post];
+      });
+
       return {
         pageInfo: {
-          hasNextPage: posts.length > window,
+          hasNextPage: postPage.length > window,
           hasPreviousPage: false,
           startCursor: posts.length < 2
             ? null

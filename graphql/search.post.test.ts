@@ -39,19 +39,19 @@ test("searchPost returns matching public posts and respects language filters", a
     });
     const { post: english } = await insertNotePost(tx, {
       account: author.account,
-      contentHtml: "<p>Relay search target</p>",
+      contentHtml: "<p>searchpostunique target English</p>",
       language: "en",
     });
     await insertNotePost(tx, {
       account: author.account,
-      contentHtml: "<p>Relay Japanese target</p>",
+      contentHtml: "<p>searchpostunique target Japanese</p>",
       language: "ja",
     });
 
     const allResults = await execute({
       schema,
       document: searchPostQuery,
-      variableValues: { query: "Relay", first: 10 },
+      variableValues: { query: "searchpostunique", first: 10 },
       contextValue: makeGuestContext(tx),
       onError: "NO_PROPAGATE",
     });
@@ -65,7 +65,11 @@ test("searchPost returns matching public posts and respects language filters", a
     const filteredResults = await execute({
       schema,
       document: searchPostQuery,
-      variableValues: { query: "Relay", languages: ["en"], first: 10 },
+      variableValues: {
+        query: "searchpostunique",
+        languages: ["en"],
+        first: 10,
+      },
       contextValue: makeGuestContext(tx),
       onError: "NO_PROPAGATE",
     });
@@ -76,6 +80,58 @@ test("searchPost returns matching public posts and respects language filters", a
         pageInfo: { hasNextPage: false, hasPreviousPage: false },
       },
     });
+  });
+});
+
+test("searchPost limits before hydrating post relations", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "searchpostpageauthor",
+      name: "Search Post Page Author",
+      email: "searchpostpageauthor@example.com",
+    });
+    const { post: oldest } = await insertNotePost(tx, {
+      account: author.account,
+      contentHtml: "<p>searchpostpaging oldest</p>",
+      published: new Date("2026-04-10T00:00:00.000Z"),
+    });
+    const { post: middle } = await insertNotePost(tx, {
+      account: author.account,
+      contentHtml: "<p>searchpostpaging middle</p>",
+      published: new Date("2026-04-11T00:00:00.000Z"),
+    });
+    const { post: newest } = await insertNotePost(tx, {
+      account: author.account,
+      contentHtml: "<p>searchpostpaging newest</p>",
+      published: new Date("2026-04-12T00:00:00.000Z"),
+    });
+
+    const result = await execute({
+      schema,
+      document: searchPostQuery,
+      variableValues: { query: "searchpostpaging", first: 2 },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = toPlainJson(result.data) as {
+      searchPost: { edges: Array<{ node: { id: string } }> };
+    };
+    assert.deepEqual(data, {
+      searchPost: {
+        edges: [
+          { node: { id: encodeGlobalID("Note", newest.id) } },
+          { node: { id: encodeGlobalID("Note", middle.id) } },
+        ],
+        pageInfo: { hasNextPage: true, hasPreviousPage: false },
+      },
+    });
+    assert.ok(
+      !data.searchPost.edges
+        .map((edge) => edge.node.id)
+        .includes(encodeGlobalID("Note", oldest.id)),
+    );
   });
 });
 
@@ -97,19 +153,19 @@ test("searchPost rejects invalid search syntax and respects hidden foreign langu
     });
     await insertNotePost(tx, {
       account: author.account,
-      contentHtml: "<p>Hidden English result</p>",
+      contentHtml: "<p>Hidden English searchpostforeign</p>",
       language: "en",
     });
     const { post: korean } = await insertNotePost(tx, {
       account: author.account,
-      contentHtml: "<p>Visible Korean result</p>",
+      contentHtml: "<p>Visible Korean searchpostforeign</p>",
       language: "ko",
     });
 
     const visibleResults = await execute({
       schema,
       document: searchPostQuery,
-      variableValues: { query: "result", first: 10 },
+      variableValues: { query: "searchpostforeign", first: 10 },
       contextValue: makeUserContext(tx, {
         ...account.account,
         hideForeignLanguages: true,
