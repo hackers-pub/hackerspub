@@ -1,3 +1,4 @@
+import { query } from "@solidjs/router";
 import {
   type CacheConfig,
   type FetchPolicy,
@@ -8,6 +9,7 @@ import {
   type OperationType,
   type VariablesOf,
 } from "relay-runtime";
+import type { PreloadedQuery } from "solid-relay";
 
 export interface RelayPreloadOptions {
   fetchPolicy?: FetchPolicy | null | undefined;
@@ -67,4 +69,38 @@ export function refreshRelayQuery<TQuery extends OperationType>(
       },
     });
   });
+}
+
+export function routePreloadedQuery<
+  TQuery extends OperationType,
+  TArgs extends unknown[],
+>(
+  loader: (...args: TArgs) => PreloadedQuery<TQuery>,
+  name: string,
+): ((...args: TArgs) => PreloadedQuery<TQuery>) & {
+  key: string;
+  keyFor: (...args: TArgs) => string;
+} {
+  const cached = query(loader, name) as
+    & ((...args: TArgs) => PreloadedQuery<
+      TQuery
+    >)
+    & {
+      key: string;
+      keyFor: (...args: TArgs) => string;
+    };
+  const wrapped = ((...args: TArgs) => {
+    const preloaded = cached(...args);
+    if (!preloaded.controls?.value.isDisposed()) return preloaded;
+
+    const fresh = loader(...args);
+    query.set(cached.keyFor(...args), fresh);
+    return fresh;
+  }) as ((...args: TArgs) => PreloadedQuery<TQuery>) & {
+    key: string;
+    keyFor: (...args: TArgs) => string;
+  };
+  wrapped.key = cached.key;
+  wrapped.keyFor = cached.keyFor;
+  return wrapped;
 }
