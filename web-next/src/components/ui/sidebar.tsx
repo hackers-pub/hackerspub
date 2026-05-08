@@ -439,7 +439,7 @@ const SidebarContent: Component<ComponentProps<"div">> = (props) => {
     <div
       data-sidebar="content"
       class={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto overscroll-contain group-data-[collapsible=icon]:overflow-hidden",
         local.class,
       )}
       {...others}
