@@ -1,4 +1,4 @@
-import { Navigate, query, revalidate, useNavigate } from "@solidjs/router";
+import { Navigate, revalidate, useNavigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import {
@@ -23,6 +23,7 @@ import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import type { mediaDeleteOrphanMediaMutation } from "./__generated__/mediaDeleteOrphanMediaMutation.graphql.ts";
 import type { mediaPageQuery } from "./__generated__/mediaPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const mediaPageQuery = graphql`
   query mediaPageQuery {
@@ -36,7 +37,7 @@ const mediaPageQuery = graphql`
   }
 `;
 
-const loadAdminMediaPageQuery = query(
+const loadAdminMediaPageQuery = routePreloadedQuery(
   () =>
     loadQuery<mediaPageQuery>(
       useRelayEnvironment()(),
