@@ -9,7 +9,10 @@ import {
   type OperationType,
   type VariablesOf,
 } from "relay-runtime";
+import { getOwner, type Owner, runWithOwner } from "solid-js";
 import type { PreloadedQuery } from "solid-relay";
+
+type MaybePromise<T> = T | Promise<T>;
 
 export interface RelayPreloadOptions {
   fetchPolicy?: FetchPolicy | null | undefined;
@@ -76,26 +79,78 @@ export function routePreloadedQuery<
 >(
   loader: TLoader,
   name: string,
-): TLoader & {
+): ((...args: Parameters<TLoader>) => MaybePromise<ReturnType<TLoader>>) & {
   key: string;
   keyFor: (...args: Parameters<TLoader>) => string;
 } {
-  const cached = query(loader, name) as unknown as TLoader & {
-    key: string;
-    keyFor: (...args: Parameters<TLoader>) => string;
-  };
+  const cached = query(loader, name) as unknown as
+    & ((
+      ...args: Parameters<TLoader>
+    ) => MaybePromise<ReturnType<TLoader>>)
+    & {
+      key: string;
+      keyFor: (...args: Parameters<TLoader>) => string;
+    };
   const wrapped = ((...args: Parameters<TLoader>) => {
-    const preloaded = cached(...args);
-    if (!preloaded.controls?.value.isDisposed()) return preloaded;
+    const key = cached.keyFor(...args);
+    const cachedValue = getCachedValue(key);
+    if (
+      cachedValue.exists &&
+      (cachedValue.value == null || isDisposed(cachedValue.value))
+    ) {
+      query.delete(key);
+    }
 
-    const fresh = loader(...args);
-    query.set(cached.keyFor(...args), fresh);
-    return fresh;
-  }) as TLoader & {
-    key: string;
-    keyFor: (...args: Parameters<TLoader>) => string;
-  };
+    const owner = getOwner();
+    const preloaded = cached(...args);
+    if (isPromiseLike(preloaded)) {
+      return preloaded.then((resolved) => {
+        if (!isDisposed(resolved)) return resolved;
+
+        query.delete(key);
+        return runLoader(owner, loader, args);
+      });
+    }
+    if (!isDisposed(preloaded)) return preloaded;
+
+    query.delete(key);
+    return runLoader(owner, loader, args);
+  }) as
+    & ((...args: Parameters<TLoader>) => MaybePromise<ReturnType<TLoader>>)
+    & {
+      key: string;
+      keyFor: (...args: Parameters<TLoader>) => string;
+    };
   wrapped.key = cached.key;
   wrapped.keyFor = cached.keyFor;
   return wrapped;
+}
+
+function isDisposed(preloaded: PreloadedQuery<OperationType>): boolean {
+  return preloaded.controls?.value.isDisposed() ?? false;
+}
+
+function isPromiseLike<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
+  return typeof value === "object" && value != null && "then" in value;
+}
+
+function getCachedValue(
+  key: string,
+):
+  | { exists: true; value: PreloadedQuery<OperationType> | undefined }
+  | { exists: false } {
+  try {
+    return { exists: true, value: query.get(key) };
+  } catch {
+    return { exists: false };
+  }
+}
+
+function runLoader<TLoader extends (...args: never[]) => unknown>(
+  owner: Owner | null,
+  loader: TLoader,
+  args: Parameters<TLoader>,
+): ReturnType<TLoader> {
+  if (owner == null) return loader(...args) as ReturnType<TLoader>;
+  return runWithOwner(owner, () => loader(...args)) as ReturnType<TLoader>;
 }
