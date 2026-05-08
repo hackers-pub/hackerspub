@@ -220,14 +220,31 @@ function functionContainsRelayLoadQuery(
 ): boolean {
   interface Scope {
     bindings: Set<string>;
+    functions: Map<string, any>;
   }
 
   const scopes: Scope[] = [];
   const currentScope = () => scopes[scopes.length - 1];
-  const pushScope = () => scopes.push({ bindings: new Set() });
+  const pushScope = () =>
+    scopes.push({ bindings: new Set(), functions: new Map() });
   const popScope = () => scopes.pop();
   const recordBinding = (name: string) => {
     currentScope()?.bindings.add(name);
+  };
+  const recordFunctionBinding = (name: string, fn: any) => {
+    const scope = currentScope();
+    scope?.bindings.add(name);
+    scope?.functions.set(name, fn);
+  };
+  const resolveFunctionBinding = (
+    name: string,
+  ): { found: boolean; fn?: any } => {
+    for (let i = scopes.length - 1; i >= 0; i--) {
+      const fn = scopes[i].functions.get(name);
+      if (fn != null) return { found: true, fn };
+      if (scopes[i].bindings.has(name)) return { found: true };
+    }
+    return { found: false };
   };
   const isShadowed = (name: string) => {
     for (let i = scopes.length - 1; i >= 0; i--) {
@@ -244,7 +261,9 @@ function functionContainsRelayLoadQuery(
   };
   const predeclareScopeBindings = (body: any) => {
     for (const statement of body?.body ?? []) {
-      predeclareStatementBinding(statement, recordBinding);
+      predeclareStatementBinding(statement, recordBinding, (name, fn) => {
+        recordFunctionBinding(name, fn);
+      });
     }
   };
 
@@ -270,30 +289,42 @@ function functionContainsRelayLoadQuery(
     return false;
   };
 
+  const visitedFunctions = new Set<any>();
+
+  const resolveCalledFunction = (call: any): any | undefined => {
+    if (call.callee?.type !== "Identifier") return undefined;
+
+    const binding = resolveFunctionBinding(call.callee.name);
+    if (binding.found) return binding.fn;
+    return resolveFunctionBindingFromAncestors(call.callee.name, call);
+  };
+
+  const visitFunction = (node: any): boolean => {
+    if (visitedFunctions.has(node)) return false;
+    visitedFunctions.add(node);
+
+    pushScope();
+    if (node.type !== "FunctionDeclaration" && node.id?.type === "Identifier") {
+      recordBinding(node.id.name);
+    }
+    recordParamBindings(node.params);
+    if (node.body?.type === "BlockStatement") {
+      predeclareScopeBindings(node.body);
+    }
+    const found = visit(node.body);
+    popScope();
+    return found;
+  };
+
   const visit = (node: any): boolean => {
     if (!node || typeof node !== "object") return false;
     if (isRelayLoadQueryCall(node)) return true;
 
     switch (node.type) {
       case "FunctionDeclaration":
-        pushScope();
-        recordParamBindings(node.params);
-        predeclareScopeBindings(node.body);
-        if (visit(node.body)) return true;
-        popScope();
-        return false;
-
       case "FunctionExpression":
       case "ArrowFunctionExpression":
-        pushScope();
-        if (node.id?.type === "Identifier") recordBinding(node.id.name);
-        recordParamBindings(node.params);
-        if (node.body?.type === "BlockStatement") {
-          predeclareScopeBindings(node.body);
-        }
-        if (visit(node.body)) return true;
-        popScope();
-        return false;
+        return visitFunction(node);
 
       case "BlockStatement":
         pushScope();
@@ -306,6 +337,9 @@ function functionContainsRelayLoadQuery(
 
       case "VariableDeclarator":
         recordPatternBindings(node.id);
+        if (node.id?.type === "Identifier" && isFunction(node.init)) {
+          recordFunctionBinding(node.id.name, node.init);
+        }
         return visit(node.init);
 
       case "ReturnStatement":
@@ -313,6 +347,7 @@ function functionContainsRelayLoadQuery(
         return visit(node.argument ?? node.expression);
 
       case "CallExpression":
+        if (visit(resolveCalledFunction(node))) return true;
         if (visit(node.callee)) return true;
         for (const arg of node.arguments ?? []) {
           if (visit(arg)) return true;
