@@ -1,7 +1,6 @@
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { Meta } from "@solidjs/meta";
 import {
-  query,
   revalidate,
   type RouteDefinition,
   useNavigate,
@@ -55,6 +54,7 @@ import type { NoteId_noteBody$key } from "./__generated__/NoteId_noteBody.graphq
 import type { NoteId_questionBody$key } from "./__generated__/NoteId_questionBody.graphql.ts";
 import type { NoteIdThreadQuery } from "./__generated__/NoteIdThreadQuery.graphql.ts";
 import type { NoteIdThread_post$key } from "./__generated__/NoteIdThread_post.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 type NoteIdPagePost = NonNullable<
   NonNullable<
@@ -108,7 +108,7 @@ const NoteIdPageQuery = graphql`
   }
 `;
 
-const loadNotePageQuery = query(
+const loadNotePageQuery = routePreloadedQuery(
   (username: string, noteId: Uuid) =>
     loadQuery<NoteIdPageQuery>(
       useRelayEnvironment()(),
@@ -128,7 +128,7 @@ const NoteIdThreadQuery = graphql`
   }
 `;
 
-const loadNoteThreadQuery = query(
+const loadNoteThreadQuery = routePreloadedQuery(
   (username: string, noteId: Uuid) =>
     loadQuery<NoteIdThreadQuery>(
       useRelayEnvironment()(),
