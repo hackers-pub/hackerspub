@@ -1,6 +1,5 @@
 import {
   A,
-  query,
   type RouteDefinition,
   type RouteSectionProps,
   useLocation,
@@ -20,6 +19,7 @@ import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
 import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { RootLayoutQuery } from "./__generated__/RootLayoutQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   preload() {
@@ -37,7 +37,7 @@ const RootLayoutQuery = graphql`
   }
 `;
 
-const loadRootLayoutQuery = query(
+const loadRootLayoutQuery = routePreloadedQuery(
   () =>
     loadQuery<RootLayoutQuery>(
       useRelayEnvironment()(),
