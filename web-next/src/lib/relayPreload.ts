@@ -127,8 +127,10 @@ export function routePreloadedQuery<
   return wrapped;
 }
 
-function isDisposed(preloaded: PreloadedQuery<OperationType>): boolean {
-  return preloaded.controls?.value.isDisposed() ?? false;
+function isDisposed(
+  preloaded: PreloadedQuery<OperationType> | null | undefined,
+): boolean {
+  return preloaded?.controls?.value.isDisposed() ?? false;
 }
 
 function isPromiseLike<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
