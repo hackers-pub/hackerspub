@@ -1,4 +1,4 @@
-import { query, type RouteDefinition, useParams } from "@solidjs/router";
+import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import {
@@ -20,6 +20,7 @@ import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { preferencesMutation } from "./__generated__/preferencesMutation.graphql.ts";
 import type { preferencesPageQuery } from "./__generated__/preferencesPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -46,7 +47,7 @@ const preferencesPageQuery = graphql`
   }
 `;
 
-const loadPreferencesPageQuery = query(
+const loadPreferencesPageQuery = routePreloadedQuery(
   (handle: string) =>
     loadQuery<preferencesPageQuery>(
       useRelayEnvironment()(),
