@@ -91,15 +91,6 @@ export function routePreloadedQuery<
   const cached = query(loader, name) as unknown as RoutePreloadedQuery<TLoader>;
   const wrapped = ((...args: Parameters<TLoader>) => {
     const key = cached.keyFor(...args);
-    const cachedValue = getCachedValue(key);
-    if (
-      cachedValue.exists &&
-      cachedValue.value != null &&
-      isDisposed(cachedValue.value)
-    ) {
-      query.delete(key);
-    }
-
     const owner = getOwner();
     const preloaded = cached(...args);
     if (isPromiseLike(preloaded)) {
@@ -128,18 +119,6 @@ function isDisposed(
 
 function isPromiseLike<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
   return typeof value === "object" && value != null && "then" in value;
-}
-
-function getCachedValue(
-  key: string,
-):
-  | { exists: true; value: PreloadedQuery<OperationType> | undefined }
-  | { exists: false } {
-  try {
-    return { exists: true, value: query.get(key) };
-  } catch {
-    return { exists: false };
-  }
 }
 
 function runCached<TLoader extends (...args: never[]) => unknown>(
