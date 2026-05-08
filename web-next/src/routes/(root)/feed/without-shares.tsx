@@ -1,4 +1,4 @@
-import { query, type RouteDefinition } from "@solidjs/router";
+import { type RouteDefinition } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -10,6 +10,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { withoutSharesFeedTimelineQuery } from "./__generated__/withoutSharesFeedTimelineQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   preload() {
@@ -24,7 +25,7 @@ const withoutSharesFeedTimelineQuery = graphql`
   }
 `;
 
-const loadWithoutSharesFeedTimelineQuery = query(
+const loadWithoutSharesFeedTimelineQuery = routePreloadedQuery(
   (locale: string) =>
     loadQuery<withoutSharesFeedTimelineQuery>(
       useRelayEnvironment()(),

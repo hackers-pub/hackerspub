@@ -1,5 +1,5 @@
 import { Meta } from "@solidjs/meta";
-import { query, type RouteDefinition, useParams } from "@solidjs/router";
+import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -13,6 +13,7 @@ import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { followingPageQuery } from "./__generated__/followingPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -37,7 +38,7 @@ const followingPageQuery = graphql`
   }
 `;
 
-const loadPageQuery = query(
+const loadPageQuery = routePreloadedQuery(
   (username: string) =>
     loadQuery<followingPageQuery>(
       useRelayEnvironment()(),

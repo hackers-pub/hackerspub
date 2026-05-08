@@ -1,5 +1,4 @@
 import {
-  query,
   type RouteDefinition,
   useNavigate,
   useSearchParams,
@@ -21,6 +20,7 @@ import {
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { authorizeInteractionPageQuery } from "./__generated__/authorizeInteractionPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 function stripAcctPrefix(uri: string): string {
   return uri.replace(/^acct:/i, "");
@@ -58,7 +58,7 @@ const authorizeInteractionPageQuery = graphql`
   }
 `;
 
-const loadPageQuery = query(
+const loadPageQuery = routePreloadedQuery(
   (uri: string) =>
     loadQuery<authorizeInteractionPageQuery>(
       useRelayEnvironment()(),

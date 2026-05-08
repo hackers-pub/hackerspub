@@ -1,5 +1,5 @@
 import { Meta } from "@solidjs/meta";
-import { query, type RouteDefinition, useParams } from "@solidjs/router";
+import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -19,6 +19,7 @@ import {
   profileContentRevalidating,
 } from "~/lib/profileContentQueries.ts";
 import type { notesPageQuery } from "./__generated__/notesPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -44,7 +45,7 @@ const notesPageQuery = graphql`
   }
 `;
 
-const loadPageQuery = query(
+const loadPageQuery = routePreloadedQuery(
   (handle: string) =>
     loadQuery<notesPageQuery>(
       useRelayEnvironment()(),

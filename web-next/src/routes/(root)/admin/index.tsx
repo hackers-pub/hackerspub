@@ -1,4 +1,4 @@
-import { Navigate, query } from "@solidjs/router";
+import { Navigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -11,6 +11,7 @@ import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { adminAccountsPageQuery } from "./__generated__/adminAccountsPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const adminAccountsPageQuery = graphql`
   query adminAccountsPageQuery($count: Int!, $cursor: String) {
@@ -21,7 +22,7 @@ const adminAccountsPageQuery = graphql`
   }
 `;
 
-const loadAdminAccountsPageQuery = query(
+const loadAdminAccountsPageQuery = routePreloadedQuery(
   () =>
     loadQuery<adminAccountsPageQuery>(
       useRelayEnvironment()(),

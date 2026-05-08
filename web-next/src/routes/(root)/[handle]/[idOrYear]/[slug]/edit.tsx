@@ -1,5 +1,4 @@
 import {
-  query,
   revalidate,
   type RouteDefinition,
   useNavigate,
@@ -29,6 +28,7 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { editPageQuery } from "./__generated__/editPageQuery.graphql.ts";
 import type { edit_article$key } from "./__generated__/edit_article.graphql.ts";
 import type { edit_updateArticle_Mutation } from "./__generated__/edit_updateArticle_Mutation.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -59,7 +59,7 @@ const editPageQueryDef = graphql`
   }
 `;
 
-const loadPageQuery = query(
+const loadPageQuery = routePreloadedQuery(
   (handle: string, idOrYear: string, slug: string) =>
     loadQuery<editPageQuery>(
       useRelayEnvironment()(),

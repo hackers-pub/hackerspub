@@ -1,4 +1,4 @@
-import { query, type RouteDefinition, useParams } from "@solidjs/router";
+import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
@@ -44,6 +44,7 @@ import type {
   inviteMutation,
 } from "./__generated__/inviteMutation.graphql.ts";
 import type { invitePageQuery } from "./__generated__/invitePageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -82,7 +83,7 @@ const invitePageQuery = graphql`
   }
 `;
 
-const loadInvitePageQuery = query(
+const loadInvitePageQuery = routePreloadedQuery(
   (handle: string) =>
     loadQuery<invitePageQuery>(
       useRelayEnvironment()(),

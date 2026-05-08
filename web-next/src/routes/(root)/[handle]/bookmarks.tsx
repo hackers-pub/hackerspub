@@ -1,7 +1,6 @@
 import {
   A,
   Navigate,
-  query,
   revalidate,
   type RouteDefinition,
   useParams,
@@ -31,6 +30,7 @@ import { WideContainer } from "~/components/WideContainer.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { bookmarksPageQuery } from "./__generated__/bookmarksPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -54,7 +54,7 @@ const bookmarksPageQuery = graphql`
   }
 `;
 
-const loadBookmarksPageQuery = query(
+const loadBookmarksPageQuery = routePreloadedQuery(
   (locale: string) =>
     loadQuery<bookmarksPageQuery>(
       useRelayEnvironment()(),

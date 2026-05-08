@@ -1,6 +1,5 @@
 import {
   A,
-  query,
   type RouteDefinition,
   useNavigate,
   useParams,
@@ -19,6 +18,7 @@ import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { newConnectionsQuery } from "./__generated__/newConnectionsQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const NewDraftConnectionsQuery = graphql`
   query newConnectionsQuery {
@@ -29,7 +29,7 @@ const NewDraftConnectionsQuery = graphql`
   }
 `;
 
-const loadNewDraftConnectionsQuery = query(
+const loadNewDraftConnectionsQuery = routePreloadedQuery(
   () =>
     loadQuery<newConnectionsQuery>(
       useRelayEnvironment()(),

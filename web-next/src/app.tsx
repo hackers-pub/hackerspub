@@ -1,7 +1,7 @@
 import { withSentryErrorBoundary } from "@sentry/solidstart";
 import { withSentryRouterRouting } from "@sentry/solidstart/solidrouter";
 import { MetaProvider } from "@solidjs/meta";
-import { query, Router } from "@solidjs/router";
+import { Router } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { ErrorBoundary, type ParentProps, Show, Suspense } from "solid-js";
 import {
@@ -29,6 +29,7 @@ const SentryErrorBoundary = withSentryErrorBoundary(ErrorBoundary);
 
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "~/app.css";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const appQuery = graphql`
   query appQuery {
@@ -36,7 +37,7 @@ const appQuery = graphql`
   }
 `;
 
-const loadAppQuery = query(
+const loadAppQuery = routePreloadedQuery(
   () =>
     loadQuery<appQuery>(
       useRelayEnvironment()(),

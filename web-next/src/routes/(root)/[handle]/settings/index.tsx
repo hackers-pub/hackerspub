@@ -1,4 +1,4 @@
-import { query, type RouteDefinition, useParams } from "@solidjs/router";
+import { type RouteDefinition, useParams } from "@solidjs/router";
 import { createDropzone } from "@soorria/solid-dropzone";
 import type {
   CropperCanvas,
@@ -44,6 +44,7 @@ import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import type { settingsForm_account$key } from "./__generated__/settingsForm_account.graphql.ts";
 import type { settingsMutation } from "./__generated__/settingsMutation.graphql.ts";
 import type { settingsPageQuery } from "./__generated__/settingsPageQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -67,7 +68,7 @@ const settingsPageQuery = graphql`
   }
 `;
 
-const loadPageQuery = query(
+const loadPageQuery = routePreloadedQuery(
   (handle: string) =>
     loadQuery<settingsPageQuery>(
       useRelayEnvironment()(),

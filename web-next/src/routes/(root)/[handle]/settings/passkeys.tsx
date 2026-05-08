@@ -3,7 +3,7 @@ import {
   type RegistrationResponseJSON,
   startRegistration,
 } from "@simplewebauthn/browser";
-import { query, type RouteDefinition, useParams } from "@solidjs/router";
+import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import {
@@ -49,6 +49,7 @@ import type { passkeysGetPasskeyRegistrationOptionsMutation } from "./__generate
 import type { passkeysPageQuery } from "./__generated__/passkeysPageQuery.graphql.ts";
 import type { passkeysRevokePasskeyMutation } from "./__generated__/passkeysRevokePasskeyMutation.graphql.ts";
 import type { passkeysVerifyPasskeyRegistrationMutation } from "./__generated__/passkeysVerifyPasskeyRegistrationMutation.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const PASSKEYS_PAGE_SIZE = 10 as const;
 
@@ -103,7 +104,7 @@ const passkeysFragment = graphql`
   }
 `;
 
-const loadPageQuery = query(
+const loadPageQuery = routePreloadedQuery(
   (
     handle: string,
     first: number = PASSKEYS_PAGE_SIZE,

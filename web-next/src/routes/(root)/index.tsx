@@ -1,4 +1,4 @@
-import { Navigate, query, type RouteDefinition } from "@solidjs/router";
+import { Navigate, type RouteDefinition } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Match, Show, Switch } from "solid-js";
 import {
@@ -7,6 +7,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import type { RootRoutesQuery } from "./__generated__/RootRoutesQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   preload() {
@@ -22,7 +23,7 @@ const RootRoutesQuery = graphql`
   }
 `;
 
-const loadRoutesQuery = query(
+const loadRoutesQuery = routePreloadedQuery(
   () =>
     loadQuery<RootRoutesQuery>(useRelayEnvironment()(), RootRoutesQuery, {}),
   "loadRoutesQuery",

@@ -1,10 +1,5 @@
 import { normalizeLocale } from "@hackerspub/models/i18n";
-import {
-  Navigate,
-  query,
-  type RouteDefinition,
-  useParams,
-} from "@solidjs/router";
+import { Navigate, type RouteDefinition, useParams } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
 import {
   type Disposable,
@@ -31,6 +26,7 @@ import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { LangPageQuery } from "./__generated__/LangPageQuery.graphql.ts";
 import type { LangPage_requestArticleTranslation_Mutation } from "./__generated__/LangPage_requestArticleTranslation_Mutation.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 import {
   ArticleBody,
   ArticleMetaHead,
@@ -158,7 +154,7 @@ const requestArticleTranslationMutation = graphql`
   }
 `;
 
-const loadLangPageQuery = query(
+const loadLangPageQuery = routePreloadedQuery(
   (handle: string, idOrYear: string, slug: string, language: string) =>
     loadQuery<LangPageQuery>(
       useRelayEnvironment()(),
