@@ -72,33 +72,28 @@ export function refreshRelayQuery<TQuery extends OperationType>(
 }
 
 export function routePreloadedQuery<
-  TQuery extends OperationType,
-  TArgs extends unknown[],
+  TLoader extends (...args: never[]) => PreloadedQuery<OperationType>,
 >(
-  loader: (...args: TArgs) => PreloadedQuery<TQuery>,
+  loader: TLoader,
   name: string,
-): ((...args: TArgs) => PreloadedQuery<TQuery>) & {
+): TLoader & {
   key: string;
-  keyFor: (...args: TArgs) => string;
+  keyFor: (...args: Parameters<TLoader>) => string;
 } {
-  const cached = query(loader, name) as
-    & ((...args: TArgs) => PreloadedQuery<
-      TQuery
-    >)
-    & {
-      key: string;
-      keyFor: (...args: TArgs) => string;
-    };
-  const wrapped = ((...args: TArgs) => {
+  const cached = query(loader, name) as unknown as TLoader & {
+    key: string;
+    keyFor: (...args: Parameters<TLoader>) => string;
+  };
+  const wrapped = ((...args: Parameters<TLoader>) => {
     const preloaded = cached(...args);
     if (!preloaded.controls?.value.isDisposed()) return preloaded;
 
     const fresh = loader(...args);
     query.set(cached.keyFor(...args), fresh);
     return fresh;
-  }) as ((...args: TArgs) => PreloadedQuery<TQuery>) & {
+  }) as TLoader & {
     key: string;
-    keyFor: (...args: TArgs) => string;
+    keyFor: (...args: Parameters<TLoader>) => string;
   };
   wrapped.key = cached.key;
   wrapped.keyFor = cached.keyFor;
