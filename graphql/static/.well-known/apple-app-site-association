@@ -1,4 +1,15 @@
 {
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "883MRT4TF9.pub.hackers.HackersPub",
+        "paths": [
+          "/*"
+        ]
+      }
+    ]
+  },
   "webcredentials": {
     "apps": [
       "883MRT4TF9.pub.hackers.HackersPub"
