@@ -12,11 +12,19 @@ import {
 import { getOwner, type Owner, runWithOwner } from "solid-js";
 import type { PreloadedQuery } from "solid-relay";
 
-type MaybePromise<T> = T | Promise<T>;
+export type MaybePromise<T> = T | Promise<T>;
 
 export interface RelayPreloadOptions {
   fetchPolicy?: FetchPolicy | null | undefined;
   networkCacheConfig?: CacheConfig | null | undefined;
+}
+
+export interface RoutePreloadedQuery<
+  TLoader extends (...args: never[]) => PreloadedQuery<OperationType>,
+> {
+  (...args: Parameters<TLoader>): MaybePromise<ReturnType<TLoader>>;
+  key: string;
+  keyFor: (...args: Parameters<TLoader>) => string;
 }
 
 function toFetchQueryPolicy(
@@ -79,18 +87,8 @@ export function routePreloadedQuery<
 >(
   loader: TLoader,
   name: string,
-): ((...args: Parameters<TLoader>) => MaybePromise<ReturnType<TLoader>>) & {
-  key: string;
-  keyFor: (...args: Parameters<TLoader>) => string;
-} {
-  const cached = query(loader, name) as unknown as
-    & ((
-      ...args: Parameters<TLoader>
-    ) => MaybePromise<ReturnType<TLoader>>)
-    & {
-      key: string;
-      keyFor: (...args: Parameters<TLoader>) => string;
-    };
+): RoutePreloadedQuery<TLoader> {
+  const cached = query(loader, name) as unknown as RoutePreloadedQuery<TLoader>;
   const wrapped = ((...args: Parameters<TLoader>) => {
     const key = cached.keyFor(...args);
     const cachedValue = getCachedValue(key);
@@ -116,12 +114,7 @@ export function routePreloadedQuery<
 
     query.delete(key);
     return runCached(owner, cached, args);
-  }) as
-    & ((...args: Parameters<TLoader>) => MaybePromise<ReturnType<TLoader>>)
-    & {
-      key: string;
-      keyFor: (...args: Parameters<TLoader>) => string;
-    };
+  }) as RoutePreloadedQuery<TLoader>;
   wrapped.key = cached.key;
   wrapped.keyFor = cached.keyFor;
   return wrapped;
