@@ -636,13 +636,13 @@ builder.queryFields((t) => ({
               OR: [{ instanceHost: host }, { handleHost: host }],
             },
           }),
-        );
+        ) as ActorRow | undefined;
       } else if (split.length === 1 && allowLocalHandle) {
         actor = await ctx.db.query.actorTable.findFirst(
           query({
             where: { username: split[0], accountId: { isNotNull: true } },
           }),
-        );
+        ) as ActorRow | undefined;
       }
       if (actor) return actor;
       // Guests must not trigger federation lookups: they would let

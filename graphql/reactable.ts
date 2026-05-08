@@ -118,15 +118,15 @@ export const ReactionGroup = builder.interfaceRef<ReactionGroup>(
           where,
         });
         return {
-          totalCount: group.count,
           postId: group.subject.id,
           where: group.where,
           ...reactorConnectionHelpers.resolve(reactions, args, ctx),
+          totalCount: group.count,
         };
       },
     }, {
       extensions: {
-        pothosDrizzleTable: relations.tablesConfig.reactionTable,
+        pothosDrizzleTable: relations.reactionTable,
       },
       fields: (t) => ({
         totalCount: t.exposeInt("totalCount"),

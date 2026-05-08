@@ -10,7 +10,31 @@ import SimpleObjectsPlugin from "@pothos/plugin-simple-objects";
 import TracingPlugin from "@pothos/plugin-tracing";
 import WithInputPlugin from "@pothos/plugin-with-input";
 import type { Transport } from "@upyo/core";
-import { getTableConfig } from "drizzle-orm/pg-core";
+import { getColumns } from "drizzle-orm";
+import { getTableConfig as _getTableConfig } from "drizzle-orm/pg-core";
+
+// In drizzle-orm rc.2, getTableConfig().primaryKeys[].columns returns different
+// column object instances than getColumns(). Pothos Drizzle plugin builds its
+// columnNameMappings from getColumns(), so we patch getTableConfig to return
+// the same column object references that getColumns() uses.
+function getTableConfig(
+  table: Parameters<typeof _getTableConfig>[0],
+): ReturnType<typeof _getTableConfig> {
+  const config = _getTableConfig(table);
+  const cols = getColumns(table);
+  const colByName = new Map(
+    Object.values(cols).map((col) => [col.name, col]),
+  );
+  // columns is read-only, so we patch via Object.defineProperty
+  config.primaryKeys.forEach((pk) => {
+    Object.defineProperty(pk, "columns", {
+      value: pk.columns.map((col) => colByName.get(col.name) ?? col),
+      writable: true,
+      configurable: true,
+    });
+  });
+  return config;
+}
 import type DataLoader from "dataloader";
 import type { Disk } from "flydrive";
 import type { LanguageModel } from "ai";

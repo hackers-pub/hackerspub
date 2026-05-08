@@ -151,7 +151,7 @@ const Poll = builder.drizzleNode("pollTable", {
           ctx,
           poll,
         );
-        return { totalCount: poll.votesCount, ...connection };
+        return { ...connection, totalCount: poll.votesCount };
       },
     }, {
       fields: (t) => ({
@@ -173,7 +173,7 @@ const Poll = builder.drizzleNode("pollTable", {
           ctx,
           poll,
         );
-        return { totalCount: poll.votersCount, ...connection };
+        return { ...connection, totalCount: poll.votersCount };
       },
     }, {
       fields: (t) => ({
@@ -217,7 +217,7 @@ const PollOption = builder.drizzleObject("pollOptionTable", {
           ctx,
           option,
         );
-        return { totalCount: option.votesCount, ...connection };
+        return { ...connection, totalCount: option.votesCount };
       },
     }, {
       fields: (t) => ({

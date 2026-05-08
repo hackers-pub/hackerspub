@@ -1,6 +1,5 @@
 import type { Actor } from "@hackerspub/models/schema";
-import { eq } from "drizzle-orm";
-import { desc } from "drizzle-orm/expressions";
+import { desc, eq } from "drizzle-orm";
 import { db } from "../../db.ts";
 import { define } from "../../utils.ts";
 

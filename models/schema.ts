@@ -51,7 +51,7 @@ export const accountTable = pgTable(
       .$type<Uuid>()
       .references((): AnyPgColumn => mediumTable.id, { onDelete: "set null" }),
     ogImageKey: text("og_image_key").unique(),
-    locales: varchar().array().$type<Locale[] | null>(),
+    locales: varchar().array().$type<Locale>(),
     moderator: boolean().notNull().default(false),
     notificationRead: timestamp("notification_read", { withTimezone: true }),
     leftInvitations: smallint("left_invitations").notNull(),
@@ -159,7 +159,7 @@ export const passkeyTable = pgTable(
     backedUp: boolean("backed_up").notNull(),
     transports: passkeyTransportEnum("transports")
       .array()
-      .$type<PasskeyTransport[]>(),
+      .$type<PasskeyTransport>(),
     lastUsed: timestamp("last_used", { withTimezone: true }),
     created: timestamp({ withTimezone: true })
       .notNull()
@@ -1227,7 +1227,7 @@ export const notificationTable = pgTable(
       .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
     actorIds: uuid("actor_ids")
       .array()
-      .$type<Uuid[]>()
+      .$type<Uuid>()
       .notNull()
       .default(sql`(ARRAY[]::uuid[])`),
     emoji: text(),

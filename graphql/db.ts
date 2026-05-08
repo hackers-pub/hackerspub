@@ -1,6 +1,5 @@
 import type { Database } from "@hackerspub/models/db";
 import { relations } from "@hackerspub/models/relations";
-import * as schema from "@hackerspub/models/schema";
 import { getLogger as getDatabaseLogger } from "@logtape/drizzle-orm";
 import { getLogger } from "@logtape/logtape";
 import { drizzle } from "drizzle-orm/postgres-js";
@@ -19,7 +18,6 @@ export const postgres = postgresJs(DATABASE_URL, {
   max: 20,
 });
 export const db: Database = drizzle({
-  schema,
   relations,
   client: postgres,
   logger: getDatabaseLogger(),

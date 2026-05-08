@@ -364,7 +364,7 @@ builder.drizzleObjectField(
     t.relatedConnection("articleDrafts", {
       type: ArticleDraft,
       authScopes: (parent) => ({
-        selfAccount: parent.id,
+        selfAccount: "id" in parent ? parent.id : undefined,
       }),
       query: () => ({
         orderBy: { updated: "desc" },

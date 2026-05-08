@@ -1,0 +1,566 @@
+{
+  "id": "aa748f30-ce63-424f-9229-9f80a8320d2d",
+  "prevIds": [
+    "b308e1c1-c3f3-4464-827a-caa5435f2f94"
+  ],
+  "version": "8",
+  "dialect": "postgres",
+  "ddl": [
+    {
+      "isRlsEnabled": false,
+      "name": "account_email",
+      "schema": "public",
+      "entityType": "tables"
+    },
+    {
+      "columns": [
+        "email"
+      ],
+      "nameExplicit": false,
+      "name": "account_email_pkey",
+      "schema": "public",
+      "table": "account_email",
+      "entityType": "pks"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "email",
+      "schema": "public",
+      "table": "account_email",
+      "entityType": "columns"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "account_id",
+      "schema": "public",
+      "table": "account_email",
+      "entityType": "columns"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "public",
+      "schema": "public",
+      "table": "account_email",
+      "entityType": "columns"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "verified",
+      "schema": "public",
+      "table": "account_email",
+      "entityType": "columns"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "CURRENT_TIMESTAMP",
+      "generated": null,
+      "identity": null,
+      "name": "created",
+      "schema": "public",
+      "table": "account_email",
+      "entityType": "columns"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "account_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "account",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "account_email_account_id_account_id_fk",
+      "schema": "public",
+      "table": "account_email",
+      "entityType": "fks"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "account_key",
+      "schema": "public",
+      "entityType": "tables"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "account_id",
+      "schema": "public",
+      "table": "account_key",
+      "entityType": "columns"
+    },
+    {
+      "type": "account_key_type",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "schema": "public",
+      "table": "account_key",
+      "entityType": "columns"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "public",
+      "schema": "public",
+      "table": "account_key",
+      "entityType": "columns"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "private",
+      "schema": "public",
+      "table": "account_key",
+      "entityType": "columns"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "CURRENT_TIMESTAMP",
+      "generated": null,
+      "identity": null,
+      "name": "created",
+      "schema": "public",
+      "table": "account_key",
+      "entityType": "columns"
+    },
+    {
+      "columns": [
+        "account_id",
+        "type"
+      ],
+      "nameExplicit": false,
+      "name": "account_key_account_id_type_pk",
+      "schema": "public",
+      "table": "account_key",
+      "entityType": "pks"
+    },
+    {
+      "value": "\"account_key\".\"public\" IS JSON OBJECT",
+      "name": "account_key_public_check",
+      "schema": "public",
+      "table": "account_key",
+      "entityType": "checks"
+    },
+    {
+      "value": "\"account_key\".\"private\" IS JSON OBJECT",
+      "name": "account_key_private_check",
+      "schema": "public",
+      "table": "account_key",
+      "entityType": "checks"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "account_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "account",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "account_key_account_id_account_id_fk",
+      "schema": "public",
+      "table": "account_key",
+      "entityType": "fks"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "account_link",
+      "schema": "public",
+      "entityType": "tables"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "account_id",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "columns"
+    },
+    {
+      "type": "smallint",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "index",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "columns"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "columns"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "url",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "columns"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "handle",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "columns"
+    },
+    {
+      "type": "account_link_icon",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'web'",
+      "generated": null,
+      "identity": null,
+      "name": "icon",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "columns"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "verified",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "columns"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "CURRENT_TIMESTAMP",
+      "generated": null,
+      "identity": null,
+      "name": "created",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "columns"
+    },
+    {
+      "columns": [
+        "account_id",
+        "index"
+      ],
+      "nameExplicit": false,
+      "name": "account_link_account_id_index_pk",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "pks"
+    },
+    {
+      "value": "\n        char_length(\"account_link\".\"name\") <= 50 AND\n        \"account_link\".\"name\" !~ '^[[:space:]]' AND\n        \"account_link\".\"name\" !~ '[[:space:]]$'\n      ",
+      "name": "account_link_name_check",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "checks"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "account_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "account",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "account_link_account_id_account_id_fk",
+      "schema": "public",
+      "table": "account_link",
+      "entityType": "fks"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "account",
+      "schema": "public",
+      "entityType": "tables"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "account_pkey",
+      "schema": "public",
+      "table": "account",
+      "entityType": "pks"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "schema": "public",
+      "table": "account",
+      "entityType": "columns"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "username",
+      "schema": "public",
+      "table": "account",
+      "entityType": "columns"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "username_changed",
+      "schema": "public",
+      "table": "account",
+      "entityType": "columns"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "schema": "public",
+      "table": "account",
+      "entityType": "columns"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "bio",
+      "schema": "public",
+      "table": "account",
+      "entityType": "columns"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "CURRENT_TIMESTAMP",
+      "generated": null,
+      "identity": null,
+      "name": "updated",
+      "schema": "public",
+      "table": "account",
+      "entityType": "columns"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "CURRENT_TIMESTAMP",
+      "generated": null,
+      "identity": null,
+      "name": "created",
+      "schema": "public",
+      "table": "account",
+      "entityType": "columns"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": "CURRENT_TIMESTAMP",
+      "generated": null,
+      "identity": null,
+      "name": "deleted",
+      "schema": "public",
+      "table": "account",
+      "entityType": "columns"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "username"
+      ],
+      "nullsNotDistinct": false,
+      "name": "account_username_unique",
+      "schema": "public",
+      "table": "account",
+      "entityType": "uniques"
+    },
+    {
+      "value": "\"account\".\"username\" ~ '^[a-z0-9_]{1,50}$'",
+      "name": "account_username_check",
+      "schema": "public",
+      "table": "account",
+      "entityType": "checks"
+    },
+    {
+      "value": "\n        char_length(\"account\".\"name\") <= 50 AND\n        \"account\".\"name\" !~ '^[[:space:]]' AND\n        \"account\".\"name\" !~ '[[:space:]]$'\n      ",
+      "name": "account_name_check",
+      "schema": "public",
+      "table": "account",
+      "entityType": "checks"
+    },
+    {
+      "values": [
+        "Ed25519",
+        "RSASSA-PKCS1-v1_5"
+      ],
+      "name": "account_key_type",
+      "schema": "public",
+      "entityType": "enums"
+    },
+    {
+      "values": [
+        "activitypub",
+        "bluesky",
+        "codeberg",
+        "dev",
+        "discord",
+        "facebook",
+        "github",
+        "gitlab",
+        "hackernews",
+        "hollo",
+        "instagram",
+        "keybase",
+        "lemmy",
+        "linkedin",
+        "lobsters",
+        "mastodon",
+        "matrix",
+        "misskey",
+        "pixelfed",
+        "pleroma",
+        "qiita",
+        "reddit",
+        "sourcehut",
+        "threads",
+        "velog",
+        "web",
+        "wikipedia",
+        "x",
+        "zenn"
+      ],
+      "name": "account_link_icon",
+      "schema": "public",
+      "entityType": "enums"
+    },
+    {
+      "values": [
+        "person",
+        "organization"
+      ],
+      "name": "account_type",
+      "schema": "public",
+      "entityType": "enums"
+    }
+  ],
+  "renames": []
+}
