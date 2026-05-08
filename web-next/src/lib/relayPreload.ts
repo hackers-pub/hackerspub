@@ -96,7 +96,8 @@ export function routePreloadedQuery<
     const cachedValue = getCachedValue(key);
     if (
       cachedValue.exists &&
-      (cachedValue.value == null || isDisposed(cachedValue.value))
+      cachedValue.value != null &&
+      isDisposed(cachedValue.value)
     ) {
       query.delete(key);
     }
