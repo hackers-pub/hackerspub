@@ -66,6 +66,36 @@ Deno.test("flags object spread of loadQuery result", () => {
   assertEquals(diagnostics[0].id, RULE);
 });
 
+Deno.test("flags named router query fetchers", () => {
+  const diagnostics = lint(`
+    import { query } from "@solidjs/router";
+    import { loadQuery } from "solid-relay";
+
+    function fetcher() {
+      return loadQuery(env, PageQuery, {});
+    }
+
+    const loadPageQuery = query(fetcher, "loadPageQuery");
+  `);
+  assertEquals(diagnostics.length, 1);
+  assertEquals(diagnostics[0].id, RULE);
+});
+
+Deno.test("flags named router query fetchers declared later", () => {
+  const diagnostics = lint(`
+    import { query } from "@solidjs/router";
+    import { loadQuery } from "solid-relay";
+
+    const loadPageQuery = query(fetcher, "loadPageQuery");
+
+    function fetcher() {
+      return loadQuery(env, PageQuery, {});
+    }
+  `);
+  assertEquals(diagnostics.length, 1);
+  assertEquals(diagnostics[0].id, RULE);
+});
+
 Deno.test("does not flag plain router query fetchers", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
@@ -118,6 +148,23 @@ Deno.test("respects shadowed query binding", () => {
   assertEquals(diagnostics.length, 0);
 });
 
+Deno.test("respects later shadowed query binding", () => {
+  const diagnostics = lint(`
+    import { query } from "@solidjs/router";
+    import { loadQuery } from "solid-relay";
+
+    function setup() {
+      const loadPageQuery = query(
+        () => loadQuery(env, PageQuery, {}),
+        "loadPageQuery",
+      );
+      const query = () => ({ kind: "not router query" });
+      return loadPageQuery;
+    }
+  `);
+  assertEquals(diagnostics.length, 0);
+});
+
 Deno.test("respects shadowed loadQuery binding inside fetcher", () => {
   const diagnostics = lint(`
     import { query } from "@solidjs/router";
@@ -127,6 +174,23 @@ Deno.test("respects shadowed loadQuery binding inside fetcher", () => {
       () => {
         const loadQuery = () => ({ kind: "not relay" });
         return loadQuery();
+      },
+      "loadPageQuery",
+    );
+  `);
+  assertEquals(diagnostics.length, 0);
+});
+
+Deno.test("respects later shadowed loadQuery binding inside fetcher", () => {
+  const diagnostics = lint(`
+    import { query } from "@solidjs/router";
+    import { loadQuery } from "solid-relay";
+
+    const loadPageQuery = query(
+      () => {
+        const result = loadQuery(env, PageQuery, {});
+        const loadQuery = () => ({ kind: "not relay" });
+        return result;
       },
       "loadPageQuery",
     );

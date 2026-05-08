@@ -18,27 +18,53 @@ const plugin: Deno.lint.Plugin = {
         type ImportBinding =
           | { kind: "named"; imported: string }
           | { kind: "namespace" };
+        interface Scope {
+          bindings: Set<string>;
+          functions: Map<string, any>;
+        }
 
         const routerImports = new Map<string, ImportBinding>();
         const relayImports = new Map<string, ImportBinding>();
-        const scopes: Set<string>[] = [];
+        const scopes: Scope[] = [];
 
-        const pushScope = () => scopes.push(new Set());
+        const currentScope = () => scopes[scopes.length - 1];
+        const pushScope = () =>
+          scopes.push({ bindings: new Set(), functions: new Map() });
         const popScope = () => scopes.pop();
         const recordBinding = (name: string) => {
-          scopes[scopes.length - 1]?.add(name);
+          currentScope()?.bindings.add(name);
+        };
+        const recordFunctionBinding = (name: string, fn: any) => {
+          const scope = currentScope();
+          scope?.bindings.add(name);
+          scope?.functions.set(name, fn);
         };
         const isShadowed = (name: string) => {
           for (let i = scopes.length - 1; i >= 0; i--) {
-            if (scopes[i].has(name)) return true;
+            if (scopes[i].bindings.has(name)) return true;
           }
           return false;
+        };
+        const resolveFunctionBinding = (name: string): any | undefined => {
+          for (let i = scopes.length - 1; i >= 0; i--) {
+            const fn = scopes[i].functions.get(name);
+            if (fn != null) return fn;
+            if (scopes[i].bindings.has(name)) return undefined;
+          }
+          return undefined;
         };
         const recordPatternBindings = (pattern: any) => {
           walkPatternIdentifiers(pattern, recordBinding);
         };
         const recordParamBindings = (params: any[] | undefined) => {
           for (const param of params ?? []) recordPatternBindings(param);
+        };
+        const predeclareScopeBindings = (body: any) => {
+          for (const statement of body?.body ?? []) {
+            predeclareStatementBinding(statement, recordBinding, (name, fn) => {
+              recordFunctionBinding(name, fn);
+            });
+          }
         };
 
         const isRouterQueryCall = (call: any): boolean => {
@@ -75,7 +101,10 @@ const plugin: Deno.lint.Plugin = {
           parent?.type === "FunctionDeclaration";
 
         return {
-          Program: pushScope,
+          Program(node: any) {
+            pushScope();
+            predeclareScopeBindings(node);
+          },
           "Program:exit": popScope,
 
           ImportDeclaration(node: any) {
@@ -103,9 +132,9 @@ const plugin: Deno.lint.Plugin = {
           },
 
           FunctionDeclaration(node: any) {
-            if (node.id?.type === "Identifier") recordBinding(node.id.name);
             pushScope();
             recordParamBindings(node.params);
+            predeclareScopeBindings(node.body);
           },
           "FunctionDeclaration:exit": popScope,
 
@@ -113,18 +142,23 @@ const plugin: Deno.lint.Plugin = {
             pushScope();
             if (node.id?.type === "Identifier") recordBinding(node.id.name);
             recordParamBindings(node.params);
+            predeclareScopeBindings(node.body);
           },
           "FunctionExpression:exit": popScope,
 
           ArrowFunctionExpression(node: any) {
             pushScope();
             recordParamBindings(node.params);
+            if (node.body?.type === "BlockStatement") {
+              predeclareScopeBindings(node.body);
+            }
           },
           "ArrowFunctionExpression:exit": popScope,
 
           BlockStatement(node: any) {
             if (isFunctionParent(node.parent)) return;
             pushScope();
+            predeclareScopeBindings(node);
             if (node.parent?.type === "CatchClause" && node.parent.param) {
               recordPatternBindings(node.parent.param);
             }
@@ -135,13 +169,26 @@ const plugin: Deno.lint.Plugin = {
 
           VariableDeclarator(node: any) {
             recordPatternBindings(node.id);
+            if (node.id?.type === "Identifier" && isFunction(node.init)) {
+              recordFunctionBinding(node.id.name, node.init);
+            }
           },
 
           CallExpression(node: any) {
             if (!isRouterQueryCall(node)) return;
             const fetcher = node.arguments?.[0];
-            if (!isFunction(fetcher)) return;
-            if (!functionContainsRelayLoadQuery(fetcher, relayImports)) return;
+            const resolvedFetcher = isFunction(fetcher)
+              ? fetcher
+              : fetcher?.type === "Identifier"
+              ? resolveFunctionBinding(fetcher.name) ??
+                resolveFunctionBindingFromAncestors(fetcher.name, node)
+              : undefined;
+            if (!isFunction(resolvedFetcher)) return;
+            if (
+              !functionContainsRelayLoadQuery(resolvedFetcher, relayImports)
+            ) {
+              return;
+            }
 
             context.report({
               node,
@@ -158,7 +205,8 @@ export default plugin;
 
 function isFunction(node: any): boolean {
   return node?.type === "ArrowFunctionExpression" ||
-    node?.type === "FunctionExpression";
+    node?.type === "FunctionExpression" ||
+    node?.type === "FunctionDeclaration";
 }
 
 function functionContainsRelayLoadQuery(
@@ -170,15 +218,20 @@ function functionContainsRelayLoadQuery(
     }
   >,
 ): boolean {
-  const scopes: Set<string>[] = [];
-  const pushScope = () => scopes.push(new Set());
+  interface Scope {
+    bindings: Set<string>;
+  }
+
+  const scopes: Scope[] = [];
+  const currentScope = () => scopes[scopes.length - 1];
+  const pushScope = () => scopes.push({ bindings: new Set() });
   const popScope = () => scopes.pop();
   const recordBinding = (name: string) => {
-    scopes[scopes.length - 1]?.add(name);
+    currentScope()?.bindings.add(name);
   };
   const isShadowed = (name: string) => {
     for (let i = scopes.length - 1; i >= 0; i--) {
-      if (scopes[i].has(name)) return true;
+      if (scopes[i].bindings.has(name)) return true;
     }
     return false;
   };
@@ -188,6 +241,11 @@ function functionContainsRelayLoadQuery(
   };
   const recordParamBindings = (params: any[] | undefined) => {
     for (const param of params ?? []) recordPatternBindings(param);
+  };
+  const predeclareScopeBindings = (body: any) => {
+    for (const statement of body?.body ?? []) {
+      predeclareStatementBinding(statement, recordBinding);
+    }
   };
 
   const isRelayLoadQueryCall = (node: any): boolean => {
@@ -218,9 +276,9 @@ function functionContainsRelayLoadQuery(
 
     switch (node.type) {
       case "FunctionDeclaration":
-        if (node.id?.type === "Identifier") recordBinding(node.id.name);
         pushScope();
         recordParamBindings(node.params);
+        predeclareScopeBindings(node.body);
         if (visit(node.body)) return true;
         popScope();
         return false;
@@ -230,12 +288,16 @@ function functionContainsRelayLoadQuery(
         pushScope();
         if (node.id?.type === "Identifier") recordBinding(node.id.name);
         recordParamBindings(node.params);
+        if (node.body?.type === "BlockStatement") {
+          predeclareScopeBindings(node.body);
+        }
         if (visit(node.body)) return true;
         popScope();
         return false;
 
       case "BlockStatement":
         pushScope();
+        predeclareScopeBindings(node);
         for (const stmt of node.body ?? []) {
           if (visit(stmt)) return true;
         }
@@ -245,6 +307,24 @@ function functionContainsRelayLoadQuery(
       case "VariableDeclarator":
         recordPatternBindings(node.id);
         return visit(node.init);
+
+      case "ReturnStatement":
+      case "ExpressionStatement":
+        return visit(node.argument ?? node.expression);
+
+      case "CallExpression":
+        if (visit(node.callee)) return true;
+        for (const arg of node.arguments ?? []) {
+          if (visit(arg)) return true;
+        }
+        return false;
+
+      case "AwaitExpression":
+      case "ChainExpression":
+      case "TSAsExpression":
+      case "TSSatisfiesExpression":
+      case "TSNonNullExpression":
+        return visit(node.argument ?? node.expression);
 
       case "ObjectExpression":
         for (const prop of node.properties ?? []) {
@@ -277,8 +357,102 @@ function functionContainsRelayLoadQuery(
 
   pushScope();
   recordParamBindings(fn.params);
+  if (fn.body?.type === "BlockStatement") {
+    predeclareScopeBindings(fn.body);
+  }
   const found = visit(fn.body);
   popScope();
+  return found;
+}
+
+function predeclareStatementBinding(
+  statement: any,
+  recordBinding: (name: string) => void,
+  recordFunctionBinding?: (name: string, fn: any) => void,
+): void {
+  switch (statement?.type) {
+    case "FunctionDeclaration":
+      if (statement.id?.type === "Identifier") {
+        recordFunctionBinding?.(statement.id.name, statement);
+        if (recordFunctionBinding == null) recordBinding(statement.id.name);
+      }
+      return;
+    case "VariableDeclaration":
+      for (const declaration of statement.declarations ?? []) {
+        walkPatternIdentifiers(declaration.id, recordBinding);
+        if (
+          declaration.id?.type === "Identifier" &&
+          isFunction(declaration.init)
+        ) {
+          recordFunctionBinding?.(declaration.id.name, declaration.init);
+        }
+      }
+      return;
+    case "ClassDeclaration":
+      if (statement.id?.type === "Identifier") recordBinding(statement.id.name);
+      return;
+  }
+}
+
+function resolveFunctionBindingFromAncestors(
+  name: string,
+  node: any,
+): any | undefined {
+  for (let current = node?.parent; current; current = current.parent) {
+    const body = scopeStatements(current);
+    if (body == null) continue;
+    const binding = findFunctionBindingInStatements(name, body);
+    if (binding.found) return binding.fn;
+  }
+  return undefined;
+}
+
+function scopeStatements(node: any): any[] | undefined {
+  if (node?.type === "Program") return node.body;
+  if (
+    node?.type === "FunctionDeclaration" ||
+    node?.type === "FunctionExpression" ||
+    node?.type === "ArrowFunctionExpression"
+  ) {
+    return node.body?.type === "BlockStatement" ? node.body.body : undefined;
+  }
+  if (node?.type === "BlockStatement" && !isFunction(node.parent)) {
+    return node.body;
+  }
+  return undefined;
+}
+
+function findFunctionBindingInStatements(
+  name: string,
+  statements: any[],
+): { found: boolean; fn?: any } {
+  for (const statement of statements ?? []) {
+    if (
+      statement?.type === "FunctionDeclaration" &&
+      statement.id?.name === name
+    ) {
+      return { found: true, fn: statement };
+    }
+    if (statement?.type !== "VariableDeclaration") continue;
+    for (const declaration of statement.declarations ?? []) {
+      if (!patternContainsIdentifier(declaration.id, name)) continue;
+      return {
+        found: true,
+        fn:
+          declaration.id?.type === "Identifier" && isFunction(declaration.init)
+            ? declaration.init
+            : undefined,
+      };
+    }
+  }
+  return { found: false };
+}
+
+function patternContainsIdentifier(pattern: any, name: string): boolean {
+  let found = false;
+  walkPatternIdentifiers(pattern, (identifier) => {
+    if (identifier === name) found = true;
+  });
   return found;
 }
 
