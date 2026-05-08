@@ -109,13 +109,13 @@ export function routePreloadedQuery<
         if (!isDisposed(resolved)) return resolved;
 
         query.delete(key);
-        return runLoader(owner, loader, args);
+        return runCached(owner, cached, args);
       });
     }
     if (!isDisposed(preloaded)) return preloaded;
 
     query.delete(key);
-    return runLoader(owner, loader, args);
+    return runCached(owner, cached, args);
   }) as
     & ((...args: Parameters<TLoader>) => MaybePromise<ReturnType<TLoader>>)
     & {
@@ -147,11 +147,11 @@ function getCachedValue(
   }
 }
 
-function runLoader<TLoader extends (...args: never[]) => unknown>(
+function runCached<TLoader extends (...args: never[]) => unknown>(
   owner: Owner | null,
-  loader: TLoader,
+  cached: TLoader,
   args: Parameters<TLoader>,
 ): ReturnType<TLoader> {
-  if (owner == null) return loader(...args) as ReturnType<TLoader>;
-  return runWithOwner(owner, () => loader(...args)) as ReturnType<TLoader>;
+  if (owner == null) return cached(...args) as ReturnType<TLoader>;
+  return runWithOwner(owner, () => cached(...args)) as ReturnType<TLoader>;
 }
