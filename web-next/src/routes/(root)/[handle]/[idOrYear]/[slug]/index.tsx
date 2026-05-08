@@ -1,12 +1,7 @@
 import { normalizeLocale } from "@hackerspub/models/i18n";
 import type { Toc } from "@hackerspub/models/markup";
 import { Link, Meta } from "@solidjs/meta";
-import {
-  query,
-  revalidate,
-  type RouteDefinition,
-  useParams,
-} from "@solidjs/router";
+import { revalidate, type RouteDefinition, useParams } from "@solidjs/router";
 import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { createSignal, For, onMount, Show } from "solid-js";
@@ -46,6 +41,7 @@ import type { Slug_head$key } from "./__generated__/Slug_head.graphql.ts";
 import type { Slug_languageSwitcher$key } from "./__generated__/Slug_languageSwitcher.graphql.ts";
 import type { Slug_replies$key } from "./__generated__/Slug_replies.graphql.ts";
 import type { Slug_viewer$key } from "./__generated__/Slug_viewer.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -83,7 +79,7 @@ const SlugPageQueryDef = graphql`
   }
 `;
 
-const loadPageQuery = query(
+const loadPageQuery = routePreloadedQuery(
   (handle: string, idOrYear: string, slug: string) =>
     loadQuery<SlugPageQuery>(
       useRelayEnvironment()(),
