@@ -1,4 +1,4 @@
-import { query, type RouteDefinition } from "@solidjs/router";
+import { type RouteDefinition } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -11,6 +11,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 export const route = {
   preload() {
@@ -37,7 +38,7 @@ const fediverseTimelineQuery = graphql`
   }
 `;
 
-const loadFediverseTimelineQuery = query(
+const loadFediverseTimelineQuery = routePreloadedQuery(
   (locale: string, languages: readonly string[]) =>
     loadQuery<fediverseTimelineQuery>(
       useRelayEnvironment()(),
