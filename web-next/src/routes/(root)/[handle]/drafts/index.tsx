@@ -1,4 +1,4 @@
-import { A, query, type RouteDefinition, useParams } from "@solidjs/router";
+import { A, type RouteDefinition, useParams } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
 import { ConnectionHandler, graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
@@ -27,6 +27,7 @@ import { showToast } from "~/components/ui/toast.tsx";
 import type { draftsQuery } from "./__generated__/draftsQuery.graphql.ts";
 import type { draftsDeleteMutation } from "./__generated__/draftsDeleteMutation.graphql.ts";
 import type { draftsPaginationFragment$key } from "./__generated__/draftsPaginationFragment.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const DRAFTS_PAGE_SIZE = 50 as const;
 
@@ -86,7 +87,7 @@ const DeleteDraftMutation = graphql`
   }
 `;
 
-const loadDraftsQuery = query(
+const loadDraftsQuery = routePreloadedQuery(
   (first: number = DRAFTS_PAGE_SIZE, after: string | null = null) =>
     loadQuery<draftsQuery>(
       useRelayEnvironment()(),
