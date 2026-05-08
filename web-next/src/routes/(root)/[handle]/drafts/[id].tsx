@@ -1,4 +1,4 @@
-import { A, query, type RouteDefinition, useParams } from "@solidjs/router";
+import { A, type RouteDefinition, useParams } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -13,6 +13,7 @@ import { WideContainer } from "~/components/WideContainer.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { IdQuery } from "./__generated__/IdQuery.graphql.ts";
+import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const EditDraftViewerQuery = graphql`
   query IdQuery {
@@ -23,7 +24,7 @@ const EditDraftViewerQuery = graphql`
   }
 `;
 
-const loadEditDraftViewerQuery = query(
+const loadEditDraftViewerQuery = routePreloadedQuery(
   () =>
     loadQuery<IdQuery>(
       useRelayEnvironment()(),
