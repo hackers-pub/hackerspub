@@ -113,6 +113,7 @@ const loadNotePageQuery = query(
       useRelayEnvironment()(),
       NoteIdPageQuery,
       { handle: username, noteId },
+      { fetchPolicy: "store-and-network" },
     ),
   NOTE_PAGE_QUERY_KEY,
 );

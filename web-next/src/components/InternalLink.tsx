@@ -16,10 +16,10 @@ export function InternalLink(props: InternalLinkProps) {
   function onClick(event: MouseEvent) {
     if (event.metaKey || event.ctrlKey || event.shiftKey) {
       // let the browser handle the click for new tab / window
-      (event.target as HTMLAnchorElement).href = internalProps.internalHref
-        .toString();
+      const anchor = event.currentTarget as HTMLAnchorElement;
+      anchor.href = internalProps.internalHref.toString();
       setTimeout(() => {
-        (event.target as HTMLAnchorElement).href = props.href ?? "";
+        anchor.href = props.href ?? "";
       }, 1);
       return;
     }
