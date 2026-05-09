@@ -4,7 +4,13 @@ import type {
   GraphQLResponse,
   IEnvironment,
 } from "relay-runtime";
-import { Environment, Network, RecordSource, Store } from "relay-runtime";
+import {
+  Environment,
+  Network,
+  Observable,
+  RecordSource,
+  Store,
+} from "relay-runtime";
 import { getRequestEvent, isServer } from "solid-js/web";
 import { getApiUrl } from "~/lib/env.ts";
 import { readSessionCookie } from "~/lib/sessionCookie.ts";
@@ -52,6 +58,12 @@ const fetchFn: FetchFunction = async (
 
   const event = getRequestEvent();
   const sessionId = readSessionCookie(event?.request);
+  // Propagate the inbound request's abort signal to the upstream fetch so
+  // that when the client unsubscribes the Relay observable (which closes
+  // the inbound `/_server` request), the GraphQL server — and any AI work
+  // it's blocked on, e.g. alt-text generation — gets cancelled too instead
+  // of running to completion uselessly.
+  const upstreamSignal = event?.request.signal;
   // Per-event user identity for any Sentry capture below. Relay loaders
   // fire from `route.preload()` (e.g. the layout's own `loadRootLayoutQuery`)
   // before any component renders, which is before `(root).tsx`'s render
@@ -79,9 +91,18 @@ const fetchFn: FetchFunction = async (
       },
       credentials: "include",
       body: JSON.stringify({ query: params.text, variables }),
+      signal: upstreamSignal,
     });
     body = await response.json();
   } catch (cause) {
+    // The client unsubscribed (e.g. the user clicked Cancel on alt-text
+    // generation) and that closed our inbound request, which in turn
+    // aborted the upstream fetch. This is a normal cancellation, not a
+    // defect — don't page anyone via Sentry. We narrow on the error name
+    // rather than just `upstreamSignal.aborted` so that a real fetch /
+    // JSON-parse failure that happens to land while an unrelated abort
+    // is in flight still gets captured.
+    if (cause instanceof Error && cause.name === "AbortError") throw cause;
     // Upstream unreachable / connection reset / non-JSON body. Relay
     // catches network errors internally and only logs them to the
     // console (see comment below), so without an explicit capture here
@@ -142,10 +163,51 @@ const fetchFn: FetchFunction = async (
 let clientEnvironment: IEnvironment | undefined;
 const requestEnvironmentKey = Symbol("relayEnvironment");
 
+// On the client `fetchFn` is replaced by SolidStart's server-function
+// proxy, which exposes `withOptions` for binding `RequestInit` (incl.
+// `signal`) onto the underlying `fetch` to `/_server`. The proxy isn't
+// part of the `FetchFunction` type, so we narrow it ourselves.
+type ClientFetchFn = FetchFunction & {
+  withOptions: (options: RequestInit) => FetchFunction;
+};
+
 function createRelayEnvironment(): IEnvironment {
-  const network = Network.create((params, variables, cacheConfig) => {
-    return fetchFn(params, variables, cacheConfig);
-  });
+  const network = Network.create((params, variables, cacheConfig) =>
+    Observable.create<GraphQLResponse>((sink) => {
+      const controller = new AbortController();
+      // SSR runs `fetchFn` in-process; the server-side `try/catch` already
+      // propagates the inbound request's signal to the upstream fetch, so
+      // the client-side controller is only meaningful in the browser.
+      const callable: FetchFunction = isServer
+        ? fetchFn
+        : (fetchFn as ClientFetchFn).withOptions({
+          signal: controller.signal,
+        });
+      // `FetchFunction` may return a Promise *or* a Subscribable. Route
+      // both through `Observable.from` so the inner subscription's
+      // `next`/`complete`/`error` are forwarded faithfully and we can
+      // unsubscribe it from cleanup.
+      const inner = Observable.from(callable(params, variables, cacheConfig))
+        .subscribe({
+          next: (response) => sink.next(response),
+          complete: () => sink.complete(),
+          error: (error: Error) => {
+            // Treat aborts as a normal completion: the subscriber is
+            // gone, and we don't want a toast or a Sentry capture for a
+            // deliberate user-initiated cancellation.
+            if (controller.signal.aborted) {
+              sink.complete();
+              return;
+            }
+            sink.error(error);
+          },
+        });
+      return () => {
+        controller.abort();
+        inner.unsubscribe();
+      };
+    })
+  );
   const store = new Store(new RecordSource());
   return new Environment({ store, network });
 }
