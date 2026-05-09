@@ -662,6 +662,11 @@ builder.queryFields((t) => ({
         ) as ActorRow | undefined;
       }
       if (actor) return actor;
+      // Only `user@host` (with non-empty parts) is a resolvable handle.
+      // URLs should go through `actorByUrl`; bare usernames or malformed
+      // handles can't be resolved via WebFinger and would otherwise crash
+      // on `new URL("…")` inside Fedify.
+      if (split.length !== 2 || split[0] === "" || split[1] === "") return null;
       // Guests must not trigger federation lookups: they would let
       // unauthenticated callers spawn outbound WebFinger / actor fetches
       // and persist arbitrary remote actors.
@@ -669,10 +674,12 @@ builder.queryFields((t) => ({
       const documentLoader = await ctx.fedCtx.getDocumentLoader({
         identifier: ctx.account.id,
       });
-      const actorObject = await ctx.fedCtx.lookupObject(
-        handle,
-        { documentLoader },
-      );
+      let actorObject;
+      try {
+        actorObject = await ctx.fedCtx.lookupObject(handle, { documentLoader });
+      } catch {
+        return null;
+      }
       if (!isActor(actorObject)) return null;
       return await persistActor(ctx.fedCtx, actorObject, { documentLoader });
     },

@@ -6,6 +6,7 @@ import {
 import { graphql } from "relay-runtime";
 import { createEffect, Show } from "solid-js";
 import {
+  createFragment,
   createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
@@ -19,61 +20,89 @@ import {
 } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { authorizeInteractionPageQuery } from "./__generated__/authorizeInteractionPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import type { authorizeInteractionPageByHandleQuery } from "./__generated__/authorizeInteractionPageByHandleQuery.graphql.ts";
+import type { authorizeInteractionPageByUrlQuery } from "./__generated__/authorizeInteractionPageByUrlQuery.graphql.ts";
+import type { authorizeInteractionPage_actor$key } from "./__generated__/authorizeInteractionPage_actor.graphql.ts";
 
 function stripAcctPrefix(uri: string): string {
   return uri.replace(/^acct:/i, "");
 }
 
-export const route = {
-  preload(args) {
-    const raw = new URLSearchParams(args.location.search).get("uri") ?? "";
-    const uri = stripAcctPrefix(raw);
-    if (uri) {
-      void loadPageQuery(uri);
-    }
-  },
-} satisfies RouteDefinition;
+type Lookup =
+  | { kind: "handle"; value: string }
+  | { kind: "url"; value: string };
 
-const authorizeInteractionPageQuery = graphql`
-  query authorizeInteractionPageQuery($uri: String!) {
+function classify(raw: string): Lookup | undefined {
+  const uri = stripAcctPrefix(raw);
+  if (!uri) return undefined;
+  if (URL.canParse(uri)) {
+    const parsed = new URL(uri);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return { kind: "url", value: uri };
+    }
+  }
+  return { kind: "handle", value: uri };
+}
+
+const authorizeInteractionPageByHandleQuery = graphql`
+  query authorizeInteractionPageByHandleQuery($handle: String!) {
     viewer {
       username
     }
-    actorByHandle(handle: $uri) {
-      name
-      rawName
-      username
-      handle
-      avatarUrl
-      avatarInitials
-      url
-      iri
-      instance {
-        host
-      }
-      ...FollowButton_actor
+    actorByHandle(handle: $handle) {
+      ...authorizeInteractionPage_actor
     }
   }
 `;
 
-const loadPageQuery = routePreloadedQuery(
-  (uri: string) =>
-    loadQuery<authorizeInteractionPageQuery>(
+const authorizeInteractionPageByUrlQuery = graphql`
+  query authorizeInteractionPageByUrlQuery($url: URL!) {
+    viewer {
+      username
+    }
+    actorByUrl(url: $url) {
+      ...authorizeInteractionPage_actor
+    }
+  }
+`;
+
+const loadByHandleQuery = routePreloadedQuery(
+  (handle: string) =>
+    loadQuery<authorizeInteractionPageByHandleQuery>(
       useRelayEnvironment()(),
-      authorizeInteractionPageQuery,
-      { uri },
+      authorizeInteractionPageByHandleQuery,
+      { handle },
     ),
-  "loadAuthorizeInteractionPageQuery",
+  "loadAuthorizeInteractionPageByHandleQuery",
 );
+
+const loadByUrlQuery = routePreloadedQuery(
+  (url: string) =>
+    loadQuery<authorizeInteractionPageByUrlQuery>(
+      useRelayEnvironment()(),
+      authorizeInteractionPageByUrlQuery,
+      { url },
+    ),
+  "loadAuthorizeInteractionPageByUrlQuery",
+);
+
+export const route = {
+  preload(args) {
+    const raw = new URLSearchParams(args.location.search).get("uri") ?? "";
+    const lookup = classify(raw);
+    if (!lookup) return;
+    if (lookup.kind === "handle") void loadByHandleQuery(lookup.value);
+    else void loadByUrlQuery(lookup.value);
+  },
+} satisfies RouteDefinition;
 
 export default function AuthorizeInteractionPage() {
   const { t } = useLingui();
   const [searchParams] = useSearchParams();
-  const uri = () => {
+  const lookup = () => {
     const raw = searchParams.uri as string | undefined;
-    return raw ? stripAcctPrefix(raw) : undefined;
+    return raw ? classify(raw) : undefined;
   };
 
   return (
@@ -82,127 +111,188 @@ export default function AuthorizeInteractionPage() {
       <div class="max-w-2xl mx-auto">
         <Show
           keyed
-          when={uri()}
+          when={lookup()}
           fallback={
             <div class="rounded-lg border p-6" role="alert">
               <p class="text-destructive">{t`No user URI provided.`}</p>
             </div>
           }
         >
-          {(validUri) => <AuthorizeInteractionContent uri={validUri} />}
+          {(validLookup) =>
+            validLookup.kind === "handle"
+              ? <ByHandle handle={validLookup.value} />
+              : <ByUrl url={validLookup.value} />}
         </Show>
       </div>
     </div>
   );
 }
 
-function AuthorizeInteractionContent(props: { uri: string }) {
-  const { t } = useLingui();
-  const navigate = useNavigate();
-
-  const data = createPreloadedQuery<authorizeInteractionPageQuery>(
-    authorizeInteractionPageQuery,
-    () => loadPageQuery(props.uri),
+function ByHandle(props: { handle: string }) {
+  const data = createPreloadedQuery<authorizeInteractionPageByHandleQuery>(
+    authorizeInteractionPageByHandleQuery,
+    () => loadByHandleQuery(props.handle),
   );
-
-  createEffect(() => {
-    const result = data();
-    if (!result) return;
-    if (!result.viewer) {
-      const currentUrl = `/authorize_interaction?uri=${
-        encodeURIComponent(props.uri)
-      }`;
-      navigate(`/sign?next=${encodeURIComponent(currentUrl)}`, {
-        replace: true,
-      });
-    }
-  });
-
   return (
     <Show keyed when={data()}>
       {(result) => (
-        <Show when={result.viewer}>
-          <div class="rounded-lg border p-6 space-y-4">
-            <h1 class="text-lg font-semibold">
-              {t`Follow from your account`}
-            </h1>
+        <Frame
+          uri={props.handle}
+          viewerUsername={result.viewer?.username}
+          $actor={result.actorByHandle ?? null}
+        />
+      )}
+    </Show>
+  );
+}
 
-            <Show
-              keyed
-              when={result.actorByHandle}
-              fallback={
-                <div class="rounded-md border p-4">
-                  <code class="text-sm break-all">{props.uri}</code>
-                </div>
-              }
-            >
-              {(actor) => (
-                <>
-                  <p class="text-sm text-muted-foreground">
-                    {t`You are about to follow ${actor.name ?? actor.handle}.`}
-                  </p>
+function ByUrl(props: { url: string }) {
+  const data = createPreloadedQuery<authorizeInteractionPageByUrlQuery>(
+    authorizeInteractionPageByUrlQuery,
+    () => loadByUrlQuery(props.url),
+  );
+  return (
+    <Show keyed when={data()}>
+      {(result) => (
+        <Frame
+          uri={props.url}
+          viewerUsername={result.viewer?.username}
+          $actor={result.actorByUrl ?? null}
+        />
+      )}
+    </Show>
+  );
+}
 
-                  <div class="rounded-md border p-4">
-                    <div class="flex items-start gap-3">
-                      <Avatar class="size-12 flex-shrink-0">
-                        <AvatarImage src={actor.avatarUrl} />
-                        <AvatarFallback>
-                          {actor.avatarInitials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div class="flex-1 min-w-0">
-                        <Show keyed when={actor.name}>
-                          {(name) => (
-                            <h2
-                              class="font-semibold truncate"
-                              aria-label={actor.rawName ??
-                                actor.username}
-                            >
-                              {name}
-                            </h2>
-                          )}
-                        </Show>
-                        <p class="text-sm text-muted-foreground truncate">
-                          {actor.handle}
-                        </p>
-                        <Show keyed when={actor.instance}>
-                          {(instance) => (
-                            <p class="text-xs text-muted-foreground mt-1">
-                              {instance.host}
-                            </p>
-                          )}
-                        </Show>
-                      </div>
-                    </div>
-                  </div>
+interface FrameProps {
+  uri: string;
+  viewerUsername: string | undefined;
+  $actor: authorizeInteractionPage_actor$key | null;
+}
 
-                  <div class="flex items-center justify-between">
-                    <p class="text-sm text-muted-foreground">
-                      {t`Signed in as`}{" "}
-                      <strong>@{result.viewer?.username}</strong>
-                    </p>
-                    <div class="flex gap-3 items-center justify-between">
-                      <Button
-                        variant="outline"
-                        as="a"
-                        href={actor.url ?? actor.iri}
-                      >
-                        {t`Cancel`}
-                      </Button>
-                      <FollowButton
-                        $actor={actor}
-                        onFollowed={() =>
-                          navigate(`/${actor.handle}`, {
-                            replace: true,
-                          })}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-            </Show>
-          </div>
+function Frame(props: FrameProps) {
+  const { t } = useLingui();
+  const navigate = useNavigate();
+
+  createEffect(() => {
+    if (props.viewerUsername) return;
+    const currentUrl = `/authorize_interaction?uri=${
+      encodeURIComponent(props.uri)
+    }`;
+    navigate(`/sign?next=${encodeURIComponent(currentUrl)}`, { replace: true });
+  });
+
+  return (
+    <Show when={props.viewerUsername}>
+      <div class="rounded-lg border p-6 space-y-4">
+        <h1 class="text-lg font-semibold">{t`Follow from your account`}</h1>
+        <Show
+          keyed
+          when={props.$actor}
+          fallback={
+            <div class="rounded-md border p-4">
+              <code class="text-sm break-all">{props.uri}</code>
+            </div>
+          }
+        >
+          {(actorRef) => (
+            <ActorPanel
+              $actor={actorRef}
+              viewerUsername={props.viewerUsername!}
+            />
+          )}
         </Show>
+      </div>
+    </Show>
+  );
+}
+
+function ActorPanel(
+  props: {
+    $actor: authorizeInteractionPage_actor$key;
+    viewerUsername: string;
+  },
+) {
+  const { t } = useLingui();
+  const navigate = useNavigate();
+  const actor = createFragment(
+    graphql`
+      fragment authorizeInteractionPage_actor on Actor {
+        name
+        rawName
+        username
+        handle
+        avatarUrl
+        avatarInitials
+        url
+        iri
+        instance {
+          host
+        }
+        ...FollowButton_actor
+      }
+    `,
+    () => props.$actor,
+  );
+
+  return (
+    <Show keyed when={actor()}>
+      {(a) => (
+        <>
+          <p class="text-sm text-muted-foreground">
+            {t`You are about to follow ${a.name ?? a.handle}.`}
+          </p>
+
+          <div class="rounded-md border p-4">
+            <div class="flex items-start gap-3">
+              <Avatar class="size-12 flex-shrink-0">
+                <AvatarImage src={a.avatarUrl} />
+                <AvatarFallback>{a.avatarInitials}</AvatarFallback>
+              </Avatar>
+              <div class="flex-1 min-w-0">
+                <Show keyed when={a.name}>
+                  {(name) => (
+                    <h2
+                      class="font-semibold truncate"
+                      aria-label={a.rawName ?? a.username}
+                    >
+                      {name}
+                    </h2>
+                  )}
+                </Show>
+                <p class="text-sm text-muted-foreground truncate">
+                  {a.handle}
+                </p>
+                <Show keyed when={a.instance}>
+                  {(instance) => (
+                    <p class="text-xs text-muted-foreground mt-1">
+                      {instance.host}
+                    </p>
+                  )}
+                </Show>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-muted-foreground">
+              {t`Signed in as`} <strong>@{props.viewerUsername}</strong>
+            </p>
+            <div class="flex gap-3 items-center justify-between">
+              <Button
+                variant="outline"
+                as="a"
+                href={a.url ?? a.iri}
+              >
+                {t`Cancel`}
+              </Button>
+              <FollowButton
+                $actor={a}
+                onFollowed={() => navigate(`/${a.handle}`, { replace: true })}
+              />
+            </div>
+          </div>
+        </>
       )}
     </Show>
   );
