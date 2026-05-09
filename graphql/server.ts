@@ -8,6 +8,7 @@ import type {
 } from "@hackerspub/models/schema";
 import { getSession } from "@hackerspub/models/session";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import * as Sentry from "@sentry/deno";
 import { getCookies } from "@std/http/cookie";
 import { execute } from "graphql";
 import {
@@ -62,6 +63,27 @@ export function createYogaServer(): YogaServerInstance<
           },
         });
         if (account == null) session = undefined;
+      }
+
+      // Tag the per-request Sentry isolation scope with the signed-in user
+      // so any exception captured downstream (envelop's `useSentry` plugin
+      // for resolver errors, the LogTape sentry sink for `error`/`fatal`
+      // logs, default integrations for unhandled throws) carries user
+      // identity. `denoServeIntegration` (default in @sentry/deno) forks an
+      // isolation scope per request via `withIsolationScope`, and
+      // `Sentry.setUser` writes to that isolation scope — so this does NOT
+      // leak across concurrent requests, and unlike mutating the active
+      // scope inside envelop's `configureScope` callback, it survives the
+      // plugin's `withScope` clones used at error-capture time.
+      if (sentryEnabled && account != null) {
+        const verifiedEmail = account.emails.find(
+          (e) => e.verified != null,
+        )?.email;
+        Sentry.setUser({
+          id: account.id,
+          username: account.username,
+          ...(verifiedEmail == null ? {} : { email: verifiedEmail }),
+        });
       }
 
       return {

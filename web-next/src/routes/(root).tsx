@@ -4,6 +4,8 @@ import {
   type RouteSectionProps,
   useLocation,
 } from "@solidjs/router";
+import * as Sentry from "@sentry/solidstart";
+import { createRenderEffect } from "solid-js";
 import { graphql } from "relay-runtime";
 import {
   createPreloadedQuery,
@@ -30,6 +32,7 @@ export const route = {
 const RootLayoutQuery = graphql`
   query RootLayoutQuery {
     viewer {
+      uuid
       username
       ...AppSidebar_signedAccount
       ...FloatingComposeButton_signedAccount
@@ -61,6 +64,33 @@ export default function RootLayout(props: RouteSectionProps) {
       location.pathname,
     );
   };
+  // Tag every Sentry event with the signed-in viewer so errors carry user
+  // identity — this covers both browser-side captures (errors from
+  // app.tsx's ErrorBoundary, RelayEnvironment.tsx's network-failure
+  // captures, the Vite stale-chunk handler in entry-client.tsx) and the
+  // SSR side, where `@sentry/solidstart` uses `@sentry/node`'s
+  // `httpIntegration` to fork an isolation scope per request and
+  // `Sentry.setUser` routes to that scope.
+  //
+  // `createRenderEffect` is used (not `createEffect`) because plain
+  // `createEffect` is a no-op on the server build of solid-js, which
+  // would leave SSR-rendered errors un-tagged. Render effects run on
+  // both server and client and re-fire whenever `signedAccount`
+  // resolves or changes — including a `setUser(null)` on sign-out so a
+  // previous session's identity doesn't bleed onto subsequent
+  // anonymous events.
+  createRenderEffect(() => {
+    if (signedAccount.pending) return;
+    const viewer = signedAccount()?.viewer;
+    if (viewer == null) {
+      Sentry.setUser(null);
+      return;
+    }
+    Sentry.setUser({
+      id: viewer.uuid,
+      username: viewer.username,
+    });
+  });
   return (
     <ViewerProvider
       isAuthenticated={() =>
