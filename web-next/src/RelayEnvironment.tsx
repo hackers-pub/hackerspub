@@ -93,7 +93,7 @@ function createRelayEnvironment(): IEnvironment {
 
 function getRequestEnvironment(): IEnvironment | undefined {
   const event = getRequestEvent();
-  if (event == null || !("locals" in event)) return undefined;
+  if (event?.locals == null) return undefined;
 
   const locals = event.locals as Record<PropertyKey, unknown>;
   const cached = locals[requestEnvironmentKey];
