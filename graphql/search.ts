@@ -275,6 +275,35 @@ builder.queryFields((t) => ({
                 media: true,
               },
             },
+            quotedPost: {
+              with: {
+                actor: {
+                  with: {
+                    instance: true,
+                    followers: {
+                      where: signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { followerId: signedAccount.actor.id },
+                    },
+                    blockees: {
+                      where: signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockeeId: signedAccount.actor.id },
+                    },
+                    blockers: {
+                      where: signedAccount == null
+                        ? { RAW: sql`false` }
+                        : { blockerId: signedAccount.actor.id },
+                    },
+                  },
+                },
+                link: { with: { creator: true } },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
+              },
+            },
             sharedPost: {
               with: {
                 actor: {
@@ -313,6 +342,35 @@ builder.queryFields((t) => ({
                     : { actorId: signedAccount.actor.id },
                 },
                 replyTarget: {
+                  with: {
+                    actor: {
+                      with: {
+                        instance: true,
+                        followers: {
+                          where: signedAccount == null
+                            ? { RAW: sql`false` }
+                            : { followerId: signedAccount.actor.id },
+                        },
+                        blockees: {
+                          where: signedAccount == null
+                            ? { RAW: sql`false` }
+                            : { blockeeId: signedAccount.actor.id },
+                        },
+                        blockers: {
+                          where: signedAccount == null
+                            ? { RAW: sql`false` }
+                            : { blockerId: signedAccount.actor.id },
+                        },
+                      },
+                    },
+                    link: { with: { creator: true } },
+                    mentions: {
+                      with: { actor: true },
+                    },
+                    media: true,
+                  },
+                },
+                quotedPost: {
                   with: {
                     actor: {
                       with: {

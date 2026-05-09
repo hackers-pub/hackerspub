@@ -215,6 +215,19 @@ export interface TimelineEntry {
             media: PostMedium[];
           }
           | null;
+        quotedPost:
+          | Post & {
+            actor: Actor & {
+              instance: Instance;
+              followers: Following[];
+              blockees: Blocking[];
+              blockers: Blocking[];
+            };
+            link: PostLink & { creator?: Actor | null } | null;
+            mentions: (Mention & { actor: Actor })[];
+            media: PostMedium[];
+          }
+          | null;
         mentions: (Mention & { actor: Actor })[];
         media: PostMedium[];
         shares: Post[];
@@ -222,6 +235,19 @@ export interface TimelineEntry {
       }
       | null;
     replyTarget:
+      | Post & {
+        actor: Actor & {
+          instance: Instance;
+          followers: Following[];
+          blockees: Blocking[];
+          blockers: Blocking[];
+        };
+        link: PostLink & { creator?: Actor | null } | null;
+        mentions: (Mention & { actor: Actor })[];
+        media: PostMedium[];
+      }
+      | null;
+    quotedPost:
       | Post & {
         actor: Actor & {
           instance: Instance;
@@ -345,6 +371,35 @@ export async function getPublicTimeline(
               media: true,
             },
           },
+          quotedPost: {
+            with: {
+              actor: {
+                with: {
+                  instance: true,
+                  followers: {
+                    where: currentAccount
+                      ? { followerId: currentAccount.actor.id }
+                      : { RAW: sql`false` },
+                  },
+                  blockees: {
+                    where: currentAccount
+                      ? { blockeeId: currentAccount.actor.id }
+                      : { RAW: sql`false` },
+                  },
+                  blockers: {
+                    where: currentAccount
+                      ? { blockerId: currentAccount.actor.id }
+                      : { RAW: sql`false` },
+                  },
+                },
+              },
+              link: { with: { creator: true } },
+              mentions: {
+                with: { actor: true },
+              },
+              media: true,
+            },
+          },
           mentions: {
             with: { actor: true },
           },
@@ -362,6 +417,35 @@ export async function getPublicTimeline(
         },
       },
       replyTarget: {
+        with: {
+          actor: {
+            with: {
+              instance: true,
+              followers: {
+                where: currentAccount
+                  ? { followerId: currentAccount.actor.id }
+                  : { RAW: sql`false` },
+              },
+              blockees: {
+                where: currentAccount
+                  ? { blockeeId: currentAccount.actor.id }
+                  : { RAW: sql`false` },
+              },
+              blockers: {
+                where: currentAccount
+                  ? { blockerId: currentAccount.actor.id }
+                  : { RAW: sql`false` },
+              },
+            },
+          },
+          link: { with: { creator: true } },
+          mentions: {
+            with: { actor: true },
+          },
+          media: true,
+        },
+      },
+      quotedPost: {
         with: {
           actor: {
             with: {
@@ -530,6 +614,31 @@ export async function getPersonalTimeline(
                   media: true,
                 },
               },
+              quotedPost: {
+                with: {
+                  actor: {
+                    with: {
+                      instance: true,
+                      followers: {
+                        where: {
+                          followerId: currentAccount.actor.id,
+                        },
+                      },
+                      blockees: {
+                        where: { blockeeId: currentAccount.actor.id },
+                      },
+                      blockers: {
+                        where: { blockerId: currentAccount.actor.id },
+                      },
+                    },
+                  },
+                  link: { with: { creator: true } },
+                  mentions: {
+                    with: { actor: true },
+                  },
+                  media: true,
+                },
+              },
               mentions: {
                 with: { actor: true },
               },
@@ -543,6 +652,29 @@ export async function getPersonalTimeline(
             },
           },
           replyTarget: {
+            with: {
+              actor: {
+                with: {
+                  instance: true,
+                  followers: {
+                    where: { followerId: currentAccount.actor.id },
+                  },
+                  blockees: {
+                    where: { blockeeId: currentAccount.actor.id },
+                  },
+                  blockers: {
+                    where: { blockerId: currentAccount.actor.id },
+                  },
+                },
+              },
+              link: { with: { creator: true } },
+              mentions: {
+                with: { actor: true },
+              },
+              media: true,
+            },
+          },
+          quotedPost: {
             with: {
               actor: {
                 with: {
