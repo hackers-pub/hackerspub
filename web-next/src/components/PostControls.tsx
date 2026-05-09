@@ -320,13 +320,11 @@ export function PostControls(props: PostControlsProps) {
               <span class="text-xs">{note.engagementStats.reactions}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent class="w-80 p-0">
-              <Show keyed when={reactionPopoverData()}>
-                {(noteData) => (
-                  <EmojiReactionPopover
-                    noteData={noteData}
-                    onClose={() => setShowEmojiPopover(false)}
-                  />
-                )}
+              <Show when={reactionPopoverData()}>
+                <EmojiReactionPopover
+                  noteData={reactionPopoverData()!}
+                  onClose={() => setShowEmojiPopover(false)}
+                />
               </Show>
             </DropdownMenuContent>
           </DropdownMenu>

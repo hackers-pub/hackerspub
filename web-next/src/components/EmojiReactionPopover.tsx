@@ -82,9 +82,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
     if (isSubmitting()) return;
 
     setIsSubmitting(true);
+    const noteData = props.noteData;
+    const postId = noteData.id;
     try {
       // Check if user has already reacted with this emoji
-      const existingReaction = props.noteData.reactionGroups.find((group) => {
+      const existingReaction = noteData.reactionGroups.find((group) => {
         if (group.emoji) {
           return group.emoji === emoji;
         }
@@ -98,13 +100,13 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
         commitRemoveReaction({
           variables: {
             input: {
-              postId: props.noteData.id,
+              postId,
               emoji,
             },
           },
           updater: (store) => {
             // Handle undo reaction
-            const postRecord = store.get(props.noteData.id);
+            const postRecord = store.get(postId);
             if (postRecord) {
               // Update engagement stats
               const engagementStats = postRecord.getLinkedRecord(
@@ -179,13 +181,13 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
         commitAddReaction({
           variables: {
             input: {
-              postId: props.noteData.id,
+              postId,
               emoji,
             },
           },
           updater: (store) => {
             // Handle add reaction
-            const postRecord = store.get(props.noteData.id);
+            const postRecord = store.get(postId);
             if (postRecord) {
               // Update engagement stats
               const engagementStats = postRecord.getLinkedRecord(
@@ -212,7 +214,7 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                   let reactors = existingGroup.getLinkedRecord("reactors");
                   if (!reactors) {
                     reactors = store.create(
-                      `${props.noteData.id}_reaction_${emoji}_reactors`,
+                      `${postId}_reaction_${emoji}_reactors`,
                       "ReactionGroupReactorsConnection",
                     );
                     existingGroup.setLinkedRecord(reactors, "reactors");
@@ -225,11 +227,11 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
               } else {
                 // Create new reaction group
                 const newGroup = store.create(
-                  `${props.noteData.id}_reaction_${emoji}`,
+                  `${postId}_reaction_${emoji}`,
                   "EmojiReactionGroup",
                 );
                 const reactors = store.create(
-                  `${props.noteData.id}_reaction_${emoji}_reactors`,
+                  `${postId}_reaction_${emoji}_reactors`,
                   "ReactionGroupReactorsConnection",
                 );
                 newGroup.setValue(emoji, "emoji");
