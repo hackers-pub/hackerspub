@@ -81,6 +81,7 @@ const fetchFn: FetchFunction = async (
 };
 
 let clientEnvironment: IEnvironment | undefined;
+const requestEnvironmentKey = Symbol("relayEnvironment");
 
 function createRelayEnvironment(): IEnvironment {
   const network = Network.create((params, variables, cacheConfig) => {
@@ -90,7 +91,20 @@ function createRelayEnvironment(): IEnvironment {
   return new Environment({ store, network });
 }
 
+function getRequestEnvironment(): IEnvironment | undefined {
+  const event = getRequestEvent();
+  if (event == null || !("locals" in event)) return undefined;
+
+  const locals = event.locals as Record<PropertyKey, unknown>;
+  const cached = locals[requestEnvironmentKey];
+  if (cached != null) return cached as IEnvironment;
+
+  const environment = createRelayEnvironment();
+  locals[requestEnvironmentKey] = environment;
+  return environment;
+}
+
 export function createEnvironment(): IEnvironment {
-  if (isServer) return createRelayEnvironment();
+  if (isServer) return getRequestEnvironment() ?? createRelayEnvironment();
   return clientEnvironment ??= createRelayEnvironment();
 }
