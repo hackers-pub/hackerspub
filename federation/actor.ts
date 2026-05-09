@@ -113,35 +113,40 @@ builder
     }
 
     if (!validateUuid(identifier)) return [];
-    const keyRecords = await ctx.data.db.query.accountKeyTable.findMany({
+    let keyRecords = await ctx.data.db.query.accountKeyTable.findMany({
       where: { accountId: identifier },
     });
-    const keys = new Map(keyRecords.map((r) => [r.type, r]));
-    if (!keys.has("RSASSA-PKCS1-v1_5")) {
+    const existingTypes = new Set(keyRecords.map((r) => r.type));
+    const newRecords: NewAccountKey[] = [];
+    if (!existingTypes.has("RSASSA-PKCS1-v1_5")) {
       const { publicKey, privateKey } = await generateCryptoKeyPair(
         "RSASSA-PKCS1-v1_5",
       );
-      const records = await ctx.data.db.insert(accountKeyTable).values(
-        {
-          accountId: identifier,
-          type: "RSASSA-PKCS1-v1_5",
-          public: await exportJwk(publicKey),
-          private: await exportJwk(privateKey),
-        } satisfies NewAccountKey,
-      ).returning();
-      keyRecords.push(...records);
+      newRecords.push({
+        accountId: identifier,
+        type: "RSASSA-PKCS1-v1_5",
+        public: await exportJwk(publicKey),
+        private: await exportJwk(privateKey),
+      });
     }
-    if (!keys.has("Ed25519")) {
+    if (!existingTypes.has("Ed25519")) {
       const { publicKey, privateKey } = await generateCryptoKeyPair("Ed25519");
-      const records = await ctx.data.db.insert(accountKeyTable).values(
-        {
-          accountId: identifier,
-          type: "Ed25519",
-          public: await exportJwk(publicKey),
-          private: await exportJwk(privateKey),
-        } satisfies NewAccountKey,
-      ).returning();
-      keyRecords.push(...records);
+      newRecords.push({
+        accountId: identifier,
+        type: "Ed25519",
+        public: await exportJwk(publicKey),
+        private: await exportJwk(privateKey),
+      });
+    }
+    if (newRecords.length > 0) {
+      // Use onConflictDoNothing to tolerate concurrent inserts racing on the
+      // (account_id, type) primary key, then re-fetch so we observe whatever
+      // the winning transaction wrote.
+      await ctx.data.db.insert(accountKeyTable).values(newRecords)
+        .onConflictDoNothing();
+      keyRecords = await ctx.data.db.query.accountKeyTable.findMany({
+        where: { accountId: identifier },
+      });
     }
     keyRecords.sort((a, b) => a.type < b.type ? 1 : a.type > b.type ? -1 : 0);
     return Promise.all(
