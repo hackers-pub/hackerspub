@@ -748,6 +748,12 @@ export const postTable = pgTable(
     index("idx_post_article_source_published")
       .on(desc(table.published))
       .where(isNotNull(table.articleSourceId)),
+    // Keyword search in models/search.ts uses `contentHtml ILIKE '%kw%'`,
+    // and a leading-wildcard ILIKE bypasses any B-tree index. The pg_trgm
+    // GIN index makes that pattern indexable; the migration also enables
+    // the extension.
+    index("idx_post_content_html_trgm")
+      .using("gin", table.contentHtml.op("gin_trgm_ops")),
   ],
 );
 
