@@ -133,6 +133,7 @@ export default function SearchPage() {
   const [isPending, setIsPending] = createSignal(false);
   const searchQuery = () =>
     (Array.isArray(searchParams.q) ? searchParams.q[0] : searchParams.q) ?? "";
+  let searchInput: HTMLInputElement | undefined;
 
   createEffect(() => {
     if (searchQuery() === "") setIsPending(false);
@@ -148,6 +149,7 @@ export default function SearchPage() {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             const query = formData.get("q")?.toString() ?? "";
+            searchInput?.blur();
             if (query === searchQuery()) return;
             if (query !== "") setIsPending(true);
             navigate(`?q=${encodeURIComponent(query)}`);
@@ -170,6 +172,7 @@ export default function SearchPage() {
               />
             </svg>
             <input
+              ref={searchInput}
               type="search"
               name="q"
               value={searchQuery()}
