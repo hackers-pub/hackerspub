@@ -10,7 +10,7 @@ import {
   type VariablesOf,
 } from "relay-runtime";
 import { getOwner, type Owner, runWithOwner } from "solid-js";
-import type { PreloadedQuery } from "solid-relay";
+import { type PreloadedQuery, useRelayEnvironment } from "solid-relay";
 
 export type MaybePromise<T> = T | Promise<T>;
 
@@ -92,16 +92,21 @@ export function routePreloadedQuery<
   const wrapped = ((...args: Parameters<TLoader>) => {
     const key = cached.keyFor(...args);
     const owner = getOwner();
+    const currentEnvironment = useRelayEnvironment()();
     const preloaded = cached(...args);
     if (isPromiseLike(preloaded)) {
       return preloaded.then((resolved) => {
-        if (!isDisposed(resolved)) return resolved;
+        if (!isStalePreloadedQuery(resolved, currentEnvironment)) {
+          return resolved;
+        }
 
         query.delete(key);
         return runCached(owner, cached, args);
       });
     }
-    if (!isDisposed(preloaded)) return preloaded;
+    if (!isStalePreloadedQuery(preloaded, currentEnvironment)) {
+      return preloaded;
+    }
 
     query.delete(key);
     return runCached(owner, cached, args);
@@ -111,10 +116,13 @@ export function routePreloadedQuery<
   return wrapped;
 }
 
-function isDisposed(
+function isStalePreloadedQuery(
   preloaded: PreloadedQuery<OperationType> | null | undefined,
+  environment: IEnvironment,
 ): boolean {
-  return preloaded?.controls?.value.isDisposed() ?? false;
+  const controls = preloaded?.controls?.value;
+  return controls != null &&
+    (controls.isDisposed() || controls.environment !== environment);
 }
 
 function isPromiseLike<T>(value: T | PromiseLike<T>): value is PromiseLike<T> {
