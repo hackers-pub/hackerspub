@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Disk } from "flydrive";
+import sharp from "sharp";
 import {
   loadImageDataUri,
   putArticleOgImage,
@@ -48,6 +49,117 @@ test("loadImageDataUri embeds remote images", async () => {
     }));
   try {
     const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.png`;
+    assert.equal(await loadImageDataUri(url), smallPngDataUrl);
+  } finally {
+    await server.shutdown();
+  }
+});
+
+test("loadImageDataUri transcodes WEBP responses to PNG", async () => {
+  const webpBytes = new Uint8Array(
+    await sharp({
+      create: {
+        width: 4,
+        height: 4,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      },
+    }).webp().toBuffer(),
+  );
+  const server = Deno.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    onListen() {},
+  }, () =>
+    new Response(webpBytes, {
+      headers: { "content-type": "image/webp" },
+    }));
+  try {
+    const url =
+      `http://${server.addr.hostname}:${server.addr.port}/avatar.webp`;
+    const result = await loadImageDataUri(url);
+    const prefix = "data:image/png;base64,";
+    assert.ok(result.startsWith(prefix));
+    const decoded = Uint8Array.from(
+      atob(result.slice(prefix.length)),
+      (char) => char.charCodeAt(0),
+    );
+    // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+    assert.deepEqual(
+      Array.from(decoded.subarray(0, 8)),
+      [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+    );
+  } finally {
+    await server.shutdown();
+  }
+});
+
+test("loadImageDataUri preserves APNG responses", async () => {
+  const server = Deno.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    onListen() {},
+  }, () =>
+    new Response(smallPngBytes, {
+      headers: { "content-type": "image/apng" },
+    }));
+  try {
+    const url = `http://${server.addr.hostname}:${server.addr.port}/avatar.png`;
+    assert.equal(
+      await loadImageDataUri(url),
+      `data:image/apng;base64,${
+        smallPngDataUrl.slice("data:image/png;base64,".length)
+      }`,
+    );
+  } finally {
+    await server.shutdown();
+  }
+});
+
+test("loadImageDataUri falls back when transcoded output exceeds maxBytes", async () => {
+  const noise = new Uint8Array(128 * 128 * 4);
+  crypto.getRandomValues(noise);
+  const webpBytes = new Uint8Array(
+    await sharp(noise, {
+      raw: { width: 128, height: 128, channels: 4 },
+    }).webp({ quality: 30 }).toBuffer(),
+  );
+  // Lossy WebP compresses random noise far better than the lossless PNG
+  // we re-encode it into, so a budget that admits the WebP still rejects
+  // the PNG and exercises the post-transcode size guard.
+  const maxBytes = webpBytes.byteLength + 256;
+  const server = Deno.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    onListen() {},
+  }, () =>
+    new Response(webpBytes, {
+      headers: { "content-type": "image/webp" },
+    }));
+  try {
+    const url =
+      `http://${server.addr.hostname}:${server.addr.port}/avatar.webp`;
+    assert.equal(
+      await loadImageDataUri(url, { maxBytes }),
+      smallPngDataUrl,
+    );
+  } finally {
+    await server.shutdown();
+  }
+});
+
+test("loadImageDataUri falls back when transcoding fails", async () => {
+  const server = Deno.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+    onListen() {},
+  }, () =>
+    new Response(Uint8Array.from([0, 1, 2, 3]), {
+      headers: { "content-type": "image/webp" },
+    }));
+  try {
+    const url =
+      `http://${server.addr.hostname}:${server.addr.port}/avatar.webp`;
     assert.equal(await loadImageDataUri(url), smallPngDataUrl);
   } finally {
     await server.shutdown();

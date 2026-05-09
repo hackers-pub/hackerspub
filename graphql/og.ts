@@ -5,6 +5,7 @@ import { join } from "@std/path";
 import type { Disk } from "flydrive";
 import { canonicalize } from "json-canonicalize";
 import satori from "satori";
+import sharp from "sharp";
 
 const OG_VERSION = "v2-5";
 const OG_NAMESPACE = "og/v2";
@@ -13,6 +14,27 @@ const FALLBACK_IMAGE_DATA_URI = "data:image/png;base64," +
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 const MAX_REMOTE_IMAGE_BYTES = 2 * 1024 * 1024;
 const REMOTE_IMAGE_TIMEOUT_MS = 3_000;
+
+// satori 0.11.x decodes base64 data URIs only for PNG, APNG, JPEG, GIF,
+// and SVG; other MIME types (notably WEBP, which `transformAvatar`
+// writes for avatars with alpha) cause it to spread `undefined` and
+// throw "TypeError: a is not iterable". Re-encode anything else as PNG
+// before embedding so the OG renderer always receives something it can
+// read.
+const SATORI_SUPPORTED_IMAGE_TYPES: ReadonlySet<string> = new Set([
+  "image/png",
+  "image/apng",
+  "image/jpeg",
+  "image/gif",
+  "image/svg+xml",
+]);
+
+// Avatars are rendered at 172x172 (profile) / 82x82 (article) in the
+// 1200x630 OG bitmap, so 384px is plenty of source resolution. Capping
+// the decoded pixel count and the output dimensions keeps a hostile
+// upstream from turning a tiny WEBP/AVIF into a multi-megabyte PNG.
+const TRANSCODE_MAX_PIXELS = 4096 * 4096;
+const TRANSCODE_MAX_DIMENSION = 384;
 
 type Weight = 400 | 600;
 type FontStyle = "normal";
@@ -158,11 +180,31 @@ export async function loadImageDataUri(
     ) {
       return FALLBACK_IMAGE_DATA_URI;
     }
-    const contentType = response.headers.get("content-type")?.split(";")[0] ??
-      "application/octet-stream";
+    let contentType =
+      response.headers.get("content-type")?.split(";")[0]?.trim()
+        .toLowerCase() ?? "application/octet-stream";
     if (!contentType.startsWith("image/")) return FALLBACK_IMAGE_DATA_URI;
-    const bytes = await readResponseBytes(response, maxBytes);
+    let bytes = await readResponseBytes(response, maxBytes);
     if (bytes == null) return FALLBACK_IMAGE_DATA_URI;
+    if (!SATORI_SUPPORTED_IMAGE_TYPES.has(contentType)) {
+      try {
+        bytes = new Uint8Array(
+          await sharp(bytes, { limitInputPixels: TRANSCODE_MAX_PIXELS })
+            .resize({
+              width: TRANSCODE_MAX_DIMENSION,
+              height: TRANSCODE_MAX_DIMENSION,
+              fit: "inside",
+              withoutEnlargement: true,
+            })
+            .png()
+            .toBuffer(),
+        );
+      } catch {
+        return FALLBACK_IMAGE_DATA_URI;
+      }
+      if (bytes.byteLength > maxBytes) return FALLBACK_IMAGE_DATA_URI;
+      contentType = "image/png";
+    }
     return `data:${contentType};base64,${encodeBase64(bytes)}`;
   } catch {
     return FALLBACK_IMAGE_DATA_URI;
