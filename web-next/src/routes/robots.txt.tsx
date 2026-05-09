@@ -9,7 +9,7 @@ export function GET(_event: APIEvent) {
   return new Response(body, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "public, max-age=604800",
+      "Cache-Control": "public, max-age=604800", // 7 days
       "Access-Control-Allow-Origin": "*",
     },
   });

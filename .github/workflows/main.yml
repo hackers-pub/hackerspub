@@ -35,20 +35,23 @@ jobs:
         path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
         key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
         restore-keys: pnpm-${{ runner.os }}-
+    # Deno re-downloads every npm/jsr/https module on each cold runner;
+    # caching DENO_DIR (default ~/.cache/deno on Linux) keyed on the deno
+    # manifests cuts the codegen + tests cold-start cost noticeably.
+    - uses: actions/cache@v4
+      with:
+        path: ~/.cache/deno
+        key: deno-${{ runner.os }}-${{ hashFiles('deno.lock', '**/deno.json', '**/deno.jsonc') }}
+        restore-keys: deno-${{ runner.os }}-
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
     - name: Run codegen
       run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
-    - name: Build web-next
-      run: mise run build:web-next
     - name: Run database migrations
       run: npx @dotenvx/dotenvx run -f .env.ci -- mise run migrate
     - name: Run tests
       if: always()
       run: npx @dotenvx/dotenvx run -f .env.ci -- deno task test
-    - name: Run checks
-      if: always()
-      run: deno task check
     - name: Check for untranslated messages
       if: always()
       run: |
@@ -106,8 +109,73 @@ jobs:
           exit 1
         fi
 
+  # `deno task check` (lint + typecheck) doesn't need Postgres, web-next's
+  # production build, or test execution — but it *does* need codegen output
+  # (e.g. web/graphql/__generated__/index.ts) for the typecheck pass to
+  # resolve module imports. So this job mirrors the test job up through
+  # codegen, then runs check in parallel with the rest of test.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: jdx/mise-action@v4
+    - name: Get pnpm store directory
+      id: pnpm-store
+      run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache@v4
+      with:
+        path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+        key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: pnpm-${{ runner.os }}-
+    - uses: actions/cache@v4
+      with:
+        path: ~/.cache/deno
+        key: deno-${{ runner.os }}-${{ hashFiles('deno.lock', '**/deno.json', '**/deno.jsonc') }}
+        restore-keys: deno-${{ runner.os }}-
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    - name: Run codegen
+      run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
+    - name: Run checks
+      run: deno task check
+
+  # `pnpm build` for web-next (Vite + SolidStart + Sentry/Lingui/Relay
+  # plugins) is the slowest step that doesn't need Postgres. Splitting it
+  # into its own job runs it in parallel with `test` and shaves the build
+  # off the test critical path.
+  #
+  # vite-plugin-relay-lite runs relay-compiler during the build for web-next
+  # (`deno task -r codegen` covers web/graphql but not web-next, since
+  # web-next/deno.jsonc has no `codegen` task — only the root's
+  # `next:codegen` shortcut wraps it). We let the vite plugin handle it
+  # in this job so we don't have to invoke relay twice.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: jdx/mise-action@v4
+    - name: Get pnpm store directory
+      id: pnpm-store
+      run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache@v4
+      with:
+        path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+        key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: pnpm-${{ runner.os }}-
+    - uses: actions/cache@v4
+      with:
+        path: ~/.cache/deno
+        key: deno-${{ runner.os }}-${{ hashFiles('deno.lock', '**/deno.json', '**/deno.jsonc') }}
+        restore-keys: deno-${{ runner.os }}-
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    - name: Run codegen
+      run: npx @dotenvx/dotenvx run -f .env.ci -- deno task -r codegen
+    - name: Build web-next
+      run: mise run build:web-next
+
   image:
-    needs: [test]
+    needs: [test, lint, build]
     permissions:
       contents: read
       packages: write
@@ -162,10 +230,16 @@ jobs:
           org.opencontainers.image.revision=${{ github.sha }}
           org.opencontainers.image.licenses=AGPL-3.0-only
         cache-from:
-          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-${{ steps.arch.outputs.arch }}
+          type=gha,scope=${{ steps.arch.outputs.arch }}
         cache-to:
-          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-${{ steps.arch.outputs.arch }},mode=max
+          type=gha,scope=${{ steps.arch.outputs.arch }},mode=max
         provenance: false
+    # PR builds intentionally rebuild from scratch (`no-cache: "true"`) so
+    # they catch the case where someone bumps a dep but forgets to commit
+    # the lockfile, or adds a Dockerfile COPY that misses a needed file.
+    # Caching is omitted entirely because no-cache makes any cache-from a
+    # no-op anyway — bring it back if/when we decide to trade scratch-build
+    # verification for faster PR feedback.
     - if: github.event_name == 'pull_request'
       uses: docker/build-push-action@v6
       with:
@@ -186,8 +260,6 @@ jobs:
           org.opencontainers.image.source=https://github.com/dahlia/hackerspub
           org.opencontainers.image.revision=${{ github.sha }}
           org.opencontainers.image.licenses=AGPL-3.0-only
-        cache-from:
-          type=registry,ref=ghcr.io/${{ github.repository }}:build-cache-${{ steps.arch.outputs.arch }}
         provenance: false
 
   manifest:
