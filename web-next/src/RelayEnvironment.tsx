@@ -7,19 +7,24 @@ import type {
 import { Environment, Network, RecordSource, Store } from "relay-runtime";
 import { getRequestEvent, isServer } from "solid-js/web";
 import { getApiUrl } from "~/lib/env.ts";
+import { readSessionCookie } from "~/lib/sessionCookie.ts";
 
-function readSessionCookie(request: Request | undefined): string | null {
-  const cookieHeader = request?.headers.get("cookie");
-  if (!cookieHeader) return null;
-  for (const part of cookieHeader.split(";")) {
-    const eq = part.indexOf("=");
-    if (eq < 0) continue;
-    const name = part.slice(0, eq).trim();
-    if (name !== "session") continue;
-    const raw = part.slice(eq + 1).trim();
-    return raw ? decodeURIComponent(raw) : null;
-  }
-  return null;
+// Errors the upstream produces in response to an authentication
+// failure. The GraphQL server tags these with this extension code (see
+// graphql/timeline.ts) precisely so we can recognize them here without
+// pattern-matching on the user-facing message. Relay's `PayloadError`
+// type does not model `extensions`, but Yoga emits them per the
+// GraphQL spec, so we read it through a structural narrowing.
+const AUTH_REQUIRED_CODE = "AUTHENTICATION_REQUIRED";
+
+function isExpectedAuthError(errors: ReadonlyArray<unknown>): boolean {
+  if (errors.length === 0) return false;
+  return errors.every((error) => {
+    if (error == null || typeof error !== "object") return false;
+    const extensions = (error as { extensions?: unknown }).extensions;
+    if (extensions == null || typeof extensions !== "object") return false;
+    return (extensions as { code?: unknown }).code === AUTH_REQUIRED_CODE;
+  });
 }
 
 // The session cookie doubles as the GraphQL bearer token (see the
@@ -103,6 +108,13 @@ const fetchFn: FetchFunction = async (
   // logs to the console — we have to report them by hand.)
   const errors = "errors" in body ? body.errors : undefined;
   if (!response.ok || errors != null) {
+    if (response.ok && errors != null && isExpectedAuthError(errors)) {
+      // The upstream resolver intentionally rejected an unauthenticated
+      // request (e.g. a stale session cookie that survived the route
+      // gate). The route layer renders a sign-in redirect for these,
+      // so they're not bugs and should not page anyone via Sentry.
+      return body;
+    }
     const summary = `GraphQL upstream error: ${params.name ?? "<unnamed>"}`;
     console.error("[RelayNetwork upstream error]", {
       operation: params.name,

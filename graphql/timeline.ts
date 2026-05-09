@@ -9,9 +9,24 @@ import {
 } from "@hackerspub/models/timeline";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { assertNever } from "@std/assert/unstable-never";
+import { createGraphQLError } from "graphql-yoga";
 import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 import { Post, PostType } from "./post.ts";
+
+// `Authentication required` is intentional — return as a real
+// `GraphQLError` so Yoga doesn't fold it into a generic
+// "Unexpected error." (which obscures the cause and forces clients to
+// pattern-match on a message they can't trust) and so `useSentry()`'s
+// default `isOriginalGraphQLError` skipError filter doesn't report it
+// as an unhandled exception. The `AUTHENTICATION_REQUIRED` extension
+// code lets clients filter these out of their own Sentry captures
+// without string-matching the message.
+function authenticationRequired(): never {
+  throw createGraphQLError("Authentication required.", {
+    extensions: { code: "AUTHENTICATION_REQUIRED" },
+  });
+}
 
 function parseBookmarkCursor(raw: string): BookmarkCursor | undefined {
   const i = raw.indexOf("|");
@@ -117,7 +132,7 @@ builder.queryFields((t) => ({
     },
     async resolve(_, args, ctx) {
       if (ctx.account == null) {
-        throw new Error("Authentication required.");
+        authenticationRequired();
       } else if (args.last != null || args.before != null) {
         throw new Error("Backward pagination is not supported.");
       }
@@ -172,7 +187,7 @@ builder.queryFields((t) => ({
       },
       async resolve(_, args, ctx) {
         if (ctx.account == null) {
-          throw new Error("Authentication required.");
+          authenticationRequired();
         } else if (args.last != null || args.before != null) {
           throw new Error("Backward pagination is not supported.");
         }
