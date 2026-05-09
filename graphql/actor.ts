@@ -187,7 +187,7 @@ export const Actor = builder.drizzleNode("actorTable", {
       type: "String",
       resolve(actor) {
         const name = actor.name ?? actor.username;
-        const parts = name.trim().split(/[\s_-]+/);
+        const parts = name.trim().split(/[\s_-]+/).filter((p) => p.length > 0);
         if (parts.length === 0) return "?";
         if (parts.length === 1) {
           return parts[0].substring(0, 2).toUpperCase();
