@@ -5,7 +5,7 @@ import type {
   IEnvironment,
 } from "relay-runtime";
 import { Environment, Network, RecordSource, Store } from "relay-runtime";
-import { getRequestEvent } from "solid-js/web";
+import { getRequestEvent, isServer } from "solid-js/web";
 import { getApiUrl } from "~/lib/env.ts";
 
 function readSessionCookie(request: Request | undefined): string | null {
@@ -80,10 +80,31 @@ const fetchFn: FetchFunction = async (
   return body;
 };
 
-export function createEnvironment(): IEnvironment {
+let clientEnvironment: IEnvironment | undefined;
+const requestEnvironmentKey = Symbol("relayEnvironment");
+
+function createRelayEnvironment(): IEnvironment {
   const network = Network.create((params, variables, cacheConfig) => {
     return fetchFn(params, variables, cacheConfig);
   });
   const store = new Store(new RecordSource());
   return new Environment({ store, network });
+}
+
+function getRequestEnvironment(): IEnvironment | undefined {
+  const event = getRequestEvent();
+  if (event?.locals == null) return undefined;
+
+  const locals = event.locals as Record<PropertyKey, unknown>;
+  const cached = locals[requestEnvironmentKey];
+  if (cached != null) return cached as IEnvironment;
+
+  const environment = createRelayEnvironment();
+  locals[requestEnvironmentKey] = environment;
+  return environment;
+}
+
+export function createEnvironment(): IEnvironment {
+  if (isServer) return getRequestEnvironment() ?? createRelayEnvironment();
+  return clientEnvironment ??= createRelayEnvironment();
 }
