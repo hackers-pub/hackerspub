@@ -60,6 +60,86 @@ export function expandLocales(locales: string[]): string[] {
   ];
 }
 
+type SocialGraphMaps = {
+  followingMap: Map<Uuid, Following>;
+  blockeeMap: Map<Uuid, Blocking>;
+  blockerMap: Map<Uuid, Blocking>;
+};
+
+const EMPTY_SOCIAL_GRAPH: SocialGraphMaps = {
+  followingMap: new Map(),
+  blockeeMap: new Map(),
+  blockerMap: new Map(),
+};
+
+async function fetchSocialGraph(
+  db: Database,
+  currentActorId: Uuid,
+  actorIds: Uuid[],
+): Promise<SocialGraphMaps> {
+  if (actorIds.length === 0) return EMPTY_SOCIAL_GRAPH;
+  const [followings, blockees, blockers] = await Promise.all([
+    db.query.followingTable.findMany({
+      where: { followerId: currentActorId, followeeId: { in: actorIds } },
+    }),
+    db.query.blockingTable.findMany({
+      where: { blockeeId: currentActorId, blockerId: { in: actorIds } },
+    }),
+    db.query.blockingTable.findMany({
+      where: { blockerId: currentActorId, blockeeId: { in: actorIds } },
+    }),
+  ]);
+  return {
+    followingMap: new Map(followings.map((f) => [f.followeeId as Uuid, f])),
+    blockeeMap: new Map(blockees.map((b) => [b.blockerId as Uuid, b])),
+    blockerMap: new Map(blockers.map((b) => [b.blockeeId as Uuid, b])),
+  };
+}
+
+function enrichActor<T extends { id: unknown }>(
+  actor: T,
+  { followingMap, blockeeMap, blockerMap }: SocialGraphMaps,
+): T & { followers: Following[]; blockees: Blocking[]; blockers: Blocking[] } {
+  const id = actor.id as Uuid;
+  return {
+    ...actor,
+    followers: followingMap.has(id) ? [followingMap.get(id)!] : [],
+    blockees: blockeeMap.has(id) ? [blockeeMap.get(id)!] : [],
+    blockers: blockerMap.has(id) ? [blockerMap.get(id)!] : [],
+  };
+}
+
+function collectPostActorIds(
+  post: {
+    actor?: { id: unknown } | null;
+    sharedPost?: {
+      actor?: { id: unknown } | null;
+      replyTarget?: { actor?: { id: unknown } | null } | null;
+      quotedPost?: { actor?: { id: unknown } | null } | null;
+    } | null;
+    replyTarget?: { actor?: { id: unknown } | null } | null;
+    quotedPost?: { actor?: { id: unknown } | null } | null;
+  },
+  ids: Set<Uuid>,
+): void {
+  if (post.actor?.id != null) ids.add(post.actor.id as Uuid);
+  if (post.sharedPost?.actor?.id != null) {
+    ids.add(post.sharedPost.actor.id as Uuid);
+  }
+  if (post.sharedPost?.replyTarget?.actor?.id != null) {
+    ids.add(post.sharedPost.replyTarget.actor.id as Uuid);
+  }
+  if (post.sharedPost?.quotedPost?.actor?.id != null) {
+    ids.add(post.sharedPost.quotedPost.actor.id as Uuid);
+  }
+  if (post.replyTarget?.actor?.id != null) {
+    ids.add(post.replyTarget.actor.id as Uuid);
+  }
+  if (post.quotedPost?.actor?.id != null) {
+    ids.add(post.quotedPost.actor.id as Uuid);
+  }
+}
+
 export async function addPostToTimeline(
   db: Database,
   post: Post,
@@ -461,70 +541,19 @@ export async function getPublicTimeline(
     const posts = await db.query.postTable.findMany({
       with: {
         actor: {
-          with: {
-            instance: true,
-            followers: {
-              where: currentAccount
-                ? { followerId: currentAccount.actor.id }
-                : { RAW: sql`false` },
-            },
-            blockees: {
-              where: currentAccount
-                ? { blockeeId: currentAccount.actor.id }
-                : { RAW: sql`false` },
-            },
-            blockers: {
-              where: currentAccount
-                ? { blockerId: currentAccount.actor.id }
-                : { RAW: sql`false` },
-            },
-          },
+          with: { instance: true },
         },
         link: { with: { creator: true } },
         sharedPost: {
           with: {
             actor: {
-              with: {
-                instance: true,
-                followers: {
-                  where: currentAccount
-                    ? { followerId: currentAccount.actor.id }
-                    : { RAW: sql`false` },
-                },
-                blockees: {
-                  where: currentAccount
-                    ? { blockeeId: currentAccount.actor.id }
-                    : { RAW: sql`false` },
-                },
-                blockers: {
-                  where: currentAccount
-                    ? { blockerId: currentAccount.actor.id }
-                    : { RAW: sql`false` },
-                },
-              },
+              with: { instance: true },
             },
             link: { with: { creator: true } },
             replyTarget: {
               with: {
                 actor: {
-                  with: {
-                    instance: true,
-                    followers: {
-                      where: currentAccount
-                        ? { followerId: currentAccount.actor.id }
-                        : { RAW: sql`false` },
-                    },
-                    blockees: {
-                      where: currentAccount
-                        ? { blockeeId: currentAccount.actor.id }
-                        : { RAW: sql`false` },
-                    },
-                    blockers: {
-                      where: currentAccount
-                        ? { blockerId: currentAccount.actor.id }
-                        : { RAW: sql`false` },
-                    },
-                  },
+                  with: { instance: true },
                 },
                 link: { with: { creator: true } },
                 mentions: {
@@ -536,24 +565,7 @@ export async function getPublicTimeline(
             quotedPost: {
               with: {
                 actor: {
-                  with: {
-                    instance: true,
-                    followers: {
-                      where: currentAccount
-                        ? { followerId: currentAccount.actor.id }
-                        : { RAW: sql`false` },
-                    },
-                    blockees: {
-                      where: currentAccount
-                        ? { blockeeId: currentAccount.actor.id }
-                        : { RAW: sql`false` },
-                    },
-                    blockers: {
-                      where: currentAccount
-                        ? { blockerId: currentAccount.actor.id }
-                        : { RAW: sql`false` },
-                    },
-                  },
+                  with: { instance: true },
                 },
                 link: { with: { creator: true } },
                 mentions: {
@@ -581,24 +593,7 @@ export async function getPublicTimeline(
         replyTarget: {
           with: {
             actor: {
-              with: {
-                instance: true,
-                followers: {
-                  where: currentAccount
-                    ? { followerId: currentAccount.actor.id }
-                    : { RAW: sql`false` },
-                },
-                blockees: {
-                  where: currentAccount
-                    ? { blockeeId: currentAccount.actor.id }
-                    : { RAW: sql`false` },
-                },
-                blockers: {
-                  where: currentAccount
-                    ? { blockerId: currentAccount.actor.id }
-                    : { RAW: sql`false` },
-                },
-              },
+              with: { instance: true },
             },
             link: { with: { creator: true } },
             mentions: {
@@ -610,24 +605,7 @@ export async function getPublicTimeline(
         quotedPost: {
           with: {
             actor: {
-              with: {
-                instance: true,
-                followers: {
-                  where: currentAccount
-                    ? { followerId: currentAccount.actor.id }
-                    : { RAW: sql`false` },
-                },
-                blockees: {
-                  where: currentAccount
-                    ? { blockeeId: currentAccount.actor.id }
-                    : { RAW: sql`false` },
-                },
-                blockers: {
-                  where: currentAccount
-                    ? { blockerId: currentAccount.actor.id }
-                    : { RAW: sql`false` },
-                },
-              },
+              with: { instance: true },
             },
             link: { with: { creator: true } },
             mentions: {
@@ -710,13 +688,68 @@ export async function getPublicTimeline(
     if (direction === "forward") refillOlderCursor = lastCursor;
     else refillNewerCursor = lastCursor;
 
+    // Bulk-fetch follows/blocks for every actor that appears in this batch.
+    const actorIdSet = new Set<Uuid>();
+    for (const post of posts) collectPostActorIds(post, actorIdSet);
+    const socialGraph = currentAccount
+      ? await fetchSocialGraph(
+        db,
+        currentAccount.actor.id as Uuid,
+        [...actorIdSet],
+      )
+      : EMPTY_SOCIAL_GRAPH;
+
     for (const post of posts) {
       if (post.actor == null) continue;
       if (window != null && result.length >= window) break;
+      const enrichedPost = {
+        ...post,
+        actor: enrichActor(post.actor, socialGraph),
+        sharedPost: post.sharedPost == null || post.sharedPost.actor == null
+          ? null
+          : {
+            ...post.sharedPost,
+            actor: enrichActor(post.sharedPost.actor, socialGraph),
+            replyTarget: post.sharedPost.replyTarget == null ||
+                post.sharedPost.replyTarget.actor == null
+              ? null
+              : {
+                ...post.sharedPost.replyTarget,
+                actor: enrichActor(
+                  post.sharedPost.replyTarget.actor,
+                  socialGraph,
+                ),
+              },
+            quotedPost: post.sharedPost.quotedPost == null ||
+                post.sharedPost.quotedPost.actor == null
+              ? null
+              : {
+                ...post.sharedPost.quotedPost,
+                actor: enrichActor(
+                  post.sharedPost.quotedPost.actor,
+                  socialGraph,
+                ),
+              },
+          },
+        replyTarget: post.replyTarget == null || post.replyTarget.actor == null
+          ? null
+          : {
+            ...post.replyTarget,
+            actor: enrichActor(post.replyTarget.actor, socialGraph),
+          },
+        quotedPost: post.quotedPost == null || post.quotedPost.actor == null
+          ? null
+          : {
+            ...post.quotedPost,
+            actor: enrichActor(post.quotedPost.actor, socialGraph),
+          },
+      };
       result.push({
         post: sanitizePostActors(
-          post as typeof post & { actor: NonNullable<typeof post.actor> },
-        ),
+          enrichedPost as unknown as typeof post & {
+            actor: NonNullable<typeof post.actor>;
+          },
+        ) as unknown as TimelineEntry["post"],
         lastSharer: null,
         sharersCount: 0,
         added: post.published,
@@ -773,56 +806,19 @@ export async function getPersonalTimeline(
         post: {
           with: {
             actor: {
-              with: {
-                instance: true,
-                followers: {
-                  where: { followerId: currentAccount.actor.id },
-                },
-                blockees: {
-                  where: { blockeeId: currentAccount.actor.id },
-                },
-                blockers: {
-                  where: { blockerId: currentAccount.actor.id },
-                },
-              },
+              with: { instance: true },
             },
             link: { with: { creator: true } },
             sharedPost: {
               with: {
                 actor: {
-                  with: {
-                    instance: true,
-                    followers: {
-                      where: {
-                        followerId: currentAccount.actor.id,
-                      },
-                    },
-                    blockees: {
-                      where: { blockeeId: currentAccount.actor.id },
-                    },
-                    blockers: {
-                      where: { blockerId: currentAccount.actor.id },
-                    },
-                  },
+                  with: { instance: true },
                 },
                 link: { with: { creator: true } },
                 replyTarget: {
                   with: {
                     actor: {
-                      with: {
-                        instance: true,
-                        followers: {
-                          where: {
-                            followerId: currentAccount.actor.id,
-                          },
-                        },
-                        blockees: {
-                          where: { blockeeId: currentAccount.actor.id },
-                        },
-                        blockers: {
-                          where: { blockerId: currentAccount.actor.id },
-                        },
-                      },
+                      with: { instance: true },
                     },
                     link: { with: { creator: true } },
                     mentions: {
@@ -834,20 +830,7 @@ export async function getPersonalTimeline(
                 quotedPost: {
                   with: {
                     actor: {
-                      with: {
-                        instance: true,
-                        followers: {
-                          where: {
-                            followerId: currentAccount.actor.id,
-                          },
-                        },
-                        blockees: {
-                          where: { blockeeId: currentAccount.actor.id },
-                        },
-                        blockers: {
-                          where: { blockerId: currentAccount.actor.id },
-                        },
-                      },
+                      with: { instance: true },
                     },
                     link: { with: { creator: true } },
                     mentions: {
@@ -871,18 +854,7 @@ export async function getPersonalTimeline(
             replyTarget: {
               with: {
                 actor: {
-                  with: {
-                    instance: true,
-                    followers: {
-                      where: { followerId: currentAccount.actor.id },
-                    },
-                    blockees: {
-                      where: { blockeeId: currentAccount.actor.id },
-                    },
-                    blockers: {
-                      where: { blockerId: currentAccount.actor.id },
-                    },
-                  },
+                  with: { instance: true },
                 },
                 link: { with: { creator: true } },
                 mentions: {
@@ -894,18 +866,7 @@ export async function getPersonalTimeline(
             quotedPost: {
               with: {
                 actor: {
-                  with: {
-                    instance: true,
-                    followers: {
-                      where: { followerId: currentAccount.actor.id },
-                    },
-                    blockees: {
-                      where: { blockeeId: currentAccount.actor.id },
-                    },
-                    blockers: {
-                      where: { blockerId: currentAccount.actor.id },
-                    },
-                  },
+                  with: { instance: true },
                 },
                 link: { with: { creator: true } },
                 mentions: {
@@ -983,13 +944,71 @@ export async function getPersonalTimeline(
     if (direction === "forward") refillOlderCursor = lastCursor;
     else refillNewerCursor = lastCursor;
 
+    // Bulk-fetch follows/blocks for every actor that appears in this batch.
+    const actorIdSet = new Set<Uuid>();
+    for (const item of items) {
+      if (item.post != null) collectPostActorIds(item.post, actorIdSet);
+    }
+    const socialGraph = await fetchSocialGraph(
+      db,
+      currentAccount.actor.id as Uuid,
+      [...actorIdSet],
+    );
+
     for (const item of items) {
       const post = item.post as { actor: unknown } | null;
       if (post == null || post.actor == null) continue;
       if (window != null && result.length >= window) break;
+      const enrichedPost = {
+        ...item.post!,
+        actor: enrichActor(item.post!.actor!, socialGraph),
+        sharedPost: item.post!.sharedPost == null ||
+            item.post!.sharedPost.actor == null
+          ? null
+          : {
+            ...item.post!.sharedPost,
+            actor: enrichActor(item.post!.sharedPost.actor, socialGraph),
+            replyTarget: item.post!.sharedPost.replyTarget == null ||
+                item.post!.sharedPost.replyTarget.actor == null
+              ? null
+              : {
+                ...item.post!.sharedPost.replyTarget,
+                actor: enrichActor(
+                  item.post!.sharedPost.replyTarget.actor,
+                  socialGraph,
+                ),
+              },
+            quotedPost: item.post!.sharedPost.quotedPost == null ||
+                item.post!.sharedPost.quotedPost.actor == null
+              ? null
+              : {
+                ...item.post!.sharedPost.quotedPost,
+                actor: enrichActor(
+                  item.post!.sharedPost.quotedPost.actor,
+                  socialGraph,
+                ),
+              },
+          },
+        replyTarget: item.post!.replyTarget == null ||
+            item.post!.replyTarget.actor == null
+          ? null
+          : {
+            ...item.post!.replyTarget,
+            actor: enrichActor(item.post!.replyTarget.actor, socialGraph),
+          },
+        quotedPost: item.post!.quotedPost == null ||
+            item.post!.quotedPost.actor == null
+          ? null
+          : {
+            ...item.post!.quotedPost,
+            actor: enrichActor(item.post!.quotedPost.actor, socialGraph),
+          },
+      };
       result.push({
         ...item,
-        post: sanitizePostActors(item.post),
+        post: sanitizePostActors(
+          enrichedPost as unknown as typeof item.post,
+        ) as unknown as TimelineEntry["post"],
         cursor: withoutShares ? item.added : item.appended,
         lastSharer: withoutShares ? null : item.lastSharer,
       });

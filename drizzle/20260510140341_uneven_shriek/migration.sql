@@ -1,0 +1,1 @@
+CREATE INDEX "blocking_blockee_id_index" ON "blocking" ("blockee_id");

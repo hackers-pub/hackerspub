@@ -396,6 +396,7 @@ export const blockingTable = pgTable(
   },
   (table) => [
     unique().on(table.blockerId, table.blockeeId),
+    index().on(table.blockeeId),
     check(
       "blocking_blocker_blockee_check",
       sql`${table.blockerId} != ${table.blockeeId}`,
