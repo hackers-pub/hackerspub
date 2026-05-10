@@ -314,6 +314,56 @@ export interface PublicTimelineOptions extends TimelineOptions {
   readonly languages?: Set<string>;
 }
 
+// Sanitizes the eagerly-loaded sub-relations of a timeline post by nulling
+// out any nested Post (sharedPost, replyTarget, quotedPost) whose actor
+// was dropped by the same race condition, and by stripping Mention rows
+// whose actor was similarly dropped.  Using `unknown` for the actor type
+// allows the null check to compile even though Drizzle's return types mark
+// the actor as non-nullable.
+function sanitizePostActors<
+  T extends {
+    sharedPost?: {
+      actor: unknown;
+      replyTarget?:
+        | { actor: unknown; mentions: { actor: unknown }[] }
+        | null;
+      quotedPost?:
+        | { actor: unknown; mentions: { actor: unknown }[] }
+        | null;
+      mentions: { actor: unknown }[];
+    } | null;
+    replyTarget?:
+      | { actor: unknown; mentions: { actor: unknown }[] }
+      | null;
+    quotedPost?:
+      | { actor: unknown; mentions: { actor: unknown }[] }
+      | null;
+    mentions: { actor: unknown }[];
+  },
+>(post: T): T {
+  const sanitizeLeaf = <
+    L extends { actor: unknown; mentions: { actor: unknown }[] },
+  >(
+    leaf: L | null | undefined,
+  ): L | null => {
+    if (leaf == null || leaf.actor == null) return null;
+    return { ...leaf, mentions: leaf.mentions.filter((m) => m.actor != null) };
+  };
+  const sp = post.sharedPost;
+  return {
+    ...post,
+    sharedPost: sp == null || sp.actor == null ? null : {
+      ...sp,
+      replyTarget: sanitizeLeaf(sp.replyTarget),
+      quotedPost: sanitizeLeaf(sp.quotedPost),
+      mentions: sp.mentions.filter((m) => m.actor != null),
+    },
+    replyTarget: sanitizeLeaf(post.replyTarget),
+    quotedPost: sanitizeLeaf(post.quotedPost),
+    mentions: post.mentions.filter((m) => m.actor != null),
+  } as T;
+}
+
 function getPostCursorFilter(
   cursor: TimelineCursor,
   boundary: "newer" | "older",
@@ -634,7 +684,9 @@ export async function getPublicTimeline(
   return posts
     .filter((post) => post.actor != null)
     .map((post) => ({
-      post: post as typeof post & { actor: NonNullable<typeof post.actor> },
+      post: sanitizePostActors(
+        post as typeof post & { actor: NonNullable<typeof post.actor> },
+      ),
       lastSharer: null,
       sharersCount: 0,
       added: post.published,
@@ -875,6 +927,7 @@ export async function getPersonalTimeline(
   ) as typeof timeline;
   return safeTimeline.map((item) => ({
     ...item,
+    post: sanitizePostActors(item.post),
     cursor: withoutShares ? item.added : item.appended,
     lastSharer: withoutShares ? null : item.lastSharer,
     lastSharerId: withoutShares ? null : item.lastSharerId,
