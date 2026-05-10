@@ -51,9 +51,10 @@ if (plausibleEnabled) {
 // the router fetches a route chunk. Vite emits `vite:preloadError` for
 // exactly this case (cancelable; payload carries the original Error),
 // so we listen there instead of pattern-matching browser-specific
-// messages on `unhandledrejection`. Calling `preventDefault()`
-// suppresses Vite's default rethrow; we then reload so the user gets
-// fresh HTML pointing at the new hashes.
+// messages on `unhandledrejection`. We do NOT call `preventDefault()`:
+// if prevented, Vite resolves the import with `undefined` instead of
+// rejecting, which causes Solid's lazy() to throw a confusing secondary
+// error. We let Vite propagate the rejection cleanly and reload instead.
 // https://vite.dev/guide/build#load-error-handling
 
 // Throttle reloads rather than allowing only one ever: if a reload
@@ -85,19 +86,25 @@ function shouldAttemptStaleChunkReload(): boolean {
 }
 
 window.addEventListener("vite:preloadError", (event) => {
-  // On the throttled path we deliberately skip `preventDefault()`
-  // and let Vite rethrow, so Sentry's global `unhandledrejection`
-  // handler captures the original error naturally — no manual
-  // capture needed (and avoiding duplicate events).
+  // On the throttled path, return early and let Vite rethrow naturally
+  // so Sentry's global `unhandledrejection` handler captures the error
+  // without a manual capture (avoiding duplicate events).
   if (!shouldAttemptStaleChunkReload()) return;
-  // We're about to cancel Vite's rethrow, which would otherwise be
-  // what Sentry sees. Report it explicitly so we keep production
-  // visibility into how often the recovery fires. When the DSN
-  // isn't configured, `captureException` no-ops.
+  // Capture before reloading so we keep visibility into how often
+  // the recovery fires. When the DSN isn't configured, no-ops.
   Sentry.captureException(event.payload, {
     tags: { stale_chunk_reload: "true" },
   });
-  event.preventDefault();
+  // Do NOT call event.preventDefault(). When prevented, Vite's
+  // __vitePreload wrapper resolves the dynamic import with `undefined`
+  // instead of rejecting it. Solid's lazy() then stores
+  // `comp = () => mod.default` with mod===undefined, so when the
+  // component renders, `comp()` throws "Cannot read properties of
+  // undefined (reading 'default')" — a secondary error unrelated to
+  // the real cause. Without preventDefault the original rejection
+  // propagates cleanly through Solid's error path, and the error
+  // boundary surfaces the actual "Failed to fetch dynamically imported
+  // module" message. The stale-chunk recovery still works via reload().
   location.reload();
 });
 
