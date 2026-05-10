@@ -20,36 +20,46 @@ const appleAppSiteAssociationJson = Deno.readTextFileSync(
 const yogaServer = createYogaServer();
 
 Deno.serve({ port: 8080 }, async (req, info) => {
-  req = await getXForwardedRequest(req);
-  const url = new URL(req.url);
-  const disk = drive.use();
-  const uploadResponse = await handleMediumUploadProxy(req, kv, disk);
-  if (uploadResponse != null) return uploadResponse;
-  if (url.pathname === "/.well-known/assetlinks.json") {
-    return new Response(JSON.stringify(assetlinks), {
-      headers: { "content-type": "application/json" },
+  try {
+    req = await getXForwardedRequest(req);
+    const url = new URL(req.url);
+    const disk = drive.use();
+    const uploadResponse = await handleMediumUploadProxy(req, kv, disk);
+    if (uploadResponse != null) return uploadResponse;
+    if (url.pathname === "/.well-known/assetlinks.json") {
+      return new Response(JSON.stringify(assetlinks), {
+        headers: { "content-type": "application/json" },
+      });
+    }
+    if (url.pathname === "/.well-known/apple-app-site-association") {
+      return new Response(appleAppSiteAssociationJson, {
+        headers: { "content-type": "application/json" },
+      });
+    }
+    if (
+      url.pathname.startsWith("/.well-known/") ||
+      url.pathname.startsWith("/ap/") ||
+      url.pathname.startsWith("/nodeinfo/")
+    ) {
+      return await federation.fetch(req, {
+        contextData: { db, kv, disk, models },
+      });
+    }
+    return await yogaServer.fetch(req, {
+      altTextGenerator: models.altTextGenerator,
+      db,
+      kv,
+      disk,
+      email,
+      fedCtx: federation.createContext(req, { db, kv, disk, models }),
+      request: req,
+      connectionInfo: info,
     });
+  } catch (e) {
+    // Client disconnected before the server finished — not a server error.
+    if (e instanceof DOMException && e.name === "AbortError") {
+      return new Response(null, { status: 499 });
+    }
+    throw e;
   }
-  if (url.pathname === "/.well-known/apple-app-site-association") {
-    return new Response(appleAppSiteAssociationJson, {
-      headers: { "content-type": "application/json" },
-    });
-  }
-  if (
-    url.pathname.startsWith("/.well-known/") ||
-    url.pathname.startsWith("/ap/") ||
-    url.pathname.startsWith("/nodeinfo/")
-  ) {
-    return federation.fetch(req, { contextData: { db, kv, disk, models } });
-  }
-  return yogaServer.fetch(req, {
-    altTextGenerator: models.altTextGenerator,
-    db,
-    kv,
-    disk,
-    email,
-    fedCtx: federation.createContext(req, { db, kv, disk, models }),
-    request: req,
-    connectionInfo: info,
-  });
 });
