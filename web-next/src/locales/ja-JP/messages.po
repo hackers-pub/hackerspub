@@ -455,7 +455,7 @@ msgstr "招待する友達の使用言語を選択してください。この言
 msgid "Choose your preferred language for the verification email."
 msgstr "確認メールの言語を選択してください。"
 
-#: src/components/ImageLightbox.tsx:55
+#: src/components/ImageLightbox.tsx:91
 msgid "Close"
 msgstr "閉じる"
 
@@ -1099,7 +1099,7 @@ msgstr "フェディバースのアカウントをお持ちの場合、自分の
 msgid "Image"
 msgstr "画像"
 
-#: src/components/ImageLightbox.tsx:39
+#: src/components/ImageLightbox.tsx:75
 msgid "Image preview"
 msgstr "画像プレビュー"
 
@@ -1437,6 +1437,10 @@ msgstr "使用履歴なし"
 msgid "New article"
 msgstr "新しい記事"
 
+#: src/components/ImageLightbox.tsx:121
+msgid "Next image"
+msgstr "次の画像"
+
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "ブックマークはまだありません"
@@ -1672,6 +1676,10 @@ msgstr "優先言語"
 #: src/routes/(root)/[handle]/settings/language.tsx:84
 msgid "Preferred languages"
 msgstr "優先言語"
+
+#: src/components/ImageLightbox.tsx:56
+msgid "Previous image"
+msgstr "前の画像"
 
 #: src/components/LanguageList.tsx:73
 msgid "Priority"

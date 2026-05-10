@@ -455,7 +455,7 @@ msgstr "Choose the language your friend prefers. This language will only be used
 msgid "Choose your preferred language for the verification email."
 msgstr "Choose your preferred language for the verification email."
 
-#: src/components/ImageLightbox.tsx:55
+#: src/components/ImageLightbox.tsx:91
 msgid "Close"
 msgstr "Close"
 
@@ -1103,7 +1103,7 @@ msgstr "If you have a fediverse account, you can reply to this post from your ow
 msgid "Image"
 msgstr "Image"
 
-#: src/components/ImageLightbox.tsx:39
+#: src/components/ImageLightbox.tsx:75
 msgid "Image preview"
 msgstr "Image preview"
 
@@ -1441,6 +1441,10 @@ msgstr "Never used"
 msgid "New article"
 msgstr "New article"
 
+#: src/components/ImageLightbox.tsx:121
+msgid "Next image"
+msgstr "Next image"
+
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "No bookmarks yet"
@@ -1677,6 +1681,10 @@ msgstr "Preferred language"
 #: src/routes/(root)/[handle]/settings/language.tsx:84
 msgid "Preferred languages"
 msgstr "Preferred languages"
+
+#: src/components/ImageLightbox.tsx:56
+msgid "Previous image"
+msgstr "Previous image"
 
 #: src/components/LanguageList.tsx:73
 msgid "Priority"

@@ -455,7 +455,7 @@ msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 msgid "Choose your preferred language for the verification email."
 msgstr "请选择验证邮件的语言。"
 
-#: src/components/ImageLightbox.tsx:55
+#: src/components/ImageLightbox.tsx:91
 msgid "Close"
 msgstr "关闭"
 
@@ -1099,7 +1099,7 @@ msgstr "如果你有联邦宇宙账号，可以从自己的实例回复此内容
 msgid "Image"
 msgstr "图片"
 
-#: src/components/ImageLightbox.tsx:39
+#: src/components/ImageLightbox.tsx:75
 msgid "Image preview"
 msgstr "图片预览"
 
@@ -1437,6 +1437,10 @@ msgstr "从未使用过"
 msgid "New article"
 msgstr "新建文章"
 
+#: src/components/ImageLightbox.tsx:121
+msgid "Next image"
+msgstr "下一张图片"
+
 #: src/components/Bookmarks.tsx:131
 msgid "No bookmarks yet"
 msgstr "暂无收藏"
@@ -1672,6 +1676,10 @@ msgstr "首选语言"
 #: src/routes/(root)/[handle]/settings/language.tsx:84
 msgid "Preferred languages"
 msgstr "偏好语言"
+
+#: src/components/ImageLightbox.tsx:56
+msgid "Previous image"
+msgstr "上一张图片"
 
 #: src/components/LanguageList.tsx:73
 msgid "Priority"
