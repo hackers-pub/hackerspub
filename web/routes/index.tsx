@@ -14,8 +14,10 @@ import type {
   Reaction,
 } from "@hackerspub/models/schema";
 import {
+  formatTimelineCursor,
   getPersonalTimeline,
   getPublicTimeline,
+  parseTimelineCursor,
   type TimelineEntry,
 } from "@hackerspub/models/timeline";
 import { getLogger } from "@logtape/logtape";
@@ -58,13 +60,15 @@ export const handler = define.handlers({
       filter = ctx.state.account == null ? "fediverse" : "feed";
     }
     const untilString = ctx.url.searchParams.get("until");
-    const until = untilString == null || !untilString.match(/^\d+(\.\d+)?$/)
+    const until = untilString == null
       ? undefined
-      : new Date(parseInt(untilString));
+      : parseTimelineCursor(untilString);
     const windowString = ctx.url.searchParams.get("window");
-    const window = windowString == null || !windowString.match(/^\d+$/)
+    const requestedWindow = windowString == null ||
+        !windowString.match(/^\d+$/)
       ? defaultWindow
       : parseInt(windowString);
+    const window = requestedWindow < 1 ? defaultWindow : requestedWindow;
     let timeline: TimelineEntry[];
     const languages = new Set<string>(
       acceptsLanguages(ctx.req)
@@ -100,9 +104,9 @@ export const handler = define.handlers({
           window: window + 1,
         });
     }
-    let next: Date | undefined = undefined;
+    let next: string | undefined = undefined;
     if (timeline.length > window) {
-      next = timeline[window].added;
+      next = formatTimelineCursor(timeline[window - 1]);
       timeline = timeline.slice(0, window);
     }
     const recommendedActors = next == null || filter === "recommendations"
@@ -229,8 +233,9 @@ interface HomeProps {
     lastSharer: Actor | null;
     sharersCount: number;
     added: Date;
+    cursor: Date;
   })[];
-  next?: Date;
+  next?: string;
   window: number;
   defaultWindow: number;
   recommendedActors: (Actor & { account?: Account | null })[];
@@ -242,8 +247,10 @@ export default define.page<typeof handler, HomeProps>(
     const nextHref = data.next == null
       ? undefined
       : data.window === data.defaultWindow
-      ? `?filter=${data.filter}&until=${+data.next}`
-      : `?filter=${data.filter}&until=${+data.next}&window=${data.window}`;
+      ? `?filter=${data.filter}&until=${encodeURIComponent(data.next)}`
+      : `?filter=${data.filter}&until=${
+        encodeURIComponent(data.next)
+      }&window=${data.window}`;
     return (
       <>
         {data.composer && (

@@ -23,6 +23,7 @@ import {
   type Reaction,
   timelineItemTable,
 } from "./schema.ts";
+import { type Uuid, validateUuid } from "./uuid.ts";
 
 export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
   const envValue = process.env.FUTURE_TIMESTAMP_TOLERANCE;
@@ -268,13 +269,43 @@ export interface TimelineEntry {
   lastSharer: Actor | null;
   sharersCount: number;
   added: Date;
+  cursor: Date;
+}
+
+export interface TimelineCursor {
+  readonly timestamp: Date;
+  readonly postId?: Uuid;
+}
+
+export function parseTimelineCursor(raw: string): TimelineCursor | undefined {
+  const separatorIndex = raw.indexOf("|");
+  if (separatorIndex < 0) {
+    const timestamp = raw.match(/^\d+(\.\d+)?$/)
+      ? new Date(parseInt(raw, 10))
+      : new Date(raw);
+    return isNaN(timestamp.getTime()) ? undefined : { timestamp };
+  }
+
+  const timestamp = new Date(raw.slice(0, separatorIndex));
+  const postId = raw.slice(separatorIndex + 1);
+  if (isNaN(timestamp.getTime())) return undefined;
+  if (!validateUuid(postId)) return undefined;
+  return { timestamp, postId };
+}
+
+export function formatTimelineCursor(
+  entry: Pick<TimelineEntry, "cursor" | "post">,
+): string {
+  return `${entry.cursor.toISOString()}|${entry.post.id}`;
 }
 
 export interface TimelineOptions {
+  readonly direction?: "backward" | "forward";
   readonly local?: boolean;
   readonly withoutShares?: boolean;
   readonly postType?: PostType;
-  readonly until?: Date;
+  readonly since?: TimelineCursor;
+  readonly until?: TimelineCursor;
   readonly window?: number;
 }
 
@@ -283,19 +314,80 @@ export interface PublicTimelineOptions extends TimelineOptions {
   readonly languages?: Set<string>;
 }
 
+function getPostCursorFilter(
+  cursor: TimelineCursor,
+  boundary: "newer" | "older",
+) {
+  const timestamp = cursor.timestamp.toISOString();
+  if (cursor.postId == null) {
+    return {
+      RAW: (post: typeof postTable) =>
+        boundary === "newer"
+          ? sql`${post.published}::timestamptz(3) > ${timestamp}::timestamptz(3)`
+          : sql`${post.published}::timestamptz(3) < ${timestamp}::timestamptz(3)`,
+    };
+  }
+
+  const postId = cursor.postId;
+  return {
+    RAW: (post: typeof postTable) =>
+      boundary === "newer"
+        ? sql`(${post.published}::timestamptz(3) > ${timestamp}::timestamptz(3) OR (${post.published}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${post.id} > ${postId}::uuid))`
+        : sql`(${post.published}::timestamptz(3) < ${timestamp}::timestamptz(3) OR (${post.published}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${post.id} < ${postId}::uuid))`,
+  };
+}
+
+function getTimelineItemCursorFilter(
+  cursor: TimelineCursor,
+  useAddedColumn: boolean,
+  boundary: "newer" | "older",
+) {
+  const timestamp = cursor.timestamp.toISOString();
+  if (cursor.postId == null) {
+    return {
+      RAW: (timelineItem: typeof timelineItemTable) => {
+        const cursorColumn = useAddedColumn
+          ? timelineItem.added
+          : timelineItem.appended;
+        return boundary === "newer"
+          ? sql`${cursorColumn}::timestamptz(3) > ${timestamp}::timestamptz(3)`
+          : sql`${cursorColumn}::timestamptz(3) < ${timestamp}::timestamptz(3)`;
+      },
+    };
+  }
+
+  const postId = cursor.postId;
+  return {
+    RAW: (timelineItem: typeof timelineItemTable) => {
+      const cursorColumn = useAddedColumn
+        ? timelineItem.added
+        : timelineItem.appended;
+      return boundary === "newer"
+        ? sql`(${cursorColumn}::timestamptz(3) > ${timestamp}::timestamptz(3) OR (${cursorColumn}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${timelineItem.postId} > ${postId}::uuid))`
+        : sql`(${cursorColumn}::timestamptz(3) < ${timestamp}::timestamptz(3) OR (${cursorColumn}::timestamptz(3) = ${timestamp}::timestamptz(3) AND ${timelineItem.postId} < ${postId}::uuid))`;
+    },
+  };
+}
+
 export async function getPublicTimeline(
   db: Database,
   {
     currentAccount,
+    direction = "forward",
     languages = new Set(),
     local = false,
     withoutShares = false,
     postType,
+    since,
     until,
     window,
   }: PublicTimelineOptions,
 ): Promise<TimelineEntry[]> {
   const futureTimestampLimit = getFutureTimestampLimit();
+  const cursorFilters = [
+    since == null ? undefined : getPostCursorFilter(since, "newer"),
+    until == null ? undefined : getPostCursorFilter(until, "older"),
+  ].filter((filter) => filter != null);
   const posts = await db.query.postTable.findMany({
     with: {
       actor: {
@@ -492,6 +584,7 @@ export async function getPublicTimeline(
     where: {
       AND: [
         getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
+        ...cursorFilters,
         {
           ...(
             languages.size < 1
@@ -520,11 +613,17 @@ export async function getPublicTimeline(
           ),
           ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
           ...(postType == null ? undefined : { type: postType }),
-          published: { lte: until == null ? futureTimestampLimit : until },
+          published: { lte: futureTimestampLimit },
         },
       ],
     },
-    orderBy: { published: "desc" },
+    orderBy: (post, { asc, desc }) => {
+      const cursorTimestamp = sql<Date>`${post.published}::timestamptz(3)`;
+      return [
+        direction === "backward" ? asc(cursorTimestamp) : desc(cursorTimestamp),
+        direction === "backward" ? asc(post.id) : desc(post.id),
+      ];
+    },
     limit: window,
   });
   return posts.map((post) => ({
@@ -532,6 +631,7 @@ export async function getPublicTimeline(
     lastSharer: null,
     sharersCount: 0,
     added: post.published,
+    cursor: post.published,
   }));
 }
 
@@ -543,14 +643,24 @@ export async function getPersonalTimeline(
   db: Database,
   {
     currentAccount,
+    direction = "forward",
     local = false,
     withoutShares = false,
     postType,
+    since,
     until,
     window,
   }: PersonalTimelineOptions,
 ): Promise<TimelineEntry[]> {
   const futureTimestampLimit = getFutureTimestampLimit();
+  const cursorFilters = [
+    since == null
+      ? undefined
+      : getTimelineItemCursorFilter(since, withoutShares, "newer"),
+    until == null
+      ? undefined
+      : getTimelineItemCursorFilter(until, withoutShares, "older"),
+  ].filter((filter) => filter != null);
   const timeline = await db.query.timelineItemTable.findMany({
     with: {
       post: {
@@ -713,6 +823,7 @@ export async function getPersonalTimeline(
     },
     where: {
       accountId: currentAccount.id,
+      ...(cursorFilters.length < 1 ? {} : { AND: cursorFilters }),
       post: {
         AND: [
           getPostVisibilityFilter(currentAccount.actor),
@@ -736,15 +847,24 @@ export async function getPersonalTimeline(
         ],
       },
       ...(withoutShares ? { originalAuthorId: { isNotNull: true } } : {}),
-      ...(until == null ? undefined : { added: { lte: until } }),
     },
-    orderBy: withoutShares ? { added: "desc" } : { appended: "desc" },
+    orderBy: (timelineItem, { asc, desc }) => {
+      const cursorTimestamp = withoutShares
+        ? sql<Date>`${timelineItem.added}::timestamptz(3)`
+        : sql<Date>`${timelineItem.appended}::timestamptz(3)`;
+      return [
+        direction === "backward" ? asc(cursorTimestamp) : desc(cursorTimestamp),
+        direction === "backward"
+          ? asc(timelineItem.postId)
+          : desc(timelineItem.postId),
+      ];
+    },
     limit: window,
   });
-  if (!withoutShares) return timeline;
   return timeline.map((item) => ({
     ...item,
-    lastSharer: null,
-    lastSharerId: null,
+    cursor: withoutShares ? item.added : item.appended,
+    lastSharer: withoutShares ? null : item.lastSharer,
+    lastSharerId: withoutShares ? null : item.lastSharerId,
   }));
 }
