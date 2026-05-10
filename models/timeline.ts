@@ -25,6 +25,11 @@ import {
 } from "./schema.ts";
 import { type Uuid, validateUuid } from "./uuid.ts";
 
+// Extra rows fetched beyond the caller's window so that after filtering out
+// actor-deleted rows the caller still receives the full window plus the
+// hasNextPage probe row.
+const ACTOR_RACE_BUFFER = 5;
+
 export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
   const envValue = process.env.FUTURE_TIMESTAMP_TOLERANCE;
   if (!envValue) return 300000;
@@ -434,264 +439,295 @@ export async function getPublicTimeline(
   }: PublicTimelineOptions,
 ): Promise<TimelineEntry[]> {
   const futureTimestampLimit = getFutureTimestampLimit();
-  const cursorFilters = [
-    since == null ? undefined : getPostCursorFilter(since, "newer"),
-    until == null ? undefined : getPostCursorFilter(until, "older"),
-  ].filter((filter) => filter != null);
-  const posts = await db.query.postTable.findMany({
-    with: {
-      actor: {
-        with: {
-          instance: true,
-          followers: {
-            where: currentAccount
-              ? { followerId: currentAccount.actor.id }
-              : { RAW: sql`false` },
-          },
-          blockees: {
-            where: currentAccount
-              ? { blockeeId: currentAccount.actor.id }
-              : { RAW: sql`false` },
-          },
-          blockers: {
-            where: currentAccount
-              ? { blockerId: currentAccount.actor.id }
-              : { RAW: sql`false` },
-          },
-        },
-      },
-      link: { with: { creator: true } },
-      sharedPost: {
-        with: {
-          actor: {
-            with: {
-              instance: true,
-              followers: {
-                where: currentAccount
-                  ? { followerId: currentAccount.actor.id }
-                  : { RAW: sql`false` },
-              },
-              blockees: {
-                where: currentAccount
-                  ? { blockeeId: currentAccount.actor.id }
-                  : { RAW: sql`false` },
-              },
-              blockers: {
-                where: currentAccount
-                  ? { blockerId: currentAccount.actor.id }
-                  : { RAW: sql`false` },
-              },
+  // Refill loop: keep fetching additional batches until `window` sanitized
+  // entries are collected or the DB has no more rows.  Each iteration replaces
+  // the tail-side cursor (older for forward, newer for backward) with the
+  // composite (timestamp, postId) of the last row seen so far.
+  const result: TimelineEntry[] = [];
+  let refillNewerCursor = since;
+  let refillOlderCursor = until;
+
+  while (window == null || result.length < window) {
+    const batchCursorFilters = [
+      refillNewerCursor == null
+        ? undefined
+        : getPostCursorFilter(refillNewerCursor, "newer"),
+      refillOlderCursor == null
+        ? undefined
+        : getPostCursorFilter(refillOlderCursor, "older"),
+    ].filter((f) => f != null);
+    const needed = window == null ? undefined : window - result.length;
+
+    const posts = await db.query.postTable.findMany({
+      with: {
+        actor: {
+          with: {
+            instance: true,
+            followers: {
+              where: currentAccount
+                ? { followerId: currentAccount.actor.id }
+                : { RAW: sql`false` },
+            },
+            blockees: {
+              where: currentAccount
+                ? { blockeeId: currentAccount.actor.id }
+                : { RAW: sql`false` },
+            },
+            blockers: {
+              where: currentAccount
+                ? { blockerId: currentAccount.actor.id }
+                : { RAW: sql`false` },
             },
           },
-          link: { with: { creator: true } },
-          replyTarget: {
-            with: {
-              actor: {
-                with: {
-                  instance: true,
-                  followers: {
-                    where: currentAccount
-                      ? { followerId: currentAccount.actor.id }
-                      : { RAW: sql`false` },
-                  },
-                  blockees: {
-                    where: currentAccount
-                      ? { blockeeId: currentAccount.actor.id }
-                      : { RAW: sql`false` },
-                  },
-                  blockers: {
-                    where: currentAccount
-                      ? { blockerId: currentAccount.actor.id }
-                      : { RAW: sql`false` },
-                  },
+        },
+        link: { with: { creator: true } },
+        sharedPost: {
+          with: {
+            actor: {
+              with: {
+                instance: true,
+                followers: {
+                  where: currentAccount
+                    ? { followerId: currentAccount.actor.id }
+                    : { RAW: sql`false` },
+                },
+                blockees: {
+                  where: currentAccount
+                    ? { blockeeId: currentAccount.actor.id }
+                    : { RAW: sql`false` },
+                },
+                blockers: {
+                  where: currentAccount
+                    ? { blockerId: currentAccount.actor.id }
+                    : { RAW: sql`false` },
                 },
               },
-              link: { with: { creator: true } },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
             },
-          },
-          quotedPost: {
-            with: {
-              actor: {
-                with: {
-                  instance: true,
-                  followers: {
-                    where: currentAccount
-                      ? { followerId: currentAccount.actor.id }
-                      : { RAW: sql`false` },
-                  },
-                  blockees: {
-                    where: currentAccount
-                      ? { blockeeId: currentAccount.actor.id }
-                      : { RAW: sql`false` },
-                  },
-                  blockers: {
-                    where: currentAccount
-                      ? { blockerId: currentAccount.actor.id }
-                      : { RAW: sql`false` },
-                  },
-                },
-              },
-              link: { with: { creator: true } },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
-            },
-          },
-          mentions: {
-            with: { actor: true },
-          },
-          media: true,
-          shares: {
-            where: currentAccount
-              ? { actorId: currentAccount.actor.id }
-              : { RAW: sql`false` },
-          },
-          reactions: {
-            where: currentAccount
-              ? { actorId: currentAccount.actor.id }
-              : { RAW: sql`false` },
-          },
-        },
-      },
-      replyTarget: {
-        with: {
-          actor: {
-            with: {
-              instance: true,
-              followers: {
-                where: currentAccount
-                  ? { followerId: currentAccount.actor.id }
-                  : { RAW: sql`false` },
-              },
-              blockees: {
-                where: currentAccount
-                  ? { blockeeId: currentAccount.actor.id }
-                  : { RAW: sql`false` },
-              },
-              blockers: {
-                where: currentAccount
-                  ? { blockerId: currentAccount.actor.id }
-                  : { RAW: sql`false` },
-              },
-            },
-          },
-          link: { with: { creator: true } },
-          mentions: {
-            with: { actor: true },
-          },
-          media: true,
-        },
-      },
-      quotedPost: {
-        with: {
-          actor: {
-            with: {
-              instance: true,
-              followers: {
-                where: currentAccount
-                  ? { followerId: currentAccount.actor.id }
-                  : { RAW: sql`false` },
-              },
-              blockees: {
-                where: currentAccount
-                  ? { blockeeId: currentAccount.actor.id }
-                  : { RAW: sql`false` },
-              },
-              blockers: {
-                where: currentAccount
-                  ? { blockerId: currentAccount.actor.id }
-                  : { RAW: sql`false` },
-              },
-            },
-          },
-          link: { with: { creator: true } },
-          mentions: {
-            with: { actor: true },
-          },
-          media: true,
-        },
-      },
-      mentions: {
-        with: { actor: true },
-      },
-      media: true,
-      shares: {
-        where: currentAccount
-          ? { actorId: currentAccount.actor.id }
-          : { RAW: sql`false` },
-      },
-      reactions: {
-        where: currentAccount
-          ? { actorId: currentAccount.actor.id }
-          : { RAW: sql`false` },
-      },
-    },
-    where: {
-      AND: [
-        getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
-        ...cursorFilters,
-        {
-          ...(
-            languages.size < 1
-              ? (currentAccount?.hideForeignLanguages &&
-                  currentAccount.locales != null
-                ? { language: { in: expandLocales(currentAccount.locales) } }
-                : {})
-              : { language: { in: expandLocales([...languages]) } }
-          ),
-          replyTargetId: { isNull: true },
-          ...(
-            local
-              ? {
-                OR: [
-                  { noteSourceId: { isNotNull: true } },
-                  { articleSourceId: { isNotNull: true } },
-                  {
-                    sharedPostId: { isNotNull: true },
-                    actor: {
-                      accountId: { isNotNull: true },
+            link: { with: { creator: true } },
+            replyTarget: {
+              with: {
+                actor: {
+                  with: {
+                    instance: true,
+                    followers: {
+                      where: currentAccount
+                        ? { followerId: currentAccount.actor.id }
+                        : { RAW: sql`false` },
+                    },
+                    blockees: {
+                      where: currentAccount
+                        ? { blockeeId: currentAccount.actor.id }
+                        : { RAW: sql`false` },
+                    },
+                    blockers: {
+                      where: currentAccount
+                        ? { blockerId: currentAccount.actor.id }
+                        : { RAW: sql`false` },
                     },
                   },
-                ],
-              }
-              : undefined
-          ),
-          ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
-          ...(postType == null ? undefined : { type: postType }),
-          published: { lte: futureTimestampLimit },
+                },
+                link: { with: { creator: true } },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
+              },
+            },
+            quotedPost: {
+              with: {
+                actor: {
+                  with: {
+                    instance: true,
+                    followers: {
+                      where: currentAccount
+                        ? { followerId: currentAccount.actor.id }
+                        : { RAW: sql`false` },
+                    },
+                    blockees: {
+                      where: currentAccount
+                        ? { blockeeId: currentAccount.actor.id }
+                        : { RAW: sql`false` },
+                    },
+                    blockers: {
+                      where: currentAccount
+                        ? { blockerId: currentAccount.actor.id }
+                        : { RAW: sql`false` },
+                    },
+                  },
+                },
+                link: { with: { creator: true } },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
+              },
+            },
+            mentions: {
+              with: { actor: true },
+            },
+            media: true,
+            shares: {
+              where: currentAccount
+                ? { actorId: currentAccount.actor.id }
+                : { RAW: sql`false` },
+            },
+            reactions: {
+              where: currentAccount
+                ? { actorId: currentAccount.actor.id }
+                : { RAW: sql`false` },
+            },
+          },
         },
-      ],
-    },
-    orderBy: (post, { asc, desc }) => {
-      const cursorTimestamp = sql<Date>`${post.published}::timestamptz(3)`;
-      return [
-        direction === "backward" ? asc(cursorTimestamp) : desc(cursorTimestamp),
-        direction === "backward" ? asc(post.id) : desc(post.id),
-      ];
-    },
-    limit: window,
-  });
-  // A race condition can leave post.actor null if an actor is deleted
-  // (via a Delete activity or 410 Gone cleanup) between the posts query and
-  // the actor relation query that Drizzle runs separately.  Skip those posts —
-  // they're already gone from the DB and would trigger a GraphQL non-null
-  // violation on Note.actor otherwise.
-  return posts
-    .filter((post) => post.actor != null)
-    .map((post) => ({
-      post: sanitizePostActors(
-        post as typeof post & { actor: NonNullable<typeof post.actor> },
-      ),
-      lastSharer: null,
-      sharersCount: 0,
-      added: post.published,
-      cursor: post.published,
-    }));
+        replyTarget: {
+          with: {
+            actor: {
+              with: {
+                instance: true,
+                followers: {
+                  where: currentAccount
+                    ? { followerId: currentAccount.actor.id }
+                    : { RAW: sql`false` },
+                },
+                blockees: {
+                  where: currentAccount
+                    ? { blockeeId: currentAccount.actor.id }
+                    : { RAW: sql`false` },
+                },
+                blockers: {
+                  where: currentAccount
+                    ? { blockerId: currentAccount.actor.id }
+                    : { RAW: sql`false` },
+                },
+              },
+            },
+            link: { with: { creator: true } },
+            mentions: {
+              with: { actor: true },
+            },
+            media: true,
+          },
+        },
+        quotedPost: {
+          with: {
+            actor: {
+              with: {
+                instance: true,
+                followers: {
+                  where: currentAccount
+                    ? { followerId: currentAccount.actor.id }
+                    : { RAW: sql`false` },
+                },
+                blockees: {
+                  where: currentAccount
+                    ? { blockeeId: currentAccount.actor.id }
+                    : { RAW: sql`false` },
+                },
+                blockers: {
+                  where: currentAccount
+                    ? { blockerId: currentAccount.actor.id }
+                    : { RAW: sql`false` },
+                },
+              },
+            },
+            link: { with: { creator: true } },
+            mentions: {
+              with: { actor: true },
+            },
+            media: true,
+          },
+        },
+        mentions: {
+          with: { actor: true },
+        },
+        media: true,
+        shares: {
+          where: currentAccount
+            ? { actorId: currentAccount.actor.id }
+            : { RAW: sql`false` },
+        },
+        reactions: {
+          where: currentAccount
+            ? { actorId: currentAccount.actor.id }
+            : { RAW: sql`false` },
+        },
+      },
+      where: {
+        AND: [
+          getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
+          ...batchCursorFilters,
+          {
+            ...(
+              languages.size < 1
+                ? (currentAccount?.hideForeignLanguages &&
+                    currentAccount.locales != null
+                  ? { language: { in: expandLocales(currentAccount.locales) } }
+                  : {})
+                : { language: { in: expandLocales([...languages]) } }
+            ),
+            replyTargetId: { isNull: true },
+            ...(
+              local
+                ? {
+                  OR: [
+                    { noteSourceId: { isNotNull: true } },
+                    { articleSourceId: { isNotNull: true } },
+                    {
+                      sharedPostId: { isNotNull: true },
+                      actor: {
+                        accountId: { isNotNull: true },
+                      },
+                    },
+                  ],
+                }
+                : undefined
+            ),
+            ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
+            ...(postType == null ? undefined : { type: postType }),
+            published: { lte: futureTimestampLimit },
+          },
+        ],
+      },
+      orderBy: (post, { asc, desc }) => {
+        const cursorTimestamp = sql<Date>`${post.published}::timestamptz(3)`;
+        return [
+          direction === "backward"
+            ? asc(cursorTimestamp)
+            : desc(cursorTimestamp),
+          direction === "backward" ? asc(post.id) : desc(post.id),
+        ];
+      },
+      limit: needed != null ? needed + ACTOR_RACE_BUFFER : undefined,
+    });
+
+    if (posts.length === 0) break;
+
+    // Advance the tail-side cursor using the last row's composite key.
+    const lastPost = posts.at(-1)!;
+    const lastCursor: TimelineCursor = {
+      timestamp: lastPost.published,
+      postId: lastPost.id as Uuid,
+    };
+    if (direction === "forward") refillOlderCursor = lastCursor;
+    else refillNewerCursor = lastCursor;
+
+    for (const post of posts) {
+      if (post.actor == null) continue;
+      if (window != null && result.length >= window) break;
+      result.push({
+        post: sanitizePostActors(
+          post as typeof post & { actor: NonNullable<typeof post.actor> },
+        ),
+        lastSharer: null,
+        sharersCount: 0,
+        added: post.published,
+        cursor: post.published,
+      });
+    }
+
+    if (needed != null && posts.length < needed + ACTOR_RACE_BUFFER) break;
+  }
+
+  return result;
 }
 
 export interface PersonalTimelineOptions extends TimelineOptions {
@@ -712,224 +748,255 @@ export async function getPersonalTimeline(
   }: PersonalTimelineOptions,
 ): Promise<TimelineEntry[]> {
   const futureTimestampLimit = getFutureTimestampLimit();
-  const cursorFilters = [
-    since == null
-      ? undefined
-      : getTimelineItemCursorFilter(since, withoutShares, "newer"),
-    until == null
-      ? undefined
-      : getTimelineItemCursorFilter(until, withoutShares, "older"),
-  ].filter((filter) => filter != null);
-  const timeline = await db.query.timelineItemTable.findMany({
-    with: {
-      post: {
-        with: {
-          actor: {
-            with: {
-              instance: true,
-              followers: {
-                where: { followerId: currentAccount.actor.id },
-              },
-              blockees: {
-                where: { blockeeId: currentAccount.actor.id },
-              },
-              blockers: {
-                where: { blockerId: currentAccount.actor.id },
-              },
-            },
-          },
-          link: { with: { creator: true } },
-          sharedPost: {
-            with: {
-              actor: {
-                with: {
-                  instance: true,
-                  followers: {
-                    where: {
-                      followerId: currentAccount.actor.id,
-                    },
-                  },
-                  blockees: {
-                    where: { blockeeId: currentAccount.actor.id },
-                  },
-                  blockers: {
-                    where: { blockerId: currentAccount.actor.id },
-                  },
+  // Refill loop: same strategy as getPublicTimeline.
+  const result: TimelineEntry[] = [];
+  let refillNewerCursor = since;
+  let refillOlderCursor = until;
+
+  while (window == null || result.length < window) {
+    const batchCursorFilters = [
+      refillNewerCursor == null ? undefined : getTimelineItemCursorFilter(
+        refillNewerCursor,
+        withoutShares,
+        "newer",
+      ),
+      refillOlderCursor == null ? undefined : getTimelineItemCursorFilter(
+        refillOlderCursor,
+        withoutShares,
+        "older",
+      ),
+    ].filter((f) => f != null);
+    const needed = window == null ? undefined : window - result.length;
+
+    const items = await db.query.timelineItemTable.findMany({
+      with: {
+        post: {
+          with: {
+            actor: {
+              with: {
+                instance: true,
+                followers: {
+                  where: { followerId: currentAccount.actor.id },
+                },
+                blockees: {
+                  where: { blockeeId: currentAccount.actor.id },
+                },
+                blockers: {
+                  where: { blockerId: currentAccount.actor.id },
                 },
               },
-              link: { with: { creator: true } },
-              replyTarget: {
-                with: {
-                  actor: {
-                    with: {
-                      instance: true,
-                      followers: {
-                        where: {
-                          followerId: currentAccount.actor.id,
+            },
+            link: { with: { creator: true } },
+            sharedPost: {
+              with: {
+                actor: {
+                  with: {
+                    instance: true,
+                    followers: {
+                      where: {
+                        followerId: currentAccount.actor.id,
+                      },
+                    },
+                    blockees: {
+                      where: { blockeeId: currentAccount.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: currentAccount.actor.id },
+                    },
+                  },
+                },
+                link: { with: { creator: true } },
+                replyTarget: {
+                  with: {
+                    actor: {
+                      with: {
+                        instance: true,
+                        followers: {
+                          where: {
+                            followerId: currentAccount.actor.id,
+                          },
+                        },
+                        blockees: {
+                          where: { blockeeId: currentAccount.actor.id },
+                        },
+                        blockers: {
+                          where: { blockerId: currentAccount.actor.id },
                         },
                       },
-                      blockees: {
-                        where: { blockeeId: currentAccount.actor.id },
-                      },
-                      blockers: {
-                        where: { blockerId: currentAccount.actor.id },
-                      },
                     },
+                    link: { with: { creator: true } },
+                    mentions: {
+                      with: { actor: true },
+                    },
+                    media: true,
                   },
-                  link: { with: { creator: true } },
-                  mentions: {
-                    with: { actor: true },
-                  },
-                  media: true,
                 },
-              },
-              quotedPost: {
-                with: {
-                  actor: {
-                    with: {
-                      instance: true,
-                      followers: {
-                        where: {
-                          followerId: currentAccount.actor.id,
+                quotedPost: {
+                  with: {
+                    actor: {
+                      with: {
+                        instance: true,
+                        followers: {
+                          where: {
+                            followerId: currentAccount.actor.id,
+                          },
+                        },
+                        blockees: {
+                          where: { blockeeId: currentAccount.actor.id },
+                        },
+                        blockers: {
+                          where: { blockerId: currentAccount.actor.id },
                         },
                       },
-                      blockees: {
-                        where: { blockeeId: currentAccount.actor.id },
-                      },
-                      blockers: {
-                        where: { blockerId: currentAccount.actor.id },
-                      },
+                    },
+                    link: { with: { creator: true } },
+                    mentions: {
+                      with: { actor: true },
+                    },
+                    media: true,
+                  },
+                },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
+                shares: {
+                  where: { actorId: currentAccount.actor.id },
+                },
+                reactions: {
+                  where: { actorId: currentAccount.actor.id },
+                },
+              },
+            },
+            replyTarget: {
+              with: {
+                actor: {
+                  with: {
+                    instance: true,
+                    followers: {
+                      where: { followerId: currentAccount.actor.id },
+                    },
+                    blockees: {
+                      where: { blockeeId: currentAccount.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: currentAccount.actor.id },
                     },
                   },
-                  link: { with: { creator: true } },
-                  mentions: {
-                    with: { actor: true },
-                  },
-                  media: true,
                 },
-              },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
-              shares: {
-                where: { actorId: currentAccount.actor.id },
-              },
-              reactions: {
-                where: { actorId: currentAccount.actor.id },
+                link: { with: { creator: true } },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
               },
             },
-          },
-          replyTarget: {
-            with: {
-              actor: {
-                with: {
-                  instance: true,
-                  followers: {
-                    where: { followerId: currentAccount.actor.id },
-                  },
-                  blockees: {
-                    where: { blockeeId: currentAccount.actor.id },
-                  },
-                  blockers: {
-                    where: { blockerId: currentAccount.actor.id },
-                  },
-                },
-              },
-              link: { with: { creator: true } },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
-            },
-          },
-          quotedPost: {
-            with: {
-              actor: {
-                with: {
-                  instance: true,
-                  followers: {
-                    where: { followerId: currentAccount.actor.id },
-                  },
-                  blockees: {
-                    where: { blockeeId: currentAccount.actor.id },
-                  },
-                  blockers: {
-                    where: { blockerId: currentAccount.actor.id },
+            quotedPost: {
+              with: {
+                actor: {
+                  with: {
+                    instance: true,
+                    followers: {
+                      where: { followerId: currentAccount.actor.id },
+                    },
+                    blockees: {
+                      where: { blockeeId: currentAccount.actor.id },
+                    },
+                    blockers: {
+                      where: { blockerId: currentAccount.actor.id },
+                    },
                   },
                 },
+                link: { with: { creator: true } },
+                mentions: {
+                  with: { actor: true },
+                },
+                media: true,
               },
-              link: { with: { creator: true } },
-              mentions: {
-                with: { actor: true },
-              },
-              media: true,
             },
-          },
-          mentions: {
-            with: { actor: true },
-          },
-          media: true,
-          shares: {
-            where: { actorId: currentAccount.actor.id },
-          },
-          reactions: {
-            where: { actorId: currentAccount.actor.id },
+            mentions: {
+              with: { actor: true },
+            },
+            media: true,
+            shares: {
+              where: { actorId: currentAccount.actor.id },
+            },
+            reactions: {
+              where: { actorId: currentAccount.actor.id },
+            },
           },
         },
+        lastSharer: true,
       },
-      lastSharer: true,
-    },
-    where: {
-      accountId: currentAccount.id,
-      ...(cursorFilters.length < 1 ? {} : { AND: cursorFilters }),
-      post: {
-        AND: [
-          getPostVisibilityFilter(currentAccount.actor),
-          local
-            ? {
-              OR: [
-                { noteSourceId: { isNotNull: true } },
-                { articleSourceId: { isNotNull: true } },
-              ],
-            }
-            : {},
-          postType == null ? {} : { type: postType },
-          currentAccount.hideForeignLanguages && currentAccount.locales != null
-            ? { language: { in: expandLocales(currentAccount.locales) } }
-            : {},
-          {
-            published: {
-              lte: futureTimestampLimit,
+      where: {
+        accountId: currentAccount.id,
+        ...(batchCursorFilters.length < 1 ? {} : { AND: batchCursorFilters }),
+        post: {
+          AND: [
+            getPostVisibilityFilter(currentAccount.actor),
+            local
+              ? {
+                OR: [
+                  { noteSourceId: { isNotNull: true } },
+                  { articleSourceId: { isNotNull: true } },
+                ],
+              }
+              : {},
+            postType == null ? {} : { type: postType },
+            currentAccount.hideForeignLanguages &&
+              currentAccount.locales != null
+              ? { language: { in: expandLocales(currentAccount.locales) } }
+              : {},
+            {
+              published: {
+                lte: futureTimestampLimit,
+              },
             },
-          },
-        ],
+          ],
+        },
+        ...(withoutShares ? { originalAuthorId: { isNotNull: true } } : {}),
       },
-      ...(withoutShares ? { originalAuthorId: { isNotNull: true } } : {}),
-    },
-    orderBy: (timelineItem, { asc, desc }) => {
-      const cursorTimestamp = withoutShares
-        ? sql<Date>`${timelineItem.added}::timestamptz(3)`
-        : sql<Date>`${timelineItem.appended}::timestamptz(3)`;
-      return [
-        direction === "backward" ? asc(cursorTimestamp) : desc(cursorTimestamp),
-        direction === "backward"
-          ? asc(timelineItem.postId)
-          : desc(timelineItem.postId),
-      ];
-    },
-    limit: window,
-  });
-  // Same race-condition guard as getPublicTimeline: skip any item whose post
-  // lost its actor between the posts query and the actor relation query.
-  const safeTimeline = timeline.filter((item) =>
-    item.post.actor != null
-  ) as typeof timeline;
-  return safeTimeline.map((item) => ({
-    ...item,
-    post: sanitizePostActors(item.post),
-    cursor: withoutShares ? item.added : item.appended,
-    lastSharer: withoutShares ? null : item.lastSharer,
-    lastSharerId: withoutShares ? null : item.lastSharerId,
-  }));
+      orderBy: (timelineItem, { asc, desc }) => {
+        const cursorTimestamp = withoutShares
+          ? sql<Date>`${timelineItem.added}::timestamptz(3)`
+          : sql<Date>`${timelineItem.appended}::timestamptz(3)`;
+        return [
+          direction === "backward"
+            ? asc(cursorTimestamp)
+            : desc(cursorTimestamp),
+          direction === "backward"
+            ? asc(timelineItem.postId)
+            : desc(timelineItem.postId),
+        ];
+      },
+      limit: needed != null ? needed + ACTOR_RACE_BUFFER : undefined,
+    });
+
+    if (items.length === 0) break;
+
+    // Advance the tail-side cursor for the next refill batch.
+    const lastItem = items.at(-1)!;
+    const lastCursor: TimelineCursor = {
+      timestamp: withoutShares ? lastItem.added : lastItem.appended,
+      postId: lastItem.postId,
+    };
+    if (direction === "forward") refillOlderCursor = lastCursor;
+    else refillNewerCursor = lastCursor;
+
+    for (const item of items) {
+      const post = item.post as { actor: unknown } | null;
+      if (post == null || post.actor == null) continue;
+      if (window != null && result.length >= window) break;
+      result.push({
+        ...item,
+        post: sanitizePostActors(item.post),
+        cursor: withoutShares ? item.added : item.appended,
+        lastSharer: withoutShares ? null : item.lastSharer,
+      });
+    }
+
+    if (needed != null && items.length < needed + ACTOR_RACE_BUFFER) break;
+  }
+
+  return result;
 }
