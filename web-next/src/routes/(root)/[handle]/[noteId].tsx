@@ -468,9 +468,14 @@ interface PermalinkThreadProps {
 
 function PermalinkThread(props: PermalinkThreadProps) {
   return (
-    <ErrorBoundary fallback={() => <>{props.children}</>}>
-      <PermalinkThreadLoaded {...props} />
-    </ErrorBoundary>
+    // Guard against transiently-invalid params during route transitions:
+    // useParams() can briefly reflect a different route before this component
+    // unmounts, causing createPreloadedQuery to fire with undefined noteId.
+    <Show when={validateUuid(props.noteId)} fallback={<>{props.children}</>}>
+      <ErrorBoundary fallback={() => <>{props.children}</>}>
+        <PermalinkThreadLoaded {...props} />
+      </ErrorBoundary>
+    </Show>
   );
 }
 
