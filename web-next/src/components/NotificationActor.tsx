@@ -16,6 +16,8 @@ export function NotificationActor(props: NotificationActorProps) {
           edges {
             node {
               handle
+              username
+              local
               name
             }
           }
@@ -44,7 +46,14 @@ export function NotificationActor(props: NotificationActorProps) {
           <Show keyed when={firstActor(notification)}>
             {(firstActor) => (
               <ActorHoverCard handle={firstActor.handle}>
-                <a href={`/${firstActor.handle}`} class="min-w-0">
+                <a
+                  href={`/${
+                    firstActor.local
+                      ? `@${firstActor.username}`
+                      : firstActor.handle
+                  }`}
+                  class="min-w-0"
+                >
                   <Show
                     keyed
                     when={firstActor.name}
