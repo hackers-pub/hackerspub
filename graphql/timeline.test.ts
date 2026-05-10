@@ -1,10 +1,15 @@
 import { assertEquals } from "@std/assert/equals";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
+import { createBookmark } from "@hackerspub/models/bookmark";
 import { follow } from "@hackerspub/models/following";
 import { sharePost } from "@hackerspub/models/post";
-import { postTable } from "@hackerspub/models/schema";
+import {
+  bookmarkTable,
+  postTable,
+  timelineItemTable,
+} from "@hackerspub/models/schema";
 import { schema } from "./mod.ts";
 import {
   createFedCtx,
@@ -19,18 +24,28 @@ import {
 const publicTimelineQuery = parse(`
   query PublicTimelineTest(
     $first: Int
+    $after: String
+    $last: Int
+    $before: String
     $local: Boolean
     $withoutShares: Boolean
   ) {
     publicTimeline(
       first: $first
+      after: $after
+      last: $last
+      before: $before
       local: $local
       withoutShares: $withoutShares
     ) {
       pageInfo {
         hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
       }
       edges {
+        cursor
         node {
           id
         }
@@ -40,9 +55,28 @@ const publicTimelineQuery = parse(`
 `);
 
 const personalTimelineQuery = parse(`
-  query PersonalTimelineTest($withoutShares: Boolean) {
-    personalTimeline(first: 10, withoutShares: $withoutShares) {
+  query PersonalTimelineTest(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+    $withoutShares: Boolean
+  ) {
+    personalTimeline(
+      first: $first
+      after: $after
+      last: $last
+      before: $before
+      withoutShares: $withoutShares
+    ) {
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
       edges {
+        cursor
         node {
           id
         }
@@ -50,6 +84,30 @@ const personalTimelineQuery = parse(`
           id
         }
         sharersCount
+      }
+    }
+  }
+`);
+
+const bookmarksQuery = parse(`
+  query BookmarksTest(
+    $first: Int
+    $after: String
+    $last: Int
+    $before: String
+  ) {
+    bookmarks(first: $first, after: $after, last: $last, before: $before) {
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      edges {
+        cursor
+        node {
+          id
+        }
       }
     }
   }
@@ -113,6 +171,109 @@ Deno.test({
       assertEquals(connection.pageInfo.hasNextPage, true);
       assertEquals(connection.edges.map((edge) => edge.node.id), [
         encodeGlobalID("Note", remotePost.id),
+      ]);
+    });
+  },
+});
+
+Deno.test({
+  name: "publicTimeline supports forward and backward cursor pagination",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "graphqlpublicpaginationauthor",
+        name: "GraphQL Public Pagination Author",
+        email: "graphqlpublicpaginationauthor@example.com",
+      });
+      const posts = [];
+      const timestamp = new Date("2026-04-15T00:00:01.000Z");
+      for (let i = 1; i <= 4; i++) {
+        const { post } = await insertNotePost(tx, {
+          account: author.account,
+          content: `Public pagination post ${i}`,
+          published: timestamp,
+        });
+        posts.push(post);
+      }
+      const orderedPosts = [...posts].sort((a, b) => b.id.localeCompare(a.id));
+
+      const firstPage = await execute({
+        schema,
+        document: publicTimelineQuery,
+        variableValues: { first: 2 },
+        contextValue: makeUserContext(tx, author.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(firstPage.errors, undefined);
+      const firstConnection = (firstPage.data as {
+        publicTimeline: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: { cursor: string; node: { id: string } }[];
+        };
+      }).publicTimeline;
+      assertEquals(firstConnection.pageInfo.hasNextPage, true);
+      assertEquals(firstConnection.pageInfo.hasPreviousPage, false);
+      assertEquals(firstConnection.edges.map((edge) => edge.node.id), [
+        encodeGlobalID("Note", orderedPosts[0].id),
+        encodeGlobalID("Note", orderedPosts[1].id),
+      ]);
+
+      const secondPage = await execute({
+        schema,
+        document: publicTimelineQuery,
+        variableValues: {
+          first: 2,
+          after: firstConnection.pageInfo.endCursor,
+        },
+        contextValue: makeUserContext(tx, author.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(secondPage.errors, undefined);
+      const secondConnection = (secondPage.data as {
+        publicTimeline: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: { cursor: string; node: { id: string } }[];
+        };
+      }).publicTimeline;
+      assertEquals(secondConnection.pageInfo.hasNextPage, false);
+      assertEquals(secondConnection.pageInfo.hasPreviousPage, true);
+      assertEquals(secondConnection.edges.map((edge) => edge.node.id), [
+        encodeGlobalID("Note", orderedPosts[2].id),
+        encodeGlobalID("Note", orderedPosts[3].id),
+      ]);
+
+      const backwardPage = await execute({
+        schema,
+        document: publicTimelineQuery,
+        variableValues: {
+          last: 2,
+          before: secondConnection.pageInfo.endCursor,
+        },
+        contextValue: makeUserContext(tx, author.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(backwardPage.errors, undefined);
+      const backwardConnection = (backwardPage.data as {
+        publicTimeline: {
+          pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
+          edges: { node: { id: string } }[];
+        };
+      }).publicTimeline;
+      assertEquals(backwardConnection.pageInfo.hasNextPage, true);
+      assertEquals(backwardConnection.pageInfo.hasPreviousPage, true);
+      assertEquals(backwardConnection.edges.map((edge) => edge.node.id), [
+        encodeGlobalID("Note", orderedPosts[1].id),
+        encodeGlobalID("Note", orderedPosts[2].id),
       ]);
     });
   },
@@ -244,6 +405,244 @@ Deno.test({
         }).personalTimeline.edges,
         [],
       );
+    });
+  },
+});
+
+Deno.test({
+  name: "personalTimeline supports forward and backward cursor pagination",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "graphqlpersonalpaginationviewer",
+        name: "GraphQL Personal Pagination Viewer",
+        email: "graphqlpersonalpaginationviewer@example.com",
+      });
+      const sharer = await insertAccountWithActor(tx, {
+        username: "graphqlpersonalpaginationsharer",
+        name: "GraphQL Personal Pagination Sharer",
+        email: "graphqlpersonalpaginationsharer@example.com",
+      });
+      const remoteActor = await insertRemoteActor(tx, {
+        username: "graphqlpersonalpaginationremote",
+        name: "GraphQL Personal Pagination Remote",
+        host: "personal-pagination.example",
+      });
+
+      await follow(fedCtx, viewer.account, sharer.actor);
+
+      const posts = [];
+      const timestamp = new Date("2026-04-15T00:01:00.000Z");
+      for (let i = 1; i <= 4; i++) {
+        const remotePost = await insertRemotePost(tx, {
+          actorId: remoteActor.id,
+          contentHtml: `<p>Personal pagination post ${i}</p>`,
+          published: timestamp,
+        });
+        const share = await sharePost(fedCtx, sharer.account, {
+          ...remotePost,
+          actor: remoteActor,
+        });
+        await tx.update(postTable)
+          .set({ published: timestamp, updated: timestamp })
+          .where(eq(postTable.id, share.id));
+        await tx.update(timelineItemTable)
+          .set({ appended: timestamp })
+          .where(
+            and(
+              eq(timelineItemTable.accountId, viewer.account.id),
+              eq(timelineItemTable.postId, remotePost.id),
+            ),
+          );
+        posts.push(remotePost);
+      }
+      const orderedPosts = [...posts].sort((a, b) => b.id.localeCompare(a.id));
+
+      const firstPage = await execute({
+        schema,
+        document: personalTimelineQuery,
+        variableValues: { first: 2 },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(firstPage.errors, undefined);
+      const firstConnection = (firstPage.data as {
+        personalTimeline: {
+          pageInfo: { hasNextPage: boolean; endCursor: string };
+          edges: { node: { id: string } }[];
+        };
+      }).personalTimeline;
+      assertEquals(firstConnection.pageInfo.hasNextPage, true);
+      assertEquals(firstConnection.edges.map((edge) => edge.node.id), [
+        encodeGlobalID("Note", orderedPosts[0].id),
+        encodeGlobalID("Note", orderedPosts[1].id),
+      ]);
+
+      const secondPage = await execute({
+        schema,
+        document: personalTimelineQuery,
+        variableValues: {
+          first: 2,
+          after: firstConnection.pageInfo.endCursor,
+        },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(secondPage.errors, undefined);
+      const secondConnection = (secondPage.data as {
+        personalTimeline: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: { node: { id: string } }[];
+        };
+      }).personalTimeline;
+      assertEquals(secondConnection.pageInfo.hasNextPage, false);
+      assertEquals(secondConnection.pageInfo.hasPreviousPage, true);
+      assertEquals(secondConnection.edges.map((edge) => edge.node.id), [
+        encodeGlobalID("Note", orderedPosts[2].id),
+        encodeGlobalID("Note", orderedPosts[3].id),
+      ]);
+
+      const backwardPage = await execute({
+        schema,
+        document: personalTimelineQuery,
+        variableValues: {
+          last: 2,
+          before: secondConnection.pageInfo.endCursor,
+        },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(backwardPage.errors, undefined);
+      const backwardConnection = (backwardPage.data as {
+        personalTimeline: {
+          pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
+          edges: { node: { id: string } }[];
+        };
+      }).personalTimeline;
+      assertEquals(backwardConnection.pageInfo.hasNextPage, true);
+      assertEquals(backwardConnection.pageInfo.hasPreviousPage, true);
+      assertEquals(backwardConnection.edges.map((edge) => edge.node.id), [
+        encodeGlobalID("Note", orderedPosts[1].id),
+        encodeGlobalID("Note", orderedPosts[2].id),
+      ]);
+    });
+  },
+});
+
+Deno.test({
+  name: "bookmarks supports forward and backward cursor pagination",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const viewer = await insertAccountWithActor(tx, {
+        username: "graphqlbookmarkpaginationviewer",
+        name: "GraphQL Bookmark Pagination Viewer",
+        email: "graphqlbookmarkpaginationviewer@example.com",
+      });
+      const author = await insertAccountWithActor(tx, {
+        username: "graphqlbookmarkpaginationauthor",
+        name: "GraphQL Bookmark Pagination Author",
+        email: "graphqlbookmarkpaginationauthor@example.com",
+      });
+
+      const posts = [];
+      for (let i = 1; i <= 4; i++) {
+        const { post } = await insertNotePost(tx, {
+          account: author.account,
+          content: `Bookmark pagination post ${i}`,
+          published: new Date(`2026-04-15T00:00:0${i}.000Z`),
+        });
+        await createBookmark(tx, viewer.account, post);
+        await tx.update(bookmarkTable)
+          .set({ created: new Date(`2026-04-15T00:02:0${i}.000Z`) })
+          .where(
+            and(
+              eq(bookmarkTable.accountId, viewer.account.id),
+              eq(bookmarkTable.postId, post.id),
+            ),
+          );
+        posts.push(post);
+      }
+
+      const firstPage = await execute({
+        schema,
+        document: bookmarksQuery,
+        variableValues: { first: 2 },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(firstPage.errors, undefined);
+      const firstConnection = (firstPage.data as {
+        bookmarks: {
+          pageInfo: { hasNextPage: boolean; endCursor: string };
+          edges: { node: { id: string } }[];
+        };
+      }).bookmarks;
+      assertEquals(firstConnection.pageInfo.hasNextPage, true);
+      assertEquals(firstConnection.edges.map((edge) => edge.node.id), [
+        encodeGlobalID("Note", posts[3].id),
+        encodeGlobalID("Note", posts[2].id),
+      ]);
+
+      const secondPage = await execute({
+        schema,
+        document: bookmarksQuery,
+        variableValues: {
+          first: 2,
+          after: firstConnection.pageInfo.endCursor,
+        },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(secondPage.errors, undefined);
+      const secondConnection = (secondPage.data as {
+        bookmarks: {
+          pageInfo: {
+            hasNextPage: boolean;
+            hasPreviousPage: boolean;
+            endCursor: string;
+          };
+          edges: { node: { id: string } }[];
+        };
+      }).bookmarks;
+      assertEquals(secondConnection.pageInfo.hasNextPage, false);
+      assertEquals(secondConnection.pageInfo.hasPreviousPage, true);
+      assertEquals(secondConnection.edges.map((edge) => edge.node.id), [
+        encodeGlobalID("Note", posts[1].id),
+        encodeGlobalID("Note", posts[0].id),
+      ]);
+
+      const backwardPage = await execute({
+        schema,
+        document: bookmarksQuery,
+        variableValues: {
+          last: 2,
+          before: secondConnection.pageInfo.endCursor,
+        },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(backwardPage.errors, undefined);
+      const backwardConnection = (backwardPage.data as {
+        bookmarks: {
+          pageInfo: { hasNextPage: boolean; hasPreviousPage: boolean };
+          edges: { node: { id: string } }[];
+        };
+      }).bookmarks;
+      assertEquals(backwardConnection.pageInfo.hasNextPage, true);
+      assertEquals(backwardConnection.pageInfo.hasPreviousPage, true);
+      assertEquals(backwardConnection.edges.map((edge) => edge.node.id), [
+        encodeGlobalID("Note", posts[2].id),
+        encodeGlobalID("Note", posts[1].id),
+      ]);
     });
   },
 });

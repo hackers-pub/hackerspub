@@ -4,8 +4,11 @@ import {
   getBookmarks,
 } from "@hackerspub/models/bookmark";
 import {
+  formatTimelineCursor,
   getPersonalTimeline,
   getPublicTimeline,
+  parseTimelineCursor,
+  type TimelineCursor,
 } from "@hackerspub/models/timeline";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { assertNever } from "@std/assert/unstable-never";
@@ -39,8 +42,54 @@ function parseBookmarkCursor(raw: string): BookmarkCursor | undefined {
   return { created, postId: postId as Uuid };
 }
 
+function parseRequiredBookmarkCursor(raw: string): BookmarkCursor {
+  const cursor = parseBookmarkCursor(raw);
+  if (cursor == null) {
+    throw createGraphQLError("Invalid bookmark cursor.", {
+      extensions: { code: "INVALID_CURSOR" },
+    });
+  }
+  return cursor;
+}
+
+function parseRequiredTimelineCursor(raw: string): TimelineCursor {
+  const cursor = parseTimelineCursor(raw);
+  if (cursor == null) {
+    throw createGraphQLError("Invalid timeline cursor.", {
+      extensions: { code: "INVALID_CURSOR" },
+    });
+  }
+  return cursor;
+}
+
 function formatBookmarkCursor(entry: BookmarkEntry): string {
   return `${entry.bookmarked.toISOString()}|${entry.post.id}`;
+}
+
+function getTimelineWindow(
+  args: { first?: number | null; last?: number | null },
+): number {
+  if (args.first != null && args.last != null) {
+    throw createGraphQLError("Cannot paginate with both first and last.", {
+      extensions: { code: "PAGINATION_ERROR" },
+    });
+  }
+  return args.last ?? args.first ?? 25;
+}
+
+function conflictingCursors(): never {
+  throw createGraphQLError("Cannot paginate with both after and before.", {
+    extensions: { code: "PAGINATION_ERROR" },
+  });
+}
+
+function getConnectionPage<T>(
+  entries: readonly T[],
+  window: number,
+  backwards: boolean,
+): T[] {
+  const page = entries.slice(0, window);
+  return backwards ? [...page].reverse() : page;
 }
 
 builder.queryFields((t) => ({
@@ -60,13 +109,20 @@ builder.queryFields((t) => ({
         }),
       },
       async resolve(_, args, ctx) {
-        if (args.last != null || args.before != null) {
-          throw new Error("Backward pagination is not supported.");
+        if (args.after != null && args.before != null) {
+          conflictingCursors();
         }
-        const window = args.first ?? 25;
-        const until = args.after == null ? undefined : new Date(args.after);
+        const backwards = args.last != null;
+        const window = getTimelineWindow(args);
+        const since = args.before == null
+          ? undefined
+          : parseRequiredTimelineCursor(args.before);
+        const until = args.after == null
+          ? undefined
+          : parseRequiredTimelineCursor(args.after);
         const timeline = await getPublicTimeline(ctx.db, {
           currentAccount: ctx.account,
+          direction: backwards ? "backward" : "forward",
           languages: new Set(
             (args.languages ?? []).flatMap((l) =>
               l.language !== l.baseName
@@ -86,25 +142,30 @@ builder.queryFields((t) => ({
             ? "Question"
             : assertNever(args.postType),
           window: window + 1,
+          since,
           until,
         });
+        const pageEntries = getConnectionPage(timeline, window, backwards);
         return {
           pageInfo: {
-            hasNextPage: timeline.length > window,
-            hasPreviousPage: false,
-            startCursor: timeline.length < 2
+            hasNextPage: backwards
+              ? args.before != null && timeline.length > window
+              : timeline.length > window,
+            hasPreviousPage: backwards
+              ? timeline.length > window
+              : args.after != null,
+            startCursor: pageEntries.length < 1
               ? null
-              : timeline[1].added.toISOString(),
-            endCursor: timeline.length < 2
+              : formatTimelineCursor(pageEntries[0]),
+            endCursor: pageEntries.length < 1
               ? null
-              : timeline.at(-1)!.added.toISOString(),
+              : formatTimelineCursor(pageEntries[pageEntries.length - 1]),
           },
-          edges: timeline.slice(0, window).map((
-            { post, lastSharer, sharersCount, added },
-            i,
+          edges: pageEntries.map((
+            { post, lastSharer, sharersCount, added, cursor },
           ) => ({
             node: post,
-            cursor: timeline[i + 1]?.added?.toISOString() ?? "",
+            cursor: formatTimelineCursor({ post, cursor }),
             lastSharer,
             sharersCount,
             added,
@@ -133,15 +194,20 @@ builder.queryFields((t) => ({
     async resolve(_, args, ctx) {
       if (ctx.account == null) {
         authenticationRequired();
-      } else if (args.last != null || args.before != null) {
-        throw new Error("Backward pagination is not supported.");
+      } else if (args.after != null && args.before != null) {
+        conflictingCursors();
       }
-      const window = args.first ?? 25;
+      const backwards = args.last != null;
+      const window = getTimelineWindow(args);
+      const since = args.before == null
+        ? undefined
+        : parseRequiredBookmarkCursor(args.before);
       const until = args.after == null
         ? undefined
-        : parseBookmarkCursor(args.after);
+        : parseRequiredBookmarkCursor(args.after);
       const bookmarks = await getBookmarks(ctx.db, {
         account: ctx.account,
+        direction: backwards ? "backward" : "forward",
         postType: args.postType == null
           ? undefined
           : args.postType === "ARTICLE"
@@ -152,13 +218,18 @@ builder.queryFields((t) => ({
           ? "Question"
           : assertNever(args.postType),
         window: window + 1,
+        since,
         until,
       });
-      const pageEntries = bookmarks.slice(0, window);
+      const pageEntries = getConnectionPage(bookmarks, window, backwards);
       return {
         pageInfo: {
-          hasNextPage: bookmarks.length > window,
-          hasPreviousPage: false,
+          hasNextPage: backwards
+            ? args.before != null && bookmarks.length > window
+            : bookmarks.length > window,
+          hasPreviousPage: backwards
+            ? bookmarks.length > window
+            : args.after != null,
           startCursor: pageEntries.length < 1
             ? null
             : formatBookmarkCursor(pageEntries[0]),
@@ -188,13 +259,20 @@ builder.queryFields((t) => ({
       async resolve(_, args, ctx) {
         if (ctx.account == null) {
           authenticationRequired();
-        } else if (args.last != null || args.before != null) {
-          throw new Error("Backward pagination is not supported.");
+        } else if (args.after != null && args.before != null) {
+          conflictingCursors();
         }
-        const window = args.first ?? 25;
-        const until = args.after == null ? undefined : new Date(args.after);
+        const backwards = args.last != null;
+        const window = getTimelineWindow(args);
+        const since = args.before == null
+          ? undefined
+          : parseRequiredTimelineCursor(args.before);
+        const until = args.after == null
+          ? undefined
+          : parseRequiredTimelineCursor(args.after);
         const timeline = await getPersonalTimeline(ctx.db, {
           currentAccount: ctx.account,
+          direction: backwards ? "backward" : "forward",
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,
           postType: args.postType == null
@@ -207,25 +285,30 @@ builder.queryFields((t) => ({
             ? "Question"
             : assertNever(args.postType),
           window: window + 1,
+          since,
           until,
         });
+        const pageEntries = getConnectionPage(timeline, window, backwards);
         return {
           pageInfo: {
-            hasNextPage: timeline.length > window,
-            hasPreviousPage: false,
-            startCursor: timeline.length < 2
+            hasNextPage: backwards
+              ? args.before != null && timeline.length > window
+              : timeline.length > window,
+            hasPreviousPage: backwards
+              ? timeline.length > window
+              : args.after != null,
+            startCursor: pageEntries.length < 1
               ? null
-              : timeline[1].added.toISOString(),
-            endCursor: timeline.length < 2
+              : formatTimelineCursor(pageEntries[0]),
+            endCursor: pageEntries.length < 1
               ? null
-              : timeline.at(-1)!.added.toISOString(),
+              : formatTimelineCursor(pageEntries[pageEntries.length - 1]),
           },
-          edges: timeline.slice(0, window).map((
-            { post, lastSharer, sharersCount, added },
-            i,
+          edges: pageEntries.map((
+            { post, lastSharer, sharersCount, added, cursor },
           ) => ({
             node: post,
-            cursor: timeline[i + 1]?.added?.toISOString() ?? "",
+            cursor: formatTimelineCursor({ post, cursor }),
             lastSharer,
             sharersCount,
             added,

@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, or } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, lt, or } from "drizzle-orm";
 import type { Database } from "./db.ts";
 import {
   type Account,
@@ -68,7 +68,9 @@ export interface BookmarkCursor {
 
 export interface BookmarkListOptions {
   readonly account: Account;
+  readonly direction?: "backward" | "forward";
   readonly postType?: PostType;
+  readonly since?: BookmarkCursor;
   readonly until?: BookmarkCursor;
   readonly window: number;
 }
@@ -80,7 +82,14 @@ export interface BookmarkEntry {
 
 export async function getBookmarks(
   db: Database,
-  { account, postType, until, window }: BookmarkListOptions,
+  {
+    account,
+    direction = "forward",
+    postType,
+    since,
+    until,
+    window,
+  }: BookmarkListOptions,
 ): Promise<BookmarkEntry[]> {
   const rows = await db
     .select({
@@ -93,6 +102,13 @@ export async function getBookmarks(
       and(
         eq(bookmarkTable.accountId, account.id),
         postType == null ? undefined : eq(postTable.type, postType),
+        since == null ? undefined : or(
+          gt(bookmarkTable.created, since.created),
+          and(
+            eq(bookmarkTable.created, since.created),
+            gt(bookmarkTable.postId, since.postId),
+          ),
+        ),
         until == null ? undefined : or(
           lt(bookmarkTable.created, until.created),
           and(
@@ -102,7 +118,14 @@ export async function getBookmarks(
         ),
       ),
     )
-    .orderBy(desc(bookmarkTable.created), desc(bookmarkTable.postId))
+    .orderBy(
+      direction === "backward"
+        ? asc(bookmarkTable.created)
+        : desc(bookmarkTable.created),
+      direction === "backward"
+        ? asc(bookmarkTable.postId)
+        : desc(bookmarkTable.postId),
+    )
     .limit(window);
   return rows.map((row) => ({
     post: row.post,
