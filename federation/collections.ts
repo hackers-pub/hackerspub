@@ -319,7 +319,7 @@ builder
               published: post.published.toTemporalInstant(),
             });
         }),
-        nextCursor: posts.length < OUTBOX_WINDOW
+        nextCursor: posts.length <= OUTBOX_WINDOW
           ? null
           : posts[OUTBOX_WINDOW].id,
       };
