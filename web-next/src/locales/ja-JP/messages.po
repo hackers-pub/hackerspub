@@ -244,7 +244,7 @@ msgid "Add"
 msgstr "追加"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:312
+#: src/components/EmojiReactionPopover.tsx:314
 msgid "Add {0}"
 msgstr "{0}を追加"
 
@@ -454,6 +454,10 @@ msgstr "招待する友達の使用言語を選択してください。この言
 #: src/routes/(root)/[handle]/invite/[id].tsx:400
 msgid "Choose your preferred language for the verification email."
 msgstr "確認メールの言語を選択してください。"
+
+#: src/components/ImageLightbox.tsx:55
+msgid "Close"
+msgstr "閉じる"
 
 #: src/components/QuestionCard.tsx:422
 msgid "Closed"
@@ -842,10 +846,10 @@ msgstr "ユーザーの検索に失敗しました。"
 msgid "Failed to pin post"
 msgstr "コンテンツを固定できませんでした"
 
-#: src/components/EmojiReactionPopover.tsx:163
-#: src/components/EmojiReactionPopover.tsx:172
-#: src/components/EmojiReactionPopover.tsx:254
-#: src/components/EmojiReactionPopover.tsx:263
+#: src/components/EmojiReactionPopover.tsx:165
+#: src/components/EmojiReactionPopover.tsx:174
+#: src/components/EmojiReactionPopover.tsx:256
+#: src/components/EmojiReactionPopover.tsx:265
 msgid "Failed to react"
 msgstr "リアクションに失敗しました"
 
@@ -1095,6 +1099,10 @@ msgstr "フェディバースのアカウントをお持ちの場合、自分の
 msgid "Image"
 msgstr "画像"
 
+#: src/components/ImageLightbox.tsx:39
+msgid "Image preview"
+msgstr "画像プレビュー"
+
 #: src/components/RemoteFollowButton.tsx:101
 msgid "Invalid Fediverse handle format."
 msgstr "無効なフェディバースのハンドルの形式です。"
@@ -1337,7 +1345,7 @@ msgstr "返信を読み込み中…"
 msgid "Loading quoted post…"
 msgstr "引用コンテンツを読み込み中…"
 
-#: src/routes/(root)/search.tsx:258
+#: src/routes/(root)/search.tsx:260
 msgid "Loading search results…"
 msgstr "検索結果を読み込み中…"
 
@@ -1455,7 +1463,7 @@ msgstr "フォロー中のユーザーはいません"
 msgid "No invitations left"
 msgstr "招待状が残っていません"
 
-#: src/routes/(root)/search.tsx:393
+#: src/routes/(root)/search.tsx:395
 msgid "No matching object found"
 msgstr "一致するオブジェクトが見つかりません"
 
@@ -1701,7 +1709,7 @@ msgstr "今すぐ公開"
 msgid "Publishing…"
 msgstr "公開中…"
 
-#: src/routes/(root)/search.tsx:389
+#: src/routes/(root)/search.tsx:391
 msgid "Query cannot be empty"
 msgstr "検索文字列は空にできません"
 
@@ -1727,12 +1735,12 @@ msgstr "このコンテンツは引用できません。"
 msgid "React"
 msgstr "リアクション"
 
-#: src/components/EmojiReactionPopover.tsx:357
+#: src/components/EmojiReactionPopover.tsx:359
 msgid "React with {emoji}"
 msgstr "{emoji}でリアクション"
 
-#: src/components/EmojiReactionPopover.tsx:310
-#: src/components/EmojiReactionPopover.tsx:313
+#: src/components/EmojiReactionPopover.tsx:312
+#: src/components/EmojiReactionPopover.tsx:315
 msgid "reaction"
 msgstr "リアクション"
 
@@ -1796,7 +1804,7 @@ msgid "Remove"
 msgstr "削除"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:309
+#: src/components/EmojiReactionPopover.tsx:311
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
@@ -1868,8 +1876,8 @@ msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:339
-#: src/routes/(root)/search.tsx:178
-#: src/routes/(root)/search.tsx:195
+#: src/routes/(root)/search.tsx:180
+#: src/routes/(root)/search.tsx:197
 msgid "Search"
 msgstr "検索"
 
@@ -1877,16 +1885,16 @@ msgstr "検索"
 msgid "Search a language…"
 msgstr "言語を検索…"
 
-#: src/routes/(root)/search.tsx:177
+#: src/routes/(root)/search.tsx:179
 msgid "Search posts…"
 msgstr "コンテンツを検索…"
 
 #. placeholder {0}: "KEYWORD"
-#: src/routes/(root)/search.tsx:289
+#: src/routes/(root)/search.tsx:291
 msgid "Search results for {0}"
 msgstr "{0}の検索結果"
 
-#: src/routes/(root)/search.tsx:198
+#: src/routes/(root)/search.tsx:200
 msgid "Searching…"
 msgstr "検索中…"
 
@@ -2223,13 +2231,13 @@ msgstr "再試行"
 msgid "Type tags separated by spaces"
 msgstr "スペースで区切ってタグを入力"
 
-#: src/components/EmojiReactionPopover.tsx:255
-#: src/components/EmojiReactionPopover.tsx:264
+#: src/components/EmojiReactionPopover.tsx:257
+#: src/components/EmojiReactionPopover.tsx:266
 msgid "Unable to add reaction. Please try again."
 msgstr "リアクションを追加できませんでした。もう一度お試しください。"
 
-#: src/components/EmojiReactionPopover.tsx:164
-#: src/components/EmojiReactionPopover.tsx:173
+#: src/components/EmojiReactionPopover.tsx:166
+#: src/components/EmojiReactionPopover.tsx:175
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
@@ -2323,6 +2331,10 @@ msgstr "招待を確認中…"
 #: src/components/AppSidebar.tsx:812
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
+
+#: src/components/NoteMedia.tsx:42
+msgid "View image"
+msgstr "画像を表示"
 
 #: src/components/NoteComposer.tsx:982
 msgid "Visibility"

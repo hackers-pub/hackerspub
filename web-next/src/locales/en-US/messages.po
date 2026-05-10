@@ -244,7 +244,7 @@ msgid "Add"
 msgstr "Add"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:312
+#: src/components/EmojiReactionPopover.tsx:314
 msgid "Add {0}"
 msgstr "Add {0}"
 
@@ -454,6 +454,10 @@ msgstr "Choose the language your friend prefers. This language will only be used
 #: src/routes/(root)/[handle]/invite/[id].tsx:400
 msgid "Choose your preferred language for the verification email."
 msgstr "Choose your preferred language for the verification email."
+
+#: src/components/ImageLightbox.tsx:55
+msgid "Close"
+msgstr "Close"
 
 #: src/components/QuestionCard.tsx:422
 msgid "Closed"
@@ -846,10 +850,10 @@ msgstr "Failed to look up user."
 msgid "Failed to pin post"
 msgstr "Failed to pin post"
 
-#: src/components/EmojiReactionPopover.tsx:163
-#: src/components/EmojiReactionPopover.tsx:172
-#: src/components/EmojiReactionPopover.tsx:254
-#: src/components/EmojiReactionPopover.tsx:263
+#: src/components/EmojiReactionPopover.tsx:165
+#: src/components/EmojiReactionPopover.tsx:174
+#: src/components/EmojiReactionPopover.tsx:256
+#: src/components/EmojiReactionPopover.tsx:265
 msgid "Failed to react"
 msgstr "Failed to react"
 
@@ -1099,6 +1103,10 @@ msgstr "If you have a fediverse account, you can reply to this post from your ow
 msgid "Image"
 msgstr "Image"
 
+#: src/components/ImageLightbox.tsx:39
+msgid "Image preview"
+msgstr "Image preview"
+
 #: src/components/RemoteFollowButton.tsx:101
 msgid "Invalid Fediverse handle format."
 msgstr "Invalid Fediverse handle format."
@@ -1341,7 +1349,7 @@ msgstr "Loading more replies…"
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
 
-#: src/routes/(root)/search.tsx:258
+#: src/routes/(root)/search.tsx:260
 msgid "Loading search results…"
 msgstr "Loading search results…"
 
@@ -1459,7 +1467,7 @@ msgstr "No following found"
 msgid "No invitations left"
 msgstr "No invitations left"
 
-#: src/routes/(root)/search.tsx:393
+#: src/routes/(root)/search.tsx:395
 msgid "No matching object found"
 msgstr "No matching object found"
 
@@ -1706,7 +1714,7 @@ msgstr "Publish now"
 msgid "Publishing…"
 msgstr "Publishing…"
 
-#: src/routes/(root)/search.tsx:389
+#: src/routes/(root)/search.tsx:391
 msgid "Query cannot be empty"
 msgstr "Query cannot be empty"
 
@@ -1732,12 +1740,12 @@ msgstr "Quoting is not available for this post"
 msgid "React"
 msgstr "React"
 
-#: src/components/EmojiReactionPopover.tsx:357
+#: src/components/EmojiReactionPopover.tsx:359
 msgid "React with {emoji}"
 msgstr "React with {emoji}"
 
-#: src/components/EmojiReactionPopover.tsx:310
-#: src/components/EmojiReactionPopover.tsx:313
+#: src/components/EmojiReactionPopover.tsx:312
+#: src/components/EmojiReactionPopover.tsx:315
 msgid "reaction"
 msgstr "reaction"
 
@@ -1801,7 +1809,7 @@ msgid "Remove"
 msgstr "Remove"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:309
+#: src/components/EmojiReactionPopover.tsx:311
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
@@ -1873,8 +1881,8 @@ msgid "Saving…"
 msgstr "Saving…"
 
 #: src/components/AppSidebar.tsx:339
-#: src/routes/(root)/search.tsx:178
-#: src/routes/(root)/search.tsx:195
+#: src/routes/(root)/search.tsx:180
+#: src/routes/(root)/search.tsx:197
 msgid "Search"
 msgstr "Search"
 
@@ -1882,16 +1890,16 @@ msgstr "Search"
 msgid "Search a language…"
 msgstr "Search a language…"
 
-#: src/routes/(root)/search.tsx:177
+#: src/routes/(root)/search.tsx:179
 msgid "Search posts…"
 msgstr "Search posts…"
 
 #. placeholder {0}: "KEYWORD"
-#: src/routes/(root)/search.tsx:289
+#: src/routes/(root)/search.tsx:291
 msgid "Search results for {0}"
 msgstr "Search results for {0}"
 
-#: src/routes/(root)/search.tsx:198
+#: src/routes/(root)/search.tsx:200
 msgid "Searching…"
 msgstr "Searching…"
 
@@ -2228,13 +2236,13 @@ msgstr "Try again"
 msgid "Type tags separated by spaces"
 msgstr "Type tags separated by spaces"
 
-#: src/components/EmojiReactionPopover.tsx:255
-#: src/components/EmojiReactionPopover.tsx:264
+#: src/components/EmojiReactionPopover.tsx:257
+#: src/components/EmojiReactionPopover.tsx:266
 msgid "Unable to add reaction. Please try again."
 msgstr "Unable to add reaction. Please try again."
 
-#: src/components/EmojiReactionPopover.tsx:164
-#: src/components/EmojiReactionPopover.tsx:173
+#: src/components/EmojiReactionPopover.tsx:166
+#: src/components/EmojiReactionPopover.tsx:175
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
@@ -2328,6 +2336,10 @@ msgstr "Verifying your invitation…"
 #: src/components/AppSidebar.tsx:812
 msgid "View all drafts →"
 msgstr "View all drafts →"
+
+#: src/components/NoteMedia.tsx:42
+msgid "View image"
+msgstr "View image"
 
 #: src/components/NoteComposer.tsx:982
 msgid "Visibility"

@@ -244,7 +244,7 @@ msgid "Add"
 msgstr "添加"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:312
+#: src/components/EmojiReactionPopover.tsx:314
 msgid "Add {0}"
 msgstr "添加{0}"
 
@@ -454,6 +454,10 @@ msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 #: src/routes/(root)/[handle]/invite/[id].tsx:400
 msgid "Choose your preferred language for the verification email."
 msgstr "请选择验证邮件的语言。"
+
+#: src/components/ImageLightbox.tsx:55
+msgid "Close"
+msgstr "关闭"
 
 #: src/components/QuestionCard.tsx:422
 msgid "Closed"
@@ -842,10 +846,10 @@ msgstr "查找用户失败。"
 msgid "Failed to pin post"
 msgstr "无法置顶内容"
 
-#: src/components/EmojiReactionPopover.tsx:163
-#: src/components/EmojiReactionPopover.tsx:172
-#: src/components/EmojiReactionPopover.tsx:254
-#: src/components/EmojiReactionPopover.tsx:263
+#: src/components/EmojiReactionPopover.tsx:165
+#: src/components/EmojiReactionPopover.tsx:174
+#: src/components/EmojiReactionPopover.tsx:256
+#: src/components/EmojiReactionPopover.tsx:265
 msgid "Failed to react"
 msgstr "反应失败"
 
@@ -1095,6 +1099,10 @@ msgstr "如果你有联邦宇宙账号，可以从自己的实例回复此内容
 msgid "Image"
 msgstr "图片"
 
+#: src/components/ImageLightbox.tsx:39
+msgid "Image preview"
+msgstr "图片预览"
+
 #: src/components/RemoteFollowButton.tsx:101
 msgid "Invalid Fediverse handle format."
 msgstr "联邦宇宙用户名格式无效。"
@@ -1337,7 +1345,7 @@ msgstr "正在加载更多回复…"
 msgid "Loading quoted post…"
 msgstr "正在加载引用内容…"
 
-#: src/routes/(root)/search.tsx:258
+#: src/routes/(root)/search.tsx:260
 msgid "Loading search results…"
 msgstr "正在加载搜索结果…"
 
@@ -1455,7 +1463,7 @@ msgstr "没有找到关注的用户"
 msgid "No invitations left"
 msgstr "没有剩余邀请名额"
 
-#: src/routes/(root)/search.tsx:393
+#: src/routes/(root)/search.tsx:395
 msgid "No matching object found"
 msgstr "未找到匹配的对象"
 
@@ -1701,7 +1709,7 @@ msgstr "立即发布"
 msgid "Publishing…"
 msgstr "发布中…"
 
-#: src/routes/(root)/search.tsx:389
+#: src/routes/(root)/search.tsx:391
 msgid "Query cannot be empty"
 msgstr "搜索关键词不能为空"
 
@@ -1727,12 +1735,12 @@ msgstr "无法引用此内容。"
 msgid "React"
 msgstr "反应"
 
-#: src/components/EmojiReactionPopover.tsx:357
+#: src/components/EmojiReactionPopover.tsx:359
 msgid "React with {emoji}"
 msgstr "用{emoji}反应"
 
-#: src/components/EmojiReactionPopover.tsx:310
-#: src/components/EmojiReactionPopover.tsx:313
+#: src/components/EmojiReactionPopover.tsx:312
+#: src/components/EmojiReactionPopover.tsx:315
 msgid "reaction"
 msgstr "反应"
 
@@ -1796,7 +1804,7 @@ msgid "Remove"
 msgstr "移除"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:309
+#: src/components/EmojiReactionPopover.tsx:311
 msgid "Remove {0}"
 msgstr "移除{0}"
 
@@ -1868,8 +1876,8 @@ msgid "Saving…"
 msgstr "保存中…"
 
 #: src/components/AppSidebar.tsx:339
-#: src/routes/(root)/search.tsx:178
-#: src/routes/(root)/search.tsx:195
+#: src/routes/(root)/search.tsx:180
+#: src/routes/(root)/search.tsx:197
 msgid "Search"
 msgstr "搜索"
 
@@ -1877,16 +1885,16 @@ msgstr "搜索"
 msgid "Search a language…"
 msgstr "搜索语言…"
 
-#: src/routes/(root)/search.tsx:177
+#: src/routes/(root)/search.tsx:179
 msgid "Search posts…"
 msgstr "搜索内容…"
 
 #. placeholder {0}: "KEYWORD"
-#: src/routes/(root)/search.tsx:289
+#: src/routes/(root)/search.tsx:291
 msgid "Search results for {0}"
 msgstr "{0}的搜索结果"
 
-#: src/routes/(root)/search.tsx:198
+#: src/routes/(root)/search.tsx:200
 msgid "Searching…"
 msgstr "搜索中…"
 
@@ -2223,13 +2231,13 @@ msgstr "重试"
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
 
-#: src/components/EmojiReactionPopover.tsx:255
-#: src/components/EmojiReactionPopover.tsx:264
+#: src/components/EmojiReactionPopover.tsx:257
+#: src/components/EmojiReactionPopover.tsx:266
 msgid "Unable to add reaction. Please try again."
 msgstr "无法添加反应。请重试。"
 
-#: src/components/EmojiReactionPopover.tsx:164
-#: src/components/EmojiReactionPopover.tsx:173
+#: src/components/EmojiReactionPopover.tsx:166
+#: src/components/EmojiReactionPopover.tsx:175
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
 
@@ -2323,6 +2331,10 @@ msgstr "正在验证您的邀请…"
 #: src/components/AppSidebar.tsx:812
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
+
+#: src/components/NoteMedia.tsx:42
+msgid "View image"
+msgstr "查看图片"
 
 #: src/components/NoteComposer.tsx:982
 msgid "Visibility"

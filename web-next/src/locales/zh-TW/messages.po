@@ -244,7 +244,7 @@ msgid "Add"
 msgstr "新增"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:312
+#: src/components/EmojiReactionPopover.tsx:314
 msgid "Add {0}"
 msgstr "新增{0}"
 
@@ -454,6 +454,10 @@ msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
 #: src/routes/(root)/[handle]/invite/[id].tsx:400
 msgid "Choose your preferred language for the verification email."
 msgstr "請選擇驗證信件的語言。"
+
+#: src/components/ImageLightbox.tsx:55
+msgid "Close"
+msgstr "關閉"
 
 #: src/components/QuestionCard.tsx:422
 msgid "Closed"
@@ -842,10 +846,10 @@ msgstr "查找使用者失敗。"
 msgid "Failed to pin post"
 msgstr "無法釘選內容"
 
-#: src/components/EmojiReactionPopover.tsx:163
-#: src/components/EmojiReactionPopover.tsx:172
-#: src/components/EmojiReactionPopover.tsx:254
-#: src/components/EmojiReactionPopover.tsx:263
+#: src/components/EmojiReactionPopover.tsx:165
+#: src/components/EmojiReactionPopover.tsx:174
+#: src/components/EmojiReactionPopover.tsx:256
+#: src/components/EmojiReactionPopover.tsx:265
 msgid "Failed to react"
 msgstr "反應失敗"
 
@@ -1095,6 +1099,10 @@ msgstr "如果你有聯邦宇宙帳號，可以從自己的站台回覆此內容
 msgid "Image"
 msgstr "圖片"
 
+#: src/components/ImageLightbox.tsx:39
+msgid "Image preview"
+msgstr "圖片預覽"
+
 #: src/components/RemoteFollowButton.tsx:101
 msgid "Invalid Fediverse handle format."
 msgstr "聯邦宇宙使用者名稱格式無效。"
@@ -1337,7 +1345,7 @@ msgstr "正在載入更多回覆…"
 msgid "Loading quoted post…"
 msgstr "正在載入引用內容…"
 
-#: src/routes/(root)/search.tsx:258
+#: src/routes/(root)/search.tsx:260
 msgid "Loading search results…"
 msgstr "正在載入搜尋結果…"
 
@@ -1455,7 +1463,7 @@ msgstr "沒有找到關注的使用者"
 msgid "No invitations left"
 msgstr "沒有剩餘邀請名額"
 
-#: src/routes/(root)/search.tsx:393
+#: src/routes/(root)/search.tsx:395
 msgid "No matching object found"
 msgstr "找不到相符的物件"
 
@@ -1701,7 +1709,7 @@ msgstr "立即發布"
 msgid "Publishing…"
 msgstr "發布中…"
 
-#: src/routes/(root)/search.tsx:389
+#: src/routes/(root)/search.tsx:391
 msgid "Query cannot be empty"
 msgstr "搜尋關鍵詞不能為空"
 
@@ -1727,12 +1735,12 @@ msgstr "無法引用此內容。"
 msgid "React"
 msgstr "反應"
 
-#: src/components/EmojiReactionPopover.tsx:357
+#: src/components/EmojiReactionPopover.tsx:359
 msgid "React with {emoji}"
 msgstr "用{emoji}反應"
 
-#: src/components/EmojiReactionPopover.tsx:310
-#: src/components/EmojiReactionPopover.tsx:313
+#: src/components/EmojiReactionPopover.tsx:312
+#: src/components/EmojiReactionPopover.tsx:315
 msgid "reaction"
 msgstr "反應"
 
@@ -1796,7 +1804,7 @@ msgid "Remove"
 msgstr "移除"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:309
+#: src/components/EmojiReactionPopover.tsx:311
 msgid "Remove {0}"
 msgstr "移除{0}"
 
@@ -1868,8 +1876,8 @@ msgid "Saving…"
 msgstr "儲存中…"
 
 #: src/components/AppSidebar.tsx:339
-#: src/routes/(root)/search.tsx:178
-#: src/routes/(root)/search.tsx:195
+#: src/routes/(root)/search.tsx:180
+#: src/routes/(root)/search.tsx:197
 msgid "Search"
 msgstr "搜尋"
 
@@ -1877,16 +1885,16 @@ msgstr "搜尋"
 msgid "Search a language…"
 msgstr "搜尋語言…"
 
-#: src/routes/(root)/search.tsx:177
+#: src/routes/(root)/search.tsx:179
 msgid "Search posts…"
 msgstr "搜尋內容…"
 
 #. placeholder {0}: "KEYWORD"
-#: src/routes/(root)/search.tsx:289
+#: src/routes/(root)/search.tsx:291
 msgid "Search results for {0}"
 msgstr "{0}的搜尋結果"
 
-#: src/routes/(root)/search.tsx:198
+#: src/routes/(root)/search.tsx:200
 msgid "Searching…"
 msgstr "搜尋中…"
 
@@ -2223,13 +2231,13 @@ msgstr "重試"
 msgid "Type tags separated by spaces"
 msgstr "輸入標籤，用空格分隔"
 
-#: src/components/EmojiReactionPopover.tsx:255
-#: src/components/EmojiReactionPopover.tsx:264
+#: src/components/EmojiReactionPopover.tsx:257
+#: src/components/EmojiReactionPopover.tsx:266
 msgid "Unable to add reaction. Please try again."
 msgstr "無法新增反應。請重試。"
 
-#: src/components/EmojiReactionPopover.tsx:164
-#: src/components/EmojiReactionPopover.tsx:173
+#: src/components/EmojiReactionPopover.tsx:166
+#: src/components/EmojiReactionPopover.tsx:175
 msgid "Unable to remove reaction. Please try again."
 msgstr "無法移除反應。請重試。"
 
@@ -2323,6 +2331,10 @@ msgstr "驗證您的邀請…"
 #: src/components/AppSidebar.tsx:812
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
+
+#: src/components/NoteMedia.tsx:42
+msgid "View image"
+msgstr "查看圖片"
 
 #: src/components/NoteComposer.tsx:982
 msgid "Visibility"
