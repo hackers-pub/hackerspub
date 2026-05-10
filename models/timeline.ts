@@ -626,13 +626,20 @@ export async function getPublicTimeline(
     },
     limit: window,
   });
-  return posts.map((post) => ({
-    post,
-    lastSharer: null,
-    sharersCount: 0,
-    added: post.published,
-    cursor: post.published,
-  }));
+  // A race condition can leave post.actor null if an actor is deleted
+  // (via a Delete activity or 410 Gone cleanup) between the posts query and
+  // the actor relation query that Drizzle runs separately.  Skip those posts —
+  // they're already gone from the DB and would trigger a GraphQL non-null
+  // violation on Note.actor otherwise.
+  return posts
+    .filter((post) => post.actor != null)
+    .map((post) => ({
+      post: post as typeof post & { actor: NonNullable<typeof post.actor> },
+      lastSharer: null,
+      sharersCount: 0,
+      added: post.published,
+      cursor: post.published,
+    }));
 }
 
 export interface PersonalTimelineOptions extends TimelineOptions {
@@ -861,7 +868,12 @@ export async function getPersonalTimeline(
     },
     limit: window,
   });
-  return timeline.map((item) => ({
+  // Same race-condition guard as getPublicTimeline: skip any item whose post
+  // lost its actor between the posts query and the actor relation query.
+  const safeTimeline = timeline.filter((item) =>
+    item.post.actor != null
+  ) as typeof timeline;
+  return safeTimeline.map((item) => ({
     ...item,
     cursor: withoutShares ? item.added : item.appended,
     lastSharer: withoutShares ? null : item.lastSharer,
