@@ -34,11 +34,11 @@ export function ImageLightbox(props: ImageLightboxProps) {
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay class="fixed inset-0 z-50 bg-black/90 data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0" />
         <div class="fixed inset-0 z-50 flex items-center justify-center">
-          <DialogPrimitive.Content class="relative flex flex-col items-center outline-none data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95">
+          <DialogPrimitive.Content class="relative flex max-h-[95vh] max-w-[95vw] flex-col items-center outline-none data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95">
             <DialogPrimitive.Title class="sr-only">
               {t`Image preview`}
             </DialogPrimitive.Title>
-            <DialogPrimitive.CloseButton class="absolute -top-10 right-0 text-white/70 hover:text-white transition-colors p-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-white/50">
+            <DialogPrimitive.CloseButton class="absolute top-2 right-2 bg-black/50 hover:bg-black/80 text-white/90 hover:text-white transition-colors p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-white/50 z-10">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -56,11 +56,20 @@ export function ImageLightbox(props: ImageLightboxProps) {
             </DialogPrimitive.CloseButton>
             <Show when={currentMedium()}>
               {(medium) => (
-                <img
-                  src={medium().url}
-                  alt={medium().alt ?? undefined}
-                  class="max-w-[95vw] max-h-[85vh] object-contain"
-                />
+                <>
+                  <img
+                    src={medium().url}
+                    alt={medium().alt ?? undefined}
+                    class="min-h-0 max-w-full max-h-[calc(95vh-4rem)] object-contain"
+                  />
+                  <Show when={medium().alt?.trim()}>
+                    {(alt) => (
+                      <p class="mt-2 max-h-[4rem] max-w-full overflow-y-auto break-words text-center text-sm text-white/80">
+                        {alt()}
+                      </p>
+                    )}
+                  </Show>
+                </>
               )}
             </Show>
           </DialogPrimitive.Content>
