@@ -1,11 +1,16 @@
-# --- Builder stage ---------------------------------------------------------
-FROM docker.io/debian:13-slim AS builder
+# --- Base stage (mise + tools) -----------------------------------------------
+# This stage is the slow, rarely-changing foundation: system packages, mise
+# itself, and all pinned tool versions (Deno, Node, pnpm). Both the builder
+# and prod-deps stages inherit from here so they share an identical toolchain
+# without duplicating the installation work.
+FROM docker.io/debian:13-slim AS mise-base
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-RUN apt-get update && apt-get -y --no-install-recommends install \
-  build-essential ca-certificates curl ffmpeg jq && \
-  rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  apt-get update && apt-get -y --no-install-recommends install \
+  build-essential ca-certificates curl ffmpeg jq
 
 ENV MISE_DATA_DIR="/mise"
 ENV MISE_CONFIG_DIR="/mise"
@@ -18,7 +23,40 @@ RUN curl https://mise.run | sh
 WORKDIR /app
 COPY mise.toml /app/mise.toml
 RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN \
+  --mount=type=cache,id=mise-cache,target=/mise/cache \
   mise trust && mise install
+
+# --- Prod dependencies (runs in parallel with builder) -----------------------
+# Only depends on lockfiles and manifest files — not on any source code.
+# This means the layer stays cached on source-only changes, avoiding the
+# 2-3 min prod pnpm install + deno install on every commit.
+FROM mise-base AS prod-deps
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml /app/
+COPY deno.json /app/deno.json
+COPY deno.lock /app/deno.lock
+COPY ai/deno.json /app/ai/deno.json
+COPY ai/package.json /app/ai/package.json
+COPY federation/deno.json /app/federation/deno.json
+COPY federation/package.json /app/federation/package.json
+COPY graphql/deno.json /app/graphql/deno.json
+COPY models/deno.json /app/models/deno.json
+COPY models/package.json /app/models/package.json
+COPY web/deno.json /app/web/deno.json
+COPY web-next/deno.jsonc /app/web-next/deno.jsonc
+COPY web-next/package.json /app/web-next/package.json
+COPY patches /app/patches
+
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+  pnpm install --frozen-lockfile --prod
+
+# Re-populate /app/node_modules entries that Deno needs but pnpm doesn't
+# track. Without this the first `mise run prod:graphql` at deploy time spends
+# minutes rebuilding the directory; with it the server starts in seconds.
+RUN deno install
+
+# --- Builder stage -----------------------------------------------------------
+FROM mise-base AS builder
 
 COPY web/fonts /app/web/fonts
 
@@ -37,7 +75,8 @@ COPY web-next/deno.jsonc /app/web-next/deno.jsonc
 COPY web-next/package.json /app/web-next/package.json
 COPY patches /app/patches
 
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
+  pnpm install --frozen-lockfile
 RUN deno install
 
 COPY . /app
@@ -78,23 +117,10 @@ RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
   pnpm --filter @hackerspub/web-next build && \
   rm .env
 
-# Drop devDependencies from node_modules. A clean reinstall in --prod mode
-# is more reliable than `pnpm prune --prod` against a workspace that's
-# already had its devDependencies pulled (e.g. Storybook, relay-compiler,
-# vite plugins). Run after web-next build because the build needs them.
-RUN rm -rf node_modules web-next/node_modules && \
-  pnpm install --frozen-lockfile --prod
+# Strip dev node_modules; the runtime stage pulls prod deps from prod-deps.
+RUN rm -rf node_modules web-next/node_modules
 
-# Re-populate /app/node_modules entries that Deno needs but pnpm doesn't
-# track. The previous step (rm -rf node_modules + pnpm install --prod)
-# wipes everything Deno had pulled in via deno.json (drizzle-kit, the
-# graphql server's npm dependencies like graphql-yoga / pothos / fedify,
-# etc.). Without this re-population the first `mise run prod:graphql`
-# at deploy time spends minutes rebuilding the directory; with it the
-# server starts in seconds.
-RUN deno install
-
-# --- Runtime stage ---------------------------------------------------------
+# --- Runtime stage -----------------------------------------------------------
 FROM docker.io/debian:13-slim
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -112,15 +138,19 @@ ENV MISE_INSTALL_PATH="/usr/local/bin/mise"
 ENV PATH="/mise/shims:$PATH"
 
 # mise binary plus its data dir (tool installs, shims, trusted-config state).
-COPY --from=builder /usr/local/bin/mise /usr/local/bin/mise
-COPY --from=builder /mise /mise
+COPY --from=mise-base /usr/local/bin/mise /usr/local/bin/mise
+COPY --from=mise-base /mise /mise
 
 # Deno keeps its module cache at $HOME/.cache/deno; ship it so the runtime
 # doesn't need network access to resolve imports.
-COPY --from=builder /root/.cache/deno /root/.cache/deno
+COPY --from=prod-deps /root/.cache/deno /root/.cache/deno
 
 WORKDIR /app
+# Source + build artifacts from builder (node_modules were stripped above).
 COPY --from=builder /app /app
+# Prod-only node_modules from the separately cached prod-deps stage.
+COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=prod-deps /app/web-next/node_modules /app/web-next/node_modules
 
 # Re-trust the config in the runtime stage. mise stores trust state under
 # the user's home (not MISE_DATA_DIR), and we don't carry that over.
