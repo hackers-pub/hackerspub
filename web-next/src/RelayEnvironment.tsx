@@ -103,6 +103,18 @@ const fetchFn: FetchFunction = async (
     // JSON-parse failure that happens to land while an unrelated abort
     // is in flight still gets captured.
     if (cause instanceof Error && cause.name === "AbortError") throw cause;
+    // When the signal fires after response headers arrive but while the
+    // body is still being read, undici may raise SyntaxError("Unexpected
+    // end of JSON input") instead of AbortError because it truncates the
+    // in-flight stream mid-parse. That is still a normal cancellation.
+    // We check the exact error shape (SyntaxError + the specific truncation
+    // message + the signal being aborted) so that a genuinely malformed
+    // upstream response racing with a client disconnect still reaches Sentry.
+    if (
+      cause instanceof SyntaxError &&
+      cause.message === "Unexpected end of JSON input" &&
+      upstreamSignal?.aborted
+    ) throw cause;
     // Upstream unreachable / connection reset / non-JSON body. Relay
     // catches network errors internally and only logs them to the
     // console (see comment below), so without an explicit capture here
