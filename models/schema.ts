@@ -754,6 +754,11 @@ export const postTable = pgTable(
     // the extension.
     index("idx_post_content_html_trgm")
       .using("gin", table.contentHtml.op("gin_trgm_ops")),
+    // Hashtag search in models/search.ts uses the JSONB `?` operator
+    // (key existence). Without a GIN index this causes a full table scan and
+    // statement timeouts on large datasets.
+    index("idx_post_tags_gin")
+      .using("gin", table.tags),
   ],
 );
 
