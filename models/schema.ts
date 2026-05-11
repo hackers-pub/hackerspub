@@ -752,7 +752,7 @@ export const postTable = pgTable(
     index("idx_post_public_local_published")
       .on(
         table.visibility,
-        desc(table.published),
+        sql`${table.published}::timestamptz(3) desc`,
         desc(table.id),
         table.language,
       )
