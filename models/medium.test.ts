@@ -167,6 +167,74 @@ test("persistPostMedium() stores image attachments and infers media type from co
   });
 });
 
+test("persistPostMedium() ignores failed remote video responses", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const account = await insertAccountWithActor(tx, {
+      username: "failedvideoowner",
+      name: "Failed Video Owner",
+      email: "failedvideoowner@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: account.account,
+      content: "Post with failed video",
+    });
+
+    await withMockFetch(async () => {
+      return new Response("<!doctype html><title>Blocked</title>", {
+        status: 403,
+        headers: { "Content-Type": "text/html; charset=UTF-8" },
+      });
+    }, async () => {
+      const medium = await persistPostMedium(
+        fedCtx,
+        new vocab.Video({
+          url: new URL("https://remote.example/media/blocked.mp4"),
+          mediaType: "video/mp4",
+        }),
+        post.id,
+        0,
+      );
+
+      assert.equal(medium, undefined);
+    });
+  });
+});
+
+test("persistPostMedium() ignores non-media remote video responses", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const account = await insertAccountWithActor(tx, {
+      username: "htmlvideoowner",
+      name: "HTML Video Owner",
+      email: "htmlvideoowner@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: account.account,
+      content: "Post with HTML video response",
+    });
+
+    await withMockFetch(async () => {
+      return new Response("<!doctype html><title>Not a video</title>", {
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=UTF-8" },
+      });
+    }, async () => {
+      const medium = await persistPostMedium(
+        fedCtx,
+        new vocab.Video({
+          url: new URL("https://remote.example/media/not-video.mp4"),
+          mediaType: "video/mp4",
+        }),
+        post.id,
+        0,
+      );
+
+      assert.equal(medium, undefined);
+    });
+  });
+});
+
 test("persistPostMedium() ignores unsupported non-image documents", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);

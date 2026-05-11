@@ -68,6 +68,25 @@ function isSupportedMediumImageType(value: string | null): boolean {
     );
 }
 
+function parsePostMediumType(value: string | null): PostMediumType | undefined {
+  if (value == null) return undefined;
+  const contentType = value.split(";")[0].trim().toLowerCase();
+  return isPostMediumType(contentType) ? contentType : undefined;
+}
+
+function isGenericBinaryType(value: string | null): boolean {
+  if (value == null) return false;
+  const contentType = value.split(";")[0].trim().toLowerCase();
+  return contentType === "application/octet-stream" ||
+    contentType === "binary/octet-stream";
+}
+
+function isPotentialPostMediumType(value: string | null): boolean {
+  if (value == null) return false;
+  const contentType = value.split(";")[0].trim().toLowerCase();
+  return contentType.startsWith("image/") || contentType.startsWith("video/");
+}
+
 function assertSafeRemoteMediumUrl(url: URL): void {
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     throw new UnsafeMediumUrlError(url.href);
@@ -353,10 +372,20 @@ export async function persistPostMedium(
       }),
     },
   });
+  if (!response.ok) return undefined;
+  const contentType = response.headers.get("content-type");
+  const responseMediumType = parsePostMediumType(contentType);
   if (mediumType == null) {
-    const contentType = response.headers.get("content-type");
-    if (!isPostMediumType(contentType)) return undefined;
-    mediumType = contentType;
+    if (responseMediumType == null) return undefined;
+    mediumType = responseMediumType;
+  } else if (responseMediumType != null) {
+    mediumType = responseMediumType;
+  } else if (
+    contentType != null &&
+    !isGenericBinaryType(contentType) &&
+    !isPotentialPostMediumType(contentType)
+  ) {
+    return undefined;
   }
   if (response.body == null) return undefined;
   let width: number | null = document.width;
@@ -381,15 +410,17 @@ export async function persistPostMedium(
         width = metadata.streams[0].width ?? null;
         height = metadata.streams[0].height ?? null;
       }
-      await new Promise((resolve) =>
+      const screenshotCreated = await new Promise<boolean>((resolve) =>
         ffmpeg(source)
-          .on("end", resolve)
+          .on("end", () => resolve(true))
+          .on("error", () => resolve(false))
           .screenshots({
             timestamps: [0],
             filename: "screenshot.png",
             folder: tmpDir,
           })
       );
+      if (!screenshotCreated) return undefined;
       const screenshot = join(tmpDir, "screenshot.png");
       await fedCtx.data.disk.put(
         thumbnailKey = `videos/${crypto.randomUUID()}.png`,
