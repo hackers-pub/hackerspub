@@ -1,5 +1,13 @@
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, onMount, Show, Switch } from "solid-js";
+import {
+  createSignal,
+  For,
+  Match,
+  onCleanup,
+  onMount,
+  Show,
+  Switch,
+} from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
@@ -56,11 +64,10 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
   >("loaded");
 
   onMount(() => {
-    const cleanup = onNoteCreated(() => {
+    onCleanup(onNoteCreated(() => {
       // TODO: Refetch the timeline when a note is created with keeping old data visible
       posts.refetch({});
-    });
-    return cleanup;
+    }));
   });
 
   function onLoadMore() {

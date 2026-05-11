@@ -4,7 +4,7 @@ import { Link, Meta } from "@solidjs/meta";
 import { revalidate, type RouteDefinition, useParams } from "@solidjs/router";
 import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
-import { createSignal, For, onMount, Show } from "solid-js";
+import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import {
   createFragment,
   createPreloadedQuery,
@@ -96,11 +96,11 @@ export default function ArticlePage() {
   const slug = params.slug!;
   const { onNoteCreated } = useNoteCompose();
 
-  onMount(() =>
-    onNoteCreated(() => {
+  onMount(() => {
+    onCleanup(onNoteCreated(() => {
       void revalidate(ARTICLE_PAGE_QUERY_KEY);
-    })
-  );
+    }));
+  });
 
   const data = createPreloadedQuery<SlugPageQuery>(
     SlugPageQueryDef,
