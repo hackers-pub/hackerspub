@@ -183,10 +183,30 @@ type ClientFetchFn = FetchFunction & {
   withOptions: (options: RequestInit) => FetchFunction;
 };
 
+function addRelayRequestBreadcrumb(
+  params: Parameters<FetchFunction>[0],
+  cacheConfig: Parameters<FetchFunction>[2],
+): void {
+  if (isServer) return;
+  Sentry.addBreadcrumb({
+    category: "relay.request",
+    level: "info",
+    message: `${params.operationKind} ${params.name}`,
+    data: {
+      operation: params.name,
+      operationKind: params.operationKind,
+      transport: "/_server",
+      force: cacheConfig.force,
+      hasPersistedId: params.id != null,
+    },
+  });
+}
+
 function createRelayEnvironment(): IEnvironment {
   const network = Network.create((params, variables, cacheConfig) =>
     Observable.create<GraphQLResponse>((sink) => {
       const controller = new AbortController();
+      addRelayRequestBreadcrumb(params, cacheConfig);
       // SSR runs `fetchFn` in-process; the server-side `try/catch` already
       // propagates the inbound request's signal to the upstream fetch, so
       // the client-side controller is only meaningful in the browser.
