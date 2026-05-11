@@ -29,6 +29,7 @@ import { type Uuid, validateUuid } from "./uuid.ts";
 // actor-deleted rows the caller still receives the full window plus the
 // hasNextPage probe row.
 const ACTOR_RACE_BUFFER = 5;
+const PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE = 250;
 
 export const FUTURE_TIMESTAMP_TOLERANCE = (() => {
   const envValue = process.env.FUTURE_TIMESTAMP_TOLERANCE;
@@ -537,6 +538,10 @@ export async function getPublicTimeline(
         : getPostCursorFilter(refillOlderCursor, "older"),
     ].filter((f) => f != null);
     const needed = window == null ? undefined : window - result.length;
+    const batchNeeded = needed == null
+      ? PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE
+      : Math.min(needed, PUBLIC_TIMELINE_HYDRATION_BATCH_SIZE);
+    const batchLimit = batchNeeded + ACTOR_RACE_BUFFER;
     const batchFilter: RelationsFilter<"postTable"> = {
       AND: [
         getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
@@ -589,7 +594,7 @@ export async function getPublicTimeline(
           direction === "backward" ? asc(post.id) : desc(post.id),
         ];
       },
-      limit: needed != null ? needed + ACTOR_RACE_BUFFER : undefined,
+      limit: batchLimit,
     });
 
     if (candidatePosts.length === 0) break;
@@ -780,11 +785,7 @@ export async function getPublicTimeline(
       });
     }
 
-    if (
-      needed != null && candidatePosts.length < needed + ACTOR_RACE_BUFFER
-    ) {
-      break;
-    }
+    if (candidatePosts.length < batchLimit) break;
   }
 
   return result;

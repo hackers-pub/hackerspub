@@ -17,6 +17,7 @@ import {
   insertNotePost,
   insertRemoteActor,
   insertRemotePost,
+  makeGuestContext,
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
@@ -112,6 +113,33 @@ const bookmarksQuery = parse(`
     }
   }
 `);
+
+Deno.test({
+  name: "publicTimeline rejects pages over the maximum window",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const result = await execute({
+        schema,
+        document: publicTimelineQuery,
+        variableValues: { first: 251 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(
+        (result.data as { publicTimeline: unknown }).publicTimeline,
+        null,
+      );
+      assertEquals(
+        result.errors?.[0].message,
+        "Timeline pages are limited to 250 posts.",
+      );
+      assertEquals(result.errors?.[0].extensions?.code, "PAGINATION_ERROR");
+    });
+  },
+});
 
 Deno.test({
   name: "publicTimeline exposes forward pagination metadata",
@@ -405,6 +433,39 @@ Deno.test({
         }).personalTimeline.edges,
         [],
       );
+    });
+  },
+});
+
+Deno.test({
+  name: "personalTimeline rejects pages over the maximum window",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const viewer = await insertAccountWithActor(tx, {
+        username: "graphqlpersonalmaxwindowviewer",
+        name: "GraphQL Personal Max Window Viewer",
+        email: "graphqlpersonalmaxwindowviewer@example.com",
+      });
+
+      const result = await execute({
+        schema,
+        document: personalTimelineQuery,
+        variableValues: { last: 251 },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(
+        (result.data as { personalTimeline: unknown }).personalTimeline,
+        null,
+      );
+      assertEquals(
+        result.errors?.[0].message,
+        "Timeline pages are limited to 250 posts.",
+      );
+      assertEquals(result.errors?.[0].extensions?.code, "PAGINATION_ERROR");
     });
   },
 });

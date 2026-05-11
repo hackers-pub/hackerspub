@@ -1323,12 +1323,20 @@ type Query {
   Moderator-only orphan media preview.  Returns null when the viewer is not a moderator.
   """
   orphanMediaStatus: OrphanMediaStatus
+
+  """
+  Personal timeline posts. The pagination window, set with first or last, is limited to 250 posts.
+  """
   personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
   postByUrl(url: String!): Post
   privacyPolicy(
     """The locale for the Privacy Policy."""
     locale: Locale!
   ): Document!
+
+  """
+  Public timeline posts. The pagination window, set with first or last, is limited to 250 posts.
+  """
   publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
   recommendedActors(limit: Int = 10, locale: Locale): [Actor!]!
   searchActorsByHandle(limit: Int = 25, prefix: String!): [Actor!]!

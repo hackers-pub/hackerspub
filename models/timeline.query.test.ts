@@ -142,6 +142,39 @@ Deno.test({
 });
 
 Deno.test({
+  name: "getPublicTimeline() hydrates large windows in bounded batches",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "publiclargebatchauthor",
+        name: "Public Large Batch Author",
+        email: "publiclargebatchauthor@example.com",
+      });
+      const posts = [];
+      const timestamp = new Date("2026-04-15T00:00:01.000Z");
+      for (let i = 1; i <= 300; i++) {
+        const { post } = await insertNotePost(tx, {
+          account: author.account,
+          content: `Public large batch post ${i}`,
+          published: timestamp,
+        });
+        posts.push(post);
+      }
+      const orderedPosts = [...posts].sort((a, b) => b.id.localeCompare(a.id));
+
+      const timeline = await getPublicTimeline(tx, { window: 300 });
+      assertEquals(timeline.length, 300);
+      assertEquals(
+        timeline.map((entry) => entry.post.id),
+        orderedPosts.map((post) => post.id),
+      );
+    });
+  },
+});
+
+Deno.test({
   name: "getPersonalTimeline() hides pure shares when withoutShares is enabled",
   sanitizeOps: false,
   sanitizeResources: false,

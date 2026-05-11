@@ -17,6 +17,8 @@ import { Actor } from "./actor.ts";
 import { builder } from "./builder.ts";
 import { Post, PostType } from "./post.ts";
 
+const MAX_TIMELINE_WINDOW = 250;
+
 // `Authentication required` is intentional — return as a real
 // `GraphQLError` so Yoga doesn't fold it into a generic
 // "Unexpected error." (which obscures the cause and forces clients to
@@ -66,15 +68,23 @@ function formatBookmarkCursor(entry: BookmarkEntry): string {
   return `${entry.bookmarked.toISOString()}|${entry.post.id}`;
 }
 
-function getTimelineWindow(
+function getConnectionWindow(
   args: { first?: number | null; last?: number | null },
+  options: { maxWindow?: number } = {},
 ): number {
   if (args.first != null && args.last != null) {
     throw createGraphQLError("Cannot paginate with both first and last.", {
       extensions: { code: "PAGINATION_ERROR" },
     });
   }
-  return args.last ?? args.first ?? 25;
+  const window = args.last ?? args.first ?? 25;
+  if (options.maxWindow != null && window > options.maxWindow) {
+    throw createGraphQLError(
+      `Timeline pages are limited to ${options.maxWindow} posts.`,
+      { extensions: { code: "PAGINATION_ERROR" } },
+    );
+  }
+  return window;
 }
 
 function conflictingCursors(): never {
@@ -96,6 +106,10 @@ builder.queryFields((t) => ({
   publicTimeline: t.connection(
     {
       type: Post,
+      description:
+        `Public timeline posts. The pagination window, set with first ` +
+        `or last, ` +
+        `is limited to ${MAX_TIMELINE_WINDOW} posts.`,
       args: {
         languages: t.arg({
           type: ["Locale"],
@@ -113,7 +127,9 @@ builder.queryFields((t) => ({
           conflictingCursors();
         }
         const backwards = args.last != null;
-        const window = getTimelineWindow(args);
+        const window = getConnectionWindow(args, {
+          maxWindow: MAX_TIMELINE_WINDOW,
+        });
         const since = args.before == null
           ? undefined
           : parseRequiredTimelineCursor(args.before);
@@ -198,7 +214,7 @@ builder.queryFields((t) => ({
         conflictingCursors();
       }
       const backwards = args.last != null;
-      const window = getTimelineWindow(args);
+      const window = getConnectionWindow(args);
       const since = args.before == null
         ? undefined
         : parseRequiredBookmarkCursor(args.before);
@@ -248,6 +264,10 @@ builder.queryFields((t) => ({
   personalTimeline: t.connection(
     {
       type: Post,
+      description:
+        `Personal timeline posts. The pagination window, set with first ` +
+        `or last, ` +
+        `is limited to ${MAX_TIMELINE_WINDOW} posts.`,
       args: {
         local: t.arg.boolean({ defaultValue: false }),
         withoutShares: t.arg.boolean({ defaultValue: false }),
@@ -263,7 +283,9 @@ builder.queryFields((t) => ({
           conflictingCursors();
         }
         const backwards = args.last != null;
-        const window = getTimelineWindow(args);
+        const window = getConnectionWindow(args, {
+          maxWindow: MAX_TIMELINE_WINDOW,
+        });
         const since = args.before == null
           ? undefined
           : parseRequiredTimelineCursor(args.before);
