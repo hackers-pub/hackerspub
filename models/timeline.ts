@@ -1,6 +1,6 @@
 import process from "node:process";
 import { and, eq, isNull, sql } from "drizzle-orm";
-import type { Database } from "./db.ts";
+import type { Database, RelationsFilter } from "./db.ts";
 import {
   getPostVisibilityFilter,
   getPublicTimelineVisibilityFilter,
@@ -537,6 +537,76 @@ export async function getPublicTimeline(
         : getPostCursorFilter(refillOlderCursor, "older"),
     ].filter((f) => f != null);
     const needed = window == null ? undefined : window - result.length;
+    const batchFilter: RelationsFilter<"postTable"> = {
+      AND: [
+        getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
+        ...batchCursorFilters,
+        {
+          ...(
+            languages.size < 1
+              ? (currentAccount?.hideForeignLanguages &&
+                  currentAccount.locales != null
+                ? { language: { in: expandLocales(currentAccount.locales) } }
+                : {})
+              : { language: { in: expandLocales([...languages]) } }
+          ),
+          replyTargetId: { isNull: true },
+          ...(
+            local
+              ? {
+                OR: [
+                  { noteSourceId: { isNotNull: true } },
+                  { articleSourceId: { isNotNull: true } },
+                  {
+                    sharedPostId: { isNotNull: true },
+                    actor: {
+                      accountId: { isNotNull: true },
+                    },
+                  },
+                ],
+              }
+              : undefined
+          ),
+          ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
+          ...(postType == null ? undefined : { type: postType }),
+          published: { lte: futureTimestampLimit },
+        },
+      ],
+    };
+
+    const candidatePosts = await db.query.postTable.findMany({
+      columns: {
+        id: true,
+        published: true,
+      },
+      where: batchFilter,
+      orderBy: (post, { asc, desc }) => {
+        const cursorTimestamp = sql<Date>`${post.published}::timestamptz(3)`;
+        return [
+          direction === "backward"
+            ? asc(cursorTimestamp)
+            : desc(cursorTimestamp),
+          direction === "backward" ? asc(post.id) : desc(post.id),
+        ];
+      },
+      limit: needed != null ? needed + ACTOR_RACE_BUFFER : undefined,
+    });
+
+    if (candidatePosts.length === 0) break;
+
+    // Advance the tail-side cursor using the last candidate's composite key.
+    const lastPost = candidatePosts.at(-1)!;
+    const lastCursor: TimelineCursor = {
+      timestamp: lastPost.published,
+      postId: lastPost.id as Uuid,
+    };
+    if (direction === "forward") refillOlderCursor = lastCursor;
+    else refillNewerCursor = lastCursor;
+
+    const candidatePostIds = candidatePosts.map((post) => post.id as Uuid);
+    const candidateOrder = new Map(
+      candidatePostIds.map((id, index) => [id, index]),
+    );
 
     const posts = await db.query.postTable.findMany({
       with: {
@@ -631,62 +701,15 @@ export async function getPublicTimeline(
       },
       where: {
         AND: [
-          getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
-          ...batchCursorFilters,
-          {
-            ...(
-              languages.size < 1
-                ? (currentAccount?.hideForeignLanguages &&
-                    currentAccount.locales != null
-                  ? { language: { in: expandLocales(currentAccount.locales) } }
-                  : {})
-                : { language: { in: expandLocales([...languages]) } }
-            ),
-            replyTargetId: { isNull: true },
-            ...(
-              local
-                ? {
-                  OR: [
-                    { noteSourceId: { isNotNull: true } },
-                    { articleSourceId: { isNotNull: true } },
-                    {
-                      sharedPostId: { isNotNull: true },
-                      actor: {
-                        accountId: { isNotNull: true },
-                      },
-                    },
-                  ],
-                }
-                : undefined
-            ),
-            ...(withoutShares ? { sharedPostId: { isNull: true } } : undefined),
-            ...(postType == null ? undefined : { type: postType }),
-            published: { lte: futureTimestampLimit },
-          },
+          { id: { in: candidatePostIds } },
+          batchFilter,
         ],
       },
-      orderBy: (post, { asc, desc }) => {
-        const cursorTimestamp = sql<Date>`${post.published}::timestamptz(3)`;
-        return [
-          direction === "backward"
-            ? asc(cursorTimestamp)
-            : desc(cursorTimestamp),
-          direction === "backward" ? asc(post.id) : desc(post.id),
-        ];
-      },
-      limit: needed != null ? needed + ACTOR_RACE_BUFFER : undefined,
     });
-
-    if (posts.length === 0) break;
-
-    // Advance the tail-side cursor using the last row's composite key.
-    const lastPost = posts.at(-1)!;
-    const lastCursor: TimelineCursor = {
-      timestamp: lastPost.published,
-      postId: lastPost.id as Uuid,
-    };
-    if (direction === "forward") refillOlderCursor = lastCursor;
-    else refillNewerCursor = lastCursor;
+    posts.sort((a, b) =>
+      (candidateOrder.get(a.id as Uuid) ?? Number.MAX_SAFE_INTEGER) -
+      (candidateOrder.get(b.id as Uuid) ?? Number.MAX_SAFE_INTEGER)
+    );
 
     // Bulk-fetch follows/blocks for every actor that appears in this batch.
     const actorIdSet = new Set<Uuid>();
@@ -757,7 +780,11 @@ export async function getPublicTimeline(
       });
     }
 
-    if (needed != null && posts.length < needed + ACTOR_RACE_BUFFER) break;
+    if (
+      needed != null && candidatePosts.length < needed + ACTOR_RACE_BUFFER
+    ) {
+      break;
+    }
   }
 
   return result;
