@@ -243,18 +243,20 @@ export function AppSidebar(props: AppSidebarProps) {
                          through it, matching the Heroicons `*-slash`
                          family (bell-slash, bolt-slash, bookmark-slash,
                          eye-slash, link-slash, signal-slash,
-                         video-camera-slash).  The arrow's top-left and
-                         bottom-right rounded corner arcs are split at the
-                         points where the slash crosses them and the path
-                         skips over the crossing with an `M` move, so the
-                         single drawn slash leaves a small transparent
-                         gutter through the glyph (the same technique
-                         Heroicons itself uses, no SVG mask needed). */
+                         video-camera-slash).  Following bookmark-slash's
+                         convention, the entire top-left and bottom-right
+                         rounded corner arcs the slash would otherwise
+                         cross are omitted from the path — an explicit `M`
+                         skips over each corner — and the slash itself is
+                         drawn as the path's last segment.  This leaves a
+                         generous transparent gutter on each side of the
+                         slash without needing a mask, regardless of the
+                         menu button's background colour. */
                     }
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-2.101.78M5.418 6.237a4.006 4.006 0 0 0-.78 2.101c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 2.101-.78M18.582 17.763a4.006 4.006 0 0 0 .78-2.101c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3M3 3l18 18"
+                      d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0M4.638 8.338c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0M19.362 15.662c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3M3 3l18 18"
                     />
                   </svg>
                   {t`Without shares`}
