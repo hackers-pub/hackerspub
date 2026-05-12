@@ -1,6 +1,6 @@
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
-import { createBookmark } from "@hackerspub/models/bookmark";
+import { createBookmark, deleteBookmark } from "@hackerspub/models/bookmark";
 import { sharePost } from "@hackerspub/models/post";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
@@ -812,6 +812,165 @@ Deno.test({
       );
       assertEquals(original?.node.viewerHasShared, true);
       assertEquals(original?.node.viewerHasBookmarked, true);
+    });
+  },
+});
+
+const bookmarkCountQuery = parse(`
+  query BookmarkCount($id: ID!) {
+    node(id: $id) {
+      ... on Post {
+        engagementStats {
+          bookmarks
+        }
+      }
+    }
+  }
+`);
+
+Deno.test({
+  name: "engagementStats.bookmarks counts bookmark rows for the post",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "bookmarkstatsauthor",
+        name: "BookmarkStats Author",
+        email: "bookmarkstatsauthor@example.com",
+      });
+      const viewerA = await insertAccountWithActor(tx, {
+        username: "bookmarkstatsviewera",
+        name: "BookmarkStats Viewer A",
+        email: "bookmarkstatsviewera@example.com",
+      });
+      const viewerB = await insertAccountWithActor(tx, {
+        username: "bookmarkstatsviewerb",
+        name: "BookmarkStats Viewer B",
+        email: "bookmarkstatsviewerb@example.com",
+      });
+
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Will be bookmarked",
+      });
+      const postId = encodeGlobalID("Note", post.id);
+
+      const readCount = async (
+        ctx:
+          | ReturnType<typeof makeUserContext>
+          | ReturnType<
+            typeof makeGuestContext
+          >,
+      ): Promise<number> => {
+        const result = await execute({
+          schema,
+          document: bookmarkCountQuery,
+          variableValues: { id: postId },
+          contextValue: ctx,
+          onError: "NO_PROPAGATE",
+        });
+        assertEquals(result.errors, undefined);
+        const data = result.data as {
+          node: { engagementStats: { bookmarks: number } };
+        };
+        return data.node.engagementStats.bookmarks;
+      };
+
+      // Initially zero from every perspective.
+      assertEquals(await readCount(makeGuestContext(tx)), 0);
+      assertEquals(await readCount(makeUserContext(tx, viewerA.account)), 0);
+
+      await createBookmark(tx, viewerA.account, post);
+      await createBookmark(tx, viewerB.account, post);
+
+      // Count is public and identical across viewers (bookmarker,
+      // non-bookmarker, guest).
+      assertEquals(await readCount(makeGuestContext(tx)), 2);
+      assertEquals(await readCount(makeUserContext(tx, viewerA.account)), 2);
+      assertEquals(await readCount(makeUserContext(tx, viewerB.account)), 2);
+      assertEquals(await readCount(makeUserContext(tx, author.account)), 2);
+
+      // Unbookmarking drops the count.
+      await deleteBookmark(tx, viewerA.account, post);
+      assertEquals(await readCount(makeGuestContext(tx)), 1);
+      assertEquals(await readCount(makeUserContext(tx, viewerB.account)), 1);
+    });
+  },
+});
+
+const bookmarkRoundTripCountMutation = parse(`
+  mutation BookmarkRoundTripCount($postId: ID!) {
+    first: bookmarkPost(input: { postId: $postId }) {
+      __typename
+      ... on BookmarkPostPayload {
+        post {
+          engagementStats {
+            bookmarks
+          }
+        }
+      }
+    }
+    second: unbookmarkPost(input: { postId: $postId }) {
+      __typename
+      ... on UnbookmarkPostPayload {
+        post {
+          engagementStats {
+            bookmarks
+          }
+        }
+      }
+    }
+  }
+`);
+
+Deno.test({
+  name:
+    "engagementStats.bookmarks reflects post-mutation state across serial mutations",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "bookmarkstatsmutauthor",
+        name: "BookmarkStatsMut Author",
+        email: "bookmarkstatsmutauthor@example.com",
+      });
+      const viewer = await insertAccountWithActor(tx, {
+        username: "bookmarkstatsmutviewer",
+        name: "BookmarkStatsMut Viewer",
+        email: "bookmarkstatsmutviewer@example.com",
+      });
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Serial bookmark mutations",
+      });
+
+      const result = await execute({
+        schema,
+        document: bookmarkRoundTripCountMutation,
+        variableValues: { postId: encodeGlobalID("Note", post.id) },
+        contextValue: makeUserContext(tx, viewer.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(result.errors, undefined);
+
+      const data = result.data as {
+        first: {
+          __typename: string;
+          post?: { engagementStats: { bookmarks: number } };
+        };
+        second: {
+          __typename: string;
+          post?: { engagementStats: { bookmarks: number } };
+        };
+      };
+
+      assertEquals(data.first.__typename, "BookmarkPostPayload");
+      assertEquals(data.first.post?.engagementStats.bookmarks, 1);
+      assertEquals(data.second.__typename, "UnbookmarkPostPayload");
+      assertEquals(data.second.post?.engagementStats.bookmarks, 0);
     });
   },
 });

@@ -1157,6 +1157,7 @@ interface Post implements Node & Reactable {
 }
 
 type PostEngagementStats {
+  bookmarks: Int!
   post: Post!
   quotes: Int!
   reactions: Int!

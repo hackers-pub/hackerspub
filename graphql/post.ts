@@ -20,6 +20,7 @@ import {
   arePostsBookmarkedBy,
   createBookmark,
   deleteBookmark,
+  getBookmarkCountsForPosts,
 } from "@hackerspub/models/bookmark";
 import { isReactionEmoji, renderCustomEmojis } from "@hackerspub/models/emoji";
 import { addExternalLinkTargets, stripHtml } from "@hackerspub/models/html";
@@ -700,6 +701,18 @@ const PostEngagementStats = builder.drizzleObject("postTable", {
     shares: t.exposeInt("sharesCount"),
     quotes: t.exposeInt("quotesCount"),
     reactions: t.exposeInt("reactionsCount"),
+    bookmarks: t.loadable({
+      type: "Int",
+      // cache: false so a mutation that flips bookmark state in the same
+      // request (bookmark + read bookmarks + unbookmark + read bookmarks)
+      // re-queries instead of returning the pre-mutation count.
+      loaderOptions: { cache: false },
+      load: async (postIds: Uuid[], ctx: UserContext): Promise<number[]> => {
+        const counts = await getBookmarkCountsForPosts(ctx.db, postIds);
+        return postIds.map((id) => counts.get(id) ?? 0);
+      },
+      resolve: (post) => post.id,
+    }),
   }),
 });
 
