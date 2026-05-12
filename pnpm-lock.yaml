@@ -160,6 +160,11 @@ catalogs:
       specifier: ^1.0.15
       version: 1.0.15
 
+patchedDependencies:
+  '@kobalte/core@0.13.11':
+    hash: 0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4
+    path: patches/@kobalte__core@0.13.11.patch
+
 importers:
 
   .: {}
@@ -384,7 +389,7 @@ importers:
         version: link:../models
       '@kobalte/core':
         specifier: ^0.13.10
-        version: 0.13.11(solid-js@1.9.12)
+        version: 0.13.11(patch_hash=0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4)(solid-js@1.9.12)
       '@lingui/core':
         specifier: ^5.3.3
         version: 5.9.4(@lingui/babel-plugin-lingui-macro@5.9.4(typescript@6.0.3))
@@ -7317,7 +7322,7 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@kobalte/core@0.13.11(solid-js@1.9.12)':
+  '@kobalte/core@0.13.11(patch_hash=0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4)(solid-js@1.9.12)':
     dependencies:
       '@floating-ui/dom': 1.7.6
       '@internationalized/date': 3.12.0

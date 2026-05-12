@@ -1,0 +1,26 @@
+diff --git a/dist/chunk/3NI6FTA2.jsx b/dist/chunk/3NI6FTA2.jsx
+index 7c4dd2e09ed337f027c70e4ca14eefbebef383ac..cf4f738a65304669a6363c538a1e790da90062b4 100644
+--- a/dist/chunk/3NI6FTA2.jsx
++++ b/dist/chunk/3NI6FTA2.jsx
+@@ -11,7 +11,7 @@ function find(node) {
+   return layers[indexOf(node)];
+ }
+ function isTopMostLayer(node) {
+-  return layers[layers.length - 1].node === node;
++  return layers[layers.length - 1]?.node === node;
+ }
+ function getPointerBlockingLayers() {
+   return layers.filter((layer) => layer.isPointerBlocking);
+diff --git a/dist/chunk/ZKYDDHM6.js b/dist/chunk/ZKYDDHM6.js
+index c0e10574889565c0c2f9864490c03d1d9ca275a9..0553ca5f12920688017424c9729f74b059c3102c 100644
+--- a/dist/chunk/ZKYDDHM6.js
++++ b/dist/chunk/ZKYDDHM6.js
+@@ -12,7 +12,7 @@ function find(node) {
+   return layers[indexOf(node)];
+ }
+ function isTopMostLayer(node) {
+-  return layers[layers.length - 1].node === node;
++  return layers[layers.length - 1]?.node === node;
+ }
+ function getPointerBlockingLayers() {
+   return layers.filter((layer) => layer.isPointerBlocking);
