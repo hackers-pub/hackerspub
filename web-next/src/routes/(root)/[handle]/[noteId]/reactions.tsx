@@ -160,12 +160,19 @@ function ReactionsPageBody(props: { post: ReactionsPagePost; base: string }) {
   const { t } = useLingui();
   // Sort the same way the engagement bar and emoji popover do so the
   // group order stays consistent across views.  Filter out the
-  // forward-compatible "%other" branch first.
+  // forward-compatible "%other" branch as well as any group whose
+  // `reactorsPage` is missing — that happens transiently when the
+  // emoji-reaction popover's optimistic store updater synthesises a
+  // new group with `reactors` (no args) but not the page query's
+  // `reactors(first: 20)` linked record; rendering would otherwise
+  // crash dereferencing `reactorsPage.totalCount`.  The page will
+  // pick the group up on its next `store-and-network` refetch.
   const knownGroups = () =>
     props.post.reactionGroups.filter(
       (g): g is ReactionGroup =>
-        g.__typename === "EmojiReactionGroup" ||
-        g.__typename === "CustomEmojiReactionGroup",
+        (g.__typename === "EmojiReactionGroup" ||
+          g.__typename === "CustomEmojiReactionGroup") &&
+        g.reactorsPage != null,
     );
   const groups = () => sortReactionGroups(knownGroups());
   return (

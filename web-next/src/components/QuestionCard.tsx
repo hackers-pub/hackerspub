@@ -17,6 +17,7 @@ import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   MentionHoverCardLayer,
@@ -296,7 +297,9 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             </Show>
             {(() => {
               const base = `/${
-                q.actor.local ? `@${q.actor.username}` : q.actor.handle
+                q.actor.local
+                  ? `@${q.actor.username}`
+                  : encodeHandleSegment(q.actor.handle)
               }/${q.uuid}`;
               return (
                 <PostEngagementBar

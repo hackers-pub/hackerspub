@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import {
   MentionHoverCardLayer,
   useMentionHoverCards,
@@ -58,7 +59,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
     if (!n) return null;
     const actorSegment = n.actor.local
       ? `@${n.actor.username}`
-      : n.actor.handle;
+      : encodeHandleSegment(n.actor.handle);
     const id = n.sourceId ?? n.uuid;
     return `/${actorSegment}/${id}`;
   };
