@@ -238,39 +238,23 @@ export function AppSidebar(props: AppSidebarProps) {
                   >
                     {
                       /* Share glyph (arrow-path-rounded-square) — same base
-                         as the engagement bar's share button — overlaid with
-                         a diagonal slash so this filter reads as "shares,
-                         crossed out".  We use an SVG <mask> to cut a thin
-                         transparent gutter through the underlying arrow
-                         along the slash's upper-left edge, mirroring the
-                         pattern Heroicons uses on its `*-slash` icons
-                         (bell-slash, bolt-slash, bookmark-slash, eye-slash,
-                         link-slash, signal-slash, video-camera-slash). */
+                         as the engagement bar's share button — with a
+                         diagonal slash from (3, 3) to (21, 21) carved
+                         through it, matching the Heroicons `*-slash`
+                         family (bell-slash, bolt-slash, bookmark-slash,
+                         eye-slash, link-slash, signal-slash,
+                         video-camera-slash).  The arrow's top-left and
+                         bottom-right rounded corner arcs are split at the
+                         points where the slash crosses them and the path
+                         skips over the crossing with an `M` move, so the
+                         single drawn slash leaves a small transparent
+                         gutter through the glyph (the same technique
+                         Heroicons itself uses, no SVG mask needed). */
                     }
-                    <mask id="without-shares-slash-cut">
-                      <rect width="24" height="24" fill="white" />
-                      <line
-                        x1="4.5"
-                        y1="18.5"
-                        x2="18.5"
-                        y2="4.5"
-                        stroke="black"
-                        stroke-width="3"
-                        stroke-linecap="round"
-                      />
-                    </mask>
                     <path
-                      mask="url(#without-shares-slash-cut)"
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
-                    />
-                    <line
-                      x1="5"
-                      y1="19"
-                      x2="19"
-                      y2="5"
-                      stroke-linecap="round"
+                      d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-2.101.78M5.418 6.237a4.006 4.006 0 0 0-.78 2.101c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 2.101-.78M18.582 17.763a4.006 4.006 0 0 0 .78-2.101c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3M3 3l18 18"
                     />
                   </svg>
                   {t`Without shares`}
