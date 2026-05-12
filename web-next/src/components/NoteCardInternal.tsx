@@ -48,21 +48,23 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
     () => props.$note,
   );
 
-  // URL the engagement bar's reply control navigates to.  Local notes
-  // use the source row's UUID (matching the URL embedded in
-  // `Post.url`); remote notes fall back to the post row's UUID, which
-  // is the internal route token.  The corresponding `/quotes`,
-  // `/shares`, and `/reactions` sub-routes don't exist yet, so the
-  // matching `engagementBase` prop is intentionally left unset until
-  // those routes land.
-  const repliesHref = () => {
+  // Local permalink base for the engagement bar.  Local notes use the
+  // source row's UUID (matching the URL embedded in `Post.url`);
+  // remote notes fall back to the post row's UUID, which is the
+  // internal route token.  Both `repliesHref` and `engagementBase`
+  // build on the same base.
+  const permalinkBase = () => {
     const n = note();
     if (!n) return null;
     const actorSegment = n.actor.local
       ? `@${n.actor.username}`
       : n.actor.handle;
     const id = n.sourceId ?? n.uuid;
-    return `/${actorSegment}/${id}/replies`;
+    return `/${actorSegment}/${id}`;
+  };
+  const repliesHref = () => {
+    const base = permalinkBase();
+    return base == null ? null : `${base}/replies`;
   };
 
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
@@ -99,6 +101,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
             <PostEngagementBar
               $post={n}
               repliesHref={repliesHref()}
+              engagementBase={permalinkBase()}
               bookmarkListConnections={props.bookmarkListConnections}
             />
           </div>

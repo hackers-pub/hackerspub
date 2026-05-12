@@ -294,13 +294,19 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             <Show keyed when={q.quotedPost}>
               {(quotedPost) => <QuotedPostCard $post={quotedPost} />}
             </Show>
-            <PostEngagementBar
-              $post={q}
-              repliesHref={`/${
+            {(() => {
+              const base = `/${
                 q.actor.local ? `@${q.actor.username}` : q.actor.handle
-              }/${q.uuid}/replies`}
-              bookmarkListConnections={props.bookmarkListConnections}
-            />
+              }/${q.uuid}`;
+              return (
+                <PostEngagementBar
+                  $post={q}
+                  repliesHref={`${base}/replies`}
+                  engagementBase={base}
+                  bookmarkListConnections={props.bookmarkListConnections}
+                />
+              );
+            })()}
           </div>
         </div>
       )}
