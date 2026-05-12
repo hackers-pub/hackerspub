@@ -27,9 +27,13 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
       fragment NoteCardInternal_note on Note {
         __id
         uuid
+        sourceId
         content
         language
         actor {
+          local
+          username
+          handle
           ...PostAvatar_actor
         }
         ...PostEngagementBar_post
@@ -43,6 +47,23 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
     `,
     () => props.$note,
   );
+
+  // URL the engagement bar's reply control navigates to.  Local notes
+  // use the source row's UUID (matching the URL embedded in
+  // `Post.url`); remote notes fall back to the post row's UUID, which
+  // is the internal route token.  The corresponding `/quotes`,
+  // `/shares`, and `/reactions` sub-routes don't exist yet, so the
+  // matching `engagementBase` prop is intentionally left unset until
+  // those routes land.
+  const repliesHref = () => {
+    const n = note();
+    if (!n) return null;
+    const actorSegment = n.actor.local
+      ? `@${n.actor.username}`
+      : n.actor.handle;
+    const id = n.sourceId ?? n.uuid;
+    return `/${actorSegment}/${id}/replies`;
+  };
 
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
@@ -77,6 +98,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
             </Show>
             <PostEngagementBar
               $post={n}
+              repliesHref={repliesHref()}
               bookmarkListConnections={props.bookmarkListConnections}
             />
           </div>

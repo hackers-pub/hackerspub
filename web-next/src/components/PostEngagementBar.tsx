@@ -27,16 +27,22 @@ import { EmojiReactionPopover } from "./EmojiReactionPopover.tsx";
 export interface PostEngagementBarProps {
   $post: PostEngagementBar_post$key;
   /**
-   * Local permalink for the post (e.g. `/@dahlia/01HXY…` or
-   * `/@dahlia/2026/my-article`).  When provided, the reply icon
-   * navigates to `${permalinkBase}/replies` instead of opening the
-   * composer modal, and the engagement counts become links to
-   * `/replies`, `/quotes`, `/shares`, and `/reactions`.  When null
-   * (e.g. a federated post with no local permalink), the bar falls
-   * back to the legacy in-modal compose flow and renders counts as
-   * plain text.
+   * URL the reply control navigates to (e.g.
+   * `/@dahlia/01HXY…/replies`).  When provided, the reply icon and
+   * count form an `<A>` link to that URL.  When null (e.g. a
+   * federated post with no local permalink), the reply control falls
+   * back to opening the legacy in-modal composer instead.
    */
-  permalinkBase?: string | null;
+  repliesHref?: string | null;
+  /**
+   * Base path for the per-post engagement sub-routes (`/quotes`,
+   * `/shares`, `/reactions`).  When provided, the quote/share/react
+   * counts become links to the corresponding sub-pages; when null,
+   * the counts render as plain text.  Wired separately from
+   * {@link repliesHref} so the reply control can light up before the
+   * other sub-routes ship.
+   */
+  engagementBase?: string | null;
   bookmarkListConnections?: string[];
   class?: string;
   classList?: Record<string, boolean>;
@@ -240,7 +246,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
           }
           <ReplyControl
             replies={note.engagementStats.replies}
-            permalinkBase={props.permalinkBase ?? null}
+            repliesHref={props.repliesHref ?? null}
             disabled={!note.viewerCanReply}
             visibility={note.visibility}
             postId={note.id}
@@ -253,8 +259,8 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
           {/* Quote — icon opens composer, count links to /quotes. */}
           <SplitControl
             disabled={!note.viewerCanQuote}
-            permalinkBase={props.permalinkBase ?? null}
-            permalinkSegment="quotes"
+            engagementBase={props.engagementBase ?? null}
+            segment="quotes"
             count={note.engagementStats.quotes}
             iconLabel={note.viewerCanQuote
               ? t`Quote`
@@ -285,8 +291,8 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
           <SplitControl
             disabled={sharePendingAny() ||
               (!note.viewerHasShared && !note.viewerCanShare)}
-            permalinkBase={props.permalinkBase ?? null}
-            permalinkSegment="shares"
+            engagementBase={props.engagementBase ?? null}
+            segment="shares"
             count={note.engagementStats.shares}
             iconLabel={note.viewerHasShared
               ? t`Unshare`
@@ -361,7 +367,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
             </DropdownMenu>
             <CountAffordance
               count={note.engagementStats.reactions}
-              permalinkBase={props.permalinkBase ?? null}
+              engagementBase={props.engagementBase ?? null}
               segment="reactions"
               label={t`View reactions`}
             />
@@ -383,7 +389,7 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
 
 function ReplyControl(props: {
   replies: number;
-  permalinkBase: string | null;
+  repliesHref: string | null;
   disabled: boolean;
   visibility: string;
   postId: string;
@@ -414,17 +420,17 @@ function ReplyControl(props: {
     </svg>
   );
 
-  // When a local permalink is available, the reply control is always a
+  // When a replies URL is available, the reply control is always a
   // navigation link to the conversation page — even for guests or viewers
   // who cannot post a reply themselves; the conversation is public-readable
   // under the same rules as the post.  Only the legacy compose-fallback
-  // branch (no permalinkBase) honours `viewerCanReply`, because that branch
+  // branch (no repliesHref) honours `viewerCanReply`, because that branch
   // can only invoke the composer and has nowhere else to take the viewer.
   return (
     <Tooltip>
       <TooltipTrigger as="span" class="inline-flex">
         <Show
-          when={props.permalinkBase}
+          when={props.repliesHref}
           fallback={
             <button
               type="button"
@@ -447,7 +453,7 @@ function ReplyControl(props: {
           }
         >
           <A
-            href={`${props.permalinkBase}/replies`}
+            href={props.repliesHref!}
             class={baseClasses}
             aria-label={props.viewLabel}
           >
@@ -457,7 +463,7 @@ function ReplyControl(props: {
         </Show>
       </TooltipTrigger>
       <TooltipContent>
-        {props.permalinkBase ? props.viewLabel : tooltip()}
+        {props.repliesHref ? props.viewLabel : tooltip()}
       </TooltipContent>
     </Tooltip>
   );
@@ -465,8 +471,8 @@ function ReplyControl(props: {
 
 function SplitControl(props: {
   disabled: boolean;
-  permalinkBase: string | null;
-  permalinkSegment: string;
+  engagementBase: string | null;
+  segment: string;
   count: number;
   iconLabel: string;
   countLabel: string;
@@ -493,8 +499,8 @@ function SplitControl(props: {
       </Tooltip>
       <CountAffordance
         count={props.count}
-        permalinkBase={props.permalinkBase}
-        segment={props.permalinkSegment}
+        engagementBase={props.engagementBase}
+        segment={props.segment}
         label={props.countLabel}
       />
     </div>
@@ -503,7 +509,7 @@ function SplitControl(props: {
 
 function CountAffordance(props: {
   count: number;
-  permalinkBase: string | null;
+  engagementBase: string | null;
   segment: string;
   label: string;
 }) {
@@ -511,9 +517,9 @@ function CountAffordance(props: {
     <span class="inline-flex items-center px-1 text-xs">{props.count}</span>
   );
   return (
-    <Show when={props.permalinkBase} fallback={text}>
+    <Show when={props.engagementBase} fallback={text}>
       <A
-        href={`${props.permalinkBase}/${props.segment}`}
+        href={`${props.engagementBase}/${props.segment}`}
         class="inline-flex items-center px-1 text-xs rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
         aria-label={props.label}
       >

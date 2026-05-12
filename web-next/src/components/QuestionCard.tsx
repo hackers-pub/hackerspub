@@ -296,6 +296,9 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             </Show>
             <PostEngagementBar
               $post={q}
+              repliesHref={`/${
+                q.actor.local ? `@${q.actor.username}` : q.actor.handle
+              }/${q.uuid}/replies`}
               bookmarkListConnections={props.bookmarkListConnections}
             />
           </div>
