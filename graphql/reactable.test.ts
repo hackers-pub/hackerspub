@@ -22,6 +22,7 @@ import {
 interface ReactedNoteSeedResult {
   noteId: string;
   viewerAccount: Awaited<ReturnType<typeof insertAccountWithActor>>["account"];
+  customEmojiId: string;
   reactors: { id: string; handle: string; avatarUrl: string }[];
 }
 
@@ -282,6 +283,181 @@ Deno.test({
   },
 });
 
+const reactionGroupQuery = parse(`
+  query ReactionGroupQuery(
+    $id: ID!
+    $emoji: String
+    $customEmojiId: ID
+  ) {
+    node(id: $id) {
+      ... on Post {
+        reactionGroup(emoji: $emoji, customEmojiId: $customEmojiId) {
+          __typename
+          ... on EmojiReactionGroup {
+            emoji
+            reactors(first: 10) {
+              totalCount
+              edges {
+                node { handle }
+              }
+            }
+          }
+          ... on CustomEmojiReactionGroup {
+            customEmoji {
+              name
+            }
+            reactors(first: 10) {
+              totalCount
+              edges {
+                node { handle }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+Deno.test({
+  name:
+    "Post.reactionGroup returns a single emoji group when matched, null otherwise",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const { noteId, viewerAccount, reactors } = await seedReactedNote(tx);
+      const id = encodeGlobalID("Note", noteId);
+
+      // Matching standard emoji
+      const heartResult = await execute({
+        schema,
+        document: reactionGroupQuery,
+        variableValues: { id, emoji: "❤️", customEmojiId: null },
+        contextValue: makeUserContext(tx, viewerAccount),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(heartResult.errors, undefined);
+      const heartGroup = (heartResult.data as {
+        node: {
+          reactionGroup: {
+            __typename: string;
+            emoji?: string;
+            reactors?: {
+              totalCount: number;
+              edges: { node: { handle: string } }[];
+            };
+          } | null;
+        };
+      }).node.reactionGroup;
+      assert(heartGroup != null);
+      assertEquals(heartGroup.__typename, "EmojiReactionGroup");
+      assertEquals(heartGroup.emoji, "❤️");
+      assertEquals(heartGroup.reactors?.totalCount, 2);
+      assertEquals(
+        heartGroup.reactors?.edges.map((e) => e.node.handle).sort(),
+        reactors.map((r) => r.handle).sort(),
+      );
+
+      // Standard emoji with no reactions → null
+      const rocketResult = await execute({
+        schema,
+        document: reactionGroupQuery,
+        variableValues: { id, emoji: "🚀", customEmojiId: null },
+        contextValue: makeUserContext(tx, viewerAccount),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(rocketResult.errors, undefined);
+      assertEquals(
+        (rocketResult.data as { node: { reactionGroup: unknown } })
+          .node.reactionGroup,
+        null,
+      );
+
+      // Neither arg provided → null
+      const emptyResult = await execute({
+        schema,
+        document: reactionGroupQuery,
+        variableValues: { id, emoji: null, customEmojiId: null },
+        contextValue: makeUserContext(tx, viewerAccount),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(emptyResult.errors, undefined);
+      assertEquals(
+        (emptyResult.data as { node: { reactionGroup: unknown } })
+          .node.reactionGroup,
+        null,
+      );
+
+      // Both args provided → null (the resolver short-circuits ambiguous
+      // requests rather than picking a winner).
+      const bothResult = await execute({
+        schema,
+        document: reactionGroupQuery,
+        variableValues: {
+          id,
+          emoji: "❤️",
+          customEmojiId: encodeGlobalID(
+            "CustomEmoji",
+            (await tx.query.customEmojiTable.findMany({}))[0].id,
+          ),
+        },
+        contextValue: makeUserContext(tx, viewerAccount),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(bothResult.errors, undefined);
+      assertEquals(
+        (bothResult.data as { node: { reactionGroup: unknown } })
+          .node.reactionGroup,
+        null,
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "Post.reactionGroup returns a custom-emoji group when matched by id",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const {
+        noteId,
+        viewerAccount,
+        customEmojiId: customEmojiUuid,
+      } = await seedReactedNote(tx);
+      const id = encodeGlobalID("Note", noteId);
+      const customEmojiId = encodeGlobalID("CustomEmoji", customEmojiUuid);
+
+      const customResult = await execute({
+        schema,
+        document: reactionGroupQuery,
+        variableValues: { id, emoji: null, customEmojiId },
+        contextValue: makeUserContext(tx, viewerAccount),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(customResult.errors, undefined);
+      const group = (customResult.data as {
+        node: {
+          reactionGroup: {
+            __typename: string;
+            customEmoji?: { name: string };
+            reactors?: {
+              totalCount: number;
+              edges: { node: { handle: string } }[];
+            };
+          } | null;
+        };
+      }).node.reactionGroup;
+      assert(group != null);
+      assertEquals(group.__typename, "CustomEmojiReactionGroup");
+      assertEquals(group.customEmoji?.name, ":party:");
+      assertEquals(group.reactors?.totalCount, 1);
+      assertEquals(group.reactors?.edges.length, 1);
+    });
+  },
+});
+
 async function seedReactedNote(
   tx: Transaction,
 ): Promise<ReactedNoteSeedResult> {
@@ -358,6 +534,7 @@ async function seedReactedNote(
   return {
     noteId: post.id,
     viewerAccount: viewer.account,
+    customEmojiId,
     reactors: [
       {
         id: viewer.actor.id,

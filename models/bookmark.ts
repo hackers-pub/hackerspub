@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, inArray, lt, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, inArray, lt, or } from "drizzle-orm";
 import type { Database } from "./db.ts";
 import {
   type Account,
@@ -59,6 +59,22 @@ export async function arePostsBookmarkedBy(
       ),
     );
   return new Set(rows.map((row) => row.postId));
+}
+
+export async function getBookmarkCountsForPosts(
+  db: Database,
+  postIds: readonly Uuid[],
+): Promise<Map<Uuid, number>> {
+  if (postIds.length < 1) return new Map();
+  const rows = await db
+    .select({
+      postId: bookmarkTable.postId,
+      bookmarkCount: count(),
+    })
+    .from(bookmarkTable)
+    .where(inArray(bookmarkTable.postId, postIds as Uuid[]))
+    .groupBy(bookmarkTable.postId);
+  return new Map(rows.map((row) => [row.postId, row.bookmarkCount]));
 }
 
 export interface BookmarkCursor {

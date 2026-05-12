@@ -15,7 +15,7 @@ import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { PostActionMenu } from "~/components/PostActionMenu.tsx";
-import { PostControls } from "~/components/PostControls.tsx";
+import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import { Title } from "~/components/Title.tsx";
 import { TocList } from "~/components/TocList.tsx";
 import { Trans } from "~/components/Trans.tsx";
@@ -384,7 +384,13 @@ function ArticleBody(props: ArticleBodyProps) {
         }
         language
         tags
-        ...PostControls_post
+        actor {
+          local
+          username
+        }
+        publishedYear
+        slug
+        ...PostEngagementBar_post
         ...Slug_articleHeader
         ...Slug_languageSwitcher
         ...Slug_replies
@@ -453,10 +459,23 @@ function ArticleBody(props: ArticleBodyProps) {
 
                 <ArticleTags tags={article.tags} class="2xl:hidden mt-4" />
 
-                <PostControls
-                  $post={article}
-                  class="mt-8"
-                />
+                {(() => {
+                  // Local articles get full engagement-bar wiring;
+                  // remote articles (no local `publishedYear`/`slug`)
+                  // fall back to plain-text counts.
+                  const base = article.actor.local &&
+                      article.publishedYear != null && article.slug != null
+                    ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
+                    : null;
+                  return (
+                    <PostEngagementBar
+                      $post={article}
+                      repliesHref={base == null ? null : `${base}/replies`}
+                      engagementBase={base}
+                      class="mt-8"
+                    />
+                  );
+                })()}
                 <ArticleReplies
                   $article={article}
                   $viewer={props.$viewer}

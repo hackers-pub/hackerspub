@@ -17,6 +17,7 @@ import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   MentionHoverCardLayer,
@@ -29,7 +30,7 @@ import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { QuestionActionMenu } from "./PostActionMenu.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
-import { PostControls } from "./PostControls.tsx";
+import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
@@ -173,7 +174,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
           ...QuotedPostCard_post
         }
         ...PostActionMenu_question
-        ...PostControls_post
+        ...PostEngagementBar_post
       }
     `,
     () => props.$question,
@@ -294,10 +295,21 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             <Show keyed when={q.quotedPost}>
               {(quotedPost) => <QuotedPostCard $post={quotedPost} />}
             </Show>
-            <PostControls
-              $post={q}
-              bookmarkListConnections={props.bookmarkListConnections}
-            />
+            {(() => {
+              const base = `/${
+                q.actor.local
+                  ? `@${q.actor.username}`
+                  : encodeHandleSegment(q.actor.handle)
+              }/${q.uuid}`;
+              return (
+                <PostEngagementBar
+                  $post={q}
+                  repliesHref={`${base}/replies`}
+                  engagementBase={base}
+                  bookmarkListConnections={props.bookmarkListConnections}
+                />
+              );
+            })()}
           </div>
         </div>
       )}

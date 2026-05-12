@@ -236,10 +236,27 @@ export function AppSidebar(props: AppSidebarProps) {
                     stroke="currentColor"
                     class="size-6"
                   >
+                    {
+                      /* Share glyph (arrow-path-rounded-square) — same base
+                         as the engagement bar's share button — with a
+                         diagonal slash from (3, 3) to (21, 21) carved
+                         through it, matching the Heroicons `*-slash`
+                         family (bell-slash, bolt-slash, bookmark-slash,
+                         eye-slash, link-slash, signal-slash,
+                         video-camera-slash).  Following bookmark-slash's
+                         convention, the entire top-left and bottom-right
+                         rounded corner arcs the slash would otherwise
+                         cross are omitted from the path — an explicit `M`
+                         skips over each corner — and the slash itself is
+                         drawn as the path's last segment.  This leaves a
+                         generous transparent gutter on each side of the
+                         slash without needing a mask, regardless of the
+                         menu button's background colour. */
+                    }
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
-                      d="m3 3 8.735 8.735m0 0a.374.374 0 1 1 .53.53m-.53-.53.53.53m0 0L21 21M14.652 9.348a3.75 3.75 0 0 1 0 5.304m2.121-7.425a6.75 6.75 0 0 1 0 9.546m2.121-11.667c3.808 3.807 3.808 9.98 0 13.788m-9.546-4.242a3.733 3.733 0 0 1-1.06-2.122m-1.061 4.243a6.75 6.75 0 0 1-1.625-6.929m-.496 9.05c-3.068-3.067-3.664-7.67-1.79-11.334M12 12h.008v.008H12V12Z"
+                      d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0M4.638 8.338c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0M19.362 15.662c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3M3 3l18 18"
                     />
                   </svg>
                   {t`Without shares`}

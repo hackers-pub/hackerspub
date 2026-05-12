@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import {
   MentionHoverCardLayer,
   useMentionHoverCards,
@@ -10,7 +11,7 @@ import { LinkPreview } from "./LinkPreview.tsx";
 import { NoteHeader } from "./NoteHeader.tsx";
 import { NoteMedia } from "./NoteMedia.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
-import { PostControls } from "./PostControls.tsx";
+import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
 
 export interface NoteCardInternalProps {
@@ -27,12 +28,16 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
       fragment NoteCardInternal_note on Note {
         __id
         uuid
+        sourceId
         content
         language
         actor {
+          local
+          username
+          handle
           ...PostAvatar_actor
         }
-        ...PostControls_post
+        ...PostEngagementBar_post
         ...NoteMedia_note
         ...LinkPreview_note
         ...NoteHeader_note
@@ -43,6 +48,25 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
     `,
     () => props.$note,
   );
+
+  // Local permalink base for the engagement bar.  Local notes use the
+  // source row's UUID (matching the URL embedded in `Post.url`);
+  // remote notes fall back to the post row's UUID, which is the
+  // internal route token.  Both `repliesHref` and `engagementBase`
+  // build on the same base.
+  const permalinkBase = () => {
+    const n = note();
+    if (!n) return null;
+    const actorSegment = n.actor.local
+      ? `@${n.actor.username}`
+      : encodeHandleSegment(n.actor.handle);
+    const id = n.sourceId ?? n.uuid;
+    return `/${actorSegment}/${id}`;
+  };
+  const repliesHref = () => {
+    const base = permalinkBase();
+    return base == null ? null : `${base}/replies`;
+  };
 
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
@@ -75,8 +99,10 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
             <Show keyed when={n.quotedPost}>
               {(quotedPost) => <QuotedPostCard $post={quotedPost} />}
             </Show>
-            <PostControls
+            <PostEngagementBar
               $post={n}
+              repliesHref={repliesHref()}
+              engagementBase={permalinkBase()}
               bookmarkListConnections={props.bookmarkListConnections}
             />
           </div>

@@ -15,10 +15,11 @@ import {
   ArticleCard_article$key,
 } from "./__generated__/ArticleCard_article.graphql.ts";
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
-import { ArticleControls } from "./ArticleControls.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { PostActionMenu } from "./PostActionMenu.tsx";
+import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { PostSharer } from "./PostSharer.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
@@ -36,12 +37,30 @@ export function ArticleCard(props: ArticleCardProps) {
       fragment ArticleCard_article on Article
         @argumentDefinitions(locale: { type: "Locale" })
       {
+        uuid
+        actor {
+          local
+          username
+          handle
+        }
+        publishedYear
+        slug
         ...ArticleCardInternal_article @arguments(locale: $locale)
-        ...ArticleControls_article
+        ...PostEngagementBar_post
         ...PostSharer_post
         sharedPost {
+          ... on Article {
+            uuid
+            actor {
+              local
+              username
+              handle
+            }
+            publishedYear
+            slug
+          }
           ...ArticleCardInternal_article @arguments(locale: $locale)
-          ...ArticleControls_article
+          ...PostEngagementBar_post
         }
       }
     `,
@@ -70,10 +89,33 @@ export function ArticleCard(props: ArticleCardProps) {
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
-                <ArticleControls
-                  $article={article}
-                  bookmarkListConnections={props.bookmarkListConnections}
-                />
+                {(() => {
+                  // Prefer the pretty `/@user/{year}/{slug}` permalink
+                  // when the article exposes both `publishedYear` and
+                  // `slug`.  Otherwise (remote articles, or local
+                  // articles that haven't materialised those columns
+                  // yet) fall back to the UUID-based `[noteId]` route
+                  // — `actorByHandle.postByUuid` resolves any post type
+                  // on any actor, and `[noteId]/index.tsx` accepts
+                  // articles so `/replies` works there too.
+                  const prettyBase = article.actor.local &&
+                      article.publishedYear != null && article.slug != null
+                    ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
+                    : null;
+                  const engagementBase = prettyBase ??
+                    `/${
+                      encodeHandleSegment(article.actor.handle)
+                    }/${article.uuid}`;
+                  return (
+                    <PostEngagementBar
+                      $post={article}
+                      repliesHref={`${engagementBase}/replies`}
+                      engagementBase={engagementBase}
+                      bookmarkListConnections={props.bookmarkListConnections}
+                      class="mx-4 mb-2"
+                    />
+                  );
+                })()}
               </>
             }
           >
@@ -86,10 +128,35 @@ export function ArticleCard(props: ArticleCardProps) {
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
-                <ArticleControls
-                  $article={sharedPost}
-                  bookmarkListConnections={props.bookmarkListConnections}
-                />
+                {(() => {
+                  // Mirror the standalone-article branch: prefer the
+                  // pretty `/@user/{year}/{slug}` permalink when it's
+                  // available; otherwise fall back to a UUID-based
+                  // `[noteId]` engagement base.  Both the count routes
+                  // and `/replies` accept articles on the UUID path.
+                  const prettyBase = sharedPost.actor?.local &&
+                      sharedPost.publishedYear != null &&
+                      sharedPost.slug != null
+                    ? `/@${sharedPost.actor.username}/${sharedPost.publishedYear}/${sharedPost.slug}`
+                    : null;
+                  const engagementBase = prettyBase ??
+                    (sharedPost.actor != null && sharedPost.uuid != null
+                      ? `/${
+                        encodeHandleSegment(sharedPost.actor.handle)
+                      }/${sharedPost.uuid}`
+                      : null);
+                  return (
+                    <PostEngagementBar
+                      $post={sharedPost}
+                      repliesHref={engagementBase == null
+                        ? null
+                        : `${engagementBase}/replies`}
+                      engagementBase={engagementBase}
+                      bookmarkListConnections={props.bookmarkListConnections}
+                      class="mx-4 mb-2"
+                    />
+                  );
+                })()}
               </>
             )}
           </Show>

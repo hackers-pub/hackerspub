@@ -4,8 +4,6 @@ import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import IconBookmark from "~icons/lucide/bookmark";
-import IconBookmarkCheck from "~icons/lucide/bookmark-check";
 import type { BookmarkButton_bookmarkPost_Mutation } from "./__generated__/BookmarkButton_bookmarkPost_Mutation.graphql.ts";
 import type { BookmarkButton_post$key } from "./__generated__/BookmarkButton_post.graphql.ts";
 import type { BookmarkButton_unbookmarkPost_Mutation } from "./__generated__/BookmarkButton_unbookmarkPost_Mutation.graphql.ts";
@@ -24,6 +22,9 @@ const bookmarkPostMutation = graphql`
         post {
           id
           viewerHasBookmarked
+          engagementStats {
+            bookmarks
+          }
         }
       }
       ... on InvalidInputError {
@@ -47,6 +48,9 @@ const unbookmarkPostMutation = graphql`
         post {
           id
           viewerHasBookmarked
+          engagementStats {
+            bookmarks
+          }
         }
         unbookmarkedPostId @deleteEdge(connections: $connections)
       }
@@ -67,6 +71,9 @@ export function BookmarkButton(props: BookmarkButtonProps) {
       fragment BookmarkButton_post on Post {
         id
         viewerHasBookmarked
+        engagementStats {
+          bookmarks
+        }
       }
     `,
     () => props.$post,
@@ -140,15 +147,26 @@ export function BookmarkButton(props: BookmarkButtonProps) {
             "text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300":
               p.viewerHasBookmarked,
           }}
+          aria-label={p.viewerHasBookmarked ? t`Remove bookmark` : t`Bookmark`}
           title={p.viewerHasBookmarked ? t`Remove bookmark` : t`Bookmark`}
           onClick={handleClick}
         >
-          <Show
-            when={p.viewerHasBookmarked}
-            fallback={<IconBookmark class="size-4" />}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill={p.viewerHasBookmarked ? "currentColor" : "none"}
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-4"
+            aria-hidden="true"
           >
-            <IconBookmarkCheck class="size-4" />
-          </Show>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+            />
+          </svg>
+          <span class="text-xs">{p.engagementStats.bookmarks}</span>
         </Button>
       )}
     </Show>
