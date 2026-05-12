@@ -64,6 +64,7 @@ export default defineConfig(() => ({
   build: { sourcemap: "hidden" },
   plugins: [
     solidStart({
+      middleware: "src/middleware.ts",
       solid: {
         babel: {
           plugins: ["@lingui/babel-plugin-lingui-macro"],
