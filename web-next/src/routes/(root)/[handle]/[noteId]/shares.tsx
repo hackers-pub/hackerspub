@@ -14,6 +14,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 import type {
@@ -89,22 +90,18 @@ function SharesPageLoaded(props: { noteId: Uuid; handle: string }) {
     sharesNoteEngagementQuery,
     () => loadSharesQuery(username(), props.noteId),
   );
-  // The `[noteId]` route is reserved for notes and questions — articles
-  // have their own permalink/engagement routes under `[idOrYear]/[slug]`,
-  // so treat an article UUID landing here as a 404 rather than render an
-  // empty/broken engagement view.
-  const post = (): SharesPagePost | null => {
-    const p = data()?.actorByHandle?.postByUuid ?? null;
-    if (p == null) return null;
-    if (p.__typename !== "Note" && p.__typename !== "Question") return null;
-    return p;
-  };
-  // The current URL's `/{handle}/{noteId}` is itself the canonical
-  // permalink base for the engagement tabs, regardless of whether the
-  // post is a note or question (and irrespective of any `sourceId`
-  // alias).  Using it directly keeps the tabs working for every post
-  // type the parent route already loads.
-  const base = () => `/${props.handle}/${props.noteId}`;
+  // Notes, questions, and articles can all be reached through the
+  // `[noteId]` route.  Local articles additionally expose a prettier
+  // permalink at `[idOrYear]/[slug]`, but remote articles only have
+  // this UUID-based path, so accept any post type returned by
+  // `postByUuid` here.
+  const post = (): SharesPagePost | null =>
+    data()?.actorByHandle?.postByUuid ?? null;
+  // `props.handle` is the decoded `[handle]` segment (e.g.
+  // `@user@instance.tld`).  Re-encode the routing-sensitive delimiters
+  // when splicing it back into a URL so a malformed handle can't
+  // escape the path segment of the tab links.
+  const base = () => `/${encodeHandleSegment(props.handle)}/${props.noteId}`;
   return (
     <Show when={data() != null}>
       <Show keyed when={post()} fallback={<NotFoundPage embedded />}>

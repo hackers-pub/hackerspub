@@ -28,6 +28,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
+import { ArticleCard } from "~/components/ArticleCard.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
@@ -40,7 +41,11 @@ import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Trans } from "~/components/Trans.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import type {
+  NoteId_articleBody$key,
+} from "./__generated__/NoteId_articleBody.graphql.ts";
 import type {
   NoteId_contextPost$data,
   NoteId_contextPost$key,
@@ -66,6 +71,10 @@ type NoteIdPageQuestion = Extract<
   NoteIdPagePost,
   { readonly __typename: "Question" }
 >;
+type NoteIdPageArticle = Extract<
+  NoteIdPagePost,
+  { readonly __typename: "Article" }
+>;
 
 const NOTE_PAGE_QUERY_KEY = "loadNotePageQuery";
 const NOTE_THREAD_QUERY_KEY = "loadNoteThreadQuery";
@@ -82,14 +91,15 @@ export const route = {
     const username = decodeURIComponent(args.params.handle!);
     const noteId = args.params.noteId!;
     if (!validateUuid(noteId)) return;
+    const { i18n } = useLingui();
 
-    void loadNotePageQuery(username.replace(/^@/, ""), noteId);
+    void loadNotePageQuery(username.replace(/^@/, ""), noteId, i18n.locale);
     void loadNoteThreadQuery(username.replace(/^@/, ""), noteId);
   },
 } satisfies RouteDefinition;
 
 const NoteIdPageQuery = graphql`
-  query NoteIdPageQuery($handle: String!, $noteId: UUID!) {
+  query NoteIdPageQuery($handle: String!, $noteId: UUID!, $locale: Locale) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       postByUuid(uuid: $noteId) {
         __typename
@@ -100,6 +110,9 @@ const NoteIdPageQuery = graphql`
         ... on Question {
           ...NoteId_questionBody
         }
+        ... on Article {
+          ...NoteId_articleBody @arguments(locale: $locale)
+        }
       }
     }
     viewer {
@@ -109,11 +122,11 @@ const NoteIdPageQuery = graphql`
 `;
 
 const loadNotePageQuery = routePreloadedQuery(
-  (username: string, noteId: Uuid) =>
+  (username: string, noteId: Uuid, locale: string) =>
     loadQuery<NoteIdPageQuery>(
       useRelayEnvironment()(),
       NoteIdPageQuery,
-      { handle: username, noteId },
+      { handle: username, noteId, locale },
     ),
   NOTE_PAGE_QUERY_KEY,
 );
@@ -161,6 +174,7 @@ interface NotePageLoadedProps {
 
 function NotePageLoaded(props: NotePageLoadedProps) {
   const { onNoteCreated } = useNoteCompose();
+  const { i18n } = useLingui();
 
   onMount(() => {
     onCleanup(onNoteCreated(() => void revalidateNotePageQueries()));
@@ -168,7 +182,7 @@ function NotePageLoaded(props: NotePageLoadedProps) {
 
   const noteData = createPreloadedQuery<NoteIdPageQuery>(
     NoteIdPageQuery,
-    () => loadNotePageQuery(props.username, props.noteId),
+    () => loadNotePageQuery(props.username, props.noteId, i18n.locale),
   );
 
   const post = () => noteData()?.actorByHandle?.postByUuid;
@@ -182,6 +196,12 @@ function NotePageLoaded(props: NotePageLoadedProps) {
     const currentPost = post();
     return currentPost?.__typename === "Question"
       ? currentPost as NoteIdPageQuestion
+      : null;
+  };
+  const article = (): NoteIdPageArticle | null => {
+    const currentPost = post();
+    return currentPost?.__typename === "Article"
+      ? currentPost as NoteIdPageArticle
       : null;
   };
   const viewer = () => noteData()?.viewer ?? undefined;
@@ -208,6 +228,19 @@ function NotePageLoaded(props: NotePageLoadedProps) {
               <PostMetaHead $post={question} />
               <QuestionInternal
                 $question={question}
+                $viewer={viewer()}
+                noteId={props.noteId}
+                username={props.username}
+              />
+            </>
+          )}
+        </Match>
+        <Match keyed when={article()}>
+          {(article) => (
+            <>
+              <PostMetaHead $post={article} />
+              <ArticleInternal
+                $article={article}
                 $viewer={viewer()}
                 noteId={props.noteId}
                 username={props.username}
@@ -460,6 +493,82 @@ function QuestionInternal(props: QuestionInternalProps) {
   );
 }
 
+interface ArticleInternalProps {
+  $article: NoteId_articleBody$key;
+  $viewer?: { readonly id: string } | null;
+  noteId: Uuid;
+  username: string;
+}
+
+function ArticleInternal(props: ArticleInternalProps) {
+  const { t } = useLingui();
+
+  const article = createFragment(
+    graphql`
+      fragment NoteId_articleBody on Article
+        @argumentDefinitions(locale: { type: "Locale" })
+      {
+        id
+        visibility
+        iri
+        url
+        ...ArticleCard_article @arguments(locale: $locale)
+      }
+    `,
+    () => props.$article,
+  );
+  return (
+    <Show keyed when={article()}>
+      {(article) => {
+        const defaultVisibility = (): PostVisibility => {
+          const v = article.visibility;
+          if (
+            v === "PUBLIC" || v === "UNLISTED" ||
+            v === "FOLLOWERS" || v === "DIRECT"
+          ) return v;
+          return "PUBLIC";
+        };
+        return (
+          <NarrowContainer>
+            <div class="my-4">
+              <PermalinkThread noteId={props.noteId} username={props.username}>
+                <div class="border rounded-xl *:first:rounded-t-xl *:last:rounded-b-xl text-xl">
+                  <ArticleCard $article={article} />
+                  <Show when={props.$viewer != null}>
+                    <div class="px-4 pb-4 border-t pt-4 text-base">
+                      <NoteComposer
+                        replyTargetId={article.id}
+                        defaultVisibility={defaultVisibility()}
+                        placeholder={t`Write a reply…`}
+                        onSuccess={() => void revalidateNotePageQueries()}
+                        showReplyTarget={false}
+                      />
+                    </div>
+                  </Show>
+                  <Show when={props.$viewer == null}>
+                    <p class="p-4 text-sm text-muted-foreground">
+                      <Trans
+                        message={t`If you have a fediverse account, you can reply to this article from your own instance. Search ${"ACTIVITYPUB_URI"} on your instance and reply to it.`}
+                        values={{
+                          ACTIVITYPUB_URI: () => (
+                            <span class="select-all text-accent-foreground border-b border-b-muted-foreground border-dashed">
+                              {article.iri}
+                            </span>
+                          ),
+                        }}
+                      />
+                    </p>
+                  </Show>
+                </div>
+              </PermalinkThread>
+            </div>
+          </NarrowContainer>
+        );
+      }}
+    </Show>
+  );
+}
+
 interface PermalinkThreadProps {
   children: JSX.Element;
   noteId: Uuid;
@@ -678,7 +787,7 @@ function getContextPostInternalHref(
 ): string | null {
   const actorSegment = post.actor.local
     ? `@${post.actor.username}`
-    : post.actor.handle;
+    : encodeHandleSegment(post.actor.handle);
   switch (post.__typename) {
     case "Article":
       if (
@@ -688,7 +797,11 @@ function getContextPostInternalHref(
       ) {
         return `/@${post.actor.username}/${post.publishedYear}/${post.slug}`;
       }
-      return null;
+      // Articles without a pretty permalink (remote, or local rows
+      // that haven't materialised `publishedYear`/`slug`) route through
+      // the UUID-based `[noteId]` permalink, which now accepts
+      // articles.
+      return `/${actorSegment}/${post.uuid}`;
     case "Note": {
       // Source-backed local notes: canonical permalink uses `sourceId`
       // (= `noteSourceTable.id`), matching the path embedded in

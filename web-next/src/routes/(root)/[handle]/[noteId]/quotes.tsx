@@ -13,6 +13,7 @@ import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Title } from "~/components/Title.tsx";
+import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 import type {
@@ -88,17 +89,16 @@ function QuotesPageLoaded(props: { noteId: Uuid; handle: string }) {
     quotesNoteEngagementQuery,
     () => loadQuotesQuery(username(), props.noteId),
   );
-  // The `[noteId]` route is reserved for notes and questions — articles
-  // have their own permalink/engagement routes under `[idOrYear]/[slug]`,
-  // so treat an article UUID landing here as a 404 rather than render an
-  // empty/broken engagement view.
-  const post = (): QuotesPagePost | null => {
-    const p = data()?.actorByHandle?.postByUuid ?? null;
-    if (p == null) return null;
-    if (p.__typename !== "Note" && p.__typename !== "Question") return null;
-    return p;
-  };
-  const base = () => `/${props.handle}/${props.noteId}`;
+  // Notes, questions, and articles can all be reached through the
+  // `[noteId]` route.  Local articles additionally expose a prettier
+  // permalink at `[idOrYear]/[slug]`, but remote articles only have
+  // this UUID-based path, so accept any post type returned by
+  // `postByUuid` here.
+  const post = (): QuotesPagePost | null =>
+    data()?.actorByHandle?.postByUuid ?? null;
+  // Re-encode the routing-sensitive delimiters in the decoded handle
+  // so the tab links can't be broken by a malformed federated handle.
+  const base = () => `/${encodeHandleSegment(props.handle)}/${props.noteId}`;
   return (
     <Show when={data() != null}>
       <Show keyed when={post()} fallback={<NotFoundPage embedded />}>
