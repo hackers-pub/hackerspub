@@ -36,10 +36,24 @@ export function ArticleCard(props: ArticleCardProps) {
       fragment ArticleCard_article on Article
         @argumentDefinitions(locale: { type: "Locale" })
       {
+        actor {
+          local
+          username
+        }
+        publishedYear
+        slug
         ...ArticleCardInternal_article @arguments(locale: $locale)
         ...PostEngagementBar_post
         ...PostSharer_post
         sharedPost {
+          ... on Article {
+            actor {
+              local
+              username
+            }
+            publishedYear
+            slug
+          }
           ...ArticleCardInternal_article @arguments(locale: $locale)
           ...PostEngagementBar_post
         }
@@ -70,11 +84,24 @@ export function ArticleCard(props: ArticleCardProps) {
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
-                <PostEngagementBar
-                  $post={article}
-                  bookmarkListConnections={props.bookmarkListConnections}
-                  class="mx-4 mb-2"
-                />
+                {(() => {
+                  // Local articles get full engagement-bar wiring;
+                  // remote articles (no `publishedYear`/`slug`) fall
+                  // back to plain-text counts.
+                  const base = article.actor.local &&
+                      article.publishedYear != null && article.slug != null
+                    ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
+                    : null;
+                  return (
+                    <PostEngagementBar
+                      $post={article}
+                      repliesHref={base == null ? null : `${base}/replies`}
+                      engagementBase={base}
+                      bookmarkListConnections={props.bookmarkListConnections}
+                      class="mx-4 mb-2"
+                    />
+                  );
+                })()}
               </>
             }
           >
@@ -87,11 +114,22 @@ export function ArticleCard(props: ArticleCardProps) {
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
-                <PostEngagementBar
-                  $post={sharedPost}
-                  bookmarkListConnections={props.bookmarkListConnections}
-                  class="mx-4 mb-2"
-                />
+                {(() => {
+                  const base = sharedPost.actor?.local &&
+                      sharedPost.publishedYear != null &&
+                      sharedPost.slug != null
+                    ? `/@${sharedPost.actor.username}/${sharedPost.publishedYear}/${sharedPost.slug}`
+                    : null;
+                  return (
+                    <PostEngagementBar
+                      $post={sharedPost}
+                      repliesHref={base == null ? null : `${base}/replies`}
+                      engagementBase={base}
+                      bookmarkListConnections={props.bookmarkListConnections}
+                      class="mx-4 mb-2"
+                    />
+                  );
+                })()}
               </>
             )}
           </Show>

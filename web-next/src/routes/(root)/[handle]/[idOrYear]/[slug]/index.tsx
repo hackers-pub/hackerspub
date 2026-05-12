@@ -384,6 +384,12 @@ function ArticleBody(props: ArticleBodyProps) {
         }
         language
         tags
+        actor {
+          local
+          username
+        }
+        publishedYear
+        slug
         ...PostEngagementBar_post
         ...Slug_articleHeader
         ...Slug_languageSwitcher
@@ -453,10 +459,23 @@ function ArticleBody(props: ArticleBodyProps) {
 
                 <ArticleTags tags={article.tags} class="2xl:hidden mt-4" />
 
-                <PostEngagementBar
-                  $post={article}
-                  class="mt-8"
-                />
+                {(() => {
+                  // Local articles get full engagement-bar wiring;
+                  // remote articles (no local `publishedYear`/`slug`)
+                  // fall back to plain-text counts.
+                  const base = article.actor.local &&
+                      article.publishedYear != null && article.slug != null
+                    ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
+                    : null;
+                  return (
+                    <PostEngagementBar
+                      $post={article}
+                      repliesHref={base == null ? null : `${base}/replies`}
+                      engagementBase={base}
+                      class="mt-8"
+                    />
+                  );
+                })()}
                 <ArticleReplies
                   $article={article}
                   $viewer={props.$viewer}
