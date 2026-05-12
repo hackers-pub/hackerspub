@@ -455,7 +455,7 @@ msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 msgid "Choose your preferred language for the verification email."
 msgstr "请选择验证邮件的语言。"
 
-#: src/components/ImageLightbox.tsx:91
+#: src/components/ImageLightbox.tsx:74
 msgid "Close"
 msgstr "关闭"
 
@@ -819,13 +819,13 @@ msgstr "加载更多通行密钥失败，点击重试"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:100
-#: src/components/PublicTimeline.tsx:102
+#: src/components/PersonalTimeline.tsx:107
+#: src/components/PublicTimeline.tsx:109
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:560
+#: src/routes/(root)/[handle]/[noteId].tsx:565
 msgid "Failed to load more replies; click to retry"
 msgstr "加载更多回复失败，点击重试"
 
@@ -1099,7 +1099,7 @@ msgstr "如果你有联邦宇宙账号，可以从自己的实例回复此内容
 msgid "Image"
 msgstr "图片"
 
-#: src/components/ImageLightbox.tsx:75
+#: src/components/ImageLightbox.tsx:58
 msgid "Image preview"
 msgstr "图片预览"
 
@@ -1279,13 +1279,13 @@ msgstr "加载更多通行密钥"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:103
-#: src/components/PublicTimeline.tsx:105
+#: src/components/PersonalTimeline.tsx:110
+#: src/components/PublicTimeline.tsx:112
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "加载更多内容"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:563
+#: src/routes/(root)/[handle]/[noteId].tsx:568
 msgid "Load more replies"
 msgstr "加载更多回复"
 
@@ -1331,13 +1331,13 @@ msgstr "正在加载更多通行密钥…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:97
-#: src/components/PublicTimeline.tsx:99
+#: src/components/PersonalTimeline.tsx:104
+#: src/components/PublicTimeline.tsx:106
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:557
+#: src/routes/(root)/[handle]/[noteId].tsx:562
 msgid "Loading more replies…"
 msgstr "正在加载更多回复…"
 
@@ -1437,7 +1437,7 @@ msgstr "从未使用过"
 msgid "New article"
 msgstr "新建文章"
 
-#: src/components/ImageLightbox.tsx:121
+#: src/components/ImageLightbox.tsx:126
 msgid "Next image"
 msgstr "下一张图片"
 
@@ -1481,8 +1481,8 @@ msgstr "未找到帖子"
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:110
-#: src/components/PublicTimeline.tsx:112
+#: src/components/PersonalTimeline.tsx:117
+#: src/components/PublicTimeline.tsx:119
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "未找到内容"
@@ -1677,7 +1677,7 @@ msgstr "首选语言"
 msgid "Preferred languages"
 msgstr "偏好语言"
 
-#: src/components/ImageLightbox.tsx:56
+#: src/components/ImageLightbox.tsx:80
 msgid "Previous image"
 msgstr "上一张图片"
 
@@ -2011,6 +2011,10 @@ msgstr "URL 别名不能为空"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "已达到 {MAX_MEDIA} 张图片上限，部分图片已被跳过"
 
+#: src/app.tsx:84
+msgid "Something went wrong"
+msgstr "出现错误"
+
 #: src/routes/(root)/sign/index.tsx:228
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
@@ -2230,6 +2234,7 @@ msgstr "翻译请求失败"
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻译请求失败"
 
+#: src/app.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:588
 msgid "Try again"
 msgstr "重试"
@@ -2340,7 +2345,7 @@ msgstr "正在验证您的邀请…"
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
-#: src/components/NoteMedia.tsx:42
+#: src/components/NoteMedia.tsx:48
 msgid "View image"
 msgstr "查看图片"
 
@@ -2383,6 +2388,10 @@ msgstr "正在投票…"
 #: src/components/NoteComposer.tsx:500
 msgid "Warning"
 msgstr "警告"
+
+#: src/app.tsx:83
+msgid "We couldn't reach the server"
+msgstr "无法连接到服务器"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:585
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
@@ -2528,6 +2537,10 @@ msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Ma
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "你的个人简介将在你的个人资料页面显示。你可以用 Markdown 文档格式化。最大 512 字符。"
+
+#: src/app.tsx:88
+msgid "Your connection looks unstable. Check your network and try again."
+msgstr "您的网络似乎不稳定。请检查网络后重试。"
 
 #: src/routes/(root)/sign/up/[token].tsx:330
 msgid "Your email address will be used to sign in to your account."

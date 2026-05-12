@@ -455,7 +455,7 @@ msgstr "Choose the language your friend prefers. This language will only be used
 msgid "Choose your preferred language for the verification email."
 msgstr "Choose your preferred language for the verification email."
 
-#: src/components/ImageLightbox.tsx:91
+#: src/components/ImageLightbox.tsx:74
 msgid "Close"
 msgstr "Close"
 
@@ -823,13 +823,13 @@ msgstr "Failed to load more passkeys; click to retry"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:100
-#: src/components/PublicTimeline.tsx:102
+#: src/components/PersonalTimeline.tsx:107
+#: src/components/PublicTimeline.tsx:109
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:560
+#: src/routes/(root)/[handle]/[noteId].tsx:565
 msgid "Failed to load more replies; click to retry"
 msgstr "Failed to load more replies; click to retry"
 
@@ -1103,7 +1103,7 @@ msgstr "If you have a fediverse account, you can reply to this post from your ow
 msgid "Image"
 msgstr "Image"
 
-#: src/components/ImageLightbox.tsx:75
+#: src/components/ImageLightbox.tsx:58
 msgid "Image preview"
 msgstr "Image preview"
 
@@ -1283,13 +1283,13 @@ msgstr "Load more passkeys"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:103
-#: src/components/PublicTimeline.tsx:105
+#: src/components/PersonalTimeline.tsx:110
+#: src/components/PublicTimeline.tsx:112
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "Load more posts"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:563
+#: src/routes/(root)/[handle]/[noteId].tsx:568
 msgid "Load more replies"
 msgstr "Load more replies"
 
@@ -1335,13 +1335,13 @@ msgstr "Loading more passkeys…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:97
-#: src/components/PublicTimeline.tsx:99
+#: src/components/PersonalTimeline.tsx:104
+#: src/components/PublicTimeline.tsx:106
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:557
+#: src/routes/(root)/[handle]/[noteId].tsx:562
 msgid "Loading more replies…"
 msgstr "Loading more replies…"
 
@@ -1441,7 +1441,7 @@ msgstr "Never used"
 msgid "New article"
 msgstr "New article"
 
-#: src/components/ImageLightbox.tsx:121
+#: src/components/ImageLightbox.tsx:126
 msgid "Next image"
 msgstr "Next image"
 
@@ -1485,8 +1485,8 @@ msgstr "No notes found"
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:110
-#: src/components/PublicTimeline.tsx:112
+#: src/components/PersonalTimeline.tsx:117
+#: src/components/PublicTimeline.tsx:119
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "No posts found"
@@ -1682,7 +1682,7 @@ msgstr "Preferred language"
 msgid "Preferred languages"
 msgstr "Preferred languages"
 
-#: src/components/ImageLightbox.tsx:56
+#: src/components/ImageLightbox.tsx:80
 msgid "Previous image"
 msgstr "Previous image"
 
@@ -2016,6 +2016,10 @@ msgstr "Slug cannot be empty"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 
+#: src/app.tsx:84
+msgid "Something went wrong"
+msgstr "Something went wrong"
+
 #: src/routes/(root)/sign/index.tsx:228
 msgid "Something went wrong—please try again."
 msgstr "Something went wrong—please try again."
@@ -2235,6 +2239,7 @@ msgstr "Translation request failed"
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
+#: src/app.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:588
 msgid "Try again"
 msgstr "Try again"
@@ -2345,7 +2350,7 @@ msgstr "Verifying your invitation…"
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
-#: src/components/NoteMedia.tsx:42
+#: src/components/NoteMedia.tsx:48
 msgid "View image"
 msgstr "View image"
 
@@ -2388,6 +2393,10 @@ msgstr "Voting…"
 #: src/components/NoteComposer.tsx:500
 msgid "Warning"
 msgstr "Warning"
+
+#: src/app.tsx:83
+msgid "We couldn't reach the server"
+msgstr "We couldn't reach the server"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:585
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
@@ -2533,6 +2542,10 @@ msgstr "Your bio will be displayed on your profile. You can use Markdown to form
 #: src/routes/(root)/sign/up/[token].tsx:410
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
+
+#: src/app.tsx:88
+msgid "Your connection looks unstable. Check your network and try again."
+msgstr "Your connection looks unstable. Check your network and try again."
 
 #: src/routes/(root)/sign/up/[token].tsx:330
 msgid "Your email address will be used to sign in to your account."

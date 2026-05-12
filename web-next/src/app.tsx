@@ -11,6 +11,9 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { Title } from "~/components/Title.tsx";
+import { Button } from "~/components/ui/button.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { isNetworkError } from "~/lib/networkError.ts";
 import { createEnvironment } from "./RelayEnvironment.tsx";
 import type { appQuery } from "./__generated__/appQuery.graphql.ts";
 import { I18nProvider } from "./lib/i18n/index.tsx";
@@ -64,6 +67,34 @@ function I18nProviderWrapper(props: ParentProps) {
   );
 }
 
+// Rendered when the descendant tree throws. Pulls i18n through `useLingui`
+// so the boundary itself can be translated, and special-cases transient
+// network errors (the Relay retry budget is exhausted, or the failure
+// came from a non-Relay path that has no retry of its own) with a
+// friendlier message — the raw stacktrace text is unhelpful for a
+// "connection dropped" condition the user can resolve themselves.
+function AppErrorFallback(props: { error: unknown; reset: () => void }) {
+  const { t } = useLingui();
+  const networkError = () => isNetworkError(props.error);
+  return (
+    <div class="p-6 space-y-4">
+      <h1 class="text-xl font-bold">
+        {networkError()
+          ? t`We couldn't reach the server`
+          : t`Something went wrong`}
+      </h1>
+      <p class="text-sm text-muted-foreground">
+        {networkError()
+          ? t`Your connection looks unstable. Check your network and try again.`
+          : props.error instanceof Error
+          ? props.error.message
+          : String(props.error)}
+      </p>
+      <Button onClick={() => props.reset()}>{t`Try again`}</Button>
+    </div>
+  );
+}
+
 export default function App() {
   const environment = createEnvironment();
 
@@ -76,13 +107,8 @@ export default function App() {
             <Suspense>
               <I18nProviderWrapper>
                 <SentryErrorBoundary
-                  fallback={(err) => (
-                    <div class="p-6">
-                      <h1 class="text-xl font-bold">Something went wrong</h1>
-                      <p class="mt-2 text-sm text-muted-foreground">
-                        {err instanceof Error ? err.message : String(err)}
-                      </p>
-                    </div>
+                  fallback={(err, reset) => (
+                    <AppErrorFallback error={err} reset={reset} />
                   )}
                 >
                   {props.children}

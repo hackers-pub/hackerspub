@@ -13,6 +13,7 @@ import {
 } from "relay-runtime";
 import { getRequestEvent, isServer } from "solid-js/web";
 import { getApiUrl } from "~/lib/env.ts";
+import { isNetworkError } from "~/lib/networkError.ts";
 import { readSessionCookie } from "~/lib/sessionCookie.ts";
 
 // Errors the upstream produces in response to an authentication
@@ -202,21 +203,6 @@ function addRelayRequestBreadcrumb(
   });
 }
 
-// Browsers spell the "no network reached the server" condition differently:
-// Chrome/Edge "Failed to fetch", Safari "Load failed", Firefox "NetworkError
-// when attempting to fetch resource". They all surface as `TypeError`, so
-// we narrow on the constructor first and then on the message to avoid
-// retrying genuine programmer errors (e.g. a TypeError thrown from inside a
-// resolver) that happen to land on this path.
-function isRetriableNetworkError(error: unknown): boolean {
-  if (!(error instanceof TypeError)) return false;
-  const message = error.message.toLowerCase();
-  return message.includes("failed to fetch") ||
-    message.includes("load failed") ||
-    message.includes("networkerror") ||
-    message.includes("network request failed");
-}
-
 // Auto-retry budget for client-side queries when the browser can't reach
 // `/_server`. Tuned for the common "phone briefly off network" case the
 // retry is meant to absorb: at 3 attempts the worst case is ~6s of waiting
@@ -339,7 +325,7 @@ function createRelayEnvironment(): IEnvironment {
               }
               if (
                 canRetry && attempt < MAX_RETRY_ATTEMPTS &&
-                isRetriableNetworkError(error)
+                isNetworkError(error)
               ) {
                 // Drop the failed attempt before scheduling the next one so
                 // its controller/subscription don't outlive their usefulness.
