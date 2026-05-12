@@ -29,7 +29,7 @@ import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { QuestionActionMenu } from "./PostActionMenu.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
-import { PostControls } from "./PostControls.tsx";
+import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
@@ -294,7 +294,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             <Show keyed when={q.quotedPost}>
               {(quotedPost) => <QuotedPostCard $post={quotedPost} />}
             </Show>
-            <PostControls
+            <PostEngagementBar
               $post={q}
               bookmarkListConnections={props.bookmarkListConnections}
             />

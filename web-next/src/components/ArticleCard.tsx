@@ -16,9 +16,9 @@ import {
 } from "./__generated__/ArticleCard_article.graphql.ts";
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
-import { ArticleControls } from "./ArticleControls.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { PostActionMenu } from "./PostActionMenu.tsx";
+import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { PostSharer } from "./PostSharer.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
@@ -37,11 +37,11 @@ export function ArticleCard(props: ArticleCardProps) {
         @argumentDefinitions(locale: { type: "Locale" })
       {
         ...ArticleCardInternal_article @arguments(locale: $locale)
-        ...ArticleControls_article
+        ...PostEngagementBar_post
         ...PostSharer_post
         sharedPost {
           ...ArticleCardInternal_article @arguments(locale: $locale)
-          ...ArticleControls_article
+          ...PostEngagementBar_post
         }
       }
     `,
@@ -70,9 +70,10 @@ export function ArticleCard(props: ArticleCardProps) {
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
-                <ArticleControls
-                  $article={article}
+                <PostEngagementBar
+                  $post={article}
                   bookmarkListConnections={props.bookmarkListConnections}
+                  class="mx-4 mb-2"
                 />
               </>
             }
@@ -86,9 +87,10 @@ export function ArticleCard(props: ArticleCardProps) {
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
-                <ArticleControls
-                  $article={sharedPost}
+                <PostEngagementBar
+                  $post={sharedPost}
                   bookmarkListConnections={props.bookmarkListConnections}
+                  class="mx-4 mb-2"
                 />
               </>
             )}

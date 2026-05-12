@@ -15,7 +15,7 @@ import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import { PostActionMenu } from "~/components/PostActionMenu.tsx";
-import { PostControls } from "~/components/PostControls.tsx";
+import { PostEngagementBar } from "~/components/PostEngagementBar.tsx";
 import { Title } from "~/components/Title.tsx";
 import { TocList } from "~/components/TocList.tsx";
 import { Trans } from "~/components/Trans.tsx";
@@ -453,7 +453,7 @@ function ArticleBody(props: ArticleBodyProps) {
 
                 <ArticleTags tags={article.tags} class="2xl:hidden mt-4" />
 
-                <PostControls
+                <PostEngagementBar
                   $post={article}
                   class="mt-8"
                 />

@@ -225,11 +225,11 @@ msgid "A sign-in link has been sent to your email. Please check your inbox (or s
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
 #: src/components/admin/AdminAccountsTable.tsx:104
-#: src/components/AppSidebar.tsx:413
+#: src/components/AppSidebar.tsx:424
 msgid "Account"
 msgstr "アカウント"
 
-#: src/components/AppSidebar.tsx:636
+#: src/components/AppSidebar.tsx:647
 #: src/routes/(root)/admin/index.tsx:57
 msgid "Accounts"
 msgstr "アカウント"
@@ -248,7 +248,7 @@ msgstr "追加"
 msgid "Add {0}"
 msgstr "{0}を追加"
 
-#: src/components/AppSidebar.tsx:614
+#: src/components/AppSidebar.tsx:625
 msgid "Admin"
 msgstr "管理"
 
@@ -356,7 +356,7 @@ msgstr "記事URLスラッグ"
 msgid "Articles"
 msgstr "記事"
 
-#: src/components/AppSidebar.tsx:268
+#: src/components/AppSidebar.tsx:279
 msgid "Articles only"
 msgstr "記事のみ"
 
@@ -410,11 +410,12 @@ msgstr "ユーザーをブロックしますか？"
 msgid "Bold"
 msgstr "太字"
 
-#: src/components/BookmarkButton.tsx:143
+#: src/components/BookmarkButton.tsx:150
+#: src/components/BookmarkButton.tsx:151
 msgid "Bookmark"
 msgstr "ブックマーク"
 
-#: src/components/AppSidebar.tsx:537
+#: src/components/AppSidebar.tsx:548
 #: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "ブックマーク"
@@ -467,7 +468,7 @@ msgstr "終了"
 msgid "Code"
 msgstr "コード"
 
-#: src/components/AppSidebar.tsx:862
+#: src/components/AppSidebar.tsx:873
 #: src/routes/(root)/coc.tsx:49
 #: src/routes/(root)/sign/up/[token].tsx:441
 msgid "Code of conduct"
@@ -477,7 +478,7 @@ msgstr "行動規範"
 #~ msgid "Comments ({0})"
 #~ msgstr "コメント（{0}）"
 
-#: src/components/AppSidebar.tsx:705
+#: src/components/AppSidebar.tsx:716
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "作成"
@@ -520,7 +521,7 @@ msgstr "プロフィールを読み込めませんでした。"
 msgid "Could not vote on this poll"
 msgstr "このアンケートに投票できませんでした"
 
-#: src/components/AppSidebar.tsx:751
+#: src/components/AppSidebar.tsx:762
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "記事を作成"
@@ -529,7 +530,7 @@ msgstr "記事を作成"
 msgid "Create invitation link"
 msgstr "招待リンクを作成"
 
-#: src/components/AppSidebar.tsx:727
+#: src/components/AppSidebar.tsx:738
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:31
 #: src/components/NoteComposer.tsx:1177
@@ -741,8 +742,8 @@ msgstr "追加メッセージ"
 msgid "Failed to block this user"
 msgstr "このユーザーをブロックできませんでした"
 
-#: src/components/BookmarkButton.tsx:115
 #: src/components/BookmarkButton.tsx:122
+#: src/components/BookmarkButton.tsx:129
 msgid "Failed to bookmark"
 msgstr "ブックマークに失敗しました"
 
@@ -861,8 +862,8 @@ msgstr "招待状の再付与に失敗しました。"
 msgid "Failed to register passkey"
 msgstr "パスキーの登録に失敗しました"
 
-#: src/components/BookmarkButton.tsx:95
 #: src/components/BookmarkButton.tsx:102
+#: src/components/BookmarkButton.tsx:109
 msgid "Failed to remove bookmark"
 msgstr "ブックマークの削除に失敗しました"
 
@@ -893,7 +894,8 @@ msgstr "メールの送信に失敗しました"
 msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
-#: src/components/PostControls.tsx:163
+#: src/components/PostEngagementBar.tsx:181
+#: src/components/PostEngagementBar.tsx:188
 msgid "Failed to share post"
 msgstr "コンテンツの共有に失敗しました"
 
@@ -916,7 +918,8 @@ msgstr "フォロー解除に失敗しました"
 msgid "Failed to unpin post"
 msgstr "コンテンツの固定を解除できませんでした"
 
-#: src/components/PostControls.tsx:149
+#: src/components/PostEngagementBar.tsx:163
+#: src/components/PostEngagementBar.tsx:170
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
@@ -933,7 +936,7 @@ msgstr "画像のアップロードに失敗しました"
 msgid "Failed to vote"
 msgstr "投票に失敗しました"
 
-#: src/components/AppSidebar.tsx:316
+#: src/components/AppSidebar.tsx:327
 msgid "Fediverse"
 msgstr "フェディバース"
 
@@ -984,7 +987,7 @@ msgstr "書式設定"
 msgid "Generating…"
 msgstr "生成中…"
 
-#: src/components/AppSidebar.tsx:900
+#: src/components/AppSidebar.tsx:911
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -1017,8 +1020,8 @@ msgstr "マイ下書きへ"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "前回の再付与カットオフ以降、最も活発なアカウント（投稿数上位3分の1）に招待状を1通追加で付与します。"
 
-#: src/components/AppSidebar.tsx:293
-#: src/components/AppSidebar.tsx:381
+#: src/components/AppSidebar.tsx:304
+#: src/components/AppSidebar.tsx:392
 #: src/routes/(root).tsx:121
 #: src/routes/(root)/coc.tsx:49
 #: src/routes/(root)/markdown.tsx:49
@@ -1148,12 +1151,12 @@ msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
-#: src/components/AppSidebar.tsx:659
+#: src/components/AppSidebar.tsx:670
 #: src/routes/(root)/admin/invitations.tsx:156
 msgid "Invitations"
 msgstr "招待"
 
-#: src/components/AppSidebar.tsx:561
+#: src/components/AppSidebar.tsx:572
 #: src/components/SettingsTabs.tsx:68
 #: src/routes/(root)/[handle]/settings/invite.tsx:291
 msgid "Invite"
@@ -1373,7 +1376,7 @@ msgstr "Markdown ガイド"
 msgid "Markdown supported"
 msgstr "Markdown対応"
 
-#: src/components/AppSidebar.tsx:682
+#: src/components/AppSidebar.tsx:693
 #: src/routes/(root)/admin/media.tsx:160
 msgid "Media"
 msgstr "メディア"
@@ -1533,7 +1536,7 @@ msgstr "投稿"
 #~ msgid "Nothing to preview"
 #~ msgstr "プレビューする内容がありません"
 
-#: src/components/AppSidebar.tsx:493
+#: src/components/AppSidebar.tsx:504
 msgid "Notifications"
 msgstr "通知"
 
@@ -1685,7 +1688,7 @@ msgstr "前の画像"
 msgid "Priority"
 msgstr "優先度"
 
-#: src/components/AppSidebar.tsx:867
+#: src/components/AppSidebar.tsx:878
 #: src/routes/(root)/privacy.tsx:49
 msgid "Privacy policy"
 msgstr "プライバシーポリシー"
@@ -1727,19 +1730,17 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostControls.tsx:244
-#: src/components/PostControls.tsx:257
+#: src/components/PostEngagementBar.tsx:260
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostControls.tsx:245
-#: src/components/PostControls.tsx:258
+#: src/components/PostEngagementBar.tsx:261
 msgid "Quoting is not available for this post"
 msgstr "このコンテンツは引用できません。"
 
-#: src/components/PostControls.tsx:316
-#: src/components/PostControls.tsx:317
+#: src/components/PostEngagementBar.tsx:334
+#: src/components/PostEngagementBar.tsx:335
 msgid "React"
 msgstr "リアクション"
 
@@ -1752,8 +1753,8 @@ msgstr "{emoji}でリアクション"
 msgid "reaction"
 msgstr "リアクション"
 
-#: src/components/ArticleCard.tsx:380
-#: src/components/ArticleCard.tsx:400
+#: src/components/ArticleCard.tsx:382
+#: src/components/ArticleCard.tsx:402
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -1761,7 +1762,7 @@ msgstr "記事全文を読む"
 msgid "Read the full Code of conduct"
 msgstr "行動規範の全文を読む"
 
-#: src/components/AppSidebar.tsx:786
+#: src/components/AppSidebar.tsx:797
 msgid "Recent drafts"
 msgstr "最近の下書き"
 
@@ -1816,7 +1817,8 @@ msgstr "削除"
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
-#: src/components/BookmarkButton.tsx:143
+#: src/components/BookmarkButton.tsx:150
+#: src/components/BookmarkButton.tsx:151
 msgid "Remove bookmark"
 msgstr "ブックマークを削除"
 
@@ -1835,16 +1837,19 @@ msgid "Removes stored media that are old enough and no longer attached to an ava
 msgstr "作成から十分な時間が経過し、アイコン、投稿、記事の下書き、記事のいずれにも添付されていない保存済みメディアを削除します。"
 
 #: src/components/NoteComposeModal.tsx:29
-#: src/components/PostControls.tsx:217
-#: src/components/PostControls.tsx:218
+#: src/components/PostEngagementBar.tsx:248
 msgid "Reply"
 msgstr "返信"
+
+#: src/components/PostEngagementBar.tsx:249
+msgid "Replying is not available for this post"
+msgstr "このコンテンツには返信できません"
 
 #: src/components/NoteComposer.tsx:811
 msgid "Replying to"
 msgstr "返信先"
 
-#: src/components/AppSidebar.tsx:432
+#: src/components/AppSidebar.tsx:443
 msgid "Return to old UI"
 msgstr "旧UIに戻る"
 
@@ -1883,7 +1888,7 @@ msgstr "下書きを保存するとプレビューが表示されます"
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/components/AppSidebar.tsx:339
+#: src/components/AppSidebar.tsx:350
 #: src/routes/(root)/search.tsx:180
 #: src/routes/(root)/search.tsx:197
 msgid "Search"
@@ -1931,12 +1936,11 @@ msgstr "送信中…"
 msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
-#: src/components/AppSidebar.tsx:593
+#: src/components/AppSidebar.tsx:604
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostControls.tsx:277
-#: src/components/PostControls.tsx:298
+#: src/components/PostEngagementBar.tsx:294
 msgid "Share"
 msgstr "共有"
 
@@ -1944,8 +1948,7 @@ msgstr "共有"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/PostControls.tsx:278
-#: src/components/PostControls.tsx:299
+#: src/components/PostEngagementBar.tsx:295
 msgid "Sharing is not available for this post"
 msgstr "このコンテンツは共有できません。"
 
@@ -1953,7 +1956,7 @@ msgstr "このコンテンツは共有できません。"
 msgid "Show preview"
 msgstr "プレビューを表示"
 
-#: src/components/AppSidebar.tsx:457
+#: src/components/AppSidebar.tsx:468
 #: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
 msgstr "ログイン"
@@ -1970,7 +1973,7 @@ msgstr "ログインして投票"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:849
+#: src/components/AppSidebar.tsx:860
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -2040,8 +2043,8 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:333
-#: src/components/ArticleCard.tsx:352
+#: src/components/ArticleCard.tsx:335
+#: src/components/ArticleCard.tsx:354
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
@@ -2125,7 +2128,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:891
+#: src/components/AppSidebar.tsx:902
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -2202,7 +2205,7 @@ msgid "Total: {0}"
 msgstr "合計：{0}"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:215
+#: src/components/ArticleCard.tsx:217
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:848
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
@@ -2272,8 +2275,7 @@ msgstr "フォロー解除"
 msgid "Unpin from profile"
 msgstr "プロフィールから固定解除"
 
-#: src/components/PostControls.tsx:273
-#: src/components/PostControls.tsx:294
+#: src/components/PostEngagementBar.tsx:292
 msgid "Unshare"
 msgstr "共有を取り消す"
 
@@ -2341,13 +2343,29 @@ msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
 
-#: src/components/AppSidebar.tsx:812
+#: src/components/AppSidebar.tsx:823
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
 
 #: src/components/NoteMedia.tsx:48
 msgid "View image"
 msgstr "画像を表示"
+
+#: src/components/PostEngagementBar.tsx:262
+msgid "View quotes"
+msgstr "引用を見る"
+
+#: src/components/PostEngagementBar.tsx:366
+msgid "View reactions"
+msgstr "リアクションを見る"
+
+#: src/components/PostEngagementBar.tsx:250
+msgid "View replies"
+msgstr "返信を見る"
+
+#: src/components/PostEngagementBar.tsx:296
+msgid "View shares"
+msgstr "共有を見る"
 
 #: src/components/NoteComposer.tsx:982
 msgid "Visibility"
@@ -2413,7 +2431,7 @@ msgstr "Hackers' Pubとは？"
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
-#: src/components/AppSidebar.tsx:245
+#: src/components/AppSidebar.tsx:256
 msgid "Without shares"
 msgstr "共有除外"
 

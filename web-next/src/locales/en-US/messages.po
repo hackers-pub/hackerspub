@@ -225,11 +225,11 @@ msgid "A sign-in link has been sent to your email. Please check your inbox (or s
 msgstr "A sign-in link has been sent to your email. Please check your inbox (or spam folder)."
 
 #: src/components/admin/AdminAccountsTable.tsx:104
-#: src/components/AppSidebar.tsx:413
+#: src/components/AppSidebar.tsx:424
 msgid "Account"
 msgstr "Account"
 
-#: src/components/AppSidebar.tsx:636
+#: src/components/AppSidebar.tsx:647
 #: src/routes/(root)/admin/index.tsx:57
 msgid "Accounts"
 msgstr "Accounts"
@@ -248,7 +248,7 @@ msgstr "Add"
 msgid "Add {0}"
 msgstr "Add {0}"
 
-#: src/components/AppSidebar.tsx:614
+#: src/components/AppSidebar.tsx:625
 msgid "Admin"
 msgstr "Admin"
 
@@ -356,7 +356,7 @@ msgstr "article-url-slug"
 msgid "Articles"
 msgstr "Articles"
 
-#: src/components/AppSidebar.tsx:268
+#: src/components/AppSidebar.tsx:279
 msgid "Articles only"
 msgstr "Articles only"
 
@@ -410,11 +410,12 @@ msgstr "Block user?"
 msgid "Bold"
 msgstr "Bold"
 
-#: src/components/BookmarkButton.tsx:143
+#: src/components/BookmarkButton.tsx:150
+#: src/components/BookmarkButton.tsx:151
 msgid "Bookmark"
 msgstr "Bookmark"
 
-#: src/components/AppSidebar.tsx:537
+#: src/components/AppSidebar.tsx:548
 #: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "Bookmarks"
@@ -467,7 +468,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:862
+#: src/components/AppSidebar.tsx:873
 #: src/routes/(root)/coc.tsx:49
 #: src/routes/(root)/sign/up/[token].tsx:441
 msgid "Code of conduct"
@@ -477,7 +478,7 @@ msgstr "Code of conduct"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:705
+#: src/components/AppSidebar.tsx:716
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -520,7 +521,7 @@ msgstr "Could not load profile."
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:751
+#: src/components/AppSidebar.tsx:762
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -529,7 +530,7 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:727
+#: src/components/AppSidebar.tsx:738
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:31
 #: src/components/NoteComposer.tsx:1177
@@ -745,8 +746,8 @@ msgstr "Extra message"
 msgid "Failed to block this user"
 msgstr "Failed to block this user"
 
-#: src/components/BookmarkButton.tsx:115
 #: src/components/BookmarkButton.tsx:122
+#: src/components/BookmarkButton.tsx:129
 msgid "Failed to bookmark"
 msgstr "Failed to bookmark"
 
@@ -865,8 +866,8 @@ msgstr "Failed to regenerate invitations."
 msgid "Failed to register passkey"
 msgstr "Failed to register passkey"
 
-#: src/components/BookmarkButton.tsx:95
 #: src/components/BookmarkButton.tsx:102
+#: src/components/BookmarkButton.tsx:109
 msgid "Failed to remove bookmark"
 msgstr "Failed to remove bookmark"
 
@@ -897,7 +898,8 @@ msgstr "Failed to send email"
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
-#: src/components/PostControls.tsx:163
+#: src/components/PostEngagementBar.tsx:181
+#: src/components/PostEngagementBar.tsx:188
 msgid "Failed to share post"
 msgstr "Failed to share post"
 
@@ -920,7 +922,8 @@ msgstr "Failed to unfollow"
 msgid "Failed to unpin post"
 msgstr "Failed to unpin post"
 
-#: src/components/PostControls.tsx:149
+#: src/components/PostEngagementBar.tsx:163
+#: src/components/PostEngagementBar.tsx:170
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
@@ -937,7 +940,7 @@ msgstr "Failed to upload image"
 msgid "Failed to vote"
 msgstr "Failed to vote"
 
-#: src/components/AppSidebar.tsx:316
+#: src/components/AppSidebar.tsx:327
 msgid "Fediverse"
 msgstr "Fediverse"
 
@@ -988,7 +991,7 @@ msgstr "Formatting"
 msgid "Generating…"
 msgstr "Generating…"
 
-#: src/components/AppSidebar.tsx:900
+#: src/components/AppSidebar.tsx:911
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1021,8 +1024,8 @@ msgstr "Go to my drafts"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 
-#: src/components/AppSidebar.tsx:293
-#: src/components/AppSidebar.tsx:381
+#: src/components/AppSidebar.tsx:304
+#: src/components/AppSidebar.tsx:392
 #: src/routes/(root).tsx:121
 #: src/routes/(root)/coc.tsx:49
 #: src/routes/(root)/markdown.tsx:49
@@ -1152,12 +1155,12 @@ msgid "Invitation sent"
 msgstr "Invitation sent"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
-#: src/components/AppSidebar.tsx:659
+#: src/components/AppSidebar.tsx:670
 #: src/routes/(root)/admin/invitations.tsx:156
 msgid "Invitations"
 msgstr "Invitations"
 
-#: src/components/AppSidebar.tsx:561
+#: src/components/AppSidebar.tsx:572
 #: src/components/SettingsTabs.tsx:68
 #: src/routes/(root)/[handle]/settings/invite.tsx:291
 msgid "Invite"
@@ -1377,7 +1380,7 @@ msgstr "Markdown guide"
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
-#: src/components/AppSidebar.tsx:682
+#: src/components/AppSidebar.tsx:693
 #: src/routes/(root)/admin/media.tsx:160
 msgid "Media"
 msgstr "Media"
@@ -1538,7 +1541,7 @@ msgstr "Notes"
 #~ msgid "Nothing to preview"
 #~ msgstr "Nothing to preview"
 
-#: src/components/AppSidebar.tsx:493
+#: src/components/AppSidebar.tsx:504
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1690,7 +1693,7 @@ msgstr "Previous image"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:867
+#: src/components/AppSidebar.tsx:878
 #: src/routes/(root)/privacy.tsx:49
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -1732,19 +1735,17 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostControls.tsx:244
-#: src/components/PostControls.tsx:257
+#: src/components/PostEngagementBar.tsx:260
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "Quote"
 
-#: src/components/PostControls.tsx:245
-#: src/components/PostControls.tsx:258
+#: src/components/PostEngagementBar.tsx:261
 msgid "Quoting is not available for this post"
 msgstr "Quoting is not available for this post"
 
-#: src/components/PostControls.tsx:316
-#: src/components/PostControls.tsx:317
+#: src/components/PostEngagementBar.tsx:334
+#: src/components/PostEngagementBar.tsx:335
 msgid "React"
 msgstr "React"
 
@@ -1757,8 +1758,8 @@ msgstr "React with {emoji}"
 msgid "reaction"
 msgstr "reaction"
 
-#: src/components/ArticleCard.tsx:380
-#: src/components/ArticleCard.tsx:400
+#: src/components/ArticleCard.tsx:382
+#: src/components/ArticleCard.tsx:402
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -1766,7 +1767,7 @@ msgstr "Read full article"
 msgid "Read the full Code of conduct"
 msgstr "Read the full Code of conduct"
 
-#: src/components/AppSidebar.tsx:786
+#: src/components/AppSidebar.tsx:797
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -1821,7 +1822,8 @@ msgstr "Remove"
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
-#: src/components/BookmarkButton.tsx:143
+#: src/components/BookmarkButton.tsx:150
+#: src/components/BookmarkButton.tsx:151
 msgid "Remove bookmark"
 msgstr "Remove bookmark"
 
@@ -1840,16 +1842,19 @@ msgid "Removes stored media that are old enough and no longer attached to an ava
 msgstr "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 
 #: src/components/NoteComposeModal.tsx:29
-#: src/components/PostControls.tsx:217
-#: src/components/PostControls.tsx:218
+#: src/components/PostEngagementBar.tsx:248
 msgid "Reply"
 msgstr "Reply"
+
+#: src/components/PostEngagementBar.tsx:249
+msgid "Replying is not available for this post"
+msgstr "Replying is not available for this post"
 
 #: src/components/NoteComposer.tsx:811
 msgid "Replying to"
 msgstr "Replying to"
 
-#: src/components/AppSidebar.tsx:432
+#: src/components/AppSidebar.tsx:443
 msgid "Return to old UI"
 msgstr "Return to old UI"
 
@@ -1888,7 +1893,7 @@ msgstr "Save draft to see preview"
 msgid "Saving…"
 msgstr "Saving…"
 
-#: src/components/AppSidebar.tsx:339
+#: src/components/AppSidebar.tsx:350
 #: src/routes/(root)/search.tsx:180
 #: src/routes/(root)/search.tsx:197
 msgid "Search"
@@ -1936,12 +1941,11 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:593
+#: src/components/AppSidebar.tsx:604
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/PostControls.tsx:277
-#: src/components/PostControls.tsx:298
+#: src/components/PostEngagementBar.tsx:294
 msgid "Share"
 msgstr "Share"
 
@@ -1949,8 +1953,7 @@ msgstr "Share"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/PostControls.tsx:278
-#: src/components/PostControls.tsx:299
+#: src/components/PostEngagementBar.tsx:295
 msgid "Sharing is not available for this post"
 msgstr "Sharing is not available for this post"
 
@@ -1958,7 +1961,7 @@ msgstr "Sharing is not available for this post"
 msgid "Show preview"
 msgstr "Show preview"
 
-#: src/components/AppSidebar.tsx:457
+#: src/components/AppSidebar.tsx:468
 #: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
 msgstr "Sign in"
@@ -1975,7 +1978,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:849
+#: src/components/AppSidebar.tsx:860
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -2045,8 +2048,8 @@ msgstr "Successfully saved preferences"
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
-#: src/components/ArticleCard.tsx:333
-#: src/components/ArticleCard.tsx:352
+#: src/components/ArticleCard.tsx:335
+#: src/components/ArticleCard.tsx:354
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -2130,7 +2133,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:891
+#: src/components/AppSidebar.tsx:902
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -2207,7 +2210,7 @@ msgid "Total: {0}"
 msgstr "Total: {0}"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:215
+#: src/components/ArticleCard.tsx:217
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:848
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
@@ -2277,8 +2280,7 @@ msgstr "Unfollow"
 msgid "Unpin from profile"
 msgstr "Unpin from profile"
 
-#: src/components/PostControls.tsx:273
-#: src/components/PostControls.tsx:294
+#: src/components/PostEngagementBar.tsx:292
 msgid "Unshare"
 msgstr "Unshare"
 
@@ -2346,13 +2348,29 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:812
+#: src/components/AppSidebar.tsx:823
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
 #: src/components/NoteMedia.tsx:48
 msgid "View image"
 msgstr "View image"
+
+#: src/components/PostEngagementBar.tsx:262
+msgid "View quotes"
+msgstr "View quotes"
+
+#: src/components/PostEngagementBar.tsx:366
+msgid "View reactions"
+msgstr "View reactions"
+
+#: src/components/PostEngagementBar.tsx:250
+msgid "View replies"
+msgstr "View replies"
+
+#: src/components/PostEngagementBar.tsx:296
+msgid "View shares"
+msgstr "View shares"
 
 #: src/components/NoteComposer.tsx:982
 msgid "Visibility"
@@ -2418,7 +2436,7 @@ msgstr "What is Hackers' Pub?"
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
-#: src/components/AppSidebar.tsx:245
+#: src/components/AppSidebar.tsx:256
 msgid "Without shares"
 msgstr "Without shares"
 

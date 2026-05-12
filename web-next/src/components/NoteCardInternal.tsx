@@ -10,7 +10,7 @@ import { LinkPreview } from "./LinkPreview.tsx";
 import { NoteHeader } from "./NoteHeader.tsx";
 import { NoteMedia } from "./NoteMedia.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
-import { PostControls } from "./PostControls.tsx";
+import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
 
 export interface NoteCardInternalProps {
@@ -75,7 +75,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
             <Show keyed when={n.quotedPost}>
               {(quotedPost) => <QuotedPostCard $post={quotedPost} />}
             </Show>
-            <PostControls
+            <PostEngagementBar
               $post={n}
               bookmarkListConnections={props.bookmarkListConnections}
             />
