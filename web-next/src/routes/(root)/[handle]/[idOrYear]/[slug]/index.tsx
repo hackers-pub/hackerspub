@@ -384,7 +384,7 @@ function ArticleBody(props: ArticleBodyProps) {
         }
         language
         tags
-        ...PostControls_post
+        ...PostEngagementBar_post
         ...Slug_articleHeader
         ...Slug_languageSwitcher
         ...Slug_replies

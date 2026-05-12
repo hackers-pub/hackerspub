@@ -32,7 +32,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         actor {
           ...PostAvatar_actor
         }
-        ...PostControls_post
+        ...PostEngagementBar_post
         ...NoteMedia_note
         ...LinkPreview_note
         ...NoteHeader_note

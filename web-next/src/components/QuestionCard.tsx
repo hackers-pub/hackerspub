@@ -173,7 +173,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
           ...QuotedPostCard_post
         }
         ...PostActionMenu_question
-        ...PostControls_post
+        ...PostEngagementBar_post
       }
     `,
     () => props.$question,
