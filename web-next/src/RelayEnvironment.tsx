@@ -203,6 +203,26 @@ function addRelayRequestBreadcrumb(
   });
 }
 
+function isGraphQLSingularResponse(response: unknown): boolean {
+  if (response == null || typeof response !== "object") return false;
+  if ("data" in response && response.data !== undefined) return true;
+  return "errors" in response &&
+    Array.isArray(response.errors) &&
+    response.errors.length > 0;
+}
+
+function isGraphQLResponse(response: unknown): response is GraphQLResponse {
+  return Array.isArray(response)
+    ? response.length > 0 && response.every(isGraphQLSingularResponse)
+    : isGraphQLSingularResponse(response);
+}
+
+function createInvalidGraphQLResponseError(): TypeError {
+  return new TypeError(
+    "Failed to fetch GraphQL response from server function",
+  );
+}
+
 // Auto-retry budget for client-side queries when the browser can't reach
 // `/_server`. Tuned for the common "phone briefly off network" case the
 // retry is meant to absorb: at 3 attempts the worst case is ~6s of waiting
@@ -306,6 +326,26 @@ function createRelayEnvironment(): IEnvironment {
           : (fetchFn as ClientFetchFn).withOptions({
             signal: controller.signal,
           });
+        const handleAttemptError = (error: Error) => {
+          // Treat aborts as a normal completion: the subscriber is
+          // gone, and we don't want a toast or a Sentry capture for a
+          // deliberate user-initiated cancellation.
+          if (controller.signal.aborted) {
+            sink.complete();
+            return;
+          }
+          if (
+            canRetry && attempt < MAX_RETRY_ATTEMPTS &&
+            isNetworkError(error)
+          ) {
+            // Drop the failed attempt before scheduling the next one so
+            // its controller/subscription don't outlive their usefulness.
+            abortCurrent();
+            scheduleRetry(error);
+            return;
+          }
+          sink.error(error);
+        };
         // `FetchFunction` may return a Promise *or* a Subscribable. Route
         // both through `Observable.from` so the inner subscription's
         // `next`/`complete`/`error` are forwarded faithfully and we can
@@ -313,28 +353,15 @@ function createRelayEnvironment(): IEnvironment {
         currentSubscription = Observable
           .from(callable(params, variables, cacheConfig))
           .subscribe({
-            next: (response) => sink.next(response),
-            complete: () => sink.complete(),
-            error: (error: Error) => {
-              // Treat aborts as a normal completion: the subscriber is
-              // gone, and we don't want a toast or a Sentry capture for a
-              // deliberate user-initiated cancellation.
-              if (controller.signal.aborted) {
-                sink.complete();
+            next: (response) => {
+              if (!isGraphQLResponse(response)) {
+                handleAttemptError(createInvalidGraphQLResponseError());
                 return;
               }
-              if (
-                canRetry && attempt < MAX_RETRY_ATTEMPTS &&
-                isNetworkError(error)
-              ) {
-                // Drop the failed attempt before scheduling the next one so
-                // its controller/subscription don't outlive their usefulness.
-                abortCurrent();
-                scheduleRetry(error);
-                return;
-              }
-              sink.error(error);
+              sink.next(response);
             },
+            complete: () => sink.complete(),
+            error: handleAttemptError,
           });
       };
 
