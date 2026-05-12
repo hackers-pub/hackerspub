@@ -34,6 +34,7 @@ const quotesArticleEngagementQuery = graphql`
         quotes
         reactions
       }
+      ...PostCard_post
       ...quotesArticleEngagement_article
     }
   }
@@ -102,7 +103,10 @@ function ArticleQuotesBody(props: { article: ArticlePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Quotes`}</Title>
-      <div class="my-4">
+      <div class="my-4 space-y-4">
+        <div class="border rounded-xl overflow-hidden">
+          <PostCard $post={props.article} />
+        </div>
         <EngagementTabs
           base={props.base}
           active="quotes"
@@ -110,7 +114,7 @@ function ArticleQuotesBody(props: { article: ArticlePost; base: string }) {
           quotes={props.article.engagementStats.quotes}
           reactions={props.article.engagementStats.reactions}
         />
-        <div class="mt-4 border rounded-xl overflow-hidden">
+        <div class="border rounded-xl overflow-hidden">
           <QuotesList
             $article={props.article as quotesArticleEngagement_article$key}
           />

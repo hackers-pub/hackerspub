@@ -11,6 +11,7 @@ import { EngagementTabs } from "~/components/EngagementTabs.tsx";
 import { ReactionGroupSection } from "~/components/ReactionGroupSection.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
+import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
@@ -34,11 +35,12 @@ const reactionsArticleEngagementQuery = graphql`
         quotes
         reactions
       }
+      ...PostCard_post
       reactionGroups {
         __typename
         ... on EmojiReactionGroup {
           emoji
-          reactors(first: 20) {
+          reactorsPage: reactors(first: 20) {
             totalCount
             edges {
               node {
@@ -58,7 +60,7 @@ const reactionsArticleEngagementQuery = graphql`
             name
             imageUrl
           }
-          reactors(first: 20) {
+          reactorsPage: reactors(first: 20) {
             totalCount
             edges {
               node {
@@ -154,7 +156,10 @@ function ArticleReactionsBody(props: { article: ArticlePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Reactions`}</Title>
-      <div class="my-4">
+      <div class="my-4 space-y-4">
+        <div class="border rounded-xl overflow-hidden">
+          <PostCard $post={props.article} />
+        </div>
         <EngagementTabs
           base={props.base}
           active="reactions"
@@ -165,22 +170,23 @@ function ArticleReactionsBody(props: { article: ArticlePost; base: string }) {
         <Show
           when={groups().length > 0}
           fallback={
-            <p class="mt-4 p-6 text-center text-sm text-muted-foreground border rounded-xl">
+            <p class="p-6 text-center text-sm text-muted-foreground border rounded-xl">
               {t`No reactions yet.`}
             </p>
           }
         >
-          <div class="mt-4 divide-y border rounded-xl overflow-hidden">
+          <div class="divide-y border rounded-xl overflow-hidden">
             <For each={groups()}>
               {(group) => (
                 <ReactionGroupSection
                   postNodeId={props.article.id}
-                  totalCount={group.reactors.totalCount}
-                  initialReactors={group.reactors.edges.flatMap((e) =>
+                  totalCount={group.reactorsPage.totalCount}
+                  initialReactors={group.reactorsPage.edges.flatMap((e) =>
                     e.node == null ? [] : [e.node]
                   )}
-                  initialEndCursor={group.reactors.pageInfo.endCursor ?? null}
-                  initialHasNextPage={group.reactors.pageInfo.hasNextPage}
+                  initialEndCursor={group.reactorsPage.pageInfo.endCursor ??
+                    null}
+                  initialHasNextPage={group.reactorsPage.pageInfo.hasNextPage}
                   emoji={group.__typename === "EmojiReactionGroup"
                     ? group.emoji
                     : null}
@@ -217,7 +223,7 @@ function ArticleReactionsBody(props: { article: ArticlePost; base: string }) {
                         </span>
                       </Show>
                       <span class="text-muted-foreground">
-                        {group.reactors.totalCount}
+                        {group.reactorsPage.totalCount}
                       </span>
                     </header>
                   }

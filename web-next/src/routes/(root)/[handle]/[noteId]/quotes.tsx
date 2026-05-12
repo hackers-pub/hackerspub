@@ -33,6 +33,7 @@ const quotesNoteEngagementQuery = graphql`
           quotes
           reactions
         }
+        ...PostCard_post
         ...quotesNoteEngagement_post
       }
     }
@@ -112,7 +113,10 @@ function QuotesPageBody(props: { post: QuotesPagePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Quotes`}</Title>
-      <div class="my-4">
+      <div class="my-4 space-y-4">
+        <div class="border rounded-xl overflow-hidden">
+          <PostCard $post={props.post} />
+        </div>
         <EngagementTabs
           base={props.base}
           active="quotes"
@@ -120,7 +124,7 @@ function QuotesPageBody(props: { post: QuotesPagePost; base: string }) {
           quotes={props.post.engagementStats.quotes}
           reactions={props.post.engagementStats.reactions}
         />
-        <div class="mt-4 border rounded-xl overflow-hidden">
+        <div class="border rounded-xl overflow-hidden">
           <QuotesList $post={props.post as quotesNoteEngagement_post$key} />
         </div>
       </div>

@@ -9,6 +9,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { EngagementTabs } from "~/components/EngagementTabs.tsx";
+import { PostCard } from "~/components/PostCard.tsx";
 import { ReactionGroupSection } from "~/components/ReactionGroupSection.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
@@ -33,11 +34,12 @@ const reactionsNoteEngagementQuery = graphql`
           quotes
           reactions
         }
+        ...PostCard_post
         reactionGroups {
           __typename
           ... on EmojiReactionGroup {
             emoji
-            reactors(first: 20) {
+            reactorsPage: reactors(first: 20) {
               totalCount
               edges {
                 node {
@@ -57,7 +59,7 @@ const reactionsNoteEngagementQuery = graphql`
               name
               imageUrl
             }
-            reactors(first: 20) {
+            reactorsPage: reactors(first: 20) {
               totalCount
               edges {
                 node {
@@ -169,7 +171,10 @@ function ReactionsPageBody(props: { post: ReactionsPagePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Reactions`}</Title>
-      <div class="my-4">
+      <div class="my-4 space-y-4">
+        <div class="border rounded-xl overflow-hidden">
+          <PostCard $post={props.post} />
+        </div>
         <EngagementTabs
           base={props.base}
           active="reactions"
@@ -180,22 +185,23 @@ function ReactionsPageBody(props: { post: ReactionsPagePost; base: string }) {
         <Show
           when={groups().length > 0}
           fallback={
-            <p class="mt-4 p-6 text-center text-sm text-muted-foreground border rounded-xl">
+            <p class="p-6 text-center text-sm text-muted-foreground border rounded-xl">
               {t`No reactions yet.`}
             </p>
           }
         >
-          <div class="mt-4 divide-y border rounded-xl overflow-hidden">
+          <div class="divide-y border rounded-xl overflow-hidden">
             <For each={groups()}>
               {(group) => (
                 <ReactionGroupSection
                   postNodeId={props.post.id}
-                  totalCount={group.reactors.totalCount}
-                  initialReactors={group.reactors.edges.flatMap((e) =>
+                  totalCount={group.reactorsPage.totalCount}
+                  initialReactors={group.reactorsPage.edges.flatMap((e) =>
                     e.node == null ? [] : [e.node]
                   )}
-                  initialEndCursor={group.reactors.pageInfo.endCursor ?? null}
-                  initialHasNextPage={group.reactors.pageInfo.hasNextPage}
+                  initialEndCursor={group.reactorsPage.pageInfo.endCursor ??
+                    null}
+                  initialHasNextPage={group.reactorsPage.pageInfo.hasNextPage}
                   emoji={group.__typename === "EmojiReactionGroup"
                     ? group.emoji
                     : null}
@@ -232,7 +238,7 @@ function ReactionsPageBody(props: { post: ReactionsPagePost; base: string }) {
                         </span>
                       </Show>
                       <span class="text-muted-foreground">
-                        {group.reactors.totalCount}
+                        {group.reactorsPage.totalCount}
                       </span>
                     </header>
                   }

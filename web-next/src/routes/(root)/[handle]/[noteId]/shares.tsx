@@ -12,6 +12,7 @@ import { ActorPreviewCard } from "~/components/ActorPreviewCard.tsx";
 import { EngagementTabs } from "~/components/EngagementTabs.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
+import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
@@ -33,6 +34,7 @@ const sharesNoteEngagementQuery = graphql`
           quotes
           reactions
         }
+        ...PostCard_post
         ...sharesNoteEngagement_post
       }
     }
@@ -117,7 +119,10 @@ function SharesPageBody(props: { post: SharesPagePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Shares`}</Title>
-      <div class="my-4">
+      <div class="my-4 space-y-4">
+        <div class="border rounded-xl overflow-hidden">
+          <PostCard $post={props.post} />
+        </div>
         <EngagementTabs
           base={props.base}
           active="shares"
@@ -125,7 +130,7 @@ function SharesPageBody(props: { post: SharesPagePost; base: string }) {
           quotes={props.post.engagementStats.quotes}
           reactions={props.post.engagementStats.reactions}
         />
-        <div class="mt-4 border rounded-xl overflow-hidden">
+        <div class="border rounded-xl overflow-hidden">
           <SharesList $post={props.post as sharesNoteEngagement_post$key} />
         </div>
       </div>
