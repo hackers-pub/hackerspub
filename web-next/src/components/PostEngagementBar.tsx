@@ -399,8 +399,13 @@ function ReplyControl(props: {
   viewLabel: string;
 }) {
   const tooltip = () => props.disabled ? props.disabledLabel : props.replyLabel;
-  const baseClasses =
+  const buttonClasses =
     "inline-flex items-center justify-center gap-2 h-8 px-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer";
+  // The link variant adds `hover:underline` (and matching focus-visible
+  // underline) so the reply control reads as a navigable link rather
+  // than just another action button, mirroring `CountAffordance`.
+  const linkClasses =
+    `${buttonClasses} hover:underline focus-visible:underline`;
 
   const icon = (
     <svg
@@ -434,7 +439,7 @@ function ReplyControl(props: {
           fallback={
             <button
               type="button"
-              class={baseClasses}
+              class={buttonClasses}
               disabled={props.disabled}
               aria-label={tooltip()}
               onClick={() => {
@@ -454,7 +459,7 @@ function ReplyControl(props: {
         >
           <A
             href={props.repliesHref!}
-            class={baseClasses}
+            class={linkClasses}
             aria-label={props.viewLabel}
           >
             {icon}
@@ -516,11 +521,20 @@ function CountAffordance(props: {
   const text = (
     <span class="inline-flex items-center px-1 text-xs">{props.count}</span>
   );
+  // Distinct affordance from the neighbouring icon button so the count
+  // reads as a navigable link instead of part of the button:
+  //   - `hover:underline` makes the link nature explicit on pointer
+  //     devices (Twitter/Mastodon convention).
+  //   - `hover:shadow-[inset_1px_0_0_0_var(--border)]` adds a thin left
+  //     edge that only materialises on hover, so the static layout
+  //     stays unchanged (the shadow doesn't take box-model space) but
+  //     mouse users get a clear "two zones" read when they pass between
+  //     the icon and the count.
   return (
     <Show when={props.engagementBase} fallback={text}>
       <A
         href={`${props.engagementBase}/${props.segment}`}
-        class="inline-flex items-center px-1 text-xs rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+        class="inline-flex items-center px-1 text-xs rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground hover:underline hover:shadow-[inset_1px_0_0_0_var(--border)] focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={props.label}
       >
         {props.count}
