@@ -154,7 +154,7 @@ function ArticleReactionsBody(props: { article: ArticlePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Reactions`}</Title>
-      <div class="my-4 border rounded-xl overflow-hidden">
+      <div class="my-4">
         <EngagementTabs
           base={props.base}
           active="reactions"
@@ -165,12 +165,12 @@ function ArticleReactionsBody(props: { article: ArticlePost; base: string }) {
         <Show
           when={groups().length > 0}
           fallback={
-            <p class="p-6 text-center text-sm text-muted-foreground">
+            <p class="mt-4 p-6 text-center text-sm text-muted-foreground border rounded-xl">
               {t`No reactions yet.`}
             </p>
           }
         >
-          <div class="divide-y">
+          <div class="mt-4 divide-y border rounded-xl overflow-hidden">
             <For each={groups()}>
               {(group) => (
                 <ReactionGroupSection

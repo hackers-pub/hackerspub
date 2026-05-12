@@ -54,20 +54,17 @@ msgstr "{0, plural, other {残り#件の招待}}"
 msgid "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
 msgstr "{0, plural, other {#件の孤立したメディアを削除できます。}}"
 
-#. placeholder {0}: props.quotes
 #: src/components/EngagementTabs.tsx:28
-msgid "{0, plural, one {# quote} other {# quotes}}"
-msgstr "{0, plural, one {引用 #件} other {引用 #件}}"
+#~ msgid "{0, plural, one {# quote} other {# quotes}}"
+#~ msgstr "{0, plural, one {引用 #件} other {引用 #件}}"
 
-#. placeholder {0}: props.reactions
 #: src/components/EngagementTabs.tsx:31
-msgid "{0, plural, one {# reaction} other {# reactions}}"
-msgstr "{0, plural, one {リアクション #件} other {リアクション #件}}"
+#~ msgid "{0, plural, one {# reaction} other {# reactions}}"
+#~ msgstr "{0, plural, one {リアクション #件} other {リアクション #件}}"
 
-#. placeholder {0}: props.shares
 #: src/components/EngagementTabs.tsx:25
-msgid "{0, plural, one {# share} other {# shares}}"
-msgstr "{0, plural, one {共有 #件} other {共有 #件}}"
+#~ msgid "{0, plural, one {# share} other {# shares}}"
+#~ msgstr "{0, plural, one {共有 #件} other {共有 #件}}"
 
 #. placeholder {0}: votes()
 #: src/components/QuestionCard.tsx:493
@@ -95,7 +92,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, one {友達をHackers' Pubに招待しましょう。最大#人まで招待できます。} other {友達をHackers' Pubに招待しましょう。最大#人まで招待できます。}}"
 
 #. placeholder {0}: Math.max(0, props.totalCount - allReactors().length)
-#: src/components/ReactionGroupSection.tsx:195
+#: src/components/ReactionGroupSection.tsx:218
 msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {リアクター #件をもっと読み込む} other {リアクター #件をもっと読み込む}}"
 
@@ -856,7 +853,7 @@ msgstr "コンテンツの読み込みに失敗しました。クリックして
 msgid "Failed to load more quotes; click to retry"
 msgstr "引用の追加読み込みに失敗しました。再試行するにはクリックしてください"
 
-#: src/components/ReactionGroupSection.tsx:191
+#: src/components/ReactionGroupSection.tsx:214
 msgid "Failed to load more reactors; click to retry"
 msgstr "リアクターの追加読み込みに失敗しました。再試行するにはクリックしてください"
 
@@ -1398,7 +1395,7 @@ msgstr "コンテンツを読み込み中…"
 msgid "Loading more quotes…"
 msgstr "引用を読み込み中…"
 
-#: src/components/ReactionGroupSection.tsx:188
+#: src/components/ReactionGroupSection.tsx:211
 msgid "Loading more reactors…"
 msgstr "リアクターを読み込み中…"
 
@@ -1577,7 +1574,7 @@ msgstr "コンテンツはありません"
 msgid "No reactions yet."
 msgstr "まだリアクションがありません。"
 
-#: src/components/ReactionGroupSection.tsx:165
+#: src/components/ReactionGroupSection.tsx:188
 msgid "No reactors loaded."
 msgstr "読み込まれたリアクターはありません。"
 
@@ -1826,6 +1823,7 @@ msgstr "ひかえめな公開"
 msgid "Quote"
 msgstr "引用"
 
+#: src/components/EngagementTabs.tsx:46
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:104
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:114
 msgid "Quotes"
@@ -1849,6 +1847,7 @@ msgstr "{emoji}でリアクション"
 msgid "reaction"
 msgstr "リアクション"
 
+#: src/components/EngagementTabs.tsx:55
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:156
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:171
 msgid "Reactions"
@@ -2045,6 +2044,7 @@ msgstr "設定"
 msgid "Share"
 msgstr "共有"
 
+#: src/components/EngagementTabs.tsx:37
 #: src/components/ProfileTabs.tsx:54
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:104
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:119

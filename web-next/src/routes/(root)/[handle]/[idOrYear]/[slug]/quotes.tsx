@@ -102,7 +102,7 @@ function ArticleQuotesBody(props: { article: ArticlePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Quotes`}</Title>
-      <div class="my-4 border rounded-xl overflow-hidden">
+      <div class="my-4">
         <EngagementTabs
           base={props.base}
           active="quotes"
@@ -110,9 +110,11 @@ function ArticleQuotesBody(props: { article: ArticlePost; base: string }) {
           quotes={props.article.engagementStats.quotes}
           reactions={props.article.engagementStats.reactions}
         />
-        <QuotesList
-          $article={props.article as quotesArticleEngagement_article$key}
-        />
+        <div class="mt-4 border rounded-xl overflow-hidden">
+          <QuotesList
+            $article={props.article as quotesArticleEngagement_article$key}
+          />
+        </div>
       </div>
     </NarrowContainer>
   );

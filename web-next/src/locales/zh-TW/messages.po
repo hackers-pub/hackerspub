@@ -54,20 +54,17 @@ msgstr "{0, plural, other {剩餘 # 次邀請}}"
 msgid "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
 msgstr "{0, plural, other {可刪除 # 個孤立媒體。}}"
 
-#. placeholder {0}: props.quotes
 #: src/components/EngagementTabs.tsx:28
-msgid "{0, plural, one {# quote} other {# quotes}}"
-msgstr "{0, plural, one {# 則引用} other {# 則引用}}"
+#~ msgid "{0, plural, one {# quote} other {# quotes}}"
+#~ msgstr "{0, plural, one {# 則引用} other {# 則引用}}"
 
-#. placeholder {0}: props.reactions
 #: src/components/EngagementTabs.tsx:31
-msgid "{0, plural, one {# reaction} other {# reactions}}"
-msgstr "{0, plural, one {# 個反應} other {# 個反應}}"
+#~ msgid "{0, plural, one {# reaction} other {# reactions}}"
+#~ msgstr "{0, plural, one {# 個反應} other {# 個反應}}"
 
-#. placeholder {0}: props.shares
 #: src/components/EngagementTabs.tsx:25
-msgid "{0, plural, one {# share} other {# shares}}"
-msgstr "{0, plural, one {# 次轉貼} other {# 次轉貼}}"
+#~ msgid "{0, plural, one {# share} other {# shares}}"
+#~ msgstr "{0, plural, one {# 次轉貼} other {# 次轉貼}}"
 
 #. placeholder {0}: votes()
 #: src/components/QuestionCard.tsx:493
@@ -95,7 +92,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, other {邀請你的朋友加入 Hackers' Pub。你可以邀請最多 # 個人。}}"
 
 #. placeholder {0}: Math.max(0, props.totalCount - allReactors().length)
-#: src/components/ReactionGroupSection.tsx:195
+#: src/components/ReactionGroupSection.tsx:218
 msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {載入更多反應者 (#)} other {載入更多反應者 (#)}}"
 
@@ -856,7 +853,7 @@ msgstr "載入更多內容失敗，點擊重試"
 msgid "Failed to load more quotes; click to retry"
 msgstr "載入更多引用失敗，點擊重試"
 
-#: src/components/ReactionGroupSection.tsx:191
+#: src/components/ReactionGroupSection.tsx:214
 msgid "Failed to load more reactors; click to retry"
 msgstr "載入更多反應者失敗，點擊重試"
 
@@ -1398,7 +1395,7 @@ msgstr "載入更多內容中…"
 msgid "Loading more quotes…"
 msgstr "正在載入更多引用…"
 
-#: src/components/ReactionGroupSection.tsx:188
+#: src/components/ReactionGroupSection.tsx:211
 msgid "Loading more reactors…"
 msgstr "正在載入更多反應者…"
 
@@ -1577,7 +1574,7 @@ msgstr "未找到內容"
 msgid "No reactions yet."
 msgstr "尚無反應。"
 
-#: src/components/ReactionGroupSection.tsx:165
+#: src/components/ReactionGroupSection.tsx:188
 msgid "No reactors loaded."
 msgstr "未載入反應者。"
 
@@ -1826,6 +1823,7 @@ msgstr "悄悄公開"
 msgid "Quote"
 msgstr "引用"
 
+#: src/components/EngagementTabs.tsx:46
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:104
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:114
 msgid "Quotes"
@@ -1849,6 +1847,7 @@ msgstr "用{emoji}反應"
 msgid "reaction"
 msgstr "反應"
 
+#: src/components/EngagementTabs.tsx:55
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:156
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:171
 msgid "Reactions"
@@ -2045,6 +2044,7 @@ msgstr "設定"
 msgid "Share"
 msgstr "分享"
 
+#: src/components/EngagementTabs.tsx:37
 #: src/components/ProfileTabs.tsx:54
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:104
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:119

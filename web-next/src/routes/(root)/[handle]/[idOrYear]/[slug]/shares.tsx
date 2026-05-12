@@ -102,7 +102,7 @@ function ArticleSharesBody(props: { article: ArticlePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Shares`}</Title>
-      <div class="my-4 border rounded-xl overflow-hidden">
+      <div class="my-4">
         <EngagementTabs
           base={props.base}
           active="shares"
@@ -110,9 +110,11 @@ function ArticleSharesBody(props: { article: ArticlePost; base: string }) {
           quotes={props.article.engagementStats.quotes}
           reactions={props.article.engagementStats.reactions}
         />
-        <SharesList
-          $article={props.article as sharesArticleEngagement_article$key}
-        />
+        <div class="mt-4 border rounded-xl overflow-hidden">
+          <SharesList
+            $article={props.article as sharesArticleEngagement_article$key}
+          />
+        </div>
       </div>
     </NarrowContainer>
   );

@@ -117,7 +117,7 @@ function SharesPageBody(props: { post: SharesPagePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Shares`}</Title>
-      <div class="my-4 border rounded-xl overflow-hidden">
+      <div class="my-4">
         <EngagementTabs
           base={props.base}
           active="shares"
@@ -125,7 +125,9 @@ function SharesPageBody(props: { post: SharesPagePost; base: string }) {
           quotes={props.post.engagementStats.quotes}
           reactions={props.post.engagementStats.reactions}
         />
-        <SharesList $post={props.post as sharesNoteEngagement_post$key} />
+        <div class="mt-4 border rounded-xl overflow-hidden">
+          <SharesList $post={props.post as sharesNoteEngagement_post$key} />
+        </div>
       </div>
     </NarrowContainer>
   );

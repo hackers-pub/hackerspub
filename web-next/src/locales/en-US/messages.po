@@ -54,20 +54,17 @@ msgstr "{0, plural, one {# invitation left} other {# invitations left}}"
 msgid "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
 msgstr "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
 
-#. placeholder {0}: props.quotes
 #: src/components/EngagementTabs.tsx:28
-msgid "{0, plural, one {# quote} other {# quotes}}"
-msgstr "{0, plural, one {# quote} other {# quotes}}"
+#~ msgid "{0, plural, one {# quote} other {# quotes}}"
+#~ msgstr "{0, plural, one {# quote} other {# quotes}}"
 
-#. placeholder {0}: props.reactions
 #: src/components/EngagementTabs.tsx:31
-msgid "{0, plural, one {# reaction} other {# reactions}}"
-msgstr "{0, plural, one {# reaction} other {# reactions}}"
+#~ msgid "{0, plural, one {# reaction} other {# reactions}}"
+#~ msgstr "{0, plural, one {# reaction} other {# reactions}}"
 
-#. placeholder {0}: props.shares
 #: src/components/EngagementTabs.tsx:25
-msgid "{0, plural, one {# share} other {# shares}}"
-msgstr "{0, plural, one {# share} other {# shares}}"
+#~ msgid "{0, plural, one {# share} other {# shares}}"
+#~ msgstr "{0, plural, one {# share} other {# shares}}"
 
 #. placeholder {0}: votes()
 #: src/components/QuestionCard.tsx:493
@@ -95,7 +92,7 @@ msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up t
 msgstr "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 
 #. placeholder {0}: Math.max(0, props.totalCount - allReactors().length)
-#: src/components/ReactionGroupSection.tsx:195
+#: src/components/ReactionGroupSection.tsx:218
 msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 
@@ -860,7 +857,7 @@ msgstr "Failed to load more posts; click to retry"
 msgid "Failed to load more quotes; click to retry"
 msgstr "Failed to load more quotes; click to retry"
 
-#: src/components/ReactionGroupSection.tsx:191
+#: src/components/ReactionGroupSection.tsx:214
 msgid "Failed to load more reactors; click to retry"
 msgstr "Failed to load more reactors; click to retry"
 
@@ -1402,7 +1399,7 @@ msgstr "Loading more posts…"
 msgid "Loading more quotes…"
 msgstr "Loading more quotes…"
 
-#: src/components/ReactionGroupSection.tsx:188
+#: src/components/ReactionGroupSection.tsx:211
 msgid "Loading more reactors…"
 msgstr "Loading more reactors…"
 
@@ -1581,7 +1578,7 @@ msgstr "No posts found"
 msgid "No reactions yet."
 msgstr "No reactions yet."
 
-#: src/components/ReactionGroupSection.tsx:165
+#: src/components/ReactionGroupSection.tsx:188
 msgid "No reactors loaded."
 msgstr "No reactors loaded."
 
@@ -1831,6 +1828,7 @@ msgstr "Quiet public"
 msgid "Quote"
 msgstr "Quote"
 
+#: src/components/EngagementTabs.tsx:46
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:104
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:114
 msgid "Quotes"
@@ -1854,6 +1852,7 @@ msgstr "React with {emoji}"
 msgid "reaction"
 msgstr "reaction"
 
+#: src/components/EngagementTabs.tsx:55
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:156
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:171
 msgid "Reactions"
@@ -2050,6 +2049,7 @@ msgstr "Settings"
 msgid "Share"
 msgstr "Share"
 
+#: src/components/EngagementTabs.tsx:37
 #: src/components/ProfileTabs.tsx:54
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:104
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:119

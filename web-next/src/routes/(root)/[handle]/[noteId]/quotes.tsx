@@ -112,7 +112,7 @@ function QuotesPageBody(props: { post: QuotesPagePost; base: string }) {
   return (
     <NarrowContainer>
       <Title>{t`Quotes`}</Title>
-      <div class="my-4 border rounded-xl overflow-hidden">
+      <div class="my-4">
         <EngagementTabs
           base={props.base}
           active="quotes"
@@ -120,7 +120,9 @@ function QuotesPageBody(props: { post: QuotesPagePost; base: string }) {
           quotes={props.post.engagementStats.quotes}
           reactions={props.post.engagementStats.reactions}
         />
-        <QuotesList $post={props.post as quotesNoteEngagement_post$key} />
+        <div class="mt-4 border rounded-xl overflow-hidden">
+          <QuotesList $post={props.post as quotesNoteEngagement_post$key} />
+        </div>
       </div>
     </NarrowContainer>
   );
