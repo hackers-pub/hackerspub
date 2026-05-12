@@ -202,41 +202,163 @@ function addRelayRequestBreadcrumb(
   });
 }
 
+// Browsers spell the "no network reached the server" condition differently:
+// Chrome/Edge "Failed to fetch", Safari "Load failed", Firefox "NetworkError
+// when attempting to fetch resource". They all surface as `TypeError`, so
+// we narrow on the constructor first and then on the message to avoid
+// retrying genuine programmer errors (e.g. a TypeError thrown from inside a
+// resolver) that happen to land on this path.
+function isRetriableNetworkError(error: unknown): boolean {
+  if (!(error instanceof TypeError)) return false;
+  const message = error.message.toLowerCase();
+  return message.includes("failed to fetch") ||
+    message.includes("load failed") ||
+    message.includes("networkerror") ||
+    message.includes("network request failed");
+}
+
+// Auto-retry budget for client-side queries when the browser can't reach
+// `/_server`. Tuned for the common "phone briefly off network" case the
+// retry is meant to absorb: at 3 attempts the worst case is ~6s of waiting
+// before surfacing the error, which is well under the user's patience and
+// short enough that a real outage doesn't multiply load by much.
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 500;
+const RETRY_BACKOFF_FACTOR = 3;
+const RETRY_JITTER_RATIO = 0.3;
+
+function computeRetryDelayMs(attempt: number): number {
+  const base = RETRY_BASE_DELAY_MS *
+    Math.pow(RETRY_BACKOFF_FACTOR, attempt - 1);
+  return base + Math.random() * RETRY_JITTER_RATIO * base;
+}
+
 function createRelayEnvironment(): IEnvironment {
   const network = Network.create((params, variables, cacheConfig) =>
     Observable.create<GraphQLResponse>((sink) => {
-      const controller = new AbortController();
       addRelayRequestBreadcrumb(params, cacheConfig);
-      // SSR runs `fetchFn` in-process; the server-side `try/catch` already
-      // propagates the inbound request's signal to the upstream fetch, so
-      // the client-side controller is only meaningful in the browser.
-      const callable: FetchFunction = isServer
-        ? fetchFn
-        : (fetchFn as ClientFetchFn).withOptions({
-          signal: controller.signal,
-        });
-      // `FetchFunction` may return a Promise *or* a Subscribable. Route
-      // both through `Observable.from` so the inner subscription's
-      // `next`/`complete`/`error` are forwarded faithfully and we can
-      // unsubscribe it from cleanup.
-      const inner = Observable.from(callable(params, variables, cacheConfig))
-        .subscribe({
-          next: (response) => sink.next(response),
-          complete: () => sink.complete(),
-          error: (error: Error) => {
-            // Treat aborts as a normal completion: the subscriber is
-            // gone, and we don't want a toast or a Sentry capture for a
-            // deliberate user-initiated cancellation.
-            if (controller.signal.aborted) {
-              sink.complete();
-              return;
-            }
-            sink.error(error);
+
+      // Auto-retry transient client-side fetch failures only. SSR runs the
+      // fetch in-process to the GraphQL service, so retrying there would
+      // hide real upstream problems and slow down page renders. Mutations
+      // are not safe to retry blindly (the server may have already applied
+      // the write), and subscriptions reconnect through their own channel.
+      const canRetry = !isServer && params.operationKind === "query";
+
+      let attempt = 0;
+      let currentController: AbortController | null = null;
+      let currentSubscription: { unsubscribe: () => void } | null = null;
+      let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+      let onlineListener: (() => void) | null = null;
+      let disposed = false;
+
+      const clearPendingTimer = () => {
+        if (pendingTimer != null) {
+          clearTimeout(pendingTimer);
+          pendingTimer = null;
+        }
+      };
+
+      const clearOnlineListener = () => {
+        if (onlineListener != null) {
+          window.removeEventListener("online", onlineListener);
+          onlineListener = null;
+        }
+      };
+
+      const abortCurrent = () => {
+        currentController?.abort();
+        currentController = null;
+        currentSubscription?.unsubscribe();
+        currentSubscription = null;
+      };
+
+      const scheduleRetry = (error: Error) => {
+        Sentry.addBreadcrumb({
+          category: "relay.retry",
+          level: "info",
+          message: `${params.operationKind} ${params.name} retry ${attempt}`,
+          data: {
+            operation: params.name,
+            attempt,
+            reason: error.message,
           },
         });
+        // The timer is always armed so a single retry is bounded by the
+        // backoff, never by network availability — `navigator.onLine`
+        // returning `false` short-circuits the wait when the browser
+        // notices the link came back, but if it doesn't (or stays off)
+        // the timer still fires and the retry budget keeps us from
+        // hanging the sink indefinitely. The `fired` latch makes both
+        // paths idempotent so a late `online` event cannot double-fire
+        // the next attempt after the timer has already done so.
+        let fired = false;
+        const fireRetry = () => {
+          if (fired) return;
+          fired = true;
+          clearPendingTimer();
+          clearOnlineListener();
+          attemptOnce();
+        };
+        pendingTimer = setTimeout(fireRetry, computeRetryDelayMs(attempt));
+        if (typeof navigator !== "undefined" && navigator.onLine === false) {
+          onlineListener = fireRetry;
+          window.addEventListener("online", fireRetry);
+        }
+      };
+
+      const attemptOnce = () => {
+        if (disposed) return;
+        attempt += 1;
+        const controller = new AbortController();
+        currentController = controller;
+        // SSR runs `fetchFn` in-process; the server-side `try/catch` already
+        // propagates the inbound request's signal to the upstream fetch, so
+        // the client-side controller is only meaningful in the browser.
+        const callable: FetchFunction = isServer
+          ? fetchFn
+          : (fetchFn as ClientFetchFn).withOptions({
+            signal: controller.signal,
+          });
+        // `FetchFunction` may return a Promise *or* a Subscribable. Route
+        // both through `Observable.from` so the inner subscription's
+        // `next`/`complete`/`error` are forwarded faithfully and we can
+        // unsubscribe it from cleanup.
+        currentSubscription = Observable
+          .from(callable(params, variables, cacheConfig))
+          .subscribe({
+            next: (response) => sink.next(response),
+            complete: () => sink.complete(),
+            error: (error: Error) => {
+              // Treat aborts as a normal completion: the subscriber is
+              // gone, and we don't want a toast or a Sentry capture for a
+              // deliberate user-initiated cancellation.
+              if (controller.signal.aborted) {
+                sink.complete();
+                return;
+              }
+              if (
+                canRetry && attempt < MAX_RETRY_ATTEMPTS &&
+                isRetriableNetworkError(error)
+              ) {
+                // Drop the failed attempt before scheduling the next one so
+                // its controller/subscription don't outlive their usefulness.
+                abortCurrent();
+                scheduleRetry(error);
+                return;
+              }
+              sink.error(error);
+            },
+          });
+      };
+
+      attemptOnce();
+
       return () => {
-        controller.abort();
-        inner.unsubscribe();
+        disposed = true;
+        clearPendingTimer();
+        clearOnlineListener();
+        abortCurrent();
       };
     })
   );
