@@ -2,12 +2,14 @@ import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { createBookmark, deleteBookmark } from "@hackerspub/models/bookmark";
 import { sharePost } from "@hackerspub/models/post";
+import { followingTable } from "@hackerspub/models/schema";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
+  insertMention,
   insertNotePost,
   makeGuestContext,
   makeUserContext,
@@ -971,6 +973,247 @@ Deno.test({
       assertEquals(data.first.post?.engagementStats.bookmarks, 1);
       assertEquals(data.second.__typename, "UnbookmarkPostPayload");
       assertEquals(data.second.post?.engagementStats.bookmarks, 0);
+    });
+  },
+});
+
+const viewerActionPolicyQuery = parse(`
+  query ViewerActionPolicy($id: ID!) {
+    node(id: $id) {
+      ... on Post {
+        viewerCanReply
+        viewerCanQuote
+        viewerCanShare
+      }
+    }
+  }
+`);
+
+interface ViewerActionPolicy {
+  viewerCanReply: boolean;
+  viewerCanQuote: boolean;
+  viewerCanShare: boolean;
+}
+
+async function readPolicy(
+  postId: string,
+  contextValue:
+    | ReturnType<typeof makeUserContext>
+    | ReturnType<typeof makeGuestContext>,
+): Promise<ViewerActionPolicy> {
+  const result = await execute({
+    schema,
+    document: viewerActionPolicyQuery,
+    variableValues: { id: postId },
+    contextValue,
+    onError: "NO_PROPAGATE",
+  });
+  assertEquals(result.errors, undefined);
+  const data = result.data as { node: ViewerActionPolicy };
+  return {
+    viewerCanReply: data.node.viewerCanReply,
+    viewerCanQuote: data.node.viewerCanQuote,
+    viewerCanShare: data.node.viewerCanShare,
+  };
+}
+
+Deno.test({
+  name:
+    "viewerCanReply/Quote/Share permit every signed-in viewer on public posts and deny guests",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "policypublicauthor",
+        name: "Policy Public Author",
+        email: "policypublicauthor@example.com",
+      });
+      const viewer = await insertAccountWithActor(tx, {
+        username: "policypublicviewer",
+        name: "Policy Public Viewer",
+        email: "policypublicviewer@example.com",
+      });
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Public",
+        visibility: "public",
+      });
+      const id = encodeGlobalID("Note", post.id);
+
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, author.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: true,
+          viewerCanShare: true,
+        },
+      );
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, viewer.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: true,
+          viewerCanShare: true,
+        },
+      );
+      assertEquals(await readPolicy(id, makeGuestContext(tx)), {
+        viewerCanReply: false,
+        viewerCanQuote: false,
+        viewerCanShare: false,
+      });
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "viewerCanReply/Quote/Share on followers-only posts: only author may quote or share; followers and mentions may reply",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "policyfollowersauthor",
+        name: "Policy Followers Author",
+        email: "policyfollowersauthor@example.com",
+      });
+      const follower = await insertAccountWithActor(tx, {
+        username: "policyfollowersfollower",
+        name: "Policy Followers Follower",
+        email: "policyfollowersfollower@example.com",
+      });
+      const mentioned = await insertAccountWithActor(tx, {
+        username: "policyfollowersmentioned",
+        name: "Policy Followers Mentioned",
+        email: "policyfollowersmentioned@example.com",
+      });
+      const stranger = await insertAccountWithActor(tx, {
+        username: "policyfollowersstranger",
+        name: "Policy Followers Stranger",
+        email: "policyfollowersstranger@example.com",
+      });
+
+      await tx.insert(followingTable).values({
+        iri:
+          `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
+        followerId: follower.actor.id,
+        followeeId: author.actor.id,
+        accepted: new Date(),
+      });
+
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Followers-only",
+        visibility: "followers",
+      });
+      await insertMention(tx, {
+        postId: post.id,
+        actorId: mentioned.actor.id,
+      });
+      const id = encodeGlobalID("Note", post.id);
+
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, author.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: true,
+          viewerCanShare: true,
+        },
+      );
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, follower.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: false,
+          viewerCanShare: false,
+        },
+      );
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, mentioned.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: false,
+          viewerCanShare: false,
+        },
+      );
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, stranger.account)),
+        {
+          viewerCanReply: false,
+          viewerCanQuote: false,
+          viewerCanShare: false,
+        },
+      );
+      assertEquals(await readPolicy(id, makeGuestContext(tx)), {
+        viewerCanReply: false,
+        viewerCanQuote: false,
+        viewerCanShare: false,
+      });
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "viewerCanReply/Quote/Share on direct posts: only mentions may reply; nobody may share or quote",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "policydirectauthor",
+        name: "Policy Direct Author",
+        email: "policydirectauthor@example.com",
+      });
+      const mentioned = await insertAccountWithActor(tx, {
+        username: "policydirectmentioned",
+        name: "Policy Direct Mentioned",
+        email: "policydirectmentioned@example.com",
+      });
+      const stranger = await insertAccountWithActor(tx, {
+        username: "policydirectstranger",
+        name: "Policy Direct Stranger",
+        email: "policydirectstranger@example.com",
+      });
+
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Direct message",
+        visibility: "direct",
+      });
+      await insertMention(tx, {
+        postId: post.id,
+        actorId: mentioned.actor.id,
+      });
+      const id = encodeGlobalID("Note", post.id);
+
+      // Direct visibility is never quotable or shareable, not even by the
+      // author — mirroring sharePost / createNote validation.
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, author.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: false,
+          viewerCanShare: false,
+        },
+      );
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, mentioned.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: false,
+          viewerCanShare: false,
+        },
+      );
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, stranger.account)),
+        {
+          viewerCanReply: false,
+          viewerCanQuote: false,
+          viewerCanShare: false,
+        },
+      );
     });
   },
 });

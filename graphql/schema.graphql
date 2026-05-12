@@ -365,6 +365,9 @@ type Article implements Node & Post & Reactable {
   The post row's primary key, stable for the lifetime of the post. ⚠️ This is **not** the UUID embedded in `Post.url` for source-backed local posts: local notes that originate here use `Note.sourceId` (= `noteSourceTable.id`) and local articles use `Article.publishedYear` + `Article.slug`. The row PK is the right token whenever there is no local source row — federated remote posts, local share wrappers (boosts, which carry no source and copy the shared post's URL), and Questions (whose originals come only from remote instances and whose local rows exist solely as share wrappers) — and for the internal route that resolves them. `actorByHandle.postByUuid` accepts either the row PK or a source UUID, but resolving by `uuid` for a source-backed local post yields a URL that differs from `Post.url`.
   """
   uuid: UUID!
+  viewerCanQuote: Boolean!
+  viewerCanReply: Boolean!
+  viewerCanShare: Boolean!
   viewerHasBookmarked: Boolean!
   viewerHasPinned: Boolean!
   viewerHasShared: Boolean!
@@ -981,6 +984,9 @@ type Note implements Node & Post & Reactable {
   The post row's primary key, stable for the lifetime of the post. ⚠️ This is **not** the UUID embedded in `Post.url` for source-backed local posts: local notes that originate here use `Note.sourceId` (= `noteSourceTable.id`) and local articles use `Article.publishedYear` + `Article.slug`. The row PK is the right token whenever there is no local source row — federated remote posts, local share wrappers (boosts, which carry no source and copy the shared post's URL), and Questions (whose originals come only from remote instances and whose local rows exist solely as share wrappers) — and for the internal route that resolves them. `actorByHandle.postByUuid` accepts either the row PK or a source UUID, but resolving by `uuid` for a source-backed local post yields a URL that differs from `Post.url`.
   """
   uuid: UUID!
+  viewerCanQuote: Boolean!
+  viewerCanReply: Boolean!
+  viewerCanShare: Boolean!
   viewerHasBookmarked: Boolean!
   viewerHasPinned: Boolean!
   viewerHasShared: Boolean!
@@ -1150,6 +1156,9 @@ interface Post implements Node & Reactable {
   The post row's primary key, stable for the lifetime of the post. ⚠️ This is **not** the UUID embedded in `Post.url` for source-backed local posts: local notes that originate here use `Note.sourceId` (= `noteSourceTable.id`) and local articles use `Article.publishedYear` + `Article.slug`. The row PK is the right token whenever there is no local source row — federated remote posts, local share wrappers (boosts, which carry no source and copy the shared post's URL), and Questions (whose originals come only from remote instances and whose local rows exist solely as share wrappers) — and for the internal route that resolves them. `actorByHandle.postByUuid` accepts either the row PK or a source UUID, but resolving by `uuid` for a source-backed local post yields a URL that differs from `Post.url`.
   """
   uuid: UUID!
+  viewerCanQuote: Boolean!
+  viewerCanReply: Boolean!
+  viewerCanShare: Boolean!
   viewerHasBookmarked: Boolean!
   viewerHasPinned: Boolean!
   viewerHasShared: Boolean!
@@ -1440,6 +1449,9 @@ type Question implements Node & Post & Reactable {
   The post row's primary key, stable for the lifetime of the post. Question originals are only persisted from federated remote instances; local Question rows may also exist as share wrappers (boosts) when a local user reshares a remote question. Neither case carries a local source row (a DB check constraint forbids `noteSourceId` on non-Note rows), so this row PK is the right token to use when building internal permalinks for questions — though `Post.url` will still reflect whatever URL the originating instance advertised, which generally won't share this UUID.
   """
   uuid: UUID!
+  viewerCanQuote: Boolean!
+  viewerCanReply: Boolean!
+  viewerCanShare: Boolean!
   viewerHasBookmarked: Boolean!
   viewerHasPinned: Boolean!
   viewerHasShared: Boolean!

@@ -1446,6 +1446,78 @@ export function isPostVisibleTo(
   return false;
 }
 
+export interface PostInteractionPolicy {
+  readonly canReply: boolean;
+  readonly canQuote: boolean;
+  readonly canShare: boolean;
+}
+
+const DENY_ALL: PostInteractionPolicy = {
+  canReply: false,
+  canQuote: false,
+  canShare: false,
+};
+
+export async function getPostInteractionPolicies(
+  db: Database,
+  postIds: readonly Uuid[],
+  viewer: Actor | null,
+): Promise<Map<Uuid, PostInteractionPolicy>> {
+  const result = new Map<Uuid, PostInteractionPolicy>();
+  for (const id of postIds) result.set(id, DENY_ALL);
+  if (postIds.length < 1 || viewer == null) return result;
+
+  // Filter each viewer-relevant relation down to the viewer's row only.
+  // `isPostVisibleTo` just checks `.some(... === viewer.id ...)`, so loading
+  // the full follower/blockee/blocker/mention sets for popular actors is
+  // wasteful — at most one row per relation actually matters.
+  const posts = await db.query.postTable.findMany({
+    with: {
+      actor: {
+        with: {
+          followers: { where: { followerId: viewer.id } },
+          blockees: { where: { blockeeId: viewer.id } },
+          blockers: { where: { blockerId: viewer.id } },
+        },
+      },
+      mentions: { where: { actorId: viewer.id } },
+      sharedPost: {
+        with: {
+          actor: {
+            with: {
+              followers: { where: { followerId: viewer.id } },
+              blockees: { where: { blockeeId: viewer.id } },
+              blockers: { where: { blockerId: viewer.id } },
+            },
+          },
+          mentions: { where: { actorId: viewer.id } },
+        },
+      },
+    },
+    where: {
+      id: { in: postIds as Uuid[] },
+    },
+  });
+
+  for (const post of posts) {
+    if (!isPostVisibleTo(post, viewer)) continue;
+    const effective = post.sharedPost ?? post;
+    const canAmplify = effective.sharedPostId == null &&
+      isPostVisibleTo(effective, viewer) && (
+        effective.visibility === "public" ||
+        effective.visibility === "unlisted" ||
+        (effective.visibility === "followers" &&
+          effective.actorId === viewer.id)
+      );
+    result.set(post.id, {
+      canReply: true,
+      canQuote: canAmplify,
+      canShare: canAmplify,
+    });
+  }
+  return result;
+}
+
 function getActorContentExclusionFilter(
   actorId: Uuid,
 ): RelationsFilter<"actorTable"> {

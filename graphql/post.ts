@@ -45,8 +45,10 @@ import {
 import {
   arePostsSharedBy,
   deletePost,
+  getPostInteractionPolicies,
   getPostVisibilityFilter,
   isPostVisibleTo,
+  type PostInteractionPolicy,
   sharePost,
   unsharePost,
 } from "@hackerspub/models/post";
@@ -276,8 +278,86 @@ export const Post = builder.drizzleInterface("postTable", {
       },
       resolve: (post) => post.id,
     }),
+    viewerCanReply: t.loadable({
+      type: "Boolean",
+      loaderOptions: { cache: false },
+      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
+        const policies = await loadViewerActionPolicies(ctx, postIds);
+        return postIds.map((id) => policies.get(id)?.canReply ?? false);
+      },
+      resolve: (post) => post.id,
+    }),
+    viewerCanQuote: t.loadable({
+      type: "Boolean",
+      loaderOptions: { cache: false },
+      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
+        const policies = await loadViewerActionPolicies(ctx, postIds);
+        return postIds.map((id) => policies.get(id)?.canQuote ?? false);
+      },
+      resolve: (post) => post.id,
+    }),
+    viewerCanShare: t.loadable({
+      type: "Boolean",
+      loaderOptions: { cache: false },
+      load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
+        const policies = await loadViewerActionPolicies(ctx, postIds);
+        return postIds.map((id) => policies.get(id)?.canShare ?? false);
+      },
+      resolve: (post) => post.id,
+    }),
   }),
 });
+
+const DENY_ALL_POLICY: PostInteractionPolicy = {
+  canReply: false,
+  canQuote: false,
+  canShare: false,
+};
+
+async function loadViewerActionPolicies(
+  ctx: UserContext,
+  postIds: readonly Uuid[],
+): Promise<Map<Uuid, PostInteractionPolicy>> {
+  const cache = ctx.viewerActionPoliciesCache ??= new Map();
+  // Dedupe missing ids so a batch with `cache: false` (which may surface
+  // duplicate keys) cannot overwrite an already-registered promise — the
+  // overwritten promise would still reject on a batch failure but be
+  // un-awaited, producing an unhandled rejection.
+  const missing = new Set<Uuid>();
+  for (const id of postIds) {
+    if (!cache.has(id)) missing.add(id);
+  }
+  if (missing.size > 0) {
+    // Kick off the batch lookup synchronously and register a derived promise
+    // per post id before awaiting so that concurrent dispatch from the three
+    // viewerCan* loaders deduplicates instead of each firing its own query.
+    // Once the batch settles, drop the cached entries we registered so a
+    // subsequent resolve pass (e.g., after a follow/block/visibility-changing
+    // mutation in the same operation) re-queries and observes fresh state —
+    // matching the `loaderOptions: { cache: false }` semantics on the
+    // viewer-state fields.
+    const missingIds = [...missing];
+    const batch = getPostInteractionPolicies(
+      ctx.db,
+      missingIds,
+      ctx.account?.actor ?? null,
+    );
+    const cleanup = () => {
+      for (const id of missingIds) cache.delete(id);
+    };
+    batch.then(cleanup, cleanup);
+    for (const id of missingIds) {
+      cache.set(
+        id,
+        batch.then((policies) => policies.get(id) ?? DENY_ALL_POLICY),
+      );
+    }
+  }
+  const entries = await Promise.all(
+    postIds.map(async (id) => [id, await cache.get(id)!] as const),
+  );
+  return new Map(entries);
+}
 
 builder.drizzleInterfaceFields(Post, (t) => ({
   sharedPost: t.relation("sharedPost", { type: Post, nullable: true }),

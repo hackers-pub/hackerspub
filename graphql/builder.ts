@@ -52,6 +52,7 @@ import type Keyv from "keyv";
 import { normalizeEmail } from "@hackerspub/models/account";
 import type { ContextData } from "@hackerspub/models/context";
 import type { Database } from "@hackerspub/models/db";
+import type { PostInteractionPolicy } from "@hackerspub/models/post";
 import { relations } from "@hackerspub/models/relations";
 import type {
   Account,
@@ -96,6 +97,12 @@ export interface UserContext extends ServerContext {
   adminAccountStatsLoader?: DataLoader<Uuid, AdminAccountStats>;
   inviteeCountLoader?: DataLoader<Uuid, number>;
   actorByIdLoader?: DataLoader<Uuid, Actor | null>;
+  // Request-scoped cache so that viewerCanReply, viewerCanQuote, and
+  // viewerCanShare for the same post only run one relational lookup
+  // even though they are exposed as three separate loadable fields.
+  // Pending promises are stored synchronously so concurrent dispatch from
+  // the three loaders doesn't each fire its own duplicate query.
+  viewerActionPoliciesCache?: Map<Uuid, Promise<PostInteractionPolicy>>;
 }
 
 export interface PothosTypes {
