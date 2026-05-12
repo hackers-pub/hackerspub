@@ -94,6 +94,11 @@ msgstr "{0, plural, other {연결되지 않은 미디어 #개를 삭제했습니
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, other {Hackers' Pub에 친구를 초대하세요. 최대 #명까지 초대할 수 있습니다.}}"
 
+#. placeholder {0}: Math.max(0, props.totalCount - allReactors().length)
+#: src/components/ReactionGroupSection.tsx:195
+msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
+msgstr "{0, plural, one {반응자 #명 더 불러오기} other {반응자 #명 더 불러오기}}"
+
 #. placeholder {0}: result.accountsAffected!
 #: src/routes/(root)/admin/invitations.tsx:105
 msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
@@ -231,11 +236,10 @@ msgstr "{0} 님의 단문"
 msgid "{0}'s shares"
 msgstr "{0} 님의 공유"
 
-#. placeholder {0}: remaining()
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:231
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:253
-msgid "+{0} more reactor(s) not shown"
-msgstr "+{0}명 더 (표시되지 않음)"
+#~ msgid "+{0} more reactor(s) not shown"
+#~ msgstr "+{0}명 더 (표시되지 않음)"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:558
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
@@ -852,6 +856,10 @@ msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
 msgid "Failed to load more quotes; click to retry"
 msgstr "인용을 더 불러오지 못했습니다. 다시 시도하려면 클릭하세요"
 
+#: src/components/ReactionGroupSection.tsx:191
+msgid "Failed to load more reactors; click to retry"
+msgstr "반응자를 더 불러오지 못했습니다. 다시 시도하려면 클릭하세요"
+
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:565
 msgid "Failed to load more replies; click to retry"
 msgstr "댓글을 더 불러오지 못했습니다. 클릭해서 다시 시도하세요"
@@ -925,8 +933,8 @@ msgstr "이메일 전송에 실패했습니다"
 msgid "Failed to send invitation"
 msgstr "초대장 발송에 실패했습니다"
 
-#: src/components/PostEngagementBar.tsx:187
-#: src/components/PostEngagementBar.tsx:194
+#: src/components/PostEngagementBar.tsx:188
+#: src/components/PostEngagementBar.tsx:195
 msgid "Failed to share post"
 msgstr "콘텐츠 공유 실패"
 
@@ -949,8 +957,8 @@ msgstr "언팔로에 실패했습니다"
 msgid "Failed to unpin post"
 msgstr "콘텐츠 고정을 해제하지 못했습니다"
 
-#: src/components/PostEngagementBar.tsx:169
-#: src/components/PostEngagementBar.tsx:176
+#: src/components/PostEngagementBar.tsx:170
+#: src/components/PostEngagementBar.tsx:177
 msgid "Failed to unshare post"
 msgstr "공유 취소 실패"
 
@@ -1324,6 +1332,10 @@ msgstr "콘텐츠 더 불러오기"
 msgid "Load more quotes"
 msgstr "인용 더 불러오기"
 
+#: src/components/ReactionGroupSection.tsx:171
+#~ msgid "Load more reactors (+{0})"
+#~ msgstr "반응자 더 불러오기 (+{0})"
+
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:568
 msgid "Load more replies"
 msgstr "댓글 더 불러오기"
@@ -1386,6 +1398,10 @@ msgstr "콘텐츠 불러오는 중…"
 msgid "Loading more quotes…"
 msgstr "인용을 더 불러오는 중…"
 
+#: src/components/ReactionGroupSection.tsx:188
+msgid "Loading more reactors…"
+msgstr "반응자를 더 불러오는 중…"
+
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:562
 msgid "Loading more replies…"
 msgstr "댓글을 더 불러오는 중…"
@@ -1436,6 +1452,11 @@ msgstr "미디어"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "언급된 사용자만"
+
+#: src/components/PostEngagementBar.tsx:428
+#: src/components/PostEngagementBar.tsx:429
+msgid "More engagement views"
+msgstr "다른 반응 보기"
 
 #: src/components/LanguageList.tsx:164
 msgid "Move down"
@@ -1551,13 +1572,12 @@ msgstr "아직 아무도 공유하지 않았습니다."
 msgid "No posts found"
 msgstr "콘텐츠가 없습니다"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:160
-#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:166
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:169
+#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:184
 msgid "No reactions yet."
 msgstr "아직 반응이 없습니다."
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:211
-#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:233
+#: src/components/ReactionGroupSection.tsx:165
 msgid "No reactors loaded."
 msgstr "불러온 반응자가 없습니다."
 
@@ -1801,7 +1821,7 @@ msgid "Quiet public"
 msgstr "조용히 공개"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostEngagementBar.tsx:266
+#: src/components/PostEngagementBar.tsx:267
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "인용"
@@ -1811,12 +1831,12 @@ msgstr "인용"
 msgid "Quotes"
 msgstr "인용"
 
-#: src/components/PostEngagementBar.tsx:267
+#: src/components/PostEngagementBar.tsx:268
 msgid "Quoting is not available for this post"
 msgstr "이 콘텐츠는 인용할 수 없습니다."
 
-#: src/components/PostEngagementBar.tsx:340
 #: src/components/PostEngagementBar.tsx:341
+#: src/components/PostEngagementBar.tsx:342
 msgid "React"
 msgstr "반응"
 
@@ -1829,8 +1849,8 @@ msgstr "{emoji}로 반응"
 msgid "reaction"
 msgstr "반응"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:147
-#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:153
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:156
+#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:171
 msgid "Reactions"
 msgstr "반응"
 
@@ -1918,11 +1938,11 @@ msgid "Removes stored media that are old enough and no longer attached to an ava
 msgstr "생성된 지 충분히 오래되었고 프로필 사진, 단문, 게시글 임시 보관, 게시글에 더 이상 첨부되어 있지 않은 저장된 미디어를 제거합니다."
 
 #: src/components/NoteComposeModal.tsx:29
-#: src/components/PostEngagementBar.tsx:254
+#: src/components/PostEngagementBar.tsx:255
 msgid "Reply"
 msgstr "댓글"
 
-#: src/components/PostEngagementBar.tsx:255
+#: src/components/PostEngagementBar.tsx:256
 msgid "Replying is not available for this post"
 msgstr "이 콘텐츠에는 댓글을 달 수 없습니다"
 
@@ -2021,7 +2041,7 @@ msgstr "개인의 환경 설정을 설정하세요."
 msgid "Settings"
 msgstr "설정"
 
-#: src/components/PostEngagementBar.tsx:300
+#: src/components/PostEngagementBar.tsx:301
 msgid "Share"
 msgstr "공유"
 
@@ -2031,7 +2051,7 @@ msgstr "공유"
 msgid "Shares"
 msgstr "공유"
 
-#: src/components/PostEngagementBar.tsx:301
+#: src/components/PostEngagementBar.tsx:302
 msgid "Sharing is not available for this post"
 msgstr "이 콘텐츠는 공유할 수 없습니다."
 
@@ -2358,7 +2378,7 @@ msgstr "언팔로"
 msgid "Unpin from profile"
 msgstr "프로필에서 고정 해제"
 
-#: src/components/PostEngagementBar.tsx:298
+#: src/components/PostEngagementBar.tsx:299
 msgid "Unshare"
 msgstr "공유 취소"
 
@@ -2434,19 +2454,23 @@ msgstr "모든 임시 보관 보기 →"
 msgid "View image"
 msgstr "이미지 보기"
 
-#: src/components/PostEngagementBar.tsx:268
+#: src/components/PostEngagementBar.tsx:269
+#: src/components/PostEngagementBar.tsx:459
 msgid "View quotes"
 msgstr "인용 보기"
 
-#: src/components/PostEngagementBar.tsx:372
+#: src/components/PostEngagementBar.tsx:373
+#: src/components/PostEngagementBar.tsx:471
 msgid "View reactions"
 msgstr "반응 보기"
 
-#: src/components/PostEngagementBar.tsx:256
+#: src/components/PostEngagementBar.tsx:257
+#: src/components/PostEngagementBar.tsx:451
 msgid "View replies"
 msgstr "댓글 보기"
 
-#: src/components/PostEngagementBar.tsx:302
+#: src/components/PostEngagementBar.tsx:303
+#: src/components/PostEngagementBar.tsx:465
 msgid "View shares"
 msgstr "공유 보기"
 

@@ -94,6 +94,11 @@ msgstr "{0, plural, other {已刪除 # 個孤立媒體。}}"
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, other {邀請你的朋友加入 Hackers' Pub。你可以邀請最多 # 個人。}}"
 
+#. placeholder {0}: Math.max(0, props.totalCount - allReactors().length)
+#: src/components/ReactionGroupSection.tsx:195
+msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
+msgstr "{0, plural, one {載入更多反應者 (#)} other {載入更多反應者 (#)}}"
+
 #. placeholder {0}: result.accountsAffected!
 #: src/routes/(root)/admin/invitations.tsx:105
 msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerated invitations for # accounts.}}"
@@ -231,11 +236,10 @@ msgstr "{0}的貼文"
 msgid "{0}'s shares"
 msgstr "{0}的轉貼"
 
-#. placeholder {0}: remaining()
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:231
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:253
-msgid "+{0} more reactor(s) not shown"
-msgstr "+{0} 個未顯示"
+#~ msgid "+{0} more reactor(s) not shown"
+#~ msgstr "+{0} 個未顯示"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:558
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
@@ -852,6 +856,10 @@ msgstr "載入更多內容失敗，點擊重試"
 msgid "Failed to load more quotes; click to retry"
 msgstr "載入更多引用失敗，點擊重試"
 
+#: src/components/ReactionGroupSection.tsx:191
+msgid "Failed to load more reactors; click to retry"
+msgstr "載入更多反應者失敗，點擊重試"
+
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:565
 msgid "Failed to load more replies; click to retry"
 msgstr "載入更多回覆失敗，點擊重試"
@@ -925,8 +933,8 @@ msgstr "傳送郵件失敗"
 msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
-#: src/components/PostEngagementBar.tsx:187
-#: src/components/PostEngagementBar.tsx:194
+#: src/components/PostEngagementBar.tsx:188
+#: src/components/PostEngagementBar.tsx:195
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
@@ -949,8 +957,8 @@ msgstr "取消關注失敗"
 msgid "Failed to unpin post"
 msgstr "無法取消釘選內容"
 
-#: src/components/PostEngagementBar.tsx:169
-#: src/components/PostEngagementBar.tsx:176
+#: src/components/PostEngagementBar.tsx:170
+#: src/components/PostEngagementBar.tsx:177
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
@@ -1324,6 +1332,10 @@ msgstr "載入更多內容"
 msgid "Load more quotes"
 msgstr "載入更多引用"
 
+#: src/components/ReactionGroupSection.tsx:171
+#~ msgid "Load more reactors (+{0})"
+#~ msgstr "載入更多反應者 (+{0})"
+
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:568
 msgid "Load more replies"
 msgstr "載入更多回覆"
@@ -1386,6 +1398,10 @@ msgstr "載入更多內容中…"
 msgid "Loading more quotes…"
 msgstr "正在載入更多引用…"
 
+#: src/components/ReactionGroupSection.tsx:188
+msgid "Loading more reactors…"
+msgstr "正在載入更多反應者…"
+
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:562
 msgid "Loading more replies…"
 msgstr "正在載入更多回覆…"
@@ -1436,6 +1452,11 @@ msgstr "媒體"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "只提及使用者可見"
+
+#: src/components/PostEngagementBar.tsx:428
+#: src/components/PostEngagementBar.tsx:429
+msgid "More engagement views"
+msgstr "查看其他反應"
 
 #: src/components/LanguageList.tsx:164
 msgid "Move down"
@@ -1551,13 +1572,12 @@ msgstr "尚無轉貼。"
 msgid "No posts found"
 msgstr "未找到內容"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:160
-#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:166
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:169
+#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:184
 msgid "No reactions yet."
 msgstr "尚無反應。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:211
-#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:233
+#: src/components/ReactionGroupSection.tsx:165
 msgid "No reactors loaded."
 msgstr "未載入反應者。"
 
@@ -1801,7 +1821,7 @@ msgid "Quiet public"
 msgstr "悄悄公開"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostEngagementBar.tsx:266
+#: src/components/PostEngagementBar.tsx:267
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
@@ -1811,12 +1831,12 @@ msgstr "引用"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:267
+#: src/components/PostEngagementBar.tsx:268
 msgid "Quoting is not available for this post"
 msgstr "無法引用此內容。"
 
-#: src/components/PostEngagementBar.tsx:340
 #: src/components/PostEngagementBar.tsx:341
+#: src/components/PostEngagementBar.tsx:342
 msgid "React"
 msgstr "反應"
 
@@ -1829,8 +1849,8 @@ msgstr "用{emoji}反應"
 msgid "reaction"
 msgstr "反應"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:147
-#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:153
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:156
+#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:171
 msgid "Reactions"
 msgstr "反應"
 
@@ -1918,11 +1938,11 @@ msgid "Removes stored media that are old enough and no longer attached to an ava
 msgstr "移除已足夠舊且不再附加到頭像、貼文、文章草稿或文章的已儲存媒體。"
 
 #: src/components/NoteComposeModal.tsx:29
-#: src/components/PostEngagementBar.tsx:254
+#: src/components/PostEngagementBar.tsx:255
 msgid "Reply"
 msgstr "回覆"
 
-#: src/components/PostEngagementBar.tsx:255
+#: src/components/PostEngagementBar.tsx:256
 msgid "Replying is not available for this post"
 msgstr "無法回覆此內容"
 
@@ -2021,7 +2041,7 @@ msgstr "設定您的個人偏好設定。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostEngagementBar.tsx:300
+#: src/components/PostEngagementBar.tsx:301
 msgid "Share"
 msgstr "分享"
 
@@ -2031,7 +2051,7 @@ msgstr "分享"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/PostEngagementBar.tsx:301
+#: src/components/PostEngagementBar.tsx:302
 msgid "Sharing is not available for this post"
 msgstr "無法轉貼此內容。"
 
@@ -2358,7 +2378,7 @@ msgstr "取消關注"
 msgid "Unpin from profile"
 msgstr "從個人資料取消釘選"
 
-#: src/components/PostEngagementBar.tsx:298
+#: src/components/PostEngagementBar.tsx:299
 msgid "Unshare"
 msgstr "取消轉貼"
 
@@ -2434,19 +2454,23 @@ msgstr "查看所有草稿 →"
 msgid "View image"
 msgstr "查看圖片"
 
-#: src/components/PostEngagementBar.tsx:268
+#: src/components/PostEngagementBar.tsx:269
+#: src/components/PostEngagementBar.tsx:459
 msgid "View quotes"
 msgstr "查看引用"
 
-#: src/components/PostEngagementBar.tsx:372
+#: src/components/PostEngagementBar.tsx:373
+#: src/components/PostEngagementBar.tsx:471
 msgid "View reactions"
 msgstr "查看反應"
 
-#: src/components/PostEngagementBar.tsx:256
+#: src/components/PostEngagementBar.tsx:257
+#: src/components/PostEngagementBar.tsx:451
 msgid "View replies"
 msgstr "查看回覆"
 
-#: src/components/PostEngagementBar.tsx:302
+#: src/components/PostEngagementBar.tsx:303
+#: src/components/PostEngagementBar.tsx:465
 msgid "View shares"
 msgstr "查看轉貼"
 

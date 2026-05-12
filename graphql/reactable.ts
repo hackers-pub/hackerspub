@@ -72,6 +72,49 @@ Reactable.implement({
           );
       },
     }),
+    // Singular accessor for one reaction group on the post, used by the
+    // engagement-detail pages to paginate the reactors connection for a
+    // specific emoji without re-fetching every group on every page.
+    // Returns null when neither key is given, both keys are given, or
+    // the post has no recorded reactions for the requested key.
+    reactionGroup: t.field({
+      type: ReactionGroup,
+      nullable: true,
+      args: {
+        emoji: t.arg.string({ required: false }),
+        customEmojiId: t.arg.globalID({ for: CustomEmoji, required: false }),
+      },
+      resolve(post, args) {
+        const emoji = args.emoji ?? null;
+        const customEmojiId = args.customEmojiId?.id ?? null;
+        if (
+          (emoji == null && customEmojiId == null) ||
+          (emoji != null && customEmojiId != null)
+        ) {
+          return null;
+        }
+        if (customEmojiId != null) {
+          const count = post.reactionsCounts[customEmojiId];
+          if (count == null) return null;
+          return {
+            subject: post,
+            count,
+            type: "CustomEmoji",
+            customEmojiId: customEmojiId as Uuid,
+            where: { customEmojiId: customEmojiId as Uuid },
+          } satisfies CustomEmojiReactionGroup;
+        }
+        const count = post.reactionsCounts[emoji!];
+        if (count == null) return null;
+        return {
+          subject: post,
+          count,
+          type: "Emoji",
+          emoji: emoji!,
+          where: { emoji: emoji! },
+        } satisfies EmojiReactionGroup;
+      },
+    }),
   }),
 });
 

@@ -345,6 +345,7 @@ type Article implements Node & Post & Reactable {
   publishedYear: Int
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
   replyTarget: Post
@@ -961,6 +962,7 @@ type Note implements Node & Post & Reactable {
   published: DateTime!
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
   replyTarget: Post
@@ -1138,6 +1140,7 @@ interface Post implements Node & Reactable {
   published: DateTime!
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
   replyTarget: Post
@@ -1431,6 +1434,7 @@ type Question implements Node & Post & Reactable {
   published: DateTime!
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+  reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
   replies(after: String, before: String, first: Int, last: Int): PostRepliesConnection!
   replyTarget: Post
@@ -1480,6 +1484,7 @@ type ReactNotification implements Node & Notification {
 
 interface Reactable implements Node {
   id: ID!
+  reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 }
 

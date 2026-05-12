@@ -8,8 +8,8 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
-import { ActorPreviewCard } from "~/components/ActorPreviewCard.tsx";
 import { EngagementTabs } from "~/components/EngagementTabs.tsx";
+import { ReactionGroupSection } from "~/components/ReactionGroupSection.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -27,6 +27,7 @@ const reactionsNoteEngagementQuery = graphql`
     actorByHandle(handle: $handle, allowLocalHandle: true) {
       postByUuid(uuid: $noteId) {
         __typename
+        id
         engagementStats {
           shares
           quotes
@@ -44,6 +45,10 @@ const reactionsNoteEngagementQuery = graphql`
                   ...ActorPreviewCard_actor
                 }
               }
+              pageInfo {
+                endCursor
+                hasNextPage
+              }
             }
           }
           ... on CustomEmojiReactionGroup {
@@ -59,6 +64,10 @@ const reactionsNoteEngagementQuery = graphql`
                   id
                   ...ActorPreviewCard_actor
                 }
+              }
+              pageInfo {
+                endCursor
+                hasNextPage
               }
             }
           }
@@ -136,6 +145,15 @@ function ReactionsPageLoaded(props: { noteId: Uuid; handle: string }) {
   );
 }
 
+// Drop Relay's forward-compatible "%other" `__typename` branch (which
+// lacks `emoji`/`customEmoji`) so the remaining union satisfies
+// `sortReactionGroups`'s generic constraint and the sub-component
+// can safely narrow on the two known shapes.
+type ReactionGroup = Exclude<
+  ReactionsPagePost["reactionGroups"][number],
+  { readonly __typename: "%other" }
+>;
+
 function ReactionsPageBody(props: { post: ReactionsPagePost; base: string }) {
   const { t } = useLingui();
   // Sort the same way the engagement bar and emoji popover do so the
@@ -169,90 +187,61 @@ function ReactionsPageBody(props: { post: ReactionsPagePost; base: string }) {
         >
           <div class="divide-y">
             <For each={groups()}>
-              {(group) => <ReactionGroupSection group={group} />}
+              {(group) => (
+                <ReactionGroupSection
+                  postNodeId={props.post.id}
+                  totalCount={group.reactors.totalCount}
+                  initialReactors={group.reactors.edges.flatMap((e) =>
+                    e.node == null ? [] : [e.node]
+                  )}
+                  initialEndCursor={group.reactors.pageInfo.endCursor ?? null}
+                  initialHasNextPage={group.reactors.pageInfo.hasNextPage}
+                  emoji={group.__typename === "EmojiReactionGroup"
+                    ? group.emoji
+                    : null}
+                  customEmojiNodeId={group.__typename ===
+                      "CustomEmojiReactionGroup"
+                    ? group.customEmoji.id
+                    : null}
+                  header={
+                    <header class="flex items-center gap-2 bg-muted/40 px-4 py-2 text-sm font-medium">
+                      <Show
+                        when={group.__typename === "EmojiReactionGroup"}
+                        fallback={
+                          <Show
+                            keyed
+                            when={group.__typename ===
+                                "CustomEmojiReactionGroup"
+                              ? group.customEmoji
+                              : null}
+                          >
+                            {(emoji) => (
+                              <img
+                                src={emoji.imageUrl}
+                                alt={emoji.name}
+                                class="size-5"
+                              />
+                            )}
+                          </Show>
+                        }
+                      >
+                        <span class="text-base leading-none">
+                          {group.__typename === "EmojiReactionGroup"
+                            ? group.emoji
+                            : ""}
+                        </span>
+                      </Show>
+                      <span class="text-muted-foreground">
+                        {group.reactors.totalCount}
+                      </span>
+                    </header>
+                  }
+                />
+              )}
             </For>
           </div>
         </Show>
       </div>
     </NarrowContainer>
-  );
-}
-
-// Drop Relay's forward-compatible "%other" `__typename` branch (which
-// lacks `emoji`/`customEmoji`) so the remaining union satisfies
-// `sortReactionGroups`'s generic constraint and `ReactionGroupSection`
-// can safely narrow on the two known shapes.
-type ReactionGroup = Exclude<
-  ReactionsPagePost["reactionGroups"][number],
-  { readonly __typename: "%other" }
->;
-
-function ReactionGroupSection(props: { group: ReactionGroup }) {
-  const { t } = useLingui();
-  // `reactors` is selected on both inline fragments but the
-  // discriminated union also carries a "%other" branch for forward
-  // compatibility, so narrow via `"reactors" in` before reading.
-  const reactors = () =>
-    "reactors" in props.group ? props.group.reactors : null;
-  const total = () => reactors()?.totalCount ?? 0;
-  const edges = () => reactors()?.edges ?? [];
-  const shownCount = () => edges().length;
-  const remaining = () => Math.max(0, total() - shownCount());
-  return (
-    <section>
-      <header class="flex items-center gap-2 bg-muted/40 px-4 py-2 text-sm font-medium">
-        <Show
-          when={props.group.__typename === "EmojiReactionGroup"}
-          fallback={
-            <Show
-              keyed
-              when={"customEmoji" in props.group
-                ? props.group.customEmoji
-                : null}
-            >
-              {(emoji) => (
-                <img
-                  src={emoji.imageUrl}
-                  alt={emoji.name}
-                  class="size-5"
-                />
-              )}
-            </Show>
-          }
-        >
-          <span class="text-base leading-none">
-            {"emoji" in props.group ? props.group.emoji : ""}
-          </span>
-        </Show>
-        <span class="text-muted-foreground">{total()}</span>
-      </header>
-      <Show
-        when={edges().length > 0}
-        fallback={
-          <p class="px-4 py-3 text-sm text-muted-foreground">
-            {t`No reactors loaded.`}
-          </p>
-        }
-      >
-        <ul class="divide-y">
-          <For each={edges()}>
-            {(edge) => (
-              <Show keyed when={edge.node}>
-                {(actor) => (
-                  <li>
-                    <ActorPreviewCard $actor={actor} />
-                  </li>
-                )}
-              </Show>
-            )}
-          </For>
-        </ul>
-      </Show>
-      <Show when={remaining() > 0}>
-        <p class="px-4 py-2 text-xs text-muted-foreground">
-          {t`+${remaining()} more reactor(s) not shown`}
-        </p>
-      </Show>
-    </section>
   );
 }
