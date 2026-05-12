@@ -14,7 +14,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. placeholder {0}: article.replies?.edges.length ?? 0
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:974
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:993
 msgid "{0, plural, one {# comment} other {# comments}}"
 msgstr "{0, plural, other {#コメント}}"
 
@@ -54,13 +54,28 @@ msgstr "{0, plural, other {残り#件の招待}}"
 msgid "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
 msgstr "{0, plural, other {#件の孤立したメディアを削除できます。}}"
 
+#. placeholder {0}: props.quotes
+#: src/components/EngagementTabs.tsx:28
+msgid "{0, plural, one {# quote} other {# quotes}}"
+msgstr "{0, plural, one {引用 #件} other {引用 #件}}"
+
+#. placeholder {0}: props.reactions
+#: src/components/EngagementTabs.tsx:31
+msgid "{0, plural, one {# reaction} other {# reactions}}"
+msgstr "{0, plural, one {リアクション #件} other {リアクション #件}}"
+
+#. placeholder {0}: props.shares
+#: src/components/EngagementTabs.tsx:25
+msgid "{0, plural, one {# share} other {# shares}}"
+msgstr "{0, plural, one {共有 #件} other {共有 #件}}"
+
 #. placeholder {0}: votes()
-#: src/components/QuestionCard.tsx:484
+#: src/components/QuestionCard.tsx:493
 msgid "{0, plural, one {# vote} other {# votes}}"
 msgstr "{0, plural, other {#票}}"
 
 #. placeholder {0}: props.poll.voters.totalCount
-#: src/components/QuestionCard.tsx:430
+#: src/components/QuestionCard.tsx:439
 msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, other {投票者 #人}}"
 
@@ -182,7 +197,7 @@ msgstr "{0}さんがあなたのコンテンツを共有しました"
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:244
-#: src/routes/(root)/[handle]/[noteId].tsx:255
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:255
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -216,6 +231,12 @@ msgstr "{0}さんの投稿"
 msgid "{0}'s shares"
 msgstr "{0}さんの共有"
 
+#. placeholder {0}: remaining()
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:231
+#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:253
+msgid "+{0} more reactor(s) not shown"
+msgstr "+{0}件のリアクションは表示されていません"
+
 #: src/routes/(root)/[handle]/settings/index.tsx:558
 msgid "A name for the link that will be displayed on your profile, e.g., GitHub."
 msgstr "プロフィールに表示されるリンクの名前。（例：GitHub）"
@@ -225,11 +246,11 @@ msgid "A sign-in link has been sent to your email. Please check your inbox (or s
 msgstr "ログインリンクがメールに送信されました。受信トレイ（または迷惑メールフォルダ）を確認してください。"
 
 #: src/components/admin/AdminAccountsTable.tsx:104
-#: src/components/AppSidebar.tsx:424
+#: src/components/AppSidebar.tsx:430
 msgid "Account"
 msgstr "アカウント"
 
-#: src/components/AppSidebar.tsx:647
+#: src/components/AppSidebar.tsx:653
 #: src/routes/(root)/admin/index.tsx:57
 msgid "Accounts"
 msgstr "アカウント"
@@ -248,7 +269,7 @@ msgstr "追加"
 msgid "Add {0}"
 msgstr "{0}を追加"
 
-#: src/components/AppSidebar.tsx:625
+#: src/components/AppSidebar.tsx:631
 msgid "Admin"
 msgstr "管理"
 
@@ -356,7 +377,7 @@ msgstr "記事URLスラッグ"
 msgid "Articles"
 msgstr "記事"
 
-#: src/components/AppSidebar.tsx:279
+#: src/components/AppSidebar.tsx:285
 msgid "Articles only"
 msgstr "記事のみ"
 
@@ -415,7 +436,7 @@ msgstr "太字"
 msgid "Bookmark"
 msgstr "ブックマーク"
 
-#: src/components/AppSidebar.tsx:548
+#: src/components/AppSidebar.tsx:554
 #: src/routes/(root)/[handle]/bookmarks.tsx:134
 msgid "Bookmarks"
 msgstr "ブックマーク"
@@ -460,7 +481,7 @@ msgstr "確認メールの言語を選択してください。"
 msgid "Close"
 msgstr "閉じる"
 
-#: src/components/QuestionCard.tsx:422
+#: src/components/QuestionCard.tsx:431
 msgid "Closed"
 msgstr "終了"
 
@@ -468,7 +489,7 @@ msgstr "終了"
 msgid "Code"
 msgstr "コード"
 
-#: src/components/AppSidebar.tsx:873
+#: src/components/AppSidebar.tsx:879
 #: src/routes/(root)/coc.tsx:49
 #: src/routes/(root)/sign/up/[token].tsx:441
 msgid "Code of conduct"
@@ -478,7 +499,7 @@ msgstr "行動規範"
 #~ msgid "Comments ({0})"
 #~ msgstr "コメント（{0}）"
 
-#: src/components/AppSidebar.tsx:716
+#: src/components/AppSidebar.tsx:722
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "作成"
@@ -517,11 +538,11 @@ msgstr "このURLのコンテンツが見つかりませんでした"
 msgid "Could not load profile."
 msgstr "プロフィールを読み込めませんでした。"
 
-#: src/components/QuestionCard.tsx:375
+#: src/components/QuestionCard.tsx:384
 msgid "Could not vote on this poll"
 msgstr "このアンケートに投票できませんでした"
 
-#: src/components/AppSidebar.tsx:762
+#: src/components/AppSidebar.tsx:768
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "記事を作成"
@@ -530,7 +551,7 @@ msgstr "記事を作成"
 msgid "Create invitation link"
 msgstr "招待リンクを作成"
 
-#: src/components/AppSidebar.tsx:738
+#: src/components/AppSidebar.tsx:744
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:31
 #: src/components/NoteComposer.tsx:1177
@@ -648,7 +669,7 @@ msgstr "保持したい領域をドラッグして選択し、「切り抜き」
 msgid "e.g., @user@mastodon.social"
 msgstr "例: @user@mastodon.social"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:682
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:701
 msgid "Edit"
 msgstr "編集"
 
@@ -671,11 +692,11 @@ msgstr "メールアドレス"
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
 
-#: src/components/QuestionCard.tsx:425
+#: src/components/QuestionCard.tsx:434
 msgid "Ended"
 msgstr "終了"
 
-#: src/components/QuestionCard.tsx:425
+#: src/components/QuestionCard.tsx:434
 msgid "Ends"
 msgstr "終了予定"
 
@@ -826,9 +847,19 @@ msgstr "パスキーの読み込みに失敗しました。クリックして再
 msgid "Failed to load more posts; click to retry"
 msgstr "コンテンツの読み込みに失敗しました。クリックして再試行してください"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:565
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:193
+#: src/routes/(root)/[handle]/[noteId]/quotes.tsx:199
+msgid "Failed to load more quotes; click to retry"
+msgstr "引用の追加読み込みに失敗しました。再試行するにはクリックしてください"
+
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:565
 msgid "Failed to load more replies; click to retry"
 msgstr "返信の読み込みに失敗しました。クリックして再試行してください"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:202
+#: src/routes/(root)/[handle]/[noteId]/shares.tsx:213
+msgid "Failed to load more shares; click to retry"
+msgstr "共有の追加読み込みに失敗しました。再試行するにはクリックしてください"
 
 #: src/components/NoteComposer.tsx:818
 msgid "Failed to load post"
@@ -894,8 +925,8 @@ msgstr "メールの送信に失敗しました"
 msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
-#: src/components/PostEngagementBar.tsx:181
-#: src/components/PostEngagementBar.tsx:188
+#: src/components/PostEngagementBar.tsx:187
+#: src/components/PostEngagementBar.tsx:194
 msgid "Failed to share post"
 msgstr "コンテンツの共有に失敗しました"
 
@@ -918,8 +949,8 @@ msgstr "フォロー解除に失敗しました"
 msgid "Failed to unpin post"
 msgstr "コンテンツの固定を解除できませんでした"
 
-#: src/components/PostEngagementBar.tsx:163
-#: src/components/PostEngagementBar.tsx:170
+#: src/components/PostEngagementBar.tsx:169
+#: src/components/PostEngagementBar.tsx:176
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
@@ -932,11 +963,11 @@ msgstr "記事の更新に失敗しました。もう一度お試しください
 msgid "Failed to upload image"
 msgstr "画像のアップロードに失敗しました"
 
-#: src/components/QuestionCard.tsx:383
+#: src/components/QuestionCard.tsx:392
 msgid "Failed to vote"
 msgstr "投票に失敗しました"
 
-#: src/components/AppSidebar.tsx:327
+#: src/components/AppSidebar.tsx:333
 msgid "Fediverse"
 msgstr "フェディバース"
 
@@ -987,7 +1018,7 @@ msgstr "書式設定"
 msgid "Generating…"
 msgstr "生成中…"
 
-#: src/components/AppSidebar.tsx:911
+#: src/components/AppSidebar.tsx:917
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -1020,8 +1051,8 @@ msgstr "マイ下書きへ"
 msgid "Grants one extra invitation to the most active accounts (the top third by post count) since the last regeneration cutoff."
 msgstr "前回の再付与カットオフ以降、最も活発なアカウント（投稿数上位3分の1）に招待状を1通追加で付与します。"
 
-#: src/components/AppSidebar.tsx:304
-#: src/components/AppSidebar.tsx:392
+#: src/components/AppSidebar.tsx:310
+#: src/components/AppSidebar.tsx:398
 #: src/routes/(root).tsx:121
 #: src/routes/(root)/coc.tsx:49
 #: src/routes/(root)/markdown.tsx:49
@@ -1083,17 +1114,17 @@ msgid "If enabled, the AI will generate a summary of the article for you. Otherw
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:996
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1015
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この記事に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当記事に返信してください。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:364
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:364
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバース（fediverse）アカウントをお持ちの場合、この投稿に返信することができます。ご利用のインスタンスの検索バーに{0}を検索し、該当投稿に返信してください。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId].tsx:442
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:442
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "フェディバースのアカウントをお持ちの場合、自分のインスタンスからこのコンテンツに返信できます。お使いのインスタンスで{0}を検索して返信してください。"
 
@@ -1151,12 +1182,12 @@ msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
-#: src/components/AppSidebar.tsx:670
+#: src/components/AppSidebar.tsx:676
 #: src/routes/(root)/admin/invitations.tsx:156
 msgid "Invitations"
 msgstr "招待"
 
-#: src/components/AppSidebar.tsx:572
+#: src/components/AppSidebar.tsx:578
 #: src/components/SettingsTabs.tsx:68
 #: src/routes/(root)/[handle]/settings/invite.tsx:291
 msgid "Invite"
@@ -1288,9 +1319,19 @@ msgstr "パスキーを読み込む"
 msgid "Load more posts"
 msgstr "コンテンツをもっと読み込む"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:568
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:196
+#: src/routes/(root)/[handle]/[noteId]/quotes.tsx:202
+msgid "Load more quotes"
+msgstr "引用をもっと読み込む"
+
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:568
 msgid "Load more replies"
 msgstr "返信をもっと読み込む"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:205
+#: src/routes/(root)/[handle]/[noteId]/shares.tsx:216
+msgid "Load more shares"
+msgstr "共有をもっと読み込む"
 
 #: src/components/article-composer/ArticleComposer.tsx:31
 msgid "Loading draft…"
@@ -1340,9 +1381,19 @@ msgstr "パスキーを読み込み中…"
 msgid "Loading more posts…"
 msgstr "コンテンツを読み込み中…"
 
-#: src/routes/(root)/[handle]/[noteId].tsx:562
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:190
+#: src/routes/(root)/[handle]/[noteId]/quotes.tsx:196
+msgid "Loading more quotes…"
+msgstr "引用を読み込み中…"
+
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:562
 msgid "Loading more replies…"
 msgstr "返信を読み込み中…"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:199
+#: src/routes/(root)/[handle]/[noteId]/shares.tsx:210
+msgid "Loading more shares…"
+msgstr "共有を読み込み中…"
 
 #: src/components/NoteComposer.tsx:870
 msgid "Loading quoted post…"
@@ -1376,7 +1427,7 @@ msgstr "Markdown ガイド"
 msgid "Markdown supported"
 msgstr "Markdown対応"
 
-#: src/components/AppSidebar.tsx:693
+#: src/components/AppSidebar.tsx:699
 #: src/routes/(root)/admin/media.tsx:160
 msgid "Media"
 msgstr "メディア"
@@ -1402,7 +1453,7 @@ msgstr "一番上へ移動"
 msgid "Move up"
 msgstr "上へ移動"
 
-#: src/components/QuestionCard.tsx:419
+#: src/components/QuestionCard.tsx:428
 msgid "Multiple choice"
 msgstr "複数選択"
 
@@ -1482,6 +1533,16 @@ msgstr "記事はありません"
 msgid "No notes found"
 msgstr "投稿はありません"
 
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:170
+#: src/routes/(root)/[handle]/[noteId]/quotes.tsx:176
+msgid "No one has quoted this yet."
+msgstr "まだ誰も引用していません。"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:173
+#: src/routes/(root)/[handle]/[noteId]/shares.tsx:184
+msgid "No one has shared this yet."
+msgstr "まだ誰も共有していません。"
+
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
 #: src/components/PersonalTimeline.tsx:117
@@ -1489,6 +1550,16 @@ msgstr "投稿はありません"
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "コンテンツはありません"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:160
+#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:166
+msgid "No reactions yet."
+msgstr "まだリアクションがありません。"
+
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:211
+#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:233
+msgid "No reactors loaded."
+msgstr "読み込まれたリアクターはありません。"
 
 #: src/routes/(root)/sign/index.tsx:223
 msgid "No such account in Hackers' Pub—please try again."
@@ -1536,7 +1607,7 @@ msgstr "投稿"
 #~ msgid "Nothing to preview"
 #~ msgstr "プレビューする内容がありません"
 
-#: src/components/AppSidebar.tsx:504
+#: src/components/AppSidebar.tsx:510
 msgid "Notifications"
 msgstr "通知"
 
@@ -1544,7 +1615,7 @@ msgstr "通知"
 msgid "Number of invitations"
 msgstr "招待数"
 
-#: src/components/QuestionCard.tsx:422
+#: src/components/QuestionCard.tsx:431
 msgid "Open"
 msgstr "受付中"
 
@@ -1560,7 +1631,7 @@ msgstr "または"
 msgid "Or enter the code from the email"
 msgstr "またはメールのコードを入力してください"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:864
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:883
 msgid "Other languages"
 msgstr "他の言語"
 
@@ -1632,11 +1703,11 @@ msgstr "フェディバースのハンドルを入力してください。"
 msgid "Please sign in to access this page"
 msgstr "このページにアクセスするにはログインしてください"
 
-#: src/components/QuestionCard.tsx:369
+#: src/components/QuestionCard.tsx:378
 msgid "Please sign in to vote"
 msgstr "投票するにはログインしてください"
 
-#: src/components/QuestionCard.tsx:344
+#: src/components/QuestionCard.tsx:353
 msgid "Poll closed"
 msgstr "アンケートは終了しました"
 
@@ -1688,7 +1759,7 @@ msgstr "前の画像"
 msgid "Priority"
 msgstr "優先度"
 
-#: src/components/AppSidebar.tsx:878
+#: src/components/AppSidebar.tsx:884
 #: src/routes/(root)/privacy.tsx:49
 msgid "Privacy policy"
 msgstr "プライバシーポリシー"
@@ -1730,17 +1801,22 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/NoteComposeModal.tsx:30
-#: src/components/PostEngagementBar.tsx:260
+#: src/components/PostEngagementBar.tsx:266
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:261
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/quotes.tsx:104
+#: src/routes/(root)/[handle]/[noteId]/quotes.tsx:114
+msgid "Quotes"
+msgstr "引用"
+
+#: src/components/PostEngagementBar.tsx:267
 msgid "Quoting is not available for this post"
 msgstr "このコンテンツは引用できません。"
 
-#: src/components/PostEngagementBar.tsx:334
-#: src/components/PostEngagementBar.tsx:335
+#: src/components/PostEngagementBar.tsx:340
+#: src/components/PostEngagementBar.tsx:341
 msgid "React"
 msgstr "リアクション"
 
@@ -1753,8 +1829,13 @@ msgstr "{emoji}でリアクション"
 msgid "reaction"
 msgstr "リアクション"
 
-#: src/components/ArticleCard.tsx:382
-#: src/components/ArticleCard.tsx:402
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:147
+#: src/routes/(root)/[handle]/[noteId]/reactions.tsx:153
+msgid "Reactions"
+msgstr "リアクション"
+
+#: src/components/ArticleCard.tsx:420
+#: src/components/ArticleCard.tsx:440
 msgid "Read full article"
 msgstr "記事全文を読む"
 
@@ -1762,7 +1843,7 @@ msgstr "記事全文を読む"
 msgid "Read the full Code of conduct"
 msgstr "行動規範の全文を読む"
 
-#: src/components/AppSidebar.tsx:797
+#: src/components/AppSidebar.tsx:803
 msgid "Recent drafts"
 msgstr "最近の下書き"
 
@@ -1837,11 +1918,11 @@ msgid "Removes stored media that are old enough and no longer attached to an ava
 msgstr "作成から十分な時間が経過し、アイコン、投稿、記事の下書き、記事のいずれにも添付されていない保存済みメディアを削除します。"
 
 #: src/components/NoteComposeModal.tsx:29
-#: src/components/PostEngagementBar.tsx:248
+#: src/components/PostEngagementBar.tsx:254
 msgid "Reply"
 msgstr "返信"
 
-#: src/components/PostEngagementBar.tsx:249
+#: src/components/PostEngagementBar.tsx:255
 msgid "Replying is not available for this post"
 msgstr "このコンテンツには返信できません"
 
@@ -1849,7 +1930,7 @@ msgstr "このコンテンツには返信できません"
 msgid "Replying to"
 msgstr "返信先"
 
-#: src/components/AppSidebar.tsx:443
+#: src/components/AppSidebar.tsx:449
 msgid "Return to old UI"
 msgstr "旧UIに戻る"
 
@@ -1888,7 +1969,7 @@ msgstr "下書きを保存するとプレビューが表示されます"
 msgid "Saving…"
 msgstr "保存中…"
 
-#: src/components/AppSidebar.tsx:350
+#: src/components/AppSidebar.tsx:356
 #: src/routes/(root)/search.tsx:180
 #: src/routes/(root)/search.tsx:197
 msgid "Search"
@@ -1911,11 +1992,11 @@ msgstr "{0}の検索結果"
 msgid "Searching…"
 msgstr "検索中…"
 
-#: src/components/QuestionCard.tsx:349
+#: src/components/QuestionCard.tsx:358
 msgid "Select an option"
 msgstr "選択肢を選んでください"
 
-#: src/components/QuestionCard.tsx:349
+#: src/components/QuestionCard.tsx:358
 msgid "Select options"
 msgstr "選択肢を選んでください"
 
@@ -1936,19 +2017,21 @@ msgstr "送信中…"
 msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
-#: src/components/AppSidebar.tsx:604
+#: src/components/AppSidebar.tsx:610
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostEngagementBar.tsx:294
+#: src/components/PostEngagementBar.tsx:300
 msgid "Share"
 msgstr "共有"
 
 #: src/components/ProfileTabs.tsx:54
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:104
+#: src/routes/(root)/[handle]/[noteId]/shares.tsx:119
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/PostEngagementBar.tsx:295
+#: src/components/PostEngagementBar.tsx:301
 msgid "Sharing is not available for this post"
 msgstr "このコンテンツは共有できません。"
 
@@ -1956,7 +2039,7 @@ msgstr "このコンテンツは共有できません。"
 msgid "Show preview"
 msgstr "プレビューを表示"
 
-#: src/components/AppSidebar.tsx:468
+#: src/components/AppSidebar.tsx:474
 #: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
 msgstr "ログイン"
@@ -1965,7 +2048,7 @@ msgstr "ログイン"
 msgid "Sign in to Hackers' Pub"
 msgstr "Hackers' Pubにログイン"
 
-#: src/components/QuestionCard.tsx:346
+#: src/components/QuestionCard.tsx:355
 msgid "Sign in to vote"
 msgstr "ログインして投票"
 
@@ -1973,7 +2056,7 @@ msgstr "ログインして投票"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:860
+#: src/components/AppSidebar.tsx:866
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -1998,7 +2081,7 @@ msgstr "ログイン中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Hackers' Pubに登録"
 
-#: src/components/QuestionCard.tsx:419
+#: src/components/QuestionCard.tsx:428
 msgid "Single choice"
 msgstr "単一選択"
 
@@ -2043,15 +2126,15 @@ msgstr "環境設定を正常に保存しました"
 msgid "Successfully saved settings"
 msgstr "設定を正常に保存しました"
 
-#: src/components/ArticleCard.tsx:335
-#: src/components/ArticleCard.tsx:354
+#: src/components/ArticleCard.tsx:373
+#: src/components/ArticleCard.tsx:392
 msgid "Summarized by LLM"
 msgstr "LLMによる要約"
 
 #: src/components/DocumentView.tsx:34
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:708
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:716
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1039
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:727
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:735
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1058
 msgid "Table of contents"
 msgstr "目次"
 
@@ -2061,7 +2144,7 @@ msgstr "目次"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:142
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:293
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1048
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1067
 msgid "Tags"
 msgstr "タグ"
 
@@ -2128,7 +2211,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:902
+#: src/components/AppSidebar.tsx:908
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -2169,7 +2252,7 @@ msgstr "この招待リンクが見つかりませんでした。"
 msgid "This service does not support remote follow."
 msgstr "このサービスはリモートフォローに対応していません。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:539
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:558
 msgid "This usually takes about a minute. The page will update automatically when the translation is ready."
 msgstr "通常1分ほどかかります。翻訳が完了するとページが自動的に更新されます。"
 
@@ -2205,8 +2288,8 @@ msgid "Total: {0}"
 msgstr "合計：{0}"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:217
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:848
+#: src/components/ArticleCard.tsx:255
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:867
 msgid "Translated from {0}"
 msgstr "{0}から翻訳"
 
@@ -2214,18 +2297,18 @@ msgstr "{0}から翻訳"
 #~ msgid "Translating to {0}…"
 #~ msgstr "{0}に翻訳中…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:534
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:553
 msgid "Translating to {name}…"
 msgstr "{name}に翻訳中…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:530
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:549
 msgid "Translating…"
 msgstr "翻訳中…"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:388
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:411
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/[lang].tsx:420
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:575
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:594
 msgid "Translation request failed"
 msgstr "翻訳のリクエストに失敗しました"
 
@@ -2233,12 +2316,12 @@ msgstr "翻訳のリクエストに失敗しました"
 #~ msgid "Translation request failed for {0}"
 #~ msgstr "{0}への翻訳リクエストに失敗しました"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:580
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:599
 msgid "Translation request failed for {name}"
 msgstr "{name}への翻訳リクエストに失敗しました"
 
 #: src/app.tsx:93
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:588
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:607
 msgid "Try again"
 msgstr "再試行"
 
@@ -2275,7 +2358,7 @@ msgstr "フォロー解除"
 msgid "Unpin from profile"
 msgstr "プロフィールから固定解除"
 
-#: src/components/PostEngagementBar.tsx:292
+#: src/components/PostEngagementBar.tsx:298
 msgid "Unshare"
 msgstr "共有を取り消す"
 
@@ -2343,7 +2426,7 @@ msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
 
-#: src/components/AppSidebar.tsx:823
+#: src/components/AppSidebar.tsx:829
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
 
@@ -2351,19 +2434,19 @@ msgstr "すべての下書きを表示 →"
 msgid "View image"
 msgstr "画像を表示"
 
-#: src/components/PostEngagementBar.tsx:262
+#: src/components/PostEngagementBar.tsx:268
 msgid "View quotes"
 msgstr "引用を見る"
 
-#: src/components/PostEngagementBar.tsx:366
+#: src/components/PostEngagementBar.tsx:372
 msgid "View reactions"
 msgstr "リアクションを見る"
 
-#: src/components/PostEngagementBar.tsx:250
+#: src/components/PostEngagementBar.tsx:256
 msgid "View replies"
 msgstr "返信を見る"
 
-#: src/components/PostEngagementBar.tsx:296
+#: src/components/PostEngagementBar.tsx:302
 msgid "View shares"
 msgstr "共有を見る"
 
@@ -2387,19 +2470,19 @@ msgstr "誰でも閲覧できますが、公開タイムラインには表示さ
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "未登録ユーザーを含む誰でも閲覧できます。公開タイムラインにも表示されます。"
 
-#: src/components/QuestionCard.tsx:351
+#: src/components/QuestionCard.tsx:360
 msgid "Vote"
 msgstr "投票"
 
-#: src/components/QuestionCard.tsx:365
+#: src/components/QuestionCard.tsx:374
 msgid "Vote recorded"
 msgstr "投票しました"
 
-#: src/components/QuestionCard.tsx:345
+#: src/components/QuestionCard.tsx:354
 msgid "Voted"
 msgstr "投票済み"
 
-#: src/components/QuestionCard.tsx:347
+#: src/components/QuestionCard.tsx:356
 msgid "Voting…"
 msgstr "投票中…"
 
@@ -2411,7 +2494,7 @@ msgstr "警告"
 msgid "We couldn't reach the server"
 msgstr "サーバーに接続できませんでした"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:585
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:604
 msgid "We couldn't reach the translation service. Try again, or come back in a few minutes."
 msgstr "翻訳サービスに接続できませんでした。再試行するか、数分後に再度お試しください。"
 
@@ -2431,14 +2514,14 @@ msgstr "Hackers' Pubとは？"
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
-#: src/components/AppSidebar.tsx:256
+#: src/components/AppSidebar.tsx:262
 msgid "Without shares"
 msgstr "共有除外"
 
 #: src/components/NoteComposeModal.tsx:50
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:987
-#: src/routes/(root)/[handle]/[noteId].tsx:355
-#: src/routes/(root)/[handle]/[noteId].tsx:433
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1006
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:355
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:433
 msgid "Write a reply…"
 msgstr "返信を書く…"
 
