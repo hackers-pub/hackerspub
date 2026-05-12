@@ -205,10 +205,14 @@ function addRelayRequestBreadcrumb(
 
 function isGraphQLSingularResponse(response: unknown): boolean {
   if (response == null || typeof response !== "object") return false;
-  if ("data" in response && response.data !== undefined) return true;
+  if ("data" in response) return isGraphQLData(response.data);
   return "errors" in response &&
     Array.isArray(response.errors) &&
     response.errors.length > 0;
+}
+
+function isGraphQLData(data: unknown): boolean {
+  return data === null || typeof data === "object" && !Array.isArray(data);
 }
 
 function isGraphQLResponse(response: unknown): response is GraphQLResponse {
