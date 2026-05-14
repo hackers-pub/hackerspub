@@ -191,6 +191,29 @@ function decodeAdminCursor(encoded: string): AdminCursorData | null {
     if (!validFields.includes(field)) return null;
     if (dir !== "ASC" && dir !== "DESC") return null;
     if (!validateUuid(id as Uuid)) return null;
+    // Validate the sort-key value to prevent SQL cast errors.
+    const isTimestampField = field === "LAST_ACTIVITY" || field === "CREATED";
+    if (isTimestampField) {
+      // Validate the PostgreSQL timestamptz text format emitted by ::text
+      // (e.g. "2024-01-15 10:30:00.123456+00") by checking each calendar
+      // and time component directly.  Avoids relying on JS Date parsing,
+      // which normalises invalid dates and shifts local dates to UTC.
+      // Cursors are always emitted in UTC ("+00"); reject any other offset.
+      const pgTsPattern =
+        /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})(\.\d{1,6})?\+00$/;
+      const pgMatch = pgTsPattern.exec(val);
+      if (!pgMatch) return null;
+      const [, yr, mo, dy, hh, mm, ss] = pgMatch.map(Number);
+      if (yr < 1 || mo < 1 || mo > 12) return null;
+      // Last day of the month (new Date(yr, mo, 0) = day 0 of next month).
+      const maxDay = new Date(yr, mo, 0).getDate();
+      if (dy < 1 || dy > maxDay) return null;
+      if (hh > 23 || mm > 59 || ss > 59) return null;
+    } else {
+      // Decimal digits only, within PostgreSQL bigint range.
+      if (!/^\d+$/.test(val)) return null;
+      if (BigInt(val) > 9223372036854775807n) return null;
+    }
     return { field, dir, val, id };
   } catch {
     return null;
@@ -303,6 +326,7 @@ builder.queryField("adminAccounts", (t) =>
         .as("posts_agg");
 
       // Followers per account (actors whose followeeId maps to this account).
+      // Only count accepted follows so the sort order matches the displayed totals.
       const followersSubq = ctx.db
         .select({
           accountId: actorTable.accountId,
@@ -310,11 +334,17 @@ builder.queryField("adminAccounts", (t) =>
         })
         .from(followingTable)
         .innerJoin(actorTable, eq(actorTable.id, followingTable.followeeId))
-        .where(isNotNull(actorTable.accountId))
+        .where(
+          and(
+            isNotNull(actorTable.accountId),
+            isNotNull(followingTable.accepted),
+          ),
+        )
         .groupBy(actorTable.accountId)
         .as("followers_agg");
 
       // Following per account (actors whose followerId maps to this account).
+      // Only count accepted follows so the sort order matches the displayed totals.
       const followingSubq = ctx.db
         .select({
           accountId: actorTable.accountId,
@@ -322,7 +352,12 @@ builder.queryField("adminAccounts", (t) =>
         })
         .from(followingTable)
         .innerJoin(actorTable, eq(actorTable.id, followingTable.followerId))
-        .where(isNotNull(actorTable.accountId))
+        .where(
+          and(
+            isNotNull(actorTable.accountId),
+            isNotNull(followingTable.accepted),
+          ),
+        )
         .groupBy(actorTable.accountId)
         .as("following_agg");
 
@@ -408,12 +443,25 @@ builder.queryField("adminAccounts", (t) =>
             : decodeAdminCursor(before);
           const afterCursor = after == null ? null : decodeAdminCursor(after);
 
-          const afterFilter = afterCursor == null
+          // Reject cursors that don't match the current sort to prevent
+          // wrong pagination or SQL cast errors when the sort changes.
+          const validAfter = afterCursor != null &&
+              afterCursor.field === orderBy &&
+              afterCursor.dir === orderDir
+            ? afterCursor
+            : null;
+          const validBefore = beforeCursor != null &&
+              beforeCursor.field === orderBy &&
+              beforeCursor.dir === orderDir
+            ? beforeCursor
+            : null;
+
+          const afterFilter = validAfter == null
             ? undefined
-            : buildAfterFilter(afterCursor);
-          const beforeFilter = beforeCursor == null
+            : buildAfterFilter(validAfter);
+          const beforeFilter = validBefore == null
             ? undefined
-            : buildBeforeFilter(beforeCursor);
+            : buildBeforeFilter(validBefore);
 
           // `inverted` flips ORDER BY so resolveCursorConnection can fetch
           // the LAST N items closest to the cursor and then reverse them.
@@ -426,9 +474,15 @@ builder.queryField("adminAccounts", (t) =>
             .select({
               account: accountTable,
               lastActivity: lastActivityExpr,
-              // Cast the COALESCE expression to text so postgres-js gives us
-              // the raw microsecond-precision string needed for the cursor.
-              lastActivityRaw: sql<string>`${lastActivityExpr}::text`,
+              // Format timestamps as UTC text for cursor encoding.  Using
+              // AT TIME ZONE 'UTC' before to_char ensures the cursor value
+              // is always "+00", regardless of the PostgreSQL session timezone.
+              lastActivityRaw: sql<
+                string
+              >`to_char(${lastActivityExpr} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`,
+              createdRaw: sql<
+                string
+              >`to_char(${accountTable.created} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`,
               followingCount: sql<
                 number
               >`COALESCE(${followingSubq.count}, 0)::int`,
@@ -473,9 +527,9 @@ builder.queryField("adminAccounts", (t) =>
             const sortValRaw: string = orderBy === "LAST_ACTIVITY"
               ? lastActivityRaw
               : orderBy === "CREATED"
-              ? (r.account.created instanceof Date
-                ? r.account.created.toISOString()
-                : String(r.account.created))
+              ? ((r.createdRaw as unknown) instanceof Date
+                ? (r.createdRaw as unknown as Date).toISOString()
+                : String(r.createdRaw))
               : orderBy === "INVITATIONS_LEFT"
               ? String(r.account.leftInvitations)
               : orderBy === "FOLLOWING"

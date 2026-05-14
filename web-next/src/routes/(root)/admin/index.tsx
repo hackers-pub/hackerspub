@@ -45,11 +45,23 @@ function parseQueryParams(search: string): {
   search: string | undefined;
 } {
   const params = new URLSearchParams(search);
-  const orderBy =
-    (params.get("sort")?.toUpperCase() as AdminAccountOrderBy | null) ??
-      "LAST_ACTIVITY";
-  const orderDirection =
-    (params.get("dir")?.toUpperCase() as OrderDirection | null) ?? "DESC";
+  const validOrderBy = new Set<string>([
+    "FOLLOWING",
+    "FOLLOWERS",
+    "POSTS",
+    "INVITATIONS_LEFT",
+    "INVITED",
+    "LAST_ACTIVITY",
+    "CREATED",
+  ]);
+  const rawSort = params.get("sort")?.toUpperCase() ?? "";
+  const orderBy: AdminAccountOrderBy = validOrderBy.has(rawSort)
+    ? (rawSort as AdminAccountOrderBy)
+    : "LAST_ACTIVITY";
+  const rawDir = params.get("dir")?.toUpperCase() ?? "";
+  const orderDirection: OrderDirection = rawDir === "ASC" || rawDir === "DESC"
+    ? rawDir
+    : "DESC";
   const q = params.get("q") ?? undefined;
   return { orderBy, orderDirection, search: q };
 }
