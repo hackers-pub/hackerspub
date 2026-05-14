@@ -46,7 +46,7 @@
     "regexp.escape": "^2.0.1",
     "relay-runtime": "^19.0.0",
     "solid-js": "^1.9.10",
-    "solid-relay": "1.0.0-beta.15",
+    "solid-relay": "1.0.0-beta.19",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.11",
     "temporal-polyfill": "^0.3.0",
