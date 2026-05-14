@@ -1996,7 +1996,7 @@ msgstr "변경사항 저장"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
 msgid "Save draft"
-msgstr "초고"
+msgstr "초고 저장"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:126
 msgid "Save draft to see preview"
