@@ -1200,6 +1200,9 @@ msgid "Invitation sent"
 msgstr "招待状を送信しました"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
+msgid "Invitations left"
+msgstr "残り招待数"
+
 #: src/components/AppSidebar.tsx:676
 #: src/routes/(root)/admin/invitations.tsx:156
 msgid "Invitations"

@@ -5,6 +5,7 @@ export interface TimestampProps {
   value: Date | string;
   capitalizeFirstLetter?: boolean;
   allowFuture?: boolean;
+  relativeStyle?: Intl.RelativeTimeFormatStyle;
 }
 
 export function Timestamp(props: TimestampProps) {
@@ -25,6 +26,7 @@ export function Timestamp(props: TimestampProps) {
       {formatRelativeTime(targetDate(), date, i18n.locale, {
         capitalizeFirstLetter: props.capitalizeFirstLetter,
         allowFuture: props.allowFuture,
+        style: props.relativeStyle,
       })}
     </time>
   );

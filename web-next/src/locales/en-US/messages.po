@@ -1204,6 +1204,9 @@ msgid "Invitation sent"
 msgstr "Invitation sent"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
+msgid "Invitations left"
+msgstr "Invitations left"
+
 #: src/components/AppSidebar.tsx:676
 #: src/routes/(root)/admin/invitations.tsx:156
 msgid "Invitations"

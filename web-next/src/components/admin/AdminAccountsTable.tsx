@@ -111,14 +111,18 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                   <TableHead class="text-right">
                     {t`Posts`}
                   </TableHead>
-                  <TableHead class="text-right">
-                    {t`Invitations`}
+                  <TableHead class="text-right whitespace-nowrap">
+                    {t`Invitations left`}
                   </TableHead>
-                  <TableHead>{t`Invited by`}</TableHead>
+                  <TableHead class="whitespace-nowrap">
+                    {t`Invited by`}
+                  </TableHead>
                   <TableHead class="text-right">
                     {t`Invited`}
                   </TableHead>
-                  <TableHead>{t`Last activity`}</TableHead>
+                  <TableHead class="whitespace-nowrap">
+                    {t`Last activity`}
+                  </TableHead>
                   <TableHead>{t`Created`}</TableHead>
                 </TableRow>
               </TableHeader>
@@ -198,7 +202,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                                   {inviter.name}
                                 </span>
                                 <span class="text-xs text-muted-foreground/70">
-                                  {inviter.handle}
+                                  @{inviter.username}
                                 </span>
                               </span>
                             </A>
@@ -209,10 +213,16 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                         {formatNumber(edge.node.invitees.totalCount)}
                       </TableCell>
                       <TableCell>
-                        <Timestamp value={edge.lastActivity} />
+                        <Timestamp
+                          value={edge.lastActivity}
+                          relativeStyle="narrow"
+                        />
                       </TableCell>
                       <TableCell>
-                        <Timestamp value={edge.node.created} />
+                        <Timestamp
+                          value={edge.node.created}
+                          relativeStyle="narrow"
+                        />
                       </TableCell>
                     </TableRow>
                   )}
