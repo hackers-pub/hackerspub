@@ -997,12 +997,12 @@ export function NoteComposer(props: NoteComposerProps) {
           <TextField>
             <TextFieldLabel class="sr-only">{t`Content`}</TextFieldLabel>
             <TabsList class="h-8 w-full p-0.5 mb-1">
-              <TabsTrigger value="write" class="flex-1 text-xs cursor-pointer">
+              <TabsTrigger value="write" class="flex-1 text-xs">
                 {t`Write`}
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
-                class="flex-1 text-xs cursor-pointer"
+                class="flex-1 text-xs"
               >
                 {t`Preview`}
               </TabsTrigger>
