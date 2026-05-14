@@ -1200,6 +1200,9 @@ msgid "Invitation sent"
 msgstr "邀請已發送"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
+msgid "Invitations left"
+msgstr "剩餘邀請"
+
 #: src/components/AppSidebar.tsx:676
 #: src/routes/(root)/admin/invitations.tsx:156
 msgid "Invitations"
@@ -2013,6 +2016,14 @@ msgstr "儲存草稿以查看預覽"
 #: src/routes/(root)/[handle]/settings/preferences.tsx:207
 msgid "Saving…"
 msgstr "儲存中…"
+
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Search by name or username…"
+msgstr "按名稱或使用者名稱搜尋…"
+
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Clear"
+msgstr "清除"
 
 #: src/components/AppSidebar.tsx:356
 #: src/routes/(root)/search.tsx:180

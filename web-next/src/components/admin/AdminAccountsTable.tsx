@@ -1,6 +1,20 @@
-import { A } from "@solidjs/router";
+import { A, useLocation, useNavigate } from "@solidjs/router";
+import IconChevronDown from "~icons/lucide/chevron-down";
+import IconChevronUp from "~icons/lucide/chevron-up";
+import IconChevronsUpDown from "~icons/lucide/chevrons-up-down";
+import IconSearch from "~icons/lucide/search";
+import IconX from "~icons/lucide/x";
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { ADMIN_SORT_FIELDS } from "~/lib/adminSort.ts";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Match,
+  Show,
+  Switch,
+} from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
@@ -22,17 +36,96 @@ export interface AdminAccountsTableProps {
 
 export function AdminAccountsTable(props: AdminAccountsTableProps) {
   const { i18n, t } = useLingui();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Parse once per URL change so all three derived signals share the object.
+  const searchParams = createMemo(() => new URLSearchParams(location.search));
+
+  const currentSort = () => {
+    const raw = searchParams().get("sort")?.toUpperCase() ?? "";
+    return ADMIN_SORT_FIELDS.has(raw) ? raw : "LAST_ACTIVITY";
+  };
+  const currentDir = () => {
+    const raw = searchParams().get("dir")?.toUpperCase() ?? "";
+    return raw === "ASC" || raw === "DESC" ? raw : "DESC";
+  };
+  const currentSearch = () => searchParams().get("q") ?? "";
+
+  // Sync the text input with the URL whenever the URL's ?q param changes
+  // (e.g. after navigating via a sort-column link).
+  const [searchInput, setSearchInput] = createSignal(currentSearch());
+  createEffect(() => setSearchInput(currentSearch()));
+
+  function sortHref(field: string): string {
+    const params = new URLSearchParams(location.search);
+    if (currentSort() === field) {
+      params.set("dir", currentDir() === "DESC" ? "ASC" : "DESC");
+    } else {
+      params.set("sort", field);
+      params.delete("dir");
+    }
+    return `${location.pathname}?${params.toString()}`;
+  }
+
+  function searchHref(q: string): string {
+    const params = new URLSearchParams(location.search);
+    if (q.trim()) {
+      params.set("q", q.trim());
+    } else {
+      params.delete("q");
+    }
+    return `${location.pathname}?${params.toString()}`;
+  }
+
+  function onSearchSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    navigate(searchHref(searchInput()));
+  }
+
+  function SortIcon(props: { field: string }) {
+    return (
+      <span class="ml-1 inline-flex size-3 shrink-0 items-center">
+        <Show
+          when={currentSort() === props.field}
+          fallback={
+            <IconChevronsUpDown class="size-3 text-muted-foreground/50" />
+          }
+        >
+          <Show
+            when={currentDir() === "ASC"}
+            fallback={<IconChevronDown class="size-3" />}
+          >
+            <IconChevronUp class="size-3" />
+          </Show>
+        </Show>
+      </span>
+    );
+  }
+
   const data = createPaginationFragment(
     graphql`
       fragment AdminAccountsTable_query on Query
         @refetchable(queryName: "AdminAccountsTablePaginationQuery")
         @argumentDefinitions(
           cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 50 }
+          count: { type: "Int", defaultValue: 100 }
+          orderBy: { type: "AdminAccountOrderBy" }
+          orderDirection: { type: "OrderDirection" }
+          search: { type: "String" }
         )
       {
-        adminAccounts(after: $cursor, first: $count)
-          @connection(key: "AdminAccountsTable_adminAccounts")
+        adminAccounts(
+          after: $cursor
+          first: $count
+          orderBy: $orderBy
+          orderDirection: $orderDirection
+          search: $search
+        )
+          @connection(
+            key: "AdminAccountsTable_adminAccounts"
+            filters: ["orderBy", "orderDirection", "search"]
+          )
         {
           totalCount
           edges {
@@ -81,7 +174,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
 
   function onLoadMore() {
     setLoadingState("loading");
-    data.loadNext(50, {
+    data.loadNext(100, {
       onComplete(error) {
         setLoadingState(error == null ? "loaded" : "errored");
       },
@@ -94,6 +187,33 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
     <Show keyed when={data()?.adminAccounts}>
       {(conn) => (
         <>
+          <form onSubmit={onSearchSubmit} class="mb-4 flex gap-2">
+            <div class="relative flex-1">
+              <IconSearch class="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                value={searchInput()}
+                onInput={(e) => setSearchInput(e.currentTarget.value)}
+                placeholder={t`Search by name or username…`}
+                class="h-9 w-full rounded-md border border-input bg-transparent pl-8 pr-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              />
+            </div>
+            <Button type="submit" variant="outline" size="sm">
+              {t`Search`}
+            </Button>
+            <Show when={currentSearch()}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                class="gap-1"
+                onClick={() => navigate(searchHref(""))}
+              >
+                <IconX class="size-3" />
+                {t`Clear`}
+              </Button>
+            </Show>
+          </form>
           <p class="mb-4 text-sm text-muted-foreground">
             {t`Total: ${formatNumber(conn.totalCount)}`}
           </p>
@@ -103,23 +223,71 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                 <TableRow>
                   <TableHead>{t`Account`}</TableHead>
                   <TableHead class="text-right">
-                    {t`Following`}
+                    <A
+                      href={sortHref("FOLLOWING")}
+                      class="inline-flex items-center justify-end hover:text-foreground transition-colors"
+                    >
+                      {t`Following`}
+                      <SortIcon field="FOLLOWING" />
+                    </A>
                   </TableHead>
                   <TableHead class="text-right">
-                    {t`Followers`}
+                    <A
+                      href={sortHref("FOLLOWERS")}
+                      class="inline-flex items-center justify-end hover:text-foreground transition-colors"
+                    >
+                      {t`Followers`}
+                      <SortIcon field="FOLLOWERS" />
+                    </A>
                   </TableHead>
                   <TableHead class="text-right">
-                    {t`Posts`}
+                    <A
+                      href={sortHref("POSTS")}
+                      class="inline-flex items-center justify-end hover:text-foreground transition-colors"
+                    >
+                      {t`Posts`}
+                      <SortIcon field="POSTS" />
+                    </A>
+                  </TableHead>
+                  <TableHead class="text-right whitespace-nowrap">
+                    <A
+                      href={sortHref("INVITATIONS_LEFT")}
+                      class="inline-flex items-center justify-end hover:text-foreground transition-colors"
+                    >
+                      {t`Invitations left`}
+                      <SortIcon field="INVITATIONS_LEFT" />
+                    </A>
+                  </TableHead>
+                  <TableHead class="whitespace-nowrap">
+                    {t`Invited by`}
                   </TableHead>
                   <TableHead class="text-right">
-                    {t`Invitations`}
+                    <A
+                      href={sortHref("INVITED")}
+                      class="inline-flex items-center justify-end hover:text-foreground transition-colors"
+                    >
+                      {t`Invited`}
+                      <SortIcon field="INVITED" />
+                    </A>
                   </TableHead>
-                  <TableHead>{t`Invited by`}</TableHead>
-                  <TableHead class="text-right">
-                    {t`Invited`}
+                  <TableHead class="whitespace-nowrap">
+                    <A
+                      href={sortHref("LAST_ACTIVITY")}
+                      class="inline-flex items-center hover:text-foreground transition-colors"
+                    >
+                      {t`Last activity`}
+                      <SortIcon field="LAST_ACTIVITY" />
+                    </A>
                   </TableHead>
-                  <TableHead>{t`Last activity`}</TableHead>
-                  <TableHead>{t`Created`}</TableHead>
+                  <TableHead>
+                    <A
+                      href={sortHref("CREATED")}
+                      class="inline-flex items-center hover:text-foreground transition-colors"
+                    >
+                      {t`Created`}
+                      <SortIcon field="CREATED" />
+                    </A>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -198,7 +366,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                                   {inviter.name}
                                 </span>
                                 <span class="text-xs text-muted-foreground/70">
-                                  {inviter.handle}
+                                  @{inviter.username}
                                 </span>
                               </span>
                             </A>
@@ -209,10 +377,16 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
                         {formatNumber(edge.node.invitees.totalCount)}
                       </TableCell>
                       <TableCell>
-                        <Timestamp value={edge.lastActivity} />
+                        <Timestamp
+                          value={edge.lastActivity}
+                          relativeStyle="narrow"
+                        />
                       </TableCell>
                       <TableCell>
-                        <Timestamp value={edge.node.created} />
+                        <Timestamp
+                          value={edge.node.created}
+                          relativeStyle="narrow"
+                        />
                       </TableCell>
                     </TableRow>
                   )}

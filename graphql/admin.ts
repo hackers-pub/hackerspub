@@ -5,7 +5,12 @@ import {
   type InvitationRegenerationStatus as ModelInvitationRegenerationStatus,
   regenerateInvitations,
 } from "@hackerspub/models/admin";
-import { accountTable, actorTable, postTable } from "@hackerspub/models/schema";
+import {
+  accountTable,
+  actorTable,
+  followingTable,
+  postTable,
+} from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import {
   resolveCursorConnection,
@@ -19,6 +24,7 @@ import {
   eq,
   inArray,
   isNotNull,
+  or,
   type SQL,
   sql,
 } from "drizzle-orm";
@@ -116,34 +122,97 @@ builder.drizzleObjectField(Account, "lastPostPublished", (t) =>
     },
   }));
 
+const ADMIN_SORT_FIELDS = [
+  "FOLLOWING",
+  "FOLLOWERS",
+  "POSTS",
+  "INVITATIONS_LEFT",
+  "INVITED",
+  "LAST_ACTIVITY",
+  "CREATED",
+] as const;
+
+const AdminAccountOrderBy = builder.enumType("AdminAccountOrderBy", {
+  values: ADMIN_SORT_FIELDS,
+});
+
+const OrderDirection = builder.enumType("OrderDirection", {
+  values: ["ASC", "DESC"] as const,
+});
+
+type AdminOrderBy = typeof AdminAccountOrderBy.$inferType;
+type AdminOrderDir = typeof OrderDirection.$inferType;
+
 interface AdminAccountRow {
   account: typeof accountTable.$inferSelect;
   lastActivity: Date;
-  // The raw `timestamptz` text from PostgreSQL, preserving microsecond
-  // precision.  We carry it alongside the JS Date so the cursor round-
-  // trips bit-for-bit; a JS Date only keeps milliseconds and would
-  // truncate the boundary timestamp, causing rows in the rounded
-  // microsecond window to be skipped on the next page.
-  lastActivityRaw: string;
+  // Raw string representation of the sort key value, used to encode the
+  // cursor without precision loss.  For timestamp sorts this is the raw
+  // PostgreSQL `timestamptz` text; for integer sorts it is the decimal
+  // string representation of the count.
+  sortValRaw: string;
 }
 
-function encodeAdminCursor(row: AdminAccountRow): string {
-  return `${row.lastActivityRaw}|${row.account.id}`;
+interface AdminCursorData {
+  field: AdminOrderBy;
+  dir: AdminOrderDir;
+  val: string; // raw sort-key value
+  id: string; // account UUID
 }
 
-function decodeAdminCursor(
-  cursor: string,
-): { lastActivityRaw: string; accountId: Uuid } | null {
-  const sep = cursor.indexOf("|");
-  if (sep < 0) return null;
-  const lastActivityRaw = cursor.slice(0, sep);
-  const rawId = cursor.slice(sep + 1);
-  // Validate by attempting to parse to a Date.  Microsecond precision
-  // is lost in JS but the raw string is what gets passed back to
-  // PostgreSQL via `::timestamptz`, where full precision is preserved.
-  if (Number.isNaN(new Date(lastActivityRaw).getTime())) return null;
-  if (!validateUuid(rawId)) return null;
-  return { lastActivityRaw, accountId: rawId };
+// Encoded as base64(field|dir|val|id).  None of the constituent values
+// contain "|" (enum names use only [A-Z_], directions are "ASC"/"DESC",
+// PostgreSQL timestamps use ":", "-", ".", "+" and spaces, integers use
+// only digits, and UUIDs use hex digits and "-"), so a single "|"
+// delimiter is safe.
+function encodeAdminCursor(data: AdminCursorData): string {
+  return btoa(`${data.field}|${data.dir}|${data.val}|${data.id}`);
+}
+
+function decodeAdminCursor(encoded: string): AdminCursorData | null {
+  try {
+    const decoded = atob(encoded);
+    const first = decoded.indexOf("|");
+    const second = decoded.indexOf("|", first + 1);
+    const last = decoded.lastIndexOf("|");
+    if (first < 0 || second < 0 || last <= second) return null;
+    const field = decoded.slice(0, first) as AdminOrderBy;
+    const dir = decoded.slice(first + 1, second) as AdminOrderDir;
+    const val = decoded.slice(second + 1, last);
+    const id = decoded.slice(last + 1);
+    if (!(ADMIN_SORT_FIELDS as readonly string[]).includes(field)) return null;
+    if (dir !== "ASC" && dir !== "DESC") return null;
+    if (!validateUuid(id as Uuid)) return null;
+    // Validate the sort-key value to prevent SQL cast errors.
+    const isTimestampField = field === "LAST_ACTIVITY" || field === "CREATED";
+    if (isTimestampField) {
+      // Validate the PostgreSQL timestamptz text format emitted by ::text
+      // (e.g. "2024-01-15 10:30:00.123456+00") by checking each calendar
+      // and time component directly.  Avoids relying on JS Date parsing,
+      // which normalises invalid dates and shifts local dates to UTC.
+      // Cursors are always emitted in UTC ("+00"); reject any other offset.
+      const pgTsPattern =
+        /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})(\.\d{1,6})?\+00$/;
+      const pgMatch = pgTsPattern.exec(val);
+      if (!pgMatch) return null;
+      const [, yr, mo, dy, hh, mm, ss] = pgMatch.map(Number);
+      if (yr < 1 || mo < 1 || mo > 12) return null;
+      // Last day of the month (new Date(yr, mo, 0) = day 0 of next month).
+      const maxDay = new Date(yr, mo, 0).getDate();
+      if (dy < 1 || dy > maxDay) return null;
+      if (hh > 23 || mm > 59 || ss > 59) return null;
+    } else {
+      // Signed decimal integer, within PostgreSQL bigint range.
+      // INVITATIONS_LEFT is a signed smallint so negative cursor values
+      // are possible; the leading "-" must be accepted here.
+      if (!/^-?\d+$/.test(val)) return null;
+      const n = BigInt(val);
+      if (n < -9223372036854775808n || n > 9223372036854775807n) return null;
+    }
+    return { field, dir, val, id };
+  } catch {
+    return null;
+  }
 }
 
 const AdminAccountEdge = builder.simpleObject("AdminAccountEdge", {
@@ -195,15 +264,17 @@ builder.queryField("adminAccounts", (t) =>
     type: AdminAccountConnection,
     nullable: true,
     description:
-      "Moderator-only connection of every account, ordered by latest " +
-      "post `published` falling back to `account.updated`.  Returns " +
-      "null when the viewer is not a moderator; routes should guard " +
-      "with `viewer.moderator` and redirect non-moderators.",
+      "Moderator-only connection of every account.  Returns null when " +
+      "the viewer is not a moderator; routes should guard with " +
+      "`viewer.moderator` and redirect non-moderators.",
     args: {
       first: t.arg.int(),
       after: t.arg.string(),
       last: t.arg.int(),
       before: t.arg.string(),
+      orderBy: t.arg({ type: AdminAccountOrderBy }),
+      orderDirection: t.arg({ type: OrderDirection }),
+      search: t.arg.string(),
     },
     async resolve(
       _root,
@@ -213,11 +284,37 @@ builder.queryField("adminAccounts", (t) =>
       if (ctx.session == null) return null;
       if (!ctx.account?.moderator) return null;
 
-      // Aggregate the latest published timestamp per account so the
-      // outer query can sort by COALESCE(MAX(published), updated).
-      const lastPublishedSubquery = ctx.db
+      const orderBy: AdminOrderBy = args.orderBy ?? "LAST_ACTIVITY";
+      const orderDir: AdminOrderDir = args.orderDirection ?? "DESC";
+
+      // Split the search string into words; each word must appear in either
+      // the display name or the username (case-insensitive substring match).
+      // "!" is used as the ILIKE escape character so "%" and "_" in the
+      // search term are treated as literals rather than SQL wildcards.
+      const searchWords = (args.search ?? "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      const searchFilter = searchWords.length === 0 ? undefined : and(
+        ...searchWords.map((w) => {
+          const p = `%${
+            w.replace(/!/g, "!!").replace(/%/g, "!%").replace(/_/g, "!_")
+          }%`;
+          return or(
+            sql`${accountTable.name} ILIKE ${p} ESCAPE '!'`,
+            sql`${accountTable.username} ILIKE ${p} ESCAPE '!'`,
+          )!;
+        }),
+      );
+
+      // --- Subqueries ---
+
+      // Post count + latest published timestamp per account, used for
+      // LAST_ACTIVITY sort and POSTS sort.
+      const postsSubq = ctx.db
         .select({
           accountId: actorTable.accountId,
+          count: sql<number>`COUNT(*)::int`.as("count"),
           maxPublished: sql<Date | null>`MAX(${postTable.published})`.as(
             "max_published",
           ),
@@ -226,40 +323,146 @@ builder.queryField("adminAccounts", (t) =>
         .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
         .where(isNotNull(actorTable.accountId))
         .groupBy(actorTable.accountId)
-        .as("last_published");
+        .as("posts_agg");
 
+      // Build only the aggregate subquery needed for the current sort field.
+      // Follower / following / invitee counts are expensive GROUP BY aggregates;
+      // joining all three on every request is wasteful when only one is used.
+      const followersSubq = orderBy !== "FOLLOWERS" ? null : ctx.db
+        .select({
+          accountId: actorTable.accountId,
+          count: sql<number>`COUNT(*)::int`.as("count"),
+        })
+        .from(followingTable)
+        .innerJoin(actorTable, eq(actorTable.id, followingTable.followeeId))
+        .where(
+          and(
+            isNotNull(actorTable.accountId),
+            isNotNull(followingTable.accepted),
+          ),
+        )
+        .groupBy(actorTable.accountId)
+        .as("followers_agg");
+
+      const followingSubq = orderBy !== "FOLLOWING" ? null : ctx.db
+        .select({
+          accountId: actorTable.accountId,
+          count: sql<number>`COUNT(*)::int`.as("count"),
+        })
+        .from(followingTable)
+        .innerJoin(actorTable, eq(actorTable.id, followingTable.followerId))
+        .where(
+          and(
+            isNotNull(actorTable.accountId),
+            isNotNull(followingTable.accepted),
+          ),
+        )
+        .groupBy(actorTable.accountId)
+        .as("following_agg");
+
+      const inviteesSubq = orderBy !== "INVITED" ? null : ctx.db
+        .select({
+          inviterId: accountTable.inviterId,
+          count: sql<number>`COUNT(*)::int`.as("count"),
+        })
+        .from(accountTable)
+        .where(isNotNull(accountTable.inviterId))
+        .groupBy(accountTable.inviterId)
+        .as("invitees_agg");
+
+      // COALESCE(MAX(post.published), account.updated) — the "last activity"
+      // value used for display and for the LAST_ACTIVITY sort.
       const lastActivityExpr = sql<
         Date
-      >`COALESCE(${lastPublishedSubquery.maxPublished}, ${accountTable.updated})`;
+      >`COALESCE(${postsSubq.maxPublished}, ${accountTable.updated})`;
 
-      const totalCount = await ctx.db.$count(accountTable);
-
-      // For the natural ordering `lastActivity DESC, accountId DESC`,
-      // the cursor filters depend only on the cursor side, never on
-      // `inverted`: rows BEFORE the cursor in natural order have a
-      // strictly larger (lastActivity, id) tuple, and rows AFTER have a
-      // strictly smaller one.  The `inverted` flag only flips the
-      // ORDER BY direction so the framework can take the LAST N nodes
-      // closest to the cursor and reverse them back into natural order.
-      // The cursor timestamp and id are bound as text and cast inside
-      // the SQL so postgres-js can serialise them (it has no parameter
-      // type for the COALESCE expression).
-      function tupleLessThan(tsRaw: string, id: string): SQL {
-        const tsLit = sql`${tsRaw}::timestamptz`;
-        const idLit = sql`${id}::uuid`;
-        return sql`(${lastActivityExpr} < ${tsLit}) OR (${lastActivityExpr} = ${tsLit} AND ${accountTable.id} < ${idLit})`;
+      // Sort expression and cursor value extractor for the active sort field.
+      // Built with a switch so references to conditional subqueries are only
+      // evaluated when those subqueries are actually constructed (non-null).
+      interface SortRow {
+        lastActivityRaw: string;
+        createdRaw: string;
+        sortCount: number;
+        account: typeof accountTable.$inferSelect;
       }
 
-      function tupleGreaterThan(tsRaw: string, id: string): SQL {
-        const tsLit = sql`${tsRaw}::timestamptz`;
-        const idLit = sql`${id}::uuid`;
-        return sql`(${lastActivityExpr} > ${tsLit}) OR (${lastActivityExpr} = ${tsLit} AND ${accountTable.id} > ${idLit})`;
+      let sortExpr: SQL;
+      let isTimestamp: boolean;
+      let extractSortVal: (r: SortRow) => string;
+      switch (orderBy) {
+        case "FOLLOWING":
+          sortExpr = sql<number>`COALESCE(${followingSubq!.count}, 0)`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.sortCount);
+          break;
+        case "FOLLOWERS":
+          sortExpr = sql<number>`COALESCE(${followersSubq!.count}, 0)`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.sortCount);
+          break;
+        case "POSTS":
+          sortExpr = sql<number>`COALESCE(${postsSubq.count}, 0)`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.sortCount);
+          break;
+        case "INVITATIONS_LEFT":
+          sortExpr = sql`${accountTable.leftInvitations}`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.account.leftInvitations);
+          break;
+        case "INVITED":
+          sortExpr = sql<number>`COALESCE(${inviteesSubq!.count}, 0)`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.sortCount);
+          break;
+        case "LAST_ACTIVITY":
+          sortExpr = lastActivityExpr;
+          isTimestamp = true;
+          extractSortVal = (r) => r.lastActivityRaw;
+          break;
+        case "CREATED":
+          sortExpr = sql`${accountTable.created}`;
+          isTimestamp = true;
+          extractSortVal = (r) => r.createdRaw;
+          break;
+      }
+
+      const [{ totalCount }] = await ctx.db
+        .select({ totalCount: sql<number>`COUNT(*)::int` })
+        .from(accountTable)
+        .where(searchFilter);
+
+      // --- Cursor filter helpers ---
+      // For DESC natural order: "after" a cursor means a smaller value;
+      // for ASC natural order: "after" means a larger value.
+      function buildAfterFilter(c: AdminCursorData): SQL {
+        const cast = isTimestamp ? "timestamptz" : "bigint";
+        const v = sql`${c.val}::${sql.raw(cast)}`;
+        const id = sql`${c.id}::uuid`;
+        return c.dir === "DESC"
+          ? sql`(${sortExpr} < ${v}) OR (${sortExpr} = ${v} AND ${accountTable.id} < ${id})`
+          : sql`(${sortExpr} > ${v}) OR (${sortExpr} = ${v} AND ${accountTable.id} > ${id})`;
+      }
+
+      function buildBeforeFilter(c: AdminCursorData): SQL {
+        const cast = isTimestamp ? "timestamptz" : "bigint";
+        const v = sql`${c.val}::${sql.raw(cast)}`;
+        const id = sql`${c.id}::uuid`;
+        return c.dir === "DESC"
+          ? sql`(${sortExpr} > ${v}) OR (${sortExpr} = ${v} AND ${accountTable.id} > ${id})`
+          : sql`(${sortExpr} < ${v}) OR (${sortExpr} = ${v} AND ${accountTable.id} < ${id})`;
       }
 
       const connection = await resolveCursorConnection(
         {
           args,
-          toCursor: (row: AdminAccountRow) => encodeAdminCursor(row),
+          toCursor: (row: AdminAccountRow) =>
+            encodeAdminCursor({
+              field: orderBy,
+              dir: orderDir,
+              val: row.sortValRaw,
+              id: row.account.id,
+            }),
         },
         async (
           { before, after, limit, inverted }: ResolveCursorConnectionArgs,
@@ -269,54 +472,105 @@ builder.queryField("adminAccounts", (t) =>
             : decodeAdminCursor(before);
           const afterCursor = after == null ? null : decodeAdminCursor(after);
 
-          const beforeFilter = beforeCursor == null
-            ? undefined
-            : tupleGreaterThan(
-              beforeCursor.lastActivityRaw,
-              beforeCursor.accountId,
-            );
-          const afterFilter = afterCursor == null ? undefined : tupleLessThan(
-            afterCursor.lastActivityRaw,
-            afterCursor.accountId,
-          );
+          // Reject cursors that don't match the current sort to prevent
+          // wrong pagination or SQL cast errors when the sort changes.
+          const validAfter = afterCursor != null &&
+              afterCursor.field === orderBy &&
+              afterCursor.dir === orderDir
+            ? afterCursor
+            : null;
+          const validBefore = beforeCursor != null &&
+              beforeCursor.field === orderBy &&
+              beforeCursor.dir === orderDir
+            ? beforeCursor
+            : null;
 
-          const rows = await ctx.db
+          const afterFilter = validAfter == null
+            ? undefined
+            : buildAfterFilter(validAfter);
+          const beforeFilter = validBefore == null
+            ? undefined
+            : buildBeforeFilter(validBefore);
+
+          // `inverted` flips ORDER BY so resolveCursorConnection can fetch
+          // the LAST N items closest to the cursor and then reverse them.
+          const descending = (orderDir === "DESC") !== inverted;
+          const orderByClause = descending
+            ? [desc(sortExpr), desc(accountTable.id)]
+            : [asc(sortExpr), asc(accountTable.id)];
+
+          // sortCount carries the active sort field's count expression.
+          // For timestamp and INVITATIONS_LEFT sorts it is unused (set to 0).
+          const sortCountExpr: SQL<number> = isTimestamp
+            ? sql<number>`0`
+            : sql<number>`(${sortExpr})::int`;
+
+          // Build the base query with postsSubq always joined (needed for
+          // lastActivityExpr), then conditionally join the one optional
+          // subquery the current sort field requires.
+          const baseQ = ctx.db
             .select({
               account: accountTable,
-              lastActivity: lastActivityExpr.as("last_activity"),
+              lastActivity: lastActivityExpr,
+              // Format timestamps as UTC text for cursor encoding.  Using
+              // AT TIME ZONE 'UTC' before to_char ensures the cursor value
+              // is always "+00", regardless of the PostgreSQL session timezone.
+              lastActivityRaw: sql<
+                string
+              >`to_char(${lastActivityExpr} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`,
+              createdRaw: sql<
+                string
+              >`to_char(${accountTable.created} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`,
+              sortCount: sortCountExpr,
             })
             .from(accountTable)
-            .leftJoin(
-              lastPublishedSubquery,
-              eq(lastPublishedSubquery.accountId, accountTable.id),
-            )
-            .where(and(beforeFilter, afterFilter))
-            .orderBy(
-              inverted ? asc(lastActivityExpr) : desc(lastActivityExpr),
-              inverted ? asc(accountTable.id) : desc(accountTable.id),
-            )
+            .leftJoin(postsSubq, eq(postsSubq.accountId, accountTable.id))
+            .$dynamic();
+
+          // $dynamic() allows conditional leftJoin calls at the cost of a
+          // type assertion: each leftJoin changes the nullabilityMap in the
+          // return type, so we cast back to the base dynamic type.
+          type DynQ = typeof baseQ;
+          let q: DynQ = baseQ;
+          if (followersSubq != null) {
+            q = q.leftJoin(
+              followersSubq,
+              eq(followersSubq.accountId, accountTable.id),
+            ) as unknown as DynQ;
+          }
+          if (followingSubq != null) {
+            q = q.leftJoin(
+              followingSubq,
+              eq(followingSubq.accountId, accountTable.id),
+            ) as unknown as DynQ;
+          }
+          if (inviteesSubq != null) {
+            q = q.leftJoin(
+              inviteesSubq,
+              eq(inviteesSubq.inviterId, accountTable.id),
+            ) as unknown as DynQ;
+          }
+
+          const rows = await q
+            .where(and(beforeFilter, afterFilter, searchFilter))
+            .orderBy(...orderByClause)
             .limit(limit);
 
           return rows.map((r) => {
-            const raw = r.lastActivity as unknown as Date | string;
-            // postgres-js parses `timestamptz` columns to JS Dates by
-            // default (millisecond precision), but the bare COALESCE
-            // expression doesn't carry a column type, so it comes
-            // through as the raw `YYYY-MM-DD HH:MM:SS.UUUUUU+00`
-            // string (microsecond precision).  Keep both: the string
-            // for the cursor (so boundaries round-trip exactly) and a
-            // Date for the GraphQL output.
-            const lastActivityRaw = raw instanceof Date
-              ? raw.toISOString()
-              : raw;
-            const lastActivity = raw instanceof Date
-              ? raw
-              : new Date(raw as string);
-            return {
-              account: r.account,
-              lastActivity,
+            const lastActivityRaw = String(r.lastActivityRaw);
+            const rawAct = r.lastActivity as unknown;
+            const lastActivity = rawAct instanceof Date
+              ? rawAct
+              : new Date(rawAct as string);
+
+            const sortValRaw = extractSortVal({
               lastActivityRaw,
-            };
+              createdRaw: String(r.createdRaw),
+              sortCount: r.sortCount,
+              account: r.account,
+            });
+
+            return { account: r.account, lastActivity, sortValRaw };
           });
         },
       );

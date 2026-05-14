@@ -1204,6 +1204,9 @@ msgid "Invitation sent"
 msgstr "Invitation sent"
 
 #: src/components/admin/AdminAccountsTable.tsx:115
+msgid "Invitations left"
+msgstr "Invitations left"
+
 #: src/components/AppSidebar.tsx:676
 #: src/routes/(root)/admin/invitations.tsx:156
 msgid "Invitations"
@@ -2017,6 +2020,14 @@ msgstr "Save draft to see preview"
 #: src/routes/(root)/[handle]/settings/preferences.tsx:207
 msgid "Saving…"
 msgstr "Saving…"
+
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Search by name or username…"
+msgstr "Search by name or username…"
+
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Clear"
+msgstr "Clear"
 
 #: src/components/AppSidebar.tsx:356
 #: src/routes/(root)/search.tsx:180
