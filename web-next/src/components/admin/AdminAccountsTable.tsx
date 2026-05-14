@@ -5,6 +5,7 @@ import IconChevronsUpDown from "~icons/lucide/chevrons-up-down";
 import IconSearch from "~icons/lucide/search";
 import IconX from "~icons/lucide/x";
 import { graphql } from "relay-runtime";
+import { ADMIN_SORT_FIELDS } from "~/lib/adminSort.ts";
 import {
   createEffect,
   createMemo,
@@ -41,18 +42,9 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
   // Parse once per URL change so all three derived signals share the object.
   const searchParams = createMemo(() => new URLSearchParams(location.search));
 
-  const validSortFields = new Set([
-    "FOLLOWING",
-    "FOLLOWERS",
-    "POSTS",
-    "INVITATIONS_LEFT",
-    "INVITED",
-    "LAST_ACTIVITY",
-    "CREATED",
-  ]);
   const currentSort = () => {
     const raw = searchParams().get("sort")?.toUpperCase() ?? "";
-    return validSortFields.has(raw) ? raw : "LAST_ACTIVITY";
+    return ADMIN_SORT_FIELDS.has(raw) ? raw : "LAST_ACTIVITY";
   };
   const currentDir = () => {
     const raw = searchParams().get("dir")?.toUpperCase() ?? "";
@@ -73,7 +65,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
       params.set("sort", field);
       params.delete("dir");
     }
-    return `/admin?${params.toString()}`;
+    return `${location.pathname}?${params.toString()}`;
   }
 
   function searchHref(q: string): string {
@@ -85,7 +77,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
     }
     // Reset to first page when search changes
     params.delete("cursor");
-    return `/admin?${params.toString()}`;
+    return `${location.pathname}?${params.toString()}`;
   }
 
   function onSearchSubmit(e: SubmitEvent) {

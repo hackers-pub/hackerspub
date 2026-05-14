@@ -16,6 +16,7 @@ import type {
   OrderDirection,
 } from "./__generated__/adminAccountsPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import { ADMIN_SORT_FIELDS } from "~/lib/adminSort.ts";
 
 const adminAccountsPageQuery = graphql`
   query adminAccountsPageQuery(
@@ -45,17 +46,8 @@ function parseQueryParams(search: string): {
   search: string | undefined;
 } {
   const params = new URLSearchParams(search);
-  const validOrderBy = new Set<string>([
-    "FOLLOWING",
-    "FOLLOWERS",
-    "POSTS",
-    "INVITATIONS_LEFT",
-    "INVITED",
-    "LAST_ACTIVITY",
-    "CREATED",
-  ]);
   const rawSort = params.get("sort")?.toUpperCase() ?? "";
-  const orderBy: AdminAccountOrderBy = validOrderBy.has(rawSort)
+  const orderBy: AdminAccountOrderBy = ADMIN_SORT_FIELDS.has(rawSort)
     ? (rawSort as AdminAccountOrderBy)
     : "LAST_ACTIVITY";
   const rawDir = params.get("dir")?.toUpperCase() ?? "";
