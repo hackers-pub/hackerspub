@@ -297,7 +297,8 @@ export function NoteComposer(props: NoteComposerProps) {
   // Notify parent when dirty state changes (user has typed or attached media
   // beyond the auto-filled mention prefix).
   createEffect(() => {
-    const dirty = (content().trim() !== "" && content() !== prefillRef) ||
+    const dirty =
+      (content().trim() !== "" && content().trim() !== prefillRef.trim()) ||
       mediaItems.length > 0;
     props.onContentChange?.(dirty);
   });
@@ -680,6 +681,7 @@ export function NoteComposer(props: NoteComposerProps) {
     }
     const text = content().trim();
     if (!text) {
+      lastRenderedText = "";
       setPreviewHtml("");
       setPreviewLoading(false);
       return;
