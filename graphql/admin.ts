@@ -506,19 +506,17 @@ builder.queryField("adminAccounts", (t) =>
             )
             .leftJoin(
               inviteesSubq,
-              sql`${inviteesSubq.inviterId} = ${accountTable.id}`,
+              eq(inviteesSubq.inviterId, accountTable.id),
             )
             .where(and(beforeFilter, afterFilter, searchFilter))
             .orderBy(...orderByClause)
             .limit(limit);
 
           return rows.map((r) => {
-            // The COALESCE expression comes through as a raw string from
-            // postgres-js (no column type annotation on the expression).
-            const rawStr = r.lastActivityRaw as unknown;
-            const lastActivityRaw = rawStr instanceof Date
-              ? rawStr.toISOString()
-              : String(rawStr);
+            // lastActivityRaw and createdRaw are already formatted as UTC
+            // strings by the to_char() expressions in the SELECT above, so
+            // they are always strings, never Date objects.
+            const lastActivityRaw = String(r.lastActivityRaw);
             const rawAct = r.lastActivity as unknown;
             const lastActivity = rawAct instanceof Date
               ? rawAct
@@ -527,9 +525,7 @@ builder.queryField("adminAccounts", (t) =>
             const sortValRaw: string = orderBy === "LAST_ACTIVITY"
               ? lastActivityRaw
               : orderBy === "CREATED"
-              ? ((r.createdRaw as unknown) instanceof Date
-                ? (r.createdRaw as unknown as Date).toISOString()
-                : String(r.createdRaw))
+              ? String(r.createdRaw)
               : orderBy === "INVITATIONS_LEFT"
               ? String(r.account.leftInvitations)
               : orderBy === "FOLLOWING"
