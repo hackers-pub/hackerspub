@@ -5,6 +5,7 @@ builder.queryField("renderMarkdown", (t) =>
   t.field({
     type: "HTML",
     description: "Renders a Markdown string to HTML.",
+    authScopes: { signed: true },
     args: {
       content: t.arg.string({ required: true }),
     },
