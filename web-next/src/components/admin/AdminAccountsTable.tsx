@@ -65,7 +65,6 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
       params.set("sort", field);
       params.delete("dir");
     }
-    params.delete("cursor");
     return `${location.pathname}?${params.toString()}`;
   }
 
@@ -76,8 +75,6 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
     } else {
       params.delete("q");
     }
-    // Reset to first page when search changes
-    params.delete("cursor");
     return `${location.pathname}?${params.toString()}`;
   }
 
