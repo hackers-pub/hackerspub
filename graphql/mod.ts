@@ -11,6 +11,7 @@ import "./doc.ts";
 import "./invite.ts";
 import "./invitation-link.ts";
 import "./login.ts";
+import "./markdown.ts";
 import "./misc.ts";
 import "./notification.ts";
 import "./passkey.ts";

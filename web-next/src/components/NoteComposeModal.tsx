@@ -33,7 +33,7 @@ export function NoteComposeModal() {
 
   return (
     <Dialog open={isOpen()} onOpenChange={(open) => open ? null : close()}>
-      <DialogContent>
+      <DialogContent class="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{dialogTitle()}</DialogTitle>
         </DialogHeader>

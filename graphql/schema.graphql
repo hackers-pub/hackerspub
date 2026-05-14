@@ -1352,6 +1352,9 @@ type Query {
   """
   publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
   recommendedActors(limit: Int = 10, locale: Locale): [Actor!]!
+
+  """Renders a Markdown string to HTML."""
+  renderMarkdown(content: String!): HTML!
   searchActorsByHandle(limit: Int = 25, prefix: String!): [Actor!]!
   searchGuide(
     """The locale for the search guide."""

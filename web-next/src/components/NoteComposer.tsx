@@ -27,6 +27,12 @@ import {
 } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "~/components/ui/tabs.tsx";
+import {
   TextField,
   TextFieldLabel,
   TextFieldTextArea,
@@ -39,6 +45,7 @@ import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.
 import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
 import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
+import type { NoteComposerRenderMarkdownQuery } from "./__generated__/NoteComposerRenderMarkdownQuery.graphql.ts";
 import type { NoteComposerReplyTargetQuery } from "./__generated__/NoteComposerReplyTargetQuery.graphql.ts";
 
 const NoteComposerMutation = graphql`
@@ -178,6 +185,12 @@ const NoteComposerGeneratedAltTextQuery = graphql`
   }
 `;
 
+const NoteComposerRenderMarkdownQuery = graphql`
+  query NoteComposerRenderMarkdownQuery($content: String!) {
+    renderMarkdown(content: $content)
+  }
+`;
+
 const SUPPORTED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",
@@ -258,6 +271,9 @@ export function NoteComposer(props: NoteComposerProps) {
   );
   const [mediaItems, setMediaItems] = createStore<MediaItem[]>([]);
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
+  const [activeTab, setActiveTab] = createSignal<string>("write");
+  const [previewHtml, setPreviewHtml] = createSignal<string>("");
+  const [previewLoading, setPreviewLoading] = createSignal(false);
   let formRef: HTMLFormElement | undefined;
   let removeDragListeners: (() => void) | undefined;
   let textareaRef: HTMLTextAreaElement | undefined;
@@ -640,6 +656,31 @@ export function NoteComposer(props: NoteComposerProps) {
     setMediaItems([]);
   };
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === "preview") {
+      const text = content().trim();
+      if (!text) {
+        setPreviewHtml("");
+        return;
+      }
+      setPreviewLoading(true);
+      fetchQuery<NoteComposerRenderMarkdownQuery>(
+        environment(),
+        NoteComposerRenderMarkdownQuery,
+        { content: text },
+      ).subscribe({
+        next(data) {
+          setPreviewHtml(data.renderMarkdown);
+          setPreviewLoading(false);
+        },
+        error() {
+          setPreviewLoading(false);
+        },
+      });
+    }
+  };
+
   const handleSubmit = (e: Event) => {
     e.preventDefault();
 
@@ -922,53 +963,89 @@ export function NoteComposer(props: NoteComposerProps) {
           </div>
         </Show>
 
-        <TextField>
-          <TextFieldLabel class="flex items-center justify-between">
-            <span>{t`Content`}</span>
-            <a
-              href="/markdown"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="flex items-center gap-1 text-xs font-normal text-muted-foreground hover:text-foreground"
-            >
-              <svg
-                fill="currentColor"
-                height="128"
-                viewBox="0 0 208 128"
-                width="208"
-                xmlns="http://www.w3.org/2000/svg"
-                class="size-4"
-                stroke="currentColor"
+        <Tabs value={activeTab()} onChange={handleTabChange}>
+          <TextField>
+            <TextFieldLabel class="flex items-center justify-between">
+              <span>{t`Content`}</span>
+              <a
+                href="/markdown"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-1 text-xs font-normal text-muted-foreground hover:text-foreground"
               >
-                <g>
-                  <path
-                    clip-rule="evenodd"
-                    d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
-                    fill-rule="evenodd"
+                <svg
+                  fill="currentColor"
+                  height="128"
+                  viewBox="0 0 208 128"
+                  width="208"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="size-4"
+                  stroke="currentColor"
+                >
+                  <g>
+                    <path
+                      clip-rule="evenodd"
+                      d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
+                      fill-rule="evenodd"
+                    />
+                    <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
+                  </g>
+                </svg>
+                {t`Markdown supported`}
+              </a>
+            </TextFieldLabel>
+            <TabsList class="h-8 p-0.5 mb-1">
+              <TabsTrigger value="write" class="px-3 text-xs cursor-pointer">
+                {t`Write`}
+              </TabsTrigger>
+              <TabsTrigger value="preview" class="px-3 text-xs cursor-pointer">
+                {t`Preview`}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="write" class="mt-0">
+              <TextFieldTextArea
+                ref={(el) => (textareaRef = el)}
+                value={content()}
+                onInput={(e) => setContent(e.currentTarget.value)}
+                onPaste={handlePaste}
+                placeholder={props.placeholder ?? t`What's on your mind?`}
+                required
+                autofocus={props.autoFocus}
+                class="min-h-[150px]"
+              />
+              <MentionAutocomplete
+                textareaRef={() => textareaRef}
+                onComplete={() => {
+                  if (textareaRef) setContent(textareaRef.value);
+                }}
+              />
+            </TabsContent>
+            <TabsContent value="preview" class="mt-0">
+              <Show
+                when={!previewLoading()}
+                fallback={
+                  <div class="min-h-[150px] flex items-center justify-center text-muted-foreground text-sm rounded-md border border-input">
+                    {t`Rendering…`}
+                  </div>
+                }
+              >
+                <Show
+                  when={previewHtml()}
+                  fallback={
+                    <div class="min-h-[150px] flex items-center justify-center text-muted-foreground text-sm rounded-md border border-input">
+                      {t`Nothing to preview`}
+                    </div>
+                  }
+                >
+                  <div
+                    innerHTML={previewHtml()}
+                    class="prose dark:prose-invert prose-sm min-h-[150px] max-w-none rounded-md border border-input px-3 py-2 text-sm"
                   />
-                  <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
-                </g>
-              </svg>
-              {t`Markdown supported`}
-            </a>
-          </TextFieldLabel>
-          <TextFieldTextArea
-            ref={(el) => (textareaRef = el)}
-            value={content()}
-            onInput={(e) => setContent(e.currentTarget.value)}
-            onPaste={handlePaste}
-            placeholder={props.placeholder ?? t`What's on your mind?`}
-            required
-            autofocus={props.autoFocus}
-            class="min-h-[150px]"
-          />
-          <MentionAutocomplete
-            textareaRef={() => textareaRef}
-            onComplete={() => {
-              if (textareaRef) setContent(textareaRef.value);
-            }}
-          />
-        </TextField>
+                </Show>
+              </Show>
+            </TabsContent>
+          </TextField>
+        </Tabs>
 
         {/* Toolbar: language, visibility, attach button */}
         <div class="flex flex-wrap items-center gap-2">
