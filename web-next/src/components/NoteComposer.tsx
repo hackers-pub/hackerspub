@@ -275,12 +275,15 @@ export function NoteComposer(props: NoteComposerProps) {
   const [activeTab, setActiveTab] = createSignal<string>("write");
   const [previewHtml, setPreviewHtml] = createSignal<string>("");
   const [previewLoading, setPreviewLoading] = createSignal(false);
+  let previewRequestVersion = 0;
+  let previewSubscription: { unsubscribe: () => void } | undefined;
   let formRef: HTMLFormElement | undefined;
   let removeDragListeners: (() => void) | undefined;
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileInputRef: HTMLInputElement | undefined;
 
   onCleanup(() => {
+    previewSubscription?.unsubscribe();
     removeDragListeners?.();
     for (const item of mediaItems) {
       item.abortUpload?.();
@@ -667,27 +670,36 @@ export function NoteComposer(props: NoteComposerProps) {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    if (tab === "preview") {
-      const text = content().trim();
-      if (!text) {
-        setPreviewHtml("");
-        return;
-      }
-      setPreviewLoading(true);
-      fetchQuery<NoteComposerRenderMarkdownQuery>(
-        environment(),
-        NoteComposerRenderMarkdownQuery,
-        { content: text },
-      ).subscribe({
-        next(data) {
-          setPreviewHtml(data.renderMarkdown);
-          setPreviewLoading(false);
-        },
-        error() {
-          setPreviewLoading(false);
-        },
-      });
+    previewSubscription?.unsubscribe();
+    previewSubscription = undefined;
+    if (tab !== "preview") {
+      setPreviewLoading(false);
+      return;
     }
+    const text = content().trim();
+    if (!text) {
+      setPreviewHtml("");
+      setPreviewLoading(false);
+      return;
+    }
+    setPreviewLoading(true);
+    const requestVersion = ++previewRequestVersion;
+    previewSubscription = fetchQuery<NoteComposerRenderMarkdownQuery>(
+      environment(),
+      NoteComposerRenderMarkdownQuery,
+      { content: text },
+    ).subscribe({
+      next(data) {
+        if (requestVersion !== previewRequestVersion) return;
+        setPreviewHtml(data.renderMarkdown);
+        setPreviewLoading(false);
+      },
+      error() {
+        if (requestVersion !== previewRequestVersion) return;
+        setPreviewHtml("");
+        setPreviewLoading(false);
+      },
+    });
   };
 
   const handleSubmit = (e: Event) => {
