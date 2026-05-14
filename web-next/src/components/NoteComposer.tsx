@@ -226,6 +226,7 @@ interface QuotedPostPreview {
 export interface NoteComposerProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  onContentChange?: (isDirty: boolean) => void;
   showCancelButton?: boolean;
   autoFocus?: boolean;
   placeholder?: string;
@@ -286,6 +287,14 @@ export function NoteComposer(props: NoteComposerProps) {
       item.altSubscription?.unsubscribe();
       URL.revokeObjectURL(item.previewUrl);
     }
+  });
+
+  // Notify parent when dirty state changes (user has typed or attached media
+  // beyond the auto-filled mention prefix).
+  createEffect(() => {
+    const dirty = (content().trim() !== "" && content() !== prefillRef) ||
+      mediaItems.length > 0;
+    props.onContentChange?.(dirty);
   });
 
   // Use capture-phase listeners so Firefox's native textarea drag handling

@@ -278,11 +278,11 @@ msgstr "管理"
 msgid "All"
 msgstr "全部"
 
-#: src/components/NoteComposer.tsx:701
+#: src/components/NoteComposer.tsx:710
 msgid "All images must finish uploading before posting"
 msgstr "發佈前，所有圖片必須完成上傳。"
 
-#: src/components/NoteComposer.tsx:709
+#: src/components/NoteComposer.tsx:718
 msgid "All images require alt text"
 msgstr "所有圖片均需提供替代文字。"
 
@@ -291,11 +291,11 @@ msgid "Allow automatic translation by AI"
 msgstr "允許 AI 自動翻譯"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1141
+#: src/components/NoteComposer.tsx:1151
 msgid "Alt text for image {0}"
 msgstr "圖片 {0} 的替代文字"
 
-#: src/components/NoteComposer.tsx:1153
+#: src/components/NoteComposer.tsx:1163
 msgid "Alt text for visually impaired people (required)"
 msgstr "供視力障礙人士使用的替代文字（必填）"
 
@@ -387,8 +387,8 @@ msgstr "僅文章"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自從你已經把使用者名稱換成 {0} 了，你再也改不了了。"
 
-#: src/components/NoteComposer.tsx:1073
-#: src/components/NoteComposer.tsx:1074
+#: src/components/NoteComposer.tsx:1037
+#: src/components/NoteComposer.tsx:1038
 msgid "Attach image"
 msgstr "附加圖片"
 
@@ -396,12 +396,12 @@ msgstr "附加圖片"
 msgid "Authenticating…"
 msgstr "驗證中…"
 
-#: src/components/NoteComposer.tsx:1172
+#: src/components/NoteComposer.tsx:1182
 msgid "Auto-fill"
 msgstr "自動填寫"
 
-#: src/components/NoteComposer.tsx:1165
-#: src/components/NoteComposer.tsx:1166
+#: src/components/NoteComposer.tsx:1175
+#: src/components/NoteComposer.tsx:1176
 msgid "Auto-fill alt text"
 msgstr "自動填寫替代文字"
 
@@ -443,9 +443,9 @@ msgid "Bookmarks"
 msgstr "收藏"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:1200
-#: src/components/NoteComposer.tsx:1201
-#: src/components/NoteComposer.tsx:1244
+#: src/components/NoteComposer.tsx:1210
+#: src/components/NoteComposer.tsx:1211
+#: src/components/NoteComposer.tsx:1254
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
@@ -506,12 +506,12 @@ msgid "Compose"
 msgstr "寫作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:969
+#: src/components/NoteComposer.tsx:977
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:254
 msgid "Content"
 msgstr "內容"
 
-#: src/components/NoteComposer.tsx:691
+#: src/components/NoteComposer.tsx:700
 msgid "Content cannot be empty"
 msgstr "內容不能為空"
 
@@ -531,7 +531,7 @@ msgstr "複製"
 msgid "Could not copy the link to the clipboard."
 msgstr "無法將連結複製到剪貼簿。"
 
-#: src/components/NoteComposer.tsx:608
+#: src/components/NoteComposer.tsx:617
 msgid "Could not find a post at this URL"
 msgstr "無法在此URL找到內容"
 
@@ -554,8 +554,8 @@ msgstr "建立邀請連結"
 
 #: src/components/AppSidebar.tsx:744
 #: src/components/FloatingComposeButton.tsx:99
-#: src/components/NoteComposeModal.tsx:31
-#: src/components/NoteComposer.tsx:1256
+#: src/components/NoteComposeModal.tsx:68
+#: src/components/NoteComposer.tsx:1266
 msgid "Create note"
 msgstr "建立貼文"
 
@@ -576,7 +576,7 @@ msgstr "{0}建立"
 msgid "Creating account…"
 msgstr "創建帳戶…"
 
-#: src/components/NoteComposer.tsx:1257
+#: src/components/NoteComposer.tsx:1267
 #: src/routes/(root)/[handle]/settings/invite.tsx:764
 msgid "Creating…"
 msgstr "正在建立…"
@@ -628,6 +628,14 @@ msgstr "刪除內容？"
 msgid "Deleting…"
 msgstr "正在刪除…"
 
+#: src/components/NoteComposeModal.tsx:125
+msgid "Discard"
+msgstr "放棄"
+
+#: src/components/NoteComposeModal.tsx:114
+msgid "Discard draft?"
+msgstr "放棄草稿？"
+
 #: src/components/article-composer/useUnsavedGuard.ts:13
 msgid "Discard unsaved changes - are you sure?"
 msgstr "放棄未儲存的變更 - 您確定嗎？"
@@ -641,7 +649,7 @@ msgstr "暱稱"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要建立帳戶嗎？Hackers' Pub 僅限邀請，請聯繫朋友邀請您。"
 
-#: src/components/NoteComposer.tsx:595
+#: src/components/NoteComposer.tsx:604
 msgid "Do you want to quote this link?"
 msgstr "要引用此連結嗎？"
 
@@ -723,16 +731,16 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 #: src/components/article-composer/ArticleComposerContext.tsx:450
 #: src/components/article-composer/ArticleComposerContext.tsx:458
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:506
-#: src/components/NoteComposer.tsx:553
-#: src/components/NoteComposer.tsx:607
-#: src/components/NoteComposer.tsx:690
-#: src/components/NoteComposer.tsx:700
-#: src/components/NoteComposer.tsx:708
-#: src/components/NoteComposer.tsx:741
-#: src/components/NoteComposer.tsx:749
-#: src/components/NoteComposer.tsx:757
-#: src/components/NoteComposer.tsx:813
+#: src/components/NoteComposer.tsx:515
+#: src/components/NoteComposer.tsx:562
+#: src/components/NoteComposer.tsx:616
+#: src/components/NoteComposer.tsx:699
+#: src/components/NoteComposer.tsx:709
+#: src/components/NoteComposer.tsx:717
+#: src/components/NoteComposer.tsx:750
+#: src/components/NoteComposer.tsx:758
+#: src/components/NoteComposer.tsx:766
+#: src/components/NoteComposer.tsx:822
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:203
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:213
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:222
@@ -796,7 +804,7 @@ msgstr "刪除內容失敗"
 msgid "Failed to follow"
 msgstr "關注失敗"
 
-#: src/components/NoteComposer.tsx:814
+#: src/components/NoteComposer.tsx:823
 msgid "Failed to generate alt text"
 msgstr "替代文字生成失敗"
 
@@ -866,11 +874,11 @@ msgstr "載入更多回覆失敗，點擊重試"
 msgid "Failed to load more shares; click to retry"
 msgstr "載入更多轉貼失敗，點擊重試"
 
-#: src/components/NoteComposer.tsx:859
+#: src/components/NoteComposer.tsx:868
 msgid "Failed to load post"
 msgstr "無法載入內容"
 
-#: src/components/NoteComposer.tsx:910
+#: src/components/NoteComposer.tsx:919
 msgid "Failed to load quoted post"
 msgstr "無法載入引用內容"
 
@@ -964,7 +972,7 @@ msgid "Failed to update the article. Please try again."
 msgstr "文章更新失敗，請重試。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
-#: src/components/NoteComposer.tsx:556
+#: src/components/NoteComposer.tsx:565
 msgid "Failed to upload image"
 msgstr "圖片上傳失敗"
 
@@ -1019,7 +1027,7 @@ msgstr "關注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/NoteComposer.tsx:1191
+#: src/components/NoteComposer.tsx:1201
 msgid "Generating…"
 msgstr "生成中…"
 
@@ -1153,7 +1161,7 @@ msgstr "聯邦宇宙使用者名稱格式無效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:306
 #: src/components/article-composer/ArticleComposerContext.tsx:378
 #: src/components/article-composer/ArticleComposerContext.tsx:443
-#: src/components/NoteComposer.tsx:742
+#: src/components/NoteComposer.tsx:751
 #: src/routes/(root)/[handle]/drafts/index.tsx:188
 msgid "Invalid input: {0}"
 msgstr "無效輸入：{0}"
@@ -1223,6 +1231,10 @@ msgstr "張三"
 #: src/routes/(root)/[handle]/settings/invite.tsx:852
 msgid "Joined on {0}"
 msgstr "於{0}加入"
+
+#: src/components/NoteComposeModal.tsx:120
+msgid "Keep editing"
+msgstr "繼續編輯"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:36
 #: src/components/LanguageList.tsx:33
@@ -1409,7 +1421,7 @@ msgstr "正在載入更多回覆…"
 msgid "Loading more shares…"
 msgstr "正在載入更多轉貼…"
 
-#: src/components/NoteComposer.tsx:911
+#: src/components/NoteComposer.tsx:920
 msgid "Loading quoted post…"
 msgstr "正在載入引用內容…"
 
@@ -1417,7 +1429,7 @@ msgstr "正在載入引用內容…"
 msgid "Loading search results…"
 msgstr "正在載入搜尋結果…"
 
-#: src/components/NoteComposer.tsx:860
+#: src/components/NoteComposer.tsx:869
 #: src/routes/(root)/[handle]/drafts/index.tsx:346
 #: src/routes/(root)/sign/up/[token].tsx:454
 msgid "Loading…"
@@ -1436,7 +1448,7 @@ msgid "Markdown guide"
 msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:1003
+#: src/components/NoteComposer.tsx:1095
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:279
 msgid "Markdown supported"
 msgstr "Markdown 可用"
@@ -1608,7 +1620,7 @@ msgstr "未找到"
 #~ msgid "Note"
 #~ msgstr "貼文"
 
-#: src/components/NoteComposer.tsx:734
+#: src/components/NoteComposer.tsx:743
 msgid "Note created successfully"
 msgstr "貼文建立成功"
 
@@ -1622,7 +1634,7 @@ msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用
 msgid "Notes"
 msgstr "貼文"
 
-#: src/components/NoteComposer.tsx:1038
+#: src/components/NoteComposer.tsx:1020
 msgid "Nothing to preview"
 msgstr "沒有可預覽的內容"
 
@@ -1770,7 +1782,7 @@ msgstr "偏好語言"
 msgid "Preferred languages"
 msgstr "偏好語言"
 
-#: src/components/NoteComposer.tsx:976
+#: src/components/NoteComposer.tsx:986
 msgid "Preview"
 msgstr "預覽"
 
@@ -1823,7 +1835,7 @@ msgstr "搜尋關鍵詞不能為空"
 msgid "Quiet public"
 msgstr "悄悄公開"
 
-#: src/components/NoteComposeModal.tsx:30
+#: src/components/NoteComposeModal.tsx:67
 #: src/components/PostEngagementBar.tsx:267
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
@@ -1928,13 +1940,13 @@ msgstr "移除{0}"
 msgid "Remove bookmark"
 msgstr "取消收藏"
 
-#: src/components/NoteComposer.tsx:1212
-#: src/components/NoteComposer.tsx:1213
+#: src/components/NoteComposer.tsx:1222
+#: src/components/NoteComposer.tsx:1223
 msgid "Remove image"
 msgstr "移除圖片"
 
-#: src/components/NoteComposer.tsx:958
-#: src/components/NoteComposer.tsx:959
+#: src/components/NoteComposer.tsx:967
+#: src/components/NoteComposer.tsx:968
 msgid "Remove quote"
 msgstr "移除引用"
 
@@ -1942,11 +1954,11 @@ msgstr "移除引用"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "移除已足夠舊且不再附加到頭像、貼文、文章草稿或文章的已儲存媒體。"
 
-#: src/components/NoteComposer.tsx:1030
+#: src/components/NoteComposer.tsx:1012
 msgid "Rendering…"
 msgstr "渲染中…"
 
-#: src/components/NoteComposeModal.tsx:29
+#: src/components/NoteComposeModal.tsx:66
 #: src/components/PostEngagementBar.tsx:255
 msgid "Reply"
 msgstr "回覆"
@@ -1955,7 +1967,7 @@ msgstr "回覆"
 msgid "Replying is not available for this post"
 msgstr "無法回覆此內容"
 
-#: src/components/NoteComposer.tsx:852
+#: src/components/NoteComposer.tsx:861
 msgid "Replying to"
 msgstr "回覆給"
 
@@ -2123,7 +2135,7 @@ msgstr "網址別名"
 msgid "Slug cannot be empty"
 msgstr "網址別名不能為空"
 
-#: src/components/NoteComposer.tsx:518
+#: src/components/NoteComposer.tsx:527
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "已達到 {MAX_MEDIA} 張圖片上限，部分圖片已被跳過"
 
@@ -2138,7 +2150,7 @@ msgstr "發生錯誤，請重試。"
 #: src/components/article-composer/ArticleComposerContext.tsx:295
 #: src/components/article-composer/ArticleComposerContext.tsx:368
 #: src/components/article-composer/ArticleComposerContext.tsx:433
-#: src/components/NoteComposer.tsx:733
+#: src/components/NoteComposer.tsx:742
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:189
 #: src/routes/(root)/[handle]/drafts/index.tsx:178
 msgid "Success"
@@ -2401,7 +2413,7 @@ msgstr "更新您的個人資料資訊，包括頭像、使用者名稱、暱稱
 msgid "Updated {0}"
 msgstr "更新於 {0}"
 
-#: src/components/NoteComposer.tsx:1128
+#: src/components/NoteComposer.tsx:1138
 msgid "Upload progress"
 msgstr "上傳進度"
 
@@ -2484,7 +2496,7 @@ msgstr "查看回覆"
 msgid "View shares"
 msgstr "查看轉貼"
 
-#: src/components/NoteComposer.tsx:1061
+#: src/components/NoteComposer.tsx:1110
 msgid "Visibility"
 msgstr "內容隱私度"
 
@@ -2520,7 +2532,7 @@ msgstr "已投票"
 msgid "Voting…"
 msgstr "正在投票…"
 
-#: src/components/NoteComposer.tsx:516
+#: src/components/NoteComposer.tsx:525
 msgid "Warning"
 msgstr "警告"
 
@@ -2544,7 +2556,7 @@ msgstr "歡迎來到 Hackers' Pub！請填寫以下表單完成註冊。"
 msgid "What is Hackers' Pub?"
 msgstr "什麼是 Hackers' Pub？"
 
-#: src/components/NoteComposer.tsx:1013
+#: src/components/NoteComposer.tsx:995
 msgid "What's on your mind?"
 msgstr "你在想什麼？"
 
@@ -2552,11 +2564,11 @@ msgstr "你在想什麼？"
 msgid "Without shares"
 msgstr "不含轉貼"
 
-#: src/components/NoteComposer.tsx:973
+#: src/components/NoteComposer.tsx:980
 msgid "Write"
 msgstr "撰寫"
 
-#: src/components/NoteComposeModal.tsx:50
+#: src/components/NoteComposeModal.tsx:102
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1006
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:388
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:466
@@ -2585,7 +2597,7 @@ msgstr "你已被此使用者封鎖。你無法關注該使用者或查看該使
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "你正在封鎖此使用者。該使用者無法關注你或查看你的內容。"
 
-#: src/components/NoteComposer.tsx:507
+#: src/components/NoteComposer.tsx:516
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "最多可附加 {MAX_MEDIA} 張圖片"
 
@@ -2633,7 +2645,7 @@ msgstr "你沒有剩餘邀請名額。請稍後再試。"
 msgid "You must be signed in"
 msgstr "請先登入"
 
-#: src/components/NoteComposer.tsx:750
+#: src/components/NoteComposer.tsx:759
 msgid "You must be signed in to create a note"
 msgstr "你必須登入才能建立貼文"
 
@@ -2710,6 +2722,10 @@ msgstr "您的偏好語言已更新。"
 #: src/routes/(root)/[handle]/settings/index.tsx:327
 msgid "Your profile settings have been updated successfully."
 msgstr "個人資料設定已成功更新。"
+
+#: src/components/NoteComposeModal.tsx:116
+msgid "Your unsaved draft will be lost."
+msgstr "未儲存的草稿將會遺失。"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:424
 #: src/routes/(root)/sign/up/[token].tsx:358
