@@ -1,9 +1,11 @@
-import { A, useLocation } from "@solidjs/router";
+import { A, useLocation, useNavigate } from "@solidjs/router";
 import IconChevronDown from "~icons/lucide/chevron-down";
 import IconChevronUp from "~icons/lucide/chevron-up";
 import IconChevronsUpDown from "~icons/lucide/chevrons-up-down";
+import IconSearch from "~icons/lucide/search";
+import IconX from "~icons/lucide/x";
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createEffect, createSignal, For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
@@ -26,11 +28,19 @@ export interface AdminAccountsTableProps {
 export function AdminAccountsTable(props: AdminAccountsTableProps) {
   const { i18n, t } = useLingui();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const currentSort = () =>
     new URLSearchParams(location.search).get("sort") ?? "LAST_ACTIVITY";
   const currentDir = () =>
     new URLSearchParams(location.search).get("dir") ?? "DESC";
+  const currentSearch = () =>
+    new URLSearchParams(location.search).get("q") ?? "";
+
+  // Sync the text input with the URL whenever the URL's ?q param changes
+  // (e.g. after navigating via a sort-column link).
+  const [searchInput, setSearchInput] = createSignal(currentSearch());
+  createEffect(() => setSearchInput(currentSearch()));
 
   function sortHref(field: string): string {
     const params = new URLSearchParams(location.search);
@@ -41,6 +51,23 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
       params.delete("dir");
     }
     return `/admin?${params.toString()}`;
+  }
+
+  function searchHref(q: string): string {
+    const params = new URLSearchParams(location.search);
+    if (q.trim()) {
+      params.set("q", q.trim());
+    } else {
+      params.delete("q");
+    }
+    // Reset to first page when search changes
+    params.delete("cursor");
+    return `/admin?${params.toString()}`;
+  }
+
+  function onSearchSubmit(e: SubmitEvent) {
+    e.preventDefault();
+    navigate(searchHref(searchInput()));
   }
 
   function SortIcon(props: { field: string }) {
@@ -72,6 +99,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
           count: { type: "Int", defaultValue: 100 }
           orderBy: { type: "AdminAccountOrderBy" }
           orderDirection: { type: "OrderDirection" }
+          search: { type: "String" }
         )
       {
         adminAccounts(
@@ -79,10 +107,11 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
           first: $count
           orderBy: $orderBy
           orderDirection: $orderDirection
+          search: $search
         )
           @connection(
             key: "AdminAccountsTable_adminAccounts"
-            filters: ["orderBy", "orderDirection"]
+            filters: ["orderBy", "orderDirection", "search"]
           )
         {
           totalCount
@@ -145,6 +174,33 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
     <Show keyed when={data()?.adminAccounts}>
       {(conn) => (
         <>
+          <form onSubmit={onSearchSubmit} class="mb-4 flex gap-2">
+            <div class="relative flex-1">
+              <IconSearch class="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                value={searchInput()}
+                onInput={(e) => setSearchInput(e.currentTarget.value)}
+                placeholder={t`Search by name or username…`}
+                class="h-9 w-full rounded-md border border-input bg-transparent pl-8 pr-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              />
+            </div>
+            <Button type="submit" variant="outline" size="sm">
+              {t`Search`}
+            </Button>
+            <Show when={currentSearch()}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                class="gap-1"
+                onClick={() => navigate(searchHref(""))}
+              >
+                <IconX class="size-3" />
+                {t`Clear`}
+              </Button>
+            </Show>
+          </form>
           <p class="mb-4 text-sm text-muted-foreground">
             {t`Total: ${formatNumber(conn.totalCount)}`}
           </p>

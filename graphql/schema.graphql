@@ -1308,7 +1308,7 @@ type Query {
   """
   Moderator-only connection of every account.  Returns null when the viewer is not a moderator; routes should guard with `viewer.moderator` and redirect non-moderators.
   """
-  adminAccounts(after: String, before: String, first: Int, last: Int, orderBy: AdminAccountOrderBy, orderDirection: OrderDirection): AdminAccountConnection
+  adminAccounts(after: String, before: String, first: Int, last: Int, orderBy: AdminAccountOrderBy, orderDirection: OrderDirection, search: String): AdminAccountConnection
   articleByYearAndSlug(handle: String!, idOrYear: String!, slug: String!): Article
   articleDraft(id: ID, uuid: UUID): ArticleDraft
   availableLocales: [Locale!]!

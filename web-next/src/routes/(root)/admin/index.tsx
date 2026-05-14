@@ -23,6 +23,7 @@ const adminAccountsPageQuery = graphql`
     $cursor: String
     $orderBy: AdminAccountOrderBy
     $orderDirection: OrderDirection
+    $search: String
   ) {
     viewer {
       moderator
@@ -33,13 +34,15 @@ const adminAccountsPageQuery = graphql`
         cursor: $cursor
         orderBy: $orderBy
         orderDirection: $orderDirection
+        search: $search
       )
   }
 `;
 
-function parseSortParams(search: string): {
+function parseQueryParams(search: string): {
   orderBy: AdminAccountOrderBy;
   orderDirection: OrderDirection;
+  search: string | undefined;
 } {
   const params = new URLSearchParams(search);
   const orderBy =
@@ -47,37 +50,43 @@ function parseSortParams(search: string): {
       "LAST_ACTIVITY";
   const orderDirection =
     (params.get("dir")?.toUpperCase() as OrderDirection | null) ?? "DESC";
-  return { orderBy, orderDirection };
+  const q = params.get("q") ?? undefined;
+  return { orderBy, orderDirection, search: q };
 }
 
 const loadAdminAccountsPageQuery = routePreloadedQuery(
-  (orderBy: AdminAccountOrderBy, orderDirection: OrderDirection) =>
+  (
+    orderBy: AdminAccountOrderBy,
+    orderDirection: OrderDirection,
+    search: string | undefined,
+  ) =>
     loadQuery<adminAccountsPageQuery>(
       useRelayEnvironment()(),
       adminAccountsPageQuery,
-      { count: 100, orderBy, orderDirection },
+      { count: 100, orderBy, orderDirection, search },
     ),
   "loadAdminAccountsPageQuery",
 );
 
 export const route = {
   preload({ location }: { location: { search: string } }) {
-    const { orderBy, orderDirection } = parseSortParams(location.search);
-    void loadAdminAccountsPageQuery(orderBy, orderDirection);
+    const { orderBy, orderDirection, search } = parseQueryParams(
+      location.search,
+    );
+    void loadAdminAccountsPageQuery(orderBy, orderDirection, search);
   },
 };
 
 export default function AdminAccountsPage() {
   const { t } = useLingui();
   const location = useLocation();
-  const sortParams = () => parseSortParams(location.search);
+  const queryParams = () => parseQueryParams(location.search);
   const data = createPreloadedQuery<adminAccountsPageQuery>(
     adminAccountsPageQuery,
-    () =>
-      loadAdminAccountsPageQuery(
-        sortParams().orderBy,
-        sortParams().orderDirection,
-      ),
+    () => {
+      const { orderBy, orderDirection, search } = queryParams();
+      return loadAdminAccountsPageQuery(orderBy, orderDirection, search);
+    },
   );
   return (
     <WideContainer class="p-4">

@@ -2017,6 +2017,14 @@ msgstr "下書きを保存するとプレビューが表示されます"
 msgid "Saving…"
 msgstr "保存中…"
 
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Search by name or username…"
+msgstr "名前またはユーザー名で検索…"
+
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Clear"
+msgstr "クリア"
+
 #: src/components/AppSidebar.tsx:356
 #: src/routes/(root)/search.tsx:180
 #: src/routes/(root)/search.tsx:197

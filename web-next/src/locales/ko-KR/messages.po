@@ -2017,6 +2017,14 @@ msgstr "미리보기를 보려면 초고로 저장하세요"
 msgid "Saving…"
 msgstr "저장 중…"
 
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Search by name or username…"
+msgstr "이름 또는 아이디로 검색…"
+
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Clear"
+msgstr "지우기"
+
 #: src/components/AppSidebar.tsx:356
 #: src/routes/(root)/search.tsx:180
 #: src/routes/(root)/search.tsx:197

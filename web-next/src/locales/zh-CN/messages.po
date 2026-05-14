@@ -2017,6 +2017,14 @@ msgstr "保存草稿以查看预览"
 msgid "Saving…"
 msgstr "保存中…"
 
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Search by name or username…"
+msgstr "按名称或用户名搜索…"
+
+#: src/components/admin/AdminAccountsTable.tsx
+msgid "Clear"
+msgstr "清除"
+
 #: src/components/AppSidebar.tsx:356
 #: src/routes/(root)/search.tsx:180
 #: src/routes/(root)/search.tsx:197

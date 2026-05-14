@@ -22,8 +22,10 @@ import {
   asc,
   desc,
   eq,
+  ilike,
   inArray,
   isNotNull,
+  or,
   type SQL,
   sql,
 } from "drizzle-orm";
@@ -254,6 +256,7 @@ builder.queryField("adminAccounts", (t) =>
       before: t.arg.string(),
       orderBy: t.arg({ type: AdminAccountOrderBy }),
       orderDirection: t.arg({ type: OrderDirection }),
+      search: t.arg.string(),
     },
     async resolve(
       _root,
@@ -265,6 +268,21 @@ builder.queryField("adminAccounts", (t) =>
 
       const orderBy: AdminOrderBy = args.orderBy ?? "LAST_ACTIVITY";
       const orderDir: AdminOrderDir = args.orderDirection ?? "DESC";
+
+      // Split the search string into words; each word must appear in either
+      // the display name or the username (case-insensitive substring match).
+      const searchWords = (args.search ?? "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      const searchFilter = searchWords.length === 0 ? undefined : and(
+        ...searchWords.map((w) =>
+          or(
+            ilike(accountTable.name, `%${w}%`),
+            ilike(accountTable.username, `%${w}%`),
+          )!
+        ),
+      );
 
       // --- Subqueries ---
 
@@ -345,7 +363,10 @@ builder.queryField("adminAccounts", (t) =>
       const isTimestamp = orderBy === "LAST_ACTIVITY" ||
         orderBy === "CREATED";
 
-      const totalCount = await ctx.db.$count(accountTable);
+      const [{ totalCount }] = await ctx.db
+        .select({ totalCount: sql<number>`COUNT(*)::int` })
+        .from(accountTable)
+        .where(searchFilter);
 
       // --- Cursor filter helpers ---
       // For DESC natural order: "after" a cursor means a smaller value;
@@ -433,7 +454,7 @@ builder.queryField("adminAccounts", (t) =>
               inviteesSubq,
               sql`${inviteesSubq.inviterId} = ${accountTable.id}`,
             )
-            .where(and(beforeFilter, afterFilter))
+            .where(and(beforeFilter, afterFilter, searchFilter))
             .orderBy(...orderByClause)
             .limit(limit);
 
