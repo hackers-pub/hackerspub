@@ -50,12 +50,6 @@ const loadAdminInvitationsPageQuery = routePreloadedQuery(
   "loadAdminInvitationsPageQuery",
 );
 
-export const route = {
-  preload() {
-    void loadAdminInvitationsPageQuery();
-  },
-};
-
 const invitationsRegenerateMutation = graphql`
   mutation invitationsRegenerateMutation {
     regenerateInvitations {

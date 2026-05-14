@@ -87,15 +87,6 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload(args) {
-    const username = decodeURIComponent(args.params.handle!);
-    const noteId = args.params.noteId!;
-    if (!validateUuid(noteId)) return;
-    const { i18n } = useLingui();
-
-    void loadNotePageQuery(username.replace(/^@/, ""), noteId, i18n.locale);
-    void loadNoteThreadQuery(username.replace(/^@/, ""), noteId);
-  },
 } satisfies RouteDefinition;
 
 const NoteIdPageQuery = graphql`

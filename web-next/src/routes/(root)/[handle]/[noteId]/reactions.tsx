@@ -95,12 +95,6 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload(args) {
-    const username = decodeURIComponent(args.params.handle!);
-    const noteId = args.params.noteId!;
-    if (!validateUuid(noteId)) return;
-    void loadReactionsQuery(username.replace(/^@/, ""), noteId);
-  },
 } satisfies RouteDefinition;
 
 export default function ReactionsPage() {

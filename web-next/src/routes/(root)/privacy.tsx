@@ -1,5 +1,4 @@
 import { Title } from "@solidjs/meta";
-import { type RouteDefinition } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -12,13 +11,6 @@ import { WideContainer } from "~/components/WideContainer.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { privacyPolicyPageQuery } from "./__generated__/privacyPolicyPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
-
-export const route = {
-  preload() {
-    const { i18n } = useLingui();
-    void loadPageQuery(i18n.locale);
-  },
-} satisfies RouteDefinition;
 
 const privacyPolicyPageQuery = graphql`
   query privacyPolicyPageQuery($locale: Locale!) {

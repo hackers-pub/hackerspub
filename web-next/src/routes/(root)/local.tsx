@@ -1,4 +1,3 @@
-import { type RouteDefinition } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -12,16 +11,6 @@ import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
-
-export const route = {
-  preload() {
-    const { i18n } = useLingui();
-    void loadLocalTimelineQuery(
-      i18n.locale,
-      i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
-    );
-  },
-} satisfies RouteDefinition;
 
 const localTimelineQuery = graphql`
   query localTimelineQuery($locale: Locale, $languages: [Locale!]) {

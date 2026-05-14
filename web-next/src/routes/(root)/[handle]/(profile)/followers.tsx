@@ -19,10 +19,6 @@ export const route = {
   matchFilters: {
     handle: /^@[^@]+$/,
   },
-  preload(args) {
-    const username = args.params.handle!;
-    void loadPageQuery(username.substring(1));
-  },
 } satisfies RouteDefinition;
 
 const followersPageQuery = graphql`

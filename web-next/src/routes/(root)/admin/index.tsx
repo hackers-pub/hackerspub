@@ -72,15 +72,6 @@ const loadAdminAccountsPageQuery = routePreloadedQuery(
   "loadAdminAccountsPageQuery",
 );
 
-export const route = {
-  preload({ location }: { location: { search: string } }) {
-    const { orderBy, orderDirection, search } = parseQueryParams(
-      location.search,
-    );
-    void loadAdminAccountsPageQuery(orderBy, orderDirection, search);
-  },
-};
-
 export default function AdminAccountsPage() {
   const { t } = useLingui();
   const location = useLocation();

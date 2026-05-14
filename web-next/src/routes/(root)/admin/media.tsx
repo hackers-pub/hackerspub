@@ -48,12 +48,6 @@ const loadAdminMediaPageQuery = routePreloadedQuery(
   "loadAdminMediaPageQuery",
 );
 
-export const route = {
-  preload() {
-    void loadAdminMediaPageQuery();
-  },
-};
-
 const mediaDeleteOrphanMediaMutation = graphql`
   mutation mediaDeleteOrphanMediaMutation {
     deleteOrphanMedia {

@@ -55,13 +55,6 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload(args) {
-    void loadQuotesQuery(
-      args.params.handle!,
-      args.params.idOrYear!,
-      args.params.slug!,
-    );
-  },
 } satisfies RouteDefinition;
 
 type ArticlePost = NonNullable<

@@ -16,14 +16,18 @@ import type { articlesFeedTimelineQuery } from "./__generated__/articlesFeedTime
 
 export const route = {
   preload({ location }) {
-    const env = useRelayEnvironment()();
-    const action = gateOnAuthentication(
-      env,
+    // Run the SSR auth gate so anonymous visitors get a 302 to /sign instead
+    // of a hydrated `<Navigate>` flash. We deliberately do NOT pre-fire the
+    // timeline query here: referencing the load function from this route
+    // export forces Vite to bundle the generated GraphQL operation module
+    // into entry-client (because `?pick=route` is statically imported),
+    // which would balloon the boot bundle with one chunk per route. The
+    // component fires the query itself once it mounts under the
+    // authenticated branch.
+    void gateOnAuthentication(
+      useRelayEnvironment()(),
       location.pathname + location.search + location.hash,
     );
-    if (action === "skip") return;
-    const { i18n } = useLingui();
-    void loadArticlesFeedTimelineQuery(i18n.locale);
   },
 } satisfies RouteDefinition;
 

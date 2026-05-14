@@ -25,9 +25,6 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload(args) {
-    void loadPageQuery(args.params.handle!);
-  },
 } satisfies RouteDefinition;
 
 const notesPageQuery = graphql`

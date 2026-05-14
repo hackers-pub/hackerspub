@@ -50,9 +50,6 @@ export const route = {
   matchFilters: {
     handle: /^@[^@]+$/,
   },
-  preload(args) {
-    void loadInvitePageQuery(args.params.handle!);
-  },
 } satisfies RouteDefinition;
 
 const invitePageQuery = graphql`

@@ -1,7 +1,6 @@
 import {
   A,
   Navigate,
-  revalidate,
   type RouteDefinition,
   useParams,
   useSearchParams,
@@ -35,13 +34,6 @@ import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 export const route = {
   matchFilters: {
     handle: /^@[^@]+$/,
-  },
-  preload({ intent }) {
-    const { i18n } = useLingui();
-    if (intent !== "preload") {
-      void revalidate(loadBookmarksPageQuery.keyFor(i18n.locale));
-    }
-    void loadBookmarksPageQuery(i18n.locale);
   },
 } satisfies RouteDefinition;
 

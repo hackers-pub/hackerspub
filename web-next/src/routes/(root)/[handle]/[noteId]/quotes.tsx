@@ -56,12 +56,6 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload(args) {
-    const username = decodeURIComponent(args.params.handle!);
-    const noteId = args.params.noteId!;
-    if (!validateUuid(noteId)) return;
-    void loadQuotesQuery(username.replace(/^@/, ""), noteId);
-  },
 } satisfies RouteDefinition;
 
 export default function QuotesPage() {

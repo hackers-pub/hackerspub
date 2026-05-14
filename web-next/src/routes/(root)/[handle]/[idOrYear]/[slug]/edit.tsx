@@ -34,13 +34,6 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload(args) {
-    const handle = args.params.handle!;
-    const idOrYear = args.params.idOrYear!;
-    const slug = args.params.slug!;
-    revalidate("loadArticleEditPageQuery");
-    void loadPageQuery(handle, idOrYear, slug);
-  },
 } satisfies RouteDefinition;
 
 const editPageQueryDef = graphql`

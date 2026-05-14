@@ -72,14 +72,6 @@ export const route = {
     handle: /^@/,
     lang: /^[A-Za-z]{2,3}(?:[_-][A-Za-z0-9]+)*$/,
   },
-  preload(args) {
-    const handle = args.params.handle!;
-    const idOrYear = args.params.idOrYear!;
-    const slug = args.params.slug!;
-    const language = normalizeLocale(args.params.lang!);
-    if (language == null) return;
-    void loadLangPageQuery(handle, idOrYear, slug, language);
-  },
 } satisfies RouteDefinition;
 
 const LangPageQueryDef = graphql`

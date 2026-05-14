@@ -1,4 +1,4 @@
-import { type RouteDefinition, useParams } from "@solidjs/router";
+import { useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -12,20 +12,6 @@ import { Trans } from "~/components/Trans.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { TagPageQuery } from "./__generated__/TagPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
-
-export const route = {
-  preload({ params }) {
-    const tag = params.tag;
-    if (!tag) return;
-
-    const { i18n } = useLingui();
-    void loadTagQuery(
-      `#${tag}`,
-      i18n.locale,
-      i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
-    );
-  },
-} satisfies RouteDefinition;
 
 const TagPageQuery = graphql`
   query TagPageQuery($query: String!, $locale: Locale, $languages: [Locale!]) {

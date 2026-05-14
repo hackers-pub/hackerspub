@@ -30,13 +30,6 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload(args) {
-    const { i18n } = useLingui();
-    const handle = args.params.handle!;
-    void loadPageQuery(handle);
-    void loadPagePinsQuery(handle, i18n.locale);
-    void loadPagePostsQuery(handle, i18n.locale);
-  },
 } satisfies RouteDefinition;
 
 const ProfilePageQuery = graphql`

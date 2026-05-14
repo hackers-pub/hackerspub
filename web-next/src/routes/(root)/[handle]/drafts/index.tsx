@@ -1,4 +1,4 @@
-import { A, type RouteDefinition, useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
 import { ConnectionHandler, graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
@@ -96,12 +96,6 @@ const loadDraftsQuery = routePreloadedQuery(
     ),
   "loadArticleDraftsQuery",
 );
-
-export const route = {
-  preload() {
-    void loadDraftsQuery();
-  },
-} satisfies RouteDefinition;
 
 export default function ArticleDraftsListPage() {
   const { t, i18n } = useLingui();

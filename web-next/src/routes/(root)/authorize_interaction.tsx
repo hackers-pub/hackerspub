@@ -1,8 +1,4 @@
-import {
-  type RouteDefinition,
-  useNavigate,
-  useSearchParams,
-} from "@solidjs/router";
+import { useNavigate, useSearchParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createEffect, Show } from "solid-js";
 import {
@@ -86,16 +82,6 @@ const loadByUrlQuery = routePreloadedQuery(
     ),
   "loadAuthorizeInteractionPageByUrlQuery",
 );
-
-export const route = {
-  preload(args) {
-    const raw = new URLSearchParams(args.location.search).get("uri") ?? "";
-    const lookup = classify(raw);
-    if (!lookup) return;
-    if (lookup.kind === "handle") void loadByHandleQuery(lookup.value);
-    else void loadByUrlQuery(lookup.value);
-  },
-} satisfies RouteDefinition;
 
 export default function AuthorizeInteractionPage() {
   const { t } = useLingui();

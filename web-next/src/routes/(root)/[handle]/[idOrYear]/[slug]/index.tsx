@@ -47,12 +47,6 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload(args) {
-    const handle = args.params.handle!;
-    const idOrYear = args.params.idOrYear!;
-    const slug = args.params.slug!;
-    void loadPageQuery(handle, idOrYear, slug);
-  },
 } satisfies RouteDefinition;
 
 const ARTICLE_PAGE_QUERY_KEY = "loadArticlePageQuery";

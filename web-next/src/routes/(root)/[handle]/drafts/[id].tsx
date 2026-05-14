@@ -1,4 +1,4 @@
-import { A, type RouteDefinition, useParams } from "@solidjs/router";
+import { A, useParams } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
@@ -33,12 +33,6 @@ const loadEditDraftViewerQuery = routePreloadedQuery(
     ),
   "loadEditDraftViewerQuery",
 );
-
-export const route = {
-  preload() {
-    void loadEditDraftViewerQuery();
-  },
-} satisfies RouteDefinition;
 
 export default function EditArticleDraftPage() {
   const { t } = useLingui();

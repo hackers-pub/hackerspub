@@ -25,10 +25,6 @@ export const route = {
   matchFilters: {
     handle: /^@/,
   },
-  preload(args) {
-    const { i18n } = useLingui();
-    void loadPageQuery(args.params.handle!, i18n.locale);
-  },
 } satisfies RouteDefinition;
 
 const articlesPageQuery = graphql`

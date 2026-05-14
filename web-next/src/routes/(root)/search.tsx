@@ -2,12 +2,7 @@ import {
   FULL_HANDLE_REGEXP,
   HANDLE_REGEXP,
 } from "@hackerspub/models/searchPatterns";
-import {
-  Navigate,
-  type RouteDefinition,
-  useNavigate,
-  useSearchParams,
-} from "@solidjs/router";
+import { Navigate, useNavigate, useSearchParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import {
   type Accessor,
@@ -36,27 +31,6 @@ import type { searchObjectPageQuery } from "./__generated__/searchObjectPageQuer
 import type { searchObjectPageQuery$data } from "./__generated__/searchObjectPageQuery.graphql.ts";
 import type { searchPostsPageQuery } from "./__generated__/searchPostsPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
-
-export const route = {
-  preload({ location }) {
-    const params = new URLSearchParams(location.search);
-    const query = params.get("q");
-    if (!query) return;
-
-    const { i18n } = useLingui();
-    const searchType = getSearchType(query);
-
-    if (searchType === "posts") {
-      void loadSearchPostsQuery(
-        query,
-        i18n.locale,
-        i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
-      );
-    } else if (searchType === "handle" || searchType === "url") {
-      void loadSearchObjectQuery(query);
-    }
-  },
-} satisfies RouteDefinition;
 
 const searchPostsPageQuery = graphql`
   query searchPostsPageQuery($query: String!, $locale: Locale, $languages: [Locale!]) {
