@@ -1017,7 +1017,6 @@ export function NoteComposer(props: NoteComposerProps) {
                 onInput={(e) => setContent(e.currentTarget.value)}
                 onPaste={handlePaste}
                 placeholder={props.placeholder ?? t`What's on your mind?`}
-                required
                 autofocus={props.autoFocus}
                 class="min-h-[150px]"
               />
