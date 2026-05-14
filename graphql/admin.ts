@@ -22,7 +22,6 @@ import {
   asc,
   desc,
   eq,
-  ilike,
   inArray,
   isNotNull,
   or,
@@ -123,16 +122,18 @@ builder.drizzleObjectField(Account, "lastPostPublished", (t) =>
     },
   }));
 
+const ADMIN_SORT_FIELDS = [
+  "FOLLOWING",
+  "FOLLOWERS",
+  "POSTS",
+  "INVITATIONS_LEFT",
+  "INVITED",
+  "LAST_ACTIVITY",
+  "CREATED",
+] as const;
+
 const AdminAccountOrderBy = builder.enumType("AdminAccountOrderBy", {
-  values: [
-    "FOLLOWING",
-    "FOLLOWERS",
-    "POSTS",
-    "INVITATIONS_LEFT",
-    "INVITED",
-    "LAST_ACTIVITY",
-    "CREATED",
-  ] as const,
+  values: ADMIN_SORT_FIELDS,
 });
 
 const OrderDirection = builder.enumType("OrderDirection", {
@@ -179,16 +180,7 @@ function decodeAdminCursor(encoded: string): AdminCursorData | null {
     const dir = decoded.slice(first + 1, second) as AdminOrderDir;
     const val = decoded.slice(second + 1, last);
     const id = decoded.slice(last + 1);
-    const validFields: AdminOrderBy[] = [
-      "FOLLOWING",
-      "FOLLOWERS",
-      "POSTS",
-      "INVITATIONS_LEFT",
-      "INVITED",
-      "LAST_ACTIVITY",
-      "CREATED",
-    ];
-    if (!validFields.includes(field)) return null;
+    if (!(ADMIN_SORT_FIELDS as readonly string[]).includes(field)) return null;
     if (dir !== "ASC" && dir !== "DESC") return null;
     if (!validateUuid(id as Uuid)) return null;
     // Validate the sort-key value to prevent SQL cast errors.
@@ -294,17 +286,22 @@ builder.queryField("adminAccounts", (t) =>
 
       // Split the search string into words; each word must appear in either
       // the display name or the username (case-insensitive substring match).
+      // "!" is used as the ILIKE escape character so "%" and "_" in the
+      // search term are treated as literals rather than SQL wildcards.
       const searchWords = (args.search ?? "")
         .trim()
         .split(/\s+/)
         .filter(Boolean);
       const searchFilter = searchWords.length === 0 ? undefined : and(
-        ...searchWords.map((w) =>
-          or(
-            ilike(accountTable.name, `%${w}%`),
-            ilike(accountTable.username, `%${w}%`),
-          )!
-        ),
+        ...searchWords.map((w) => {
+          const p = `%${
+            w.replace(/!/g, "!!").replace(/%/g, "!%").replace(/_/g, "!_")
+          }%`;
+          return or(
+            sql`${accountTable.name} ILIKE ${p} ESCAPE '!'`,
+            sql`${accountTable.username} ILIKE ${p} ESCAPE '!'`,
+          )!;
+        }),
       );
 
       // --- Subqueries ---
