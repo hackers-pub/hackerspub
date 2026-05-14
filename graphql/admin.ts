@@ -202,9 +202,12 @@ function decodeAdminCursor(encoded: string): AdminCursorData | null {
       if (dy < 1 || dy > maxDay) return null;
       if (hh > 23 || mm > 59 || ss > 59) return null;
     } else {
-      // Decimal digits only, within PostgreSQL bigint range.
-      if (!/^\d+$/.test(val)) return null;
-      if (BigInt(val) > 9223372036854775807n) return null;
+      // Signed decimal integer, within PostgreSQL bigint range.
+      // INVITATIONS_LEFT is a signed smallint so negative cursor values
+      // are possible; the leading "-" must be accepted here.
+      if (!/^-?\d+$/.test(val)) return null;
+      const n = BigInt(val);
+      if (n < -9223372036854775808n || n > 9223372036854775807n) return null;
     }
     return { field, dir, val, id };
   } catch {
