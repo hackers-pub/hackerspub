@@ -2,7 +2,7 @@ post → 콘텐츠
 note → 단문
 article → 게시글
 tag → 태그
-draft → 임시 보관
+draft → 초고
 react → 반응
 reply → 댓글
 comment → 댓글

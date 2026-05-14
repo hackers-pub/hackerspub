@@ -27,6 +27,12 @@ import {
 } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "~/components/ui/tabs.tsx";
+import {
   TextField,
   TextFieldLabel,
   TextFieldTextArea,
@@ -39,6 +45,7 @@ import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.
 import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
 import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
+import type { NoteComposerRenderMarkdownQuery } from "./__generated__/NoteComposerRenderMarkdownQuery.graphql.ts";
 import type { NoteComposerReplyTargetQuery } from "./__generated__/NoteComposerReplyTargetQuery.graphql.ts";
 
 const NoteComposerMutation = graphql`
@@ -178,6 +185,12 @@ const NoteComposerGeneratedAltTextQuery = graphql`
   }
 `;
 
+const NoteComposerRenderMarkdownQuery = graphql`
+  query NoteComposerRenderMarkdownQuery($content: String!) {
+    renderMarkdown(content: $content)
+  }
+`;
+
 const SUPPORTED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",
@@ -213,6 +226,7 @@ interface QuotedPostPreview {
 export interface NoteComposerProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  onContentChange?: (isDirty: boolean) => void;
   showCancelButton?: boolean;
   autoFocus?: boolean;
   placeholder?: string;
@@ -258,18 +272,36 @@ export function NoteComposer(props: NoteComposerProps) {
   );
   const [mediaItems, setMediaItems] = createStore<MediaItem[]>([]);
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
+  const [activeTab, setActiveTab] = createSignal<string>("write");
+  const [previewHtml, setPreviewHtml] = createSignal<string>("");
+  const [previewLoading, setPreviewLoading] = createSignal(false);
+  const [previewError, setPreviewError] = createSignal(false);
+  let lastRenderedText = "";
+  let lastRenderedHtml = "";
+  let previewRequestVersion = 0;
+  let previewSubscription: { unsubscribe: () => void } | undefined;
   let formRef: HTMLFormElement | undefined;
   let removeDragListeners: (() => void) | undefined;
   let textareaRef: HTMLTextAreaElement | undefined;
   let fileInputRef: HTMLInputElement | undefined;
 
   onCleanup(() => {
+    previewSubscription?.unsubscribe();
     removeDragListeners?.();
     for (const item of mediaItems) {
       item.abortUpload?.();
       item.altSubscription?.unsubscribe();
       URL.revokeObjectURL(item.previewUrl);
     }
+  });
+
+  // Notify parent when dirty state changes (user has typed or attached media
+  // beyond the auto-filled mention prefix).
+  createEffect(() => {
+    const dirty =
+      (content().trim() !== "" && content().trim() !== prefillRef.trim()) ||
+      mediaItems.length > 0;
+    props.onContentChange?.(dirty);
   });
 
   // Use capture-phase listeners so Firefox's native textarea drag handling
@@ -638,6 +670,60 @@ export function NoteComposer(props: NoteComposerProps) {
     setReplyTargetPost(null);
     setReplyTargetFetchError(false);
     setMediaItems([]);
+    previewSubscription?.unsubscribe();
+    previewSubscription = undefined;
+    lastRenderedText = "";
+    lastRenderedHtml = "";
+    setActiveTab("write");
+    setPreviewHtml("");
+    setPreviewError(false);
+    setPreviewLoading(false);
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    previewSubscription?.unsubscribe();
+    previewSubscription = undefined;
+    if (tab !== "preview") {
+      setPreviewLoading(false);
+      return;
+    }
+    const text = content().trim();
+    if (!text) {
+      lastRenderedText = "";
+      setPreviewHtml("");
+      setPreviewError(false);
+      setPreviewLoading(false);
+      return;
+    }
+    if (text === lastRenderedText) {
+      setPreviewHtml(lastRenderedHtml);
+      setPreviewError(false);
+      setPreviewLoading(false);
+      return;
+    }
+    setPreviewLoading(true);
+    setPreviewError(false);
+    const requestVersion = ++previewRequestVersion;
+    previewSubscription = fetchQuery<NoteComposerRenderMarkdownQuery>(
+      environment(),
+      NoteComposerRenderMarkdownQuery,
+      { content: text },
+    ).subscribe({
+      next(data) {
+        if (requestVersion !== previewRequestVersion) return;
+        lastRenderedText = text;
+        lastRenderedHtml = data.renderMarkdown;
+        setPreviewHtml(data.renderMarkdown);
+        setPreviewLoading(false);
+      },
+      error() {
+        if (requestVersion !== previewRequestVersion) return;
+        setPreviewError(true);
+        setPreviewHtml("");
+        setPreviewLoading(false);
+      },
+    });
   };
 
   const handleSubmit = (e: Event) => {
@@ -922,55 +1008,134 @@ export function NoteComposer(props: NoteComposerProps) {
           </div>
         </Show>
 
-        <TextField>
-          <TextFieldLabel class="flex items-center justify-between">
-            <span>{t`Content`}</span>
-            <a
-              href="/markdown"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="flex items-center gap-1 text-xs font-normal text-muted-foreground hover:text-foreground"
-            >
-              <svg
-                fill="currentColor"
-                height="128"
-                viewBox="0 0 208 128"
-                width="208"
-                xmlns="http://www.w3.org/2000/svg"
-                class="size-4"
-                stroke="currentColor"
+        <Tabs value={activeTab()} onChange={handleTabChange}>
+          <TextField>
+            <TextFieldLabel class="sr-only">{t`Content`}</TextFieldLabel>
+            <TabsList class="h-8 w-full p-0.5 mb-1">
+              <TabsTrigger value="write" class="flex-1 text-xs">
+                {t`Write`}
+              </TabsTrigger>
+              <TabsTrigger
+                value="preview"
+                class="flex-1 text-xs"
               >
-                <g>
-                  <path
-                    clip-rule="evenodd"
-                    d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
-                    fill-rule="evenodd"
+                {t`Preview`}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="write" class="mt-0" forceMount>
+              <TextFieldTextArea
+                ref={(el) => (textareaRef = el)}
+                value={content()}
+                onInput={(e) => setContent(e.currentTarget.value)}
+                onPaste={handlePaste}
+                placeholder={props.placeholder ?? t`What's on your mind?`}
+                autofocus={props.autoFocus}
+                class="min-h-[150px]"
+              />
+              <MentionAutocomplete
+                textareaRef={() => textareaRef}
+                onComplete={() => {
+                  if (textareaRef) setContent(textareaRef.value);
+                }}
+              />
+            </TabsContent>
+            <TabsContent value="preview" class="mt-0">
+              <Show
+                when={!previewLoading()}
+                fallback={
+                  <div class="min-h-[150px] flex items-center justify-center text-muted-foreground text-sm rounded-md border border-input">
+                    {t`Rendering…`}
+                  </div>
+                }
+              >
+                <Show
+                  when={previewHtml()}
+                  fallback={
+                    <div class="min-h-[150px] flex items-center justify-center text-muted-foreground text-sm rounded-md border border-input">
+                      {previewError()
+                        ? t`Failed to render preview`
+                        : t`Nothing to preview`}
+                    </div>
+                  }
+                >
+                  <div
+                    innerHTML={previewHtml()}
+                    class="prose dark:prose-invert prose-sm min-h-[150px] max-w-none rounded-md border border-input px-3 py-2 text-sm"
                   />
-                  <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
-                </g>
-              </svg>
-              {t`Markdown supported`}
-            </a>
-          </TextFieldLabel>
-          <TextFieldTextArea
-            ref={(el) => (textareaRef = el)}
-            value={content()}
-            onInput={(e) => setContent(e.currentTarget.value)}
-            onPaste={handlePaste}
-            placeholder={props.placeholder ?? t`What's on your mind?`}
-            required
-            autofocus={props.autoFocus}
-            class="min-h-[150px]"
-          />
-          <MentionAutocomplete
-            textareaRef={() => textareaRef}
-            onComplete={() => {
-              if (textareaRef) setContent(textareaRef.value);
-            }}
-          />
-        </TextField>
+                </Show>
+              </Show>
+            </TabsContent>
+            <div class="flex items-center justify-between mt-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                disabled={mediaItems.length >= MAX_MEDIA}
+                title={t`Attach image`}
+                aria-label={t`Attach image`}
+                onClick={() => fileInputRef?.click()}
+              >
+                {/* Heroicons outline: photo */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="size-6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                  />
+                </svg>
+              </Button>
+              <input
+                ref={(el) => (fileInputRef = el)}
+                type="file"
+                accept={SUPPORTED_IMAGE_TYPES.join(",")}
+                multiple
+                class="hidden"
+                onChange={(e) => {
+                  const files = e.currentTarget.files;
+                  if (files) addFiles(files);
+                  e.currentTarget.value = "";
+                }}
+              />
+              <a
+                href="/markdown"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <svg
+                  fill="currentColor"
+                  height="128"
+                  viewBox="0 0 208 128"
+                  width="208"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="size-4"
+                  stroke="currentColor"
+                >
+                  <g>
+                    <path
+                      clip-rule="evenodd"
+                      d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
+                      fill-rule="evenodd"
+                    />
+                    <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
+                  </g>
+                </svg>
+                {t`Markdown supported`}
+              </a>
+            </div>
+          </TextField>
+        </Tabs>
 
-        {/* Toolbar: language, visibility, attach button */}
+        {/* Toolbar: language, visibility */}
         <div class="flex flex-wrap items-center gap-2">
           <LanguageSelect
             value={language()}
@@ -986,45 +1151,6 @@ export function NoteComposer(props: NoteComposerProps) {
               onChange={setVisibility}
             />
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            disabled={mediaItems.length >= MAX_MEDIA}
-            title={t`Attach image`}
-            aria-label={t`Attach image`}
-            onClick={() => fileInputRef?.click()}
-          >
-            {/* Heroicons outline: photo */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="size-6"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-              />
-            </svg>
-          </Button>
-          <input
-            ref={(el) => (fileInputRef = el)}
-            type="file"
-            accept={SUPPORTED_IMAGE_TYPES.join(",")}
-            multiple
-            class="hidden"
-            onChange={(e) => {
-              const files = e.currentTarget.files;
-              if (files) addFiles(files);
-              e.currentTarget.value = "";
-            }}
-          />
         </div>
 
         {/* Media previews */}

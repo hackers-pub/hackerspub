@@ -16,6 +16,8 @@ import type {
   MentionAutocompleteQuery$data,
 } from "./__generated__/MentionAutocompleteQuery.graphql.ts";
 
+export const MENTION_AUTOCOMPLETE_PORTAL_ID = "mention-autocomplete-portal";
+
 const MENTION_PREFIX_REGEXP = /@(?:[^\s@]+(?:@[^\s@]*)?)?$/;
 
 const mentionAutocompleteQuery = graphql`
@@ -60,10 +62,10 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
   let candidatesRef: HTMLDivElement | undefined;
 
   onMount(() => {
-    let el = document.getElementById("mention-autocomplete-portal");
+    let el = document.getElementById(MENTION_AUTOCOMPLETE_PORTAL_ID);
     if (!el) {
       el = document.createElement("div");
-      el.id = "mention-autocomplete-portal";
+      el.id = MENTION_AUTOCOMPLETE_PORTAL_ID;
       document.body.appendChild(el);
     }
     setMountPoint(el);
@@ -311,8 +313,12 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
           aria-hidden="false"
           onMouseEnter={() => setIsMouseOverDropdown(true)}
           onMouseLeave={() => setIsMouseOverDropdown(false)}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => {
+            // Prevent the textarea from losing focus (and triggering
+            // the dialog's interact-outside handler) when the user
+            // clicks on a suggestion.
+            e.preventDefault();
+          }}
         >
           <Show when={candidates()?.actors == null}>
             <div class="px-3 py-2 text-muted-foreground">...</div>

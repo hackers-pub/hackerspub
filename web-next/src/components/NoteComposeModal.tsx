@@ -1,4 +1,16 @@
+import { createEffect, createSignal } from "solid-js";
+import { MENTION_AUTOCOMPLETE_PORTAL_ID } from "~/components/MentionAutocomplete.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog.tsx";
 import {
   Dialog,
   DialogContent,
@@ -20,8 +32,34 @@ export function NoteComposeModal() {
     notifyNoteCreated,
   } = useNoteCompose();
 
+  const [isDirty, setIsDirty] = createSignal(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = createSignal(false);
+
+  // Reset dirty state whenever the dialog closes.
+  createEffect(() => {
+    if (!isOpen()) {
+      setIsDirty(false);
+      setShowDiscardConfirm(false);
+    }
+  });
+
   const handleSuccess = () => {
     notifyNoteCreated();
+    close();
+  };
+
+  // Intercept close attempts: show confirmation if the composer is dirty.
+  const handleClose = () => {
+    if (isDirty()) {
+      setShowDiscardConfirm(true);
+    } else {
+      close();
+    }
+  };
+
+  const handleDiscard = () => {
+    setShowDiscardConfirm(false);
+    setIsDirty(false);
     close();
   };
 
@@ -32,25 +70,67 @@ export function NoteComposeModal() {
   };
 
   return (
-    <Dialog open={isOpen()} onOpenChange={(open) => open ? null : close()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{dialogTitle()}</DialogTitle>
-        </DialogHeader>
-        <div class="py-4">
-          <NoteComposer
-            onSuccess={handleSuccess}
-            onCancel={close}
-            showCancelButton
-            autoFocus
-            quotedPostId={quotedPostId()}
-            onQuoteRemoved={clearQuote}
-            replyTargetId={replyTargetId()}
-            defaultVisibility={replyDefaultVisibility() ?? undefined}
-            placeholder={replyTargetId() ? t`Write a reply…` : undefined}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={isOpen()} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent
+          class="sm:max-w-2xl"
+          onPointerDownOutside={(e) => {
+            // Prevent the dialog from closing when the user clicks a
+            // mention autocomplete suggestion, which renders in a Portal
+            // outside the dialog's DOM tree.
+            const portal = document.getElementById(
+              MENTION_AUTOCOMPLETE_PORTAL_ID,
+            );
+            if (
+              e.detail.originalEvent.target instanceof Node &&
+              portal?.contains(e.detail.originalEvent.target)
+            ) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>{dialogTitle()}</DialogTitle>
+          </DialogHeader>
+          <div class="py-4">
+            <NoteComposer
+              onSuccess={handleSuccess}
+              onCancel={handleClose}
+              onContentChange={setIsDirty}
+              showCancelButton
+              autoFocus
+              quotedPostId={quotedPostId()}
+              onQuoteRemoved={clearQuote}
+              replyTargetId={replyTargetId()}
+              defaultVisibility={replyDefaultVisibility() ?? undefined}
+              placeholder={replyTargetId() ? t`Write a reply…` : undefined}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog
+        open={showDiscardConfirm()}
+        onOpenChange={(open) => !open && setShowDiscardConfirm(false)}
+      >
+        <AlertDialogContent class="sm:max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t`Discard draft?`}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t`Your unsaved draft will be lost.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose>{t`Keep editing`}</AlertDialogClose>
+            <AlertDialogAction
+              class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleDiscard}
+            >
+              {t`Discard`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
