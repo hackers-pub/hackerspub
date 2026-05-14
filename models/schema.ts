@@ -764,6 +764,14 @@ export const postTable = pgTable(
           OR ${table.sharedPostId} IS NOT NULL
         )
       `),
+    index("idx_post_public_top_level_published")
+      .on(
+        table.visibility,
+        sql`${table.published}::timestamptz(3) desc`,
+        desc(table.id),
+        table.language,
+      )
+      .where(sql`${table.replyTargetId} IS NULL`),
     // Keyword search in models/search.ts uses `contentHtml ILIKE '%kw%'`,
     // and a leading-wildcard ILIKE bypasses any B-tree index. The pg_trgm
     // GIN index makes that pattern indexable; the migration also enables

@@ -1,0 +1,1 @@
+CREATE INDEX "idx_post_public_top_level_published" ON "post" ("visibility",("published"::timestamptz(3)) desc,"id" desc,"language") WHERE "reply_target_id" IS NULL;
