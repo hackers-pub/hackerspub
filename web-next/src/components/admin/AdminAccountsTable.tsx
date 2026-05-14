@@ -65,6 +65,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
       params.set("sort", field);
       params.delete("dir");
     }
+    params.delete("cursor");
     return `${location.pathname}?${params.toString()}`;
   }
 
