@@ -375,25 +375,62 @@ builder.queryField("adminAccounts", (t) =>
         Date
       >`COALESCE(${postsSubq.maxPublished}, ${accountTable.updated})`;
 
-      // --- Sort expression for the chosen field ---
-      const sortExpr: SQL = orderBy === "FOLLOWING"
-        ? sql<number>`COALESCE(${followingSubq.count}, 0)`
-        : orderBy === "FOLLOWERS"
-        ? sql<number>`COALESCE(${followersSubq.count}, 0)`
-        : orderBy === "POSTS"
-        ? sql<number>`COALESCE(${postsSubq.count}, 0)`
-        : orderBy === "INVITATIONS_LEFT"
-        ? sql`${accountTable.leftInvitations}`
-        : orderBy === "INVITED"
-        ? sql<number>`COALESCE(${inviteesSubq.count}, 0)`
-        : orderBy === "CREATED"
-        ? sql`${accountTable.created}`
-        : lastActivityExpr; // LAST_ACTIVITY (default)
+      // --- Per-field sort definitions ---
+      // Each entry pairs the SQL expression used for ORDER BY / cursor filters
+      // with a function that extracts the raw cursor value from a result row.
+      // Keeping both together means adding a new sort field only requires one
+      // change here rather than two separate switch-like blocks.
+      interface SortRow {
+        lastActivityRaw: string;
+        createdRaw: unknown;
+        followingCount: number;
+        followersCount: number;
+        postsCount: number;
+        inviteesCount: number;
+        account: typeof accountTable.$inferSelect;
+      }
+      const sortFieldDefs: Record<
+        AdminOrderBy,
+        { expr: SQL; isTimestamp: boolean; extractVal: (r: SortRow) => string }
+      > = {
+        FOLLOWING: {
+          expr: sql<number>`COALESCE(${followingSubq.count}, 0)`,
+          isTimestamp: false,
+          extractVal: (r) => String(r.followingCount),
+        },
+        FOLLOWERS: {
+          expr: sql<number>`COALESCE(${followersSubq.count}, 0)`,
+          isTimestamp: false,
+          extractVal: (r) => String(r.followersCount),
+        },
+        POSTS: {
+          expr: sql<number>`COALESCE(${postsSubq.count}, 0)`,
+          isTimestamp: false,
+          extractVal: (r) => String(r.postsCount),
+        },
+        INVITATIONS_LEFT: {
+          expr: sql`${accountTable.leftInvitations}`,
+          isTimestamp: false,
+          extractVal: (r) => String(r.account.leftInvitations),
+        },
+        INVITED: {
+          expr: sql<number>`COALESCE(${inviteesSubq.count}, 0)`,
+          isTimestamp: false,
+          extractVal: (r) => String(r.inviteesCount),
+        },
+        LAST_ACTIVITY: {
+          expr: lastActivityExpr,
+          isTimestamp: true,
+          extractVal: (r) => r.lastActivityRaw,
+        },
+        CREATED: {
+          expr: sql`${accountTable.created}`,
+          isTimestamp: true,
+          extractVal: (r) => String(r.createdRaw),
+        },
+      };
 
-      // Timestamps need `::timestamptz` casts in cursor comparisons;
-      // integer fields use `::bigint`.
-      const isTimestamp = orderBy === "LAST_ACTIVITY" ||
-        orderBy === "CREATED";
+      const { expr: sortExpr, isTimestamp } = sortFieldDefs[orderBy];
 
       const [{ totalCount }] = await ctx.db
         .select({ totalCount: sql<number>`COUNT(*)::int` })
@@ -519,19 +556,15 @@ builder.queryField("adminAccounts", (t) =>
               ? rawAct
               : new Date(rawAct as string);
 
-            const sortValRaw: string = orderBy === "LAST_ACTIVITY"
-              ? lastActivityRaw
-              : orderBy === "CREATED"
-              ? String(r.createdRaw)
-              : orderBy === "INVITATIONS_LEFT"
-              ? String(r.account.leftInvitations)
-              : orderBy === "FOLLOWING"
-              ? String(r.followingCount)
-              : orderBy === "FOLLOWERS"
-              ? String(r.followersCount)
-              : orderBy === "POSTS"
-              ? String(r.postsCount)
-              : String(r.inviteesCount); // INVITED
+            const sortValRaw = sortFieldDefs[orderBy].extractVal({
+              lastActivityRaw,
+              createdRaw: r.createdRaw,
+              followingCount: r.followingCount,
+              followersCount: r.followersCount,
+              postsCount: r.postsCount,
+              inviteesCount: r.inviteesCount,
+              account: r.account,
+            });
 
             return { account: r.account, lastActivity, sortValRaw };
           });
