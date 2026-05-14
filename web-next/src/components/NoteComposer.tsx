@@ -1110,7 +1110,7 @@ export function NoteComposer(props: NoteComposerProps) {
           </TextField>
         </Tabs>
 
-        {/* Toolbar: language, visibility, attach button */}
+        {/* Toolbar: language, visibility */}
         <div class="flex flex-wrap items-center gap-2">
           <LanguageSelect
             value={language()}

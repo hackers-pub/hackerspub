@@ -1,4 +1,5 @@
 import { createEffect, createSignal } from "solid-js";
+import { MENTION_AUTOCOMPLETE_PORTAL_ID } from "~/components/MentionAutocomplete.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
 import {
   AlertDialog,
@@ -78,7 +79,7 @@ export function NoteComposeModal() {
             // mention autocomplete suggestion, which renders in a Portal
             // outside the dialog's DOM tree.
             const portal = document.getElementById(
-              "mention-autocomplete-portal",
+              MENTION_AUTOCOMPLETE_PORTAL_ID,
             );
             if (
               e.detail.originalEvent.target instanceof Node &&

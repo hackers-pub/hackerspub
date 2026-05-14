@@ -16,6 +16,8 @@ import type {
   MentionAutocompleteQuery$data,
 } from "./__generated__/MentionAutocompleteQuery.graphql.ts";
 
+export const MENTION_AUTOCOMPLETE_PORTAL_ID = "mention-autocomplete-portal";
+
 const MENTION_PREFIX_REGEXP = /@(?:[^\s@]+(?:@[^\s@]*)?)?$/;
 
 const mentionAutocompleteQuery = graphql`
@@ -60,10 +62,10 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
   let candidatesRef: HTMLDivElement | undefined;
 
   onMount(() => {
-    let el = document.getElementById("mention-autocomplete-portal");
+    let el = document.getElementById(MENTION_AUTOCOMPLETE_PORTAL_ID);
     if (!el) {
       el = document.createElement("div");
-      el.id = "mention-autocomplete-portal";
+      el.id = MENTION_AUTOCOMPLETE_PORTAL_ID;
       document.body.appendChild(el);
     }
     setMountPoint(el);
