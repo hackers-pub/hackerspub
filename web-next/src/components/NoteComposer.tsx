@@ -277,6 +277,7 @@ export function NoteComposer(props: NoteComposerProps) {
   const [previewLoading, setPreviewLoading] = createSignal(false);
   const [previewError, setPreviewError] = createSignal(false);
   let lastRenderedText = "";
+  let lastRenderedHtml = "";
   let previewRequestVersion = 0;
   let previewSubscription: { unsubscribe: () => void } | undefined;
   let formRef: HTMLFormElement | undefined;
@@ -669,6 +670,14 @@ export function NoteComposer(props: NoteComposerProps) {
     setReplyTargetPost(null);
     setReplyTargetFetchError(false);
     setMediaItems([]);
+    previewSubscription?.unsubscribe();
+    previewSubscription = undefined;
+    lastRenderedText = "";
+    lastRenderedHtml = "";
+    setActiveTab("write");
+    setPreviewHtml("");
+    setPreviewError(false);
+    setPreviewLoading(false);
   };
 
   const handleTabChange = (tab: string) => {
@@ -688,6 +697,8 @@ export function NoteComposer(props: NoteComposerProps) {
       return;
     }
     if (text === lastRenderedText) {
+      setPreviewHtml(lastRenderedHtml);
+      setPreviewError(false);
       setPreviewLoading(false);
       return;
     }
@@ -702,6 +713,7 @@ export function NoteComposer(props: NoteComposerProps) {
       next(data) {
         if (requestVersion !== previewRequestVersion) return;
         lastRenderedText = text;
+        lastRenderedHtml = data.renderMarkdown;
         setPreviewHtml(data.renderMarkdown);
         setPreviewLoading(false);
       },
