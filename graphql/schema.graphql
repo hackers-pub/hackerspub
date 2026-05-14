@@ -318,6 +318,16 @@ type AdminAccountEdge {
   node: Account!
 }
 
+enum AdminAccountOrderBy {
+  CREATED
+  FOLLOWERS
+  FOLLOWING
+  INVITATIONS_LEFT
+  INVITED
+  LAST_ACTIVITY
+  POSTS
+}
+
 type AdminAccountPageInfo {
   endCursor: String
   hasNextPage: Boolean!
@@ -1022,6 +1032,11 @@ enum NotificationType {
   SHARE
 }
 
+enum OrderDirection {
+  ASC
+  DESC
+}
+
 """
 A snapshot of media objects old enough to delete and not referenced by accounts, notes, article drafts, or article sources.
 """
@@ -1291,9 +1306,9 @@ type Query {
   actorByUuid(uuid: UUID!): Actor
 
   """
-  Moderator-only connection of every account, ordered by latest post `published` falling back to `account.updated`.  Returns null when the viewer is not a moderator; routes should guard with `viewer.moderator` and redirect non-moderators.
+  Moderator-only connection of every account.  Returns null when the viewer is not a moderator; routes should guard with `viewer.moderator` and redirect non-moderators.
   """
-  adminAccounts(after: String, before: String, first: Int, last: Int): AdminAccountConnection
+  adminAccounts(after: String, before: String, first: Int, last: Int, orderBy: AdminAccountOrderBy, orderDirection: OrderDirection): AdminAccountConnection
   articleByYearAndSlug(handle: String!, idOrYear: String!, slug: String!): Article
   articleDraft(id: ID, uuid: UUID): ArticleDraft
   availableLocales: [Locale!]!
