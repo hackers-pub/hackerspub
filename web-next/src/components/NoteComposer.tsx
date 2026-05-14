@@ -275,6 +275,8 @@ export function NoteComposer(props: NoteComposerProps) {
   const [activeTab, setActiveTab] = createSignal<string>("write");
   const [previewHtml, setPreviewHtml] = createSignal<string>("");
   const [previewLoading, setPreviewLoading] = createSignal(false);
+  const [previewError, setPreviewError] = createSignal(false);
+  let lastRenderedText = "";
   let previewRequestVersion = 0;
   let previewSubscription: { unsubscribe: () => void } | undefined;
   let formRef: HTMLFormElement | undefined;
@@ -682,7 +684,12 @@ export function NoteComposer(props: NoteComposerProps) {
       setPreviewLoading(false);
       return;
     }
+    if (text === lastRenderedText) {
+      setPreviewLoading(false);
+      return;
+    }
     setPreviewLoading(true);
+    setPreviewError(false);
     const requestVersion = ++previewRequestVersion;
     previewSubscription = fetchQuery<NoteComposerRenderMarkdownQuery>(
       environment(),
@@ -691,11 +698,13 @@ export function NoteComposer(props: NoteComposerProps) {
     ).subscribe({
       next(data) {
         if (requestVersion !== previewRequestVersion) return;
+        lastRenderedText = text;
         setPreviewHtml(data.renderMarkdown);
         setPreviewLoading(false);
       },
       error() {
         if (requestVersion !== previewRequestVersion) return;
+        setPreviewError(true);
         setPreviewHtml("");
         setPreviewLoading(false);
       },
@@ -1029,7 +1038,9 @@ export function NoteComposer(props: NoteComposerProps) {
                   when={previewHtml()}
                   fallback={
                     <div class="min-h-[150px] flex items-center justify-center text-muted-foreground text-sm rounded-md border border-input">
-                      {t`Nothing to preview`}
+                      {previewError()
+                        ? t`Failed to render preview`
+                        : t`Nothing to preview`}
                     </div>
                   }
                 >
