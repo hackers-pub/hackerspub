@@ -1170,9 +1170,17 @@ export const timelineItemTable = pgTable(
   (table) => [
     primaryKey({ columns: [table.accountId, table.postId] }),
     index("idx_timeline_item_account_id_added")
-      .on(table.accountId, desc(table.added)),
+      .on(
+        table.accountId,
+        sql`(${table.added}::timestamptz(3)) desc`,
+        desc(table.postId),
+      ),
     index("idx_timeline_item_account_id_appended")
-      .on(table.accountId, desc(table.appended)),
+      .on(
+        table.accountId,
+        sql`(${table.appended}::timestamptz(3)) desc`,
+        desc(table.postId),
+      ),
     index("timeline_item_post_id_index").on(table.postId),
   ],
 );
