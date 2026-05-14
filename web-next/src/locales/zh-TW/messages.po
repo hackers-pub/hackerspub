@@ -2019,7 +2019,7 @@ msgstr "儲存中…"
 
 #: src/components/admin/AdminAccountsTable.tsx
 msgid "Search by name or username…"
-msgstr "按名稱或用戶名搜尋…"
+msgstr "按名稱或使用者名稱搜尋…"
 
 #: src/components/admin/AdminAccountsTable.tsx
 msgid "Clear"
