@@ -311,8 +311,12 @@ export function MentionAutocomplete(props: MentionAutocompleteProps) {
           aria-hidden="false"
           onMouseEnter={() => setIsMouseOverDropdown(true)}
           onMouseLeave={() => setIsMouseOverDropdown(false)}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => {
+            // Prevent the textarea from losing focus (and triggering
+            // the dialog's interact-outside handler) when the user
+            // clicks on a suggestion.
+            e.preventDefault();
+          }}
         >
           <Show when={candidates()?.actors == null}>
             <div class="px-3 py-2 text-muted-foreground">...</div>

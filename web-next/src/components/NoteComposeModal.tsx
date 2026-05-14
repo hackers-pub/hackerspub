@@ -33,7 +33,20 @@ export function NoteComposeModal() {
 
   return (
     <Dialog open={isOpen()} onOpenChange={(open) => open ? null : close()}>
-      <DialogContent class="sm:max-w-2xl">
+      <DialogContent
+        class="sm:max-w-2xl"
+        onPointerDownOutside={(e) => {
+          // Prevent the dialog from closing when the user clicks a
+          // mention autocomplete suggestion, which renders in a Portal
+          // outside the dialog's DOM tree.
+          const portal = document.getElementById(
+            "mention-autocomplete-portal",
+          );
+          if (portal?.contains(e.detail.originalEvent.target as Node)) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>{dialogTitle()}</DialogTitle>
         </DialogHeader>
