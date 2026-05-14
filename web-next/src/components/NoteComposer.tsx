@@ -998,7 +998,7 @@ export function NoteComposer(props: NoteComposerProps) {
                 {t`Preview`}
               </TabsTrigger>
             </TabsList>
-            <TabsContent value="write" class="mt-0">
+            <TabsContent value="write" class="mt-0" forceMount>
               <TextFieldTextArea
                 ref={(el) => (textareaRef = el)}
                 value={content()}

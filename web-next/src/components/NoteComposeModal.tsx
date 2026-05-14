@@ -80,7 +80,10 @@ export function NoteComposeModal() {
             const portal = document.getElementById(
               "mention-autocomplete-portal",
             );
-            if (portal?.contains(e.detail.originalEvent.target as Node)) {
+            if (
+              e.detail.originalEvent.target instanceof Node &&
+              portal?.contains(e.detail.originalEvent.target)
+            ) {
               e.preventDefault();
             }
           }}
