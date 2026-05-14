@@ -322,9 +322,10 @@ builder.queryField("adminAccounts", (t) =>
         .groupBy(actorTable.accountId)
         .as("posts_agg");
 
-      // Followers per account (actors whose followeeId maps to this account).
-      // Only count accepted follows so the sort order matches the displayed totals.
-      const followersSubq = ctx.db
+      // Build only the aggregate subquery needed for the current sort field.
+      // Follower / following / invitee counts are expensive GROUP BY aggregates;
+      // joining all three on every request is wasteful when only one is used.
+      const followersSubq = orderBy !== "FOLLOWERS" ? null : ctx.db
         .select({
           accountId: actorTable.accountId,
           count: sql<number>`COUNT(*)::int`.as("count"),
@@ -340,9 +341,7 @@ builder.queryField("adminAccounts", (t) =>
         .groupBy(actorTable.accountId)
         .as("followers_agg");
 
-      // Following per account (actors whose followerId maps to this account).
-      // Only count accepted follows so the sort order matches the displayed totals.
-      const followingSubq = ctx.db
+      const followingSubq = orderBy !== "FOLLOWING" ? null : ctx.db
         .select({
           accountId: actorTable.accountId,
           count: sql<number>`COUNT(*)::int`.as("count"),
@@ -358,8 +357,7 @@ builder.queryField("adminAccounts", (t) =>
         .groupBy(actorTable.accountId)
         .as("following_agg");
 
-      // Invitees per account (accounts whose inviterId is this account).
-      const inviteesSubq = ctx.db
+      const inviteesSubq = orderBy !== "INVITED" ? null : ctx.db
         .select({
           inviterId: accountTable.inviterId,
           count: sql<number>`COUNT(*)::int`.as("count"),
@@ -375,62 +373,56 @@ builder.queryField("adminAccounts", (t) =>
         Date
       >`COALESCE(${postsSubq.maxPublished}, ${accountTable.updated})`;
 
-      // --- Per-field sort definitions ---
-      // Each entry pairs the SQL expression used for ORDER BY / cursor filters
-      // with a function that extracts the raw cursor value from a result row.
-      // Keeping both together means adding a new sort field only requires one
-      // change here rather than two separate switch-like blocks.
+      // Sort expression and cursor value extractor for the active sort field.
+      // Built with a switch so references to conditional subqueries are only
+      // evaluated when those subqueries are actually constructed (non-null).
       interface SortRow {
         lastActivityRaw: string;
-        createdRaw: unknown;
-        followingCount: number;
-        followersCount: number;
-        postsCount: number;
-        inviteesCount: number;
+        createdRaw: string;
+        sortCount: number;
         account: typeof accountTable.$inferSelect;
       }
-      const sortFieldDefs: Record<
-        AdminOrderBy,
-        { expr: SQL; isTimestamp: boolean; extractVal: (r: SortRow) => string }
-      > = {
-        FOLLOWING: {
-          expr: sql<number>`COALESCE(${followingSubq.count}, 0)`,
-          isTimestamp: false,
-          extractVal: (r) => String(r.followingCount),
-        },
-        FOLLOWERS: {
-          expr: sql<number>`COALESCE(${followersSubq.count}, 0)`,
-          isTimestamp: false,
-          extractVal: (r) => String(r.followersCount),
-        },
-        POSTS: {
-          expr: sql<number>`COALESCE(${postsSubq.count}, 0)`,
-          isTimestamp: false,
-          extractVal: (r) => String(r.postsCount),
-        },
-        INVITATIONS_LEFT: {
-          expr: sql`${accountTable.leftInvitations}`,
-          isTimestamp: false,
-          extractVal: (r) => String(r.account.leftInvitations),
-        },
-        INVITED: {
-          expr: sql<number>`COALESCE(${inviteesSubq.count}, 0)`,
-          isTimestamp: false,
-          extractVal: (r) => String(r.inviteesCount),
-        },
-        LAST_ACTIVITY: {
-          expr: lastActivityExpr,
-          isTimestamp: true,
-          extractVal: (r) => r.lastActivityRaw,
-        },
-        CREATED: {
-          expr: sql`${accountTable.created}`,
-          isTimestamp: true,
-          extractVal: (r) => String(r.createdRaw),
-        },
-      };
 
-      const { expr: sortExpr, isTimestamp } = sortFieldDefs[orderBy];
+      let sortExpr: SQL;
+      let isTimestamp: boolean;
+      let extractSortVal: (r: SortRow) => string;
+      switch (orderBy) {
+        case "FOLLOWING":
+          sortExpr = sql<number>`COALESCE(${followingSubq!.count}, 0)`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.sortCount);
+          break;
+        case "FOLLOWERS":
+          sortExpr = sql<number>`COALESCE(${followersSubq!.count}, 0)`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.sortCount);
+          break;
+        case "POSTS":
+          sortExpr = sql<number>`COALESCE(${postsSubq.count}, 0)`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.sortCount);
+          break;
+        case "INVITATIONS_LEFT":
+          sortExpr = sql`${accountTable.leftInvitations}`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.account.leftInvitations);
+          break;
+        case "INVITED":
+          sortExpr = sql<number>`COALESCE(${inviteesSubq!.count}, 0)`;
+          isTimestamp = false;
+          extractSortVal = (r) => String(r.sortCount);
+          break;
+        case "LAST_ACTIVITY":
+          sortExpr = lastActivityExpr;
+          isTimestamp = true;
+          extractSortVal = (r) => r.lastActivityRaw;
+          break;
+        case "CREATED":
+          sortExpr = sql`${accountTable.created}`;
+          isTimestamp = true;
+          extractSortVal = (r) => r.createdRaw;
+          break;
+      }
 
       const [{ totalCount }] = await ctx.db
         .select({ totalCount: sql<number>`COUNT(*)::int` })
@@ -504,7 +496,16 @@ builder.queryField("adminAccounts", (t) =>
             ? [desc(sortExpr), desc(accountTable.id)]
             : [asc(sortExpr), asc(accountTable.id)];
 
-          const rows = await ctx.db
+          // sortCount carries the active sort field's count expression.
+          // For timestamp and INVITATIONS_LEFT sorts it is unused (set to 0).
+          const sortCountExpr: SQL<number> = isTimestamp
+            ? sql<number>`0`
+            : sql<number>`(${sortExpr})::int`;
+
+          // Build the base query with postsSubq always joined (needed for
+          // lastActivityExpr), then conditionally join the one optional
+          // subquery the current sort field requires.
+          const baseQ = ctx.db
             .select({
               account: accountTable,
               lastActivity: lastActivityExpr,
@@ -517,52 +518,52 @@ builder.queryField("adminAccounts", (t) =>
               createdRaw: sql<
                 string
               >`to_char(${accountTable.created} AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '+00'`,
-              followingCount: sql<
-                number
-              >`COALESCE(${followingSubq.count}, 0)::int`,
-              followersCount: sql<
-                number
-              >`COALESCE(${followersSubq.count}, 0)::int`,
-              postsCount: sql<number>`COALESCE(${postsSubq.count}, 0)::int`,
-              inviteesCount: sql<
-                number
-              >`COALESCE(${inviteesSubq.count}, 0)::int`,
+              sortCount: sortCountExpr,
             })
             .from(accountTable)
             .leftJoin(postsSubq, eq(postsSubq.accountId, accountTable.id))
-            .leftJoin(
+            .$dynamic();
+
+          // $dynamic() allows conditional leftJoin calls at the cost of a
+          // type assertion: each leftJoin changes the nullabilityMap in the
+          // return type, so we cast back to the base dynamic type.
+          type DynQ = typeof baseQ;
+          let q: DynQ = baseQ;
+          if (followersSubq != null) {
+            q = q.leftJoin(
               followersSubq,
               eq(followersSubq.accountId, accountTable.id),
-            )
-            .leftJoin(
+            ) as unknown as DynQ;
+          }
+          if (followingSubq != null) {
+            q = q.leftJoin(
               followingSubq,
               eq(followingSubq.accountId, accountTable.id),
-            )
-            .leftJoin(
+            ) as unknown as DynQ;
+          }
+          if (inviteesSubq != null) {
+            q = q.leftJoin(
               inviteesSubq,
               eq(inviteesSubq.inviterId, accountTable.id),
-            )
+            ) as unknown as DynQ;
+          }
+
+          const rows = await q
             .where(and(beforeFilter, afterFilter, searchFilter))
             .orderBy(...orderByClause)
             .limit(limit);
 
           return rows.map((r) => {
-            // lastActivityRaw and createdRaw are already formatted as UTC
-            // strings by the to_char() expressions in the SELECT above, so
-            // they are always strings, never Date objects.
             const lastActivityRaw = String(r.lastActivityRaw);
             const rawAct = r.lastActivity as unknown;
             const lastActivity = rawAct instanceof Date
               ? rawAct
               : new Date(rawAct as string);
 
-            const sortValRaw = sortFieldDefs[orderBy].extractVal({
+            const sortValRaw = extractSortVal({
               lastActivityRaw,
-              createdRaw: r.createdRaw,
-              followingCount: r.followingCount,
-              followersCount: r.followersCount,
-              postsCount: r.postsCount,
-              inviteesCount: r.inviteesCount,
+              createdRaw: String(r.createdRaw),
+              sortCount: r.sortCount,
               account: r.account,
             });
 
