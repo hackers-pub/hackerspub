@@ -1,0 +1,107 @@
+import type { Database } from "@hackerspub/models/db";
+import { type DocumentNode, Kind, type OperationDefinitionNode } from "graphql";
+import type { Plugin as EnvelopPlugin } from "graphql-yoga";
+import type { UserContext } from "./builder.ts";
+
+// Wrap GraphQL query operations in a single PostgreSQL REPEATABLE READ
+// transaction so every SELECT issued during resolution — including
+// Pothos drizzle's "smart" re-fetches across the Drizzle RQB v2
+// multi-query joins — sees the same snapshot.
+//
+// Why this exists: Drizzle's RQB v2 (`defineRelations`) splits a single
+// `findMany({ with: { actor: ... } })` into multiple SELECTs.  Under
+// READ COMMITTED, a cascade DELETE that commits between those SELECTs
+// can leave a parent row visible with its related row missing, producing
+// `Cannot return null for non-nullable field …actor` errors when Pothos
+// re-fetches a Post during nested-field resolution (the timeline model
+// already sanitizes its own initial fetch but cannot help with Pothos's
+// later re-fetches).  A snapshot for the whole request prevents that.
+//
+// We deliberately do NOT pass `accessMode: "read only"` even though most
+// query operations only read.  A handful of query resolvers (e.g.
+// `searchObject` calling `addPostToTimeline`, or any path that goes
+// through `persistActor`/`persistPost` via `ctx.fedCtx`) intentionally
+// write as a side effect.  A read-only transaction would reject those.
+// REPEATABLE READ alone still gives us the consistent snapshot we need
+// — writes done inside the transaction are visible to subsequent reads
+// in the same transaction.
+//
+// Mutations and subscriptions stay on the driver's default (autocommit,
+// READ COMMITTED).  Mutations want to see freshly-committed data from
+// concurrent writers; subscriptions are long-lived streams where pinning
+// a snapshot would defeat their purpose.
+export function useQuerySnapshotTransaction(): EnvelopPlugin<UserContext> {
+  return {
+    onExecute({ args, executeFn, setExecuteFn }) {
+      if (!isReadOnlyOperation(args.document, args.operationName)) return;
+
+      // Capture the executeFn at the point our plugin runs so we layer on
+      // top of whatever earlier plugins (e.g. the NO_PROPAGATE wrapper)
+      // have set up, rather than re-invoking `graphql.execute` directly
+      // and dropping their configuration.
+      const wrappedExecute = executeFn;
+      const ctx = args.contextValue as UserContext;
+      const rootDb = ctx.db;
+
+      setExecuteFn((innerArgs) =>
+        rootDb.transaction(
+          async (tx) => {
+            // Swap every database handle reachable through the context so
+            // both direct Drizzle access (`ctx.db` for resolvers and
+            // Pothos drizzle's re-fetches, via the schema's
+            // `drizzle.client: (ctx) => ctx.db` factory) and federation
+            // helpers (`ctx.fedCtx.data.db` used by `persistActor`,
+            // `persistPost`, `addPostToTimeline`, …) share the same
+            // snapshot.  Leaving `fedCtx.data.db` pointing at the root
+            // pool would let a query resolver write outside the
+            // transaction and then fail to see its own write through
+            // `ctx.db`.  `contextValue` is typed `Readonly` by envelop,
+            // but at runtime it is the same object resolvers consume,
+            // and per-request mutation is the standard envelop pattern
+            // for request-scoped overrides.
+            const liveCtx = innerArgs.contextValue as unknown as UserContext;
+            const originalDb = liveCtx.db;
+            const fedData = liveCtx.fedCtx.data;
+            const originalFedDb = fedData.db;
+            // Cast: PostgresJsTransaction structurally satisfies the
+            // PostgresJsDatabase interface (both extend PgAsyncDatabase),
+            // but Drizzle's nominal class typing makes TypeScript reject
+            // direct assignment.  The runtime contract is identical for
+            // every method Pothos and resolvers call.
+            const txAsDb = tx as unknown as Database;
+            liveCtx.db = txAsDb;
+            fedData.db = txAsDb;
+            try {
+              return await wrappedExecute(innerArgs);
+            } finally {
+              liveCtx.db = originalDb;
+              fedData.db = originalFedDb;
+            }
+          },
+          { isolationLevel: "repeatable read" },
+        )
+      );
+    },
+  };
+}
+
+function isReadOnlyOperation(
+  document: DocumentNode,
+  operationName: string | null | undefined,
+): boolean {
+  const operations = document.definitions.filter(
+    (def): def is OperationDefinitionNode =>
+      def.kind === Kind.OPERATION_DEFINITION,
+  );
+  if (operations.length === 0) return false;
+
+  // Match GraphQL's own operation selection: by name when provided,
+  // otherwise the lone operation (a document with multiple operations and
+  // no operationName is a client error that `graphql.execute` will surface
+  // on its own — we don't try to second-guess it).
+  const operation = operationName == null
+    ? operations.length === 1 ? operations[0] : undefined
+    : operations.find((op) => op.name?.value === operationName);
+
+  return operation?.operation === "query";
+}

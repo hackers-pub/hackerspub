@@ -18,6 +18,7 @@ import {
 } from "graphql-yoga";
 import type { ServerContext, UserContext } from "./builder.ts";
 import { schema as graphqlSchema } from "./mod.ts";
+import { useQuerySnapshotTransaction } from "./query-tx-plugin.ts";
 
 const sentryEnabled = Deno.env.get("SENTRY_DSN") != null;
 
@@ -107,6 +108,11 @@ export function createYogaServer(): YogaServerInstance<
           );
         },
       } as EnvelopPlugin,
+      // Wrap query operations in a REPEATABLE READ transaction so Pothos
+      // drizzle's re-fetches see the same snapshot the timeline resolvers
+      // used.  Must come after the NO_PROPAGATE wrapper above so the
+      // transaction layers on top of the configured executeFn.
+      useQuerySnapshotTransaction(),
       // Capture unhandled resolver exceptions in Sentry. Yoga otherwise
       // catches throws and folds them into the response `errors[]`, so
       // they never bubble up to the HTTP boundary where the SDK's default
