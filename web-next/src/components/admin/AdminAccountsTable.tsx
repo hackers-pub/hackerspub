@@ -5,7 +5,15 @@ import IconChevronsUpDown from "~icons/lucide/chevrons-up-down";
 import IconSearch from "~icons/lucide/search";
 import IconX from "~icons/lucide/x";
 import { graphql } from "relay-runtime";
-import { createEffect, createSignal, For, Match, Show, Switch } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Match,
+  Show,
+  Switch,
+} from "solid-js";
 import { createPaginationFragment } from "solid-relay";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
@@ -30,12 +38,27 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const currentSort = () =>
-    new URLSearchParams(location.search).get("sort") ?? "LAST_ACTIVITY";
-  const currentDir = () =>
-    new URLSearchParams(location.search).get("dir") ?? "DESC";
-  const currentSearch = () =>
-    new URLSearchParams(location.search).get("q") ?? "";
+  // Parse once per URL change so all three derived signals share the object.
+  const searchParams = createMemo(() => new URLSearchParams(location.search));
+
+  const validSortFields = new Set([
+    "FOLLOWING",
+    "FOLLOWERS",
+    "POSTS",
+    "INVITATIONS_LEFT",
+    "INVITED",
+    "LAST_ACTIVITY",
+    "CREATED",
+  ]);
+  const currentSort = () => {
+    const raw = searchParams().get("sort")?.toUpperCase() ?? "";
+    return validSortFields.has(raw) ? raw : "LAST_ACTIVITY";
+  };
+  const currentDir = () => {
+    const raw = searchParams().get("dir")?.toUpperCase() ?? "";
+    return raw === "ASC" || raw === "DESC" ? raw : "DESC";
+  };
+  const currentSearch = () => searchParams().get("q") ?? "";
 
   // Sync the text input with the URL whenever the URL's ?q param changes
   // (e.g. after navigating via a sort-column link).
