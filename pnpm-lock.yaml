@@ -448,8 +448,8 @@ importers:
         specifier: ^1.9.10
         version: 1.9.12
       solid-relay:
-        specifier: 1.0.0-beta.19
-        version: 1.0.0-beta.19(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12)
+        specifier: 1.0.0-beta.18
+        version: 1.0.0-beta.18(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12)
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.5.0
@@ -2920,6 +2920,7 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+    deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
   '@vercel/nft@1.5.0':
     resolution: {integrity: sha512-IWTDeIoWhQ7ZtRO/JRKH+jhmeQvZYhtGPmzw/QGDY+wDCQqfm25P9yIdoAFagu4fWsK4IwZXDFIjrmp5rRm/sA==}
@@ -5543,8 +5544,8 @@ packages:
     peerDependencies:
       solid-js: ^1.3
 
-  solid-relay@1.0.0-beta.19:
-    resolution: {integrity: sha512-A3J+ElxIp9daXaQTSQCH31G1KPZEn8b/2Sk5JcjI8Be+oGu4KmupsJv5MAaHWSDUrxQlsBglQgAYyewEuVp9TA==}
+  solid-relay@1.0.0-beta.18:
+    resolution: {integrity: sha512-Jy9+Pyy1J5CC/esNWtp7RdPx6F2wlrpPDzY+6G4evDRBsk7nvpJcv5ILii3vjBfTRTebygtVJnhR5kJaee8CQA==}
     peerDependencies:
       relay-runtime: ^18.1.0 || ^19 || ^20
       seroval: ^1.1.0
@@ -11951,7 +11952,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  solid-relay@1.0.0-beta.19(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12):
+  solid-relay@1.0.0-beta.18(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12):
     dependencies:
       dequal: 2.0.3
       relay-runtime: 19.0.0
