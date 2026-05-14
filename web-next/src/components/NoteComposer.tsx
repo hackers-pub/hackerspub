@@ -965,40 +965,15 @@ export function NoteComposer(props: NoteComposerProps) {
 
         <Tabs value={activeTab()} onChange={handleTabChange}>
           <TextField>
-            <TextFieldLabel class="flex items-center justify-between">
-              <span>{t`Content`}</span>
-              <a
-                href="/markdown"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="flex items-center gap-1 text-xs font-normal text-muted-foreground hover:text-foreground"
-              >
-                <svg
-                  fill="currentColor"
-                  height="128"
-                  viewBox="0 0 208 128"
-                  width="208"
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="size-4"
-                  stroke="currentColor"
-                >
-                  <g>
-                    <path
-                      clip-rule="evenodd"
-                      d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
-                      fill-rule="evenodd"
-                    />
-                    <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
-                  </g>
-                </svg>
-                {t`Markdown supported`}
-              </a>
-            </TextFieldLabel>
-            <TabsList class="h-8 p-0.5 mb-1">
-              <TabsTrigger value="write" class="px-3 text-xs cursor-pointer">
+            <TextFieldLabel class="sr-only">{t`Content`}</TextFieldLabel>
+            <TabsList class="h-8 w-full p-0.5 mb-1">
+              <TabsTrigger value="write" class="flex-1 text-xs cursor-pointer">
                 {t`Write`}
               </TabsTrigger>
-              <TabsTrigger value="preview" class="px-3 text-xs cursor-pointer">
+              <TabsTrigger
+                value="preview"
+                class="flex-1 text-xs cursor-pointer"
+              >
                 {t`Preview`}
               </TabsTrigger>
             </TabsList>
@@ -1044,6 +1019,34 @@ export function NoteComposer(props: NoteComposerProps) {
                 </Show>
               </Show>
             </TabsContent>
+            <div class="flex justify-end mt-1">
+              <a
+                href="/markdown"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <svg
+                  fill="currentColor"
+                  height="128"
+                  viewBox="0 0 208 128"
+                  width="208"
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="size-4"
+                  stroke="currentColor"
+                >
+                  <g>
+                    <path
+                      clip-rule="evenodd"
+                      d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
+                      fill-rule="evenodd"
+                    />
+                    <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
+                  </g>
+                </svg>
+                {t`Markdown supported`}
+              </a>
+            </div>
           </TextField>
         </Tabs>
 
