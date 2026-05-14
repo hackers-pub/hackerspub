@@ -683,6 +683,7 @@ export function NoteComposer(props: NoteComposerProps) {
     if (!text) {
       lastRenderedText = "";
       setPreviewHtml("");
+      setPreviewError(false);
       setPreviewLoading(false);
       return;
     }
