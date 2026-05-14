@@ -27,7 +27,7 @@ const loadAdminAccountsPageQuery = routePreloadedQuery(
     loadQuery<adminAccountsPageQuery>(
       useRelayEnvironment()(),
       adminAccountsPageQuery,
-      { count: 50 },
+      { count: 100 },
     ),
   "loadAdminAccountsPageQuery",
 );

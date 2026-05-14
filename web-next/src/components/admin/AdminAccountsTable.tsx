@@ -28,7 +28,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
         @refetchable(queryName: "AdminAccountsTablePaginationQuery")
         @argumentDefinitions(
           cursor: { type: "String" }
-          count: { type: "Int", defaultValue: 50 }
+          count: { type: "Int", defaultValue: 100 }
         )
       {
         adminAccounts(after: $cursor, first: $count)
@@ -81,7 +81,7 @@ export function AdminAccountsTable(props: AdminAccountsTableProps) {
 
   function onLoadMore() {
     setLoadingState("loading");
-    data.loadNext(50, {
+    data.loadNext(100, {
       onComplete(error) {
         setLoadingState(error == null ? "loaded" : "errored");
       },
