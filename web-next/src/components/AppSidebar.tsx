@@ -1,5 +1,5 @@
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
-import { A } from "@solidjs/router";
+import { A, useLocation } from "@solidjs/router";
 import {
   deleteCookie,
   getCookie,
@@ -415,13 +415,14 @@ interface AccountSectionProps {
 
 function AccountSection(props: AccountSectionProps) {
   const { t } = useLingui();
+  const location = useLocation();
   const unreadNotificationsCount = () =>
     props.unreadNotificationsCount ??
       props.signedAccount?.unreadNotificationsCount ?? 0;
 
   function onReturnToOldUI() {
     removeWebNextCookie();
-    location.reload();
+    window.location.reload();
   }
 
   return (
@@ -454,7 +455,11 @@ function AccountSection(props: AccountSectionProps) {
             <SidebarMenuItem class="list-none">
               <SidebarMenuButton
                 as={A}
-                href={`/sign?next=${encodeURIComponent(location?.href ?? "/")}`}
+                href={`/sign?next=${
+                  encodeURIComponent(
+                    location.pathname + location.search + location.hash,
+                  )
+                }`}
                 {...sidebarNavigationLinkProps}
               >
                 <svg
