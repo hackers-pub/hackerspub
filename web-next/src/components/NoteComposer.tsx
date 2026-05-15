@@ -1032,6 +1032,18 @@ export function NoteComposer(props: NoteComposerProps) {
                 value={content()}
                 onInput={(e) => setContent(e.currentTarget.value)}
                 onPaste={handlePaste}
+                onWheel={(e) => {
+                  // Prevent solid-prevent-scroll's document listener from blocking scroll.
+                  const el = e.currentTarget;
+                  const scrollingDown = e.deltaY > 0;
+                  if (
+                    (scrollingDown &&
+                      el.scrollTop + el.clientHeight < el.scrollHeight) ||
+                    (!scrollingDown && el.scrollTop > 0)
+                  ) {
+                    e.stopPropagation();
+                  }
+                }}
                 placeholder={props.placeholder ?? t`What's on your mind?`}
                 autofocus={props.autoFocus}
                 class="min-h-[150px]"
