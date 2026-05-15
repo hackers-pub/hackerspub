@@ -1,3 +1,4 @@
+import { clientOnly } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { Accessor, createSignal, Setter, Show } from "solid-js";
 import { createFragment } from "solid-relay";
@@ -7,10 +8,7 @@ import {
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import {
-  MentionHoverCardLayer,
-  useMentionHoverCards,
-} from "~/lib/mentionHoverCards.tsx";
+import { useMentionHoverCards } from "~/lib/mentionHoverCards.tsx";
 import {
   ArticleCard_article$key,
 } from "./__generated__/ArticleCard_article.graphql.ts";
@@ -18,11 +16,29 @@ import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInte
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { InternalLink } from "./InternalLink.tsx";
-import { PostActionMenu } from "./PostActionMenu.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { PostSharer } from "./PostSharer.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
+
+// Defer the dropdown menu (only meaningful after a click) and the mention
+// hover-card overlay (a portalled popover that stays closed until the user
+// hovers a mention) to client-only mounts. With 25 article cards per feed
+// page each rendering both, eagerly SSRing them adds dozens of Solid
+// suspense markers, three Relay mutations per card, and Kobalte popover
+// wrappers — all hydration cost the user pays for chrome they typically
+// never touch on a feed view. clientOnly keeps the data fetched (the
+// PostActionMenu_post fragment is still spread into the parent query, see
+// ArticleCardInternal_article below) but skips the SSR render and its
+// hydration.
+const PostActionMenu = clientOnly(() =>
+  import("./PostActionMenu.tsx").then((m) => ({ default: m.PostActionMenu }))
+);
+const MentionHoverCardLayer = clientOnly(() =>
+  import("~/lib/mentionHoverCards.tsx").then((m) => ({
+    default: m.MentionHoverCardLayer,
+  }))
+);
 
 export interface ArticleCardProps {
   $article: ArticleCard_article$key;
