@@ -23,7 +23,12 @@ import {
   getBookmarkCountsForPosts,
 } from "@hackerspub/models/bookmark";
 import { isReactionEmoji, renderCustomEmojis } from "@hackerspub/models/emoji";
-import { addExternalLinkTargets, stripHtml } from "@hackerspub/models/html";
+import {
+  addExternalLinkTargets,
+  sanitizeExcerptHtml,
+  stripHtml,
+  truncateHtml,
+} from "@hackerspub/models/html";
 import { negotiateLocale, normalizeLocale } from "@hackerspub/models/i18n";
 import {
   getMissingArticleMediumLabel,
@@ -197,6 +202,43 @@ export const Post = builder.drizzleInterface("postTable", {
       resolve(post) {
         if (post.summary != null) return post.summary;
         return stripHtml(post.contentHtml);
+      },
+    }),
+    excerptHtml: t.field({
+      type: "HTML",
+      description:
+        "A sanitized, truncated HTML preview of this post's content, " +
+        "clipped to roughly `maxChars` visible characters with valid tag " +
+        "structure preserved. Use this on feed cards instead of `content` " +
+        "to keep the rendered DOM small. Anchor tags are stripped — the " +
+        "surrounding card is expected to be the link to the full post. " +
+        "This does NOT fall back to `summary`; query `summary` separately " +
+        "when you want to display a real (e.g. LLM-generated) summary " +
+        "with its own affordances.",
+      args: {
+        maxChars: t.arg.int({ required: true }),
+      },
+      select: {
+        columns: {
+          contentHtml: true,
+          emojis: true,
+        },
+      },
+      resolve(post, args) {
+        // Sanitize FIRST, then render custom emojis. The reverse order would
+        // strip the inline `style` `renderCustomEmojis` puts on the emoji
+        // `<img>` (which sets `height: 1em` and inline alignment), so emoji
+        // images would render at their intrinsic size instead of inline with
+        // the surrounding text. Emoji `src` is admin-uploaded and the alt is
+        // bounded to `[a-z0-9_-]+` by `CUSTOM_EMOJI_REGEXP`, so the post-
+        // sanitization injection doesn't open a new XSS surface.
+        return truncateHtml(
+          renderCustomEmojis(
+            sanitizeExcerptHtml(post.contentHtml),
+            post.emojis,
+          ),
+          args.maxChars,
+        );
       },
     }),
     language: t.exposeString("language", { nullable: true }),

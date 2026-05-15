@@ -343,6 +343,11 @@ type Article implements Node & Post & Reactable {
   contents(includeBeingTranslated: Boolean = false, language: Locale): [ArticleContent!]!
   engagementStats: PostEngagementStats!
   excerpt: String!
+
+  """
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  """
+  excerptHtml(maxChars: Int!): HTML!
   hashtags: [Hashtag!]!
   id: ID!
   iri: URL!
@@ -961,6 +966,11 @@ type Note implements Node & Post & Reactable {
   content: HTML!
   engagementStats: PostEngagementStats!
   excerpt: String!
+
+  """
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  """
+  excerptHtml(maxChars: Int!): HTML!
   hashtags: [Hashtag!]!
   id: ID!
   iri: URL!
@@ -1144,6 +1154,11 @@ interface Post implements Node & Reactable {
   content: HTML!
   engagementStats: PostEngagementStats!
   excerpt: String!
+
+  """
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  """
+  excerptHtml(maxChars: Int!): HTML!
   hashtags: [Hashtag!]!
   id: ID!
   iri: URL!
@@ -1440,6 +1455,11 @@ type Question implements Node & Post & Reactable {
   content: HTML!
   engagementStats: PostEngagementStats!
   excerpt: String!
+
+  """
+  A sanitized, truncated HTML preview of this post's content, clipped to roughly `maxChars` visible characters with valid tag structure preserved. Use this on feed cards instead of `content` to keep the rendered DOM small. Anchor tags are stripped — the surrounding card is expected to be the link to the full post. This does NOT fall back to `summary`; query `summary` separately when you want to display a real (e.g. LLM-generated) summary with its own affordances.
+  """
+  excerptHtml(maxChars: Int!): HTML!
   hashtags: [Hashtag!]!
   id: ID!
   iri: URL!

@@ -3,6 +3,7 @@ import {
   addExternalLinkTargets,
   extractExternalLinks,
   stripHtml,
+  truncateHtml,
 } from "./html.ts";
 
 Deno.test("extractExternalLinks()", async (t) => {
@@ -304,5 +305,100 @@ Deno.test("stripHtml()", async (t) => {
     assertEquals(stripHtml(""), "");
     assertEquals(stripHtml("<p></p>"), "");
     assertEquals(stripHtml("<div><span></span></div>"), "");
+  });
+});
+
+Deno.test("truncateHtml()", async (t) => {
+  await t.step("returns input unchanged when within budget", () => {
+    assertEquals(truncateHtml("<p>Hello world</p>", 100), "<p>Hello world</p>");
+    assertEquals(truncateHtml("", 100), "");
+  });
+
+  await t.step("returns empty string when maxChars is 0 or negative", () => {
+    assertEquals(truncateHtml("<p>Hello</p>", 0), "");
+    assertEquals(truncateHtml("<p>Hello</p>", -5), "");
+  });
+
+  await t.step("truncates long text and appends ellipsis", () => {
+    assertEquals(
+      truncateHtml("<p>Hello world from here</p>", 5),
+      "<p>Hello…</p>",
+    );
+  });
+
+  await t.step("preserves wrapping tags around the cutoff", () => {
+    // Cutoff falls inside the <strong>; the <strong> stays open until the
+    // ellipsis, but everything after it is dropped.
+    assertEquals(
+      truncateHtml("<p>Hello <strong>brave</strong> world</p>", 8),
+      "<p>Hello <strong>br…</strong></p>",
+    );
+  });
+
+  await t.step("drops following siblings after the cutoff", () => {
+    assertEquals(
+      truncateHtml("<p>First paragraph</p><p>Second paragraph</p>", 5),
+      "<p>First…</p>",
+    );
+  });
+
+  await t.step("keeps non-text descendants that fit before the cutoff", () => {
+    // The <img> is inside the kept paragraph; it doesn't consume any
+    // characters and shouldn't be removed.
+    const out = truncateHtml(
+      `<p>Hi<img src="x.png" alt=""></p><p>more</p>`,
+      10,
+    );
+    assertEquals(out, `<p>Hi<img src="x.png" alt=""></p><p>more</p>`);
+  });
+
+  await t.step("trims trailing whitespace before the ellipsis", () => {
+    assertEquals(
+      truncateHtml("<p>Hello   world</p>", 8),
+      "<p>Hello…</p>",
+    );
+  });
+
+  await t.step(
+    "treats exact-fill text as the cutoff when more content follows",
+    () => {
+      // The first <p> is exactly 5 chars and there's more content after it,
+      // so the ellipsis must land in the first paragraph and the <img> + the
+      // second <p> must be dropped. The first paragraph keeps all 5 chars
+      // (the budget is the visible-text cap, the ellipsis is overhead).
+      assertEquals(
+        truncateHtml(
+          `<p>Hello</p><img src="x.png" alt=""><p>World</p>`,
+          5,
+        ),
+        "<p>Hello…</p>",
+      );
+    },
+  );
+
+  await t.step(
+    "counts and slices by grapheme clusters, not UTF-16 code units",
+    () => {
+      // Each emoji here is a multi-code-unit grapheme cluster. With a budget
+      // of 3 we should keep the first three emoji intact (no half surrogates),
+      // then append the ellipsis.
+      assertEquals(
+        truncateHtml("<p>😀😁😂😃😄</p>", 3),
+        "<p>😀😁😂…</p>",
+      );
+      // ZWJ-joined family emoji is one grapheme cluster.
+      assertEquals(
+        truncateHtml("<p>👨‍👩‍👧‍👦 hello world</p>", 4),
+        "<p>👨‍👩‍👧‍👦 he…</p>",
+      );
+    },
+  );
+
+  await t.step("returns input unchanged when graphemes fit the budget", () => {
+    // 5 emoji in input, budget 5 → fits, no truncation.
+    assertEquals(
+      truncateHtml("<p>😀😁😂😃😄</p>", 5),
+      "<p>😀😁😂😃😄</p>",
+    );
   });
 });

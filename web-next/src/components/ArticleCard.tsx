@@ -196,13 +196,12 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
         }
         name
         summary
-        content
+        excerptHtml(maxChars: 800)
         contents(language: $locale) {
           originalLanguage
           language
           title
           summary
-          content
           url
         }
         language
@@ -359,7 +358,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                     class="px-4 pb-4"
                   >
                     <div
-                      innerHTML={article.content}
+                      innerHTML={article.excerptHtml}
                       class="line-clamp-4 overflow-hidden"
                     />
                   </a>
@@ -375,7 +374,7 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                   class="px-4 pb-4"
                 >
                   <div
-                    innerHTML={article.content}
+                    innerHTML={article.excerptHtml}
                     class="line-clamp-4 overflow-hidden"
                   />
                 </InternalLink>

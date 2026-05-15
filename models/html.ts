@@ -304,6 +304,100 @@ export function sanitizeExcerptHtml(html: string): string {
   return excerptHtmlXss.process(html);
 }
 
+type DomNode = {
+  type?: string;
+  data?: string;
+  children?: ReadonlyArray<unknown>;
+};
+
+const graphemeSegmenter = new Intl.Segmenter(undefined, {
+  granularity: "grapheme",
+});
+
+function toGraphemes(text: string): string[] {
+  const out: string[] = [];
+  for (const seg of graphemeSegmenter.segment(text)) out.push(seg.segment);
+  return out;
+}
+
+function visibleGraphemeCount(nodes: ReadonlyArray<unknown>): number {
+  let total = 0;
+  for (const node of nodes) {
+    const n = node as DomNode;
+    if (n.type === "text") {
+      total += toGraphemes(n.data ?? "").length;
+    } else if (n.children != null) {
+      total += visibleGraphemeCount(n.children);
+    }
+  }
+  return total;
+}
+
+/**
+ * Truncates HTML to roughly `maxChars` visible grapheme clusters while keeping
+ * the tag structure valid. Returns the input unchanged when the document's
+ * total visible text already fits in the budget — otherwise the first text
+ * node that crosses the budget is clipped, an ellipsis is appended, and every
+ * node that follows (deeper or sibling) is removed. Containers around the
+ * cutoff stay intact so the result is well-formed HTML that the browser can
+ * hydrate without fixing up unclosed tags.
+ *
+ * Counting is done in grapheme clusters, not UTF-16 code units, so emoji and
+ * combining sequences are not split mid-character. Whitespace inside text
+ * nodes counts toward the budget — we don't collapse it because the caller's
+ * CSS controls visual whitespace and we'd rather under- than over-truncate.
+ * Comments, processing instructions, and non-text tag overhead don't count.
+ */
+export function truncateHtml(html: string, maxChars: number): string {
+  if (maxChars <= 0) return "";
+  const $ = load(html, null, false);
+  const rootNodes = $.root().contents().toArray();
+
+  // Pre-pass: if the whole document already fits in the budget, skip the
+  // walk entirely. This also lets the truncation pass treat "this text node
+  // exactly fills the budget" as a real cutoff (with ellipsis), because we
+  // know there must be more content past it.
+  if (visibleGraphemeCount(rootNodes) <= maxChars) return html;
+
+  const ELLIPSIS = "…";
+  let remaining = maxChars;
+  let truncated = false;
+
+  function walk(nodes: ReadonlyArray<unknown>): void {
+    // Snapshot the list because we mutate during iteration (children removed
+    // after the cutoff).
+    for (const node of [...nodes]) {
+      if (truncated) {
+        $(node as never).remove();
+        continue;
+      }
+      const n = node as DomNode;
+      if (n.type === "text") {
+        const graphemes = toGraphemes(n.data ?? "");
+        if (graphemes.length < remaining) {
+          remaining -= graphemes.length;
+        } else {
+          // `<` above (not `<=`) so a text node that *exactly* fills the
+          // remaining budget still triggers truncation — there must be more
+          // content past it (the pre-pass guaranteed total > maxChars), so an
+          // ellipsis belongs here.
+          const taken = graphemes.slice(0, remaining).join("");
+          n.data = taken.replace(/\s+$/, "") + ELLIPSIS;
+          remaining = 0;
+          truncated = true;
+        }
+      } else if (n.children != null) {
+        walk(n.children);
+      }
+      // Comments / other node kinds are kept as-is and don't count toward
+      // the budget.
+    }
+  }
+
+  walk(rootNodes);
+  return $.html();
+}
+
 export function stripHtml(html: string): string {
   html = html.replaceAll(
     /\s*<(\/?br|\/?hr|\/?p|\/?h[1-6]|li)\b[^>]*>\s*/gi,
