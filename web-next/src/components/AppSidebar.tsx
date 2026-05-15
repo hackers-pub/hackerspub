@@ -83,7 +83,6 @@ function removeWebNextCookie(): void {
 
 export interface AppSidebarProps {
   $signedAccount?: AppSidebar_signedAccount$key | null;
-  signedAccountLoaded?: boolean;
 }
 
 export function AppSidebar(props: AppSidebarProps) {
@@ -128,11 +127,11 @@ export function AppSidebar(props: AppSidebarProps) {
   );
 
   createEffect(() => {
-    setUnreadNotificationsCount(signedAccount()?.unreadNotificationsCount);
+    setUnreadNotificationsCount(signedAccount.latest?.unreadNotificationsCount);
   });
 
   createEffect(() => {
-    if (!props.signedAccountLoaded || signedAccount()?.username == null) {
+    if (signedAccount.latest?.username == null) {
       return;
     }
 
@@ -198,7 +197,7 @@ export function AppSidebar(props: AppSidebarProps) {
             {t`Timeline`}
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <Show when={props.signedAccountLoaded && signedAccount()}>
+            <Show when={signedAccount()}>
               <SidebarMenuItem class="list-none">
                 <SidebarMenuButton
                   as={A}
@@ -361,18 +360,18 @@ export function AppSidebar(props: AppSidebarProps) {
         <AdminSection signedAccount={signedAccount()} />
         <ComposeSection
           signedAccount={signedAccount()}
-          visible={props.signedAccountLoaded && !!signedAccount() &&
+          visible={!!signedAccount() &&
             !isMobile() && state() !== "collapsed"}
           onComposeNote={openNoteCompose}
         />
         <RecentDraftsSection
           signedAccount={signedAccount()}
-          visible={props.signedAccountLoaded && !!signedAccount() &&
+          visible={!!signedAccount() &&
             !isMobile() && state() !== "collapsed"}
         />
         <AccountSection
           signedAccount={signedAccount()}
-          signedAccountLoaded={props.signedAccountLoaded}
+          signedAccountLoaded={!!signedAccount()}
           unreadNotificationsCount={unreadNotificationsCount()}
           onSignOut={onSignOut}
         />

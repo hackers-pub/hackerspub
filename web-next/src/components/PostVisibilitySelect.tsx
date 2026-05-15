@@ -21,7 +21,7 @@ export function PostVisibilitySelect(props: PostVisibilitySelectProps) {
     {
       value: "PUBLIC" as const,
       label: t`Public`,
-      icon: (
+      icon: () => (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -41,7 +41,7 @@ export function PostVisibilitySelect(props: PostVisibilitySelectProps) {
     {
       value: "UNLISTED" as const,
       label: t`Quiet public`,
-      icon: (
+      icon: () => (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -61,7 +61,7 @@ export function PostVisibilitySelect(props: PostVisibilitySelectProps) {
     {
       value: "FOLLOWERS" as const,
       label: t`Followers only`,
-      icon: (
+      icon: () => (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -81,7 +81,7 @@ export function PostVisibilitySelect(props: PostVisibilitySelectProps) {
     {
       value: "DIRECT" as const,
       label: t`Mentioned only`,
-      icon: (
+      icon: () => (
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -109,7 +109,7 @@ export function PostVisibilitySelect(props: PostVisibilitySelectProps) {
       itemComponent={(props) => (
         <SelectItem item={props.item}>
           <div class="flex flex-row gap-1 items-center">
-            {props.item.rawValue.icon}
+            {props.item.rawValue.icon()}
             <span>{props.item.rawValue.label}</span>
           </div>
         </SelectItem>
@@ -117,11 +117,11 @@ export function PostVisibilitySelect(props: PostVisibilitySelectProps) {
     >
       <SelectTrigger class="w-[180px]">
         <SelectValue<
-          { value: PostVisibility; label: string; icon: JSX.Element }
+          { value: PostVisibility; label: string; icon: () => JSX.Element }
         >>
           {(state) => (
             <div class="flex flex-row gap-1 items-center">
-              {state.selectedOption().icon}
+              {state.selectedOption().icon()}
               <span>{state.selectedOption().label}</span>
             </div>
           )}
