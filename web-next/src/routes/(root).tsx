@@ -100,10 +100,7 @@ export default function RootLayout(props: RouteSectionProps) {
     >
       <NoteComposeProvider>
         <SidebarProvider>
-          <AppSidebar
-            $signedAccount={signedAccount()?.viewer}
-            signedAccountLoaded={!signedAccount.pending}
-          />
+          <AppSidebar $signedAccount={signedAccount()?.viewer} />
           <header class="fixed inset-x-0 top-0 z-40 border-b bg-background/80 backdrop-blur md:hidden">
             <div class="flex h-14 items-center justify-between px-4">
               <SidebarTrigger

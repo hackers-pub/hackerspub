@@ -644,7 +644,7 @@ function CountAffordance(props: {
   segment: string;
   label: string;
 }) {
-  const text = (
+  const text = () => (
     <span class="inline-flex items-center px-1 text-xs">{props.count}</span>
   );
   // Distinct affordance from the neighbouring icon button so the count
@@ -657,7 +657,7 @@ function CountAffordance(props: {
   //     mouse users get a clear "two zones" read when they pass between
   //     the icon and the count.
   return (
-    <Show when={props.engagementBase} fallback={text}>
+    <Show when={props.engagementBase} fallback={text()}>
       <A
         href={`${props.engagementBase}/${props.segment}`}
         class="inline-flex items-center px-1 text-xs rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground hover:underline hover:shadow-[inset_1px_0_0_0_var(--border)] focus-visible:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
