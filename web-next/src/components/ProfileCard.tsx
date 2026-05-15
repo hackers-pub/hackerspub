@@ -232,13 +232,14 @@ export function ProfileCard(props: ProfileCardProps) {
             )}
           </Show>
           <div class="p-4 pt-0 border-b">
+            {/* TODO: remove ?. once https://github.com/XiNiHa/solid-relay/issues/59 is resolved */}
             <div class="text-muted-foreground">
               <a
                 href={actor.local ? `/@${actor.username}/following` : undefined}
               >
                 {i18n._(
                   msg`${
-                    plural(actor.followeesCount.totalCount, {
+                    plural(actor.followeesCount?.totalCount ?? 0, {
                       one: "# following",
                       other: "# following",
                     })
@@ -251,7 +252,7 @@ export function ProfileCard(props: ProfileCardProps) {
               >
                 {i18n._(
                   msg`${
-                    plural(actor.followersCount.totalCount, {
+                    plural(actor.followersCount?.totalCount ?? 0, {
                       one: "# follower",
                       other: "# followers",
                     })
