@@ -67,6 +67,36 @@ function I18nProviderWrapper(props: ParentProps) {
   );
 }
 
+// Fallback rendered by the outermost boundary, which sits outside
+// I18nProviderWrapper. Because there is no I18nProvider in scope at this
+// level, it must not call useLingui() — all strings are hard-coded in English.
+function PreI18nErrorFallback(props: { error: unknown; reset: () => void }) {
+  const networkError = () => isNetworkError(props.error);
+  return (
+    <div class="p-6 space-y-4">
+      <h1 class="text-xl font-bold">
+        {networkError()
+          ? "We couldn't reach the server"
+          : "Something went wrong"}
+      </h1>
+      <p class="text-sm text-muted-foreground">
+        {networkError()
+          ? "Your connection looks unstable. Check your network and try again."
+          : props.error instanceof Error
+          ? props.error.message
+          : String(props.error)}
+      </p>
+      <button
+        type="button"
+        class="px-4 py-2 text-sm font-medium rounded-md border"
+        onClick={() => props.reset()}
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
+
 // Rendered when the descendant tree throws. Pulls i18n through `useLingui`
 // so the boundary itself can be translated, and special-cases transient
 // network errors (the Relay retry budget is exhausted, or the failure
@@ -104,17 +134,23 @@ export default function App() {
         <RelayEnvironmentProvider environment={environment}>
           <MetaProvider>
             <Title>Hackers' Pub</Title>
-            <Suspense>
-              <I18nProviderWrapper>
-                <SentryErrorBoundary
-                  fallback={(err, reset) => (
-                    <AppErrorFallback error={err} reset={reset} />
-                  )}
-                >
-                  {props.children}
-                </SentryErrorBoundary>
-              </I18nProviderWrapper>
-            </Suspense>
+            <SentryErrorBoundary
+              fallback={(err, reset) => (
+                <PreI18nErrorFallback error={err} reset={reset} />
+              )}
+            >
+              <Suspense>
+                <I18nProviderWrapper>
+                  <SentryErrorBoundary
+                    fallback={(err, reset) => (
+                      <AppErrorFallback error={err} reset={reset} />
+                    )}
+                  >
+                    {props.children}
+                  </SentryErrorBoundary>
+                </I18nProviderWrapper>
+              </Suspense>
+            </SentryErrorBoundary>
           </MetaProvider>
         </RelayEnvironmentProvider>
       )}
