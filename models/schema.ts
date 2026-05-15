@@ -1160,6 +1160,14 @@ export const timelineItemTable = pgTable(
       .$type<Uuid>()
       .references((): AnyPgColumn => actorTable.id, { onDelete: "set null" }),
     sharersCount: integer("sharers_count").notNull().default(0),
+    // Denormalized copy of the underlying post's `type`. For shares this is
+    // the type of the SHARED post (the original content) — `post_id` always
+    // points to the underlying post, not the share wrapper, so the type
+    // matches the row a JOIN would resolve. Carried on `timeline_item` so
+    // `personalTimeline(postType: …)` queries (e.g. /feed/articles) can use
+    // a covering index instead of joining `post` and filtering after the
+    // fact, which scales linearly in feed depth.
+    postType: postTypeEnum("post_type").notNull(),
     added: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -1179,6 +1187,28 @@ export const timelineItemTable = pgTable(
       .on(
         table.accountId,
         sql`(${table.appended}::timestamptz(3)) desc`,
+        desc(table.postId),
+      ),
+    // Composite indexes for postType-filtered queries (e.g. /feed/articles,
+    // /feed/without-shares with a postType filter). Cover the
+    // (account_id, post_type) WHERE plus the (cursor)::timestamptz(3) DESC,
+    // post_id DESC ORDER BY directly, so the planner can satisfy filtered
+    // timeline reads without a post-join seq filter. Mirror the cast used
+    // in the unfiltered _added/_appended indexes and in getPersonalTimeline's
+    // ORDER BY (which keys on `appended` for the default and on `added` when
+    // `withoutShares` is set).
+    index("idx_timeline_item_account_id_post_type_appended")
+      .on(
+        table.accountId,
+        table.postType,
+        sql`(${table.appended}::timestamptz(3)) desc`,
+        desc(table.postId),
+      ),
+    index("idx_timeline_item_account_id_post_type_added")
+      .on(
+        table.accountId,
+        table.postType,
+        sql`(${table.added}::timestamptz(3)) desc`,
         desc(table.postId),
       ),
     index("timeline_item_post_id_index").on(table.postId),

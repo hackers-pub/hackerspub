@@ -189,9 +189,18 @@ export async function addPostToTimeline(
     },
   });
   if (recipients.length < 1) return;
+  // `timeline_item.post_type` is set by the BEFORE INSERT/UPDATE trigger
+  // installed in the migration — it always derives the value from the
+  // `post` row that `post_id` points to (with a SHARE row lock to block
+  // concurrent type changes), so the type is correct for both originals and
+  // shares without us having to resolve it here. We still have to pass
+  // *something* because the column is NOT NULL and Drizzle's typed insert
+  // requires it; `post.type` is fine as a placeholder, the trigger will
+  // overwrite it before the row hits the heap.
   const records: NewTimelineItem[] = recipients.map(({ accountId }) => ({
     accountId: accountId!,
     postId: post.sharedPostId ?? post.id,
+    postType: post.type,
     originalAuthorId: post.sharedPostId == null ? post.actorId : null,
     lastSharerId: post.sharedPostId == null ? null : post.actorId,
     sharersCount: post.sharedPostId == null ? 0 : 1,
@@ -208,6 +217,11 @@ export async function addPostToTimeline(
           ? timelineItemTable.sharersCount
           : sql`${timelineItemTable.sharersCount} + 1`,
         appended: post.published,
+        // Don't touch post_type on the conflict path. The existing row was
+        // inserted with a trigger-derived value, and the AFTER UPDATE OF
+        // type trigger on `post` keeps it synced with any later type
+        // changes — re-writing it here would just re-fire the fill trigger
+        // and re-take the SHARE lock for no reason.
       },
     });
 }
@@ -919,6 +933,13 @@ export async function getPersonalTimeline(
       },
       where: {
         accountId: currentAccount.id,
+        // Filter on the denormalized `timeline_item.post_type` rather than
+        // joining `post` and filtering on `post.type`. With the
+        // `(account_id, post_type, …)` composite index this lets the planner
+        // satisfy /feed/articles (and any other postType-filtered timeline)
+        // directly from the index instead of scanning the unfiltered timeline
+        // and rejecting the wrong types after a row-by-row JOIN.
+        ...(postType == null ? {} : { postType }),
         ...(batchCursorFilters.length < 1 ? {} : { AND: batchCursorFilters }),
         post: {
           AND: [
@@ -931,7 +952,6 @@ export async function getPersonalTimeline(
                 ],
               }
               : {},
-            postType == null ? {} : { type: postType },
             currentAccount.hideForeignLanguages &&
               currentAccount.locales != null
               ? { language: { in: expandLocales(currentAccount.locales) } }
