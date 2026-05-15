@@ -8,6 +8,7 @@ export function isNetworkError(error: unknown): boolean {
   if (!(error instanceof TypeError)) return false;
   const message = error.message.toLowerCase();
   return message.includes("failed to fetch") ||
+    message.includes("fetch failed") ||
     message.includes("load failed") ||
     message.includes("networkerror") ||
     message.includes("network request failed");
