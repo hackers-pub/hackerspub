@@ -193,7 +193,7 @@ export async function onQuoteAuthorizationDeleted(
   if (del.actorId == null || del.objectId == null) return false;
   const authorization = await fedCtx.data.db.query.quoteAuthorizationTable
     .findFirst({
-      with: { attributedActor: true },
+      with: { attributedActor: true, quotedPost: true },
       where: { iri: del.objectId.href },
     });
   if (authorization == null) return false;
@@ -216,6 +216,7 @@ export async function onQuoteAuthorizationDeleted(
       updated: sql`CURRENT_TIMESTAMP`,
     })
     .where(eq(postTable.quoteAuthorizationIri, del.objectId.href));
+  await updateQuotesCount(fedCtx.data.db, authorization.quotedPost, -1);
   logger.debug("Quote authorization deleted: {iri}", {
     iri: del.objectId.href,
   });
