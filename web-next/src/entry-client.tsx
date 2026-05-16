@@ -113,15 +113,15 @@ if (app == null) throw new Error("#app element not found");
 
 const disposeHydration = mount(() => <StartClient />, app);
 
-function hasRenderedContent(element: Element): boolean {
-  return Array.from(element.childNodes).some((node) =>
-    node.nodeType === Node.ELEMENT_NODE ||
-    (node.nodeType === Node.TEXT_NODE && node.textContent?.trim())
-  );
+function hasHydrationNodes(element: Element): boolean {
+  // Solid may leave only comment/template markers in #app while a root
+  // Suspense boundary is still waiting. Those nodes still mean hydration is
+  // alive, so only recover when the container is truly empty.
+  return element.hasChildNodes();
 }
 
 setTimeout(() => {
-  if (hasRenderedContent(app)) return;
+  if (hasHydrationNodes(app)) return;
 
   // Some browser extensions inject nodes outside <head>/<body> before the
   // app boots, which can leave Solid's hydration stuck with an empty #app.
