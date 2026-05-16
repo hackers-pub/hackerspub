@@ -49,11 +49,14 @@ import {
 } from "@hackerspub/models/pin";
 import {
   arePostsSharedBy,
+  canActorQuotePost,
   deletePost,
   getPostInteractionPolicies,
   getPostVisibilityFilter,
   isPostVisibleTo,
+  normalizeQuotePolicyForVisibility,
   type PostInteractionPolicy,
+  revokeQuote as revokeQuoteModel,
   sharePost,
   unsharePost,
 } from "@hackerspub/models/post";
@@ -82,6 +85,7 @@ import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { putArticleOgImage } from "./og.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
+import { fromQuotePolicy, QuotePolicy, toQuotePolicy } from "./quotepolicy.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
@@ -174,6 +178,15 @@ export const Post = builder.drizzleInterface("postTable", {
       },
       resolve(post) {
         return toPostVisibility(post.visibility);
+      },
+    }),
+    quotePolicy: t.field({
+      type: QuotePolicy,
+      select: {
+        columns: { quotePolicy: true },
+      },
+      resolve(post) {
+        return toQuotePolicy(post.quotePolicy);
       },
     }),
     name: t.exposeString("name", { nullable: true }),
@@ -337,6 +350,23 @@ export const Post = builder.drizzleInterface("postTable", {
         return postIds.map((id) => policies.get(id)?.canQuote ?? false);
       },
       resolve: (post) => post.id,
+    }),
+    viewerCanRevokeQuote: t.boolean({
+      select: {
+        columns: {
+          id: true,
+          quotedPostId: true,
+        },
+        with: {
+          quotedPost: {
+            columns: { actorId: true },
+          },
+        },
+      },
+      resolve(post, _args, ctx) {
+        return ctx.account != null && post.quotedPost != null &&
+          post.quotedPost.actorId === ctx.account.actor.id;
+      },
     }),
     viewerCanShare: t.loadable({
       type: "Boolean",
@@ -1013,6 +1043,7 @@ builder.relayMutationField(
       visibility: t.field({ type: PostVisibility, required: true }),
       content: t.field({ type: "Markdown", required: true }),
       language: t.field({ type: "Locale", required: true }),
+      quotePolicy: t.field({ type: QuotePolicy, required: false }),
       media: t.field({
         type: [CreateNoteMediumInput],
         required: false,
@@ -1045,6 +1076,7 @@ builder.relayMutationField(
         visibility,
         content,
         language,
+        quotePolicy,
         media,
         replyTargetId,
         quotedPostId,
@@ -1112,12 +1144,7 @@ builder.relayMutationField(
         if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (
-          effectivePost.visibility !== "public" &&
-          effectivePost.visibility !== "unlisted" &&
-          !(effectivePost.visibility === "followers" &&
-            effectivePost.actorId === ctx.account.actor.id)
-        ) {
+        if (!canActorQuotePost(effectivePost, ctx.account.actor)) {
           throw new InvalidInputError("quotedPostId");
         }
         quotedPost = effectivePost;
@@ -1155,6 +1182,23 @@ builder.relayMutationField(
                 visibility,
                 `Unknown value in Post.visibility: "${visibility}"`,
               ),
+            quotePolicy: normalizeQuotePolicyForVisibility(
+              visibility === "PUBLIC"
+                ? "public"
+                : visibility === "UNLISTED"
+                ? "unlisted"
+                : visibility === "FOLLOWERS"
+                ? "followers"
+                : visibility === "DIRECT"
+                ? "direct"
+                : visibility === "NONE"
+                ? "none"
+                : assertNever(
+                  visibility,
+                  `Unknown value in Post.visibility: "${visibility}"`,
+                ),
+              quotePolicy == null ? undefined : fromQuotePolicy(quotePolicy),
+            ),
             content,
             language: language.baseName,
             media: noteMedia,
@@ -1339,6 +1383,76 @@ builder.relayMutationField(
 );
 
 builder.relayMutationField(
+  "revokeQuote",
+  {
+    inputFields: (t) => ({
+      quotePostId: t.globalID({
+        for: [Note, Article, Question],
+        required: true,
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [
+        NotAuthenticatedError,
+        InvalidInputError,
+      ],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+      const quote = await ctx.db.query.postTable.findFirst({
+        with: {
+          actor: true,
+          quotedPost: true,
+        },
+        where: { id: args.input.quotePostId.id },
+      });
+      if (quote?.quotedPost == null) {
+        throw new InvalidInputError("quotePostId");
+      }
+      if (quote.quotedPost.actorId !== ctx.account.actor.id) {
+        throw new InvalidInputError("quotePostId");
+      }
+      const updatedQuote = await withTransaction(
+        ctx.fedCtx,
+        async (context) =>
+          await revokeQuoteModel(
+            context,
+            ctx.account!,
+            quote,
+            quote.quotedPost!,
+          ),
+      );
+      const quotedPost = await ctx.db.query.postTable.findFirst({
+        where: { id: quote.quotedPost.id },
+      });
+      if (quotedPost == null) throw new InvalidInputError("quotePostId");
+      return { quote: updatedQuote, quotedPost };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      quote: t.field({
+        type: Post,
+        resolve(result) {
+          return result.quote;
+        },
+      }),
+      quotedPost: t.field({
+        type: Post,
+        resolve(result) {
+          return result.quotedPost;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
   "publishArticleDraft",
   {
     inputFields: (t) => ({
@@ -1346,6 +1460,7 @@ builder.relayMutationField(
       slug: t.string({ required: true }),
       language: t.field({ type: "Locale", required: true }),
       allowLlmTranslation: t.boolean({ required: false }),
+      quotePolicy: t.field({ type: QuotePolicy, required: false }),
     }),
   },
   {
@@ -1378,7 +1493,7 @@ builder.relayMutationField(
         throw new InvalidInputError("id");
       }
 
-      const { slug, language, allowLlmTranslation } = args.input;
+      const { slug, language, allowLlmTranslation, quotePolicy } = args.input;
 
       // Create article from draft
       const article = await withTransaction(ctx.fedCtx, async (context) => {
@@ -1392,6 +1507,9 @@ builder.relayMutationField(
           slug,
           tags: draft.tags,
           allowLlmTranslation: allowLlmTranslation ?? true,
+          quotePolicy: quotePolicy == null
+            ? "everyone"
+            : fromQuotePolicy(quotePolicy),
           title: draft.title,
           content: draft.content,
           language: language.baseName,

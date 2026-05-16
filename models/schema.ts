@@ -457,6 +457,14 @@ export const articleDraftTable = pgTable(
 export type ArticleDraft = typeof articleDraftTable.$inferSelect;
 export type NewArticleDraft = typeof articleDraftTable.$inferInsert;
 
+export const quotePolicyEnum = pgEnum("quote_policy", [
+  "everyone",
+  "followers",
+  "self",
+]);
+
+export type QuotePolicy = (typeof quotePolicyEnum.enumValues)[number];
+
 export const articleSourceTable = pgTable(
   "article_source",
   {
@@ -473,6 +481,9 @@ export const articleSourceTable = pgTable(
     allowLlmTranslation: boolean("allow_llm_translation")
       .notNull()
       .default(false),
+    quotePolicy: quotePolicyEnum("quote_policy").notNull().default(
+      "everyone",
+    ),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -557,6 +568,7 @@ export const noteSourceTable = pgTable("note_source", {
     .notNull()
     .references(() => accountTable.id, { onDelete: "cascade" }),
   visibility: postVisibilityEnum().notNull().default("public"),
+  quotePolicy: quotePolicyEnum("quote_policy").notNull().default("everyone"),
   content: text().notNull(),
   language: varchar().notNull(),
   updated: timestamp({ withTimezone: true })
@@ -654,6 +666,9 @@ export const postTable = pgTable(
     iri: text().notNull().unique(),
     type: postTypeEnum().notNull(),
     visibility: postVisibilityEnum().notNull().default("unlisted"),
+    quotePolicy: quotePolicyEnum("quote_policy").notNull().default(
+      "everyone",
+    ),
     actorId: uuid("actor_id")
       .$type<Uuid>()
       .notNull()
@@ -675,6 +690,7 @@ export const postTable = pgTable(
     quotedPostId: uuid("quoted_post_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "set null" }),
+    quoteAuthorizationIri: text("quote_authorization_iri"),
     name: text(),
     summary: text(),
     contentHtml: text("content_html").notNull(),
@@ -788,6 +804,41 @@ export const postTable = pgTable(
 
 export type Post = typeof postTable.$inferSelect;
 export type NewPost = typeof postTable.$inferInsert;
+
+export const quoteAuthorizationTable = pgTable(
+  "quote_authorization",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    iri: text().notNull().unique(),
+    quotePostIri: text("quote_post_iri").notNull(),
+    quotePostId: uuid("quote_post_id")
+      .$type<Uuid>()
+      .references((): AnyPgColumn => postTable.id, { onDelete: "set null" }),
+    quotedPostId: uuid("quoted_post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
+    attributedActorId: uuid("attributed_actor_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    revoked: boolean().notNull().default(false),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.quotePostIri),
+    index().on(table.quotePostId),
+    index().on(table.quotedPostId),
+  ],
+);
+
+export type QuoteAuthorization = typeof quoteAuthorizationTable.$inferSelect;
+export type NewQuoteAuthorization = typeof quoteAuthorizationTable.$inferInsert;
 
 export const pinTable = pgTable(
   "pin",

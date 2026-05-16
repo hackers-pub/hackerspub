@@ -21,6 +21,10 @@ import {
   PostVisibilitySelect,
 } from "~/components/PostVisibilitySelect.tsx";
 import {
+  QuotePolicy,
+  QuotePolicySelect,
+} from "~/components/QuotePolicySelect.tsx";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -166,7 +170,7 @@ const NoteComposerPostByUrlQuery = graphql`
     postByUrl(url: $url) {
       __typename
       id
-      visibility
+      viewerCanQuote
     }
   }
 `;
@@ -245,11 +249,16 @@ export function NoteComposer(props: NoteComposerProps) {
   const [visibility, setVisibility] = createSignal<PostVisibility>(
     props.defaultVisibility ?? "PUBLIC",
   );
+  const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>("EVERYONE");
   // Keep visibility in sync when the modal is reused for a different reply/quote
   createEffect(() => {
     const v = props.defaultVisibility;
     if (v != null) setVisibility(v);
   });
+  const effectiveQuotePolicy = () =>
+    visibility() === "PUBLIC" || visibility() === "UNLISTED"
+      ? quotePolicy()
+      : "SELF";
   const [language, setLanguage] = createSignal<Intl.Locale | undefined>(
     new Intl.Locale(i18n.locale),
   );
@@ -630,7 +639,7 @@ export function NoteComposer(props: NoteComposerProps) {
           setContent((prev) => (prev ? `${prev}\n${text}` : text));
           return;
         }
-        if (post.visibility !== "PUBLIC" && post.visibility !== "UNLISTED") {
+        if (!post.viewerCanQuote) {
           setContent((prev) => (prev ? `${prev}\n${text}` : text));
           return;
         }
@@ -662,6 +671,7 @@ export function NoteComposer(props: NoteComposerProps) {
     prefillRef = "";
     setContent("");
     setVisibility(props.defaultVisibility ?? "PUBLIC");
+    setQuotePolicy("EVERYONE");
     setLanguage(new Intl.Locale(i18n.locale));
     setManualLanguageChange(false);
     setQuotedPost(null);
@@ -763,6 +773,7 @@ export function NoteComposer(props: NoteComposerProps) {
           content: noteContent,
           language: language()?.baseName ?? i18n.locale,
           visibility: visibility(),
+          quotePolicy: effectiveQuotePolicy(),
           quotedPostId: effectiveQuotedPostId() ?? null,
           replyTargetId: props.replyTargetId ?? null,
           media: items.map((m) => ({
@@ -1295,6 +1306,15 @@ export function NoteComposer(props: NoteComposerProps) {
             </For>
           </div>
         </Show>
+
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-sm font-medium">{t`Quote permission`}</span>
+          <QuotePolicySelect
+            value={effectiveQuotePolicy()}
+            onChange={setQuotePolicy}
+            disabled={visibility() !== "PUBLIC" && visibility() !== "UNLISTED"}
+          />
+        </div>
 
         <div class="flex gap-2 justify-end">
           <Show when={props.showCancelButton}>

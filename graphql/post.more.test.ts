@@ -1395,7 +1395,7 @@ test("createNote rejects invisible reply and quote targets", async () => {
           quotedPostId: encodeGlobalID("Note", privateTarget.id),
         },
       },
-      contextValue: makeTransactionalUserContext(tx, author.account),
+      contextValue: makeTransactionalUserContext(tx, requester.account),
       onError: "NO_PROPAGATE",
     });
 

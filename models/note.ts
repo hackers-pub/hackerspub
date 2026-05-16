@@ -360,6 +360,7 @@ export async function createNote(
         ? undefined
         : new URL(relations.replyTarget.iri),
       quotedPost: relations.quotedPost ?? undefined,
+      quoteAuthorizationIri: post.quoteAuthorizationIri,
     },
   );
   const activity = new vocab.Create({
@@ -370,6 +371,32 @@ export async function createNote(
     object: noteObject,
   });
   const orderingKey = post.iri;
+  if (
+    post.quotedPost != null && post.quotedPost.actor.accountId == null
+  ) {
+    const request = new vocab.QuoteRequest({
+      id: new URL("#quote-request", noteObject.id ?? fedCtx.origin),
+      actor: fedCtx.getActorUri(source.accountId),
+      object: new URL(post.quotedPost.iri),
+      instrument: noteObject,
+    });
+    await fedCtx.sendActivity(
+      { identifier: source.accountId },
+      {
+        id: new URL(post.quotedPost.actor.iri),
+        inboxId: new URL(post.quotedPost.actor.inboxUrl),
+        endpoints: post.quotedPost.actor.sharedInboxUrl == null
+          ? null
+          : { sharedInbox: new URL(post.quotedPost.actor.sharedInboxUrl) },
+      },
+      request,
+      {
+        orderingKey,
+        preferSharedInbox: true,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
+    );
+  }
   if (post.mentions.length > 0) {
     const directRecipients: Recipient[] = post.mentions.map((m) => ({
       id: new URL(m.actor.iri),
@@ -519,6 +546,7 @@ export async function updateNote(
         : await db.query.postTable.findFirst({
           where: { id: post.quotedPostId },
         }),
+      quoteAuthorizationIri: post.quoteAuthorizationIri,
     },
   );
   const activity = new vocab.Update({

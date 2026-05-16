@@ -231,6 +231,23 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.pollTable.postId,
     }),
   },
+  quoteAuthorizationTable: {
+    quotePost: r.one.postTable({
+      from: r.quoteAuthorizationTable.quotePostId,
+      to: r.postTable.id,
+    }),
+    quotedPost: r.one.postTable({
+      from: r.quoteAuthorizationTable.quotedPostId,
+      to: r.postTable.id,
+      optional: false,
+      alias: "quotedPost",
+    }),
+    attributedActor: r.one.actorTable({
+      from: r.quoteAuthorizationTable.attributedActorId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+  },
   pinTable: {
     post: r.one.postTable({
       from: r.pinTable.postId,

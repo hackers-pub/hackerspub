@@ -1,5 +1,6 @@
 import { Show } from "solid-js";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
+import { QuotePolicySelect } from "~/components/QuotePolicySelect.tsx";
 import {
   TextField,
   TextFieldInput,
@@ -37,6 +38,16 @@ export function ArticleComposerPublishFields() {
           <LanguageSelect
             value={ctx.language()}
             onChange={ctx.setLanguage}
+          />
+        </div>
+      </Show>
+
+      <Show when={ctx.isPublishing()}>
+        <div>
+          <label class="text-sm font-medium">{t`Quote permission`}</label>
+          <QuotePolicySelect
+            value={ctx.quotePolicy()}
+            onChange={ctx.setQuotePolicy}
           />
         </div>
       </Show>

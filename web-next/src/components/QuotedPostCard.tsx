@@ -6,6 +6,8 @@ import type { QuotedPostCard_post$key } from "./__generated__/QuotedPostCard_pos
 
 export interface QuotedPostCardProps {
   readonly $post: QuotedPostCard_post$key;
+  readonly quotePostId?: string;
+  readonly canRevokeQuote?: boolean;
   readonly class?: string;
   readonly classList?: { [k: string]: boolean | undefined };
 }
@@ -28,6 +30,8 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
           <Match when={post.__typename === "Note"}>
             <QuotedNoteCard
               $note={post}
+              quotePostId={props.quotePostId}
+              canRevokeQuote={props.canRevokeQuote}
               class={props.class}
               classList={props.classList}
             />

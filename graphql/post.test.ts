@@ -1067,6 +1067,70 @@ Deno.test({
 });
 
 Deno.test({
+  name: "viewerCanQuote follows explicit quote policy on public posts",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "policyquoteauthor",
+        name: "Policy Quote Author",
+        email: "policyquoteauthor@example.com",
+      });
+      const follower = await insertAccountWithActor(tx, {
+        username: "policyquotefollower",
+        name: "Policy Quote Follower",
+        email: "policyquotefollower@example.com",
+      });
+      const stranger = await insertAccountWithActor(tx, {
+        username: "policyquotestranger",
+        name: "Policy Quote Stranger",
+        email: "policyquotestranger@example.com",
+      });
+      await tx.insert(followingTable).values({
+        iri:
+          `https://example.com/following/${follower.actor.id}/${author.actor.id}`,
+        followerId: follower.actor.id,
+        followeeId: author.actor.id,
+        accepted: new Date(),
+      });
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Follower-quotable",
+        visibility: "public",
+        quotePolicy: "followers",
+      });
+      const id = encodeGlobalID("Note", post.id);
+
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, author.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: true,
+          viewerCanShare: true,
+        },
+      );
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, follower.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: true,
+          viewerCanShare: true,
+        },
+      );
+      assertEquals(
+        await readPolicy(id, makeUserContext(tx, stranger.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: false,
+          viewerCanShare: true,
+        },
+      );
+    });
+  },
+});
+
+Deno.test({
   name:
     "viewerCanReply/Quote/Share on followers-only posts: only author may quote or share; followers and mentions may reply",
   sanitizeOps: false,
@@ -1156,7 +1220,7 @@ Deno.test({
 
 Deno.test({
   name:
-    "viewerCanReply/Quote/Share on direct posts: only mentions may reply; nobody may share or quote",
+    "viewerCanReply/Quote/Share on direct posts: author may quote; mentions may reply; nobody may share",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -1188,13 +1252,11 @@ Deno.test({
       });
       const id = encodeGlobalID("Note", post.id);
 
-      // Direct visibility is never quotable or shareable, not even by the
-      // author — mirroring sharePost / createNote validation.
       assertEquals(
         await readPolicy(id, makeUserContext(tx, author.account)),
         {
           viewerCanReply: true,
-          viewerCanQuote: false,
+          viewerCanQuote: true,
           viewerCanShare: false,
         },
       );

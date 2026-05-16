@@ -66,6 +66,7 @@ import {
   articleSourceTable,
   type Blocking,
   type Following,
+  followingTable,
   type Instance,
   type Medium,
   type Mention,
@@ -83,6 +84,8 @@ import {
   postMediumTable,
   postTable,
   type PostVisibility,
+  quoteAuthorizationTable,
+  type QuotePolicy,
   type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline, removeFromTimeline } from "./timeline.ts";
@@ -110,6 +113,71 @@ export function isArticleLike(
 ): boolean {
   return post.type === "Article" ||
     post.name != null && post.actor.instance.software !== "nodebb";
+}
+
+export function normalizeQuotePolicyForVisibility(
+  visibility: PostVisibility,
+  quotePolicy: QuotePolicy | null | undefined,
+): QuotePolicy {
+  if (visibility !== "public" && visibility !== "unlisted") return "self";
+  return quotePolicy ?? "everyone";
+}
+
+function quotePolicyFromInteractionPolicy(
+  post: PostObject,
+  visibility: PostVisibility,
+): QuotePolicy {
+  const policy = post.interactionPolicy?.canQuote;
+  if (policy == null) {
+    return normalizeQuotePolicyForVisibility(visibility, undefined);
+  }
+  const automaticApprovals = policy.automaticApprovals.map((url) => url.href);
+  if (automaticApprovals.includes(PUBLIC_COLLECTION.href)) return "everyone";
+  if (
+    post.attributionId != null &&
+    automaticApprovals.includes(post.attributionId.href)
+  ) {
+    return "self";
+  }
+  if (
+    automaticApprovals.some((href) =>
+      href.endsWith("/followers") || href.endsWith("/followers/")
+    )
+  ) {
+    return "followers";
+  }
+  return "self";
+}
+
+function canActorQuoteByPolicy(
+  post: Post & { actor: Actor & { followers: Following[] } },
+  actor: Actor,
+): boolean {
+  if (post.actorId === actor.id) return true;
+  if (post.quotePolicy === "everyone") return true;
+  if (post.quotePolicy === "followers") {
+    return post.actor.followers.some((follower) =>
+      follower.followerId === actor.id && follower.accepted != null
+    );
+  }
+  return false;
+}
+
+export function canActorQuotePost(
+  post: Post & {
+    actor: Actor & {
+      followers: Following[];
+      blockees: Blocking[];
+      blockers: Blocking[];
+    };
+    mentions: Mention[];
+  },
+  actor: Actor,
+): boolean {
+  if (post.sharedPostId != null) return false;
+  if (post.visibility === "none") return false;
+  if (!isPostVisibleTo(post, actor)) return false;
+  return canActorQuoteByPolicy(post, actor);
 }
 
 async function readResponseBytesAtMost(
@@ -198,6 +266,7 @@ export async function syncPostFromArticleSource(
     iri: fedCtx.getObjectUri(vocab.Article, { id: articleSource.id }).href,
     type: "Article",
     visibility: "public",
+    quotePolicy: articleSource.quotePolicy,
     actorId: actor.id,
     articleSourceId: articleSource.id,
     name: content.title,
@@ -289,15 +358,27 @@ export async function syncPostFromNoteSource(
     : undefined;
   const url =
     `${fedCtx.canonicalOrigin}/@${noteSource.account.username}/${noteSource.id}`;
+  const existingPost = await db.query.postTable.findFirst({
+    columns: { id: true },
+    where: { noteSourceId: noteSource.id },
+  });
+  const id = existingPost?.id ?? generateUuidV7();
   const values: Omit<NewPost, "id"> = {
     iri: fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href,
     type: "Note",
     visibility: noteSource.visibility,
+    quotePolicy: normalizeQuotePolicyForVisibility(
+      noteSource.visibility,
+      noteSource.quotePolicy,
+    ),
     actorId: actor.id,
     noteSourceId: noteSource.id,
     replyTargetId: relations.replyTarget?.id,
     quotedPostId: relations.quotedPost?.sharedPostId ??
       relations.quotedPost?.id,
+    quoteAuthorizationIri: relations.quotedPost?.actor.accountId == null
+      ? undefined
+      : fedCtx.getObjectUri(vocab.QuoteAuthorization, { id }).href,
     contentHtml: rendered.html,
     language: noteSource.language,
     tags: Object.fromEntries(
@@ -319,7 +400,7 @@ export async function syncPostFromNoteSource(
     published: noteSource.published,
   };
   const rows = await db.insert(postTable)
-    .values({ id: generateUuidV7(), ...values })
+    .values({ id, ...values })
     .onConflictDoUpdate({
       target: postTable.noteSourceId,
       set: values,
@@ -327,6 +408,28 @@ export async function syncPostFromNoteSource(
     })
     .returning();
   const post = rows[0];
+  if (post.quoteAuthorizationIri != null && relations.quotedPost != null) {
+    await db.insert(quoteAuthorizationTable).values({
+      id,
+      iri: post.quoteAuthorizationIri,
+      quotePostIri: post.iri,
+      quotePostId: post.id,
+      quotedPostId: relations.quotedPost.sharedPostId ??
+        relations.quotedPost.id,
+      attributedActorId: relations.quotedPost.actorId,
+    }).onConflictDoUpdate({
+      target: quoteAuthorizationTable.iri,
+      set: {
+        quotePostIri: post.iri,
+        quotePostId: post.id,
+        quotedPostId: relations.quotedPost.sharedPostId ??
+          relations.quotedPost.id,
+        attributedActorId: relations.quotedPost.actorId,
+        revoked: false,
+        updated: sql`CURRENT_TIMESTAMP`,
+      },
+    });
+  }
   await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
   const mentionList = globalThis.Object.values(rendered.mentions);
 
@@ -481,6 +584,11 @@ export async function persistPost(
       quotedPostIris.push(post.quoteUrl.href);
     }
   }
+  if (post.quoteId != null) {
+    if (!quotedPostIris.includes(post.quoteId.href)) {
+      quotedPostIris.unshift(post.quoteId.href);
+    }
+  }
   let quotedPost: Post & { actor: Actor & { instance: Instance } } | undefined;
   if (quotedPostIris.length > 0) {
     const quotedPosts = await db.query.postTable.findMany({
@@ -558,6 +666,41 @@ export async function persistPost(
       "mentions {mentions}).",
     { visibility, recipients, to, cc, mentions },
   );
+  const quotePolicy = quotePolicyFromInteractionPolicy(post, visibility);
+  let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
+  if (quoteAuthorizationIri != null && quotedPost != null) {
+    const authorization = await post.getQuoteAuthorization(opts);
+    const validAuthorization =
+      authorization instanceof vocab.QuoteAuthorization &&
+      authorization.interactingObjectId?.href === post.id.href &&
+      authorization.interactionTargetId?.href === quotedPost.iri &&
+      authorization.attributionId?.href === quotedPost.actor.iri;
+    if (!validAuthorization) {
+      logger.debug("Ignoring invalid quote authorization: {iri}", {
+        iri: quoteAuthorizationIri,
+      });
+      quoteAuthorizationIri = undefined;
+    }
+  }
+  if (
+    quotedPost != null &&
+    quotedPost.actorId !== actor.id &&
+    quoteAuthorizationIri == null &&
+    quotedPost.quotePolicy !== "everyone"
+  ) {
+    const approved = quotedPost.quotePolicy === "followers" &&
+      (await db.select({ followerId: followingTable.followerId })
+          .from(followingTable)
+          .where(
+            and(
+              eq(followingTable.followerId, actor.id),
+              eq(followingTable.followeeId, quotedPost.actorId),
+              isNotNull(followingTable.accepted),
+            ),
+          )
+          .limit(1)).length > 0;
+    if (!approved) quotedPost = undefined;
+  }
   const contentHtml = post.content?.toString();
   let externalLinks = contentHtml == null
     ? []
@@ -580,6 +723,7 @@ export async function persistPost(
       ? "Question"
       : assertNever(post, `Unexpected type of post: ${post}`),
     visibility,
+    quotePolicy,
     actorId: actor.id,
     sensitive: post.sensitive ?? false,
     name: post.name?.toString(),
@@ -601,6 +745,7 @@ export async function persistPost(
     url: post.url instanceof vocab.Link ? post.url.href?.href : post.url?.href,
     replyTargetId: replyTarget?.id,
     quotedPostId: quotedPost?.id,
+    quoteAuthorizationIri: quoteAuthorizationIri ?? null,
     repliesCount: replies?.totalItems ?? 0,
     sharesCount: shares?.totalItems ?? 0,
     updated: toDate(post.updated ?? post.published) ?? undefined,
@@ -620,6 +765,26 @@ export async function persistPost(
     })
     .returning();
   const persistedPost = { ...rows[0], actor };
+  if (quoteAuthorizationIri != null && quotedPost != null) {
+    await db.insert(quoteAuthorizationTable).values({
+      id: generateUuidV7(),
+      iri: quoteAuthorizationIri,
+      quotePostIri: persistedPost.iri,
+      quotePostId: persistedPost.id,
+      quotedPostId: quotedPost.id,
+      attributedActorId: quotedPost.actorId,
+    }).onConflictDoUpdate({
+      target: quoteAuthorizationTable.iri,
+      set: {
+        quotePostIri: persistedPost.iri,
+        quotePostId: persistedPost.id,
+        quotedPostId: quotedPost.id,
+        attributedActorId: quotedPost.actorId,
+        revoked: false,
+        updated: sql`CURRENT_TIMESTAMP`,
+      },
+    });
+  }
   await db.delete(mentionTable).where(
     eq(mentionTable.postId, persistedPost.id),
   );
@@ -1509,9 +1674,12 @@ export async function getPostInteractionPolicies(
         (effective.visibility === "followers" &&
           effective.actorId === viewer.id)
       );
+    const canQuote = effective.sharedPostId == null &&
+      isPostVisibleTo(effective, viewer) &&
+      canActorQuoteByPolicy(effective, viewer);
     result.set(post.id, {
       canReply: true,
-      canQuote: canAmplify,
+      canQuote,
       canShare: canAmplify,
     });
   }
@@ -1662,6 +1830,44 @@ export async function updateQuotesCount(
     return cnt[0].count;
   }
   return quotesCount;
+}
+
+export async function revokeQuote(
+  fedCtx: Context<ContextData>,
+  account: Account,
+  quotePost: Post & { actor: Actor },
+  quotedPost: Post,
+): Promise<Post> {
+  const { db } = fedCtx.data;
+  const rows = await db.update(postTable)
+    .set({
+      quotedPostId: null,
+      quoteAuthorizationIri: null,
+      updated: sql`CURRENT_TIMESTAMP`,
+    })
+    .where(eq(postTable.id, quotePost.id))
+    .returning();
+  if (quotePost.quoteAuthorizationIri != null) {
+    await db.update(quoteAuthorizationTable)
+      .set({ revoked: true, updated: sql`CURRENT_TIMESTAMP` })
+      .where(eq(quoteAuthorizationTable.iri, quotePost.quoteAuthorizationIri));
+    const activity = new vocab.Delete({
+      id: new URL("#delete", quotePost.quoteAuthorizationIri),
+      actor: fedCtx.getActorUri(account.id),
+      object: new URL(quotePost.quoteAuthorizationIri),
+    });
+    await fedCtx.sendActivity(
+      { identifier: account.id },
+      toRecipient(quotePost.actor),
+      activity,
+      {
+        orderingKey: quotePost.quoteAuthorizationIri,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
+    );
+  }
+  await updateQuotesCount(db, quotedPost, -1);
+  return rows[0] ?? { ...quotePost, quotedPostId: null };
 }
 
 export async function deletePost(
