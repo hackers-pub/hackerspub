@@ -278,11 +278,11 @@ msgstr "管理"
 msgid "All"
 msgstr "すべて"
 
-#: src/components/NoteComposer.tsx:756
+#: src/components/NoteComposer.tsx:751
 msgid "All images must finish uploading before posting"
 msgstr "投稿する前に、すべての画像のアップロードを完了してください。"
 
-#: src/components/NoteComposer.tsx:764
+#: src/components/NoteComposer.tsx:759
 msgid "All images require alt text"
 msgstr "すべての画像に代替テキストが必要です。"
 
@@ -291,11 +291,11 @@ msgid "Allow automatic translation by AI"
 msgstr "AIによる自動翻訳を許可"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1215
+#: src/components/NoteComposer.tsx:1207
 msgid "Alt text for image {0}"
 msgstr "画像 {0} の代替テキスト"
 
-#: src/components/NoteComposer.tsx:1227
+#: src/components/NoteComposer.tsx:1219
 msgid "Alt text for visually impaired people (required)"
 msgstr "視覚障碍者向けの代替テキスト（必須）"
 
@@ -331,6 +331,7 @@ msgstr "設定の保存中にエラーが発生しました。再度お試しい
 msgid "An unexpected error occurred. Please try again later."
 msgstr "予期しないエラーが発生しました。後でもう一度お試しください。"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:60
 #: src/components/QuotePolicySelect.tsx:27
 msgid "Anyone can quote"
 msgstr "誰でも引用できます"
@@ -391,8 +392,8 @@ msgstr "記事のみ"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "すでに{0}に変更済みのため、再度変更することはできません。"
 
-#: src/components/NoteComposer.tsx:1101
-#: src/components/NoteComposer.tsx:1102
+#: src/components/NoteComposer.tsx:1096
+#: src/components/NoteComposer.tsx:1097
 msgid "Attach image"
 msgstr "画像を添付"
 
@@ -400,12 +401,12 @@ msgstr "画像を添付"
 msgid "Authenticating…"
 msgstr "認証中…"
 
-#: src/components/NoteComposer.tsx:1246
+#: src/components/NoteComposer.tsx:1238
 msgid "Auto-fill"
 msgstr "自動入力"
 
-#: src/components/NoteComposer.tsx:1239
-#: src/components/NoteComposer.tsx:1240
+#: src/components/NoteComposer.tsx:1231
+#: src/components/NoteComposer.tsx:1232
 msgid "Auto-fill alt text"
 msgstr "代替テキストを自動入力"
 
@@ -447,9 +448,9 @@ msgid "Bookmarks"
 msgstr "ブックマーク"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:1274
-#: src/components/NoteComposer.tsx:1275
-#: src/components/NoteComposer.tsx:1327
+#: src/components/NoteComposer.tsx:1266
+#: src/components/NoteComposer.tsx:1267
+#: src/components/NoteComposer.tsx:1310
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
@@ -515,12 +516,12 @@ msgid "Compose"
 msgstr "作成"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:1024
+#: src/components/NoteComposer.tsx:1019
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:247
 msgid "Content"
 msgstr "内容"
 
-#: src/components/NoteComposer.tsx:746
+#: src/components/NoteComposer.tsx:741
 msgid "Content cannot be empty"
 msgstr "内容を入力してください"
 
@@ -540,7 +541,7 @@ msgstr "コピー"
 msgid "Could not copy the link to the clipboard."
 msgstr "クリップボードにリンクをコピーできませんでした。"
 
-#: src/components/NoteComposer.tsx:633
+#: src/components/NoteComposer.tsx:628
 msgid "Could not find a post at this URL"
 msgstr "このURLのコンテンツが見つかりませんでした"
 
@@ -568,7 +569,7 @@ msgstr "招待リンクを作成"
 #: src/components/AppSidebar.tsx:752
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:69
-#: src/components/NoteComposer.tsx:1339
+#: src/components/NoteComposer.tsx:1322
 msgid "Create note"
 msgstr "投稿を作成"
 
@@ -589,7 +590,7 @@ msgstr "{0}に作成"
 msgid "Creating account…"
 msgstr "アカウントを作成中…"
 
-#: src/components/NoteComposer.tsx:1340
+#: src/components/NoteComposer.tsx:1323
 #: src/routes/(root)/[handle]/settings/invite.tsx:761
 msgid "Creating…"
 msgstr "作成中…"
@@ -662,7 +663,7 @@ msgstr "名前"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "アカウントが必要ですか？Hackers' Pubは招待制ですので、友人に招待をお願いしてください。"
 
-#: src/components/NoteComposer.tsx:620
+#: src/components/NoteComposer.tsx:615
 msgid "Do you want to quote this link?"
 msgstr "このリンクを引用しますか？"
 
@@ -744,16 +745,16 @@ msgstr "以下にメールアドレスまたはユーザー名を入力してロ
 #: src/components/article-composer/ArticleComposerContext.tsx:455
 #: src/components/article-composer/ArticleComposerContext.tsx:463
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:531
-#: src/components/NoteComposer.tsx:578
-#: src/components/NoteComposer.tsx:632
-#: src/components/NoteComposer.tsx:745
-#: src/components/NoteComposer.tsx:755
-#: src/components/NoteComposer.tsx:763
-#: src/components/NoteComposer.tsx:797
-#: src/components/NoteComposer.tsx:805
-#: src/components/NoteComposer.tsx:813
-#: src/components/NoteComposer.tsx:869
+#: src/components/NoteComposer.tsx:526
+#: src/components/NoteComposer.tsx:573
+#: src/components/NoteComposer.tsx:627
+#: src/components/NoteComposer.tsx:740
+#: src/components/NoteComposer.tsx:750
+#: src/components/NoteComposer.tsx:758
+#: src/components/NoteComposer.tsx:792
+#: src/components/NoteComposer.tsx:800
+#: src/components/NoteComposer.tsx:808
+#: src/components/NoteComposer.tsx:864
 #: src/components/QuotedNoteCard.tsx:205
 #: src/components/QuotedNoteCard.tsx:213
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
@@ -819,7 +820,7 @@ msgstr "コンテンツの削除に失敗しました"
 msgid "Failed to follow"
 msgstr "フォローに失敗しました"
 
-#: src/components/NoteComposer.tsx:870
+#: src/components/NoteComposer.tsx:865
 msgid "Failed to generate alt text"
 msgstr "代替テキストの生成に失敗しました"
 
@@ -889,11 +890,11 @@ msgstr "返信の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more shares; click to retry"
 msgstr "共有の追加読み込みに失敗しました。再試行するにはクリックしてください"
 
-#: src/components/NoteComposer.tsx:915
+#: src/components/NoteComposer.tsx:910
 msgid "Failed to load post"
 msgstr "コンテンツの読み込みに失敗しました"
 
-#: src/components/NoteComposer.tsx:966
+#: src/components/NoteComposer.tsx:961
 msgid "Failed to load quoted post"
 msgstr "引用コンテンツの読み込みに失敗しました"
 
@@ -926,7 +927,7 @@ msgstr "パスキーの登録に失敗しました"
 msgid "Failed to remove bookmark"
 msgstr "ブックマークの削除に失敗しました"
 
-#: src/components/NoteComposer.tsx:1083
+#: src/components/NoteComposer.tsx:1078
 msgid "Failed to render preview"
 msgstr "プレビューの表示に失敗しました"
 
@@ -991,7 +992,7 @@ msgid "Failed to update the article. Please try again."
 msgstr "記事の更新に失敗しました。もう一度お試しください。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
-#: src/components/NoteComposer.tsx:581
+#: src/components/NoteComposer.tsx:576
 msgid "Failed to upload image"
 msgstr "画像のアップロードに失敗しました"
 
@@ -1028,10 +1029,12 @@ msgstr "あなたのアカウントからフォロー"
 msgid "Followers"
 msgstr "フォロワー"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:65
 #: src/components/QuotePolicySelect.tsx:32
 msgid "Followers can quote"
 msgstr "フォロワーが引用できます"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:48
 #: src/components/PostVisibilitySelect.tsx:63
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
@@ -1050,7 +1053,7 @@ msgstr "あなたをフォロー中"
 msgid "Formatting"
 msgstr "書式設定"
 
-#: src/components/NoteComposer.tsx:1265
+#: src/components/NoteComposer.tsx:1257
 msgid "Generating…"
 msgstr "生成中…"
 
@@ -1184,7 +1187,7 @@ msgstr "無効なフェディバースのハンドルの形式です。"
 #: src/components/article-composer/ArticleComposerContext.tsx:310
 #: src/components/article-composer/ArticleComposerContext.tsx:383
 #: src/components/article-composer/ArticleComposerContext.tsx:448
-#: src/components/NoteComposer.tsx:798
+#: src/components/NoteComposer.tsx:793
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 msgid "Invalid input: {0}"
 msgstr "無効な入力：{0}"
@@ -1447,7 +1450,7 @@ msgstr "返信を読み込み中…"
 msgid "Loading more shares…"
 msgstr "共有を読み込み中…"
 
-#: src/components/NoteComposer.tsx:967
+#: src/components/NoteComposer.tsx:962
 msgid "Loading quoted post…"
 msgstr "引用コンテンツを読み込み中…"
 
@@ -1455,7 +1458,7 @@ msgstr "引用コンテンツを読み込み中…"
 msgid "Loading search results…"
 msgstr "検索結果を読み込み中…"
 
-#: src/components/NoteComposer.tsx:916
+#: src/components/NoteComposer.tsx:911
 #: src/routes/(root)/[handle]/drafts/index.tsx:340
 #: src/routes/(root)/sign/up/[token].tsx:454
 msgid "Loading…"
@@ -1474,7 +1477,7 @@ msgid "Markdown guide"
 msgstr "Markdown ガイド"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:1159
+#: src/components/NoteComposer.tsx:1154
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
 msgid "Markdown supported"
 msgstr "Markdown対応"
@@ -1484,6 +1487,7 @@ msgstr "Markdown対応"
 msgid "Media"
 msgstr "メディア"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:53
 #: src/components/PostVisibilitySelect.tsx:83
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
@@ -1646,7 +1650,7 @@ msgstr "見つかりません"
 #~ msgid "Note"
 #~ msgstr "投稿"
 
-#: src/components/NoteComposer.tsx:790
+#: src/components/NoteComposer.tsx:785
 msgid "Note created successfully"
 msgstr "投稿が作成されました"
 
@@ -1660,7 +1664,7 @@ msgstr "リンクが実際にあなたのものであることを認証できま
 msgid "Notes"
 msgstr "投稿"
 
-#: src/components/NoteComposer.tsx:1084
+#: src/components/NoteComposer.tsx:1079
 msgid "Nothing to preview"
 msgstr "プレビューする内容がありません"
 
@@ -1672,6 +1676,7 @@ msgstr "通知"
 msgid "Number of invitations"
 msgstr "招待数"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:70
 #: src/components/QuotePolicySelect.tsx:37
 msgid "Only you can quote"
 msgstr "自分だけが引用できます"
@@ -1812,7 +1817,7 @@ msgstr "優先言語"
 msgid "Preferred languages"
 msgstr "優先言語"
 
-#: src/components/NoteComposer.tsx:1033
+#: src/components/NoteComposer.tsx:1028
 msgid "Preview"
 msgstr "プレビュー"
 
@@ -1839,6 +1844,7 @@ msgstr "プロフィール操作"
 msgid "Profile settings"
 msgstr "プロフィール設定"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:38
 #: src/components/PostVisibilitySelect.tsx:23
 #: src/components/VisibilityTag.tsx:32
 msgid "Public"
@@ -1860,6 +1866,7 @@ msgstr "公開中…"
 msgid "Query cannot be empty"
 msgstr "検索文字列は空にできません"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:43
 #: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
 msgid "Quiet public"
@@ -1872,7 +1879,7 @@ msgid "Quote"
 msgstr "引用"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:47
-#: src/components/NoteComposer.tsx:1311
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:129
 msgid "Quote permission"
 msgstr "引用権限"
 
@@ -1979,13 +1986,13 @@ msgstr "{0}を削除"
 msgid "Remove bookmark"
 msgstr "ブックマークを削除"
 
-#: src/components/NoteComposer.tsx:1286
-#: src/components/NoteComposer.tsx:1287
+#: src/components/NoteComposer.tsx:1278
+#: src/components/NoteComposer.tsx:1279
 msgid "Remove image"
 msgstr "画像を削除"
 
-#: src/components/NoteComposer.tsx:1014
-#: src/components/NoteComposer.tsx:1015
+#: src/components/NoteComposer.tsx:1009
+#: src/components/NoteComposer.tsx:1010
 msgid "Remove quote"
 msgstr "引用を削除"
 
@@ -1993,7 +2000,7 @@ msgstr "引用を削除"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "作成から十分な時間が経過し、アイコン、投稿、記事の下書き、記事のいずれにも添付されていない保存済みメディアを削除します。"
 
-#: src/components/NoteComposer.tsx:1074
+#: src/components/NoteComposer.tsx:1069
 msgid "Rendering…"
 msgstr "レンダリング中…"
 
@@ -2006,7 +2013,7 @@ msgstr "返信"
 msgid "Replying is not available for this post"
 msgstr "このコンテンツには返信できません"
 
-#: src/components/NoteComposer.tsx:908
+#: src/components/NoteComposer.tsx:903
 msgid "Replying to"
 msgstr "返信先"
 
@@ -2188,7 +2195,7 @@ msgstr "スラッグ（URL）"
 msgid "Slug cannot be empty"
 msgstr "スラッグは空にできません"
 
-#: src/components/NoteComposer.tsx:543
+#: src/components/NoteComposer.tsx:538
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "{MAX_MEDIA} 枚の上限に達したため、一部の画像をスキップしました"
 
@@ -2203,7 +2210,7 @@ msgstr "問題が発生しました。再度お試しください。"
 #: src/components/article-composer/ArticleComposerContext.tsx:299
 #: src/components/article-composer/ArticleComposerContext.tsx:373
 #: src/components/article-composer/ArticleComposerContext.tsx:438
-#: src/components/NoteComposer.tsx:789
+#: src/components/NoteComposer.tsx:784
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
 #: src/routes/(root)/[handle]/drafts/index.tsx:172
 msgid "Success"
@@ -2470,7 +2477,7 @@ msgstr "アイコン、ユーザー名、名前、自己紹介、リンクなど
 msgid "Updated {0}"
 msgstr "{0}に更新"
 
-#: src/components/NoteComposer.tsx:1202
+#: src/components/NoteComposer.tsx:1194
 msgid "Upload progress"
 msgstr "アップロードの進捗"
 
@@ -2553,9 +2560,13 @@ msgstr "返信を見る"
 msgid "View shares"
 msgstr "共有を見る"
 
-#: src/components/NoteComposer.tsx:1174
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:107
 msgid "Visibility"
 msgstr "公開範囲"
+
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:89
+msgid "Visibility and quote permission"
+msgstr "公開範囲と引用権限"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
@@ -2589,7 +2600,7 @@ msgstr "投票済み"
 msgid "Voting…"
 msgstr "投票中…"
 
-#: src/components/NoteComposer.tsx:541
+#: src/components/NoteComposer.tsx:536
 msgid "Warning"
 msgstr "警告"
 
@@ -2613,7 +2624,7 @@ msgstr "Hackers' Pubへようこそ！登録を完了するには以下のフォ
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pubとは？"
 
-#: src/components/NoteComposer.tsx:1058
+#: src/components/NoteComposer.tsx:1053
 msgid "What's on your mind?"
 msgstr "今何してる？"
 
@@ -2621,7 +2632,7 @@ msgstr "今何してる？"
 msgid "Without shares"
 msgstr "共有除外"
 
-#: src/components/NoteComposer.tsx:1027
+#: src/components/NoteComposer.tsx:1022
 msgid "Write"
 msgstr "編集"
 
@@ -2654,7 +2665,7 @@ msgstr "このユーザーからブロックされています。このユーザ
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "このユーザーをブロックしています。このユーザーはあなたをフォローしたり、あなたのコンテンツを見たりできません。"
 
-#: src/components/NoteComposer.tsx:532
+#: src/components/NoteComposer.tsx:527
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "画像は最大{MAX_MEDIA}枚まで添付できます"
 
@@ -2702,7 +2713,7 @@ msgstr "招待状が残っていません。追加されるまでお待ちくだ
 msgid "You must be signed in"
 msgstr "ログインが必要です"
 
-#: src/components/NoteComposer.tsx:806
+#: src/components/NoteComposer.tsx:801
 msgid "You must be signed in to create a note"
 msgstr "投稿を作成するにはログインが必要です"
 

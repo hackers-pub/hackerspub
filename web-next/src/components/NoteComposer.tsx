@@ -16,14 +16,9 @@ import {
 } from "~/lib/uploadMediumWithProgress.ts";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { MentionAutocomplete } from "~/components/MentionAutocomplete.tsx";
-import {
-  PostVisibility,
-  PostVisibilitySelect,
-} from "~/components/PostVisibilitySelect.tsx";
-import {
-  QuotePolicy,
-  QuotePolicySelect,
-} from "~/components/QuotePolicySelect.tsx";
+import { NoteVisibilityQuotePolicySelect } from "~/components/NoteVisibilityQuotePolicySelect.tsx";
+import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
+import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
 import {
   Avatar,
   AvatarFallback,
@@ -1162,22 +1157,19 @@ export function NoteComposer(props: NoteComposerProps) {
           </TextField>
         </Tabs>
 
-        {/* Toolbar: language, visibility */}
+        {/* Toolbar: language, visibility, quote policy */}
         <div class="flex flex-wrap items-center gap-2">
           <LanguageSelect
             value={language()}
             onChange={handleLanguageChange}
             class="flex-1 min-w-[8rem]"
           />
-          <div
-            role="group"
-            aria-label={t`Visibility`}
-          >
-            <PostVisibilitySelect
-              value={visibility()}
-              onChange={setVisibility}
-            />
-          </div>
+          <NoteVisibilityQuotePolicySelect
+            visibility={visibility()}
+            quotePolicy={quotePolicy()}
+            onVisibilityChange={setVisibility}
+            onQuotePolicyChange={setQuotePolicy}
+          />
         </div>
 
         {/* Media previews */}
@@ -1306,15 +1298,6 @@ export function NoteComposer(props: NoteComposerProps) {
             </For>
           </div>
         </Show>
-
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <span class="text-sm font-medium">{t`Quote permission`}</span>
-          <QuotePolicySelect
-            value={effectiveQuotePolicy()}
-            onChange={setQuotePolicy}
-            disabled={visibility() !== "PUBLIC" && visibility() !== "UNLISTED"}
-          />
-        </div>
 
         <div class="flex gap-2 justify-end">
           <Show when={props.showCancelButton}>

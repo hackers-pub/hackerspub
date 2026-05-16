@@ -278,11 +278,11 @@ msgstr "管理"
 msgid "All"
 msgstr "全部"
 
-#: src/components/NoteComposer.tsx:756
+#: src/components/NoteComposer.tsx:751
 msgid "All images must finish uploading before posting"
 msgstr "发布前，所有图片必须完成上传。"
 
-#: src/components/NoteComposer.tsx:764
+#: src/components/NoteComposer.tsx:759
 msgid "All images require alt text"
 msgstr "所有图片均需提供替代文字。"
 
@@ -291,11 +291,11 @@ msgid "Allow automatic translation by AI"
 msgstr "允许 AI 自动翻译"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1215
+#: src/components/NoteComposer.tsx:1207
 msgid "Alt text for image {0}"
 msgstr "图片 {0} 的替代文字"
 
-#: src/components/NoteComposer.tsx:1227
+#: src/components/NoteComposer.tsx:1219
 msgid "Alt text for visually impaired people (required)"
 msgstr "供视力障碍人士使用的替代文字（必填）"
 
@@ -331,6 +331,7 @@ msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请
 msgid "An unexpected error occurred. Please try again later."
 msgstr "发生了意外错误。请稍后再试。"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:60
 #: src/components/QuotePolicySelect.tsx:27
 msgid "Anyone can quote"
 msgstr "任何人都可以引用"
@@ -391,8 +392,8 @@ msgstr "仅文章"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "自打你已经把用户名换成 {0} 了，你再也改不了了。"
 
-#: src/components/NoteComposer.tsx:1101
-#: src/components/NoteComposer.tsx:1102
+#: src/components/NoteComposer.tsx:1096
+#: src/components/NoteComposer.tsx:1097
 msgid "Attach image"
 msgstr "附加图片"
 
@@ -400,12 +401,12 @@ msgstr "附加图片"
 msgid "Authenticating…"
 msgstr "正在验证…"
 
-#: src/components/NoteComposer.tsx:1246
+#: src/components/NoteComposer.tsx:1238
 msgid "Auto-fill"
 msgstr "自动填写"
 
-#: src/components/NoteComposer.tsx:1239
-#: src/components/NoteComposer.tsx:1240
+#: src/components/NoteComposer.tsx:1231
+#: src/components/NoteComposer.tsx:1232
 msgid "Auto-fill alt text"
 msgstr "自动填写替代文字"
 
@@ -447,9 +448,9 @@ msgid "Bookmarks"
 msgstr "收藏"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:1274
-#: src/components/NoteComposer.tsx:1275
-#: src/components/NoteComposer.tsx:1327
+#: src/components/NoteComposer.tsx:1266
+#: src/components/NoteComposer.tsx:1267
+#: src/components/NoteComposer.tsx:1310
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
@@ -515,12 +516,12 @@ msgid "Compose"
 msgstr "写作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:1024
+#: src/components/NoteComposer.tsx:1019
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:247
 msgid "Content"
 msgstr "内容"
 
-#: src/components/NoteComposer.tsx:746
+#: src/components/NoteComposer.tsx:741
 msgid "Content cannot be empty"
 msgstr "内容不能为空"
 
@@ -540,7 +541,7 @@ msgstr "复制"
 msgid "Could not copy the link to the clipboard."
 msgstr "无法将链接复制到剪贴板。"
 
-#: src/components/NoteComposer.tsx:633
+#: src/components/NoteComposer.tsx:628
 msgid "Could not find a post at this URL"
 msgstr "无法在此URL找到内容"
 
@@ -568,7 +569,7 @@ msgstr "创建邀请链接"
 #: src/components/AppSidebar.tsx:752
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:69
-#: src/components/NoteComposer.tsx:1339
+#: src/components/NoteComposer.tsx:1322
 msgid "Create note"
 msgstr "创建帖子"
 
@@ -589,7 +590,7 @@ msgstr "{0}创建"
 msgid "Creating account…"
 msgstr "正在创建账户…"
 
-#: src/components/NoteComposer.tsx:1340
+#: src/components/NoteComposer.tsx:1323
 #: src/routes/(root)/[handle]/settings/invite.tsx:761
 msgid "Creating…"
 msgstr "正在创建…"
@@ -662,7 +663,7 @@ msgstr "昵称"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀请您。"
 
-#: src/components/NoteComposer.tsx:620
+#: src/components/NoteComposer.tsx:615
 msgid "Do you want to quote this link?"
 msgstr "要引用此链接吗？"
 
@@ -744,16 +745,16 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/article-composer/ArticleComposerContext.tsx:455
 #: src/components/article-composer/ArticleComposerContext.tsx:463
 #: src/components/article-composer/ArticleComposerForm.tsx:26
-#: src/components/NoteComposer.tsx:531
-#: src/components/NoteComposer.tsx:578
-#: src/components/NoteComposer.tsx:632
-#: src/components/NoteComposer.tsx:745
-#: src/components/NoteComposer.tsx:755
-#: src/components/NoteComposer.tsx:763
-#: src/components/NoteComposer.tsx:797
-#: src/components/NoteComposer.tsx:805
-#: src/components/NoteComposer.tsx:813
-#: src/components/NoteComposer.tsx:869
+#: src/components/NoteComposer.tsx:526
+#: src/components/NoteComposer.tsx:573
+#: src/components/NoteComposer.tsx:627
+#: src/components/NoteComposer.tsx:740
+#: src/components/NoteComposer.tsx:750
+#: src/components/NoteComposer.tsx:758
+#: src/components/NoteComposer.tsx:792
+#: src/components/NoteComposer.tsx:800
+#: src/components/NoteComposer.tsx:808
+#: src/components/NoteComposer.tsx:864
 #: src/components/QuotedNoteCard.tsx:205
 #: src/components/QuotedNoteCard.tsx:213
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
@@ -819,7 +820,7 @@ msgstr "删除内容失败"
 msgid "Failed to follow"
 msgstr "关注失败"
 
-#: src/components/NoteComposer.tsx:870
+#: src/components/NoteComposer.tsx:865
 msgid "Failed to generate alt text"
 msgstr "替代文字生成失败"
 
@@ -889,11 +890,11 @@ msgstr "加载更多回复失败，点击重试"
 msgid "Failed to load more shares; click to retry"
 msgstr "加载更多转帖失败，点击重试"
 
-#: src/components/NoteComposer.tsx:915
+#: src/components/NoteComposer.tsx:910
 msgid "Failed to load post"
 msgstr "无法加载内容"
 
-#: src/components/NoteComposer.tsx:966
+#: src/components/NoteComposer.tsx:961
 msgid "Failed to load quoted post"
 msgstr "无法加载引用内容"
 
@@ -926,7 +927,7 @@ msgstr "注册通行密钥失败"
 msgid "Failed to remove bookmark"
 msgstr "取消收藏失败"
 
-#: src/components/NoteComposer.tsx:1083
+#: src/components/NoteComposer.tsx:1078
 msgid "Failed to render preview"
 msgstr "预览渲染失败"
 
@@ -991,7 +992,7 @@ msgid "Failed to update the article. Please try again."
 msgstr "文章更新失败，请重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
-#: src/components/NoteComposer.tsx:581
+#: src/components/NoteComposer.tsx:576
 msgid "Failed to upload image"
 msgstr "图片上传失败"
 
@@ -1028,10 +1029,12 @@ msgstr "从你的账户关注"
 msgid "Followers"
 msgstr "粉丝"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:65
 #: src/components/QuotePolicySelect.tsx:32
 msgid "Followers can quote"
 msgstr "粉丝可以引用"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:48
 #: src/components/PostVisibilitySelect.tsx:63
 #: src/components/VisibilityTag.tsx:76
 msgid "Followers only"
@@ -1050,7 +1053,7 @@ msgstr "关注了你"
 msgid "Formatting"
 msgstr "格式"
 
-#: src/components/NoteComposer.tsx:1265
+#: src/components/NoteComposer.tsx:1257
 msgid "Generating…"
 msgstr "生成中…"
 
@@ -1184,7 +1187,7 @@ msgstr "联邦宇宙用户名格式无效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:310
 #: src/components/article-composer/ArticleComposerContext.tsx:383
 #: src/components/article-composer/ArticleComposerContext.tsx:448
-#: src/components/NoteComposer.tsx:798
+#: src/components/NoteComposer.tsx:793
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
@@ -1447,7 +1450,7 @@ msgstr "正在加载更多回复…"
 msgid "Loading more shares…"
 msgstr "正在加载更多转帖…"
 
-#: src/components/NoteComposer.tsx:967
+#: src/components/NoteComposer.tsx:962
 msgid "Loading quoted post…"
 msgstr "正在加载引用内容…"
 
@@ -1455,7 +1458,7 @@ msgstr "正在加载引用内容…"
 msgid "Loading search results…"
 msgstr "正在加载搜索结果…"
 
-#: src/components/NoteComposer.tsx:916
+#: src/components/NoteComposer.tsx:911
 #: src/routes/(root)/[handle]/drafts/index.tsx:340
 #: src/routes/(root)/sign/up/[token].tsx:454
 msgid "Loading…"
@@ -1474,7 +1477,7 @@ msgid "Markdown guide"
 msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:1159
+#: src/components/NoteComposer.tsx:1154
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
 msgid "Markdown supported"
 msgstr "Markdown 可用"
@@ -1484,6 +1487,7 @@ msgstr "Markdown 可用"
 msgid "Media"
 msgstr "媒体"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:53
 #: src/components/PostVisibilitySelect.tsx:83
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
@@ -1646,7 +1650,7 @@ msgstr "未找到"
 #~ msgid "Note"
 #~ msgstr "帖子"
 
-#: src/components/NoteComposer.tsx:790
+#: src/components/NoteComposer.tsx:785
 msgid "Note created successfully"
 msgstr "帖子创建成功"
 
@@ -1660,7 +1664,7 @@ msgstr "你可以验证这些链接确实属于你。在链接的页面上使用
 msgid "Notes"
 msgstr "帖子"
 
-#: src/components/NoteComposer.tsx:1084
+#: src/components/NoteComposer.tsx:1079
 msgid "Nothing to preview"
 msgstr "没有可预览的内容"
 
@@ -1672,6 +1676,7 @@ msgstr "通知"
 msgid "Number of invitations"
 msgstr "邀请次数"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:70
 #: src/components/QuotePolicySelect.tsx:37
 msgid "Only you can quote"
 msgstr "只有你可以引用"
@@ -1812,7 +1817,7 @@ msgstr "首选语言"
 msgid "Preferred languages"
 msgstr "偏好语言"
 
-#: src/components/NoteComposer.tsx:1033
+#: src/components/NoteComposer.tsx:1028
 msgid "Preview"
 msgstr "预览"
 
@@ -1839,6 +1844,7 @@ msgstr "个人资料操作"
 msgid "Profile settings"
 msgstr "个人资料设置"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:38
 #: src/components/PostVisibilitySelect.tsx:23
 #: src/components/VisibilityTag.tsx:32
 msgid "Public"
@@ -1860,6 +1866,7 @@ msgstr "发布中…"
 msgid "Query cannot be empty"
 msgstr "搜索关键词不能为空"
 
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:43
 #: src/components/PostVisibilitySelect.tsx:43
 #: src/components/VisibilityTag.tsx:54
 msgid "Quiet public"
@@ -1872,7 +1879,7 @@ msgid "Quote"
 msgstr "引用"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:47
-#: src/components/NoteComposer.tsx:1311
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:129
 msgid "Quote permission"
 msgstr "引用权限"
 
@@ -1979,13 +1986,13 @@ msgstr "移除{0}"
 msgid "Remove bookmark"
 msgstr "取消收藏"
 
-#: src/components/NoteComposer.tsx:1286
-#: src/components/NoteComposer.tsx:1287
+#: src/components/NoteComposer.tsx:1278
+#: src/components/NoteComposer.tsx:1279
 msgid "Remove image"
 msgstr "移除图片"
 
-#: src/components/NoteComposer.tsx:1014
-#: src/components/NoteComposer.tsx:1015
+#: src/components/NoteComposer.tsx:1009
+#: src/components/NoteComposer.tsx:1010
 msgid "Remove quote"
 msgstr "移除引用"
 
@@ -1993,7 +2000,7 @@ msgstr "移除引用"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "移除已过期且不再附加到头像、帖子、文章草稿或文章的已存储媒体。"
 
-#: src/components/NoteComposer.tsx:1074
+#: src/components/NoteComposer.tsx:1069
 msgid "Rendering…"
 msgstr "渲染中…"
 
@@ -2006,7 +2013,7 @@ msgstr "回复"
 msgid "Replying is not available for this post"
 msgstr "无法回复此内容"
 
-#: src/components/NoteComposer.tsx:908
+#: src/components/NoteComposer.tsx:903
 msgid "Replying to"
 msgstr "回复给"
 
@@ -2188,7 +2195,7 @@ msgstr "URL 别名"
 msgid "Slug cannot be empty"
 msgstr "URL 别名不能为空"
 
-#: src/components/NoteComposer.tsx:543
+#: src/components/NoteComposer.tsx:538
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "已达到 {MAX_MEDIA} 张图片上限，部分图片已被跳过"
 
@@ -2203,7 +2210,7 @@ msgstr "出现错误，请重试。"
 #: src/components/article-composer/ArticleComposerContext.tsx:299
 #: src/components/article-composer/ArticleComposerContext.tsx:373
 #: src/components/article-composer/ArticleComposerContext.tsx:438
-#: src/components/NoteComposer.tsx:789
+#: src/components/NoteComposer.tsx:784
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
 #: src/routes/(root)/[handle]/drafts/index.tsx:172
 msgid "Success"
@@ -2470,7 +2477,7 @@ msgstr "更新您的个人资料信息，包括头像、用户名、昵称、个
 msgid "Updated {0}"
 msgstr "更新于 {0}"
 
-#: src/components/NoteComposer.tsx:1202
+#: src/components/NoteComposer.tsx:1194
 msgid "Upload progress"
 msgstr "上传进度"
 
@@ -2553,9 +2560,13 @@ msgstr "查看回复"
 msgid "View shares"
 msgstr "查看转帖"
 
-#: src/components/NoteComposer.tsx:1174
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:107
 msgid "Visibility"
 msgstr "内容隐私度"
+
+#: src/components/NoteVisibilityQuotePolicySelect.tsx:89
+msgid "Visibility and quote permission"
+msgstr "内容隐私度和引用权限"
 
 #: src/components/VisibilityTag.tsx:79
 msgid "Visible only to the author's followers. The post will not appear in the public timeline, and only those who follow the author can see it."
@@ -2589,7 +2600,7 @@ msgstr "已投票"
 msgid "Voting…"
 msgstr "正在投票…"
 
-#: src/components/NoteComposer.tsx:541
+#: src/components/NoteComposer.tsx:536
 msgid "Warning"
 msgstr "警告"
 
@@ -2613,7 +2624,7 @@ msgstr "欢迎来到 Hackers' Pub！请填写以下表单完成注册。"
 msgid "What is Hackers' Pub?"
 msgstr "什么是 Hackers' Pub？"
 
-#: src/components/NoteComposer.tsx:1058
+#: src/components/NoteComposer.tsx:1053
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
@@ -2621,7 +2632,7 @@ msgstr "你在想啥？"
 msgid "Without shares"
 msgstr "不含转帖"
 
-#: src/components/NoteComposer.tsx:1027
+#: src/components/NoteComposer.tsx:1022
 msgid "Write"
 msgstr "撰写"
 
@@ -2654,7 +2665,7 @@ msgstr "你已被此用户屏蔽。你无法关注该用户或查看该用户的
 msgid "You are blocking this user. They can't follow you or see your posts."
 msgstr "你正在屏蔽此用户。该用户无法关注你或查看你的内容。"
 
-#: src/components/NoteComposer.tsx:532
+#: src/components/NoteComposer.tsx:527
 msgid "You can attach up to {MAX_MEDIA} images"
 msgstr "最多可附加 {MAX_MEDIA} 张图片"
 
@@ -2702,7 +2713,7 @@ msgstr "你没有剩余邀请名额。请稍后再试。"
 msgid "You must be signed in"
 msgstr "请先登录"
 
-#: src/components/NoteComposer.tsx:806
+#: src/components/NoteComposer.tsx:801
 msgid "You must be signed in to create a note"
 msgstr "你必须登录才能创建帖子"
 
