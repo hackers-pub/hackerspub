@@ -83,6 +83,10 @@ function removeWebNextCookie(): void {
 
 export interface AppSidebarProps {
   $signedAccount?: AppSidebar_signedAccount$key | null;
+  // Keep this separate from $signedAccount. A null account means the viewer
+  // query finished and the visitor is anonymous; undefined means it has not
+  // resolved yet. The sidebar needs that distinction to show the sign-in link.
+  signedAccountLoaded?: boolean;
 }
 
 export function AppSidebar(props: AppSidebarProps) {
@@ -371,7 +375,7 @@ export function AppSidebar(props: AppSidebarProps) {
         />
         <AccountSection
           signedAccount={signedAccount()}
-          signedAccountLoaded={!!signedAccount()}
+          signedAccountLoaded={props.signedAccountLoaded}
           unreadNotificationsCount={unreadNotificationsCount()}
           onSignOut={onSignOut}
         />
