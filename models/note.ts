@@ -393,7 +393,9 @@ export async function createNote(
       replyTargetId: relations.replyTarget == null
         ? undefined
         : new URL(relations.replyTarget.iri),
-      quotedPost: post.quotedPost ?? undefined,
+      quotedPost: post.quoteRequestRequired
+        ? undefined
+        : post.quotedPost ?? undefined,
       quoteAuthorizationIri: post.quoteAuthorizationIri,
       quoteRequestPolicy: post.quoteRequestPolicy,
     },
@@ -409,11 +411,22 @@ export async function createNote(
   const quotedPost = post.quotedPost;
   if (post.quoteRequestRequired && quotedPost != null) {
     const requestId = new URL("#quote-request", noteObject.id ?? fedCtx.origin);
+    const instrument = await getNote(
+      fedCtx,
+      { ...noteSource, media, account },
+      {
+        replyTargetId: relations.replyTarget == null
+          ? undefined
+          : new URL(relations.replyTarget.iri),
+        quotedPost,
+        quoteRequestPolicy: post.quoteRequestPolicy,
+      },
+    );
     const request = new vocab.QuoteRequest({
       id: requestId,
       actor: fedCtx.getActorUri(source.accountId),
       object: new URL(quotedPost.iri),
-      instrument: noteObject,
+      instrument,
     });
     await db.insert(quoteRequestTable).values({
       id: generateUuidV7(),

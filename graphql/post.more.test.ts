@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { QuoteRequest } from "@fedify/vocab";
+import { Create, Note as ActivityPubNote, QuoteRequest } from "@fedify/vocab";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
@@ -1744,6 +1744,25 @@ test("createNote sends QuoteRequest for remote manual-approval quotes", async ()
       .find((activity) => activity instanceof QuoteRequest);
     assert.ok(request instanceof QuoteRequest);
     assert.ok(request.id != null);
+    const fedCtx = createFedCtx(tx);
+    const instrument = await request.getInstrument({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(instrument instanceof ActivityPubNote);
+    assert.equal(instrument.quoteId?.href, remotePost.iri);
+    assert.equal(instrument.quoteUrl?.href, remotePost.iri);
+    const create = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof Create);
+    assert.ok(create instanceof Create);
+    const createdObject = await create.getObject({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(createdObject instanceof ActivityPubNote);
+    assert.equal(createdObject.quoteId, null);
+    assert.equal(createdObject.quoteUrl, null);
     const storedRequest = await tx.query.quoteRequestTable.findFirst({
       where: { iri: request.id.href },
     });
