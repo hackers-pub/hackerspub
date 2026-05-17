@@ -275,50 +275,54 @@ export async function onQuoteRequestAccepted(
     return true;
   }
   const acceptedAt = new Date();
-  await fedCtx.data.db.insert(quoteAuthorizationTable).values({
-    id: generateUuidV7(),
-    iri: accept.resultId.href,
-    quotePostIri: quote.iri,
-    quotePostId: quote.id,
-    quotedPostId: quote.quotedPost.id,
-    attributedActorId: quote.quotedPost.actorId,
-  }).onConflictDoUpdate({
-    target: quoteAuthorizationTable.iri,
-    set: {
+  const resultIri = accept.resultId.href;
+  const quotedPost = quote.quotedPost;
+  const shouldSendUpdate = quote.quoteAuthorizationIri !== resultIri;
+  await fedCtx.data.db.transaction(async (tx) => {
+    await tx.insert(quoteAuthorizationTable).values({
+      id: generateUuidV7(),
+      iri: resultIri,
       quotePostIri: quote.iri,
       quotePostId: quote.id,
-      quotedPostId: quote.quotedPost.id,
-      attributedActorId: quote.quotedPost.actorId,
-      revoked: false,
-      updated: acceptedAt,
-    },
-  });
-  if (quoteRequestIri != null) {
-    await fedCtx.data.db.update(quoteRequestTable)
+      quotedPostId: quotedPost.id,
+      attributedActorId: quotedPost.actorId,
+    }).onConflictDoUpdate({
+      target: quoteAuthorizationTable.iri,
+      set: {
+        quotePostIri: quote.iri,
+        quotePostId: quote.id,
+        quotedPostId: quotedPost.id,
+        attributedActorId: quotedPost.actorId,
+        revoked: false,
+        updated: acceptedAt,
+      },
+    });
+    if (quoteRequestIri != null) {
+      await tx.update(quoteRequestTable)
+        .set({
+          accepted: acceptedAt,
+          rejected: null,
+          updated: acceptedAt,
+        })
+        .where(eq(quoteRequestTable.iri, quoteRequestIri));
+    }
+    await tx.update(postTable)
       .set({
-        accepted: acceptedAt,
-        rejected: null,
+        quoteAuthorizationIri: resultIri,
         updated: acceptedAt,
       })
-      .where(eq(quoteRequestTable.iri, quoteRequestIri));
-  }
-  const shouldSendUpdate = quote.quoteAuthorizationIri !== accept.resultId.href;
-  await fedCtx.data.db.update(postTable)
-    .set({
-      quoteAuthorizationIri: accept.resultId.href,
-      updated: acceptedAt,
-    })
-    .where(eq(postTable.id, quote.id));
-  if (quote.noteSourceId != null) {
-    await fedCtx.data.db.update(noteSourceTable)
-      .set({ updated: acceptedAt })
-      .where(eq(noteSourceTable.id, quote.noteSourceId));
-  }
+      .where(eq(postTable.id, quote.id));
+    if (quote.noteSourceId != null) {
+      await tx.update(noteSourceTable)
+        .set({ updated: acceptedAt })
+        .where(eq(noteSourceTable.id, quote.noteSourceId));
+    }
+  });
   if (shouldSendUpdate) {
     await sendQuoteUpdate(
       fedCtx,
       quote,
-      accept.resultId.href,
+      resultIri,
       acceptedAt,
     );
   }
@@ -475,22 +479,7 @@ export async function onQuoteRequestRejected(
     return true;
   }
   const rejectedAt = new Date();
-  if (quoteRequestIri != null) {
-    await fedCtx.data.db.update(quoteRequestTable)
-      .set({
-        accepted: null,
-        rejected: rejectedAt,
-        updated: rejectedAt,
-      })
-      .where(eq(quoteRequestTable.iri, quoteRequestIri));
-  }
-  await fedCtx.data.db.update(postTable)
-    .set({
-      quotedPostId: null,
-      quoteAuthorizationIri: null,
-      updated: rejectedAt,
-    })
-    .where(eq(postTable.id, quote.id));
+  const quotedPost = quote.quotedPost;
   const updatedQuote = {
     ...quote,
     quotedPost: null,
@@ -498,13 +487,31 @@ export async function onQuoteRequestRejected(
     quoteAuthorizationIri: null,
     updated: rejectedAt,
   };
-  if (quote.noteSourceId != null) {
-    await fedCtx.data.db.update(noteSourceTable)
-      .set({ updated: rejectedAt })
-      .where(eq(noteSourceTable.id, quote.noteSourceId));
-  }
+  await fedCtx.data.db.transaction(async (tx) => {
+    if (quoteRequestIri != null) {
+      await tx.update(quoteRequestTable)
+        .set({
+          accepted: null,
+          rejected: rejectedAt,
+          updated: rejectedAt,
+        })
+        .where(eq(quoteRequestTable.iri, quoteRequestIri));
+    }
+    await tx.update(postTable)
+      .set({
+        quotedPostId: null,
+        quoteAuthorizationIri: null,
+        updated: rejectedAt,
+      })
+      .where(eq(postTable.id, quote.id));
+    if (quote.noteSourceId != null) {
+      await tx.update(noteSourceTable)
+        .set({ updated: rejectedAt })
+        .where(eq(noteSourceTable.id, quote.noteSourceId));
+    }
+    await updateQuotesCount(tx, quotedPost, -1);
+  });
   await sendQuoteUpdate(fedCtx, updatedQuote, null, rejectedAt);
-  await updateQuotesCount(fedCtx.data.db, quote.quotedPost, -1);
   return true;
 }
 
@@ -526,6 +533,7 @@ export async function onQuoteAuthorizationDeleted(
     );
     return false;
   }
+  const authorizationIri = del.objectId.href;
   const quotes = await fedCtx.data.db.query.postTable.findMany({
     with: {
       actor: true,
@@ -533,29 +541,40 @@ export async function onQuoteAuthorizationDeleted(
       replyTarget: true,
       mentions: { with: { actor: true } },
     },
-    where: { quoteAuthorizationIri: del.objectId.href },
+    where: { quoteAuthorizationIri: authorizationIri },
   });
   const revokedAt = new Date();
-  const rows = await fedCtx.data.db.update(quoteAuthorizationTable)
-    .set({ revoked: true, updated: revokedAt })
-    .where(eq(quoteAuthorizationTable.iri, del.objectId.href))
-    .returning();
-  if (rows.length < 1) return false;
-  await fedCtx.data.db.update(postTable)
-    .set({
-      quotedPostId: null,
-      quoteAuthorizationIri: null,
-      updated: revokedAt,
-    })
-    .where(eq(postTable.quoteAuthorizationIri, del.objectId.href));
-  const noteSourceIds = quotes
-    .map((quote) => quote.noteSourceId)
-    .filter((id) => id != null);
-  if (noteSourceIds.length > 0) {
-    await fedCtx.data.db.update(noteSourceTable)
-      .set({ updated: revokedAt })
-      .where(inArray(noteSourceTable.id, noteSourceIds));
-  }
+  const revoked = await fedCtx.data.db.transaction(async (tx) => {
+    const rows = await tx.update(quoteAuthorizationTable)
+      .set({ revoked: true, updated: revokedAt })
+      .where(eq(quoteAuthorizationTable.iri, authorizationIri))
+      .returning();
+    if (rows.length < 1) return false;
+    await tx.update(postTable)
+      .set({
+        quotedPostId: null,
+        quoteAuthorizationIri: null,
+        updated: revokedAt,
+      })
+      .where(eq(postTable.quoteAuthorizationIri, authorizationIri));
+    const noteSourceIds = quotes
+      .map((quote) => quote.noteSourceId)
+      .filter((id) => id != null);
+    if (noteSourceIds.length > 0) {
+      await tx.update(noteSourceTable)
+        .set({ updated: revokedAt })
+        .where(inArray(noteSourceTable.id, noteSourceIds));
+    }
+    if (quotes.length > 0) {
+      await updateQuotesCount(
+        tx,
+        authorization.quotedPost,
+        -quotes.length,
+      );
+    }
+    return true;
+  });
+  if (!revoked) return false;
   for (const quote of quotes) {
     await sendQuoteUpdate(
       fedCtx,
@@ -568,13 +587,6 @@ export async function onQuoteAuthorizationDeleted(
       },
       null,
       revokedAt,
-    );
-  }
-  if (quotes.length > 0) {
-    await updateQuotesCount(
-      fedCtx.data.db,
-      authorization.quotedPost,
-      -quotes.length,
     );
   }
   logger.debug("Quote authorization deleted: {iri}", {

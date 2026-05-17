@@ -46,7 +46,7 @@ import {
 } from "./article.ts";
 import type { ContextData } from "./context.ts";
 import { toDate } from "./date.ts";
-import type { Database, RelationsFilter } from "./db.ts";
+import type { Database, RelationsFilter, Transaction } from "./db.ts";
 import { extractExternalLinks } from "./html.ts";
 import { getMissingArticleMediumLabel, renderMarkup } from "./markup.ts";
 import { persistPostMedium } from "./medium.ts";
@@ -2083,7 +2083,7 @@ export async function updateSharesCount(
 }
 
 export async function updateQuotesCount(
-  db: Database,
+  db: Database | Transaction,
   post: Post,
   delta: number,
 ): Promise<number> {

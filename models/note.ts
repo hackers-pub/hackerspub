@@ -361,7 +361,12 @@ export async function createNote(
       index,
       medium,
     );
-    if (m == null) return undefined;
+    if (m == null) {
+      await db.delete(noteSourceTable).where(
+        eq(noteSourceTable.id, noteSource.id),
+      );
+      return undefined;
+    }
     media.push(m);
     index++;
   }
@@ -370,7 +375,13 @@ export async function createNote(
     media,
     account,
   }, relations);
-  if (post == null) return undefined;
+  if (post == null) {
+    await db.delete(noteSourceTable).where(
+      eq(noteSourceTable.id, noteSource.id),
+    );
+    if (relations.quotedPost != null) throw new QuotePolicyDeniedError();
+    return undefined;
+  }
   if (relations.replyTarget != null) {
     await updateRepliesCount(db, relations.replyTarget, 1);
   }
