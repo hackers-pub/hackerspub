@@ -138,7 +138,10 @@ test("syncPostFromNoteSource() preserves remote quote authorizations", async () 
     const authorizationIri =
       "https://remote.example/quote-authorizations/sync-preserve";
     await tx.update(postTable)
-      .set({ quoteAuthorizationIri: authorizationIri })
+      .set({
+        quotedPostId: quotedPost.id,
+        quoteAuthorizationIri: authorizationIri,
+      })
       .where(eq(postTable.id, created.id));
     await tx.update(noteSourceTable)
       .set({
