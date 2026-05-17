@@ -813,6 +813,7 @@ export async function persistPost(
         .limit(1);
       validAuthorization = issuedAuthorization.length > 0;
     } else if (validAuthorization) {
+      // Fedify dereferences cross-origin embedded authorizations before this.
       validAuthorization = new URL(quoteAuthorizationIri).origin ===
         new URL(quotedPost.actor.iri).origin;
     }
