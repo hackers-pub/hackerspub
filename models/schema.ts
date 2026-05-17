@@ -866,6 +866,10 @@ export const quoteRequestTable = pgTable(
   (table) => [
     index().on(table.quotePostId),
     index().on(table.quotedPostId),
+    check(
+      "quote_request_terminal_state_check",
+      sql`NOT (${table.accepted} IS NOT NULL AND ${table.rejected} IS NOT NULL)`,
+    ),
   ],
 );
 

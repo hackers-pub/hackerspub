@@ -9,6 +9,7 @@ CREATE TABLE "quote_request" (
 	"updated" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 --> statement-breakpoint
+ALTER TABLE "quote_request" ADD CONSTRAINT "quote_request_terminal_state_check" CHECK (NOT ("accepted" IS NOT NULL AND "rejected" IS NOT NULL));--> statement-breakpoint
 CREATE INDEX "quote_request_quote_post_id_index" ON "quote_request" ("quote_post_id");--> statement-breakpoint
 CREATE INDEX "quote_request_quoted_post_id_index" ON "quote_request" ("quoted_post_id");--> statement-breakpoint
 ALTER TABLE "quote_request" ADD CONSTRAINT "quote_request_quote_post_id_post_id_fkey" FOREIGN KEY ("quote_post_id") REFERENCES "post"("id") ON DELETE CASCADE;--> statement-breakpoint

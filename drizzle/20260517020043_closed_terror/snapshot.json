@@ -7082,6 +7082,13 @@
       "entityType": "uniques"
     },
     {
+      "value": "NOT (\"accepted\" IS NOT NULL AND \"rejected\" IS NOT NULL)",
+      "name": "quote_request_terminal_state_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "quote_request"
+    },
+    {
       "value": "\"public\" IS JSON OBJECT",
       "name": "account_key_public_check",
       "entityType": "checks",
