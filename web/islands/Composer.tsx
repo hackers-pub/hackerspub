@@ -180,6 +180,36 @@ export function Composer(props: ComposerProps) {
   }
 
   function onPaste(event: JSX.TargetedClipboardEvent<HTMLTextAreaElement>) {
+    const clipboardText = event.clipboardData?.getData("text/plain");
+    const insertTextAtSelection = (text: string) => {
+      const target = event.currentTarget;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const insertedRange = { start, end: start + text.length };
+      setContent((prev) => prev.slice(0, start) + text + prev.slice(end));
+      queueMicrotask(() => {
+        target.setSelectionRange(insertedRange.end, insertedRange.end);
+      });
+      return insertedRange;
+    };
+    const removeInsertedText = (
+      text: string,
+      insertedRange: { start: number; end: number },
+    ) => {
+      setContent((prev) => {
+        if (prev.slice(insertedRange.start, insertedRange.end) === text) {
+          return prev.slice(0, insertedRange.start) +
+            prev.slice(insertedRange.end);
+        }
+        const firstMatch = prev.indexOf(text);
+        if (firstMatch >= 0 && firstMatch === prev.lastIndexOf(text)) {
+          return prev.slice(0, firstMatch) +
+            prev.slice(firstMatch + text.length);
+        }
+        return prev;
+      });
+    };
+
     for (const item of event.clipboardData?.items ?? []) {
       if (item.kind === "file" && SUPPORTED_MEDIA_TYPES.includes(item.type)) {
         event.preventDefault();
@@ -188,8 +218,11 @@ export function Composer(props: ComposerProps) {
         addMedium(file);
       } else if (item.kind === "string" && item.type === "text/plain") {
         if (props.noQuoteOnPaste) continue;
-        item.getAsString(async (text) => {
-          if (!URL.canParse(text)) return;
+        const text = clipboardText;
+        if (text == null || !URL.canParse(text)) return;
+        event.preventDefault();
+        const insertedRange = insertTextAtSelection(text);
+        (async () => {
           setQuoteLoading(true);
           try {
             const r = await fetch(`/api/posts?iri=${encodeURIComponent(text)}`);
@@ -213,14 +246,15 @@ export function Composer(props: ComposerProps) {
             }
             if (confirm(confirmMsg)) {
               setQuotedPostId(pastedPost.id);
-              setContent(content);
+              removeInsertedText(text, insertedRange);
             }
           } catch {
             // Ignore quote lookup failures; pasted text should remain unchanged.
           } finally {
             setQuoteLoading(false);
           }
-        });
+        })();
+        return;
       }
     }
   }

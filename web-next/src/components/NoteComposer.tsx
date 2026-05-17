@@ -616,20 +616,26 @@ export function NoteComposer(props: NoteComposerProps) {
     if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
     const target = e.currentTarget;
     if (!(target instanceof HTMLTextAreaElement)) return;
+    e.preventDefault();
     const pasteStart = target.selectionStart;
-    let pastedRange: { start: number; end: number } | undefined;
+    const pasteEnd = target.selectionEnd;
+    const pastedRange = {
+      start: pasteStart,
+      end: pasteStart + clipboardText.length,
+    };
+    setContent((prev) =>
+      prev.slice(0, pasteStart) + clipboardText + prev.slice(pasteEnd)
+    );
+    queueMicrotask(() => {
+      target.setSelectionRange(pastedRange.end, pastedRange.end);
+    });
     const removePastedUrl = () => {
       setContent((prev) => {
         if (
-          pastedRange != null &&
           prev.slice(pastedRange.start, pastedRange.end) === clipboardText
         ) {
           return prev.slice(0, pastedRange.start) +
             prev.slice(pastedRange.end);
-        }
-        const expectedEnd = pasteStart + clipboardText.length;
-        if (prev.slice(pasteStart, expectedEnd) === clipboardText) {
-          return prev.slice(0, pasteStart) + prev.slice(expectedEnd);
         }
         const firstMatch = prev.indexOf(clipboardText);
         if (firstMatch >= 0 && firstMatch === prev.lastIndexOf(clipboardText)) {
@@ -639,42 +645,32 @@ export function NoteComposer(props: NoteComposerProps) {
         return prev;
       });
     };
-    queueMicrotask(() => {
-      const pastedEnd = target.selectionStart;
-      const pastedStart = pastedEnd - clipboardText.length;
-      if (
-        pastedStart >= 0 &&
-        target.value.slice(pastedStart, pastedEnd) === clipboardText
-      ) {
-        pastedRange = { start: pastedStart, end: pastedEnd };
-      }
-      fetchQuery<NoteComposerPostByUrlQuery>(
-        environment(),
-        NoteComposerPostByUrlQuery,
-        { url: text },
-      ).subscribe({
-        next(data) {
-          const post = data.postByUrl;
-          if (!post) {
-            return;
-          }
-          if (
-            post.__typename !== "Note" && post.__typename !== "Article" &&
-            post.__typename !== "Question"
-          ) {
-            return;
-          }
-          if (!post.viewerCanQuote) {
-            return;
-          }
-          if (!confirm(t`Do you want to quote this link?`)) {
-            return;
-          }
-          removePastedUrl();
-          setPastedQuoteId(post.id);
-        },
-        error() {},
-      });
+    fetchQuery<NoteComposerPostByUrlQuery>(
+      environment(),
+      NoteComposerPostByUrlQuery,
+      { url: text },
+    ).subscribe({
+      next(data) {
+        const post = data.postByUrl;
+        if (!post) {
+          return;
+        }
+        if (
+          post.__typename !== "Note" && post.__typename !== "Article" &&
+          post.__typename !== "Question"
+        ) {
+          return;
+        }
+        if (!post.viewerCanQuote) {
+          return;
+        }
+        if (!confirm(t`Do you want to quote this link?`)) {
+          return;
+        }
+        removePastedUrl();
+        setPastedQuoteId(post.id);
+      },
+      error() {},
     });
   };
 
