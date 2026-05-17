@@ -265,6 +265,10 @@ export async function getNote(
       `${contentHtml}<p class="quote-inline"><span class="quote-inline"><br><br>` +
       `RE: <a href="${escape(quoteUrl)}">${escape(quoteUrl)}</a></span></p>`;
   }
+  const normalizedQuotePolicy = normalizeQuotePolicyForVisibility(
+    note.visibility,
+    note.quotePolicy,
+  );
   return new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
     attribution: ctx.getActorUri(note.accountId),
@@ -275,11 +279,10 @@ export async function getNote(
       note.visibility,
     ),
     replyTarget: relations.replyTargetId,
-    interactionPolicy: getQuoteInteractionPolicy(
-      ctx,
-      note.accountId,
-      normalizeQuotePolicyForVisibility(note.visibility, note.quotePolicy),
-    ),
+    interactionPolicy: note.visibility === "direct" ||
+        note.visibility === "none"
+      ? undefined
+      : getQuoteInteractionPolicy(ctx, note.accountId, normalizedQuotePolicy),
     quote: relations.quotedPost == null
       ? null
       : new URL(relations.quotedPost.iri),

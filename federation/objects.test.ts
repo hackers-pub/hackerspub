@@ -38,3 +38,31 @@ test("getNote() normalizes quote policy for non-public notes", async () => {
     );
   });
 });
+
+test("getNote() omits quote policy for direct notes", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "directquotenote",
+      name: "Direct Quote Note",
+      email: "directquotenote@example.com",
+    });
+    const { noteSourceId } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "direct",
+      quotePolicy: "self",
+      content: "Direct note",
+    });
+    const noteSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: true,
+        media: { with: { medium: true }, orderBy: { index: "asc" } },
+      },
+    });
+    assert.ok(noteSource != null);
+
+    const note = await getNote(createFedCtx(tx), noteSource);
+
+    assert.equal(note.interactionPolicy == null, true);
+  });
+});

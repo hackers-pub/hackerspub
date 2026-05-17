@@ -321,6 +321,44 @@ test("persistPost() drops quote authorizations without a quote target", async ()
   });
 });
 
+test("persistPost() rejects remote self-quotes of direct posts", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "directselfquote",
+      name: "Direct Self Quote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Direct remote quote target</p>",
+      visibility: "direct",
+      quotePolicy: "self",
+    });
+    const quote = new Note({
+      id: new URL("https://remote.example/objects/direct-self-quote"),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Remote self quote of direct post",
+      quote: new URL(quotedPost.iri),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), quote);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost, null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: persisted.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, null);
+    const storedTarget = await tx.query.postTable.findFirst({
+      where: { id: quotedPost.id },
+    });
+    assert.ok(storedTarget != null);
+    assert.equal(storedTarget.quotesCount, 0);
+  });
+});
+
 test("persistPost() rejects forged quote authorizations for local targets", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {

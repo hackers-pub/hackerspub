@@ -180,6 +180,71 @@ test("onQuoteRequestAccepted federates updated quote authorization", async () =>
   });
 });
 
+test("onQuoteRequestAccepted ignores mismatched quote authorization IDs", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quotemismatchremote",
+      name: "Quote Mismatch Remote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Mismatched authorization target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quotemismatchlocal",
+      name: "Quote Mismatch Local",
+      email: "quotemismatchlocal@example.com",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Quoting with mismatched authorization",
+      quotedPostId: quotedPost.id,
+    });
+    const authorizationIri =
+      "https://remote.example/quote-authorization/mismatch";
+    const authorization = new QuoteAuthorization({
+      id: new URL("https://remote.example/quote-authorization/other"),
+      attribution: new URL(remoteActor.iri),
+      interactingObject: new URL(quote.iri),
+      interactionTarget: new URL(quotedPost.iri),
+    });
+    const request = new QuoteRequest({
+      id: new URL("https://localhost/quote-requests/mismatch"),
+      actor: new URL(quoter.actor.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new URL(quote.iri),
+    });
+    const accept = new Accept({
+      id: new URL("https://remote.example/quote-requests/mismatch#accept"),
+      actor: new URL(remoteActor.iri),
+      object: request,
+      result: new URL(authorizationIri),
+    });
+    (accept as unknown as {
+      getResult: () => Promise<QuoteAuthorization>;
+    }).getResult = () => Promise.resolve(authorization);
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteRequestAccepted(fedCtx, accept), true);
+
+    const updatedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(updatedQuote?.quoteAuthorizationIri, null);
+    assert.equal(sent.some((args) => args[2] instanceof Update), false);
+  });
+});
+
 test("onQuoteRequestAccepted resolves referenced quote request IDs", async () => {
   await withRollback(async (tx) => {
     const remoteActor = await insertRemoteActor(tx, {
@@ -323,6 +388,57 @@ test("onQuoteRequestRejected federates quote removal", async () => {
     assert.equal(updatedObject.quoteUrl, null);
     assert.equal(updatedObject.quoteAuthorizationId, null);
     assert.ok(updatedObject.updated != null);
+  });
+});
+
+test("onQuoteRequestRejected does not fan out none visibility quotes", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoterejectnoneremote",
+      name: "Quote Reject None Remote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Rejected none visibility target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoterejectnone",
+      name: "Quote Reject None",
+      email: "quoterejectnone@example.com",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Private quote before rejection",
+      quotedPostId: quotedPost.id,
+      visibility: "none",
+    });
+    const requestIri = new URL("#quote-request", quote.iri).href;
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: requestIri,
+      quotePostId: quote.id,
+      quotedPostId: quotedPost.id,
+    });
+    const reject = new Reject({
+      id: new URL("https://remote.example/quote-requests/none#reject"),
+      actor: new URL(remoteActor.iri),
+      object: new URL(requestIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteRequestRejected(fedCtx, reject), true);
+
+    assert.equal(sent.some((args) => args[1] === "followers"), false);
   });
 });
 

@@ -66,7 +66,6 @@ import {
   articleSourceTable,
   type Blocking,
   type Following,
-  followingTable,
   type Instance,
   type Medium,
   type Mention,
@@ -464,7 +463,7 @@ export async function syncPostFromNoteSource(
   const url =
     `${fedCtx.canonicalOrigin}/@${noteSource.account.username}/${noteSource.id}`;
   const existingPost = await db.query.postTable.findFirst({
-    columns: { id: true },
+    columns: { id: true, quotedPostId: true },
     where: { noteSourceId: noteSource.id },
   });
   const id = existingPost?.id ?? generateUuidV7();
@@ -538,8 +537,18 @@ export async function syncPostFromNoteSource(
   await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
   const mentionList = globalThis.Object.values(rendered.mentions);
 
-  // Update quotes count if this is a quote post
-  if (quotedPost != null) {
+  if (
+    existingPost?.quotedPostId != null &&
+    existingPost.quotedPostId !== quotedPost?.id
+  ) {
+    const previousQuotedPost = await db.query.postTable.findFirst({
+      where: { id: existingPost.quotedPostId },
+    });
+    if (previousQuotedPost != null) {
+      await updateQuotesCount(db, previousQuotedPost, -1);
+    }
+  }
+  if (quotedPost != null && existingPost?.quotedPostId !== quotedPost.id) {
     await updateQuotesCount(db, quotedPost, 1);
   }
   const mentions = mentionList.length > 0
@@ -825,23 +834,21 @@ export async function persistPost(
     }
   }
   if (
-    quotedPost != null &&
-    quotedPost.actorId !== actor.id &&
-    quoteAuthorizationIri == null &&
-    quotedPost.quotePolicy !== "everyone"
+    quotedPost?.visibility === "direct" || quotedPost?.visibility === "none"
   ) {
-    const approved = quotedPost.quotePolicy === "followers" &&
-      (await db.select({ followerId: followingTable.followerId })
-          .from(followingTable)
-          .where(
-            and(
-              eq(followingTable.followerId, actor.id),
-              eq(followingTable.followeeId, quotedPost.actorId),
-              isNotNull(followingTable.accepted),
-            ),
-          )
-          .limit(1)).length > 0;
-    if (!approved) quotedPost = undefined;
+    logger.debug("Ignoring quoted post with private visibility: {iri}", {
+      iri: quotedPost.iri,
+    });
+    quotedPost = undefined;
+  } else if (
+    quotedPost != null &&
+    quoteAuthorizationIri == null &&
+    !(await canPersistIncomingQuote(db, quotedPost.id, actor))
+  ) {
+    logger.debug("Ignoring quoted post denied by quote policy: {iri}", {
+      iri: quotedPost.iri,
+    });
+    quotedPost = undefined;
   }
   if (quotedPost == null && quoteAuthorizationIri != null) {
     logger.debug("Ignoring quote authorization without quote target: {iri}", {
@@ -1235,6 +1242,27 @@ async function getOriginalSharedPost(
   }
 
   return post;
+}
+
+async function canPersistIncomingQuote(
+  db: Database,
+  quotedPostId: Uuid,
+  actor: Actor,
+): Promise<boolean> {
+  const quotedPost = await db.query.postTable.findFirst({
+    with: {
+      actor: {
+        with: {
+          followers: { where: { followerId: actor.id } },
+          blockees: { where: { blockeeId: actor.id } },
+          blockers: { where: { blockerId: actor.id } },
+        },
+      },
+      mentions: { where: { actorId: actor.id } },
+    },
+    where: { id: quotedPostId },
+  });
+  return quotedPost != null && canActorQuotePost(quotedPost, actor);
 }
 
 async function getOriginalQuoteTarget(

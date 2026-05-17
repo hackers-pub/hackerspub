@@ -178,6 +178,7 @@ export async function onQuoteRequestAccepted(
     suppressError: true,
   });
   const validAuthorization = authorization instanceof QuoteAuthorization &&
+    authorization.id?.href === accept.resultId.href &&
     authorization.interactingObjectId?.href === quote.iri &&
     authorization.interactionTargetId?.href === quote.quotedPost.iri &&
     authorization.attributionId?.href === quote.quotedPost.actor.iri;
@@ -327,7 +328,11 @@ async function sendQuoteUpdate(
       },
     );
   }
-  if (quote.visibility !== "direct") {
+  if (
+    quote.visibility === "public" ||
+    quote.visibility === "unlisted" ||
+    quote.visibility === "followers"
+  ) {
     await fedCtx.sendActivity(
       { identifier: quote.actor.accountId },
       "followers",
