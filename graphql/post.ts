@@ -49,7 +49,7 @@ import {
 } from "@hackerspub/models/pin";
 import {
   arePostsSharedBy,
-  canActorQuotePost,
+  canActorRequestQuotePost,
   deletePost,
   getPostInteractionPolicies,
   getPostVisibilityFilter,
@@ -1144,7 +1144,7 @@ builder.relayMutationField(
         if (!isPostVisibleTo(effectivePost, ctx.account.actor)) {
           throw new InvalidInputError("quotedPostId");
         }
-        if (!canActorQuotePost(effectivePost, ctx.account.actor)) {
+        if (!canActorRequestQuotePost(effectivePost, ctx.account.actor)) {
           throw new InvalidInputError("quotedPostId");
         }
         quotedPost = effectivePost;

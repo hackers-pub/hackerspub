@@ -1,13 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import {
+  InteractionPolicy,
+  InteractionRule,
+  Note,
+  PUBLIC_COLLECTION,
+} from "@fedify/vocab";
 import { eq } from "drizzle-orm";
 import {
   deletePersistedPost,
   deleteSharedPost,
   getPostByUsernameAndId,
+  persistPost,
 } from "./post.ts";
 import { postTable } from "./schema.ts";
 import {
+  createFedCtx,
   insertAccountWithActor,
   insertNotePost,
   insertRemoteActor,
@@ -138,5 +146,32 @@ test("deleteSharedPost() removes a remote share and decrements the target share 
     });
     assert.ok(updatedOriginal != null);
     assert.equal(updatedOriginal.sharesCount, 0);
+  });
+});
+
+test("persistPost() stores manual quote request policies separately", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "manualquotepersist",
+      name: "Manual Quote Persist",
+      host: "remote.example",
+    });
+    const post = new Note({
+      id: new URL("https://remote.example/objects/manual-quote-policy"),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Manual quote policy",
+      interactionPolicy: new InteractionPolicy({
+        canQuote: new InteractionRule({
+          manualApproval: PUBLIC_COLLECTION,
+        }),
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), post);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotePolicy, "self");
+    assert.equal(persisted.quoteRequestPolicy, "everyone");
   });
 });

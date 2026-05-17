@@ -11,6 +11,8 @@ import {
   insertAccountWithActor,
   insertMention,
   insertNotePost,
+  insertRemoteActor,
+  insertRemotePost,
   makeGuestContext,
   makeUserContext,
   withRollback,
@@ -1120,6 +1122,84 @@ Deno.test({
       );
       assertEquals(
         await readPolicy(id, makeUserContext(tx, stranger.account)),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: false,
+          viewerCanShare: true,
+        },
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "viewerCanQuote allows remote manual quote request policies",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const remoteActor = await insertRemoteActor(tx, {
+        username: "manualquoteauthor",
+        name: "Manual Quote Author",
+        host: "remote.example",
+      });
+      const follower = await insertAccountWithActor(tx, {
+        username: "manualquotefollower",
+        name: "Manual Quote Follower",
+        email: "manualquotefollower@example.com",
+      });
+      const stranger = await insertAccountWithActor(tx, {
+        username: "manualquotestranger",
+        name: "Manual Quote Stranger",
+        email: "manualquotestranger@example.com",
+      });
+      await tx.insert(followingTable).values({
+        iri:
+          `https://example.com/following/${follower.actor.id}/${remoteActor.id}`,
+        followerId: follower.actor.id,
+        followeeId: remoteActor.id,
+        accepted: new Date(),
+      });
+      const anyoneCanRequest = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Manual approval for anyone</p>",
+        quotePolicy: "self",
+        quoteRequestPolicy: "everyone",
+      });
+      const followersCanRequest = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Manual approval for followers</p>",
+        quotePolicy: "self",
+        quoteRequestPolicy: "followers",
+      });
+
+      assertEquals(
+        await readPolicy(
+          encodeGlobalID("Note", anyoneCanRequest.id),
+          makeUserContext(tx, stranger.account),
+        ),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: true,
+          viewerCanShare: true,
+        },
+      );
+      assertEquals(
+        await readPolicy(
+          encodeGlobalID("Note", followersCanRequest.id),
+          makeUserContext(tx, follower.account),
+        ),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: true,
+          viewerCanShare: true,
+        },
+      );
+      assertEquals(
+        await readPolicy(
+          encodeGlobalID("Note", followersCanRequest.id),
+          makeUserContext(tx, stranger.account),
+        ),
         {
           viewerCanReply: true,
           viewerCanQuote: false,

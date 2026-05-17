@@ -180,6 +180,7 @@ export async function insertNotePost(
     language?: string;
     visibility?: "public" | "unlisted" | "followers" | "direct" | "none";
     quotePolicy?: "everyone" | "followers" | "self";
+    quoteRequestPolicy?: "everyone" | "followers" | "self";
     reactionsCounts?: Record<string, number>;
     replyTargetId?: Uuid;
     quotedPostId?: Uuid;
@@ -218,6 +219,7 @@ export async function insertNotePost(
           (values.visibility ?? "public") === "unlisted"
         ? "everyone"
         : "self"),
+    quoteRequestPolicy: values.quoteRequestPolicy,
     actorId: (values.actorId ?? values.account.actor.id) as Uuid,
     noteSourceId,
     sharedPostId: values.sharedPostId,
@@ -250,6 +252,7 @@ export async function insertRemotePost(
     language?: string;
     visibility?: "public" | "unlisted" | "followers" | "direct" | "none";
     quotePolicy?: "everyone" | "followers" | "self";
+    quoteRequestPolicy?: "everyone" | "followers" | "self";
     published?: Date;
     updated?: Date;
     replyTargetId?: Uuid;
@@ -271,6 +274,7 @@ export async function insertRemotePost(
           (values.visibility ?? "public") === "unlisted"
         ? "everyone"
         : "self"),
+    quoteRequestPolicy: values.quoteRequestPolicy,
     actorId: values.actorId,
     sharedPostId: values.sharedPostId,
     replyTargetId: values.replyTargetId,

@@ -123,39 +123,63 @@ export function normalizeQuotePolicyForVisibility(
   return quotePolicy ?? "everyone";
 }
 
-function quotePolicyFromInteractionPolicy(
+function quotePolicyFromApprovalUrls(
   post: PostObject,
-  visibility: PostVisibility,
-): QuotePolicy {
-  const policy = post.interactionPolicy?.canQuote;
-  if (policy == null) {
-    return normalizeQuotePolicyForVisibility(visibility, undefined);
-  }
-  const automaticApprovals = policy.automaticApprovals.map((url) => url.href);
-  if (automaticApprovals.includes(PUBLIC_COLLECTION.href)) return "everyone";
+  approvalUrls: string[],
+): QuotePolicy | undefined {
+  if (approvalUrls.includes(PUBLIC_COLLECTION.href)) return "everyone";
   if (
-    post.attributionId != null &&
-    automaticApprovals.includes(post.attributionId.href)
-  ) {
-    return "self";
-  }
-  if (
-    automaticApprovals.some((href) =>
+    approvalUrls.some((href) =>
       href.endsWith("/followers") || href.endsWith("/followers/")
     )
   ) {
     return "followers";
   }
-  return "self";
+  if (
+    post.attributionId != null &&
+    approvalUrls.includes(post.attributionId.href)
+  ) {
+    return "self";
+  }
+  return undefined;
+}
+
+function quotePoliciesFromInteractionPolicy(
+  post: PostObject,
+  visibility: PostVisibility,
+): {
+  quotePolicy: QuotePolicy;
+  quoteRequestPolicy: QuotePolicy | null;
+} {
+  if (visibility !== "public" && visibility !== "unlisted") {
+    return { quotePolicy: "self", quoteRequestPolicy: null };
+  }
+  const policy = post.interactionPolicy?.canQuote;
+  if (policy == null) {
+    return {
+      quotePolicy: normalizeQuotePolicyForVisibility(visibility, undefined),
+      quoteRequestPolicy: null,
+    };
+  }
+  const quotePolicy = quotePolicyFromApprovalUrls(
+    post,
+    policy.automaticApprovals.map((url) => url.href),
+  ) ?? "self";
+  const quoteRequestPolicy = quotePolicyFromApprovalUrls(
+    post,
+    policy.manualApprovals.map((url) => url.href),
+  ) ?? null;
+  return { quotePolicy, quoteRequestPolicy };
 }
 
 function canActorQuoteByPolicy(
   post: Post & { actor: Actor & { followers: Following[] } },
   actor: Actor,
+  policy: QuotePolicy,
 ): boolean {
   if (post.actorId === actor.id) return true;
-  if (post.quotePolicy === "everyone") return true;
-  if (post.quotePolicy === "followers") {
+  if (policy === "everyone") return true;
+  if (policy === "followers") {
     return post.actor.followers.some((follower) =>
       follower.followerId === actor.id && follower.accepted != null
     );
@@ -177,7 +201,26 @@ export function canActorQuotePost(
   if (post.sharedPostId != null) return false;
   if (post.visibility === "none") return false;
   if (!isPostVisibleTo(post, actor)) return false;
-  return canActorQuoteByPolicy(post, actor);
+  return canActorQuoteByPolicy(post, actor, post.quotePolicy);
+}
+
+export function canActorRequestQuotePost(
+  post: Post & {
+    actor: Actor & {
+      followers: Following[];
+      blockees: Blocking[];
+      blockers: Blocking[];
+    };
+    mentions: Mention[];
+  },
+  actor: Actor,
+): boolean {
+  if (canActorQuotePost(post, actor)) return true;
+  if (post.sharedPostId != null) return false;
+  if (post.visibility === "none") return false;
+  if (!isPostVisibleTo(post, actor)) return false;
+  if (post.quoteRequestPolicy == null) return false;
+  return canActorQuoteByPolicy(post, actor, post.quoteRequestPolicy);
 }
 
 async function readResponseBytesAtMost(
@@ -666,7 +709,11 @@ export async function persistPost(
       "mentions {mentions}).",
     { visibility, recipients, to, cc, mentions },
   );
-  const quotePolicy = quotePolicyFromInteractionPolicy(post, visibility);
+  const { quotePolicy, quoteRequestPolicy } =
+    quotePoliciesFromInteractionPolicy(
+      post,
+      visibility,
+    );
   let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
   if (quoteAuthorizationIri != null && quotedPost != null) {
     const authorization = await post.getQuoteAuthorization(opts);
@@ -724,6 +771,7 @@ export async function persistPost(
       : assertNever(post, `Unexpected type of post: ${post}`),
     visibility,
     quotePolicy,
+    quoteRequestPolicy,
     actorId: actor.id,
     sensitive: post.sensitive ?? false,
     name: post.name?.toString(),
@@ -1676,7 +1724,7 @@ export async function getPostInteractionPolicies(
       );
     const canQuote = effective.sharedPostId == null &&
       isPostVisibleTo(effective, viewer) &&
-      canActorQuoteByPolicy(effective, viewer);
+      canActorRequestQuotePost(effective, viewer);
     result.set(post.id, {
       canReply: true,
       canQuote,

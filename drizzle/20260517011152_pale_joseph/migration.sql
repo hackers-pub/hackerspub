@@ -1,0 +1,1 @@
+ALTER TABLE "post" ADD COLUMN "quote_request_policy" "quote_policy";

@@ -669,6 +669,7 @@ export const postTable = pgTable(
     quotePolicy: quotePolicyEnum("quote_policy").notNull().default(
       "everyone",
     ),
+    quoteRequestPolicy: quotePolicyEnum("quote_request_policy"),
     actorId: uuid("actor_id")
       .$type<Uuid>()
       .notNull()
