@@ -102,6 +102,14 @@ const SCRAPE_IMAGE_METADATA_BYTES_LIMIT = 128 * 1024;
 export type PostObject = vocab.Article | vocab.Note | vocab.Question;
 
 type NoteSourceMediumWithMedium = NoteSourceMedium & { medium: Medium };
+type QuotePolicyPost = Post & {
+  actor: Actor & {
+    followers: Following[];
+    blockees: Blocking[];
+    blockers: Blocking[];
+  };
+  mentions: Mention[];
+};
 
 export function isPostObject(object: unknown): object is PostObject {
   return object instanceof vocab.Article || object instanceof vocab.Note ||
@@ -365,7 +373,7 @@ export async function syncPostFromNoteSource(
     quotedPost?: Post & { actor: Actor };
   } = {},
 ): Promise<
-  Post & {
+  | Post & {
     actor: Actor & {
       account: Account & {
         avatarMedium: Medium | null;
@@ -387,9 +395,41 @@ export async function syncPostFromNoteSource(
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
   }
+  | undefined
 > {
   const { db, kv, disk } = fedCtx.data;
   const actor = await syncActorFromAccount(fedCtx, noteSource.account);
+  let quotedPost: QuotePolicyPost | undefined;
+  if (relations.quotedPost != null) {
+    const requestedQuotedPostId = relations.quotedPost.sharedPostId ??
+      relations.quotedPost.id;
+    quotedPost = await db.query.postTable.findFirst({
+      with: {
+        actor: {
+          with: {
+            followers: { where: { followerId: actor.id } },
+            blockees: { where: { blockeeId: actor.id } },
+            blockers: { where: { blockerId: actor.id } },
+          },
+        },
+        mentions: { where: { actorId: actor.id } },
+      },
+      where: { id: requestedQuotedPostId },
+    });
+    const allowed = quotedPost == null
+      ? false
+      : quotedPost.actor.accountId == null
+      ? canActorRequestQuotePost(quotedPost, actor)
+      : canActorQuotePost(quotedPost, actor);
+    if (!allowed) {
+      logger.warn("Rejecting local quote creation due to quote policy.", {
+        noteSourceId: noteSource.id,
+        actorId: actor.id,
+        quotedPostId: requestedQuotedPostId,
+      });
+      return undefined;
+    }
+  }
   // FIXME: Note should be rendered in a different way
   const rendered = await renderMarkup(fedCtx, noteSource.content, {
     docId: noteSource.id,
@@ -417,9 +457,8 @@ export async function syncPostFromNoteSource(
     actorId: actor.id,
     noteSourceId: noteSource.id,
     replyTargetId: relations.replyTarget?.id,
-    quotedPostId: relations.quotedPost?.sharedPostId ??
-      relations.quotedPost?.id,
-    quoteAuthorizationIri: relations.quotedPost?.actor.accountId == null
+    quotedPostId: quotedPost?.sharedPostId ?? quotedPost?.id,
+    quoteAuthorizationIri: quotedPost?.actor.accountId == null
       ? undefined
       : fedCtx.getObjectUri(vocab.QuoteAuthorization, { id }).href,
     contentHtml: rendered.html,
@@ -451,23 +490,21 @@ export async function syncPostFromNoteSource(
     })
     .returning();
   const post = rows[0];
-  if (post.quoteAuthorizationIri != null && relations.quotedPost != null) {
+  if (post.quoteAuthorizationIri != null && quotedPost != null) {
     await db.insert(quoteAuthorizationTable).values({
       id,
       iri: post.quoteAuthorizationIri,
       quotePostIri: post.iri,
       quotePostId: post.id,
-      quotedPostId: relations.quotedPost.sharedPostId ??
-        relations.quotedPost.id,
-      attributedActorId: relations.quotedPost.actorId,
+      quotedPostId: quotedPost.sharedPostId ?? quotedPost.id,
+      attributedActorId: quotedPost.actorId,
     }).onConflictDoUpdate({
       target: quoteAuthorizationTable.iri,
       set: {
         quotePostIri: post.iri,
         quotePostId: post.id,
-        quotedPostId: relations.quotedPost.sharedPostId ??
-          relations.quotedPost.id,
-        attributedActorId: relations.quotedPost.actorId,
+        quotedPostId: quotedPost.sharedPostId ?? quotedPost.id,
+        attributedActorId: quotedPost.actorId,
         revoked: false,
         updated: sql`CURRENT_TIMESTAMP`,
       },
@@ -477,8 +514,8 @@ export async function syncPostFromNoteSource(
   const mentionList = globalThis.Object.values(rendered.mentions);
 
   // Update quotes count if this is a quote post
-  if (relations.quotedPost) {
-    await updateQuotesCount(db, relations.quotedPost, 1);
+  if (quotedPost != null) {
+    await updateQuotesCount(db, quotedPost, 1);
   }
   const mentions = mentionList.length > 0
     ? (await db.insert(mentionTable).values(
@@ -512,7 +549,7 @@ export async function syncPostFromNoteSource(
     mentions,
     media,
     replyTarget: relations.replyTarget ?? null,
-    quotedPost: relations.quotedPost ?? null,
+    quotedPost: quotedPost ?? null,
   };
 }
 

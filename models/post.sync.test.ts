@@ -141,6 +141,7 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
       quotedPost: { ...quotedPost, actor: quotedAuthor.actor },
     });
 
+    assert.ok(created != null);
     assert.equal(created.noteSourceId, noteSourceId);
     assert.equal(created.quotedPost?.id, quotedPost.id);
     assert.equal(
@@ -172,6 +173,7 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
       quotedPost: { ...quotedPost, actor: quotedAuthor.actor },
     });
 
+    assert.ok(updated != null);
     assert.equal(updated.id, created.id);
     assert.match(updated.contentHtml, /Updated note body/);
 

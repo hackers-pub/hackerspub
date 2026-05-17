@@ -5,11 +5,12 @@ import type { Context } from "@fedify/fedify";
 import type { ContextData } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createNote, updateNote } from "./note.ts";
-import { mediumTable } from "./schema.ts";
+import { followingTable, mediumTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
+  insertNotePost,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -166,6 +167,56 @@ test("createNote() stores tags relayed to tags.pub only for public posts", async
       assert.ok(followersNote != null);
       assert.deepEqual(followersNote.relayedTags, []);
     });
+  });
+});
+
+test("createNote() enforces quote policy for legacy callers", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteprivatetarget",
+      name: "Quote Private Target",
+      email: "quoteprivatetarget@example.com",
+    });
+    const follower = await insertAccountWithActor(tx, {
+      username: "quoteprivatefollower",
+      name: "Quote Private Follower",
+      email: "quoteprivatefollower@example.com",
+    });
+    await tx.insert(followingTable).values({
+      iri: `http://localhost/follows/${follower.actor.id}`,
+      followerId: follower.actor.id,
+      followeeId: author.actor.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "followers",
+      quotePolicy: "self",
+      content: "Followers-only target",
+    });
+
+    const quote = await createNote(
+      fedCtx as unknown as Context<ContextData<Transaction>>,
+      {
+        accountId: follower.account.id,
+        visibility: "public",
+        content: "Trying to quote a followers-only post",
+        language: "en",
+        media: [],
+      },
+      { quotedPost: { ...quotedPost, actor: author.actor } },
+    );
+
+    assert.equal(quote, undefined);
+    const refreshedTarget = await tx.query.postTable.findFirst({
+      where: { id: quotedPost.id },
+    });
+    assert.equal(refreshedTarget?.quotesCount, 0);
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { quotedPostId: quotedPost.id },
+    });
+    assert.equal(authorization, undefined);
   });
 });
 

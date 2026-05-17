@@ -349,6 +349,7 @@ export async function createNote(
     media,
     account,
   }, relations);
+  if (post == null) return undefined;
   if (relations.replyTarget != null) {
     await updateRepliesCount(db, relations.replyTarget, 1);
   }
@@ -549,6 +550,7 @@ export async function updateNote(
     account,
     media,
   });
+  if (post == null) return undefined;
   const noteObject = await getNote(
     fedCtx,
     { ...noteSource, media, account },

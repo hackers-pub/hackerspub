@@ -22,7 +22,7 @@ import {
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
-import { eq, sql } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { getNote } from "../objects.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "quote"]);
@@ -235,7 +235,7 @@ async function getQuoteForQuoteRequestIri(
 async function sendQuoteUpdate(
   fedCtx: InboxContext<ContextData>,
   quote: QuoteWithRelations,
-  quoteAuthorizationIri: string,
+  quoteAuthorizationIri: string | null,
   updated: Date,
 ): Promise<void> {
   if (quote.actor.accountId == null || quote.noteSourceId == null) return;
@@ -342,6 +342,19 @@ export async function onQuoteRequestRejected(
       updated: rejectedAt,
     })
     .where(eq(postTable.id, quote.id));
+  const updatedQuote = {
+    ...quote,
+    quotedPost: null,
+    quotedPostId: null,
+    quoteAuthorizationIri: null,
+    updated: rejectedAt,
+  };
+  if (quote.noteSourceId != null) {
+    await fedCtx.data.db.update(noteSourceTable)
+      .set({ updated: rejectedAt })
+      .where(eq(noteSourceTable.id, quote.noteSourceId));
+  }
+  await sendQuoteUpdate(fedCtx, updatedQuote, null, rejectedAt);
   await updateQuotesCount(fedCtx.data.db, quote.quotedPost, -1);
   return true;
 }
@@ -364,8 +377,18 @@ export async function onQuoteAuthorizationDeleted(
     );
     return true;
   }
+  const quotes = await fedCtx.data.db.query.postTable.findMany({
+    with: {
+      actor: true,
+      quotedPost: { with: { actor: true } },
+      replyTarget: true,
+      mentions: { with: { actor: true } },
+    },
+    where: { quoteAuthorizationIri: del.objectId.href },
+  });
+  const revokedAt = new Date();
   const rows = await fedCtx.data.db.update(quoteAuthorizationTable)
-    .set({ revoked: true, updated: sql`CURRENT_TIMESTAMP` })
+    .set({ revoked: true, updated: revokedAt })
     .where(eq(quoteAuthorizationTable.iri, del.objectId.href))
     .returning();
   if (rows.length < 1) return false;
@@ -373,10 +396,38 @@ export async function onQuoteAuthorizationDeleted(
     .set({
       quotedPostId: null,
       quoteAuthorizationIri: null,
-      updated: sql`CURRENT_TIMESTAMP`,
+      updated: revokedAt,
     })
     .where(eq(postTable.quoteAuthorizationIri, del.objectId.href));
-  await updateQuotesCount(fedCtx.data.db, authorization.quotedPost, -1);
+  const noteSourceIds = quotes
+    .map((quote) => quote.noteSourceId)
+    .filter((id) => id != null);
+  if (noteSourceIds.length > 0) {
+    await fedCtx.data.db.update(noteSourceTable)
+      .set({ updated: revokedAt })
+      .where(inArray(noteSourceTable.id, noteSourceIds));
+  }
+  for (const quote of quotes) {
+    await sendQuoteUpdate(
+      fedCtx,
+      {
+        ...quote,
+        quotedPost: null,
+        quotedPostId: null,
+        quoteAuthorizationIri: null,
+        updated: revokedAt,
+      },
+      null,
+      revokedAt,
+    );
+  }
+  if (quotes.length > 0) {
+    await updateQuotesCount(
+      fedCtx.data.db,
+      authorization.quotedPost,
+      -quotes.length,
+    );
+  }
   logger.debug("Quote authorization deleted: {iri}", {
     iri: del.objectId.href,
   });
