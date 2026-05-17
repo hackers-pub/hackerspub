@@ -236,3 +236,54 @@ test("persistPost() accepts the author's followers quote approval", async () => 
     assert.equal(persisted.quoteRequestPolicy, null);
   });
 });
+
+test("persistPost() clears stale quote targets denied by policy", async () => {
+  await withRollback(async (tx) => {
+    const quoter = await insertRemoteActor(tx, {
+      username: "stalequotequoter",
+      name: "Stale Quote Quoter",
+      host: "remote.example",
+    });
+    const quotedAuthor = await insertRemoteActor(tx, {
+      username: "stalequoteauthor",
+      name: "Stale Quote Author",
+      host: "quoted.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: quotedAuthor.id,
+      contentHtml: "<p>Restricted quoted post</p>",
+      quotePolicy: "self",
+    });
+    const existingQuote = await insertRemotePost(tx, {
+      actorId: quoter.id,
+      contentHtml: "<p>Previously allowed quote</p>",
+      quotedPostId: quotedPost.id,
+    });
+    await tx.update(postTable)
+      .set({ quotesCount: 1 })
+      .where(eq(postTable.id, quotedPost.id));
+    const refetchedQuote = new Note({
+      id: new URL(existingQuote.iri),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Previously allowed quote",
+      quote: new URL(quotedPost.iri),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), refetchedQuote);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost, null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: existingQuote.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, null);
+    assert.equal(storedQuote.quoteAuthorizationIri, null);
+    const storedQuotedPost = await tx.query.postTable.findFirst({
+      where: { id: quotedPost.id },
+    });
+    assert.ok(storedQuotedPost != null);
+    assert.equal(storedQuotedPost.quotesCount, 0);
+  });
+});

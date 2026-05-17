@@ -12,6 +12,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { ContextData } from "@hackerspub/models/context";
 import {
+  followingTable,
   postTable,
   quoteAuthorizationTable,
   quoteRequestTable,
@@ -29,8 +30,73 @@ import {
 import {
   onQuoteAuthorizationDeleted,
   onQuoteRequestAccepted,
+  onQuoteRequested,
   onQuoteRequestRejected,
 } from "./quote.ts";
+
+test("onQuoteRequested rejects instruments not attributed to the requester", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteownerauthor",
+      name: "Quote Owner Author",
+      email: "quoteownerauthor@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "quoterequester",
+      name: "Quote Requester",
+      host: "remote.example",
+    });
+    const otherActor = await insertRemoteActor(tx, {
+      username: "quoteinstrumentowner",
+      name: "Quote Instrument Owner",
+      host: "elsewhere.example",
+    });
+    await tx.insert(followingTable).values({
+      iri: `https://remote.example/follows/${requester.id}`,
+      followerId: requester.id,
+      followeeId: author.actor.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only quote target",
+      quotePolicy: "followers",
+    });
+    const instrumentIri = "https://remote.example/objects/not-owned-quote";
+    const request = new QuoteRequest({
+      id: new URL("https://remote.example/quote-requests/not-owned"),
+      actor: new URL(requester.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new URL(instrumentIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      lookupObject(identifier: string | URL) {
+        assert.equal(new URL(identifier).href, instrumentIri);
+        return Promise.resolve(
+          new Note({
+            id: new URL(instrumentIri),
+            attribution: new URL(otherActor.iri),
+            content: "Not owned by requester",
+          }),
+        );
+      },
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    await onQuoteRequested(fedCtx, request);
+
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { quotePostIri: instrumentIri },
+    });
+    assert.equal(authorization, undefined);
+    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+  });
+});
 
 test("onQuoteRequestAccepted federates updated quote authorization", async () => {
   await withRollback(async (tx) => {

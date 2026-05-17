@@ -772,6 +772,10 @@ export async function persistPost(
       actor.followersUrl,
     );
   let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
+  const existingPost = await db.query.postTable.findFirst({
+    columns: { id: true, quotedPostId: true },
+    where: { iri: post.id.href },
+  });
   if (quoteAuthorizationIri != null && quotedPost != null) {
     const authorization = await post.getQuoteAuthorization(opts);
     const validAuthorization =
@@ -849,7 +853,7 @@ export async function persistPost(
       : new URL(externalLinks[0].hash, link.url).href,
     url: post.url instanceof vocab.Link ? post.url.href?.href : post.url?.href,
     replyTargetId: replyTarget?.id,
-    quotedPostId: quotedPost?.id,
+    quotedPostId: quotedPost?.id ?? null,
     quoteAuthorizationIri: quoteAuthorizationIri ?? null,
     repliesCount: replies?.totalItems ?? 0,
     sharesCount: shares?.totalItems ?? 0,
@@ -894,8 +898,18 @@ export async function persistPost(
     eq(mentionTable.postId, persistedPost.id),
   );
 
-  // Update quotes count if this is a quote post
-  if (quotedPost) {
+  if (
+    existingPost?.quotedPostId != null &&
+    existingPost.quotedPostId !== quotedPost?.id
+  ) {
+    const previousQuotedPost = await db.query.postTable.findFirst({
+      where: { id: existingPost.quotedPostId },
+    });
+    if (previousQuotedPost != null) {
+      await updateQuotesCount(db, previousQuotedPost, -1);
+    }
+  }
+  if (quotedPost != null && existingPost?.quotedPostId !== quotedPost.id) {
     await updateQuotesCount(db, quotedPost, 1);
   }
   let mentionList: (Mention & { actor: Actor })[] = [];

@@ -10,7 +10,11 @@ import {
 } from "@fedify/vocab";
 import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
-import { canActorQuotePost, updateQuotesCount } from "@hackerspub/models/post";
+import {
+  canActorQuotePost,
+  isPostObject,
+  updateQuotesCount,
+} from "@hackerspub/models/post";
 import {
   type Actor,
   type Mention,
@@ -68,7 +72,8 @@ export async function onQuoteRequested(
     where: { iri: request.objectId.href },
   });
   if (quotedPost?.actor.accountId == null) return;
-  const approved = canActorQuotePost(quotedPost, actor);
+  const approved = canActorQuotePost(quotedPost, actor) &&
+    await quoteRequestInstrumentBelongsToActor(fedCtx, request);
   const authId = generateUuidV7();
   const authorizationIri = fedCtx.getObjectUri(QuoteAuthorization, {
     id: authId,
@@ -103,6 +108,42 @@ export async function onQuoteRequested(
     response,
     { preferSharedInbox: false, orderingKey: request.objectId.href },
   );
+}
+
+async function quoteRequestInstrumentBelongsToActor(
+  fedCtx: InboxContext<ContextData>,
+  request: QuoteRequest,
+): Promise<boolean> {
+  if (request.actorId == null || request.instrumentId == null) return false;
+  let instrument: unknown;
+  try {
+    instrument = await fedCtx.lookupObject(request.instrumentId);
+  } catch (error) {
+    logger.warn("Failed to fetch quote request instrument: {instrument}", {
+      instrument: request.instrumentId.href,
+      error,
+    });
+    return false;
+  }
+  if (!isPostObject(instrument)) {
+    logger.warn("Rejecting quote request with invalid instrument: {iri}", {
+      iri: request.instrumentId.href,
+    });
+    return false;
+  }
+  const belongsToActor = instrument.attributionIds.some((id) =>
+    id.href === request.actorId?.href
+  );
+  if (!belongsToActor) {
+    logger.warn(
+      "Rejecting quote request whose instrument is not attributed to actor.",
+      {
+        instrument: request.instrumentId.href,
+        actor: request.actorId.href,
+      },
+    );
+  }
+  return belongsToActor;
 }
 
 export async function onQuoteRequestAccepted(
