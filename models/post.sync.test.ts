@@ -7,6 +7,7 @@ import {
   articleSourceTable,
   mediumTable,
   noteSourceTable,
+  postTable,
 } from "./schema.ts";
 import { syncPostFromArticleSource, syncPostFromNoteSource } from "./post.ts";
 import { generateUuidV7 } from "./uuid.ts";
@@ -14,6 +15,8 @@ import {
   createFedCtx,
   insertAccountWithActor,
   insertNotePost,
+  insertRemoteActor,
+  insertRemotePost,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -87,6 +90,204 @@ test("syncPostFromArticleSource() upserts the post when source content changes",
   });
 });
 
+test("syncPostFromNoteSource() preserves remote quote authorizations", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "syncquoteauthowner",
+      name: "Sync Quote Auth Owner",
+      email: "syncquoteauthowner@example.com",
+    });
+    const quotedActor = await insertRemoteActor(tx, {
+      username: "syncquoteauthremote",
+      name: "Sync Quote Auth Remote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: quotedActor.id,
+      contentHtml: "<p>Remote quote target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const noteSourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    await tx.insert(noteSourceTable).values({
+      id: noteSourceId,
+      accountId: author.account.id,
+      visibility: "public",
+      content: "Quote with accepted authorization",
+      language: "en",
+      published,
+      updated: published,
+    });
+    const noteSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: { with: { avatarMedium: true, emails: true, links: true } },
+        media: { with: { medium: true } },
+      },
+    });
+    assert.ok(noteSource != null);
+
+    const created = await syncPostFromNoteSource(fedCtx, noteSource, {
+      quotedPost: { ...quotedPost, actor: quotedActor },
+    });
+    assert.ok(created != null);
+    assert.equal(created.quoteAuthorizationIri, null);
+
+    const authorizationIri =
+      "https://remote.example/quote-authorizations/sync-preserve";
+    await tx.update(postTable)
+      .set({
+        quotedPostId: quotedPost.id,
+        quoteAuthorizationIri: authorizationIri,
+      })
+      .where(eq(postTable.id, created.id));
+    await tx.update(noteSourceTable)
+      .set({
+        content: "Edited quote with accepted authorization",
+        updated: new Date("2026-04-15T01:00:00.000Z"),
+      })
+      .where(eq(noteSourceTable.id, noteSourceId));
+    const updatedSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: { with: { avatarMedium: true, emails: true, links: true } },
+        media: { with: { medium: true } },
+      },
+    });
+    assert.ok(updatedSource != null);
+
+    const updated = await syncPostFromNoteSource(fedCtx, updatedSource, {
+      quotedPost: { ...quotedPost, actor: quotedActor },
+    });
+
+    assert.ok(updated != null);
+    assert.equal(updated.id, created.id);
+    assert.equal(updated.quotedPostId, quotedPost.id);
+    assert.equal(updated.quoteAuthorizationIri, authorizationIri);
+  });
+});
+
+test("syncPostFromNoteSource() preserves quotes when relations are omitted", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "syncquotepreserveowner",
+      name: "Sync Quote Preserve Owner",
+      email: "syncquotepreserveowner@example.com",
+    });
+    const quotedAuthor = await insertAccountWithActor(tx, {
+      username: "syncquotepreservetarget",
+      name: "Sync Quote Preserve Target",
+      email: "syncquotepreservetarget@example.com",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: quotedAuthor.account,
+      content: "Target that should remain quoted",
+    });
+    const noteSourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    await tx.insert(noteSourceTable).values({
+      id: noteSourceId,
+      accountId: author.account.id,
+      visibility: "public",
+      content: "Initial quote",
+      language: "en",
+      published,
+      updated: published,
+    });
+    const noteSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: { with: { avatarMedium: true, emails: true, links: true } },
+        media: { with: { medium: true } },
+      },
+    });
+    assert.ok(noteSource != null);
+
+    const created = await syncPostFromNoteSource(fedCtx, noteSource, {
+      quotedPost: { ...quotedPost, actor: quotedAuthor.actor },
+    });
+    assert.ok(created != null);
+    assert.equal(created.quotedPostId, quotedPost.id);
+    assert.ok(created.quoteAuthorizationIri != null);
+
+    await tx.update(noteSourceTable)
+      .set({
+        content: "Edited quote body",
+        updated: new Date("2026-04-15T01:00:00.000Z"),
+      })
+      .where(eq(noteSourceTable.id, noteSourceId));
+    const updatedSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: { with: { avatarMedium: true, emails: true, links: true } },
+        media: { with: { medium: true } },
+      },
+    });
+    assert.ok(updatedSource != null);
+
+    const updated = await syncPostFromNoteSource(fedCtx, updatedSource);
+
+    assert.ok(updated != null);
+    assert.equal(updated.id, created.id);
+    assert.equal(updated.quotedPostId, quotedPost.id);
+    assert.equal(updated.quoteAuthorizationIri, created.quoteAuthorizationIri);
+    assert.equal(updated.quotedPost?.id, quotedPost.id);
+    const quotedAfterUpdate = await tx.query.postTable.findFirst({
+      where: { id: quotedPost.id },
+    });
+    assert.equal(quotedAfterUpdate?.quotesCount, 1);
+  });
+});
+
+test("syncPostFromNoteSource() omits authorization for self-quotes", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "syncselfquoteowner",
+      name: "Sync Self Quote Owner",
+      email: "syncselfquoteowner@example.com",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Own quote target",
+    });
+    const noteSourceId = generateUuidV7();
+    const published = new Date("2026-04-15T00:00:00.000Z");
+    await tx.insert(noteSourceTable).values({
+      id: noteSourceId,
+      accountId: author.account.id,
+      visibility: "public",
+      content: "Self quote",
+      language: "en",
+      published,
+      updated: published,
+    });
+    const noteSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: noteSourceId },
+      with: {
+        account: { with: { avatarMedium: true, emails: true, links: true } },
+        media: { with: { medium: true } },
+      },
+    });
+    assert.ok(noteSource != null);
+
+    const created = await syncPostFromNoteSource(fedCtx, noteSource, {
+      quotedPost: { ...quotedPost, actor: author.actor },
+    });
+
+    assert.ok(created != null);
+    assert.equal(created.quotedPostId, quotedPost.id);
+    assert.equal(created.quoteAuthorizationIri, null);
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { quotePostId: created.id },
+    });
+    assert.equal(authorization, undefined);
+  });
+});
+
 test("syncPostFromNoteSource() upserts note posts and updates quote counts", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
@@ -141,6 +342,7 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
       quotedPost: { ...quotedPost, actor: quotedAuthor.actor },
     });
 
+    assert.ok(created != null);
     assert.equal(created.noteSourceId, noteSourceId);
     assert.equal(created.quotedPost?.id, quotedPost.id);
     assert.equal(
@@ -172,6 +374,7 @@ test("syncPostFromNoteSource() upserts note posts and updates quote counts", asy
       quotedPost: { ...quotedPost, actor: quotedAuthor.actor },
     });
 
+    assert.ok(updated != null);
     assert.equal(updated.id, created.id);
     assert.match(updated.contentHtml, /Updated note body/);
 

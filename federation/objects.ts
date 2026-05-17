@@ -12,7 +12,10 @@ import {
   renderMarkup,
   resolveMediumUrls,
 } from "@hackerspub/models/markup";
-import { isPostVisibleTo } from "@hackerspub/models/post";
+import {
+  isPostVisibleTo,
+  normalizeQuotePolicyForVisibility,
+} from "@hackerspub/models/post";
 import type {
   Account,
   Actor,
@@ -24,6 +27,7 @@ import type {
   NoteSourceMedium,
   Post,
   PostVisibility,
+  QuotePolicy,
   Reaction,
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
@@ -105,6 +109,11 @@ export async function getArticle(
     attribution: ctx.getActorUri(articleSource.accountId),
     to: PUBLIC_COLLECTION,
     cc: ctx.getFollowersUri(articleSource.accountId),
+    interactionPolicy: getQuoteInteractionPolicy(
+      ctx,
+      articleSource.accountId,
+      articleSource.quotePolicy,
+    ),
     names: [
       ...(contents.length > 0 ? [contents[0].title] : []),
       ...contents.map((c) => new LanguageString(c.title, c.language)),
@@ -133,6 +142,32 @@ export async function getArticle(
     updated: +articleSource.updated > +articleSource.published
       ? articleSource.updated.toTemporalInstant()
       : null,
+  });
+}
+
+function getQuoteInteractionPolicy(
+  ctx: Context<ContextData>,
+  accountId: Uuid,
+  quotePolicy: QuotePolicy,
+  quoteRequestPolicy: QuotePolicy | null = null,
+): vocab.InteractionPolicy {
+  const automaticApproval = quotePolicy === "everyone"
+    ? PUBLIC_COLLECTION
+    : quotePolicy === "followers"
+    ? ctx.getFollowersUri(accountId)
+    : ctx.getActorUri(accountId);
+  const manualApproval = quoteRequestPolicy == null
+    ? null
+    : quoteRequestPolicy === "everyone"
+    ? PUBLIC_COLLECTION
+    : quoteRequestPolicy === "followers"
+    ? ctx.getFollowersUri(accountId)
+    : ctx.getActorUri(accountId);
+  return new vocab.InteractionPolicy({
+    canQuote: new vocab.InteractionRule({
+      automaticApproval,
+      manualApproval: manualApproval ?? undefined,
+    }),
   });
 }
 
@@ -187,6 +222,8 @@ export async function getNote(
   relations: {
     replyTargetId?: URL;
     quotedPost?: Post;
+    quoteAuthorizationIri?: string | null;
+    quoteRequestPolicy?: QuotePolicy | null;
   } = {},
 ): Promise<vocab.Note> {
   const rendered = await renderMarkup(ctx, note.content, {
@@ -238,6 +275,10 @@ export async function getNote(
       `${contentHtml}<p class="quote-inline"><span class="quote-inline"><br><br>` +
       `RE: <a href="${escape(quoteUrl)}">${escape(quoteUrl)}</a></span></p>`;
   }
+  const normalizedQuotePolicy = normalizeQuotePolicyForVisibility(
+    note.visibility,
+    note.quotePolicy,
+  );
   return new vocab.Note({
     id: ctx.getObjectUri(vocab.Note, { id: note.id }),
     attribution: ctx.getActorUri(note.accountId),
@@ -248,9 +289,24 @@ export async function getNote(
       note.visibility,
     ),
     replyTarget: relations.replyTargetId,
+    interactionPolicy: note.visibility === "direct" ||
+        note.visibility === "none"
+      ? undefined
+      : getQuoteInteractionPolicy(
+        ctx,
+        note.accountId,
+        normalizedQuotePolicy,
+        relations.quoteRequestPolicy,
+      ),
+    quote: relations.quotedPost == null
+      ? null
+      : new URL(relations.quotedPost.iri),
     quoteUrl: relations.quotedPost == null
       ? null
       : new URL(relations.quotedPost.iri),
+    quoteAuthorization: relations.quoteAuthorizationIri == null
+      ? null
+      : new URL(relations.quoteAuthorizationIri),
     contents: [
       contentHtml,
       new LanguageString(contentHtml, note.language),
@@ -295,6 +351,8 @@ builder
             ? undefined
             : new URL(note.post.replyTarget.iri),
           quotedPost: note.post.quotedPost ?? undefined,
+          quoteAuthorizationIri: note.post.quoteAuthorizationIri,
+          quoteRequestPolicy: note.post.quoteRequestPolicy,
         },
       );
     },
@@ -329,6 +387,65 @@ builder
     const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
     return isPostVisibleTo(
       post,
+      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
+    );
+  });
+
+builder
+  .setObjectDispatcher(
+    vocab.QuoteAuthorization,
+    "/ap/quote-authorizations/{id}",
+    async (ctx, values) => {
+      if (!validateUuid(values.id)) return null;
+      const authorization = await ctx.data.db.query.quoteAuthorizationTable
+        .findFirst({
+          with: {
+            quotedPost: { with: { actor: true } },
+          },
+          where: {
+            id: values.id,
+            revoked: false,
+          },
+        });
+      if (authorization == null) return null;
+      return new vocab.QuoteAuthorization({
+        id: new URL(authorization.iri),
+        attribution: new URL(authorization.quotedPost.actor.iri),
+        interactingObject: new URL(authorization.quotePostIri),
+        interactionTarget: new URL(authorization.quotedPost.iri),
+      });
+    },
+  )
+  .authorize(async (ctx, values) => {
+    if (!validateUuid(values.id)) return false;
+    const authorization = await ctx.data.db.query.quoteAuthorizationTable
+      .findFirst({
+        with: {
+          quotedPost: {
+            with: {
+              actor: {
+                with: {
+                  followers: { with: { follower: true } },
+                  blockees: { with: { blockee: true } },
+                  blockers: { with: { blocker: true } },
+                },
+              },
+              mentions: { with: { actor: true } },
+            },
+          },
+        },
+        where: {
+          id: values.id,
+          revoked: false,
+        },
+      });
+    if (authorization == null) return false;
+    const documentLoader = await ctx.getDocumentLoader({
+      identifier: authorization.quotedPost.actor.accountId ?? values.id,
+    });
+    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
+    return isPostVisibleTo(
+      authorization.quotedPost,
       signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
     );
   });

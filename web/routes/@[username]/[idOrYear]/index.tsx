@@ -1,7 +1,12 @@
 import * as vocab from "@fedify/vocab";
 import { page } from "@fresh/core";
 import { renderMarkup } from "@hackerspub/models/markup";
-import { createNote, getNoteSource, updateNote } from "@hackerspub/models/note";
+import {
+  createNote,
+  getNoteSource,
+  QuotePolicyDeniedError,
+  updateNote,
+} from "@hackerspub/models/note";
 import {
   deletePost,
   getPostByUsernameAndId,
@@ -441,10 +446,18 @@ export const handler = define.handlers({
         with: { actor: true },
       });
     return await withTransaction(ctx.state.fedCtx, async (context) => {
-      const reply = await createNote(context, {
-        ...parsed.output,
-        accountId: account.id,
-      }, { replyTarget: post, quotedPost });
+      let reply;
+      try {
+        reply = await createNote(context, {
+          ...parsed.output,
+          accountId: account.id,
+        }, { replyTarget: post, quotedPost });
+      } catch (error) {
+        if (error instanceof QuotePolicyDeniedError) {
+          return new Response("Invalid quotedPostId", { status: 400 });
+        }
+        throw error;
+      }
       if (reply == null) {
         return new Response("Internal Server Error", { status: 500 });
       }

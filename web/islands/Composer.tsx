@@ -83,6 +83,8 @@ export function Composer(props: ComposerProps) {
   );
   const [quoteLoading, setQuoteLoading] = useState(false);
 
+  type QuoteLookupPost = Post & { viewerCanQuote?: boolean };
+
   // Draft auto-save states
   const [savedDraft, setSavedDraft] = useState<NoteDraft | null>(null);
   const [showDraftSaved, setShowDraftSaved] = useState(false);
@@ -178,6 +180,36 @@ export function Composer(props: ComposerProps) {
   }
 
   function onPaste(event: JSX.TargetedClipboardEvent<HTMLTextAreaElement>) {
+    const clipboardText = event.clipboardData?.getData("text/plain");
+    const insertTextAtSelection = (text: string) => {
+      const target = event.currentTarget;
+      const start = target.selectionStart;
+      const end = target.selectionEnd;
+      const insertedRange = { start, end: start + text.length };
+      setContent((prev) => prev.slice(0, start) + text + prev.slice(end));
+      queueMicrotask(() => {
+        target.setSelectionRange(insertedRange.end, insertedRange.end);
+      });
+      return insertedRange;
+    };
+    const removeInsertedText = (
+      text: string,
+      insertedRange: { start: number; end: number },
+    ) => {
+      setContent((prev) => {
+        if (prev.slice(insertedRange.start, insertedRange.end) === text) {
+          return prev.slice(0, insertedRange.start) +
+            prev.slice(insertedRange.end);
+        }
+        const firstMatch = prev.indexOf(text);
+        if (firstMatch >= 0 && firstMatch === prev.lastIndexOf(text)) {
+          return prev.slice(0, firstMatch) +
+            prev.slice(firstMatch + text.length);
+        }
+        return prev;
+      });
+    };
+
     for (const item of event.clipboardData?.items ?? []) {
       if (item.kind === "file" && SUPPORTED_MEDIA_TYPES.includes(item.type)) {
         event.preventDefault();
@@ -186,35 +218,37 @@ export function Composer(props: ComposerProps) {
         addMedium(file);
       } else if (item.kind === "string" && item.type === "text/plain") {
         if (props.noQuoteOnPaste) continue;
-        item.getAsString((text) => {
-          if (!URL.canParse(text)) return;
+        const text = clipboardText;
+        if (text == null || !URL.canParse(text)) continue;
+        event.preventDefault();
+        const insertedRange = insertTextAtSelection(text);
+        (async () => {
           setQuoteLoading(true);
-          fetch(`/api/posts?iri=${encodeURIComponent(text)}`).then(
-            async (r) => {
-              if (!r.ok) {
-                setQuoteLoading(false);
-                return;
-              }
-              const pastedPost: Post = await r.json();
-              const confirmMsg = t(
-                pastedPost.type === "Article"
-                  ? "composer.quoteArticleConfirm"
-                  : "composer.quoteNoteConfirm",
-              );
-              setQuoteLoading(false);
-              if (
-                pastedPost.visibility !== "public" &&
-                pastedPost.visibility !== "unlisted"
-              ) {
-                return;
-              }
-              if (confirm(confirmMsg)) {
-                setQuotedPostId(pastedPost.id);
-                setContent(content);
-              }
-            },
-          );
-        });
+          try {
+            const r = await fetch(`/api/posts?iri=${encodeURIComponent(text)}`);
+            if (!r.ok) return;
+            const pastedPost: QuoteLookupPost = await r.json();
+            if (
+              pastedPost.type !== "Note" && pastedPost.type !== "Article" &&
+              pastedPost.type !== "Question"
+            ) return;
+            if (!pastedPost.viewerCanQuote) return;
+            const confirmMsg = t(
+              pastedPost.type === "Article"
+                ? "composer.quoteArticleConfirm"
+                : "composer.quoteNoteConfirm",
+            );
+            if (confirm(confirmMsg)) {
+              setQuotedPostId(pastedPost.id);
+              removeInsertedText(text, insertedRange);
+            }
+          } catch {
+            // Ignore quote lookup failures; pasted text should remain unchanged.
+          } finally {
+            setQuoteLoading(false);
+          }
+        })();
+        return;
       }
     }
   }

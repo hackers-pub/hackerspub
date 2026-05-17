@@ -170,6 +170,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
             }
           }
         }
+        viewerCanRevokeQuote
         quotedPost {
           ...QuotedPostCard_post
         }
@@ -293,7 +294,13 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                Relay field flips to null inside a `batch()` update. */
             }
             <Show keyed when={q.quotedPost}>
-              {(quotedPost) => <QuotedPostCard $post={quotedPost} />}
+              {(quotedPost) => (
+                <QuotedPostCard
+                  $post={quotedPost}
+                  quotePostId={q.id}
+                  canRevokeQuote={q.viewerCanRevokeQuote}
+                />
+              )}
             </Show>
             {(() => {
               const base = `/${

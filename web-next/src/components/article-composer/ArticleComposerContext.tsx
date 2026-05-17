@@ -16,6 +16,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { showToast } from "~/components/ui/toast.tsx";
+import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { useNavigate } from "@solidjs/router";
 import { useAutoSave } from "./useAutoSave.ts";
@@ -142,6 +143,7 @@ export interface ArticleComposerContextValue {
   tags: Accessor<string[]>;
   slug: Accessor<string>;
   language: Accessor<Intl.Locale | undefined>;
+  quotePolicy: Accessor<QuotePolicy>;
   isDirty: Accessor<boolean>;
   isPublishing: Accessor<boolean>;
   showPreview: Accessor<boolean>;
@@ -153,6 +155,7 @@ export interface ArticleComposerContextValue {
   setTags: (v: string[]) => void;
   setSlug: (v: string) => void;
   setLanguage: (locale?: Intl.Locale) => void;
+  setQuotePolicy: (v: QuotePolicy) => void;
   setIsPublishing: (v: boolean) => void;
   setShowPreview: (v: boolean) => void;
 
@@ -214,6 +217,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   const [language, setLanguageSignal] = createSignal<Intl.Locale | undefined>(
     new Intl.Locale(i18n.locale),
   );
+  const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>("EVERYONE");
   const [manualLanguageChange, setManualLanguageChange] = createSignal(false);
   const [isPublishing, setIsPublishing] = createSignal(false);
 
@@ -354,6 +358,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           slug: slug().trim(),
           language: language()?.baseName ?? i18n.locale,
           allowLlmTranslation: true,
+          quotePolicy: quotePolicy(),
         },
       },
       onCompleted(response) {
@@ -536,6 +541,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     tags,
     slug,
     language,
+    quotePolicy,
     isDirty,
     isPublishing,
     showPreview,
@@ -546,6 +552,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     setTags,
     setSlug,
     setLanguage,
+    setQuotePolicy,
     setIsPublishing,
     setShowPreview,
 

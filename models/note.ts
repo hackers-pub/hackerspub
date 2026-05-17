@@ -5,6 +5,7 @@ import { getNote } from "@hackerspub/federation/objects";
 import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
+import { syncActorFromAccount } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import {
@@ -12,7 +13,11 @@ import {
   createQuoteNotification,
   createReplyNotification,
 } from "./notification.ts";
-import { syncPostFromNoteSource, updateRepliesCount } from "./post.ts";
+import {
+  getAllowedQuoteTargetForActor,
+  syncPostFromNoteSource,
+  updateRepliesCount,
+} from "./post.ts";
 import {
   type Account,
   type AccountEmail,
@@ -32,6 +37,7 @@ import {
   type PostLink,
   type PostMedium,
   postTable,
+  quoteRequestTable,
   type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline } from "./timeline.ts";
@@ -41,6 +47,13 @@ import { createMediumFromBlob } from "./medium.ts";
 export type NoteSourceMediumWithMedium = NoteSourceMedium & {
   medium: Medium;
 };
+
+export class QuotePolicyDeniedError extends Error {
+  constructor() {
+    super("Quote policy denied the quoted post.");
+    this.name = "QuotePolicyDeniedError";
+  }
+}
 
 export async function createNoteSource(
   db: Database,
@@ -322,6 +335,20 @@ export async function createNote(
   } | undefined
 > {
   const { db, disk } = fedCtx.data;
+  const account = await db.query.accountTable.findFirst({
+    where: { id: source.accountId },
+    with: { avatarMedium: true, emails: true, links: true },
+  });
+  if (account == undefined) return undefined;
+  if (relations.quotedPost != null) {
+    const actor = await syncActorFromAccount(fedCtx, account);
+    const allowedQuoteTarget = await getAllowedQuoteTargetForActor(
+      db,
+      actor,
+      relations.quotedPost,
+    );
+    if (allowedQuoteTarget == null) throw new QuotePolicyDeniedError();
+  }
   const noteSource = await createNoteSource(db, source);
   if (noteSource == null) return undefined;
   let index = 0;
@@ -334,20 +361,27 @@ export async function createNote(
       index,
       medium,
     );
-    if (m == null) return undefined;
+    if (m == null) {
+      await db.delete(noteSourceTable).where(
+        eq(noteSourceTable.id, noteSource.id),
+      );
+      return undefined;
+    }
     media.push(m);
     index++;
   }
-  const account = await db.query.accountTable.findFirst({
-    where: { id: source.accountId },
-    with: { avatarMedium: true, emails: true, links: true },
-  });
-  if (account == undefined) return undefined;
   const post = await syncPostFromNoteSource(fedCtx, {
     ...noteSource,
     media,
     account,
   }, relations);
+  if (post == null) {
+    await db.delete(noteSourceTable).where(
+      eq(noteSourceTable.id, noteSource.id),
+    );
+    if (relations.quotedPost != null) throw new QuotePolicyDeniedError();
+    throw new Error("Failed to persist note post.");
+  }
   if (relations.replyTarget != null) {
     await updateRepliesCount(db, relations.replyTarget, 1);
   }
@@ -359,7 +393,11 @@ export async function createNote(
       replyTargetId: relations.replyTarget == null
         ? undefined
         : new URL(relations.replyTarget.iri),
-      quotedPost: relations.quotedPost ?? undefined,
+      quotedPost: post.quoteRequestRequired
+        ? undefined
+        : post.quotedPost ?? undefined,
+      quoteAuthorizationIri: post.quoteAuthorizationIri,
+      quoteRequestPolicy: post.quoteRequestPolicy,
     },
   );
   const activity = new vocab.Create({
@@ -370,6 +408,57 @@ export async function createNote(
     object: noteObject,
   });
   const orderingKey = post.iri;
+  const quoteRequestTarget = post.quoteRequestTarget;
+  if (post.quoteRequestRequired && quoteRequestTarget != null) {
+    const requestId = new URL("#quote-request", noteObject.id ?? fedCtx.origin);
+    const instrument = await getNote(
+      fedCtx,
+      { ...noteSource, media, account },
+      {
+        replyTargetId: relations.replyTarget == null
+          ? undefined
+          : new URL(relations.replyTarget.iri),
+        quotedPost: quoteRequestTarget,
+        quoteRequestPolicy: post.quoteRequestPolicy,
+      },
+    );
+    const request = new vocab.QuoteRequest({
+      id: requestId,
+      actor: fedCtx.getActorUri(source.accountId),
+      object: new URL(quoteRequestTarget.iri),
+      instrument,
+    });
+    await db.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: requestId.href,
+      quotePostId: post.id,
+      quotedPostId: quoteRequestTarget.id,
+    }).onConflictDoUpdate({
+      target: quoteRequestTable.iri,
+      set: {
+        quotePostId: post.id,
+        quotedPostId: quoteRequestTarget.id,
+        accepted: null,
+        rejected: null,
+        updated: sql`CURRENT_TIMESTAMP`,
+      },
+    });
+    await fedCtx.sendActivity(
+      { identifier: source.accountId },
+      {
+        id: new URL(quoteRequestTarget.actor.iri),
+        inboxId: new URL(quoteRequestTarget.actor.inboxUrl),
+        endpoints: quoteRequestTarget.actor.sharedInboxUrl == null
+          ? null
+          : { sharedInbox: new URL(quoteRequestTarget.actor.sharedInboxUrl) },
+      },
+      request,
+      {
+        orderingKey,
+        preferSharedInbox: true,
+      },
+    );
+  }
   if (post.mentions.length > 0) {
     const directRecipients: Recipient[] = post.mentions.map((m) => ({
       id: new URL(m.actor.iri),
@@ -505,6 +594,7 @@ export async function updateNote(
     account,
     media,
   });
+  if (post == null) return undefined;
   const noteObject = await getNote(
     fedCtx,
     { ...noteSource, media, account },
@@ -519,6 +609,8 @@ export async function updateNote(
         : await db.query.postTable.findFirst({
           where: { id: post.quotedPostId },
         }),
+      quoteAuthorizationIri: post.quoteAuthorizationIri,
+      quoteRequestPolicy: post.quoteRequestPolicy,
     },
   );
   const activity = new vocab.Update({

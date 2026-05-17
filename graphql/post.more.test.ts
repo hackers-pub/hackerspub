@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { Create, Note as ActivityPubNote, QuoteRequest } from "@fedify/vocab";
 import { encodeGlobalID } from "@pothos/plugin-relay";
 import { eq } from "drizzle-orm";
 import { execute, parse } from "graphql";
@@ -27,6 +28,8 @@ import {
   createTestKv,
   insertAccountWithActor,
   insertNotePost,
+  insertRemoteActor,
+  insertRemotePost,
   makeGuestContext,
   makeUserContext,
   toPlainJson,
@@ -297,6 +300,32 @@ const createNoteWithErrorMutation = parse(`
   }
 `);
 
+const viewerCanRevokeQuoteQuery = parse(`
+  query ViewerCanRevokeQuote($id: ID!) {
+    node(id: $id) {
+      ... on Post {
+        viewerCanRevokeQuote
+      }
+    }
+  }
+`);
+
+const revokeQuoteMutation = parse(`
+  mutation RevokeQuote($input: RevokeQuoteInput!) {
+    revokeQuote(input: $input) {
+      __typename
+      ... on RevokeQuotePayload {
+        quote {
+          id
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
 const sharePostMutation = parse(`
   mutation SharePost($postId: ID!) {
     sharePost(input: { postId: $postId }) {
@@ -372,8 +401,9 @@ function makeTransactionalUserContext(
     ? T
     : never,
   account: Parameters<typeof makeUserContext>[1],
+  fedCtxOverrides: Partial<UserContext["fedCtx"]> = {},
 ): UserContext {
-  const baseFedCtx = createFedCtx(tx);
+  const baseFedCtx = { ...createFedCtx(tx), ...fedCtxOverrides };
   const fedCtx = {
     ...baseFedCtx,
     request: new Request("http://localhost/graphql"),
@@ -1395,7 +1425,7 @@ test("createNote rejects invisible reply and quote targets", async () => {
           quotedPostId: encodeGlobalID("Note", privateTarget.id),
         },
       },
-      contextValue: makeTransactionalUserContext(tx, author.account),
+      contextValue: makeTransactionalUserContext(tx, requester.account),
       onError: "NO_PROPAGATE",
     });
 
@@ -1660,6 +1690,326 @@ test("createNote allows quoting public and unlisted posts", async () => {
         .createNote.__typename,
       "CreateNotePayload",
     );
+  });
+});
+
+test("createNote sends QuoteRequest for remote manual-approval quotes", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quotemanualremote",
+      name: "Quote Manual Remote",
+      host: "remote.example",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quotemanualquoter",
+      name: "Quote Manual Quoter",
+      email: "quotemanualquoter@example.com",
+    });
+    const remotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Manual approval required</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const sent: unknown[][] = [];
+
+    const result = await execute({
+      schema,
+      document: createNoteMutation,
+      variableValues: {
+        input: {
+          content: "requesting quote approval",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", remotePost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account, {
+        sendActivity(...args: unknown[]) {
+          sent.push(args);
+          return Promise.resolve(undefined);
+        },
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.equal(
+      (toPlainJson(result.data) as { createNote: { __typename: string } })
+        .createNote.__typename,
+      "CreateNotePayload",
+    );
+    const request = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof QuoteRequest);
+    assert.ok(request instanceof QuoteRequest);
+    assert.ok(request.id != null);
+    const fedCtx = createFedCtx(tx);
+    const instrument = await request.getInstrument({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(instrument instanceof ActivityPubNote);
+    assert.equal(instrument.quoteId?.href, remotePost.iri);
+    assert.equal(instrument.quoteUrl?.href, remotePost.iri);
+    const create = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof Create);
+    assert.ok(create instanceof Create);
+    const createdObject = await create.getObject({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(createdObject instanceof ActivityPubNote);
+    assert.equal(createdObject.quoteId, null);
+    assert.equal(createdObject.quoteUrl, null);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: request.id.href },
+    });
+    assert.equal(storedRequest?.quotedPostId, remotePost.id);
+    const createdQuote = await tx.query.postTable.findFirst({
+      where: { actorId: quoter.actor.id },
+    });
+    assert.equal(createdQuote?.quotedPostId, null);
+    const storedRemotePost = await tx.query.postTable.findFirst({
+      where: { id: remotePost.id },
+    });
+    assert.equal(storedRemotePost?.quotesCount, 0);
+  });
+});
+
+test("createNote stores QuoteRequest for local manual-approval quotes", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "quotemanualowner",
+      name: "Quote Manual Owner",
+      email: "quotemanualowner@example.com",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quotemanualocal",
+      name: "Quote Manual Local",
+      email: "quotemanualocal@example.com",
+    });
+    const { post: localPost } = await insertNotePost(tx, {
+      account: owner.account,
+      content: "Manual approval required locally",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const sent: unknown[][] = [];
+
+    const result = await execute({
+      schema,
+      document: createNoteMutation,
+      variableValues: {
+        input: {
+          content: "requesting local quote approval",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", localPost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account, {
+        sendActivity(...args: unknown[]) {
+          sent.push(args);
+          return Promise.resolve(undefined);
+        },
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.equal(
+      (toPlainJson(result.data) as { createNote: { __typename: string } })
+        .createNote.__typename,
+      "CreateNotePayload",
+    );
+    const createdQuote = await tx.query.postTable.findFirst({
+      where: { actorId: quoter.actor.id },
+    });
+    assert.ok(createdQuote != null);
+    assert.equal(createdQuote.quotedPostId, null);
+    assert.equal(createdQuote.quoteAuthorizationIri, null);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: {
+        quotePostId: createdQuote.id,
+        quotedPostId: localPost.id,
+      },
+    });
+    assert.ok(storedRequest != null);
+    const sentRequest = sent.find((args) => args[2] instanceof QuoteRequest);
+    assert.ok(sentRequest != null);
+    assert.equal(
+      (sentRequest[3] as { excludeBaseUris?: unknown }).excludeBaseUris,
+      undefined,
+    );
+    const storedLocalPost = await tx.query.postTable.findFirst({
+      where: { id: localPost.id },
+    });
+    assert.equal(storedLocalPost?.quotesCount, 0);
+  });
+});
+
+test("createNote does not send QuoteRequest for automatic remote quotes", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoteautomaticremote",
+      name: "Quote Automatic Remote",
+      host: "remote.example",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoteautomaticquoter",
+      name: "Quote Automatic Quoter",
+      email: "quoteautomaticquoter@example.com",
+    });
+    const remotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Automatic quote allowed</p>",
+      quotePolicy: "everyone",
+      quoteRequestPolicy: "everyone",
+    });
+    const sent: unknown[][] = [];
+
+    const result = await execute({
+      schema,
+      document: createNoteMutation,
+      variableValues: {
+        input: {
+          content: "quoting automatically allowed remote post",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", remotePost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account, {
+        sendActivity(...args: unknown[]) {
+          sent.push(args);
+          return Promise.resolve(undefined);
+        },
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.equal(
+      (toPlainJson(result.data) as { createNote: { __typename: string } })
+        .createNote.__typename,
+      "CreateNotePayload",
+    );
+    const request = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof QuoteRequest);
+    assert.equal(request, undefined);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { quotedPostId: remotePost.id },
+    });
+    assert.equal(storedRequest, undefined);
+  });
+});
+
+test("createNote rejects remote quotes without automatic or manual permission", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quotedenyremote",
+      name: "Quote Deny Remote",
+      host: "remote.example",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quotedenyquoter",
+      name: "Quote Deny Quoter",
+      email: "quotedenyquoter@example.com",
+    });
+    const remotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Quote denied</p>",
+      quotePolicy: "self",
+    });
+
+    const result = await execute({
+      schema,
+      document: createNoteWithErrorMutation,
+      variableValues: {
+        input: {
+          content: "attempted denied remote quote",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", remotePost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      createNote: {
+        __typename: "InvalidInputError",
+        inputPath: "quotedPostId",
+      },
+    });
+  });
+});
+
+test("revokeQuote rejects remote quotes without an authorization", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "revokelegacyquoteauthor",
+      name: "Revoke Legacy Quote Author",
+      email: "revokelegacyquoteauthor@example.com",
+    });
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "revokelegacyquoter",
+      name: "Revoke Legacy Quoter",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Locally authored quote target",
+    });
+    const remoteQuote = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      quotedPostId: quotedPost.id,
+      contentHtml: "<p>Legacy remote quote without authorization</p>",
+    });
+    const quoteId = encodeGlobalID("Note", remoteQuote.id);
+    const contextValue = makeTransactionalUserContext(tx, author.account);
+
+    const viewerResult = await execute({
+      schema,
+      document: viewerCanRevokeQuoteQuery,
+      variableValues: { id: quoteId },
+      contextValue,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(viewerResult.errors, undefined);
+    assert.deepEqual(toPlainJson(viewerResult.data), {
+      node: {
+        viewerCanRevokeQuote: false,
+      },
+    });
+
+    const revokeResult = await execute({
+      schema,
+      document: revokeQuoteMutation,
+      variableValues: {
+        input: { quotePostId: quoteId },
+      },
+      contextValue,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(revokeResult.errors, undefined);
+    assert.deepEqual(toPlainJson(revokeResult.data), {
+      revokeQuote: {
+        __typename: "InvalidInputError",
+        inputPath: "quotePostId",
+      },
+    });
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: remoteQuote.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, quotedPost.id);
   });
 });
 

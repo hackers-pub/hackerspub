@@ -27,8 +27,10 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
     graphql`
       fragment NoteCardInternal_note on Note {
         __id
+        id
         uuid
         sourceId
+        viewerCanRevokeQuote
         content
         language
         actor {
@@ -97,7 +99,13 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
                Relay field flips to null inside a `batch()` update. */
             }
             <Show keyed when={n.quotedPost}>
-              {(quotedPost) => <QuotedPostCard $post={quotedPost} />}
+              {(quotedPost) => (
+                <QuotedPostCard
+                  $post={quotedPost}
+                  quotePostId={n.id}
+                  canRevokeQuote={n.viewerCanRevokeQuote}
+                />
+              )}
             </Show>
             <PostEngagementBar
               $post={n}

@@ -10,6 +10,7 @@ import {
   isActor,
   Like,
   Move,
+  QuoteRequest,
   Reject,
   Remove,
   Undo,
@@ -27,6 +28,12 @@ import {
   onUnblocked,
   onUnfollowed,
 } from "./following.ts";
+import {
+  onQuoteAuthorizationDeleted,
+  onQuoteRequestAccepted,
+  onQuoteRequested,
+  onQuoteRequestRejected,
+} from "./quote.ts";
 import {
   onPostCreated,
   onPostDeleted,
@@ -48,8 +55,15 @@ builder
     identifier: new URL(ctx.canonicalOrigin).hostname,
   }))
   .onUnverifiedActivity(onUnverifiedActivity)
-  .on(Accept, onFollowAccepted)
-  .on(Reject, onFollowRejected)
+  .on(Accept, async (fedCtx, accept) => {
+    if (await onQuoteRequestAccepted(fedCtx, accept)) return;
+    await onFollowAccepted(fedCtx, accept);
+  })
+  .on(Reject, async (fedCtx, reject) => {
+    if (await onQuoteRequestRejected(fedCtx, reject)) return;
+    await onFollowRejected(fedCtx, reject);
+  })
+  .on(QuoteRequest, onQuoteRequested)
   .on(Follow, onFollowed)
   .on(Undo, async (fedCtx, undo) => {
     const object = await undo.getObject({ ...fedCtx, suppressError: true });
@@ -70,7 +84,8 @@ builder
   .on(Like, onReactedOnPost)
   .on(EmojiReact, onReactedOnPost)
   .on(Delete, async (fedCtx, del) => {
-    await onPostDeleted(fedCtx, del) ||
+    await onQuoteAuthorizationDeleted(fedCtx, del) ||
+      await onPostDeleted(fedCtx, del) ||
       await onActorDeleted(fedCtx, del) ||
       logger.warn("Unhandled Delete object: {delete}", { delete: del });
   })

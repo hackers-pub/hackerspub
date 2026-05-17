@@ -179,6 +179,8 @@ export async function insertNotePost(
     contentHtml?: string;
     language?: string;
     visibility?: "public" | "unlisted" | "followers" | "direct" | "none";
+    quotePolicy?: "everyone" | "followers" | "self";
+    quoteRequestPolicy?: "everyone" | "followers" | "self";
     reactionsCounts?: Record<string, number>;
     replyTargetId?: Uuid;
     quotedPostId?: Uuid;
@@ -196,6 +198,11 @@ export async function insertNotePost(
     id: noteSourceId,
     accountId: values.account.id,
     visibility: values.visibility ?? "public",
+    quotePolicy: values.quotePolicy ??
+      ((values.visibility ?? "public") === "public" ||
+          (values.visibility ?? "public") === "unlisted"
+        ? "everyone"
+        : "self"),
     content: values.content ?? "Hello world",
     language: values.language ?? "en",
     published: timestamp,
@@ -207,6 +214,12 @@ export async function insertNotePost(
     iri: `http://localhost/objects/${noteId}`,
     type: "Note",
     visibility: values.visibility ?? "public",
+    quotePolicy: values.quotePolicy ??
+      ((values.visibility ?? "public") === "public" ||
+          (values.visibility ?? "public") === "unlisted"
+        ? "everyone"
+        : "self"),
+    quoteRequestPolicy: values.quoteRequestPolicy,
     actorId: (values.actorId ?? values.account.actor.id) as Uuid,
     noteSourceId,
     sharedPostId: values.sharedPostId,
@@ -238,6 +251,8 @@ export async function insertRemotePost(
     contentHtml?: string;
     language?: string;
     visibility?: "public" | "unlisted" | "followers" | "direct" | "none";
+    quotePolicy?: "everyone" | "followers" | "self";
+    quoteRequestPolicy?: "everyone" | "followers" | "self";
     published?: Date;
     updated?: Date;
     replyTargetId?: Uuid;
@@ -254,6 +269,12 @@ export async function insertRemotePost(
     iri: `https://remote.example/objects/${postId}`,
     type: "Note",
     visibility: values.visibility ?? "public",
+    quotePolicy: values.quotePolicy ??
+      ((values.visibility ?? "public") === "public" ||
+          (values.visibility ?? "public") === "unlisted"
+        ? "everyone"
+        : "self"),
+    quoteRequestPolicy: values.quoteRequestPolicy,
     actorId: values.actorId,
     sharedPostId: values.sharedPostId,
     replyTargetId: values.replyTargetId,

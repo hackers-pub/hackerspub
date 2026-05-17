@@ -1,6 +1,6 @@
 import { page } from "@fresh/core";
 import { getArticleSource } from "@hackerspub/models/article";
-import { createNote } from "@hackerspub/models/note";
+import { createNote, QuotePolicyDeniedError } from "@hackerspub/models/note";
 import { isPostVisibleTo } from "@hackerspub/models/post";
 import type {
   Actor,
@@ -104,10 +104,18 @@ export const handler = define.handlers({
       });
     }
     return await withTransaction(ctx.state.fedCtx, async (context) => {
-      const quote = await createNote(context, {
-        ...parsed.output,
-        accountId: account.id,
-      }, { quotedPost: article.post });
+      let quote;
+      try {
+        quote = await createNote(context, {
+          ...parsed.output,
+          accountId: account.id,
+        }, { quotedPost: article.post });
+      } catch (error) {
+        if (error instanceof QuotePolicyDeniedError) {
+          return new Response("Invalid quotedPostId", { status: 400 });
+        }
+        throw error;
+      }
       if (quote == null) {
         return new Response("Internal Server Error", { status: 500 });
       }

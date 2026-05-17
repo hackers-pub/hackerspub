@@ -1,13 +1,20 @@
+import { Delete, Note, Update } from "@fedify/vocab";
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { and, eq } from "drizzle-orm";
+import process from "node:process";
 import { follow } from "./following.ts";
-import { sharePost, unsharePost } from "./post.ts";
-import { postTable } from "./schema.ts";
+import { revokeQuote, sharePost, unsharePost } from "./post.ts";
+import {
+  followingTable,
+  postTable,
+  quoteAuthorizationTable,
+} from "./schema.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
   insertNotePost,
+  insertRemoteActor,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -198,3 +205,214 @@ Deno.test({
     });
   },
 });
+
+Deno.test({
+  name: "revokeQuote() federates an Update for locally authored quotes",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withTagsPubRelayEnabled(async () => {
+      await withRollback(async (tx) => {
+        const owner = await insertAccountWithActor(tx, {
+          username: "quoterevokeowner",
+          name: "Quote Revoke Owner",
+          email: "quoterevokeowner@example.com",
+        });
+        const quoter = await insertAccountWithActor(tx, {
+          username: "quoterevokelocal",
+          name: "Quote Revoke Local",
+          email: "quoterevokelocal@example.com",
+        });
+        const remoteFollower = await insertRemoteActor(tx, {
+          username: "quoterevokefollower",
+          name: "Quote Revoke Follower",
+          host: "remote.example",
+        });
+        await tx.insert(followingTable).values({
+          iri: `https://remote.example/follows/${remoteFollower.id}`,
+          followerId: remoteFollower.id,
+          followeeId: quoter.actor.id,
+          accepted: new Date("2026-04-15T00:00:00.000Z"),
+        });
+        const { post: quotedPost } = await insertNotePost(tx, {
+          account: owner.account,
+          content: "Quote revocation target",
+        });
+        const { post: quote } = await insertNotePost(tx, {
+          account: quoter.account,
+          content: "Quote that will be revoked #Fediverse",
+          quotedPostId: quotedPost.id,
+        });
+        assert(quote.noteSourceId != null);
+        const authorizationIri = `${quote.iri}#quote-authorization`;
+        await tx.update(postTable)
+          .set({
+            quoteAuthorizationIri: authorizationIri,
+            relayedTags: ["fediverse"],
+          })
+          .where(eq(postTable.id, quote.id));
+        await tx.insert(quoteAuthorizationTable).values({
+          id: quote.id,
+          iri: authorizationIri,
+          quotePostIri: quote.iri,
+          quotePostId: quote.id,
+          quotedPostId: quotedPost.id,
+          attributedActorId: owner.actor.id,
+        });
+        const originalSource = await tx.query.noteSourceTable.findFirst({
+          where: { id: quote.noteSourceId },
+        });
+        assert(originalSource != null);
+        const sent: unknown[][] = [];
+        const fedCtx = {
+          ...createFedCtx(tx),
+          sendActivity(...args: unknown[]) {
+            sent.push(args);
+            return Promise.resolve(undefined);
+          },
+        };
+        const quoteWithActor = await tx.query.postTable.findFirst({
+          where: { id: quote.id },
+          with: { actor: true },
+        });
+        assert(quoteWithActor != null);
+
+        await revokeQuote(
+          fedCtx,
+          owner.account,
+          quoteWithActor,
+          quotedPost,
+        );
+
+        const storedQuote = await tx.query.postTable.findFirst({
+          where: { id: quote.id },
+        });
+        assert(storedQuote != null);
+        assertEquals(storedQuote.quotedPostId, null);
+        assertEquals(storedQuote.quoteAuthorizationIri, null);
+        const updatedSource = await tx.query.noteSourceTable.findFirst({
+          where: { id: quote.noteSourceId },
+        });
+        assert(updatedSource != null);
+        assert(updatedSource.updated > originalSource.updated);
+        const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+          where: { iri: authorizationIri },
+        });
+        assertEquals(authorization?.revoked, true);
+
+        const update = sent
+          .map((args) => args[2])
+          .find((activity) => activity instanceof Update);
+        assert(update instanceof Update);
+        const updatedObject = await update.getObject({
+          ...fedCtx,
+          suppressError: true,
+        });
+        assert(updatedObject instanceof Note);
+        assertEquals(updatedObject.quoteId, null);
+        assertEquals(updatedObject.quoteAuthorizationId, null);
+        const del = sent
+          .map((args) => args[2])
+          .find((activity) => activity instanceof Delete);
+        assert(del instanceof Delete);
+        assertEquals(del.objectId?.href, authorizationIri);
+        assert(
+          sent.some((args) =>
+            args[2] instanceof Delete &&
+            Array.isArray(args[1]) &&
+            args[1].some((recipient) =>
+              recipient != null &&
+              typeof recipient === "object" &&
+              "id" in recipient &&
+              recipient.id instanceof URL &&
+              recipient.id.href === remoteFollower.iri
+            )
+          ),
+        );
+        assert(
+          sent.some((args) =>
+            args[2] instanceof Update &&
+            args[1] != null &&
+            typeof args[1] === "object" &&
+            "id" in args[1] &&
+            args[1].id instanceof URL &&
+            args[1].id.href === "https://tags.pub/user/_____relay_____"
+          ),
+        );
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "revokeQuote() does not double-decrement retried revocations",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const owner = await insertAccountWithActor(tx, {
+        username: "quoterevokeidemowner",
+        name: "Quote Revoke Idempotent Owner",
+        email: "quoterevokeidemowner@example.com",
+      });
+      const quoter = await insertAccountWithActor(tx, {
+        username: "quoterevokeidemlocal",
+        name: "Quote Revoke Idempotent Local",
+        email: "quoterevokeidemlocal@example.com",
+      });
+      const { post: quotedPost } = await insertNotePost(tx, {
+        account: owner.account,
+        content: "Idempotent quote revocation target",
+      });
+      const { post: quote } = await insertNotePost(tx, {
+        account: quoter.account,
+        content: "Quote revoked twice",
+        quotedPostId: quotedPost.id,
+      });
+      await tx.update(postTable)
+        .set({ quotesCount: 1 })
+        .where(eq(postTable.id, quotedPost.id));
+      const fedCtx = {
+        ...createFedCtx(tx),
+        sendActivity() {
+          return Promise.resolve(undefined);
+        },
+      };
+      const quoteWithActor = await tx.query.postTable.findFirst({
+        where: { id: quote.id },
+        with: { actor: true },
+      });
+      assert(quoteWithActor != null);
+
+      await revokeQuote(fedCtx, owner.account, quoteWithActor, quotedPost);
+      const secondResult = await revokeQuote(
+        fedCtx,
+        owner.account,
+        quoteWithActor,
+        quotedPost,
+      );
+      assertEquals(secondResult.quotedPostId, null);
+
+      const storedTarget = await tx.query.postTable.findFirst({
+        where: { id: quotedPost.id },
+      });
+      assertEquals(storedTarget?.quotesCount, 0);
+    });
+  },
+});
+
+async function withTagsPubRelayEnabled(
+  run: () => Promise<void>,
+): Promise<void> {
+  const previous = process.env.TAGS_PUB_RELAY;
+  process.env.TAGS_PUB_RELAY = "true";
+  try {
+    await run();
+  } finally {
+    if (previous == null) {
+      delete process.env.TAGS_PUB_RELAY;
+    } else {
+      process.env.TAGS_PUB_RELAY = previous;
+    }
+  }
+}

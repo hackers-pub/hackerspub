@@ -232,6 +232,8 @@ type DropdownMenuRadioItemProps<T extends ValidComponent = "div"> =
   & {
     class?: string | undefined;
     children?: JSX.Element;
+    indicator?: JSX.Element;
+    indicatorPlacement?: "left" | "right";
   };
 
 const DropdownMenuRadioItem = <T extends ValidComponent = "div">(
@@ -240,29 +242,42 @@ const DropdownMenuRadioItem = <T extends ValidComponent = "div">(
   const [, rest] = splitProps(props as DropdownMenuRadioItemProps, [
     "class",
     "children",
+    "indicator",
+    "indicatorPlacement",
   ]);
+  const indicatorPlacement = () => props.indicatorPlacement ?? "left";
+  const indicator = () =>
+    props.indicator ?? (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="size-2 fill-current"
+      >
+        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+      </svg>
+    );
   return (
     <DropdownMenuPrimitive.RadioItem
       class={cn(
-        "relative flex cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "relative flex cursor-default select-none items-center rounded-sm py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        indicatorPlacement() === "right" ? "pl-2 pr-8" : "pl-8 pr-2",
         props.class,
       )}
       {...rest}
     >
-      <span class="absolute left-2 flex size-3.5 items-center justify-center">
+      <span
+        class={cn(
+          "absolute flex size-3.5 items-center justify-center",
+          indicatorPlacement() === "right" ? "right-2" : "left-2",
+        )}
+      >
         <DropdownMenuPrimitive.ItemIndicator>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="size-2 fill-current"
-          >
-            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-          </svg>
+          {indicator()}
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {props.children}

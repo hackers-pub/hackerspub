@@ -16,10 +16,9 @@ import {
 } from "~/lib/uploadMediumWithProgress.ts";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { MentionAutocomplete } from "~/components/MentionAutocomplete.tsx";
-import {
-  PostVisibility,
-  PostVisibilitySelect,
-} from "~/components/PostVisibilitySelect.tsx";
+import { NoteVisibilityQuotePolicySelect } from "~/components/NoteVisibilityQuotePolicySelect.tsx";
+import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
+import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
 import {
   Avatar,
   AvatarFallback,
@@ -83,6 +82,15 @@ const NoteComposerQuotedPostQuery = graphql`
       ... on Article {
         __typename
         name
+        excerpt
+        actor {
+          rawName
+          handle
+          avatarUrl
+        }
+      }
+      ... on Question {
+        __typename
         excerpt
         actor {
           rawName
@@ -166,7 +174,7 @@ const NoteComposerPostByUrlQuery = graphql`
     postByUrl(url: $url) {
       __typename
       id
-      visibility
+      viewerCanQuote
     }
   }
 `;
@@ -215,7 +223,7 @@ interface MediaItem {
 }
 
 interface QuotedPostPreview {
-  typename: "Note" | "Article";
+  typename: "Note" | "Article" | "Question";
   excerpt: string;
   name?: string;
   actorName?: string;
@@ -245,11 +253,16 @@ export function NoteComposer(props: NoteComposerProps) {
   const [visibility, setVisibility] = createSignal<PostVisibility>(
     props.defaultVisibility ?? "PUBLIC",
   );
+  const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>("EVERYONE");
   // Keep visibility in sync when the modal is reused for a different reply/quote
   createEffect(() => {
     const v = props.defaultVisibility;
     if (v != null) setVisibility(v);
   });
+  const effectiveQuotePolicy = () =>
+    visibility() === "PUBLIC" || visibility() === "UNLISTED"
+      ? quotePolicy()
+      : "SELF";
   const [language, setLanguage] = createSignal<Intl.Locale | undefined>(
     new Intl.Locale(i18n.locale),
   );
@@ -386,7 +399,9 @@ export function NoteComposer(props: NoteComposerProps) {
         const node = data.node;
         if (
           !node ||
-          (node.__typename !== "Note" && node.__typename !== "Article")
+          (node.__typename !== "Note" &&
+            node.__typename !== "Article" &&
+            node.__typename !== "Question")
         ) {
           setQuotedPost(null);
           setQuoteFetchError(true);
@@ -606,10 +621,41 @@ export function NoteComposer(props: NoteComposerProps) {
 
     // Fall through to URL-paste-to-quote logic
     if (effectiveQuotedPostId()) return;
-    const text = e.clipboardData?.getData("text/plain")?.trim();
+    const clipboardText = e.clipboardData?.getData("text/plain");
+    if (clipboardText == null) return;
+    const text = clipboardText.trim();
     if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
-    if (!confirm(t`Do you want to quote this link?`)) return;
+    const target = e.currentTarget;
+    if (!(target instanceof HTMLTextAreaElement)) return;
     e.preventDefault();
+    const pasteStart = target.selectionStart;
+    const pasteEnd = target.selectionEnd;
+    const pastedRange = {
+      start: pasteStart,
+      end: pasteStart + clipboardText.length,
+    };
+    setContent((prev) =>
+      prev.slice(0, pasteStart) + clipboardText + prev.slice(pasteEnd)
+    );
+    queueMicrotask(() => {
+      target.setSelectionRange(pastedRange.end, pastedRange.end);
+    });
+    const removePastedUrl = () => {
+      setContent((prev) => {
+        if (
+          prev.slice(pastedRange.start, pastedRange.end) === clipboardText
+        ) {
+          return prev.slice(0, pastedRange.start) +
+            prev.slice(pastedRange.end);
+        }
+        const firstMatch = prev.indexOf(clipboardText);
+        if (firstMatch >= 0 && firstMatch === prev.lastIndexOf(clipboardText)) {
+          return prev.slice(0, firstMatch) +
+            prev.slice(firstMatch + clipboardText.length);
+        }
+        return prev;
+      });
+    };
     fetchQuery<NoteComposerPostByUrlQuery>(
       environment(),
       NoteComposerPostByUrlQuery,
@@ -618,27 +664,24 @@ export function NoteComposer(props: NoteComposerProps) {
       next(data) {
         const post = data.postByUrl;
         if (!post) {
-          setContent((prev) => (prev ? `${prev}\n${text}` : text));
-          showToast({
-            title: t`Error`,
-            description: t`Could not find a post at this URL`,
-            variant: "error",
-          });
           return;
         }
-        if (post.__typename !== "Note" && post.__typename !== "Article") {
-          setContent((prev) => (prev ? `${prev}\n${text}` : text));
+        if (
+          post.__typename !== "Note" && post.__typename !== "Article" &&
+          post.__typename !== "Question"
+        ) {
           return;
         }
-        if (post.visibility !== "PUBLIC" && post.visibility !== "UNLISTED") {
-          setContent((prev) => (prev ? `${prev}\n${text}` : text));
+        if (!post.viewerCanQuote) {
           return;
         }
+        if (!confirm(t`Do you want to quote this link?`)) {
+          return;
+        }
+        removePastedUrl();
         setPastedQuoteId(post.id);
       },
-      error() {
-        setContent((prev) => (prev ? `${prev}\n${text}` : text));
-      },
+      error() {},
     });
   };
 
@@ -662,6 +705,7 @@ export function NoteComposer(props: NoteComposerProps) {
     prefillRef = "";
     setContent("");
     setVisibility(props.defaultVisibility ?? "PUBLIC");
+    setQuotePolicy("EVERYONE");
     setLanguage(new Intl.Locale(i18n.locale));
     setManualLanguageChange(false);
     setQuotedPost(null);
@@ -763,6 +807,7 @@ export function NoteComposer(props: NoteComposerProps) {
           content: noteContent,
           language: language()?.baseName ?? i18n.locale,
           visibility: visibility(),
+          quotePolicy: effectiveQuotePolicy(),
           quotedPostId: effectiveQuotedPostId() ?? null,
           replyTargetId: props.replyTargetId ?? null,
           media: items.map((m) => ({
@@ -1151,22 +1196,19 @@ export function NoteComposer(props: NoteComposerProps) {
           </TextField>
         </Tabs>
 
-        {/* Toolbar: language, visibility */}
+        {/* Toolbar: language, visibility, quote policy */}
         <div class="flex flex-wrap items-center gap-2">
           <LanguageSelect
             value={language()}
             onChange={handleLanguageChange}
             class="flex-1 min-w-[8rem]"
           />
-          <div
-            role="group"
-            aria-label={t`Visibility`}
-          >
-            <PostVisibilitySelect
-              value={visibility()}
-              onChange={setVisibility}
-            />
-          </div>
+          <NoteVisibilityQuotePolicySelect
+            visibility={visibility()}
+            quotePolicy={quotePolicy()}
+            onVisibilityChange={setVisibility}
+            onQuotePolicyChange={setQuotePolicy}
+          />
         </div>
 
         {/* Media previews */}

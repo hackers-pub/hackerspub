@@ -99,6 +99,7 @@ test("getOriginalArticleContent() picks the earliest non-translation content", (
     slug: "original-content",
     tags: [],
     allowLlmTranslation: false,
+    quotePolicy: "everyone",
     updated: new Date("2026-04-15T00:00:00.000Z"),
     published: new Date("2026-04-15T00:00:00.000Z"),
     contents: [translation, newerOriginal, original],

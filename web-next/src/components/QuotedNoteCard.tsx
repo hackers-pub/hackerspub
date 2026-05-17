@@ -1,33 +1,90 @@
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
-import { createFragment } from "solid-relay";
+import { createFragment, createMutation } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
+import { Button } from "~/components/ui/button.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
 import { VisibilityTag } from "~/components/VisibilityTag.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   MentionHoverCardLayer,
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
-import type { QuotedNoteCard_note$key } from "./__generated__/QuotedNoteCard_note.graphql.ts";
+import IconBan from "~icons/lucide/ban";
+import type {
+  QuotedNoteCard_post$data,
+  QuotedNoteCard_post$key,
+} from "./__generated__/QuotedNoteCard_post.graphql.ts";
+import type { QuotedNoteCardRevokeQuoteMutation } from "./__generated__/QuotedNoteCardRevokeQuoteMutation.graphql.ts";
+
+const RevokeQuoteMutation = graphql`
+  mutation QuotedNoteCardRevokeQuoteMutation($input: RevokeQuoteInput!) {
+    revokeQuote(input: $input) {
+      __typename
+      ... on RevokeQuotePayload {
+        quote {
+          id
+          viewerCanRevokeQuote
+          quotedPost {
+            id
+          }
+        }
+        quotedPost {
+          id
+          engagementStats {
+            quotes
+          }
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
 
 export interface QuotedNoteCardProps {
-  readonly $note: QuotedNoteCard_note$key;
+  readonly $post: QuotedNoteCard_post$key;
+  readonly quotePostId?: string;
+  readonly canRevokeQuote?: boolean;
   readonly class?: string;
   readonly classList?: { [k: string]: boolean | undefined };
 }
 
 export function QuotedNoteCard(props: QuotedNoteCardProps) {
+  const { t } = useLingui();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
+  const [revokeQuote, revoking] = createMutation<
+    QuotedNoteCardRevokeQuoteMutation
+  >(RevokeQuoteMutation);
 
-  const note = createFragment(
+  const post = createFragment(
     graphql`
-      fragment QuotedNoteCard_note on Note {
+      fragment QuotedNoteCard_post on Post {
+        __typename
         __id
         uuid
-        sourceId
+        ... on Note {
+          sourceId
+        }
         actor {
           name
           handle
@@ -45,73 +102,156 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
         iri
       }
     `,
-    () => props.$note,
+    () => props.$post,
   );
 
   return (
-    <Show keyed when={note()}>
-      {(note) => (
+    <Show keyed when={post()}>
+      {(post) => (
         <div class={props.class} classList={props.classList}>
           <div class="w-0 h-0 border-l-[15px] border-r-[15px] border-b-[20px] border-l-transparent border-r-transparent border-b-muted ml-4" />
           <div class="flex flex-col bg-muted p-4">
             <div class="flex min-w-0 gap-4">
-              <ActorHoverCard handle={note.actor.handle} class="shrink-0">
+              <ActorHoverCard handle={post.actor.handle} class="shrink-0">
                 <Avatar class="size-12 shrink-0">
                   <InternalLink
-                    href={note.actor.url ?? note.actor.iri}
-                    internalHref={note.actor.local
-                      ? `/@${note.actor.username}`
-                      : `/${note.actor.handle}`}
+                    href={post.actor.url ?? post.actor.iri}
+                    internalHref={post.actor.local
+                      ? `/@${post.actor.username}`
+                      : `/${post.actor.handle}`}
                   >
-                    <AvatarImage src={note.actor.avatarUrl} class="size-12" />
+                    <AvatarImage src={post.actor.avatarUrl} class="size-12" />
                   </InternalLink>
                 </Avatar>
               </ActorHoverCard>
               <div class="flex min-w-0 flex-col">
                 <ActorHoverCard
-                  handle={note.actor.handle}
+                  handle={post.actor.handle}
                   class="min-w-0 flex flex-wrap items-baseline gap-x-1"
                 >
-                  <Show when={(note.actor.name ?? "").trim() !== ""}>
+                  <Show when={(post.actor.name ?? "").trim() !== ""}>
                     <InternalLink
-                      href={note.actor.url ?? note.actor.iri}
-                      internalHref={note.actor.local
-                        ? `/@${note.actor.username}`
-                        : `/${note.actor.handle}`}
-                      innerHTML={note.actor.name ?? ""}
+                      href={post.actor.url ?? post.actor.iri}
+                      internalHref={post.actor.local
+                        ? `/@${post.actor.username}`
+                        : `/${post.actor.handle}`}
+                      innerHTML={post.actor.name ?? ""}
                       class="font-semibold"
                     />
                   </Show>
                   <span
                     class="min-w-0 break-all select-all text-muted-foreground"
-                    title={note.actor.handle}
+                    title={post.actor.handle}
                   >
-                    {note.actor.handle}
+                    {post.actor.handle}
                   </span>
                 </ActorHoverCard>
                 <div class="flex min-w-0 flex-row flex-wrap gap-1 text-muted-foreground">
                   <InternalLink
-                    href={note.url ?? note.iri}
-                    internalHref={note.actor.local
-                      ? `/@${note.actor.username}/${note.sourceId ?? note.uuid}`
-                      : `/${note.actor.handle}/${note.sourceId ?? note.uuid}`}
+                    href={post.url ?? post.iri}
+                    internalHref={getQuotedPostInternalHref(post)}
                   >
-                    <Timestamp value={note.published} capitalizeFirstLetter />
+                    <Timestamp value={post.published} capitalizeFirstLetter />
                   </InternalLink>{" "}
-                  &middot; <VisibilityTag visibility={note.visibility} />
+                  &middot; <VisibilityTag visibility={post.visibility} />
                 </div>
               </div>
             </div>
             <div
               ref={setProseRef}
-              innerHTML={note.content}
-              lang={note.language ?? undefined}
+              innerHTML={post.content}
+              lang={post.language ?? undefined}
               class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
             />
             <MentionHoverCardLayer state={mentionState} />
+            <Show when={props.canRevokeQuote && props.quotePostId != null}>
+              <div class="mt-3 flex justify-end border-t border-border/60 pt-3">
+                <AlertDialog>
+                  <AlertDialogTrigger
+                    as={Button}
+                    variant="outline"
+                    size="sm"
+                    disabled={revoking()}
+                  >
+                    <IconBan class="size-4" />
+                    {t`Revoke quote`}
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {t`Revoke this quote?`}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t`The quoting post will no longer include your post as a quote.`}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogClose>{t`Cancel`}</AlertDialogClose>
+                      <AlertDialogAction
+                        disabled={revoking()}
+                        onClick={() => {
+                          if (revoking()) return;
+                          const quotePostId = props.quotePostId;
+                          if (quotePostId == null) return;
+                          revokeQuote({
+                            variables: {
+                              input: { quotePostId },
+                            },
+                            onCompleted(response) {
+                              if (
+                                response.revokeQuote.__typename ===
+                                  "RevokeQuotePayload"
+                              ) {
+                                showToast({
+                                  title: t`Quote revoked`,
+                                  variant: "success",
+                                });
+                              } else {
+                                showToast({
+                                  title: t`Error`,
+                                  description: t`Could not revoke quote`,
+                                  variant: "error",
+                                });
+                              }
+                            },
+                            onError(error) {
+                              showToast({
+                                title: t`Error`,
+                                description: error.message,
+                                variant: "error",
+                              });
+                            },
+                          });
+                        }}
+                      >
+                        {t`Revoke quote`}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </Show>
           </div>
         </div>
       )}
     </Show>
   );
+}
+
+function getQuotedPostInternalHref(post: QuotedNoteCard_post$data): string {
+  if (post.actor.local && post.url != null) {
+    try {
+      const url = new URL(post.url);
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      // Fall through to the row-based route if a legacy row has a bad URL.
+    }
+  }
+  const actorSegment = post.actor.local
+    ? `@${post.actor.username}`
+    : post.actor.handle;
+  const postId = post.__typename === "Note"
+    ? post.sourceId ?? post.uuid
+    : post.uuid;
+  return `/${actorSegment}/${postId}`;
 }

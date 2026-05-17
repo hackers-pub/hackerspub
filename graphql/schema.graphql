@@ -358,6 +358,7 @@ type Article implements Node & Post & Reactable {
   name: String
   published: DateTime!
   publishedYear: Int
+  quotePolicy: QuotePolicy!
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -383,6 +384,7 @@ type Article implements Node & Post & Reactable {
   uuid: UUID!
   viewerCanQuote: Boolean!
   viewerCanReply: Boolean!
+  viewerCanRevokeQuote: Boolean!
   viewerCanShare: Boolean!
   viewerHasBookmarked: Boolean!
   viewerHasPinned: Boolean!
@@ -492,6 +494,7 @@ input CreateNoteInput {
 
   """Media to attach to the note, in display order."""
   media: [CreateNoteMediumInput!] = []
+  quotePolicy: QuotePolicy
   quotedPostId: ID
   replyTargetId: ID
   visibility: PostVisibility!
@@ -927,6 +930,7 @@ type Mutation {
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   requestArticleTranslation(input: RequestArticleTranslationInput!): RequestArticleTranslationResult!
   revokePasskey(passkeyId: ID!): ID
+  revokeQuote(input: RevokeQuoteInput!): RevokeQuoteResult!
 
   """Revoke a session by its ID."""
   revokeSession(
@@ -980,6 +984,7 @@ type Note implements Node & Post & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
   name: String
   published: DateTime!
+  quotePolicy: QuotePolicy!
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -1008,6 +1013,7 @@ type Note implements Node & Post & Reactable {
   uuid: UUID!
   viewerCanQuote: Boolean!
   viewerCanReply: Boolean!
+  viewerCanRevokeQuote: Boolean!
   viewerCanShare: Boolean!
   viewerHasBookmarked: Boolean!
   viewerHasPinned: Boolean!
@@ -1168,6 +1174,7 @@ interface Post implements Node & Reactable {
   mentions(after: String, before: String, first: Int, last: Int): PostMentionsConnection!
   name: String
   published: DateTime!
+  quotePolicy: QuotePolicy!
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -1191,6 +1198,7 @@ interface Post implements Node & Reactable {
   uuid: UUID!
   viewerCanQuote: Boolean!
   viewerCanReply: Boolean!
+  viewerCanRevokeQuote: Boolean!
   viewerCanShare: Boolean!
   viewerHasBookmarked: Boolean!
   viewerHasPinned: Boolean!
@@ -1298,6 +1306,7 @@ input PublishArticleDraftInput {
   clientMutationId: ID
   id: ID!
   language: Locale!
+  quotePolicy: QuotePolicy
   slug: String!
 }
 
@@ -1470,6 +1479,7 @@ type Question implements Node & Post & Reactable {
   name: String
   poll: Poll
   published: DateTime!
+  quotePolicy: QuotePolicy!
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -1493,6 +1503,7 @@ type Question implements Node & Post & Reactable {
   uuid: UUID!
   viewerCanQuote: Boolean!
   viewerCanReply: Boolean!
+  viewerCanRevokeQuote: Boolean!
   viewerCanShare: Boolean!
   viewerHasBookmarked: Boolean!
   viewerHasPinned: Boolean!
@@ -1507,6 +1518,12 @@ type QuoteNotification implements Node & Notification {
   id: ID!
   post: Post
   uuid: UUID!
+}
+
+enum QuotePolicy {
+  EVERYONE
+  FOLLOWERS
+  SELF
 }
 
 type ReactNotification implements Node & Notification {
@@ -1691,6 +1708,19 @@ type RequestArticleTranslationPayload {
 }
 
 union RequestArticleTranslationResult = InvalidInputError | LlmTranslationNotAllowedError | NotAuthenticatedError | RequestArticleTranslationPayload
+
+input RevokeQuoteInput {
+  clientMutationId: ID
+  quotePostId: ID!
+}
+
+type RevokeQuotePayload {
+  clientMutationId: ID
+  quote: Post!
+  quotedPost: Post!
+}
+
+union RevokeQuoteResult = InvalidInputError | NotAuthenticatedError | RevokeQuotePayload
 
 input SaveArticleDraftInput {
   clientMutationId: ID
