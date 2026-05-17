@@ -45,6 +45,15 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
               classList={props.classList}
             />
           </Match>
+          <Match when={post.__typename === "Article"}>
+            <QuotedNoteCard
+              $post={post}
+              quotePostId={props.quotePostId}
+              canRevokeQuote={props.canRevokeQuote}
+              class={props.class}
+              classList={props.classList}
+            />
+          </Match>
         </Switch>
       )}
     </Show>

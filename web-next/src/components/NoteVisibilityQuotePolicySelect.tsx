@@ -1,3 +1,4 @@
+import { For } from "solid-js";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -106,17 +107,19 @@ export function NoteVisibilityQuotePolicySelect(
             <DropdownMenuGroupLabel class="px-2 py-1 text-xs font-semibold text-muted-foreground">
               {t`Visibility`}
             </DropdownMenuGroupLabel>
-            {visibilityOptions().map((option) => (
-              <DropdownMenuRadioItem
-                value={option.value}
-                indicator={check()}
-                indicatorPlacement="right"
-                class="gap-2"
-              >
-                {option.icon()}
-                <span class="truncate">{option.label}</span>
-              </DropdownMenuRadioItem>
-            ))}
+            <For each={visibilityOptions()}>
+              {(option) => (
+                <DropdownMenuRadioItem
+                  value={option.value}
+                  indicator={check()}
+                  indicatorPlacement="right"
+                  class="gap-2"
+                >
+                  {option.icon()}
+                  <span class="truncate">{option.label}</span>
+                </DropdownMenuRadioItem>
+              )}
+            </For>
           </DropdownMenuGroup>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
@@ -128,18 +131,20 @@ export function NoteVisibilityQuotePolicySelect(
             <DropdownMenuGroupLabel class="px-2 py-1 text-xs font-semibold text-muted-foreground">
               {t`Quote permission`}
             </DropdownMenuGroupLabel>
-            {quoteOptions().map((option) => (
-              <DropdownMenuRadioItem
-                value={option.value}
-                disabled={quotePolicyLocked() && option.value !== "SELF"}
-                indicator={check()}
-                indicatorPlacement="right"
-                class="gap-2"
-              >
-                {option.icon()}
-                <span class="truncate">{option.label}</span>
-              </DropdownMenuRadioItem>
-            ))}
+            <For each={quoteOptions()}>
+              {(option) => (
+                <DropdownMenuRadioItem
+                  value={option.value}
+                  disabled={quotePolicyLocked() && option.value !== "SELF"}
+                  indicator={check()}
+                  indicatorPlacement="right"
+                  class="gap-2"
+                >
+                  {option.icon()}
+                  <span class="truncate">{option.label}</span>
+                </DropdownMenuRadioItem>
+              )}
+            </For>
           </DropdownMenuGroup>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>

@@ -442,7 +442,6 @@ export async function createNote(
       {
         orderingKey,
         preferSharedInbox: true,
-        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
       },
     );
   }

@@ -1809,7 +1809,12 @@ test("createNote stores QuoteRequest for local manual-approval quotes", async ()
       },
     });
     assert.ok(storedRequest != null);
-    assert.ok(sent.some((args) => args[2] instanceof QuoteRequest));
+    const sentRequest = sent.find((args) => args[2] instanceof QuoteRequest);
+    assert.ok(sentRequest != null);
+    assert.equal(
+      (sentRequest[3] as { excludeBaseUris?: unknown }).excludeBaseUris,
+      undefined,
+    );
   });
 });
 
