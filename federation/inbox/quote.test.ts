@@ -79,6 +79,7 @@ test("onQuoteRequested rejects instruments not attributed to the requester", asy
           new Note({
             id: new URL(instrumentIri),
             attribution: new URL(otherActor.iri),
+            quote: new URL(quotedPost.iri),
             content: "Not owned by requester",
           }),
         );
@@ -192,6 +193,7 @@ test("onQuoteRequested accepts request-only follower approvals", async () => {
           new Note({
             id: new URL(instrumentIri),
             attribution: new URL(requester.iri),
+            quote: new URL(quotedPost.iri),
             content: "Owned by requester",
           }),
         );
@@ -225,6 +227,67 @@ test("onQuoteRequested accepts request-only follower approvals", async () => {
       .find((activity) => activity instanceof Accept);
     assert.ok(accept instanceof Accept);
     assert.equal(accept.resultId?.href, authorization.iri);
+  });
+});
+
+test("onQuoteRequested rejects instruments that do not quote the object", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quotetargetauthor",
+      name: "Quote Target Author",
+      email: "quotetargetauthor@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "quotetargetrequester",
+      name: "Quote Target Requester",
+      host: "remote.example",
+    });
+    await tx.insert(followingTable).values({
+      iri: `https://remote.example/follows/${requester.id}`,
+      followerId: requester.id,
+      followeeId: author.actor.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Manual target",
+      quotePolicy: "self",
+      quoteRequestPolicy: "followers",
+    });
+    const instrumentIri = "https://remote.example/objects/wrong-target-quote";
+    const request = new QuoteRequest({
+      id: new URL("https://remote.example/quote-requests/wrong-target"),
+      actor: new URL(requester.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new URL(instrumentIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      lookupObject(identifier: string | URL) {
+        assert.equal(new URL(identifier).href, instrumentIri);
+        return Promise.resolve(
+          new Note({
+            id: new URL(instrumentIri),
+            attribution: new URL(requester.iri),
+            quote: new URL("https://remote.example/objects/another-target"),
+            content: "Owned by requester, but quoting another object",
+          }),
+        );
+      },
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    await onQuoteRequested(fedCtx, request);
+
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { quotePostIri: instrumentIri },
+    });
+    assert.equal(authorization, undefined);
+    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
   });
 });
 
@@ -278,6 +341,7 @@ test("onQuoteRequested unwraps local share targets", async () => {
           new Note({
             id: new URL(instrumentIri),
             attribution: new URL(requester.iri),
+            quote: new URL(sharePost.iri),
             content: "Owned by requester",
           }),
         );

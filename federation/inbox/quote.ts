@@ -205,6 +205,18 @@ async function quoteRequestInstrumentBelongsToActor(
     });
     return false;
   }
+  const quotesTarget = instrument.quoteId?.href === request.objectId?.href ||
+    instrument.quoteUrl?.href === request.objectId?.href;
+  if (!quotesTarget) {
+    logger.warn(
+      "Rejecting quote request whose instrument does not quote the object.",
+      {
+        instrument: request.instrumentId.href,
+        object: request.objectId?.href,
+      },
+    );
+    return false;
+  }
   const belongsToActor = instrument.attributionIds.some((id) =>
     id.href === request.actorId?.href
   );

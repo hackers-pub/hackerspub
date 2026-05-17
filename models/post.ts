@@ -451,6 +451,7 @@ export async function syncPostFromNoteSource(
 > {
   const { db, kv, disk } = fedCtx.data;
   const actor = await syncActorFromAccount(fedCtx, noteSource.account);
+  const hasQuotedPostRelation = Object.hasOwn(relations, "quotedPost");
   let quotedPost: QuotePolicyPost | undefined;
   if (relations.quotedPost != null) {
     quotedPost = await getAllowedQuoteTargetForActor(
@@ -484,13 +485,19 @@ export async function syncPostFromNoteSource(
     where: { noteSourceId: noteSource.id },
   });
   const id = existingPost?.id ?? generateUuidV7();
-  const quotedPostId = quotedPost?.id ?? null;
-  const quoteAuthorizationIri = quotedPost == null
+  const quotedPostId = !hasQuotedPostRelation && existingPost != null
+    ? undefined
+    : quotedPost?.id ?? null;
+  const quoteAuthorizationIri = !hasQuotedPostRelation && existingPost != null
+    ? undefined
+    : quotedPost == null
     ? null
     : quotedPost.actor.accountId == null
-    ? existingPost?.quotedPostId === quotedPostId
+    ? existingPost != null && existingPost.quotedPostId === quotedPostId
       ? existingPost.quoteAuthorizationIri
       : null
+    : quotedPost.actorId === actor.id
+    ? null
     : fedCtx.getObjectUri(vocab.QuoteAuthorization, { id }).href;
   const values: Omit<NewPost, "id"> = {
     iri: fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href,
@@ -560,7 +567,12 @@ export async function syncPostFromNoteSource(
   await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
   const mentionList = globalThis.Object.values(rendered.mentions);
 
+  if (hasQuotedPostRelation && quoteAuthorizationIri == null) {
+    await db.delete(quoteAuthorizationTable)
+      .where(eq(quoteAuthorizationTable.quotePostId, post.id));
+  }
   if (
+    hasQuotedPostRelation &&
     existingPost?.quotedPostId != null &&
     existingPost.quotedPostId !== quotedPostId
   ) {
@@ -571,7 +583,10 @@ export async function syncPostFromNoteSource(
       await updateQuotesCount(db, previousQuotedPost, -1);
     }
   }
-  if (quotedPost != null && existingPost?.quotedPostId !== quotedPostId) {
+  if (
+    hasQuotedPostRelation && quotedPost != null &&
+    existingPost?.quotedPostId !== quotedPostId
+  ) {
     await updateQuotesCount(db, quotedPost, 1);
   }
   const mentions = mentionList.length > 0
@@ -599,6 +614,14 @@ export async function syncPostFromNoteSource(
       }))),
     ).returning()
     : [];
+  const returnedQuotedPost = hasQuotedPostRelation
+    ? quotedPost ?? null
+    : post.quotedPostId == null
+    ? null
+    : await db.query.postTable.findFirst({
+      where: { id: post.quotedPostId },
+      with: { actor: true },
+    }) ?? null;
   return {
     ...post,
     actor,
@@ -606,7 +629,7 @@ export async function syncPostFromNoteSource(
     mentions,
     media,
     replyTarget: relations.replyTarget ?? null,
-    quotedPost: quotedPost ?? null,
+    quotedPost: returnedQuotedPost,
     quoteRequestRequired,
   };
 }
