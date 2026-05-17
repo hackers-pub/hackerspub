@@ -430,6 +430,59 @@ test("persistPost() accepts locally issued quote authorizations", async () => {
   });
 });
 
+test("persistPost() rejects remote quote authorizations from the quote origin", async () => {
+  await withRollback(async (tx) => {
+    const quoter = await insertRemoteActor(tx, {
+      username: "forgedremoteauthquoter",
+      name: "Forged Remote Auth Quoter",
+      host: "remote.example",
+    });
+    const quotedAuthor = await insertRemoteActor(tx, {
+      username: "forgedremoteauthauthor",
+      name: "Forged Remote Auth Author",
+      host: "quoted.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: quotedAuthor.id,
+      contentHtml: "<p>Restricted remote quote target</p>",
+      quotePolicy: "self",
+    });
+    const quoteIri = "https://remote.example/objects/forged-remote-auth";
+    const forgedAuthorizationIri =
+      "https://remote.example/quote-authorizations/forged-remote";
+    const quote = new Note({
+      id: new URL(quoteIri),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Forged remote quote authorization",
+      quote: new URL(quotedPost.iri),
+      quoteAuthorization: new QuoteAuthorization({
+        id: new URL(forgedAuthorizationIri),
+        attribution: new URL(quotedAuthor.iri),
+        interactingObject: new URL(quoteIri),
+        interactionTarget: new URL(quotedPost.iri),
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), quote);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost, null);
+    assert.equal(persisted.quoteAuthorizationIri, null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: persisted.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, null);
+    assert.equal(storedQuote.quoteAuthorizationIri, null);
+    const storedTarget = await tx.query.postTable.findFirst({
+      where: { id: quotedPost.id },
+    });
+    assert.ok(storedTarget != null);
+    assert.equal(storedTarget.quotesCount, 0);
+  });
+});
+
 test("persistPost() stores quotes of local shares against the original post", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {

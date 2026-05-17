@@ -812,6 +812,9 @@ export async function persistPost(
         ))
         .limit(1);
       validAuthorization = issuedAuthorization.length > 0;
+    } else if (validAuthorization) {
+      validAuthorization = new URL(quoteAuthorizationIri).origin ===
+        new URL(quotedPost.actor.iri).origin;
     }
     if (!validAuthorization) {
       logger.debug("Ignoring invalid quote authorization: {iri}", {
