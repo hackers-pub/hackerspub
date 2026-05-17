@@ -188,38 +188,34 @@ export function Composer(props: ComposerProps) {
         addMedium(file);
       } else if (item.kind === "string" && item.type === "text/plain") {
         if (props.noQuoteOnPaste) continue;
-        item.getAsString((text) => {
+        item.getAsString(async (text) => {
           if (!URL.canParse(text)) return;
           setQuoteLoading(true);
-          fetch(`/api/posts?iri=${encodeURIComponent(text)}`).then(
-            async (r) => {
-              if (!r.ok) {
-                setQuoteLoading(false);
-                return;
-              }
-              const pastedPost: QuoteLookupPost = await r.json();
-              if (!pastedPost.viewerCanQuote) {
-                setQuoteLoading(false);
-                return;
-              }
-              const confirmMsg = t(
-                pastedPost.type === "Article"
-                  ? "composer.quoteArticleConfirm"
-                  : "composer.quoteNoteConfirm",
-              );
-              setQuoteLoading(false);
-              if (
-                pastedPost.visibility !== "public" &&
-                pastedPost.visibility !== "unlisted"
-              ) {
-                return;
-              }
-              if (confirm(confirmMsg)) {
-                setQuotedPostId(pastedPost.id);
-                setContent(content);
-              }
-            },
-          );
+          try {
+            const r = await fetch(`/api/posts?iri=${encodeURIComponent(text)}`);
+            if (!r.ok) return;
+            const pastedPost: QuoteLookupPost = await r.json();
+            if (!pastedPost.viewerCanQuote) return;
+            const confirmMsg = t(
+              pastedPost.type === "Article"
+                ? "composer.quoteArticleConfirm"
+                : "composer.quoteNoteConfirm",
+            );
+            if (
+              pastedPost.visibility !== "public" &&
+              pastedPost.visibility !== "unlisted"
+            ) {
+              return;
+            }
+            if (confirm(confirmMsg)) {
+              setQuotedPostId(pastedPost.id);
+              setContent(content);
+            }
+          } catch {
+            // Ignore quote lookup failures; pasted text should remain unchanged.
+          } finally {
+            setQuoteLoading(false);
+          }
         });
       }
     }
