@@ -74,10 +74,19 @@ export async function onQuoteRequested(
   if (quotedPost?.actor.accountId == null) return;
   const approved = canActorRequestQuotePost(quotedPost, actor) &&
     await quoteRequestInstrumentBelongsToActor(fedCtx, request);
-  const authId = generateUuidV7();
-  const authorizationIri = fedCtx.getObjectUri(QuoteAuthorization, {
-    id: authId,
-  }).href;
+  const existingAuthorization = approved
+    ? await fedCtx.data.db.query.quoteAuthorizationTable.findFirst({
+      columns: { id: true, iri: true },
+      where: {
+        quotePostIri: request.instrumentId.href,
+        quotedPostId: quotedPost.id,
+        attributedActorId: quotedPost.actorId,
+      },
+    })
+    : undefined;
+  const authId = existingAuthorization?.id ?? generateUuidV7();
+  const authorizationIri = existingAuthorization?.iri ??
+    fedCtx.getObjectUri(QuoteAuthorization, { id: authId }).href;
   const response = approved
     ? new Accept({
       id: new URL(`#accept`, request.id),
@@ -99,7 +108,13 @@ export async function onQuoteRequested(
       attributedActorId: quotedPost.actorId,
     }).onConflictDoUpdate({
       target: quoteAuthorizationTable.iri,
-      set: { revoked: false, updated: sql`CURRENT_TIMESTAMP` },
+      set: {
+        quotePostIri: request.instrumentId.href,
+        quotedPostId: quotedPost.id,
+        attributedActorId: quotedPost.actorId,
+        revoked: false,
+        updated: sql`CURRENT_TIMESTAMP`,
+      },
     });
   }
   await fedCtx.sendActivity(

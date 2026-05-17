@@ -2060,6 +2060,7 @@ export async function revokeQuote(
 ): Promise<Post> {
   const { db } = fedCtx.data;
   const revokedAt = new Date();
+  let updatedQuote: QuoteUpdatePost | undefined;
   const rows = await db.update(postTable)
     .set({
       quotedPostId: null,
@@ -2072,7 +2073,7 @@ export async function revokeQuote(
     await db.update(noteSourceTable)
       .set({ updated: revokedAt })
       .where(eq(noteSourceTable.id, quotePost.noteSourceId));
-    const updatedQuote = await db.query.postTable.findFirst({
+    updatedQuote = await db.query.postTable.findFirst({
       with: {
         actor: true,
         quotedPost: { with: { actor: true } },
@@ -2104,6 +2105,13 @@ export async function revokeQuote(
           excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
         },
       );
+    } else if (updatedQuote != null) {
+      await sendLocalQuoteAuthorizationDelete(
+        fedCtx,
+        account,
+        updatedQuote,
+        quotePost.quoteAuthorizationIri,
+      );
     }
   }
   await updateQuotesCount(db, quotedPost, -1);
@@ -2113,6 +2121,60 @@ export async function revokeQuote(
     quoteAuthorizationIri: null,
     updated: revokedAt,
   };
+}
+
+async function sendLocalQuoteAuthorizationDelete(
+  fedCtx: Context<ContextData>,
+  account: Account,
+  quote: QuoteUpdatePost,
+  quoteAuthorizationIri: string,
+): Promise<void> {
+  const activity = new vocab.Delete({
+    id: new URL("#delete", quoteAuthorizationIri),
+    actor: fedCtx.getActorUri(account.id),
+    object: new URL(quoteAuthorizationIri),
+  });
+  const excludeBaseUris = [
+    new URL(fedCtx.origin),
+    new URL(fedCtx.canonicalOrigin),
+  ];
+  if (quote.mentions.length > 0) {
+    await fedCtx.sendActivity(
+      { identifier: account.id },
+      quote.mentions.map((mention) => toRecipient(mention.actor)),
+      activity,
+      {
+        orderingKey: quoteAuthorizationIri,
+        preferSharedInbox: false,
+        excludeBaseUris,
+      },
+    );
+  }
+  if (
+    quote.visibility !== "public" &&
+    quote.visibility !== "unlisted" &&
+    quote.visibility !== "followers"
+  ) {
+    return;
+  }
+  const followers = await fedCtx.data.db.query.followingTable.findMany({
+    with: { follower: true },
+    where: {
+      followeeId: quote.actorId,
+      accepted: { isNotNull: true },
+    },
+  });
+  if (followers.length < 1) return;
+  await fedCtx.sendActivity(
+    { identifier: account.id },
+    followers.map((following) => toRecipient(following.follower)),
+    activity,
+    {
+      orderingKey: quoteAuthorizationIri,
+      preferSharedInbox: true,
+      excludeBaseUris,
+    },
+  );
 }
 
 async function sendLocalQuoteUpdate(

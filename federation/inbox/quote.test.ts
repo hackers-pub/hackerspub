@@ -158,6 +158,20 @@ test("onQuoteRequested accepts request-only follower approvals", async () => {
     assert.equal(authorization.quotedPostId, quotedPost.id);
     assert.equal(sent.some((args) => args[2] instanceof Accept), true);
     assert.equal(sent.some((args) => args[2] instanceof Reject), false);
+
+    sent.length = 0;
+    await onQuoteRequested(fedCtx, request);
+
+    const authorizations = await tx.query.quoteAuthorizationTable.findMany({
+      where: { quotePostIri: instrumentIri },
+    });
+    assert.equal(authorizations.length, 1);
+    assert.equal(authorizations[0].iri, authorization.iri);
+    const accept = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof Accept);
+    assert.ok(accept instanceof Accept);
+    assert.equal(accept.resultId?.href, authorization.iri);
   });
 });
 
