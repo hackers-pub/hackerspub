@@ -131,6 +131,16 @@ async function quoteRequestInstrumentBelongsToActor(
   request: QuoteRequest,
 ): Promise<boolean> {
   if (request.actorId == null || request.instrumentId == null) return false;
+  if (request.instrumentId.origin !== request.actorId.origin) {
+    logger.warn(
+      "Rejecting quote request with cross-origin instrument: {instrument}",
+      {
+        instrument: request.instrumentId.href,
+        actor: request.actorId.href,
+      },
+    );
+    return false;
+  }
   let instrument: unknown;
   try {
     instrument = await fedCtx.lookupObject(request.instrumentId);

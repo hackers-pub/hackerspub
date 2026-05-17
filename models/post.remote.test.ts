@@ -11,6 +11,7 @@ import { eq } from "drizzle-orm";
 import {
   deletePersistedPost,
   deleteSharedPost,
+  getAllowedQuoteTargetForActor,
   getPostByUsernameAndId,
   persistPost,
 } from "./post.ts";
@@ -575,6 +576,49 @@ test("persistPost() stores quotes of local shares against the original post", as
     });
     assert.ok(storedShare != null);
     assert.equal(storedShare.quotesCount, 0);
+  });
+});
+
+test("getAllowedQuoteTargetForActor() unwraps local share chains", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "allowedshareauthor",
+      name: "Allowed Share Author",
+      email: "allowedshareauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "allowedsharesharer",
+      name: "Allowed Share Sharer",
+      email: "allowedsharesharer@example.com",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "allowedsharequoter",
+      name: "Allowed Share Quoter",
+      email: "allowedsharequoter@example.com",
+    });
+    const { post: originalPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Quotable original",
+      quotePolicy: "everyone",
+    });
+    const { post: firstSharePost } = await insertNotePost(tx, {
+      account: sharer.account,
+      content: "First share",
+      sharedPostId: originalPost.id,
+    });
+    const { post: secondSharePost } = await insertNotePost(tx, {
+      account: sharer.account,
+      content: "Second share",
+      sharedPostId: firstSharePost.id,
+    });
+
+    const target = await getAllowedQuoteTargetForActor(
+      tx,
+      quoter.actor,
+      secondSharePost,
+    );
+
+    assert.equal(target?.id, originalPost.id);
   });
 });
 

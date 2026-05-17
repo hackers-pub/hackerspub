@@ -119,6 +119,8 @@ type QuoteUpdatePost = Post & {
 
 type PersistedQuoteTarget = Post & { actor: Actor & { instance: Instance } };
 
+const maxQuoteShareChainDepth = 16;
+
 export function isPostObject(object: unknown): object is PostObject {
   return object instanceof vocab.Article || object instanceof vocab.Note ||
     object instanceof vocab.Question;
@@ -244,25 +246,40 @@ export async function getAllowedQuoteTargetForActor(
   actor: Actor,
   post: Post,
 ): Promise<QuotePolicyPost | undefined> {
-  const targetPostId = post.sharedPostId ?? post.id;
-  const quotedPost = await db.query.postTable.findFirst({
-    with: {
-      actor: {
+  const visited = new Set<Uuid>();
+  let targetPostId: Uuid | null = post.id;
+  let depth = 0;
+  while (targetPostId != null) {
+    if (depth >= maxQuoteShareChainDepth) return undefined;
+    depth++;
+    if (visited.has(targetPostId)) return undefined;
+    visited.add(targetPostId);
+
+    const quotedPost: QuotePolicyPost | undefined = await db.query.postTable
+      .findFirst({
         with: {
-          followers: { where: { followerId: actor.id } },
-          blockees: { where: { blockeeId: actor.id } },
-          blockers: { where: { blockerId: actor.id } },
+          actor: {
+            with: {
+              followers: { where: { followerId: actor.id } },
+              blockees: { where: { blockeeId: actor.id } },
+              blockers: { where: { blockerId: actor.id } },
+            },
+          },
+          mentions: { where: { actorId: actor.id } },
         },
-      },
-      mentions: { where: { actorId: actor.id } },
-    },
-    where: { id: targetPostId },
-  });
-  if (quotedPost == null) return undefined;
-  const allowed = quotedPost.actor.accountId == null
-    ? canActorRequestQuotePost(quotedPost, actor)
-    : canActorQuotePost(quotedPost, actor);
-  return allowed ? quotedPost : undefined;
+        where: { id: targetPostId },
+      });
+    if (quotedPost == null) return undefined;
+    if (quotedPost.sharedPostId != null) {
+      targetPostId = quotedPost.sharedPostId;
+      continue;
+    }
+    const allowed = quotedPost.actor.accountId == null
+      ? canActorRequestQuotePost(quotedPost, actor)
+      : canActorQuotePost(quotedPost, actor);
+    return allowed ? quotedPost : undefined;
+  }
+  return undefined;
 }
 
 async function readResponseBytesAtMost(
@@ -1277,12 +1294,11 @@ async function getOriginalQuoteTarget(
 ): Promise<PersistedQuoteTarget | undefined> {
   if (post.sharedPostId == null) return post;
 
-  const maxShareChainDepth = 16;
   const visited = new Set<Uuid>([post.id]);
   let currentId: Uuid | null = post.sharedPostId;
   let depth = 0;
   while (currentId != null) {
-    if (depth >= maxShareChainDepth) return undefined;
+    if (depth >= maxQuoteShareChainDepth) return undefined;
     depth++;
     if (visited.has(currentId)) return undefined;
     visited.add(currentId);

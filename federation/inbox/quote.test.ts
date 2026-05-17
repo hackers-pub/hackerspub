@@ -99,6 +99,58 @@ test("onQuoteRequested rejects instruments not attributed to the requester", asy
   });
 });
 
+test("onQuoteRequested rejects cross-origin instruments before fetching", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteoriginowner",
+      name: "Quote Origin Owner",
+      email: "quoteoriginowner@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "quoteoriginrequester",
+      name: "Quote Origin Requester",
+      host: "remote.example",
+    });
+    await tx.insert(followingTable).values({
+      iri: `https://remote.example/follows/${requester.id}`,
+      followerId: requester.id,
+      followeeId: author.actor.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Followers-only quote target",
+      quotePolicy: "followers",
+    });
+    const instrumentIri = "https://metadata.example/objects/cross-origin";
+    const request = new QuoteRequest({
+      id: new URL("https://remote.example/quote-requests/cross-origin"),
+      actor: new URL(requester.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new URL(instrumentIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      lookupObject() {
+        throw new Error("cross-origin instrument should not be fetched");
+      },
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    await onQuoteRequested(fedCtx, request);
+
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { quotePostIri: instrumentIri },
+    });
+    assert.equal(authorization, undefined);
+    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+  });
+});
+
 test("onQuoteRequested accepts request-only follower approvals", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
