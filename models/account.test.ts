@@ -68,18 +68,18 @@ const linkMetadata: Record<string, LinkMetadata> = {
     icon: "matrix",
     handle: "#fedify-users:matrix.org",
   },
-  "https://hoto.moe/@hongminhee": {
+  "https://misskey.io/@hongminhee": {
     icon: "misskey",
-    handle: "@hongminhee@hoto.moe",
+    handle: "@hongminhee@misskey.io",
   },
   "https://pixelfed.social/dansup": {
     icon: "pixelfed",
     handle: "@dansup@pixelfed.social",
   },
-  // "https://stereophonic.space/users/karolat": {
-  //   icon: "pleroma",
-  //   handle: "@karolat@stereophonic.space",
-  // },
+  "https://stereophonic.space/users/hongminhee": {
+    icon: "pleroma",
+    handle: "@hongminhee@stereophonic.space",
+  },
   "https://qiita.com/hongminhee": { icon: "qiita", handle: "@hongminhee" },
   "https://www.reddit.com/r/fediverse/": {
     icon: "reddit",
