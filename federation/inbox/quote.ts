@@ -274,6 +274,7 @@ export async function onQuoteRequestAccepted(
     ? undefined
     : await getQuoteRequestForIri(fedCtx, quoteRequestIri);
   let quote = storedRequest?.quotePost;
+  let quotedPost = storedRequest?.quotedPost;
   if (quote == null) {
     const request = await accept.getObject({ ...fedCtx, suppressError: true });
     if (!(request instanceof QuoteRequest)) return false;
@@ -285,11 +286,22 @@ export async function onQuoteRequestAccepted(
     );
     if (quote == null) return true;
   }
+  quotedPost ??= quote.quotedPost ?? undefined;
   if (
-    quote.quotedPost == null ||
-    quote.quotedPost.actor.iri !== accept.actorId.href
+    quotedPost == null ||
+    quotedPost.actor.iri !== accept.actorId.href
   ) {
     logger.warn("Ignoring quote request acceptance from unexpected actor.");
+    return true;
+  }
+  if (
+    storedRequest != null &&
+    quote.quotedPostId != null &&
+    storedRequest.quotedPostId !== quote.quotedPostId
+  ) {
+    logger.warn(
+      "Ignoring stale quote request acceptance for retargeted quote.",
+    );
     return true;
   }
   const authorization = await accept.getResult({
@@ -299,8 +311,8 @@ export async function onQuoteRequestAccepted(
   const validAuthorization = authorization instanceof QuoteAuthorization &&
     authorization.id?.href === accept.resultId.href &&
     authorization.interactingObjectId?.href === quote.iri &&
-    authorization.interactionTargetId?.href === quote.quotedPost.iri &&
-    authorization.attributionId?.href === quote.quotedPost.actor.iri;
+    authorization.interactionTargetId?.href === quotedPost.iri &&
+    authorization.attributionId?.href === quotedPost.actor.iri;
   if (!validAuthorization) {
     logger.warn("Ignoring invalid quote authorization: {iri}", {
       iri: accept.resultId.href,
@@ -309,8 +321,8 @@ export async function onQuoteRequestAccepted(
   }
   const acceptedAt = new Date();
   const resultIri = accept.resultId.href;
-  const quotedPost = quote.quotedPost;
-  const shouldSendUpdate = quote.quoteAuthorizationIri !== resultIri;
+  const shouldSendUpdate = quote.quoteAuthorizationIri !== resultIri ||
+    quote.quotedPostId !== quotedPost.id;
   await fedCtx.data.db.transaction(async (tx) => {
     await tx.insert(quoteAuthorizationTable).values({
       id: generateUuidV7(),
@@ -341,6 +353,7 @@ export async function onQuoteRequestAccepted(
     }
     await tx.update(postTable)
       .set({
+        quotedPostId: quotedPost.id,
         quoteAuthorizationIri: resultIri,
         updated: acceptedAt,
       })
@@ -350,11 +363,20 @@ export async function onQuoteRequestAccepted(
         .set({ updated: acceptedAt })
         .where(eq(noteSourceTable.id, quote.noteSourceId));
     }
+    if (quote.quotedPostId !== quotedPost.id) {
+      await updateQuotesCount(tx, quotedPost, 1);
+    }
   });
   if (shouldSendUpdate) {
     await sendQuoteUpdate(
       fedCtx,
-      quote,
+      {
+        ...quote,
+        quotedPost,
+        quotedPostId: quotedPost.id,
+        quoteAuthorizationIri: resultIri,
+        updated: acceptedAt,
+      },
       resultIri,
       acceptedAt,
     );
@@ -383,6 +405,7 @@ async function getQuoteRequestForIri(
 ): Promise<
   | {
     quotedPostId: Post["id"];
+    quotedPost: Post & { actor: Actor };
     quotePost: QuoteWithRelations;
   }
   | undefined
@@ -397,12 +420,16 @@ async function getQuoteRequestForIri(
           mentions: { with: { actor: true } },
         },
       },
+      quotedPost: { with: { actor: true } },
     },
     where: { iri: quoteRequestIri },
   });
-  if (request?.quotePost == null) return undefined;
+  if (request?.quotePost == null || request.quotedPost == null) {
+    return undefined;
+  }
   return {
     quotedPostId: request.quotedPostId,
+    quotedPost: request.quotedPost,
     quotePost: request.quotePost,
   };
 }
@@ -506,6 +533,7 @@ export async function onQuoteRequestRejected(
     ? undefined
     : await getQuoteRequestForIri(fedCtx, quoteRequestIri);
   let quote = storedRequest?.quotePost;
+  let quotedPost = storedRequest?.quotedPost;
   let requestTargetIri: string | undefined;
   if (quote == null) {
     const request = await reject.getObject({ ...fedCtx, suppressError: true });
@@ -522,13 +550,15 @@ export async function onQuoteRequestRejected(
     );
     if (quote == null) return true;
   }
-  if (quote.quotedPost == null) return true;
-  if (quote.quotedPost.actor.iri !== reject.actorId.href) {
+  quotedPost ??= quote.quotedPost ?? undefined;
+  if (quotedPost == null) return true;
+  if (quotedPost.actor.iri !== reject.actorId.href) {
     logger.warn("Ignoring quote request rejection from unexpected actor.");
     return true;
   }
   if (
     storedRequest != null &&
+    quote.quotedPostId != null &&
     storedRequest.quotedPostId !== quote.quotedPostId
   ) {
     logger.warn("Ignoring stale quote request rejection for retargeted quote.");
@@ -536,13 +566,12 @@ export async function onQuoteRequestRejected(
   }
   if (
     storedRequest == null && requestTargetIri != null &&
-    requestTargetIri !== quote.quotedPost.iri
+    requestTargetIri !== quotedPost.iri
   ) {
     logger.warn("Ignoring quote request rejection for unexpected target.");
     return true;
   }
   const rejectedAt = new Date();
-  const quotedPost = quote.quotedPost;
   const updatedQuote = {
     ...quote,
     quotedPost: null,
@@ -572,9 +601,13 @@ export async function onQuoteRequestRejected(
         .set({ updated: rejectedAt })
         .where(eq(noteSourceTable.id, quote.noteSourceId));
     }
-    await updateQuotesCount(tx, quotedPost, -1);
+    if (quote.quotedPostId === quotedPost.id) {
+      await updateQuotesCount(tx, quotedPost, -1);
+    }
   });
-  await sendQuoteUpdate(fedCtx, updatedQuote, null, rejectedAt);
+  if (quote.quotedPostId === quotedPost.id) {
+    await sendQuoteUpdate(fedCtx, updatedQuote, null, rejectedAt);
+  }
   return true;
 }
 

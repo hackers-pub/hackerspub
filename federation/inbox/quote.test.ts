@@ -590,6 +590,88 @@ test("onQuoteRequestAccepted resolves referenced quote request IDs", async () =>
   });
 });
 
+test("onQuoteRequestAccepted reattaches pending quote targets", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoteattachremote",
+      name: "Quote Attach Remote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Pending quote target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoteattachlocal",
+      name: "Quote Attach Local",
+      email: "quoteattachlocal@example.com",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Pending quote awaiting approval",
+      quotedPostId: quotedPost.id,
+    });
+    await tx.update(postTable)
+      .set({ quotedPostId: null, quoteAuthorizationIri: null })
+      .where(eq(postTable.id, quote.id));
+    const requestIri = new URL("#quote-request", quote.iri).href;
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: requestIri,
+      quotePostId: quote.id,
+      quotedPostId: quotedPost.id,
+    });
+    const authorizationIri =
+      "https://remote.example/quote-authorization/reattach";
+    const authorization = new QuoteAuthorization({
+      id: new URL(authorizationIri),
+      attribution: new URL(remoteActor.iri),
+      interactingObject: new URL(quote.iri),
+      interactionTarget: new URL(quotedPost.iri),
+    });
+    const accept = new Accept({
+      id: new URL("https://remote.example/quote-requests/reattach#accept"),
+      actor: new URL(remoteActor.iri),
+      object: new URL(requestIri),
+      result: authorization,
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteRequestAccepted(fedCtx, accept), true);
+
+    const updatedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(updatedQuote?.quotedPostId, quotedPost.id);
+    assert.equal(updatedQuote?.quoteAuthorizationIri, authorizationIri);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: requestIri },
+    });
+    assert.ok(storedRequest?.accepted != null);
+    assert.equal(storedRequest.rejected, null);
+    const update = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof Update);
+    assert.ok(update instanceof Update);
+    const updatedObject = await update.getObject({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(updatedObject instanceof Note);
+    assert.equal(updatedObject.quoteId?.href, quotedPost.iri);
+    assert.equal(updatedObject.quoteAuthorizationId?.href, authorizationIri);
+  });
+});
+
 test("onQuoteRequestRejected federates quote removal", async () => {
   await withRollback(async (tx) => {
     const remoteActor = await insertRemoteActor(tx, {
@@ -665,6 +747,68 @@ test("onQuoteRequestRejected federates quote removal", async () => {
     assert.equal(updatedObject.quoteUrl, null);
     assert.equal(updatedObject.quoteAuthorizationId, null);
     assert.ok(updatedObject.updated != null);
+  });
+});
+
+test("onQuoteRequestRejected records detached pending requests", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoterejectpendingremote",
+      name: "Quote Reject Pending Remote",
+      host: "remote.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Pending rejected target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoterejectpending",
+      name: "Quote Reject Pending",
+      email: "quoterejectpending@example.com",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Pending quote rejected before attachment",
+      quotedPostId: quotedPost.id,
+    });
+    await tx.update(postTable)
+      .set({ quotedPostId: null, quoteAuthorizationIri: null })
+      .where(eq(postTable.id, quote.id));
+    const requestIri = new URL("#quote-request", quote.iri).href;
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: requestIri,
+      quotePostId: quote.id,
+      quotedPostId: quotedPost.id,
+    });
+    const reject = new Reject({
+      id: new URL("https://remote.example/quote-requests/pending#reject"),
+      actor: new URL(remoteActor.iri),
+      object: new URL(requestIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteRequestRejected(fedCtx, reject), true);
+
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: requestIri },
+    });
+    assert.equal(storedRequest?.accepted, null);
+    assert.ok(storedRequest?.rejected != null);
+    const updatedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(updatedQuote?.quotedPostId, null);
+    assert.equal(sent.some((args) => args[2] instanceof Update), false);
   });
 });
 
