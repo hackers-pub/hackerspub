@@ -1277,9 +1277,13 @@ async function getOriginalQuoteTarget(
 ): Promise<PersistedQuoteTarget | undefined> {
   if (post.sharedPostId == null) return post;
 
+  const maxShareChainDepth = 16;
   const visited = new Set<Uuid>([post.id]);
   let currentId: Uuid | null = post.sharedPostId;
+  let depth = 0;
   while (currentId != null) {
+    if (depth >= maxShareChainDepth) return undefined;
+    depth++;
     if (visited.has(currentId)) return undefined;
     visited.add(currentId);
 

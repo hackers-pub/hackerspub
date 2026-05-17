@@ -635,3 +635,63 @@ test("persistPost() does not allow local share quotes to bypass original policy"
     assert.equal(storedShare.quotesCount, 0);
   });
 });
+
+test("persistPost() rejects quotes of excessively deep local share chains", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "deepshareauthor",
+      name: "Deep Share Author",
+      email: "deepshareauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "deepsharesharer",
+      name: "Deep Share Sharer",
+      email: "deepsharesharer@example.com",
+    });
+    const { post: originalPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Deeply shared original",
+      quotePolicy: "everyone",
+    });
+    let sharedPostId = originalPost.id;
+    for (let i = 0; i < 18; i++) {
+      const { post } = await insertNotePost(tx, {
+        account: sharer.account,
+        content: `Deep share ${i}`,
+        sharedPostId,
+      });
+      sharedPostId = post.id;
+    }
+    const deepSharePost = await tx.query.postTable.findFirst({
+      where: { id: sharedPostId },
+    });
+    assert.ok(deepSharePost != null);
+    const quoter = await insertRemoteActor(tx, {
+      username: "deepsharequoter",
+      name: "Deep Share Quoter",
+      host: "remote.example",
+    });
+    const quote = new Note({
+      id: new URL("https://remote.example/objects/deep-share-quote"),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Remote quote of an excessively deep share chain",
+      quote: new URL(deepSharePost.iri),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), quote);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost, null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: persisted.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, null);
+    const storedOriginal = await tx.query.postTable.findFirst({
+      where: { id: originalPost.id },
+    });
+    assert.ok(storedOriginal != null);
+    assert.equal(storedOriginal.quotesCount, 0);
+  });
+});

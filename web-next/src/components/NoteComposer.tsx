@@ -616,39 +616,57 @@ export function NoteComposer(props: NoteComposerProps) {
     if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
     const target = e.currentTarget;
     if (!(target instanceof HTMLTextAreaElement)) return;
-    const selectionStart = target.selectionStart;
+    let pastedRange: { start: number; end: number } | undefined;
     const removePastedUrl = () => {
       setContent((prev) => {
-        const pastedEnd = selectionStart + clipboardText.length;
-        if (prev.slice(selectionStart, pastedEnd) !== clipboardText) {
-          return prev;
+        if (
+          pastedRange != null &&
+          prev.slice(pastedRange.start, pastedRange.end) === clipboardText
+        ) {
+          return prev.slice(0, pastedRange.start) +
+            prev.slice(pastedRange.end);
         }
-        return prev.slice(0, selectionStart) + prev.slice(pastedEnd);
+        const firstMatch = prev.indexOf(clipboardText);
+        if (firstMatch >= 0 && firstMatch === prev.lastIndexOf(clipboardText)) {
+          return prev.slice(0, firstMatch) +
+            prev.slice(firstMatch + clipboardText.length);
+        }
+        return prev;
       });
     };
-    fetchQuery<NoteComposerPostByUrlQuery>(
-      environment(),
-      NoteComposerPostByUrlQuery,
-      { url: text },
-    ).subscribe({
-      next(data) {
-        const post = data.postByUrl;
-        if (!post) {
-          return;
-        }
-        if (post.__typename !== "Note" && post.__typename !== "Article") {
-          return;
-        }
-        if (!post.viewerCanQuote) {
-          return;
-        }
-        if (!confirm(t`Do you want to quote this link?`)) {
-          return;
-        }
-        removePastedUrl();
-        setPastedQuoteId(post.id);
-      },
-      error() {},
+    queueMicrotask(() => {
+      const pastedEnd = target.selectionStart;
+      const pastedStart = pastedEnd - clipboardText.length;
+      if (
+        pastedStart >= 0 &&
+        target.value.slice(pastedStart, pastedEnd) === clipboardText
+      ) {
+        pastedRange = { start: pastedStart, end: pastedEnd };
+      }
+      fetchQuery<NoteComposerPostByUrlQuery>(
+        environment(),
+        NoteComposerPostByUrlQuery,
+        { url: text },
+      ).subscribe({
+        next(data) {
+          const post = data.postByUrl;
+          if (!post) {
+            return;
+          }
+          if (post.__typename !== "Note" && post.__typename !== "Article") {
+            return;
+          }
+          if (!post.viewerCanQuote) {
+            return;
+          }
+          if (!confirm(t`Do you want to quote this link?`)) {
+            return;
+          }
+          removePastedUrl();
+          setPastedQuoteId(post.id);
+        },
+        error() {},
+      });
     });
   };
 
