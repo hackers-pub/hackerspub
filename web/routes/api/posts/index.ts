@@ -1,5 +1,4 @@
 import {
-  canActorQuotePost,
   canActorRequestQuotePost,
   isPostObject,
   isPostVisibleTo,
@@ -99,11 +98,8 @@ export const handler = define.handlers(async (ctx) => {
     post = { ...post.sharedPost, sharedPost: null };
   }
   if (!isPostVisibleTo(post, account?.actor)) return ctx.next();
-  const viewerCanQuote = account != null && (
-    post.actor.accountId == null
-      ? canActorRequestQuotePost(post, account.actor)
-      : canActorQuotePost(post, account.actor)
-  );
+  const viewerCanQuote = account != null &&
+    canActorRequestQuotePost(post, account.actor);
   return new Response(JSON.stringify({ ...post, viewerCanQuote }), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",

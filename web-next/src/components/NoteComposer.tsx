@@ -658,7 +658,10 @@ export function NoteComposer(props: NoteComposerProps) {
           if (!post) {
             return;
           }
-          if (post.__typename !== "Note" && post.__typename !== "Article") {
+          if (
+            post.__typename !== "Note" && post.__typename !== "Article" &&
+            post.__typename !== "Question"
+          ) {
             return;
           }
           if (!post.viewerCanQuote) {

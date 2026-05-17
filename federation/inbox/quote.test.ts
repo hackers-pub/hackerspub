@@ -673,6 +673,66 @@ test("onQuoteRequestRejected federates quote removal", async () => {
   });
 });
 
+test("onQuoteRequestRejected ignores stale targets", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoterejectstaleremote",
+      name: "Quote Reject Stale Remote",
+      host: "remote.example",
+    });
+    const staleTarget = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Old quote target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const currentTarget = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Current quote target</p>",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoterejectstale",
+      name: "Quote Reject Stale",
+      email: "quoterejectstale@example.com",
+    });
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Retargeted quote",
+      quotedPostId: currentTarget.id,
+    });
+    const requestIri = new URL("#quote-request", quote.iri).href;
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: requestIri,
+      quotePostId: quote.id,
+      quotedPostId: staleTarget.id,
+    });
+    const reject = new Reject({
+      id: new URL("https://remote.example/quote-requests/stale#reject"),
+      actor: new URL(remoteActor.iri),
+      object: new URL(requestIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteRequestRejected(fedCtx, reject), true);
+
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, currentTarget.id);
+    assert.equal(sent.length, 0);
+  });
+});
+
 test("onQuoteRequestRejected does not fan out none visibility quotes", async () => {
   await withRollback(async (tx) => {
     const remoteActor = await insertRemoteActor(tx, {

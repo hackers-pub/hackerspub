@@ -238,9 +238,10 @@ export async function onQuoteRequestAccepted(
 ): Promise<boolean> {
   if (accept.actorId == null || accept.resultId == null) return false;
   let quoteRequestIri = accept.objectId?.href;
-  let quote = quoteRequestIri == null
+  const storedRequest = quoteRequestIri == null
     ? undefined
-    : await getQuoteForQuoteRequestIri(fedCtx, quoteRequestIri);
+    : await getQuoteRequestForIri(fedCtx, quoteRequestIri);
+  let quote = storedRequest?.quotePost;
   if (quote == null) {
     const request = await accept.getObject({ ...fedCtx, suppressError: true });
     if (!(request instanceof QuoteRequest)) return false;
@@ -344,10 +345,16 @@ async function getQuoteForQuoteRequestInstrument(
   });
 }
 
-async function getQuoteForQuoteRequestIri(
+async function getQuoteRequestForIri(
   fedCtx: InboxContext<ContextData>,
   quoteRequestIri: string,
-): Promise<QuoteWithRelations | undefined> {
+): Promise<
+  | {
+    quotedPostId: Post["id"];
+    quotePost: QuoteWithRelations;
+  }
+  | undefined
+> {
   const request = await fedCtx.data.db.query.quoteRequestTable.findFirst({
     with: {
       quotePost: {
@@ -361,7 +368,11 @@ async function getQuoteForQuoteRequestIri(
     },
     where: { iri: quoteRequestIri },
   });
-  return request?.quotePost;
+  if (request?.quotePost == null) return undefined;
+  return {
+    quotedPostId: request.quotedPostId,
+    quotePost: request.quotePost,
+  };
 }
 
 async function sendQuoteUpdate(
@@ -459,14 +470,20 @@ export async function onQuoteRequestRejected(
 ): Promise<boolean> {
   if (reject.actorId == null) return false;
   let quoteRequestIri = reject.objectId?.href;
-  let quote = quoteRequestIri == null
+  let storedRequest = quoteRequestIri == null
     ? undefined
-    : await getQuoteForQuoteRequestIri(fedCtx, quoteRequestIri);
+    : await getQuoteRequestForIri(fedCtx, quoteRequestIri);
+  let quote = storedRequest?.quotePost;
+  let requestTargetIri: string | undefined;
   if (quote == null) {
     const request = await reject.getObject({ ...fedCtx, suppressError: true });
     if (!(request instanceof QuoteRequest)) return false;
     if (request.instrumentId == null) return false;
     quoteRequestIri = request.id?.href ?? quoteRequestIri;
+    requestTargetIri = request.objectId?.href;
+    storedRequest = quoteRequestIri == null
+      ? undefined
+      : await getQuoteRequestForIri(fedCtx, quoteRequestIri);
     quote = await getQuoteForQuoteRequestInstrument(
       fedCtx,
       request.instrumentId.href,
@@ -476,6 +493,20 @@ export async function onQuoteRequestRejected(
   if (quote.quotedPost == null) return true;
   if (quote.quotedPost.actor.iri !== reject.actorId.href) {
     logger.warn("Ignoring quote request rejection from unexpected actor.");
+    return true;
+  }
+  if (
+    storedRequest != null &&
+    storedRequest.quotedPostId !== quote.quotedPostId
+  ) {
+    logger.warn("Ignoring stale quote request rejection for retargeted quote.");
+    return true;
+  }
+  if (
+    storedRequest == null && requestTargetIri != null &&
+    requestTargetIri !== quote.quotedPost.iri
+  ) {
+    logger.warn("Ignoring quote request rejection for unexpected target.");
     return true;
   }
   const rejectedAt = new Date();

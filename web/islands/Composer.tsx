@@ -195,6 +195,10 @@ export function Composer(props: ComposerProps) {
             const r = await fetch(`/api/posts?iri=${encodeURIComponent(text)}`);
             if (!r.ok) return;
             const pastedPost: QuoteLookupPost = await r.json();
+            if (
+              pastedPost.type !== "Note" && pastedPost.type !== "Article" &&
+              pastedPost.type !== "Question"
+            ) return;
             if (!pastedPost.viewerCanQuote) return;
             const confirmMsg = t(
               pastedPost.type === "Article"

@@ -274,9 +274,7 @@ export async function getAllowedQuoteTargetForActor(
       targetPostId = quotedPost.sharedPostId;
       continue;
     }
-    const allowed = quotedPost.actor.accountId == null
-      ? canActorRequestQuotePost(quotedPost, actor)
-      : canActorQuotePost(quotedPost, actor);
+    const allowed = canActorRequestQuotePost(quotedPost, actor);
     return allowed ? quotedPost : undefined;
   }
   return undefined;
@@ -488,14 +486,21 @@ export async function syncPostFromNoteSource(
   const quotedPostId = !hasQuotedPostRelation && existingPost != null
     ? undefined
     : quotedPost?.id ?? null;
+  const existingQuoteAuthorizationIri =
+    existingPost != null && existingPost.quotedPostId === quotedPostId
+      ? existingPost.quoteAuthorizationIri
+      : null;
+  const quoteRequestRequired = quotedPost != null &&
+    !canActorQuotePost(quotedPost, actor) &&
+    existingQuoteAuthorizationIri == null;
   const quoteAuthorizationIri = !hasQuotedPostRelation && existingPost != null
     ? undefined
     : quotedPost == null
     ? null
+    : quoteRequestRequired
+    ? null
     : quotedPost.actor.accountId == null
-    ? existingPost != null && existingPost.quotedPostId === quotedPostId
-      ? existingPost.quoteAuthorizationIri
-      : null
+    ? existingQuoteAuthorizationIri
     : quotedPost.actorId === actor.id
     ? null
     : fedCtx.getObjectUri(vocab.QuoteAuthorization, { id }).href;
@@ -541,9 +546,6 @@ export async function syncPostFromNoteSource(
     })
     .returning();
   const post = rows[0];
-  const quoteRequestRequired = quotedPost != null &&
-    quotedPost.actor.accountId == null &&
-    !canActorQuotePost(quotedPost, actor);
   if (post.quoteAuthorizationIri != null && quotedPost != null) {
     await db.insert(quoteAuthorizationTable).values({
       id,
@@ -1943,9 +1945,7 @@ export async function getPostInteractionPolicies(
       );
     const canQuote = effective.sharedPostId == null &&
       isPostVisibleTo(effective, viewer) &&
-      (effective.actor.accountId == null
-        ? canActorRequestQuotePost(effective, viewer)
-        : canActorQuotePost(effective, viewer));
+      canActorRequestQuotePost(effective, viewer);
     result.set(post.id, {
       canReply: true,
       canQuote,
@@ -2116,7 +2116,10 @@ export async function revokeQuote(
       quoteAuthorizationIri: null,
       updated: revokedAt,
     })
-    .where(eq(postTable.id, quotePost.id))
+    .where(and(
+      eq(postTable.id, quotePost.id),
+      eq(postTable.quotedPostId, quotedPost.id),
+    ))
     .returning();
   const updatedPost = rows[0];
   if (updatedPost == null) return quotePost;

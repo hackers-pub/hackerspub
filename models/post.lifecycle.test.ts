@@ -344,6 +344,57 @@ Deno.test({
   },
 });
 
+Deno.test({
+  name: "revokeQuote() does not double-decrement retried revocations",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const owner = await insertAccountWithActor(tx, {
+        username: "quoterevokeidemowner",
+        name: "Quote Revoke Idempotent Owner",
+        email: "quoterevokeidemowner@example.com",
+      });
+      const quoter = await insertAccountWithActor(tx, {
+        username: "quoterevokeidemlocal",
+        name: "Quote Revoke Idempotent Local",
+        email: "quoterevokeidemlocal@example.com",
+      });
+      const { post: quotedPost } = await insertNotePost(tx, {
+        account: owner.account,
+        content: "Idempotent quote revocation target",
+      });
+      const { post: quote } = await insertNotePost(tx, {
+        account: quoter.account,
+        content: "Quote revoked twice",
+        quotedPostId: quotedPost.id,
+      });
+      await tx.update(postTable)
+        .set({ quotesCount: 1 })
+        .where(eq(postTable.id, quotedPost.id));
+      const fedCtx = {
+        ...createFedCtx(tx),
+        sendActivity() {
+          return Promise.resolve(undefined);
+        },
+      };
+      const quoteWithActor = await tx.query.postTable.findFirst({
+        where: { id: quote.id },
+        with: { actor: true },
+      });
+      assert(quoteWithActor != null);
+
+      await revokeQuote(fedCtx, owner.account, quoteWithActor, quotedPost);
+      await revokeQuote(fedCtx, owner.account, quoteWithActor, quotedPost);
+
+      const storedTarget = await tx.query.postTable.findFirst({
+        where: { id: quotedPost.id },
+      });
+      assertEquals(storedTarget?.quotesCount, 0);
+    });
+  },
+});
+
 async function withTagsPubRelayEnabled(
   run: () => Promise<void>,
 ): Promise<void> {

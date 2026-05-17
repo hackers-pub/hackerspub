@@ -25,7 +25,7 @@ import {
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
 import IconBan from "~icons/lucide/ban";
-import type { QuotedNoteCard_note$key } from "./__generated__/QuotedNoteCard_note.graphql.ts";
+import type { QuotedNoteCard_post$key } from "./__generated__/QuotedNoteCard_post.graphql.ts";
 import type { QuotedNoteCardRevokeQuoteMutation } from "./__generated__/QuotedNoteCardRevokeQuoteMutation.graphql.ts";
 
 const RevokeQuoteMutation = graphql`
@@ -58,7 +58,7 @@ const RevokeQuoteMutation = graphql`
 `;
 
 export interface QuotedNoteCardProps {
-  readonly $note: QuotedNoteCard_note$key;
+  readonly $post: QuotedNoteCard_post$key;
   readonly quotePostId?: string;
   readonly canRevokeQuote?: boolean;
   readonly class?: string;
@@ -73,12 +73,15 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
     QuotedNoteCardRevokeQuoteMutation
   >(RevokeQuoteMutation);
 
-  const note = createFragment(
+  const post = createFragment(
     graphql`
-      fragment QuotedNoteCard_note on Note {
+      fragment QuotedNoteCard_post on Post {
+        __typename
         __id
         uuid
-        sourceId
+        ... on Note {
+          sourceId
+        }
         actor {
           name
           handle
@@ -96,67 +99,75 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
         iri
       }
     `,
-    () => props.$note,
+    () => props.$post,
   );
 
   return (
-    <Show keyed when={note()}>
-      {(note) => (
+    <Show keyed when={post()}>
+      {(post) => (
         <div class={props.class} classList={props.classList}>
           <div class="w-0 h-0 border-l-[15px] border-r-[15px] border-b-[20px] border-l-transparent border-r-transparent border-b-muted ml-4" />
           <div class="flex flex-col bg-muted p-4">
             <div class="flex min-w-0 gap-4">
-              <ActorHoverCard handle={note.actor.handle} class="shrink-0">
+              <ActorHoverCard handle={post.actor.handle} class="shrink-0">
                 <Avatar class="size-12 shrink-0">
                   <InternalLink
-                    href={note.actor.url ?? note.actor.iri}
-                    internalHref={note.actor.local
-                      ? `/@${note.actor.username}`
-                      : `/${note.actor.handle}`}
+                    href={post.actor.url ?? post.actor.iri}
+                    internalHref={post.actor.local
+                      ? `/@${post.actor.username}`
+                      : `/${post.actor.handle}`}
                   >
-                    <AvatarImage src={note.actor.avatarUrl} class="size-12" />
+                    <AvatarImage src={post.actor.avatarUrl} class="size-12" />
                   </InternalLink>
                 </Avatar>
               </ActorHoverCard>
               <div class="flex min-w-0 flex-col">
                 <ActorHoverCard
-                  handle={note.actor.handle}
+                  handle={post.actor.handle}
                   class="min-w-0 flex flex-wrap items-baseline gap-x-1"
                 >
-                  <Show when={(note.actor.name ?? "").trim() !== ""}>
+                  <Show when={(post.actor.name ?? "").trim() !== ""}>
                     <InternalLink
-                      href={note.actor.url ?? note.actor.iri}
-                      internalHref={note.actor.local
-                        ? `/@${note.actor.username}`
-                        : `/${note.actor.handle}`}
-                      innerHTML={note.actor.name ?? ""}
+                      href={post.actor.url ?? post.actor.iri}
+                      internalHref={post.actor.local
+                        ? `/@${post.actor.username}`
+                        : `/${post.actor.handle}`}
+                      innerHTML={post.actor.name ?? ""}
                       class="font-semibold"
                     />
                   </Show>
                   <span
                     class="min-w-0 break-all select-all text-muted-foreground"
-                    title={note.actor.handle}
+                    title={post.actor.handle}
                   >
-                    {note.actor.handle}
+                    {post.actor.handle}
                   </span>
                 </ActorHoverCard>
                 <div class="flex min-w-0 flex-row flex-wrap gap-1 text-muted-foreground">
                   <InternalLink
-                    href={note.url ?? note.iri}
-                    internalHref={note.actor.local
-                      ? `/@${note.actor.username}/${note.sourceId ?? note.uuid}`
-                      : `/${note.actor.handle}/${note.sourceId ?? note.uuid}`}
+                    href={post.url ?? post.iri}
+                    internalHref={post.actor.local
+                      ? `/@${post.actor.username}/${
+                        post.__typename === "Note"
+                          ? post.sourceId ?? post.uuid
+                          : post.uuid
+                      }`
+                      : `/${post.actor.handle}/${
+                        post.__typename === "Note"
+                          ? post.sourceId ?? post.uuid
+                          : post.uuid
+                      }`}
                   >
-                    <Timestamp value={note.published} capitalizeFirstLetter />
+                    <Timestamp value={post.published} capitalizeFirstLetter />
                   </InternalLink>{" "}
-                  &middot; <VisibilityTag visibility={note.visibility} />
+                  &middot; <VisibilityTag visibility={post.visibility} />
                 </div>
               </div>
             </div>
             <div
               ref={setProseRef}
-              innerHTML={note.content}
-              lang={note.language ?? undefined}
+              innerHTML={post.content}
+              lang={post.language ?? undefined}
               class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
             />
             <MentionHoverCardLayer state={mentionState} />

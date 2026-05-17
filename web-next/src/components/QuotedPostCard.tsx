@@ -17,7 +17,7 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
     graphql`
       fragment QuotedPostCard_post on Post {
         __typename
-        ...QuotedNoteCard_note
+        ...QuotedNoteCard_post
       }
     `,
     () => props.$post,
@@ -29,7 +29,16 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
         <Switch>
           <Match when={post.__typename === "Note"}>
             <QuotedNoteCard
-              $note={post}
+              $post={post}
+              quotePostId={props.quotePostId}
+              canRevokeQuote={props.canRevokeQuote}
+              class={props.class}
+              classList={props.classList}
+            />
+          </Match>
+          <Match when={post.__typename === "Question"}>
+            <QuotedNoteCard
+              $post={post}
               quotePostId={props.quotePostId}
               canRevokeQuote={props.canRevokeQuote}
               class={props.class}

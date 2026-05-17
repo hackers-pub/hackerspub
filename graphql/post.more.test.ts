@@ -1751,6 +1751,68 @@ test("createNote sends QuoteRequest for remote manual-approval quotes", async ()
   });
 });
 
+test("createNote stores QuoteRequest for local manual-approval quotes", async () => {
+  await withRollback(async (tx) => {
+    const owner = await insertAccountWithActor(tx, {
+      username: "quotemanualowner",
+      name: "Quote Manual Owner",
+      email: "quotemanualowner@example.com",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quotemanualocal",
+      name: "Quote Manual Local",
+      email: "quotemanualocal@example.com",
+    });
+    const { post: localPost } = await insertNotePost(tx, {
+      account: owner.account,
+      content: "Manual approval required locally",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const sent: unknown[][] = [];
+
+    const result = await execute({
+      schema,
+      document: createNoteMutation,
+      variableValues: {
+        input: {
+          content: "requesting local quote approval",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", localPost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account, {
+        sendActivity(...args: unknown[]) {
+          sent.push(args);
+          return Promise.resolve(undefined);
+        },
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.equal(
+      (toPlainJson(result.data) as { createNote: { __typename: string } })
+        .createNote.__typename,
+      "CreateNotePayload",
+    );
+    const createdQuote = await tx.query.postTable.findFirst({
+      where: { actorId: quoter.actor.id },
+    });
+    assert.ok(createdQuote != null);
+    assert.equal(createdQuote.quoteAuthorizationIri, null);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: {
+        quotePostId: createdQuote.id,
+        quotedPostId: localPost.id,
+      },
+    });
+    assert.ok(storedRequest != null);
+    assert.ok(sent.some((args) => args[2] instanceof QuoteRequest));
+  });
+});
+
 test("createNote does not send QuoteRequest for automatic remote quotes", async () => {
   await withRollback(async (tx) => {
     const remoteActor = await insertRemoteActor(tx, {
