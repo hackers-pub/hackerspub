@@ -254,7 +254,8 @@ export async function handleArticle(
       rendered.html,
       {
         ...article.post,
-        quote: article.post.quotedPostId != null,
+        quote: article.post.quotedPostId != null ||
+          article.post.quoteTargetState != null,
         localDomain: new URL(ctx.state.canonicalOrigin),
       },
     ),

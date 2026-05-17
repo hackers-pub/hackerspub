@@ -109,6 +109,9 @@ export async function onQuoteRequested(
       replies: false,
     });
     if (quotePost == null) return;
+    await fedCtx.data.db.update(postTable)
+      .set({ quoteTargetState: "pending" })
+      .where(eq(postTable.id, quotePost.id));
     await fedCtx.data.db.insert(quoteRequestTable).values({
       id: generateUuidV7(),
       iri: request.id.href,
@@ -378,6 +381,7 @@ export async function onQuoteRequestAccepted(
       .set({
         quotedPostId: quotedPost.id,
         quoteAuthorizationIri: resultIri,
+        quoteTargetState: null,
         updated: acceptedAt,
       })
       .where(eq(postTable.id, quote.id));
@@ -398,6 +402,7 @@ export async function onQuoteRequestAccepted(
         quotedPost,
         quotedPostId: quotedPost.id,
         quoteAuthorizationIri: resultIri,
+        quoteTargetState: null,
         updated: acceptedAt,
       },
       resultIri,
@@ -600,6 +605,7 @@ export async function onQuoteRequestRejected(
     quotedPost: null,
     quotedPostId: null,
     quoteAuthorizationIri: null,
+    quoteTargetState: "denied" as const,
     updated: rejectedAt,
   };
   await fedCtx.data.db.transaction(async (tx) => {
@@ -616,6 +622,7 @@ export async function onQuoteRequestRejected(
       .set({
         quotedPostId: null,
         quoteAuthorizationIri: null,
+        quoteTargetState: "denied",
         updated: rejectedAt,
       })
       .where(eq(postTable.id, quote.id));
@@ -673,6 +680,7 @@ export async function onQuoteAuthorizationDeleted(
       .set({
         quotedPostId: null,
         quoteAuthorizationIri: null,
+        quoteTargetState: "denied",
         updated: revokedAt,
       })
       .where(eq(postTable.quoteAuthorizationIri, authorizationIri));
@@ -702,6 +710,7 @@ export async function onQuoteAuthorizationDeleted(
         quotedPost: null,
         quotedPostId: null,
         quoteAuthorizationIri: null,
+        quoteTargetState: "denied" as const,
         updated: revokedAt,
       },
       null,

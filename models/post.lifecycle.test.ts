@@ -290,6 +290,7 @@ Deno.test({
         assert(storedQuote != null);
         assertEquals(storedQuote.quotedPostId, null);
         assertEquals(storedQuote.quoteAuthorizationIri, null);
+        assertEquals(storedQuote.quoteTargetState, "denied");
         const updatedSource = await tx.query.noteSourceTable.findFirst({
           where: { id: quote.noteSourceId },
         });

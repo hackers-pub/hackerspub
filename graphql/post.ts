@@ -85,7 +85,13 @@ import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
 import { putArticleOgImage } from "./og.ts";
 import { PostVisibility, toPostVisibility } from "./postvisibility.ts";
-import { fromQuotePolicy, QuotePolicy, toQuotePolicy } from "./quotepolicy.ts";
+import {
+  fromQuotePolicy,
+  QuotePolicy,
+  QuoteTargetState,
+  toQuotePolicy,
+  toQuoteTargetState,
+} from "./quotepolicy.ts";
 import { Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
@@ -187,6 +193,16 @@ export const Post = builder.drizzleInterface("postTable", {
       },
       resolve(post) {
         return toQuotePolicy(post.quotePolicy);
+      },
+    }),
+    quoteTargetState: t.field({
+      type: QuoteTargetState,
+      nullable: true,
+      select: {
+        columns: { quoteTargetState: true },
+      },
+      resolve(post) {
+        return toQuoteTargetState(post.quoteTargetState);
       },
     }),
     name: t.exposeString("name", { nullable: true }),

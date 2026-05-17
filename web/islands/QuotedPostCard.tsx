@@ -14,6 +14,7 @@ import { useEffect, useState } from "preact/hooks";
 import { Excerpt } from "../components/Excerpt.tsx";
 import { Msg, TranslationSetup } from "../components/Msg.tsx";
 import { PostVisibilityIcon } from "../components/PostVisibilityIcon.tsx";
+import { QuoteTargetPlaceholder } from "../components/QuoteTargetPlaceholder.tsx";
 import type { Language } from "../i18n.ts";
 import { Link } from "./Link.tsx";
 import { PollCard } from "./PollCard.tsx";
@@ -198,7 +199,8 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                           post.contentHtml,
                           {
                             ...post,
-                            quote: post.quotedPostId != null,
+                            quote: post.quotedPostId != null ||
+                              post.quoteTargetState != null,
                             localDomain: new URL(props.canonicalOrigin),
                           },
                         ),
@@ -237,19 +239,27 @@ export function QuotedPostCard(props: QuotedPostCardProps) {
                         })}
                       </div>
                     )}
-                    {post.quotedPostId && (
-                      <QuotedPostCard
-                        canonicalOrigin={props.canonicalOrigin}
-                        language={props.language}
-                        id={post.quotedPostId}
-                        class="
-                          hidden lg:block
-                          mt-4 ml-14
-                          group-hover:border-stone-400 group-hover:bg-stone-200
-                          dark:group-hover:border-stone-500 dark:group-hover:bg-stone-700
-                        "
-                      />
-                    )}
+                    {post.quotedPostId != null
+                      ? (
+                        <QuotedPostCard
+                          canonicalOrigin={props.canonicalOrigin}
+                          language={props.language}
+                          id={post.quotedPostId}
+                          class="
+                            hidden lg:block
+                            mt-4 ml-14
+                            group-hover:border-stone-400 group-hover:bg-stone-200
+                            dark:group-hover:border-stone-500 dark:group-hover:bg-stone-700
+                          "
+                        />
+                      )
+                      : post.quoteTargetState != null &&
+                        (
+                          <QuoteTargetPlaceholder
+                            state={post.quoteTargetState}
+                            class="hidden lg:block mt-4 ml-14"
+                          />
+                        )}
                   </>
                 )}
             </Link>

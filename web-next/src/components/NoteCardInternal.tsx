@@ -12,6 +12,7 @@ import { NoteHeader } from "./NoteHeader.tsx";
 import { NoteMedia } from "./NoteMedia.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
+import { QuoteTargetPlaceholder } from "./QuoteTargetPlaceholder.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
 
 export interface NoteCardInternalProps {
@@ -43,6 +44,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
         ...NoteMedia_note
         ...LinkPreview_note
         ...NoteHeader_note
+        quoteTargetState
         quotedPost {
           ...QuotedPostCard_post
         }
@@ -106,6 +108,9 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
                   canRevokeQuote={n.viewerCanRevokeQuote}
                 />
               )}
+            </Show>
+            <Show keyed when={n.quotedPost == null ? n.quoteTargetState : null}>
+              {(state) => <QuoteTargetPlaceholder state={state} />}
             </Show>
             <PostEngagementBar
               $post={n}

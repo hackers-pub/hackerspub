@@ -30,6 +30,12 @@
     "invitationLink": "invitation link",
     "medium": "medium"
   },
+  "quoteTarget": {
+    "pendingTitle": "Quoted post awaiting approval",
+    "pendingBody": "This quote is waiting for approval from the original author.",
+    "deniedTitle": "Quoted post hidden",
+    "deniedBody": "This post quoted another post, but the quote is not currently authorized."
+  },
   "notification": {
     "title": "Notifications",
     "empty": "No notifications yet",

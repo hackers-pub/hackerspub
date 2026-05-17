@@ -85,6 +85,7 @@ import {
   type PostVisibility,
   quoteAuthorizationTable,
   type QuotePolicy,
+  quoteRequestTable,
   type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline, removeFromTimeline } from "./timeline.ts";
@@ -489,7 +490,12 @@ export async function syncPostFromNoteSource(
   const url =
     `${fedCtx.canonicalOrigin}/@${noteSource.account.username}/${noteSource.id}`;
   const existingPost = await db.query.postTable.findFirst({
-    columns: { id: true, quotedPostId: true, quoteAuthorizationIri: true },
+    columns: {
+      id: true,
+      quotedPostId: true,
+      quoteAuthorizationIri: true,
+      quoteTargetState: true,
+    },
     where: { noteSourceId: noteSource.id },
   });
   const id = existingPost?.id ?? generateUuidV7();
@@ -517,6 +523,11 @@ export async function syncPostFromNoteSource(
     : quotedPost.actorId === actor.id
     ? null
     : fedCtx.getObjectUri(vocab.QuoteAuthorization, { id }).href;
+  const quoteTargetState = !hasQuotedPostRelation && existingPost != null
+    ? undefined
+    : quoteRequestRequired
+    ? "pending"
+    : null;
   const values: Omit<NewPost, "id"> = {
     iri: fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href,
     type: "Note",
@@ -530,6 +541,7 @@ export async function syncPostFromNoteSource(
     replyTargetId: relations.replyTarget?.id,
     quotedPostId,
     quoteAuthorizationIri,
+    quoteTargetState,
     contentHtml: rendered.html,
     language: noteSource.language,
     tags: Object.fromEntries(
@@ -904,7 +916,9 @@ export async function persistPost(
       iri: quotedPost.iri,
     });
     quotedPost = undefined;
-  } else if (
+  }
+  let unauthorizedQuoteTarget: PersistedQuoteTarget | undefined;
+  if (
     quotedPost != null &&
     quoteAuthorizationIri == null &&
     !(await canPersistIncomingQuote(db, quotedPost.id, actor))
@@ -912,6 +926,7 @@ export async function persistPost(
     logger.debug("Ignoring quoted post denied by quote policy: {iri}", {
       iri: quotedPost.iri,
     });
+    unauthorizedQuoteTarget = quotedPost;
     quotedPost = undefined;
   }
   if (quotedPost == null && quoteAuthorizationIri != null) {
@@ -920,6 +935,15 @@ export async function persistPost(
     });
     quoteAuthorizationIri = undefined;
   }
+  const quoteTargetState: Post["quoteTargetState"] = quotedPost != null ||
+      quotedPostIris.length < 1 || existingPost == null ||
+      unauthorizedQuoteTarget == null
+    ? null
+    : await getPersistedQuoteTargetState(
+      db,
+      existingPost.id,
+      unauthorizedQuoteTarget.id,
+    );
   const contentHtml = post.content?.toString();
   let externalLinks = contentHtml == null
     ? []
@@ -968,6 +992,7 @@ export async function persistPost(
     replyTargetId: replyTarget?.id,
     quotedPostId: quotedPost?.id ?? null,
     quoteAuthorizationIri: quoteAuthorizationIri ?? null,
+    quoteTargetState,
     repliesCount: replies?.totalItems ?? 0,
     sharesCount: shares?.totalItems ?? 0,
     updated: toDate(post.updated ?? post.published) ?? undefined,
@@ -1327,6 +1352,45 @@ async function canPersistIncomingQuote(
     where: { id: quotedPostId },
   });
   return quotedPost != null && canActorQuotePost(quotedPost, actor);
+}
+
+async function getPersistedQuoteTargetState(
+  db: Database,
+  quotePostId: Uuid,
+  quotedPostId: Uuid,
+): Promise<Post["quoteTargetState"]> {
+  const pendingRequests = await db.select({ id: quoteRequestTable.id })
+    .from(quoteRequestTable)
+    .where(and(
+      eq(quoteRequestTable.quotePostId, quotePostId),
+      eq(quoteRequestTable.quotedPostId, quotedPostId),
+      isNull(quoteRequestTable.accepted),
+      isNull(quoteRequestTable.rejected),
+    ))
+    .limit(1);
+  if (pendingRequests.length > 0) return "pending";
+
+  const deniedRequests = await db.select({ id: quoteRequestTable.id })
+    .from(quoteRequestTable)
+    .where(and(
+      eq(quoteRequestTable.quotePostId, quotePostId),
+      eq(quoteRequestTable.quotedPostId, quotedPostId),
+      isNotNull(quoteRequestTable.rejected),
+    ))
+    .limit(1);
+  if (deniedRequests.length > 0) return "denied";
+
+  const revokedAuthorizations = await db.select({
+    id: quoteAuthorizationTable.id,
+  })
+    .from(quoteAuthorizationTable)
+    .where(and(
+      eq(quoteAuthorizationTable.quotePostId, quotePostId),
+      eq(quoteAuthorizationTable.quotedPostId, quotedPostId),
+      eq(quoteAuthorizationTable.revoked, true),
+    ))
+    .limit(1);
+  return revokedAuthorizations.length > 0 ? "denied" : null;
 }
 
 async function getOriginalQuoteTarget(
@@ -2115,6 +2179,7 @@ export async function revokeQuote(
     .set({
       quotedPostId: null,
       quoteAuthorizationIri: null,
+      quoteTargetState: "denied",
       updated: revokedAt,
     })
     .where(and(

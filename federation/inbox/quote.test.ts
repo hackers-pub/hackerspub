@@ -400,6 +400,7 @@ test("onQuoteRequested leaves request-only follower approvals pending", async ()
       where: { iri: instrumentIri },
     });
     assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quoteTargetState, "pending");
     const storedRequest = await tx.query.quoteRequestTable.findFirst({
       where: { iri: request.id!.href },
     });
@@ -613,6 +614,7 @@ test("onQuoteRequestAccepted federates updated quote authorization", async () =>
         where: { id: quote.id },
       });
       assert.equal(updatedQuote?.quoteAuthorizationIri, authorizationIri);
+      assert.equal(updatedQuote?.quoteTargetState, null);
       const updatedNoteSource = await tx.query.noteSourceTable.findFirst({
         where: { id: quote.noteSourceId },
       });
@@ -802,7 +804,11 @@ test("onQuoteRequestAccepted reattaches pending quote targets", async () => {
       quotedPostId: quotedPost.id,
     });
     await tx.update(postTable)
-      .set({ quotedPostId: null, quoteAuthorizationIri: null })
+      .set({
+        quotedPostId: null,
+        quoteAuthorizationIri: null,
+        quoteTargetState: "pending",
+      })
       .where(eq(postTable.id, quote.id));
     const requestIri = new URL("#quote-request", quote.iri).href;
     await tx.insert(quoteRequestTable).values({
@@ -841,6 +847,7 @@ test("onQuoteRequestAccepted reattaches pending quote targets", async () => {
     });
     assert.equal(updatedQuote?.quotedPostId, quotedPost.id);
     assert.equal(updatedQuote?.quoteAuthorizationIri, authorizationIri);
+    assert.equal(updatedQuote?.quoteTargetState, null);
     const storedRequest = await tx.query.quoteRequestTable.findFirst({
       where: { iri: requestIri },
     });
@@ -916,6 +923,7 @@ test("onQuoteRequestRejected federates quote removal", async () => {
     });
     assert.equal(updatedQuote?.quotedPostId, null);
     assert.equal(updatedQuote?.quoteAuthorizationIri, null);
+    assert.equal(updatedQuote?.quoteTargetState, "denied");
     const updatedNoteSource = await tx.query.noteSourceTable.findFirst({
       where: { id: quote.noteSourceId },
     });
@@ -962,7 +970,11 @@ test("onQuoteRequestRejected records detached pending requests", async () => {
       quotedPostId: quotedPost.id,
     });
     await tx.update(postTable)
-      .set({ quotedPostId: null, quoteAuthorizationIri: null })
+      .set({
+        quotedPostId: null,
+        quoteAuthorizationIri: null,
+        quoteTargetState: "pending",
+      })
       .where(eq(postTable.id, quote.id));
     const requestIri = new URL("#quote-request", quote.iri).href;
     await tx.insert(quoteRequestTable).values({
@@ -996,6 +1008,7 @@ test("onQuoteRequestRejected records detached pending requests", async () => {
       where: { id: quote.id },
     });
     assert.equal(updatedQuote?.quotedPostId, null);
+    assert.equal(updatedQuote?.quoteTargetState, "denied");
     assert.equal(sent.some((args) => args[2] instanceof Update), false);
   });
 });
@@ -1171,6 +1184,7 @@ test("onQuoteAuthorizationDeleted federates quote removal", async () => {
     });
     assert.equal(updatedQuote?.quotedPostId, null);
     assert.equal(updatedQuote?.quoteAuthorizationIri, null);
+    assert.equal(updatedQuote?.quoteTargetState, "denied");
     const authorization = await tx.query.quoteAuthorizationTable.findFirst({
       where: { iri: authorizationIri },
     });

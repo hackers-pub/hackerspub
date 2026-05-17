@@ -1771,6 +1771,7 @@ test("createNote sends QuoteRequest for remote manual-approval quotes", async ()
       where: { actorId: quoter.actor.id },
     });
     assert.equal(createdQuote?.quotedPostId, null);
+    assert.equal(createdQuote?.quoteTargetState, "pending");
     const storedRemotePost = await tx.query.postTable.findFirst({
       where: { id: remotePost.id },
     });
@@ -1830,6 +1831,7 @@ test("createNote stores QuoteRequest for local manual-approval quotes", async ()
     assert.ok(createdQuote != null);
     assert.equal(createdQuote.quotedPostId, null);
     assert.equal(createdQuote.quoteAuthorizationIri, null);
+    assert.equal(createdQuote.quoteTargetState, "pending");
     const storedRequest = await tx.query.quoteRequestTable.findFirst({
       where: {
         quotePostId: createdQuote.id,

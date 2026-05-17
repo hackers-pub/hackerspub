@@ -30,6 +30,12 @@
     "invitationLink": "招待リンク",
     "medium": "メディア"
   },
+  "quoteTarget": {
+    "pendingTitle": "引用元の承認待ちです",
+    "pendingBody": "この引用は元の作成者からの承認を待っています。",
+    "deniedTitle": "引用元は非表示です",
+    "deniedBody": "このコンテンツは別のコンテンツを引用していましたが、現在この引用は許可されていません。"
+  },
   "notification": {
     "title": "通知",
     "empty": "通知はまだありません",

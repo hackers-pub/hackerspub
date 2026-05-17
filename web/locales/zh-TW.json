@@ -30,6 +30,12 @@
     "invitationLink": "邀請連結",
     "medium": "媒體"
   },
+  "quoteTarget": {
+    "pendingTitle": "引用內容正在等待核准",
+    "pendingBody": "此引用正在等待原作者核准。",
+    "deniedTitle": "引用內容已隱藏",
+    "deniedBody": "此內容引用了另一則內容，但目前未獲得引用授權。"
+  },
   "notification": {
     "title": "通知",
     "empty": "暫無通知",

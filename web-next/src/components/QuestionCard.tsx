@@ -31,6 +31,7 @@ import { InternalLink } from "./InternalLink.tsx";
 import { QuestionActionMenu } from "./PostActionMenu.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
+import { QuoteTargetPlaceholder } from "./QuoteTargetPlaceholder.tsx";
 import { QuotedPostCard } from "./QuotedPostCard.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { Trans } from "./Trans.tsx";
@@ -171,6 +172,7 @@ function QuestionCardContent(props: QuestionCardContentProps) {
           }
         }
         viewerCanRevokeQuote
+        quoteTargetState
         quotedPost {
           ...QuotedPostCard_post
         }
@@ -301,6 +303,9 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                   canRevokeQuote={q.viewerCanRevokeQuote}
                 />
               )}
+            </Show>
+            <Show keyed when={q.quotedPost == null ? q.quoteTargetState : null}>
+              {(state) => <QuoteTargetPlaceholder state={state} />}
             </Show>
             {(() => {
               const base = `/${

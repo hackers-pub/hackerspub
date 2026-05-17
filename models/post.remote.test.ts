@@ -15,7 +15,12 @@ import {
   getPostByUsernameAndId,
   persistPost,
 } from "./post.ts";
-import { actorTable, postTable, quoteAuthorizationTable } from "./schema.ts";
+import {
+  actorTable,
+  postTable,
+  quoteAuthorizationTable,
+  quoteRequestTable,
+} from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
@@ -288,6 +293,152 @@ test("persistPost() clears stale quote targets denied by policy", async () => {
     });
     assert.ok(storedQuotedPost != null);
     assert.equal(storedQuotedPost.quotesCount, 0);
+  });
+});
+
+test("persistPost() clears stale quote target state when a remote quote is removed", async () => {
+  await withRollback(async (tx) => {
+    const quoter = await insertRemoteActor(tx, {
+      username: "removedquotequoter",
+      name: "Removed Quote Quoter",
+      host: "remote.example",
+    });
+    const existingQuote = await insertRemotePost(tx, {
+      actorId: quoter.id,
+      contentHtml: "<p>Previously pending quote</p>",
+    });
+    await tx.update(postTable)
+      .set({ quoteTargetState: "pending" })
+      .where(eq(postTable.id, existingQuote.id));
+    const refetchedQuote = new Note({
+      id: new URL(existingQuote.iri),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "No longer a quote",
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), refetchedQuote);
+
+    assert.ok(persisted != null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: existingQuote.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, null);
+    assert.equal(storedQuote.quoteAuthorizationIri, null);
+    assert.equal(storedQuote.quoteTargetState, null);
+  });
+});
+
+test("persistPost() clears stale quote target state when a remote quote gains authorization", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "stateclearauthauthor",
+      name: "State Clear Auth Author",
+      email: "stateclearauthauthor@example.com",
+    });
+    const quoter = await insertRemoteActor(tx, {
+      username: "stateclearauthquoter",
+      name: "State Clear Auth Quoter",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Restricted target that later authorizes",
+      quotePolicy: "self",
+    });
+    const existingQuote = await insertRemotePost(tx, {
+      actorId: quoter.id,
+      contentHtml: "<p>Previously pending authorized quote</p>",
+    });
+    await tx.update(postTable)
+      .set({ quoteTargetState: "pending" })
+      .where(eq(postTable.id, existingQuote.id));
+    const authorizationIri =
+      "http://localhost/objects/state-clear-quote-authorization";
+    await tx.insert(quoteAuthorizationTable).values({
+      id: generateUuidV7(),
+      iri: authorizationIri,
+      quotePostIri: existingQuote.iri,
+      quotedPostId: quotedPost.id,
+      attributedActorId: quotedPost.actorId,
+    });
+    const refetchedQuote = new Note({
+      id: new URL(existingQuote.iri),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Authorized quote",
+      quote: new URL(quotedPost.iri),
+      quoteAuthorization: new QuoteAuthorization({
+        id: new URL(authorizationIri),
+        attribution: new URL(author.actor.iri),
+        interactingObject: new URL(existingQuote.iri),
+        interactionTarget: new URL(quotedPost.iri),
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), refetchedQuote);
+
+    assert.ok(persisted != null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: existingQuote.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, quotedPost.id);
+    assert.equal(storedQuote.quoteAuthorizationIri, authorizationIri);
+    assert.equal(storedQuote.quoteTargetState, null);
+  });
+});
+
+test("persistPost() preserves pending quote target state for a still-denied remote quote request", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "statependingauthor",
+      name: "State Pending Author",
+      email: "statependingauthor@example.com",
+    });
+    const quoter = await insertRemoteActor(tx, {
+      username: "statependingquoter",
+      name: "State Pending Quoter",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Restricted pending target",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const existingQuote = await insertRemotePost(tx, {
+      actorId: quoter.id,
+      contentHtml: "<p>Pending quote request</p>",
+    });
+    await tx.update(postTable)
+      .set({ quoteTargetState: "pending" })
+      .where(eq(postTable.id, existingQuote.id));
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: "https://remote.example/quote-requests/state-pending",
+      quotePostId: existingQuote.id,
+      quotedPostId: quotedPost.id,
+    });
+    const refetchedQuote = new Note({
+      id: new URL(existingQuote.iri),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Pending quote request",
+      quote: new URL(quotedPost.iri),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), refetchedQuote);
+
+    assert.ok(persisted != null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: existingQuote.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, null);
+    assert.equal(storedQuote.quoteAuthorizationIri, null);
+    assert.equal(storedQuote.quoteTargetState, "pending");
   });
 });
 

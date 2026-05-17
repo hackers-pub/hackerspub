@@ -359,6 +359,7 @@ type Article implements Node & Post & Reactable {
   published: DateTime!
   publishedYear: Int
   quotePolicy: QuotePolicy!
+  quoteTargetState: QuoteTargetState
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -985,6 +986,7 @@ type Note implements Node & Post & Reactable {
   name: String
   published: DateTime!
   quotePolicy: QuotePolicy!
+  quoteTargetState: QuoteTargetState
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -1175,6 +1177,7 @@ interface Post implements Node & Reactable {
   name: String
   published: DateTime!
   quotePolicy: QuotePolicy!
+  quoteTargetState: QuoteTargetState
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -1480,6 +1483,7 @@ type Question implements Node & Post & Reactable {
   poll: Poll
   published: DateTime!
   quotePolicy: QuotePolicy!
+  quoteTargetState: QuoteTargetState
   quotedPost: Post
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
@@ -1524,6 +1528,11 @@ enum QuotePolicy {
   EVERYONE
   FOLLOWERS
   SELF
+}
+
+enum QuoteTargetState {
+  DENIED
+  PENDING
 }
 
 type ReactNotification implements Node & Notification {

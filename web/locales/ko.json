@@ -30,6 +30,12 @@
     "invitationLink": "초대 링크",
     "medium": "미디어"
   },
+  "quoteTarget": {
+    "pendingTitle": "인용 원문 승인 대기 중",
+    "pendingBody": "원문 작성자의 승인을 기다리고 있습니다.",
+    "deniedTitle": "인용 원문이 가려짐",
+    "deniedBody": "이 콘텐츠는 다른 콘텐츠를 인용했지만, 현재 인용이 허가되지 않았습니다."
+  },
   "notification": {
     "title": "알림",
     "empty": "아직 알림이 없습니다",

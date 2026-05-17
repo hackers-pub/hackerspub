@@ -18,6 +18,7 @@ import { QuotedPostCard } from "../islands/QuotedPostCard.tsx";
 import { Timestamp } from "../islands/Timestamp.tsx";
 import { Msg, Translation } from "./Msg.tsx";
 import { PostVisibilityIcon } from "./PostVisibilityIcon.tsx";
+import { QuoteTargetPlaceholder } from "./QuoteTargetPlaceholder.tsx";
 
 export interface NoteExcerptProps {
   canonicalOrigin: string;
@@ -162,7 +163,8 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   post.contentHtml,
                   {
                     ...post,
-                    quote: post.quotedPostId != null,
+                    quote: post.quotedPostId != null ||
+                      post.quoteTargetState != null,
                     localDomain: new URL(props.canonicalOrigin),
                   },
                 ),
@@ -178,6 +180,7 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                 />
               )}
             {post.media.length < 1 && post.quotedPostId == null &&
+              post.quoteTargetState == null &&
               post.link && (
               <div class="mt-4">
                 <a
@@ -317,8 +320,8 @@ export function NoteExcerpt(props: NoteExcerptProps) {
               ))}
             </div>
           )}
-          {post.quotedPostId != null &&
-            (
+          {post.quotedPostId != null
+            ? (
               <div
                 class={`
                   ml-14
@@ -344,7 +347,33 @@ export function NoteExcerpt(props: NoteExcerptProps) {
                   `}
                 />
               </div>
-            )}
+            )
+            : post.quoteTargetState != null &&
+              (
+                <div
+                  class={`
+                  ml-14
+                  ${
+                    props.replyTarget && post.media.length < 1
+                      ? `
+                      mb-2
+                      before:content-['.'] before:absolute before:w-1 before:left-[40px] before:xl:left-[calc((100%-1280px)/2+40px)]
+                      before:opacity-55 before:bg-gradient-to-b before:from-stone-400 dark:before:from-stone-600 before:to-transparent
+                      before:text-transparent before:min-h-28
+                      `
+                      : ""
+                  }
+                `}
+                >
+                  <QuoteTargetPlaceholder
+                    state={post.quoteTargetState}
+                    class={`
+                    mt-4 mb-2
+                    ${props.replyTarget ? "opacity-55" : ""}
+                  `}
+                  />
+                </div>
+              )}
         </article>
       )}
     </Translation>

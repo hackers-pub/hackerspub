@@ -39,6 +39,7 @@ const RevokeQuoteMutation = graphql`
         quote {
           id
           viewerCanRevokeQuote
+          quoteTargetState
           quotedPost {
             id
           }

@@ -25,6 +25,7 @@ export function LinkPreview(props: LinkPreviewProps) {
         quotedPost {
           __typename
         }
+        quoteTargetState
         link {
           url
           title
@@ -55,7 +56,8 @@ export function LinkPreview(props: LinkPreviewProps) {
 
   const shouldShowLink = () => {
     const n = note();
-    return n && n.media.length === 0 && n.quotedPost == null && n.link;
+    return n && n.media.length === 0 && n.quotedPost == null &&
+      n.quoteTargetState == null && n.link;
   };
 
   return (

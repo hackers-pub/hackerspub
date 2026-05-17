@@ -657,6 +657,13 @@ export const postTypeEnum = pgEnum("post_type", [
 
 export type PostType = (typeof postTypeEnum.enumValues)[number];
 
+export const quoteTargetStateEnum = pgEnum("quote_target_state", [
+  "pending",
+  "denied",
+]);
+
+export type QuoteTargetState = (typeof quoteTargetStateEnum.enumValues)[number];
+
 export type Emoji = string; // TODO: use a better type
 
 export const postTable = pgTable(
@@ -692,6 +699,7 @@ export const postTable = pgTable(
       .$type<Uuid>()
       .references((): AnyPgColumn => postTable.id, { onDelete: "set null" }),
     quoteAuthorizationIri: text("quote_authorization_iri"),
+    quoteTargetState: quoteTargetStateEnum("quote_target_state"),
     name: text(),
     summary: text(),
     contentHtml: text("content_html").notNull(),
