@@ -32,6 +32,7 @@ import {
   type PostLink,
   type PostMedium,
   postTable,
+  quoteRequestTable,
   type Reaction,
 } from "./schema.ts";
 import { addPostToTimeline } from "./timeline.ts";
@@ -374,11 +375,27 @@ export async function createNote(
   if (
     post.quotedPost != null && post.quotedPost.actor.accountId == null
   ) {
+    const requestId = new URL("#quote-request", noteObject.id ?? fedCtx.origin);
     const request = new vocab.QuoteRequest({
-      id: new URL("#quote-request", noteObject.id ?? fedCtx.origin),
+      id: requestId,
       actor: fedCtx.getActorUri(source.accountId),
       object: new URL(post.quotedPost.iri),
       instrument: noteObject,
+    });
+    await db.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: requestId.href,
+      quotePostId: post.id,
+      quotedPostId: post.quotedPost.id,
+    }).onConflictDoUpdate({
+      target: quoteRequestTable.iri,
+      set: {
+        quotePostId: post.id,
+        quotedPostId: post.quotedPost.id,
+        accepted: null,
+        rejected: null,
+        updated: sql`CURRENT_TIMESTAMP`,
+      },
     });
     await fedCtx.sendActivity(
       { identifier: source.accountId },

@@ -14,9 +14,11 @@ import { canActorQuotePost, updateQuotesCount } from "@hackerspub/models/post";
 import {
   type Actor,
   type Mention,
+  noteSourceTable,
   type Post,
   postTable,
   quoteAuthorizationTable,
+  quoteRequestTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
@@ -24,6 +26,13 @@ import { eq, sql } from "drizzle-orm";
 import { getNote } from "../objects.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "quote"]);
+
+type QuoteWithRelations = Post & {
+  actor: Actor;
+  quotedPost: (Post & { actor: Actor }) | null;
+  replyTarget: Post | null;
+  mentions: (Mention & { actor: Actor })[];
+};
 
 export async function onQuoteRequested(
   fedCtx: InboxContext<ContextData>,
@@ -100,25 +109,22 @@ export async function onQuoteRequestAccepted(
   fedCtx: InboxContext<ContextData>,
   accept: Accept,
 ): Promise<boolean> {
-  const request = await accept.getObject({ ...fedCtx, suppressError: true });
-  if (
-    !(request instanceof QuoteRequest) ||
-    accept.actorId == null ||
-    accept.resultId == null ||
-    request.instrumentId == null
-  ) {
-    return false;
+  if (accept.actorId == null || accept.resultId == null) return false;
+  let quoteRequestIri = accept.objectId?.href;
+  let quote = quoteRequestIri == null
+    ? undefined
+    : await getQuoteForQuoteRequestIri(fedCtx, quoteRequestIri);
+  if (quote == null) {
+    const request = await accept.getObject({ ...fedCtx, suppressError: true });
+    if (!(request instanceof QuoteRequest)) return false;
+    if (request.instrumentId == null) return false;
+    quoteRequestIri = request.id?.href ?? quoteRequestIri;
+    quote = await getQuoteForQuoteRequestInstrument(
+      fedCtx,
+      request.instrumentId.href,
+    );
+    if (quote == null) return true;
   }
-  const quote = await fedCtx.data.db.query.postTable.findFirst({
-    with: {
-      actor: true,
-      quotedPost: { with: { actor: true } },
-      replyTarget: true,
-      mentions: { with: { actor: true } },
-    },
-    where: { iri: request.instrumentId.href },
-  });
-  if (quote == null) return true;
   if (
     quote.quotedPost == null ||
     quote.quotedPost.actor.iri !== accept.actorId.href
@@ -140,6 +146,7 @@ export async function onQuoteRequestAccepted(
     });
     return true;
   }
+  const acceptedAt = new Date();
   await fedCtx.data.db.insert(quoteAuthorizationTable).values({
     id: generateUuidV7(),
     iri: accept.resultId.href,
@@ -155,36 +162,79 @@ export async function onQuoteRequestAccepted(
       quotedPostId: quote.quotedPost.id,
       attributedActorId: quote.quotedPost.actorId,
       revoked: false,
-      updated: sql`CURRENT_TIMESTAMP`,
+      updated: acceptedAt,
     },
   });
+  if (quoteRequestIri != null) {
+    await fedCtx.data.db.update(quoteRequestTable)
+      .set({
+        accepted: acceptedAt,
+        rejected: null,
+        updated: acceptedAt,
+      })
+      .where(eq(quoteRequestTable.iri, quoteRequestIri));
+  }
   const shouldSendUpdate = quote.quoteAuthorizationIri !== accept.resultId.href;
-  const updatedRows = await fedCtx.data.db.update(postTable)
+  await fedCtx.data.db.update(postTable)
     .set({
       quoteAuthorizationIri: accept.resultId.href,
-      updated: sql`CURRENT_TIMESTAMP`,
+      updated: acceptedAt,
     })
-    .where(eq(postTable.id, quote.id))
-    .returning({ updated: postTable.updated });
+    .where(eq(postTable.id, quote.id));
+  if (quote.noteSourceId != null) {
+    await fedCtx.data.db.update(noteSourceTable)
+      .set({ updated: acceptedAt })
+      .where(eq(noteSourceTable.id, quote.noteSourceId));
+  }
   if (shouldSendUpdate) {
     await sendQuoteUpdate(
       fedCtx,
       quote,
       accept.resultId.href,
-      updatedRows[0]?.updated ?? new Date(),
+      acceptedAt,
     );
   }
   return true;
 }
 
+async function getQuoteForQuoteRequestInstrument(
+  fedCtx: InboxContext<ContextData>,
+  quotePostIri: string,
+): Promise<QuoteWithRelations | undefined> {
+  return await fedCtx.data.db.query.postTable.findFirst({
+    with: {
+      actor: true,
+      quotedPost: { with: { actor: true } },
+      replyTarget: true,
+      mentions: { with: { actor: true } },
+    },
+    where: { iri: quotePostIri },
+  });
+}
+
+async function getQuoteForQuoteRequestIri(
+  fedCtx: InboxContext<ContextData>,
+  quoteRequestIri: string,
+): Promise<QuoteWithRelations | undefined> {
+  const request = await fedCtx.data.db.query.quoteRequestTable.findFirst({
+    with: {
+      quotePost: {
+        with: {
+          actor: true,
+          quotedPost: { with: { actor: true } },
+          replyTarget: true,
+          mentions: { with: { actor: true } },
+        },
+      },
+    },
+    where: { iri: quoteRequestIri },
+  });
+  return request?.quotePost;
+}
+
 async function sendQuoteUpdate(
   fedCtx: InboxContext<ContextData>,
-  quote: Post & {
-    actor: Actor;
-    quotedPost: Post | null;
-    replyTarget: Post | null;
-    mentions: (Mention & { actor: Actor })[];
-  },
+  quote: QuoteWithRelations,
   quoteAuthorizationIri: string,
   updated: Date,
 ): Promise<void> {
@@ -254,28 +304,42 @@ export async function onQuoteRequestRejected(
   fedCtx: InboxContext<ContextData>,
   reject: Reject,
 ): Promise<boolean> {
-  const request = await reject.getObject({ ...fedCtx, suppressError: true });
-  if (
-    !(request instanceof QuoteRequest) ||
-    reject.actorId == null ||
-    request.instrumentId == null
-  ) {
-    return false;
+  if (reject.actorId == null) return false;
+  let quoteRequestIri = reject.objectId?.href;
+  let quote = quoteRequestIri == null
+    ? undefined
+    : await getQuoteForQuoteRequestIri(fedCtx, quoteRequestIri);
+  if (quote == null) {
+    const request = await reject.getObject({ ...fedCtx, suppressError: true });
+    if (!(request instanceof QuoteRequest)) return false;
+    if (request.instrumentId == null) return false;
+    quoteRequestIri = request.id?.href ?? quoteRequestIri;
+    quote = await getQuoteForQuoteRequestInstrument(
+      fedCtx,
+      request.instrumentId.href,
+    );
+    if (quote == null) return true;
   }
-  const quote = await fedCtx.data.db.query.postTable.findFirst({
-    with: { quotedPost: { with: { actor: true } } },
-    where: { iri: request.instrumentId.href },
-  });
-  if (quote?.quotedPost == null) return true;
+  if (quote.quotedPost == null) return true;
   if (quote.quotedPost.actor.iri !== reject.actorId.href) {
     logger.warn("Ignoring quote request rejection from unexpected actor.");
     return true;
+  }
+  const rejectedAt = new Date();
+  if (quoteRequestIri != null) {
+    await fedCtx.data.db.update(quoteRequestTable)
+      .set({
+        accepted: null,
+        rejected: rejectedAt,
+        updated: rejectedAt,
+      })
+      .where(eq(quoteRequestTable.iri, quoteRequestIri));
   }
   await fedCtx.data.db.update(postTable)
     .set({
       quotedPostId: null,
       quoteAuthorizationIri: null,
-      updated: sql`CURRENT_TIMESTAMP`,
+      updated: rejectedAt,
     })
     .where(eq(postTable.id, quote.id));
   await updateQuotesCount(fedCtx.data.db, quote.quotedPost, -1);

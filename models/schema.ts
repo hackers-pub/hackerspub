@@ -841,6 +841,37 @@ export const quoteAuthorizationTable = pgTable(
 export type QuoteAuthorization = typeof quoteAuthorizationTable.$inferSelect;
 export type NewQuoteAuthorization = typeof quoteAuthorizationTable.$inferInsert;
 
+export const quoteRequestTable = pgTable(
+  "quote_request",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    iri: text().notNull().unique(),
+    quotePostId: uuid("quote_post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
+    quotedPostId: uuid("quoted_post_id")
+      .$type<Uuid>()
+      .notNull()
+      .references((): AnyPgColumn => postTable.id, { onDelete: "cascade" }),
+    accepted: timestamp({ withTimezone: true }),
+    rejected: timestamp({ withTimezone: true }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+    updated: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    index().on(table.quotePostId),
+    index().on(table.quotedPostId),
+  ],
+);
+
+export type QuoteRequest = typeof quoteRequestTable.$inferSelect;
+export type NewQuoteRequest = typeof quoteRequestTable.$inferInsert;
+
 export const pinTable = pgTable(
   "pin",
   {

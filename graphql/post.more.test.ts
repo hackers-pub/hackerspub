@@ -1713,7 +1713,15 @@ test("createNote sends QuoteRequest for remote manual-approval quotes", async ()
         .createNote.__typename,
       "CreateNotePayload",
     );
-    assert.equal(sent.some((args) => args[2] instanceof QuoteRequest), true);
+    const request = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof QuoteRequest);
+    assert.ok(request instanceof QuoteRequest);
+    assert.ok(request.id != null);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: request.id.href },
+    });
+    assert.equal(storedRequest?.quotedPostId, remotePost.id);
   });
 });
 
