@@ -11,7 +11,7 @@ import {
 import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import {
-  canActorQuotePost,
+  canActorRequestQuotePost,
   isPostObject,
   updateQuotesCount,
 } from "@hackerspub/models/post";
@@ -72,7 +72,7 @@ export async function onQuoteRequested(
     where: { iri: request.objectId.href },
   });
   if (quotedPost?.actor.accountId == null) return;
-  const approved = canActorQuotePost(quotedPost, actor) &&
+  const approved = canActorRequestQuotePost(quotedPost, actor) &&
     await quoteRequestInstrumentBelongsToActor(fedCtx, request);
   const authId = generateUuidV7();
   const authorizationIri = fedCtx.getObjectUri(QuoteAuthorization, {
