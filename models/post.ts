@@ -483,16 +483,19 @@ export async function syncPostFromNoteSource(
     where: { noteSourceId: noteSource.id },
   });
   const id = existingPost?.id ?? generateUuidV7();
-  const quotedPostId = !hasQuotedPostRelation && existingPost != null
-    ? undefined
-    : quotedPost?.id ?? null;
+  const quoteTargetId = quotedPost?.id ?? null;
   const existingQuoteAuthorizationIri =
-    existingPost != null && existingPost.quotedPostId === quotedPostId
+    existingPost != null && existingPost.quotedPostId === quoteTargetId
       ? existingPost.quoteAuthorizationIri
       : null;
   const quoteRequestRequired = quotedPost != null &&
     !canActorQuotePost(quotedPost, actor) &&
     existingQuoteAuthorizationIri == null;
+  const quotedPostId = !hasQuotedPostRelation && existingPost != null
+    ? undefined
+    : quoteRequestRequired
+    ? null
+    : quoteTargetId;
   const quoteAuthorizationIri = !hasQuotedPostRelation && existingPost != null
     ? undefined
     : quotedPost == null
@@ -587,6 +590,7 @@ export async function syncPostFromNoteSource(
   }
   if (
     hasQuotedPostRelation && quotedPost != null &&
+    quotedPostId != null &&
     existingPost?.quotedPostId !== quotedPostId
   ) {
     await updateQuotesCount(db, quotedPost, 1);

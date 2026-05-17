@@ -1748,6 +1748,14 @@ test("createNote sends QuoteRequest for remote manual-approval quotes", async ()
       where: { iri: request.id.href },
     });
     assert.equal(storedRequest?.quotedPostId, remotePost.id);
+    const createdQuote = await tx.query.postTable.findFirst({
+      where: { actorId: quoter.actor.id },
+    });
+    assert.equal(createdQuote?.quotedPostId, null);
+    const storedRemotePost = await tx.query.postTable.findFirst({
+      where: { id: remotePost.id },
+    });
+    assert.equal(storedRemotePost?.quotesCount, 0);
   });
 });
 
@@ -1801,6 +1809,7 @@ test("createNote stores QuoteRequest for local manual-approval quotes", async ()
       where: { actorId: quoter.actor.id },
     });
     assert.ok(createdQuote != null);
+    assert.equal(createdQuote.quotedPostId, null);
     assert.equal(createdQuote.quoteAuthorizationIri, null);
     const storedRequest = await tx.query.quoteRequestTable.findFirst({
       where: {
@@ -1815,6 +1824,10 @@ test("createNote stores QuoteRequest for local manual-approval quotes", async ()
       (sentRequest[3] as { excludeBaseUris?: unknown }).excludeBaseUris,
       undefined,
     );
+    const storedLocalPost = await tx.query.postTable.findFirst({
+      where: { id: localPost.id },
+    });
+    assert.equal(storedLocalPost?.quotesCount, 0);
   });
 });
 
