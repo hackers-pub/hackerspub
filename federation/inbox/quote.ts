@@ -6,14 +6,22 @@ import {
   QuoteAuthorization,
   QuoteRequest,
   Reject,
+  Update,
 } from "@fedify/vocab";
 import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import { canActorQuotePost, updateQuotesCount } from "@hackerspub/models/post";
-import { postTable, quoteAuthorizationTable } from "@hackerspub/models/schema";
+import {
+  type Actor,
+  type Mention,
+  type Post,
+  postTable,
+  quoteAuthorizationTable,
+} from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import { eq, sql } from "drizzle-orm";
+import { getNote } from "../objects.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "quote"]);
 
@@ -102,7 +110,12 @@ export async function onQuoteRequestAccepted(
     return false;
   }
   const quote = await fedCtx.data.db.query.postTable.findFirst({
-    with: { quotedPost: { with: { actor: true } } },
+    with: {
+      actor: true,
+      quotedPost: { with: { actor: true } },
+      replyTarget: true,
+      mentions: { with: { actor: true } },
+    },
     where: { iri: request.instrumentId.href },
   });
   if (quote == null) return true;
@@ -145,13 +158,96 @@ export async function onQuoteRequestAccepted(
       updated: sql`CURRENT_TIMESTAMP`,
     },
   });
-  await fedCtx.data.db.update(postTable)
+  const shouldSendUpdate = quote.quoteAuthorizationIri !== accept.resultId.href;
+  const updatedRows = await fedCtx.data.db.update(postTable)
     .set({
       quoteAuthorizationIri: accept.resultId.href,
       updated: sql`CURRENT_TIMESTAMP`,
     })
-    .where(eq(postTable.id, quote.id));
+    .where(eq(postTable.id, quote.id))
+    .returning({ updated: postTable.updated });
+  if (shouldSendUpdate) {
+    await sendQuoteUpdate(
+      fedCtx,
+      quote,
+      accept.resultId.href,
+      updatedRows[0]?.updated ?? new Date(),
+    );
+  }
   return true;
+}
+
+async function sendQuoteUpdate(
+  fedCtx: InboxContext<ContextData>,
+  quote: Post & {
+    actor: Actor;
+    quotedPost: Post | null;
+    replyTarget: Post | null;
+    mentions: (Mention & { actor: Actor })[];
+  },
+  quoteAuthorizationIri: string,
+  updated: Date,
+): Promise<void> {
+  if (quote.actor.accountId == null || quote.noteSourceId == null) return;
+  const noteSource = await fedCtx.data.db.query.noteSourceTable.findFirst({
+    where: { id: quote.noteSourceId },
+    with: {
+      account: true,
+      media: { with: { medium: true }, orderBy: { index: "asc" } },
+    },
+  });
+  if (noteSource == null) return;
+  const noteObject = await getNote(fedCtx, noteSource, {
+    replyTargetId: quote.replyTarget == null
+      ? undefined
+      : new URL(quote.replyTarget.iri),
+    quotedPost: quote.quotedPost ?? undefined,
+    quoteAuthorizationIri,
+  });
+  const update = new Update({
+    id: new URL(
+      `#update/${updated.toISOString()}`,
+      noteObject.id ?? fedCtx.canonicalOrigin,
+    ),
+    actors: noteObject.attributionIds,
+    tos: noteObject.toIds,
+    ccs: noteObject.ccIds,
+    object: noteObject,
+  });
+  const excludeBaseUris = [
+    new URL(fedCtx.origin),
+    new URL(fedCtx.canonicalOrigin),
+  ];
+  if (quote.mentions.length > 0) {
+    await fedCtx.sendActivity(
+      { identifier: quote.actor.accountId },
+      quote.mentions.map((mention) => ({
+        id: new URL(mention.actor.iri),
+        inboxId: new URL(mention.actor.inboxUrl),
+        endpoints: mention.actor.sharedInboxUrl == null ? null : {
+          sharedInbox: new URL(mention.actor.sharedInboxUrl),
+        },
+      })),
+      update,
+      {
+        orderingKey: quote.iri,
+        preferSharedInbox: false,
+        excludeBaseUris,
+      },
+    );
+  }
+  if (quote.visibility !== "direct") {
+    await fedCtx.sendActivity(
+      { identifier: quote.actor.accountId },
+      "followers",
+      update,
+      {
+        orderingKey: quote.iri,
+        preferSharedInbox: true,
+        excludeBaseUris,
+      },
+    );
+  }
 }
 
 export async function onQuoteRequestRejected(
