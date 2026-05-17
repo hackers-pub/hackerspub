@@ -246,38 +246,47 @@ export async function getAllowedQuoteTargetForActor(
   actor: Actor,
   post: Post,
 ): Promise<QuotePolicyPost | undefined> {
-  const visited = new Set<Uuid>();
-  let targetPostId: Uuid | null = post.id;
+  const targetPostId = await getOriginalPostId(db, post);
+  if (targetPostId == null) return undefined;
+  const quotedPost: QuotePolicyPost | undefined = await db.query.postTable
+    .findFirst({
+      with: {
+        actor: {
+          with: {
+            followers: { where: { followerId: actor.id } },
+            blockees: { where: { blockeeId: actor.id } },
+            blockers: { where: { blockerId: actor.id } },
+          },
+        },
+        mentions: { where: { actorId: actor.id } },
+      },
+      where: { id: targetPostId },
+    });
+  if (quotedPost == null) return undefined;
+  const allowed = canActorRequestQuotePost(quotedPost, actor);
+  return allowed ? quotedPost : undefined;
+}
+
+export async function getOriginalPostId(
+  db: Database,
+  post: Pick<Post, "id" | "sharedPostId">,
+): Promise<Uuid | undefined> {
+  const visited = new Set<Uuid>([post.id]);
+  let target = post;
   let depth = 0;
-  while (targetPostId != null) {
+  while (target.sharedPostId != null) {
     if (depth >= maxQuoteShareChainDepth) return undefined;
     depth++;
-    if (visited.has(targetPostId)) return undefined;
-    visited.add(targetPostId);
-
-    const quotedPost: QuotePolicyPost | undefined = await db.query.postTable
-      .findFirst({
-        with: {
-          actor: {
-            with: {
-              followers: { where: { followerId: actor.id } },
-              blockees: { where: { blockeeId: actor.id } },
-              blockers: { where: { blockerId: actor.id } },
-            },
-          },
-          mentions: { where: { actorId: actor.id } },
-        },
-        where: { id: targetPostId },
-      });
-    if (quotedPost == null) return undefined;
-    if (quotedPost.sharedPostId != null) {
-      targetPostId = quotedPost.sharedPostId;
-      continue;
-    }
-    const allowed = canActorRequestQuotePost(quotedPost, actor);
-    return allowed ? quotedPost : undefined;
+    if (visited.has(target.sharedPostId)) return undefined;
+    visited.add(target.sharedPostId);
+    const next = await db.query.postTable.findFirst({
+      columns: { id: true, sharedPostId: true },
+      where: { id: target.sharedPostId },
+    });
+    if (next == null) return undefined;
+    target = next;
   }
-  return undefined;
+  return target.id;
 }
 
 async function readResponseBytesAtMost(

@@ -1,5 +1,6 @@
 import {
   canActorRequestQuotePost,
+  getOriginalPostId,
   isPostObject,
   isPostVisibleTo,
   persistPost,
@@ -14,89 +15,47 @@ export const handler = define.handlers(async (ctx) => {
     return ctx.next();
   }
   const { account, fedCtx } = ctx.state;
-  let post = await db.query.postTable
-    .findFirst({
-      with: {
-        actor: {
-          with: {
-            followers: {
-              where: account == null
-                ? { RAW: sql`false` }
-                : { followerId: account.actor.id },
-            },
-            blockees: {
-              where: account == null
-                ? { RAW: sql`false` }
-                : { blockeeId: account.actor.id },
-            },
-            blockers: {
-              where: account == null
-                ? { RAW: sql`false` }
-                : { blockerId: account.actor.id },
-            },
-          },
-        },
-        mentions: { with: { actor: true } },
-        sharedPost: {
-          with: {
-            actor: {
-              with: {
-                followers: {
-                  where: account == null
-                    ? { RAW: sql`false` }
-                    : { followerId: account.actor.id },
-                },
-                blockees: {
-                  where: account == null
-                    ? { RAW: sql`false` }
-                    : { blockeeId: account.actor.id },
-                },
-                blockers: {
-                  where: account == null
-                    ? { RAW: sql`false` }
-                    : { blockerId: account.actor.id },
-                },
-              },
-            },
-            mentions: { with: { actor: true } },
-          },
-        },
-      },
-      where: { OR: [{ iri }, { url: iri }] },
-    });
-  if (post == null) {
+  let requestedPost = await db.query.postTable.findFirst({
+    where: { OR: [{ iri }, { url: iri }] },
+  });
+  if (requestedPost == null) {
     const documentLoader = account == null
       ? undefined
       : await fedCtx.getDocumentLoader({ identifier: account.id });
     const object = await fedCtx.lookupObject(iri, { documentLoader });
     if (!isPostObject(object)) return ctx.next();
-    const p = await persistPost(fedCtx, object, { documentLoader });
-    if (p == null) return ctx.next();
-    const actor = await db.query.actorTable.findFirst({
-      with: {
-        followers: {
-          where: account == null
-            ? { RAW: sql`false` }
-            : { followerId: account.actor.id },
-        },
-        blockees: {
-          where: account == null
-            ? { RAW: sql`false` }
-            : { blockeeId: account.actor.id },
-        },
-        blockers: {
-          where: account == null
-            ? { RAW: sql`false` }
-            : { blockerId: account.actor.id },
+    const persistedPost = await persistPost(fedCtx, object, { documentLoader });
+    if (persistedPost == null) return ctx.next();
+    requestedPost = persistedPost;
+  }
+  const postId = await getOriginalPostId(db, requestedPost);
+  if (postId == null) return ctx.next();
+  const post = await db.query.postTable.findFirst({
+    with: {
+      actor: {
+        with: {
+          followers: {
+            where: account == null
+              ? { RAW: sql`false` }
+              : { followerId: account.actor.id },
+          },
+          blockees: {
+            where: account == null
+              ? { RAW: sql`false` }
+              : { blockeeId: account.actor.id },
+          },
+          blockers: {
+            where: account == null
+              ? { RAW: sql`false` }
+              : { blockerId: account.actor.id },
+          },
         },
       },
-      where: { id: p.actorId },
-    });
-    if (actor == null) return ctx.next();
-    post = { ...p, actor, sharedPost: null };
-  } else if (post.sharedPost != null) {
-    post = { ...post.sharedPost, sharedPost: null };
-  }
+      mentions: { with: { actor: true } },
+    },
+    where: { id: postId },
+  });
+  if (post == null) return ctx.next();
   if (!isPostVisibleTo(post, account?.actor)) return ctx.next();
   const viewerCanQuote = account != null &&
     canActorRequestQuotePost(post, account.actor);

@@ -13,6 +13,7 @@ import type { ContextData } from "@hackerspub/models/context";
 import {
   canActorQuotePost,
   canActorRequestQuotePost,
+  getOriginalPostId,
   isPostObject,
   persistPost,
   type PostObject,
@@ -52,8 +53,6 @@ type QuoteRequestTarget = Post & {
   };
   mentions: Mention[];
 };
-
-const maxQuoteRequestTargetDepth = 16;
 
 export async function onQuoteRequested(
   fedCtx: InboxContext<ContextData>,
@@ -169,28 +168,16 @@ async function getQuoteRequestTarget(
   actor: Actor,
 ): Promise<QuoteRequestTarget | undefined> {
   const requested = await fedCtx.data.db.query.postTable.findFirst({
-    with: quoteRequestTargetRelations(actor),
+    columns: { id: true, sharedPostId: true },
     where: { iri },
   });
   if (requested == null) return undefined;
-
-  const visited = new Set([requested.id]);
-  let target = requested;
-  let depth = 0;
-  while (target.sharedPostId != null) {
-    if (depth >= maxQuoteRequestTargetDepth) return undefined;
-    depth++;
-    if (visited.has(target.sharedPostId)) return undefined;
-    visited.add(target.sharedPostId);
-
-    const next = await fedCtx.data.db.query.postTable.findFirst({
-      with: quoteRequestTargetRelations(actor),
-      where: { id: target.sharedPostId },
-    });
-    if (next == null) return undefined;
-    target = next;
-  }
-  return target;
+  const targetPostId = await getOriginalPostId(fedCtx.data.db, requested);
+  if (targetPostId == null) return undefined;
+  return await fedCtx.data.db.query.postTable.findFirst({
+    with: quoteRequestTargetRelations(actor),
+    where: { id: targetPostId },
+  });
 }
 
 function quoteRequestTargetRelations(actor: Actor) {
@@ -270,7 +257,7 @@ export async function onQuoteRequestAccepted(
 ): Promise<boolean> {
   if (accept.actorId == null || accept.resultId == null) return false;
   let quoteRequestIri = accept.objectId?.href;
-  const storedRequest = quoteRequestIri == null
+  let storedRequest = quoteRequestIri == null
     ? undefined
     : await getQuoteRequestForIri(fedCtx, quoteRequestIri);
   let quote = storedRequest?.quotePost;
@@ -280,10 +267,15 @@ export async function onQuoteRequestAccepted(
     if (!(request instanceof QuoteRequest)) return false;
     if (request.instrumentId == null) return false;
     quoteRequestIri = request.id?.href ?? quoteRequestIri;
-    quote = await getQuoteForQuoteRequestInstrument(
-      fedCtx,
-      request.instrumentId.href,
-    );
+    storedRequest = quoteRequestIri == null
+      ? undefined
+      : await getQuoteRequestForIri(fedCtx, quoteRequestIri);
+    quote = storedRequest?.quotePost ??
+      await getQuoteForQuoteRequestInstrument(
+        fedCtx,
+        request.instrumentId.href,
+      );
+    quotedPost = storedRequest?.quotedPost;
     if (quote == null) return true;
   }
   quotedPost ??= quote.quotedPost ?? undefined;
