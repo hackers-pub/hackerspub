@@ -2157,17 +2157,9 @@ async function sendLocalQuoteAuthorizationDelete(
   ) {
     return;
   }
-  const followers = await fedCtx.data.db.query.followingTable.findMany({
-    with: { follower: true },
-    where: {
-      followeeId: quote.actorId,
-      accepted: { isNotNull: true },
-    },
-  });
-  if (followers.length < 1) return;
   await fedCtx.sendActivity(
     { identifier: account.id },
-    followers.map((following) => toRecipient(following.follower)),
+    "followers",
     activity,
     {
       orderingKey: quoteAuthorizationIri,
@@ -2225,7 +2217,11 @@ async function sendLocalQuoteUpdate(
       },
     );
   }
-  if (quote.visibility !== "direct") {
+  if (
+    quote.visibility === "public" ||
+    quote.visibility === "unlisted" ||
+    quote.visibility === "followers"
+  ) {
     await fedCtx.sendActivity(
       { identifier: quote.actor.accountId },
       "followers",
@@ -2236,6 +2232,23 @@ async function sendLocalQuoteUpdate(
         excludeBaseUris,
       },
     );
+  }
+  const relayedTags = await sendTagsPubRelayActivity(
+    fedCtx,
+    quote.actor.accountId,
+    update,
+    {
+      orderingKey: quote.iri,
+      visibility: quote.visibility,
+      accountBio: noteSource.account.bio,
+      relayedTags: quote.relayedTags,
+    },
+  );
+  if (relayedTags != null) {
+    await fedCtx.data.db.update(postTable)
+      .set({ relayedTags: [...relayedTags] })
+      .where(eq(postTable.id, quote.id));
+    quote.relayedTags = [...relayedTags];
   }
 }
 

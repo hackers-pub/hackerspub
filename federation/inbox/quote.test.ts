@@ -9,6 +9,7 @@ import {
   Update,
 } from "@fedify/vocab";
 import assert from "node:assert/strict";
+import process from "node:process";
 import test from "node:test";
 import type { ContextData } from "@hackerspub/models/context";
 import {
@@ -176,84 +177,100 @@ test("onQuoteRequested accepts request-only follower approvals", async () => {
 });
 
 test("onQuoteRequestAccepted federates updated quote authorization", async () => {
-  await withRollback(async (tx) => {
-    const remoteActor = await insertRemoteActor(tx, {
-      username: "quoteacceptremote",
-      name: "Quote Accept Remote",
-      host: "remote.example",
-    });
-    const quotedPost = await insertRemotePost(tx, {
-      actorId: remoteActor.id,
-      contentHtml: "<p>Approved remote post</p>",
-      quotePolicy: "self",
-      quoteRequestPolicy: "everyone",
-    });
-    const quoter = await insertAccountWithActor(tx, {
-      username: "quoteacceptlocal",
-      name: "Quote Accept Local",
-      email: "quoteacceptlocal@example.com",
-    });
-    const { post: quote } = await insertNotePost(tx, {
-      account: quoter.account,
-      content: "Quoting after manual approval",
-      quotedPostId: quotedPost.id,
-    });
-    assert.ok(quote.noteSourceId != null);
-    const originalNoteSource = await tx.query.noteSourceTable.findFirst({
-      where: { id: quote.noteSourceId },
-    });
-    assert.ok(originalNoteSource != null);
-    const authorizationIri = "https://remote.example/quote-authorization/1";
-    const request = new QuoteRequest({
-      id: new URL("https://localhost/quote-requests/1"),
-      actor: new URL(quoter.actor.iri),
-      object: new URL(quotedPost.iri),
-      instrument: new URL(quote.iri),
-    });
-    const authorization = new QuoteAuthorization({
-      id: new URL(authorizationIri),
-      attribution: new URL(remoteActor.iri),
-      interactingObject: new URL(quote.iri),
-      interactionTarget: new URL(quotedPost.iri),
-    });
-    const accept = new Accept({
-      id: new URL("https://remote.example/quote-requests/1#accept"),
-      actor: new URL(remoteActor.iri),
-      object: request,
-      result: authorization,
-    });
-    const sent: unknown[][] = [];
-    const fedCtx = {
-      ...createFedCtx(tx),
-      sendActivity(...args: unknown[]) {
-        sent.push(args);
-        return Promise.resolve(undefined);
-      },
-    } as unknown as InboxContext<ContextData>;
+  await withTagsPubRelayEnabled(async () => {
+    await withRollback(async (tx) => {
+      const remoteActor = await insertRemoteActor(tx, {
+        username: "quoteacceptremote",
+        name: "Quote Accept Remote",
+        host: "remote.example",
+      });
+      const quotedPost = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Approved remote post</p>",
+        quotePolicy: "self",
+        quoteRequestPolicy: "everyone",
+      });
+      const quoter = await insertAccountWithActor(tx, {
+        username: "quoteacceptlocal",
+        name: "Quote Accept Local",
+        email: "quoteacceptlocal@example.com",
+      });
+      const { post: quote } = await insertNotePost(tx, {
+        account: quoter.account,
+        content: "Quoting after manual approval #Fediverse",
+        quotedPostId: quotedPost.id,
+      });
+      assert.ok(quote.noteSourceId != null);
+      await tx.update(postTable)
+        .set({ relayedTags: ["fediverse"] })
+        .where(eq(postTable.id, quote.id));
+      const originalNoteSource = await tx.query.noteSourceTable.findFirst({
+        where: { id: quote.noteSourceId },
+      });
+      assert.ok(originalNoteSource != null);
+      const authorizationIri = "https://remote.example/quote-authorization/1";
+      const request = new QuoteRequest({
+        id: new URL("https://localhost/quote-requests/1"),
+        actor: new URL(quoter.actor.iri),
+        object: new URL(quotedPost.iri),
+        instrument: new URL(quote.iri),
+      });
+      const authorization = new QuoteAuthorization({
+        id: new URL(authorizationIri),
+        attribution: new URL(remoteActor.iri),
+        interactingObject: new URL(quote.iri),
+        interactionTarget: new URL(quotedPost.iri),
+      });
+      const accept = new Accept({
+        id: new URL("https://remote.example/quote-requests/1#accept"),
+        actor: new URL(remoteActor.iri),
+        object: request,
+        result: authorization,
+      });
+      const sent: unknown[][] = [];
+      const fedCtx = {
+        ...createFedCtx(tx),
+        sendActivity(...args: unknown[]) {
+          sent.push(args);
+          return Promise.resolve(undefined);
+        },
+      } as unknown as InboxContext<ContextData>;
 
-    assert.equal(await onQuoteRequestAccepted(fedCtx, accept), true);
+      assert.equal(await onQuoteRequestAccepted(fedCtx, accept), true);
 
-    const updatedQuote = await tx.query.postTable.findFirst({
-      where: { id: quote.id },
-    });
-    assert.equal(updatedQuote?.quoteAuthorizationIri, authorizationIri);
-    const updatedNoteSource = await tx.query.noteSourceTable.findFirst({
-      where: { id: quote.noteSourceId },
-    });
-    assert.ok(updatedNoteSource != null);
-    assert.ok(updatedNoteSource.updated > originalNoteSource.updated);
+      const updatedQuote = await tx.query.postTable.findFirst({
+        where: { id: quote.id },
+      });
+      assert.equal(updatedQuote?.quoteAuthorizationIri, authorizationIri);
+      const updatedNoteSource = await tx.query.noteSourceTable.findFirst({
+        where: { id: quote.noteSourceId },
+      });
+      assert.ok(updatedNoteSource != null);
+      assert.ok(updatedNoteSource.updated > originalNoteSource.updated);
 
-    const update = sent
-      .map((args) => args[2])
-      .find((activity) => activity instanceof Update);
-    assert.ok(update instanceof Update);
-    const updatedObject = await update.getObject({
-      ...fedCtx,
-      suppressError: true,
+      const update = sent
+        .map((args) => args[2])
+        .find((activity) => activity instanceof Update);
+      assert.ok(update instanceof Update);
+      const updatedObject = await update.getObject({
+        ...fedCtx,
+        suppressError: true,
+      });
+      assert.ok(updatedObject instanceof Note);
+      assert.equal(updatedObject.quoteAuthorizationId?.href, authorizationIri);
+      assert.ok(updatedObject.updated != null);
+      assert.equal(
+        sent.some((args) =>
+          args[2] instanceof Update &&
+          args[1] != null &&
+          typeof args[1] === "object" &&
+          "id" in args[1] &&
+          args[1].id instanceof URL &&
+          args[1].id.href === "https://tags.pub/user/_____relay_____"
+        ),
+        true,
+      );
     });
-    assert.ok(updatedObject instanceof Note);
-    assert.equal(updatedObject.quoteAuthorizationId?.href, authorizationIri);
-    assert.ok(updatedObject.updated != null);
   });
 });
 
@@ -604,3 +621,19 @@ test("onQuoteAuthorizationDeleted federates quote removal", async () => {
     assert.ok(updatedObject.updated != null);
   });
 });
+
+async function withTagsPubRelayEnabled(
+  run: () => Promise<void>,
+): Promise<void> {
+  const previous = process.env.TAGS_PUB_RELAY;
+  process.env.TAGS_PUB_RELAY = "true";
+  try {
+    await run();
+  } finally {
+    if (previous == null) {
+      delete process.env.TAGS_PUB_RELAY;
+    } else {
+      process.env.TAGS_PUB_RELAY = previous;
+    }
+  }
+}

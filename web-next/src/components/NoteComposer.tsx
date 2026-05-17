@@ -617,19 +617,13 @@ export function NoteComposer(props: NoteComposerProps) {
     const target = e.currentTarget;
     if (!(target instanceof HTMLTextAreaElement)) return;
     const selectionStart = target.selectionStart;
-    const selectionEnd = target.selectionEnd;
-    e.preventDefault();
-    let pastedFallback = false;
-    const pasteText = () => {
-      if (pastedFallback) return;
-      pastedFallback = true;
-      setContent((prev) =>
-        prev.slice(0, selectionStart) + clipboardText +
-        prev.slice(selectionEnd)
-      );
-      queueMicrotask(() => {
-        const cursor = selectionStart + clipboardText.length;
-        textareaRef?.setSelectionRange(cursor, cursor);
+    const removePastedUrl = () => {
+      setContent((prev) => {
+        const pastedEnd = selectionStart + clipboardText.length;
+        if (prev.slice(selectionStart, pastedEnd) !== clipboardText) {
+          return prev;
+        }
+        return prev.slice(0, selectionStart) + prev.slice(pastedEnd);
       });
     };
     fetchQuery<NoteComposerPostByUrlQuery>(
@@ -640,26 +634,21 @@ export function NoteComposer(props: NoteComposerProps) {
       next(data) {
         const post = data.postByUrl;
         if (!post) {
-          pasteText();
           return;
         }
         if (post.__typename !== "Note" && post.__typename !== "Article") {
-          pasteText();
           return;
         }
         if (!post.viewerCanQuote) {
-          pasteText();
           return;
         }
         if (!confirm(t`Do you want to quote this link?`)) {
-          pasteText();
           return;
         }
+        removePastedUrl();
         setPastedQuoteId(post.id);
       },
-      error() {
-        pasteText();
-      },
+      error() {},
     });
   };
 

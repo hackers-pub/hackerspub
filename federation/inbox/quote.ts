@@ -28,6 +28,7 @@ import { generateUuidV7 } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import { eq, inArray, sql } from "drizzle-orm";
 import { getNote } from "../objects.ts";
+import { sendTagsPubRelayActivity } from "../tags-pub.ts";
 
 const logger = getLogger(["hackerspub", "federation", "inbox", "quote"]);
 
@@ -358,6 +359,23 @@ async function sendQuoteUpdate(
         excludeBaseUris,
       },
     );
+  }
+  const relayedTags = await sendTagsPubRelayActivity(
+    fedCtx,
+    quote.actor.accountId,
+    update,
+    {
+      orderingKey: quote.iri,
+      visibility: quote.visibility,
+      accountBio: noteSource.account.bio,
+      relayedTags: quote.relayedTags,
+    },
+  );
+  if (relayedTags != null) {
+    await fedCtx.data.db.update(postTable)
+      .set({ relayedTags: [...relayedTags] })
+      .where(eq(postTable.id, quote.id));
+    quote.relayedTags = [...relayedTags];
   }
 }
 
