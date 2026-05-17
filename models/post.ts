@@ -141,13 +141,10 @@ export function normalizeQuotePolicyForVisibility(
 function quotePolicyFromApprovalUrls(
   post: PostObject,
   approvalUrls: string[],
+  authorFollowersUrl: string | null,
 ): QuotePolicy | undefined {
   if (approvalUrls.includes(PUBLIC_COLLECTION.href)) return "everyone";
-  if (
-    approvalUrls.some((href) =>
-      href.endsWith("/followers") || href.endsWith("/followers/")
-    )
-  ) {
+  if (authorFollowersUrl != null && approvalUrls.includes(authorFollowersUrl)) {
     return "followers";
   }
   if (
@@ -162,6 +159,7 @@ function quotePolicyFromApprovalUrls(
 function quotePoliciesFromInteractionPolicy(
   post: PostObject,
   visibility: PostVisibility,
+  authorFollowersUrl: string | null,
 ): {
   quotePolicy: QuotePolicy;
   quoteRequestPolicy: QuotePolicy | null;
@@ -179,10 +177,12 @@ function quotePoliciesFromInteractionPolicy(
   const quotePolicy = quotePolicyFromApprovalUrls(
     post,
     policy.automaticApprovals.map((url) => url.href),
+    authorFollowersUrl,
   ) ?? "self";
   const quoteRequestPolicy = quotePolicyFromApprovalUrls(
     post,
     policy.manualApprovals.map((url) => url.href),
+    authorFollowersUrl,
   ) ?? null;
   return { quotePolicy, quoteRequestPolicy };
 }
@@ -769,6 +769,7 @@ export async function persistPost(
     quotePoliciesFromInteractionPolicy(
       post,
       visibility,
+      actor.followersUrl,
     );
   let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
   if (quoteAuthorizationIri != null && quotedPost != null) {

@@ -13,7 +13,7 @@ import {
   getPostByUsernameAndId,
   persistPost,
 } from "./post.ts";
-import { postTable } from "./schema.ts";
+import { actorTable, postTable } from "./schema.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -173,5 +173,66 @@ test("persistPost() stores manual quote request policies separately", async () =
     assert.ok(persisted != null);
     assert.equal(persisted.quotePolicy, "self");
     assert.equal(persisted.quoteRequestPolicy, "everyone");
+  });
+});
+
+test("persistPost() requires follower quote approvals to match the author", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quotefollowerspolicy",
+      name: "Quote Followers Policy",
+      host: "remote.example",
+    });
+    await tx.update(actorTable)
+      .set({ followersUrl: "https://remote.example/users/author/followers" })
+      .where(eq(actorTable.id, remoteActor.id));
+    const post = new Note({
+      id: new URL("https://remote.example/objects/wrong-followers-policy"),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Wrong followers policy",
+      interactionPolicy: new InteractionPolicy({
+        canQuote: new InteractionRule({
+          automaticApproval: new URL("https://remote.example/groups/followers"),
+        }),
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), post);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotePolicy, "self");
+    assert.equal(persisted.quoteRequestPolicy, null);
+  });
+});
+
+test("persistPost() accepts the author's followers quote approval", async () => {
+  await withRollback(async (tx) => {
+    const followersUrl = "https://remote.example/users/author/followers";
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoteauthorfollowers",
+      name: "Quote Author Followers",
+      host: "remote.example",
+    });
+    await tx.update(actorTable)
+      .set({ followersUrl })
+      .where(eq(actorTable.id, remoteActor.id));
+    const post = new Note({
+      id: new URL("https://remote.example/objects/author-followers-policy"),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Author followers policy",
+      interactionPolicy: new InteractionPolicy({
+        canQuote: new InteractionRule({
+          automaticApproval: new URL(followersUrl),
+        }),
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), post);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotePolicy, "followers");
+    assert.equal(persisted.quoteRequestPolicy, null);
   });
 });
