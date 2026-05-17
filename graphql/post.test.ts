@@ -1172,6 +1172,11 @@ Deno.test({
         quotePolicy: "self",
         quoteRequestPolicy: "followers",
       });
+      const denied = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Quote denied</p>",
+        quotePolicy: "self",
+      });
 
       assertEquals(
         await readPolicy(
@@ -1198,6 +1203,17 @@ Deno.test({
       assertEquals(
         await readPolicy(
           encodeGlobalID("Note", followersCanRequest.id),
+          makeUserContext(tx, stranger.account),
+        ),
+        {
+          viewerCanReply: true,
+          viewerCanQuote: false,
+          viewerCanShare: true,
+        },
+      );
+      assertEquals(
+        await readPolicy(
+          encodeGlobalID("Note", denied.id),
           makeUserContext(tx, stranger.account),
         ),
         {

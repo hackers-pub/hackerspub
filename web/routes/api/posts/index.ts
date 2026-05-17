@@ -1,4 +1,6 @@
 import {
+  canActorQuotePost,
+  canActorRequestQuotePost,
   isPostObject,
   isPostVisibleTo,
   persistPost,
@@ -97,7 +99,12 @@ export const handler = define.handlers(async (ctx) => {
     post = { ...post.sharedPost, sharedPost: null };
   }
   if (!isPostVisibleTo(post, account?.actor)) return ctx.next();
-  return new Response(JSON.stringify(post), {
+  const viewerCanQuote = account != null && (
+    post.actor.accountId == null
+      ? canActorRequestQuotePost(post, account.actor)
+      : canActorQuotePost(post, account.actor)
+  );
+  return new Response(JSON.stringify({ ...post, viewerCanQuote }), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",

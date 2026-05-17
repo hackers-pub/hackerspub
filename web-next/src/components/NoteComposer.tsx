@@ -612,8 +612,10 @@ export function NoteComposer(props: NoteComposerProps) {
     if (effectiveQuotedPostId()) return;
     const text = e.clipboardData?.getData("text/plain")?.trim();
     if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
-    if (!confirm(t`Do you want to quote this link?`)) return;
     e.preventDefault();
+    const pasteText = () => {
+      setContent((prev) => (prev ? `${prev}\n${text}` : text));
+    };
     fetchQuery<NoteComposerPostByUrlQuery>(
       environment(),
       NoteComposerPostByUrlQuery,
@@ -622,26 +624,25 @@ export function NoteComposer(props: NoteComposerProps) {
       next(data) {
         const post = data.postByUrl;
         if (!post) {
-          setContent((prev) => (prev ? `${prev}\n${text}` : text));
-          showToast({
-            title: t`Error`,
-            description: t`Could not find a post at this URL`,
-            variant: "error",
-          });
+          pasteText();
           return;
         }
         if (post.__typename !== "Note" && post.__typename !== "Article") {
-          setContent((prev) => (prev ? `${prev}\n${text}` : text));
+          pasteText();
           return;
         }
         if (!post.viewerCanQuote) {
-          setContent((prev) => (prev ? `${prev}\n${text}` : text));
+          pasteText();
+          return;
+        }
+        if (!confirm(t`Do you want to quote this link?`)) {
+          pasteText();
           return;
         }
         setPastedQuoteId(post.id);
       },
       error() {
-        setContent((prev) => (prev ? `${prev}\n${text}` : text));
+        pasteText();
       },
     });
   };

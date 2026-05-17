@@ -83,6 +83,8 @@ export function Composer(props: ComposerProps) {
   );
   const [quoteLoading, setQuoteLoading] = useState(false);
 
+  type QuoteLookupPost = Post & { viewerCanQuote?: boolean };
+
   // Draft auto-save states
   const [savedDraft, setSavedDraft] = useState<NoteDraft | null>(null);
   const [showDraftSaved, setShowDraftSaved] = useState(false);
@@ -195,7 +197,11 @@ export function Composer(props: ComposerProps) {
                 setQuoteLoading(false);
                 return;
               }
-              const pastedPost: Post = await r.json();
+              const pastedPost: QuoteLookupPost = await r.json();
+              if (!pastedPost.viewerCanQuote) {
+                setQuoteLoading(false);
+                return;
+              }
               const confirmMsg = t(
                 pastedPost.type === "Article"
                   ? "composer.quoteArticleConfirm"

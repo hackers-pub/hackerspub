@@ -1761,7 +1761,9 @@ export async function getPostInteractionPolicies(
       );
     const canQuote = effective.sharedPostId == null &&
       isPostVisibleTo(effective, viewer) &&
-      canActorRequestQuotePost(effective, viewer);
+      (effective.actor.accountId == null
+        ? canActorRequestQuotePost(effective, viewer)
+        : canActorQuotePost(effective, viewer));
     result.set(post.id, {
       canReply: true,
       canQuote,
