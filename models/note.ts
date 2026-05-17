@@ -408,8 +408,8 @@ export async function createNote(
     object: noteObject,
   });
   const orderingKey = post.iri;
-  const quotedPost = post.quotedPost;
-  if (post.quoteRequestRequired && quotedPost != null) {
+  const quoteRequestTarget = post.quoteRequestTarget;
+  if (post.quoteRequestRequired && quoteRequestTarget != null) {
     const requestId = new URL("#quote-request", noteObject.id ?? fedCtx.origin);
     const instrument = await getNote(
       fedCtx,
@@ -418,26 +418,26 @@ export async function createNote(
         replyTargetId: relations.replyTarget == null
           ? undefined
           : new URL(relations.replyTarget.iri),
-        quotedPost,
+        quotedPost: quoteRequestTarget,
         quoteRequestPolicy: post.quoteRequestPolicy,
       },
     );
     const request = new vocab.QuoteRequest({
       id: requestId,
       actor: fedCtx.getActorUri(source.accountId),
-      object: new URL(quotedPost.iri),
+      object: new URL(quoteRequestTarget.iri),
       instrument,
     });
     await db.insert(quoteRequestTable).values({
       id: generateUuidV7(),
       iri: requestId.href,
       quotePostId: post.id,
-      quotedPostId: quotedPost.id,
+      quotedPostId: quoteRequestTarget.id,
     }).onConflictDoUpdate({
       target: quoteRequestTable.iri,
       set: {
         quotePostId: post.id,
-        quotedPostId: quotedPost.id,
+        quotedPostId: quoteRequestTarget.id,
         accepted: null,
         rejected: null,
         updated: sql`CURRENT_TIMESTAMP`,
@@ -446,11 +446,11 @@ export async function createNote(
     await fedCtx.sendActivity(
       { identifier: source.accountId },
       {
-        id: new URL(quotedPost.actor.iri),
-        inboxId: new URL(quotedPost.actor.inboxUrl),
-        endpoints: quotedPost.actor.sharedInboxUrl == null
+        id: new URL(quoteRequestTarget.actor.iri),
+        inboxId: new URL(quoteRequestTarget.actor.inboxUrl),
+        endpoints: quoteRequestTarget.actor.sharedInboxUrl == null
           ? null
-          : { sharedInbox: new URL(quotedPost.actor.sharedInboxUrl) },
+          : { sharedInbox: new URL(quoteRequestTarget.actor.sharedInboxUrl) },
       },
       request,
       {

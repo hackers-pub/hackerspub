@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import process from "node:process";
 import test from "node:test";
 import type { Context } from "@fedify/fedify";
-import { Create, Note as ActivityPubNote } from "@fedify/vocab";
+import { Create, Note as ActivityPubNote, QuoteRequest } from "@fedify/vocab";
 import type { ContextData } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createNote, QuotePolicyDeniedError, updateNote } from "./note.ts";
@@ -329,6 +329,68 @@ test("createNote() federates the normalized quote target for shares", async () =
     assert.ok(createdObject instanceof ActivityPubNote);
     assert.equal(createdObject.quoteId?.href, original.iri);
     assert.equal(createdObject.quoteUrl?.href, original.iri);
+  });
+});
+
+test("createNote() keeps pending quote requests out of confirmed quote state", async () => {
+  await withRollback(async (tx) => {
+    const targetAuthor = await insertAccountWithActor(tx, {
+      username: "pendingquotetarget",
+      name: "Pending Quote Target",
+      email: "pendingquotetarget@example.com",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "pendingquotequoter",
+      name: "Pending Quote Quoter",
+      email: "pendingquotequoter@example.com",
+    });
+    const { post: target } = await insertNotePost(tx, {
+      account: targetAuthor.account,
+      content: "Manual approval target",
+      quotePolicy: "self",
+      quoteRequestPolicy: "everyone",
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as Context<ContextData<Transaction>>;
+
+    const quote = await createNote(fedCtx, {
+      accountId: quoter.account.id,
+      visibility: "public",
+      content: "Requesting quote approval",
+      language: "en",
+      media: [],
+    }, { quotedPost: { ...target, actor: targetAuthor.actor } });
+
+    assert.ok(quote != null);
+    const returnedQuote = quote as typeof quote & {
+      quotedPost: unknown;
+      quoteRequestRequired: boolean;
+    };
+    assert.equal(quote.quotedPostId, null);
+    assert.equal(returnedQuote.quotedPost, null);
+    assert.equal(returnedQuote.quoteRequestRequired, true);
+    const requestRow = await tx.query.quoteRequestTable.findFirst({
+      where: { quotePostId: quote.id },
+    });
+    assert.equal(requestRow?.quotedPostId, target.id);
+    assert.equal(
+      sent.some((args) => args[2] instanceof QuoteRequest),
+      true,
+    );
+    const quoteNotification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: targetAuthor.account.id,
+        postId: quote.id,
+        type: "quote",
+      },
+    });
+    assert.equal(quoteNotification, undefined);
   });
 });
 

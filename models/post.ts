@@ -451,6 +451,7 @@ export async function syncPostFromNoteSource(
     replyTarget: Post & { actor: Actor } | null;
     quotedPost: Post & { actor: Actor } | null;
     quoteRequestRequired: boolean;
+    quoteRequestTarget: Post & { actor: Actor } | null;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
   }
@@ -630,13 +631,14 @@ export async function syncPostFromNoteSource(
     ).returning()
     : [];
   const returnedQuotedPost = hasQuotedPostRelation
-    ? quotedPost ?? null
+    ? quoteRequestRequired ? null : quotedPost ?? null
     : post.quotedPostId == null
     ? null
     : await db.query.postTable.findFirst({
       where: { id: post.quotedPostId },
       with: { actor: true },
     }) ?? null;
+  const quoteRequestTarget = quoteRequestRequired ? quotedPost ?? null : null;
   return {
     ...post,
     actor,
@@ -646,6 +648,7 @@ export async function syncPostFromNoteSource(
     replyTarget: relations.replyTarget ?? null,
     quotedPost: returnedQuotedPost,
     quoteRequestRequired,
+    quoteRequestTarget,
   };
 }
 
