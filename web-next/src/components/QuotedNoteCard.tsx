@@ -184,7 +184,9 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                     <AlertDialogFooter>
                       <AlertDialogClose>{t`Cancel`}</AlertDialogClose>
                       <AlertDialogAction
+                        disabled={revoking()}
                         onClick={() => {
+                          if (revoking()) return;
                           const quotePostId = props.quotePostId;
                           if (quotePostId == null) return;
                           revokeQuote({
