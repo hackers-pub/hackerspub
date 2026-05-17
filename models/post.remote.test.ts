@@ -287,3 +287,118 @@ test("persistPost() clears stale quote targets denied by policy", async () => {
     assert.equal(storedQuotedPost.quotesCount, 0);
   });
 });
+
+test("persistPost() stores quotes of local shares against the original post", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "sharequoteauthor",
+      name: "Share Quote Author",
+      email: "sharequoteauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "sharequotesharer",
+      name: "Share Quote Sharer",
+      email: "sharequotesharer@example.com",
+    });
+    const { post: originalPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Quotable original",
+      quotePolicy: "everyone",
+    });
+    const { post: sharePost } = await insertNotePost(tx, {
+      account: sharer.account,
+      content: "Shared original",
+      sharedPostId: originalPost.id,
+    });
+    const quoter = await insertRemoteActor(tx, {
+      username: "sharequotequoter",
+      name: "Share Quote Quoter",
+      host: "remote.example",
+    });
+    const quote = new Note({
+      id: new URL("https://remote.example/objects/share-wrapper-quote"),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Remote quote of share wrapper",
+      quote: new URL(sharePost.iri),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), quote);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost?.id, originalPost.id);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: persisted.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, originalPost.id);
+    const storedOriginal = await tx.query.postTable.findFirst({
+      where: { id: originalPost.id },
+    });
+    assert.ok(storedOriginal != null);
+    assert.equal(storedOriginal.quotesCount, 1);
+    const storedShare = await tx.query.postTable.findFirst({
+      where: { id: sharePost.id },
+    });
+    assert.ok(storedShare != null);
+    assert.equal(storedShare.quotesCount, 0);
+  });
+});
+
+test("persistPost() does not allow local share quotes to bypass original policy", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "restrictedshareauthor",
+      name: "Restricted Share Author",
+      email: "restrictedshareauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "restrictedsharesharer",
+      name: "Restricted Share Sharer",
+      email: "restrictedsharesharer@example.com",
+    });
+    const { post: originalPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Restricted original",
+      quotePolicy: "self",
+    });
+    const { post: sharePost } = await insertNotePost(tx, {
+      account: sharer.account,
+      content: "Shared restricted original",
+      sharedPostId: originalPost.id,
+      quotePolicy: "everyone",
+    });
+    const quoter = await insertRemoteActor(tx, {
+      username: "restrictedsharequoter",
+      name: "Restricted Share Quoter",
+      host: "remote.example",
+    });
+    const quote = new Note({
+      id: new URL("https://remote.example/objects/restricted-share-quote"),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Remote quote of restricted share wrapper",
+      quote: new URL(sharePost.iri),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), quote);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost, null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: persisted.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, null);
+    const storedOriginal = await tx.query.postTable.findFirst({
+      where: { id: originalPost.id },
+    });
+    assert.ok(storedOriginal != null);
+    assert.equal(storedOriginal.quotesCount, 0);
+    const storedShare = await tx.query.postTable.findFirst({
+      where: { id: sharePost.id },
+    });
+    assert.ok(storedShare != null);
+    assert.equal(storedShare.quotesCount, 0);
+  });
+});

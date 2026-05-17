@@ -118,6 +118,8 @@ type QuoteUpdatePost = Post & {
   mentions: (Mention & { actor: Actor })[];
 };
 
+type PersistedQuoteTarget = Post & { actor: Actor & { instance: Instance } };
+
 export function isPostObject(object: unknown): object is PostObject {
   return object instanceof vocab.Article || object instanceof vocab.Note ||
     object instanceof vocab.Question;
@@ -688,7 +690,8 @@ export async function persistPost(
       quotedPostIris.unshift(post.quoteId.href);
     }
   }
-  let quotedPost: Post & { actor: Actor & { instance: Instance } } | undefined;
+  let quotedPost: PersistedQuoteTarget | undefined;
+  let quotedPostIri: string | undefined;
   if (quotedPostIris.length > 0) {
     const quotedPosts = await db.query.postTable.findMany({
       with: {
@@ -703,6 +706,7 @@ export async function persistPost(
     );
     if (quotedPosts.length > 0) {
       quotedPost = quotedPosts[0];
+      quotedPostIri = quotedPost.iri;
     } else if (shouldRecurse) {
       for (const iri of quotedPostIris) {
         let obj: vocab.Object | null;
@@ -722,9 +726,15 @@ export async function persistPost(
           contextLoader: options.contextLoader,
           documentLoader: options.documentLoader,
         });
-        if (quotedPost != null) break;
+        if (quotedPost != null) {
+          quotedPostIri = iri;
+          break;
+        }
       }
     }
+  }
+  if (quotedPost != null) {
+    quotedPost = await getOriginalQuoteTarget(db, quotedPost);
   }
   const attachments: vocab.Document[] = [];
   for await (const attachment of post.getAttachments(opts)) {
@@ -815,7 +825,9 @@ export async function persistPost(
     : extractExternalLinks(contentHtml);
   if (quotedPost != null) {
     externalLinks = externalLinks.filter((l) =>
-      quotedPost.iri !== l.href && quotedPost.url !== l.href
+      quotedPost.iri !== l.href &&
+      quotedPost.url !== l.href &&
+      quotedPostIri !== l.href
     );
   }
   const link = externalLinks.length > 0
@@ -1193,6 +1205,35 @@ async function getOriginalSharedPost(
   }
 
   return post;
+}
+
+async function getOriginalQuoteTarget(
+  db: Database,
+  post: PersistedQuoteTarget,
+): Promise<PersistedQuoteTarget | undefined> {
+  if (post.sharedPostId == null) return post;
+
+  const visited = new Set<Uuid>([post.id]);
+  let currentId: Uuid | null = post.sharedPostId;
+  while (currentId != null) {
+    if (visited.has(currentId)) return undefined;
+    visited.add(currentId);
+
+    const current: PersistedQuoteTarget | undefined = await db.query.postTable
+      .findFirst({
+        with: {
+          actor: {
+            with: { instance: true },
+          },
+        },
+        where: { id: currentId },
+      });
+    if (current == null) return undefined;
+    if (current.sharedPostId == null) return current;
+    currentId = current.sharedPostId;
+  }
+
+  return undefined;
 }
 
 export async function sharePost(

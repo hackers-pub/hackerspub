@@ -610,11 +610,27 @@ export function NoteComposer(props: NoteComposerProps) {
 
     // Fall through to URL-paste-to-quote logic
     if (effectiveQuotedPostId()) return;
-    const text = e.clipboardData?.getData("text/plain")?.trim();
+    const clipboardText = e.clipboardData?.getData("text/plain");
+    if (clipboardText == null) return;
+    const text = clipboardText.trim();
     if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
+    const target = e.currentTarget;
+    if (!(target instanceof HTMLTextAreaElement)) return;
+    const selectionStart = target.selectionStart;
+    const selectionEnd = target.selectionEnd;
     e.preventDefault();
+    let pastedFallback = false;
     const pasteText = () => {
-      setContent((prev) => (prev ? `${prev}\n${text}` : text));
+      if (pastedFallback) return;
+      pastedFallback = true;
+      setContent((prev) =>
+        prev.slice(0, selectionStart) + clipboardText +
+        prev.slice(selectionEnd)
+      );
+      queueMicrotask(() => {
+        const cursor = selectionStart + clipboardText.length;
+        textareaRef?.setSelectionRange(cursor, cursor);
+      });
     };
     fetchQuery<NoteComposerPostByUrlQuery>(
       environment(),
