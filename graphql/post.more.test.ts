@@ -1751,6 +1751,63 @@ test("createNote sends QuoteRequest for remote manual-approval quotes", async ()
   });
 });
 
+test("createNote does not send QuoteRequest for automatic remote quotes", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoteautomaticremote",
+      name: "Quote Automatic Remote",
+      host: "remote.example",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoteautomaticquoter",
+      name: "Quote Automatic Quoter",
+      email: "quoteautomaticquoter@example.com",
+    });
+    const remotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Automatic quote allowed</p>",
+      quotePolicy: "everyone",
+      quoteRequestPolicy: "everyone",
+    });
+    const sent: unknown[][] = [];
+
+    const result = await execute({
+      schema,
+      document: createNoteMutation,
+      variableValues: {
+        input: {
+          content: "quoting automatically allowed remote post",
+          language: "en",
+          visibility: "PUBLIC",
+          quotedPostId: encodeGlobalID("Note", remotePost.id),
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, quoter.account, {
+        sendActivity(...args: unknown[]) {
+          sent.push(args);
+          return Promise.resolve(undefined);
+        },
+      }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.equal(
+      (toPlainJson(result.data) as { createNote: { __typename: string } })
+        .createNote.__typename,
+      "CreateNotePayload",
+    );
+    const request = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof QuoteRequest);
+    assert.equal(request, undefined);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { quotedPostId: remotePost.id },
+    });
+    assert.equal(storedRequest, undefined);
+  });
+});
+
 test("createNote rejects remote quotes without automatic or manual permission", async () => {
   await withRollback(async (tx) => {
     const remoteActor = await insertRemoteActor(tx, {

@@ -427,6 +427,7 @@ export async function syncPostFromNoteSource(
     };
     replyTarget: Post & { actor: Actor } | null;
     quotedPost: Post & { actor: Actor } | null;
+    quoteRequestRequired: boolean;
     mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
   }
@@ -511,6 +512,9 @@ export async function syncPostFromNoteSource(
     })
     .returning();
   const post = rows[0];
+  const quoteRequestRequired = quotedPost != null &&
+    quotedPost.actor.accountId == null &&
+    !canActorQuotePost(quotedPost, actor);
   if (post.quoteAuthorizationIri != null && quotedPost != null) {
     await db.insert(quoteAuthorizationTable).values({
       id,
@@ -571,6 +575,7 @@ export async function syncPostFromNoteSource(
     media,
     replyTarget: relations.replyTarget ?? null,
     quotedPost: quotedPost ?? null,
+    quoteRequestRequired,
   };
 }
 
@@ -788,11 +793,26 @@ export async function persistPost(
   });
   if (quoteAuthorizationIri != null && quotedPost != null) {
     const authorization = await post.getQuoteAuthorization(opts);
-    const validAuthorization =
+    let validAuthorization =
       authorization instanceof vocab.QuoteAuthorization &&
       authorization.interactingObjectId?.href === post.id.href &&
       authorization.interactionTargetId?.href === quotedPost.iri &&
       authorization.attributionId?.href === quotedPost.actor.iri;
+    if (validAuthorization && quotedPost.actor.accountId != null) {
+      const issuedAuthorization = await db.select({
+        id: quoteAuthorizationTable.id,
+      })
+        .from(quoteAuthorizationTable)
+        .where(and(
+          eq(quoteAuthorizationTable.iri, quoteAuthorizationIri),
+          eq(quoteAuthorizationTable.quotePostIri, post.id.href),
+          eq(quoteAuthorizationTable.quotedPostId, quotedPost.id),
+          eq(quoteAuthorizationTable.attributedActorId, quotedPost.actorId),
+          eq(quoteAuthorizationTable.revoked, false),
+        ))
+        .limit(1);
+      validAuthorization = issuedAuthorization.length > 0;
+    }
     if (!validAuthorization) {
       logger.debug("Ignoring invalid quote authorization: {iri}", {
         iri: quoteAuthorizationIri,

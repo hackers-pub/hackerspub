@@ -387,26 +387,25 @@ export async function createNote(
     object: noteObject,
   });
   const orderingKey = post.iri;
-  if (
-    post.quotedPost != null && post.quotedPost.actor.accountId == null
-  ) {
+  const quotedPost = post.quotedPost;
+  if (post.quoteRequestRequired && quotedPost != null) {
     const requestId = new URL("#quote-request", noteObject.id ?? fedCtx.origin);
     const request = new vocab.QuoteRequest({
       id: requestId,
       actor: fedCtx.getActorUri(source.accountId),
-      object: new URL(post.quotedPost.iri),
+      object: new URL(quotedPost.iri),
       instrument: noteObject,
     });
     await db.insert(quoteRequestTable).values({
       id: generateUuidV7(),
       iri: requestId.href,
       quotePostId: post.id,
-      quotedPostId: post.quotedPost.id,
+      quotedPostId: quotedPost.id,
     }).onConflictDoUpdate({
       target: quoteRequestTable.iri,
       set: {
         quotePostId: post.id,
-        quotedPostId: post.quotedPost.id,
+        quotedPostId: quotedPost.id,
         accepted: null,
         rejected: null,
         updated: sql`CURRENT_TIMESTAMP`,
@@ -415,11 +414,11 @@ export async function createNote(
     await fedCtx.sendActivity(
       { identifier: source.accountId },
       {
-        id: new URL(post.quotedPost.actor.iri),
-        inboxId: new URL(post.quotedPost.actor.inboxUrl),
-        endpoints: post.quotedPost.actor.sharedInboxUrl == null
+        id: new URL(quotedPost.actor.iri),
+        inboxId: new URL(quotedPost.actor.inboxUrl),
+        endpoints: quotedPost.actor.sharedInboxUrl == null
           ? null
-          : { sharedInbox: new URL(post.quotedPost.actor.sharedInboxUrl) },
+          : { sharedInbox: new URL(quotedPost.actor.sharedInboxUrl) },
       },
       request,
       {

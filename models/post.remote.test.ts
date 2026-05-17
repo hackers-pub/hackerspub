@@ -5,6 +5,7 @@ import {
   InteractionRule,
   Note,
   PUBLIC_COLLECTION,
+  QuoteAuthorization,
 } from "@fedify/vocab";
 import { eq } from "drizzle-orm";
 import {
@@ -13,7 +14,8 @@ import {
   getPostByUsernameAndId,
   persistPost,
 } from "./post.ts";
-import { actorTable, postTable } from "./schema.ts";
+import { actorTable, postTable, quoteAuthorizationTable } from "./schema.ts";
+import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -316,6 +318,115 @@ test("persistPost() drops quote authorizations without a quote target", async ()
     assert.ok(storedPost != null);
     assert.equal(storedPost.quotedPostId, null);
     assert.equal(storedPost.quoteAuthorizationIri, null);
+  });
+});
+
+test("persistPost() rejects forged quote authorizations for local targets", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "forgedquoteauthauthor",
+      name: "Forged Quote Auth Author",
+      email: "forgedquoteauthauthor@example.com",
+    });
+    const quoter = await insertRemoteActor(tx, {
+      username: "forgedquoteauthquoter",
+      name: "Forged Quote Auth Quoter",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Restricted local quote target",
+      quotePolicy: "self",
+    });
+    const quoteIri =
+      "https://remote.example/objects/forged-quote-authorization";
+    const forgedAuthorizationIri =
+      "https://remote.example/quote-authorizations/forged";
+    const quote = new Note({
+      id: new URL(quoteIri),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Forged quote authorization",
+      quote: new URL(quotedPost.iri),
+      quoteAuthorization: new QuoteAuthorization({
+        id: new URL(forgedAuthorizationIri),
+        attribution: new URL(author.actor.iri),
+        interactingObject: new URL(quoteIri),
+        interactionTarget: new URL(quotedPost.iri),
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), quote);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost, null);
+    assert.equal(persisted.quoteAuthorizationIri, null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: persisted.id },
+    });
+    assert.ok(storedQuote != null);
+    assert.equal(storedQuote.quotedPostId, null);
+    assert.equal(storedQuote.quoteAuthorizationIri, null);
+    const storedTarget = await tx.query.postTable.findFirst({
+      where: { id: quotedPost.id },
+    });
+    assert.ok(storedTarget != null);
+    assert.equal(storedTarget.quotesCount, 0);
+  });
+});
+
+test("persistPost() accepts locally issued quote authorizations", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "issuedquoteauthauthor",
+      name: "Issued Quote Auth Author",
+      email: "issuedquoteauthauthor@example.com",
+    });
+    const quoter = await insertRemoteActor(tx, {
+      username: "issuedquoteauthquoter",
+      name: "Issued Quote Auth Quoter",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Restricted local quote target with authorization",
+      quotePolicy: "self",
+    });
+    const quoteIri =
+      "https://remote.example/objects/issued-quote-authorization";
+    const authorizationIri =
+      "http://localhost/objects/issued-quote-authorization";
+    await tx.insert(quoteAuthorizationTable).values({
+      id: generateUuidV7(),
+      iri: authorizationIri,
+      quotePostIri: quoteIri,
+      quotedPostId: quotedPost.id,
+      attributedActorId: quotedPost.actorId,
+    });
+    const quote = new Note({
+      id: new URL(quoteIri),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Locally issued quote authorization",
+      quote: new URL(quotedPost.iri),
+      quoteAuthorization: new QuoteAuthorization({
+        id: new URL(authorizationIri),
+        attribution: new URL(author.actor.iri),
+        interactingObject: new URL(quoteIri),
+        interactionTarget: new URL(quotedPost.iri),
+      }),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), quote);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost?.id, quotedPost.id);
+    assert.equal(persisted.quoteAuthorizationIri, authorizationIri);
+    const storedAuthorization = await tx.query.quoteAuthorizationTable
+      .findFirst({
+        where: { iri: authorizationIri },
+      });
+    assert.equal(storedAuthorization?.quotePostId, persisted.id);
   });
 });
 
