@@ -12,7 +12,10 @@ import {
   renderMarkup,
   resolveMediumUrls,
 } from "@hackerspub/models/markup";
-import { isPostVisibleTo } from "@hackerspub/models/post";
+import {
+  isPostVisibleTo,
+  normalizeQuotePolicyForVisibility,
+} from "@hackerspub/models/post";
 import type {
   Account,
   Actor,
@@ -275,7 +278,7 @@ export async function getNote(
     interactionPolicy: getQuoteInteractionPolicy(
       ctx,
       note.accountId,
-      note.quotePolicy,
+      normalizeQuotePolicyForVisibility(note.visibility, note.quotePolicy),
     ),
     quote: relations.quotedPost == null
       ? null

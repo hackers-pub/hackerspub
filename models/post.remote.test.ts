@@ -288,6 +288,37 @@ test("persistPost() clears stale quote targets denied by policy", async () => {
   });
 });
 
+test("persistPost() drops quote authorizations without a quote target", async () => {
+  await withRollback(async (tx) => {
+    const quoter = await insertRemoteActor(tx, {
+      username: "danglingquoteauth",
+      name: "Dangling Quote Auth",
+      host: "remote.example",
+    });
+    const post = new Note({
+      id: new URL("https://remote.example/objects/dangling-quote-auth"),
+      attribution: new URL(quoter.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Authorization without quote",
+      quoteAuthorization: new URL(
+        "https://remote.example/quote-authorizations/dangling",
+      ),
+    });
+
+    const persisted = await persistPost(createFedCtx(tx), post);
+
+    assert.ok(persisted != null);
+    assert.equal(persisted.quotedPost, null);
+    assert.equal(persisted.quoteAuthorizationIri, null);
+    const storedPost = await tx.query.postTable.findFirst({
+      where: { id: persisted.id },
+    });
+    assert.ok(storedPost != null);
+    assert.equal(storedPost.quotedPostId, null);
+    assert.equal(storedPost.quoteAuthorizationIri, null);
+  });
+});
+
 test("persistPost() stores quotes of local shares against the original post", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {

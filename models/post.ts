@@ -819,6 +819,12 @@ export async function persistPost(
           .limit(1)).length > 0;
     if (!approved) quotedPost = undefined;
   }
+  if (quotedPost == null && quoteAuthorizationIri != null) {
+    logger.debug("Ignoring quote authorization without quote target: {iri}", {
+      iri: quoteAuthorizationIri,
+    });
+    quoteAuthorizationIri = undefined;
+  }
   const contentHtml = post.content?.toString();
   let externalLinks = contentHtml == null
     ? []
