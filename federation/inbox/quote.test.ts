@@ -228,6 +228,78 @@ test("onQuoteRequested accepts request-only follower approvals", async () => {
   });
 });
 
+test("onQuoteRequested unwraps local share targets", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteshareauthor",
+      name: "Quote Share Author",
+      email: "quoteshareauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "quotesharesharer",
+      name: "Quote Share Sharer",
+      email: "quotesharesharer@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "quotesharerequester",
+      name: "Quote Share Requester",
+      host: "remote.example",
+    });
+    await tx.insert(followingTable).values({
+      iri: `https://remote.example/follows/${requester.id}`,
+      followerId: requester.id,
+      followeeId: author.actor.id,
+      accepted: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Manual approval original",
+      quotePolicy: "self",
+      quoteRequestPolicy: "followers",
+    });
+    const { post: sharePost } = await insertNotePost(tx, {
+      account: sharer.account,
+      content: "Share wrapper",
+      sharedPostId: quotedPost.id,
+    });
+    const instrumentIri = "https://remote.example/objects/share-wrapper-quote";
+    const request = new QuoteRequest({
+      id: new URL("https://remote.example/quote-requests/share-wrapper"),
+      actor: new URL(requester.iri),
+      object: new URL(sharePost.iri),
+      instrument: new URL(instrumentIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      lookupObject(identifier: string | URL) {
+        assert.equal(new URL(identifier).href, instrumentIri);
+        return Promise.resolve(
+          new Note({
+            id: new URL(instrumentIri),
+            attribution: new URL(requester.iri),
+            content: "Owned by requester",
+          }),
+        );
+      },
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    await onQuoteRequested(fedCtx, request);
+
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { quotePostIri: instrumentIri },
+    });
+    assert.ok(authorization != null);
+    assert.equal(authorization.quotedPostId, quotedPost.id);
+    assert.equal(sent.some((args) => args[2] instanceof Accept), true);
+    assert.equal(sent.some((args) => args[2] instanceof Reject), false);
+  });
+});
+
 test("onQuoteRequestAccepted federates updated quote authorization", async () => {
   await withTagsPubRelayEnabled(async () => {
     await withRollback(async (tx) => {

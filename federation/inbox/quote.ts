@@ -17,6 +17,8 @@ import {
 } from "@hackerspub/models/post";
 import {
   type Actor,
+  type Blocking,
+  type Following,
   type Mention,
   noteSourceTable,
   type Post,
@@ -39,6 +41,17 @@ type QuoteWithRelations = Post & {
   mentions: (Mention & { actor: Actor })[];
 };
 
+type QuoteRequestTarget = Post & {
+  actor: Actor & {
+    followers: Following[];
+    blockees: Blocking[];
+    blockers: Blocking[];
+  };
+  mentions: Mention[];
+};
+
+const maxQuoteRequestTargetDepth = 16;
+
 export async function onQuoteRequested(
   fedCtx: InboxContext<ContextData>,
   request: QuoteRequest,
@@ -59,19 +72,11 @@ export async function onQuoteRequested(
     actor = await persistActor(fedCtx, actorObject, fedCtx);
     if (actor == null) return;
   }
-  const quotedPost = await fedCtx.data.db.query.postTable.findFirst({
-    with: {
-      actor: {
-        with: {
-          followers: { where: { followerId: actor.id } },
-          blockees: { where: { blockeeId: actor.id } },
-          blockers: { where: { blockerId: actor.id } },
-        },
-      },
-      mentions: { where: { actorId: actor.id } },
-    },
-    where: { iri: request.objectId.href },
-  });
+  const quotedPost = await getQuoteRequestTarget(
+    fedCtx,
+    request.objectId.href,
+    actor,
+  );
   if (quotedPost?.actor.accountId == null) return;
   const approved = canActorRequestQuotePost(quotedPost, actor) &&
     await quoteRequestInstrumentBelongsToActor(fedCtx, request);
@@ -124,6 +129,49 @@ export async function onQuoteRequested(
     response,
     { preferSharedInbox: false, orderingKey: request.objectId.href },
   );
+}
+
+async function getQuoteRequestTarget(
+  fedCtx: InboxContext<ContextData>,
+  iri: string,
+  actor: Actor,
+): Promise<QuoteRequestTarget | undefined> {
+  const requested = await fedCtx.data.db.query.postTable.findFirst({
+    with: quoteRequestTargetRelations(actor),
+    where: { iri },
+  });
+  if (requested == null) return undefined;
+
+  const visited = new Set([requested.id]);
+  let target = requested;
+  let depth = 0;
+  while (target.sharedPostId != null) {
+    if (depth >= maxQuoteRequestTargetDepth) return undefined;
+    depth++;
+    if (visited.has(target.sharedPostId)) return undefined;
+    visited.add(target.sharedPostId);
+
+    const next = await fedCtx.data.db.query.postTable.findFirst({
+      with: quoteRequestTargetRelations(actor),
+      where: { id: target.sharedPostId },
+    });
+    if (next == null) return undefined;
+    target = next;
+  }
+  return target;
+}
+
+function quoteRequestTargetRelations(actor: Actor) {
+  return {
+    actor: {
+      with: {
+        followers: { where: { followerId: actor.id } },
+        blockees: { where: { blockeeId: actor.id } },
+        blockers: { where: { blockerId: actor.id } },
+      },
+    },
+    mentions: { where: { actorId: actor.id } },
+  } as const;
 }
 
 async function quoteRequestInstrumentBelongsToActor(

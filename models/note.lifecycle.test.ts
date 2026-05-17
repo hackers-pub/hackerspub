@@ -5,7 +5,7 @@ import type { Context } from "@fedify/fedify";
 import { Create, Note as ActivityPubNote } from "@fedify/vocab";
 import type { ContextData } from "./context.ts";
 import type { Transaction } from "./db.ts";
-import { createNote, updateNote } from "./note.ts";
+import { createNote, QuotePolicyDeniedError, updateNote } from "./note.ts";
 import { followingTable, mediumTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import {
@@ -197,19 +197,22 @@ test("createNote() enforces quote policy for legacy callers", async () => {
       content: "Followers-only target",
     });
 
-    const quote = await createNote(
-      fedCtx as unknown as Context<ContextData<Transaction>>,
-      {
-        accountId: follower.account.id,
-        visibility: "public",
-        content: "Trying to quote a followers-only post",
-        language: "en",
-        media: [],
-      },
-      { quotedPost: { ...quotedPost, actor: author.actor } },
+    await assert.rejects(
+      () =>
+        createNote(
+          fedCtx as unknown as Context<ContextData<Transaction>>,
+          {
+            accountId: follower.account.id,
+            visibility: "public",
+            content: "Trying to quote a followers-only post",
+            language: "en",
+            media: [],
+          },
+          { quotedPost: { ...quotedPost, actor: author.actor } },
+        ),
+      QuotePolicyDeniedError,
     );
 
-    assert.equal(quote, undefined);
     const refreshedTarget = await tx.query.postTable.findFirst({
       where: { id: quotedPost.id },
     });
@@ -240,19 +243,22 @@ test("createNote() rejects direct quote targets for legacy callers", async () =>
       content: "Direct target",
     });
 
-    const quote = await createNote(
-      fedCtx as unknown as Context<ContextData<Transaction>>,
-      {
-        accountId: author.account.id,
-        visibility: "public",
-        content: "Trying to quote a direct post",
-        language: "en",
-        media: [],
-      },
-      { quotedPost: { ...quotedPost, actor: author.actor } },
+    await assert.rejects(
+      () =>
+        createNote(
+          fedCtx as unknown as Context<ContextData<Transaction>>,
+          {
+            accountId: author.account.id,
+            visibility: "public",
+            content: "Trying to quote a direct post",
+            language: "en",
+            media: [],
+          },
+          { quotedPost: { ...quotedPost, actor: author.actor } },
+        ),
+      QuotePolicyDeniedError,
     );
 
-    assert.equal(quote, undefined);
     const refreshedTarget = await tx.query.postTable.findFirst({
       where: { id: quotedPost.id },
     });

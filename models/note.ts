@@ -48,6 +48,13 @@ export type NoteSourceMediumWithMedium = NoteSourceMedium & {
   medium: Medium;
 };
 
+export class QuotePolicyDeniedError extends Error {
+  constructor() {
+    super("Quote policy denied the quoted post.");
+    this.name = "QuotePolicyDeniedError";
+  }
+}
+
 export async function createNoteSource(
   db: Database,
   source: Omit<NewNoteSource, "id"> & { id?: Uuid },
@@ -340,7 +347,7 @@ export async function createNote(
       actor,
       relations.quotedPost,
     );
-    if (allowedQuoteTarget == null) return undefined;
+    if (allowedQuoteTarget == null) throw new QuotePolicyDeniedError();
   }
   const noteSource = await createNoteSource(db, source);
   if (noteSource == null) return undefined;

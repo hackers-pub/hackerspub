@@ -2095,6 +2095,8 @@ export async function revokeQuote(
     })
     .where(eq(postTable.id, quotePost.id))
     .returning();
+  const updatedPost = rows[0];
+  if (updatedPost == null) return quotePost;
   if (quotePost.actor.accountId != null && quotePost.noteSourceId != null) {
     await db.update(noteSourceTable)
       .set({ updated: revokedAt })
@@ -2141,12 +2143,7 @@ export async function revokeQuote(
     }
   }
   await updateQuotesCount(db, quotedPost, -1);
-  return rows[0] ?? {
-    ...quotePost,
-    quotedPostId: null,
-    quoteAuthorizationIri: null,
-    updated: revokedAt,
-  };
+  return updatedPost;
 }
 
 async function sendLocalQuoteAuthorizationDelete(

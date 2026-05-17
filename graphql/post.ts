@@ -41,7 +41,7 @@ import {
   SUPPORTED_MEDIUM_IMAGE_TYPES,
   UnsafeMediumUrlError,
 } from "@hackerspub/models/medium";
-import { createNote } from "@hackerspub/models/note";
+import { createNote, QuotePolicyDeniedError } from "@hackerspub/models/note";
 import {
   arePostsPinnedBy,
   pinPost as pinPostModel,
@@ -1169,26 +1169,13 @@ builder.relayMutationField(
             return { mediumId: medium.mediumId, alt };
           }),
         );
-        const note = await createNote(
-          context,
-          {
-            accountId: session.accountId,
-            visibility: visibility === "PUBLIC"
-              ? "public"
-              : visibility === "UNLISTED"
-              ? "unlisted"
-              : visibility === "FOLLOWERS"
-              ? "followers"
-              : visibility === "DIRECT"
-              ? "direct"
-              : visibility === "NONE"
-              ? "none"
-              : assertNever(
-                visibility,
-                `Unknown value in Post.visibility: "${visibility}"`,
-              ),
-            quotePolicy: normalizeQuotePolicyForVisibility(
-              visibility === "PUBLIC"
+        let note: Awaited<ReturnType<typeof createNote>>;
+        try {
+          note = await createNote(
+            context,
+            {
+              accountId: session.accountId,
+              visibility: visibility === "PUBLIC"
                 ? "public"
                 : visibility === "UNLISTED"
                 ? "unlisted"
@@ -1202,14 +1189,35 @@ builder.relayMutationField(
                   visibility,
                   `Unknown value in Post.visibility: "${visibility}"`,
                 ),
-              quotePolicy == null ? undefined : fromQuotePolicy(quotePolicy),
-            ),
-            content,
-            language: language.baseName,
-            media: noteMedia,
-          },
-          { replyTarget, quotedPost },
-        );
+              quotePolicy: normalizeQuotePolicyForVisibility(
+                visibility === "PUBLIC"
+                  ? "public"
+                  : visibility === "UNLISTED"
+                  ? "unlisted"
+                  : visibility === "FOLLOWERS"
+                  ? "followers"
+                  : visibility === "DIRECT"
+                  ? "direct"
+                  : visibility === "NONE"
+                  ? "none"
+                  : assertNever(
+                    visibility,
+                    `Unknown value in Post.visibility: "${visibility}"`,
+                  ),
+                quotePolicy == null ? undefined : fromQuotePolicy(quotePolicy),
+              ),
+              content,
+              language: language.baseName,
+              media: noteMedia,
+            },
+            { replyTarget, quotedPost },
+          );
+        } catch (error) {
+          if (error instanceof QuotePolicyDeniedError) {
+            throw new InvalidInputError("quotedPostId");
+          }
+          throw error;
+        }
         if (note == null) {
           throw new Error("Failed to create note");
         }
