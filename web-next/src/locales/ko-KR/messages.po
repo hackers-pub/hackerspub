@@ -278,11 +278,11 @@ msgstr "관리"
 msgid "All"
 msgstr "전체"
 
-#: src/components/NoteComposer.tsx:751
+#: src/components/NoteComposer.tsx:768
 msgid "All images must finish uploading before posting"
 msgstr "투고하기 전에 모든 이미지 업로드를 완료해야 합니다."
 
-#: src/components/NoteComposer.tsx:759
+#: src/components/NoteComposer.tsx:776
 msgid "All images require alt text"
 msgstr "모든 이미지에 대체 텍스트가 필요합니다."
 
@@ -291,11 +291,11 @@ msgid "Allow automatic translation by AI"
 msgstr "AI 자동 번역 허용"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1207
+#: src/components/NoteComposer.tsx:1224
 msgid "Alt text for image {0}"
 msgstr "이미지 {0}의 대체 텍스트"
 
-#: src/components/NoteComposer.tsx:1219
+#: src/components/NoteComposer.tsx:1236
 msgid "Alt text for visually impaired people (required)"
 msgstr "시각장애인을 위한 대체 텍스트 (필수)"
 
@@ -392,8 +392,8 @@ msgstr "게시글만"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "이미 {0} 변경하였기 때문에 다시 변경할 수 없습니다."
 
-#: src/components/NoteComposer.tsx:1096
-#: src/components/NoteComposer.tsx:1097
+#: src/components/NoteComposer.tsx:1113
+#: src/components/NoteComposer.tsx:1114
 msgid "Attach image"
 msgstr "이미지 첨부"
 
@@ -401,12 +401,12 @@ msgstr "이미지 첨부"
 msgid "Authenticating…"
 msgstr "인증중…"
 
-#: src/components/NoteComposer.tsx:1238
+#: src/components/NoteComposer.tsx:1255
 msgid "Auto-fill"
 msgstr "자동 입력"
 
-#: src/components/NoteComposer.tsx:1231
-#: src/components/NoteComposer.tsx:1232
+#: src/components/NoteComposer.tsx:1248
+#: src/components/NoteComposer.tsx:1249
 msgid "Auto-fill alt text"
 msgstr "대체 텍스트 자동 입력"
 
@@ -448,9 +448,9 @@ msgid "Bookmarks"
 msgstr "북마크"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:1266
-#: src/components/NoteComposer.tsx:1267
-#: src/components/NoteComposer.tsx:1310
+#: src/components/NoteComposer.tsx:1283
+#: src/components/NoteComposer.tsx:1284
+#: src/components/NoteComposer.tsx:1327
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
@@ -516,12 +516,12 @@ msgid "Compose"
 msgstr "작성"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/components/NoteComposer.tsx:1019
+#: src/components/NoteComposer.tsx:1036
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:247
 msgid "Content"
 msgstr "내용"
 
-#: src/components/NoteComposer.tsx:741
+#: src/components/NoteComposer.tsx:758
 msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
@@ -542,8 +542,8 @@ msgid "Could not copy the link to the clipboard."
 msgstr "클립보드에 링크를 복사할 수 없습니다."
 
 #: src/components/NoteComposer.tsx:628
-msgid "Could not find a post at this URL"
-msgstr "이 URL에서 콘텐츠를 찾을 수 없습니다"
+#~ msgid "Could not find a post at this URL"
+#~ msgstr "이 URL에서 콘텐츠를 찾을 수 없습니다"
 
 #: src/components/ActorHoverCardLoader.tsx:34
 msgid "Could not load profile."
@@ -569,7 +569,7 @@ msgstr "초대 링크 생성"
 #: src/components/AppSidebar.tsx:752
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:69
-#: src/components/NoteComposer.tsx:1322
+#: src/components/NoteComposer.tsx:1339
 msgid "Create note"
 msgstr "단문 작성"
 
@@ -590,7 +590,7 @@ msgstr "{0}에 생성됨"
 msgid "Creating account…"
 msgstr "계정을 생성하는 중…"
 
-#: src/components/NoteComposer.tsx:1323
+#: src/components/NoteComposer.tsx:1340
 #: src/routes/(root)/[handle]/settings/invite.tsx:761
 msgid "Creating…"
 msgstr "작성 중…"
@@ -663,7 +663,7 @@ msgstr "이름"
 msgid "Do you need an account? Hackers' Pub is invite-only—please ask a friend to invite you."
 msgstr "계정이 필요하신가요? Hackers' Pub은 초대 전용입니다. 친구에게 초대를 요청해주세요."
 
-#: src/components/NoteComposer.tsx:615
+#: src/components/NoteComposer.tsx:654
 msgid "Do you want to quote this link?"
 msgstr "이 링크를 인용하시겠습니까?"
 
@@ -747,14 +747,13 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 #: src/components/article-composer/ArticleComposerForm.tsx:26
 #: src/components/NoteComposer.tsx:526
 #: src/components/NoteComposer.tsx:573
-#: src/components/NoteComposer.tsx:627
-#: src/components/NoteComposer.tsx:740
-#: src/components/NoteComposer.tsx:750
-#: src/components/NoteComposer.tsx:758
-#: src/components/NoteComposer.tsx:792
-#: src/components/NoteComposer.tsx:800
-#: src/components/NoteComposer.tsx:808
-#: src/components/NoteComposer.tsx:864
+#: src/components/NoteComposer.tsx:757
+#: src/components/NoteComposer.tsx:767
+#: src/components/NoteComposer.tsx:775
+#: src/components/NoteComposer.tsx:809
+#: src/components/NoteComposer.tsx:817
+#: src/components/NoteComposer.tsx:825
+#: src/components/NoteComposer.tsx:881
 #: src/components/QuotedNoteCard.tsx:205
 #: src/components/QuotedNoteCard.tsx:213
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
@@ -820,7 +819,7 @@ msgstr "콘텐츠 삭제에 실패했습니다"
 msgid "Failed to follow"
 msgstr "팔로에 실패했습니다"
 
-#: src/components/NoteComposer.tsx:865
+#: src/components/NoteComposer.tsx:882
 msgid "Failed to generate alt text"
 msgstr "대체 텍스트 생성에 실패했습니다"
 
@@ -890,11 +889,11 @@ msgstr "댓글을 더 불러오지 못했습니다. 클릭해서 다시 시도�
 msgid "Failed to load more shares; click to retry"
 msgstr "공유를 더 불러오지 못했습니다. 다시 시도하려면 클릭하세요"
 
-#: src/components/NoteComposer.tsx:910
+#: src/components/NoteComposer.tsx:927
 msgid "Failed to load post"
 msgstr "콘텐츠를 불러오지 못했습니다"
 
-#: src/components/NoteComposer.tsx:961
+#: src/components/NoteComposer.tsx:978
 msgid "Failed to load quoted post"
 msgstr "인용 콘텐츠를 불러오지 못했습니다"
 
@@ -927,7 +926,7 @@ msgstr "패스키 등록 실패"
 msgid "Failed to remove bookmark"
 msgstr "북마크 해제 실패"
 
-#: src/components/NoteComposer.tsx:1078
+#: src/components/NoteComposer.tsx:1095
 msgid "Failed to render preview"
 msgstr "미리보기 렌더링에 실패했습니다"
 
@@ -1053,7 +1052,7 @@ msgstr "당신을 팔로우합니다"
 msgid "Formatting"
 msgstr "서식"
 
-#: src/components/NoteComposer.tsx:1257
+#: src/components/NoteComposer.tsx:1274
 msgid "Generating…"
 msgstr "생성 중…"
 
@@ -1187,7 +1186,7 @@ msgstr "올바른 연합우주 핸들 형식이 아닙니다."
 #: src/components/article-composer/ArticleComposerContext.tsx:310
 #: src/components/article-composer/ArticleComposerContext.tsx:383
 #: src/components/article-composer/ArticleComposerContext.tsx:448
-#: src/components/NoteComposer.tsx:793
+#: src/components/NoteComposer.tsx:810
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
@@ -1450,7 +1449,7 @@ msgstr "댓글을 더 불러오는 중…"
 msgid "Loading more shares…"
 msgstr "공유를 더 불러오는 중…"
 
-#: src/components/NoteComposer.tsx:962
+#: src/components/NoteComposer.tsx:979
 msgid "Loading quoted post…"
 msgstr "인용 콘텐츠를 불러오는 중…"
 
@@ -1458,7 +1457,7 @@ msgstr "인용 콘텐츠를 불러오는 중…"
 msgid "Loading search results…"
 msgstr "검색 결과를 불러오는 중…"
 
-#: src/components/NoteComposer.tsx:911
+#: src/components/NoteComposer.tsx:928
 #: src/routes/(root)/[handle]/drafts/index.tsx:340
 #: src/routes/(root)/sign/up/[token].tsx:454
 msgid "Loading…"
@@ -1477,7 +1476,7 @@ msgid "Markdown guide"
 msgstr "Markdown 가이드"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:1154
+#: src/components/NoteComposer.tsx:1171
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
 msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
@@ -1650,7 +1649,7 @@ msgstr "찾을 수 없음"
 #~ msgid "Note"
 #~ msgstr "단문"
 
-#: src/components/NoteComposer.tsx:785
+#: src/components/NoteComposer.tsx:802
 msgid "Note created successfully"
 msgstr "단문이 작성되었습니다"
 
@@ -1664,7 +1663,7 @@ msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링�
 msgid "Notes"
 msgstr "단문"
 
-#: src/components/NoteComposer.tsx:1079
+#: src/components/NoteComposer.tsx:1096
 msgid "Nothing to preview"
 msgstr "미리볼 내용이 없습니다"
 
@@ -1817,7 +1816,7 @@ msgstr "선호 언어"
 msgid "Preferred languages"
 msgstr "선호 언어"
 
-#: src/components/NoteComposer.tsx:1028
+#: src/components/NoteComposer.tsx:1045
 msgid "Preview"
 msgstr "미리보기"
 
@@ -1986,13 +1985,13 @@ msgstr "{0} 제거"
 msgid "Remove bookmark"
 msgstr "북마크 해제"
 
-#: src/components/NoteComposer.tsx:1278
-#: src/components/NoteComposer.tsx:1279
+#: src/components/NoteComposer.tsx:1295
+#: src/components/NoteComposer.tsx:1296
 msgid "Remove image"
 msgstr "이미지 제거"
 
-#: src/components/NoteComposer.tsx:1009
-#: src/components/NoteComposer.tsx:1010
+#: src/components/NoteComposer.tsx:1026
+#: src/components/NoteComposer.tsx:1027
 msgid "Remove quote"
 msgstr "인용 삭제"
 
@@ -2000,7 +1999,7 @@ msgstr "인용 삭제"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "생성된 지 충분히 오래되었고 프로필 사진, 단문, 게시글 초고, 게시글에 더 이상 첨부되어 있지 않은 저장된 미디어를 제거합니다."
 
-#: src/components/NoteComposer.tsx:1069
+#: src/components/NoteComposer.tsx:1086
 msgid "Rendering…"
 msgstr "렌더링 중…"
 
@@ -2013,7 +2012,7 @@ msgstr "댓글"
 msgid "Replying is not available for this post"
 msgstr "이 콘텐츠에는 댓글을 달 수 없습니다"
 
-#: src/components/NoteComposer.tsx:903
+#: src/components/NoteComposer.tsx:920
 msgid "Replying to"
 msgstr "댓글 대상"
 
@@ -2210,7 +2209,7 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 #: src/components/article-composer/ArticleComposerContext.tsx:299
 #: src/components/article-composer/ArticleComposerContext.tsx:373
 #: src/components/article-composer/ArticleComposerContext.tsx:438
-#: src/components/NoteComposer.tsx:784
+#: src/components/NoteComposer.tsx:801
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
 #: src/routes/(root)/[handle]/drafts/index.tsx:172
 msgid "Success"
@@ -2477,7 +2476,7 @@ msgstr "프로필 사진, 아이디, 이름, 약력, 링크 등의 프로필 정
 msgid "Updated {0}"
 msgstr "{0}에 업데이트됨"
 
-#: src/components/NoteComposer.tsx:1194
+#: src/components/NoteComposer.tsx:1211
 msgid "Upload progress"
 msgstr "업로드 진행률"
 
@@ -2624,7 +2623,7 @@ msgstr "Hackers' Pub에 오신 것을 환영합니다! 가입을 완료하려면
 msgid "What is Hackers' Pub?"
 msgstr "Hackers' Pub이란?"
 
-#: src/components/NoteComposer.tsx:1053
+#: src/components/NoteComposer.tsx:1070
 msgid "What's on your mind?"
 msgstr "무슨 생각 해요?"
 
@@ -2632,7 +2631,7 @@ msgstr "무슨 생각 해요?"
 msgid "Without shares"
 msgstr "공유 제외"
 
-#: src/components/NoteComposer.tsx:1022
+#: src/components/NoteComposer.tsx:1039
 msgid "Write"
 msgstr "작성"
 
@@ -2713,7 +2712,7 @@ msgstr "남은 초대장이 없습니다. 추가로 받을 때까지 기다려�
 msgid "You must be signed in"
 msgstr "로그인이 필요합니다"
 
-#: src/components/NoteComposer.tsx:801
+#: src/components/NoteComposer.tsx:818
 msgid "You must be signed in to create a note"
 msgstr "단문을 작성하려면 로그인해야 합니다"
 
