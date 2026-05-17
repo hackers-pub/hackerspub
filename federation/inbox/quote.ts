@@ -524,7 +524,7 @@ export async function onQuoteAuthorizationDeleted(
       "Ignoring quote authorization deletion by non-attributed actor: {iri}",
       { iri: del.objectId.href },
     );
-    return true;
+    return false;
   }
   const quotes = await fedCtx.data.db.query.postTable.findMany({
     with: {

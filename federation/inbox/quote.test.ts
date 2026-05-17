@@ -810,6 +810,74 @@ test("onQuoteAuthorizationDeleted federates quote removal", async () => {
   });
 });
 
+test("onQuoteAuthorizationDeleted falls through on actor mismatch", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "quoteauthowner",
+      name: "Quote Auth Owner",
+      host: "remote.example",
+    });
+    const otherActor = await insertRemoteActor(tx, {
+      username: "quoteauthimpostor",
+      name: "Quote Auth Impostor",
+      host: "elsewhere.example",
+    });
+    const quotedPost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Authorization target</p>",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quoteauthlocal",
+      name: "Quote Auth Local",
+      email: "quoteauthlocal@example.com",
+    });
+    const authorizationIri =
+      "https://remote.example/quote-authorization/mismatch";
+    const { post: quote } = await insertNotePost(tx, {
+      account: quoter.account,
+      content: "Quoting before mismatched authorization deletion",
+      quotedPostId: quotedPost.id,
+    });
+    await tx.update(postTable)
+      .set({ quoteAuthorizationIri: authorizationIri })
+      .where(eq(postTable.id, quote.id));
+    await tx.insert(quoteAuthorizationTable).values({
+      id: generateUuidV7(),
+      iri: authorizationIri,
+      quotePostIri: quote.iri,
+      quotePostId: quote.id,
+      quotedPostId: quotedPost.id,
+      attributedActorId: remoteActor.id,
+    });
+    const del = new Delete({
+      id: new URL("https://elsewhere.example/delete/mismatch"),
+      actor: new URL(otherActor.iri),
+      object: new URL(authorizationIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    assert.equal(await onQuoteAuthorizationDeleted(fedCtx, del), false);
+
+    const updatedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(updatedQuote?.quotedPostId, quotedPost.id);
+    assert.equal(updatedQuote?.quoteAuthorizationIri, authorizationIri);
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { iri: authorizationIri },
+    });
+    assert.equal(authorization?.revoked, false);
+    assert.equal(sent.length, 0);
+  });
+});
+
 async function withTagsPubRelayEnabled(
   run: () => Promise<void>,
 ): Promise<void> {
