@@ -149,15 +149,24 @@ function getQuoteInteractionPolicy(
   ctx: Context<ContextData>,
   accountId: Uuid,
   quotePolicy: QuotePolicy,
+  quoteRequestPolicy: QuotePolicy | null = null,
 ): vocab.InteractionPolicy {
   const automaticApproval = quotePolicy === "everyone"
     ? PUBLIC_COLLECTION
     : quotePolicy === "followers"
     ? ctx.getFollowersUri(accountId)
     : ctx.getActorUri(accountId);
+  const manualApproval = quoteRequestPolicy == null
+    ? null
+    : quoteRequestPolicy === "everyone"
+    ? PUBLIC_COLLECTION
+    : quoteRequestPolicy === "followers"
+    ? ctx.getFollowersUri(accountId)
+    : ctx.getActorUri(accountId);
   return new vocab.InteractionPolicy({
     canQuote: new vocab.InteractionRule({
       automaticApproval,
+      manualApproval: manualApproval ?? undefined,
     }),
   });
 }
@@ -214,6 +223,7 @@ export async function getNote(
     replyTargetId?: URL;
     quotedPost?: Post;
     quoteAuthorizationIri?: string | null;
+    quoteRequestPolicy?: QuotePolicy | null;
   } = {},
 ): Promise<vocab.Note> {
   const rendered = await renderMarkup(ctx, note.content, {
@@ -282,7 +292,12 @@ export async function getNote(
     interactionPolicy: note.visibility === "direct" ||
         note.visibility === "none"
       ? undefined
-      : getQuoteInteractionPolicy(ctx, note.accountId, normalizedQuotePolicy),
+      : getQuoteInteractionPolicy(
+        ctx,
+        note.accountId,
+        normalizedQuotePolicy,
+        relations.quoteRequestPolicy,
+      ),
     quote: relations.quotedPost == null
       ? null
       : new URL(relations.quotedPost.iri),
@@ -337,6 +352,7 @@ builder
             : new URL(note.post.replyTarget.iri),
           quotedPost: note.post.quotedPost ?? undefined,
           quoteAuthorizationIri: note.post.quoteAuthorizationIri,
+          quoteRequestPolicy: note.post.quoteRequestPolicy,
         },
       );
     },

@@ -14,6 +14,8 @@ import {
   canActorQuotePost,
   canActorRequestQuotePost,
   isPostObject,
+  persistPost,
+  type PostObject,
   updateQuotesCount,
 } from "@hackerspub/models/post";
 import {
@@ -80,9 +82,10 @@ export async function onQuoteRequested(
   );
   if (quotedPost?.actor.accountId == null) return;
   const requestAllowed = canActorRequestQuotePost(quotedPost, actor);
-  const validInstrument = requestAllowed &&
-    await quoteRequestInstrumentBelongsToActor(fedCtx, request);
-  if (!validInstrument) {
+  const instrument = requestAllowed
+    ? await getValidQuoteRequestInstrument(fedCtx, request)
+    : undefined;
+  if (instrument == null) {
     await fedCtx.sendActivity(
       { identifier: quotedPost.actor.accountId },
       { id: request.actorId, inboxId: new URL(actor.inboxUrl) },
@@ -95,7 +98,29 @@ export async function onQuoteRequested(
     );
     return;
   }
-  if (!canActorQuotePost(quotedPost, actor)) return;
+  if (!canActorQuotePost(quotedPost, actor)) {
+    const quotePost = await persistPost(fedCtx, instrument, {
+      actor,
+      replies: false,
+    });
+    if (quotePost == null) return;
+    await fedCtx.data.db.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: request.id.href,
+      quotePostId: quotePost.id,
+      quotedPostId: quotedPost.id,
+    }).onConflictDoUpdate({
+      target: quoteRequestTable.iri,
+      set: {
+        quotePostId: quotePost.id,
+        quotedPostId: quotedPost.id,
+        accepted: null,
+        rejected: null,
+        updated: sql`CURRENT_TIMESTAMP`,
+      },
+    });
+    return;
+  }
   const existingAuthorization = await fedCtx.data.db.query
     .quoteAuthorizationTable.findFirst({
       columns: { id: true, iri: true },
@@ -181,11 +206,11 @@ function quoteRequestTargetRelations(actor: Actor) {
   } as const;
 }
 
-async function quoteRequestInstrumentBelongsToActor(
+async function getValidQuoteRequestInstrument(
   fedCtx: InboxContext<ContextData>,
   request: QuoteRequest,
-): Promise<boolean> {
-  if (request.actorId == null || request.instrumentId == null) return false;
+): Promise<PostObject | undefined> {
+  if (request.actorId == null || request.instrumentId == null) return undefined;
   if (request.instrumentId.origin !== request.actorId.origin) {
     logger.warn(
       "Rejecting quote request with cross-origin instrument: {instrument}",
@@ -194,7 +219,7 @@ async function quoteRequestInstrumentBelongsToActor(
         actor: request.actorId.href,
       },
     );
-    return false;
+    return undefined;
   }
   let instrument: unknown;
   try {
@@ -204,13 +229,13 @@ async function quoteRequestInstrumentBelongsToActor(
       instrument: request.instrumentId.href,
       error,
     });
-    return false;
+    return undefined;
   }
   if (!isPostObject(instrument)) {
     logger.warn("Rejecting quote request with invalid instrument: {iri}", {
       iri: request.instrumentId.href,
     });
-    return false;
+    return undefined;
   }
   const quotesTarget = instrument.quoteId?.href === request.objectId?.href ||
     instrument.quoteUrl?.href === request.objectId?.href;
@@ -222,7 +247,7 @@ async function quoteRequestInstrumentBelongsToActor(
         object: request.objectId?.href,
       },
     );
-    return false;
+    return undefined;
   }
   const belongsToActor = instrument.attributionIds.some((id) =>
     id.href === request.actorId?.href
@@ -236,7 +261,7 @@ async function quoteRequestInstrumentBelongsToActor(
       },
     );
   }
-  return belongsToActor;
+  return belongsToActor ? instrument : undefined;
 }
 
 export async function onQuoteRequestAccepted(

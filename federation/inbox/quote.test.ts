@@ -212,6 +212,17 @@ test("onQuoteRequested leaves request-only follower approvals pending", async ()
     assert.equal(authorization, undefined);
     assert.equal(sent.some((args) => args[2] instanceof Accept), false);
     assert.equal(sent.some((args) => args[2] instanceof Reject), false);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { iri: instrumentIri },
+    });
+    assert.ok(storedQuote != null);
+    const storedRequest = await tx.query.quoteRequestTable.findFirst({
+      where: { iri: request.id!.href },
+    });
+    assert.equal(storedRequest?.quotePostId, storedQuote.id);
+    assert.equal(storedRequest?.quotedPostId, quotedPost.id);
+    assert.equal(storedRequest?.accepted, null);
+    assert.equal(storedRequest?.rejected, null);
   });
 });
 

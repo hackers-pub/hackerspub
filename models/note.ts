@@ -395,6 +395,7 @@ export async function createNote(
         : new URL(relations.replyTarget.iri),
       quotedPost: post.quotedPost ?? undefined,
       quoteAuthorizationIri: post.quoteAuthorizationIri,
+      quoteRequestPolicy: post.quoteRequestPolicy,
     },
   );
   const activity = new vocab.Create({
@@ -596,6 +597,7 @@ export async function updateNote(
           where: { id: post.quotedPostId },
         }),
       quoteAuthorizationIri: post.quoteAuthorizationIri,
+      quoteRequestPolicy: post.quoteRequestPolicy,
     },
   );
   const activity = new vocab.Update({
