@@ -5,6 +5,7 @@ import { getNote } from "@hackerspub/federation/objects";
 import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { eq, sql } from "drizzle-orm";
 import type { Disk } from "flydrive";
+import { syncActorFromAccount } from "./actor.ts";
 import type { ContextData } from "./context.ts";
 import type { Database, Transaction } from "./db.ts";
 import {
@@ -12,7 +13,11 @@ import {
   createQuoteNotification,
   createReplyNotification,
 } from "./notification.ts";
-import { syncPostFromNoteSource, updateRepliesCount } from "./post.ts";
+import {
+  getAllowedQuoteTargetForActor,
+  syncPostFromNoteSource,
+  updateRepliesCount,
+} from "./post.ts";
 import {
   type Account,
   type AccountEmail,
@@ -323,6 +328,20 @@ export async function createNote(
   } | undefined
 > {
   const { db, disk } = fedCtx.data;
+  const account = await db.query.accountTable.findFirst({
+    where: { id: source.accountId },
+    with: { avatarMedium: true, emails: true, links: true },
+  });
+  if (account == undefined) return undefined;
+  if (relations.quotedPost != null) {
+    const actor = await syncActorFromAccount(fedCtx, account);
+    const allowedQuoteTarget = await getAllowedQuoteTargetForActor(
+      db,
+      actor,
+      relations.quotedPost,
+    );
+    if (allowedQuoteTarget == null) return undefined;
+  }
   const noteSource = await createNoteSource(db, source);
   if (noteSource == null) return undefined;
   let index = 0;
@@ -339,11 +358,6 @@ export async function createNote(
     media.push(m);
     index++;
   }
-  const account = await db.query.accountTable.findFirst({
-    where: { id: source.accountId },
-    with: { avatarMedium: true, emails: true, links: true },
-  });
-  if (account == undefined) return undefined;
   const post = await syncPostFromNoteSource(fedCtx, {
     ...noteSource,
     media,

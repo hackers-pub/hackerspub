@@ -217,6 +217,10 @@ test("createNote() enforces quote policy for legacy callers", async () => {
       where: { quotedPostId: quotedPost.id },
     });
     assert.equal(authorization, undefined);
+    const orphanedSource = await tx.query.noteSourceTable.findFirst({
+      where: { content: "Trying to quote a followers-only post" },
+    });
+    assert.equal(orphanedSource, undefined);
   });
 });
 

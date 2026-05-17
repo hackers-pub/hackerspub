@@ -12,7 +12,7 @@ import {
   traverseCollection,
 } from "@fedify/vocab";
 import * as vocab from "@fedify/vocab";
-import { getAnnounce } from "@hackerspub/federation/objects";
+import { getAnnounce, getNote } from "@hackerspub/federation/objects";
 import { sendTagsPubRelayActivity } from "@hackerspub/federation/tags-pub";
 import { getLogger } from "@logtape/logtape";
 import { assertNever } from "@std/assert/unstable-never";
@@ -109,6 +109,13 @@ type QuotePolicyPost = Post & {
     blockers: Blocking[];
   };
   mentions: Mention[];
+};
+
+type QuoteUpdatePost = Post & {
+  actor: Actor;
+  quotedPost: (Post & { actor: Actor }) | null;
+  replyTarget: Post | null;
+  mentions: (Mention & { actor: Actor })[];
 };
 
 export function isPostObject(object: unknown): object is PostObject {
@@ -229,6 +236,32 @@ export function canActorRequestQuotePost(
   if (!isPostVisibleTo(post, actor)) return false;
   if (post.quoteRequestPolicy == null) return false;
   return canActorQuoteByPolicy(post, actor, post.quoteRequestPolicy);
+}
+
+export async function getAllowedQuoteTargetForActor(
+  db: Database,
+  actor: Actor,
+  post: Post,
+): Promise<QuotePolicyPost | undefined> {
+  const targetPostId = post.sharedPostId ?? post.id;
+  const quotedPost = await db.query.postTable.findFirst({
+    with: {
+      actor: {
+        with: {
+          followers: { where: { followerId: actor.id } },
+          blockees: { where: { blockeeId: actor.id } },
+          blockers: { where: { blockerId: actor.id } },
+        },
+      },
+      mentions: { where: { actorId: actor.id } },
+    },
+    where: { id: targetPostId },
+  });
+  if (quotedPost == null) return undefined;
+  const allowed = quotedPost.actor.accountId == null
+    ? canActorRequestQuotePost(quotedPost, actor)
+    : canActorQuotePost(quotedPost, actor);
+  return allowed ? quotedPost : undefined;
 }
 
 async function readResponseBytesAtMost(
@@ -401,31 +434,17 @@ export async function syncPostFromNoteSource(
   const actor = await syncActorFromAccount(fedCtx, noteSource.account);
   let quotedPost: QuotePolicyPost | undefined;
   if (relations.quotedPost != null) {
-    const requestedQuotedPostId = relations.quotedPost.sharedPostId ??
-      relations.quotedPost.id;
-    quotedPost = await db.query.postTable.findFirst({
-      with: {
-        actor: {
-          with: {
-            followers: { where: { followerId: actor.id } },
-            blockees: { where: { blockeeId: actor.id } },
-            blockers: { where: { blockerId: actor.id } },
-          },
-        },
-        mentions: { where: { actorId: actor.id } },
-      },
-      where: { id: requestedQuotedPostId },
-    });
-    const allowed = quotedPost == null
-      ? false
-      : quotedPost.actor.accountId == null
-      ? canActorRequestQuotePost(quotedPost, actor)
-      : canActorQuotePost(quotedPost, actor);
-    if (!allowed) {
+    quotedPost = await getAllowedQuoteTargetForActor(
+      db,
+      actor,
+      relations.quotedPost,
+    );
+    if (quotedPost == null) {
       logger.warn("Rejecting local quote creation due to quote policy.", {
         noteSourceId: noteSource.id,
         actorId: actor.id,
-        quotedPostId: requestedQuotedPostId,
+        quotedPostId: relations.quotedPost.sharedPostId ??
+          relations.quotedPost.id,
       });
       return undefined;
     }
@@ -1926,35 +1945,122 @@ export async function revokeQuote(
   quotedPost: Post,
 ): Promise<Post> {
   const { db } = fedCtx.data;
+  const revokedAt = new Date();
   const rows = await db.update(postTable)
     .set({
       quotedPostId: null,
       quoteAuthorizationIri: null,
-      updated: sql`CURRENT_TIMESTAMP`,
+      updated: revokedAt,
     })
     .where(eq(postTable.id, quotePost.id))
     .returning();
+  if (quotePost.actor.accountId != null && quotePost.noteSourceId != null) {
+    await db.update(noteSourceTable)
+      .set({ updated: revokedAt })
+      .where(eq(noteSourceTable.id, quotePost.noteSourceId));
+    const updatedQuote = await db.query.postTable.findFirst({
+      with: {
+        actor: true,
+        quotedPost: { with: { actor: true } },
+        replyTarget: true,
+        mentions: { with: { actor: true } },
+      },
+      where: { id: quotePost.id },
+    });
+    if (updatedQuote != null) {
+      await sendLocalQuoteUpdate(fedCtx, updatedQuote, null, revokedAt);
+    }
+  }
   if (quotePost.quoteAuthorizationIri != null) {
     await db.update(quoteAuthorizationTable)
-      .set({ revoked: true, updated: sql`CURRENT_TIMESTAMP` })
+      .set({ revoked: true, updated: revokedAt })
       .where(eq(quoteAuthorizationTable.iri, quotePost.quoteAuthorizationIri));
-    const activity = new vocab.Delete({
-      id: new URL("#delete", quotePost.quoteAuthorizationIri),
-      actor: fedCtx.getActorUri(account.id),
-      object: new URL(quotePost.quoteAuthorizationIri),
-    });
+    if (quotePost.actor.accountId == null) {
+      const activity = new vocab.Delete({
+        id: new URL("#delete", quotePost.quoteAuthorizationIri),
+        actor: fedCtx.getActorUri(account.id),
+        object: new URL(quotePost.quoteAuthorizationIri),
+      });
+      await fedCtx.sendActivity(
+        { identifier: account.id },
+        toRecipient(quotePost.actor),
+        activity,
+        {
+          orderingKey: quotePost.quoteAuthorizationIri,
+          excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+        },
+      );
+    }
+  }
+  await updateQuotesCount(db, quotedPost, -1);
+  return rows[0] ?? {
+    ...quotePost,
+    quotedPostId: null,
+    quoteAuthorizationIri: null,
+    updated: revokedAt,
+  };
+}
+
+async function sendLocalQuoteUpdate(
+  fedCtx: Context<ContextData>,
+  quote: QuoteUpdatePost,
+  quoteAuthorizationIri: string | null,
+  updated: Date,
+): Promise<void> {
+  if (quote.actor.accountId == null || quote.noteSourceId == null) return;
+  const noteSource = await fedCtx.data.db.query.noteSourceTable.findFirst({
+    where: { id: quote.noteSourceId },
+    with: {
+      account: true,
+      media: { with: { medium: true }, orderBy: { index: "asc" } },
+    },
+  });
+  if (noteSource == null) return;
+  const noteObject = await getNote(fedCtx, noteSource, {
+    replyTargetId: quote.replyTarget == null
+      ? undefined
+      : new URL(quote.replyTarget.iri),
+    quotedPost: quote.quotedPost ?? undefined,
+    quoteAuthorizationIri,
+  });
+  const update = new vocab.Update({
+    id: new URL(
+      `#update/${updated.toISOString()}`,
+      noteObject.id ?? fedCtx.canonicalOrigin,
+    ),
+    actors: noteObject.attributionIds,
+    tos: noteObject.toIds,
+    ccs: noteObject.ccIds,
+    object: noteObject,
+  });
+  const excludeBaseUris = [
+    new URL(fedCtx.origin),
+    new URL(fedCtx.canonicalOrigin),
+  ];
+  if (quote.mentions.length > 0) {
     await fedCtx.sendActivity(
-      { identifier: account.id },
-      toRecipient(quotePost.actor),
-      activity,
+      { identifier: quote.actor.accountId },
+      quote.mentions.map((mention) => toRecipient(mention.actor)),
+      update,
       {
-        orderingKey: quotePost.quoteAuthorizationIri,
-        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+        orderingKey: quote.iri,
+        preferSharedInbox: false,
+        excludeBaseUris,
       },
     );
   }
-  await updateQuotesCount(db, quotedPost, -1);
-  return rows[0] ?? { ...quotePost, quotedPostId: null };
+  if (quote.visibility !== "direct") {
+    await fedCtx.sendActivity(
+      { identifier: quote.actor.accountId },
+      "followers",
+      update,
+      {
+        orderingKey: quote.iri,
+        preferSharedInbox: true,
+        excludeBaseUris,
+      },
+    );
+  }
 }
 
 export async function deletePost(

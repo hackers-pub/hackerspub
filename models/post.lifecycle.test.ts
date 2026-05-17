@@ -1,9 +1,10 @@
+import { Note, Update } from "@fedify/vocab";
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { and, eq } from "drizzle-orm";
 import { follow } from "./following.ts";
-import { sharePost, unsharePost } from "./post.ts";
-import { postTable } from "./schema.ts";
+import { revokeQuote, sharePost, unsharePost } from "./post.ts";
+import { postTable, quoteAuthorizationTable } from "./schema.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -195,6 +196,100 @@ Deno.test({
         },
       });
       assertEquals(notification, undefined);
+    });
+  },
+});
+
+Deno.test({
+  name: "revokeQuote() federates an Update for locally authored quotes",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const owner = await insertAccountWithActor(tx, {
+        username: "quoterevokeowner",
+        name: "Quote Revoke Owner",
+        email: "quoterevokeowner@example.com",
+      });
+      const quoter = await insertAccountWithActor(tx, {
+        username: "quoterevokelocal",
+        name: "Quote Revoke Local",
+        email: "quoterevokelocal@example.com",
+      });
+      const { post: quotedPost } = await insertNotePost(tx, {
+        account: owner.account,
+        content: "Quote revocation target",
+      });
+      const { post: quote } = await insertNotePost(tx, {
+        account: quoter.account,
+        content: "Quote that will be revoked",
+        quotedPostId: quotedPost.id,
+      });
+      assert(quote.noteSourceId != null);
+      const authorizationIri = `${quote.iri}#quote-authorization`;
+      await tx.update(postTable)
+        .set({ quoteAuthorizationIri: authorizationIri })
+        .where(eq(postTable.id, quote.id));
+      await tx.insert(quoteAuthorizationTable).values({
+        id: quote.id,
+        iri: authorizationIri,
+        quotePostIri: quote.iri,
+        quotePostId: quote.id,
+        quotedPostId: quotedPost.id,
+        attributedActorId: owner.actor.id,
+      });
+      const originalSource = await tx.query.noteSourceTable.findFirst({
+        where: { id: quote.noteSourceId },
+      });
+      assert(originalSource != null);
+      const sent: unknown[][] = [];
+      const fedCtx = {
+        ...createFedCtx(tx),
+        sendActivity(...args: unknown[]) {
+          sent.push(args);
+          return Promise.resolve(undefined);
+        },
+      };
+      const quoteWithActor = await tx.query.postTable.findFirst({
+        where: { id: quote.id },
+        with: { actor: true },
+      });
+      assert(quoteWithActor != null);
+
+      await revokeQuote(
+        fedCtx,
+        owner.account,
+        quoteWithActor,
+        quotedPost,
+      );
+
+      const storedQuote = await tx.query.postTable.findFirst({
+        where: { id: quote.id },
+      });
+      assert(storedQuote != null);
+      assertEquals(storedQuote.quotedPostId, null);
+      assertEquals(storedQuote.quoteAuthorizationIri, null);
+      const updatedSource = await tx.query.noteSourceTable.findFirst({
+        where: { id: quote.noteSourceId },
+      });
+      assert(updatedSource != null);
+      assert(updatedSource.updated > originalSource.updated);
+      const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+        where: { iri: authorizationIri },
+      });
+      assertEquals(authorization?.revoked, true);
+
+      const update = sent
+        .map((args) => args[2])
+        .find((activity) => activity instanceof Update);
+      assert(update instanceof Update);
+      const updatedObject = await update.getObject({
+        ...fedCtx,
+        suppressError: true,
+      });
+      assert(updatedObject instanceof Note);
+      assertEquals(updatedObject.quoteId, null);
+      assertEquals(updatedObject.quoteAuthorizationId, null);
     });
   },
 });
