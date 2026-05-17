@@ -463,10 +463,18 @@ export async function syncPostFromNoteSource(
   const url =
     `${fedCtx.canonicalOrigin}/@${noteSource.account.username}/${noteSource.id}`;
   const existingPost = await db.query.postTable.findFirst({
-    columns: { id: true, quotedPostId: true },
+    columns: { id: true, quotedPostId: true, quoteAuthorizationIri: true },
     where: { noteSourceId: noteSource.id },
   });
   const id = existingPost?.id ?? generateUuidV7();
+  const quotedPostId = quotedPost?.id ?? null;
+  const quoteAuthorizationIri = quotedPost == null
+    ? null
+    : quotedPost.actor.accountId == null
+    ? existingPost?.quotedPostId === quotedPostId
+      ? existingPost.quoteAuthorizationIri
+      : null
+    : fedCtx.getObjectUri(vocab.QuoteAuthorization, { id }).href;
   const values: Omit<NewPost, "id"> = {
     iri: fedCtx.getObjectUri(vocab.Note, { id: noteSource.id }).href,
     type: "Note",
@@ -478,10 +486,8 @@ export async function syncPostFromNoteSource(
     actorId: actor.id,
     noteSourceId: noteSource.id,
     replyTargetId: relations.replyTarget?.id,
-    quotedPostId: quotedPost?.sharedPostId ?? quotedPost?.id,
-    quoteAuthorizationIri: quotedPost?.actor.accountId == null
-      ? undefined
-      : fedCtx.getObjectUri(vocab.QuoteAuthorization, { id }).href,
+    quotedPostId,
+    quoteAuthorizationIri,
     contentHtml: rendered.html,
     language: noteSource.language,
     tags: Object.fromEntries(
@@ -539,7 +545,7 @@ export async function syncPostFromNoteSource(
 
   if (
     existingPost?.quotedPostId != null &&
-    existingPost.quotedPostId !== quotedPost?.id
+    existingPost.quotedPostId !== quotedPostId
   ) {
     const previousQuotedPost = await db.query.postTable.findFirst({
       where: { id: existingPost.quotedPostId },
@@ -548,7 +554,7 @@ export async function syncPostFromNoteSource(
       await updateQuotesCount(db, previousQuotedPost, -1);
     }
   }
-  if (quotedPost != null && existingPost?.quotedPostId !== quotedPost.id) {
+  if (quotedPost != null && existingPost?.quotedPostId !== quotedPostId) {
     await updateQuotesCount(db, quotedPost, 1);
   }
   const mentions = mentionList.length > 0
@@ -2157,9 +2163,17 @@ async function sendLocalQuoteAuthorizationDelete(
   ) {
     return;
   }
+  const followers = await fedCtx.data.db.query.followingTable.findMany({
+    with: { follower: true },
+    where: {
+      followeeId: quote.actorId,
+      accepted: { isNotNull: true },
+    },
+  });
+  if (followers.length < 1) return;
   await fedCtx.sendActivity(
     { identifier: account.id },
-    "followers",
+    followers.map((following) => toRecipient(following.follower)),
     activity,
     {
       orderingKey: quoteAuthorizationIri,

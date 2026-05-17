@@ -5,11 +5,16 @@ import { and, eq } from "drizzle-orm";
 import process from "node:process";
 import { follow } from "./following.ts";
 import { revokeQuote, sharePost, unsharePost } from "./post.ts";
-import { postTable, quoteAuthorizationTable } from "./schema.ts";
+import {
+  followingTable,
+  postTable,
+  quoteAuthorizationTable,
+} from "./schema.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
   insertNotePost,
+  insertRemoteActor,
   withRollback,
 } from "../test/postgres.ts";
 
@@ -218,6 +223,17 @@ Deno.test({
           name: "Quote Revoke Local",
           email: "quoterevokelocal@example.com",
         });
+        const remoteFollower = await insertRemoteActor(tx, {
+          username: "quoterevokefollower",
+          name: "Quote Revoke Follower",
+          host: "remote.example",
+        });
+        await tx.insert(followingTable).values({
+          iri: `https://remote.example/follows/${remoteFollower.id}`,
+          followerId: remoteFollower.id,
+          followeeId: quoter.actor.id,
+          accepted: new Date("2026-04-15T00:00:00.000Z"),
+        });
         const { post: quotedPost } = await insertNotePost(tx, {
           account: owner.account,
           content: "Quote revocation target",
@@ -303,7 +319,14 @@ Deno.test({
         assert(
           sent.some((args) =>
             args[2] instanceof Delete &&
-            args[1] === "followers"
+            Array.isArray(args[1]) &&
+            args[1].some((recipient) =>
+              recipient != null &&
+              typeof recipient === "object" &&
+              "id" in recipient &&
+              recipient.id instanceof URL &&
+              recipient.id.href === remoteFollower.iri
+            )
           ),
         );
         assert(

@@ -4539,6 +4539,27 @@
       "nameExplicit": true,
       "columns": [
         {
+          "value": "quote_authorization_iri",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": "(\"quote_authorization_iri\" is not null)",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "post_quote_authorization_iri_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "post"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
           "value": "\"published\" desc",
           "isExpression": true,
           "asc": true,

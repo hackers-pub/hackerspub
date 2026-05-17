@@ -760,6 +760,9 @@ export const postTable = pgTable(
     index("post_quoted_post_id_index")
       .on(table.quotedPostId)
       .where(isNotNull(table.quotedPostId)),
+    index("post_quote_authorization_iri_index")
+      .on(table.quoteAuthorizationIri)
+      .where(isNotNull(table.quoteAuthorizationIri)),
     index("idx_post_note_source_published")
       .on(desc(table.published))
       .where(isNotNull(table.noteSourceId)),
