@@ -356,8 +356,12 @@ export const Post = builder.drizzleInterface("postTable", {
         columns: {
           id: true,
           quotedPostId: true,
+          quoteAuthorizationIri: true,
         },
         with: {
+          actor: {
+            columns: { accountId: true },
+          },
           quotedPost: {
             columns: { actorId: true },
           },
@@ -365,7 +369,8 @@ export const Post = builder.drizzleInterface("postTable", {
       },
       resolve(post, _args, ctx) {
         return ctx.account != null && post.quotedPost != null &&
-          post.quotedPost.actorId === ctx.account.actor.id;
+          post.quotedPost.actorId === ctx.account.actor.id &&
+          (post.actor.accountId != null || post.quoteAuthorizationIri != null);
       },
     }),
     viewerCanShare: t.loadable({
@@ -1415,6 +1420,11 @@ builder.relayMutationField(
         throw new InvalidInputError("quotePostId");
       }
       if (quote.quotedPost.actorId !== ctx.account.actor.id) {
+        throw new InvalidInputError("quotePostId");
+      }
+      if (
+        quote.actor.accountId == null && quote.quoteAuthorizationIri == null
+      ) {
         throw new InvalidInputError("quotePostId");
       }
       const updatedQuote = await withTransaction(

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import process from "node:process";
 import test from "node:test";
 import type { Context } from "@fedify/fedify";
+import { Create, Note as ActivityPubNote } from "@fedify/vocab";
 import type { ContextData } from "./context.ts";
 import type { Transaction } from "./db.ts";
 import { createNote, updateNote } from "./note.ts";
@@ -221,6 +222,68 @@ test("createNote() enforces quote policy for legacy callers", async () => {
       where: { content: "Trying to quote a followers-only post" },
     });
     assert.equal(orphanedSource, undefined);
+  });
+});
+
+test("createNote() federates the normalized quote target for shares", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteshareoriginal",
+      name: "Quote Share Original",
+      email: "quoteshareoriginal@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "quotesharesharer",
+      name: "Quote Share Sharer",
+      email: "quotesharesharer@example.com",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "quotesharequoter",
+      name: "Quote Share Quoter",
+      email: "quotesharequoter@example.com",
+    });
+    const { post: original } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Original quote target",
+    });
+    const { post: share } = await insertNotePost(tx, {
+      account: sharer.account,
+      content: "Share wrapper",
+      sharedPostId: original.id,
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as Context<ContextData<Transaction>>;
+
+    const quote = await createNote(fedCtx, {
+      accountId: quoter.account.id,
+      visibility: "public",
+      content: "Quoting a share wrapper",
+      language: "en",
+      media: [],
+    }, { quotedPost: { ...share, actor: sharer.actor } });
+
+    assert.ok(quote != null);
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: quote.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, original.id);
+    const create = sent
+      .map((args) => args[2])
+      .find((activity) => activity instanceof Create);
+    assert.ok(create instanceof Create);
+    const createdObject = await create.getObject({
+      ...fedCtx,
+      suppressError: true,
+    });
+    assert.ok(createdObject instanceof ActivityPubNote);
+    assert.equal(createdObject.quoteId?.href, original.iri);
+    assert.equal(createdObject.quoteUrl?.href, original.iri);
   });
 });
 

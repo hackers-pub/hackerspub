@@ -300,6 +300,32 @@ const createNoteWithErrorMutation = parse(`
   }
 `);
 
+const viewerCanRevokeQuoteQuery = parse(`
+  query ViewerCanRevokeQuote($id: ID!) {
+    node(id: $id) {
+      ... on Post {
+        viewerCanRevokeQuote
+      }
+    }
+  }
+`);
+
+const revokeQuoteMutation = parse(`
+  mutation RevokeQuote($input: RevokeQuoteInput!) {
+    revokeQuote(input: $input) {
+      __typename
+      ... on RevokeQuotePayload {
+        quote {
+          id
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
 const sharePostMutation = parse(`
   mutation SharePost($postId: ID!) {
     sharePost(input: { postId: $postId }) {
@@ -1765,6 +1791,69 @@ test("createNote rejects remote quotes without automatic or manual permission", 
         inputPath: "quotedPostId",
       },
     });
+  });
+});
+
+test("revokeQuote rejects remote quotes without an authorization", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "revokelegacyquoteauthor",
+      name: "Revoke Legacy Quote Author",
+      email: "revokelegacyquoteauthor@example.com",
+    });
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "revokelegacyquoter",
+      name: "Revoke Legacy Quoter",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Locally authored quote target",
+    });
+    const remoteQuote = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      quotedPostId: quotedPost.id,
+      contentHtml: "<p>Legacy remote quote without authorization</p>",
+    });
+    const quoteId = encodeGlobalID("Note", remoteQuote.id);
+    const contextValue = makeTransactionalUserContext(tx, author.account);
+
+    const viewerResult = await execute({
+      schema,
+      document: viewerCanRevokeQuoteQuery,
+      variableValues: { id: quoteId },
+      contextValue,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(viewerResult.errors, undefined);
+    assert.deepEqual(toPlainJson(viewerResult.data), {
+      node: {
+        viewerCanRevokeQuote: false,
+      },
+    });
+
+    const revokeResult = await execute({
+      schema,
+      document: revokeQuoteMutation,
+      variableValues: {
+        input: { quotePostId: quoteId },
+      },
+      contextValue,
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(revokeResult.errors, undefined);
+    assert.deepEqual(toPlainJson(revokeResult.data), {
+      revokeQuote: {
+        __typename: "InvalidInputError",
+        inputPath: "quotePostId",
+      },
+    });
+    const storedQuote = await tx.query.postTable.findFirst({
+      where: { id: remoteQuote.id },
+    });
+    assert.equal(storedQuote?.quotedPostId, quotedPost.id);
   });
 });
 

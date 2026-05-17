@@ -375,7 +375,7 @@ export async function createNote(
       replyTargetId: relations.replyTarget == null
         ? undefined
         : new URL(relations.replyTarget.iri),
-      quotedPost: relations.quotedPost ?? undefined,
+      quotedPost: post.quotedPost ?? undefined,
       quoteAuthorizationIri: post.quoteAuthorizationIri,
     },
   );
