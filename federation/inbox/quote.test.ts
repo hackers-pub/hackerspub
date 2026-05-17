@@ -73,16 +73,18 @@ test("onQuoteRequested rejects instruments not attributed to the requester", asy
     const sent: unknown[][] = [];
     const fedCtx = {
       ...createFedCtx(tx),
-      lookupObject(identifier: string | URL) {
-        assert.equal(new URL(identifier).href, instrumentIri);
-        return Promise.resolve(
-          new Note({
+      async documentLoader(url: string) {
+        assert.equal(url, instrumentIri);
+        return {
+          contextUrl: null,
+          documentUrl: url,
+          document: await new Note({
             id: new URL(instrumentIri),
             attribution: new URL(otherActor.iri),
             quote: new URL(quotedPost.iri),
             content: "Not owned by requester",
-          }),
-        );
+          }).toJsonLd(),
+        };
       },
       sendActivity(...args: unknown[]) {
         sent.push(args);
@@ -133,7 +135,7 @@ test("onQuoteRequested rejects cross-origin instruments before fetching", async 
     const sent: unknown[][] = [];
     const fedCtx = {
       ...createFedCtx(tx),
-      lookupObject() {
+      documentLoader() {
         throw new Error("cross-origin instrument should not be fetched");
       },
       sendActivity(...args: unknown[]) {
@@ -149,6 +151,186 @@ test("onQuoteRequested rejects cross-origin instruments before fetching", async 
     });
     assert.equal(authorization, undefined);
     assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+  });
+});
+
+test("onQuoteRequested rejects dereferenced instruments with cross-origin ids", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quotefetchedoriginowner",
+      name: "Quote Fetched Origin Owner",
+      email: "quotefetchedoriginowner@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "quotefetchedoriginrequester",
+      name: "Quote Fetched Origin Requester",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Public quote target",
+      quotePolicy: "everyone",
+    });
+    const instrumentIri = "https://remote.example/objects/fetched-quote";
+    const returnedInstrumentIri =
+      "https://metadata.example/objects/fetched-quote";
+    const request = new QuoteRequest({
+      id: new URL("https://remote.example/quote-requests/fetched-origin"),
+      actor: new URL(requester.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new URL(instrumentIri),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      async documentLoader(url: string) {
+        assert.equal(url, instrumentIri);
+        return {
+          contextUrl: null,
+          documentUrl: url,
+          document: await new Note({
+            id: new URL(returnedInstrumentIri),
+            attribution: new URL(requester.iri),
+            quote: new URL(quotedPost.iri),
+            content: "Returned object is not on actor origin",
+          }).toJsonLd(),
+        };
+      },
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    await onQuoteRequested(fedCtx, request);
+
+    const authorizationForOriginal = await tx.query.quoteAuthorizationTable
+      .findFirst({
+        where: { quotePostIri: instrumentIri },
+      });
+    const authorizationForReturned = await tx.query.quoteAuthorizationTable
+      .findFirst({
+        where: { quotePostIri: returnedInstrumentIri },
+      });
+    assert.equal(authorizationForOriginal, undefined);
+    assert.equal(authorizationForReturned, undefined);
+    assert.equal(sent.some((args) => args[2] instanceof Reject), true);
+  });
+});
+
+test("onQuoteRequested accepts JSON-LD aliased inline instruments", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteinlineowner",
+      name: "Quote Inline Owner",
+      email: "quoteinlineowner@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "quoteinlinerequester",
+      name: "Quote Inline Requester",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Public quote target",
+      quotePolicy: "everyone",
+    });
+    const instrumentIri = "https://remote.example/objects/inline-quote";
+    const request = await QuoteRequest.fromJsonLd({
+      "@context": [
+        "https://www.w3.org/ns/activitystreams",
+        { as: "https://www.w3.org/ns/activitystreams#" },
+      ],
+      id: "https://remote.example/quote-requests/inline",
+      type: "QuoteRequest",
+      actor: requester.iri,
+      object: quotedPost.iri,
+      "as:instrument": await new Note({
+        id: new URL(instrumentIri),
+        attribution: new URL(requester.iri),
+        quote: new URL(quotedPost.iri),
+        content: "Inline instrument carries the pending quote target",
+      }).toJsonLd(),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      documentLoader() {
+        throw new Error(
+          "inline instrument should be used before dereferencing",
+        );
+      },
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    await onQuoteRequested(fedCtx, request);
+
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { quotePostIri: instrumentIri },
+    });
+    assert.ok(authorization != null);
+    assert.equal(authorization.quotedPostId, quotedPost.id);
+    assert.equal(sent.some((args) => args[2] instanceof Accept), true);
+    assert.equal(sent.some((args) => args[2] instanceof Reject), false);
+  });
+});
+
+test("onQuoteRequested accepts actor-origin inline instruments from another activity origin", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "quoteactivityoriginowner",
+      name: "Quote Activity Origin Owner",
+      email: "quoteactivityoriginowner@example.com",
+    });
+    const requester = await insertRemoteActor(tx, {
+      username: "quoteactivityoriginrequester",
+      name: "Quote Activity Origin Requester",
+      host: "remote.example",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Public quote target",
+      quotePolicy: "everyone",
+    });
+    const instrumentIri =
+      "https://remote.example/objects/activity-origin-quote";
+    const request = new QuoteRequest({
+      id: new URL("https://activities.example/quote-requests/1"),
+      actor: new URL(requester.iri),
+      object: new URL(quotedPost.iri),
+      instrument: new Note({
+        id: new URL(instrumentIri),
+        attribution: new URL(requester.iri),
+        quote: new URL(quotedPost.iri),
+        content: "Inline instrument is owned by actor origin",
+      }),
+    });
+    const sent: unknown[][] = [];
+    const fedCtx = {
+      ...createFedCtx(tx),
+      documentLoader() {
+        throw new Error(
+          "inline instrument should not be rejected by activity origin",
+        );
+      },
+      sendActivity(...args: unknown[]) {
+        sent.push(args);
+        return Promise.resolve(undefined);
+      },
+    } as unknown as InboxContext<ContextData>;
+
+    await onQuoteRequested(fedCtx, request);
+
+    const authorization = await tx.query.quoteAuthorizationTable.findFirst({
+      where: { quotePostIri: instrumentIri },
+    });
+    assert.ok(authorization != null);
+    assert.equal(authorization.quotedPostId, quotedPost.id);
+    assert.equal(sent.some((args) => args[2] instanceof Accept), true);
+    assert.equal(sent.some((args) => args[2] instanceof Reject), false);
   });
 });
 
@@ -187,16 +369,18 @@ test("onQuoteRequested leaves request-only follower approvals pending", async ()
     const sent: unknown[][] = [];
     const fedCtx = {
       ...createFedCtx(tx),
-      lookupObject(identifier: string | URL) {
-        assert.equal(new URL(identifier).href, instrumentIri);
-        return Promise.resolve(
-          new Note({
+      async documentLoader(url: string) {
+        assert.equal(url, instrumentIri);
+        return {
+          contextUrl: null,
+          documentUrl: url,
+          document: await new Note({
             id: new URL(instrumentIri),
             attribution: new URL(requester.iri),
             quote: new URL(quotedPost.iri),
             content: "Owned by requester",
-          }),
-        );
+          }).toJsonLd(),
+        };
       },
       sendActivity(...args: unknown[]) {
         sent.push(args);
@@ -260,16 +444,18 @@ test("onQuoteRequested rejects instruments that do not quote the object", async 
     const sent: unknown[][] = [];
     const fedCtx = {
       ...createFedCtx(tx),
-      lookupObject(identifier: string | URL) {
-        assert.equal(new URL(identifier).href, instrumentIri);
-        return Promise.resolve(
-          new Note({
+      async documentLoader(url: string) {
+        assert.equal(url, instrumentIri);
+        return {
+          contextUrl: null,
+          documentUrl: url,
+          document: await new Note({
             id: new URL(instrumentIri),
             attribution: new URL(requester.iri),
             quote: new URL("https://remote.example/objects/another-target"),
             content: "Owned by requester, but quoting another object",
-          }),
-        );
+          }).toJsonLd(),
+        };
       },
       sendActivity(...args: unknown[]) {
         sent.push(args);
@@ -330,16 +516,18 @@ test("onQuoteRequested unwraps local share targets", async () => {
     const sent: unknown[][] = [];
     const fedCtx = {
       ...createFedCtx(tx),
-      lookupObject(identifier: string | URL) {
-        assert.equal(new URL(identifier).href, instrumentIri);
-        return Promise.resolve(
-          new Note({
+      async documentLoader(url: string) {
+        assert.equal(url, instrumentIri);
+        return {
+          contextUrl: null,
+          documentUrl: url,
+          document: await new Note({
             id: new URL(instrumentIri),
             attribution: new URL(requester.iri),
             quote: new URL(sharePost.iri),
             content: "Owned by requester",
-          }),
-        );
+          }).toJsonLd(),
+        };
       },
       sendActivity(...args: unknown[]) {
         sent.push(args);

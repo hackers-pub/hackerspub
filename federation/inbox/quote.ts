@@ -54,6 +54,11 @@ type QuoteRequestTarget = Post & {
   mentions: Mention[];
 };
 
+type ValidQuoteRequestInstrument = {
+  instrument: PostObject;
+  instrumentIri: string;
+};
+
 export async function onQuoteRequested(
   fedCtx: InboxContext<ContextData>,
   request: QuoteRequest,
@@ -81,10 +86,10 @@ export async function onQuoteRequested(
   );
   if (quotedPost?.actor.accountId == null) return;
   const requestAllowed = canActorRequestQuotePost(quotedPost, actor);
-  const instrument = requestAllowed
+  const validInstrument = requestAllowed
     ? await getValidQuoteRequestInstrument(fedCtx, request)
     : undefined;
-  if (instrument == null) {
+  if (validInstrument == null) {
     await fedCtx.sendActivity(
       { identifier: quotedPost.actor.accountId },
       { id: request.actorId, inboxId: new URL(actor.inboxUrl) },
@@ -97,6 +102,7 @@ export async function onQuoteRequested(
     );
     return;
   }
+  const { instrument, instrumentIri } = validInstrument;
   if (!canActorQuotePost(quotedPost, actor)) {
     const quotePost = await persistPost(fedCtx, instrument, {
       actor,
@@ -124,7 +130,7 @@ export async function onQuoteRequested(
     .quoteAuthorizationTable.findFirst({
       columns: { id: true, iri: true },
       where: {
-        quotePostIri: request.instrumentId.href,
+        quotePostIri: instrumentIri,
         quotedPostId: quotedPost.id,
         attributedActorId: quotedPost.actorId,
       },
@@ -141,13 +147,13 @@ export async function onQuoteRequested(
   await fedCtx.data.db.insert(quoteAuthorizationTable).values({
     id: authId,
     iri: authorizationIri,
-    quotePostIri: request.instrumentId.href,
+    quotePostIri: instrumentIri,
     quotedPostId: quotedPost.id,
     attributedActorId: quotedPost.actorId,
   }).onConflictDoUpdate({
     target: quoteAuthorizationTable.iri,
     set: {
-      quotePostIri: request.instrumentId.href,
+      quotePostIri: instrumentIri,
       quotedPostId: quotedPost.id,
       attributedActorId: quotedPost.actorId,
       revoked: false,
@@ -196,32 +202,55 @@ function quoteRequestTargetRelations(actor: Actor) {
 async function getValidQuoteRequestInstrument(
   fedCtx: InboxContext<ContextData>,
   request: QuoteRequest,
-): Promise<PostObject | undefined> {
+): Promise<ValidQuoteRequestInstrument | undefined> {
   if (request.actorId == null || request.instrumentId == null) return undefined;
-  if (request.instrumentId.origin !== request.actorId.origin) {
+  const instrumentId = request.instrumentId;
+  if (instrumentId.origin !== request.actorId.origin) {
     logger.warn(
       "Rejecting quote request with cross-origin instrument: {instrument}",
       {
-        instrument: request.instrumentId.href,
+        instrument: instrumentId.href,
         actor: request.actorId.href,
       },
     );
     return undefined;
   }
-  let instrument: unknown;
-  try {
-    instrument = await fedCtx.lookupObject(request.instrumentId);
-  } catch (error) {
-    logger.warn("Failed to fetch quote request instrument: {instrument}", {
-      instrument: request.instrumentId.href,
-      error,
+  const instrument = await request.getInstrument({
+    ...fedCtx,
+    suppressError: true,
+    crossOrigin: "trust", // We validate the instrument against actor origin.
+  });
+  if (instrument == null) {
+    logger.warn("Failed to get quote request instrument: {instrument}", {
+      instrument: instrumentId.href,
     });
     return undefined;
   }
   if (!isPostObject(instrument)) {
     logger.warn("Rejecting quote request with invalid instrument: {iri}", {
-      iri: request.instrumentId.href,
+      iri: instrumentId.href,
     });
+    return undefined;
+  }
+  return validateQuoteRequestInstrument(request, instrument, instrumentId);
+}
+
+function validateQuoteRequestInstrument(
+  request: QuoteRequest,
+  instrument: PostObject,
+  instrumentId: URL,
+): ValidQuoteRequestInstrument | undefined {
+  if (request.actorId == null || request.instrumentId == null) return undefined;
+  if (
+    instrument.id == null || instrument.id.origin !== request.actorId.origin
+  ) {
+    logger.warn(
+      "Rejecting quote request whose instrument id is not on actor origin.",
+      {
+        instrument: instrument.id?.href,
+        actor: request.actorId.href,
+      },
+    );
     return undefined;
   }
   const quotesTarget = instrument.quoteId?.href === request.objectId?.href ||
@@ -230,7 +259,7 @@ async function getValidQuoteRequestInstrument(
     logger.warn(
       "Rejecting quote request whose instrument does not quote the object.",
       {
-        instrument: request.instrumentId.href,
+        instrument: instrumentId.href,
         object: request.objectId?.href,
       },
     );
@@ -243,12 +272,14 @@ async function getValidQuoteRequestInstrument(
     logger.warn(
       "Rejecting quote request whose instrument is not attributed to actor.",
       {
-        instrument: request.instrumentId.href,
+        instrument: instrumentId.href,
         actor: request.actorId.href,
       },
     );
   }
-  return belongsToActor ? instrument : undefined;
+  return belongsToActor
+    ? { instrument, instrumentIri: instrumentId.href }
+    : undefined;
 }
 
 export async function onQuoteRequestAccepted(
