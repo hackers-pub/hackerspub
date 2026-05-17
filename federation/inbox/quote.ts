@@ -8,6 +8,8 @@ import {
   Reject,
   Update,
 } from "@fedify/vocab";
+import { getLogger } from "@logtape/logtape";
+import { eq, inArray, sql } from "drizzle-orm";
 import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import {
@@ -31,8 +33,6 @@ import {
   quoteRequestTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
-import { getLogger } from "@logtape/logtape";
-import { eq, inArray, sql } from "drizzle-orm";
 import { getNote } from "../objects.ts";
 import { sendTagsPubRelayActivity } from "../tags-pub.ts";
 

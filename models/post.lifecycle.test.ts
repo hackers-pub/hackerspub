@@ -385,7 +385,13 @@ Deno.test({
       assert(quoteWithActor != null);
 
       await revokeQuote(fedCtx, owner.account, quoteWithActor, quotedPost);
-      await revokeQuote(fedCtx, owner.account, quoteWithActor, quotedPost);
+      const secondResult = await revokeQuote(
+        fedCtx,
+        owner.account,
+        quoteWithActor,
+        quotedPost,
+      );
+      assertEquals(secondResult.quotedPostId, null);
 
       const storedTarget = await tx.query.postTable.findFirst({
         where: { id: quotedPost.id },

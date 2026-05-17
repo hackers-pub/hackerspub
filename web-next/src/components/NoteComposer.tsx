@@ -89,6 +89,15 @@ const NoteComposerQuotedPostQuery = graphql`
           avatarUrl
         }
       }
+      ... on Question {
+        __typename
+        excerpt
+        actor {
+          rawName
+          handle
+          avatarUrl
+        }
+      }
     }
   }
 `;
@@ -214,7 +223,7 @@ interface MediaItem {
 }
 
 interface QuotedPostPreview {
-  typename: "Note" | "Article";
+  typename: "Note" | "Article" | "Question";
   excerpt: string;
   name?: string;
   actorName?: string;
@@ -390,7 +399,9 @@ export function NoteComposer(props: NoteComposerProps) {
         const node = data.node;
         if (
           !node ||
-          (node.__typename !== "Note" && node.__typename !== "Article")
+          (node.__typename !== "Note" &&
+            node.__typename !== "Article" &&
+            node.__typename !== "Question")
         ) {
           setQuotedPost(null);
           setQuoteFetchError(true);

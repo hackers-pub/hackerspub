@@ -2135,7 +2135,12 @@ export async function revokeQuote(
     ))
     .returning();
   const updatedPost = rows[0];
-  if (updatedPost == null) return quotePost;
+  if (updatedPost == null) {
+    return await db.query.postTable.findFirst({
+      where: { id: quotePost.id },
+    }) ??
+      quotePost;
+  }
   if (quotePost.actor.accountId != null && quotePost.noteSourceId != null) {
     await db.update(noteSourceTable)
       .set({ updated: revokedAt })

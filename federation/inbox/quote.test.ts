@@ -11,6 +11,7 @@ import {
 import assert from "node:assert/strict";
 import process from "node:process";
 import test from "node:test";
+import { eq } from "drizzle-orm";
 import type { ContextData } from "@hackerspub/models/context";
 import {
   followingTable,
@@ -19,7 +20,6 @@ import {
   quoteRequestTable,
 } from "@hackerspub/models/schema";
 import { generateUuidV7 } from "@hackerspub/models/uuid";
-import { eq } from "drizzle-orm";
 import {
   createFedCtx,
   insertAccountWithActor,
