@@ -238,12 +238,6 @@ export function Composer(props: ComposerProps) {
                 ? "composer.quoteArticleConfirm"
                 : "composer.quoteNoteConfirm",
             );
-            if (
-              pastedPost.visibility !== "public" &&
-              pastedPost.visibility !== "unlisted"
-            ) {
-              return;
-            }
             if (confirm(confirmMsg)) {
               setQuotedPostId(pastedPost.id);
               removeInsertedText(text, insertedRange);
