@@ -616,6 +616,7 @@ export function NoteComposer(props: NoteComposerProps) {
     if (!text || !URL.canParse(text) || !text.match(/^https?:/)) return;
     const target = e.currentTarget;
     if (!(target instanceof HTMLTextAreaElement)) return;
+    const pasteStart = target.selectionStart;
     let pastedRange: { start: number; end: number } | undefined;
     const removePastedUrl = () => {
       setContent((prev) => {
@@ -625,6 +626,10 @@ export function NoteComposer(props: NoteComposerProps) {
         ) {
           return prev.slice(0, pastedRange.start) +
             prev.slice(pastedRange.end);
+        }
+        const expectedEnd = pasteStart + clipboardText.length;
+        if (prev.slice(pasteStart, expectedEnd) === clipboardText) {
+          return prev.slice(0, pasteStart) + prev.slice(expectedEnd);
         }
         const firstMatch = prev.indexOf(clipboardText);
         if (firstMatch >= 0 && firstMatch === prev.lastIndexOf(clipboardText)) {
