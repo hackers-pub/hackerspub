@@ -1330,32 +1330,17 @@ async function getOriginalQuoteTarget(
   db: Database,
   post: PersistedQuoteTarget,
 ): Promise<PersistedQuoteTarget | undefined> {
-  if (post.sharedPostId == null) return post;
-
-  const visited = new Set<Uuid>([post.id]);
-  let currentId: Uuid | null = post.sharedPostId;
-  let depth = 0;
-  while (currentId != null) {
-    if (depth >= maxQuoteShareChainDepth) return undefined;
-    depth++;
-    if (visited.has(currentId)) return undefined;
-    visited.add(currentId);
-
-    const current: PersistedQuoteTarget | undefined = await db.query.postTable
-      .findFirst({
-        with: {
-          actor: {
-            with: { instance: true },
-          },
-        },
-        where: { id: currentId },
-      });
-    if (current == null) return undefined;
-    if (current.sharedPostId == null) return current;
-    currentId = current.sharedPostId;
-  }
-
-  return undefined;
+  const originalPostId = await getOriginalPostId(db, post);
+  if (originalPostId == null) return undefined;
+  if (originalPostId === post.id) return post;
+  return await db.query.postTable.findFirst({
+    with: {
+      actor: {
+        with: { instance: true },
+      },
+    },
+    where: { id: originalPostId },
+  });
 }
 
 export async function sharePost(

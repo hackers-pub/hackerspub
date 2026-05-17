@@ -380,7 +380,7 @@ export async function createNote(
       eq(noteSourceTable.id, noteSource.id),
     );
     if (relations.quotedPost != null) throw new QuotePolicyDeniedError();
-    return undefined;
+    throw new Error("Failed to persist note post.");
   }
   if (relations.replyTarget != null) {
     await updateRepliesCount(db, relations.replyTarget, 1);

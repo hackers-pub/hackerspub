@@ -219,7 +219,7 @@ export function Composer(props: ComposerProps) {
       } else if (item.kind === "string" && item.type === "text/plain") {
         if (props.noQuoteOnPaste) continue;
         const text = clipboardText;
-        if (text == null || !URL.canParse(text)) return;
+        if (text == null || !URL.canParse(text)) continue;
         event.preventDefault();
         const insertedRange = insertTextAtSelection(text);
         (async () => {
