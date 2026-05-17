@@ -152,7 +152,7 @@ test("onQuoteRequested rejects cross-origin instruments before fetching", async 
   });
 });
 
-test("onQuoteRequested accepts request-only follower approvals", async () => {
+test("onQuoteRequested leaves request-only follower approvals pending", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {
       username: "quoterequestauthor",
@@ -209,24 +209,9 @@ test("onQuoteRequested accepts request-only follower approvals", async () => {
     const authorization = await tx.query.quoteAuthorizationTable.findFirst({
       where: { quotePostIri: instrumentIri },
     });
-    assert.ok(authorization != null);
-    assert.equal(authorization.quotedPostId, quotedPost.id);
-    assert.equal(sent.some((args) => args[2] instanceof Accept), true);
+    assert.equal(authorization, undefined);
+    assert.equal(sent.some((args) => args[2] instanceof Accept), false);
     assert.equal(sent.some((args) => args[2] instanceof Reject), false);
-
-    sent.length = 0;
-    await onQuoteRequested(fedCtx, request);
-
-    const authorizations = await tx.query.quoteAuthorizationTable.findMany({
-      where: { quotePostIri: instrumentIri },
-    });
-    assert.equal(authorizations.length, 1);
-    assert.equal(authorizations[0].iri, authorization.iri);
-    const accept = sent
-      .map((args) => args[2])
-      .find((activity) => activity instanceof Accept);
-    assert.ok(accept instanceof Accept);
-    assert.equal(accept.resultId?.href, authorization.iri);
   });
 });
 
@@ -316,9 +301,8 @@ test("onQuoteRequested unwraps local share targets", async () => {
     });
     const { post: quotedPost } = await insertNotePost(tx, {
       account: author.account,
-      content: "Manual approval original",
-      quotePolicy: "self",
-      quoteRequestPolicy: "followers",
+      content: "Automatic approval original",
+      quotePolicy: "followers",
     });
     const { post: sharePost } = await insertNotePost(tx, {
       account: sharer.account,

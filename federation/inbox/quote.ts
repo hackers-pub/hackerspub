@@ -11,6 +11,7 @@ import {
 import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
 import {
+  canActorQuotePost,
   canActorRequestQuotePost,
   isPostObject,
   updateQuotesCount,
@@ -78,51 +79,57 @@ export async function onQuoteRequested(
     actor,
   );
   if (quotedPost?.actor.accountId == null) return;
-  const approved = canActorRequestQuotePost(quotedPost, actor) &&
+  const requestAllowed = canActorRequestQuotePost(quotedPost, actor);
+  const validInstrument = requestAllowed &&
     await quoteRequestInstrumentBelongsToActor(fedCtx, request);
-  const existingAuthorization = approved
-    ? await fedCtx.data.db.query.quoteAuthorizationTable.findFirst({
+  if (!validInstrument) {
+    await fedCtx.sendActivity(
+      { identifier: quotedPost.actor.accountId },
+      { id: request.actorId, inboxId: new URL(actor.inboxUrl) },
+      new Reject({
+        id: new URL(`#reject`, request.id),
+        actor: new URL(quotedPost.actor.iri),
+        object: request,
+      }),
+      { preferSharedInbox: false, orderingKey: request.objectId.href },
+    );
+    return;
+  }
+  if (!canActorQuotePost(quotedPost, actor)) return;
+  const existingAuthorization = await fedCtx.data.db.query
+    .quoteAuthorizationTable.findFirst({
       columns: { id: true, iri: true },
       where: {
         quotePostIri: request.instrumentId.href,
         quotedPostId: quotedPost.id,
         attributedActorId: quotedPost.actorId,
       },
-    })
-    : undefined;
+    });
   const authId = existingAuthorization?.id ?? generateUuidV7();
   const authorizationIri = existingAuthorization?.iri ??
     fedCtx.getObjectUri(QuoteAuthorization, { id: authId }).href;
-  const response = approved
-    ? new Accept({
-      id: new URL(`#accept`, request.id),
-      actor: new URL(quotedPost.actor.iri),
-      object: request,
-      result: new URL(authorizationIri),
-    })
-    : new Reject({
-      id: new URL(`#reject`, request.id),
-      actor: new URL(quotedPost.actor.iri),
-      object: request,
-    });
-  if (approved) {
-    await fedCtx.data.db.insert(quoteAuthorizationTable).values({
-      id: authId,
-      iri: authorizationIri,
+  const response = new Accept({
+    id: new URL(`#accept`, request.id),
+    actor: new URL(quotedPost.actor.iri),
+    object: request,
+    result: new URL(authorizationIri),
+  });
+  await fedCtx.data.db.insert(quoteAuthorizationTable).values({
+    id: authId,
+    iri: authorizationIri,
+    quotePostIri: request.instrumentId.href,
+    quotedPostId: quotedPost.id,
+    attributedActorId: quotedPost.actorId,
+  }).onConflictDoUpdate({
+    target: quoteAuthorizationTable.iri,
+    set: {
       quotePostIri: request.instrumentId.href,
       quotedPostId: quotedPost.id,
       attributedActorId: quotedPost.actorId,
-    }).onConflictDoUpdate({
-      target: quoteAuthorizationTable.iri,
-      set: {
-        quotePostIri: request.instrumentId.href,
-        quotedPostId: quotedPost.id,
-        attributedActorId: quotedPost.actorId,
-        revoked: false,
-        updated: sql`CURRENT_TIMESTAMP`,
-      },
-    });
-  }
+      revoked: false,
+      updated: sql`CURRENT_TIMESTAMP`,
+    },
+  });
   await fedCtx.sendActivity(
     { identifier: quotedPost.actor.accountId },
     { id: request.actorId, inboxId: new URL(actor.inboxUrl) },
