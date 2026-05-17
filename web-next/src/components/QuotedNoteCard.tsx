@@ -25,7 +25,10 @@ import {
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
 import IconBan from "~icons/lucide/ban";
-import type { QuotedNoteCard_post$key } from "./__generated__/QuotedNoteCard_post.graphql.ts";
+import type {
+  QuotedNoteCard_post$data,
+  QuotedNoteCard_post$key,
+} from "./__generated__/QuotedNoteCard_post.graphql.ts";
 import type { QuotedNoteCardRevokeQuoteMutation } from "./__generated__/QuotedNoteCardRevokeQuoteMutation.graphql.ts";
 
 const RevokeQuoteMutation = graphql`
@@ -146,17 +149,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                 <div class="flex min-w-0 flex-row flex-wrap gap-1 text-muted-foreground">
                   <InternalLink
                     href={post.url ?? post.iri}
-                    internalHref={post.actor.local
-                      ? `/@${post.actor.username}/${
-                        post.__typename === "Note"
-                          ? post.sourceId ?? post.uuid
-                          : post.uuid
-                      }`
-                      : `/${post.actor.handle}/${
-                        post.__typename === "Note"
-                          ? post.sourceId ?? post.uuid
-                          : post.uuid
-                      }`}
+                    internalHref={getQuotedPostInternalHref(post)}
                   >
                     <Timestamp value={post.published} capitalizeFirstLetter />
                   </InternalLink>{" "}
@@ -243,4 +236,22 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
       )}
     </Show>
   );
+}
+
+function getQuotedPostInternalHref(post: QuotedNoteCard_post$data): string {
+  if (post.actor.local && post.url != null) {
+    try {
+      const url = new URL(post.url);
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      // Fall through to the row-based route if a legacy row has a bad URL.
+    }
+  }
+  const actorSegment = post.actor.local
+    ? `@${post.actor.username}`
+    : post.actor.handle;
+  const postId = post.__typename === "Note"
+    ? post.sourceId ?? post.uuid
+    : post.uuid;
+  return `/${actorSegment}/${postId}`;
 }
