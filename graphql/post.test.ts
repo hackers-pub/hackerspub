@@ -1316,7 +1316,7 @@ Deno.test({
 
 Deno.test({
   name:
-    "viewerCanReply/Quote/Share on direct posts: author may quote; mentions may reply; nobody may share",
+    "viewerCanReply/Quote/Share on direct posts: mentions may reply; nobody may quote or share",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -1352,7 +1352,7 @@ Deno.test({
         await readPolicy(id, makeUserContext(tx, author.account)),
         {
           viewerCanReply: true,
-          viewerCanQuote: true,
+          viewerCanQuote: false,
           viewerCanShare: false,
         },
       );

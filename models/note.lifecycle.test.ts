@@ -225,6 +225,45 @@ test("createNote() enforces quote policy for legacy callers", async () => {
   });
 });
 
+test("createNote() rejects direct quote targets for legacy callers", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "quotedirecttarget",
+      name: "Quote Direct Target",
+      email: "quotedirecttarget@example.com",
+    });
+    const { post: quotedPost } = await insertNotePost(tx, {
+      account: author.account,
+      visibility: "direct",
+      quotePolicy: "self",
+      content: "Direct target",
+    });
+
+    const quote = await createNote(
+      fedCtx as unknown as Context<ContextData<Transaction>>,
+      {
+        accountId: author.account.id,
+        visibility: "public",
+        content: "Trying to quote a direct post",
+        language: "en",
+        media: [],
+      },
+      { quotedPost: { ...quotedPost, actor: author.actor } },
+    );
+
+    assert.equal(quote, undefined);
+    const refreshedTarget = await tx.query.postTable.findFirst({
+      where: { id: quotedPost.id },
+    });
+    assert.equal(refreshedTarget?.quotesCount, 0);
+    const orphanedSource = await tx.query.noteSourceTable.findFirst({
+      where: { content: "Trying to quote a direct post" },
+    });
+    assert.equal(orphanedSource, undefined);
+  });
+});
+
 test("createNote() federates the normalized quote target for shares", async () => {
   await withRollback(async (tx) => {
     const author = await insertAccountWithActor(tx, {

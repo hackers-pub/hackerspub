@@ -216,7 +216,7 @@ export function canActorQuotePost(
   actor: Actor,
 ): boolean {
   if (post.sharedPostId != null) return false;
-  if (post.visibility === "none") return false;
+  if (post.visibility === "direct" || post.visibility === "none") return false;
   if (!isPostVisibleTo(post, actor)) return false;
   return canActorQuoteByPolicy(post, actor, post.quotePolicy);
 }
@@ -234,7 +234,7 @@ export function canActorRequestQuotePost(
 ): boolean {
   if (canActorQuotePost(post, actor)) return true;
   if (post.sharedPostId != null) return false;
-  if (post.visibility === "none") return false;
+  if (post.visibility === "direct" || post.visibility === "none") return false;
   if (!isPostVisibleTo(post, actor)) return false;
   if (post.quoteRequestPolicy == null) return false;
   return canActorQuoteByPolicy(post, actor, post.quoteRequestPolicy);
