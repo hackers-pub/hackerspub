@@ -121,6 +121,58 @@ server). web-next reads this at runtime — no rebuild needed when it changes.
 - Use structured logging via LogTape
 - Include context in error details
 
+## GraphQL Schema Documentation
+
+Every element in the GraphQL schema (types, interfaces, unions, enums,
+enum values, fields, arguments, and mutations) must have a `description`.
+Run `deno task codegen` from the `graphql/` directory after any schema change
+to regenerate `graphql/schema.graphql`.
+
+### What to document
+
+Write descriptions that explain **intent, usage, and gotchas**, not just
+what the name already says.  A description that only restates the identifier
+(e.g. "`postCount`: the count of posts") adds no value.  Instead, cover:
+
+- **Why this field/type exists** and when callers should use it vs. a
+  similar alternative (e.g. `Actor.iri` vs. `Actor.url`, or `viewerFollows`
+  vs. `follows(followeeId: …)`).
+- **Visibility or auth constraints** that are not obvious from the type
+  signature (e.g. "only visible to moderators", "requires authentication").
+- **Behavioral edge cases**: null semantics, async population, federation
+  nuances, pagination limits, or side effects on mutations.
+- **Common mistakes**: for example, confusing `Post.uuid` (row PK) with
+  the UUID embedded in `Post.url` for source-backed local posts.
+
+### Formatting rules
+
+- Write descriptions in **Markdown**.
+- Wrap type names, field names, argument names, enum values, and `null` /
+  `true` / `false` literals in backticks  (e.g. `` `Actor` ``,
+  `` `Post.uuid` ``, `` `null` ``).
+- Do not use em dashes.  Use a colon or parentheses instead.
+- Keep descriptions concise: one to three sentences is usually enough.
+  Longer explanations belong in inline code comments.
+
+### Keeping docs in sync
+
+When you change the **behavior** of a field, argument, or mutation, update
+its description in the same commit.  Stale documentation is worse than no
+documentation.
+
+### Where descriptions live
+
+Schema descriptions are defined in the Pothos builder calls inside
+`graphql/*.ts`, not in `graphql/schema.graphql` (which is auto-generated).
+Add a `description:` property to:
+
+- `builder.enumType(…, { description: "…", values: { VALUE: { description: "…" } } })`
+- `builder.drizzleNode(…, { description: "…", … })`
+- `builder.drizzleInterface(…, { description: "…", … })`
+- field definitions: `t.field({ description: "…", … })`,
+  `t.exposeString("col", { description: "…" })`, etc.
+- `t.arg(…, { description: "…" })` for arguments
+
 ## Internationalization (i18n)
 
 ### Legacy Stack (web/)
