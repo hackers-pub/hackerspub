@@ -42,6 +42,9 @@ const verifySignupTokenQuery = graphql`
         name
         handle
         avatarUrl
+        actor {
+          handleHost
+        }
       }
     }
   }
@@ -339,13 +342,32 @@ export default function SignupPage(props: RouteSectionProps) {
                     class="gap-1"
                   >
                     <TextFieldLabel>{t`Username`} *</TextFieldLabel>
-                    <TextFieldInput
-                      ref={usernameInput}
-                      type="text"
-                      pattern="^[a-z0-9_]{1,15}$"
-                      required
-                      onBlur={handleUsernameBlur}
-                    />
+                    <div class="flex h-10 w-full items-center rounded-md border border-input text-sm ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                      <span
+                        aria-hidden="true"
+                        class="pointer-events-none select-none whitespace-nowrap pl-3 pr-1 text-muted-foreground"
+                      >
+                        @
+                      </span>
+                      <TextFieldInput
+                        ref={usernameInput}
+                        type="text"
+                        pattern="^[a-z0-9_]{1,15}$"
+                        required
+                        onBlur={handleUsernameBlur}
+                        class="h-full w-auto flex-1 min-w-0 rounded-none border-0 bg-transparent px-0 py-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      />
+                      <Show when={signupInfo()?.inviter?.actor.handleHost}>
+                        {(host) => (
+                          <span
+                            aria-hidden="true"
+                            class="pointer-events-none select-none whitespace-nowrap pl-1 pr-3 text-muted-foreground"
+                          >
+                            @{host()}
+                          </span>
+                        )}
+                      </Show>
+                    </div>
                   </TextField>
                   {fieldErrors().username
                     ? (
