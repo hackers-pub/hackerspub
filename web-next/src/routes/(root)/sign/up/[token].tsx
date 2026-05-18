@@ -417,7 +417,6 @@ export default function SignupPage(props: RouteSectionProps) {
                       }}
                       placeholder={t`Tell us about yourself…`}
                       minHeight="min-h-[100px]"
-                      showPreview={false}
                     />
                   </TextField>
                   {fieldErrors().bio
