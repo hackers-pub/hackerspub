@@ -66,20 +66,21 @@ export function LocaleSelect(props: LocaleSelectProps) {
       <SelectTrigger>
         <SelectValue<LocaleInfo>>
           {(state) => (
-            <>
-              {state.selectedOption().name}
-              <Show
-                when={state.selectedOption().name !==
-                  state.selectedOption().nativeName}
-              >
-                <span
-                  class="text-xs text-muted-foreground pl-1.5"
-                  lang={state.selectedOption().code}
-                >
-                  {state.selectedOption().nativeName}
-                </span>
-              </Show>
-            </>
+            <Show when={state.selectedOption()}>
+              {(option) => (
+                <>
+                  {option().name}
+                  <Show when={option().name !== option().nativeName}>
+                    <span
+                      class="text-xs text-muted-foreground pl-1.5"
+                      lang={option().code}
+                    >
+                      {option().nativeName}
+                    </span>
+                  </Show>
+                </>
+              )}
+            </Show>
           )}
         </SelectValue>
       </SelectTrigger>
