@@ -510,6 +510,61 @@ export function transformMisskeyInlineQuote(html: string): string {
   return $.html();
 }
 
+/**
+ * Removes FEP-044f quote-inline fallback text from post HTML.
+ *
+ * Platforms like Mastodon, Misskey, and Bluesky Bridge include a `RE: <url>`
+ * fallback inside elements with `class="quote-inline"` for clients that don't
+ * support native quote posts.  Call this only when the post has a resolved
+ * `quotedPost`; for posts without one the fallback is the only reference.
+ */
+export function removeQuoteInlineFallback(html: string): string {
+  const $ = load(html, null, false);
+
+  // Track ancestor <p> elements of inline quote-inline elements so we can
+  // clean them up if they become empty — without touching intentional spacer
+  // paragraphs (<p><br></p>) elsewhere in the post.
+  // deno-lint-ignore no-explicit-any
+  const touchedParents = new Set<any>();
+
+  // For inline elements (span, a), record the closest ancestor <p> and
+  // remove preceding <br> siblings.  Some platforms (e.g. newer Misskey)
+  // place <br><br> outside the span rather than inside it.
+  $("span.quote-inline, a.quote-inline").each((_, el) => {
+    const $closestP = $(el).closest("p");
+    if ($closestP.length > 0) touchedParents.add($closestP.get(0));
+
+    // deno-lint-ignore no-explicit-any
+    let prev = (el as any).previousSibling;
+    while (prev != null) {
+      // deno-lint-ignore no-explicit-any
+      const current = prev as any;
+      // deno-lint-ignore no-explicit-any
+      prev = (current as any).previousSibling;
+      if (current.type === "text" && !current.data?.trim()) continue;
+      if (current.type === "tag" && current.name === "br") {
+        $(current).remove();
+      } else {
+        break;
+      }
+    }
+  });
+
+  $(".quote-inline").remove();
+
+  // Clean up only the paragraphs that held quote-inline elements.  Limiting
+  // the sweep to `touchedParents` avoids accidentally removing intentional
+  // spacer paragraphs (<p><br></p>) that appear elsewhere in the post.
+  for (const p of touchedParents) {
+    const $p = $(p);
+    if (!$p.text().trim() && !$p.children(":not(br)").length) {
+      $p.remove();
+    }
+  }
+
+  return $.html();
+}
+
 export interface PreprocessContentHtmlOptions {
   mentions: { actor: Actor }[];
   tags: Record<string, string>;

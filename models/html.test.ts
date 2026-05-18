@@ -2,6 +2,7 @@ import { assertEquals } from "@std/assert/equals";
 import {
   addExternalLinkTargets,
   extractExternalLinks,
+  removeQuoteInlineFallback,
   stripHtml,
   truncateHtml,
 } from "./html.ts";
@@ -401,4 +402,94 @@ Deno.test("truncateHtml()", async (t) => {
       "<p>😀😁😂😃😄</p>",
     );
   });
+});
+
+Deno.test("removeQuoteInlineFallback()", async (t) => {
+  await t.step(
+    "removes Mastodon-style <p class=quote-inline> at beginning",
+    () => {
+      assertEquals(
+        removeQuoteInlineFallback(
+          '<p class="quote-inline">RE: <a href="https://example.com">https://example.com</a></p><p>Normal text</p>',
+        ),
+        "<p>Normal text</p>",
+      );
+    },
+  );
+
+  await t.step("removes standalone <p class=quote-inline>", () => {
+    assertEquals(
+      removeQuoteInlineFallback(
+        '<p class="quote-inline">RE: <a href="https://example.com">https://example.com</a></p>',
+      ),
+      "",
+    );
+  });
+
+  await t.step(
+    "removes inline span and preceding <br> elements (newer Misskey format)",
+    () => {
+      assertEquals(
+        removeQuoteInlineFallback(
+          '<p>Some text<br/><br/><span class="quote-inline">RE: <a href="https://example.com">https://example.com</a></span></p>',
+        ),
+        "<p>Some text</p>",
+      );
+    },
+  );
+
+  await t.step(
+    "removes inline span with internal <br> elements (Bluesky format)",
+    () => {
+      assertEquals(
+        removeQuoteInlineFallback(
+          '<p>그럴리가없는데<span class="quote-inline"><br><br>RE: <a href="https://example.com">https://example.com</a></span></p>',
+        ),
+        "<p>그럴리가없는데</p>",
+      );
+    },
+  );
+
+  await t.step(
+    "removes inline span with QT text (Fedibird format)",
+    () => {
+      assertEquals(
+        removeQuoteInlineFallback(
+          '<p>일부 텍스트<span class="quote-inline"><br/>QT: <a href="https://example.com">https://example.com</a></span></p>',
+        ),
+        "<p>일부 텍스트</p>",
+      );
+    },
+  );
+
+  await t.step(
+    "removes Misskey-transformed quote-inline pattern",
+    () => {
+      assertEquals(
+        removeQuoteInlineFallback(
+          '<p><span>text<span class="quote-inline"><br><br>RE: </span></span><a class="quote-inline" href="https://example.com">https://example.com</a></p>',
+        ),
+        "<p><span>text</span></p>",
+      );
+    },
+  );
+
+  await t.step("leaves content without quote-inline unchanged", () => {
+    assertEquals(
+      removeQuoteInlineFallback("<p>Normal post without quotes</p>"),
+      "<p>Normal post without quotes</p>",
+    );
+  });
+
+  await t.step(
+    "removes paragraphs that become empty after span removal",
+    () => {
+      assertEquals(
+        removeQuoteInlineFallback(
+          '<p><span class="quote-inline">RE: <a href="https://example.com">https://example.com</a></span></p>',
+        ),
+        "",
+      );
+    },
+  );
 });

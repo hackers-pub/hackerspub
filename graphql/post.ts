@@ -25,6 +25,7 @@ import {
 import { isReactionEmoji, renderCustomEmojis } from "@hackerspub/models/emoji";
 import {
   addExternalLinkTargets,
+  removeQuoteInlineFallback,
   sanitizeExcerptHtml,
   stripHtml,
   truncateHtml,
@@ -269,13 +270,18 @@ export const Post = builder.drizzleInterface("postTable", {
         columns: {
           contentHtml: true,
           emojis: true,
+          quotedPostId: true,
         },
       },
-      resolve: (post, _, ctx) =>
-        addExternalLinkTargets(
-          renderCustomEmojis(post.contentHtml, post.emojis),
+      resolve: (post, _, ctx) => {
+        let html = renderCustomEmojis(post.contentHtml, post.emojis);
+        html = addExternalLinkTargets(
+          html,
           new URL(ctx.fedCtx.canonicalOrigin),
-        ),
+        );
+        if (post.quotedPostId != null) html = removeQuoteInlineFallback(html);
+        return html;
+      },
     }),
     excerpt: t.string({
       description:
@@ -286,11 +292,14 @@ export const Post = builder.drizzleInterface("postTable", {
         columns: {
           summary: true,
           contentHtml: true,
+          quotedPostId: true,
         },
       },
       resolve(post) {
         if (post.summary != null) return post.summary;
-        return stripHtml(post.contentHtml);
+        let html = post.contentHtml;
+        if (post.quotedPostId != null) html = removeQuoteInlineFallback(html);
+        return stripHtml(html);
       },
     }),
     excerptHtml: t.field({
@@ -311,21 +320,24 @@ export const Post = builder.drizzleInterface("postTable", {
         columns: {
           contentHtml: true,
           emojis: true,
+          quotedPostId: true,
         },
       },
       resolve(post, args) {
-        // Sanitize FIRST, then render custom emojis. The reverse order would
+        // Remove quote-inline fallback first so the truncation budget isn't
+        // wasted on text the user will never see.
+        //
+        // Sanitize BEFORE rendering custom emojis. The reverse order would
         // strip the inline `style` `renderCustomEmojis` puts on the emoji
         // `<img>` (which sets `height: 1em` and inline alignment), so emoji
         // images would render at their intrinsic size instead of inline with
         // the surrounding text. Emoji `src` is admin-uploaded and the alt is
         // bounded to `[a-z0-9_-]+` by `CUSTOM_EMOJI_REGEXP`, so the post-
         // sanitization injection doesn't open a new XSS surface.
+        let html = post.contentHtml;
+        if (post.quotedPostId != null) html = removeQuoteInlineFallback(html);
         return truncateHtml(
-          renderCustomEmojis(
-            sanitizeExcerptHtml(post.contentHtml),
-            post.emojis,
-          ),
+          renderCustomEmojis(sanitizeExcerptHtml(html), post.emojis),
           args.maxChars,
         );
       },
