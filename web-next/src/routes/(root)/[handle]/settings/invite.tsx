@@ -9,6 +9,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
+import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { SettingsTabs } from "~/components/SettingsTabs.tsx";
@@ -70,6 +71,7 @@ const invitePageQuery = graphql`
         url
         invitationsLeft
         message
+        messageHtml
         created
         expires
       }
@@ -143,6 +145,7 @@ const createInvitationLinkMutation = graphql`
           url
           invitationsLeft
           message
+          messageHtml
           created
           expires
         }
@@ -464,6 +467,7 @@ interface InvitationLinksCardProps {
     readonly url: string;
     readonly invitationsLeft: number;
     readonly message: string | null | undefined;
+    readonly messageHtml: string | null | undefined;
     readonly created: string;
     readonly expires: string | null | undefined;
   }>;
@@ -657,11 +661,12 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                        this Relay field flips to null inside a `batch()`
                        update. */
                     }
-                    <Show keyed when={link.message}>
-                      {(msg) => (
-                        <p class="text-sm text-muted-foreground truncate">
-                          {msg}
-                        </p>
+                    <Show keyed when={link.messageHtml}>
+                      {(html) => (
+                        <div
+                          class="prose dark:prose-invert prose-sm max-w-none truncate text-muted-foreground"
+                          innerHTML={html}
+                        />
                       )}
                     </Show>
                     <div class="flex gap-4 text-sm text-muted-foreground">
@@ -723,10 +728,10 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
             <TextFieldLabel for="linkMessage">
               {t`Extra message`}
             </TextFieldLabel>
-            <TextFieldTextArea
+            <MarkdownEditor
               id="linkMessage"
               value={linkMessage()}
-              onInput={(e) => setLinkMessage(e.currentTarget.value)}
+              onInput={setLinkMessage}
               placeholder={t`You can leave this field empty.`}
             />
           </TextField>

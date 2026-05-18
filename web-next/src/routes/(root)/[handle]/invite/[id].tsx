@@ -46,6 +46,7 @@ const invitationLinkPageQuery = graphql`
       uuid
       invitationsLeft
       message
+      messageHtml
       created
       expires
       inviter {
@@ -307,14 +308,13 @@ export default function InvitationLinkPage() {
                                 </p>
                               </div>
                             </div>
-                            {/* `keyed`: same race shape; message can flip to null. */}
-                            <Show keyed when={link.message}>
-                              {(message) => (
-                                <div class="p-3 bg-muted rounded-lg">
-                                  <p class="text-sm whitespace-pre-wrap">
-                                    {message}
-                                  </p>
-                                </div>
+                            {/* `keyed`: same race shape; messageHtml can flip to null. */}
+                            <Show keyed when={link.messageHtml}>
+                              {(html) => (
+                                <div
+                                  class="prose dark:prose-invert prose-sm max-w-none rounded-lg bg-muted p-3"
+                                  innerHTML={html}
+                                />
                               )}
                             </Show>
                             <div class="flex gap-4 text-sm text-muted-foreground">

@@ -1,5 +1,6 @@
 import { normalizeEmail } from "@hackerspub/models/account";
 import { toDate } from "@hackerspub/models/date";
+import { renderMarkup } from "@hackerspub/models/markup";
 import {
   accountTable,
   invitationLinkTable,
@@ -45,6 +46,23 @@ export const InvitationLink = builder.drizzleNode("invitationLinkTable", {
       description:
         "Optional welcome message shown to the recipient when they open " +
         "the invitation link.",
+    }),
+    messageHtml: t.field({
+      type: "HTML",
+      nullable: true,
+      description:
+        "The `message` rendered to HTML. `null` when `message` is `null`.",
+      select: {
+        columns: { id: true, message: true },
+      },
+      async resolve(link, _, ctx) {
+        if (link.message == null) return null;
+        const rendered = await renderMarkup(ctx.fedCtx, link.message, {
+          kv: ctx.kv,
+          docId: link.id,
+        });
+        return rendered.html;
+      },
     }),
     created: t.expose("created", { type: "DateTime" }),
     expires: t.expose("expires", {

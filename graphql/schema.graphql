@@ -1091,6 +1091,9 @@ type InvitationLink implements Node {
   """
   message: Markdown
 
+  """The `message` rendered to HTML. `null` when `message` is `null`."""
+  messageHtml: HTML
+
   """
   The shareable URL for this invitation link (`/@{inviter}/invite/{uuid}`).
   """
