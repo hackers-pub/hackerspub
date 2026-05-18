@@ -148,10 +148,10 @@ export function ProfileCard(props: ProfileCardProps) {
             keyed
             when={actor.account}
             fallback={
-              <Show when={actor.fields.length > 0}>
+              <Show when={(actor.fields?.length ?? 0) > 0}>
                 <div class="p-4 pt-0">
                   <ul>
-                    <For each={actor.fields}>
+                    <For each={actor.fields ?? []}>
                       {(field) => (
                         <li class="flex flex-row items-center text-sm mb-1">
                           <img
@@ -172,11 +172,11 @@ export function ProfileCard(props: ProfileCardProps) {
           >
             {(account) => (
               <Show
-                when={account.links.length > 0}
+                when={(account.links?.length ?? 0) > 0}
               >
                 <div class="p-4 pt-0">
                   <ul>
-                    <For each={account.links}>
+                    <For each={account.links ?? []}>
                       {(link) => (
                         <li class="flex flex-row items-center text-sm mb-1">
                           <img
