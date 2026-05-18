@@ -59,3 +59,4 @@ catalog:
 
 patchedDependencies:
   "@kobalte/core@0.13.11": "patches/@kobalte__core@0.13.11.patch"
+  "@solidjs/start@2.0.0-alpha.2": "patches/@solidjs__start@2.0.0-alpha.2.patch"

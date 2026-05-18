@@ -1,0 +1,25 @@
+diff --git a/dist/server/StartServer.jsx b/dist/server/StartServer.jsx
+index 296c6ef98f206dda13b1329c4db5b21e6dba94c8..aa2763b1436e6fb1ba315d2e593259bb90d6b9c2 100644
+--- a/dist/server/StartServer.jsx
++++ b/dist/server/StartServer.jsx
+@@ -19,7 +19,7 @@ export function StartServer(props) {
+       <TopErrorBoundary>
+         <props.document assets={<HydrationScript />} scripts={<>
+               <PatchVirtualDevStyles nonce={nonce}/>
+-              <script type="module" nonce={nonce} async src={getSsrManifest("client").path(import.meta.env.START_CLIENT_ENTRY)}/>
++              <script type="module" nonce={nonce} src={getSsrManifest("client").path(import.meta.env.START_CLIENT_ENTRY)}/>
+             </>}>
+           {!import.meta.env.START_ISLANDS ? (<Hydration>
+               <ErrorBoundary>
+diff --git a/src/server/StartServer.tsx b/src/server/StartServer.tsx
+index 3ca15d1e1cdb3f1840f08ec7838ff27333f269d7..9b16e425f40181257458729c67a14345fd0f58d6 100644
+--- a/src/server/StartServer.tsx
++++ b/src/server/StartServer.tsx
+@@ -34,7 +34,6 @@ export function StartServer(props: { document: Component<DocumentComponentProps>
+               <script
+                 type="module"
+                 nonce={nonce}
+-                async
+                 src={getSsrManifest("client").path(import.meta.env.START_CLIENT_ENTRY)}
+               />
+             </>
