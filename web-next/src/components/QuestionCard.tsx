@@ -27,6 +27,7 @@ import type { QuestionCard_question$key } from "./__generated__/QuestionCard_que
 import type { QuestionCardContent_question$key } from "./__generated__/QuestionCardContent_question.graphql.ts";
 import type { QuestionCard_voteOnPoll_Mutation } from "./__generated__/QuestionCard_voteOnPoll_Mutation.graphql.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { QuestionActionMenu } from "./PostActionMenu.tsx";
 import { PostAvatar } from "./PostAvatar.tsx";
@@ -39,6 +40,8 @@ import { VisibilityTag } from "./VisibilityTag.tsx";
 
 export interface QuestionCardProps {
   $question: QuestionCard_question$key;
+  sharerActor?: ActorSharerActor | null;
+  sharerTimestamp?: string | null;
   connections?: string[];
   bookmarkListConnections?: string[];
   pinConnections?: string[];
@@ -102,6 +105,13 @@ export function QuestionCard(props: QuestionCardProps) {
                     }}
                   />
                 </p>
+              </Show>
+              <Show when={props.sharerActor}>
+                <ActorSharer
+                  actor={props.sharerActor!}
+                  timestamp={props.sharerTimestamp!}
+                  class="ml-14"
+                />
               </Show>
               <QuestionCardContent
                 $question={sharedQuestion() ?? q}

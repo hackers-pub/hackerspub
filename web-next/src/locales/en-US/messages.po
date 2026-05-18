@@ -67,12 +67,12 @@ msgstr "{0, plural, one {# orphan medium can be deleted.} other {# orphan media 
 #~ msgstr "{0, plural, one {# share} other {# shares}}"
 
 #. placeholder {0}: votes()
-#: src/components/QuestionCard.tsx:508
+#: src/components/QuestionCard.tsx:518
 msgid "{0, plural, one {# vote} other {# votes}}"
 msgstr "{0, plural, one {# vote} other {# votes}}"
 
 #. placeholder {0}: props.poll.voters.totalCount
-#: src/components/QuestionCard.tsx:454
+#: src/components/QuestionCard.tsx:464
 msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, one {# voter} other {# voters}}"
 
@@ -184,8 +184,9 @@ msgstr "{0} replied to your post"
 
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
+#: src/components/ActorSharer.tsx:24
 #: src/components/PostSharer.tsx:37
-#: src/components/QuestionCard.tsx:85
+#: src/components/QuestionCard.tsx:88
 msgid "{0} shared {1}"
 msgstr "{0} shared {1}"
 
@@ -338,7 +339,7 @@ msgstr "Anyone can quote"
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#: src/components/ProfileActionMenu.tsx:288
+#: src/components/ProfileActionMenu.tsx:287
 msgid "Are you sure you want to block {0} ({1})? They won't be able to follow you or see your posts."
 msgstr "Are you sure you want to block {0} ({1})? They won't be able to follow you or see your posts."
 
@@ -357,7 +358,7 @@ msgstr "Are you sure you want to revoke passkey {0}? You won't be able to use it
 
 #. placeholder {0}: displayName()
 #. placeholder {1}: actor()?.handle
-#: src/components/ProfileActionMenu.tsx:290
+#: src/components/ProfileActionMenu.tsx:289
 msgid "Are you sure you want to unblock {0} ({1})? They will be able to follow you and see your posts."
 msgstr "Are you sure you want to unblock {0} ({1})? They will be able to follow you and see your posts."
 
@@ -423,13 +424,13 @@ msgstr "Bio"
 msgid "Bio is too long. Maximum length is 512 characters."
 msgstr "Bio is too long. Maximum length is 512 characters."
 
-#: src/components/ProfileActionMenu.tsx:270
-#: src/components/ProfileActionMenu.tsx:299
-#: src/components/ProfileActionMenu.tsx:306
+#: src/components/ProfileActionMenu.tsx:269
+#: src/components/ProfileActionMenu.tsx:298
+#: src/components/ProfileActionMenu.tsx:305
 msgid "Block"
 msgstr "Block"
 
-#: src/components/ProfileActionMenu.tsx:281
+#: src/components/ProfileActionMenu.tsx:280
 msgid "Block user?"
 msgstr "Block user?"
 
@@ -451,9 +452,9 @@ msgstr "Bookmarks"
 #: src/components/NoteComposer.tsx:1185
 #: src/components/NoteComposer.tsx:1186
 #: src/components/NoteComposer.tsx:1229
-#: src/components/PostActionMenu.tsx:356
+#: src/components/PostActionMenu.tsx:355
+#: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
-#: src/components/ProfileActionMenu.tsx:296
 #: src/components/QuotedNoteCard.tsx:190
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
@@ -492,7 +493,7 @@ msgstr "Clear"
 msgid "Close"
 msgstr "Close"
 
-#: src/components/QuestionCard.tsx:446
+#: src/components/QuestionCard.tsx:456
 msgid "Closed"
 msgstr "Closed"
 
@@ -553,7 +554,7 @@ msgstr "Could not load profile."
 msgid "Could not revoke quote"
 msgstr "Could not revoke quote"
 
-#: src/components/QuestionCard.tsx:399
+#: src/components/QuestionCard.tsx:409
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
@@ -616,8 +617,8 @@ msgstr "Default note privacy"
 msgid "Default share privacy"
 msgstr "Default share privacy"
 
-#: src/components/PostActionMenu.tsx:342
-#: src/components/PostActionMenu.tsx:362
+#: src/components/PostActionMenu.tsx:341
+#: src/components/PostActionMenu.tsx:361
 #: src/routes/(root)/[handle]/drafts/index.tsx:318
 #: src/routes/(root)/[handle]/settings/invite.tsx:656
 msgid "Delete"
@@ -632,7 +633,7 @@ msgstr "Delete draft"
 msgid "Delete orphan media"
 msgstr "Delete orphan media"
 
-#: src/components/PostActionMenu.tsx:350
+#: src/components/PostActionMenu.tsx:349
 msgid "Delete post?"
 msgstr "Delete post?"
 
@@ -715,11 +716,11 @@ msgstr "Email address"
 msgid "Email or username"
 msgstr "Email or username"
 
-#: src/components/QuestionCard.tsx:449
+#: src/components/QuestionCard.tsx:459
 msgid "Ended"
 msgstr "Ended"
 
-#: src/components/QuestionCard.tsx:449
+#: src/components/QuestionCard.tsx:459
 msgid "Ends"
 msgstr "Ends"
 
@@ -786,8 +787,8 @@ msgstr "Expiry"
 msgid "Extra message"
 msgstr "Extra message"
 
-#: src/components/ProfileActionMenu.tsx:226
-#: src/components/ProfileActionMenu.tsx:232
+#: src/components/ProfileActionMenu.tsx:225
+#: src/components/ProfileActionMenu.tsx:231
 msgid "Failed to block this user"
 msgstr "Failed to block this user"
 
@@ -814,12 +815,12 @@ msgstr "Failed to delete invitation link"
 msgid "Failed to delete orphan media."
 msgstr "Failed to delete orphan media."
 
-#: src/components/PostActionMenu.tsx:290
-#: src/components/PostActionMenu.tsx:297
+#: src/components/PostActionMenu.tsx:289
+#: src/components/PostActionMenu.tsx:296
 msgid "Failed to delete post"
 msgstr "Failed to delete post"
 
-#: src/components/FollowButton.tsx:161
+#: src/components/FollowButton.tsx:160
 msgid "Failed to follow"
 msgstr "Failed to follow"
 
@@ -869,7 +870,7 @@ msgstr "Failed to load more passkeys; click to retry"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:107
+#: src/components/PersonalTimeline.tsx:116
 #: src/components/PublicTimeline.tsx:109
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
@@ -905,8 +906,8 @@ msgstr "Failed to load quoted post"
 msgid "Failed to look up user."
 msgstr "Failed to look up user."
 
-#: src/components/PostActionMenu.tsx:255
-#: src/components/PostActionMenu.tsx:262
+#: src/components/PostActionMenu.tsx:254
+#: src/components/PostActionMenu.tsx:261
 msgid "Failed to pin post"
 msgstr "Failed to pin post"
 
@@ -971,17 +972,17 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
-#: src/components/ProfileActionMenu.tsx:208
-#: src/components/ProfileActionMenu.tsx:214
+#: src/components/ProfileActionMenu.tsx:207
+#: src/components/ProfileActionMenu.tsx:213
 msgid "Failed to unblock this user"
 msgstr "Failed to unblock this user"
 
-#: src/components/FollowButton.tsx:139
+#: src/components/FollowButton.tsx:138
 msgid "Failed to unfollow"
 msgstr "Failed to unfollow"
 
-#: src/components/PostActionMenu.tsx:231
-#: src/components/PostActionMenu.tsx:238
+#: src/components/PostActionMenu.tsx:230
+#: src/components/PostActionMenu.tsx:237
 msgid "Failed to unpin post"
 msgstr "Failed to unpin post"
 
@@ -999,7 +1000,7 @@ msgstr "Failed to update the article. Please try again."
 msgid "Failed to upload image"
 msgstr "Failed to upload image"
 
-#: src/components/QuestionCard.tsx:407
+#: src/components/QuestionCard.tsx:417
 msgid "Failed to vote"
 msgstr "Failed to vote"
 
@@ -1015,11 +1016,11 @@ msgstr "Fediverse handle"
 msgid "Feed"
 msgstr "Feed"
 
-#: src/components/FollowButton.tsx:196
+#: src/components/FollowButton.tsx:195
 msgid "Follow"
 msgstr "Follow"
 
-#: src/components/FollowButton.tsx:195
+#: src/components/FollowButton.tsx:194
 msgid "Follow back"
 msgstr "Follow back"
 
@@ -1363,7 +1364,7 @@ msgstr "Load more passkeys"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:110
+#: src/components/PersonalTimeline.tsx:119
 #: src/components/PublicTimeline.tsx:112
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
@@ -1429,7 +1430,7 @@ msgstr "Loading more passkeys…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:104
+#: src/components/PersonalTimeline.tsx:113
 #: src/components/PublicTimeline.tsx:106
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
@@ -1517,7 +1518,7 @@ msgstr "Move to the top"
 msgid "Move up"
 msgstr "Move up"
 
-#: src/components/QuestionCard.tsx:443
+#: src/components/QuestionCard.tsx:453
 msgid "Multiple choice"
 msgstr "Multiple choice"
 
@@ -1609,7 +1610,7 @@ msgstr "No one has shared this yet."
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:117
+#: src/components/PersonalTimeline.tsx:126
 #: src/components/PublicTimeline.tsx:119
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
@@ -1684,7 +1685,7 @@ msgstr "Number of invitations"
 msgid "Only you can quote"
 msgstr "Only you can quote"
 
-#: src/components/QuestionCard.tsx:446
+#: src/components/QuestionCard.tsx:456
 msgid "Open"
 msgstr "Open"
 
@@ -1740,7 +1741,7 @@ msgstr "Passkeys"
 msgid "Permission denied"
 msgstr "Permission denied"
 
-#: src/components/PostActionMenu.tsx:332
+#: src/components/PostActionMenu.tsx:331
 msgid "Pin to profile"
 msgstr "Pin to profile"
 
@@ -1772,23 +1773,23 @@ msgstr "Please enter your Fediverse handle."
 msgid "Please sign in to access this page"
 msgstr "Please sign in to access this page"
 
-#: src/components/QuestionCard.tsx:393
+#: src/components/QuestionCard.tsx:403
 msgid "Please sign in to vote"
 msgstr "Please sign in to vote"
 
-#: src/components/QuestionCard.tsx:368
+#: src/components/QuestionCard.tsx:378
 msgid "Poll closed"
 msgstr "Poll closed"
 
-#: src/components/PostActionMenu.tsx:286
+#: src/components/PostActionMenu.tsx:285
 msgid "Post deleted"
 msgstr "Post deleted"
 
-#: src/components/PostActionMenu.tsx:252
+#: src/components/PostActionMenu.tsx:251
 msgid "Post pinned"
 msgstr "Post pinned"
 
-#: src/components/PostActionMenu.tsx:228
+#: src/components/PostActionMenu.tsx:227
 msgid "Post unpinned"
 msgstr "Post unpinned"
 
@@ -1837,7 +1838,7 @@ msgstr "Priority"
 msgid "Privacy policy"
 msgstr "Privacy policy"
 
-#: src/components/ProfileActionMenu.tsx:250
+#: src/components/ProfileActionMenu.tsx:249
 msgid "Profile actions"
 msgstr "Profile actions"
 
@@ -1928,8 +1929,8 @@ msgstr "reaction"
 msgid "Reactions"
 msgstr "Reactions"
 
-#: src/components/ArticleCard.tsx:462
-#: src/components/ArticleCard.tsx:482
+#: src/components/ArticleCard.tsx:472
+#: src/components/ArticleCard.tsx:492
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -2104,11 +2105,11 @@ msgstr "Search results for {0}"
 msgid "Searching…"
 msgstr "Searching…"
 
-#: src/components/QuestionCard.tsx:373
+#: src/components/QuestionCard.tsx:383
 msgid "Select an option"
 msgstr "Select an option"
 
-#: src/components/QuestionCard.tsx:373
+#: src/components/QuestionCard.tsx:383
 msgid "Select options"
 msgstr "Select options"
 
@@ -2161,7 +2162,7 @@ msgstr "Sign in"
 msgid "Sign in to Hackers' Pub"
 msgstr "Sign in to Hackers' Pub"
 
-#: src/components/QuestionCard.tsx:370
+#: src/components/QuestionCard.tsx:380
 msgid "Sign in to vote"
 msgstr "Sign in to vote"
 
@@ -2194,7 +2195,7 @@ msgstr "Signing in…"
 msgid "Signing up for Hackers' Pub"
 msgstr "Signing up for Hackers' Pub"
 
-#: src/components/QuestionCard.tsx:443
+#: src/components/QuestionCard.tsx:453
 msgid "Single choice"
 msgstr "Single choice"
 
@@ -2239,8 +2240,8 @@ msgstr "Successfully saved preferences"
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
-#: src/components/ArticleCard.tsx:415
-#: src/components/ArticleCard.tsx:434
+#: src/components/ArticleCard.tsx:425
+#: src/components/ArticleCard.tsx:444
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -2336,7 +2337,7 @@ msgstr "The source code of this website is available on {0} under the {1} licens
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
-#: src/components/PostActionMenu.tsx:352
+#: src/components/PostActionMenu.tsx:351
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
 
@@ -2413,7 +2414,7 @@ msgid "Total: {0}"
 msgstr "Total: {0}"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:297
+#: src/components/ArticleCard.tsx:307
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:861
 msgid "Translated from {0}"
 msgstr "Translated from {0}"
@@ -2465,21 +2466,21 @@ msgstr "Unable to add reaction. Please try again."
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
-#: src/components/ProfileActionMenu.tsx:271
-#: src/components/ProfileActionMenu.tsx:299
-#: src/components/ProfileActionMenu.tsx:307
+#: src/components/ProfileActionMenu.tsx:270
+#: src/components/ProfileActionMenu.tsx:298
+#: src/components/ProfileActionMenu.tsx:306
 msgid "Unblock"
 msgstr "Unblock"
 
-#: src/components/ProfileActionMenu.tsx:282
+#: src/components/ProfileActionMenu.tsx:281
 msgid "Unblock user?"
 msgstr "Unblock user?"
 
-#: src/components/FollowButton.tsx:193
+#: src/components/FollowButton.tsx:192
 msgid "Unfollow"
 msgstr "Unfollow"
 
-#: src/components/PostActionMenu.tsx:333
+#: src/components/PostActionMenu.tsx:332
 msgid "Unpin from profile"
 msgstr "Unpin from profile"
 
@@ -2504,7 +2505,7 @@ msgstr "Upload progress"
 msgid "URL"
 msgstr "URL"
 
-#: src/components/ProfileActionMenu.tsx:227
+#: src/components/ProfileActionMenu.tsx:226
 msgid "User blocked"
 msgstr "User blocked"
 
@@ -2512,7 +2513,7 @@ msgstr "User blocked"
 msgid "User not found."
 msgstr "User not found."
 
-#: src/components/ProfileActionMenu.tsx:209
+#: src/components/ProfileActionMenu.tsx:208
 msgid "User unblocked"
 msgstr "User unblocked"
 
@@ -2603,19 +2604,19 @@ msgstr "Visible to everyone, but does not appear in the public timeline. Only th
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 
-#: src/components/QuestionCard.tsx:375
+#: src/components/QuestionCard.tsx:385
 msgid "Vote"
 msgstr "Vote"
 
-#: src/components/QuestionCard.tsx:389
+#: src/components/QuestionCard.tsx:399
 msgid "Vote recorded"
 msgstr "Vote recorded"
 
-#: src/components/QuestionCard.tsx:369
+#: src/components/QuestionCard.tsx:379
 msgid "Voted"
 msgstr "Voted"
 
-#: src/components/QuestionCard.tsx:371
+#: src/components/QuestionCard.tsx:381
 msgid "Voting…"
 msgstr "Voting…"
 
@@ -2726,9 +2727,9 @@ msgstr "You don't have any passkeys registered yet."
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "You have no invitations left. Please wait until you receive more."
 
-#: src/components/FollowButton.tsx:132
-#: src/components/FollowButton.tsx:150
-#: src/components/ProfileActionMenu.tsx:166
+#: src/components/FollowButton.tsx:131
+#: src/components/FollowButton.tsx:149
+#: src/components/ProfileActionMenu.tsx:165
 msgid "You must be signed in"
 msgstr "You must be signed in"
 

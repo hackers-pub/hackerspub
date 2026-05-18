@@ -15,6 +15,7 @@ import {
 import { ArticleCardInternal_article$key } from "./__generated__/ArticleCardInternal_article.graphql.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { InternalLink } from "./InternalLink.tsx";
 import { PostEngagementBar } from "./PostEngagementBar.tsx";
 import { PostSharer } from "./PostSharer.tsx";
@@ -42,6 +43,8 @@ const MentionHoverCardLayer = clientOnly(() =>
 
 export interface ArticleCardProps {
   $article: ArticleCard_article$key;
+  sharerActor?: ActorSharerActor | null;
+  sharerTimestamp?: string | null;
   connections?: string[];
   bookmarkListConnections?: string[];
   pinConnections?: string[];
@@ -99,6 +102,13 @@ export function ArticleCard(props: ArticleCardProps) {
             when={article.sharedPost}
             fallback={
               <>
+                <Show when={props.sharerActor}>
+                  <ActorSharer
+                    actor={props.sharerActor!}
+                    timestamp={props.sharerTimestamp!}
+                    class="p-4 pb-0"
+                  />
+                </Show>
                 <ArticleCardInternal
                   $article={article}
                   setHover={setHover}

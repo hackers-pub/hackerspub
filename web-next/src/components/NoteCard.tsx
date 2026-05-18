@@ -1,12 +1,15 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
 import { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
 import { NoteCardInternal } from "./NoteCardInternal.tsx";
 import { PostSharer } from "./PostSharer.tsx";
 
 export interface NoteCardProps {
   $note: NoteCard_note$key;
+  sharerActor?: ActorSharerActor | null;
+  sharerTimestamp?: string | null;
   connections?: string[];
   bookmarkListConnections?: string[];
   pinConnections?: string[];
@@ -35,6 +38,13 @@ export function NoteCard(props: NoteCardProps) {
             <div class="flex flex-col gap-0.5">
               <Show when={note.sharedPost}>
                 <PostSharer $post={note} class="ml-14" />
+              </Show>
+              <Show when={props.sharerActor}>
+                <ActorSharer
+                  actor={props.sharerActor!}
+                  timestamp={props.sharerTimestamp!}
+                  class="ml-14"
+                />
               </Show>
               <NoteCardInternal
                 $note={displayPost()}

@@ -47,6 +47,13 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
           __id
           edges {
             __id
+            lastSharer {
+              name
+              local
+              username
+              handle
+            }
+            added
             node {
               ...PostCard_post @arguments(locale: $locale)
             }
@@ -88,6 +95,8 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
               {(edge) => (
                 <PostCard
                   $post={edge.node}
+                  sharerActor={edge.lastSharer}
+                  sharerTimestamp={edge.added}
                   connections={[data.personalTimeline.__id]}
                 />
               )}
