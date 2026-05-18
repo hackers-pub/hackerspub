@@ -45,7 +45,7 @@ export const Notification = builder.drizzleInterface("notificationTable", {
     "A notification for the account holder about social activity related " +
     "to their posts or profile. Multiple actors can trigger the same " +
     "notification (e.g., several people reacting to the same post are " +
-    "merged). The actors field lists them newest-first.",
+    "merged). The `actors` field lists them newest-first.",
   interfaces: [Node],
   resolveType(notification): string {
     switch (notification.type) {
@@ -170,8 +170,8 @@ export const ReactNotification = builder.drizzleNode("notificationTable", {
   variant: "ReactNotification",
   description:
     "Notification that one or more actors reacted with an emoji to one of " +
-    "this account's posts. The emoji and customEmoji fields identify which " +
-    "reaction triggered the notification.",
+    "this account's posts. The `emoji` and `customEmoji` fields identify " +
+    "which reaction triggered the notification.",
   interfaces: [Notification],
   id: {
     column: (notification) => notification.id,

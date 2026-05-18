@@ -89,7 +89,7 @@ function createRelationshipBooleanLoader(
 export const ActorType = builder.enumType("ActorType", {
   description:
     "ActivityPub actor type as defined by the ActivityStreams 2.0 vocabulary. " +
-    "Most human accounts are PERSON actors.",
+    "Most human accounts are `PERSON` actors.",
   values: {
     PERSON: {
       description: "A human user account.",
@@ -114,12 +114,12 @@ export const ActorType = builder.enumType("ActorType", {
 export const Actor = builder.drizzleNode("actorTable", {
   name: "Actor",
   description:
-    "An ActivityPub actor — the public identity used for federation. " +
-    "Actors can be local (originating from this instance, local: true) or " +
-    "federated (from another instance, local: false). Local actors have an " +
-    "associated Account that holds login credentials and settings; remote " +
-    "actors do not. When in doubt, use Actor for display and Account only " +
-    "for settings that belong to the authenticated viewer.",
+    "An ActivityPub actor: the public identity used for federation. " +
+    "Actors can be local (originating from this instance, `local: true`) or " +
+    "federated (from another instance, `local: false`). Local actors have an " +
+    "associated `Account` that holds login credentials and settings; remote " +
+    "actors do not. When in doubt, use `Actor` for display and `Account` " +
+    "only for settings that belong to the authenticated viewer.",
   id: {
     column: (actor) => actor.id,
   },
@@ -128,9 +128,9 @@ export const Actor = builder.drizzleNode("actorTable", {
     iri: t.field({
       type: "URL",
       description:
-        "The actor's ActivityPub IRI — the canonical identifier used " +
-        "for federation. For local actors this is the /ap/… endpoint, " +
-        "not the human-readable profile URL. Compare with url, which is " +
+        "The actor's ActivityPub IRI: the canonical identifier used " +
+        "for federation. For local actors this is the `/ap/…` endpoint, " +
+        "not the human-readable profile URL. Compare with `url`, which is " +
         "the web profile page.",
       select: {
         columns: { iri: true, accountId: true },
@@ -166,7 +166,7 @@ export const Actor = builder.drizzleNode("actorTable", {
     local: t.boolean({
       description:
         "True if this actor was created on this instance (has an associated " +
-        "local Account). False for actors fetched from remote fediverse " +
+        "local `Account`). False for actors fetched from remote fediverse " +
         "instances via ActivityPub.",
       select: {
         columns: { accountId: true },
@@ -206,8 +206,8 @@ export const Actor = builder.drizzleNode("actorTable", {
       {
         description:
           "If false, incoming follow requests must be manually approved. " +
-          "Pending follows appear with a null accepted timestamp in " +
-          "ActorFollowersConnectionEdge until the actor approves them.",
+          "Pending follows appear with a `null` `accepted` timestamp in " +
+          "`ActorFollowersConnectionEdge` until the actor approves them.",
       },
     ),
     avatarUrl: t.field({
@@ -247,8 +247,8 @@ export const Actor = builder.drizzleNode("actorTable", {
       nullable: true,
       description:
         "The actor's human-readable profile URL. For local actors this is " +
-        "the web profile page, which differs from iri (the ActivityPub " +
-        "endpoint). Null when the remote instance did not advertise one.",
+        "the web profile page, which differs from `iri` (the ActivityPub " +
+        "endpoint). `null` when the remote instance did not advertise one.",
       resolve(actor) {
         return actor.url ? new URL(actor.url) : null;
       },
@@ -278,8 +278,8 @@ export const Actor = builder.drizzleNode("actorTable", {
       nullable: true,
       description:
         "If this actor has migrated to a new account via the ActivityPub " +
-        "Move activity, points to the new actor. The old actor's posts are " +
-        "not automatically transferred to the new account.",
+        "Move activity, points to the new actor. The old actor's posts " +
+        "are not automatically transferred to the new account.",
     }),
     fields: t.field({
       type: [ActorFieldRef],
@@ -472,7 +472,7 @@ builder.drizzleObjectFields(Actor, (t) => ({
   follows: t.field({
     type: "Boolean",
     description: "One-off check: does this actor follow the given actor? " +
-      "For the viewer-relative variant, use viewerFollows instead.",
+      "For the viewer-relative variant, use `viewerFollows` instead.",
     args: {
       followeeId: t.arg.globalID(),
     },
@@ -582,7 +582,7 @@ builder.drizzleObjectFields(Actor, (t) => ({
   isFollowedBy: t.field({
     type: "Boolean",
     description: "One-off check: is this actor followed by the given actor? " +
-      "For the viewer-relative variant, use followsViewer instead.",
+      "For the viewer-relative variant, use `followsViewer` instead.",
     args: {
       followerId: t.arg.globalID(),
     },
@@ -684,8 +684,8 @@ builder.queryFields((t) => ({
   actorByUuid: t.drizzleField({
     type: Actor,
     description:
-      "Look up an actor by their internal row UUID (Actor.uuid). Prefer " +
-      "actorByHandle for user-facing lookups; this is mainly for internal " +
+      "Look up an actor by their internal row UUID (`Actor.uuid`). Prefer " +
+      "`actorByHandle` for user-facing lookups; this is mainly for internal " +
       "cross-references where a UUID is already known.",
     args: {
       uuid: t.arg({
@@ -703,11 +703,11 @@ builder.queryFields((t) => ({
   actorByHandle: t.drizzleField({
     type: Actor,
     description: "Look up an actor by their fediverse handle (e.g., " +
-      "@alice@mastodon.social or alice@hackers.pub). For user@host handles " +
-      "not already in the local cache, triggers an outbound WebFinger + " +
-      "ActivityPub fetch and persists the result — this only happens for " +
-      "authenticated requests, since unauthenticated callers are not " +
-      "allowed to spawn outbound federation lookups.",
+      "`@alice@mastodon.social` or `alice@hackers.pub`). For `user@host` " +
+      "handles not already in the local cache, triggers an outbound " +
+      "WebFinger + ActivityPub fetch and persists the result; this only " +
+      "happens for authenticated requests, since unauthenticated callers " +
+      "are not allowed to spawn outbound federation lookups.",
     args: {
       handle: t.arg.string({ required: true }),
       allowLocalHandle: t.arg.boolean({
@@ -785,7 +785,7 @@ builder.queryFields((t) => ({
   instanceByHost: t.drizzleField({
     type: Instance,
     description:
-      "Look up a known fediverse instance by its host name. Returns null " +
+      "Look up a known fediverse instance by its host name. Returns `null` " +
       "if this instance has not been discovered yet.",
     args: {
       host: t.arg.string({ required: true }),

@@ -115,8 +115,8 @@ class LlmTranslationNotAllowedError extends Error {
 export const PostType = builder.enumType("PostType", {
   description:
     "Discriminant used to filter a connection to a single post type. " +
-    "This enum does not appear on the Post interface itself — use " +
-    "__typename or inline fragments to distinguish concrete types.",
+    "This enum does not appear on the `Post` interface itself; use " +
+    "__typename` or inline fragments to distinguish concrete types.",
   values: {
     ARTICLE: {
       description: "Long-form article with a title, year-based slug URL, and " +
@@ -169,10 +169,10 @@ builder.objectType(LlmTranslationNotAllowedError, {
 export const Post = builder.drizzleInterface("postTable", {
   variant: "Post",
   description:
-    "Abstract base for all content types: Note (short microblog posts), " +
-    "Article (long-form blog posts), and Question (polls from federated " +
+    "Abstract base for all content types: `Note` (short microblog posts), " +
+    "`Article` (long-form blog posts), and `Question` (polls from federated " +
     "instances). Most timeline and feed queries return this interface; " +
-    "use __typename or inline fragments to access type-specific fields.",
+    "use `__typename` or inline fragments to access type-specific fields.",
   interfaces: [Reactable, Node],
   resolveType(post): string {
     switch (post.type) {
@@ -510,7 +510,7 @@ export const Note = builder.drizzleNode("postTable", {
   description:
     "A short-form microblog post, equivalent to a Mastodon Status or " +
     "ActivityPub Note. Notes can be composed locally or federated in from " +
-    "remote instances. Boost wrappers (sharedPost is non-null) have empty " +
+    "remote instances. Boost wrappers (`sharedPost` is non-null) have empty " +
     "content and copy the shared post's URL.",
   interfaces: [Post, Reactable],
   id: {
@@ -535,9 +535,9 @@ export const Article = builder.drizzleNode("postTable", {
   variant: "Article",
   description:
     "A long-form blog article written on this platform. Articles have a " +
-    "title, year-based URL slug, and can have multiple ArticleContent " +
+    "title, year-based URL slug, and can have multiple `ArticleContent` " +
     "translations. Remote articles federated from other instances lack a " +
-    "local articleSource and will have null for slug, publishedYear, and tags.",
+    "local `articleSource` and will have `null` for `slug`, `publishedYear`, and `tags`.",
   interfaces: [Post, Reactable],
   id: {
     column: (post) => post.id,
@@ -653,7 +653,7 @@ export const ArticleDraft = builder.drizzleNode("articleDraftTable", {
   variant: "ArticleDraft",
   description:
     "An unpublished article draft. Visible only to the owning account. " +
-    "Drafts are promoted to Articles via the publishArticleDraft mutation.",
+    "Drafts are promoted to `Article`s via the `publishArticleDraft` mutation.",
   id: {
     column: (draft) => draft.id,
   },
@@ -707,9 +707,9 @@ export const Question = builder.drizzleNode("postTable", {
   variant: "Question",
   description:
     "An ActivityPub Question (poll) originating from a federated instance. " +
-    "Hackers' Pub does not support creating Questions locally — local users " +
-    "can vote on and boost remote questions only. Always use Post.uuid (the " +
-    "row PK) for internal permalinks; there is no local sourceId.",
+    "Hackers' Pub does not support creating `Question`s locally; local users " +
+    "can vote on and boost remote questions only. Always use `Post.uuid` (the " +
+    "row PK) for internal permalinks; there is no local `sourceId`.",
   interfaces: [Post, Reactable],
   id: {
     column: (post) => post.id,
@@ -719,9 +719,9 @@ export const Question = builder.drizzleNode("postTable", {
 export const ArticleContent = builder.drizzleNode("articleContentTable", {
   name: "ArticleContent",
   description:
-    "A single language version of an Article's content. Each language is " +
-    "stored separately; Article.contents lists all available translations. " +
-    "LLM-translated versions have a non-null translator and originalLanguage.",
+    "A single language version of an `Article`'s content. Each language is " +
+    "stored separately; `Article.contents` lists all available translations. " +
+    "LLM-translated versions have a non-null `translator` and `originalLanguage`.",
   id: {
     column: (content) => [content.sourceId, content.language],
   },
@@ -927,8 +927,8 @@ const PostEngagementStats = builder.drizzleObject("postTable", {
   variant: "PostEngagementStats",
   description:
     "Cached engagement counters for a post. Updated asynchronously; may " +
-    "be slightly stale. Query the live connections (replies, shares, etc.) " +
-    "directly when exact real-time counts matter.",
+    "be slightly stale. Query the live connections (`replies`, `shares`, " +
+    "etc.) directly when exact real-time counts matter.",
   fields: (t) => ({
     replies: t.exposeInt("repliesCount"),
     shares: t.exposeInt("sharesCount"),
@@ -968,8 +968,8 @@ builder.drizzleNode("postMediumTable", {
   name: "PostMedium",
   description:
     "A media attachment on a post. For local posts this refers to an " +
-    "uploaded Medium stored on this instance; for federated posts the url " +
-    "points to the remote media URL on the originating instance.",
+    "uploaded `Medium` stored on this instance; for federated posts the " +
+    "`url` points to the remote media URL on the originating instance.",
   id: {
     column: (medium) => [medium.postId, medium.index],
   },
@@ -993,11 +993,11 @@ builder.drizzleNode("postMediumTable", {
 export const Medium = builder.drizzleNode("mediumTable", {
   name: "Medium",
   description: "A stored media object (image). Two-step upload flow: call " +
-    "startMediumUpload to get a pre-signed upload URL, PUT the image to " +
-    "that URL, then call finishMediumUpload to complete the transaction. " +
-    "Alternatively, call createMedium with a remote URL to import an image " +
-    "directly. Unreferenced media older than the grace period are deleted " +
-    "by the deleteOrphanMedia mutation.",
+    "`startMediumUpload` to get a pre-signed upload URL, PUT the image " +
+    "to that URL, then call `finishMediumUpload` to complete the transaction. " +
+    "Alternatively, call `createMedium` with a remote URL to import an " +
+    "image directly. Unreferenced media older than the grace period are " +
+    "deleted by the `deleteOrphanMedia` mutation.",
   id: {
     column: (medium) => medium.id,
   },
@@ -1074,7 +1074,7 @@ const PostLink = builder.drizzleNode("postLinkTable", {
   variant: "PostLink",
   description: "OpenGraph / oEmbed metadata for a link embedded in a post. " +
     "Populated asynchronously after the post is created; individual " +
-    "fields may be null until the metadata fetch completes or if the " +
+    "fields may be `null` until the metadata fetch completes or if the " +
     "linked page does not expose the corresponding tag.",
   id: {
     column: (link) => link.id,

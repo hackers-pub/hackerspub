@@ -38,11 +38,11 @@ const profileOgImageComplexity = 2_000;
 export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
   description:
-    "A local user account on this Hackers' Pub instance. Every Account " +
-    "has exactly one Actor (its public ActivityPub identity) and holds " +
-    "login credentials, settings, and moderation state. Account is only " +
+    "A local user account on this Hackers' Pub instance. Every `Account` " +
+    "has exactly one `Actor` (its public ActivityPub identity) and holds " +
+    "login credentials, settings, and moderation state. `Account` is only " +
     "returned for the authenticated viewer and for moderator-only queries; " +
-    "all public identity data (name, bio, posts, followers) lives on Actor.",
+    "all public identity data (name, bio, posts, followers) lives on `Actor`.",
   id: {
     column: (account) => account.id,
   },
@@ -266,7 +266,7 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     unreadNotificationsCount: t.int({
       description: "Number of notifications created after the account's last " +
-        "markNotificationsAsRead call. Only visible to the account holder.",
+        "`markNotificationsAsRead` call. Only visible to the account holder.",
       authScopes: (parent) => ({
         selfAccount: parent.id,
       }),

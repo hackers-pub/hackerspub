@@ -7,10 +7,10 @@ export const QuotePolicy = builder.enumType("QuotePolicy", {
   description:
     "Controls who may embed this post as a quote in their own posts. " +
     "Applies to both local and federated clients; cross-instance requests " +
-    "from restricted actors result in a QuoteTargetState on the quoting post.",
+    "from restricted actors result in a `QuoteTargetState` on the quoting post.",
   values: {
     EVERYONE: {
-      description: "Anyone — followers and non-followers alike — may quote.",
+      description: "Anyone (followers and non-followers alike) may quote.",
     },
     FOLLOWERS: {
       description: "Only the post author's approved followers may quote. " +
@@ -52,7 +52,7 @@ export const QuoteTargetState = builder.enumType("QuoteTargetState", {
   description:
     "The cross-instance quote-request approval status for this post when it " +
     "is itself the quoting post. Only non-null while the request is outstanding " +
-    "or has been rejected; once approved, this field returns null.",
+    "or has been rejected; once approved, this field returns `null`.",
   values: {
     PENDING: {
       description:

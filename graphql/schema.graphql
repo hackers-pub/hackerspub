@@ -1,5 +1,5 @@
 """
-A local user account on this Hackers' Pub instance. Every Account has exactly one Actor (its public ActivityPub identity) and holds login credentials, settings, and moderation state. Account is only returned for the authenticated viewer and for moderator-only queries; all public identity data (name, bio, posts, followers) lives on Actor.
+A local user account on this Hackers' Pub instance. Every `Account` has exactly one `Actor` (its public ActivityPub identity) and holds login credentials, settings, and moderation state. `Account` is only returned for the authenticated viewer and for moderator-only queries; all public identity data (name, bio, posts, followers) lives on `Actor`.
 """
 type Account implements Node {
   actor: Actor!
@@ -58,7 +58,7 @@ type Account implements Node {
   preferAiSummary: Boolean!
 
   """
-  Number of notifications created after the account's last markNotificationsAsRead call. Only visible to the account holder.
+  Number of notifications created after the account's last `markNotificationsAsRead` call. Only visible to the account holder.
   """
   unreadNotificationsCount: Int!
   updated: DateTime!
@@ -166,14 +166,14 @@ type AccountPasskeysConnectionEdge {
 }
 
 """
-An ActivityPub actor — the public identity used for federation. Actors can be local (originating from this instance, local: true) or federated (from another instance, local: false). Local actors have an associated Account that holds login credentials and settings; remote actors do not. When in doubt, use Actor for display and Account only for settings that belong to the authenticated viewer.
+An ActivityPub actor: the public identity used for federation. Actors can be local (originating from this instance, `local: true`) or federated (from another instance, `local: false`). Local actors have an associated `Account` that holds login credentials and settings; remote actors do not. When in doubt, use `Actor` for display and `Account` only for settings that belong to the authenticated viewer.
 """
 type Actor implements Node {
   account: Account
   articles(after: String, before: String, first: Int, last: Int): ActorArticlesConnection!
 
   """
-  If false, incoming follow requests must be manually approved. Pending follows appear with a null accepted timestamp in ActorFollowersConnectionEdge until the actor approves them.
+  If false, incoming follow requests must be manually approved. Pending follows appear with a `null` `accepted` timestamp in `ActorFollowersConnectionEdge` until the actor approves them.
   """
   automaticallyApprovesFollowers: Boolean!
   avatarInitials: String!
@@ -190,7 +190,7 @@ type Actor implements Node {
   followers(after: String, before: String, first: Int, last: Int): ActorFollowersConnection!
 
   """
-  One-off check: does this actor follow the given actor? For the viewer-relative variant, use viewerFollows instead.
+  One-off check: does this actor follow the given actor? For the viewer-relative variant, use `viewerFollows` instead.
   """
   follows(followeeId: ID): Boolean!
 
@@ -206,12 +206,12 @@ type Actor implements Node {
   instanceHost: String!
 
   """
-  The actor's ActivityPub IRI — the canonical identifier used for federation. For local actors this is the /ap/… endpoint, not the human-readable profile URL. Compare with url, which is the web profile page.
+  The actor's ActivityPub IRI: the canonical identifier used for federation. For local actors this is the `/ap/…` endpoint, not the human-readable profile URL. Compare with `url`, which is the web profile page.
   """
   iri: URL!
 
   """
-  One-off check: is this actor followed by the given actor? For the viewer-relative variant, use followsViewer instead.
+  One-off check: is this actor followed by the given actor? For the viewer-relative variant, use `followsViewer` instead.
   """
   isFollowedBy(followerId: ID): Boolean!
 
@@ -222,7 +222,7 @@ type Actor implements Node {
   latestPostUpdated: DateTime
 
   """
-  True if this actor was created on this instance (has an associated local Account). False for actors fetched from remote fediverse instances via ActivityPub.
+  True if this actor was created on this instance (has an associated local `Account`). False for actors fetched from remote fediverse instances via ActivityPub.
   """
   local: Boolean!
   name: HTML
@@ -252,7 +252,7 @@ type Actor implements Node {
   updated: DateTime!
 
   """
-  The actor's human-readable profile URL. For local actors this is the web profile page, which differs from iri (the ActivityPub endpoint). Null when the remote instance did not advertise one.
+  The actor's human-readable profile URL. For local actors this is the web profile page, which differs from `iri` (the ActivityPub endpoint). `null` when the remote instance did not advertise one.
   """
   url: URL
   username: String!
@@ -364,7 +364,7 @@ type ActorSharedPostsConnectionEdge {
 }
 
 """
-ActivityPub actor type as defined by the ActivityStreams 2.0 vocabulary. Most human accounts are PERSON actors.
+ActivityPub actor type as defined by the ActivityStreams 2.0 vocabulary. Most human accounts are `PERSON` actors.
 """
 enum ActorType {
   """An application actor, typically the instance software itself."""
@@ -430,7 +430,7 @@ type AdminAccountPageInfo {
 }
 
 """
-A long-form blog article written on this platform. Articles have a title, year-based URL slug, and can have multiple ArticleContent translations. Remote articles federated from other instances lack a local articleSource and will have null for slug, publishedYear, and tags.
+A long-form blog article written on this platform. Articles have a title, year-based URL slug, and can have multiple `ArticleContent` translations. Remote articles federated from other instances lack a local `articleSource` and will have `null` for `slug`, `publishedYear`, and `tags`.
 """
 type Article implements Node & Post & Reactable {
   account: Account
@@ -491,7 +491,7 @@ type Article implements Node & Post & Reactable {
 }
 
 """
-A single language version of an Article's content. Each language is stored separately; Article.contents lists all available translations. LLM-translated versions have a non-null translator and originalLanguage.
+A single language version of an `Article`'s content. Each language is stored separately; `Article.contents` lists all available translations. LLM-translated versions have a non-null `translator` and `originalLanguage`.
 """
 type ArticleContent implements Node {
   beingTranslated: Boolean!
@@ -517,7 +517,7 @@ type ArticleContent implements Node {
 }
 
 """
-An unpublished article draft. Visible only to the owning account. Drafts are promoted to Articles via the publishArticleDraft mutation.
+An unpublished article draft. Visible only to the owning account. Drafts are promoted to `Article`s via the `publishArticleDraft` mutation.
 """
 type ArticleDraft implements Node {
   account: Account!
@@ -900,7 +900,7 @@ scalar Markdown
 scalar MediaType
 
 """
-A stored media object (image). Two-step upload flow: call startMediumUpload to get a pre-signed upload URL, PUT the image to that URL, then call finishMediumUpload to complete the transaction. Alternatively, call createMedium with a remote URL to import an image directly. Unreferenced media older than the grace period are deleted by the deleteOrphanMedia mutation.
+A stored media object (image). Two-step upload flow: call `startMediumUpload` to get a pre-signed upload URL, PUT the image to that URL, then call `finishMediumUpload` to complete the transaction. Alternatively, call `createMedium` with a remote URL to import an image directly. Unreferenced media older than the grace period are deleted by the `deleteOrphanMedia` mutation.
 """
 type Medium implements Node {
   """SHA-256 hash of the normalized stored content, if known."""
@@ -945,7 +945,7 @@ type Mutation {
   bookmarkPost(input: BookmarkPostInput!): BookmarkPostResult!
 
   """
-  Exchange the (token, code) pair from a magic link email for a session. Returns null when the challenge does not exist or the code does not match. The returned Session.id is the bearer token to include in the Authorization header for subsequent authenticated requests.
+  Exchange the `(token, code)` pair from a magic link email for a session. Returns `null` when the challenge does not exist or the code does not match. The returned `Session.id` is the bearer token to include in the `Authorization` header for subsequent authenticated requests.
   """
   completeLoginChallenge(
     """The code of the login challenge."""
@@ -981,7 +981,7 @@ type Mutation {
   followActor(input: FollowActorInput!): FollowActorResult!
 
   """
-  Generate WebAuthn authentication options for passkey sign-in. Pass a fresh client-generated UUID as sessionId; this same sessionId must be passed back to loginByPasskey.
+  Generate WebAuthn authentication options for passkey sign-in. Pass a fresh client-generated UUID as `sessionId`; this same `sessionId` must be passed back to `loginByPasskey`.
   """
   getPasskeyAuthenticationOptions(
     """Temporary session ID for passkey authentication."""
@@ -1000,7 +1000,7 @@ type Mutation {
   ): InviteResult!
 
   """
-  Initiate passwordless email sign-in. Sends a magic link to the matching account's email address. The link embeds {token} and {code} as URI Template variables in verifyUrl. Complete the flow by calling completeLoginChallenge with those values.
+  Initiate passwordless email sign-in. Sends a magic link to the matching account's email address. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values.
   """
   loginByEmail(
     """The email of the account to sign in."""
@@ -1016,7 +1016,7 @@ type Mutation {
   ): LoginResult!
 
   """
-  Authenticate using a WebAuthn passkey. First call getPasskeyAuthenticationOptions with a fresh sessionId UUID, then pass the authenticator's response back here as authenticationResponse. Returns null when verification fails.
+  Authenticate using a WebAuthn passkey. First call `getPasskeyAuthenticationOptions` with a fresh `sessionId` UUID, then pass the authenticator's response back here as `authenticationResponse`. Returns `null` when verification fails.
   """
   loginByPasskey(
     """WebAuthn authentication response from the client."""
@@ -1028,7 +1028,7 @@ type Mutation {
   ): Session
 
   """
-  Initiate passwordless sign-in by username. Sends a magic link to all email addresses on the account. The link embeds {token} and {code} as URI Template variables in verifyUrl. Complete the flow by calling completeLoginChallenge with those values.
+  Initiate passwordless sign-in by username. Sends a magic link to all email addresses on the account. The link embeds `{token}` and `{code}` as URI Template variables in `verifyUrl`. Complete the flow by calling `completeLoginChallenge` with those values.
   """
   loginByUsername(
     """The locale for the sign-in email."""
@@ -1102,7 +1102,7 @@ type NotAuthorizedError {
 }
 
 """
-A short-form microblog post, equivalent to a Mastodon Status or ActivityPub Note. Notes can be composed locally or federated in from remote instances. Boost wrappers (sharedPost is non-null) have empty content and copy the shared post's URL.
+A short-form microblog post, equivalent to a Mastodon Status or ActivityPub Note. Notes can be composed locally or federated in from remote instances. Boost wrappers (`sharedPost` is non-null) have empty content and copy the shared post's URL.
 """
 type Note implements Node & Post & Reactable {
   actor: Actor!
@@ -1162,7 +1162,7 @@ type Note implements Node & Post & Reactable {
 }
 
 """
-A notification for the account holder about social activity related to their posts or profile. Multiple actors can trigger the same notification (e.g., several people reacting to the same post are merged). The actors field lists them newest-first.
+A notification for the account holder about social activity related to their posts or profile. Multiple actors can trigger the same notification (e.g., several people reacting to the same post are merged). The `actors` field lists them newest-first.
 """
 interface Notification implements Node {
   account: Account!
@@ -1313,7 +1313,7 @@ type PollVotesConnectionEdge {
 }
 
 """
-Abstract base for all content types: Note (short microblog posts), Article (long-form blog posts), and Question (polls from federated instances). Most timeline and feed queries return this interface; use __typename or inline fragments to access type-specific fields.
+Abstract base for all content types: `Note` (short microblog posts), `Article` (long-form blog posts), and `Question` (polls from federated instances). Most timeline and feed queries return this interface; use `__typename` or inline fragments to access type-specific fields.
 """
 interface Post implements Node & Reactable {
   actor: Actor!
@@ -1368,7 +1368,7 @@ interface Post implements Node & Reactable {
 }
 
 """
-Cached engagement counters for a post. Updated asynchronously; may be slightly stale. Query the live connections (replies, shares, etc.) directly when exact real-time counts matter.
+Cached engagement counters for a post. Updated asynchronously; may be slightly stale. Query the live connections (`replies`, `shares`, etc.) directly when exact real-time counts matter.
 """
 type PostEngagementStats {
   bookmarks: Int!
@@ -1380,7 +1380,7 @@ type PostEngagementStats {
 }
 
 """
-OpenGraph / oEmbed metadata for a link embedded in a post. Populated asynchronously after the post is created; individual fields may be null until the metadata fetch completes or if the linked page does not expose the corresponding tag.
+OpenGraph / oEmbed metadata for a link embedded in a post. Populated asynchronously after the post is created; individual fields may be `null` until the metadata fetch completes or if the linked page does not expose the corresponding tag.
 """
 type PostLink implements Node {
   author: String
@@ -1404,7 +1404,7 @@ type PostLinkImage {
 }
 
 """
-A media attachment on a post. For local posts this refers to an uploaded Medium stored on this instance; for federated posts the url points to the remote media URL on the originating instance.
+A media attachment on a post. For local posts this refers to an uploaded `Medium` stored on this instance; for federated posts the `url` points to the remote media URL on the originating instance.
 """
 type PostMedium implements Node {
   alt: String
@@ -1458,7 +1458,7 @@ type PostSharesConnectionEdge {
 }
 
 """
-Discriminant used to filter a connection to a single post type. This enum does not appear on the Post interface itself — use __typename or inline fragments to distinguish concrete types.
+Discriminant used to filter a connection to a single post type. This enum does not appear on the `Post` interface itself; use __typename` or inline fragments to distinguish concrete types.
 """
 enum PostType {
   """
@@ -1529,7 +1529,7 @@ type Query {
   accounts: [Account!]!
 
   """
-  Look up an actor by their fediverse handle (e.g., @alice@mastodon.social or alice@hackers.pub). For user@host handles not already in the local cache, triggers an outbound WebFinger + ActivityPub fetch and persists the result — this only happens for authenticated requests, since unauthenticated callers are not allowed to spawn outbound federation lookups.
+  Look up an actor by their fediverse handle (e.g., `@alice@mastodon.social` or `alice@hackers.pub`). For `user@host` handles not already in the local cache, triggers an outbound WebFinger + ActivityPub fetch and persists the result; this only happens for authenticated requests, since unauthenticated callers are not allowed to spawn outbound federation lookups.
   """
   actorByHandle(
     """Whether to allow local handles (e.g. @username)."""
@@ -1543,7 +1543,7 @@ type Query {
   actorByUrl(url: URL!): Actor
 
   """
-  Look up an actor by their internal row UUID (Actor.uuid). Prefer actorByHandle for user-facing lookups; this is mainly for internal cross-references where a UUID is already known.
+  Look up an actor by their internal row UUID (`Actor.uuid`). Prefer `actorByHandle` for user-facing lookups; this is mainly for internal cross-references where a UUID is already known.
   """
   actorByUuid(uuid: UUID!): Actor
 
@@ -1556,7 +1556,7 @@ type Query {
   availableLocales: [Locale!]!
 
   """
-  The authenticated viewer's bookmarked posts, newest-bookmarked first. Throws AUTHENTICATION_REQUIRED when called without a session.
+  The authenticated viewer's bookmarked posts, newest-bookmarked first. Throws `AUTHENTICATION_REQUIRED` when called without a session.
   """
   bookmarks(after: String, before: String, first: Int, last: Int, postType: PostType): QueryBookmarksConnection!
   codeOfConduct(
@@ -1565,7 +1565,7 @@ type Query {
   ): Document!
 
   """
-  Look up a known fediverse instance by its host name. Returns null if this instance has not been discovered yet.
+  Look up a known fediverse instance by its host name. Returns `null` if this instance has not been discovered yet.
   """
   instanceByHost(host: String!): Instance
   invitationLink(id: UUID!, username: String!): InvitationLink
@@ -1603,7 +1603,7 @@ type Query {
   orphanMediaStatus: OrphanMediaStatus
 
   """
-  Posts from accounts the authenticated viewer follows, newest first. Throws AUTHENTICATION_REQUIRED when called without a session. Pagination window (first/last) is capped at 250 posts. Use local to restrict to this instance only, and withoutShares to hide boost wrappers.
+  Posts from accounts the authenticated viewer follows, newest first. Throws `AUTHENTICATION_REQUIRED` when called without a session. Pagination window (`first`/`last`) is capped at 250 posts. Use `local` to restrict to this instance only, and `withoutShares` to hide boost wrappers.
   """
   personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
   postByUrl(url: String!): Post
@@ -1613,7 +1613,7 @@ type Query {
   ): Document!
 
   """
-  All public posts from all known instances, newest first. Accessible without authentication. Pagination window (first/last) is capped at 250 posts. Use languages to filter by language, local to restrict to this instance only, and withoutShares to hide boost wrappers.
+  All public posts from all known instances, newest first. Accessible without authentication. Pagination window (`first`/`last`) is capped at 250 posts. Use `languages` to filter by language, `local` to restrict to this instance only, and `withoutShares` to hide boost wrappers.
   """
   publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
 
@@ -1640,7 +1640,7 @@ type Query {
   searchObject(query: String!): SearchObjectResult
 
   """
-  Full-text post search. Supports keyword operators (see the searchGuide query for syntax). Only forward pagination is supported (before/last are rejected). Excludes boost wrappers; returns only original posts.
+  Full-text post search. Supports keyword operators (see the `searchGuide` query for syntax). Only forward pagination is supported (`before`/`last` are rejected). Excludes boost wrappers; returns only original posts.
   """
   searchPost(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, query: String!): QuerySearchPostConnection!
 
@@ -1685,7 +1685,7 @@ type QueryPublicTimelineConnection {
 
 type QueryPublicTimelineConnectionEdge {
   """
-  When this post was added to the timeline — either its publication time or when it was most recently boosted into the feed.
+  When this post was added to the timeline: either its publication time or when it was most recently boosted into the feed.
   """
   added: DateTime!
   cursor: String!
@@ -1713,7 +1713,7 @@ type QuerySearchPostConnectionEdge {
 }
 
 """
-An ActivityPub Question (poll) originating from a federated instance. Hackers' Pub does not support creating Questions locally — local users can vote on and boost remote questions only. Always use Post.uuid (the row PK) for internal permalinks; there is no local sourceId.
+An ActivityPub Question (poll) originating from a federated instance. Hackers' Pub does not support creating `Question`s locally; local users can vote on and boost remote questions only. Always use `Post.uuid` (the row PK) for internal permalinks; there is no local `sourceId`.
 """
 type Question implements Node & Post & Reactable {
   actor: Actor!
@@ -1779,10 +1779,10 @@ type QuoteNotification implements Node & Notification {
 }
 
 """
-Controls who may embed this post as a quote in their own posts. Applies to both local and federated clients; cross-instance requests from restricted actors result in a QuoteTargetState on the quoting post.
+Controls who may embed this post as a quote in their own posts. Applies to both local and federated clients; cross-instance requests from restricted actors result in a `QuoteTargetState` on the quoting post.
 """
 enum QuotePolicy {
-  """Anyone — followers and non-followers alike — may quote."""
+  """Anyone (followers and non-followers alike) may quote."""
   EVERYONE
 
   """
@@ -1797,7 +1797,7 @@ enum QuotePolicy {
 }
 
 """
-The cross-instance quote-request approval status for this post when it is itself the quoting post. Only non-null while the request is outstanding or has been rejected; once approved, this field returns null.
+The cross-instance quote-request approval status for this post when it is itself the quoting post. Only non-null while the request is outstanding or has been rejected; once approved, this field returns `null`.
 """
 enum QuoteTargetState {
   """
@@ -1812,7 +1812,7 @@ enum QuoteTargetState {
 }
 
 """
-Notification that one or more actors reacted with an emoji to one of this account's posts. The emoji and customEmoji fields identify which reaction triggered the notification.
+Notification that one or more actors reacted with an emoji to one of this account's posts. The `emoji` and `customEmoji` fields identify which reaction triggered the notification.
 """
 type ReactNotification implements Node & Notification {
   account: Account!
@@ -1826,7 +1826,7 @@ type ReactNotification implements Node & Notification {
 }
 
 """
-An object that can receive emoji reactions. Implemented by Post types (Note, Article, Question).
+An object that can receive emoji reactions. Implemented by `Post` types (`Note`, `Article`, `Question`).
 """
 interface Reactable implements Node {
   id: ID!

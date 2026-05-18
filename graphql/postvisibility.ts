@@ -21,19 +21,20 @@ export const PostVisibility = builder.enumType("PostVisibility", {
     },
     FOLLOWERS: {
       description:
-        "Visible only to the actor's approved followers. Never appears in any " +
-        "public timeline. Federated only to follower inboxes.",
+        "Visible only to the actor's approved followers. Never appears in " +
+        "any public timeline. Federated only to follower inboxes.",
     },
     DIRECT: {
       description:
-        "Visible only to explicitly @-mentioned actors — the closest equivalent " +
-        "to a direct message. Not delivered to followers who were not mentioned.",
+        "Visible only to explicitly @-mentioned actors — the closest " +
+        "equivalent to a direct message. Not delivered to followers who " +
+        "were not mentioned.",
     },
     NONE: {
       description:
         "Not visible to anyone other than the author. Used internally for " +
-        "soft-deleted or administratively hidden posts; do not set this value " +
-        "when creating posts.",
+        "soft-deleted or administratively hidden posts; do not set this " +
+        "value when creating posts.",
     },
   } as const,
 });

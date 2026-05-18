@@ -107,10 +107,10 @@ builder.queryFields((t) => ({
     {
       type: Post,
       description: `All public posts from all known instances, newest first. ` +
-        `Accessible without authentication. Pagination window (first/last) ` +
-        `is capped at ${MAX_TIMELINE_WINDOW} posts. Use languages to filter ` +
-        `by language, local to restrict to this instance only, and ` +
-        `withoutShares to hide boost wrappers.`,
+        `Accessible without authentication. Pagination window ` +
+        `(\`first\`/\`last\`) is capped at ${MAX_TIMELINE_WINDOW} posts. ` +
+        `Use \`languages\` to filter by language, \`local\` to restrict ` +
+        `to this instance only, and \`withoutShares\` to hide boost wrappers.`,
       args: {
         languages: t.arg({
           type: ["Locale"],
@@ -207,8 +207,7 @@ builder.queryFields((t) => ({
         }),
         added: te.expose("added", {
           type: "DateTime",
-          description:
-            "When this post was added to the timeline — either its " +
+          description: "When this post was added to the timeline: either its " +
             "publication time or when it was most recently boosted into the feed.",
         }),
       }),
@@ -219,7 +218,7 @@ builder.queryFields((t) => ({
     type: Post,
     description:
       "The authenticated viewer's bookmarked posts, newest-bookmarked " +
-      "first. Throws AUTHENTICATION_REQUIRED when called without a session.",
+      "first. Throws `AUTHENTICATION_REQUIRED` when called without a session.",
     args: {
       postType: t.arg({
         type: PostType,
@@ -285,10 +284,10 @@ builder.queryFields((t) => ({
       type: Post,
       description:
         `Posts from accounts the authenticated viewer follows, newest first. ` +
-        `Throws AUTHENTICATION_REQUIRED when called without a session. ` +
-        `Pagination window (first/last) is capped at ${MAX_TIMELINE_WINDOW} ` +
-        `posts. Use local to restrict to this instance only, and ` +
-        `withoutShares to hide boost wrappers.`,
+        `Throws \`AUTHENTICATION_REQUIRED\` when called without a session. ` +
+        `Pagination window (\`first\`/\`last\`) is capped at ` +
+        `${MAX_TIMELINE_WINDOW} posts. Use \`local\` to restrict to this ` +
+        `instance only, and \`withoutShares\` to hide boost wrappers.`,
       args: {
         local: t.arg.boolean({ defaultValue: false }),
         withoutShares: t.arg.boolean({ defaultValue: false }),

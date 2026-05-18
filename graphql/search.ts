@@ -149,9 +149,9 @@ builder.queryFields((t) => ({
   searchPost: t.connection({
     type: Post,
     description: "Full-text post search. Supports keyword operators (see the " +
-      "searchGuide query for syntax). Only forward pagination is supported " +
-      "(before/last are rejected). Excludes boost wrappers; returns only " +
-      "original posts.",
+      "`searchGuide` query for syntax). Only forward pagination is " +
+      "supported (`before`/`last` are rejected). Excludes boost wrappers; " +
+      "returns only original posts.",
     args: {
       query: t.arg.string({ required: true }),
       languages: t.arg({
