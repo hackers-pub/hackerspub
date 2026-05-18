@@ -7,7 +7,7 @@ import type {
   CropperSelection,
 } from "cropperjs";
 import { graphql } from "relay-runtime";
-import { createSignal, For, Show } from "solid-js";
+import { createEffect, createSignal, For, Show } from "solid-js";
 import { createStore } from "solid-js/store";
 import {
   createFragment,
@@ -29,12 +29,12 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog.tsx";
 import { Label } from "~/components/ui/label.tsx";
+import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import {
   TextField,
   TextFieldDescription,
   TextFieldInput,
   TextFieldLabel,
-  TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -164,8 +164,12 @@ function SettingsForm(props: SettingsFormProps) {
   );
   let usernameInput: HTMLInputElement | undefined;
   let nameInput: HTMLInputElement | undefined;
-  let bioInput: HTMLTextAreaElement | undefined;
   let cropperContainer: HTMLDivElement | undefined;
+  const [bio, setBio] = createSignal("");
+  createEffect(() => {
+    const v = account()?.bio;
+    if (v !== undefined) setBio(v);
+  });
   const [avatarUrl, setAvatarUrl] = createSignal<string | undefined>();
   const [croperOpen, setCropperOpen] = createSignal(false);
   const [cropperSelection, setCropperSelection] = createSignal<
@@ -269,14 +273,10 @@ function SettingsForm(props: SettingsFormProps) {
     if (saving()) return;
     const id = account()?.id;
     const usernameChanged = account()?.usernameChanged;
-    if (
-      usernameInput == null || nameInput == null || bioInput == null ||
-      id == null
-    ) return;
+    if (usernameInput == null || nameInput == null || id == null) return;
     setSaving(true);
     const username = usernameInput.value;
     const name = nameInput.value;
-    const bio = bioInput.value;
     let avatarMediumId:
       | `${string}-${string}-${string}-${string}-${string}`
       | undefined;
@@ -314,7 +314,7 @@ function SettingsForm(props: SettingsFormProps) {
         id,
         username: usernameChanged == null ? username : undefined,
         name,
-        bio,
+        bio: bio(),
         avatarMediumId,
         links: links.links.filter((l) =>
           l.name.trim() !== "" && l.url.trim() !== ""
@@ -480,11 +480,11 @@ function SettingsForm(props: SettingsFormProps) {
           <TextFieldLabel for="bio">
             {t`Bio`}
           </TextFieldLabel>
-          <TextFieldTextArea
-            ref={bioInput}
+          <MarkdownEditor
             id="bio"
-            value={account()?.bio}
-            rows={7}
+            value={bio()}
+            onInput={setBio}
+            minHeight="min-h-[140px]"
           />
           <TextFieldDescription class="leading-6">
             {t`Your bio will be displayed on your profile. You can use Markdown to format it.`}

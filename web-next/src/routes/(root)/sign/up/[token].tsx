@@ -15,12 +15,12 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { DocumentView } from "~/components/DocumentView.tsx";
+import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import {
   TextField,
   TextFieldInput,
   TextFieldLabel,
-  TextFieldTextArea,
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -91,6 +91,7 @@ export default function SignupPage(props: RouteSectionProps) {
   const [invalid, setInvalid] = createSignal(false);
   const [submitting, setSubmitting] = createSignal(false);
   const [agreedToCoC, setAgreedToCoC] = createSignal(false);
+  const [bio, setBio] = createSignal("");
   const [fieldErrors, setFieldErrors] = createSignal({
     username: null as SignupUsernameError | null,
     name: null as SignupDisplayNameError | null,
@@ -109,7 +110,6 @@ export default function SignupPage(props: RouteSectionProps) {
 
   let usernameInput: HTMLInputElement | undefined;
   let nameInput: HTMLInputElement | undefined;
-  let bioInput: HTMLTextAreaElement | undefined;
 
   const [completeSignup] = createMutation<TokenCompleteSignupMutation>(
     completeSignupMutation,
@@ -178,16 +178,6 @@ export default function SignupPage(props: RouteSectionProps) {
     }
   };
 
-  const handleBioBlur = () => {
-    if (bioInput) {
-      const error = validateBio(bioInput.value);
-      setFieldErrors((prev) => ({
-        ...prev,
-        bio: error as SignupBioError | null,
-      }));
-    }
-  };
-
   createEffect(() => {
     const token = props.params.token;
     const code = new URLSearchParams(window.location.search).get("code");
@@ -225,12 +215,12 @@ export default function SignupPage(props: RouteSectionProps) {
 
     const username = usernameInput.value.trim();
     const name = nameInput.value.trim();
-    const bio = bioInput?.value?.trim() || "";
+    const bioValue = bio().trim();
 
     // Validate all fields before submission
     const usernameError = validateUsername(username);
     const nameError = validateDisplayName(name);
-    const bioError = validateBio(bio);
+    const bioError = validateBio(bioValue);
 
     // Set field errors
     setFieldErrors({
@@ -250,7 +240,7 @@ export default function SignupPage(props: RouteSectionProps) {
       variables: {
         token: props.params.token as Uuid,
         code: new URLSearchParams(window.location.search).get("code")!,
-        input: { username, name, bio },
+        input: { username, name, bio: bioValue },
       },
       async onCompleted(response) {
         setSubmitting(false);
@@ -415,11 +405,19 @@ export default function SignupPage(props: RouteSectionProps) {
                     class="gap-1"
                   >
                     <TextFieldLabel>{t`Bio`}</TextFieldLabel>
-                    <TextFieldTextArea
-                      ref={bioInput}
-                      rows={4}
+                    <MarkdownEditor
+                      value={bio()}
+                      onInput={(v) => {
+                        setBio(v);
+                        const bioError = validateBio(v.trim());
+                        setFieldErrors((prev) => ({
+                          ...prev,
+                          bio: bioError as SignupBioError | null,
+                        }));
+                      }}
                       placeholder={t`Tell us about yourself…`}
-                      onBlur={handleBioBlur}
+                      minHeight="min-h-[100px]"
+                      showPreview={false}
                     />
                   </TextField>
                   {fieldErrors().bio
