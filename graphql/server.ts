@@ -155,11 +155,31 @@ export function createYogaServer(): YogaServerInstance<
               };
             });
 
+            // 3. Remove the @behavior directive from the directives list.
+            //    The canary build adds @behavior (locations: [SCHEMA]) with a
+            //    single argument `onError: __ErrorBehavior!`. Even though we
+            //    removed __ErrorBehavior from the types list above, @behavior's
+            //    argument still carries a type reference to it; buildClientSchema
+            //    would try to resolve that reference and fail with "unknown type:
+            //    __ErrorBehavior".
+            const directives = schemaPayload.directives as
+              | Array<Record<string, unknown>>
+              | undefined;
+            const filteredDirectives = Array.isArray(directives)
+              ? directives.filter((d) => d.name !== "behavior")
+              : directives;
+
             setResult({
               ...result,
               data: {
                 ...result.data,
-                __schema: { ...schemaPayload, types },
+                __schema: {
+                  ...schemaPayload,
+                  types,
+                  ...(filteredDirectives !== directives
+                    ? { directives: filteredDirectives }
+                    : {}),
+                },
               },
             });
           },
