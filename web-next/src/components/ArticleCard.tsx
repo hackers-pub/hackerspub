@@ -369,85 +369,83 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
           </Show>
           <Show
             keyed
-            when={article.contents?.[0]?.summary ?? article.summary}
+            when={article.actor.local
+              ? (article.contents?.[0]?.summary ?? article.summary)
+              : null}
             fallback={
               <Show
-                when={article.actor.local}
+                keyed
+                when={!article.actor.local && article.summary}
                 fallback={
+                  <Show
+                    when={article.actor.local}
+                    fallback={
+                      <a
+                        href={article.url ?? article.iri}
+                        lang={article.language ?? undefined}
+                        hreflang={article.language ?? undefined}
+                        target="_blank"
+                        on:mouseover={() => props.setHover?.(true)}
+                        on:mouseout={() => props.setHover?.(false)}
+                        class="px-4 pb-4"
+                      >
+                        <div
+                          innerHTML={article.excerptHtml}
+                          class="line-clamp-4 overflow-hidden"
+                        />
+                      </a>
+                    }
+                  >
+                    <InternalLink
+                      href={article.url ?? article.iri}
+                      internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+                      lang={article.language ?? undefined}
+                      hreflang={article.language ?? undefined}
+                      on:mouseover={() => props.setHover?.(true)}
+                      on:mouseout={() => props.setHover?.(false)}
+                      class="px-4 pb-4"
+                    >
+                      <div
+                        innerHTML={article.excerptHtml}
+                        class="line-clamp-4 overflow-hidden"
+                      />
+                    </InternalLink>
+                  </Show>
+                }
+              >
+                {(summary) => (
                   <a
                     href={article.url ?? article.iri}
+                    innerHTML={summary}
                     lang={article.language ?? undefined}
                     hreflang={article.language ?? undefined}
                     target="_blank"
                     on:mouseover={() => props.setHover?.(true)}
                     on:mouseout={() => props.setHover?.(false)}
-                    class="px-4 pb-4"
-                  >
-                    <div
-                      innerHTML={article.excerptHtml}
-                      class="line-clamp-4 overflow-hidden"
-                    />
-                  </a>
-                }
-              >
-                <InternalLink
-                  href={article.url ?? article.iri}
-                  internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
-                  lang={article.language ?? undefined}
-                  hreflang={article.language ?? undefined}
-                  on:mouseover={() => props.setHover?.(true)}
-                  on:mouseout={() => props.setHover?.(false)}
-                  class="px-4 pb-4"
-                >
-                  <div
-                    innerHTML={article.excerptHtml}
-                    class="line-clamp-4 overflow-hidden"
+                    class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4"
                   />
-                </InternalLink>
+                )}
               </Show>
             }
           >
-            {(summary) => (
-              <Show
-                when={article.actor.local}
-                fallback={
-                  <a
-                    href={article.contents?.[0]?.url ?? article.url ??
-                      article.iri}
-                    innerHTML={summary}
-                    lang={article.contents?.[0]?.language ??
-                      article.language ?? undefined}
-                    hreflang={article.contents?.[0]?.language ??
-                      article.language ?? undefined}
-                    target="_blank"
-                    on:mouseover={() => props.setHover?.(true)}
-                    on:mouseout={() => props.setHover?.(false)}
-                    data-llm-summary-label={t`Summarized by LLM`}
-                    class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
-                    classList={{
-                      "before:border-transparent": !props.hover?.(),
-                    }}
-                  />
-                }
-              >
-                <InternalLink
-                  href={article.contents?.[0]?.url ?? article.url ??
-                    article.iri}
-                  internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
-                  innerHTML={summary}
-                  lang={article.contents?.[0]?.language ??
-                    article.language ?? undefined}
-                  hreflang={article.contents?.[0]?.language ??
-                    article.language ?? undefined}
-                  on:mouseover={() => props.setHover?.(true)}
-                  on:mouseout={() => props.setHover?.(false)}
-                  data-llm-summary-label={t`Summarized by LLM`}
-                  class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
-                  classList={{
-                    "before:border-transparent": !props.hover?.(),
-                  }}
-                />
-              </Show>
+            {(llmSummary) => (
+              <InternalLink
+                href={article.contents?.[0]?.url ?? article.url ??
+                  article.iri}
+                internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+                innerHTML={llmSummary}
+                lang={article.contents?.[0]?.language ??
+                  article.language ?? undefined}
+                hreflang={article.contents?.[0]?.language ??
+                  article.language ?? undefined}
+                on:mouseover={() => props.setHover?.(true)}
+                on:mouseout={() => props.setHover?.(false)}
+                data-llm-summary-label={t`Summarized by LLM`}
+                class="prose dark:prose-invert break-words overflow-wrap px-4 pb-4 before:content-[attr(data-llm-summary-label)] before:mr-1 before:text-sm before:bg-muted before:text-muted-foreground before:p-1 before:rounded-sm before:border"
+                classList={{
+                  "before:border-transparent": !props.hover?.(),
+                }}
+              />
             )}
           </Show>
           <Show
