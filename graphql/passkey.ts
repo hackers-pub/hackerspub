@@ -17,12 +17,24 @@ import { builder } from "./builder.ts";
 
 export const Passkey = builder.drizzleNode("passkeyTable", {
   name: "Passkey",
+  description:
+    "A WebAuthn passkey registered to an account. Passkeys can be used " +
+    "to authenticate via `loginByPasskey` without a password or email code.",
   id: {
     column: (passkey) => passkey.id,
   },
   fields: (t) => ({
-    name: t.exposeString("name"),
-    lastUsed: t.expose("lastUsed", { type: "DateTime", nullable: true }),
+    name: t.exposeString("name", {
+      description:
+        'User-provided label for this passkey (e.g., "MacBook Touch ID"). ' +
+        "Set at registration time via `verifyPasskeyRegistration`.",
+    }),
+    lastUsed: t.expose("lastUsed", {
+      type: "DateTime",
+      nullable: true,
+      description:
+        "`null` if this passkey has never been used to authenticate.",
+    }),
     created: t.expose("created", { type: "DateTime" }),
   }),
 });
@@ -91,6 +103,10 @@ builder.objectField(Account, "passkeys", (t) =>
 builder.mutationFields((t) => ({
   getPasskeyRegistrationOptions: t.field({
     type: "JSON",
+    description:
+      "Generate WebAuthn registration options for adding a new passkey. " +
+      "Pass a fresh `sessionId` UUID, then send the authenticator's " +
+      "response to `verifyPasskeyRegistration`. Requires authentication.",
     args: {
       accountId: t.arg.globalID({ for: Account, required: true }),
     },
@@ -115,6 +131,10 @@ builder.mutationFields((t) => ({
   }),
   verifyPasskeyRegistration: t.field({
     type: PasskeyRegistrationResult,
+    description:
+      "Complete passkey registration by verifying the authenticator " +
+      "response from `getPasskeyRegistrationOptions`. On success, the " +
+      "new `Passkey` is returned. Requires authentication.",
     args: {
       accountId: t.arg.globalID({ for: Account, required: true }),
       name: t.arg.string({ required: true }),
@@ -166,6 +186,10 @@ builder.mutationFields((t) => ({
   revokePasskey: t.field({
     type: "ID",
     nullable: true,
+    description:
+      "Delete a passkey from the account. Returns the deleted passkey's " +
+      "global ID, or `null` if the passkey was not found. Requires " +
+      "authentication and ownership of the passkey.",
     args: {
       passkeyId: t.arg.globalID({ for: Passkey, required: true }),
     },

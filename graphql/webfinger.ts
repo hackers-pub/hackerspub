@@ -36,16 +36,62 @@ const WebFingerResult = builder.simpleObject("WebFingerResult", {
   description: "Result of looking up a remote follower via WebFinger, " +
     "including their ActivityPub profile and remote follow URL.",
   fields: (t) => ({
-    preferredUsername: t.string({ nullable: true }),
-    name: t.string({ nullable: true }),
-    summary: t.string({ nullable: true }),
-    url: t.field({ type: "URL", nullable: true }),
-    iconUrl: t.field({ type: "URL", nullable: true }),
-    handle: t.string({ nullable: true }),
-    domain: t.string({ nullable: true }),
-    software: t.string({ nullable: true }),
-    emojis: t.field({ type: "JSON", nullable: true }),
-    remoteFollowUrl: t.field({ type: "URL", nullable: true }),
+    preferredUsername: t.string({
+      nullable: true,
+      description:
+        "The `preferredUsername` from the actor's ActivityPub profile. " +
+        "May differ from `handle`'s local part for actors that use domain aliasing.",
+    }),
+    name: t.string({
+      nullable: true,
+      description: "The actor's display name, as a plain string.",
+    }),
+    summary: t.string({
+      nullable: true,
+      description: "The actor's bio/summary text, as a plain string.",
+    }),
+    url: t.field({
+      type: "URL",
+      nullable: true,
+      description: "The actor's web profile URL.",
+    }),
+    iconUrl: t.field({
+      type: "URL",
+      nullable: true,
+      description: "URL of the actor's avatar image.",
+    }),
+    handle: t.string({
+      nullable: true,
+      description:
+        "Normalized fediverse handle (`user@domain`) derived from the " +
+        "WebFinger lookup.",
+    }),
+    domain: t.string({
+      nullable: true,
+      description: "The instance domain for this actor.",
+    }),
+    software: t.string({
+      nullable: true,
+      description:
+        "The software name of the remote instance (e.g., `mastodon`, " +
+        '`misskey`), lowercased. Falls back to `"unknown"` when NodeInfo ' +
+        "is unavailable.",
+    }),
+    emojis: t.field({
+      type: "JSON",
+      nullable: true,
+      description:
+        "Map of custom emoji shortcode to image URL, extracted from the " +
+        "actor's ActivityPub tag list. `null` when there are no custom emojis.",
+    }),
+    remoteFollowUrl: t.field({
+      type: "URL",
+      nullable: true,
+      description:
+        "The OStatus subscribe URL for initiating a follow from another " +
+        "instance (the `href` of the `http://ostatus.org/schema/1.0/subscribe` " +
+        "WebFinger link). `null` when the remote instance does not advertise one.",
+    }),
   }),
 });
 

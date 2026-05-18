@@ -176,13 +176,39 @@ export const Actor = builder.drizzleNode("actorTable", {
       },
     }),
     username: t.exposeString("username"),
-    instanceHost: t.exposeString("instanceHost"),
-    handleHost: t.exposeString("handleHost"),
-    handle: t.exposeString("handle"),
-    rawName: t.exposeString("name", { nullable: true }),
+    instanceHost: t.exposeString("instanceHost", {
+      description:
+        "The host of the instance that actually hosts this actor's data, " +
+        "as reported by its ActivityPub profile. For most actors this " +
+        "equals `handleHost`, but they can differ when an instance uses a " +
+        "different domain for WebFinger lookups (e.g., `social.example.com` " +
+        "vs. `example.com`).",
+    }),
+    handleHost: t.exposeString("handleHost", {
+      description:
+        "The host used in this actor's fediverse handle (`@user@handleHost`). " +
+        "This is the domain part that end users type when @-mentioning the actor. " +
+        "May differ from `instanceHost` when the instance uses domain aliasing.",
+    }),
+    handle: t.exposeString("handle", {
+      description:
+        "Full fediverse handle in `@username@host` format, ready to use " +
+        "in @-mentions across the fediverse.",
+    }),
+    rawName: t.exposeString("name", {
+      nullable: true,
+      description:
+        "The actor's display name as a plain string, before custom emoji " +
+        "shortcodes are replaced with `<img>` tags. Use `name` instead " +
+        "when rendering to HTML.",
+    }),
     name: t.field({
       type: "HTML",
       nullable: true,
+      description:
+        "The actor's display name rendered as HTML, with custom emoji " +
+        "shortcodes replaced by inline `<img>` elements. `null` when the " +
+        "actor has no display name set.",
       select: {
         columns: { name: true, emojis: true },
       },
@@ -195,6 +221,10 @@ export const Actor = builder.drizzleNode("actorTable", {
     bio: t.field({
       type: "HTML",
       nullable: true,
+      description:
+        "The actor's biography rendered as HTML, with custom emoji " +
+        "shortcodes replaced by inline `<img>` elements. `null` when " +
+        "the actor has no bio.",
       resolve(actor) {
         return actor.bioHtml
           ? renderCustomEmojis(actor.bioHtml, actor.emojis)
@@ -212,6 +242,10 @@ export const Actor = builder.drizzleNode("actorTable", {
     ),
     avatarUrl: t.field({
       type: "URL",
+      description:
+        "URL of the actor's avatar image. Falls back to a Gravatar URL " +
+        "derived from the account's email for local actors without an " +
+        "uploaded avatar.",
       select: {
         columns: { avatarUrl: true },
       },
@@ -222,6 +256,10 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     avatarInitials: t.field({
       type: "String",
+      description:
+        "One or two initials derived from the actor's display name or " +
+        "username, for use as a text-based avatar placeholder when the " +
+        "avatar image is unavailable.",
       resolve(actor) {
         const name = actor.name ?? actor.username;
         const parts = name.trim().split(/[\s_-]+/).filter((p) => p.length > 0);
@@ -237,11 +275,19 @@ export const Actor = builder.drizzleNode("actorTable", {
     headerUrl: t.field({
       type: "URL",
       nullable: true,
+      description:
+        "URL of the actor's profile header (banner) image. `null` when " +
+        "the actor has not set one.",
       resolve(actor) {
         return actor.headerUrl ? new URL(actor.headerUrl) : null;
       },
     }),
-    sensitive: t.exposeBoolean("sensitive"),
+    sensitive: t.exposeBoolean("sensitive", {
+      description:
+        "Whether this actor has been flagged as posting sensitive (NSFW) " +
+        "content. Clients may use this to apply content warnings to the " +
+        "actor's posts by default.",
+    }),
     url: t.field({
       type: "URL",
       nullable: true,
@@ -254,10 +300,21 @@ export const Actor = builder.drizzleNode("actorTable", {
       },
     }),
     updated: t.expose("updated", { type: "DateTime" }),
-    published: t.expose("published", { type: "DateTime", nullable: true }),
+    published: t.expose("published", {
+      type: "DateTime",
+      nullable: true,
+      description:
+        "When the actor was first published, as reported by the actor's " +
+        "ActivityPub profile. `null` for remote actors whose profile did " +
+        "not include a published date.",
+    }),
     latestPostUpdated: t.field({
       type: "DateTime",
       nullable: true,
+      description:
+        "The `updated` timestamp of this actor's most recently updated " +
+        "post, or `null` if they have no posts. Useful for feed ordering " +
+        "without fetching full post connections.",
       select: (_args, _ctx, _nestedSelection) => ({
         with: {
           posts: {
@@ -272,8 +329,19 @@ export const Actor = builder.drizzleNode("actorTable", {
       },
     }),
     created: t.expose("created", { type: "DateTime" }),
-    account: t.relation("account", { nullable: true }),
-    instance: t.relation("instance", { type: Instance, nullable: true }),
+    account: t.relation("account", {
+      nullable: true,
+      description:
+        "The local `Account` for this actor, or `null` for remote actors. " +
+        "Non-null only when `local` is `true`.",
+    }),
+    instance: t.relation("instance", {
+      type: Instance,
+      nullable: true,
+      description:
+        "The fediverse instance this actor belongs to. `null` for local " +
+        "actors (use the server's own instance info instead).",
+    }),
     successor: t.relation("successor", {
       nullable: true,
       description:
@@ -283,6 +351,11 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     fields: t.field({
       type: [ActorFieldRef],
+      description:
+        "Key-value metadata fields from the actor's ActivityPub profile " +
+        "(the `attachment` property). Commonly used for website links, " +
+        "pronouns, or other structured profile information. Values are " +
+        "rendered as HTML.",
       resolve(actor) {
         const fields: ActorField[] = [];
         for (const field in actor.fieldHtmls) {
@@ -294,6 +367,10 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     posts: t.relatedConnection("posts", {
       type: Post,
+      description:
+        "All of this actor's posts (Notes, Articles, Questions, and " +
+        "boost wrappers), newest published first. Filtered to posts " +
+        "visible to the current viewer.",
       query: (_, ctx) => ({
         where: getPostVisibilityFilter(ctx.account?.actor ?? null),
         orderBy: { published: "desc" },
@@ -301,6 +378,10 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     notes: t.relatedConnection("posts", {
       type: Note,
+      description:
+        "This actor's `Note`-type posts, newest first, filtered to those " +
+        "visible to the viewer. Includes both original notes and boost " +
+        "wrappers of remote notes. Use `sharedPosts` to see only boosts.",
       query: (_, ctx) => ({
         where: {
           AND: [
@@ -386,6 +467,10 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     articles: t.relatedConnection("posts", {
       type: Article,
+      description:
+        "This actor's locally-authored `Article`-type posts, newest first. " +
+        "Only includes articles that have a local `articleSource` row; " +
+        "remote articles federated in from other instances are excluded.",
       query: (_, ctx) => ({
         where: {
           AND: [
@@ -403,6 +488,9 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     questions: t.relatedConnection("posts", {
       type: Question,
+      description:
+        "This actor's `Question`-type posts (polls), newest first, " +
+        "filtered to those visible to the viewer.",
       query: (_, ctx) => ({
         where: {
           AND: [
@@ -415,6 +503,9 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     sharedPosts: t.relatedConnection("posts", {
       type: Post,
+      description:
+        "Posts that this actor has boosted (shared), newest first. " +
+        "These are boost wrapper rows where `sharedPost` is non-null.",
       query: (_, ctx) => ({
         where: {
           AND: [
@@ -427,6 +518,10 @@ export const Actor = builder.drizzleNode("actorTable", {
     }),
     pins: t.connection({
       type: Post,
+      description:
+        "Posts this actor has pinned to the top of their profile, most " +
+        "recently pinned first. Only posts visible to the current viewer " +
+        "are included.",
       select: (args, ctx, nestedSelection) => ({
         with: {
           pins: pinConnectionHelpers.getQuery(args, ctx, nestedSelection),

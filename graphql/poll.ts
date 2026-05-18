@@ -107,13 +107,25 @@ builder.drizzleObjectFields(Question, (t) => ({
 
 const Poll = builder.drizzleNode("pollTable", {
   name: "Poll",
+  description:
+    "A poll attached to a `Question` post. Contains options, vote counts, " +
+    "and the voting deadline.",
   id: {
     column: (poll) => poll.postId,
   },
   fields: (t) => ({
-    multiple: t.exposeBoolean("multiple"),
-    ends: t.expose("ends", { type: "DateTime" }),
+    multiple: t.exposeBoolean("multiple", {
+      description:
+        "Whether voters may select more than one option. When `false`, " +
+        "each voter may choose exactly one option.",
+    }),
+    ends: t.expose("ends", {
+      type: "DateTime",
+      description:
+        "When voting closes. Votes submitted after this time are rejected.",
+    }),
     closed: t.boolean({
+      description: "Whether the voting period has ended (`ends <= now()`).",
       select: {
         columns: {
           ends: true,
@@ -124,6 +136,9 @@ const Poll = builder.drizzleNode("pollTable", {
       },
     }),
     viewerHasVoted: t.boolean({
+      description:
+        "Whether the authenticated viewer has cast at least one vote in " +
+        "this poll. Always `false` for unauthenticated requests.",
       select: {
         columns: {
           postId: true,
@@ -133,9 +148,13 @@ const Poll = builder.drizzleNode("pollTable", {
         return (await getViewerPollOptionIndices(ctx, poll.postId)).size > 0;
       },
     }),
-    post: t.relation("post", { type: Post }),
+    post: t.relation("post", {
+      type: Post,
+      description: "The `Question` post this poll belongs to.",
+    }),
     options: t.field({
       type: [PollOption],
+      description: "The poll's voting options, ordered by their display index.",
       complexity: pollBranchComplexity,
       select: (_, __, nestedSelect) => {
         const selection = nestedSelect();
@@ -154,6 +173,9 @@ const Poll = builder.drizzleNode("pollTable", {
     }),
     votes: t.connection({
       type: PollVote,
+      description:
+        "All votes cast across all options, with the total vote count " +
+        "exposed on the connection.",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
         with: {
@@ -183,6 +205,8 @@ const Poll = builder.drizzleNode("pollTable", {
     }),
     voters: t.connection({
       type: Actor,
+      description:
+        "Actors who have voted in this poll (deduplicated across options).",
       complexity: pollBranchComplexity,
       select: (args, ctx, nestedSelect) => ({
         with: {
@@ -208,11 +232,19 @@ const Poll = builder.drizzleNode("pollTable", {
 
 const PollOption = builder.drizzleObject("pollOptionTable", {
   name: "PollOption",
+  description: "A single choice in a `Poll`.",
   fields: (t) => ({
-    index: t.exposeInt("index"),
+    index: t.exposeInt("index", {
+      description: "Zero-based display order index for this option.",
+    }),
     title: t.exposeString("title"),
-    poll: t.relation("poll"),
+    poll: t.relation("poll", {
+      description: "The poll this option belongs to.",
+    }),
     viewerHasVoted: t.boolean({
+      description:
+        "Whether the authenticated viewer voted for this specific option. " +
+        "Always `false` for unauthenticated requests.",
       select: {
         columns: {
           postId: true,

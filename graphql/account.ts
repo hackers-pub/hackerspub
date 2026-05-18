@@ -102,6 +102,10 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     ogImageUrl: t.field({
       type: "URL",
+      description:
+        "URL of the generated Open Graph image for this account's profile " +
+        "page. Generated on first request and cached; high-complexity " +
+        "operation (avoid requesting in bulk).",
       complexity: profileOgImageComplexity,
       select: {
         columns: {
@@ -159,8 +163,17 @@ export const Account = builder.drizzleNode("accountTable", {
         return account.locales.map((loc) => new Intl.Locale(loc));
       },
     }),
-    moderator: t.exposeBoolean("moderator"),
+    moderator: t.exposeBoolean("moderator", {
+      description:
+        "Whether this account has moderator privileges. Moderators can " +
+        "view all accounts, see moderation-only fields such as " +
+        "`postCount` and `lastPostPublished`, and perform administrative " +
+        "mutations such as `deleteOrphanMedia` and `regenerateInvitations`.",
+    }),
     invitationsLeft: t.exposeInt("leftInvitations", {
+      description:
+        "Number of invitation slots this account can still hand out. " +
+        "Only visible to the account holder and to moderators.",
       authScopes: (parent) => ({
         moderator: true,
         selfAccount: parent.id,
@@ -201,16 +214,35 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     updated: t.expose("updated", { type: "DateTime" }),
     created: t.expose("created", { type: "DateTime" }),
-    actor: t.relation("actor", { type: Actor }),
+    actor: t.relation("actor", {
+      type: Actor,
+      description:
+        "The public ActivityPub identity for this account. All public " +
+        "data — name, bio, posts, followers — lives on the `Actor`. " +
+        "Use this to access fields that are visible to everyone.",
+    }),
     links: t.relation("links", {
       type: AccountLink,
+      description:
+        "Profile links displayed on the account's public page, ordered " +
+        "by their display index. Links with a non-null `verified` timestamp " +
+        "have passed rel-me verification.",
       query: {
         orderBy: { index: "asc" },
       },
     }),
-    inviter: t.relation("inviter", { nullable: true }),
+    inviter: t.relation("inviter", {
+      nullable: true,
+      description:
+        "`null` for accounts created before the invitation system was " +
+        "introduced, or for the instance's founding accounts.",
+    }),
     notifications: t.connection({
       type: Notification,
+      description:
+        "This account's notifications, newest first. Only visible to " +
+        "the account holder. Notifications whose actor list is empty " +
+        "(e.g., the actor was deleted) are automatically excluded.",
       authScopes: (parent) => ({
         selfAccount: parent.id,
       }),
@@ -305,6 +337,9 @@ export const Account = builder.drizzleNode("accountTable", {
 builder.drizzleObjectField(Account, "invitationLinks", (t) =>
   t.field({
     type: [InvitationLink],
+    description:
+      "Shareable invitation links created by this account, newest first. " +
+      "Only visible to the account holder and moderators.",
     authScopes: (parent) => ({
       moderator: true,
       selfAccount: parent.id,
@@ -360,6 +395,10 @@ builder.drizzleObjectField(Account, "invitees", (t) =>
   t.connection(
     {
       type: Account,
+      description:
+        "Accounts that were invited by this account, newest first. " +
+        "The `totalCount` on this connection reflects all invitees ever, " +
+        "not just those visible to the current viewer.",
       select: (args, ctx, nestedSelection) => ({
         with: {
           invitees: accountConnectionHelpers.getQuery(
@@ -389,6 +428,9 @@ builder.drizzleObjectField(
   (t) =>
     t.relatedConnection("articleDrafts", {
       type: ArticleDraft,
+      description:
+        "Unpublished article drafts belonging to this account, most " +
+        "recently updated first. Only visible to the account holder.",
       authScopes: (parent) => ({
         selfAccount: "id" in parent ? parent.id : undefined,
       }),
@@ -532,6 +574,10 @@ builder.queryFields((t) => ({
   viewer: t.drizzleField({
     type: Account,
     nullable: true,
+    description:
+      "The `Account` of the currently authenticated user, or `null` " +
+      "when not authenticated. Use this as the entry point for all " +
+      "viewer-specific data (notifications, drafts, settings).",
     async resolve(query, _, __, ctx) {
       const session = await ctx.session;
       if (session == null) return null;
@@ -542,6 +588,9 @@ builder.queryFields((t) => ({
   }),
   accountByUsername: t.drizzleField({
     type: Account,
+    description:
+      "Look up a local account by its username (without the `@host` " +
+      "suffix). Returns `null` when no account with that username exists.",
     args: {
       username: t.arg.string({ required: true }),
     },
@@ -554,6 +603,8 @@ builder.queryFields((t) => ({
   }),
   accounts: t.drizzleField({
     type: [Account],
+    description: "All local accounts. Intended for internal tooling; prefer " +
+      "`adminAccounts` for paginated moderator views.",
     resolve(query, _, __, ctx) {
       return ctx.db.query.accountTable.findMany(query());
     },
@@ -629,6 +680,9 @@ const AccountLinkInput = builder.inputType("AccountLinkInput", {
 builder.relayMutationField(
   "updateAccount",
   {
+    description:
+      "Update the authenticated viewer's account settings. Only the " +
+      "account holder may update their own account.",
     inputFields: (t) => ({
       id: t.globalID({ for: Account, required: true }),
       username: t.string(),

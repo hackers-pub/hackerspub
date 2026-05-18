@@ -206,6 +206,11 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     iri: t.field({
       type: "URL",
+      description:
+        "The post's ActivityPub IRI, used as its canonical identifier in " +
+        "federation. For local posts this is an `/ap/…` endpoint; for " +
+        "remote posts it is whatever IRI the originating instance assigned. " +
+        "Prefer `url` for human-readable links.",
       select: {
         columns: { iri: true },
       },
@@ -239,10 +244,27 @@ export const Post = builder.drizzleInterface("postTable", {
         return toQuoteTargetState(post.quoteTargetState);
       },
     }),
-    name: t.exposeString("name", { nullable: true }),
-    summary: t.exposeString("summary", { nullable: true }),
+    name: t.exposeString("name", {
+      nullable: true,
+      description:
+        "The post's title. Non-null for `Article`s; `null` for `Note`s, " +
+        "boost wrappers, and `Question`s.",
+    }),
+    summary: t.exposeString("summary", {
+      nullable: true,
+      description:
+        "Author-provided or LLM-generated summary of the post. `null` " +
+        "when no summary has been set. For LLM summaries, check " +
+        "`ArticleContent.summary` and `summaryStarted` instead, as those " +
+        "are tracked per language on articles.",
+    }),
     content: t.field({
       type: "HTML",
+      description:
+        "The post's full HTML content, with custom emoji shortcodes " +
+        "rendered as `<img>` elements and external links annotated with " +
+        '`target="_blank"`. Boost wrappers have empty content; use ' +
+        "`sharedPost.content` instead.",
       select: {
         columns: {
           contentHtml: true,
@@ -256,6 +278,10 @@ export const Post = builder.drizzleInterface("postTable", {
         ),
     }),
     excerpt: t.string({
+      description:
+        "Plain-text excerpt of the post. Returns `summary` when set; " +
+        "otherwise falls back to the HTML content stripped of tags. " +
+        "For a truncated HTML preview, use `excerptHtml` instead.",
       select: {
         columns: {
           summary: true,
@@ -304,9 +330,19 @@ export const Post = builder.drizzleInterface("postTable", {
         );
       },
     }),
-    language: t.exposeString("language", { nullable: true }),
+    language: t.exposeString("language", {
+      nullable: true,
+      description:
+        "BCP 47 language tag of the post's primary content (e.g., `en`, " +
+        "`ja`). `null` when the language is unknown or not specified by " +
+        "the author.",
+    }),
     hashtags: t.field({
       type: [Hashtag],
+      description:
+        "Hashtags mentioned in the post, extracted from the post's tag " +
+        "map. Each entry includes the tag name and its canonical hashtag " +
+        "search URL.",
       select: {
         columns: { tags: true },
       },
@@ -317,7 +353,11 @@ export const Post = builder.drizzleInterface("postTable", {
         }));
       },
     }),
-    sensitive: t.exposeBoolean("sensitive"),
+    sensitive: t.exposeBoolean("sensitive", {
+      description:
+        "Whether the post is marked as sensitive (NSFW). Clients should " +
+        "hide the content behind a content warning when this is `true`.",
+    }),
     engagementStats: t.variant(PostEngagementStats),
     url: t.field({
       type: "URL",
@@ -339,11 +379,27 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     updated: t.expose("updated", { type: "DateTime" }),
     published: t.expose("published", { type: "DateTime" }),
-    actor: t.relation("actor"),
-    media: t.relation("media"),
-    link: t.relation("link", { type: PostLink, nullable: true }),
+    actor: t.relation("actor", {
+      description: "The actor who authored or boosted this post.",
+    }),
+    media: t.relation("media", {
+      description:
+        "Media attachments on this post, in display order. For federated " +
+        "posts the URLs point to the originating instance.",
+    }),
+    link: t.relation("link", {
+      type: PostLink,
+      nullable: true,
+      description:
+        "OpenGraph / oEmbed preview for the first link in the post. " +
+        "`null` when the post has no links or the metadata has not been " +
+        "fetched yet.",
+    }),
     viewerHasShared: t.loadable({
       type: "Boolean",
+      description:
+        "Whether the authenticated viewer has boosted this post. Always " +
+        "`false` for unauthenticated requests.",
       // cache: false so a mutation that flips share state in the same
       // request (e.g., share + read viewerHasShared) re-queries instead
       // of returning the pre-mutation value.
@@ -357,6 +413,9 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     viewerHasBookmarked: t.loadable({
       type: "Boolean",
+      description:
+        "Whether the authenticated viewer has bookmarked this post. " +
+        "Always `false` for unauthenticated requests.",
       loaderOptions: { cache: false },
       load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
         if (ctx.account == null) return postIds.map(() => false);
@@ -371,6 +430,9 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     viewerHasPinned: t.loadable({
       type: "Boolean",
+      description:
+        "Whether the authenticated viewer has pinned this post to their " +
+        "profile. Always `false` for unauthenticated requests.",
       loaderOptions: { cache: false },
       load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
         if (ctx.account == null) return postIds.map(() => false);
@@ -385,6 +447,10 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     viewerCanReply: t.loadable({
       type: "Boolean",
+      description:
+        "Whether the authenticated viewer is allowed to reply to this " +
+        "post, based on visibility and block state. Always `false` for " +
+        "unauthenticated requests.",
       loaderOptions: { cache: false },
       load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
         const policies = await loadViewerActionPolicies(ctx, postIds);
@@ -394,6 +460,10 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     viewerCanQuote: t.loadable({
       type: "Boolean",
+      description:
+        "Whether the authenticated viewer is allowed to quote this post, " +
+        "based on `quotePolicy`, visibility, and block state. Always " +
+        "`false` for unauthenticated requests.",
       loaderOptions: { cache: false },
       load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
         const policies = await loadViewerActionPolicies(ctx, postIds);
@@ -402,6 +472,11 @@ export const Post = builder.drizzleInterface("postTable", {
       resolve: (post) => post.id,
     }),
     viewerCanRevokeQuote: t.boolean({
+      description:
+        "Whether the authenticated viewer (as the quoted post's author) " +
+        "can revoke a quote of their post. `true` only when the viewer " +
+        "is the author of `quotedPost` and the quoting post is either " +
+        "local or has an authorization IRI.",
       select: {
         columns: {
           id: true,
@@ -425,6 +500,10 @@ export const Post = builder.drizzleInterface("postTable", {
     }),
     viewerCanShare: t.loadable({
       type: "Boolean",
+      description:
+        "Whether the authenticated viewer is allowed to boost this post, " +
+        "based on visibility and block state. Always `false` for " +
+        "unauthenticated requests.",
       loaderOptions: { cache: false },
       load: async (postIds: Uuid[], ctx: UserContext): Promise<boolean[]> => {
         const policies = await loadViewerActionPolicies(ctx, postIds);
@@ -487,14 +566,45 @@ async function loadViewerActionPolicies(
 }
 
 builder.drizzleInterfaceFields(Post, (t) => ({
-  sharedPost: t.relation("sharedPost", { type: Post, nullable: true }),
-  replyTarget: t.relation("replyTarget", { type: Post, nullable: true }),
-  quotedPost: t.relation("quotedPost", { type: Post, nullable: true }),
-  replies: t.relatedConnection("replies", { type: Post }),
-  shares: t.relatedConnection("shares", { type: Post }),
-  quotes: t.relatedConnection("quotes", { type: Post }),
+  sharedPost: t.relation("sharedPost", {
+    type: Post,
+    nullable: true,
+    description:
+      "The post being boosted. Non-null only for boost wrapper rows. " +
+      "When this is non-null, `content` is empty and `url` mirrors the " +
+      "shared post's URL.",
+  }),
+  replyTarget: t.relation("replyTarget", {
+    type: Post,
+    nullable: true,
+    description:
+      "The post this post is a reply to, or `null` for top-level posts.",
+  }),
+  quotedPost: t.relation("quotedPost", {
+    type: Post,
+    nullable: true,
+    description:
+      "The post being quoted inline. `null` for posts that are not quotes.",
+  }),
+  replies: t.relatedConnection("replies", {
+    type: Post,
+    description: "Posts that are direct replies to this post.",
+  }),
+  shares: t.relatedConnection("shares", {
+    type: Post,
+    description:
+      "Boost wrapper posts that reshare this post. Each edge represents " +
+      "a single boost by a specific actor.",
+  }),
+  quotes: t.relatedConnection("quotes", {
+    type: Post,
+    description: "Posts that quote this post inline.",
+  }),
   mentions: t.connection({
     type: Actor,
+    description:
+      "Actors explicitly @-mentioned in this post. Does not include " +
+      "implicit mentions (e.g., the author of the post being replied to).",
     select: (args, ctx, nestedSelection) => ({
       with: {
         mentions: mentionConnectionHelpers.getQuery(args, ctx, nestedSelection),
@@ -549,6 +659,10 @@ export const Article = builder.drizzleNode("postTable", {
     // so the fields below have to be nullable to represent that.
     publishedYear: t.int({
       nullable: true,
+      description:
+        "The year the article was first published, used as part of its " +
+        "URL path (e.g., `/@alice/2024/my-article`). `null` for articles " +
+        "federated in from remote instances.",
       select: {
         with: {
           articleSource: {
@@ -560,6 +674,9 @@ export const Article = builder.drizzleNode("postTable", {
     }),
     slug: t.string({
       nullable: true,
+      description:
+        "URL slug for the article, used together with `publishedYear` " +
+        "to build its permalink. `null` for remote articles.",
       select: {
         with: {
           articleSource: {
@@ -571,6 +688,9 @@ export const Article = builder.drizzleNode("postTable", {
     }),
     tags: t.stringList({
       nullable: true,
+      description:
+        "Author-assigned tags for this article. `null` for articles " +
+        "federated in from remote instances.",
       select: {
         with: {
           articleSource: {
@@ -582,6 +702,9 @@ export const Article = builder.drizzleNode("postTable", {
     }),
     allowLlmTranslation: t.boolean({
       nullable: true,
+      description:
+        "Whether the author has enabled LLM-based translation for this " +
+        "article. `null` for articles federated from remote instances.",
       select: {
         with: {
           articleSource: {
@@ -593,6 +716,11 @@ export const Article = builder.drizzleNode("postTable", {
     }),
     contents: t.field({
       type: [ArticleContent],
+      description:
+        "All available language versions of this article's content. " +
+        "Pass `language` to get only the best-matching locale (BCP 47 " +
+        "negotiation). Pass `includeBeingTranslated: true` to also include " +
+        "language versions whose LLM translation is still in progress.",
       args: {
         language: t.arg({ type: "Locale", required: false }),
         includeBeingTranslated: t.arg({
@@ -726,15 +854,30 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
     column: (content) => [content.sourceId, content.language],
   },
   fields: (t) => ({
-    language: t.expose("language", { type: "Locale" }),
+    language: t.expose("language", {
+      type: "Locale",
+      description: "BCP 47 language tag identifying this content version.",
+    }),
     title: t.exposeString("title"),
-    summary: t.exposeString("summary", { nullable: true }),
+    summary: t.exposeString("summary", {
+      nullable: true,
+      description:
+        "LLM-generated summary for this language version. `null` until " +
+        "generation completes. Check `summaryStarted` to distinguish " +
+        'between "not requested" and "in progress".',
+    }),
     summaryStarted: t.expose("summaryStarted", {
       type: "DateTime",
       nullable: true,
+      description:
+        "When LLM summary generation was started for this content version. " +
+        "`null` if summary generation has not been requested.",
     }),
     content: t.field({
       type: "HTML",
+      description:
+        "Rendered HTML of this language version, with media URLs resolved " +
+        "and external links annotated.",
       select: {
         columns: {
           content: true,
@@ -800,12 +943,27 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
     originalLanguage: t.expose("originalLanguage", {
       type: "Locale",
       nullable: true,
+      description:
+        "The source language this content was translated from. Non-null " +
+        "only for LLM-translated versions; `null` for original content.",
     }),
-    translator: t.relation("translator", { nullable: true }),
+    translator: t.relation("translator", {
+      nullable: true,
+      description:
+        "The account whose LLM translation produced this content version. " +
+        "`null` for original (non-translated) content.",
+    }),
     translationRequester: t.relation("translationRequester", {
       nullable: true,
+      description:
+        "The account that requested this translation. May differ from " +
+        "`translator` if translations are requested on behalf of others.",
     }),
-    beingTranslated: t.exposeBoolean("beingTranslated"),
+    beingTranslated: t.exposeBoolean("beingTranslated", {
+      description:
+        "Whether an LLM translation into this language is currently " +
+        "in progress. When `true`, the content may be incomplete.",
+    }),
     updated: t.expose("updated", { type: "DateTime" }),
     published: t.expose("published", { type: "DateTime" }),
     ogImageUrl: t.field({
@@ -875,6 +1033,10 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
     }),
     url: t.field({
       type: "URL",
+      description:
+        "Canonical URL for this language version. For the article's " +
+        "primary language this is `/@username/year/slug`; for other " +
+        "language versions it appends `/{language}` to that path.",
       select: {
         with: {
           source: {
@@ -1134,6 +1296,10 @@ const CreateNoteMediumInput = builder.inputType("CreateNoteMediumInput", {
 builder.relayMutationField(
   "createNote",
   {
+    description:
+      "Publish a new short-form note. Sends an ActivityPub `Create` " +
+      "activity to relevant inboxes based on `visibility`. Requires " +
+      "authentication.",
     inputFields: (t) => ({
       visibility: t.field({ type: PostVisibility, required: true }),
       content: t.field({ type: "Markdown", required: true }),
@@ -1330,6 +1496,9 @@ builder.relayMutationField(
 builder.relayMutationField(
   "saveArticleDraft",
   {
+    description:
+      "Create or update an article draft. Omit `id` to create a new draft. " +
+      "Requires authentication.",
     inputFields: (t) => ({
       id: t.globalID({ for: [ArticleDraft], required: false }),
       uuid: t.field({
@@ -1388,6 +1557,9 @@ builder.relayMutationField(
 builder.relayMutationField(
   "deleteArticleDraft",
   {
+    description:
+      "Permanently delete an article draft. Only the draft's owner may " +
+      "delete it. Requires authentication.",
     inputFields: (t) => ({
       id: t.globalID({ for: [ArticleDraft], required: true }),
     }),
@@ -1432,6 +1604,9 @@ builder.relayMutationField(
 builder.relayMutationField(
   "deletePost",
   {
+    description: "Delete a post and send an ActivityPub `Delete` activity to " +
+      "federated instances. Boost wrappers cannot be deleted this way; " +
+      "use `unsharePost` instead (returns `SharedPostDeletionNotAllowedError`).",
     inputFields: (t) => ({
       id: t.globalID({
         for: [Note, Article, Question],
@@ -1488,6 +1663,10 @@ builder.relayMutationField(
 builder.relayMutationField(
   "revokeQuote",
   {
+    description:
+      "As the quoted post's author, revoke permission for a quote of " +
+      "your post. Sends a revocation activity to the quoting instance. " +
+      "Only the `quotedPost`'s author may call this.",
     inputFields: (t) => ({
       quotePostId: t.globalID({
         for: [Note, Article, Question],
@@ -1563,6 +1742,10 @@ builder.relayMutationField(
 builder.relayMutationField(
   "publishArticleDraft",
   {
+    description:
+      "Publish an article draft, converting it to a live `Article` post " +
+      "and deleting the draft. Sends an ActivityPub `Create` activity. " +
+      "Requires authentication.",
     inputFields: (t) => ({
       id: t.globalID({ for: [ArticleDraft], required: true }),
       slug: t.string({ required: true }),
@@ -1661,6 +1844,10 @@ builder.drizzleObjectField(
 builder.relayMutationField(
   "addReactionToPost",
   {
+    description:
+      "Add an emoji reaction to a post. Sends an ActivityPub `Like` " +
+      "activity. Idempotent: adding the same emoji twice has no effect. " +
+      "Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
@@ -1754,6 +1941,10 @@ builder.relayMutationField(
 builder.relayMutationField(
   "removeReactionFromPost",
   {
+    description:
+      "Remove an emoji reaction from a post. Sends an ActivityPub `Undo " +
+      "Like` activity. Idempotent: removing a reaction that doesn't exist " +
+      "returns `success: true`. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
@@ -1829,6 +2020,11 @@ builder.relayMutationField(
 builder.relayMutationField(
   "sharePost",
   {
+    description:
+      "Boost (reshare) a post by creating a share wrapper post and " +
+      "sending an ActivityPub `Announce` activity. Returns the wrapper " +
+      "post as `share` and the original post as `originalPost`. " +
+      "Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
@@ -1944,6 +2140,10 @@ builder.relayMutationField(
 builder.relayMutationField(
   "unsharePost",
   {
+    description:
+      "Undo a boost by deleting the share wrapper post and sending an " +
+      "ActivityPub `Undo Announce` activity. Pass the original post's " +
+      "`id` (not the wrapper's). Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
@@ -2021,6 +2221,9 @@ builder.relayMutationField(
 builder.relayMutationField(
   "bookmarkPost",
   {
+    description:
+      "Save a post to the viewer's bookmarks. Bookmarks are private and " +
+      "not federated. Idempotent. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
@@ -2087,6 +2290,8 @@ builder.relayMutationField(
 builder.relayMutationField(
   "unbookmarkPost",
   {
+    description:
+      "Remove a post from the viewer's bookmarks. Idempotent. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
@@ -2147,6 +2352,9 @@ builder.relayMutationField(
 builder.relayMutationField(
   "pinPost",
   {
+    description:
+      "Pin a post to the top of the viewer's profile. Only the post's " +
+      "author may pin it. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
@@ -2202,6 +2410,8 @@ builder.relayMutationField(
 builder.relayMutationField(
   "unpinPost",
   {
+    description:
+      "Remove a pin from the viewer's profile. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
@@ -2266,6 +2476,9 @@ builder.queryField("articleDraft", (t) =>
   t.field({
     type: ArticleDraft,
     nullable: true,
+    description: "Look up an article draft by its global `id` or its `uuid`. " +
+      "Requires authentication; only returns drafts owned by the " +
+      "authenticated viewer.",
     args: {
       id: t.arg.globalID({ for: [ArticleDraft], required: false }),
       uuid: t.arg({ type: "UUID", required: false }),
@@ -2300,6 +2513,11 @@ builder.queryField("postByUrl", (t) =>
   t.field({
     type: Post,
     nullable: true,
+    description:
+      "Resolve a post by its URL, fetching it from the originating " +
+      "instance via ActivityPub if it is not already cached. Requires " +
+      "authentication (unauthenticated callers always receive `null`). " +
+      "Returns `null` if the post is not found or not visible to the viewer.",
     args: {
       url: t.arg.string({ required: true }),
     },
@@ -2341,6 +2559,9 @@ builder.queryField("articleByYearAndSlug", (t) =>
   t.drizzleField({
     type: Article,
     nullable: true,
+    description: "Look up a locally-authored article by the author's handle, " +
+      "publication year, and URL slug. This is the resolver for the " +
+      "canonical article permalink path `/@{handle}/{year}/{slug}`.",
     args: {
       handle: t.arg.string({ required: true }),
       idOrYear: t.arg.string({ required: true }),
@@ -2424,6 +2645,10 @@ const UpdateArticleMediumInput = builder.inputType("UpdateArticleMediumInput", {
 builder.relayMutationField(
   "updateArticle",
   {
+    description:
+      "Edit an existing article's content, title, or tags. Only the " +
+      "article's author may update it. Sends an ActivityPub `Update` " +
+      "activity. Requires authentication.",
     inputFields: (t) => ({
       articleId: t.globalID({ for: [Article], required: true }),
       title: t.string({ required: false }),
@@ -2518,6 +2743,12 @@ builder.relayMutationField(
 builder.relayMutationField(
   "requestArticleTranslation",
   {
+    description:
+      "Request an LLM translation of an article into the given target " +
+      "language. Returns immediately; the translated `ArticleContent` " +
+      "appears asynchronously (check `beingTranslated`). Returns " +
+      "`LlmTranslationNotAllowedError` if translation is disabled on " +
+      "the article or the target language matches the source language.",
     inputFields: (t) => ({
       articleId: t.globalID({ for: [Article], required: true }),
       targetLanguage: t.field({ type: "Locale", required: true }),
@@ -2638,6 +2869,11 @@ builder.relayMutationField(
 builder.relayMutationField(
   "createMedium",
   {
+    description:
+      "Import a media object from a remote URL and store it locally. " +
+      "Use this instead of the two-step `startMediumUpload` / " +
+      "`finishMediumUpload` flow when the image is already accessible " +
+      "via URL. Requires authentication.",
     inputFields: (t) => ({
       url: t.field({
         type: "URL",
@@ -2699,6 +2935,10 @@ interface MediumUploadStart {
 builder.relayMutationField(
   "startMediumUpload",
   {
+    description:
+      "Step 1 of direct image upload: obtain a pre-signed URL and headers " +
+      "for a PUT request. After uploading, call `finishMediumUpload` with " +
+      "the returned `uploadId`. Requires authentication.",
     inputFields: (t) => ({
       contentType: t.field({
         type: "MediaType",
@@ -2784,6 +3024,9 @@ builder.relayMutationField(
 builder.relayMutationField(
   "finishMediumUpload",
   {
+    description: "Step 2 of direct image upload: confirm that the PUT to the " +
+      "pre-signed URL from `startMediumUpload` has completed, returning " +
+      "the resulting `Medium`. Requires authentication.",
     inputFields: (t) => ({
       uploadId: t.field({ type: "UUID", required: true }),
     }),
@@ -2869,6 +3112,11 @@ interface AttachedArticleDraftMedium {
 builder.relayMutationField(
   "attachArticleDraftMedium",
   {
+    description:
+      "Associate an uploaded `Medium` with an article draft so it can be " +
+      "referenced in the draft's Markdown as `hp-medium:{key}`. Must be " +
+      "called before publishing if the draft's content uses `hp-medium:` " +
+      "references. Requires authentication.",
     inputFields: (t) => ({
       draftId: t.field({ type: "UUID", required: true }),
       mediumId: t.field({ type: "UUID", required: true }),

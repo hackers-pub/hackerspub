@@ -21,18 +21,43 @@ const logger = getLogger(["hackerspub", "graphql", "invitation-link"]);
 
 export const InvitationLink = builder.drizzleNode("invitationLinkTable", {
   name: "InvitationLink",
+  description:
+    "A shareable link that allows recipients to create an account without " +
+    "a direct email invitation. Each link has a limited number of uses and " +
+    "an optional expiry date.",
   id: {
     column: (link) => link.id,
   },
   fields: (t) => ({
     uuid: t.expose("id", { type: "UUID" }),
-    inviter: t.relation("inviter", { type: Account }),
-    invitationsLeft: t.exposeInt("invitationsLeft"),
-    message: t.expose("message", { type: "Markdown", nullable: true }),
+    inviter: t.relation("inviter", {
+      type: Account,
+      description: "The account that created this invitation link.",
+    }),
+    invitationsLeft: t.exposeInt("invitationsLeft", {
+      description:
+        "How many more accounts can sign up using this link. Decrements " +
+        "by one each time `redeemInvitationLink` succeeds.",
+    }),
+    message: t.expose("message", {
+      type: "Markdown",
+      nullable: true,
+      description:
+        "Optional welcome message shown to the recipient when they open " +
+        "the invitation link.",
+    }),
     created: t.expose("created", { type: "DateTime" }),
-    expires: t.expose("expires", { type: "DateTime", nullable: true }),
+    expires: t.expose("expires", {
+      type: "DateTime",
+      nullable: true,
+      description:
+        "`null` means the link never expires. When set, attempts to " +
+        "redeem the link after this time return `LINK_EXPIRED`.",
+    }),
     url: t.field({
       type: "URL",
+      description: "The shareable URL for this invitation link " +
+        "(`/@{inviter}/invite/{uuid}`).",
       select: {
         columns: { id: true },
         with: {
@@ -53,6 +78,10 @@ builder.queryField("invitationLink", (t) =>
   t.drizzleField({
     type: InvitationLink,
     nullable: true,
+    description:
+      "Look up a specific invitation link by its UUID and the inviter's " +
+      "username. Returns `null` if the link does not exist or the " +
+      "`username` does not match the link's owner (prevents link enumeration).",
     args: {
       id: t.arg({ type: "UUID", required: true }),
       username: t.arg.string({ required: true }),
@@ -135,6 +164,10 @@ InvitationLinkPayloadRef.implement({
 builder.mutationField("createInvitationLink", (t) =>
   t.field({
     type: InvitationLinkPayloadRef,
+    description:
+      "Create a new shareable invitation link. Deducts `invitationsLeft` " +
+      "from the authenticated account's balance immediately. Requires " +
+      "authentication.",
     errors: {
       types: [NotAuthenticatedError, InvalidInputError],
       union: { name: "CreateInvitationLinkResult" },
@@ -203,6 +236,10 @@ builder.objectType(InvitationLinkNotFoundError, {
 builder.mutationField("deleteInvitationLink", (t) =>
   t.field({
     type: InvitationLinkPayloadRef,
+    description:
+      "Delete an invitation link and refund its remaining `invitationsLeft` " +
+      "back to the creator's account balance. Only the link's creator may " +
+      "delete it.",
     errors: {
       types: [NotAuthenticatedError, InvitationLinkNotFoundError],
       union: { name: "DeleteInvitationLinkResult" },
