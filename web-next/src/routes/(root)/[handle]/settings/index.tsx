@@ -149,6 +149,9 @@ function SettingsForm(props: SettingsFormProps) {
         name
         bio
         avatarUrl
+        actor {
+          handleHost
+        }
         links {
           id
           index
@@ -407,16 +410,35 @@ function SettingsForm(props: SettingsFormProps) {
           <TextFieldLabel for="username">
             {t`Username`}
           </TextFieldLabel>
-          <TextFieldInput
-            ref={usernameInput}
-            type="text"
-            pattern="^[a-z0-9_]{1,15}$"
-            required
-            id="username"
-            placeholder="username"
-            value={account()?.username}
-            disabled={account()?.usernameChanged != null}
-          />
+          <div class="flex h-10 w-full items-center rounded-md border border-input text-sm ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <span
+              aria-hidden="true"
+              class="pointer-events-none select-none whitespace-nowrap pl-3 pr-1 text-muted-foreground"
+            >
+              @
+            </span>
+            <TextFieldInput
+              ref={usernameInput}
+              type="text"
+              pattern="^[a-z0-9_]{1,15}$"
+              required
+              id="username"
+              placeholder="username"
+              value={account()?.username}
+              disabled={account()?.usernameChanged != null}
+              class="h-full w-auto flex-1 min-w-0 rounded-none border-0 bg-transparent px-0 py-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+            <Show keyed when={account()?.actor.handleHost}>
+              {(host) => (
+                <span
+                  aria-hidden="true"
+                  class="pointer-events-none select-none whitespace-nowrap pl-1 pr-3 text-muted-foreground"
+                >
+                  @{host}
+                </span>
+              )}
+            </Show>
+          </div>
           <TextFieldDescription class="leading-6">
             {t`Your username will be used to create your profile URL and your fediverse handle.`}
             {" "}
