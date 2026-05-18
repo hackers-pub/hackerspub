@@ -1,6 +1,5 @@
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
-import { isServer } from "solid-js/web";
 import { createFragment, createMutation } from "solid-relay";
 import {
   AlertDialog,
@@ -302,7 +301,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
   };
 
   return (
-    <Show when={!isServer && post()?.actor.isViewer}>
+    <Show when={post()?.actor.isViewer}>
       <DropdownMenu>
         <DropdownMenuTrigger
           as={(triggerProps: Record<string, unknown>) => (

@@ -1,6 +1,5 @@
 import { ConnectionHandler, graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import { isServer } from "solid-js/web";
 import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
@@ -170,7 +169,7 @@ export function FollowButton(props: FollowButtonProps) {
     <Show keyed when={actor()}>
       {(actor) => (
         <Show
-          when={!isServer && !isCurrentViewerActor() && !actor.viewerBlocks &&
+          when={!isCurrentViewerActor() && !actor.viewerBlocks &&
             !actor.blocksViewer && viewer.isLoaded()}
         >
           <Show
