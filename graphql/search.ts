@@ -28,6 +28,9 @@ builder.objectType(EmptySearchQueryError, {
 });
 
 const SearchedObject = builder.simpleObject("SearchedObject", {
+  description:
+    "Result of a searchObject lookup: a local redirect URL pointing to the " +
+    "matched actor's profile page or post.",
   fields: (t) => ({
     url: t.string(),
   }),
@@ -145,6 +148,10 @@ async function searchAsHandle(ctx: UserContext, query: string) {
 builder.queryFields((t) => ({
   searchPost: t.connection({
     type: Post,
+    description: "Full-text post search. Supports keyword operators (see the " +
+      "searchGuide query for syntax). Only forward pagination is supported " +
+      "(before/last are rejected). Excludes boost wrappers; returns only " +
+      "original posts.",
     args: {
       query: t.arg.string({ required: true }),
       languages: t.arg({
@@ -435,6 +442,11 @@ builder.queryFields((t) => ({
   searchObject: t.field({
     type: SearchedObject,
     nullable: true,
+    description:
+      "Look up a single actor or post by its fediverse handle (e.g., " +
+      "@alice@mastodon.social) or URL. Returns a local redirect URL, or null " +
+      "if nothing matches. For authenticated users, triggers federated " +
+      "WebFinger/ActivityPub lookups when the object is not already cached.",
     errors: {
       types: [EmptySearchQueryError],
     },

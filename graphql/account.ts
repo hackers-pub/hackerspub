@@ -37,6 +37,12 @@ const profileOgImageComplexity = 2_000;
 
 export const Account = builder.drizzleNode("accountTable", {
   name: "Account",
+  description:
+    "A local user account on this Hackers' Pub instance. Every Account " +
+    "has exactly one Actor (its public ActivityPub identity) and holds " +
+    "login credentials, settings, and moderation state. Account is only " +
+    "returned for the authenticated viewer and for moderator-only queries; " +
+    "all public identity data (name, bio, posts, followers) lives on Actor.",
   id: {
     column: (account) => account.id,
   },
@@ -46,8 +52,14 @@ export const Account = builder.drizzleNode("accountTable", {
     usernameChanged: t.expose("usernameChanged", {
       type: "DateTime",
       nullable: true,
+      description:
+        "When the username was last changed, or null if the username has " +
+        "never been changed from the original signup value.",
     }),
     handle: t.string({
+      description: "Full fediverse handle including the instance host, e.g., " +
+        "@alice@hackers.pub. Suitable for display and for cross-instance " +
+        "@-mention targeting.",
       select: {
         columns: {
           username: true,
@@ -134,6 +146,9 @@ export const Account = builder.drizzleNode("accountTable", {
     locales: t.field({
       type: ["Locale"],
       nullable: true,
+      description:
+        "The account's preferred display languages as BCP 47 tags. " +
+        "null means no preference has been set and all languages are shown.",
       select: {
         columns: {
           locales: true,
@@ -156,9 +171,15 @@ export const Account = builder.drizzleNode("accountTable", {
         moderator: true,
         selfAccount: parent.id,
       }),
+      description:
+        "Whether to show LLM-generated article summaries by default. " +
+        "Only visible to the account holder and moderators.",
     }),
     defaultNoteVisibility: t.field({
       type: PostVisibility,
+      description:
+        "The visibility applied to new notes when the user does not " +
+        "choose one explicitly at creation time.",
       select: {
         columns: { noteVisibility: true },
       },
@@ -168,6 +189,9 @@ export const Account = builder.drizzleNode("accountTable", {
     }),
     defaultShareVisibility: t.field({
       type: PostVisibility,
+      description:
+        "The visibility applied to new boosts/shares when the user does " +
+        "not choose one explicitly at creation time.",
       select: {
         columns: { shareVisibility: true },
       },
@@ -241,6 +265,8 @@ export const Account = builder.drizzleNode("accountTable", {
       },
     }),
     unreadNotificationsCount: t.int({
+      description: "Number of notifications created after the account's last " +
+        "markNotificationsAsRead call. Only visible to the account holder.",
       authScopes: (parent) => ({
         selfAccount: parent.id,
       }),

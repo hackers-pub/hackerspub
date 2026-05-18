@@ -106,10 +106,11 @@ builder.queryFields((t) => ({
   publicTimeline: t.connection(
     {
       type: Post,
-      description:
-        `Public timeline posts. The pagination window, set with first ` +
-        `or last, ` +
-        `is limited to ${MAX_TIMELINE_WINDOW} posts.`,
+      description: `All public posts from all known instances, newest first. ` +
+        `Accessible without authentication. Pagination window (first/last) ` +
+        `is capped at ${MAX_TIMELINE_WINDOW} posts. Use languages to filter ` +
+        `by language, local to restrict to this instance only, and ` +
+        `withoutShares to hide boost wrappers.`,
       args: {
         languages: t.arg({
           type: ["Locale"],
@@ -192,15 +193,33 @@ builder.queryFields((t) => ({
     {},
     {
       fields: (te) => ({
-        lastSharer: te.expose("lastSharer", { type: Actor, nullable: true }),
-        sharersCount: te.exposeInt("sharersCount"),
-        added: te.expose("added", { type: "DateTime" }),
+        lastSharer: te.expose("lastSharer", {
+          type: Actor,
+          nullable: true,
+          description:
+            "The most recent account the viewer follows that boosted this " +
+            "post into the timeline, if the post reached the viewer via a boost.",
+        }),
+        sharersCount: te.exposeInt("sharersCount", {
+          description:
+            "Number of accounts the viewer follows that have boosted this " +
+            "post. Useful for 'N people you follow shared this' display.",
+        }),
+        added: te.expose("added", {
+          type: "DateTime",
+          description:
+            "When this post was added to the timeline — either its " +
+            "publication time or when it was most recently boosted into the feed.",
+        }),
       }),
     },
   ),
 
   bookmarks: t.connection({
     type: Post,
+    description:
+      "The authenticated viewer's bookmarked posts, newest-bookmarked " +
+      "first. Throws AUTHENTICATION_REQUIRED when called without a session.",
     args: {
       postType: t.arg({
         type: PostType,
@@ -265,9 +284,11 @@ builder.queryFields((t) => ({
     {
       type: Post,
       description:
-        `Personal timeline posts. The pagination window, set with first ` +
-        `or last, ` +
-        `is limited to ${MAX_TIMELINE_WINDOW} posts.`,
+        `Posts from accounts the authenticated viewer follows, newest first. ` +
+        `Throws AUTHENTICATION_REQUIRED when called without a session. ` +
+        `Pagination window (first/last) is capped at ${MAX_TIMELINE_WINDOW} ` +
+        `posts. Use local to restrict to this instance only, and ` +
+        `withoutShares to hide boost wrappers.`,
       args: {
         local: t.arg.boolean({ defaultValue: false }),
         withoutShares: t.arg.boolean({ defaultValue: false }),

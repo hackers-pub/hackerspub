@@ -75,6 +75,11 @@ LoginChallengeRef.implement({
 builder.mutationFields((t) => ({
   loginByUsername: t.field({
     type: LoginChallengeRef,
+    description:
+      "Initiate passwordless sign-in by username. Sends a magic link to " +
+      "all email addresses on the account. The link embeds {token} and " +
+      "{code} as URI Template variables in verifyUrl. Complete the flow " +
+      "by calling completeLoginChallenge with those values.",
     errors: {
       types: [AccountNotFoundError],
       union: {
@@ -141,6 +146,11 @@ builder.mutationFields((t) => ({
 
   loginByEmail: t.field({
     type: LoginChallengeRef,
+    description:
+      "Initiate passwordless email sign-in. Sends a magic link to the " +
+      "matching account's email address. The link embeds {token} and " +
+      "{code} as URI Template variables in verifyUrl. Complete the flow " +
+      "by calling completeLoginChallenge with those values.",
     errors: {
       types: [AccountNotFoundError],
       union: {
@@ -222,6 +232,11 @@ builder.mutationFields((t) => ({
   completeLoginChallenge: t.field({
     type: SessionRef,
     nullable: true,
+    description:
+      "Exchange the (token, code) pair from a magic link email for a " +
+      "session. Returns null when the challenge does not exist or the code " +
+      "does not match. The returned Session.id is the bearer token to " +
+      "include in the Authorization header for subsequent authenticated requests.",
     args: {
       token: t.arg({
         type: "UUID",
@@ -271,6 +286,10 @@ builder.mutationFields((t) => ({
 
   getPasskeyAuthenticationOptions: t.field({
     type: "JSON",
+    description:
+      "Generate WebAuthn authentication options for passkey sign-in. " +
+      "Pass a fresh client-generated UUID as sessionId; this same sessionId " +
+      "must be passed back to loginByPasskey.",
     args: {
       sessionId: t.arg({
         type: "UUID",
@@ -291,6 +310,10 @@ builder.mutationFields((t) => ({
   loginByPasskey: t.field({
     type: SessionRef,
     nullable: true,
+    description: "Authenticate using a WebAuthn passkey. First call " +
+      "getPasskeyAuthenticationOptions with a fresh sessionId UUID, then " +
+      "pass the authenticator's response back here as authenticationResponse. " +
+      "Returns null when verification fails.",
     args: {
       sessionId: t.arg({
         type: "UUID",

@@ -15,18 +15,37 @@ import { Post } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 export const NotificationType = builder.enumType("NotificationType", {
-  values: [
-    "FOLLOW",
-    "MENTION",
-    "REPLY",
-    "SHARE",
-    "QUOTE",
-    "REACT",
-  ] as const,
+  description:
+    "Discriminant values for categorizing notifications. The Notification " +
+    "interface is polymorphic; use this enum when filtering by category.",
+  values: {
+    FOLLOW: { description: "Someone followed this account." },
+    MENTION: {
+      description: "Someone @-mentioned this account in a post.",
+    },
+    REPLY: {
+      description: "Someone replied to one of this account's posts.",
+    },
+    SHARE: {
+      description: "Someone boosted (reshared) one of this account's posts.",
+    },
+    QUOTE: {
+      description: "Someone quoted one of this account's posts.",
+    },
+    REACT: {
+      description:
+        "Someone reacted with an emoji to one of this account's posts.",
+    },
+  } as const,
 });
 
 export const Notification = builder.drizzleInterface("notificationTable", {
   variant: "Notification",
+  description:
+    "A notification for the account holder about social activity related " +
+    "to their posts or profile. Multiple actors can trigger the same " +
+    "notification (e.g., several people reacting to the same post are " +
+    "merged). The actors field lists them newest-first.",
   interfaces: [Node],
   resolveType(notification): string {
     switch (notification.type) {
@@ -86,6 +105,7 @@ export const Notification = builder.drizzleInterface("notificationTable", {
 
 export const FollowNotification = builder.drizzleNode("notificationTable", {
   variant: "FollowNotification",
+  description: "Notification that one or more actors followed this account.",
   interfaces: [Notification],
   id: {
     column: (notification) => notification.id,
@@ -96,6 +116,8 @@ export const MentionNotification = builder.drizzleNode(
   "notificationTable",
   {
     variant: "MentionNotification",
+    description:
+      "Notification that an actor @-mentioned this account in a post.",
     interfaces: [Notification],
     id: {
       column: (notification) => notification.id,
@@ -108,6 +130,8 @@ export const MentionNotification = builder.drizzleNode(
 
 export const ReplyNotification = builder.drizzleNode("notificationTable", {
   variant: "ReplyNotification",
+  description:
+    "Notification that an actor replied to one of this account's posts.",
   interfaces: [Notification],
   id: {
     column: (notification) => notification.id,
@@ -119,6 +143,8 @@ export const ReplyNotification = builder.drizzleNode("notificationTable", {
 
 export const ShareNotification = builder.drizzleNode("notificationTable", {
   variant: "ShareNotification",
+  description:
+    "Notification that an actor boosted (reshared) one of this account's posts.",
   interfaces: [Notification],
   id: {
     column: (notification) => notification.id,
@@ -130,6 +156,7 @@ export const ShareNotification = builder.drizzleNode("notificationTable", {
 
 export const QuoteNotification = builder.drizzleNode("notificationTable", {
   variant: "QuoteNotification",
+  description: "Notification that an actor quoted one of this account's posts.",
   interfaces: [Notification],
   id: {
     column: (notification) => notification.id,
@@ -141,6 +168,10 @@ export const QuoteNotification = builder.drizzleNode("notificationTable", {
 
 export const ReactNotification = builder.drizzleNode("notificationTable", {
   variant: "ReactNotification",
+  description:
+    "Notification that one or more actors reacted with an emoji to one of " +
+    "this account's posts. The emoji and customEmoji fields identify which " +
+    "reaction triggered the notification.",
   interfaces: [Notification],
   id: {
     column: (notification) => notification.id,

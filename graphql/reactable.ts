@@ -43,6 +43,9 @@ function decodeReactionKey(key: string): ViewerHasReactedKey {
 export const Reactable = builder.interfaceRef<Reactable>("Reactable");
 
 Reactable.implement({
+  description:
+    "An object that can receive emoji reactions. Implemented by Post types " +
+    "(Note, Article, Question).",
   interfaces: [Node],
   fields: (t) => ({
     reactionGroups: t.field({
