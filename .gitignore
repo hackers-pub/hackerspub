@@ -2,6 +2,9 @@
 .claude/settings.local.json
 .claude/worktrees/
 
+# Amp Code
+.amp/settings.json.amp-write-meta
+
 # dotenv environment variable files
 .env
 .env.development.local
