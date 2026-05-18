@@ -94,6 +94,77 @@ export function createYogaServer(): YogaServerInstance<
       };
     },
     plugins: [
+      // graphql@canary-pr-4364 (which we pin for the onError execution
+      // argument used by the NO_PROPAGATE plugin below) adds two things to
+      // schema introspection that do not exist in any stable graphql release:
+      //
+      //  • __ErrorBehavior — an enum type exposed in the flat `types` list
+      //  • defaultErrorBehavior — a field on the built-in __Schema type
+      //
+      // GraphiQL bundles a stable graphql release. When it receives the
+      // introspection response it calls buildClientSchema, which validates
+      // every type name. The stable library does not recognise __ErrorBehavior
+      // and throws "Name must not begin with '__'" for it, crashing the entire
+      // GraphiQL UI before any query can be written.
+      //
+      // This plugin intercepts introspection responses and removes both
+      // additions before they reach the client. It is safe to do so because:
+      //  • __ErrorBehavior is an implementation detail of the canary build; no
+      //    part of the application schema refers to it as a user-visible type.
+      //  • The actual NO_PROPAGATE/PROPAGATE behaviour is wired at execution
+      //    time via the onError argument — not via schema introspection — so
+      //    stripping it from the introspection payload has no runtime effect.
+      {
+        onExecute: () => ({
+          // deno-lint-ignore no-explicit-any
+          onExecuteDone: ({ result, setResult }: any) => {
+            // Subscriptions return an AsyncIterableIterator; introspection
+            // queries never do, so we can skip the streaming case entirely.
+            if (Symbol.asyncIterator in result) return;
+
+            const schemaPayload = result.data?.__schema as
+              | Record<string, unknown>
+              | null
+              | undefined;
+            if (schemaPayload == null) return; // not an introspection response
+
+            let types = schemaPayload.types as
+              | Array<Record<string, unknown>>
+              | undefined;
+            if (!Array.isArray(types)) return;
+
+            // 1. Remove __ErrorBehavior from the flat type registry. Without
+            //    this step buildClientSchema would encounter the type name and
+            //    throw immediately.
+            types = types.filter((t) => t.name !== "__ErrorBehavior");
+
+            // 2. Remove defaultErrorBehavior from __Schema's own field list.
+            //    Even after step 1 the field entry still references
+            //    __ErrorBehavior as its return type; buildClientSchema would
+            //    try to resolve that type reference and fail because the type
+            //    is no longer in the registry.
+            types = types.map((t) => {
+              if (t.name !== "__Schema") return t;
+              const fields = t.fields as
+                | Array<Record<string, unknown>>
+                | undefined;
+              if (!Array.isArray(fields)) return t;
+              return {
+                ...t,
+                fields: fields.filter((f) => f.name !== "defaultErrorBehavior"),
+              };
+            });
+
+            setResult({
+              ...result,
+              data: {
+                ...result.data,
+                __schema: { ...schemaPayload, types },
+              },
+            });
+          },
+        }),
+      } as EnvelopPlugin,
       {
         onExecute: ({ setExecuteFn, context }) => {
           const isNoPropagate =
