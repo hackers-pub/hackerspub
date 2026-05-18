@@ -9,6 +9,7 @@ import { DocumentView_document$key } from "./__generated__/DocumentView_document
 
 export interface DocumentViewProps {
   $document: DocumentView_document$key;
+  showToc?: boolean;
 }
 
 export function DocumentView(props: DocumentViewProps) {
@@ -29,7 +30,10 @@ export function DocumentView(props: DocumentViewProps) {
       {(document) => (
         <div class="flex flex-row-reverse items-start">
           <Title>{document.title}</Title>
-          <aside class="sticky top-0 hidden h-dvh w-64 shrink-0 overflow-auto border-l bg-background/80 p-5 backdrop-blur lg:block">
+          <aside
+            class="sticky top-0 hidden h-dvh w-64 shrink-0 overflow-auto border-l bg-background/80 p-5 backdrop-blur lg:block"
+            classList={{ "!hidden": props.showToc === false }}
+          >
             <h1 class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t`Table of contents`}
             </h1>

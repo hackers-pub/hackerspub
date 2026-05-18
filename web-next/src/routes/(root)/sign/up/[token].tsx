@@ -472,7 +472,9 @@ export default function SignupPage(props: RouteSectionProps) {
                           <p class="text-muted-foreground">{t`Loading…`}</p>
                         }
                       >
-                        {(doc) => <DocumentView $document={doc} />}
+                        {(doc) => (
+                          <DocumentView $document={doc} showToc={false} />
+                        )}
                       </Show>
                     </div>
                     <div class="border-t px-4 py-3">
