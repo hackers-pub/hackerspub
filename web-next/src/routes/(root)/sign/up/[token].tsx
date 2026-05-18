@@ -90,6 +90,7 @@ export default function SignupPage(props: RouteSectionProps) {
   const [verifying, setVerifying] = createSignal(true);
   const [invalid, setInvalid] = createSignal(false);
   const [submitting, setSubmitting] = createSignal(false);
+  const [agreedToCoC, setAgreedToCoC] = createSignal(false);
   const [fieldErrors, setFieldErrors] = createSignal({
     username: null as SignupUsernameError | null,
     name: null as SignupDisplayNameError | null,
@@ -459,34 +460,40 @@ export default function SignupPage(props: RouteSectionProps) {
                 </Show>
 
                 <div class="lg:col-span-2">
-                  <div class="border rounded-lg p-4">
-                    <h3 class="font-medium mb-2">{t`Code of conduct`}</h3>
-                    <p class="text-sm text-muted-foreground mb-3">
-                      {t`I have read and agree to the Code of conduct.`}
-                    </p>
-                    <details class="text-sm">
-                      <summary class="cursor-pointer text-blue-600 hover:text-blue-800">
-                        {t`Read the full Code of conduct`}
-                      </summary>
-                      <div class="mt-2 p-3 bg-muted rounded prose prose-sm max-w-none">
-                        <Show
-                          keyed
-                          when={codeOfConductData()?.codeOfConduct}
-                          fallback={
-                            <p class="text-muted-foreground">{t`Loading…`}</p>
-                          }
-                        >
-                          {(doc) => <DocumentView $document={doc} />}
-                        </Show>
-                      </div>
-                    </details>
+                  <div class="rounded-lg border">
+                    <div class="border-b px-4 py-3">
+                      <h3 class="font-medium">{t`Code of conduct`}</h3>
+                    </div>
+                    <div class="h-48 overflow-y-auto p-4 text-sm prose prose-sm dark:prose-invert max-w-none">
+                      <Show
+                        keyed
+                        when={codeOfConductData()?.codeOfConduct}
+                        fallback={
+                          <p class="text-muted-foreground">{t`Loading…`}</p>
+                        }
+                      >
+                        {(doc) => <DocumentView $document={doc} />}
+                      </Show>
+                    </div>
+                    <div class="border-t px-4 py-3">
+                      <label class="flex cursor-pointer items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          class="accent-primary size-4 cursor-pointer"
+                          checked={agreedToCoC()}
+                          onChange={(e) =>
+                            setAgreedToCoC(e.currentTarget.checked)}
+                        />
+                        {t`I have read and agree to the Code of conduct.`}
+                      </label>
+                    </div>
                   </div>
                 </div>
 
                 <div class="lg:col-span-2 text-center">
                   <Button
                     type="submit"
-                    disabled={submitting() || !signupInfo()}
+                    disabled={submitting() || !signupInfo() || !agreedToCoC()}
                     class="w-full cursor-pointer"
                   >
                     {submitting() ? t`Creating account…` : t`Sign up`}
