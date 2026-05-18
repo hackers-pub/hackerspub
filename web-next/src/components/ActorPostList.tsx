@@ -59,11 +59,11 @@ export function ActorPostList(props: ActorPostListProps) {
       <Show keyed when={posts()}>
         {(data) => (
           <>
-            <For each={data.posts.edges}>
+            <For each={data.posts?.edges ?? []}>
               {(edge) => (
                 <PostCard
                   $post={edge.node}
-                  connections={[data.posts.__id]}
+                  connections={data.posts?.__id ? [data.posts.__id] : []}
                   pinConnections={props.pinConnections}
                 />
               )}
@@ -88,7 +88,7 @@ export function ActorPostList(props: ActorPostListProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data.posts.edges.length < 1}>
+            <Show when={data.posts != null && data.posts.edges.length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No posts found`}
               </div>
