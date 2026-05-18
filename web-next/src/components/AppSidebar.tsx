@@ -454,6 +454,11 @@ function AccountSection(props: AccountSectionProps) {
           </SidebarMenuButton>
         </SidebarMenuItem>
         <Show
+          when={!props.signedAccountLoaded}
+        >
+          <AccountSectionPlaceholder />
+        </Show>
+        <Show
           keyed
           when={props.signedAccountLoaded && !props.signedAccount}
         >
@@ -633,6 +638,39 @@ function AccountSection(props: AccountSectionProps) {
   );
 }
 
+function AccountSectionPlaceholder() {
+  return (
+    <>
+      <AccountSectionPlaceholderItem widthClass="w-28" />
+      <AccountSectionPlaceholderItem widthClass="w-24" />
+      <AccountSectionPlaceholderItem widthClass="w-20" />
+      <AccountSectionPlaceholderItem widthClass="w-16" />
+    </>
+  );
+}
+
+interface AccountSectionPlaceholderItemProps {
+  widthClass: string;
+}
+
+function AccountSectionPlaceholderItem(
+  props: AccountSectionPlaceholderItemProps,
+) {
+  return (
+    <SidebarMenuItem class="list-none">
+      <div
+        aria-hidden="true"
+        class="flex h-8 items-center gap-2 rounded-md px-2"
+      >
+        <span class="size-4 shrink-0 rounded bg-sidebar-foreground/10" />
+        <span
+          class={`h-4 rounded bg-sidebar-foreground/10 ${props.widthClass}`}
+        />
+      </div>
+    </SidebarMenuItem>
+  );
+}
+
 interface AdminSectionProps {
   signedAccount?: AppSidebar_signedAccount$data | null;
 }
@@ -797,8 +835,9 @@ interface RecentDraftsSectionProps {
 function RecentDraftsSection(props: RecentDraftsSectionProps) {
   const { t } = useLingui();
   const visibleDrafts = () =>
-    props.signedAccount?.articleDrafts.edges.filter((edge) => edge.node != null)
-      .slice(0, 3) ?? [];
+    props.signedAccount?.articleDrafts?.edges.filter((edge) =>
+      edge.node != null
+    ).slice(0, 3) ?? [];
   const hasMoreDrafts = () => {
     const articleDrafts = props.signedAccount?.articleDrafts;
     if (articleDrafts == null) return false;

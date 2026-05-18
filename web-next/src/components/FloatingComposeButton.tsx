@@ -124,7 +124,7 @@ export function FloatingComposeButton(props: FloatingComposeButtonProps) {
                   </A>
                 </DropdownMenuItem>
                 <Show
-                  when={(signedAccount()?.articleDrafts.edges.length ?? 0) > 0}
+                  when={(signedAccount()?.articleDrafts?.edges.length ?? 0) > 0}
                 >
                   <DropdownMenuItem class="cursor-pointer">
                     <A

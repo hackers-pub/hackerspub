@@ -5,7 +5,7 @@ import {
   useLocation,
 } from "@solidjs/router";
 import * as Sentry from "@sentry/solidstart";
-import { createRenderEffect } from "solid-js";
+import { createRenderEffect, createSignal, onMount } from "solid-js";
 import { graphql } from "relay-runtime";
 import {
   createPreloadedQuery,
@@ -58,8 +58,19 @@ export default function RootLayout(props: RouteSectionProps) {
     RootLayoutQuery,
     () => loadRootLayoutQuery(),
   );
+  const [chromeMounted, setChromeMounted] = createSignal(false);
+  onMount(() => setChromeMounted(true));
+  // Root chrome contains several auth-dependent branches in the sidebar and
+  // floating compose button. Keep those branches out of the SSR/hydration pass:
+  // SolidStart can hydrate route query resources in a slightly different order
+  // from the streamed HTML, and a logged-in sidebar shape mismatch aborts the
+  // whole page. Child routes still receive the real viewer state below.
+  const chromeSignedAccountLoaded = () =>
+    chromeMounted() && !signedAccount.pending;
+  const chromeSignedAccount = () =>
+    chromeMounted() ? signedAccount()?.viewer : undefined;
   const showFloatingCompose = () => {
-    if (signedAccount.pending || !signedAccount()?.viewer) return false;
+    if (!chromeSignedAccountLoaded() || !chromeSignedAccount()) return false;
     return !/^\/(?:@[^/]+\/(?:drafts|settings)|sign)(?:\/|$)/.test(
       location.pathname,
     );
@@ -101,8 +112,8 @@ export default function RootLayout(props: RouteSectionProps) {
       <NoteComposeProvider>
         <SidebarProvider>
           <AppSidebar
-            $signedAccount={signedAccount()?.viewer}
-            signedAccountLoaded={!signedAccount.pending}
+            $signedAccount={chromeSignedAccount()}
+            signedAccountLoaded={chromeSignedAccountLoaded()}
           />
           <header class="fixed inset-x-0 top-0 z-40 border-b bg-background/80 backdrop-blur md:hidden">
             <div class="flex h-14 items-center justify-between px-4">
@@ -141,8 +152,8 @@ export default function RootLayout(props: RouteSectionProps) {
           </main>
           <FloatingComposeButton
             show={showFloatingCompose()}
-            username={signedAccount()?.viewer?.username}
-            $signedAccount={signedAccount()?.viewer}
+            username={chromeSignedAccount()?.username}
+            $signedAccount={chromeSignedAccount()}
           />
           <NoteComposeModal />
           <Toaster />
