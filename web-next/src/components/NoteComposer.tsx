@@ -984,6 +984,19 @@ export function NoteComposer(props: NoteComposerProps) {
             resetKey={editorResetKey()}
             ref={(el) => (textareaRef = el)}
             onPaste={handlePaste}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                const submitting = isCreating() ||
+                  mediaItems.some((m) => m.uploading) ||
+                  (!!effectiveQuotedPostId() && !quotedPost() &&
+                    !quoteFetchError()) ||
+                  (!!props.replyTargetId &&
+                    props.showReplyTarget !== false &&
+                    !replyTargetPost() && !replyTargetFetchError());
+                if (!submitting) formRef?.requestSubmit();
+              }
+            }}
             onWheel={(e) => {
               const el = e.currentTarget;
               const scrollingDown = e.deltaY > 0;

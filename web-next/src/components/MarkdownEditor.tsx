@@ -36,6 +36,7 @@ export interface MarkdownEditorProps {
   autofocus?: boolean;
   onPaste?: JSX.EventHandler<HTMLTextAreaElement, ClipboardEvent>;
   onWheel?: JSX.EventHandler<HTMLTextAreaElement, WheelEvent>;
+  onKeyDown?: JSX.EventHandler<HTMLTextAreaElement, KeyboardEvent>;
   /**
    * Whether to show the Preview tab. Defaults to `true`. Pass `false` for
    * unauthenticated contexts where `renderMarkdown` is unavailable.
@@ -139,6 +140,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
         onInput={(e) => props.onInput(e.currentTarget.value)}
         onPaste={props.onPaste}
         onWheel={props.onWheel}
+        onKeyDown={props.onKeyDown}
         placeholder={props.placeholder}
         autofocus={props.autofocus}
         disabled={props.disabled}
