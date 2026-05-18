@@ -1,3 +1,4 @@
+import { Show } from "solid-js";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { Timestamp } from "./Timestamp.tsx";
@@ -33,7 +34,12 @@ export function ActorSharer(props: ActorSharerProps) {
                 }`}
                 class="font-semibold"
               >
-                <span innerHTML={props.actor.name ?? ""} />
+                <Show
+                  when={(props.actor.name ?? "").trim() !== ""}
+                  fallback={props.actor.handle}
+                >
+                  <span innerHTML={props.actor.name!} />
+                </Show>
               </a>
             </ActorHoverCard>
           ),
