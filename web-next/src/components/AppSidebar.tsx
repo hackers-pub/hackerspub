@@ -7,7 +7,7 @@ import {
 } from "@solidjs/start/http";
 import { fetchQuery, graphql, type Subscription } from "relay-runtime";
 import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
-import { getRequestEvent } from "solid-js/web";
+import { getRequestEvent, isServer } from "solid-js/web";
 import {
   createFragment,
   createMutation,
@@ -453,7 +453,10 @@ function AccountSection(props: AccountSectionProps) {
             {t`Return to old UI`}
           </SidebarMenuButton>
         </SidebarMenuItem>
-        <Show keyed when={props.signedAccountLoaded && !props.signedAccount}>
+        <Show
+          keyed
+          when={!isServer && props.signedAccountLoaded && !props.signedAccount}
+        >
           {(_) => (
             <SidebarMenuItem class="list-none">
               <SidebarMenuButton
@@ -484,7 +487,10 @@ function AccountSection(props: AccountSectionProps) {
             </SidebarMenuItem>
           )}
         </Show>
-        <Show keyed when={props.signedAccountLoaded && props.signedAccount}>
+        <Show
+          keyed
+          when={!isServer && props.signedAccountLoaded && props.signedAccount}
+        >
           {(signedAccount) => (
             <>
               <SidebarMenuItem class="list-none">
