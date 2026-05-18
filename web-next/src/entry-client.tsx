@@ -117,7 +117,12 @@ function hasHydrationNodes(element: Element): boolean {
   // Solid may leave only comment/template markers in #app while a root
   // Suspense boundary is still waiting. Those nodes still mean hydration is
   // alive, so only recover when the container is truly empty.
-  return element.hasChildNodes();
+  if (!element.hasChildNodes()) return false;
+  // If hydration failed and an error boundary rendered a fallback, the
+  // resulting DOM has no [data-hk] markers. Treat that as a hydration
+  // failure and let the fallback below re-mount as a pure client render
+  // so the user doesn't see a permanent "Something went wrong" screen.
+  return element.querySelector("[data-hk]") !== null;
 }
 
 setTimeout(() => {
