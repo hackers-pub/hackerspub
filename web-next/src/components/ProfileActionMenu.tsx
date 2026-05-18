@@ -1,5 +1,6 @@
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
+import { isServer } from "solid-js/web";
 import { createFragment, createMutation } from "solid-relay";
 import IconBan from "~icons/lucide/ban";
 import IconEllipsis from "~icons/lucide/ellipsis";
@@ -236,8 +237,8 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
 
   return (
     <Show
-      when={actor() && viewer.isLoaded() && viewer.isAuthenticated() &&
-        !isCurrentViewerActor()}
+      when={!isServer && actor() && viewer.isLoaded() &&
+        viewer.isAuthenticated() && !isCurrentViewerActor()}
     >
       <DropdownMenu>
         <DropdownMenuTrigger
