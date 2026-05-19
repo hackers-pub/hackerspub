@@ -21,8 +21,7 @@ builder.queryField("suggestedFilterLanguages", (t) =>
         const seen = new Set<string>();
         const result: Intl.Locale[] = [];
         for (const loc of ctx.account.locales) {
-          const dash = loc.indexOf("-");
-          const base = dash > 0 ? loc.slice(0, dash) : loc;
+          const base = new Intl.Locale(loc).language;
           if (base && !seen.has(base)) {
             seen.add(base);
             result.push(new Intl.Locale(base));
