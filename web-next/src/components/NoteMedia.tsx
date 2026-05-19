@@ -1,5 +1,15 @@
 import { graphql } from "relay-runtime";
-import { createSignal, For, JSX, Match, Show, Switch } from "solid-js";
+import {
+  Accessor,
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  JSX,
+  Match,
+  Show,
+  Switch,
+} from "solid-js";
 import { createFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { ImageLightbox } from "./ImageLightbox.tsx";
@@ -42,38 +52,13 @@ export function NoteMedia(props: NoteMediaProps) {
 
   const [openIndex, setOpenIndex] = createSignal<number | null>(null);
   const [revealedSet, setRevealedSet] = createSignal(new Set<number>());
-  const revealMedium = (i: number) => setRevealedSet((s) => new Set([...s, i]));
-
-  function sensitiveWrapper(
-    inner: JSX.Element,
-    index: number,
-    isSensitive: boolean,
-  ): JSX.Element {
-    if (!isSensitive) return inner;
-    const hidden = () => !revealedSet().has(index);
-    return (
-      <div class="relative overflow-hidden">
-        <div
-          class="transition-[filter]"
-          classList={{ "blur-xl pointer-events-none select-none": hidden() }}
-          inert={hidden() || undefined}
-        >
-          {inner}
-        </div>
-        <Show when={hidden()}>
-          <div class="absolute inset-0 flex items-center justify-center bg-black/20 dark:bg-black/40">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => revealMedium(index)}
-            >
-              {t`Show sensitive content`}
-            </Button>
-          </div>
-        </Show>
-      </div>
-    );
-  }
+  const toggleMedium = (i: number) =>
+    setRevealedSet((s) => {
+      const next = new Set(s);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
 
   function imageButton(medium: Medium, imageIndex: number, imgClass: string) {
     return (
@@ -139,12 +124,19 @@ export function NoteMedia(props: NoteMediaProps) {
           mediumIndex: number,
           imageIndex: number | null,
           imgClass: string,
-        ) =>
-          sensitiveWrapper(
-            mediaItem(medium, imageIndex, imgClass),
-            mediumIndex,
-            props.postSensitive || medium.sensitive,
+        ) => {
+          const isSensitive = props.postSensitive || medium.sensitive;
+          if (!isSensitive) return mediaItem(medium, imageIndex, imgClass);
+          return (
+            <SensitiveWrapper
+              index={mediumIndex}
+              revealedSet={revealedSet}
+              onToggle={toggleMedium}
+            >
+              {mediaItem(medium, imageIndex, imgClass)}
+            </SensitiveWrapper>
           );
+        };
 
         return (
           <Show when={note.media.length > 0}>
@@ -225,4 +217,60 @@ function range(start: number, end: number): number[] {
   const result: number[] = [];
   for (let i = start; i < end; i++) result.push(i);
   return result;
+}
+
+interface SensitiveWrapperProps {
+  children: JSX.Element;
+  index: number;
+  revealedSet: Accessor<Set<number>>;
+  onToggle: (i: number) => void;
+}
+
+function SensitiveWrapper(props: SensitiveWrapperProps) {
+  const { t } = useLingui();
+  const hidden = createMemo(() => !props.revealedSet().has(props.index));
+  let wrapperRef!: HTMLDivElement;
+
+  // Pause any playing video/audio when the wrapper transitions to hidden.
+  createEffect(() => {
+    if (hidden()) {
+      wrapperRef
+        ?.querySelectorAll<HTMLMediaElement>("video, audio")
+        .forEach((el) => el.pause());
+    }
+  });
+
+  return (
+    <div ref={wrapperRef} class="relative overflow-hidden">
+      <div
+        class="transition-[filter]"
+        classList={{ "blur-xl pointer-events-none select-none": hidden() }}
+        inert={hidden() || undefined}
+      >
+        {props.children}
+      </div>
+      <Show when={hidden()}>
+        <div class="absolute inset-0 flex items-center justify-center bg-black/20 dark:bg-black/40">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => props.onToggle(props.index)}
+          >
+            {t`Show sensitive content`}
+          </Button>
+        </div>
+      </Show>
+      <Show when={!hidden()}>
+        <div class="absolute top-2 right-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => props.onToggle(props.index)}
+          >
+            {t`Hide`}
+          </Button>
+        </div>
+      </Show>
+    </div>
+  );
 }
