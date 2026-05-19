@@ -56,12 +56,15 @@ export default function LocalTimeline() {
   const location = useLocation();
   const [searchParams] = useSearchParams<{ language?: string }>();
   const activeLanguage = () => normalizeLanguageParam(searchParams.language);
+
+  // Capture the language at mount time (non-reactive) for the initial query.
+  // Subsequent URL language changes are handled via fragment-level refetch
+  // inside PublicTimeline — this prevents createPreloadedQuery from creating a
+  // new QueryRef on every filter click (which would cause a full DOM flash).
+  const initialLang = normalizeLanguageParam(searchParams.language);
   const data = createPreloadedQuery<localTimelineQuery>(
     localTimelineQuery,
-    () => {
-      const lang = activeLanguage();
-      return loadLocalTimelineQuery(i18n.locale, lang ? [lang] : []);
-    },
+    () => loadLocalTimelineQuery(i18n.locale, initialLang ? [initialLang] : []),
   );
 
   return (
@@ -87,7 +90,7 @@ export default function LocalTimeline() {
               }}
             />
           </Show>
-          <PublicTimeline $posts={data} />
+          <PublicTimeline $posts={data} activeLanguage={activeLanguage} />
         </NarrowContainer>
       )}
     </Show>

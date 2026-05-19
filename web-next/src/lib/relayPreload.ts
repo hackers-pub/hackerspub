@@ -94,6 +94,25 @@ export function routePreloadedQuery<
     const owner = getOwner();
     const currentEnvironment = useRelayEnvironment()();
     const preloaded = cached(...args);
+    // query() from @solidjs/router wraps non-preload cache hits with
+    // handleResponse(), which is an async function that returns a NEW Promise
+    // on every call — even when the PreloadedQuery is already resolved. This
+    // new Promise reference makes createResource (inside createPreloadedQuery)
+    // see a changed source on every reactive signal update, briefly setting
+    // pending = true and causing a visible full-page flash.
+    //
+    // Calling cached() above runs handleResponse() synchronously (it has no
+    // await), which stores the resolved value in cached[2]. query.get(key)
+    // reads cached[2] directly, giving us the original PreloadedQuery by
+    // reference. Returning that same reference keeps createResource's source
+    // stable across navigations — no re-fetch, no flash.
+    const resolvedSync = query.get(key) as ReturnType<TLoader> | undefined;
+    if (
+      resolvedSync != null &&
+      !isStalePreloadedQuery(resolvedSync, currentEnvironment)
+    ) {
+      return resolvedSync;
+    }
     if (isPromiseLike(preloaded)) {
       return preloaded.then((resolved) => {
         if (!isStalePreloadedQuery(resolved, currentEnvironment)) {

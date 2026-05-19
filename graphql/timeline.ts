@@ -18,6 +18,7 @@ import { builder } from "./builder.ts";
 import { Post, PostType } from "./post.ts";
 
 const MAX_TIMELINE_WINDOW = 250;
+const MAX_LANGUAGE_FILTERS = 20;
 
 // `Authentication required` is intentional — return as a real
 // `GraphQLError` so Yoga doesn't fold it into a generic
@@ -141,7 +142,9 @@ builder.queryFields((t) => ({
           currentAccount: ctx.account,
           direction: backwards ? "backward" : "forward",
           languages: new Set(
-            (args.languages ?? []).map((l) => l.language),
+            (args.languages ?? [])
+              .slice(0, MAX_LANGUAGE_FILTERS)
+              .map((l) => l.language),
           ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,
@@ -323,7 +326,9 @@ builder.queryFields((t) => ({
           currentAccount: ctx.account,
           direction: backwards ? "backward" : "forward",
           languages: new Set(
-            (args.languages ?? []).map((l) => l.language),
+            (args.languages ?? [])
+              .slice(0, MAX_LANGUAGE_FILTERS)
+              .map((l) => l.language),
           ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,

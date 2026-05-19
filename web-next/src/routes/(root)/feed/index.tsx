@@ -54,10 +54,13 @@ const loadFeedTimelineQuery = routePreloadedQuery(
   "loadFeedTimelineQuery",
 );
 
-function normalizeLanguageParam(raw: string | undefined): string | undefined {
-  if (!raw) return undefined;
+function normalizeLanguageParam(
+  raw: string | string[] | undefined,
+): string | undefined {
+  const tag = Array.isArray(raw) ? raw[0] : raw;
+  if (!tag) return undefined;
   try {
-    return new Intl.Locale(raw).language;
+    return new Intl.Locale(tag).language;
   } catch {
     return undefined;
   }
@@ -72,13 +75,13 @@ function AuthenticatedFeedTimeline() {
   const location = useLocation();
   const [searchParams] = useSearchParams<{ language?: string }>();
   const activeLanguage = () => normalizeLanguageParam(searchParams.language);
+
+  const initialLang = normalizeLanguageParam(searchParams.language);
   const data = createPreloadedQuery<feedTimelineQuery>(
     feedTimelineQuery,
-    () => {
-      const lang = activeLanguage();
-      return loadFeedTimelineQuery(i18n.locale, lang ? [lang] : []);
-    },
+    () => loadFeedTimelineQuery(i18n.locale, initialLang ? [initialLang] : []),
   );
+
   return (
     <Show keyed when={data()}>
       {(d) => (
@@ -98,7 +101,7 @@ function AuthenticatedFeedTimeline() {
               }}
             />
           </Show>
-          <PersonalTimeline $posts={d} />
+          <PersonalTimeline $posts={d} activeLanguage={activeLanguage} />
         </NarrowContainer>
       )}
     </Show>

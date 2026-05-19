@@ -1,8 +1,10 @@
 import { graphql } from "relay-runtime";
 import {
+  createEffect,
   createSignal,
   For,
   Match,
+  on,
   onCleanup,
   onMount,
   Show,
@@ -16,6 +18,7 @@ import type { PersonalTimeline_posts$key } from "./__generated__/PersonalTimelin
 
 export interface PersonalTimelineProps {
   $posts: PersonalTimeline_posts$key;
+  activeLanguage?: () => string | undefined;
 }
 
 export function PersonalTimeline(props: PersonalTimelineProps) {
@@ -71,6 +74,16 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
+
+  // When the language filter changes after initial mount, refetch at the
+  // fragment level so the DOM subtree stays mounted (no flash).
+  createEffect(on(
+    () => props.activeLanguage?.(),
+    (lang) => {
+      posts.refetch({ languages: lang ? [lang] : [] });
+    },
+    { defer: true },
+  ));
 
   onMount(() => {
     onCleanup(onNoteCreated(() => {

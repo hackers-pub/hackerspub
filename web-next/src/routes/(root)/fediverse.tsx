@@ -60,12 +60,15 @@ export default function FediverseTimeline() {
   const location = useLocation();
   const [searchParams] = useSearchParams<{ language?: string }>();
   const activeLanguage = () => normalizeLanguageParam(searchParams.language);
+
+  const initialLang = normalizeLanguageParam(searchParams.language);
   const data = createPreloadedQuery<fediverseTimelineQuery>(
     fediverseTimelineQuery,
-    () => {
-      const lang = activeLanguage();
-      return loadFediverseTimelineQuery(i18n.locale, lang ? [lang] : []);
-    },
+    () =>
+      loadFediverseTimelineQuery(
+        i18n.locale,
+        initialLang ? [initialLang] : [],
+      ),
   );
 
   return (
@@ -91,7 +94,7 @@ export default function FediverseTimeline() {
               }}
             />
           </Show>
-          <PublicTimeline $posts={data} />
+          <PublicTimeline $posts={data} activeLanguage={activeLanguage} />
         </NarrowContainer>
       )}
     </Show>
