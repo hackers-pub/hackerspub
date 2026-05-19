@@ -2188,7 +2188,7 @@ type Query {
     first: Int
 
     """
-    Filter by base language code. Passing `"en"` returns posts with `language = "en"` or any `"en-*"` variant. Region-specific tags such as `"en-US"` are normalized to their base language and match all variants.
+    Filter by base language code. Passing `"en"` returns posts with `language = "en"` or any `"en-*"` variant. Region-specific tags such as `"en-US"` are normalized to their base language and match all variants. At most 20 codes are accepted; passing more raises a `TOO_MANY_LANGUAGE_FILTERS` error.
     """
     languages: [Locale!] = []
     last: Int
@@ -2209,7 +2209,20 @@ type Query {
   """
   All public posts from all known instances, newest first. Accessible without authentication. Pagination window (`first`/`last`) is capped at 250 posts. Use `languages` to filter by language, `local` to restrict to this instance only, and `withoutShares` to hide boost wrappers.
   """
-  publicTimeline(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPublicTimelineConnection!
+  publicTimeline(
+    after: String
+    before: String
+    first: Int
+
+    """
+    Filter by base language code. Passing `"en"` returns posts with `language = "en"` or any `"en-*"` variant. Region-specific tags such as `"en-US"` are normalized to their base language and match all variants. At most 20 codes are accepted; passing more raises a `TOO_MANY_LANGUAGE_FILTERS` error.
+    """
+    languages: [Locale!] = []
+    last: Int
+    local: Boolean = false
+    postType: PostType
+    withoutShares: Boolean = false
+  ): QueryPublicTimelineConnection!
 
   """
   A small curated list of suggested accounts to follow, weighted toward accounts that write in the viewer's preferred locale. Capped at 50 results.

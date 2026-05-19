@@ -116,6 +116,13 @@ builder.queryFields((t) => ({
         languages: t.arg({
           type: ["Locale"],
           defaultValue: [],
+          description:
+            'Filter by base language code. Passing `"en"` returns posts ' +
+            'with `language = "en"` or any `"en-*"` variant. Region-' +
+            'specific tags such as `"en-US"` are normalized to their base ' +
+            "language and match all variants. At most " +
+            `${MAX_LANGUAGE_FILTERS} codes are accepted; passing more ` +
+            "raises a `TOO_MANY_LANGUAGE_FILTERS` error.",
         }),
         local: t.arg.boolean({ defaultValue: false }),
         withoutShares: t.arg.boolean({ defaultValue: false }),
@@ -127,6 +134,13 @@ builder.queryFields((t) => ({
       async resolve(_, args, ctx) {
         if (args.after != null && args.before != null) {
           conflictingCursors();
+        }
+        if ((args.languages?.length ?? 0) > MAX_LANGUAGE_FILTERS) {
+          throw createGraphQLError(
+            `Too many language filters: at most ${MAX_LANGUAGE_FILTERS} ` +
+              "base language codes are accepted.",
+            { extensions: { code: "TOO_MANY_LANGUAGE_FILTERS" } },
+          );
         }
         const backwards = args.last != null;
         const window = getConnectionWindow(args, {
@@ -142,9 +156,7 @@ builder.queryFields((t) => ({
           currentAccount: ctx.account,
           direction: backwards ? "backward" : "forward",
           languages: new Set(
-            (args.languages ?? [])
-              .slice(0, MAX_LANGUAGE_FILTERS)
-              .map((l) => l.language),
+            (args.languages ?? []).map((l) => l.language),
           ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,
@@ -297,7 +309,9 @@ builder.queryFields((t) => ({
             'Filter by base language code. Passing `"en"` returns posts ' +
             'with `language = "en"` or any `"en-*"` variant. Region-' +
             'specific tags such as `"en-US"` are normalized to their base ' +
-            "language and match all variants.",
+            "language and match all variants. At most " +
+            `${MAX_LANGUAGE_FILTERS} codes are accepted; passing more ` +
+            "raises a `TOO_MANY_LANGUAGE_FILTERS` error.",
         }),
         local: t.arg.boolean({ defaultValue: false }),
         withoutShares: t.arg.boolean({ defaultValue: false }),
@@ -311,6 +325,13 @@ builder.queryFields((t) => ({
           authenticationRequired();
         } else if (args.after != null && args.before != null) {
           conflictingCursors();
+        }
+        if ((args.languages?.length ?? 0) > MAX_LANGUAGE_FILTERS) {
+          throw createGraphQLError(
+            `Too many language filters: at most ${MAX_LANGUAGE_FILTERS} ` +
+              "base language codes are accepted.",
+            { extensions: { code: "TOO_MANY_LANGUAGE_FILTERS" } },
+          );
         }
         const backwards = args.last != null;
         const window = getConnectionWindow(args, {
@@ -326,9 +347,7 @@ builder.queryFields((t) => ({
           currentAccount: ctx.account,
           direction: backwards ? "backward" : "forward",
           languages: new Set(
-            (args.languages ?? [])
-              .slice(0, MAX_LANGUAGE_FILTERS)
-              .map((l) => l.language),
+            (args.languages ?? []).map((l) => l.language),
           ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,

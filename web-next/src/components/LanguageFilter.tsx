@@ -35,6 +35,16 @@ export function LanguageFilter(props: LanguageFilterProps) {
         : "border-input text-muted-foreground hover:bg-accent hover:text-accent-foreground",
     ].join(" ");
 
+  // Ensure the active language is always shown even if it isn't in the
+  // suggested list (e.g. manually typed in the URL).
+  const languages = () => {
+    const active = props.activeLanguage;
+    if (active == null || props.languages.includes(active)) {
+      return props.languages;
+    }
+    return [active, ...props.languages];
+  };
+
   return (
     <div class="flex flex-wrap gap-2 border-b px-4 py-3">
       <A
@@ -43,7 +53,7 @@ export function LanguageFilter(props: LanguageFilterProps) {
       >
         {t`All languages`}
       </A>
-      <For each={props.languages}>
+      <For each={languages()}>
         {(lang) => {
           // Get the name of the language in that language itself (native name)
           const nativeName = () => {
