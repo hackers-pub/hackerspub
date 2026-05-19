@@ -999,7 +999,7 @@ export async function getPersonalTimeline(
               const langWhere = langConds.length === 1
                 ? langConds[0]
                 : sql`(${sql.join(langConds, sql` OR `)})`;
-              return sql`EXISTS (SELECT 1 FROM post WHERE post.id = ${ti.postId} AND ${langWhere})`;
+              return sql`EXISTS (SELECT 1 FROM ${postTable} WHERE ${postTable.id} = ${ti.postId} AND ${langWhere})`;
             },
           }
           : {}),
