@@ -1,8 +1,10 @@
 import { graphql } from "relay-runtime";
 import {
+  createEffect,
   createSignal,
   For,
   Match,
+  on,
   onCleanup,
   onMount,
   Show,
@@ -16,6 +18,7 @@ import type { PublicTimeline_posts$key } from "./__generated__/PublicTimeline_po
 
 export interface PublicTimelineProps {
   $posts: PublicTimeline_posts$key;
+  activeLanguage?: () => string | undefined;
 }
 
 export function PublicTimeline(props: PublicTimelineProps) {
@@ -65,10 +68,23 @@ export function PublicTimeline(props: PublicTimelineProps) {
     "loaded" | "loading" | "errored"
   >("loaded");
 
+  // When the language filter changes after initial mount, refetch at the
+  // fragment level so the DOM subtree stays mounted (no flash). The top-level
+  // query still carries the initial language for SSR; this effect handles
+  // subsequent client-side filter changes without reloading the whole query.
+  createEffect(on(
+    () => props.activeLanguage?.(),
+    (lang) => {
+      posts.refetch({ languages: lang ? [lang] : [] });
+    },
+    { defer: true },
+  ));
+
   onMount(() => {
     onCleanup(onNoteCreated(() => {
       // TODO: Refetch the timeline when a note is created with keeping old data visible
-      posts.refetch({});
+      const lang = props.activeLanguage?.();
+      posts.refetch({ languages: lang ? [lang] : [] });
     }));
   });
 

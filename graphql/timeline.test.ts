@@ -1,3 +1,4 @@
+import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { and, eq } from "drizzle-orm";
 import { encodeGlobalID } from "@pothos/plugin-relay";
@@ -5,6 +6,7 @@ import { execute, parse } from "graphql";
 import { createBookmark } from "@hackerspub/models/bookmark";
 import { follow } from "@hackerspub/models/following";
 import { sharePost } from "@hackerspub/models/post";
+import { addPostToTimeline } from "@hackerspub/models/timeline";
 import {
   bookmarkTable,
   postTable,
@@ -704,6 +706,120 @@ Deno.test({
         encodeGlobalID("Note", posts[2].id),
         encodeGlobalID("Note", posts[1].id),
       ]);
+    });
+  },
+});
+
+const personalTimelineLanguageQuery = parse(`
+  query PersonalTimelineLanguageTest($languages: [Locale!]) {
+    personalTimeline(first: 10, languages: $languages) {
+      edges {
+        node {
+          id
+        }
+      }
+    }
+  }
+`);
+
+Deno.test({
+  name:
+    "personalTimeline() filters posts by base language code via languages arg",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "personallangfilterviewer",
+        name: "Personal Lang Filter Viewer",
+        email: "personallangfilterviewer@example.com",
+      });
+      const author = await insertAccountWithActor(tx, {
+        username: "personallangfilterauthor",
+        name: "Personal Lang Filter Author",
+        email: "personallangfilterauthor@example.com",
+      });
+
+      await follow(fedCtx, viewer.account, author.actor);
+
+      const ts = new Date("2026-04-15T14:00:00.000Z");
+      const { post: enPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "English post",
+        language: "en",
+        published: new Date(ts.getTime() + 2000),
+      });
+      await addPostToTimeline(tx, enPost);
+      const { post: enGbPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "English GB post",
+        language: "en-GB",
+        published: new Date(ts.getTime() + 1000),
+      });
+      await addPostToTimeline(tx, enGbPost);
+      const { post: jaPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Japanese post",
+        language: "ja",
+        published: ts,
+      });
+      await addPostToTimeline(tx, jaPost);
+
+      const ctx = makeUserContext(tx, viewer.account);
+
+      const enOnly = await execute({
+        schema,
+        document: personalTimelineLanguageQuery,
+        contextValue: ctx,
+        variableValues: { languages: ["en"] },
+      });
+      assertEquals(enOnly.errors, undefined);
+      type TimelineData = {
+        personalTimeline: { edges: { node: { id: string } }[] };
+      };
+      assertEquals(
+        (enOnly.data as TimelineData).personalTimeline.edges.map((e) =>
+          e.node.id
+        ),
+        [
+          encodeGlobalID("Note", enPost.id),
+          encodeGlobalID("Note", enGbPost.id),
+        ],
+        "'en' matches 'en' and 'en-GB'",
+      );
+
+      const jaOnly = await execute({
+        schema,
+        document: personalTimelineLanguageQuery,
+        contextValue: ctx,
+        variableValues: { languages: ["ja"] },
+      });
+      assertEquals(jaOnly.errors, undefined);
+      assertEquals(
+        (jaOnly.data as TimelineData).personalTimeline.edges.map((e) =>
+          e.node.id
+        ),
+        [encodeGlobalID("Note", jaPost.id)],
+        "'ja' matches only 'ja'",
+      );
+
+      const all = await execute({
+        schema,
+        document: personalTimelineLanguageQuery,
+        contextValue: ctx,
+        variableValues: { languages: [] },
+      });
+      assertEquals(all.errors, undefined);
+      const allIds = (all.data as TimelineData).personalTimeline.edges.map(
+        (e) => e.node.id,
+      );
+      assert(
+        allIds.includes(encodeGlobalID("Note", enPost.id)) &&
+          allIds.includes(encodeGlobalID("Note", enGbPost.id)) &&
+          allIds.includes(encodeGlobalID("Note", jaPost.id)),
+        "empty languages returns all posts",
+      );
     });
   },
 });

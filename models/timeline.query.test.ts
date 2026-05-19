@@ -1,8 +1,13 @@
+import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { and, eq } from "drizzle-orm";
 import { follow } from "./following.ts";
 import { sharePost } from "./post.ts";
-import { getPersonalTimeline, getPublicTimeline } from "./timeline.ts";
+import {
+  addPostToTimeline,
+  getPersonalTimeline,
+  getPublicTimeline,
+} from "./timeline.ts";
 import { postTable, timelineItemTable } from "./schema.ts";
 import {
   createFedCtx,
@@ -308,6 +313,182 @@ Deno.test({
         orderedPosts[2].id,
         orderedPosts[3].id,
       ]);
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "getPublicTimeline() filters by base language code with prefix matching",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const author = await insertAccountWithActor(tx, {
+        username: "publictimelinelangauthor",
+        name: "Public Timeline Language Author",
+        email: "publictimelinelangauthor@example.com",
+      });
+      const ts = new Date("2026-04-15T12:00:00.000Z");
+      const { post: enPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "English post",
+        language: "en",
+        published: new Date(ts.getTime() + 3000),
+      });
+      const { post: enUsPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "English US post",
+        language: "en-US",
+        published: new Date(ts.getTime() + 2000),
+      });
+      const { post: enGbPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "English GB post",
+        language: "en-GB",
+        published: new Date(ts.getTime() + 1500),
+      });
+      const { post: koPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Korean post",
+        language: "ko",
+        published: new Date(ts.getTime() + 1000),
+      });
+
+      // Bound the query to just the window covered by this test's posts so
+      // that any pre-existing rows in the shared database don't interfere.
+      const scope = {
+        since: { timestamp: ts },
+        until: { timestamp: new Date(ts.getTime() + 4000) },
+      };
+
+      const enOnly = await getPublicTimeline(tx, {
+        ...scope,
+        languages: new Set(["en"]),
+        window: 10,
+      });
+      assertEquals(
+        enOnly.map((e) => e.post.id),
+        [enPost.id, enUsPost.id, enGbPost.id],
+        "base language 'en' matches 'en', 'en-US', and 'en-GB'",
+      );
+
+      const koOnly = await getPublicTimeline(tx, {
+        ...scope,
+        languages: new Set(["ko"]),
+        window: 10,
+      });
+      assertEquals(
+        koOnly.map((e) => e.post.id),
+        [koPost.id],
+        "base language 'ko' matches only 'ko'",
+      );
+
+      const all = await getPublicTimeline(tx, { ...scope, window: 10 });
+      const allIds = all.map((e) => e.post.id);
+      assert(
+        allIds.includes(enPost.id) &&
+          allIds.includes(enUsPost.id) &&
+          allIds.includes(enGbPost.id) &&
+          allIds.includes(koPost.id),
+        "empty languages returns all posts",
+      );
+
+      // Region-specific locales are normalized to base for content filtering:
+      // "en-US" → "en", so it matches "en", "en-US", and "en-GB" (all English
+      // variants). This is intentional — content filtering is language-level,
+      // not region-level.
+      const enUsAsBase = await getPublicTimeline(tx, {
+        ...scope,
+        languages: new Set(["en-US"]),
+        window: 10,
+      });
+      assertEquals(
+        enUsAsBase.map((e) => e.post.id),
+        [enPost.id, enUsPost.id, enGbPost.id],
+        "'en-US' normalizes to 'en' and matches all English variants",
+      );
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "getPersonalTimeline() filters by base language code with prefix matching",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "personallangviewer",
+        name: "Personal Language Viewer",
+        email: "personallangviewer@example.com",
+      });
+      const author = await insertAccountWithActor(tx, {
+        username: "personallangauthor",
+        name: "Personal Language Author",
+        email: "personallangauthor@example.com",
+      });
+
+      await follow(fedCtx, viewer.account, author.actor);
+
+      const ts = new Date("2026-04-15T13:00:00.000Z");
+      const { post: enPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "English post",
+        language: "en",
+        published: new Date(ts.getTime() + 2000),
+      });
+      await addPostToTimeline(tx, enPost);
+      const { post: enGbPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "English GB post",
+        language: "en-GB",
+        published: new Date(ts.getTime() + 1000),
+      });
+      await addPostToTimeline(tx, enGbPost);
+      const { post: jaPost } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Japanese post",
+        language: "ja",
+        published: ts,
+      });
+      await addPostToTimeline(tx, jaPost);
+
+      const enOnly = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        languages: new Set(["en"]),
+        window: 10,
+      });
+      assertEquals(
+        enOnly.map((e) => e.post.id),
+        [enPost.id, enGbPost.id],
+        "base language 'en' matches both 'en' and 'en-GB'",
+      );
+
+      const jaOnly = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        languages: new Set(["ja"]),
+        window: 10,
+      });
+      assertEquals(
+        jaOnly.map((e) => e.post.id),
+        [jaPost.id],
+        "base language 'ja' matches only 'ja'",
+      );
+
+      const all = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      const allIds = all.map((e) => e.post.id);
+      assert(
+        allIds.includes(enPost.id) &&
+          allIds.includes(enGbPost.id) &&
+          allIds.includes(jaPost.id),
+        "empty languages returns all posts",
+      );
     });
   },
 });

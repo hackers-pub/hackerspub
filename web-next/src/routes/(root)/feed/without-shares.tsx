@@ -6,12 +6,14 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { withoutSharesFeedTimelineQuery } from "./__generated__/withoutSharesFeedTimelineQuery.graphql.ts";
 
 export const route = {
@@ -32,32 +34,50 @@ export const route = {
 } satisfies RouteDefinition;
 
 const withoutSharesFeedTimelineQuery = graphql`
-  query withoutSharesFeedTimelineQuery($locale: Locale) {
-    ...PersonalTimeline_posts @arguments(locale: $locale, withoutShares: true)
+  query withoutSharesFeedTimelineQuery($locale: Locale, $languages: [Locale!]) {
+    suggestedFilterLanguages
+    ...PersonalTimeline_posts @arguments(locale: $locale, languages: $languages, withoutShares: true)
   }
 `;
 
 const loadWithoutSharesFeedTimelineQuery = routePreloadedQuery(
-  (locale: string) =>
+  (locale: string, languages: readonly string[]) =>
     loadQuery<withoutSharesFeedTimelineQuery>(
       useRelayEnvironment()(),
       withoutSharesFeedTimelineQuery,
-      { locale },
+      { locale, languages },
     ),
   "loadWithoutSharesFeedTimelineQuery",
 );
 
 function AuthenticatedWithoutSharesFeedTimeline() {
   const { i18n } = useLingui();
+  const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
+    "/feed/without-shares",
+  );
   const data = createPreloadedQuery<withoutSharesFeedTimelineQuery>(
     withoutSharesFeedTimelineQuery,
-    () => loadWithoutSharesFeedTimelineQuery(i18n.locale),
+    () =>
+      loadWithoutSharesFeedTimelineQuery(
+        i18n.locale,
+        initialLang ? [initialLang] : [],
+      ),
   );
+
   return (
     <Show keyed when={data()}>
-      {(data) => (
+      {(d) => (
         <NarrowContainer>
-          <PersonalTimeline $posts={data} />
+          <Show
+            when={d.suggestedFilterLanguages.length > 0 || !!activeLanguage()}
+          >
+            <LanguageFilter
+              languages={d.suggestedFilterLanguages}
+              activeLanguage={activeLanguage()}
+              buildHref={buildHref}
+            />
+          </Show>
+          <PersonalTimeline $posts={d} activeLanguage={activeLanguage} />
         </NarrowContainer>
       )}
     </Show>

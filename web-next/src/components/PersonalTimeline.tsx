@@ -1,8 +1,10 @@
 import { graphql } from "relay-runtime";
 import {
+  createEffect,
   createSignal,
   For,
   Match,
+  on,
   onCleanup,
   onMount,
   Show,
@@ -16,6 +18,7 @@ import type { PersonalTimeline_posts$key } from "./__generated__/PersonalTimelin
 
 export interface PersonalTimelineProps {
   $posts: PersonalTimeline_posts$key;
+  activeLanguage?: () => string | undefined;
 }
 
 export function PersonalTimeline(props: PersonalTimelineProps) {
@@ -29,6 +32,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 25 }
           locale: { type: "Locale" }
+          languages: { type: "[Locale!]", defaultValue: [] }
           local: { type: "Boolean", defaultValue: false }
           postType: { type: "PostType", defaultValue: null }
           withoutShares: { type: "Boolean", defaultValue: false }
@@ -38,6 +42,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
         personalTimeline(
           after: $cursor,
           first: $count,
+          languages: $languages,
           local: $local,
           postType: $postType,
           withoutShares: $withoutShares,
@@ -70,10 +75,21 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
     "loaded" | "loading" | "errored"
   >("loaded");
 
+  // When the language filter changes after initial mount, refetch at the
+  // fragment level so the DOM subtree stays mounted (no flash).
+  createEffect(on(
+    () => props.activeLanguage?.(),
+    (lang) => {
+      posts.refetch({ languages: lang ? [lang] : [] });
+    },
+    { defer: true },
+  ));
+
   onMount(() => {
     onCleanup(onNoteCreated(() => {
       // TODO: Refetch the timeline when a note is created with keeping old data visible
-      posts.refetch({});
+      const lang = props.activeLanguage?.();
+      posts.refetch({ languages: lang ? [lang] : [] });
     }));
   });
 

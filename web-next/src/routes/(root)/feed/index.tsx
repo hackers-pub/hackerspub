@@ -6,12 +6,14 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { feedTimelineQuery } from "./__generated__/feedTimelineQuery.graphql.ts";
 
 export const route = {
@@ -32,17 +34,18 @@ export const route = {
 } satisfies RouteDefinition;
 
 const feedTimelineQuery = graphql`
-  query feedTimelineQuery($locale: Locale) {
-    ...PersonalTimeline_posts @arguments(locale: $locale)
+  query feedTimelineQuery($locale: Locale, $languages: [Locale!]) {
+    suggestedFilterLanguages
+    ...PersonalTimeline_posts @arguments(locale: $locale, languages: $languages)
   }
 `;
 
 const loadFeedTimelineQuery = routePreloadedQuery(
-  (locale: string) =>
+  (locale: string, languages: readonly string[]) =>
     loadQuery<feedTimelineQuery>(
       useRelayEnvironment()(),
       feedTimelineQuery,
-      { locale },
+      { locale, languages },
     ),
   "loadFeedTimelineQuery",
 );
@@ -53,15 +56,26 @@ const loadFeedTimelineQuery = routePreloadedQuery(
 // render path from triggering it before <Navigate> takes over.
 function AuthenticatedFeedTimeline() {
   const { i18n } = useLingui();
+  const { activeLanguage, initialLang, buildHref } = useLanguageFilter("/feed");
   const data = createPreloadedQuery<feedTimelineQuery>(
     feedTimelineQuery,
-    () => loadFeedTimelineQuery(i18n.locale),
+    () => loadFeedTimelineQuery(i18n.locale, initialLang ? [initialLang] : []),
   );
+
   return (
     <Show keyed when={data()}>
-      {(data) => (
+      {(d) => (
         <NarrowContainer>
-          <PersonalTimeline $posts={data} />
+          <Show
+            when={d.suggestedFilterLanguages.length > 0 || !!activeLanguage()}
+          >
+            <LanguageFilter
+              languages={d.suggestedFilterLanguages}
+              activeLanguage={activeLanguage()}
+              buildHref={buildHref}
+            />
+          </Show>
+          <PersonalTimeline $posts={d} activeLanguage={activeLanguage} />
         </NarrowContainer>
       )}
     </Show>

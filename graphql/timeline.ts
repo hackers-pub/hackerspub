@@ -18,6 +18,7 @@ import { builder } from "./builder.ts";
 import { Post, PostType } from "./post.ts";
 
 const MAX_TIMELINE_WINDOW = 250;
+const MAX_LANGUAGE_FILTERS = 20;
 
 // `Authentication required` is intentional — return as a real
 // `GraphQLError` so Yoga doesn't fold it into a generic
@@ -115,6 +116,13 @@ builder.queryFields((t) => ({
         languages: t.arg({
           type: ["Locale"],
           defaultValue: [],
+          description:
+            'Filter by base language code. Passing `"en"` returns posts ' +
+            'with `language = "en"` or any `"en-*"` variant. Region-' +
+            'specific tags such as `"en-US"` are normalized to their base ' +
+            "language and match all variants. At most " +
+            `${MAX_LANGUAGE_FILTERS} codes are accepted; passing more ` +
+            "raises a `TOO_MANY_LANGUAGE_FILTERS` error.",
         }),
         local: t.arg.boolean({ defaultValue: false }),
         withoutShares: t.arg.boolean({ defaultValue: false }),
@@ -126,6 +134,13 @@ builder.queryFields((t) => ({
       async resolve(_, args, ctx) {
         if (args.after != null && args.before != null) {
           conflictingCursors();
+        }
+        if ((args.languages?.length ?? 0) > MAX_LANGUAGE_FILTERS) {
+          throw createGraphQLError(
+            `Too many language filters: at most ${MAX_LANGUAGE_FILTERS} ` +
+              "base language codes are accepted.",
+            { extensions: { code: "TOO_MANY_LANGUAGE_FILTERS" } },
+          );
         }
         const backwards = args.last != null;
         const window = getConnectionWindow(args, {
@@ -142,9 +157,7 @@ builder.queryFields((t) => ({
           direction: backwards ? "backward" : "forward",
           languages: new Set(
             (args.languages ?? []).flatMap((l) =>
-              l.language !== l.baseName
-                ? [l.baseName, l.language]
-                : [l.baseName]
+              l.language ? [l.language] : []
             ),
           ),
           local: args.local ?? false,
@@ -286,9 +299,22 @@ builder.queryFields((t) => ({
         `Posts from accounts the authenticated viewer follows, newest first. ` +
         `Throws \`AUTHENTICATION_REQUIRED\` when called without a session. ` +
         `Pagination window (\`first\`/\`last\`) is capped at ` +
-        `${MAX_TIMELINE_WINDOW} posts. Use \`local\` to restrict to this ` +
-        `instance only, and \`withoutShares\` to hide boost wrappers.`,
+        `${MAX_TIMELINE_WINDOW} posts. Use \`languages\` to filter by ` +
+        `language (a base code like \`"en"\` matches \`"en"\` and all ` +
+        `\`"en-*"\` variants), \`local\` to restrict to this instance only, ` +
+        `and \`withoutShares\` to hide boost wrappers.`,
       args: {
+        languages: t.arg({
+          type: ["Locale"],
+          defaultValue: [],
+          description:
+            'Filter by base language code. Passing `"en"` returns posts ' +
+            'with `language = "en"` or any `"en-*"` variant. Region-' +
+            'specific tags such as `"en-US"` are normalized to their base ' +
+            "language and match all variants. At most " +
+            `${MAX_LANGUAGE_FILTERS} codes are accepted; passing more ` +
+            "raises a `TOO_MANY_LANGUAGE_FILTERS` error.",
+        }),
         local: t.arg.boolean({ defaultValue: false }),
         withoutShares: t.arg.boolean({ defaultValue: false }),
         postType: t.arg({
@@ -301,6 +327,13 @@ builder.queryFields((t) => ({
           authenticationRequired();
         } else if (args.after != null && args.before != null) {
           conflictingCursors();
+        }
+        if ((args.languages?.length ?? 0) > MAX_LANGUAGE_FILTERS) {
+          throw createGraphQLError(
+            `Too many language filters: at most ${MAX_LANGUAGE_FILTERS} ` +
+              "base language codes are accepted.",
+            { extensions: { code: "TOO_MANY_LANGUAGE_FILTERS" } },
+          );
         }
         const backwards = args.last != null;
         const window = getConnectionWindow(args, {
@@ -315,6 +348,11 @@ builder.queryFields((t) => ({
         const timeline = await getPersonalTimeline(ctx.db, {
           currentAccount: ctx.account,
           direction: backwards ? "backward" : "forward",
+          languages: new Set(
+            (args.languages ?? []).flatMap((l) =>
+              l.language ? [l.language] : []
+            ),
+          ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,
           postType: args.postType == null

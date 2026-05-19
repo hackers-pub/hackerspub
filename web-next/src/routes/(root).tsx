@@ -5,7 +5,7 @@ import {
   useLocation,
 } from "@solidjs/router";
 import * as Sentry from "@sentry/solidstart";
-import { createRenderEffect, createSignal, onMount } from "solid-js";
+import { createRenderEffect, createSignal, onMount, Suspense } from "solid-js";
 import { graphql } from "relay-runtime";
 import {
   createPreloadedQuery,
@@ -148,7 +148,7 @@ export default function RootLayout(props: RouteSectionProps) {
               "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
             }}
           >
-            {props.children}
+            <Suspense>{props.children}</Suspense>
           </main>
           <FloatingComposeButton
             show={showFloatingCompose()}

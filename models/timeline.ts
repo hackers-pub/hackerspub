@@ -61,6 +61,47 @@ export function expandLocales(locales: string[]): string[] {
   ];
 }
 
+// Extracts unique base language codes from a set of BCP 47 tags.
+// "en-US" → "en"; "en" → "en"; duplicates are removed.
+// This ensures that region-specific locales (e.g. from user preferences)
+// are treated the same as base language codes for prefix-match filtering.
+function toBaseLangs(languages: Set<string>): string[] {
+  const seen = new Set<string>();
+  for (const lang of languages) {
+    try {
+      seen.add(new Intl.Locale(lang).language);
+    } catch {
+      const dash = lang.indexOf("-");
+      seen.add(dash > 0 ? lang.slice(0, dash) : lang);
+    }
+  }
+  return [...seen];
+}
+
+// Builds a Drizzle-compatible RAW SQL filter where each base language code is
+// matched as a prefix: "en" (and "en-US") both match "en" and "en-*". Used
+// for direct postTable queries (public timeline). The personal timeline uses a
+// correlated EXISTS predicate at the timelineItemTable level instead, because
+// Drizzle's RAW callback in nested relation filters receives the outer table
+// reference rather than the relation table's columns.
+function buildLanguagePrefixFilter(
+  languages: Set<string>,
+): RelationsFilter<"postTable"> {
+  const baseLangs = toBaseLangs(languages);
+  if (baseLangs.length === 0) return {};
+  return {
+    RAW: (post: typeof postTable) => {
+      const conditions = baseLangs.map((base) =>
+        sql`(${post.language} = ${base} OR ${post.language} LIKE ${
+          base + "-%"
+        })`
+      );
+      if (conditions.length === 1) return conditions[0];
+      return sql`(${sql.join(conditions, sql` OR `)})`;
+    },
+  };
+}
+
 type SocialGraphMaps = {
   followingMap: Map<Uuid, Following>;
   blockeeMap: Map<Uuid, Blocking>;
@@ -560,15 +601,13 @@ export async function getPublicTimeline(
       AND: [
         getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
         ...batchCursorFilters,
+        languages.size < 1
+          ? (currentAccount?.hideForeignLanguages &&
+              currentAccount.locales != null
+            ? { language: { in: expandLocales(currentAccount.locales) } }
+            : {})
+          : buildLanguagePrefixFilter(languages),
         {
-          ...(
-            languages.size < 1
-              ? (currentAccount?.hideForeignLanguages &&
-                  currentAccount.locales != null
-                ? { language: { in: expandLocales(currentAccount.locales) } }
-                : {})
-              : { language: { in: expandLocales([...languages]) } }
-          ),
           replyTargetId: { isNull: true },
           ...(
             local
@@ -807,6 +846,7 @@ export async function getPublicTimeline(
 
 export interface PersonalTimelineOptions extends TimelineOptions {
   currentAccount: Account & { actor: Actor };
+  readonly languages?: Set<string>;
 }
 
 export async function getPersonalTimeline(
@@ -814,6 +854,7 @@ export async function getPersonalTimeline(
   {
     currentAccount,
     direction = "forward",
+    languages,
     local = false,
     withoutShares = false,
     postType,
@@ -941,6 +982,27 @@ export async function getPersonalTimeline(
         // and rejecting the wrong types after a row-by-row JOIN.
         ...(postType == null ? {} : { postType }),
         ...(batchCursorFilters.length < 1 ? {} : { AND: batchCursorFilters }),
+        // Language filter: pushed to SQL via a correlated EXISTS subquery so
+        // it is applied before Drizzle hydrates the full post relations.
+        // Note: Drizzle's RAW callback in the nested `post: {}` relation filter
+        // receives the outer table ref rather than postTable, so we attach this
+        // predicate at the timelineItemTable level instead.
+        ...(languages != null && languages.size > 0
+          ? {
+            RAW: (ti: typeof timelineItemTable) => {
+              const baseLangs = toBaseLangs(languages);
+              const langConds = baseLangs.map((base) =>
+                sql`(${postTable.language} = ${base} OR ${postTable.language} LIKE ${
+                  base + "-%"
+                })`
+              );
+              const langWhere = langConds.length === 1
+                ? langConds[0]
+                : sql`(${sql.join(langConds, sql` OR `)})`;
+              return sql`EXISTS (SELECT 1 FROM ${postTable} WHERE ${postTable.id} = ${ti.postId} AND ${langWhere})`;
+            },
+          }
+          : {}),
         post: {
           AND: [
             getPostVisibilityFilter(currentAccount.actor),
@@ -953,7 +1015,8 @@ export async function getPersonalTimeline(
               }
               : {},
             currentAccount.hideForeignLanguages &&
-              currentAccount.locales != null
+              currentAccount.locales != null &&
+              (languages == null || languages.size === 0)
               ? { language: { in: expandLocales(currentAccount.locales) } }
               : {},
             {

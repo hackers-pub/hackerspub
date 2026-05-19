@@ -6,17 +6,20 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { AboutHackersPub } from "~/components/AboutHackersPub.tsx";
+import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
+import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
 
 const fediverseTimelineQuery = graphql`
   query fediverseTimelineQuery($locale: Locale, $languages: [Locale!]) {
     viewer {
       id
     }
+    suggestedFilterLanguages
     ...PublicTimeline_posts @arguments(
       locale: $locale,
       languages: $languages,
@@ -42,12 +45,15 @@ const loadFediverseTimelineQuery = routePreloadedQuery(
 
 export default function FediverseTimeline() {
   const { i18n } = useLingui();
+  const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
+    "/fediverse",
+  );
   const data = createPreloadedQuery<fediverseTimelineQuery>(
     fediverseTimelineQuery,
     () =>
       loadFediverseTimelineQuery(
         i18n.locale,
-        i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
+        initialLang ? [initialLang] : [],
       ),
   );
 
@@ -58,7 +64,17 @@ export default function FediverseTimeline() {
           <Show when={data.viewer == null}>
             <AboutHackersPub />
           </Show>
-          <PublicTimeline $posts={data} />
+          <Show
+            when={data.suggestedFilterLanguages.length > 0 ||
+              !!activeLanguage()}
+          >
+            <LanguageFilter
+              languages={data.suggestedFilterLanguages}
+              activeLanguage={activeLanguage()}
+              buildHref={buildHref}
+            />
+          </Show>
+          <PublicTimeline $posts={data} activeLanguage={activeLanguage} />
         </NarrowContainer>
       )}
     </Show>
