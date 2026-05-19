@@ -1,3 +1,4 @@
+import { useLocation, useSearchParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -6,6 +7,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { AboutHackersPub } from "~/components/AboutHackersPub.tsx";
+import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -17,6 +19,7 @@ const localTimelineQuery = graphql`
     viewer {
       id
     }
+    suggestedFilterLanguages
     ...PublicTimeline_posts @arguments(
       locale: $locale,
       languages: $languages,
@@ -36,15 +39,29 @@ const loadLocalTimelineQuery = routePreloadedQuery(
   "loadLocalTimelineQuery",
 );
 
+function normalizeLanguageParam(
+  raw: string | string[] | undefined,
+): string | undefined {
+  const tag = Array.isArray(raw) ? raw[0] : raw;
+  if (!tag) return undefined;
+  try {
+    return new Intl.Locale(tag).language;
+  } catch {
+    return undefined;
+  }
+}
+
 export default function LocalTimeline() {
   const { i18n } = useLingui();
+  const location = useLocation();
+  const [searchParams] = useSearchParams<{ language?: string }>();
+  const activeLanguage = () => normalizeLanguageParam(searchParams.language);
   const data = createPreloadedQuery<localTimelineQuery>(
     localTimelineQuery,
-    () =>
-      loadLocalTimelineQuery(
-        i18n.locale,
-        i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
-      ),
+    () => {
+      const lang = activeLanguage();
+      return loadLocalTimelineQuery(i18n.locale, lang ? [lang] : []);
+    },
   );
 
   return (
@@ -53,6 +70,22 @@ export default function LocalTimeline() {
         <NarrowContainer>
           <Show when={data.viewer == null}>
             <AboutHackersPub />
+          </Show>
+          <Show
+            when={data.suggestedFilterLanguages.length > 0 ||
+              !!activeLanguage()}
+          >
+            <LanguageFilter
+              languages={data.suggestedFilterLanguages}
+              activeLanguage={activeLanguage()}
+              buildHref={(lang) => {
+                const p = new URLSearchParams(location.search);
+                if (lang) p.set("language", lang);
+                else p.delete("language");
+                const qs = p.toString();
+                return "/local" + (qs ? "?" + qs : "");
+              }}
+            />
           </Show>
           <PublicTimeline $posts={data} />
         </NarrowContainer>

@@ -1,5 +1,5 @@
 import { A } from "@solidjs/router";
-import { For } from "solid-js";
+import { For, Show } from "solid-js";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export interface LanguageFilterProps {
@@ -10,12 +10,14 @@ export interface LanguageFilterProps {
 
 export function LanguageFilter(props: LanguageFilterProps) {
   const { t, i18n } = useLingui();
-  const displayNames = () =>
+
+  // Display name in the current UI locale ("Korean", "日本語", "英語")
+  const uiNames = () =>
     new Intl.DisplayNames(i18n.locale, { type: "language", fallback: "code" });
 
   const pillClass = (active: boolean) =>
     [
-      "rounded-full border px-3 py-1 text-sm transition-colors",
+      "rounded-full border px-3 py-1.5 text-sm transition-colors",
       active
         ? "border-primary bg-primary text-primary-foreground"
         : "border-input text-muted-foreground hover:bg-accent hover:text-accent-foreground",
@@ -30,15 +32,45 @@ export function LanguageFilter(props: LanguageFilterProps) {
         {t`All languages`}
       </A>
       <For each={props.languages}>
-        {(lang) => (
-          <A
-            href={props.buildHref(lang)}
-            class={pillClass(props.activeLanguage === lang)}
-            lang={lang}
-          >
-            {displayNames().of(lang) ?? lang}
-          </A>
-        )}
+        {(lang) => {
+          // Get the name of the language in that language itself (native name)
+          const nativeName = () => {
+            try {
+              return (
+                new Intl.DisplayNames(lang, {
+                  type: "language",
+                  fallback: "code",
+                }).of(lang) ?? lang
+              );
+            } catch {
+              return lang;
+            }
+          };
+          const uiName = () => uiNames().of(lang) ?? lang;
+          const active = () => props.activeLanguage === lang;
+          // Show the UI-locale name alongside the native name only when they differ
+          const showUiName = () =>
+            uiName().toLowerCase() !== nativeName().toLowerCase();
+
+          return (
+            <A
+              href={props.buildHref(lang)}
+              class={pillClass(active())}
+              lang={lang}
+            >
+              <span>{nativeName()}</span>
+              <Show when={showUiName()}>
+                <span
+                  class={active()
+                    ? "ml-1.5 text-xs opacity-60"
+                    : "ml-1.5 text-xs text-muted-foreground"}
+                >
+                  {uiName()}
+                </span>
+              </Show>
+            </A>
+          );
+        }}
       </For>
     </div>
   );
