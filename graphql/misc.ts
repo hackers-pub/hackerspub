@@ -21,10 +21,14 @@ builder.queryField("suggestedFilterLanguages", (t) =>
         const seen = new Set<string>();
         const result: Intl.Locale[] = [];
         for (const loc of ctx.account.locales) {
-          const base = new Intl.Locale(loc).language;
-          if (base && !seen.has(base)) {
-            seen.add(base);
-            result.push(new Intl.Locale(base));
+          try {
+            const base = new Intl.Locale(loc).language;
+            if (base && !seen.has(base)) {
+              seen.add(base);
+              result.push(new Intl.Locale(base));
+            }
+          } catch {
+            // Ignore malformed tags stored in account preferences.
           }
         }
         return result;

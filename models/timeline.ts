@@ -68,8 +68,12 @@ export function expandLocales(locales: string[]): string[] {
 function toBaseLangs(languages: Set<string>): string[] {
   const seen = new Set<string>();
   for (const lang of languages) {
-    const dash = lang.indexOf("-");
-    seen.add(dash > 0 ? lang.slice(0, dash) : lang);
+    try {
+      seen.add(new Intl.Locale(lang).language);
+    } catch {
+      const dash = lang.indexOf("-");
+      seen.add(dash > 0 ? lang.slice(0, dash) : lang);
+    }
   }
   return [...seen];
 }
