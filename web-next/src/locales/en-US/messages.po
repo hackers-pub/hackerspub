@@ -184,7 +184,7 @@ msgstr "{0} replied to your post"
 
 #. placeholder {0}: "SHARER"
 #. placeholder {1}: "RELATIVE_TIME"
-#: src/components/ActorSharer.tsx:24
+#: src/components/ActorSharer.tsx:25
 #: src/components/PostSharer.tsx:37
 #: src/components/QuestionCard.tsx:88
 msgid "{0} shared {1}"
@@ -252,7 +252,7 @@ msgstr "A sign-in link has been sent to your email. Please check your inbox (or 
 msgid "Account"
 msgstr "Account"
 
-#: src/components/AppSidebar.tsx:667
+#: src/components/AppSidebar.tsx:705
 #: src/routes/(root)/admin/index.tsx:96
 msgid "Accounts"
 msgstr "Accounts"
@@ -271,7 +271,7 @@ msgstr "Add"
 msgid "Add {0}"
 msgstr "Add {0}"
 
-#: src/components/AppSidebar.tsx:645
+#: src/components/AppSidebar.tsx:683
 msgid "Admin"
 msgstr "Admin"
 
@@ -287,16 +287,20 @@ msgstr "All images must finish uploading before posting"
 msgid "All images require alt text"
 msgstr "All images require alt text"
 
+#: src/components/LanguageFilter.tsx:30
+msgid "All languages"
+msgstr "All languages"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:314
 msgid "Allow automatic translation by AI"
 msgstr "Allow automatic translation by AI"
 
 #. placeholder {0}: index() + 1
-#: src/components/NoteComposer.tsx:1126
+#: src/components/NoteComposer.tsx:1139
 msgid "Alt text for image {0}"
 msgstr "Alt text for image {0}"
 
-#: src/components/NoteComposer.tsx:1138
+#: src/components/NoteComposer.tsx:1151
 msgid "Alt text for visually impaired people (required)"
 msgstr "Alt text for visually impaired people (required)"
 
@@ -393,8 +397,8 @@ msgstr "Articles only"
 msgid "As you have already changed it {0}, you can't change it again."
 msgstr "As you have already changed it {0}, you can't change it again."
 
-#: src/components/NoteComposer.tsx:1016
-#: src/components/NoteComposer.tsx:1017
+#: src/components/NoteComposer.tsx:1029
+#: src/components/NoteComposer.tsx:1030
 msgid "Attach image"
 msgstr "Attach image"
 
@@ -402,12 +406,12 @@ msgstr "Attach image"
 msgid "Authenticating…"
 msgstr "Authenticating…"
 
-#: src/components/NoteComposer.tsx:1157
+#: src/components/NoteComposer.tsx:1170
 msgid "Auto-fill"
 msgstr "Auto-fill"
 
-#: src/components/NoteComposer.tsx:1150
-#: src/components/NoteComposer.tsx:1151
+#: src/components/NoteComposer.tsx:1163
+#: src/components/NoteComposer.tsx:1164
 msgid "Auto-fill alt text"
 msgstr "Auto-fill alt text"
 
@@ -443,15 +447,15 @@ msgstr "Bold"
 msgid "Bookmark"
 msgstr "Bookmark"
 
-#: src/components/AppSidebar.tsx:568
+#: src/components/AppSidebar.tsx:573
 #: src/routes/(root)/[handle]/bookmarks.tsx:126
 msgid "Bookmarks"
 msgstr "Bookmarks"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:44
-#: src/components/NoteComposer.tsx:1185
-#: src/components/NoteComposer.tsx:1186
-#: src/components/NoteComposer.tsx:1229
+#: src/components/NoteComposer.tsx:1198
+#: src/components/NoteComposer.tsx:1199
+#: src/components/NoteComposer.tsx:1242
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
@@ -501,7 +505,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:893
+#: src/components/AppSidebar.tsx:932
 #: src/routes/(root)/coc.tsx:41
 #: src/routes/(root)/sign/up/[token].tsx:462
 msgid "Code of conduct"
@@ -511,7 +515,7 @@ msgstr "Code of conduct"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:736
+#: src/components/AppSidebar.tsx:774
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -558,7 +562,7 @@ msgstr "Could not revoke quote"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:782
+#: src/components/AppSidebar.tsx:820
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -567,10 +571,10 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:758
+#: src/components/AppSidebar.tsx:796
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:69
-#: src/components/NoteComposer.tsx:1241
+#: src/components/NoteComposer.tsx:1254
 msgid "Create note"
 msgstr "Create note"
 
@@ -591,7 +595,7 @@ msgstr "Created {0}"
 msgid "Creating account…"
 msgstr "Creating account…"
 
-#: src/components/NoteComposer.tsx:1242
+#: src/components/NoteComposer.tsx:1255
 #: src/routes/(root)/[handle]/settings/invite.tsx:766
 msgid "Creating…"
 msgstr "Creating…"
@@ -931,7 +935,7 @@ msgstr "Failed to register passkey"
 msgid "Failed to remove bookmark"
 msgstr "Failed to remove bookmark"
 
-#: src/components/MarkdownEditor.tsx:190
+#: src/components/MarkdownEditor.tsx:192
 msgid "Failed to render preview"
 msgstr "Failed to render preview"
 
@@ -1057,11 +1061,11 @@ msgstr "Following you"
 msgid "Formatting"
 msgstr "Formatting"
 
-#: src/components/NoteComposer.tsx:1176
+#: src/components/NoteComposer.tsx:1189
 msgid "Generating…"
 msgstr "Generating…"
 
-#: src/components/AppSidebar.tsx:931
+#: src/components/AppSidebar.tsx:970
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1096,7 +1100,7 @@ msgstr "Grants one extra invitation to the most active accounts (the top third b
 
 #: src/components/AppSidebar.tsx:313
 #: src/components/AppSidebar.tsx:401
-#: src/routes/(root).tsx:121
+#: src/routes/(root).tsx:132
 #: src/routes/(root)/coc.tsx:41
 #: src/routes/(root)/markdown.tsx:41
 #: src/routes/(root)/privacy.tsx:41
@@ -1104,7 +1108,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:18
-#: src/routes/(root).tsx:113
+#: src/routes/(root).tsx:124
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub home"
 
@@ -1225,7 +1229,7 @@ msgstr "Invitation links"
 msgid "Invitation sent"
 msgstr "Invitation sent"
 
-#: src/components/AppSidebar.tsx:690
+#: src/components/AppSidebar.tsx:728
 #: src/routes/(root)/admin/invitations.tsx:150
 msgid "Invitations"
 msgstr "Invitations"
@@ -1234,7 +1238,7 @@ msgstr "Invitations"
 msgid "Invitations left"
 msgstr "Invitations left"
 
-#: src/components/AppSidebar.tsx:592
+#: src/components/AppSidebar.tsx:597
 #: src/components/SettingsTabs.tsx:68
 #: src/routes/(root)/[handle]/settings/invite.tsx:291
 msgid "Invite"
@@ -1481,12 +1485,12 @@ msgid "Markdown guide"
 msgstr "Markdown guide"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:99
-#: src/components/NoteComposer.tsx:1074
+#: src/components/NoteComposer.tsx:1087
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
 msgid "Markdown supported"
 msgstr "Markdown supported"
 
-#: src/components/AppSidebar.tsx:713
+#: src/components/AppSidebar.tsx:751
 #: src/routes/(root)/admin/media.tsx:154
 msgid "Media"
 msgstr "Media"
@@ -1668,11 +1672,11 @@ msgstr "Note that you can verify your links belong to you by making the linked p
 msgid "Notes"
 msgstr "Notes"
 
-#: src/components/MarkdownEditor.tsx:191
+#: src/components/MarkdownEditor.tsx:193
 msgid "Nothing to preview"
 msgstr "Nothing to preview"
 
-#: src/components/AppSidebar.tsx:524
+#: src/components/AppSidebar.tsx:529
 msgid "Notifications"
 msgstr "Notifications"
 
@@ -1821,7 +1825,7 @@ msgstr "Preferred language"
 msgid "Preferred languages"
 msgstr "Preferred languages"
 
-#: src/components/MarkdownEditor.tsx:162
+#: src/components/MarkdownEditor.tsx:164
 msgid "Preview"
 msgstr "Preview"
 
@@ -1833,7 +1837,7 @@ msgstr "Previous image"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:898
+#: src/components/AppSidebar.tsx:937
 #: src/routes/(root)/privacy.tsx:41
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -1929,8 +1933,8 @@ msgstr "reaction"
 msgid "Reactions"
 msgstr "Reactions"
 
-#: src/components/ArticleCard.tsx:472
-#: src/components/ArticleCard.tsx:492
+#: src/components/ArticleCard.tsx:470
+#: src/components/ArticleCard.tsx:490
 msgid "Read full article"
 msgstr "Read full article"
 
@@ -1938,7 +1942,7 @@ msgstr "Read full article"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "Read the full Code of conduct"
 
-#: src/components/AppSidebar.tsx:817
+#: src/components/AppSidebar.tsx:856
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
@@ -1998,8 +2002,8 @@ msgstr "Remove {0}"
 msgid "Remove bookmark"
 msgstr "Remove bookmark"
 
-#: src/components/NoteComposer.tsx:1197
-#: src/components/NoteComposer.tsx:1198
+#: src/components/NoteComposer.tsx:1210
+#: src/components/NoteComposer.tsx:1211
 msgid "Remove image"
 msgstr "Remove image"
 
@@ -2012,7 +2016,7 @@ msgstr "Remove quote"
 msgid "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 msgstr "Removes stored media that are old enough and no longer attached to an avatar, note, article draft, or article."
 
-#: src/components/MarkdownEditor.tsx:179
+#: src/components/MarkdownEditor.tsx:181
 msgid "Rendering…"
 msgstr "Rendering…"
 
@@ -2130,7 +2134,7 @@ msgstr "Sending…"
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
-#: src/components/AppSidebar.tsx:624
+#: src/components/AppSidebar.tsx:629
 msgid "Settings"
 msgstr "Settings"
 
@@ -2153,7 +2157,7 @@ msgstr "Sharing is not available for this post"
 msgid "Show preview"
 msgstr "Show preview"
 
-#: src/components/AppSidebar.tsx:485
+#: src/components/AppSidebar.tsx:490
 #: src/routes/(root)/sign/index.tsx:382
 msgid "Sign in"
 msgstr "Sign in"
@@ -2170,7 +2174,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:880
+#: src/components/AppSidebar.tsx:919
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -2240,8 +2244,7 @@ msgstr "Successfully saved preferences"
 msgid "Successfully saved settings"
 msgstr "Successfully saved settings"
 
-#: src/components/ArticleCard.tsx:425
-#: src/components/ArticleCard.tsx:444
+#: src/components/ArticleCard.tsx:443
 msgid "Summarized by LLM"
 msgstr "Summarized by LLM"
 
@@ -2329,7 +2332,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:922
+#: src/components/AppSidebar.tsx:961
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -2404,7 +2407,7 @@ msgstr "Title cannot be empty"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "To follow {0}, enter your Fediverse handle."
 
-#: src/routes/(root).tsx:111
+#: src/routes/(root).tsx:122
 msgid "Toggle sidebar"
 msgstr "Toggle sidebar"
 
@@ -2497,7 +2500,7 @@ msgstr "Update your profile information, including your avatar, username, displa
 msgid "Updated {0}"
 msgstr "Updated {0}"
 
-#: src/components/NoteComposer.tsx:1113
+#: src/components/NoteComposer.tsx:1126
 msgid "Upload progress"
 msgstr "Upload progress"
 
@@ -2552,7 +2555,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:843
+#: src/components/AppSidebar.tsx:882
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
@@ -2644,7 +2647,7 @@ msgstr "Welcome to Hackers' Pub! Please fill out the form below to complete your
 msgid "What is Hackers' Pub?"
 msgstr "What is Hackers' Pub?"
 
-#: src/components/NoteComposer.tsx:998
+#: src/components/NoteComposer.tsx:1011
 msgid "What's on your mind?"
 msgstr "What's on your mind?"
 
@@ -2652,7 +2655,7 @@ msgstr "What's on your mind?"
 msgid "Without shares"
 msgstr "Without shares"
 
-#: src/components/MarkdownEditor.tsx:159
+#: src/components/MarkdownEditor.tsx:161
 msgid "Write"
 msgstr "Write"
 
