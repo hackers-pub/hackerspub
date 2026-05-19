@@ -623,19 +623,40 @@ export async function updateNote(
     ccs: noteObject.ccIds,
     object: noteObject,
   });
-  await fedCtx.sendActivity(
-    { identifier: noteSource.accountId },
-    "followers",
-    activity,
-    {
-      orderingKey: post.iri,
-      preferSharedInbox: true,
-      excludeBaseUris: [
-        new URL(fedCtx.origin),
-        new URL(fedCtx.canonicalOrigin),
-      ],
-    },
-  );
+  if (post.visibility !== "none" && post.mentions.length > 0) {
+    const directRecipients: Recipient[] = post.mentions.map((m) => ({
+      id: new URL(m.actor.iri),
+      inboxId: new URL(m.actor.inboxUrl),
+      endpoints: m.actor.sharedInboxUrl == null
+        ? null
+        : { sharedInbox: new URL(m.actor.sharedInboxUrl) },
+    }));
+    await fedCtx.sendActivity(
+      { identifier: noteSource.accountId },
+      directRecipients,
+      activity,
+      {
+        orderingKey: post.iri,
+        preferSharedInbox: false,
+        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+      },
+    );
+  }
+  if (post.visibility !== "direct" && post.visibility !== "none") {
+    await fedCtx.sendActivity(
+      { identifier: noteSource.accountId },
+      "followers",
+      activity,
+      {
+        orderingKey: post.iri,
+        preferSharedInbox: true,
+        excludeBaseUris: [
+          new URL(fedCtx.origin),
+          new URL(fedCtx.canonicalOrigin),
+        ],
+      },
+    );
+  }
   const relayedTags = await sendTagsPubRelayActivity(
     fedCtx,
     noteSource.accountId,
