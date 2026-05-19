@@ -1,4 +1,3 @@
-import { useLocation, useSearchParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -11,8 +10,8 @@ import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { normalizeLanguageParam } from "~/lib/languageParam.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
 
 const fediverseTimelineQuery = graphql`
@@ -46,11 +45,9 @@ const loadFediverseTimelineQuery = routePreloadedQuery(
 
 export default function FediverseTimeline() {
   const { i18n } = useLingui();
-  const location = useLocation();
-  const [searchParams] = useSearchParams<{ language?: string }>();
-  const activeLanguage = () => normalizeLanguageParam(searchParams.language);
-
-  const initialLang = normalizeLanguageParam(searchParams.language);
+  const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
+    "/fediverse",
+  );
   const data = createPreloadedQuery<fediverseTimelineQuery>(
     fediverseTimelineQuery,
     () =>
@@ -74,13 +71,7 @@ export default function FediverseTimeline() {
             <LanguageFilter
               languages={data.suggestedFilterLanguages}
               activeLanguage={activeLanguage()}
-              buildHref={(lang) => {
-                const p = new URLSearchParams(location.search);
-                if (lang) p.set("language", lang);
-                else p.delete("language");
-                const qs = p.toString();
-                return "/fediverse" + (qs ? "?" + qs : "");
-              }}
+              buildHref={buildHref}
             />
           </Show>
           <PublicTimeline $posts={data} activeLanguage={activeLanguage} />

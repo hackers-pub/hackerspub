@@ -1,4 +1,3 @@
-import { useLocation, useSearchParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -11,8 +10,8 @@ import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { normalizeLanguageParam } from "~/lib/languageParam.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
 
 const localTimelineQuery = graphql`
@@ -42,15 +41,9 @@ const loadLocalTimelineQuery = routePreloadedQuery(
 
 export default function LocalTimeline() {
   const { i18n } = useLingui();
-  const location = useLocation();
-  const [searchParams] = useSearchParams<{ language?: string }>();
-  const activeLanguage = () => normalizeLanguageParam(searchParams.language);
-
-  // Capture the language at mount time (non-reactive) for the initial query.
-  // Subsequent URL language changes are handled via fragment-level refetch
-  // inside PublicTimeline — this prevents createPreloadedQuery from creating a
-  // new QueryRef on every filter click (which would cause a full DOM flash).
-  const initialLang = normalizeLanguageParam(searchParams.language);
+  const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
+    "/local",
+  );
   const data = createPreloadedQuery<localTimelineQuery>(
     localTimelineQuery,
     () => loadLocalTimelineQuery(i18n.locale, initialLang ? [initialLang] : []),
@@ -70,13 +63,7 @@ export default function LocalTimeline() {
             <LanguageFilter
               languages={data.suggestedFilterLanguages}
               activeLanguage={activeLanguage()}
-              buildHref={(lang) => {
-                const p = new URLSearchParams(location.search);
-                if (lang) p.set("language", lang);
-                else p.delete("language");
-                const qs = p.toString();
-                return "/local" + (qs ? "?" + qs : "");
-              }}
+              buildHref={buildHref}
             />
           </Show>
           <PublicTimeline $posts={data} activeLanguage={activeLanguage} />

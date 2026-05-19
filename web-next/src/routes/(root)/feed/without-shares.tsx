@@ -1,9 +1,4 @@
-import {
-  Navigate,
-  type RouteDefinition,
-  useLocation,
-  useSearchParams,
-} from "@solidjs/router";
+import { Navigate, type RouteDefinition, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -17,8 +12,8 @@ import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { normalizeLanguageParam } from "~/lib/languageParam.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { withoutSharesFeedTimelineQuery } from "./__generated__/withoutSharesFeedTimelineQuery.graphql.ts";
 
 export const route = {
@@ -57,11 +52,9 @@ const loadWithoutSharesFeedTimelineQuery = routePreloadedQuery(
 
 function AuthenticatedWithoutSharesFeedTimeline() {
   const { i18n } = useLingui();
-  const location = useLocation();
-  const [searchParams] = useSearchParams<{ language?: string }>();
-  const activeLanguage = () => normalizeLanguageParam(searchParams.language);
-
-  const initialLang = normalizeLanguageParam(searchParams.language);
+  const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
+    "/feed/without-shares",
+  );
   const data = createPreloadedQuery<withoutSharesFeedTimelineQuery>(
     withoutSharesFeedTimelineQuery,
     () =>
@@ -81,13 +74,7 @@ function AuthenticatedWithoutSharesFeedTimeline() {
             <LanguageFilter
               languages={d.suggestedFilterLanguages}
               activeLanguage={activeLanguage()}
-              buildHref={(lang) => {
-                const p = new URLSearchParams(location.search);
-                if (lang) p.set("language", lang);
-                else p.delete("language");
-                const qs = p.toString();
-                return "/feed/without-shares" + (qs ? "?" + qs : "");
-              }}
+              buildHref={buildHref}
             />
           </Show>
           <PersonalTimeline $posts={d} activeLanguage={activeLanguage} />
