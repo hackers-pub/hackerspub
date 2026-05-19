@@ -77,7 +77,11 @@ function AuthenticatedWithoutSharesFeedTimeline() {
               buildHref={buildHref}
             />
           </Show>
-          <PersonalTimeline $posts={d} activeLanguage={activeLanguage} />
+          <PersonalTimeline
+            $posts={d}
+            activeLanguage={activeLanguage}
+            withoutShares
+          />
         </NarrowContainer>
       )}
     </Show>

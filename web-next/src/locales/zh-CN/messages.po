@@ -613,7 +613,7 @@ msgstr "裁剪你的新头像"
 msgid "Cutoff:"
 msgstr "截止时间："
 
-#: src/components/NoteCardInternal.tsx:102
+#: src/components/NoteCardInternal.tsx:103
 #: src/components/QuotedNoteCard.tsx:178
 msgid "CW"
 msgstr "CW"
@@ -875,8 +875,8 @@ msgstr "加载更多通行密钥失败，点击重试"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:132
-#: src/components/PublicTimeline.tsx:125
+#: src/components/PersonalTimeline.tsx:231
+#: src/components/PublicTimeline.tsx:224
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
@@ -1145,7 +1145,8 @@ msgstr "标题 2"
 msgid "Heading 3"
 msgstr "标题 3"
 
-#: src/components/NoteCardInternal.tsx:110
+#: src/components/NoteCardInternal.tsx:112
+#: src/components/NoteMedia.tsx:270
 #: src/components/QuotedNoteCard.tsx:189
 msgid "Hide"
 msgstr "隐藏"
@@ -1374,8 +1375,8 @@ msgstr "加载更多通行密钥"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:135
-#: src/components/PublicTimeline.tsx:128
+#: src/components/PersonalTimeline.tsx:234
+#: src/components/PublicTimeline.tsx:227
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "加载更多内容"
@@ -1440,8 +1441,8 @@ msgstr "正在加载更多通行密钥…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:129
-#: src/components/PublicTimeline.tsx:122
+#: src/components/PersonalTimeline.tsx:228
+#: src/components/PublicTimeline.tsx:221
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
@@ -1566,6 +1567,11 @@ msgstr "从未使用过"
 msgid "New article"
 msgstr "新建文章"
 
+#: src/components/PersonalTimeline.tsx:203
+#: src/components/PublicTimeline.tsx:198
+msgid "New posts available — click to load"
+msgstr "有新内容 — 点击加载"
+
 #: src/components/ImageLightbox.tsx:126
 msgid "Next image"
 msgstr "下一张图片"
@@ -1620,8 +1626,8 @@ msgstr "暂无转帖。"
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:142
-#: src/components/PublicTimeline.tsx:135
+#: src/components/PersonalTimeline.tsx:241
+#: src/components/PublicTimeline.tsx:234
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "未找到内容"
@@ -2163,7 +2169,7 @@ msgstr "转帖"
 msgid "Sharing is not available for this post"
 msgstr "无法转帖此内容。"
 
-#: src/components/NoteCardInternal.tsx:110
+#: src/components/NoteCardInternal.tsx:112
 #: src/components/QuotedNoteCard.tsx:189
 msgid "Show"
 msgstr "显示"
@@ -2172,7 +2178,7 @@ msgstr "显示"
 msgid "Show preview"
 msgstr "显示预览"
 
-#: src/components/NoteMedia.tsx:71
+#: src/components/NoteMedia.tsx:259
 msgid "Show sensitive content"
 msgstr "显示敏感内容"
 
@@ -2578,7 +2584,7 @@ msgstr "正在验证您的邀请…"
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
-#: src/components/NoteMedia.tsx:84
+#: src/components/NoteMedia.tsx:68
 msgid "View image"
 msgstr "查看图片"
 

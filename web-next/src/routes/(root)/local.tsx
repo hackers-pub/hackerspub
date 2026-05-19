@@ -66,7 +66,11 @@ export default function LocalTimeline() {
               buildHref={buildHref}
             />
           </Show>
-          <PublicTimeline $posts={data} activeLanguage={activeLanguage} />
+          <PublicTimeline
+            $posts={data}
+            activeLanguage={activeLanguage}
+            local
+          />
         </NarrowContainer>
       )}
     </Show>

@@ -74,7 +74,11 @@ export default function FediverseTimeline() {
               buildHref={buildHref}
             />
           </Show>
-          <PublicTimeline $posts={data} activeLanguage={activeLanguage} />
+          <PublicTimeline
+            $posts={data}
+            activeLanguage={activeLanguage}
+            local={false}
+          />
         </NarrowContainer>
       )}
     </Show>

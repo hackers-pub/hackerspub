@@ -1,4 +1,4 @@
-import { graphql } from "relay-runtime";
+import { fetchQuery, graphql } from "relay-runtime";
 import {
   createEffect,
   createSignal,
@@ -10,20 +10,48 @@ import {
   Show,
   Switch,
 } from "solid-js";
-import { createPaginationFragment } from "solid-relay";
+import { createPaginationFragment, useRelayEnvironment } from "solid-relay";
 import { PostCard } from "~/components/PostCard.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { PublicTimeline_posts$key } from "./__generated__/PublicTimeline_posts.graphql.ts";
+import type { PublicTimelinePollQuery } from "./__generated__/PublicTimelinePollQuery.graphql.ts";
+
+// Fetches only the newest edge's cursor to detect new content without
+// updating the main connection in the Relay store.
+const pollQuery = graphql`
+  query PublicTimelinePollQuery(
+    $languages: [Locale!]
+    $local: Boolean
+    $postType: PostType
+    $withoutShares: Boolean
+  ) {
+    publicTimeline(
+      first: 1,
+      languages: $languages,
+      local: $local,
+      postType: $postType,
+      withoutShares: $withoutShares,
+    ) {
+      edges {
+        cursor
+      }
+    }
+  }
+`;
 
 export interface PublicTimelineProps {
   $posts: PublicTimeline_posts$key;
   activeLanguage?: () => string | undefined;
+  local?: boolean;
+  postType?: "ARTICLE" | "NOTE" | "QUESTION" | null;
+  withoutShares?: boolean;
 }
 
 export function PublicTimeline(props: PublicTimelineProps) {
   const { t } = useLingui();
   const { onNoteCreated } = useNoteCompose();
+  const environment = useRelayEnvironment();
   const posts = createPaginationFragment(
     graphql`
       fragment PublicTimeline_posts on Query
@@ -52,6 +80,7 @@ export function PublicTimeline(props: PublicTimelineProps) {
           __id
           edges {
             __id
+            cursor
             node {
               ...PostCard_post @arguments(locale: $locale)
             }
@@ -67,6 +96,28 @@ export function PublicTimeline(props: PublicTimelineProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
+  // undefined = not yet initialized; null = initialized but empty timeline.
+  const [baselineCursor, setBaselineCursor] = createSignal<
+    string | null | undefined
+  >(undefined);
+  const [hasNewPosts, setHasNewPosts] = createSignal(false);
+
+  // Keep the baseline cursor in sync with whatever is currently displayed.
+  // Distinguishes "data not loaded yet" (undefined) from "loaded but empty"
+  // (null) so an empty-then-populated timeline still shows the banner.
+  // Clears the "new posts" banner whenever the timeline refreshes.
+  createEffect(on(
+    () => {
+      const data = posts();
+      if (data == null) return undefined;
+      return data.publicTimeline.edges[0]?.cursor ?? null;
+    },
+    (cursor) => {
+      if (cursor === undefined) return;
+      setBaselineCursor(cursor);
+      setHasNewPosts(false);
+    },
+  ));
 
   // When the language filter changes after initial mount, refetch at the
   // fragment level so the DOM subtree stays mounted (no flash). The top-level
@@ -81,12 +132,66 @@ export function PublicTimeline(props: PublicTimelineProps) {
   ));
 
   onMount(() => {
+    // Stale-while-revalidate: show cached content immediately, refresh in
+    // the background so returning to this timeline shows fresh content.
+    const lang = props.activeLanguage?.();
+    posts.refetch({ languages: lang ? [lang] : [] });
+
     onCleanup(onNoteCreated(() => {
-      // TODO: Refetch the timeline when a note is created with keeping old data visible
       const lang = props.activeLanguage?.();
       posts.refetch({ languages: lang ? [lang] : [] });
     }));
+
+    // Poll for new content without disrupting the current view.
+    const pollIntervalMs = import.meta.env.DEV ? 10_000 : 60_000;
+    let pendingPollSub: { unsubscribe(): void } | null = null;
+    let isPolling = false;
+    const intervalId = setInterval(() => {
+      if (posts.pending || hasNewPosts() || isPolling) return;
+
+      const lang = props.activeLanguage?.();
+      isPolling = true;
+      pendingPollSub = fetchQuery<PublicTimelinePollQuery>(
+        environment(),
+        pollQuery,
+        {
+          languages: lang ? [lang] : [],
+          local: props.local ?? false,
+          postType: props.postType ?? null,
+          withoutShares: props.withoutShares ?? false,
+        },
+      ).subscribe({
+        next(data) {
+          const firstCursor = data.publicTimeline?.edges[0]?.cursor ?? null;
+          const baseline = baselineCursor();
+          if (baseline !== undefined && firstCursor !== baseline) {
+            setHasNewPosts(true);
+          }
+        },
+        error() {
+          // Ignore poll errors silently; the next tick will retry.
+          isPolling = false;
+          pendingPollSub = null;
+        },
+        complete() {
+          isPolling = false;
+          pendingPollSub = null;
+        },
+      });
+    }, pollIntervalMs);
+
+    onCleanup(() => {
+      clearInterval(intervalId);
+      pendingPollSub?.unsubscribe();
+      isPolling = false;
+    });
   });
+
+  function onBannerClick() {
+    setHasNewPosts(false);
+    const lang = props.activeLanguage?.();
+    posts.refetch({ languages: lang ? [lang] : [] });
+  }
 
   function onLoadMore() {
     setLoadingState("loading");
@@ -99,6 +204,15 @@ export function PublicTimeline(props: PublicTimelineProps) {
 
   return (
     <div class="mt-4 mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
+      <Show when={hasNewPosts()}>
+        <button
+          type="button"
+          onClick={onBannerClick}
+          class="block w-full cursor-pointer border-b bg-primary/5 px-4 py-3 text-center text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+        >
+          {t`New posts available — click to load`}
+        </button>
+      </Show>
       <Show keyed when={posts()}>
         {(data) => (
           <>

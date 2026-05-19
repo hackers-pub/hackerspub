@@ -77,7 +77,11 @@ function AuthenticatedArticlesFeedTimeline() {
               buildHref={buildHref}
             />
           </Show>
-          <PersonalTimeline $posts={d} activeLanguage={activeLanguage} />
+          <PersonalTimeline
+            $posts={d}
+            activeLanguage={activeLanguage}
+            postType="ARTICLE"
+          />
         </NarrowContainer>
       )}
     </Show>

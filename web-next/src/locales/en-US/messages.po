@@ -613,7 +613,7 @@ msgstr "Crop your new avatar"
 msgid "Cutoff:"
 msgstr "Cutoff:"
 
-#: src/components/NoteCardInternal.tsx:102
+#: src/components/NoteCardInternal.tsx:103
 #: src/components/QuotedNoteCard.tsx:178
 msgid "CW"
 msgstr "CW"
@@ -879,8 +879,8 @@ msgstr "Failed to load more passkeys; click to retry"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:132
-#: src/components/PublicTimeline.tsx:125
+#: src/components/PersonalTimeline.tsx:231
+#: src/components/PublicTimeline.tsx:224
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
@@ -1149,7 +1149,8 @@ msgstr "Heading 2"
 msgid "Heading 3"
 msgstr "Heading 3"
 
-#: src/components/NoteCardInternal.tsx:110
+#: src/components/NoteCardInternal.tsx:112
+#: src/components/NoteMedia.tsx:270
 #: src/components/QuotedNoteCard.tsx:189
 msgid "Hide"
 msgstr "Hide"
@@ -1378,8 +1379,8 @@ msgstr "Load more passkeys"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:135
-#: src/components/PublicTimeline.tsx:128
+#: src/components/PersonalTimeline.tsx:234
+#: src/components/PublicTimeline.tsx:227
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "Load more posts"
@@ -1444,8 +1445,8 @@ msgstr "Loading more passkeys…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:129
-#: src/components/PublicTimeline.tsx:122
+#: src/components/PersonalTimeline.tsx:228
+#: src/components/PublicTimeline.tsx:221
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
@@ -1570,6 +1571,11 @@ msgstr "Never used"
 msgid "New article"
 msgstr "New article"
 
+#: src/components/PersonalTimeline.tsx:203
+#: src/components/PublicTimeline.tsx:198
+msgid "New posts available — click to load"
+msgstr "New posts available — click to load"
+
 #: src/components/ImageLightbox.tsx:126
 msgid "Next image"
 msgstr "Next image"
@@ -1624,8 +1630,8 @@ msgstr "No one has shared this yet."
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:142
-#: src/components/PublicTimeline.tsx:135
+#: src/components/PersonalTimeline.tsx:241
+#: src/components/PublicTimeline.tsx:234
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "No posts found"
@@ -2167,7 +2173,7 @@ msgstr "Shares"
 msgid "Sharing is not available for this post"
 msgstr "Sharing is not available for this post"
 
-#: src/components/NoteCardInternal.tsx:110
+#: src/components/NoteCardInternal.tsx:112
 #: src/components/QuotedNoteCard.tsx:189
 msgid "Show"
 msgstr "Show"
@@ -2176,7 +2182,7 @@ msgstr "Show"
 msgid "Show preview"
 msgstr "Show preview"
 
-#: src/components/NoteMedia.tsx:71
+#: src/components/NoteMedia.tsx:259
 msgid "Show sensitive content"
 msgstr "Show sensitive content"
 
@@ -2582,7 +2588,7 @@ msgstr "Verifying your invitation…"
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
-#: src/components/NoteMedia.tsx:84
+#: src/components/NoteMedia.tsx:68
 msgid "View image"
 msgstr "View image"
 
