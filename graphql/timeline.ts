@@ -141,11 +141,7 @@ builder.queryFields((t) => ({
           currentAccount: ctx.account,
           direction: backwards ? "backward" : "forward",
           languages: new Set(
-            (args.languages ?? []).flatMap((l) =>
-              l.language !== l.baseName
-                ? [l.baseName, l.language]
-                : [l.baseName]
-            ),
+            (args.languages ?? []).map((l) => l.language),
           ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,
