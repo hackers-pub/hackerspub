@@ -261,7 +261,7 @@ function SensitiveWrapper(props: SensitiveWrapperProps) {
         </div>
       </Show>
       <Show when={!hidden()}>
-        <div class="absolute top-2 right-2">
+        <div class="absolute top-2 right-2 opacity-40 transition-opacity hover:opacity-100">
           <Button
             variant="outline"
             size="sm"
