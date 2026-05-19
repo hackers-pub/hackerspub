@@ -1,4 +1,9 @@
-import { Navigate, type RouteDefinition, useLocation } from "@solidjs/router";
+import {
+  Navigate,
+  type RouteDefinition,
+  useLocation,
+  useSearchParams,
+} from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import {
@@ -6,6 +11,7 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
@@ -32,20 +38,30 @@ export const route = {
 } satisfies RouteDefinition;
 
 const feedTimelineQuery = graphql`
-  query feedTimelineQuery($locale: Locale) {
-    ...PersonalTimeline_posts @arguments(locale: $locale)
+  query feedTimelineQuery($locale: Locale, $languages: [Locale!]) {
+    suggestedFilterLanguages
+    ...PersonalTimeline_posts @arguments(locale: $locale, languages: $languages)
   }
 `;
 
 const loadFeedTimelineQuery = routePreloadedQuery(
-  (locale: string) =>
+  (locale: string, languages: readonly string[]) =>
     loadQuery<feedTimelineQuery>(
       useRelayEnvironment()(),
       feedTimelineQuery,
-      { locale },
+      { locale, languages },
     ),
   "loadFeedTimelineQuery",
 );
+
+function normalizeLanguageParam(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  try {
+    return new Intl.Locale(raw).language;
+  } catch {
+    return undefined;
+  }
+}
 
 // Mounted only after the viewer is known to be authenticated. Keeping
 // `createPreloadedQuery` inside this child means the protected feed
@@ -53,15 +69,36 @@ const loadFeedTimelineQuery = routePreloadedQuery(
 // render path from triggering it before <Navigate> takes over.
 function AuthenticatedFeedTimeline() {
   const { i18n } = useLingui();
+  const location = useLocation();
+  const [searchParams] = useSearchParams<{ language?: string }>();
+  const activeLanguage = () => normalizeLanguageParam(searchParams.language);
   const data = createPreloadedQuery<feedTimelineQuery>(
     feedTimelineQuery,
-    () => loadFeedTimelineQuery(i18n.locale),
+    () => {
+      const lang = activeLanguage();
+      return loadFeedTimelineQuery(i18n.locale, lang ? [lang] : []);
+    },
   );
   return (
     <Show keyed when={data()}>
-      {(data) => (
+      {(d) => (
         <NarrowContainer>
-          <PersonalTimeline $posts={data} />
+          <Show
+            when={d.suggestedFilterLanguages.length > 0 || !!activeLanguage()}
+          >
+            <LanguageFilter
+              languages={d.suggestedFilterLanguages}
+              activeLanguage={activeLanguage()}
+              buildHref={(lang) => {
+                const p = new URLSearchParams(location.search);
+                if (lang) p.set("language", lang);
+                else p.delete("language");
+                const qs = p.toString();
+                return "/feed" + (qs ? "?" + qs : "");
+              }}
+            />
+          </Show>
+          <PersonalTimeline $posts={d} />
         </NarrowContainer>
       )}
     </Show>
