@@ -11,8 +11,9 @@ import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
+import { normalizeLanguageParam } from "~/lib/languageParam.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
 
 const fediverseTimelineQuery = graphql`
   query fediverseTimelineQuery($locale: Locale, $languages: [Locale!]) {
@@ -42,18 +43,6 @@ const loadFediverseTimelineQuery = routePreloadedQuery(
     ),
   "loadFediverseTimelineQuery",
 );
-
-function normalizeLanguageParam(
-  raw: string | string[] | undefined,
-): string | undefined {
-  const tag = Array.isArray(raw) ? raw[0] : raw;
-  if (!tag) return undefined;
-  try {
-    return new Intl.Locale(tag).language;
-  } catch {
-    return undefined;
-  }
-}
 
 export default function FediverseTimeline() {
   const { i18n } = useLingui();

@@ -17,6 +17,7 @@ import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { normalizeLanguageParam } from "~/lib/languageParam.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 import type { feedTimelineQuery } from "./__generated__/feedTimelineQuery.graphql.ts";
 
@@ -53,18 +54,6 @@ const loadFeedTimelineQuery = routePreloadedQuery(
     ),
   "loadFeedTimelineQuery",
 );
-
-function normalizeLanguageParam(
-  raw: string | string[] | undefined,
-): string | undefined {
-  const tag = Array.isArray(raw) ? raw[0] : raw;
-  if (!tag) return undefined;
-  try {
-    return new Intl.Locale(tag).language;
-  } catch {
-    return undefined;
-  }
-}
 
 // Mounted only after the viewer is known to be authenticated. Keeping
 // `createPreloadedQuery` inside this child means the protected feed

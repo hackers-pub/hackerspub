@@ -11,8 +11,9 @@ import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
+import { normalizeLanguageParam } from "~/lib/languageParam.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
 
 const localTimelineQuery = graphql`
   query localTimelineQuery($locale: Locale, $languages: [Locale!]) {
@@ -38,18 +39,6 @@ const loadLocalTimelineQuery = routePreloadedQuery(
     }),
   "loadLocalTimelineQuery",
 );
-
-function normalizeLanguageParam(
-  raw: string | string[] | undefined,
-): string | undefined {
-  const tag = Array.isArray(raw) ? raw[0] : raw;
-  if (!tag) return undefined;
-  try {
-    return new Intl.Locale(tag).language;
-  } catch {
-    return undefined;
-  }
-}
 
 export default function LocalTimeline() {
   const { i18n } = useLingui();
