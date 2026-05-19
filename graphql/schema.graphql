@@ -2238,6 +2238,11 @@ type Query {
   """
   searchPost(after: String, before: String, first: Int, languages: [Locale!] = [], last: Int, query: String!): QuerySearchPostConnection!
 
+  """
+  Base language codes to show in the timeline language filter. When the viewer is authenticated and has language preferences set, returns the base codes of those locales (e.g. `ko-KR` → `ko`). Otherwise parses the `Accept-Language` request header and returns its base codes in preference order. Returns an empty list when no language information is available.
+  """
+  suggestedFilterLanguages: [Locale!]!
+
   """Verify a signup token and return the signup info if valid."""
   verifySignupToken(
     """The verification code."""
