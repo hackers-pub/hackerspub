@@ -282,9 +282,20 @@ builder.queryFields((t) => ({
         `Posts from accounts the authenticated viewer follows, newest first. ` +
         `Throws \`AUTHENTICATION_REQUIRED\` when called without a session. ` +
         `Pagination window (\`first\`/\`last\`) is capped at ` +
-        `${MAX_TIMELINE_WINDOW} posts. Use \`local\` to restrict to this ` +
-        `instance only, and \`withoutShares\` to hide boost wrappers.`,
+        `${MAX_TIMELINE_WINDOW} posts. Use \`languages\` to filter by ` +
+        `language (a base code like \`"en"\` matches \`"en"\` and all ` +
+        `\`"en-*"\` variants), \`local\` to restrict to this instance only, ` +
+        `and \`withoutShares\` to hide boost wrappers.`,
       args: {
+        languages: t.arg({
+          type: ["Locale"],
+          defaultValue: [],
+          description:
+            'Filter by base language code. Passing `"en"` returns posts ' +
+            'with `language = "en"` or any `"en-*"` variant. Region-' +
+            'specific tags such as `"en-US"` are normalized to their base ' +
+            "language and match all variants.",
+        }),
         local: t.arg.boolean({ defaultValue: false }),
         withoutShares: t.arg.boolean({ defaultValue: false }),
         postType: t.arg({
@@ -311,6 +322,9 @@ builder.queryFields((t) => ({
         const timeline = await getPersonalTimeline(ctx.db, {
           currentAccount: ctx.account,
           direction: backwards ? "backward" : "forward",
+          languages: new Set(
+            (args.languages ?? []).map((l) => l.language),
+          ),
           local: args.local ?? false,
           withoutShares: args.withoutShares ?? false,
           postType: args.postType == null

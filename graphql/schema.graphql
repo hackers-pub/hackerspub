@@ -2180,9 +2180,22 @@ type Query {
   orphanMediaStatus: OrphanMediaStatus
 
   """
-  Posts from accounts the authenticated viewer follows, newest first. Throws `AUTHENTICATION_REQUIRED` when called without a session. Pagination window (`first`/`last`) is capped at 250 posts. Use `local` to restrict to this instance only, and `withoutShares` to hide boost wrappers.
+  Posts from accounts the authenticated viewer follows, newest first. Throws `AUTHENTICATION_REQUIRED` when called without a session. Pagination window (`first`/`last`) is capped at 250 posts. Use `languages` to filter by language (a base code like `"en"` matches `"en"` and all `"en-*"` variants), `local` to restrict to this instance only, and `withoutShares` to hide boost wrappers.
   """
-  personalTimeline(after: String, before: String, first: Int, last: Int, local: Boolean = false, postType: PostType, withoutShares: Boolean = false): QueryPersonalTimelineConnection!
+  personalTimeline(
+    after: String
+    before: String
+    first: Int
+
+    """
+    Filter by base language code. Passing `"en"` returns posts with `language = "en"` or any `"en-*"` variant. Region-specific tags such as `"en-US"` are normalized to their base language and match all variants.
+    """
+    languages: [Locale!] = []
+    last: Int
+    local: Boolean = false
+    postType: PostType
+    withoutShares: Boolean = false
+  ): QueryPersonalTimelineConnection!
 
   """
   Resolve a post by its URL, fetching it from the originating instance via ActivityPub if it is not already cached. Requires authentication (unauthenticated callers always receive `null`). Returns `null` if the post is not found or not visible to the viewer.
