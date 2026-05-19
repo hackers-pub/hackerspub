@@ -11,18 +11,6 @@ export interface LanguageFilterProps {
 export function LanguageFilter(props: LanguageFilterProps) {
   const { t, i18n } = useLingui();
 
-  // Display name in the language itself ("한국어", "日本語", "English")
-  const nativeNames = createMemo(() => {
-    try {
-      return new Intl.DisplayNames(i18n.locale, {
-        type: "language",
-        fallback: "code",
-      });
-    } catch {
-      return null;
-    }
-  });
-
   // Display name in the current UI locale ("Korean", "日本語", "英語")
   const uiNames = createMemo(() =>
     new Intl.DisplayNames(i18n.locale, { type: "language", fallback: "code" })
@@ -66,7 +54,7 @@ export function LanguageFilter(props: LanguageFilterProps) {
                 }).of(lang) ?? lang
               );
             } catch {
-              return nativeNames()?.of(lang) ?? lang;
+              return uiNames().of(lang) ?? lang;
             }
           });
           const uiName = () => uiNames().of(lang) ?? lang;
