@@ -1,0 +1,52 @@
+diff --git a/web/dist/dev.js b/web/dist/dev.js
+index 5243efc9a04e8817fbd4fb589e64c45896f9ff22..fbafccf03874c8e9c3f6663636437f2c438e20e6 100644
+--- a/web/dist/dev.js
++++ b/web/dist/dev.js
+@@ -768,7 +768,7 @@ function createDynamic(component, props) {
+         return untrack(() => component(props));
+       case "string":
+         const isSvg = SVGElements.has(component);
+-        const el = sharedConfig.context ? getNextElement() : createElement(component, isSvg, untrack(() => props.is));
++        const el = isHydrating() ? getNextElement() : createElement(component, isSvg, untrack(() => props.is));
+         spread(el, props, isSvg);
+         return el;
+     }
+diff --git a/web/dist/dev.cjs b/web/dist/dev.cjs
+index bf446d27a1a39cde8432d01a5c00c6b057d39214..f3f422b580fb65b53847ca3d3347fbf61cc7cfb7 100644
+--- a/web/dist/dev.cjs
++++ b/web/dist/dev.cjs
+@@ -773,7 +773,7 @@ function createDynamic(component, props) {
+         return solidJs.untrack(() => component(props));
+       case "string":
+         const isSvg = SVGElements.has(component);
+-        const el = solidJs.sharedConfig.context ? getNextElement() : createElement(component, isSvg, solidJs.untrack(() => props.is));
++        const el = isHydrating() ? getNextElement() : createElement(component, isSvg, solidJs.untrack(() => props.is));
+         spread(el, props, isSvg);
+         return el;
+     }
+diff --git a/web/dist/web.cjs b/web/dist/web.cjs
+index 8349992307d8290bd8fe79f630494d4c9c98d859..81eb517987ac00928f6d97a54521f3175ddaa0ec 100644
+--- a/web/dist/web.cjs
++++ b/web/dist/web.cjs
+@@ -758,7 +758,7 @@ function createDynamic(component, props) {
+         return solidJs.untrack(() => component(props));
+       case "string":
+         const isSvg = SVGElements.has(component);
+-        const el = solidJs.sharedConfig.context ? getNextElement() : createElement(component, isSvg, solidJs.untrack(() => props.is));
++        const el = isHydrating() ? getNextElement() : createElement(component, isSvg, solidJs.untrack(() => props.is));
+         spread(el, props, isSvg);
+         return el;
+     }
+diff --git a/web/dist/web.js b/web/dist/web.js
+index dc905bedb850b8319880492532d9b77a83ad2263..0d61d58aac3fbadaf720ad49d1bc7f4c1958895a 100644
+--- a/web/dist/web.js
++++ b/web/dist/web.js
+@@ -757,7 +757,7 @@ function createDynamic(component, props) {
+         return untrack(() => component(props));
+       case "string":
+         const isSvg = SVGElements.has(component);
+-        const el = sharedConfig.context ? getNextElement() : createElement(component, isSvg, untrack(() => props.is));
++        const el = isHydrating() ? getNextElement() : createElement(component, isSvg, untrack(() => props.is));
+         spread(el, props, isSvg);
+         return el;
+     }
