@@ -29,6 +29,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
           cursor: { type: "String" }
           count: { type: "Int", defaultValue: 25 }
           locale: { type: "Locale" }
+          languages: { type: "[Locale!]", defaultValue: [] }
           local: { type: "Boolean", defaultValue: false }
           postType: { type: "PostType", defaultValue: null }
           withoutShares: { type: "Boolean", defaultValue: false }
@@ -38,6 +39,7 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
         personalTimeline(
           after: $cursor,
           first: $count,
+          languages: $languages,
           local: $local,
           postType: $postType,
           withoutShares: $withoutShares,
