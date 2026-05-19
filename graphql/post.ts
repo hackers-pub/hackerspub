@@ -42,7 +42,11 @@ import {
   SUPPORTED_MEDIUM_IMAGE_TYPES,
   UnsafeMediumUrlError,
 } from "@hackerspub/models/medium";
-import { createNote, QuotePolicyDeniedError } from "@hackerspub/models/note";
+import {
+  createNote,
+  QuotePolicyDeniedError,
+  updateNote,
+} from "@hackerspub/models/note";
 import {
   arePostsPinnedBy,
   pinPost as pinPostModel,
@@ -649,6 +653,17 @@ export const Note = builder.drizzleNode("postTable", {
         "composed on this instance). Null for federated remote notes and for " +
         "local share wrappers (boosts), since neither carries a " +
         "`noteSourceTable` row; for those, fall back to `Post.uuid`.",
+    }),
+    rawContent: t.field({
+      type: "Markdown",
+      nullable: true,
+      description: "The raw Markdown source of this note. Non-null only for " +
+        "source-backed local notes. `null` for federated remote notes and " +
+        "local share wrappers.",
+      select: {
+        with: { noteSource: { columns: { content: true } } },
+      },
+      resolve: (post) => post.noteSource?.content ?? null,
     }),
   }),
 });
@@ -1500,6 +1515,75 @@ builder.relayMutationField(
         resolve(result) {
           return result;
         },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "updateNote",
+  {
+    description:
+      "Edit the content, language, or quote policy of an existing local " +
+      "note. Visibility cannot be changed after creation. Only the note's " +
+      "author may call this. Sends an ActivityPub `Update` activity to the " +
+      "appropriate recipients. Requires authentication.",
+    inputFields: (t) => ({
+      noteId: t.globalID({
+        for: [Note],
+        required: true,
+        description: "Global ID of the note to update.",
+      }),
+      content: t.field({
+        type: "Markdown",
+        required: false,
+        description: "New Markdown body. Omit to keep the existing content.",
+      }),
+      language: t.field({
+        type: "Locale",
+        required: false,
+        description: "New language. Omit to keep the existing language.",
+      }),
+      quotePolicy: t.field({
+        type: QuotePolicy,
+        required: false,
+        description: "New quote policy. Omit to keep the existing policy.",
+      }),
+    }),
+  },
+  {
+    errors: { types: [NotAuthenticatedError, InvalidInputError] },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) throw new NotAuthenticatedError();
+
+      const post = await ctx.db.query.postTable.findFirst({
+        where: { id: args.input.noteId.id },
+        with: { noteSource: true },
+      });
+      if (post?.noteSource == null) throw new InvalidInputError("noteId");
+      if (post.noteSource.accountId !== session.accountId) {
+        throw new InvalidInputError("noteId");
+      }
+
+      const updated = await updateNote(ctx.fedCtx, post.noteSource.id, {
+        ...(args.input.content != null ? { content: args.input.content } : {}),
+        ...(args.input.language != null
+          ? { language: args.input.language.baseName }
+          : {}),
+        ...(args.input.quotePolicy != null
+          ? { quotePolicy: fromQuotePolicy(args.input.quotePolicy) }
+          : {}),
+      });
+      if (updated == null) throw new InvalidInputError("noteId");
+      return updated;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      note: t.field({
+        type: Note,
+        resolve: (post) => post,
       }),
     }),
   },

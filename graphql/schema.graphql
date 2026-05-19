@@ -1414,6 +1414,7 @@ type Mutation {
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
+  updateNote(input: UpdateNoteInput!): UpdateNoteResult!
 
   """
   Complete passkey registration by verifying the authenticator response from `getPasskeyRegistrationOptions`. On success, the new `Passkey` is returned. Requires authentication.
@@ -1501,6 +1502,11 @@ type Note implements Node & Post & Reactable {
 
   """Posts that quote this post inline."""
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
+
+  """
+  The raw Markdown source of this note. Non-null only for source-backed local notes. `null` for federated remote notes and local share wrappers.
+  """
+  rawContent: Markdown
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup
   reactionGroups: [ReactionGroup!]!
 
@@ -3029,6 +3035,32 @@ type UpdateArticlePayload {
 }
 
 union UpdateArticleResult = InvalidInputError | NotAuthenticatedError | UpdateArticlePayload
+
+"""
+Edit the content, language, or quote policy of an existing local note. Visibility cannot be changed after creation. Only the note's author may call this. Sends an ActivityPub `Update` activity to the appropriate recipients. Requires authentication.
+"""
+input UpdateNoteInput {
+  clientMutationId: ID
+
+  """New Markdown body. Omit to keep the existing content."""
+  content: Markdown
+
+  """New language. Omit to keep the existing language."""
+  language: Locale
+
+  """Global ID of the note to update."""
+  noteId: ID!
+
+  """New quote policy. Omit to keep the existing policy."""
+  quotePolicy: QuotePolicy
+}
+
+type UpdateNotePayload {
+  clientMutationId: ID
+  note: Note!
+}
+
+union UpdateNoteResult = InvalidInputError | NotAuthenticatedError | UpdateNotePayload
 
 input VoteOnPollInput {
   clientMutationId: ID
