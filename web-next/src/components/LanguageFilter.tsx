@@ -57,7 +57,7 @@ export function LanguageFilter(props: LanguageFilterProps) {
       <For each={languages()}>
         {(lang) => {
           // Get the name of the language in that language itself (native name)
-          const nativeName = () => {
+          const nativeName = createMemo(() => {
             try {
               return (
                 new Intl.DisplayNames(lang, {
@@ -68,7 +68,7 @@ export function LanguageFilter(props: LanguageFilterProps) {
             } catch {
               return nativeNames()?.of(lang) ?? lang;
             }
-          };
+          });
           const uiName = () => uiNames().of(lang) ?? lang;
           const active = () => props.activeLanguage === lang;
           const showUiName = () =>
