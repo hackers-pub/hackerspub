@@ -34,6 +34,26 @@ export function LanguageFilter(props: LanguageFilterProps) {
     return [active, ...props.languages];
   });
 
+  // Build all native names at once so we create one Intl.DisplayNames per
+  // language (keyed by that language's locale) outside the per-item loop.
+  const nativeNames = createMemo(() => {
+    const map = new Map<string, string>();
+    for (const lang of languages()) {
+      try {
+        map.set(
+          lang,
+          new Intl.DisplayNames(lang, {
+            type: "language",
+            fallback: "code",
+          }).of(lang) ?? lang,
+        );
+      } catch {
+        map.set(lang, uiNames().of(lang) ?? lang);
+      }
+    }
+    return map;
+  });
+
   return (
     <div class="flex flex-wrap gap-2 border-b px-4 py-3">
       <A
@@ -44,19 +64,7 @@ export function LanguageFilter(props: LanguageFilterProps) {
       </A>
       <For each={languages()}>
         {(lang) => {
-          // Get the name of the language in that language itself (native name)
-          const nativeName = createMemo(() => {
-            try {
-              return (
-                new Intl.DisplayNames(lang, {
-                  type: "language",
-                  fallback: "code",
-                }).of(lang) ?? lang
-              );
-            } catch {
-              return uiNames().of(lang) ?? lang;
-            }
-          });
+          const nativeName = () => nativeNames().get(lang) ?? lang;
           const uiName = () => uiNames().of(lang) ?? lang;
           const active = () => props.activeLanguage === lang;
           const showUiName = () =>
