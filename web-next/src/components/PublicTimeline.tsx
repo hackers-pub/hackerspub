@@ -83,7 +83,8 @@ export function PublicTimeline(props: PublicTimelineProps) {
   onMount(() => {
     onCleanup(onNoteCreated(() => {
       // TODO: Refetch the timeline when a note is created with keeping old data visible
-      posts.refetch({});
+      const lang = props.activeLanguage?.();
+      posts.refetch({ languages: lang ? [lang] : [] });
     }));
   });
 
