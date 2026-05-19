@@ -287,7 +287,7 @@ msgstr "All images must finish uploading before posting"
 msgid "All images require alt text"
 msgstr "All images require alt text"
 
-#: src/components/LanguageFilter.tsx:30
+#: src/components/LanguageFilter.tsx:63
 msgid "All languages"
 msgstr "All languages"
 
@@ -459,7 +459,7 @@ msgstr "Bookmarks"
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
-#: src/components/QuotedNoteCard.tsx:190
+#: src/components/QuotedNoteCard.tsx:224
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:332
@@ -554,7 +554,7 @@ msgstr "Could not copy the link to the clipboard."
 msgid "Could not load profile."
 msgstr "Could not load profile."
 
-#: src/components/QuotedNoteCard.tsx:213
+#: src/components/QuotedNoteCard.tsx:247
 msgid "Could not revoke quote"
 msgstr "Could not revoke quote"
 
@@ -612,6 +612,11 @@ msgstr "Crop your new avatar"
 #: src/routes/(root)/admin/media.tsx:166
 msgid "Cutoff:"
 msgstr "Cutoff:"
+
+#: src/components/NoteCardInternal.tsx:102
+#: src/components/QuotedNoteCard.tsx:178
+msgid "CW"
+msgstr "CW"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:175
 msgid "Default note privacy"
@@ -763,8 +768,8 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/NoteComposer.tsx:762
 #: src/components/NoteComposer.tsx:770
 #: src/components/NoteComposer.tsx:826
-#: src/components/QuotedNoteCard.tsx:212
-#: src/components/QuotedNoteCard.tsx:220
+#: src/components/QuotedNoteCard.tsx:246
+#: src/components/QuotedNoteCard.tsx:254
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:206
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:215
@@ -874,8 +879,8 @@ msgstr "Failed to load more passkeys; click to retry"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:116
-#: src/components/PublicTimeline.tsx:109
+#: src/components/PersonalTimeline.tsx:132
+#: src/components/PublicTimeline.tsx:125
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "Failed to load more posts; click to retry"
@@ -1144,6 +1149,11 @@ msgstr "Heading 2"
 msgid "Heading 3"
 msgstr "Heading 3"
 
+#: src/components/NoteCardInternal.tsx:110
+#: src/components/QuotedNoteCard.tsx:189
+msgid "Hide"
+msgstr "Hide"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Hide preview"
 msgstr "Hide preview"
@@ -1368,8 +1378,8 @@ msgstr "Load more passkeys"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:119
-#: src/components/PublicTimeline.tsx:112
+#: src/components/PersonalTimeline.tsx:135
+#: src/components/PublicTimeline.tsx:128
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "Load more posts"
@@ -1434,8 +1444,8 @@ msgstr "Loading more passkeys…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:113
-#: src/components/PublicTimeline.tsx:106
+#: src/components/PersonalTimeline.tsx:129
+#: src/components/PublicTimeline.tsx:122
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "Loading more posts…"
@@ -1614,8 +1624,8 @@ msgstr "No one has shared this yet."
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:126
-#: src/components/PublicTimeline.tsx:119
+#: src/components/PersonalTimeline.tsx:142
+#: src/components/PublicTimeline.tsx:135
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "No posts found"
@@ -1891,7 +1901,7 @@ msgstr "Quote"
 msgid "Quote permission"
 msgstr "Quote permission"
 
-#: src/components/QuotedNoteCard.tsx:207
+#: src/components/QuotedNoteCard.tsx:241
 msgid "Quote revoked"
 msgstr "Quote revoked"
 
@@ -2046,12 +2056,12 @@ msgstr "Revoke"
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
-#: src/components/QuotedNoteCard.tsx:178
-#: src/components/QuotedNoteCard.tsx:228
+#: src/components/QuotedNoteCard.tsx:212
+#: src/components/QuotedNoteCard.tsx:262
 msgid "Revoke quote"
 msgstr "Revoke quote"
 
-#: src/components/QuotedNoteCard.tsx:183
+#: src/components/QuotedNoteCard.tsx:217
 msgid "Revoke this quote?"
 msgstr "Revoke this quote?"
 
@@ -2130,6 +2140,10 @@ msgstr "Send"
 msgid "Sending…"
 msgstr "Sending…"
 
+#: src/components/QuotedNoteCard.tsx:182
+msgid "Sensitive content"
+msgstr "Sensitive content"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:154
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
@@ -2153,9 +2167,18 @@ msgstr "Shares"
 msgid "Sharing is not available for this post"
 msgstr "Sharing is not available for this post"
 
+#: src/components/NoteCardInternal.tsx:110
+#: src/components/QuotedNoteCard.tsx:189
+msgid "Show"
+msgstr "Show"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show preview"
 msgstr "Show preview"
+
+#: src/components/NoteMedia.tsx:71
+msgid "Show sensitive content"
+msgstr "Show sensitive content"
 
 #: src/components/AppSidebar.tsx:490
 #: src/routes/(root)/sign/index.tsx:382
@@ -2215,7 +2238,7 @@ msgstr "Slug cannot be empty"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 
-#: src/app.tsx:114
+#: src/app.tsx:127
 msgid "Something went wrong"
 msgstr "Something went wrong"
 
@@ -2322,7 +2345,7 @@ msgstr "The page you're looking for doesn't exist or has been moved."
 msgid "The passkey has been successfully revoked."
 msgstr "The passkey has been successfully revoked."
 
-#: src/components/QuotedNoteCard.tsx:186
+#: src/components/QuotedNoteCard.tsx:220
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "The quoting post will no longer include your post as a quote."
 
@@ -2449,7 +2472,7 @@ msgstr "Translation request failed"
 msgid "Translation request failed for {name}"
 msgstr "Translation request failed for {name}"
 
-#: src/app.tsx:123
+#: src/app.tsx:136
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:601
 msgid "Try again"
 msgstr "Try again"
@@ -2559,7 +2582,7 @@ msgstr "Verifying your invitation…"
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
-#: src/components/NoteMedia.tsx:48
+#: src/components/NoteMedia.tsx:84
 msgid "View image"
 msgstr "View image"
 
@@ -2627,7 +2650,7 @@ msgstr "Voting…"
 msgid "Warning"
 msgstr "Warning"
 
-#: src/app.tsx:113
+#: src/app.tsx:126
 msgid "We couldn't reach the server"
 msgstr "We couldn't reach the server"
 
@@ -2781,7 +2804,7 @@ msgstr "Your bio will be displayed on your profile. You can use Markdown to form
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 
-#: src/app.tsx:118
+#: src/app.tsx:131
 msgid "Your connection looks unstable. Check your network and try again."
 msgstr "Your connection looks unstable. Check your network and try again."
 

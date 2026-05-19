@@ -1,12 +1,14 @@
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createSignal, For, JSX, Match, Show, Switch } from "solid-js";
 import { createFragment } from "solid-relay";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { ImageLightbox } from "./ImageLightbox.tsx";
 import { NoteMedia_note$key } from "./__generated__/NoteMedia_note.graphql.ts";
+import { Button } from "./ui/button.tsx";
 
 interface NoteMediaProps {
   $note: NoteMedia_note$key;
+  postSensitive?: boolean;
 }
 
 type Medium = {
@@ -39,6 +41,39 @@ export function NoteMedia(props: NoteMediaProps) {
   );
 
   const [openIndex, setOpenIndex] = createSignal<number | null>(null);
+  const [revealedSet, setRevealedSet] = createSignal(new Set<number>());
+  const revealMedium = (i: number) => setRevealedSet((s) => new Set([...s, i]));
+
+  function sensitiveWrapper(
+    inner: JSX.Element,
+    index: number,
+    isSensitive: boolean,
+  ): JSX.Element {
+    if (!isSensitive) return inner;
+    const hidden = () => !revealedSet().has(index);
+    return (
+      <div class="relative overflow-hidden">
+        <div
+          class="transition-[filter]"
+          classList={{ "blur-xl pointer-events-none select-none": hidden() }}
+          inert={hidden() || undefined}
+        >
+          {inner}
+        </div>
+        <Show when={hidden()}>
+          <div class="absolute inset-0 flex items-center justify-center bg-black/20 dark:bg-black/40">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => revealMedium(index)}
+            >
+              {t`Show sensitive content`}
+            </Button>
+          </div>
+        </Show>
+      </div>
+    );
+  }
 
   function imageButton(medium: Medium, imageIndex: number, imgClass: string) {
     return (
@@ -99,12 +134,29 @@ export function NoteMedia(props: NoteMediaProps) {
           m.type.startsWith("image/")
         );
 
+        const wrappedMediaItem = (
+          medium: Medium,
+          mediumIndex: number,
+          imageIndex: number | null,
+          imgClass: string,
+        ) =>
+          sensitiveWrapper(
+            mediaItem(medium, imageIndex, imgClass),
+            mediumIndex,
+            props.postSensitive || medium.sensitive,
+          );
+
         return (
           <Show when={note.media.length > 0}>
             <div class="flex flex-row my-0.5">
               <Switch>
                 <Match when={note.media.length === 1}>
-                  {mediaItem(note.media[0], imageIndexFor[0], "max-h-80")}
+                  {wrappedMediaItem(
+                    note.media[0],
+                    0,
+                    imageIndexFor[0],
+                    "max-h-80",
+                  )}
                 </Match>
                 <Match
                   when={note.media.length >= 2 && note.media.length % 2 < 1}
@@ -115,8 +167,9 @@ export function NoteMedia(props: NoteMediaProps) {
                         <div class="flex flex-row">
                           <For each={note.media.slice(i * 2, i * 2 + 2)}>
                             {(medium, j) =>
-                              mediaItem(
+                              wrappedMediaItem(
                                 medium,
+                                i * 2 + j(),
                                 imageIndexFor[i * 2 + j()],
                                 "w-[32.5ch] h-[32.5ch]",
                               )}
@@ -130,8 +183,9 @@ export function NoteMedia(props: NoteMediaProps) {
                   when={note.media.length >= 3 && note.media.length % 2 > 0}
                 >
                   <div class="flex flex-col">
-                    {mediaItem(
+                    {wrappedMediaItem(
                       note.media[0],
+                      0,
                       imageIndexFor[0],
                       "w-[65ch] h-[65ch]",
                     )}
@@ -140,8 +194,9 @@ export function NoteMedia(props: NoteMediaProps) {
                         <div class="flex flex-row">
                           <For each={note.media.slice(1 + i * 2, i * 2 + 3)}>
                             {(medium, j) =>
-                              mediaItem(
+                              wrappedMediaItem(
                                 medium,
+                                1 + i * 2 + j(),
                                 imageIndexFor[1 + i * 2 + j()],
                                 "w-[32.5ch] h-[32.5ch]",
                               )}

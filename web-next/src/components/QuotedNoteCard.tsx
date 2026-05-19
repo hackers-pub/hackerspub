@@ -97,6 +97,8 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
         }
         content
         language
+        sensitive
+        summary
         visibility
         published
         url
@@ -105,6 +107,17 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
     `,
     () => props.$post,
   );
+
+  const [cwRevealed, setCwRevealed] = createSignal(false);
+  // For Articles, `summary` is an article/LLM description, not a CW field.
+  // Only treat `summary` as CW for Note/Question types.
+  const hasCW = () => {
+    const p = post();
+    if (!p) return false;
+    if (p.__typename === "Article") return !!p.sensitive;
+    return !!p.summary;
+  };
+  const contentVisible = () => !hasCW() || cwRevealed();
 
   return (
     <Show keyed when={post()}>
@@ -158,12 +171,33 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
                 </div>
               </div>
             </div>
-            <div
-              ref={setProseRef}
-              innerHTML={post.content}
-              lang={post.language ?? undefined}
-              class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
-            />
+            <Show when={hasCW()}>
+              <div class="mt-3 flex items-center gap-2 rounded-md border bg-background px-3 py-2">
+                <p class="grow text-sm text-muted-foreground">
+                  <strong class="font-semibold text-foreground">
+                    {t`CW`}:
+                  </strong>{" "}
+                  {post.__typename !== "Article" && post.summary
+                    ? post.summary
+                    : t`Sensitive content`}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCwRevealed((v) => !v)}
+                >
+                  {cwRevealed() ? t`Hide` : t`Show`}
+                </Button>
+              </div>
+            </Show>
+            <Show when={contentVisible()}>
+              <div
+                ref={setProseRef}
+                innerHTML={post.content}
+                lang={post.language ?? undefined}
+                class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
+              />
+            </Show>
             <MentionHoverCardLayer state={mentionState} />
             <Show when={props.canRevokeQuote && props.quotePostId != null}>
               <div class="mt-3 flex justify-end border-t border-border/60 pt-3">

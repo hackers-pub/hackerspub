@@ -287,7 +287,7 @@ msgstr "發佈前，所有圖片必須完成上傳。"
 msgid "All images require alt text"
 msgstr "所有圖片均需提供替代文字。"
 
-#: src/components/LanguageFilter.tsx:30
+#: src/components/LanguageFilter.tsx:63
 msgid "All languages"
 msgstr "所有語言"
 
@@ -459,7 +459,7 @@ msgstr "收藏"
 #: src/components/PostActionMenu.tsx:355
 #: src/components/ProfileActionMenu.tsx:294
 #: src/components/ProfileActionMenu.tsx:295
-#: src/components/QuotedNoteCard.tsx:190
+#: src/components/QuotedNoteCard.tsx:224
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:332
@@ -554,7 +554,7 @@ msgstr "無法將連結複製到剪貼簿。"
 msgid "Could not load profile."
 msgstr "無法載入個人資料。"
 
-#: src/components/QuotedNoteCard.tsx:213
+#: src/components/QuotedNoteCard.tsx:247
 msgid "Could not revoke quote"
 msgstr "無法撤銷引用"
 
@@ -612,6 +612,11 @@ msgstr "裁剪你的新頭像"
 #: src/routes/(root)/admin/media.tsx:166
 msgid "Cutoff:"
 msgstr "截止時間："
+
+#: src/components/NoteCardInternal.tsx:102
+#: src/components/QuotedNoteCard.tsx:178
+msgid "CW"
+msgstr "CW"
 
 #: src/routes/(root)/[handle]/settings/preferences.tsx:175
 msgid "Default note privacy"
@@ -759,8 +764,8 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 #: src/components/NoteComposer.tsx:762
 #: src/components/NoteComposer.tsx:770
 #: src/components/NoteComposer.tsx:826
-#: src/components/QuotedNoteCard.tsx:212
-#: src/components/QuotedNoteCard.tsx:220
+#: src/components/QuotedNoteCard.tsx:246
+#: src/components/QuotedNoteCard.tsx:254
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:206
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:215
@@ -870,8 +875,8 @@ msgstr "載入更多通行金鑰失敗；點擊重試"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:116
-#: src/components/PublicTimeline.tsx:109
+#: src/components/PersonalTimeline.tsx:132
+#: src/components/PublicTimeline.tsx:125
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
@@ -1140,6 +1145,11 @@ msgstr "標題 2"
 msgid "Heading 3"
 msgstr "標題 3"
 
+#: src/components/NoteCardInternal.tsx:110
+#: src/components/QuotedNoteCard.tsx:189
+msgid "Hide"
+msgstr "隱藏"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Hide preview"
 msgstr "隱藏預覽"
@@ -1364,8 +1374,8 @@ msgstr "載入更多通行金鑰"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:119
-#: src/components/PublicTimeline.tsx:112
+#: src/components/PersonalTimeline.tsx:135
+#: src/components/PublicTimeline.tsx:128
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "載入更多內容"
@@ -1430,8 +1440,8 @@ msgstr "正在載入更多通行金鑰…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:113
-#: src/components/PublicTimeline.tsx:106
+#: src/components/PersonalTimeline.tsx:129
+#: src/components/PublicTimeline.tsx:122
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
@@ -1610,8 +1620,8 @@ msgstr "尚無轉貼。"
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:126
-#: src/components/PublicTimeline.tsx:119
+#: src/components/PersonalTimeline.tsx:142
+#: src/components/PublicTimeline.tsx:135
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "未找到內容"
@@ -1887,7 +1897,7 @@ msgstr "引用"
 msgid "Quote permission"
 msgstr "引用權限"
 
-#: src/components/QuotedNoteCard.tsx:207
+#: src/components/QuotedNoteCard.tsx:241
 msgid "Quote revoked"
 msgstr "引用已撤銷"
 
@@ -2042,12 +2052,12 @@ msgstr "撤銷"
 msgid "Revoke passkey"
 msgstr "撤銷通行金鑰"
 
-#: src/components/QuotedNoteCard.tsx:178
-#: src/components/QuotedNoteCard.tsx:228
+#: src/components/QuotedNoteCard.tsx:212
+#: src/components/QuotedNoteCard.tsx:262
 msgid "Revoke quote"
 msgstr "撤銷引用"
 
-#: src/components/QuotedNoteCard.tsx:183
+#: src/components/QuotedNoteCard.tsx:217
 msgid "Revoke this quote?"
 msgstr "撤銷此引用？"
 
@@ -2126,6 +2136,10 @@ msgstr "發送"
 msgid "Sending…"
 msgstr "發送中…"
 
+#: src/components/QuotedNoteCard.tsx:182
+msgid "Sensitive content"
+msgstr "敏感內容"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:154
 msgid "Set your personal preferences."
 msgstr "設定您的個人偏好設定。"
@@ -2149,9 +2163,18 @@ msgstr "轉貼"
 msgid "Sharing is not available for this post"
 msgstr "無法轉貼此內容。"
 
+#: src/components/NoteCardInternal.tsx:110
+#: src/components/QuotedNoteCard.tsx:189
+msgid "Show"
+msgstr "顯示"
+
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 msgid "Show preview"
 msgstr "顯示預覽"
+
+#: src/components/NoteMedia.tsx:71
+msgid "Show sensitive content"
+msgstr "顯示敏感內容"
 
 #: src/components/AppSidebar.tsx:490
 #: src/routes/(root)/sign/index.tsx:382
@@ -2211,7 +2234,7 @@ msgstr "網址別名不能為空"
 msgid "Some images were skipped because the limit of {MAX_MEDIA} was reached"
 msgstr "已達到 {MAX_MEDIA} 張圖片上限，部分圖片已被跳過"
 
-#: src/app.tsx:114
+#: src/app.tsx:127
 msgid "Something went wrong"
 msgstr "發生錯誤"
 
@@ -2318,7 +2341,7 @@ msgstr "您要找的頁面不存在或已移動。"
 msgid "The passkey has been successfully revoked."
 msgstr "通行金鑰已成功撤銷。"
 
-#: src/components/QuotedNoteCard.tsx:186
+#: src/components/QuotedNoteCard.tsx:220
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用內容將不再把你的內容作為引用包含在內。"
 
@@ -2445,7 +2468,7 @@ msgstr "翻譯請求失敗"
 msgid "Translation request failed for {name}"
 msgstr "向{name}的翻譯請求失敗"
 
-#: src/app.tsx:123
+#: src/app.tsx:136
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:601
 msgid "Try again"
 msgstr "重試"
@@ -2555,7 +2578,7 @@ msgstr "驗證您的邀請…"
 msgid "View all drafts →"
 msgstr "查看所有草稿 →"
 
-#: src/components/NoteMedia.tsx:48
+#: src/components/NoteMedia.tsx:84
 msgid "View image"
 msgstr "查看圖片"
 
@@ -2623,7 +2646,7 @@ msgstr "正在投票…"
 msgid "Warning"
 msgstr "警告"
 
-#: src/app.tsx:113
+#: src/app.tsx:126
 msgid "We couldn't reach the server"
 msgstr "無法連接到伺服器"
 
@@ -2777,7 +2800,7 @@ msgstr "你的個人簡介將在你的個人資料頁面顯示。你可以用 Ma
 msgid "Your bio will be displayed on your profile. You can use Markdown to format it. Maximum 512 characters."
 msgstr "你的個人簡介將在你的個人資料頁面顯示。你可以用 Markdown 文件格式化。最大 512 字元。"
 
-#: src/app.tsx:118
+#: src/app.tsx:131
 msgid "Your connection looks unstable. Check your network and try again."
 msgstr "您的網路似乎不穩定。請檢查網路後重試。"
 
