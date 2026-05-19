@@ -1,38 +1,60 @@
-<!-- deno-fmt-ignore-file -->
+# Hackers' Pub
 
-Hackers' Pub
-============
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![CI](https://img.shields.io/github/actions/workflow/status/hackers-pub/hackerspub/main.yml?branch=main&label=ci)](https://github.com/hackers-pub/hackerspub/actions/workflows/main.yml)
 
-> [!NOTE]
-> Hackers' Pub is currently heavily under development, and it is invite-only.
-> If you want to sign up, please contact the author via fediverse:
-> [@hongminhee@hackers.pub].
+Hackers' Pub is an ActivityPub-enabled social network for hackers. Think of it as a federated publishing and discussion platform for technical communities, with long-form posts, rich Markdown, multilingual support, and a timeline designed for developer conversation.
 
-Hackers' Pub is an ActivityPub-enabled social network for hackers.
-You can think of it as a federated version of DEV Community (또는 연합판
-velog, または連合できるQiita) with a Mastodon-like timeline.
+> Hackers' Pub is currently under active development and invite-only.
 
-It focuses on the following features:[^1]
+## Table of contents
+- [Why this project exists](#why-this-project-exists)
+- [Core features](#core-features)
+- [Quick start for local development](#quick-start-for-local-development)
+- [Environment setup](#environment-setup)
+- [Repository layout](#repository-layout)
+- [Contributing](#contributing)
+- [License](#license)
 
- -  Federated via ActivityPub: You can follow and interact with users on other
-    servers that support ActivityPub, such as Mastodon, Misskey, and Akkoma.
+## Why this project exists
+Hackers' Pub aims to give technical communities a federated alternative to centralized publishing platforms. It combines blogging, social interaction, and ActivityPub federation in a product shaped for engineers and multilingual internet communities.
 
- -  Markdown with extensions: You can write posts and comments in Markdown with
-    extensions, such as tables, footnotes, callouts, diagrams, math, and more.
+## Core features
+- ActivityPub federation with Mastodon-compatible servers
+- rich Markdown, including tables, footnotes, callouts, diagrams, and math
+- multilingual posting and automatic translation support
+- algorithmic or chronological timeline views
+- open source codebase with self-hosting paths for experimentation
 
- -  Powerful code blocks: You can write code blocks with syntax highlighting,
-    highlighting lines, focusing lines, diff highlighting, and more.
+## Quick start for local development
+The repository ships with a development container and sample environment file.
 
- -  Multilingual: You can write posts in many languages, not just English.
-    You don't speak Chinese or Spanish? No problem! Hackers' Pub supports
-    automatic translation of posts and comments.
+```bash
+cp .env.sample .env
+pnpm install
 
- -  Algorithmic timeline: You can see posts from users you follow in a
-    timeline. The timeline is sorted by the relevance of the posts by default,
-    but you can change the sorting order to the latest if you want.
+deno task -r codegen
+deno task dev
+```
 
-Hackers' Pub is open source.  The source code is available under the AGPL-3.0.
+If you prefer container-based setup, `Dockerfile.dev` provides a ready-made development image with `mise`, `pnpm`, `deno`, and media dependencies preinstalled.
 
-[^1]: Of course, these features are not implemented yet.  This is just a plan.
+## Environment setup
+Common variables in `.env.sample` include:
+- `ORIGIN` and `API_URL` for the main web and GraphQL endpoints
+- `DATABASE_URL` and `KV_URL` for persistence
+- `SECRET_KEY` and `INSTANCE_ACTOR_KEY` for instance identity and signing
+- mail, storage, analytics, and AI provider settings for optional integrations
 
-[@hongminhee@hackers.pub]: https://hackers.pub/@hongminhee
+## Repository layout
+- `web-next/` , Next.js frontend
+- `graphql/` , GraphQL API
+- `federation/` , ActivityPub and federation logic
+- `models/` , shared data models
+- `.devcontainer/` and `Dockerfile.dev` , reproducible development environments
+
+## Contributing
+If you want to contribute, start with [CONTRIBUTING.md](CONTRIBUTING.md), then review the project design docs and local agent instructions if you are using AI-assisted tooling.
+
+## License
+Hackers' Pub is released under the [AGPL-3.0 License](LICENSE).
