@@ -78,7 +78,7 @@ export async function createNotification(
   db: Database,
   accountId: Uuid,
   type: NotificationType,
-  post: Post | null,
+  post: Pick<Post, "id"> | null,
   actorId: Uuid,
   created?: Date | null,
   emoji?: string | CustomEmoji | null,
@@ -344,6 +344,38 @@ export function createQuoteNotification(
     quotePost,
     quotingActor.id,
     quotePost.published,
+  );
+}
+
+export function createSharedPostUpdatedNotification(
+  db: Database,
+  sharingAccountId: Uuid,
+  updatedPost: Pick<Post, "id" | "updated">,
+  updatingActor: Actor,
+): Promise<Notification | undefined> {
+  return createNotification(
+    db,
+    sharingAccountId,
+    "shared_post_updated",
+    updatedPost,
+    updatingActor.id,
+    updatedPost.updated,
+  );
+}
+
+export function createQuotedPostUpdatedNotification(
+  db: Database,
+  quotingAccountId: Uuid,
+  updatedPost: Pick<Post, "id" | "updated">,
+  updatingActor: Actor,
+): Promise<Notification | undefined> {
+  return createNotification(
+    db,
+    quotingAccountId,
+    "quoted_post_updated",
+    updatedPost,
+    updatingActor.id,
+    updatedPost.updated,
   );
 }
 

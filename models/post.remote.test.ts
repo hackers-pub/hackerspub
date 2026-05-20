@@ -184,6 +184,136 @@ test("persistPost() stores manual quote request policies separately", async () =
   });
 });
 
+test("persistPost() notifies local sharers when a remote body changes", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "remoteshareupdateauthor",
+      name: "Remote Share Update Author",
+      host: "remote.example",
+    });
+    const localSharer = await insertAccountWithActor(tx, {
+      username: "remoteshareupdatesharer",
+      name: "Remote Share Update Sharer",
+      email: "remoteshareupdatesharer@example.com",
+    });
+    const remotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Original remote shared body</p>",
+    });
+    await insertNotePost(tx, {
+      account: localSharer.account,
+      content: "",
+      sharedPostId: remotePost.id,
+    });
+    const refetched = new Note({
+      id: new URL(remotePost.iri),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Updated remote shared body",
+    });
+
+    await persistPost(createFedCtx(tx), refetched);
+
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: localSharer.account.id,
+        type: "shared_post_updated",
+        postId: remotePost.id,
+      },
+    });
+    assert.ok(notification != null);
+    assert.deepEqual(notification.actorIds, [remoteActor.id]);
+  });
+});
+
+test("persistPost() notifies pending local quoters when a remote body changes", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "remotequoteupdateauthor",
+      name: "Remote Quote Update Author",
+      host: "remote.example",
+    });
+    const localQuoter = await insertAccountWithActor(tx, {
+      username: "remotequoteupdatequoter",
+      name: "Remote Quote Update Quoter",
+      email: "remotequoteupdatequoter@example.com",
+    });
+    const remotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Original remote quoted body</p>",
+    });
+    const { post: quotePost } = await insertNotePost(tx, {
+      account: localQuoter.account,
+      content: "Pending quote request",
+    });
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: `${quotePost.iri}#quote-request`,
+      quotePostId: quotePost.id,
+      quotedPostId: remotePost.id,
+    });
+    const refetched = new Note({
+      id: new URL(remotePost.iri),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Updated remote quoted body",
+    });
+
+    await persistPost(createFedCtx(tx), refetched);
+
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: localQuoter.account.id,
+        type: "quoted_post_updated",
+        postId: remotePost.id,
+      },
+    });
+    assert.ok(notification != null);
+    assert.deepEqual(notification.actorIds, [remoteActor.id]);
+  });
+});
+
+test("persistPost() does not notify local sharers when the remote body is unchanged", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "remoteunchangedauthor",
+      name: "Remote Unchanged Author",
+      host: "remote.example",
+    });
+    const localSharer = await insertAccountWithActor(tx, {
+      username: "remoteunchangedsharer",
+      name: "Remote Unchanged Sharer",
+      email: "remoteunchangedsharer@example.com",
+    });
+    const remotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "Unchanged remote body",
+    });
+    await insertNotePost(tx, {
+      account: localSharer.account,
+      content: "",
+      sharedPostId: remotePost.id,
+    });
+    const refetched = new Note({
+      id: new URL(remotePost.iri),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Unchanged remote body",
+    });
+
+    await persistPost(createFedCtx(tx), refetched);
+
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: localSharer.account.id,
+        type: "shared_post_updated",
+        postId: remotePost.id,
+      },
+    });
+    assert.equal(notification, undefined);
+  });
+});
+
 test("persistPost() requires follower quote approvals to match the author", async () => {
   await withRollback(async (tx) => {
     const remoteActor = await insertRemoteActor(tx, {

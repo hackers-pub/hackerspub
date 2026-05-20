@@ -1372,6 +1372,8 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "reply",
   "share",
   "quote",
+  "shared_post_updated",
+  "quoted_post_updated",
   "react",
 ]);
 
@@ -1392,6 +1394,8 @@ export const notificationTable = pgTable(
     // - When type is 'reply', this is the ID of the reply post
     // - When type is 'share', this is the ID of the shared post
     // - When type is 'quote', this is the ID of the post doing the quoting
+    // - When type is 'shared_post_updated', this is the updated shared post
+    // - When type is 'quoted_post_updated', this is the updated quoted post
     // - When type is 'react', this is the ID of the post being reacted to
     postId: uuid("post_id")
       .$type<Uuid>()

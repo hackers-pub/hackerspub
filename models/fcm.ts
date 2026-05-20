@@ -262,6 +262,10 @@ function getFcmAlert(
       return "Your post was shared.";
     case "quote":
       return "Your post was quoted.";
+    case "shared_post_updated":
+      return "A post you shared was updated.";
+    case "quoted_post_updated":
+      return "A post you quoted was updated.";
     case "react": {
       const emojiText = typeof emoji === "string" ? emoji : emoji?.name;
       return emojiText == null

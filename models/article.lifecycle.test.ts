@@ -6,6 +6,7 @@ import { generateUuidV7 } from "./uuid.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
+  insertNotePost,
   withRollback,
 } from "../test/postgres.ts";
 import { waitFor } from "../test/wait.ts";
@@ -191,6 +192,53 @@ test("updateArticle() rewrites the persisted article post", async () => {
     assert.equal(storedPost.articleSourceId, article.articleSource.id);
     assert.equal(storedPost.name, "Updated article");
     assert.match(storedPost.contentHtml, /<strong>body<\/strong>/);
+  });
+});
+
+test("updateArticle() notifies local sharers when the title changes", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    fedCtx.data.models = fakeModels as typeof fedCtx.data.models;
+    const author = await insertAccountWithActor(tx, {
+      username: "updatearticleshareauthor",
+      name: "Update Article Share Author",
+      email: "updatearticleshareauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "updatearticlesharer",
+      name: "Update Article Sharer",
+      email: "updatearticlesharer@example.com",
+    });
+    const article = await createArticle(fedCtx, {
+      accountId: author.account.id,
+      publishedYear: 2026,
+      slug: "article-share-update",
+      tags: [],
+      allowLlmTranslation: false,
+      title: "Original article title",
+      content: "Original article body",
+      language: "en",
+    });
+    assert.ok(article != null);
+    await insertNotePost(tx, {
+      account: sharer.account,
+      content: "",
+      sharedPostId: article.id,
+    });
+
+    await updateArticle(fedCtx, article.articleSource.id, {
+      title: "Updated article title",
+    });
+
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: sharer.account.id,
+        type: "shared_post_updated",
+        postId: article.id,
+      },
+    });
+    assert.ok(notification != null);
+    assert.deepEqual(notification.actorIds, [author.actor.id]);
   });
 });
 
