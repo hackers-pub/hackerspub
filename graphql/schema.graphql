@@ -3057,6 +3057,8 @@ input UpdateNoteInput {
 
 type UpdateNotePayload {
   clientMutationId: ID
+
+  """The note after the update has been applied."""
   note: Note!
 }
 

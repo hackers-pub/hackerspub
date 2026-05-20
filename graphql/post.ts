@@ -1590,6 +1590,7 @@ builder.relayMutationField(
     outputFields: (t) => ({
       note: t.field({
         type: Note,
+        description: "The note after the update has been applied.",
         resolve: (post) => post,
       }),
     }),

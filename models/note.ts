@@ -577,6 +577,14 @@ export async function updateNote(
   const previousPost = await db.query.postTable.findFirst({
     where: { noteSourceId },
   });
+  // Capture previous mention recipients before the update so that removed
+  // mentions still receive the Update activity and can retire their copy.
+  const previousMentions = previousPost == null ? [] : (
+    await db.query.mentionTable.findMany({
+      where: { postId: previousPost.id },
+      with: { actor: true },
+    })
+  );
   const noteSource = await updateNoteSource(db, noteSourceId, source);
   if (noteSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
@@ -623,14 +631,21 @@ export async function updateNote(
     ccs: noteObject.ccIds,
     object: noteObject,
   });
-  if (post.visibility !== "none" && post.mentions.length > 0) {
-    const directRecipients: Recipient[] = post.mentions.map((m) => ({
-      id: new URL(m.actor.iri),
-      inboxId: new URL(m.actor.inboxUrl),
-      endpoints: m.actor.sharedInboxUrl == null
-        ? null
-        : { sharedInbox: new URL(m.actor.sharedInboxUrl) },
-    }));
+  // Deliver to the union of current and previous mention recipients so that
+  // actors whose mentions were removed still receive the Update activity.
+  const allMentionActors = new Map(
+    [...previousMentions, ...post.mentions].map((m) => [m.actor.iri, m.actor]),
+  );
+  if (post.visibility !== "none" && allMentionActors.size > 0) {
+    const directRecipients: Recipient[] = [...allMentionActors.values()].map(
+      (actor) => ({
+        id: new URL(actor.iri),
+        inboxId: new URL(actor.inboxUrl),
+        endpoints: actor.sharedInboxUrl == null
+          ? null
+          : { sharedInbox: new URL(actor.sharedInboxUrl) },
+      }),
+    );
     await fedCtx.sendActivity(
       { identifier: noteSource.accountId },
       directRecipients,
