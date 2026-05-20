@@ -1,0 +1,1 @@
+ALTER TABLE "account" ADD COLUMN "quote_policy" "quote_policy" DEFAULT 'everyone'::"quote_policy" NOT NULL;

@@ -38,6 +38,14 @@ export const postVisibilityEnum = pgEnum("post_visibility", POST_VISIBILITIES);
 
 export type PostVisibility = (typeof postVisibilityEnum.enumValues)[number];
 
+export const quotePolicyEnum = pgEnum("quote_policy", [
+  "everyone",
+  "followers",
+  "self",
+]);
+
+export type QuotePolicy = (typeof quotePolicyEnum.enumValues)[number];
+
 export const accountTable = pgTable(
   "account",
   {
@@ -74,6 +82,9 @@ export const accountTable = pgTable(
     shareVisibility: postVisibilityEnum("share_visibility")
       .notNull()
       .default("public"),
+    quotePolicy: quotePolicyEnum("quote_policy")
+      .notNull()
+      .default("everyone"),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -456,14 +467,6 @@ export const articleDraftTable = pgTable(
 
 export type ArticleDraft = typeof articleDraftTable.$inferSelect;
 export type NewArticleDraft = typeof articleDraftTable.$inferInsert;
-
-export const quotePolicyEnum = pgEnum("quote_policy", [
-  "everyone",
-  "followers",
-  "self",
-]);
-
-export type QuotePolicy = (typeof quotePolicyEnum.enumValues)[number];
 
 export const articleSourceTable = pgTable(
   "article_source",
