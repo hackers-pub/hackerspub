@@ -653,7 +653,10 @@ export async function updateNote(
       {
         orderingKey: post.iri,
         preferSharedInbox: false,
-        excludeBaseUris: [new URL(fedCtx.canonicalOrigin)],
+        excludeBaseUris: [
+          new URL(fedCtx.origin),
+          new URL(fedCtx.canonicalOrigin),
+        ],
       },
     );
   }
