@@ -364,7 +364,18 @@ function createRelayEnvironment(): IEnvironment {
               }
               sink.next(response);
             },
-            complete: () => sink.complete(),
+            complete: () => {
+              // Null out the controller and subscription before calling
+              // sink.complete() so that the synchronous cleanup Relay runs
+              // inside sink.complete() does not call abort() on a request
+              // that already finished. SolidStart's withOptions proxy
+              // registers an abort-event listener that rejects an internal
+              // Promise; if abort() fires after the fetch resolved, that
+              // Promise rejects with no handler → unhandled AbortError.
+              currentController = null;
+              currentSubscription = null;
+              sink.complete();
+            },
             error: handleAttemptError,
           });
       };
