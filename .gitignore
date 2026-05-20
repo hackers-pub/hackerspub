@@ -27,3 +27,6 @@ node_modules/
 
 # keyv data
 kv.db
+
+# log
+*.jsonl

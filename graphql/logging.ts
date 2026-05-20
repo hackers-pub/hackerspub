@@ -1,7 +1,9 @@
+import { getFileSink } from "@logtape/file";
 import {
   ansiColorFormatter,
   configure,
   getStreamSink,
+  jsonLinesFormatter,
   type Sink,
 } from "@logtape/logtape";
 import { redactByField } from "@logtape/redaction";
@@ -10,6 +12,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 
 const LOG_QUERY = Deno.env.get("LOG_QUERY")?.toLowerCase() === "true";
 const LOG_FEDIFY = Deno.env.get("LOG_FEDIFY")?.toLowerCase() === "true";
+const LOG_FILE = Deno.env.get("LOG_FILE") ?? null;
 
 function redactDeviceToken(value: unknown): unknown {
   if (typeof value !== "string") return "[REDACTED]";
@@ -48,7 +51,20 @@ if (sentryEnabled) {
     // Add it here once 2.1.0 lands as a stable release.)
   });
 }
-const loggerSinks = sentryEnabled ? ["console", "sentry"] : ["console"];
+if (LOG_FILE != null) {
+  sinks.file = redactByField(
+    getFileSink(LOG_FILE, { formatter: jsonLinesFormatter }),
+    {
+      fieldPatterns: [/^(?:apns[-_]?)?device[-_]?token$/i],
+      action: redactDeviceToken,
+    },
+  );
+}
+const loggerSinks = [
+  "console",
+  ...(sentryEnabled ? ["sentry"] : []),
+  ...(LOG_FILE != null ? ["file"] : []),
+];
 
 await configure({
   contextLocalStorage: new AsyncLocalStorage(),
@@ -78,8 +94,9 @@ await configure({
       category: ["logtape", "meta"],
       lowestLevel: "warning",
       // The Sentry sink itself logs through this category; routing it
-      // back to Sentry would loop, so keep meta on console only.
-      sinks: ["console"],
+      // back to Sentry would loop, so keep Sentry excluded here.
+      // File sink is safe to include (no loop risk).
+      sinks: ["console", ...(LOG_FILE != null ? ["file"] : [])],
     },
   ],
 });
