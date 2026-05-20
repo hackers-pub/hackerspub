@@ -5,20 +5,31 @@ import {
   useContext,
 } from "solid-js";
 import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
+import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
 
 type NoteCreatedCallback = () => void;
+
+export interface NoteEditInitialData {
+  content: string;
+  language: string | null | undefined;
+  quotePolicy: QuotePolicy;
+  visibility: PostVisibility;
+}
 
 interface NoteComposeContextValue {
   isOpen: () => boolean;
   quotedPostId: () => string | null;
   replyTargetId: () => string | null;
   replyDefaultVisibility: () => PostVisibility | null;
+  editingNoteId: () => string | null;
+  editInitialData: () => NoteEditInitialData | null;
   open: () => void;
   openWithQuote: (quotedPostId: string) => void;
   openWithReply: (
     replyTargetId: string,
     defaultVisibility: PostVisibility,
   ) => void;
+  openForEdit: (noteId: string, data: NoteEditInitialData) => void;
   close: () => void;
   clearQuote: () => void;
   onNoteCreated: (callback: NoteCreatedCallback) => () => void;
@@ -34,6 +45,10 @@ export const NoteComposeProvider: ParentComponent = (props) => {
   const [replyDefaultVisibility, setReplyDefaultVisibility] = createSignal<
     PostVisibility | null
   >(null);
+  const [editingNoteId, setEditingNoteId] = createSignal<string | null>(null);
+  const [editInitialData, setEditInitialData] = createSignal<
+    NoteEditInitialData | null
+  >(null);
   const [callbacks, setCallbacks] = createSignal<Set<NoteCreatedCallback>>(
     new Set(),
   );
@@ -42,12 +57,16 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     setQuotedPostId(null);
     setReplyTargetId(null);
     setReplyDefaultVisibility(null);
+    setEditingNoteId(null);
+    setEditInitialData(null);
     setIsOpen(true);
   };
   const openWithQuote = (quotedPostId: string) => {
     setQuotedPostId(quotedPostId);
     setReplyTargetId(null);
     setReplyDefaultVisibility(null);
+    setEditingNoteId(null);
+    setEditInitialData(null);
     setIsOpen(true);
   };
   const openWithReply = (
@@ -57,12 +76,24 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     setQuotedPostId(null);
     setReplyTargetId(id);
     setReplyDefaultVisibility(defaultVisibility);
+    setEditingNoteId(null);
+    setEditInitialData(null);
+    setIsOpen(true);
+  };
+  const openForEdit = (noteId: string, data: NoteEditInitialData) => {
+    setQuotedPostId(null);
+    setReplyTargetId(null);
+    setReplyDefaultVisibility(null);
+    setEditingNoteId(noteId);
+    setEditInitialData(data);
     setIsOpen(true);
   };
   const close = () => {
     setQuotedPostId(null);
     setReplyTargetId(null);
     setReplyDefaultVisibility(null);
+    setEditingNoteId(null);
+    setEditInitialData(null);
     setIsOpen(false);
   };
   const clearQuote = () => {
@@ -92,9 +123,12 @@ export const NoteComposeProvider: ParentComponent = (props) => {
         quotedPostId,
         replyTargetId,
         replyDefaultVisibility,
+        editingNoteId,
+        editInitialData,
         open,
         openWithQuote,
         openWithReply,
+        openForEdit,
         close,
         clearQuote,
         onNoteCreated,

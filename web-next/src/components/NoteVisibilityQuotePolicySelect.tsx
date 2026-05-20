@@ -26,6 +26,7 @@ export interface NoteVisibilityQuotePolicySelectProps {
   quotePolicy: QuotePolicy;
   onVisibilityChange?: (value: PostVisibility) => void;
   onQuotePolicyChange?: (value: QuotePolicy) => void;
+  visibilityDisabled?: boolean;
 }
 
 export function NoteVisibilityQuotePolicySelect(
@@ -111,6 +112,7 @@ export function NoteVisibilityQuotePolicySelect(
               {(option) => (
                 <DropdownMenuRadioItem
                   value={option.value}
+                  disabled={props.visibilityDisabled}
                   indicator={check()}
                   indicatorPlacement="right"
                   class="gap-2"
