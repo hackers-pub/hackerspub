@@ -9,9 +9,11 @@ import type {
 } from "./__generated__/NotificationCard_notification.graphql.ts";
 import { FollowNotificationCard } from "./notification/FollowNotificationCard.tsx";
 import { MentionNotificationCard } from "./notification/MentionNotificationCard.tsx";
+import { QuotedPostUpdatedNotificationCard } from "./notification/QuotedPostUpdatedNotificationCard.tsx";
 import { QuoteNotificationCard } from "./notification/QuoteNotificationCard.tsx";
 import { ReactNotificationCard } from "./notification/ReactNotificationCard.tsx";
 import { ReplyNotificationCard } from "./notification/ReplyNotificationCard.tsx";
+import { SharedPostUpdatedNotificationCard } from "./notification/SharedPostUpdatedNotificationCard.tsx";
 import { ShareNotificationCard } from "./notification/ShareNotificationCard.tsx";
 
 export interface NotificationCardProps {
@@ -29,8 +31,10 @@ const notificationCards: Readonly<
   MentionNotification: MentionNotificationCard,
   ReactNotification: ReactNotificationCard,
   QuoteNotification: QuoteNotificationCard,
+  QuotedPostUpdatedNotification: QuotedPostUpdatedNotificationCard,
   ReplyNotification: ReplyNotificationCard,
   ShareNotification: ShareNotificationCard,
+  SharedPostUpdatedNotification: SharedPostUpdatedNotificationCard,
 };
 
 export function NotificationCard(props: NotificationCardProps) {
@@ -43,8 +47,10 @@ export function NotificationCard(props: NotificationCardProps) {
         ...MentionNotificationCard_notification
         ...ReactNotificationCard_notification
         ...QuoteNotificationCard_notification
+        ...QuotedPostUpdatedNotificationCard_notification
         ...ReplyNotificationCard_notification
         ...ShareNotificationCard_notification
+        ...SharedPostUpdatedNotificationCard_notification
       }
     `,
     () => props.$notification,
