@@ -11,6 +11,7 @@ import {
   Switch,
 } from "solid-js";
 import { createPaginationFragment, useRelayEnvironment } from "solid-relay";
+import { LazyMount } from "~/components/LazyMount.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -222,13 +223,15 @@ export function PersonalTimeline(props: PersonalTimelineProps) {
         {(data) => (
           <>
             <For each={data.personalTimeline.edges}>
-              {(edge) => (
-                <PostCard
-                  $post={edge.node}
-                  sharerActor={edge.lastSharer}
-                  sharerTimestamp={edge.added}
-                  connections={[data.personalTimeline.__id]}
-                />
+              {(edge, i) => (
+                <LazyMount eager={i() < 5}>
+                  <PostCard
+                    $post={edge.node}
+                    sharerActor={edge.lastSharer}
+                    sharerTimestamp={edge.added}
+                    connections={[data.personalTimeline.__id]}
+                  />
+                </LazyMount>
               )}
             </For>
             <Show when={posts.hasNext}>
