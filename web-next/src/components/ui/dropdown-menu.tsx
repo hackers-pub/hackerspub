@@ -1,5 +1,5 @@
 import type { Component, ComponentProps, JSX, ValidComponent } from "solid-js";
-import { splitProps } from "solid-js";
+import { createSignal, onMount, Show, splitProps } from "solid-js";
 
 import * as DropdownMenuPrimitive from "@kobalte/core/dropdown-menu";
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
@@ -15,7 +15,19 @@ const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 const DropdownMenu: Component<DropdownMenuPrimitive.DropdownMenuRootProps> = (
   props,
 ) => {
-  return <DropdownMenuPrimitive.Root gutter={4} {...props} />;
+  const [mounted, setMounted] = createSignal(false);
+  onMount(() => setMounted(true));
+
+  // Kobalte menus contain Polymorphic/Dynamic nodes, so a caller-level
+  // SSR/client shape mismatch can make Solid hydrate a dynamic element that
+  // was never rendered and crash in getNextElement(). Keep the whole menu out
+  // of SSR and the first hydration pass; triggers appear after mount because
+  // dropdowns are interactive-only chrome.
+  return (
+    <Show when={mounted()}>
+      <DropdownMenuPrimitive.Root gutter={4} {...props} />
+    </Show>
+  );
 };
 
 type DropdownMenuContentProps<T extends ValidComponent = "div"> =
