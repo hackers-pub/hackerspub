@@ -1447,7 +1447,7 @@ export const notificationTable = pgTable(
       .on(table.accountId, table.actorIds)
       .where(sql`${table.type} = 'follow'`),
     uniqueIndex()
-      .on(table.accountId, table.postId)
+      .on(table.accountId, table.type, table.postId)
       .where(sql`${table.type} NOT IN ('follow', 'react')`),
     uniqueIndex()
       .on(table.accountId, table.postId, table.emoji)

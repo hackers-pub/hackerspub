@@ -137,6 +137,51 @@ test("updateNote() notifies local quoters when the body changes", async () => {
   });
 });
 
+test("updateNote() keeps separate share and quote update notifications", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "updatenotebothauthor",
+      name: "Update Note Both Author",
+      email: "updatenotebothauthor@example.com",
+    });
+    const account = await insertAccountWithActor(tx, {
+      username: "updatenotebothrecipient",
+      name: "Update Note Both Recipient",
+      email: "updatenotebothrecipient@example.com",
+    });
+    const { noteSourceId, post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Original shared and quoted body",
+    });
+    await insertNotePost(tx, {
+      account: account.account,
+      content: "",
+      sharedPostId: post.id,
+    });
+    await insertNotePost(tx, {
+      account: account.account,
+      content: "I also quote this",
+      quotedPostId: post.id,
+    });
+
+    await updateNote(fedCtx, noteSourceId, {
+      content: "Updated shared and quoted body",
+    });
+
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: account.account.id,
+        postId: post.id,
+      },
+    });
+    assert.deepEqual(
+      notifications.map((notification) => notification.type).sort(),
+      ["quoted_post_updated", "shared_post_updated"],
+    );
+  });
+});
+
 test("updateNote() does not notify sharers when only quote policy changes", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);
