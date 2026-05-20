@@ -170,6 +170,9 @@ patchedDependencies:
   solid-js@1.9.12:
     hash: e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc
     path: patches/solid-js@1.9.12.patch
+  solid-relay@1.0.0-beta.20:
+    hash: 03ec5da73af51a08e1a20d143457723626f8a718a623bd3a94c93dc57e157c43
+    path: patches/solid-relay@1.0.0-beta.20.patch
 
 importers:
 
@@ -455,7 +458,7 @@ importers:
         version: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
       solid-relay:
         specifier: 1.0.0-beta.20
-        version: 1.0.0-beta.20(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        version: 1.0.0-beta.20(patch_hash=03ec5da73af51a08e1a20d143457723626f8a718a623bd3a94c93dc57e157c43)(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.5.0
@@ -11958,7 +11961,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  solid-relay@1.0.0-beta.20(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
+  solid-relay@1.0.0-beta.20(patch_hash=03ec5da73af51a08e1a20d143457723626f8a718a623bd3a94c93dc57e157c43)(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
     dependencies:
       dequal: 2.0.3
       relay-runtime: 19.0.0

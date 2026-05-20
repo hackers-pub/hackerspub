@@ -1,0 +1,26 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index a3440f8afd0a9b3cd7cb1ea393c6ae118ebd8485..2d94ab0a63487bc1ad3b1c0572a3c8fff9603882 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -525,7 +525,7 @@ function createLazyLoadQueryInternal(params) {
+ 				if (state.state === "ok") {
+ 					setResult("error", void 0);
+ 					setResult("pending", false);
+-					setResult("data", (0, solid_js_store.reconcile)(state.value, {
++					setResult("data", (0, solid_js_store.reconcile)(structuredClone(state.value), {
+ 						key: "__id",
+ 						merge: true
+ 					}));
+diff --git a/dist/index.mjs b/dist/index.mjs
+index c08d4a6151a7da905150dec931f7e286566789b8..8eee807cd5a7854be407f6f7c8140957fcc6c255 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -499,7 +499,7 @@ function createLazyLoadQueryInternal(params) {
+ 				if (state.state === "ok") {
+ 					setResult("error", void 0);
+ 					setResult("pending", false);
+-					setResult("data", reconcile(state.value, {
++					setResult("data", reconcile(structuredClone(state.value), {
+ 						key: "__id",
+ 						merge: true
+ 					}));
