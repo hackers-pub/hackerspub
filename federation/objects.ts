@@ -522,28 +522,65 @@ builder.setObjectDispatcher(
   },
 );
 
-builder.setObjectDispatcher(
-  vocab.Create,
-  "/ap/creates/{id}",
-  async (ctx, values) => {
-    if (!validateUuid(values.id)) return null;
+builder
+  .setObjectDispatcher(
+    vocab.Create,
+    "/ap/creates/{id}",
+    async (ctx, values) => {
+      if (!validateUuid(values.id)) return null;
+      const post = await ctx.data.db.query.postTable.findFirst({
+        with: {
+          actor: { with: { account: true } },
+          mentions: { with: { actor: true } },
+        },
+        where: {
+          id: values.id,
+          sharedPostId: { isNull: true },
+        },
+      });
+      if (post == null || post.actor.account == null) return null;
+      return getCreate(ctx, {
+        ...post,
+        actor: { ...post.actor, account: post.actor.account },
+      });
+    },
+  )
+  .authorize(async (ctx, values) => {
+    if (!validateUuid(values.id)) return false;
     const post = await ctx.data.db.query.postTable.findFirst({
       with: {
-        actor: { with: { account: true } },
-        mentions: { with: { actor: true } },
+        actor: {
+          with: {
+            followers: {
+              with: { follower: true },
+            },
+            blockees: {
+              with: { blockee: true },
+            },
+            blockers: {
+              with: { blocker: true },
+            },
+          },
+        },
+        mentions: {
+          with: { actor: true },
+        },
       },
       where: {
         id: values.id,
         sharedPostId: { isNull: true },
       },
     });
-    if (post == null || post.actor.account == null) return null;
-    return getCreate(ctx, {
-      ...post,
-      actor: { ...post.actor, account: post.actor.account },
+    if (post == null || post.actor.accountId == null) return false;
+    const documentLoader = await ctx.getDocumentLoader({
+      identifier: post.actor.accountId,
     });
-  },
-);
+    const signedKeyOwner = await ctx.getSignedKeyOwner({ documentLoader });
+    return isPostVisibleTo(
+      post,
+      signedKeyOwner?.id == null ? undefined : { iri: signedKeyOwner.id.href },
+    );
+  });
 
 function getEmojiReactType(
   emoji: ReactionEmoji,
