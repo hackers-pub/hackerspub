@@ -2,6 +2,7 @@ import { fetchQuery, graphql } from "relay-runtime";
 import { createStore, produce } from "solid-js/store";
 import {
   createEffect,
+  createMemo,
   createSignal,
   For,
   on,
@@ -362,21 +363,20 @@ export function NoteComposer(props: NoteComposerProps) {
     }
   });
 
-  // Notify parent when dirty state changes (user has typed or attached media
-  // beyond the auto-filled mention prefix, or changed language/quotePolicy in
-  // edit mode).
-  createEffect(() => {
-    const contentDirty = content().trim() !== "" &&
-      content().trim() !== prefillRef.trim();
+  // In edit mode treat any divergence from the original as dirty, including
+  // clearing all content.  In compose mode keep the original guard so an
+  // empty textarea isn't flagged dirty on first render.
+  const isDirty = createMemo(() => {
+    const contentDirty = props.editingNoteId
+      ? content().trim() !== prefillRef.trim()
+      : content().trim() !== "" && content().trim() !== prefillRef.trim();
     const editMetaDirty = !!props.editingNoteId && (
       language()?.baseName !== (props.initialLanguage ?? undefined) ||
       quotePolicy() !== (props.initialQuotePolicy ?? "EVERYONE")
     );
-    props.onContentChange?.(
-      contentDirty || mediaItems.length > 0 ||
-        editMetaDirty,
-    );
+    return contentDirty || mediaItems.length > 0 || editMetaDirty;
   });
+  createEffect(() => props.onContentChange?.(isDirty()));
 
   // Use capture-phase listeners so Firefox's native textarea drag handling
   // cannot block our handlers.  relatedTarget in dragleave tells us whether
@@ -820,7 +820,7 @@ export function NoteComposer(props: NoteComposerProps) {
           input: {
             noteId: props.editingNoteId,
             content: noteContent,
-            language: language()?.baseName ?? i18n.locale,
+            language: language()?.baseName ?? null,
             quotePolicy: isPublicOrUnlisted
               ? effectiveQuotePolicy()
               : undefined,
@@ -1393,7 +1393,7 @@ export function NoteComposer(props: NoteComposerProps) {
           <Button
             type="submit"
             disabled={isCreating() || isUpdating() ||
-              (!props.editingNoteId && (
+              (props.editingNoteId ? !isDirty() : (
                 mediaItems.some((m) => m.uploading) ||
                 (!!effectiveQuotedPostId() && !quotedPost() &&
                   !quoteFetchError()) ||
