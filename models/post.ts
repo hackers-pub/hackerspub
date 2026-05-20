@@ -187,6 +187,7 @@ async function createTargetPostUpdatedNotifications(
     .where(and(
       eq(quoteRequestTable.quotedPostId, updatedPost.id),
       isNull(quoteRequestTable.accepted),
+      isNull(quoteRequestTable.rejected),
       isNotNull(actorTable.accountId),
     ));
   const quotingAccountIds = new Set(

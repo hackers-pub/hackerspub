@@ -273,6 +273,53 @@ test("persistPost() notifies pending local quoters when a remote body changes", 
   });
 });
 
+test("persistPost() does not notify rejected local quoters when a remote body changes", async () => {
+  await withRollback(async (tx) => {
+    const remoteActor = await insertRemoteActor(tx, {
+      username: "remoterejectedquoteauthor",
+      name: "Remote Rejected Quote Author",
+      host: "remote.example",
+    });
+    const localQuoter = await insertAccountWithActor(tx, {
+      username: "remoterejectedquotequoter",
+      name: "Remote Rejected Quote Quoter",
+      email: "remoterejectedquotequoter@example.com",
+    });
+    const remotePost = await insertRemotePost(tx, {
+      actorId: remoteActor.id,
+      contentHtml: "<p>Original rejected remote quote body</p>",
+    });
+    const { post: quotePost } = await insertNotePost(tx, {
+      account: localQuoter.account,
+      content: "Rejected quote request",
+    });
+    await tx.insert(quoteRequestTable).values({
+      id: generateUuidV7(),
+      iri: `${quotePost.iri}#rejected-quote-request`,
+      quotePostId: quotePost.id,
+      quotedPostId: remotePost.id,
+      rejected: new Date("2026-04-15T00:00:00.000Z"),
+    });
+    const refetched = new Note({
+      id: new URL(remotePost.iri),
+      attribution: new URL(remoteActor.iri),
+      to: PUBLIC_COLLECTION,
+      content: "Updated rejected remote quote body",
+    });
+
+    await persistPost(createFedCtx(tx), refetched);
+
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: localQuoter.account.id,
+        type: "quoted_post_updated",
+        postId: remotePost.id,
+      },
+    });
+    assert.equal(notification, undefined);
+  });
+});
+
 test("persistPost() does not notify local sharers when the remote body is unchanged", async () => {
   await withRollback(async (tx) => {
     const remoteActor = await insertRemoteActor(tx, {
