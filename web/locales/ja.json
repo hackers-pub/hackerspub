@@ -45,6 +45,10 @@
     "sharedYourPost_zero": "{{actor}}さんがあなたのコンテンツを共有しました",
     "sharedYourPost_other": "{{actor}}さん他{{count}}人があなたのコンテンツを共有しました",
     "quotedYourPost": "{{actor}}さんがあなたのコンテンツを引用しました",
+    "sharedPostUpdated_zero": "{{actor}}さんがあなたが共有したコンテンツを更新しました",
+    "sharedPostUpdated_other": "{{actor}}さん他{{count}}人があなたが共有したコンテンツを更新しました",
+    "quotedPostUpdated_zero": "{{actor}}さんがあなたが引用したコンテンツを更新しました",
+    "quotedPostUpdated_other": "{{actor}}さん他{{count}}人があなたが引用したコンテンツを更新しました",
     "reactedToYourPost_zero": "{{actor}}さんがあなたのコンテンツに{{emoji}}でリアクションしました",
     "reactedToYourPost_other": "{{actor}}さんと他{{count}}人があなたのコンテンツに{{emoji}}でリアクションしました"
   },

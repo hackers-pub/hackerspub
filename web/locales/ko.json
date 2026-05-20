@@ -45,6 +45,10 @@
     "sharedYourPost_zero": "{{actor}} 님이 회원님의 콘텐츠를 공유했습니다",
     "sharedYourPost_other": "{{actor}} 님 외 {{count}}명이 회원님의 콘텐츠를 공유했습니다",
     "quotedYourPost": "{{actor}} 님이 회원님의 콘텐츠를 인용했습니다",
+    "sharedPostUpdated_zero": "{{actor}} 님이 회원님이 공유한 콘텐츠를 업데이트했습니다",
+    "sharedPostUpdated_other": "{{actor}} 님 외 {{count}}명이 회원님이 공유한 콘텐츠를 업데이트했습니다",
+    "quotedPostUpdated_zero": "{{actor}} 님이 회원님이 인용한 콘텐츠를 업데이트했습니다",
+    "quotedPostUpdated_other": "{{actor}} 님 외 {{count}}명이 회원님이 인용한 콘텐츠를 업데이트했습니다",
     "reactedToYourPost_zero": "{{actor}} 님이 회원님의 콘텐츠에 {{emoji}}(으)로 반응했습니다",
     "reactedToYourPost_other": "{{actor}} 님 외 {{count}}명이 회원님의 콘텐츠에 {{emoji}}(으)로 반응했습니다"
   },
