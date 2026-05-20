@@ -59,6 +59,174 @@ test("createNote() creates a post and timeline entry for the author", async () =
   });
 });
 
+test("updateNote() notifies local sharers when the body changes", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "updatenoteshareauthor",
+      name: "Update Note Share Author",
+      email: "updatenoteshareauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "updatenotesharer",
+      name: "Update Note Sharer",
+      email: "updatenotesharer@example.com",
+    });
+    const { noteSourceId, post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Original shared body",
+    });
+    await insertNotePost(tx, {
+      account: sharer.account,
+      content: "",
+      sharedPostId: post.id,
+    });
+
+    await updateNote(fedCtx, noteSourceId, {
+      content: "Updated shared body",
+    });
+
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: sharer.account.id,
+        type: "shared_post_updated",
+        postId: post.id,
+      },
+    });
+    assert.ok(notification != null);
+    assert.deepEqual(notification.actorIds, [author.actor.id]);
+  });
+});
+
+test("updateNote() notifies local quoters when the body changes", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "updatenotequoteauthor",
+      name: "Update Note Quote Author",
+      email: "updatenotequoteauthor@example.com",
+    });
+    const quoter = await insertAccountWithActor(tx, {
+      username: "updatenotequoter",
+      name: "Update Note Quoter",
+      email: "updatenotequoter@example.com",
+    });
+    const { noteSourceId, post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Original quoted body",
+    });
+    await insertNotePost(tx, {
+      account: quoter.account,
+      content: "I agree with this",
+      quotedPostId: post.id,
+    });
+
+    await updateNote(fedCtx, noteSourceId, {
+      content: "Updated quoted body",
+    });
+
+    const notification = await tx.query.notificationTable.findFirst({
+      where: {
+        accountId: quoter.account.id,
+        type: "quoted_post_updated",
+        postId: post.id,
+      },
+    });
+    assert.ok(notification != null);
+    assert.deepEqual(notification.actorIds, [author.actor.id]);
+  });
+});
+
+test("updateNote() keeps separate share and quote update notifications", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "updatenotebothauthor",
+      name: "Update Note Both Author",
+      email: "updatenotebothauthor@example.com",
+    });
+    const account = await insertAccountWithActor(tx, {
+      username: "updatenotebothrecipient",
+      name: "Update Note Both Recipient",
+      email: "updatenotebothrecipient@example.com",
+    });
+    const { noteSourceId, post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Original shared and quoted body",
+    });
+    await insertNotePost(tx, {
+      account: account.account,
+      content: "",
+      sharedPostId: post.id,
+    });
+    await insertNotePost(tx, {
+      account: account.account,
+      content: "I also quote this",
+      quotedPostId: post.id,
+    });
+
+    await updateNote(fedCtx, noteSourceId, {
+      content: "Updated shared and quoted body",
+    });
+
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: account.account.id,
+        postId: post.id,
+      },
+    });
+    assert.deepEqual(
+      notifications.map((notification) => notification.type).sort(),
+      ["quoted_post_updated", "shared_post_updated"],
+    );
+  });
+});
+
+test("updateNote() does not notify sharers when only quote policy changes", async () => {
+  await withRollback(async (tx) => {
+    const fedCtx = createFedCtx(tx);
+    const author = await insertAccountWithActor(tx, {
+      username: "updatenotepolicyauthor",
+      name: "Update Note Policy Author",
+      email: "updatenotepolicyauthor@example.com",
+    });
+    const sharer = await insertAccountWithActor(tx, {
+      username: "updatenotepolicysharer",
+      name: "Update Note Policy Sharer",
+      email: "updatenotepolicysharer@example.com",
+    });
+    const post = await createNote(
+      fedCtx as unknown as Context<ContextData<Transaction>>,
+      {
+        accountId: author.account.id,
+        visibility: "public",
+        content: "Policy-only target",
+        language: "en",
+        media: [],
+      },
+    );
+    assert.ok(post != null);
+    await insertNotePost(tx, {
+      account: sharer.account,
+      content: "",
+      sharedPostId: post.id,
+    });
+
+    await updateNote(fedCtx, post.noteSource.id, {
+      quotePolicy: "followers",
+    });
+
+    const notifications = await tx.query.notificationTable.findMany({
+      where: {
+        accountId: sharer.account.id,
+        type: "shared_post_updated",
+        postId: post.id,
+      },
+    });
+    assert.equal(notifications.length, 0);
+  });
+});
+
 test("createNote() allows the same medium at multiple indexes", async () => {
   await withRollback(async (tx) => {
     const fedCtx = createFedCtx(tx);

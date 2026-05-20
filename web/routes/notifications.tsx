@@ -172,6 +172,8 @@ export default define.page<typeof handler, NotificationsProps>(
                   case "reply":
                   case "share":
                   case "quote":
+                  case "shared_post_updated":
+                  case "quoted_post_updated":
                   // deno-lint-ignore no-case-declarations
                   case "react":
                     // These notifications have an associated post
@@ -219,6 +221,12 @@ export default define.page<typeof handler, NotificationsProps>(
                                     ? "notification.repliedToYourPost"
                                     : notification.type === "share"
                                     ? "notification.sharedYourPost"
+                                    : notification.type ===
+                                        "shared_post_updated"
+                                    ? "notification.sharedPostUpdated"
+                                    : notification.type ===
+                                        "quoted_post_updated"
+                                    ? "notification.quotedPostUpdated"
                                     : "notification.quotedYourPost"}
                                   count={notificationActors.length}
                                   actor={

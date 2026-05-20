@@ -1,0 +1,2 @@
+DROP INDEX "notification_account_id_post_id_index";--> statement-breakpoint
+CREATE UNIQUE INDEX "notification_account_id_type_post_id_index" ON "notification" ("account_id","type","post_id") WHERE "type" NOT IN ('follow', 'react');

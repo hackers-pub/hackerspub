@@ -51,6 +51,8 @@ import { extractExternalLinks } from "./html.ts";
 import { getMissingArticleMediumLabel, renderMarkup } from "./markup.ts";
 import { persistPostMedium } from "./medium.ts";
 import {
+  createQuotedPostUpdatedNotification,
+  createSharedPostUpdatedNotification,
   createShareNotification,
   deleteShareNotification,
 } from "./notification.ts";
@@ -121,6 +123,87 @@ type QuoteUpdatePost = Post & {
 type PersistedQuoteTarget = Post & { actor: Actor & { instance: Instance } };
 
 const maxQuoteShareChainDepth = 16;
+
+type PostUpdateComparison = Pick<
+  Post,
+  "id" | "actorId" | "name" | "contentHtml" | "updated"
+>;
+
+function hasNotifiablePostContentChange(
+  previousPost: Pick<Post, "name" | "contentHtml"> | undefined,
+  updatedPost: Pick<Post, "name" | "contentHtml">,
+): boolean {
+  return previousPost != null &&
+    (previousPost.name !== updatedPost.name ||
+      previousPost.contentHtml !== updatedPost.contentHtml);
+}
+
+async function createTargetPostUpdatedNotifications(
+  db: Database,
+  previousPost: Pick<Post, "name" | "contentHtml"> | undefined,
+  updatedPost: PostUpdateComparison,
+  updatingActor: Actor,
+): Promise<void> {
+  if (!hasNotifiablePostContentChange(previousPost, updatedPost)) return;
+  const originalAuthorAccountId = updatingActor.accountId;
+  const shouldNotifyAccount = (
+    accountId: Uuid | null,
+  ): accountId is Uuid =>
+    accountId != null && accountId !== originalAuthorAccountId;
+
+  const shareRows = await db
+    .select({ accountId: actorTable.accountId })
+    .from(postTable)
+    .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
+    .where(and(
+      eq(postTable.sharedPostId, updatedPost.id),
+      isNotNull(actorTable.accountId),
+    ));
+  const sharingAccountIds = new Set(
+    shareRows.map((row) => row.accountId).filter(shouldNotifyAccount),
+  );
+  for (const accountId of sharingAccountIds) {
+    await createSharedPostUpdatedNotification(
+      db,
+      accountId,
+      updatedPost,
+      updatingActor,
+    );
+  }
+
+  const directQuoteRows = await db
+    .select({ accountId: actorTable.accountId })
+    .from(postTable)
+    .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
+    .where(and(
+      eq(postTable.quotedPostId, updatedPost.id),
+      isNotNull(actorTable.accountId),
+    ));
+  const quoteRequestRows = await db
+    .select({ accountId: actorTable.accountId })
+    .from(quoteRequestTable)
+    .innerJoin(postTable, eq(postTable.id, quoteRequestTable.quotePostId))
+    .innerJoin(actorTable, eq(actorTable.id, postTable.actorId))
+    .where(and(
+      eq(quoteRequestTable.quotedPostId, updatedPost.id),
+      isNull(quoteRequestTable.accepted),
+      isNull(quoteRequestTable.rejected),
+      isNotNull(actorTable.accountId),
+    ));
+  const quotingAccountIds = new Set(
+    [...directQuoteRows, ...quoteRequestRows]
+      .map((row) => row.accountId)
+      .filter(shouldNotifyAccount),
+  );
+  for (const accountId of quotingAccountIds) {
+    await createQuotedPostUpdatedNotification(
+      db,
+      accountId,
+      updatedPost,
+      updatingActor,
+    );
+  }
+}
 
 export function isPostObject(object: unknown): object is PostObject {
   return object instanceof vocab.Article || object instanceof vocab.Note ||
@@ -395,6 +478,10 @@ export async function syncPostFromArticleSource(
     updated: articleSource.updated,
     published: articleSource.published,
   };
+  const existingPost = await db.query.postTable.findFirst({
+    columns: { id: true, name: true, contentHtml: true },
+    where: { articleSourceId: articleSource.id },
+  });
   const rows = await db.insert(postTable)
     .values({ id: generateUuidV7(), ...values })
     .onConflictDoUpdate({
@@ -404,6 +491,7 @@ export async function syncPostFromArticleSource(
     })
     .returning();
   const [post] = rows;
+  await createTargetPostUpdatedNotifications(db, existingPost, post, actor);
   await db.delete(mentionTable).where(eq(mentionTable.postId, post.id));
   const mentionList = globalThis.Object.values(rendered.mentions);
   const mentions = mentionList.length > 0
@@ -492,6 +580,8 @@ export async function syncPostFromNoteSource(
   const existingPost = await db.query.postTable.findFirst({
     columns: {
       id: true,
+      name: true,
+      contentHtml: true,
       quotedPostId: true,
       quoteAuthorizationIri: true,
       quoteTargetState: true,
@@ -571,6 +661,7 @@ export async function syncPostFromNoteSource(
     })
     .returning();
   const post = rows[0];
+  await createTargetPostUpdatedNotifications(db, existingPost, post, actor);
   if (post.quoteAuthorizationIri != null && quotedPost != null) {
     await db.insert(quoteAuthorizationTable).values({
       id,
@@ -873,7 +964,7 @@ export async function persistPost(
     );
   let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
   const existingPost = await db.query.postTable.findFirst({
-    columns: { id: true, quotedPostId: true },
+    columns: { id: true, name: true, contentHtml: true, quotedPostId: true },
     where: { iri: post.id.href },
   });
   if (quoteAuthorizationIri != null && quotedPost != null) {
@@ -1012,6 +1103,12 @@ export async function persistPost(
     })
     .returning();
   const persistedPost = { ...rows[0], actor };
+  await createTargetPostUpdatedNotifications(
+    db,
+    existingPost,
+    persistedPost,
+    actor,
+  );
   if (quoteAuthorizationIri != null && quotedPost != null) {
     await db.insert(quoteAuthorizationTable).values({
       id: generateUuidV7(),

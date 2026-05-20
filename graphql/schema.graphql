@@ -1623,6 +1623,9 @@ enum NotificationType {
   """Someone quoted one of this account's posts."""
   QUOTE
 
+  """An author updated a post that this account previously quoted."""
+  QUOTED_POST_UPDATED
+
   """Someone reacted with an emoji to one of this account's posts."""
   REACT
 
@@ -1631,6 +1634,11 @@ enum NotificationType {
 
   """Someone boosted (reshared) one of this account's posts."""
   SHARE
+
+  """
+  An author updated a post that this account previously boosted (reshared).
+  """
+  SHARED_POST_UPDATED
 }
 
 enum OrderDirection {
@@ -2504,6 +2512,22 @@ enum QuoteTargetState {
 }
 
 """
+Notification that the author updated a post this account previously quoted.
+"""
+type QuotedPostUpdatedNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+
+  """
+  The updated post. This may be `null` if the post was deleted after the notification was created.
+  """
+  post: Post
+  uuid: UUID!
+}
+
+"""
 Notification that one or more actors reacted with an emoji to one of this account's posts. The `emoji` and `customEmoji` fields identify which reaction triggered the notification.
 """
 type ReactNotification implements Node & Notification {
@@ -2795,6 +2819,22 @@ union SharePostResult = InvalidInputError | NotAuthenticatedError | SharePostPay
 
 type SharedPostDeletionNotAllowedError {
   inputPath: String!
+}
+
+"""
+Notification that the author updated a post this account previously boosted (reshared).
+"""
+type SharedPostUpdatedNotification implements Node & Notification {
+  account: Account!
+  actors(after: String, before: String, first: Int, last: Int): NotificationActorsConnection!
+  created: DateTime!
+  id: ID!
+
+  """
+  The updated post. This may be `null` if the post was deleted after the notification was created.
+  """
+  post: Post
+  uuid: UUID!
 }
 
 enum SignupBioError {

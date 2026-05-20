@@ -32,6 +32,14 @@ export const NotificationType = builder.enumType("NotificationType", {
     QUOTE: {
       description: "Someone quoted one of this account's posts.",
     },
+    SHARED_POST_UPDATED: {
+      description:
+        "An author updated a post that this account previously boosted (reshared).",
+    },
+    QUOTED_POST_UPDATED: {
+      description:
+        "An author updated a post that this account previously quoted.",
+    },
     REACT: {
       description:
         "Someone reacted with an emoji to one of this account's posts.",
@@ -59,6 +67,10 @@ export const Notification = builder.drizzleInterface("notificationTable", {
         return ShareNotification.name;
       case "quote":
         return QuoteNotification.name;
+      case "shared_post_updated":
+        return SharedPostUpdatedNotification.name;
+      case "quoted_post_updated":
+        return QuotedPostUpdatedNotification.name;
       case "react":
         return ReactNotification.name;
     }
@@ -165,6 +177,48 @@ export const QuoteNotification = builder.drizzleNode("notificationTable", {
     post: t.relation("post", { type: Post, nullable: true }),
   }),
 });
+
+export const SharedPostUpdatedNotification = builder.drizzleNode(
+  "notificationTable",
+  {
+    variant: "SharedPostUpdatedNotification",
+    description:
+      "Notification that the author updated a post this account previously boosted (reshared).",
+    interfaces: [Notification],
+    id: {
+      column: (notification) => notification.id,
+    },
+    fields: (t) => ({
+      post: t.relation("post", {
+        type: Post,
+        nullable: true,
+        description:
+          "The updated post. This may be `null` if the post was deleted after the notification was created.",
+      }),
+    }),
+  },
+);
+
+export const QuotedPostUpdatedNotification = builder.drizzleNode(
+  "notificationTable",
+  {
+    variant: "QuotedPostUpdatedNotification",
+    description:
+      "Notification that the author updated a post this account previously quoted.",
+    interfaces: [Notification],
+    id: {
+      column: (notification) => notification.id,
+    },
+    fields: (t) => ({
+      post: t.relation("post", {
+        type: Post,
+        nullable: true,
+        description:
+          "The updated post. This may be `null` if the post was deleted after the notification was created.",
+      }),
+    }),
+  },
+);
 
 export const ReactNotification = builder.drizzleNode("notificationTable", {
   variant: "ReactNotification",

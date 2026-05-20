@@ -46,6 +46,12 @@
     "sharedYourPost_one": "{{actor}} and 1 other shared your post",
     "sharedYourPost_other": "{{actor}} and {{count}} others shared your post",
     "quotedYourPost": "{{actor}} quoted your post",
+    "sharedPostUpdated_zero": "{{actor}} updated a post you shared",
+    "sharedPostUpdated_one": "{{actor}} and 1 other updated a post you shared",
+    "sharedPostUpdated_other": "{{actor}} and {{count}} others updated a post you shared",
+    "quotedPostUpdated_zero": "{{actor}} updated a post you quoted",
+    "quotedPostUpdated_one": "{{actor}} and 1 other updated a post you quoted",
+    "quotedPostUpdated_other": "{{actor}} and {{count}} others updated a post you quoted",
     "reactedToYourPost_zero": "{{actor}} reacted to your post with {{emoji}}",
     "reactedToYourPost_one": "{{actor}} and 1 other reacted to your post with {{emoji}}",
     "reactedToYourPost_other": "{{actor}} and {{count}} others reacted to your post with {{emoji}}"
