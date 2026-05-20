@@ -1504,7 +1504,7 @@ type Note implements Node & Post & Reactable {
   quotes(after: String, before: String, first: Int, last: Int): PostQuotesConnection!
 
   """
-  The raw Markdown source of this note. Non-null only for source-backed local notes. `null` for federated remote notes and local share wrappers.
+  The raw Markdown source of this note. Non-null only when the viewer is the note's author (i.e., the authenticated account matches the note's `accountId`). Returns `null` for federated remote notes, local share wrappers, and notes authored by someone else.
   """
   rawContent: Markdown
   reactionGroup(customEmojiId: ID, emoji: String): ReactionGroup

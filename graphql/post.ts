@@ -657,13 +657,20 @@ export const Note = builder.drizzleNode("postTable", {
     rawContent: t.field({
       type: "Markdown",
       nullable: true,
-      description: "The raw Markdown source of this note. Non-null only for " +
-        "source-backed local notes. `null` for federated remote notes and " +
-        "local share wrappers.",
+      description:
+        "The raw Markdown source of this note. Non-null only when the " +
+        "viewer is the note's author (i.e., the authenticated account " +
+        "matches the note's `accountId`). Returns `null` for federated " +
+        "remote notes, local share wrappers, and notes authored by " +
+        "someone else.",
       select: {
-        with: { noteSource: { columns: { content: true } } },
+        with: { noteSource: { columns: { content: true, accountId: true } } },
       },
-      resolve: (post) => post.noteSource?.content ?? null,
+      resolve: (post, _args, ctx) => {
+        if (post.noteSource == null) return null;
+        if (ctx.session?.accountId !== post.noteSource.accountId) return null;
+        return post.noteSource.content;
+      },
     }),
   }),
 });

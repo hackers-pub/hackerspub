@@ -81,7 +81,7 @@ export function NoteHeader(props: NoteHeaderProps) {
             <Show
               when={n.actor.isViewer && n.actor.local && n.sourceId != null}
             >
-              <>
+              <span class="contents">
                 &middot;
                 <InternalLink
                   href={n.url ?? n.iri}
@@ -90,7 +90,7 @@ export function NoteHeader(props: NoteHeaderProps) {
                 >
                   {t`Edit`}
                 </InternalLink>
-              </>
+              </span>
             </Show>
             <PostActionMenu
               $post={n}
