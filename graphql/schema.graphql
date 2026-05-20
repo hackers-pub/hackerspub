@@ -3032,6 +3032,10 @@ input UpdateAccountInput {
   bio: String
   clientMutationId: ID
   defaultNoteVisibility: PostVisibility
+
+  """
+  New default quote policy for notes. Ignored and stored as `SELF` when the effective `defaultNoteVisibility` is `FOLLOWERS`, `DIRECT`, or `NONE` (whether set in this request or already stored on the account).
+  """
   defaultQuotePolicy: QuotePolicy
   defaultShareVisibility: PostVisibility
   hideForeignLanguages: Boolean

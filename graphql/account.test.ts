@@ -381,7 +381,8 @@ test("updateAccount updates profile preferences for the signed-in account", asyn
           preferAiSummary: true,
           defaultNoteVisibility: "FOLLOWERS",
           defaultShareVisibility: "UNLISTED",
-          defaultQuotePolicy: "FOLLOWERS",
+          // FOLLOWERS visibility normalizes quote policy to SELF
+          defaultQuotePolicy: "SELF",
         },
       },
     });
@@ -396,7 +397,7 @@ test("updateAccount updates profile preferences for the signed-in account", asyn
     assert.equal(stored.preferAiSummary, true);
     assert.equal(stored.noteVisibility, "followers");
     assert.equal(stored.shareVisibility, "unlisted");
-    assert.equal(stored.quotePolicy, "followers");
+    assert.equal(stored.quotePolicy, "self");
   });
 });
 
@@ -449,6 +450,157 @@ test("updateAccount updates defaultQuotePolicy", async () => {
     });
     assert.ok(stored != null);
     assert.equal(stored.quotePolicy, "self");
+  });
+});
+
+test("updateAccount normalizes quotePolicy to self for restricted visibility", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updatequotepolicynorm",
+      name: "Update Quote Policy Normalize",
+      email: "updatequotepolicynorm@example.com",
+    });
+
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(
+        new vocab.Person({
+          id: fedCtx.getActorUri(identifier),
+        }),
+      );
+
+    // Setting FOLLOWERS visibility with EVERYONE quote policy should
+    // normalize to SELF at the server.
+    const result = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          defaultNoteVisibility: "FOLLOWERS",
+          defaultQuotePolicy: "EVERYONE",
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      updateAccount: {
+        account: {
+          username: "updatequotepolicynorm",
+          bio: account.account.bio,
+          locales: account.account.locales,
+          preferAiSummary: account.account.preferAiSummary,
+          defaultNoteVisibility: "FOLLOWERS",
+          defaultShareVisibility: "PUBLIC",
+          defaultQuotePolicy: "SELF",
+        },
+      },
+    });
+
+    const stored = await tx.query.accountTable.findFirst({
+      where: { id: account.account.id },
+    });
+    assert.ok(stored != null);
+    assert.equal(stored.quotePolicy, "self");
+
+    // DIRECT visibility should also normalize to SELF.
+    const result2 = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          defaultNoteVisibility: "DIRECT",
+          defaultQuotePolicy: "FOLLOWERS",
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result2.errors, undefined);
+    assert.deepEqual(
+      toPlainJson(result2.data),
+      {
+        updateAccount: {
+          account: {
+            username: "updatequotepolicynorm",
+            bio: account.account.bio,
+            locales: account.account.locales,
+            preferAiSummary: account.account.preferAiSummary,
+            defaultNoteVisibility: "DIRECT",
+            defaultShareVisibility: "PUBLIC",
+            defaultQuotePolicy: "SELF",
+          },
+        },
+      },
+    );
+
+    // Only updating defaultQuotePolicy while stored visibility remains
+    // DIRECT (restricted) should also normalize to SELF.
+    const result3 = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          defaultQuotePolicy: "EVERYONE",
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result3.errors, undefined);
+    assert.deepEqual(
+      toPlainJson(result3.data),
+      {
+        updateAccount: {
+          account: {
+            username: "updatequotepolicynorm",
+            bio: account.account.bio,
+            locales: account.account.locales,
+            preferAiSummary: account.account.preferAiSummary,
+            defaultNoteVisibility: "DIRECT",
+            defaultShareVisibility: "PUBLIC",
+            defaultQuotePolicy: "SELF",
+          },
+        },
+      },
+    );
+
+    // Updating to PUBLIC visibility should allow setting EVERYONE again.
+    const result4 = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          defaultNoteVisibility: "PUBLIC",
+          defaultQuotePolicy: "EVERYONE",
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result4.errors, undefined);
+    assert.deepEqual(toPlainJson(result4.data), {
+      updateAccount: {
+        account: {
+          username: "updatequotepolicynorm",
+          bio: account.account.bio,
+          locales: account.account.locales,
+          preferAiSummary: account.account.preferAiSummary,
+          defaultNoteVisibility: "PUBLIC",
+          defaultShareVisibility: "PUBLIC",
+          defaultQuotePolicy: "EVERYONE",
+        },
+      },
+    });
   });
 });
 

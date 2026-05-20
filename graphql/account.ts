@@ -712,7 +712,14 @@ builder.relayMutationField(
       preferAiSummary: t.boolean(),
       defaultNoteVisibility: t.field({ type: PostVisibility }),
       defaultShareVisibility: t.field({ type: PostVisibility }),
-      defaultQuotePolicy: t.field({ type: QuotePolicy }),
+      defaultQuotePolicy: t.field({
+        type: QuotePolicy,
+        description:
+          "New default quote policy for notes. Ignored and stored as " +
+          "`SELF` when the effective `defaultNoteVisibility` is " +
+          "`FOLLOWERS`, `DIRECT`, or `NONE` (whether set in this request " +
+          "or already stored on the account).",
+      }),
       links: t.field({
         type: [AccountLinkInput],
       }),
@@ -788,9 +795,19 @@ builder.relayMutationField(
           shareVisibility: args.input.defaultShareVisibility == null
             ? undefined
             : fromPostVisibility(args.input.defaultShareVisibility),
-          quotePolicy: args.input.defaultQuotePolicy == null
-            ? undefined
-            : fromQuotePolicy(args.input.defaultQuotePolicy),
+          quotePolicy: (() => {
+            const effectiveNoteVis = args.input.defaultNoteVisibility != null
+              ? fromPostVisibility(args.input.defaultNoteVisibility)
+              : account.noteVisibility;
+            if (
+              effectiveNoteVis === "followers" ||
+              effectiveNoteVis === "direct" ||
+              effectiveNoteVis === "none"
+            ) return "self";
+            return args.input.defaultQuotePolicy == null
+              ? undefined
+              : fromQuotePolicy(args.input.defaultQuotePolicy);
+          })(),
           links: args.input.links ?? undefined,
         },
       );
