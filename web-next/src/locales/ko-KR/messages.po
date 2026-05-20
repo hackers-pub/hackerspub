@@ -463,6 +463,7 @@ msgstr "북마크"
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:332
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:327
 #: src/routes/(root)/[handle]/settings/index.tsx:396
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:519
 #: src/routes/(root)/authorize_interaction.tsx:273
@@ -523,10 +524,12 @@ msgstr "작성"
 #: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:980
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:247
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:250
 msgid "Content"
 msgstr "내용"
 
 #: src/components/NoteComposer.tsx:703
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:185
 msgid "Content cannot be empty"
 msgstr "내용을 입력하세요"
 
@@ -702,6 +705,7 @@ msgstr "유지하려는 영역을 드래그하여 선택한 다음 “자르기�
 msgid "e.g., @user@mastodon.social"
 msgstr "예: @user@mastodon.social"
 
+#: src/components/NoteHeader.tsx:91
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
 msgid "Edit"
 msgstr "수정"
@@ -714,6 +718,10 @@ msgstr "게시글 수정"
 #: src/routes/(root)/[handle]/drafts/new.tsx:84
 msgid "Edit draft"
 msgstr "초고 수정"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:244
+msgid "Edit note"
+msgstr "단문 수정"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:368
 #: src/routes/(root)/[handle]/settings/invite.tsx:330
@@ -769,6 +777,10 @@ msgstr "로그인하려면 아래에 이메일 또는 아이디를 입력해주�
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:206
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:215
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:184
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:213
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:221
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:230
 #: src/routes/(root)/[handle]/drafts/index.tsx:180
 #: src/routes/(root)/[handle]/drafts/index.tsx:189
 #: src/routes/(root)/[handle]/drafts/index.tsx:197
@@ -875,8 +887,8 @@ msgstr "패스키를 더 불러오지 못했습니다. 클릭해서 다시 시�
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:231
-#: src/components/PublicTimeline.tsx:224
+#: src/components/PersonalTimeline.tsx:246
+#: src/components/PublicTimeline.tsx:239
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "콘텐츠 불러오기 실패. 클릭하여 재시도하세요"
@@ -999,6 +1011,10 @@ msgstr "공유 취소 실패"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:216
 msgid "Failed to update the article. Please try again."
 msgstr "게시글을 수정하지 못했습니다. 다시 시도해 주세요."
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:231
+msgid "Failed to update the note. Please try again."
+msgstr "단문 수정에 실패했습니다. 다시 시도해 주세요."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
 #: src/components/NoteComposer.tsx:563
@@ -1203,6 +1219,7 @@ msgstr "올바른 연합우주 핸들 형식이 아닙니다."
 #: src/components/article-composer/ArticleComposerContext.tsx:383
 #: src/components/article-composer/ArticleComposerContext.tsx:448
 #: src/components/NoteComposer.tsx:755
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:214
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 msgid "Invalid input: {0}"
 msgstr "잘못된 입력: {0}"
@@ -1284,6 +1301,7 @@ msgstr "계속 작성"
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:289
 msgid "Language"
 msgstr "언어"
 
@@ -1375,8 +1393,8 @@ msgstr "패스키 더 불러오기"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:234
-#: src/components/PublicTimeline.tsx:227
+#: src/components/PersonalTimeline.tsx:249
+#: src/components/PublicTimeline.tsx:242
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "콘텐츠 더 불러오기"
@@ -1441,8 +1459,8 @@ msgstr "패스키를 더 불러오는 중…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:228
-#: src/components/PublicTimeline.tsx:221
+#: src/components/PersonalTimeline.tsx:243
+#: src/components/PublicTimeline.tsx:236
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "콘텐츠 불러오는 중…"
@@ -1494,6 +1512,7 @@ msgstr "Markdown 가이드"
 #: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:1087
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:275
 msgid "Markdown supported"
 msgstr "Markdown 사용 가능"
 
@@ -1567,8 +1586,8 @@ msgstr "사용된 적 없음"
 msgid "New article"
 msgstr "새 게시글"
 
-#: src/components/PersonalTimeline.tsx:203
-#: src/components/PublicTimeline.tsx:198
+#: src/components/PersonalTimeline.tsx:218
+#: src/components/PublicTimeline.tsx:213
 msgid "New posts available — click to load"
 msgstr "새 콘텐츠가 있습니다 — 클릭하여 불러오기"
 
@@ -1626,8 +1645,8 @@ msgstr "아직 아무도 공유하지 않았습니다."
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:241
-#: src/components/PublicTimeline.tsx:234
+#: src/components/PersonalTimeline.tsx:256
+#: src/components/PublicTimeline.tsx:249
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "콘텐츠가 없습니다"
@@ -1678,6 +1697,10 @@ msgstr "단문이 작성되었습니다"
 #: src/routes/(root)/[handle]/settings/index.tsx:521
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "링크가 실제로 당신의 것인지 인증할 수 있습니다. 링크한 페이지에서도 {0} 속성을 사용해 당신의 Hackers' Pub 프로필로 링크를 걸어 주세요."
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:206
+msgid "Note updated"
+msgstr "단문이 수정되었습니다."
 
 #: src/components/ProfileTabs.tsx:44
 #: src/routes/(root)/[handle]/bookmarks.tsx:138
@@ -2074,6 +2097,7 @@ msgid "Save"
 msgstr "저장"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:330
 msgid "Save changes"
 msgstr "변경사항 저장"
 
@@ -2087,6 +2111,7 @@ msgstr "미리보기를 보려면 초고로 저장하세요"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:330
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
 #: src/routes/(root)/[handle]/settings/preferences.tsx:204
@@ -2253,6 +2278,7 @@ msgstr "문제가 발생했습니다. 다시 시도해주세요."
 #: src/components/article-composer/ArticleComposerContext.tsx:438
 #: src/components/NoteComposer.tsx:746
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:205
 #: src/routes/(root)/[handle]/drafts/index.tsx:172
 msgid "Success"
 msgstr "성공"
@@ -2676,6 +2702,10 @@ msgstr "Hackers' Pub이란?"
 msgid "What's on your mind?"
 msgstr "무슨 생각 해요?"
 
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:304
+msgid "Who can quote this note"
+msgstr "이 단문의 인용 허용 범위"
+
 #: src/components/AppSidebar.tsx:265
 msgid "Without shares"
 msgstr "공유 제외"
@@ -2699,6 +2729,10 @@ msgstr "여기에 게시글을 작성하세요."
 #: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "여기에 게시글을 작성하세요. Markdown을 사용할 수 있습니다. 작성하는 동안 자동으로 초고로 저장됩니다."
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:281
+msgid "Write your note here."
+msgstr "여기에 단문을 작성하세요."
 
 #. placeholder {0}: a.name ?? a.handle
 #: src/routes/(root)/authorize_interaction.tsx:229
@@ -2769,6 +2803,10 @@ msgstr "단문을 작성하려면 로그인해야 합니다"
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 msgid "You must be signed in to delete a draft"
 msgstr "초고를 삭제하려면 로그인해야 합니다"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:222
+msgid "You must be signed in to edit a note"
+msgstr "단문을 수정하려면 로그인해야 합니다."
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:207
 msgid "You must be signed in to edit an article"

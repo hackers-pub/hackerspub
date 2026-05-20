@@ -463,6 +463,7 @@ msgstr "收藏"
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:332
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:327
 #: src/routes/(root)/[handle]/settings/index.tsx:396
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:519
 #: src/routes/(root)/authorize_interaction.tsx:273
@@ -523,10 +524,12 @@ msgstr "寫作"
 #: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:980
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:247
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:250
 msgid "Content"
 msgstr "內容"
 
 #: src/components/NoteComposer.tsx:703
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:185
 msgid "Content cannot be empty"
 msgstr "內容不能為空"
 
@@ -702,6 +705,7 @@ msgstr "拖動選擇要保留的區域，然後點擊「裁剪」來更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
+#: src/components/NoteHeader.tsx:91
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
 msgid "Edit"
 msgstr "編輯"
@@ -714,6 +718,10 @@ msgstr "編輯文章"
 #: src/routes/(root)/[handle]/drafts/new.tsx:84
 msgid "Edit draft"
 msgstr "編輯草稿"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:244
+msgid "Edit note"
+msgstr "編輯貼文"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:368
 #: src/routes/(root)/[handle]/settings/invite.tsx:330
@@ -769,6 +777,10 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:206
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:215
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:184
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:213
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:221
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:230
 #: src/routes/(root)/[handle]/drafts/index.tsx:180
 #: src/routes/(root)/[handle]/drafts/index.tsx:189
 #: src/routes/(root)/[handle]/drafts/index.tsx:197
@@ -875,8 +887,8 @@ msgstr "載入更多通行金鑰失敗；點擊重試"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:231
-#: src/components/PublicTimeline.tsx:224
+#: src/components/PersonalTimeline.tsx:246
+#: src/components/PublicTimeline.tsx:239
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "載入更多內容失敗，點擊重試"
@@ -999,6 +1011,10 @@ msgstr "取消轉貼失敗"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:216
 msgid "Failed to update the article. Please try again."
 msgstr "文章更新失敗，請重試。"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:231
+msgid "Failed to update the note. Please try again."
+msgstr "貼文更新失敗，請重試。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
 #: src/components/NoteComposer.tsx:563
@@ -1203,6 +1219,7 @@ msgstr "聯邦宇宙使用者名稱格式無效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:383
 #: src/components/article-composer/ArticleComposerContext.tsx:448
 #: src/components/NoteComposer.tsx:755
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:214
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 msgid "Invalid input: {0}"
 msgstr "無效輸入：{0}"
@@ -1284,6 +1301,7 @@ msgstr "繼續編輯"
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:289
 msgid "Language"
 msgstr "語言"
 
@@ -1375,8 +1393,8 @@ msgstr "載入更多通行金鑰"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:234
-#: src/components/PublicTimeline.tsx:227
+#: src/components/PersonalTimeline.tsx:249
+#: src/components/PublicTimeline.tsx:242
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "載入更多內容"
@@ -1441,8 +1459,8 @@ msgstr "正在載入更多通行金鑰…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:228
-#: src/components/PublicTimeline.tsx:221
+#: src/components/PersonalTimeline.tsx:243
+#: src/components/PublicTimeline.tsx:236
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "載入更多內容中…"
@@ -1494,6 +1512,7 @@ msgstr "Markdown 指南"
 #: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:1087
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:275
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -1567,8 +1586,8 @@ msgstr "從未使用過"
 msgid "New article"
 msgstr "新建文章"
 
-#: src/components/PersonalTimeline.tsx:203
-#: src/components/PublicTimeline.tsx:198
+#: src/components/PersonalTimeline.tsx:218
+#: src/components/PublicTimeline.tsx:213
 msgid "New posts available — click to load"
 msgstr "有新內容 — 點擊載入"
 
@@ -1626,8 +1645,8 @@ msgstr "尚無轉貼。"
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:241
-#: src/components/PublicTimeline.tsx:234
+#: src/components/PersonalTimeline.tsx:256
+#: src/components/PublicTimeline.tsx:249
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "未找到內容"
@@ -1678,6 +1697,10 @@ msgstr "貼文建立成功"
 #: src/routes/(root)/[handle]/settings/index.tsx:521
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "你可以驗證這些連結確實屬於你。在連結的頁面上使用 {0} 屬性連結回你的 Hackers' Pub 個人資料頁。"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:206
+msgid "Note updated"
+msgstr "貼文已更新。"
 
 #: src/components/ProfileTabs.tsx:44
 #: src/routes/(root)/[handle]/bookmarks.tsx:138
@@ -2074,6 +2097,7 @@ msgid "Save"
 msgstr "儲存"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:330
 msgid "Save changes"
 msgstr "儲存變更"
 
@@ -2087,6 +2111,7 @@ msgstr "儲存草稿以查看預覽"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:330
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
 #: src/routes/(root)/[handle]/settings/preferences.tsx:204
@@ -2253,6 +2278,7 @@ msgstr "發生錯誤，請重試。"
 #: src/components/article-composer/ArticleComposerContext.tsx:438
 #: src/components/NoteComposer.tsx:746
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:205
 #: src/routes/(root)/[handle]/drafts/index.tsx:172
 msgid "Success"
 msgstr "成功"
@@ -2676,6 +2702,10 @@ msgstr "什麼是 Hackers' Pub？"
 msgid "What's on your mind?"
 msgstr "你在想什麼？"
 
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:304
+msgid "Who can quote this note"
+msgstr "誰可以引用此貼文"
+
 #: src/components/AppSidebar.tsx:265
 msgid "Without shares"
 msgstr "不含轉貼"
@@ -2699,6 +2729,10 @@ msgstr "在此撰寫您的文章。"
 #: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "在此撰寫文章。您可以使用 Markdown。在您撰寫時，文章將自動儲存為草稿。"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:281
+msgid "Write your note here."
+msgstr "在此處撰寫你的貼文。"
 
 #. placeholder {0}: a.name ?? a.handle
 #: src/routes/(root)/authorize_interaction.tsx:229
@@ -2769,6 +2803,10 @@ msgstr "你必須登入才能建立貼文"
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 msgid "You must be signed in to delete a draft"
 msgstr "您必須登入才能刪除草稿"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:222
+msgid "You must be signed in to edit a note"
+msgstr "編輯貼文需要登入。"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:207
 msgid "You must be signed in to edit an article"

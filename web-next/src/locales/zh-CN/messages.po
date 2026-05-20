@@ -463,6 +463,7 @@ msgstr "收藏"
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:332
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:327
 #: src/routes/(root)/[handle]/settings/index.tsx:396
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:519
 #: src/routes/(root)/authorize_interaction.tsx:273
@@ -523,10 +524,12 @@ msgstr "写作"
 #: src/components/article-composer/ArticleComposerForm.tsx:53
 #: src/components/NoteComposer.tsx:980
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:247
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:250
 msgid "Content"
 msgstr "内容"
 
 #: src/components/NoteComposer.tsx:703
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:185
 msgid "Content cannot be empty"
 msgstr "内容不能为空"
 
@@ -702,6 +705,7 @@ msgstr "拖动选择要保留的区域，然后点击「裁剪」来更新你的
 msgid "e.g., @user@mastodon.social"
 msgstr "例如：@user@mastodon.social"
 
+#: src/components/NoteHeader.tsx:91
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:695
 msgid "Edit"
 msgstr "编辑"
@@ -714,6 +718,10 @@ msgstr "编辑文章"
 #: src/routes/(root)/[handle]/drafts/new.tsx:84
 msgid "Edit draft"
 msgstr "编辑草稿"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:244
+msgid "Edit note"
+msgstr "编辑帖子"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:368
 #: src/routes/(root)/[handle]/settings/invite.tsx:330
@@ -769,6 +777,10 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:206
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:215
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:184
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:213
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:221
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:230
 #: src/routes/(root)/[handle]/drafts/index.tsx:180
 #: src/routes/(root)/[handle]/drafts/index.tsx:189
 #: src/routes/(root)/[handle]/drafts/index.tsx:197
@@ -875,8 +887,8 @@ msgstr "加载更多通行密钥失败，点击重试"
 
 #: src/components/ActorPostList.tsx:83
 #: src/components/ActorSharedPostList.tsx:83
-#: src/components/PersonalTimeline.tsx:231
-#: src/components/PublicTimeline.tsx:224
+#: src/components/PersonalTimeline.tsx:246
+#: src/components/PublicTimeline.tsx:239
 #: src/components/SearchResults.tsx:99
 msgid "Failed to load more posts; click to retry"
 msgstr "加载更多内容失败，点击重试"
@@ -999,6 +1011,10 @@ msgstr "取消转帖失败"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:216
 msgid "Failed to update the article. Please try again."
 msgstr "文章更新失败，请重试。"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:231
+msgid "Failed to update the note. Please try again."
+msgstr "帖子更新失败，请重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:29
 #: src/components/NoteComposer.tsx:563
@@ -1203,6 +1219,7 @@ msgstr "联邦宇宙用户名格式无效。"
 #: src/components/article-composer/ArticleComposerContext.tsx:383
 #: src/components/article-composer/ArticleComposerContext.tsx:448
 #: src/components/NoteComposer.tsx:755
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:214
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
@@ -1284,6 +1301,7 @@ msgstr "继续编辑"
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:289
 msgid "Language"
 msgstr "语言"
 
@@ -1375,8 +1393,8 @@ msgstr "加载更多通行密钥"
 
 #: src/components/ActorPostList.tsx:86
 #: src/components/ActorSharedPostList.tsx:86
-#: src/components/PersonalTimeline.tsx:234
-#: src/components/PublicTimeline.tsx:227
+#: src/components/PersonalTimeline.tsx:249
+#: src/components/PublicTimeline.tsx:242
 #: src/components/SearchResults.tsx:102
 msgid "Load more posts"
 msgstr "加载更多内容"
@@ -1441,8 +1459,8 @@ msgstr "正在加载更多通行密钥…"
 
 #: src/components/ActorPostList.tsx:80
 #: src/components/ActorSharedPostList.tsx:80
-#: src/components/PersonalTimeline.tsx:228
-#: src/components/PublicTimeline.tsx:221
+#: src/components/PersonalTimeline.tsx:243
+#: src/components/PublicTimeline.tsx:236
 #: src/components/SearchResults.tsx:96
 msgid "Loading more posts…"
 msgstr "加载更多内容中…"
@@ -1494,6 +1512,7 @@ msgstr "Markdown 指南"
 #: src/components/article-composer/ArticleComposerForm.tsx:99
 #: src/components/NoteComposer.tsx:1087
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:275
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -1567,8 +1586,8 @@ msgstr "从未使用过"
 msgid "New article"
 msgstr "新建文章"
 
-#: src/components/PersonalTimeline.tsx:203
-#: src/components/PublicTimeline.tsx:198
+#: src/components/PersonalTimeline.tsx:218
+#: src/components/PublicTimeline.tsx:213
 msgid "New posts available — click to load"
 msgstr "有新内容 — 点击加载"
 
@@ -1626,8 +1645,8 @@ msgstr "暂无转帖。"
 
 #: src/components/ActorPostList.tsx:93
 #: src/components/ActorSharedPostList.tsx:93
-#: src/components/PersonalTimeline.tsx:241
-#: src/components/PublicTimeline.tsx:234
+#: src/components/PersonalTimeline.tsx:256
+#: src/components/PublicTimeline.tsx:249
 #: src/components/SearchResults.tsx:109
 msgid "No posts found"
 msgstr "未找到内容"
@@ -1678,6 +1697,10 @@ msgstr "帖子创建成功"
 #: src/routes/(root)/[handle]/settings/index.tsx:521
 msgid "Note that you can verify your links belong to you by making the linked pages also link to your Hackers' Pub profile with {0} attribute."
 msgstr "你可以验证这些链接确实属于你。在链接的页面上使用 {0} 属性链接回你的 Hackers' Pub 个人资料页。"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:206
+msgid "Note updated"
+msgstr "帖子已更新。"
 
 #: src/components/ProfileTabs.tsx:44
 #: src/routes/(root)/[handle]/bookmarks.tsx:138
@@ -2074,6 +2097,7 @@ msgid "Save"
 msgstr "保存"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:330
 msgid "Save changes"
 msgstr "保存更改"
 
@@ -2087,6 +2111,7 @@ msgstr "保存草稿以查看预览"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:32
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:330
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
 #: src/routes/(root)/[handle]/settings/preferences.tsx:204
@@ -2253,6 +2278,7 @@ msgstr "出现错误，请重试。"
 #: src/components/article-composer/ArticleComposerContext.tsx:438
 #: src/components/NoteComposer.tsx:746
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:205
 #: src/routes/(root)/[handle]/drafts/index.tsx:172
 msgid "Success"
 msgstr "成功"
@@ -2676,6 +2702,10 @@ msgstr "什么是 Hackers' Pub？"
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:304
+msgid "Who can quote this note"
+msgstr "谁可以引用此帖子"
+
 #: src/components/AppSidebar.tsx:265
 msgid "Without shares"
 msgstr "不含转帖"
@@ -2699,6 +2729,10 @@ msgstr "在此撰写您的文章。"
 #: src/components/article-composer/ArticleComposerForm.tsx:113
 msgid "Write your article here. You can use Markdown. Your article will be automatically saved as a draft while you're writing."
 msgstr "在此撰写文章。您可以使用 Markdown。在您撰写时，文章将自动保存为草稿。"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:281
+msgid "Write your note here."
+msgstr "在此处写下你的帖子。"
 
 #. placeholder {0}: a.name ?? a.handle
 #: src/routes/(root)/authorize_interaction.tsx:229
@@ -2769,6 +2803,10 @@ msgstr "你必须登录才能创建帖子"
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 msgid "You must be signed in to delete a draft"
 msgstr "您必须登录才能删除草稿"
+
+#: src/routes/(root)/[handle]/[noteId]/edit.tsx:222
+msgid "You must be signed in to edit a note"
+msgstr "编辑帖子需要登录。"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:207
 msgid "You must be signed in to edit an article"

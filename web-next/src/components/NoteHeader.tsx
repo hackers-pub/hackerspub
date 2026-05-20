@@ -7,6 +7,7 @@ import { InternalLink } from "./InternalLink.tsx";
 import { PostActionMenu } from "./PostActionMenu.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { VisibilityTag } from "./VisibilityTag.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export interface NoteHeaderProps {
   $note: NoteHeader_note$key;
@@ -16,6 +17,7 @@ export interface NoteHeaderProps {
 }
 
 export function NoteHeader(props: NoteHeaderProps) {
+  const { t } = useLingui();
   const note = createFragment(
     graphql`
       fragment NoteHeader_note on Note {
@@ -32,6 +34,7 @@ export function NoteHeader(props: NoteHeaderProps) {
           local
           url
           iri
+          isViewer
         }
         ...PostActionMenu_post
       }
@@ -75,6 +78,20 @@ export function NoteHeader(props: NoteHeaderProps) {
             </InternalLink>
             &middot;
             <VisibilityTag visibility={n.visibility} />
+            <Show
+              when={n.actor.isViewer && n.actor.local && n.sourceId != null}
+            >
+              <>
+                &middot;
+                <InternalLink
+                  href={n.url ?? n.iri}
+                  internalHref={`/@${n.actor.username}/${n.sourceId}/edit`}
+                  class="hover:underline"
+                >
+                  {t`Edit`}
+                </InternalLink>
+              </>
+            </Show>
             <PostActionMenu
               $post={n}
               connections={props.connections}
