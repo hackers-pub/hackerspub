@@ -86,7 +86,10 @@ export function NoteHeader(props: NoteHeaderProps) {
             </InternalLink>
             &middot;
             <VisibilityTag visibility={n.visibility} />
-            <Show when={n.rawContent != null && n.actor.isViewer}>
+            <Show
+              when={n.rawContent != null && n.actor.isViewer &&
+                n.visibility !== "NONE"}
+            >
               <span class="contents">
                 &middot;
                 <button
