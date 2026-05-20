@@ -14,7 +14,7 @@ import {
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { and, count, eq, inArray, isNotNull, like, or } from "drizzle-orm";
 import { builder } from "./builder.ts";
-import { getPostRecipients } from "./objects.ts";
+import { getCreate, getPostRecipients } from "./objects.ts";
 
 const FOLLOWERS_WINDOW = 50;
 
@@ -283,6 +283,7 @@ builder
       if (account == null) return null;
       const posts = await db.query.postTable.findMany({
         with: {
+          actor: { with: { account: true } },
           mentions: { with: { actor: true } },
           sharedPost: true,
         },
@@ -297,28 +298,31 @@ builder
         limit: OUTBOX_WINDOW + 1,
       });
       return {
-        items: posts.slice(0, OUTBOX_WINDOW).map((post) => {
-          const recipients = getPostRecipients(
-            ctx,
-            account.id,
-            post.mentions.map((m) => new URL(m.actor.iri)),
-            post.visibility,
-          );
-          return post.sharedPost == null
-            ? new vocab.Create({
-              id: new URL("#crate", post.iri),
-              actor: new URL(account.actor.iri),
-              ...recipients,
-              object: new URL(post.iri),
-            })
-            : new vocab.Announce({
-              id: ctx.getObjectUri(vocab.Announce, { id: post.id }),
-              actor: new URL(account.actor.iri),
-              ...recipients,
-              object: new URL(post.sharedPost.iri),
-              published: post.published.toTemporalInstant(),
-            });
-        }),
+        items: posts.slice(0, OUTBOX_WINDOW).flatMap(
+          (post): (vocab.Create | vocab.Announce)[] => {
+            if (post.sharedPost == null) {
+              if (post.actor.account == null) return [];
+              return [getCreate(ctx, {
+                ...post,
+                actor: { ...post.actor, account: post.actor.account },
+              })];
+            }
+            return [
+              new vocab.Announce({
+                id: ctx.getObjectUri(vocab.Announce, { id: post.id }),
+                actor: new URL(account.actor.iri),
+                ...getPostRecipients(
+                  ctx,
+                  account.id,
+                  post.mentions.map((m) => new URL(m.actor.iri)),
+                  post.visibility,
+                ),
+                object: new URL(post.sharedPost.iri),
+                published: post.published.toTemporalInstant(),
+              }),
+            ];
+          },
+        ),
         nextCursor: posts.length <= OUTBOX_WINDOW
           ? null
           : posts[OUTBOX_WINDOW].id,

@@ -472,6 +472,27 @@ export function getAnnounce(
   });
 }
 
+export function getCreate(
+  ctx: Context<ContextData>,
+  post: Post & {
+    actor: Actor & { account: Account };
+    mentions: (Mention & { actor: Actor })[];
+  },
+): vocab.Create {
+  return new vocab.Create({
+    id: ctx.getObjectUri(vocab.Create, { id: post.id }),
+    actor: ctx.getActorUri(post.actor.account.id),
+    ...getPostRecipients(
+      ctx,
+      post.actor.account.id,
+      post.mentions.map((m) => new URL(m.actor.iri)),
+      post.visibility,
+    ),
+    object: new URL(post.iri),
+    published: post.published.toTemporalInstant(),
+  });
+}
+
 builder.setObjectDispatcher(
   vocab.Announce,
   "/ap/announces/{id}",
@@ -497,6 +518,29 @@ builder.setObjectDispatcher(
       ...share,
       sharedPost: share.sharedPost,
       actor: { ...share.actor, account: share.actor.account },
+    });
+  },
+);
+
+builder.setObjectDispatcher(
+  vocab.Create,
+  "/ap/creates/{id}",
+  async (ctx, values) => {
+    if (!validateUuid(values.id)) return null;
+    const post = await ctx.data.db.query.postTable.findFirst({
+      with: {
+        actor: { with: { account: true } },
+        mentions: { with: { actor: true } },
+      },
+      where: {
+        id: values.id,
+        sharedPostId: { isNull: true },
+      },
+    });
+    if (post == null || post.actor.account == null) return null;
+    return getCreate(ctx, {
+      ...post,
+      actor: { ...post.actor, account: post.actor.account },
     });
   },
 );

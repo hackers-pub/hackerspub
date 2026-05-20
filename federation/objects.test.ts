@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getNote } from "./objects.ts";
+import { getCreate, getNote } from "./objects.ts";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -64,6 +64,76 @@ test("getNote() omits quote policy for direct notes", async () => {
     const note = await getNote(createFedCtx(tx), noteSource);
 
     assert.equal(note.interactionPolicy == null, true);
+  });
+});
+
+test("getCreate() returns a Create activity with a dereferenceable id", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "createtest",
+      name: "Create Test",
+      email: "createtest@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "TDD",
+    });
+    const postWithRels = await tx.query.postTable.findFirst({
+      where: { id: post.id },
+      with: {
+        actor: { with: { account: true } },
+        mentions: { with: { actor: true } },
+      },
+    });
+    assert.ok(postWithRels != null && postWithRels.actor.account != null);
+
+    const create = getCreate(createFedCtx(tx), {
+      ...postWithRels,
+      actor: { ...postWithRels.actor, account: postWithRels.actor.account },
+    });
+
+    assert.ok(create.id != null);
+    assert.equal(create.id.hash, "");
+    assert.equal(create.id.href, `http://localhost/objects/${post.id}`);
+  });
+});
+
+test("getCreate() sets actor, object, and published correctly", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "createtest2",
+      name: "Create Test 2",
+      email: "createtest2@example.com",
+    });
+    const published = new Date("2026-03-01T12:00:00Z");
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Hello",
+      published,
+    });
+    const postWithRels = await tx.query.postTable.findFirst({
+      where: { id: post.id },
+      with: {
+        actor: { with: { account: true } },
+        mentions: { with: { actor: true } },
+      },
+    });
+    assert.ok(postWithRels != null && postWithRels.actor.account != null);
+
+    const create = getCreate(createFedCtx(tx), {
+      ...postWithRels,
+      actor: { ...postWithRels.actor, account: postWithRels.actor.account },
+    });
+
+    assert.equal(
+      create.actorId?.href,
+      `http://localhost/actors/${author.account.id}`,
+    );
+    assert.equal(
+      create.objectId?.href,
+      `http://localhost/objects/${post.id}`,
+    );
+    assert.ok(create.published != null);
   });
 });
 
