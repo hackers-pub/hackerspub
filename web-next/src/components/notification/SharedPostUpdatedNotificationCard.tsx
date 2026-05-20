@@ -33,7 +33,7 @@ export function SharedPostUpdatedNotificationCard(
         <div>
           <NotificationMessage
             singleActorMessage={t`${"ACTOR"} updated a post you shared`}
-            multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others updated posts you shared`}
+            multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others updated a post you shared`}
             $notification={notification}
           />
           {

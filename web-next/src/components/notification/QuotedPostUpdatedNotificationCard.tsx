@@ -33,7 +33,7 @@ export function QuotedPostUpdatedNotificationCard(
         <div>
           <NotificationMessage
             singleActorMessage={t`${"ACTOR"} updated a post you quoted`}
-            multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others updated posts you quoted`}
+            multipleActorMessage={t`${"ACTOR"} and ${"COUNT"} others updated a post you quoted`}
             $notification={notification}
           />
           {

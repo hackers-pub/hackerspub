@@ -146,14 +146,22 @@ msgstr "{0}さん他{1}人があなたのコンテンツを共有しました"
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
 #: src/components/notification/QuotedPostUpdatedNotificationCard.tsx:36
-msgid "{0} and {1} others updated posts you quoted"
+msgid "{0} and {1} others updated a post you quoted"
 msgstr "{0}さん他{1}人があなたが引用したコンテンツを更新しました"
 
 #. placeholder {0}: "ACTOR"
 #. placeholder {1}: "COUNT"
 #: src/components/notification/SharedPostUpdatedNotificationCard.tsx:36
-msgid "{0} and {1} others updated posts you shared"
+msgid "{0} and {1} others updated a post you shared"
 msgstr "{0}さん他{1}人があなたが共有したコンテンツを更新しました"
+
+#: src/components/notification/QuotedPostUpdatedNotificationCard.tsx:36
+#~ msgid "{0} and {1} others updated posts you quoted"
+#~ msgstr "{0}さん他{1}人があなたが引用したコンテンツを更新しました"
+
+#: src/components/notification/SharedPostUpdatedNotificationCard.tsx:36
+#~ msgid "{0} and {1} others updated posts you shared"
+#~ msgstr "{0}さん他{1}人があなたが共有したコンテンツを更新しました"
 
 #: src/routes/(root)/admin/invitations.tsx:173
 #~ msgid "{0} eligible account(s); {1} would receive an invitation if regenerated now."
