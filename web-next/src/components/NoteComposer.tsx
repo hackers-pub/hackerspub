@@ -2,8 +2,10 @@ import { fetchQuery, graphql } from "relay-runtime";
 import { createStore, produce } from "solid-js/store";
 import {
   createEffect,
+  createMemo,
   createSignal,
   For,
+  on,
   onCleanup,
   onMount,
   Show,
@@ -32,6 +34,7 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconSquare from "~icons/lucide/square";
 import IconX from "~icons/lucide/x";
 import type { NoteComposerMutation } from "./__generated__/NoteComposerMutation.graphql.ts";
+import type { NoteComposerUpdateMutation } from "./__generated__/NoteComposerUpdateMutation.graphql.ts";
 import type { NoteComposerGeneratedAltTextQuery } from "./__generated__/NoteComposerGeneratedAltTextQuery.graphql.ts";
 import type { NoteComposerPostByUrlQuery } from "./__generated__/NoteComposerPostByUrlQuery.graphql.ts";
 import type { NoteComposerQuotedPostQuery } from "./__generated__/NoteComposerQuotedPostQuery.graphql.ts";
@@ -45,6 +48,29 @@ const NoteComposerMutation = graphql`
         note {
           id
           content
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
+
+const NoteComposerUpdateMutation = graphql`
+  mutation NoteComposerUpdateMutation($input: UpdateNoteInput!) {
+    updateNote(input: $input) {
+      __typename
+      ... on UpdateNotePayload {
+        note {
+          id
+          content
+          rawContent
+          language
+          quotePolicy
         }
       }
       ... on InvalidInputError {
@@ -228,29 +254,55 @@ export interface NoteComposerProps {
   replyTargetId?: string | null;
   defaultVisibility?: PostVisibility | null;
   showReplyTarget?: boolean;
+  // Edit mode: when set, the composer updates an existing note instead of
+  // creating a new one.
+  editingNoteId?: string | null;
+  initialContent?: string | null;
+  initialLanguage?: string | null;
+  initialQuotePolicy?: QuotePolicy | null;
+  editingVisibility?: PostVisibility | null;
 }
 
 export function NoteComposer(props: NoteComposerProps) {
   const { t, i18n } = useLingui();
   const environment = useRelayEnvironment();
-  const [content, setContent] = createSignal("");
+  // In edit mode, initialize signals directly from props so the form is
+  // pre-filled on the first render (avoids an async createEffect lag).
+  const initialEditContent = props.editingNoteId
+    ? (props.initialContent ?? "")
+    : "";
+  const [content, setContent] = createSignal(initialEditContent);
   const [visibility, setVisibility] = createSignal<PostVisibility>(
     props.defaultVisibility ?? "PUBLIC",
   );
-  const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>("EVERYONE");
+  const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>(
+    props.editingNoteId
+      ? ((props.initialQuotePolicy as QuotePolicy | null | undefined) ??
+        "EVERYONE")
+      : "EVERYONE",
+  );
   // Keep visibility in sync when the modal is reused for a different reply/quote
   createEffect(() => {
     const v = props.defaultVisibility;
     if (v != null) setVisibility(v);
   });
-  const effectiveQuotePolicy = () =>
-    visibility() === "PUBLIC" || visibility() === "UNLISTED"
-      ? quotePolicy()
-      : "SELF";
+  // In edit mode, use the note's original visibility (immutable) to determine
+  // whether the quote policy is applicable; visibility() may hold a stale
+  // value from a previous create/reply use of the same component instance.
+  const effectiveQuotePolicy = () => {
+    const vis = props.editingNoteId
+      ? (props.editingVisibility ?? "PUBLIC")
+      : visibility();
+    return vis === "PUBLIC" || vis === "UNLISTED" ? quotePolicy() : "SELF";
+  };
   const [language, setLanguage] = createSignal<Intl.Locale | undefined>(
-    new Intl.Locale(i18n.locale),
+    props.editingNoteId && props.initialLanguage
+      ? new Intl.Locale(props.initialLanguage)
+      : new Intl.Locale(i18n.locale),
   );
-  const [manualLanguageChange, setManualLanguageChange] = createSignal(false);
+  const [manualLanguageChange, setManualLanguageChange] = createSignal(
+    !!props.editingNoteId,
+  );
   const [pastedQuoteId, setPastedQuoteId] = createSignal<string | null>(null);
   const effectiveQuotedPostId = () => props.quotedPostId ?? pastedQuoteId();
   const [quotedPost, setQuotedPost] = createSignal<
@@ -263,9 +315,36 @@ export function NoteComposer(props: NoteComposerProps) {
   const [replyTargetFetchError, setReplyTargetFetchError] = createSignal(false);
   // Tracks the currently pre-filled mention string so we can detect whether
   // the user has edited the content away from the auto-fill.
-  let prefillRef = "";
+  let prefillRef = initialEditContent;
+
+  // When edit mode is (re-)activated, sync form state from the new props.
+  // The `on()` helper ensures this only re-runs when editingNoteId changes,
+  // and reads the other props without tracking them — preventing form resets
+  // while the user types.
+  createEffect(
+    on(
+      () => props.editingNoteId,
+      (id) => {
+        if (!id) return;
+        const c = props.initialContent ?? "";
+        const lang = props.initialLanguage;
+        const qp = props.initialQuotePolicy;
+        prefillRef = c;
+        setContent(c);
+        // Always update language in edit mode; null means "no language set".
+        setLanguage(lang ? new Intl.Locale(lang) : undefined);
+        setManualLanguageChange(true);
+        if (qp) setQuotePolicy(qp as QuotePolicy);
+        setEditorResetKey((k) => k + 1);
+      },
+    ),
+  );
+
   const [createNote, isCreating] = createMutation<NoteComposerMutation>(
     NoteComposerMutation,
+  );
+  const [updateNote, isUpdating] = createMutation<NoteComposerUpdateMutation>(
+    NoteComposerUpdateMutation,
   );
   const [mediaItems, setMediaItems] = createStore<MediaItem[]>([]);
   const [isDraggingOver, setIsDraggingOver] = createSignal(false);
@@ -284,14 +363,20 @@ export function NoteComposer(props: NoteComposerProps) {
     }
   });
 
-  // Notify parent when dirty state changes (user has typed or attached media
-  // beyond the auto-filled mention prefix).
-  createEffect(() => {
-    const dirty =
-      (content().trim() !== "" && content().trim() !== prefillRef.trim()) ||
-      mediaItems.length > 0;
-    props.onContentChange?.(dirty);
+  // In edit mode treat any divergence from the original as dirty, including
+  // clearing all content.  In compose mode keep the original guard so an
+  // empty textarea isn't flagged dirty on first render.
+  const isDirty = createMemo(() => {
+    const contentDirty = props.editingNoteId
+      ? content().trim() !== prefillRef.trim()
+      : content().trim() !== "" && content().trim() !== prefillRef.trim();
+    const editMetaDirty = !!props.editingNoteId && (
+      language()?.baseName !== (props.initialLanguage ?? undefined) ||
+      quotePolicy() !== (props.initialQuotePolicy ?? "EVERYONE")
+    );
+    return contentDirty || mediaItems.length > 0 || editMetaDirty;
   });
+  createEffect(() => props.onContentChange?.(isDirty()));
 
   // Use capture-phase listeners so Firefox's native textarea drag handling
   // cannot block our handlers.  relatedTarget in dragleave tells us whether
@@ -411,9 +496,11 @@ export function NoteComposer(props: NoteComposerProps) {
     if (!id) {
       setReplyTargetPost(null);
       setReplyTargetFetchError(false);
-      // Clear the pre-filled mentions if the user hasn't overwritten them
-      if (content() === prefillRef) setContent("");
-      prefillRef = "";
+      // In edit mode, keep the existing content; don't clear the pre-fill.
+      if (!props.editingNoteId) {
+        if (content() === prefillRef) setContent("");
+        prefillRef = "";
+      }
       return;
     }
     setReplyTargetPost(null);
@@ -501,6 +588,7 @@ export function NoteComposer(props: NoteComposerProps) {
   });
 
   const addFiles = (files: FileList | File[]) => {
+    if (props.editingNoteId) return;
     const fileArray = Array.from(files).filter((f) =>
       SUPPORTED_IMAGE_TYPES.includes(f.type)
     );
@@ -596,7 +684,7 @@ export function NoteComposer(props: NoteComposerProps) {
     }
 
     // Fall through to URL-paste-to-quote logic
-    if (effectiveQuotedPostId()) return;
+    if (props.editingNoteId || effectiveQuotedPostId()) return;
     const clipboardText = e.clipboardData?.getData("text/plain");
     if (clipboardText == null) return;
     const text = clipboardText.trim();
@@ -724,55 +812,106 @@ export function NoteComposer(props: NoteComposerProps) {
       return;
     }
 
-    createNote({
-      variables: {
-        input: {
-          content: noteContent,
-          language: language()?.baseName ?? i18n.locale,
-          visibility: visibility(),
-          quotePolicy: effectiveQuotePolicy(),
-          quotedPostId: effectiveQuotedPostId() ?? null,
-          replyTargetId: props.replyTargetId ?? null,
-          media: items.map((m) => ({
-            mediumId: m
-              .uuid! as `${string}-${string}-${string}-${string}-${string}`,
-            alt: m.alt.trim(),
-          })),
+    if (props.editingNoteId) {
+      const isPublicOrUnlisted = props.editingVisibility === "PUBLIC" ||
+        props.editingVisibility === "UNLISTED";
+      updateNote({
+        variables: {
+          input: {
+            noteId: props.editingNoteId,
+            content: noteContent,
+            language: language()?.baseName ?? null,
+            quotePolicy: isPublicOrUnlisted
+              ? effectiveQuotePolicy()
+              : undefined,
+          },
         },
-      },
-      onCompleted(response) {
-        if (response.createNote.__typename === "CreateNotePayload") {
-          showToast({
-            title: t`Success`,
-            description: t`Note created successfully`,
-            variant: "success",
-          });
-          resetForm();
-          props.onSuccess?.();
-        } else if (response.createNote.__typename === "InvalidInputError") {
+        onCompleted(response) {
+          if (response.updateNote.__typename === "UpdateNotePayload") {
+            showToast({
+              title: t`Success`,
+              description: t`Note updated`,
+              variant: "success",
+            });
+            resetForm();
+            props.onSuccess?.();
+          } else if (
+            response.updateNote.__typename === "InvalidInputError"
+          ) {
+            showToast({
+              title: t`Error`,
+              description: t`Invalid input: ${response.updateNote.inputPath}`,
+              variant: "error",
+            });
+          } else if (
+            response.updateNote.__typename === "NotAuthenticatedError"
+          ) {
+            showToast({
+              title: t`Error`,
+              description: t`You must be signed in to edit a note`,
+              variant: "error",
+            });
+          }
+        },
+        onError(error) {
           showToast({
             title: t`Error`,
-            description: t`Invalid input: ${response.createNote.inputPath}`,
+            description: error.message,
             variant: "error",
           });
-        } else if (
-          response.createNote.__typename === "NotAuthenticatedError"
-        ) {
+        },
+      });
+    } else {
+      createNote({
+        variables: {
+          input: {
+            content: noteContent,
+            language: language()?.baseName ?? i18n.locale,
+            visibility: visibility(),
+            quotePolicy: effectiveQuotePolicy(),
+            quotedPostId: effectiveQuotedPostId() ?? null,
+            replyTargetId: props.replyTargetId ?? null,
+            media: items.map((m) => ({
+              mediumId: m
+                .uuid! as `${string}-${string}-${string}-${string}-${string}`,
+              alt: m.alt.trim(),
+            })),
+          },
+        },
+        onCompleted(response) {
+          if (response.createNote.__typename === "CreateNotePayload") {
+            showToast({
+              title: t`Success`,
+              description: t`Note created successfully`,
+              variant: "success",
+            });
+            resetForm();
+            props.onSuccess?.();
+          } else if (response.createNote.__typename === "InvalidInputError") {
+            showToast({
+              title: t`Error`,
+              description: t`Invalid input: ${response.createNote.inputPath}`,
+              variant: "error",
+            });
+          } else if (
+            response.createNote.__typename === "NotAuthenticatedError"
+          ) {
+            showToast({
+              title: t`Error`,
+              description: t`You must be signed in to create a note`,
+              variant: "error",
+            });
+          }
+        },
+        onError(error) {
           showToast({
             title: t`Error`,
-            description: t`You must be signed in to create a note`,
+            description: error.message,
             variant: "error",
           });
-        }
-      },
-      onError(error) {
-        showToast({
-          title: t`Error`,
-          description: error.message,
-          variant: "error",
-        });
-      },
-    });
+        },
+      });
+    }
   };
 
   const handleGenerateAlt = (localId: string) => {
@@ -859,8 +998,11 @@ export function NoteComposer(props: NoteComposerProps) {
             : ""
         }`}
       >
-        {/* Reply target preview */}
-        <Show when={props.replyTargetId && props.showReplyTarget !== false}>
+        {/* Reply target preview — hidden in edit mode */}
+        <Show
+          when={!props.editingNoteId && props.replyTargetId &&
+            props.showReplyTarget !== false}
+        >
           <div class="rounded-md border border-input bg-muted/50 p-3">
             <p class="text-xs text-muted-foreground mb-2">{t`Replying to`}</p>
             <Show
@@ -910,8 +1052,8 @@ export function NoteComposer(props: NoteComposerProps) {
           </div>
         </Show>
 
-        {/* Quoted post preview */}
-        <Show when={effectiveQuotedPostId()}>
+        {/* Quoted post preview — hidden in edit mode */}
+        <Show when={!props.editingNoteId && effectiveQuotedPostId()}>
           <div class="flex items-start gap-3 rounded-md border border-input bg-muted/50 p-3">
             <Show
               keyed
@@ -976,7 +1118,7 @@ export function NoteComposer(props: NoteComposerProps) {
           </div>
         </Show>
 
-        <TextField>
+        <TextField value={content()} onChange={setContent}>
           <TextFieldLabel class="sr-only">{t`Content`}</TextFieldLabel>
           <MarkdownEditor
             value={content()}
@@ -987,7 +1129,7 @@ export function NoteComposer(props: NoteComposerProps) {
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
-                const submitting = isCreating() ||
+                const submitting = isCreating() || isUpdating() ||
                   mediaItems.some((m) => m.uploading) ||
                   (!!effectiveQuotedPostId() && !quotedPost() &&
                     !quoteFetchError()) ||
@@ -1021,33 +1163,36 @@ export function NoteComposer(props: NoteComposerProps) {
             }
           />
           <div class="flex items-center justify-between mt-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              disabled={mediaItems.length >= MAX_MEDIA}
-              title={t`Attach image`}
-              aria-label={t`Attach image`}
-              onClick={() => fileInputRef?.click()}
-            >
-              {/* Heroicons outline: photo */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-6"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+            {/* Media attach button — hidden in edit mode */}
+            <Show when={!props.editingNoteId} fallback={<span />}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                disabled={mediaItems.length >= MAX_MEDIA}
+                title={t`Attach image`}
+                aria-label={t`Attach image`}
+                onClick={() => fileInputRef?.click()}
               >
-                <path
+                {/* Heroicons outline: photo */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="size-6"
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-                />
-              </svg>
-            </Button>
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                  />
+                </svg>
+              </Button>
+            </Show>
             <input
               ref={(el) => (fileInputRef = el)}
               type="file"
@@ -1097,15 +1242,18 @@ export function NoteComposer(props: NoteComposerProps) {
             class="flex-1 min-w-[8rem]"
           />
           <NoteVisibilityQuotePolicySelect
-            visibility={visibility()}
+            visibility={props.editingNoteId
+              ? (props.editingVisibility ?? "PUBLIC")
+              : visibility()}
             quotePolicy={quotePolicy()}
-            onVisibilityChange={setVisibility}
+            onVisibilityChange={props.editingNoteId ? undefined : setVisibility}
             onQuotePolicyChange={setQuotePolicy}
+            visibilityDisabled={!!props.editingNoteId}
           />
         </div>
 
-        {/* Media previews */}
-        <Show when={mediaItems.length > 0}>
+        {/* Media previews — hidden in edit mode */}
+        <Show when={!props.editingNoteId && mediaItems.length > 0}>
           <div class="flex flex-col gap-3">
             <For each={mediaItems}>
               {(item, index) => (
@@ -1237,22 +1385,33 @@ export function NoteComposer(props: NoteComposerProps) {
               type="button"
               variant="outline"
               onClick={() => props.onCancel?.()}
-              disabled={isCreating()}
+              disabled={isCreating() || isUpdating()}
             >
               {t`Cancel`}
             </Button>
           </Show>
           <Button
             type="submit"
-            disabled={isCreating() ||
-              mediaItems.some((m) => m.uploading) ||
-              (!!effectiveQuotedPostId() && !quotedPost() &&
-                !quoteFetchError()) ||
-              (!!props.replyTargetId && props.showReplyTarget !== false &&
-                !replyTargetPost() && !replyTargetFetchError())}
+            disabled={isCreating() || isUpdating() ||
+              (props.editingNoteId ? !isDirty() : (
+                mediaItems.some((m) => m.uploading) ||
+                (!!effectiveQuotedPostId() && !quotedPost() &&
+                  !quoteFetchError()) ||
+                (!!props.replyTargetId && props.showReplyTarget !== false &&
+                  !replyTargetPost() && !replyTargetFetchError())
+              ))}
           >
-            <Show when={isCreating()} fallback={t`Create note`}>
-              {t`Creating…`}
+            <Show
+              when={props.editingNoteId}
+              fallback={
+                <Show when={isCreating()} fallback={t`Create note`}>
+                  {t`Creating…`}
+                </Show>
+              }
+            >
+              <Show when={isUpdating()} fallback={t`Save changes`}>
+                {t`Saving…`}
+              </Show>
             </Show>
           </Button>
         </div>

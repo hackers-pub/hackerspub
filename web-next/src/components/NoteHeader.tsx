@@ -7,6 +7,10 @@ import { InternalLink } from "./InternalLink.tsx";
 import { PostActionMenu } from "./PostActionMenu.tsx";
 import { Timestamp } from "./Timestamp.tsx";
 import { VisibilityTag } from "./VisibilityTag.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
+import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
+import type { PostVisibility } from "~/components/PostVisibilitySelect.tsx";
 
 export interface NoteHeaderProps {
   $note: NoteHeader_note$key;
@@ -16,15 +20,21 @@ export interface NoteHeaderProps {
 }
 
 export function NoteHeader(props: NoteHeaderProps) {
+  const { t } = useLingui();
+  const { openForEdit } = useNoteCompose();
   const note = createFragment(
     graphql`
       fragment NoteHeader_note on Note {
+        id
         uuid
         sourceId
         visibility
         published
         url
         iri
+        rawContent
+        language
+        quotePolicy
         actor {
           name
           handle
@@ -32,6 +42,7 @@ export function NoteHeader(props: NoteHeaderProps) {
           local
           url
           iri
+          isViewer
         }
         ...PostActionMenu_post
       }
@@ -75,6 +86,27 @@ export function NoteHeader(props: NoteHeaderProps) {
             </InternalLink>
             &middot;
             <VisibilityTag visibility={n.visibility} />
+            <Show
+              when={n.rawContent != null && n.actor.isViewer &&
+                n.visibility !== "NONE"}
+            >
+              <span class="contents">
+                &middot;
+                <button
+                  type="button"
+                  class="hover:underline cursor-pointer"
+                  onClick={() =>
+                    openForEdit(n.id, {
+                      content: n.rawContent!,
+                      language: n.language,
+                      quotePolicy: (n.quotePolicy as QuotePolicy) ?? "EVERYONE",
+                      visibility: (n.visibility as PostVisibility) ?? "PUBLIC",
+                    })}
+                >
+                  {t`Edit`}
+                </button>
+              </span>
+            </Show>
             <PostActionMenu
               $post={n}
               connections={props.connections}

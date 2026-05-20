@@ -2999,3 +2999,186 @@ test("sharePost allows sharing public and unlisted posts", async () => {
     }
   });
 });
+
+const updateNoteMutation = parse(`
+  mutation UpdateNote($input: UpdateNoteInput!) {
+    updateNote(input: $input) {
+      __typename
+      ... on UpdateNotePayload {
+        note {
+          id
+          rawContent
+          language
+          visibility
+          quotePolicy
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`);
+
+test("updateNote updates content and language of a local note", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updatenoteauthor",
+      name: "Update Note Author",
+      email: "updatenoteauthor@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: account.account,
+      content: "Original content",
+      language: "en",
+      visibility: "public",
+    });
+
+    const result = await execute({
+      schema,
+      document: updateNoteMutation,
+      variableValues: {
+        input: {
+          noteId: encodeGlobalID("Note", post.id),
+          content: "Updated _content_",
+          language: "ko",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const payload = (toPlainJson(result.data) as {
+      updateNote: {
+        __typename: string;
+        note: {
+          id: string;
+          rawContent: string;
+          language: string;
+          visibility: string;
+          quotePolicy: string;
+        };
+      };
+    }).updateNote;
+    assert.equal(payload.__typename, "UpdateNotePayload");
+    assert.equal(payload.note.id, encodeGlobalID("Note", post.id));
+    assert.equal(payload.note.rawContent, "Updated _content_");
+    assert.equal(payload.note.language, "ko");
+
+    const storedSource = await tx.query.noteSourceTable.findFirst({
+      where: { id: post.noteSourceId! },
+    });
+    assert.equal(storedSource?.content, "Updated _content_");
+    assert.equal(storedSource?.language, "ko");
+  });
+});
+
+test("updateNote rejects unauthenticated requests", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updatenoteunauth",
+      name: "Update Note Unauth",
+      email: "updatenoteunauth@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: account.account,
+      content: "Some note",
+      language: "en",
+    });
+
+    const result = await execute({
+      schema,
+      document: updateNoteMutation,
+      variableValues: {
+        input: {
+          noteId: encodeGlobalID("Note", post.id),
+          content: "Should not update",
+        },
+      },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.equal(
+      (toPlainJson(result.data) as {
+        updateNote: { __typename: string };
+      }).updateNote.__typename,
+      "NotAuthenticatedError",
+    );
+  });
+});
+
+test("updateNote rejects editing another user's note", async () => {
+  await withRollback(async (tx) => {
+    const author = await insertAccountWithActor(tx, {
+      username: "updatenoteowner",
+      name: "Update Note Owner",
+      email: "updatenoteowner@example.com",
+    });
+    const other = await insertAccountWithActor(tx, {
+      username: "updatenotethief",
+      name: "Update Note Thief",
+      email: "updatenotethief@example.com",
+    });
+    const { post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Owner's note",
+      language: "en",
+    });
+
+    const result = await execute({
+      schema,
+      document: updateNoteMutation,
+      variableValues: {
+        input: {
+          noteId: encodeGlobalID("Note", post.id),
+          content: "Stolen edit",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, other.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const payload = (toPlainJson(result.data) as {
+      updateNote: { __typename: string; inputPath?: string };
+    }).updateNote;
+    assert.equal(payload.__typename, "InvalidInputError");
+    assert.equal(payload.inputPath, "noteId");
+  });
+});
+
+test("updateNote rejects non-existent note ID", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updatenotemissing",
+      name: "Update Note Missing",
+      email: "updatenotemissing@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: updateNoteMutation,
+      variableValues: {
+        input: {
+          noteId: encodeGlobalID("Note", generateUuidV7()),
+          content: "Ghost edit",
+        },
+      },
+      contextValue: makeTransactionalUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    const payload = (toPlainJson(result.data) as {
+      updateNote: { __typename: string; inputPath?: string };
+    }).updateNote;
+    assert.equal(payload.__typename, "InvalidInputError");
+    assert.equal(payload.inputPath, "noteId");
+  });
+});

@@ -569,7 +569,7 @@ export async function updateNote(
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
       media: NoteSourceMediumWithMedium[];
     };
-    mentions: Mention[];
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
   } | undefined
 > {
@@ -577,6 +577,14 @@ export async function updateNote(
   const previousPost = await db.query.postTable.findFirst({
     where: { noteSourceId },
   });
+  // Capture previous mention recipients before the update so that removed
+  // mentions still receive the Update activity and can retire their copy.
+  const previousMentions = previousPost == null ? [] : (
+    await db.query.mentionTable.findMany({
+      where: { postId: previousPost.id },
+      with: { actor: true },
+    })
+  );
   const noteSource = await updateNoteSource(db, noteSourceId, source);
   if (noteSource == null) return undefined;
   const account = await db.query.accountTable.findFirst({
@@ -623,19 +631,50 @@ export async function updateNote(
     ccs: noteObject.ccIds,
     object: noteObject,
   });
-  await fedCtx.sendActivity(
-    { identifier: noteSource.accountId },
-    "followers",
-    activity,
-    {
-      orderingKey: post.iri,
-      preferSharedInbox: true,
-      excludeBaseUris: [
-        new URL(fedCtx.origin),
-        new URL(fedCtx.canonicalOrigin),
-      ],
-    },
+  // Deliver to the union of current and previous mention recipients so that
+  // actors whose mentions were removed still receive the Update activity.
+  const allMentionActors = new Map(
+    [...previousMentions, ...post.mentions].map((m) => [m.actor.iri, m.actor]),
   );
+  if (post.visibility !== "none" && allMentionActors.size > 0) {
+    const directRecipients: Recipient[] = [...allMentionActors.values()].map(
+      (actor) => ({
+        id: new URL(actor.iri),
+        inboxId: new URL(actor.inboxUrl),
+        endpoints: actor.sharedInboxUrl == null
+          ? null
+          : { sharedInbox: new URL(actor.sharedInboxUrl) },
+      }),
+    );
+    await fedCtx.sendActivity(
+      { identifier: noteSource.accountId },
+      directRecipients,
+      activity,
+      {
+        orderingKey: post.iri,
+        preferSharedInbox: false,
+        excludeBaseUris: [
+          new URL(fedCtx.origin),
+          new URL(fedCtx.canonicalOrigin),
+        ],
+      },
+    );
+  }
+  if (post.visibility !== "direct" && post.visibility !== "none") {
+    await fedCtx.sendActivity(
+      { identifier: noteSource.accountId },
+      "followers",
+      activity,
+      {
+        orderingKey: post.iri,
+        preferSharedInbox: true,
+        excludeBaseUris: [
+          new URL(fedCtx.origin),
+          new URL(fedCtx.canonicalOrigin),
+        ],
+      },
+    );
+  }
   const relayedTags = await sendTagsPubRelayActivity(
     fedCtx,
     noteSource.accountId,

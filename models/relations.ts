@@ -199,6 +199,10 @@ export const relations = defineRelations(schema, (r) => ({
       from: r.postTable.articleSourceId,
       to: r.articleSourceTable.id,
     }),
+    noteSource: r.one.noteSourceTable({
+      from: r.postTable.noteSourceId,
+      to: r.noteSourceTable.id,
+    }),
     sharedPost: r.one.postTable({
       from: r.postTable.sharedPostId,
       to: r.postTable.id,

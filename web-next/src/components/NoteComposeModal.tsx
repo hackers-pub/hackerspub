@@ -27,6 +27,8 @@ export function NoteComposeModal() {
     quotedPostId,
     replyTargetId,
     replyDefaultVisibility,
+    editingNoteId,
+    editInitialData,
     close,
     clearQuote,
     notifyNoteCreated,
@@ -64,6 +66,7 @@ export function NoteComposeModal() {
   };
 
   const dialogTitle = () => {
+    if (editingNoteId()) return t`Edit note`;
     if (replyTargetId()) return t`Reply`;
     if (quotedPostId()) return t`Quote`;
     return t`Create note`;
@@ -104,6 +107,11 @@ export function NoteComposeModal() {
               replyTargetId={replyTargetId()}
               defaultVisibility={replyDefaultVisibility() ?? undefined}
               placeholder={replyTargetId() ? t`Write a reply…` : undefined}
+              editingNoteId={editingNoteId()}
+              initialContent={editInitialData()?.content}
+              initialLanguage={editInitialData()?.language}
+              initialQuotePolicy={editInitialData()?.quotePolicy}
+              editingVisibility={editInitialData()?.visibility}
             />
           </div>
         </DialogContent>
