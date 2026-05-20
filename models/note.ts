@@ -569,7 +569,7 @@ export async function updateNote(
       account: Account & { emails: AccountEmail[]; links: AccountLink[] };
       media: NoteSourceMediumWithMedium[];
     };
-    mentions: Mention[];
+    mentions: (Mention & { actor: Actor })[];
     media: PostMedium[];
   } | undefined
 > {
