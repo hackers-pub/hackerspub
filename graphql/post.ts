@@ -1573,7 +1573,7 @@ builder.relayMutationField(
         throw new InvalidInputError("noteId");
       }
 
-      const updated = await updateNote(ctx.fedCtx, post.noteSource.id, {
+      const patch = {
         ...(args.input.content != null ? { content: args.input.content } : {}),
         ...(args.input.language != null
           ? { language: args.input.language.baseName }
@@ -1581,7 +1581,11 @@ builder.relayMutationField(
         ...(args.input.quotePolicy != null
           ? { quotePolicy: fromQuotePolicy(args.input.quotePolicy) }
           : {}),
-      });
+      };
+      if (Object.keys(patch).length === 0) {
+        throw new InvalidInputError("input");
+      }
+      const updated = await updateNote(ctx.fedCtx, post.noteSource.id, patch);
       if (updated == null) throw new InvalidInputError("noteId");
       return updated;
     },
