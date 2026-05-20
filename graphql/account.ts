@@ -32,6 +32,7 @@ import {
   PostVisibility,
   toPostVisibility,
 } from "./postvisibility.ts";
+import { fromQuotePolicy, QuotePolicy, toQuotePolicy } from "./quotepolicy.ts";
 
 const profileOgImageComplexity = 2_000;
 
@@ -210,6 +211,18 @@ export const Account = builder.drizzleNode("accountTable", {
       },
       resolve(account) {
         return toPostVisibility(account.shareVisibility);
+      },
+    }),
+    defaultQuotePolicy: t.field({
+      type: QuotePolicy,
+      description:
+        "The quote policy applied to new notes when the user does not " +
+        "choose one explicitly at creation time.",
+      select: {
+        columns: { quotePolicy: true },
+      },
+      resolve(account) {
+        return toQuotePolicy(account.quotePolicy);
       },
     }),
     updated: t.expose("updated", { type: "DateTime" }),
@@ -699,6 +712,7 @@ builder.relayMutationField(
       preferAiSummary: t.boolean(),
       defaultNoteVisibility: t.field({ type: PostVisibility }),
       defaultShareVisibility: t.field({ type: PostVisibility }),
+      defaultQuotePolicy: t.field({ type: QuotePolicy }),
       links: t.field({
         type: [AccountLinkInput],
       }),
@@ -774,6 +788,9 @@ builder.relayMutationField(
           shareVisibility: args.input.defaultShareVisibility == null
             ? undefined
             : fromPostVisibility(args.input.defaultShareVisibility),
+          quotePolicy: args.input.defaultQuotePolicy == null
+            ? undefined
+            : fromQuotePolicy(args.input.defaultQuotePolicy),
           links: args.input.links ?? undefined,
         },
       );

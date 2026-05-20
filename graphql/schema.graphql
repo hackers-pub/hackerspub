@@ -24,6 +24,11 @@ type Account implements Node {
   defaultNoteVisibility: PostVisibility!
 
   """
+  The quote policy applied to new notes when the user does not choose one explicitly at creation time.
+  """
+  defaultQuotePolicy: QuotePolicy!
+
+  """
   The visibility applied to new boosts/shares when the user does not choose one explicitly at creation time.
   """
   defaultShareVisibility: PostVisibility!
@@ -3027,6 +3032,7 @@ input UpdateAccountInput {
   bio: String
   clientMutationId: ID
   defaultNoteVisibility: PostVisibility
+  defaultQuotePolicy: QuotePolicy
   defaultShareVisibility: PostVisibility
   hideForeignLanguages: Boolean
   hideFromInvitationTree: Boolean
