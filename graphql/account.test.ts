@@ -81,6 +81,7 @@ const updateAccountMutation = parse(`
         preferAiSummary
         defaultNoteVisibility
         defaultShareVisibility
+        defaultQuotePolicy
       }
     }
   }
@@ -363,6 +364,7 @@ test("updateAccount updates profile preferences for the signed-in account", asyn
           hideForeignLanguages: true,
           defaultNoteVisibility: "FOLLOWERS",
           defaultShareVisibility: "UNLISTED",
+          defaultQuotePolicy: "FOLLOWERS",
         },
       },
       contextValue: makeUserContext(tx, account.account, { fedCtx }),
@@ -379,6 +381,7 @@ test("updateAccount updates profile preferences for the signed-in account", asyn
           preferAiSummary: true,
           defaultNoteVisibility: "FOLLOWERS",
           defaultShareVisibility: "UNLISTED",
+          defaultQuotePolicy: "FOLLOWERS",
         },
       },
     });
@@ -393,6 +396,59 @@ test("updateAccount updates profile preferences for the signed-in account", asyn
     assert.equal(stored.preferAiSummary, true);
     assert.equal(stored.noteVisibility, "followers");
     assert.equal(stored.shareVisibility, "unlisted");
+    assert.equal(stored.quotePolicy, "followers");
+  });
+});
+
+test("updateAccount updates defaultQuotePolicy", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "updatequotepolicy",
+      name: "Update Quote Policy",
+      email: "updatequotepolicy@example.com",
+    });
+
+    const fedCtx = createFedCtx(tx);
+    fedCtx.getActor = (identifier: string) =>
+      Promise.resolve(
+        new vocab.Person({
+          id: fedCtx.getActorUri(identifier),
+        }),
+      );
+
+    const result = await execute({
+      schema,
+      document: updateAccountMutation,
+      variableValues: {
+        input: {
+          id: encodeGlobalID("Account", account.account.id),
+          defaultQuotePolicy: "SELF",
+        },
+      },
+      contextValue: makeUserContext(tx, account.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      updateAccount: {
+        account: {
+          username: "updatequotepolicy",
+          bio: account.account.bio,
+          locales: account.account.locales,
+          preferAiSummary: account.account.preferAiSummary,
+          defaultNoteVisibility: "PUBLIC",
+          defaultShareVisibility: "PUBLIC",
+          defaultQuotePolicy: "SELF",
+        },
+      },
+    });
+
+    const stored = await tx.query.accountTable.findFirst({
+      where: { id: account.account.id },
+    });
+    assert.ok(stored != null);
+    assert.equal(stored.quotePolicy, "self");
   });
 });
 
