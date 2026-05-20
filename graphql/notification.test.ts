@@ -14,6 +14,7 @@ import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
 import {
   insertAccountWithActor,
+  insertNotePost,
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
@@ -31,6 +32,30 @@ const notificationActorsQuery = parse(`
                     id
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+const postUpdatedNotificationTypesQuery = parse(`
+  query PostUpdatedNotificationTypesQuery {
+    viewer {
+      notifications(first: 10) {
+        edges {
+          node {
+            __typename
+            ... on SharedPostUpdatedNotification {
+              post {
+                uuid
+              }
+            }
+            ... on QuotedPostUpdatedNotification {
+              post {
+                uuid
               }
             }
           }
@@ -165,6 +190,82 @@ Deno.test({
       assertEquals(result.data, {
         viewer: {
           unreadNotificationsCount: 2,
+        },
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "Notification exposes post-update notification concrete types",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const recipient = await insertAccountWithActor(tx, {
+        username: "notifypostupdatedme",
+        name: "Notify Post Updated Me",
+        email: "notifypostupdatedme@example.com",
+      });
+      const actor = await insertAccountWithActor(tx, {
+        username: "notifypostupdatedactor",
+        name: "Notify Post Updated Actor",
+        email: "notifypostupdatedactor@example.com",
+      });
+      const { post: sharedPost } = await insertNotePost(tx, {
+        account: actor.account,
+        content: "Shared post that later changed",
+      });
+      const { post: quotedPost } = await insertNotePost(tx, {
+        account: actor.account,
+        content: "Quoted post that later changed",
+      });
+
+      await tx.insert(notificationTable).values([
+        {
+          id: generateUuidV7(),
+          accountId: recipient.account.id,
+          type: "shared_post_updated",
+          postId: sharedPost.id,
+          actorIds: [actor.actor.id],
+          created: new Date("2026-04-15T00:00:01.000Z"),
+        },
+        {
+          id: generateUuidV7(),
+          accountId: recipient.account.id,
+          type: "quoted_post_updated",
+          postId: quotedPost.id,
+          actorIds: [actor.actor.id],
+          created: new Date("2026-04-15T00:00:00.000Z"),
+        },
+      ]);
+
+      const result = await execute({
+        schema,
+        document: postUpdatedNotificationTypesQuery,
+        contextValue: makeUserContext(tx, recipient.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assertEquals(result.errors, undefined);
+      assertEquals(result.data, {
+        viewer: {
+          notifications: {
+            edges: [
+              {
+                node: {
+                  __typename: "SharedPostUpdatedNotification",
+                  post: { uuid: sharedPost.id },
+                },
+              },
+              {
+                node: {
+                  __typename: "QuotedPostUpdatedNotification",
+                  post: { uuid: quotedPost.id },
+                },
+              },
+            ],
+          },
         },
       });
     });
