@@ -346,7 +346,7 @@ msgstr "在注册您的通行密钥时发生错误。"
 msgid "An error occurred while revoking your passkey."
 msgstr "在撤销您的通行密钥时发生错误。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:126
+#: src/routes/(root)/[handle]/settings/preferences.tsx:145
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "保存设置时出现错误。请重试，如果问题持续存在，请联系支持。"
 
@@ -648,11 +648,15 @@ msgstr "截止时间："
 msgid "CW"
 msgstr "CW"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:175
+#: src/routes/(root)/[handle]/settings/preferences.tsx:194
 msgid "Default note privacy"
 msgstr "默认帖子隐私设置"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:187
+#: src/routes/(root)/[handle]/settings/preferences.tsx:219
+msgid "Default quote permission"
+msgstr "默认引用权限"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Default share privacy"
 msgstr "默认转帖隐私设置"
 
@@ -987,7 +991,7 @@ msgstr "撤销通行密钥失败"
 msgid "Failed to save language preferences"
 msgstr "保存语言偏好失败"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:124
+#: src/routes/(root)/[handle]/settings/preferences.tsx:143
 msgid "Failed to save preferences"
 msgstr "保存设置失败"
 
@@ -1205,7 +1209,7 @@ msgstr "隐藏预览"
 msgid "I have read and agree to the Code of conduct."
 msgstr "我同意 Hackers' Pub 的行为准则。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:169
+#: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "启用后，AI 将为您生成文章摘要。否则，将使用文章的前几行作为摘要。"
 
@@ -1521,6 +1525,10 @@ msgstr "正在加载搜索结果…"
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
 msgstr "正在加载…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:230
+msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
+msgstr "由于默认帖子隐私设置限制了可见性，已锁定为「仅我自己」。"
 
 #: src/components/RemoteFollowButton.tsx:221
 msgid "Look up user"
@@ -1866,13 +1874,13 @@ msgstr "内容"
 msgid "Posts tagged with {0}"
 msgstr "{0} 内容"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:166
+#: src/routes/(root)/[handle]/settings/preferences.tsx:185
 msgid "Prefer AI-generated summary"
 msgstr "优先使用 AI 生成的摘要"
 
 #: src/components/SettingsTabs.tsx:52
-#: src/routes/(root)/[handle]/settings/preferences.tsx:152
-#: src/routes/(root)/[handle]/settings/preferences.tsx:153
+#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:172
 msgid "Preferences"
 msgstr "偏好设置"
 
@@ -2116,7 +2124,7 @@ msgstr "撤销此引用？"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
-#: src/routes/(root)/[handle]/settings/preferences.tsx:204
+#: src/routes/(root)/[handle]/settings/preferences.tsx:239
 msgid "Save"
 msgstr "保存"
 
@@ -2138,7 +2146,7 @@ msgstr "保存草稿以查看预览"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
-#: src/routes/(root)/[handle]/settings/preferences.tsx:204
+#: src/routes/(root)/[handle]/settings/preferences.tsx:239
 msgid "Saving…"
 msgstr "保存中…"
 
@@ -2195,7 +2203,7 @@ msgstr "发送中…"
 msgid "Sensitive content"
 msgstr "敏感内容"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:154
+#: src/routes/(root)/[handle]/settings/preferences.tsx:173
 msgid "Set your personal preferences."
 msgstr "设置您的个人偏好设置。"
 
@@ -2311,7 +2319,7 @@ msgstr "成功"
 msgid "Successfully saved language preferences"
 msgstr "成功保存语言偏好"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:116
+#: src/routes/(root)/[handle]/settings/preferences.tsx:135
 msgid "Successfully saved preferences"
 msgstr "设置已成功保存"
 
@@ -2344,13 +2352,17 @@ msgstr "标签"
 msgid "Tell us about yourself…"
 msgstr "请告诉我们关于您自己的信息…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:202
 msgid "The default privacy setting for your notes."
 msgstr "您帖子的默认隐私设置。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:195
+#: src/routes/(root)/[handle]/settings/preferences.tsx:214
 msgid "The default privacy setting for your shares."
 msgstr "您转帖的默认隐私设置。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:231
+msgid "The default quote permission for your notes."
+msgstr "帖子的默认引用权限设置。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:171
 #: src/routes/(root)/[handle]/settings/invite.tsx:348
@@ -2889,7 +2901,7 @@ msgstr "你的昵称将在你的个人资料页面和你的帖文中显示。"
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "您的通行密钥已注册，现在可以用于身份验证。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:117
+#: src/routes/(root)/[handle]/settings/preferences.tsx:136
 msgid "Your preferences have been updated successfully."
 msgstr "您的设置已成功更新。"
 

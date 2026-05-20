@@ -346,7 +346,7 @@ msgstr "パスキーの登録中にエラーが発生しました。"
 msgid "An error occurred while revoking your passkey."
 msgstr "パスキーの取消中にエラーが発生しました。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:126
+#: src/routes/(root)/[handle]/settings/preferences.tsx:145
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "環境設定の保存中にエラーが発生しました。再度お試しいただくか、問題が解決しない場合はサポートにお問い合わせください。"
 
@@ -648,11 +648,15 @@ msgstr "カットオフ："
 msgid "CW"
 msgstr "CW"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:175
+#: src/routes/(root)/[handle]/settings/preferences.tsx:194
 msgid "Default note privacy"
 msgstr "投稿のデフォルト公開範囲"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:187
+#: src/routes/(root)/[handle]/settings/preferences.tsx:219
+msgid "Default quote permission"
+msgstr "引用のデフォルト許可設定"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Default share privacy"
 msgstr "共有のデフォルト公開範囲"
 
@@ -987,7 +991,7 @@ msgstr "パスキーの取り消しに失敗しました"
 msgid "Failed to save language preferences"
 msgstr "言語設定の保存に失敗しました"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:124
+#: src/routes/(root)/[handle]/settings/preferences.tsx:143
 msgid "Failed to save preferences"
 msgstr "環境設定の保存に失敗しました"
 
@@ -1205,7 +1209,7 @@ msgstr "プレビューを隠す"
 msgid "I have read and agree to the Code of conduct."
 msgstr "行動規範に同意します。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:169
+#: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "有効にすると、AIが記事の要約を生成します。無効の場合は、記事の最初の数行が要約として使用されます。"
 
@@ -1521,6 +1525,10 @@ msgstr "検索結果を読み込み中…"
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
 msgstr "読み込み中…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:230
+msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
+msgstr "デフォルトの投稿公開範囲が制限されているため、「自分のみ」に固定されています。"
 
 #: src/components/RemoteFollowButton.tsx:221
 msgid "Look up user"
@@ -1866,13 +1874,13 @@ msgstr "コンテンツ"
 msgid "Posts tagged with {0}"
 msgstr "{0} コンテンツ"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:166
+#: src/routes/(root)/[handle]/settings/preferences.tsx:185
 msgid "Prefer AI-generated summary"
 msgstr "AI生成の要約を優先"
 
 #: src/components/SettingsTabs.tsx:52
-#: src/routes/(root)/[handle]/settings/preferences.tsx:152
-#: src/routes/(root)/[handle]/settings/preferences.tsx:153
+#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:172
 msgid "Preferences"
 msgstr "環境設定"
 
@@ -2116,7 +2124,7 @@ msgstr "この引用を取り消しますか？"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
-#: src/routes/(root)/[handle]/settings/preferences.tsx:204
+#: src/routes/(root)/[handle]/settings/preferences.tsx:239
 msgid "Save"
 msgstr "保存"
 
@@ -2138,7 +2146,7 @@ msgstr "下書きを保存するとプレビューが表示されます"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
-#: src/routes/(root)/[handle]/settings/preferences.tsx:204
+#: src/routes/(root)/[handle]/settings/preferences.tsx:239
 msgid "Saving…"
 msgstr "保存中…"
 
@@ -2195,7 +2203,7 @@ msgstr "送信中…"
 msgid "Sensitive content"
 msgstr "センシティブなコンテンツ"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:154
+#: src/routes/(root)/[handle]/settings/preferences.tsx:173
 msgid "Set your personal preferences."
 msgstr "個人の環境設定を設定してください。"
 
@@ -2311,7 +2319,7 @@ msgstr "成功"
 msgid "Successfully saved language preferences"
 msgstr "言語設定を正常に保存しました"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:116
+#: src/routes/(root)/[handle]/settings/preferences.tsx:135
 msgid "Successfully saved preferences"
 msgstr "環境設定を正常に保存しました"
 
@@ -2344,13 +2352,17 @@ msgstr "タグ"
 msgid "Tell us about yourself…"
 msgstr "自己紹介をお聞かせください…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:202
 msgid "The default privacy setting for your notes."
 msgstr "投稿のデフォルト公開設定です。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:195
+#: src/routes/(root)/[handle]/settings/preferences.tsx:214
 msgid "The default privacy setting for your shares."
 msgstr "共有のデフォルト公開設定です。"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:231
+msgid "The default quote permission for your notes."
+msgstr "投稿のデフォルト引用許可設定です。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:171
 #: src/routes/(root)/[handle]/settings/invite.tsx:348
@@ -2889,7 +2901,7 @@ msgstr "名前はプロフィールとコンテンツに表示されます。"
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "パスキーが登録され、認証に使用できるようになりました。"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:117
+#: src/routes/(root)/[handle]/settings/preferences.tsx:136
 msgid "Your preferences have been updated successfully."
 msgstr "環境設定が正常に更新されました。"
 

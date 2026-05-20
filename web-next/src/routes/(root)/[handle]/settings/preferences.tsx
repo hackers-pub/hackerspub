@@ -1,6 +1,6 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { createSignal, Show } from "solid-js";
+import { createMemo, createSignal, Show } from "solid-js";
 import {
   createMutation,
   createPreloadedQuery,
@@ -11,6 +11,10 @@ import {
   PostVisibility,
   PostVisibilitySelect,
 } from "~/components/PostVisibilitySelect.tsx";
+import {
+  type QuotePolicy,
+  QuotePolicySelect,
+} from "~/components/QuotePolicySelect.tsx";
 import { SettingsCardPage } from "~/components/SettingsCardPage.tsx";
 import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import { Button } from "~/components/ui/button.tsx";
@@ -39,6 +43,7 @@ const preferencesPageQuery = graphql`
       preferAiSummary
       defaultNoteVisibility
       defaultShareVisibility
+      defaultQuotePolicy
       ...SettingsTabs_account
     }
   }
@@ -59,19 +64,22 @@ const preferencesMutation = graphql`
     $id: ID!,
     $preferAiSummary: Boolean!,
     $defaultNoteVisibility: PostVisibility!,
-    $defaultShareVisibility: PostVisibility!
+    $defaultShareVisibility: PostVisibility!,
+    $defaultQuotePolicy: QuotePolicy!
   ) {
     updateAccount(input: {
       id: $id,
       preferAiSummary: $preferAiSummary,
       defaultNoteVisibility: $defaultNoteVisibility,
       defaultShareVisibility: $defaultShareVisibility,
+      defaultQuotePolicy: $defaultQuotePolicy,
     }) {
       account {
         id
         preferAiSummary
         defaultNoteVisibility
         defaultShareVisibility
+        defaultQuotePolicy
         ...SettingsTabs_account
       }
     }
@@ -92,6 +100,14 @@ export default function PreferencesPage() {
   const [shareVisibility, setShareVisibility] = createSignal<
     PostVisibility | undefined
   >(undefined);
+  const [quotePolicy, setQuotePolicy] = createSignal<
+    QuotePolicy | undefined
+  >(undefined);
+  const quotePolicyLocked = createMemo(() => {
+    const account = data()?.accountByUsername;
+    const vis = noteVisibility() ?? account?.defaultNoteVisibility;
+    return vis === "FOLLOWERS" || vis === "DIRECT";
+  });
   const [save] = createMutation<preferencesMutation>(preferencesMutation);
   const [saving, setSaving] = createSignal(false);
   function onSubmit(event: SubmitEvent) {
@@ -109,6 +125,9 @@ export default function PreferencesPage() {
           account.defaultNoteVisibility,
         defaultShareVisibility: shareVisibility() ??
           account.defaultShareVisibility,
+        defaultQuotePolicy: quotePolicyLocked()
+          ? "SELF"
+          : (quotePolicy() ?? account.defaultQuotePolicy),
       },
       onCompleted() {
         setSaving(false);
@@ -195,6 +214,20 @@ export default function PreferencesPage() {
                         {t`The default privacy setting for your shares.`}
                       </p>
                     </div>
+                  </div>
+                  <div class="flex flex-col gap-1.5">
+                    <Label>{t`Default quote permission`}</Label>
+                    <QuotePolicySelect
+                      value={quotePolicyLocked() ? "SELF" : (quotePolicy() ??
+                        account.defaultQuotePolicy as QuotePolicy)}
+                      onChange={setQuotePolicy}
+                      disabled={quotePolicyLocked()}
+                    />
+                    <p class="text-sm text-muted-foreground">
+                      {quotePolicyLocked()
+                        ? t`Locked to "Only me" because your default note privacy restricts visibility.`
+                        : t`The default quote permission for your notes.`}
+                    </p>
                   </div>
                   <Button
                     type="submit"

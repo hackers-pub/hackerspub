@@ -346,7 +346,7 @@ msgstr "An error occurred while registering your passkey."
 msgid "An error occurred while revoking your passkey."
 msgstr "An error occurred while revoking your passkey."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:126
+#: src/routes/(root)/[handle]/settings/preferences.tsx:145
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 
@@ -648,11 +648,15 @@ msgstr "Cutoff:"
 msgid "CW"
 msgstr "CW"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:175
+#: src/routes/(root)/[handle]/settings/preferences.tsx:194
 msgid "Default note privacy"
 msgstr "Default note privacy"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:187
+#: src/routes/(root)/[handle]/settings/preferences.tsx:219
+msgid "Default quote permission"
+msgstr "Default quote permission"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Default share privacy"
 msgstr "Default share privacy"
 
@@ -991,7 +995,7 @@ msgstr "Failed to revoke passkey"
 msgid "Failed to save language preferences"
 msgstr "Failed to save language preferences"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:124
+#: src/routes/(root)/[handle]/settings/preferences.tsx:143
 msgid "Failed to save preferences"
 msgstr "Failed to save preferences"
 
@@ -1209,7 +1213,7 @@ msgstr "Hide preview"
 msgid "I have read and agree to the Code of conduct."
 msgstr "I have read and agree to the Code of conduct."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:169
+#: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 
@@ -1525,6 +1529,10 @@ msgstr "Loading search results…"
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
 msgstr "Loading…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:230
+msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
+msgstr "Locked to \"Only me\" because your default note privacy restricts visibility."
 
 #: src/components/RemoteFollowButton.tsx:221
 msgid "Look up user"
@@ -1870,13 +1878,13 @@ msgstr "Posts"
 msgid "Posts tagged with {0}"
 msgstr "Posts tagged with {0}"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:166
+#: src/routes/(root)/[handle]/settings/preferences.tsx:185
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"
 
 #: src/components/SettingsTabs.tsx:52
-#: src/routes/(root)/[handle]/settings/preferences.tsx:152
-#: src/routes/(root)/[handle]/settings/preferences.tsx:153
+#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:172
 msgid "Preferences"
 msgstr "Preferences"
 
@@ -2120,7 +2128,7 @@ msgstr "Revoke this quote?"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
-#: src/routes/(root)/[handle]/settings/preferences.tsx:204
+#: src/routes/(root)/[handle]/settings/preferences.tsx:239
 msgid "Save"
 msgstr "Save"
 
@@ -2142,7 +2150,7 @@ msgstr "Save draft to see preview"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
-#: src/routes/(root)/[handle]/settings/preferences.tsx:204
+#: src/routes/(root)/[handle]/settings/preferences.tsx:239
 msgid "Saving…"
 msgstr "Saving…"
 
@@ -2199,7 +2207,7 @@ msgstr "Sending…"
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:154
+#: src/routes/(root)/[handle]/settings/preferences.tsx:173
 msgid "Set your personal preferences."
 msgstr "Set your personal preferences."
 
@@ -2315,7 +2323,7 @@ msgstr "Success"
 msgid "Successfully saved language preferences"
 msgstr "Successfully saved language preferences"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:116
+#: src/routes/(root)/[handle]/settings/preferences.tsx:135
 msgid "Successfully saved preferences"
 msgstr "Successfully saved preferences"
 
@@ -2348,13 +2356,17 @@ msgstr "Tags"
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:202
 msgid "The default privacy setting for your notes."
 msgstr "The default privacy setting for your notes."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:195
+#: src/routes/(root)/[handle]/settings/preferences.tsx:214
 msgid "The default privacy setting for your shares."
 msgstr "The default privacy setting for your shares."
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:231
+msgid "The default quote permission for your notes."
+msgstr "The default quote permission for your notes."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:171
 #: src/routes/(root)/[handle]/settings/invite.tsx:348
@@ -2893,7 +2905,7 @@ msgstr "Your name will be displayed on your profile and in your posts."
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "Your passkey has been registered and can now be used for authentication."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:117
+#: src/routes/(root)/[handle]/settings/preferences.tsx:136
 msgid "Your preferences have been updated successfully."
 msgstr "Your preferences have been updated successfully."
 

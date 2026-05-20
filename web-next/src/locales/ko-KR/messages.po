@@ -346,7 +346,7 @@ msgstr "패스키를 등록하는 중에 오류가 발생했습니다."
 msgid "An error occurred while revoking your passkey."
 msgstr "패스키를 취소하는 중에 오류가 발생했습니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:126
+#: src/routes/(root)/[handle]/settings/preferences.tsx:145
 msgid "An error occurred while saving your preferences. Please try again, or contact support if the problem persists."
 msgstr "환경 설정 저장 중 오류가 발생했습니다. 다시 시도하거나 문제가 지속되면 지원팀에 문의해 주세요."
 
@@ -648,11 +648,15 @@ msgstr "기준 시각:"
 msgid "CW"
 msgstr "CW"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:175
+#: src/routes/(root)/[handle]/settings/preferences.tsx:194
 msgid "Default note privacy"
 msgstr "기본 단문 공개 범위"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:187
+#: src/routes/(root)/[handle]/settings/preferences.tsx:219
+msgid "Default quote permission"
+msgstr "기본 인용 권한"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:206
 msgid "Default share privacy"
 msgstr "기본 공유 공개 범위"
 
@@ -987,7 +991,7 @@ msgstr "패스키 취소 실패"
 msgid "Failed to save language preferences"
 msgstr "언어 설정 저장 실패"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:124
+#: src/routes/(root)/[handle]/settings/preferences.tsx:143
 msgid "Failed to save preferences"
 msgstr "환경 설정 저장 실패"
 
@@ -1205,7 +1209,7 @@ msgstr "미리보기 숨기기"
 msgid "I have read and agree to the Code of conduct."
 msgstr "Hackers' Pub의 행동 강령을 읽고 동의합니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:169
+#: src/routes/(root)/[handle]/settings/preferences.tsx:188
 msgid "If enabled, the AI will generate a summary of the article for you. Otherwise, the first few lines of the article will be used as the summary."
 msgstr "활성화하면 AI가 글의 요약을 생성합니다. 비활성화 시 글의 처음 몇 줄이 요약으로 사용됩니다."
 
@@ -1521,6 +1525,10 @@ msgstr "검색 결과를 불러오는 중…"
 #: src/routes/(root)/sign/up/[token].tsx:469
 msgid "Loading…"
 msgstr "로딩 중…"
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:230
+msgid "Locked to \"Only me\" because your default note privacy restricts visibility."
+msgstr "기본 단문 공개 범위가 제한되어 있어 “나만”으로 고정됩니다."
 
 #: src/components/RemoteFollowButton.tsx:221
 msgid "Look up user"
@@ -1866,13 +1874,13 @@ msgstr "콘텐츠"
 msgid "Posts tagged with {0}"
 msgstr "{0} 콘텐츠"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:166
+#: src/routes/(root)/[handle]/settings/preferences.tsx:185
 msgid "Prefer AI-generated summary"
 msgstr "AI 생성 요약 선호"
 
 #: src/components/SettingsTabs.tsx:52
-#: src/routes/(root)/[handle]/settings/preferences.tsx:152
-#: src/routes/(root)/[handle]/settings/preferences.tsx:153
+#: src/routes/(root)/[handle]/settings/preferences.tsx:171
+#: src/routes/(root)/[handle]/settings/preferences.tsx:172
 msgid "Preferences"
 msgstr "환경 설정"
 
@@ -2116,7 +2124,7 @@ msgstr "이 인용을 취소하시겠습니까?"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
-#: src/routes/(root)/[handle]/settings/preferences.tsx:204
+#: src/routes/(root)/[handle]/settings/preferences.tsx:239
 msgid "Save"
 msgstr "저장"
 
@@ -2138,7 +2146,7 @@ msgstr "미리보기를 보려면 초고로 저장하세요"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
-#: src/routes/(root)/[handle]/settings/preferences.tsx:204
+#: src/routes/(root)/[handle]/settings/preferences.tsx:239
 msgid "Saving…"
 msgstr "저장 중…"
 
@@ -2195,7 +2203,7 @@ msgstr "보내는 중…"
 msgid "Sensitive content"
 msgstr "민감한 콘텐츠"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:154
+#: src/routes/(root)/[handle]/settings/preferences.tsx:173
 msgid "Set your personal preferences."
 msgstr "개인의 환경 설정을 설정하세요."
 
@@ -2311,7 +2319,7 @@ msgstr "성공"
 msgid "Successfully saved language preferences"
 msgstr "언어 설정이 성공적으로 저장되었습니다"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:116
+#: src/routes/(root)/[handle]/settings/preferences.tsx:135
 msgid "Successfully saved preferences"
 msgstr "환경 설정이 성공적으로 저장되었습니다"
 
@@ -2344,13 +2352,17 @@ msgstr "태그"
 msgid "Tell us about yourself…"
 msgstr "당신에 대해서 이야기 해주세요…"
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:183
+#: src/routes/(root)/[handle]/settings/preferences.tsx:202
 msgid "The default privacy setting for your notes."
 msgstr "단문의 기본 공개 설정입니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:195
+#: src/routes/(root)/[handle]/settings/preferences.tsx:214
 msgid "The default privacy setting for your shares."
 msgstr "공유의 기본 공개 설정입니다."
+
+#: src/routes/(root)/[handle]/settings/preferences.tsx:231
+msgid "The default quote permission for your notes."
+msgstr "단문의 기본 인용 권한 설정입니다."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:171
 #: src/routes/(root)/[handle]/settings/invite.tsx:348
@@ -2889,7 +2901,7 @@ msgstr "이름은 프로필과 콘텐츠에 표시됩니다."
 msgid "Your passkey has been registered and can now be used for authentication."
 msgstr "패스키가 등록되었습니다. 이제 이 패스키를 사용하여 로그인 할 수 있습니다."
 
-#: src/routes/(root)/[handle]/settings/preferences.tsx:117
+#: src/routes/(root)/[handle]/settings/preferences.tsx:136
 msgid "Your preferences have been updated successfully."
 msgstr "환경 설정이 성공적으로 업데이트되었습니다."
 
