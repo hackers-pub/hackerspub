@@ -36,9 +36,9 @@ export async function createSigninToken(
     tokenData,
     EXPIRATION.total("millisecond"),
   );
-  logger.debug("Created sign-in token (expires in {expires}): {token}", {
+  logger.debug("Created sign-in token for {accountId} (expires in {expires})", {
     expires: EXPIRATION,
-    token: tokenData,
+    accountId: tokenData.accountId,
   });
   return tokenData;
 }

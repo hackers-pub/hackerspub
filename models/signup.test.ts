@@ -1,5 +1,6 @@
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
+import { configure, type LogRecord, reset } from "@logtape/logtape";
 import {
   createAccount,
   createSignupToken,
@@ -35,6 +36,53 @@ Deno.test({
 
     const deleted = await getSignupToken(kv, token.token);
     assertEquals(deleted, undefined);
+  },
+});
+
+Deno.test({
+  name: "signup token debug log omits replay secrets",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    const { kv } = createTestKv();
+    const records: LogRecord[] = [];
+    const email = "candidate@example.com";
+    const inviterId = "019d9162-ffff-7fff-8fff-ffffffffffff";
+
+    await configure({
+      reset: true,
+      sinks: { capture: (record) => records.push(record) },
+      loggers: [
+        {
+          category: ["hackerspub", "models", "signup"],
+          lowestLevel: "debug",
+          sinks: ["capture"],
+        },
+      ],
+    });
+
+    try {
+      const token = await createSignupToken(kv, email, { inviterId });
+      const record = records.find((record) =>
+        record.rawMessage ===
+          "Created sign-up token (expires in {expires}, invited: {invited})"
+      );
+
+      assert(record != null);
+      assertEquals(record.properties.invited, true);
+      assertEquals(record.properties.email, undefined);
+      assertEquals(record.properties.inviterId, undefined);
+      assertEquals(record.properties.token, undefined);
+      assertEquals(record.properties.code, undefined);
+
+      const serializedProperties = JSON.stringify(record.properties);
+      assertEquals(serializedProperties.includes(email), false);
+      assertEquals(serializedProperties.includes(inviterId), false);
+      assertEquals(serializedProperties.includes(token.token), false);
+      assertEquals(serializedProperties.includes(token.code), false);
+    } finally {
+      await reset();
+    }
   },
 });
 
