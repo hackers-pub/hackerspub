@@ -1,6 +1,6 @@
+import { configure, type LogRecord, reset } from "@logtape/logtape";
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
-import { configure, type LogRecord, reset } from "@logtape/logtape";
 import {
   createAccount,
   createSignupToken,
