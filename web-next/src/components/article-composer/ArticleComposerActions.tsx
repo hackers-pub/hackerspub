@@ -1,4 +1,5 @@
 import { Show } from "solid-js";
+import IconLoader2 from "~icons/lucide/loader-2";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { useArticleComposer } from "./ArticleComposerContext.tsx";
@@ -29,6 +30,9 @@ export function ArticleComposerActions() {
           onClick={ctx.handleSave}
           disabled={ctx.isSaving() || !ctx.isDirty()}
         >
+          <Show when={ctx.isSaving()}>
+            <IconLoader2 class="size-4 animate-spin" aria-hidden="true" />
+          </Show>
           {ctx.isSaving() ? t`Saving…` : t`Save draft`}
         </Button>
 

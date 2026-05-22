@@ -8,7 +8,7 @@ export interface UseAutoSaveOptions {
   draft: Accessor<
     { title: string; content: string; tags: readonly string[] } | undefined
   >;
-  save: () => void;
+  save: (silent?: boolean) => void;
   isSaving: Accessor<boolean>;
   isPublishing: Accessor<boolean>;
 }
@@ -34,7 +34,7 @@ export function useAutoSave(options: UseAutoSaveOptions): UseAutoSaveReturn {
   // Debounced auto-save (1.5 second interval)
   const debouncedAutoSave = debounce(() => {
     if (!options.isSaving() && options.title().trim() && isDirty()) {
-      options.save();
+      options.save(true);
     }
   }, 1500);
 

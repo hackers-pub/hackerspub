@@ -160,7 +160,7 @@ export interface ArticleComposerContextValue {
   setShowPreview: (v: boolean) => void;
 
   // Actions
-  handleSave: (e?: Event) => void;
+  handleSave: (e?: Event, silent?: boolean) => void;
   handlePublish: (e: Event) => void;
   handleDelete: () => void;
 
@@ -257,15 +257,17 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
 
   // --- Handlers ---
 
-  const handleSave = (e?: Event) => {
+  const handleSave = (e?: Event, silent?: boolean) => {
     e?.preventDefault();
 
     if (!title().trim()) {
-      showToast({
-        title: t`Error`,
-        description: t`Title cannot be empty`,
-        variant: "error",
-      });
+      if (!silent) {
+        showToast({
+          title: t`Error`,
+          description: t`Title cannot be empty`,
+          variant: "error",
+        });
+      }
       return;
     }
 
@@ -295,11 +297,13 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
             setPreviewHtml(savedDraft.contentHtml);
           }
 
-          showToast({
-            title: t`Success`,
-            description: t`Draft saved`,
-            variant: "success",
-          });
+          if (!silent) {
+            showToast({
+              title: t`Success`,
+              description: t`Draft saved`,
+              variant: "success",
+            });
+          }
           props.onSaved?.(savedDraft.id, savedDraft.uuid);
         } else if (
           response.saveArticleDraft.__typename === "InvalidInputError"
@@ -520,7 +524,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     content,
     tags,
     draft,
-    save: handleSave,
+    save: (silent) => handleSave(undefined, silent),
     isSaving,
     isPublishing,
   });
