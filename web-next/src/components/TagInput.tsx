@@ -25,7 +25,7 @@ export function TagInput(props: TagInputProps) {
   };
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") {
+    if (e.key === "Enter" || e.key === " " || e.key === ",") {
       e.preventDefault();
       addTag(inputValue());
     } else if (
@@ -67,7 +67,16 @@ export function TagInput(props: TagInputProps) {
       <input
         type="text"
         value={inputValue()}
-        onInput={(e) => setInputValue(e.currentTarget.value)}
+        onInput={(e) => {
+          const val = e.currentTarget.value;
+          if (val.includes(",") || val.includes(" ")) {
+            val.split(/[,\s]+/).forEach((part) => {
+              if (part.trim()) addTag(part);
+            });
+          } else {
+            setInputValue(val);
+          }
+        }}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         placeholder={props.value.length === 0 ? props.placeholder : ""}
