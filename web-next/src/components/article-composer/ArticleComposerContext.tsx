@@ -9,6 +9,7 @@ import {
   type ParentComponent,
   useContext,
 } from "solid-js";
+import { isServer } from "solid-js/web";
 import {
   createMutation,
   createPreloadedQuery,
@@ -206,6 +207,12 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   });
 
   const draftDataLoaded = createMemo(() => {
+    // When editing an existing draft the Relay store starts empty on the
+    // client, so draftData() is initially undefined there while the server
+    // already has the data. Returning false on the server for this case
+    // keeps the initial render consistent (both sides show the loading
+    // state) and avoids a hydration mismatch.
+    if (props.draftUuid && isServer) return false;
     return !props.draftUuid || !!draftData?.();
   });
 
