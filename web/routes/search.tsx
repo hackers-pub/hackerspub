@@ -23,6 +23,10 @@ import type {
   Reaction,
 } from "@hackerspub/models/schema";
 import { compileQuery, parseQuery } from "@hackerspub/models/search";
+import {
+  FULL_HANDLE_REGEXP,
+  HANDLE_REGEXP,
+} from "@hackerspub/models/searchPatterns";
 import { addPostToTimeline } from "@hackerspub/models/timeline";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { sql } from "drizzle-orm";
@@ -32,9 +36,6 @@ import { PostExcerpt } from "../components/PostExcerpt.tsx";
 import { PostPagination } from "../components/PostPagination.tsx";
 import { db } from "../db.ts";
 import { define } from "../utils.ts";
-
-const HANDLE_REGEXP = /@([a-z0-9_]{1,50})$/i;
-const FULL_HANDLE_REGEXP = /^@?([^@]+)@([^@]+)$/;
 
 async function searchHandle(
   fedCtx: Context<ContextData>,

@@ -255,6 +255,43 @@ test("searchObject resolves cached post URLs without federation lookup for signe
   });
 });
 
+test("searchObject does not match a URL path tail against a local handle", async () => {
+  await withRollback(async (tx) => {
+    const lookupCalls: string[] = [];
+    const recordingLookup: FedCtxLookupObject = (uri) => {
+      lookupCalls.push(uri.toString());
+      return Promise.resolve(null);
+    };
+    const fedCtx = createFedCtx(tx, { lookupObject: recordingLookup });
+
+    // A same-username local account exists.  A guest search by a remote
+    // profile URL whose path ends in `/@uncachedremote` must NOT silently
+    // resolve to this local actor (regression guard for the unanchored
+    // `HANDLE_REGEXP` bug).
+    await insertAccountWithActor(tx, {
+      username: "uncachedremote",
+      name: "Uncached Remote (local)",
+      email: "uncachedremote-local@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: searchObjectQuery,
+      variableValues: {
+        query: "https://uncachedremote.example/@uncachedremote",
+      },
+      contextValue: makeGuestContext(tx, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      searchObject: null,
+    });
+    assert.deepEqual(lookupCalls, []);
+  });
+});
+
 test("searchObject returns null for an unknown URL without federation lookup", async () => {
   await withRollback(async (tx) => {
     const lookupCalls: string[] = [];
