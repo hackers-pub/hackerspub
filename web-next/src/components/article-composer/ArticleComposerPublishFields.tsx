@@ -30,7 +30,7 @@ export function ArticleComposerPublishFields() {
             required
           />
           <TextFieldDescription>
-            {t`This will be part of the article URL`}
+            {t`This will be part of the article URL.`}
           </TextFieldDescription>
         </TextField>
 

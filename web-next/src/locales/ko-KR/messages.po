@@ -367,7 +367,7 @@ msgid "An unexpected error occurred. Please try again later."
 msgstr "예상치 못한 오류가 발생했습니다. 나중에 다시 시도해주세요."
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:62
-#: src/components/QuotePolicySelect.tsx:27
+#: src/components/QuotePolicySelect.tsx:29
 msgid "Anyone can quote"
 msgstr "누구나 인용 가능"
 
@@ -564,7 +564,7 @@ msgstr "내용을 입력하세요"
 msgid "Continue in browser"
 msgstr "브라우저에서 계속하기"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:61
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:59
 msgid "Controls who can quote this article on their timeline."
 msgstr "타임라인에서 이 게시글을 인용할 수 있는 대상을 설정합니다."
 
@@ -1089,7 +1089,7 @@ msgid "Followers"
 msgstr "팔로워"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:67
-#: src/components/QuotePolicySelect.tsx:32
+#: src/components/QuotePolicySelect.tsx:34
 msgid "Followers can quote"
 msgstr "팔로워만 인용 가능"
 
@@ -1331,7 +1331,7 @@ msgstr "{0}에 가입"
 msgid "Keep editing"
 msgstr "계속 작성"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:41
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:39
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
@@ -1756,7 +1756,7 @@ msgid "Number of invitations"
 msgstr "초대 횟수"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:72
-#: src/components/QuotePolicySelect.tsx:37
+#: src/components/QuotePolicySelect.tsx:39
 msgid "Only you can quote"
 msgstr "나만 인용 가능"
 
@@ -1958,7 +1958,7 @@ msgstr "조용히 공개"
 msgid "Quote"
 msgstr "인용"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:55
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:52
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "인용 권한"
@@ -2419,7 +2419,7 @@ msgstr "찾으시는 페이지가 존재하지 않거나 이동되었습니다."
 msgid "The passkey has been successfully revoked."
 msgstr "성공적으로 패스키를 취소했습니다."
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:47
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:46
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "게시글의 주요 언어로, 접근성 및 검색에 활용됩니다."
 
@@ -2491,8 +2491,12 @@ msgid "This usually takes about a minute. The page will update automatically whe
 msgstr "보통 1분 정도 소요됩니다. 번역이 완료되면 페이지가 자동으로 업데이트됩니다."
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:33
-msgid "This will be part of the article URL"
-msgstr "게시글 URL의 일부가 됩니다"
+#~ msgid "This will be part of the article URL"
+#~ msgstr "게시글 URL의 일부가 됩니다"
+
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:33
+msgid "This will be part of the article URL."
+msgstr "게시글 URL의 일부가 됩니다."
 
 #: src/components/AppSidebar.tsx:201
 msgid "Timeline"

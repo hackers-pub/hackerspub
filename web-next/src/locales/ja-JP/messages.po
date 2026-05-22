@@ -367,7 +367,7 @@ msgid "An unexpected error occurred. Please try again later."
 msgstr "予期しないエラーが発生しました。後でもう一度お試しください。"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:62
-#: src/components/QuotePolicySelect.tsx:27
+#: src/components/QuotePolicySelect.tsx:29
 msgid "Anyone can quote"
 msgstr "誰でも引用できます"
 
@@ -564,7 +564,7 @@ msgstr "内容を入力してください"
 msgid "Continue in browser"
 msgstr "ブラウザで続ける"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:61
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:59
 msgid "Controls who can quote this article on their timeline."
 msgstr "タイムラインでこの記事を引用できる相手を設定します。"
 
@@ -1089,7 +1089,7 @@ msgid "Followers"
 msgstr "フォロワー"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:67
-#: src/components/QuotePolicySelect.tsx:32
+#: src/components/QuotePolicySelect.tsx:34
 msgid "Followers can quote"
 msgstr "フォロワーが引用できます"
 
@@ -1331,7 +1331,7 @@ msgstr "{0}に参加"
 msgid "Keep editing"
 msgstr "編集を続ける"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:41
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:39
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
@@ -1756,7 +1756,7 @@ msgid "Number of invitations"
 msgstr "招待数"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:72
-#: src/components/QuotePolicySelect.tsx:37
+#: src/components/QuotePolicySelect.tsx:39
 msgid "Only you can quote"
 msgstr "自分だけが引用できます"
 
@@ -1958,7 +1958,7 @@ msgstr "ひかえめな公開"
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:55
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:52
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "引用権限"
@@ -2419,7 +2419,7 @@ msgstr "お探しのページは存在しないか、移動された可能性が
 msgid "The passkey has been successfully revoked."
 msgstr "パスキーを正常に取り消しました。"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:47
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:46
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "記事の主言語です。アクセシビリティや検索に使用されます。"
 
@@ -2491,8 +2491,12 @@ msgid "This usually takes about a minute. The page will update automatically whe
 msgstr "通常1分ほどかかります。翻訳が完了するとページが自動的に更新されます。"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:33
-msgid "This will be part of the article URL"
-msgstr "これは記事のURLの一部になります"
+#~ msgid "This will be part of the article URL"
+#~ msgstr "これは記事のURLの一部になります"
+
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:33
+msgid "This will be part of the article URL."
+msgstr "これは記事のURLの一部になります。"
 
 #: src/components/AppSidebar.tsx:201
 msgid "Timeline"

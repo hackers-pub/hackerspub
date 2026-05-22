@@ -367,7 +367,7 @@ msgid "An unexpected error occurred. Please try again later."
 msgstr "發生了意外錯誤。請稍後再試。"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:62
-#: src/components/QuotePolicySelect.tsx:27
+#: src/components/QuotePolicySelect.tsx:29
 msgid "Anyone can quote"
 msgstr "任何人都可以引用"
 
@@ -564,7 +564,7 @@ msgstr "內容不能為空"
 msgid "Continue in browser"
 msgstr "在瀏覽器中繼續"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:61
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:59
 msgid "Controls who can quote this article on their timeline."
 msgstr "設定誰可以在時間軸上引用這篇文章。"
 
@@ -1089,7 +1089,7 @@ msgid "Followers"
 msgstr "粉絲"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:67
-#: src/components/QuotePolicySelect.tsx:32
+#: src/components/QuotePolicySelect.tsx:34
 msgid "Followers can quote"
 msgstr "粉絲可以引用"
 
@@ -1331,7 +1331,7 @@ msgstr "於{0}加入"
 msgid "Keep editing"
 msgstr "繼續編輯"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:41
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:39
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
@@ -1756,7 +1756,7 @@ msgid "Number of invitations"
 msgstr "邀請次數"
 
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:72
-#: src/components/QuotePolicySelect.tsx:37
+#: src/components/QuotePolicySelect.tsx:39
 msgid "Only you can quote"
 msgstr "只有你可以引用"
 
@@ -1958,7 +1958,7 @@ msgstr "悄悄公開"
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:55
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:52
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "引用權限"
@@ -2419,7 +2419,7 @@ msgstr "您要找的頁面不存在或已移動。"
 msgid "The passkey has been successfully revoked."
 msgstr "通行金鑰已成功撤銷。"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:47
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:46
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要語言，用於無障礙功能和內容發現。"
 
@@ -2491,8 +2491,12 @@ msgid "This usually takes about a minute. The page will update automatically whe
 msgstr "通常需要一分鐘左右。翻譯完成後頁面將自動更新。"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:33
-msgid "This will be part of the article URL"
-msgstr "這將成為文章網址的一部分"
+#~ msgid "This will be part of the article URL"
+#~ msgstr "這將成為文章網址的一部分"
+
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:33
+msgid "This will be part of the article URL."
+msgstr "這將成為文章網址的一部分。"
 
 #: src/components/AppSidebar.tsx:201
 msgid "Timeline"
