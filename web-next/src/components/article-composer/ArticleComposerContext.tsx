@@ -226,6 +226,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
   );
   const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>("EVERYONE");
   const [manualLanguageChange, setManualLanguageChange] = createSignal(false);
+  const [manualSlugChange, setManualSlugChange] = createSignal(false);
   const [isPublishing, setIsPublishing] = createSignal(false);
 
   // Preview state
@@ -506,10 +507,10 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     }
   });
 
-  // Auto-generate slug from title
+  // Auto-generate slug from title (only while user hasn't manually touched it)
   createEffect(() => {
     const titleValue = title();
-    if (titleValue && !slug()) {
+    if (titleValue && !manualSlugChange()) {
       const autoSlug = titleValue
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
@@ -518,6 +519,11 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
       setSlug(autoSlug);
     }
   });
+
+  const handleSetSlug = (v: string) => {
+    setManualSlugChange(true);
+    setSlug(v);
+  };
 
   // Language setter that also marks manual change
   const setLanguage = (locale?: Intl.Locale) => {
@@ -561,7 +567,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     setTitle,
     setContent,
     setTags,
-    setSlug,
+    setSlug: handleSetSlug,
     setLanguage,
     setQuotePolicy,
     setIsPublishing,

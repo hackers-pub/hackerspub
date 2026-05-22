@@ -1,4 +1,5 @@
 import { Show } from "solid-js";
+import { useParams } from "@solidjs/router";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { QuotePolicySelect } from "~/components/QuotePolicySelect.tsx";
 import { Label } from "~/components/ui/label.tsx";
@@ -15,25 +16,40 @@ import { useArticleComposer } from "./ArticleComposerContext.tsx";
 export function ArticleComposerPublishFields() {
   const { t } = useLingui();
   const ctx = useArticleComposer();
+  const params = useParams();
+
+  const urlPrefix = () => {
+    const year = new Date().getFullYear();
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    return `${origin}/${params.handle}/${year}/`;
+  };
 
   return (
     <Show when={ctx.isPublishing()}>
       <Separator />
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {/* Slug */}
-        <TextField>
-          <TextFieldLabel>{t`Slug (URL)`}</TextFieldLabel>
+
+      {/* Slug — full width with URL prefix */}
+      <TextField>
+        <TextFieldLabel>{t`Slug (URL)`}</TextFieldLabel>
+        <div class="flex h-10 w-full items-center rounded-md border border-input text-sm ring-offset-background focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+          <span class="pointer-events-none min-w-0 shrink select-none truncate pl-3 text-muted-foreground">
+            {urlPrefix()}
+          </span>
           <TextFieldInput
             value={ctx.slug()}
             onInput={(e) => ctx.setSlug(e.currentTarget.value)}
             placeholder={t`article-url-slug`}
             required
+            class="h-full min-w-[80px] flex-1 rounded-none border-0 bg-transparent py-0 pl-0 pr-3 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
-          <TextFieldDescription>
-            {t`This will be part of the article URL.`}
-          </TextFieldDescription>
-        </TextField>
+        </div>
+        <TextFieldDescription>
+          {t`This will be part of the article URL.`}
+        </TextFieldDescription>
+      </TextField>
 
+      {/* Language + Quote permission — 2 columns */}
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Language */}
         <div class="flex flex-col gap-1.5">
           <Label>{t`Language`}</Label>
