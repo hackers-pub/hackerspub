@@ -43,6 +43,9 @@ export function ArticleComposerPublishFields() {
             value={ctx.language()}
             onChange={ctx.setLanguage}
           />
+          <p class="text-sm text-muted-foreground leading-6">
+            {t`The primary language of your article, used for accessibility and discovery.`}
+          </p>
         </div>
       </Show>
 
@@ -54,6 +57,9 @@ export function ArticleComposerPublishFields() {
             value={ctx.quotePolicy()}
             onChange={ctx.setQuotePolicy}
           />
+          <p class="text-sm text-muted-foreground leading-6">
+            {t`Controls who can quote this article on their timeline.`}
+          </p>
         </div>
       </Show>
     </>
