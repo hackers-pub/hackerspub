@@ -3,7 +3,6 @@ import { useParams } from "@solidjs/router";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { QuotePolicySelect } from "~/components/QuotePolicySelect.tsx";
 import { Label } from "~/components/ui/label.tsx";
-import { Separator } from "~/components/ui/separator.tsx";
 import {
   TextField,
   TextFieldDescription,
@@ -28,8 +27,6 @@ export function ArticleComposerPublishFields() {
 
   return (
     <>
-      <Separator />
-
       {/* Slug — full width with URL prefix */}
       <TextField>
         <TextFieldLabel>{t`Slug (URL)`}</TextFieldLabel>
