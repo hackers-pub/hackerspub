@@ -1,4 +1,4 @@
-import { Show } from "solid-js";
+import { createSignal, onMount } from "solid-js";
 import { useParams } from "@solidjs/router";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { QuotePolicySelect } from "~/components/QuotePolicySelect.tsx";
@@ -18,14 +18,16 @@ export function ArticleComposerPublishFields() {
   const ctx = useArticleComposer();
   const params = useParams();
 
-  const urlPrefix = () => {
-    const year = new Date().getFullYear();
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    return `${origin}/${params.handle}/${year}/`;
-  };
+  // Initialise origin after mount so SSR and the first client render agree
+  // (both produce "/@handle/year/"), then update to the full URL client-side.
+  const [origin, setOrigin] = createSignal("");
+  onMount(() => setOrigin(window.location.origin));
+
+  const urlPrefix = () =>
+    `${origin()}/${params.handle}/${new Date().getFullYear()}/`;
 
   return (
-    <Show when={ctx.isPublishing()}>
+    <>
       <Separator />
 
       {/* Slug — full width with URL prefix */}
@@ -39,7 +41,6 @@ export function ArticleComposerPublishFields() {
             value={ctx.slug()}
             onInput={(e) => ctx.setSlug(e.currentTarget.value)}
             placeholder={t`article-url-slug`}
-            required
             class="h-full min-w-[80px] flex-1 rounded-none border-0 bg-transparent py-0 pl-0 pr-3 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
@@ -102,6 +103,6 @@ export function ArticleComposerPublishFields() {
           </p>
         </div>
       </div>
-    </Show>
+    </>
   );
 }
