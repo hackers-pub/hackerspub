@@ -40,23 +40,21 @@ function ArticleComposerInner() {
           </div>
         }
       >
-        <div class="p-6">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (ctx.isPublishing()) {
-                ctx.handlePublish(e);
-              } else {
-                ctx.handleSave(e);
-              }
-            }}
-            class="grid gap-6"
-          >
-            <ArticleComposerForm />
-            <ArticleComposerPublishFields />
-            <ArticleComposerActions />
-          </form>
-        </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (ctx.isPublishing()) {
+              ctx.handlePublish(e);
+            } else {
+              ctx.handleSave(e);
+            }
+          }}
+          class="flex flex-col gap-4 p-6"
+        >
+          <ArticleComposerForm />
+          <ArticleComposerPublishFields />
+          <ArticleComposerActions />
+        </form>
       </Show>
     </Show>
   );

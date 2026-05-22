@@ -1,8 +1,11 @@
 import { Show } from "solid-js";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { QuotePolicySelect } from "~/components/QuotePolicySelect.tsx";
+import { Label } from "~/components/ui/label.tsx";
+import { Separator } from "~/components/ui/separator.tsx";
 import {
   TextField,
+  TextFieldDescription,
   TextFieldInput,
   TextFieldLabel,
 } from "~/components/ui/text-field.tsx";
@@ -14,43 +17,40 @@ export function ArticleComposerPublishFields() {
   const ctx = useArticleComposer();
 
   return (
-    <>
-      {/* Slug (for publishing) */}
-      <Show when={ctx.isPublishing()}>
-        <TextField>
-          <TextFieldLabel>{t`Slug (URL)`}</TextFieldLabel>
-          <TextFieldInput
-            value={ctx.slug()}
-            onInput={(e) => ctx.setSlug(e.currentTarget.value)}
-            placeholder={t`article-url-slug`}
-            required
-          />
-          <p class="text-xs text-muted-foreground mt-1">
-            {t`This will be part of the article URL`}
-          </p>
-        </TextField>
-      </Show>
+    <Show when={ctx.isPublishing()}>
+      <Separator />
 
-      {/* Language (for publishing) */}
-      <Show when={ctx.isPublishing()}>
-        <div>
-          <label class="text-sm font-medium">{t`Language`}</label>
-          <LanguageSelect
-            value={ctx.language()}
-            onChange={ctx.setLanguage}
-          />
-        </div>
-      </Show>
+      {/* Slug */}
+      <TextField>
+        <TextFieldLabel>{t`Slug (URL)`}</TextFieldLabel>
+        <TextFieldInput
+          value={ctx.slug()}
+          onInput={(e) => ctx.setSlug(e.currentTarget.value)}
+          placeholder={t`article-url-slug`}
+          required
+        />
+        <TextFieldDescription>
+          {t`This will be part of the article URL`}
+        </TextFieldDescription>
+      </TextField>
 
-      <Show when={ctx.isPublishing()}>
-        <div>
-          <label class="text-sm font-medium">{t`Quote permission`}</label>
-          <QuotePolicySelect
-            value={ctx.quotePolicy()}
-            onChange={ctx.setQuotePolicy}
-          />
-        </div>
-      </Show>
-    </>
+      {/* Language */}
+      <div class="flex flex-col gap-1.5">
+        <Label>{t`Language`}</Label>
+        <LanguageSelect
+          value={ctx.language()}
+          onChange={ctx.setLanguage}
+        />
+      </div>
+
+      {/* Quote permission */}
+      <div class="flex flex-col gap-1.5">
+        <Label>{t`Quote permission`}</Label>
+        <QuotePolicySelect
+          value={ctx.quotePolicy()}
+          onChange={ctx.setQuotePolicy}
+        />
+      </div>
+    </Show>
   );
 }

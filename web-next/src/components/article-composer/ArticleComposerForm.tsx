@@ -1,4 +1,6 @@
 import { Show } from "solid-js";
+import { Button } from "~/components/ui/button.tsx";
+import { Label } from "~/components/ui/label.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
 import { TagInput } from "~/components/TagInput.tsx";
 import {
@@ -48,13 +50,15 @@ export function ArticleComposerForm() {
       </TextField>
 
       {/* Content */}
-      <div class="flex flex-col gap-1">
-        <label class="flex flex-col gap-2 text-sm font-medium sm:flex-row sm:items-center sm:justify-between">
-          <span>{t`Content`}</span>
+      <div class="flex flex-col gap-1.5">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Label>{t`Content`}</Label>
           <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             {/* Preview toggle */}
-            <button
+            <Button
               type="button"
+              variant={ctx.showPreview() ? "secondary" : "ghost"}
+              size="sm"
               onClick={() => {
                 const newShowPreview = !ctx.showPreview();
                 ctx.setShowPreview(newShowPreview);
@@ -64,14 +68,9 @@ export function ArticleComposerForm() {
                   ctx.handleSave();
                 }
               }}
-              class={`px-3 py-1 text-xs font-medium rounded-md border transition-colors ${
-                ctx.showPreview()
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "bg-background text-muted-foreground border-input hover:bg-muted"
-              }`}
             >
               {ctx.showPreview() ? t`Hide preview` : t`Show preview`}
-            </button>
+            </Button>
             <a
               href="/markdown"
               target="_blank"
@@ -99,7 +98,7 @@ export function ArticleComposerForm() {
               {t`Markdown supported`}
             </a>
           </div>
-        </label>
+        </div>
         <div
           class={`grid gap-4 ${
             ctx.showPreview() ? "md:grid-cols-2" : "grid-cols-1"
@@ -138,13 +137,12 @@ export function ArticleComposerForm() {
       </div>
 
       {/* Tags */}
-      <div>
-        <label class="text-sm font-medium">{t`Tags`}</label>
+      <div class="flex flex-col gap-1.5">
+        <Label>{t`Tags`}</Label>
         <TagInput
           value={ctx.tags()}
           onChange={ctx.setTags}
           placeholder={t`Type tags separated by spaces`}
-          class="mt-2"
         />
       </div>
     </>
