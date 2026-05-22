@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "~/components/ui/select.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { cn } from "~/lib/utils.ts";
 import IconLockKeyhole from "~icons/lucide/lock-keyhole";
 import IconRepeat2 from "~icons/lucide/repeat-2";
 import IconUsers from "~icons/lucide/users";
@@ -17,6 +18,7 @@ export interface QuotePolicySelectProps {
   value: QuotePolicy;
   onChange?: (value: QuotePolicy) => void;
   disabled?: boolean;
+  class?: string;
 }
 
 export function QuotePolicySelect(props: QuotePolicySelectProps) {
@@ -55,7 +57,7 @@ export function QuotePolicySelect(props: QuotePolicySelectProps) {
         </SelectItem>
       )}
     >
-      <SelectTrigger class="w-[220px]">
+      <SelectTrigger class={cn("w-[220px]", props.class)}>
         <SelectValue<
           { value: QuotePolicy; label: string; icon: () => JSX.Element }
         >>

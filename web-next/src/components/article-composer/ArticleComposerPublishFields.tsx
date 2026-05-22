@@ -17,10 +17,10 @@ export function ArticleComposerPublishFields() {
   const ctx = useArticleComposer();
 
   return (
-    <>
-      {/* Slug (for publishing) */}
-      <Show when={ctx.isPublishing()}>
-        <Separator />
+    <Show when={ctx.isPublishing()}>
+      <Separator />
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {/* Slug */}
         <TextField>
           <TextFieldLabel>{t`Slug (URL)`}</TextFieldLabel>
           <TextFieldInput
@@ -33,13 +33,12 @@ export function ArticleComposerPublishFields() {
             {t`This will be part of the article URL`}
           </TextFieldDescription>
         </TextField>
-      </Show>
 
-      {/* Language (for publishing) */}
-      <Show when={ctx.isPublishing()}>
+        {/* Language */}
         <div class="flex flex-col gap-1.5">
           <Label>{t`Language`}</Label>
           <LanguageSelect
+            class="w-full"
             value={ctx.language()}
             onChange={ctx.setLanguage}
           />
@@ -47,13 +46,12 @@ export function ArticleComposerPublishFields() {
             {t`The primary language of your article, used for accessibility and discovery.`}
           </p>
         </div>
-      </Show>
 
-      {/* Quote permission (for publishing) */}
-      <Show when={ctx.isPublishing()}>
+        {/* Quote permission */}
         <div class="flex flex-col gap-1.5">
           <Label>{t`Quote permission`}</Label>
           <QuotePolicySelect
+            class="w-full"
             value={ctx.quotePolicy()}
             onChange={ctx.setQuotePolicy}
           />
@@ -61,7 +59,7 @@ export function ArticleComposerPublishFields() {
             {t`Controls who can quote this article on their timeline.`}
           </p>
         </div>
-      </Show>
-    </>
+      </div>
+    </Show>
   );
 }
