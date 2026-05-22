@@ -142,6 +142,7 @@ export async function insertRemoteActor(
     host: string;
     iri?: string;
     inboxUrl?: string;
+    url?: string;
   },
 ) {
   const actorId = generateUuidV7();
@@ -160,6 +161,7 @@ export async function insertRemoteActor(
     inboxUrl: values.inboxUrl ??
       `https://${values.host}/users/${values.username}/inbox`,
     sharedInboxUrl: `https://${values.host}/inbox`,
+    url: values.url,
     created: timestamp,
     updated: timestamp,
     published: timestamp,

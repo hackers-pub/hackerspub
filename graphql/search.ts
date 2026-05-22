@@ -1,17 +1,22 @@
 import { isActor } from "@fedify/vocab";
 import { persistActor } from "@hackerspub/models/actor";
 import type { RelationsFilter } from "@hackerspub/models/db";
-import { getPostVisibilityFilter } from "@hackerspub/models/post";
+import {
+  getPostVisibilityFilter,
+  isPostObject,
+  persistPost,
+} from "@hackerspub/models/post";
 import { compileQuery, parseQuery } from "@hackerspub/models/search";
 import {
   FULL_HANDLE_REGEXP,
   HANDLE_REGEXP,
 } from "@hackerspub/models/searchPatterns";
+import type { Actor, Post as PostRow } from "@hackerspub/models/schema";
 import { addPostToTimeline, expandLocales } from "@hackerspub/models/timeline";
 import { sql } from "drizzle-orm";
 import { createGraphQLError } from "graphql-yoga";
 import { builder, type UserContext } from "./builder.ts";
-import { lookupPostByUrl, parseHttpUrl } from "./lookup.ts";
+import { parseHttpUrl } from "./lookup.ts";
 import { Post } from "./post.ts";
 
 class EmptySearchQueryError extends Error {
@@ -36,28 +41,26 @@ const SearchedObject = builder.simpleObject("SearchedObject", {
   }),
 });
 
-async function searchAsUrl(
+function actorRedirectUrl(actor: Actor): string {
+  return actor.accountId == null ? `/${actor.handle}` : `/@${actor.username}`;
+}
+
+async function postRedirect(
   ctx: UserContext,
-  query: string,
+  post: PostRow,
 ): Promise<{ url: string } | null> {
-  const parsed = parseHttpUrl(query);
-  if (parsed == null) return null;
-
-  const post = await lookupPostByUrl(ctx, parsed);
-  if (post == null) return null;
-
   await addPostToTimeline(ctx.db, post);
 
-  const actor = await ctx.db.query.actorTable.findFirst({
+  const postActor = await ctx.db.query.actorTable.findFirst({
     where: { id: post.actorId },
   });
-  if (actor == null) return null;
+  if (postActor == null) return null;
 
   let redirectUrl: string;
-  if (actor.accountId == null) {
-    redirectUrl = `/${actor.handle}/${post.id}`;
+  if (postActor.accountId == null) {
+    redirectUrl = `/${postActor.handle}/${post.id}`;
   } else if (post.noteSourceId != null) {
-    redirectUrl = `/@${actor.username}/${post.noteSourceId}`;
+    redirectUrl = `/@${postActor.username}/${post.noteSourceId}`;
   } else if (post.articleSourceId != null) {
     redirectUrl = post.url ?? post.iri;
   } else {
@@ -65,6 +68,81 @@ async function searchAsUrl(
   }
 
   return { url: redirectUrl };
+}
+
+async function searchAsUrl(
+  ctx: UserContext,
+  query: string,
+): Promise<{ url: string } | null> {
+  const parsed = parseHttpUrl(query);
+  if (parsed == null) return null;
+  const url = parsed.href;
+
+  // Cache check (DB only): try actor first so profile URLs (e.g.
+  // `https://buttersc.one/@songbirds`) don't fall through to handle search
+  // and accidentally match a same-username local account.  `actor.url` is
+  // nullable and non-unique, so prefer the canonical `iri` match (mirroring
+  // `lookupActorByUrl`) to avoid resolving to a different actor whose `url`
+  // happens to collide with this `iri`.
+  const cachedActorByIri = await ctx.db.query.actorTable.findFirst({
+    where: { iri: url },
+  });
+  if (cachedActorByIri != null) {
+    return { url: actorRedirectUrl(cachedActorByIri) };
+  }
+  const cachedActorByUrl = await ctx.db.query.actorTable.findFirst({
+    where: { url },
+  });
+  if (cachedActorByUrl != null) {
+    return { url: actorRedirectUrl(cachedActorByUrl) };
+  }
+
+  const cachedPost = await ctx.db.query.postTable.findFirst({
+    where: {
+      OR: [{ iri: url }, { url }],
+      sharedPostId: { isNull: true },
+    },
+  });
+  if (cachedPost != null) {
+    return postRedirect(ctx, cachedPost);
+  }
+
+  // Guests must not trigger federation lookups: they would let unauthenticated
+  // callers spawn outbound fetches and persist arbitrary remote objects.
+  if (ctx.account == null) return null;
+
+  // Federation lookup (single call): the URL may point to either an actor or
+  // a post, so we dispatch on the response type instead of asking twice.
+  const documentLoader = await ctx.fedCtx.getDocumentLoader({
+    identifier: ctx.account.id,
+  });
+  let object;
+  try {
+    object = await ctx.fedCtx.lookupObject(url, { documentLoader });
+  } catch {
+    return null;
+  }
+
+  if (isActor(object)) {
+    const persisted = await persistActor(ctx.fedCtx, object, {
+      contextLoader: ctx.fedCtx.contextLoader,
+      documentLoader,
+      outbox: false,
+    });
+    if (persisted == null) return null;
+    return { url: actorRedirectUrl(persisted) };
+  }
+
+  if (isPostObject(object)) {
+    const persisted = await persistPost(ctx.fedCtx, object, {
+      contextLoader: ctx.fedCtx.contextLoader,
+      documentLoader,
+    });
+    if (persisted == null) return null;
+    return postRedirect(ctx, persisted);
+  }
+
+  return null;
 }
 
 async function searchAsHandle(ctx: UserContext, query: string) {

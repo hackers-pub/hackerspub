@@ -7,7 +7,9 @@ import {
   type FedCtxLookupObject,
   insertAccountWithActor,
   insertNotePost,
+  insertRemoteActor,
   makeGuestContext,
+  makeUserContext,
   toPlainJson,
   withRollback,
 } from "../test/postgres.ts";
@@ -101,6 +103,155 @@ test("searchObject resolves local note URLs to canonical note routes", async () 
         url: `/@${account.account.username}/${noteSourceId}`,
       },
     });
+  });
+});
+
+test("searchObject resolves local actor URLs to canonical profile routes", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "searchactorurl",
+      name: "Search Actor URL",
+      email: "searchactorurl@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: searchObjectQuery,
+      variableValues: { query: account.actor.iri },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      searchObject: {
+        __typename: "SearchedObject",
+        url: `/@${account.account.username}`,
+      },
+    });
+  });
+});
+
+test("searchObject resolves cached remote actor URLs without federation lookup", async () => {
+  await withRollback(async (tx) => {
+    const lookupCalls: string[] = [];
+    const recordingLookup: FedCtxLookupObject = (uri) => {
+      lookupCalls.push(uri.toString());
+      return Promise.resolve(null);
+    };
+    const fedCtx = createFedCtx(tx, { lookupObject: recordingLookup });
+
+    const remote = await insertRemoteActor(tx, {
+      username: "songbirds",
+      name: "Songbirds",
+      host: "buttersc.one",
+      iri: "https://buttersc.one/@songbirds",
+    });
+
+    // A same-username local account exists to guard against the regression
+    // where URL searches fell through to handle search and resolved to the
+    // local actor instead of the remote one.
+    await insertAccountWithActor(tx, {
+      username: "songbirds",
+      name: "Songbirds (local)",
+      email: "songbirds-local@example.com",
+    });
+
+    const result = await execute({
+      schema,
+      document: searchObjectQuery,
+      variableValues: { query: "https://buttersc.one/@songbirds" },
+      contextValue: makeGuestContext(tx, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      searchObject: {
+        __typename: "SearchedObject",
+        url: `/${remote.handle}`,
+      },
+    });
+    assert.deepEqual(lookupCalls, []);
+  });
+});
+
+test("searchObject prefers an actor whose IRI matches a URL query over a colliding url match", async () => {
+  await withRollback(async (tx) => {
+    const sharedUrl = "https://collide.example/@shared";
+
+    // Actor A: canonical IRI matches the query.
+    const canonical = await insertRemoteActor(tx, {
+      username: "canonical",
+      name: "Canonical",
+      host: "canonical.example",
+      iri: sharedUrl,
+    });
+
+    // Actor B: human-facing `url` collides with A's canonical IRI.  Because
+    // `actor.url` is nullable and non-unique, the resolver must prefer the
+    // IRI match.
+    await insertRemoteActor(tx, {
+      username: "collider",
+      name: "Collider",
+      host: "collide.example",
+      url: sharedUrl,
+    });
+
+    const result = await execute({
+      schema,
+      document: searchObjectQuery,
+      variableValues: { query: sharedUrl },
+      contextValue: makeGuestContext(tx),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      searchObject: {
+        __typename: "SearchedObject",
+        url: `/${canonical.handle}`,
+      },
+    });
+  });
+});
+
+test("searchObject resolves cached post URLs without federation lookup for signed-in users", async () => {
+  await withRollback(async (tx) => {
+    const lookupCalls: string[] = [];
+    const recordingLookup: FedCtxLookupObject = (uri) => {
+      lookupCalls.push(uri.toString());
+      return Promise.resolve(null);
+    };
+    const fedCtx = createFedCtx(tx, { lookupObject: recordingLookup });
+
+    const author = await insertAccountWithActor(tx, {
+      username: "cachedposturl",
+      name: "Cached Post URL",
+      email: "cachedposturl@example.com",
+    });
+    const { noteSourceId, post } = await insertNotePost(tx, {
+      account: author.account,
+      content: "Cached note for URL search",
+    });
+    assert.ok(post.url, "test fixture should set post.url");
+
+    const result = await execute({
+      schema,
+      document: searchObjectQuery,
+      variableValues: { query: post.url! },
+      contextValue: makeUserContext(tx, author.account, { fedCtx }),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(result.errors, undefined);
+    assert.deepEqual(toPlainJson(result.data), {
+      searchObject: {
+        __typename: "SearchedObject",
+        url: `/@${author.account.username}/${noteSourceId}`,
+      },
+    });
+    assert.deepEqual(lookupCalls, []);
   });
 });
 
