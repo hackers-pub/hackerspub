@@ -361,7 +361,6 @@ export function AppSidebar(props: AppSidebarProps) {
             </SidebarMenuItem>
           </SidebarGroupContent>
         </SidebarGroup>
-        <AdminSection signedAccount={signedAccount()} />
         <ComposeSection
           signedAccount={signedAccount()}
           visible={!!signedAccount() &&
@@ -379,6 +378,7 @@ export function AppSidebar(props: AppSidebarProps) {
           unreadNotificationsCount={unreadNotificationsCount()}
           onSignOut={onSignOut}
         />
+        <AdminSection signedAccount={signedAccount()} />
       </SidebarContent>
       <AppSidebarFooter />
     </Sidebar>
