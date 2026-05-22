@@ -145,6 +145,7 @@ export interface ArticleComposerContextValue {
   slug: Accessor<string>;
   language: Accessor<Intl.Locale | undefined>;
   quotePolicy: Accessor<QuotePolicy>;
+  allowLlmTranslation: Accessor<boolean>;
   isDirty: Accessor<boolean>;
   isPublishing: Accessor<boolean>;
   showPreview: Accessor<boolean>;
@@ -157,6 +158,7 @@ export interface ArticleComposerContextValue {
   setSlug: (v: string) => void;
   setLanguage: (locale?: Intl.Locale) => void;
   setQuotePolicy: (v: QuotePolicy) => void;
+  setAllowLlmTranslation: (v: boolean) => void;
   setIsPublishing: (v: boolean) => void;
   setShowPreview: (v: boolean) => void;
 
@@ -225,6 +227,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     new Intl.Locale(i18n.locale),
   );
   const [quotePolicy, setQuotePolicy] = createSignal<QuotePolicy>("EVERYONE");
+  const [allowLlmTranslation, setAllowLlmTranslation] = createSignal(true);
   const [manualLanguageChange, setManualLanguageChange] = createSignal(false);
   const [manualSlugChange, setManualSlugChange] = createSignal(false);
   const [isPublishing, setIsPublishing] = createSignal(false);
@@ -369,7 +372,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
           id: draft()!.id,
           slug: slug().trim(),
           language: language()?.baseName ?? i18n.locale,
-          allowLlmTranslation: true,
+          allowLlmTranslation: allowLlmTranslation(),
           quotePolicy: quotePolicy(),
         },
       },
@@ -559,6 +562,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     slug,
     language,
     quotePolicy,
+    allowLlmTranslation,
     isDirty,
     isPublishing,
     showPreview,
@@ -570,6 +574,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
     setSlug: handleSetSlug,
     setLanguage,
     setQuotePolicy,
+    setAllowLlmTranslation,
     setIsPublishing,
     setShowPreview,
 

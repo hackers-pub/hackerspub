@@ -76,6 +76,32 @@ export function ArticleComposerPublishFields() {
           </p>
         </div>
       </div>
+
+      {/* Allow LLM translation */}
+      <div class="flex items-start gap-2">
+        <input
+          id="allow-llm-translation"
+          type="checkbox"
+          checked={ctx.allowLlmTranslation()}
+          onChange={(e) => ctx.setAllowLlmTranslation(e.currentTarget.checked)}
+          aria-describedby="allow-llm-translation-description"
+          class="mt-0.5 cursor-pointer rounded border-input"
+        />
+        <div class="grid gap-1.5 leading-none">
+          <label
+            for="allow-llm-translation"
+            class="cursor-pointer text-sm font-medium leading-none"
+          >
+            {t`Allow automatic translation by AI`}
+          </label>
+          <p
+            id="allow-llm-translation-description"
+            class="text-sm text-muted-foreground leading-6"
+          >
+            {t`When enabled, AI may automatically translate this article into other languages.`}
+          </p>
+        </div>
+      </div>
     </Show>
   );
 }

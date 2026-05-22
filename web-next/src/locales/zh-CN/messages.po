@@ -321,6 +321,7 @@ msgstr "所有图片均需提供替代文字。"
 msgid "All languages"
 msgstr "所有语言"
 
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:90
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:314
 msgid "Allow automatic translation by AI"
 msgstr "允许 AI 自动翻译"
@@ -381,7 +382,7 @@ msgstr "确定要屏蔽 {0}（{1}）吗？该用户将无法关注你或查看�
 msgid "Are you sure you want to delete \"{draftTitle}\"? This action cannot be undone."
 msgstr "您确定要删除\"{draftTitle}\"吗？此操作无法撤销。"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:429
+#: src/components/article-composer/ArticleComposerContext.tsx:433
 msgid "Are you sure you want to delete this draft? This action cannot be undone."
 msgstr "您确定要删除此草稿吗？此操作无法撤销。"
 
@@ -401,7 +402,7 @@ msgstr "确定要取消屏蔽 {0}（{1}）吗？该用户将能够关注你并�
 msgid "Article drafts"
 msgstr "文章草稿"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:385
+#: src/components/article-composer/ArticleComposerContext.tsx:389
 msgid "Article published"
 msgstr "文章已发布"
 
@@ -409,7 +410,7 @@ msgstr "文章已发布"
 msgid "Article updated"
 msgstr "文章已更新"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:29
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:42
 msgid "article-url-slug"
 msgstr "文章网址别名"
 
@@ -564,7 +565,7 @@ msgstr "内容不能为空"
 msgid "Continue in browser"
 msgstr "在浏览器中继续"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:59
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:76
 msgid "Controls who can quote this article on their timeline."
 msgstr "设置谁可以在时间线上引用这篇文章。"
 
@@ -715,12 +716,12 @@ msgstr "需要创建账户吗？Hackers' Pub 仅限邀请，请联系朋友邀�
 msgid "Do you want to quote this link?"
 msgstr "要引用此链接吗？"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:450
+#: src/components/article-composer/ArticleComposerContext.tsx:454
 #: src/routes/(root)/[handle]/drafts/index.tsx:173
 msgid "Draft deleted"
 msgstr "草稿已删除"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:359
+#: src/components/article-composer/ArticleComposerContext.tsx:363
 msgid "Draft must be saved before publishing"
 msgstr "发布前必须保存草稿"
 
@@ -728,7 +729,7 @@ msgstr "发布前必须保存草稿"
 msgid "Draft not found"
 msgstr "未找到草稿"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:310
+#: src/components/article-composer/ArticleComposerContext.tsx:314
 msgid "Draft saved"
 msgstr "草稿已保存"
 
@@ -784,19 +785,19 @@ msgstr "请在下方输入你的电子邮件地址以开始。"
 msgid "Enter your email or username below to sign in."
 msgstr "请在下方输入您的邮箱或用户名以登录。"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:273
-#: src/components/article-composer/ArticleComposerContext.tsx:319
-#: src/components/article-composer/ArticleComposerContext.tsx:328
-#: src/components/article-composer/ArticleComposerContext.tsx:336
-#: src/components/article-composer/ArticleComposerContext.tsx:349
-#: src/components/article-composer/ArticleComposerContext.tsx:358
-#: src/components/article-composer/ArticleComposerContext.tsx:392
-#: src/components/article-composer/ArticleComposerContext.tsx:401
-#: src/components/article-composer/ArticleComposerContext.tsx:409
-#: src/components/article-composer/ArticleComposerContext.tsx:420
-#: src/components/article-composer/ArticleComposerContext.tsx:457
-#: src/components/article-composer/ArticleComposerContext.tsx:466
-#: src/components/article-composer/ArticleComposerContext.tsx:474
+#: src/components/article-composer/ArticleComposerContext.tsx:277
+#: src/components/article-composer/ArticleComposerContext.tsx:323
+#: src/components/article-composer/ArticleComposerContext.tsx:332
+#: src/components/article-composer/ArticleComposerContext.tsx:340
+#: src/components/article-composer/ArticleComposerContext.tsx:353
+#: src/components/article-composer/ArticleComposerContext.tsx:362
+#: src/components/article-composer/ArticleComposerContext.tsx:396
+#: src/components/article-composer/ArticleComposerContext.tsx:405
+#: src/components/article-composer/ArticleComposerContext.tsx:413
+#: src/components/article-composer/ArticleComposerContext.tsx:424
+#: src/components/article-composer/ArticleComposerContext.tsx:461
+#: src/components/article-composer/ArticleComposerContext.tsx:470
+#: src/components/article-composer/ArticleComposerContext.tsx:478
 #: src/components/article-composer/ArticleComposerForm.tsx:35
 #: src/components/NoteComposer.tsx:601
 #: src/components/NoteComposer.tsx:648
@@ -1249,9 +1250,9 @@ msgstr "联邦宇宙用户名格式无效。"
 #. placeholder {0}: response.createNote.inputPath
 #. placeholder {0}: response.deleteArticleDraft.inputPath
 #. placeholder {0}: response.publishArticleDraft.inputPath
-#: src/components/article-composer/ArticleComposerContext.tsx:321
-#: src/components/article-composer/ArticleComposerContext.tsx:394
-#: src/components/article-composer/ArticleComposerContext.tsx:459
+#: src/components/article-composer/ArticleComposerContext.tsx:325
+#: src/components/article-composer/ArticleComposerContext.tsx:398
+#: src/components/article-composer/ArticleComposerContext.tsx:463
 #: src/components/NoteComposer.tsx:843
 #: src/components/NoteComposer.tsx:893
 #: src/routes/(root)/[handle]/drafts/index.tsx:182
@@ -1331,7 +1332,7 @@ msgstr "于{0}加入"
 msgid "Keep editing"
 msgstr "继续编辑"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:39
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:56
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
@@ -1635,7 +1636,7 @@ msgstr "下一张图片"
 msgid "No bookmarks yet"
 msgstr "暂无收藏"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:421
+#: src/components/article-composer/ArticleComposerContext.tsx:425
 msgid "No draft to delete"
 msgstr "没有要删除的草稿"
 
@@ -1958,7 +1959,7 @@ msgstr "悄悄公开"
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:52
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:69
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "引用权限"
@@ -2295,11 +2296,11 @@ msgstr "注册 Hackers' Pub"
 msgid "Single choice"
 msgstr "单选"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:25
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:34
 msgid "Slug (URL)"
 msgstr "URL 别名"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:350
+#: src/components/article-composer/ArticleComposerContext.tsx:354
 msgid "Slug cannot be empty"
 msgstr "URL 别名不能为空"
 
@@ -2315,9 +2316,9 @@ msgstr "出现错误"
 msgid "Something went wrong—please try again."
 msgstr "出现错误，请重试。"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:309
-#: src/components/article-composer/ArticleComposerContext.tsx:384
-#: src/components/article-composer/ArticleComposerContext.tsx:449
+#: src/components/article-composer/ArticleComposerContext.tsx:313
+#: src/components/article-composer/ArticleComposerContext.tsx:388
+#: src/components/article-composer/ArticleComposerContext.tsx:453
 #: src/components/NoteComposer.tsx:832
 #: src/components/NoteComposer.tsx:884
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
@@ -2419,7 +2420,7 @@ msgstr "您访问的页面不存在或已被移动。"
 msgid "The passkey has been successfully revoked."
 msgstr "通行密钥已成功撤销。"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:46
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:63
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要语言，用于无障碍功能和内容发现。"
 
@@ -2494,7 +2495,7 @@ msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 #~ msgid "This will be part of the article URL"
 #~ msgstr "这将成为文章 URL 的一部分"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:33
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:48
 msgid "This will be part of the article URL."
 msgstr "这将成为文章 URL 的一部分。"
 
@@ -2507,7 +2508,7 @@ msgstr "时间线"
 msgid "Title"
 msgstr "标题"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:274
+#: src/components/article-composer/ArticleComposerContext.tsx:278
 msgid "Title cannot be empty"
 msgstr "标题不能为空"
 
@@ -2760,6 +2761,10 @@ msgstr "什么是 Hackers' Pub？"
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:93
+msgid "When enabled, AI may automatically translate this article into other languages."
+msgstr "启用后，AI 可能会自动将这篇文章翻译成其他语言。"
+
 #: src/routes/(root)/[handle]/[noteId]/edit.tsx:304
 #~ msgid "Who can quote this note"
 #~ msgstr "谁可以引用此帖子"
@@ -2858,7 +2863,7 @@ msgstr "请先登录"
 msgid "You must be signed in to create a note"
 msgstr "你必须登录才能创建帖子"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:467
+#: src/components/article-composer/ArticleComposerContext.tsx:471
 #: src/routes/(root)/[handle]/drafts/index.tsx:190
 msgid "You must be signed in to delete a draft"
 msgstr "您必须登录才能删除草稿"
@@ -2871,11 +2876,11 @@ msgstr "编辑帖子需要登录。"
 msgid "You must be signed in to edit an article"
 msgstr "您必须登录才能编辑文章"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:402
+#: src/components/article-composer/ArticleComposerContext.tsx:406
 msgid "You must be signed in to publish an article"
 msgstr "您必须登录才能发布文章"
 
-#: src/components/article-composer/ArticleComposerContext.tsx:329
+#: src/components/article-composer/ArticleComposerContext.tsx:333
 msgid "You must be signed in to save a draft"
 msgstr "您必须登录才能保存草稿"
 
