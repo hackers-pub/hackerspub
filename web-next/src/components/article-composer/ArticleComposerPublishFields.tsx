@@ -17,40 +17,45 @@ export function ArticleComposerPublishFields() {
   const ctx = useArticleComposer();
 
   return (
-    <Show when={ctx.isPublishing()}>
-      <Separator />
+    <>
+      {/* Slug (for publishing) */}
+      <Show when={ctx.isPublishing()}>
+        <Separator />
+        <TextField>
+          <TextFieldLabel>{t`Slug (URL)`}</TextFieldLabel>
+          <TextFieldInput
+            value={ctx.slug()}
+            onInput={(e) => ctx.setSlug(e.currentTarget.value)}
+            placeholder={t`article-url-slug`}
+            required
+          />
+          <TextFieldDescription>
+            {t`This will be part of the article URL`}
+          </TextFieldDescription>
+        </TextField>
+      </Show>
 
-      {/* Slug */}
-      <TextField>
-        <TextFieldLabel>{t`Slug (URL)`}</TextFieldLabel>
-        <TextFieldInput
-          value={ctx.slug()}
-          onInput={(e) => ctx.setSlug(e.currentTarget.value)}
-          placeholder={t`article-url-slug`}
-          required
-        />
-        <TextFieldDescription>
-          {t`This will be part of the article URL`}
-        </TextFieldDescription>
-      </TextField>
+      {/* Language (for publishing) */}
+      <Show when={ctx.isPublishing()}>
+        <div class="flex flex-col gap-1.5">
+          <Label>{t`Language`}</Label>
+          <LanguageSelect
+            value={ctx.language()}
+            onChange={ctx.setLanguage}
+          />
+        </div>
+      </Show>
 
-      {/* Language */}
-      <div class="flex flex-col gap-1.5">
-        <Label>{t`Language`}</Label>
-        <LanguageSelect
-          value={ctx.language()}
-          onChange={ctx.setLanguage}
-        />
-      </div>
-
-      {/* Quote permission */}
-      <div class="flex flex-col gap-1.5">
-        <Label>{t`Quote permission`}</Label>
-        <QuotePolicySelect
-          value={ctx.quotePolicy()}
-          onChange={ctx.setQuotePolicy}
-        />
-      </div>
-    </Show>
+      {/* Quote permission (for publishing) */}
+      <Show when={ctx.isPublishing()}>
+        <div class="flex flex-col gap-1.5">
+          <Label>{t`Quote permission`}</Label>
+          <QuotePolicySelect
+            value={ctx.quotePolicy()}
+            onChange={ctx.setQuotePolicy}
+          />
+        </div>
+      </Show>
+    </>
   );
 }
