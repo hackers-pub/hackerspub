@@ -37,7 +37,7 @@ The Hackers' Pub project has the following rules for AI usage:
     code are acceptable AI-generated content per the other rules in this
     policy.  For documentation visuals like diagrams or illustrations,
     AI-generated content is permitted but must include clear attribution
-    (e.g., "Diagram generated with DALL-E" or "Created using Midjourney").
+    (e.g., “Diagram generated with DALL-E” or “Created using Midjourney”).
 
  -  *Violations of this policy may result in being banned from contributing.*
     We want to help contributors learn and grow, but repeated or intentional

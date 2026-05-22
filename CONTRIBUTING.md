@@ -46,10 +46,9 @@ For the visual side of the product — color tokens, typography, component
 patterns, the *Pubnyan* mascot, and brand asset usage — read
 [*DESIGN.md*](./DESIGN.md) before working on UI in *web-next/*.
 
-[^1]: As of February 2025, Fresh 2.0 is not released.  We are using
-      the development version of Fresh 2.0, which is not well-documented.
-      We recommend reading the source code of Fresh 2.0 to understand how it
-      works.
+[^1]: As of February 2025, Fresh 2.0 is not released. We are using the
+      development version of Fresh 2.0, which is not well-documented. We
+      recommend reading the source code of Fresh 2.0 to understand how it works.
 
 [Deno]: https://deno.com/
 [PostgreSQL]: https://www.postgresql.org/
@@ -125,18 +124,18 @@ and set the values of the variables according to your environment.
 >
 >  -  `SECRET_KEY` is a random string that is used for encrypting the session
 >     data.  You can generate a new key using the following command:
->
+
 >     ~~~~ sh
 >     openssl rand -hex 32
 >     ~~~~
 >
 >  -  `INSTANCE_ACTOR_KEY` is a RSA private key with JWK format.  You can
 >     generate a new key using the following command:
->
+
 >     ~~~~ sh
 >     mise run keygen
 >     ~~~~
->
+
 >     Warn that you should quote the key value with single quotes in the *.env*
 >     file, e.g., `INSTANCE_ACTOR_KEY='{"kty":"RSA",...}'`.
 >
@@ -144,11 +143,11 @@ and set the values of the variables according to your environment.
 >     `KV_URL=file:///tmp/kv.db`.
 >
 >  -  `DRIVE_DISK` can be set to `fs` to use the file system for storing files.
->
+
 >     In this case, you also need to set `FS_LOCATION` to the directory where
 >     the files will be stored, which can be a relative path to the project
 >     directory, e.g., `FS_LOCATION=./media`.
->
+
 >     For your information, the *media/* directory under the project directory
 >     is listed in the *.gitignore* file, so you don't need to worry about
 >     accidentally committing the files to the repository.
@@ -221,32 +220,32 @@ for one-time contributions.
 > If you are a regular contributor, you may want to use a more permanent
 > solution, such as [Tailscale Funnel] or [Cloudflare Tunnel].
 
- 1. Configure `BEHIND_PROXY=true` in the *.env* file.
+1.  Configure `BEHIND_PROXY=true` in the *.env* file.
 
- 2. Create an account on [ngrok].
+2.  Create an account on [ngrok].
 
- 3. [Install `ngrok` and connect your account.][2]
+3.  [Install `ngrok` and connect your account.][2]
 
- 4. Start the tunnel by executing the following command (ensuring your local
+4.  Start the tunnel by executing the following command (ensuring your local
     server is running on port 8000):
 
     ~~~~ sh
     ngrok http 8000
     ~~~~
 
- 5. Copy the HTTPS URL provided by `ngrok`, and put it in the `ORIGIN`
+5.  Copy the HTTPS URL provided by `ngrok`, and put it in the `ORIGIN`
     environment variable in the *.env* file.
 
- 6. Restart the server, and you are ready to test federation.
+6.  Restart the server, and you are ready to test federation.
 
 When testing federation, you must use the HTTPS URL provided by `ngrok` as the
 base URL for your local server.  This is because ActivityPub requires
 the server to be accessible over HTTPS.
 
-[1]: https://fedify.dev/manual/test#exposing-a-local-server-to-the-public
 [ngrok]: https://ngrok.com/
 [Tailscale Funnel]: https://tailscale.com/kb/1223/funnel
 [Cloudflare Tunnel]: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/
+[1]: https://fedify.dev/manual/test#exposing-a-local-server-to-the-public
 [2]: https://ngrok.com/docs/getting-started/
 
 
@@ -255,20 +254,20 @@ Running web-next
 
 To run web-next, the new web frontend for Hackers' Pub, follow these steps:
 
- 1. Navigate to the *web-next/* directory.
+1.  Navigate to the *web-next/* directory.
 
- 2. Optionally install [watchman].  If watchman is available, the Relay
+2.  Optionally install [watchman].  If watchman is available, the Relay
     compiler runs automatically as part of the Vite dev server via
     [vite-plugin-relay-lite].  If watchman is not installed, set the
     `NO_WATCHMAN=1` environment variable when running the dev server and
     run `pnpm codegen` manually whenever GraphQL files change.
 
- 3. Run the development server with the command
+3.  Run the development server with the command
     `API_URL=http://localhost:8000/graphql mise run dev:web-next`.
     The legacy server must be running at this point, as it also serves as
     the GraphQL API server for web-next.
 
- 4. Access http://localhost:3000/ to see the new look of Hackers' Pub.
+4.  Access http://localhost:3000/ to see the new look of Hackers' Pub.
 
 When you build new UI in *web-next/*, follow the conventions documented in
 [*DESIGN.md*](./DESIGN.md) — it covers the color tokens, typography, component
@@ -284,11 +283,11 @@ Setting up Visual Studio Code
 We recommend using [Visual Studio Code] for development.  To set up Visual
 Studio Code for this project, follow these steps:
 
- 1. Run `code` in the project directory to open the project in Visual Studio
+1.  Run `code` in the project directory to open the project in Visual Studio
     Code.
- 2. Trust the workspace by clicking the <q>Trust the authors of all files in the
+2.  Trust the workspace by clicking the <q>Trust the authors of all files in the
     workspace</q> button when prompted.
- 3. Install the recommended extensions when prompted.
+3.  Install the recommended extensions when prompted.
 
 That's it!  You are now ready to start coding.
 
@@ -299,8 +298,8 @@ Want other tools?
 -----------------
 
 If you are a passionate user of other tools, such as Vim or Emacs, you need to
-manually set up the project for those tools.  We recommend following the [Deno's
-official guide for setting up your favorite editor][3].
+manually set up the project for those tools.  We recommend following the
+[Deno's official guide for setting up your favorite editor][3].
 
 [3]: https://docs.deno.com/runtime/getting_started/setup_your_environment/
 

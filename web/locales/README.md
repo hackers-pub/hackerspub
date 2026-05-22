@@ -3,8 +3,9 @@ Translation contribution guide
 
 This document provides guidance for contributing translations to Hackers' Pub.
 
+
 Getting started
-----------------
+---------------
 
 ### Add language to *web/i18n.ts*
 
@@ -20,7 +21,7 @@ Getting started
 ### Create code of conduct translation
 
  -  Add a translated version of the code of conduct as
-    *CODE_OF_CONDUCT.`language-code`.md*.
+    *CODE\_OF\_CONDUCT.`language-code`.md*.
 
 ### Create Markdown guide translation
 

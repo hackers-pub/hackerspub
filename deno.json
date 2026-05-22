@@ -189,12 +189,17 @@
     "exclude": [
       "*.md",
       "*.yaml",
+      "*.yml",
+      "**/*.md",
+      "**/*.yaml",
+      "**/*.yml",
       ".agents/skills/",
       ".agents/commands/",
       ".claude/skills/",
       ".claude/commands/",
       "ai/prompts/",
-      "graphql/locales/markdown/*.md"
+      "graphql/locales/markdown/*.md",
+      "graphql/locales/search/*.md"
     ]
   },
   "lint": {

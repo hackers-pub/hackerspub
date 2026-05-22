@@ -13,7 +13,8 @@ Hackers' Pub 提供的[扩展语法](#扩展语法)。
 
 ### 段落和换行
 
-在 Markdown 中，段落由一个或多个空白行分隔。如果只按一次 <kbd>Enter</kbd> 换行，在渲染时会被忽略。
+在 Markdown 中，段落由一个或多个空白行分隔。如果只按一次 <kbd>Enter</kbd>
+换行，在渲染时会被忽略。
 
 ~~~~ markdown
 这是第一个段落。
@@ -102,15 +103,15 @@ ___
 
 预览：
 
-> ---
+>    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 >
 > 内容省略
 >
-> ***
+>    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 >
 > 内容省略
 >
-> ___
+>    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### 链接
 
@@ -118,39 +119,40 @@ ___
 
 内联风格链接的写法如下：
 
-```markdown
+~~~~ markdown
 [链接文本](https://example.com/)
 [链接文本](https://example.com/ "链接标题")
-```
+~~~~
 
 预览：
 
-> [链接文本](https://example.com/)  
-> [链接文本](https://example.com/ "链接标题")
+> [链接文本]  
+> [链接文本]
 
 #### 引用风格链接
 
 引用风格链接在文档的某处定义 URL 并引用它：
 
-```markdown
+~~~~ markdown
 [链接文本][1]
 [另一个链接][引用名称]
 
 [1]: https://example.com/
 [引用名称]: https://example.com/reference "链接标题"
-```
+~~~~
 
 预览：
 
 > [链接文本][1]  
 > [另一个链接][引用名称]
->
-> [1]: https://example.com/
-> [引用名称]: https://example.com/reference "链接标题"
 
 #### URL 链接
 
 此外，用 `<` 和 `>` 包围的 URL 会自动转换为链接：<https://example.com/>。
+
+[链接文本]: https://example.com/ "链接标题"
+[1]: https://example.com/
+[引用名称]: https://example.com/reference "链接标题"
 
 ### 图片
 
@@ -186,10 +188,10 @@ ___
 
 预览：
 
-> * 项目1
-> * 项目2
->   * 嵌套项目a
->   * 嵌套项目b
+>  -  项目1
+>  -  项目2
+>      -  嵌套项目a
+>      -  嵌套项目b
 
 有序列表以数字和句点开始：
 
@@ -202,10 +204,10 @@ ___
 
 预览：
 
-> 1. 第一项
-> 2. 第二项
->    1. 嵌套项目1
->    2. 嵌套项目2
+> 1.  第一项
+> 2.  第二项
+>     1)  嵌套项目1
+>     2)  嵌套项目2
 
 ### 引用块
 
@@ -235,7 +237,7 @@ ___
 
 ### 代码
 
-内联代码用反引号(`)包围：
+内联代码用反引号(\`)包围：
 
 ~~~~ markdown
 您可以在句子中包含`代码`。
@@ -258,9 +260,9 @@ ___
 
 > `` `包含反引号的代码` ``
 >
-> ```
+> ~~~~
 > 包含三个反引号 ```的代码块
-> ```
+> ~~~~
 
 代码块以三个反引号开始和结束。指定语言可以启用语法高亮：
 
@@ -273,10 +275,10 @@ def hello_world():
 
 预览：
 
-> ``` python
+> ~~~~ python
 > def hello_world():
 >     print("Hello, World!")
-> ```
+> ~~~~
 
 
 扩展语法
@@ -311,8 +313,8 @@ Hackers' Pub 支持多种基本 Markdown 之外的扩展语法。
 预览：
 
 > 带有脚注的文本[^1]。
->
-> [^1]: 这是脚注内容。
+
+[^1]: 这是脚注内容。
 
 ### 提示框（admonitions）
 
@@ -361,7 +363,7 @@ Hackers' Pub 支持多种基本 Markdown 之外的扩展语法。
 
 预览：
 
-> [!TIP] 提示
+> [!TIP]
 > 这是一个提示。
 
 ### 定义列表
@@ -407,7 +409,7 @@ $$
 预览：
 
 > $$
-> \frac{n!}{k!(n-k)!} = \binom{n}{k}
+> \\frac{n!}{k!(n-k)!} = \\binom{n}{k}
 > $$
 
 ### 缩写
@@ -423,7 +425,7 @@ HTML 文档遵循 W3C 标准。
 
 预览：
 
-> *[HTML]: HyperText Markup Language
+*[HTML]: HyperText Markup Language
 > *[W3C]: World Wide Web Consortium
 >
 > HTML 文档遵循 W3C 标准。
@@ -442,13 +444,13 @@ HTML 文档遵循 W3C 标准。
 
 预览：
 
-> | 表头1  | 表头2  |
-> |-------|-------|
+> | 表头1 | 表头2 |
+> | ----- | ----- |
 > | 值1   | 值2   |
 > | 值3   | 值4   |
 > | 值5   | 值6   |
 
-> [!TIP] 提示
+> [!TIP]
 > 您可以使用 [Markdown Table Generator] 轻松创建表格。
 
 [Markdown Table Generator]: https://www.tablesgenerator.com/markdown_tables
@@ -468,14 +470,14 @@ digraph {
 
 预览：
 
-> ```graphviz
+> ~~~~ graphviz
 > digraph {
 >     A -> B -> C;
 >     B -> D;
 > }
-> ```
+> ~~~~
 
-> [!TIP] 提示
+> [!TIP]
 > 您可以使用 [Graphviz Visual Editor] 可视化编辑图表。
 
 [Graphviz]: https://graphviz.org/
@@ -500,14 +502,14 @@ function example() {
 
 预览：
 
-> ```js {3-4}
+> ~~~~ js {3-4}
 > function example() {
 >   // 普通代码
 >   // 这行被高亮
 >   // 这行也被高亮
 >   return true;
 > }
-> ```
+> ~~~~
 
 #### 使用内联注释高亮
 
@@ -522,12 +524,12 @@ function example() {
 
 预览：
 
-> ```js
+> ~~~~ js
 > function example() {
 >   const highlighted = "这行被高亮"; // [!code highlight]
 >   return true;
 > }
-> ```
+> ~~~~
 
 您还可以高亮错误或警告：
 
@@ -542,12 +544,12 @@ function example() {
 
 预览：
 
-> ```js
+> ~~~~ js
 > function example() {
 >   throwError(); // [!code error]
 >   logWarning(); // [!code warning]
 > }
-> ```
+> ~~~~
 
 #### 使用内联注释聚焦
 
@@ -562,12 +564,12 @@ function example() {
 
 预览：
 
-> ```js
+> ~~~~ js
 > function example() {
 >   const focused = "这行被聚焦"; // [!code focus]
 >   return true;
 > }
-> ```
+> ~~~~
 
 #### 使用正则表达式模式高亮特定文本
 
@@ -579,9 +581,9 @@ const message = "在这行中，'要高亮的文本'将被高亮";
 
 预览：
 
-> ```js /要高亮的文本/
+> ~~~~ js /要高亮的文本/
 > const message = "在这行中，'要高亮的文本'将被高亮";
-> ```
+> ~~~~
 
 #### 使用内联注释高亮特定文本
 
@@ -594,14 +596,15 @@ const message = "在这行中，'高亮文本'将被高亮";
 
 预览：
 
-> ```js
+> ~~~~ js
 > // [!code word:高亮文本]
 > const message = "在这行中，'高亮文本'将被高亮";
-> ```
+> ~~~~
 
 ### HTML 标签
 
-您可以在 Markdown 文档中使用 HTML 标签。例如，您可以使用 `<kbd>` 标签来突出显示键盘输入：
+您可以在 Markdown 文档中使用 HTML 标签。例如，您可以使用 `<kbd>`
+标签来突出显示键盘输入：
 
 ~~~~ markdown
 <kbd>Ctrl</kbd> + <kbd>C</kbd>
@@ -615,11 +618,11 @@ const message = "在这行中，'高亮文本'将被高亮";
 提示
 ----
 
-- 在 Markdown 中，使用纯文本编写，并使用特殊字符进行格式化。
-- 段落由空白行分隔。单次按 <kbd>Enter</kbd> 键会被忽略。
-- 要强制换行，请在行尾添加两个或更多空格。
-- 在编辑器中检查预览，确保它按预期显示。
-- 虽然 Markdown 支持直接使用 HTML，但最好尽可能使用 Markdown 语法。
+ -  在 Markdown 中，使用纯文本编写，并使用特殊字符进行格式化。
+ -  段落由空白行分隔。单次按 <kbd>Enter</kbd> 键会被忽略。
+ -  要强制换行，请在行尾添加两个或更多空格。
+ -  在编辑器中检查预览，确保它按预期显示。
+ -  虽然 Markdown 支持直接使用 HTML，但最好尽可能使用 Markdown 语法。
 
 
 源代码

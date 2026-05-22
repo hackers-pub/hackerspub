@@ -4,6 +4,6 @@
 | `from:` ハンドル   | 指定されたユーザーが書いたコンテンツのみを検索します。                                                                                         | `from:hongminhee`<br>`from:hongminhee@hollo.social`        |
 | `lang:` ISO 639-1  | 指定された言語で書かれたコンテンツのみを検索します。                                                                                           | `lang:ja`                                                  |
 | `#` タグ           | 指定されたタグが付いたコンテンツのみを検索します。<br>大文字と小文字は区別されません。                                                         | `#HackersPub`                                              |
-| 条件 `` 条件       | スペースの両側の条件をすべて満たすコンテンツのみを検索します（論理積）。                                                                       | `"Hackers' Pub" lang:ja`                                   |
+| 条件 ` ` 条件      | スペースの両側の条件をすべて満たすコンテンツのみを検索します（論理積）。                                                                       | `"Hackers' Pub" lang:ja`                                   |
 | 条件 `OR` 条件     | `OR`演算子の両側の条件のいずれかを満たすコンテンツを検索します（論理和）。                                                                     | `#HackersPub OR "Hackers' Pub" lang:ja`                    |
 | `(` 条件 `)`       | 括弧内の演算子を先に結合します。                                                                                                               | `(#HackersPub OR "Hackers' Pub" OR "Hackers Pub") lang:ja` |

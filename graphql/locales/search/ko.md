@@ -4,6 +4,6 @@
 | `from:` 핸들      | 해당 사용자가 쓴 콘텐츠만 추립니다.                                                                                                                   | `from:hongminhee`<br>`from:hongminhee@hollo.social`        |
 | `lang:` ISO 639-1 | 해당 언어로 쓰여진 콘텐츠만 추립니다.                                                                                                                 | `lang:ko`                                                  |
 | `#` 태그          | 해당 태그가 달린 콘텐츠만 추립니다.<br>대소문자는 구분하지 않습니다.                                                                                  | `#HackersPub`                                              |
-| 조건 `` 조건      | 띄어쓰기 양 옆의 조건을 모두 만족하는 콘텐츠만 추립니다(논리곱).                                                                                      | `"Hackers' Pub" lang:ko`                                   |
+| 조건 ` ` 조건     | 띄어쓰기 양 옆의 조건을 모두 만족하는 콘텐츠만 추립니다(논리곱).                                                                                      | `"Hackers' Pub" lang:ko`                                   |
 | 조건 `OR` 조건    | `OR` 연산자 양 옆의 조건 중 하나라도 만족하는 콘텐츠를 추립니다(논리합).                                                                              | `#HackersPub OR "Hackers' Pub" lang:ko`                    |
 | `(` 조건 `)`      | 괄호 안의 연산자들을 먼저 결합합니다.                                                                                                                 | `(#HackersPub OR "Hackers' Pub" OR "Hackers Pub") lang:ko` |

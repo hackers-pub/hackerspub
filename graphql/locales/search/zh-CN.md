@@ -4,6 +4,6 @@
 | `from:` 用户名    | 查找指定用户发布的内容。                                                             | `from:hongminhee`<br>`from:hongminhee@hollo.social`        |
 | `lang:` ISO 639-1 | 查找使用指定语言编写的内容。                                                         | `lang:zh`                                                  |
 | `#` 标签          | 查找带有指定标签的内容。<br>不区分大小写。                                           | `#HackersPub`                                              |
-| 条件 `` 条件      | 查找同时满足空格两侧条件的内容（逻辑与）。                                           | `"Hackers' Pub" lang:zh`                                   |
+| 条件 ` ` 条件     | 查找同时满足空格两侧条件的内容（逻辑与）。                                           | `"Hackers' Pub" lang:zh`                                   |
 | 条件 `OR` 条件    | 查找满足 OR 运算符两侧任一条件的内容（逻辑或）。                                     | `#HackersPub OR "Hackers' Pub" lang:zh`                    |
 | `(` 条件 `)`      | 优先组合括号内的运算符。                                                             | `(#HackersPub OR "Hackers' Pub" OR "Hackers Pub") lang:zh` |

@@ -13,7 +13,8 @@ Basic Formatting
 
 ### Paragraphs and Line Breaks
 
-In Markdown, paragraphs are separated by one or more blank lines. If you simply press <kbd>Enter</kbd> once for a line break, it will be ignored when rendered.
+In Markdown, paragraphs are separated by one or more blank lines. If you simply
+press <kbd>Enter</kbd> once for a line break, it will be ignored when rendered.
 
 ~~~~ markdown
 This is the first paragraph.
@@ -25,7 +26,8 @@ This is the second paragraph, written after a blank line.
 Preview:
 
 > This is the first paragraph.
-> This line has a single <kbd>Enter</kbd> after it, but it will be rendered as part of the same paragraph.
+> This line has a single <kbd>Enter</kbd> after it, but it will be rendered as
+> part of the same paragraph.
 >
 > This is the second paragraph, written after a blank line.
 
@@ -45,7 +47,8 @@ Preview:
 
 #### ATX Style Headings
 
-ATX style headings start with the `#` symbol, with the number of `#` characters varying by level:
+ATX style headings start with the `#` symbol, with the number of `#` characters
+varying by level:
 
 ~~~~ markdown
 # Heading 1
@@ -58,7 +61,8 @@ ATX style headings start with the `#` symbol, with the number of `#` characters 
 
 #### Setext Style Headings
 
-Setext style headings use `=` or `-` symbols under the text. This style only supports level 1 and level 2 headings:
+Setext style headings use `=` or `-` symbols under the text. This style only
+supports level 1 and level 2 headings:
 
 ~~~~ markdown
 Heading 1
@@ -86,7 +90,8 @@ Preview:
 
 ### Horizontal Rules
 
-Horizontal rules can be created using three or more hyphens (`-`), asterisks (`*`), or underscores (`_`):
+Horizontal rules can be created using three or more hyphens (`-`), asterisks
+(`*`), or underscores (`_`):
 
 ~~~~ markdown
 ---
@@ -102,15 +107,15 @@ ___
 
 Preview:
 
-> ---
+>    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 >
 > Content omitted
 >
-> ***
+>    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 >
 > Content omitted
 >
-> ___
+>    - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ### Links
 
@@ -118,43 +123,47 @@ Preview:
 
 Inline style links are written as follows:
 
-```markdown
+~~~~ markdown
 [Link text](https://example.com/)
 [Link text](https://example.com/ "Link title")
-```
+~~~~
 
 Preview:
 
-> [Link text](https://example.com/)  
-> [Link text](https://example.com/ "Link title")
+> [Link text]  
+> [Link text]
 
 #### Reference Style Links
 
 Reference style links define the URL somewhere in the document and reference it:
 
-```markdown
+~~~~ markdown
 [Link text][1]
 [Another link][reference name]
 
 [1]: https://example.com/
 [reference name]: https://example.com/reference "Link title"
-```
+~~~~
 
 Preview:
 
 > [Link text][1]  
 > [Another link][reference name]
->
-> [1]: https://example.com/
-> [reference name]: https://example.com/reference "Link title"
 
 #### URL Links
 
-Also, URLs enclosed in `<` and `>` are automatically converted to links: <https://example.com/>.
+Also, URLs enclosed in `<` and `>` are automatically converted to links:
+<https://example.com/>.
+
+[Link text]: https://example.com/ "Link title"
+[1]: https://example.com/
+[reference name]: https://example.com/reference "Link title"
 
 ### Images
 
-Image syntax is similar to links but with an exclamation mark at the beginning. The text in brackets is used as alternative text (`alt`) for screen readers and accessibility.
+Image syntax is similar to links but with an exclamation mark at the beginning.
+The text in brackets is used as alternative text (`alt`) for screen readers and
+accessibility.
 
 #### Inline Style Images
 
@@ -186,10 +195,10 @@ Unordered lists start with `*`, `+`, or `-`:
 
 Preview:
 
-> * Item 1
-> * Item 2
->   * Nested item a
->   * Nested item b
+>  -  Item 1
+>  -  Item 2
+>      -  Nested item a
+>      -  Nested item b
 
 Ordered lists start with a number and a period:
 
@@ -202,10 +211,10 @@ Ordered lists start with a number and a period:
 
 Preview:
 
-> 1. First item
-> 2. Second item
->    1. Nested item 1
->    2. Nested item 2
+> 1.  First item
+> 2.  Second item
+>     1)  Nested item 1
+>     2)  Nested item 2
 
 ### Blockquotes
 
@@ -235,7 +244,7 @@ Preview:
 
 ### Code
 
-Inline code is wrapped in backticks (`):
+Inline code is wrapped in backticks (\`):
 
 ~~~~ markdown
 You can include `code` within a sentence.
@@ -245,7 +254,8 @@ Preview:
 
 > You can include `code` within a sentence.
 
-To display code containing backticks, wrap it in more backticks or use another method:
+To display code containing backticks, wrap it in more backticks or use another
+method:
 
 ~~~~ markdown
 `` `Code with backticks` ``
@@ -258,11 +268,12 @@ Preview:
 
 > `` `Code with backticks` ``
 >
-> ```
+> ~~~~
 > Code block with triple backticks ```
-> ```
+> ~~~~
 
-Code blocks start and end with three backticks. Specifying a language enables syntax highlighting:
+Code blocks start and end with three backticks. Specifying a language enables
+syntax highlighting:
 
 ~~~~ markdown
 ``` python
@@ -273,10 +284,10 @@ def hello_world():
 
 Preview:
 
-> ``` python
+> ~~~~ python
 > def hello_world():
 >     print("Hello, World!")
-> ```
+> ~~~~
 
 
 Extended Syntax
@@ -311,8 +322,8 @@ Text with a footnote[^1].
 Preview:
 
 > Text with a footnote[^1].
->
-> [^1]: This is the footnote content.
+
+[^1]: This is the footnote content.
 
 ### Admonitions
 
@@ -361,7 +372,7 @@ You can change the label by adding text after `[!…]`:
 
 Preview:
 
-> [!TIP] Info
+> [!TIP]
 > This is an info.
 
 ### Definition Lists
@@ -407,7 +418,7 @@ $$
 Preview:
 
 > $$
-> \frac{n!}{k!(n-k)!} = \binom{n}{k}
+> \\frac{n!}{k!(n-k)!} = \\binom{n}{k}
 > $$
 
 ### Abbreviations
@@ -423,7 +434,7 @@ HTML documents follow W3C standards.
 
 Preview:
 
-> *[HTML]: HyperText Markup Language
+*[HTML]: HyperText Markup Language
 > *[W3C]: World Wide Web Consortium
 >
 > HTML documents follow W3C standards.
@@ -443,12 +454,12 @@ Tables are created using pipe (`|`) characters:
 Preview:
 
 > | Header 1 | Header 2 |
-> |----------|----------|
+> | -------- | -------- |
 > | Value 1  | Value 2  |
 > | Value 3  | Value 4  |
 > | Value 5  | Value 6  |
 
-> [!TIP] Tip
+> [!TIP]
 > You can use [Markdown Table Generator] to easily create tables.
 
 [Markdown Table Generator]: https://www.tablesgenerator.com/markdown_tables
@@ -468,14 +479,14 @@ digraph {
 
 Preview:
 
-> ```graphviz
+> ~~~~ graphviz
 > digraph {
 >     A -> B -> C;
 >     B -> D;
 > }
-> ```
+> ~~~~
 
-> [!TIP] Tip
+> [!TIP]
 > You can edit diagrams visually using [Graphviz Visual Editor].
 
 [Graphviz]: https://graphviz.org/
@@ -500,14 +511,14 @@ function example() {
 
 Preview:
 
-> ```js {3-4}
+> ~~~~ js {3-4}
 > function example() {
 >   // Normal code
 >   // This line is highlighted
 >   // This line is also highlighted
 >   return true;
 > }
-> ```
+> ~~~~
 
 #### Highlighting with Inline Comments
 
@@ -522,12 +533,12 @@ function example() {
 
 Preview:
 
-> ```js
+> ~~~~ js
 > function example() {
 >   const highlighted = "This line is highlighted"; // [!code highlight]
 >   return true;
 > }
-> ```
+> ~~~~
 
 You can also highlight errors or warnings:
 
@@ -542,12 +553,12 @@ function example() {
 
 Preview:
 
-> ```js
+> ~~~~ js
 > function example() {
 >   throwError(); // [!code error]
 >   logWarning(); // [!code warning]
 > }
-> ```
+> ~~~~
 
 #### Focusing with Inline Comments
 
@@ -562,12 +573,12 @@ function example() {
 
 Preview:
 
-> ```js
+> ~~~~ js
 > function example() {
 >   const focused = "This line is focused"; // [!code focus]
 >   return true;
 > }
-> ```
+> ~~~~
 
 #### Highlighting Specific Text with Regex Patterns
 
@@ -579,9 +590,9 @@ const message = "In this line, 'text to highlight' will be highlighted";
 
 Preview:
 
-> ```js /text to highlight/
+> ~~~~ js /text to highlight/
 > const message = "In this line, 'text to highlight' will be highlighted";
-> ```
+> ~~~~
 
 #### Highlighting Specific Text with Inline Comments
 
@@ -594,14 +605,15 @@ const message = "In this line, 'highlightText' will be highlighted";
 
 Preview:
 
-> ```js
+> ~~~~ js
 > // [!code word:highlightText]
 > const message = "In this line, 'highlightText' will be highlighted";
-> ```
+> ~~~~
 
 ### HTML Tags
 
-You can use HTML tags within Markdown documents. For example, you can use the `<kbd>` tag to highlight keyboard input:
+You can use HTML tags within Markdown documents. For example, you can use the
+`<kbd>` tag to highlight keyboard input:
 
 ~~~~ markdown
 <kbd>Ctrl</kbd> + <kbd>C</kbd>
@@ -615,11 +627,13 @@ Preview:
 Tips
 ----
 
-- In Markdown, write in plain text and use special characters for formatting.
-- Paragraphs are separated by blank lines. A single <kbd>Enter</kbd> press is ignored.
-- To force a line break, add two or more spaces at the end of a line.
-- Check the preview in the editor to ensure it displays as expected.
-- While Markdown supports direct HTML usage, it's best to use Markdown syntax when possible.
+ -  In Markdown, write in plain text and use special characters for formatting.
+ -  Paragraphs are separated by blank lines. A single <kbd>Enter</kbd> press is
+    ignored.
+ -  To force a line break, add two or more spaces at the end of a line.
+ -  Check the preview in the editor to ensure it displays as expected.
+ -  While Markdown supports direct HTML usage, it's best to use Markdown syntax
+    when possible.
 
 
 Source Code

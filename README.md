@@ -33,6 +33,6 @@ It focuses on the following features:[^1]
 
 Hackers' Pub is open source.  The source code is available under the AGPL-3.0.
 
-[^1]: Of course, these features are not implemented yet.  This is just a plan.
+[^1]: Of course, these features are not implemented yet. This is just a plan.
 
 [@hongminhee@hackers.pub]: https://hackers.pub/@hongminhee

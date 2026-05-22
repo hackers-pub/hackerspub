@@ -1,8 +1,12 @@
-# Guide for LLM-Powered Agents
+Guide for LLM-Powered Agents
+============================
 
-This file provides guidance to LLM-powered agents when working with code in this repository.
+This file provides guidance to LLM-powered agents when working with code in
+this repository.
 
-## AI Policy Compliance
+
+AI Policy Compliance
+--------------------
 
 > [!CAUTION]
 >
@@ -17,35 +21,42 @@ This file provides guidance to LLM-powered agents when working with code in this
 > Transparency about AI usage is non-negotiable. Deceptive practices harm
 > the project and its maintainers.
 
-## Stack Migration Status
 
-This project is currently in a transitional phase, migrating from an existing Fresh + Preact stack to a new SolidStart + Solid + GraphQL + Relay stack:
+Stack Migration Status
+----------------------
 
-- **Legacy Stack (web/)**: Fresh framework with Preact, JSX for templating, direct database queries; runs on Deno
-- **New Stack (web-next/)**: SolidStart v2 with Solid.js, GraphQL with Relay, Lingui for i18n; runs on Node.js (managed via pnpm workspaces)
+This project is currently in a transitional phase, migrating from an existing
+Fresh + Preact stack to a new SolidStart + Solid + GraphQL + Relay stack:
+
+ -  **Legacy Stack (web/)**: Fresh framework with Preact, JSX for templating,
+    direct database queries; runs on Deno
+ -  **New Stack (web-next/)**: SolidStart v2 with Solid.js, GraphQL with Relay,
+    Lingui for i18n; runs on Node.js (managed via pnpm workspaces)
 
 ### Working with Both Stacks
 
-- **Maintain the legacy stack** in `web/` directory for existing functionality
-- **Develop new features** in `web-next/` directory using the new stack
-- **Do not mix technologies** between the two directories
-- The migration will be completed over several weeks
+ -  **Maintain the legacy stack** in `web/` directory for existing functionality
+ -  **Develop new features** in `web-next/` directory using the new stack
+ -  **Do not mix technologies** between the two directories
+ -  The migration will be completed over several weeks
 
 ### When to Use Which Stack
 
-- Use `web/` for:
-  - Bug fixes and maintenance of existing features
-  - Features that need immediate deployment
-  - Any work specifically requested for the legacy system
+ -  Use `web/` for:
+     -  Bug fixes and maintenance of existing features
+     -  Features that need immediate deployment
+     -  Any work specifically requested for the legacy system
 
-- Use `web-next/` for:
-  - New feature development
-  - Modern UI components and patterns (see [DESIGN.md](DESIGN.md) for the
-    design system)
-  - Any new internationalization work
-  - GraphQL schema changes and Relay integration
+ -  Use `web-next/` for:
+     -  New feature development
+     -  Modern UI components and patterns (see <DESIGN.md> for the
+        design system)
+     -  Any new internationalization work
+     -  GraphQL schema changes and Relay integration
 
-## Build/Lint/Test Commands
+
+Build/Lint/Test Commands
+------------------------
 
 Cross-stack tasks (dev, build, prod, migrate) live in `mise.toml` and are
 invoked with `mise run <task>`. Run `mise tasks` to list everything that's
@@ -55,73 +66,96 @@ auto-loads `.env` so tasks pick up `DATABASE_URL` etc. without each
 underlying command needing an explicit `--env-file` flag.
 
 ### Per-stack tasks (via mise)
-- Dev server: `mise run dev:web` / `mise run dev:graphql` / `mise run dev:web-next`
-- Build: `mise run build:web` / `mise run build:web-next`
-- Production start: `mise run prod:web` / `mise run prod:graphql` / `mise run prod:web-next`
+
+ -  Dev server: `mise run dev:web` / `mise run dev:graphql` /
+    `mise run dev:web-next`
+ -  Build: `mise run build:web` / `mise run build:web-next`
+ -  Production start: `mise run prod:web` / `mise run prod:graphql` /
+    `mise run prod:web-next`
 
 ### Database migrations (via mise)
-- Apply: `mise run migrate`
-- Generate a new migration: `mise run migrate:generate`
-- Apply against the test database: `mise run migrate:test`
+
+ -  Apply: `mise run migrate`
+ -  Generate a new migration: `mise run migrate:generate`
+ -  Apply against the test database: `mise run migrate:test`
 
 ### Operations (via mise)
-- Generate an instance actor JWK (prints to stdout, paste into `INSTANCE_ACTOR_KEY`): `mise run keygen`
-- Create a user account from the CLI: `mise run addaccount`
+
+ -  Generate an instance actor JWK (prints to stdout, paste into
+    `INSTANCE_ACTOR_KEY`): `mise run keygen`
+ -  Create a user account from the CLI: `mise run addaccount`
 
 ### Workspace tasks (still on `deno task`)
-- Lint/format check: `deno task check`
-- Run tests: `deno task test`
-- Pre-commit hook: `deno task hooks:pre-commit`
+
+ -  Lint/format check: `deno task check`
+ -  Run tests: `deno task test`
+ -  Pre-commit hook: `deno task hooks:pre-commit`
 
 ### web-next helpers (run from `web-next/`)
-- Relay codegen: `pnpm codegen` (Vite runs this automatically when watchman is installed)
-- Extract translations: `pnpm extract`
+
+ -  Relay codegen: `pnpm codegen` (Vite runs this automatically when watchman
+    is installed)
+ -  Extract translations: `pnpm extract`
 
 Note: `mise run dev:web-next` requires `API_URL` set to the GraphQL endpoint
 (e.g. `API_URL=http://localhost:8000/graphql` when running against the legacy
 web server, or `http://localhost:8080/graphql` against the standalone GraphQL
 server). web-next reads this at runtime — no rebuild needed when it changes.
 
-## Code Style Guidelines
+
+Code Style Guidelines
+---------------------
 
 ### General
-- Format code with `deno fmt` before submitting PRs
-- Use spaces for indentation (not tabs)
+
+ -  Format code with `deno fmt` before submitting PRs
+ -  Use spaces for indentation (not tabs)
 
 ### Commit Messages
-- First line should be short and concise
-- Clearly describe the purpose of the changes
-- When AI tools assist with a commit, include an `Assisted-by: AGENT_NAME:MODEL_VERSION` trailer
-- Do not use `Co-authored-by` for AI assistants; see the [AI Usage Policy](AI_POLICY.md)
+
+ -  First line should be short and concise
+ -  Clearly describe the purpose of the changes
+ -  When AI tools assist with a commit, include an
+    `Assisted-by: AGENT_NAME:MODEL_VERSION` trailer
+ -  Do not use `Co-authored-by` for AI assistants; see the
+    [AI Usage Policy](AI_POLICY.md)
 
 ### Imports
-- External imports first, internal imports second (alphabetically within groups)
-- Use `type` keyword for type imports when appropriate
+
+ -  External imports first, internal imports second (alphabetically within
+    groups)
+ -  Use `type` keyword for type imports when appropriate
 
 ### Naming
-- camelCase for variables, functions, and methods
-- PascalCase for classes, interfaces, types, and components
-- Files with components use PascalCase (Button.tsx)
-- Model files use lowercase (post.ts)
-- Tests have a `.test.ts` suffix
+
+ -  camelCase for variables, functions, and methods
+ -  PascalCase for classes, interfaces, types, and components
+ -  Files with components use PascalCase (Button.tsx)
+ -  Model files use lowercase (post.ts)
+ -  Tests have a `.test.ts` suffix
 
 ### TypeScript
-- Use explicit typing for complex return types
-- Use interfaces for component props (e.g., ButtonProps)
+
+ -  Use explicit typing for complex return types
+ -  Use interfaces for component props (e.g., ButtonProps)
 
 ### Components
-- Use functional components with props destructuring
-- Tailwind CSS for styling
-- Components in components/ directory
-- Interactive components in islands/ directory (Fresh framework pattern)
-- For visual decisions in `web-next/` (color tokens, typography, component
-  patterns, brand assets), follow [DESIGN.md](DESIGN.md)
+
+ -  Use functional components with props destructuring
+ -  Tailwind CSS for styling
+ -  Components in components/ directory
+ -  Interactive components in islands/ directory (Fresh framework pattern)
+ -  For visual decisions in `web-next/` (color tokens, typography, component
+    patterns, brand assets), follow <DESIGN.md>
 
 ### Error Handling
-- Use structured logging via LogTape
-- Include context in error details
 
-## GraphQL Schema Documentation
+ -  Use structured logging via LogTape
+ -  Include context in error details
+
+
+GraphQL Schema Documentation
+----------------------------
 
 Every element in the GraphQL schema (types, interfaces, unions, enums,
 enum values, fields, arguments, and mutations) must have a `description`.
@@ -132,27 +166,27 @@ to regenerate `graphql/schema.graphql`.
 
 Write descriptions that explain **intent, usage, and gotchas**, not just
 what the name already says.  A description that only restates the identifier
-(e.g. "`postCount`: the count of posts") adds no value.  Instead, cover:
+(e.g. “`postCount`: the count of posts”) adds no value.  Instead, cover:
 
-- **Why this field/type exists** and when callers should use it vs. a
-  similar alternative (e.g. `Actor.iri` vs. `Actor.url`, or `viewerFollows`
-  vs. `follows(followeeId: …)`).
-- **Visibility or auth constraints** that are not obvious from the type
-  signature (e.g. "only visible to moderators", "requires authentication").
-- **Behavioral edge cases**: null semantics, async population, federation
-  nuances, pagination limits, or side effects on mutations.
-- **Common mistakes**: for example, confusing `Post.uuid` (row PK) with
-  the UUID embedded in `Post.url` for source-backed local posts.
+ -  **Why this field/type exists** and when callers should use it vs. a
+    similar alternative (e.g. `Actor.iri` vs. `Actor.url`, or `viewerFollows`
+    vs. `follows(followeeId: …)`).
+ -  **Visibility or auth constraints** that are not obvious from the type
+    signature (e.g. “only visible to moderators”, “requires authentication”).
+ -  **Behavioral edge cases**: null semantics, async population, federation
+    nuances, pagination limits, or side effects on mutations.
+ -  **Common mistakes**: for example, confusing `Post.uuid` (row PK) with
+    the UUID embedded in `Post.url` for source-backed local posts.
 
 ### Formatting rules
 
-- Write descriptions in **Markdown**.
-- Wrap type names, field names, argument names, enum values, and `null` /
-  `true` / `false` literals in backticks  (e.g. `` `Actor` ``,
-  `` `Post.uuid` ``, `` `null` ``).
-- Do not use em dashes.  Use a colon or parentheses instead.
-- Keep descriptions concise: one to three sentences is usually enough.
-  Longer explanations belong in inline code comments.
+ -  Write descriptions in **Markdown**.
+ -  Wrap type names, field names, argument names, enum values, and `null` /
+    `true` / `false` literals in backticks  (e.g. `` `Actor` ``,
+    `` `Post.uuid` ``, `` `null` ``).
+ -  Do not use em dashes.  Use a colon or parentheses instead.
+ -  Keep descriptions concise: one to three sentences is usually enough.
+    Longer explanations belong in inline code comments.
 
 ### Keeping docs in sync
 
@@ -166,36 +200,47 @@ Schema descriptions are defined in the Pothos builder calls inside
 `graphql/*.ts`, not in `graphql/schema.graphql` (which is auto-generated).
 Add a `description:` property to:
 
-- `builder.enumType(…, { description: "…", values: { VALUE: { description: "…" } } })`
-- `builder.drizzleNode(…, { description: "…", … })`
-- `builder.drizzleInterface(…, { description: "…", … })`
-- field definitions: `t.field({ description: "…", … })`,
-  `t.exposeString("col", { description: "…" })`, etc.
-- `t.arg(…, { description: "…" })` for arguments
+ -  `builder.enumType(…, { description: "…", values: { VALUE: { description: "…" } } })`
+ -  `builder.drizzleNode(…, { description: "…", … })`
+ -  `builder.drizzleInterface(…, { description: "…", … })`
+ -  field definitions: `t.field({ description: "…", … })`,
+    `t.exposeString("col", { description: "…" })`, etc.
+ -  `t.arg(…, { description: "…" })` for arguments
 
-## Internationalization (i18n)
+
+Internationalization (i18n)
+---------------------------
 
 ### Legacy Stack (web/)
-- Uses explicit translation string IDs with JSON files
-- Translation files: `web/locales/{locale}.json`
-- Terminology glossary: Located at the top of each JSON file under "glossary" key
-- Usage: Access translations via i18n functions with string IDs
+
+ -  Uses explicit translation string IDs with JSON files
+ -  Translation files: `web/locales/{locale}.json`
+ -  Terminology glossary: Located at the top of each JSON file under “glossary”
+    key
+ -  Usage: Access translations via i18n functions with string IDs
 
 ### New Stack (web-next/)
-- Uses Lingui with gettext-style approach (source text as key)
-- Translation files: `web-next/src/locales/{locale}/messages.po`
-- Terminology glossaries: `web-next/src/locales/{locale}/glossary.txt`
-- Supported locales: en-US, ja-JP, ko-KR, zh-CN, zh-TW
-- Language selection: URL query parameter `?lang={locale}` or Accept-Language header
+
+ -  Uses Lingui with gettext-style approach (source text as key)
+ -  Translation files: `web-next/src/locales/{locale}/messages.po`
+ -  Terminology glossaries: `web-next/src/locales/{locale}/glossary.txt`
+ -  Supported locales: en-US, ja-JP, ko-KR, zh-CN, zh-TW
+ -  Language selection: URL query parameter `?lang={locale}` or Accept-Language
+    header
 
 ### Translation Usage in New Stack
-- Import: `import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts"`
-- Simple translation: `const { t } = useLingui(); t\`Hello world\``
-- With pluralization: `const { i18n } = useLingui(); i18n._(msg\`${plural(count, { one: "# follower", other: "# followers" })}\`)`
+
+ -  Import: `import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts"`
+ -  Simple translation: `const { t } = useLingui(); t\`Hello world\`\`
+ -  With pluralization:
+    `const { i18n } = useLingui(); i18n._(msg\`${plural(count, { one: “#
+    follower”, other: “# followers” })}\`)\`
 
 ### Translation Guidelines for New Stack
-- Always reference the appropriate glossary file when translating
-- Use consistent terminology across the application as defined in glossaries
-- For technical terms, follow the glossary mappings (e.g., "post" → "コンテンツ" in Japanese)
-- Maintain proper pluralization rules in .po files
-- Test translations with `?lang={locale}` parameter
+
+ -  Always reference the appropriate glossary file when translating
+ -  Use consistent terminology across the application as defined in glossaries
+ -  For technical terms, follow the glossary mappings (e.g., “post” →
+    “コンテンツ” in Japanese)
+ -  Maintain proper pluralization rules in .po files
+ -  Test translations with `?lang={locale}` parameter
