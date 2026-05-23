@@ -184,6 +184,71 @@ export async function uploadImage(
   return { ...medium, url: `hp-medium:${key}` };
 }
 
+async function attachArticleSourceMediumOnServer(
+  articleSourceId: string,
+  mediumId: string,
+): Promise<string> {
+  "use server";
+
+  const result = await graphqlRequest<{
+    data?: {
+      attachArticleSourceMedium: {
+        __typename: string;
+        key?: string;
+        inputPath?: string;
+      };
+    };
+    errors?: { message: string }[];
+  }>(
+    `
+      mutation attachArticleSourceMedium($input: AttachArticleSourceMediumInput!) {
+        attachArticleSourceMedium(input: $input) {
+          __typename
+          ... on AttachArticleSourceMediumPayload {
+            key
+          }
+          ... on InvalidInputError {
+            inputPath
+          }
+          ... on NotAuthenticatedError {
+            notAuthenticated
+          }
+          ... on NotAuthorizedError {
+            notAuthorized
+          }
+        }
+      }
+    `,
+    { input: { articleSourceId, mediumId } },
+  );
+
+  const data = result.data?.attachArticleSourceMedium;
+  if (data == null) throw new Error("Upload failed");
+  if (data.__typename === "AttachArticleSourceMediumPayload" && data.key) {
+    return data.key;
+  }
+  if (data.__typename === "NotAuthenticatedError") {
+    throw new Error("Not authenticated");
+  }
+  if (data.__typename === "NotAuthorizedError") {
+    throw new Error("Not authorized to attach this medium");
+  }
+  throw new Error("Upload failed");
+}
+
+export async function uploadImageForArticleSource(
+  file: File,
+  articleSourceId: string,
+): Promise<ImageUploadResult> {
+  const dataUrl = await fileToDataUrl(file);
+  const medium = await createMediumFromDataUrl(dataUrl);
+  const key = await attachArticleSourceMediumOnServer(
+    articleSourceId,
+    medium.uuid,
+  );
+  return { ...medium, url: `hp-medium:${key}` };
+}
+
 export interface MediumUploadSession {
   uploadId: string;
   uploadUrl: string;

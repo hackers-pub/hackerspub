@@ -831,6 +831,37 @@ type AttachArticleDraftMediumPayload {
 
 union AttachArticleDraftMediumResult = AttachArticleDraftMediumPayload | InvalidInputError | NotAuthenticatedError
 
+"""
+Associate an uploaded `Medium` with a published article so it can be referenced in the article's Markdown as `hp-medium:{key}`. Use this when adding new media to an article during editing: pair each attach call with an `hp-medium:` reference in the new content passed to `updateArticle`. The viewer must own the article. Requires authentication.
+"""
+input AttachArticleSourceMediumInput {
+  """
+  UUID of the `ArticleSource` to attach the medium to. The viewer must be the article's author.
+  """
+  articleSourceId: UUID!
+  clientMutationId: ID
+
+  """Key used in article markdown as hp-medium:KEY. Defaults to mediumId."""
+  key: String
+
+  """UUID of a `Medium` to make available to the article."""
+  mediumId: UUID!
+}
+
+type AttachArticleSourceMediumPayload {
+  clientMutationId: ID
+
+  """
+  The key the medium was attached under. Reference it in the article's Markdown as `hp-medium:KEY`. Equals the requested `key` input when provided, otherwise the medium's UUID.
+  """
+  key: String!
+
+  """The `Medium` that was attached to the article source."""
+  medium: Medium!
+}
+
+union AttachArticleSourceMediumResult = AttachArticleSourceMediumPayload | InvalidInputError | NotAuthenticatedError | NotAuthorizedError
+
 input BlockActorInput {
   actorId: ID!
   clientMutationId: ID
@@ -1264,6 +1295,7 @@ type MentionNotification implements Node & Notification {
 type Mutation {
   addReactionToPost(input: AddReactionToPostInput!): AddReactionToPostResult!
   attachArticleDraftMedium(input: AttachArticleDraftMediumInput!): AttachArticleDraftMediumResult!
+  attachArticleSourceMedium(input: AttachArticleSourceMediumInput!): AttachArticleSourceMediumResult!
   blockActor(input: BlockActorInput!): BlockActorResult!
   bookmarkPost(input: BookmarkPostInput!): BookmarkPostResult!
 

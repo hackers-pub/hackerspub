@@ -33,6 +33,7 @@ import {
 } from "~/components/ui/text-field.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { uploadImageForArticleSource } from "~/lib/uploadImage.ts";
 import type { editPageQuery } from "./__generated__/editPageQuery.graphql.ts";
 import type {
   edit_article$data,
@@ -237,6 +238,30 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
 
   onCleanup(() => previewSubscription?.unsubscribe());
 
+  const handleImageUpload = async (
+    file: File,
+  ): Promise<{ url: string }> => {
+    const sourceId = article().sourceId;
+    if (sourceId == null) {
+      // Should be unreachable: federated remote articles fail the
+      // isViewer gate above, so we never mount this form for them.
+      throw new Error("Article has no local source");
+    }
+    try {
+      const result = await uploadImageForArticleSource(file, sourceId);
+      return { url: result.url };
+    } catch (error) {
+      showToast({
+        title: t`Error`,
+        description: error instanceof Error
+          ? error.message
+          : t`Failed to upload image`,
+        variant: "error",
+      });
+      throw error;
+    }
+  };
+
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     previewSubscription?.unsubscribe();
@@ -410,6 +435,7 @@ function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
                 placeholder={t`Write your article here.`}
                 showToolbar
                 minHeight="400px"
+                onImageUpload={handleImageUpload}
               />
             </TabsContent>
             <TabsContent value="preview" class="mt-0">

@@ -70,6 +70,7 @@ import {
   articleContentTable,
   articleDraftMediumTable,
   articleDraftTable,
+  articleSourceMediumTable,
 } from "@hackerspub/models/schema";
 import type * as schema from "@hackerspub/models/schema";
 import { withTransaction } from "@hackerspub/models/tx";
@@ -3028,6 +3029,13 @@ builder.relayMutationField(
       if (medium == null) {
         throw new InvalidInputError("url");
       }
+      // Record the importing account as the medium owner during the upload
+      // window. Without this, content-hash deduplication can return a row
+      // owned by another account, and downstream owner-gated operations
+      // (e.g. `attachArticleSourceMedium`) would then reject this user
+      // even though they performed the import themselves. Mirrors the
+      // ownership marker that `finishMediumUpload` sets.
+      await setMediumOwner(ctx.kv, medium.id, session.accountId);
       return medium;
     },
   },
@@ -3295,6 +3303,122 @@ builder.relayMutationField(
       key: t.string({ resolve: (result) => result.key }),
       medium: t.field({
         type: Medium,
+        resolve: (result) => result.medium,
+      }),
+    }),
+  },
+);
+
+interface AttachedArticleSourceMedium {
+  key: string;
+  medium: schema.Medium;
+}
+
+builder.relayMutationField(
+  "attachArticleSourceMedium",
+  {
+    description:
+      "Associate an uploaded `Medium` with a published article so it can " +
+      "be referenced in the article's Markdown as `hp-medium:{key}`. Use " +
+      "this when adding new media to an article during editing: pair each " +
+      "attach call with an `hp-medium:` reference in the new content " +
+      "passed to `updateArticle`. The viewer must own the article. " +
+      "Requires authentication.",
+    inputFields: (t) => ({
+      articleSourceId: t.field({
+        type: "UUID",
+        required: true,
+        description:
+          "UUID of the `ArticleSource` to attach the medium to. The viewer " +
+          "must be the article's author.",
+      }),
+      mediumId: t.field({
+        type: "UUID",
+        required: true,
+        description: "UUID of a `Medium` to make available to the article.",
+      }),
+      key: t.string({
+        required: false,
+        description:
+          "Key used in article markdown as hp-medium:KEY. Defaults to mediumId.",
+      }),
+    }),
+  },
+  {
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null) throw new NotAuthenticatedError();
+      const source = await ctx.db.query.articleSourceTable.findFirst({
+        where: { id: args.input.articleSourceId },
+        columns: { id: true, accountId: true },
+      });
+      if (source == null || source.accountId !== session.accountId) {
+        throw new InvalidInputError("articleSourceId");
+      }
+      const medium = await ctx.db.query.mediumTable.findFirst({
+        where: { id: args.input.mediumId },
+      });
+      if (medium == null) throw new InvalidInputError("mediumId");
+      // During the upload window the medium is private to its uploader.
+      // Block attaching a freshly-uploaded medium that belongs to someone
+      // else, matching the ownership check used by `Medium.generatedAltText`.
+      // After the window expires the medium is either publicly referenced
+      // or pending orphan cleanup, so any authenticated owner of the
+      // target article may attach it.
+      const isOwner = await isMediumOwner(
+        ctx.kv,
+        medium.id,
+        session.accountId,
+      );
+      if (!isOwner) {
+        const windowActive = await isMediumUploadWindowActive(
+          ctx.kv,
+          medium.id,
+        );
+        if (windowActive) throw new NotAuthorizedError();
+      }
+      const key = args.input.key?.trim() || medium.id;
+      if (!key.match(/^[A-Za-z0-9._:/-]+$/)) {
+        throw new InvalidInputError("key");
+      }
+      // Don't silently overwrite an existing row. A published article's
+      // rendered HTML resolves `hp-medium:KEY` against this table at
+      // request time, so changing the `mediumId` for an in-use key would
+      // change the live article without going through `updateArticle`
+      // (no timestamp bump, no ActivityPub `Update`). Treat re-attaching
+      // the same medium as idempotent; reject conflicting medium IDs.
+      const inserted = await ctx.db.insert(articleSourceMediumTable).values({
+        articleSourceId: source.id,
+        key,
+        mediumId: medium.id,
+      }).onConflictDoNothing().returning();
+      if (inserted.length === 0) {
+        const existing = await ctx.db.query.articleSourceMediumTable
+          .findFirst({
+            where: { articleSourceId: source.id, key },
+          });
+        if (existing == null || existing.mediumId !== medium.id) {
+          throw new InvalidInputError("key");
+        }
+      }
+      return { key, medium } satisfies AttachedArticleSourceMedium;
+    },
+  },
+  {
+    outputFields: (t) => ({
+      key: t.string({
+        description:
+          "The key the medium was attached under. Reference it in the " +
+          "article's Markdown as `hp-medium:KEY`. Equals the requested " +
+          "`key` input when provided, otherwise the medium's UUID.",
+        resolve: (result) => result.key,
+      }),
+      medium: t.field({
+        type: Medium,
+        description: "The `Medium` that was attached to the article source.",
         resolve: (result) => result.medium,
       }),
     }),
