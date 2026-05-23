@@ -29,6 +29,12 @@ export const route = {
   },
 } satisfies RouteDefinition;
 
+// Profile data, pins, and the posts list are intentionally co-located in one
+// query rather than three `createPreloadedQuery` calls. Three locale-keyed
+// preloaded queries on the same component caused a cascading reactive update
+// during sidebar-driven navigation that overflowed the call stack (see commit
+// 22ea918e). The remaining multi-second freeze on first navigation into this
+// route is tracked upstream at https://github.com/XiNiHa/solid-relay/issues/66.
 const ProfilePageQuery = graphql`
   query ProfilePageQuery($handle: String!, $locale: Locale) {
     actorByHandle(handle: $handle, allowLocalHandle: true) {

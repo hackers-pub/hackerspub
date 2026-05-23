@@ -1,9 +1,23 @@
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Match,
+  onCleanup,
+  Show,
+  Switch,
+  untrack,
+} from "solid-js";
 import { createPaginationFragment } from "solid-relay";
+import { scheduleDeferredRender } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { ActorPostList_posts$key } from "./__generated__/ActorPostList_posts.graphql.ts";
 import { PostCard } from "./PostCard.tsx";
+
+const initialVisiblePosts = 5;
+const visiblePostChunkSize = 5;
 
 export interface ActorPostListProps {
   $posts: ActorPostList_posts$key;
@@ -44,6 +58,38 @@ export function ActorPostList(props: ActorPostListProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
+  const [visiblePostCount, setVisiblePostCount] = createSignal(
+    initialVisiblePosts,
+  );
+  const edges = createMemo(() => posts()?.posts?.edges ?? []);
+  const visibleEdges = createMemo(() => edges().slice(0, visiblePostCount()));
+
+  createEffect(() => {
+    const edgeCount = edges().length;
+    const currentCount = untrack(visiblePostCount);
+    const startingCount = currentCount < 1
+      ? Math.min(edgeCount, initialVisiblePosts)
+      : Math.min(edgeCount, Math.max(currentCount, initialVisiblePosts));
+    setVisiblePostCount(startingCount);
+
+    let cancelDeferredRender = () => {};
+    const revealNextChunk = () => {
+      let shouldContinue = false;
+      setVisiblePostCount((current) => {
+        const next = Math.min(current + visiblePostChunkSize, edgeCount);
+        shouldContinue = next < edgeCount;
+        return next;
+      });
+      if (shouldContinue) {
+        cancelDeferredRender = scheduleDeferredRender(revealNextChunk);
+      }
+    };
+
+    if (startingCount < edgeCount) {
+      cancelDeferredRender = scheduleDeferredRender(revealNextChunk);
+    }
+    onCleanup(() => cancelDeferredRender());
+  });
 
   function onLoadMore() {
     setLoadingState("loading");
@@ -59,7 +105,7 @@ export function ActorPostList(props: ActorPostListProps) {
       <Show keyed when={posts()}>
         {(data) => (
           <>
-            <For each={data.posts?.edges ?? []}>
+            <For each={visibleEdges()}>
               {(edge) => (
                 <PostCard
                   $post={edge.node}
@@ -68,7 +114,7 @@ export function ActorPostList(props: ActorPostListProps) {
                 />
               )}
             </For>
-            <Show when={posts.hasNext}>
+            <Show when={posts.hasNext && visiblePostCount() >= edges().length}>
               <button
                 type="button"
                 on:click={loadingState() === "loading" ? undefined : onLoadMore}
@@ -88,7 +134,7 @@ export function ActorPostList(props: ActorPostListProps) {
                 </Switch>
               </button>
             </Show>
-            <Show when={data.posts != null && data.posts.edges.length < 1}>
+            <Show when={data.posts != null && edges().length < 1}>
               <div class="px-4 py-8 text-center text-muted-foreground">
                 {t`No posts found`}
               </div>
