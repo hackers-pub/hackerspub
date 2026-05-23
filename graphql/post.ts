@@ -691,6 +691,17 @@ export const Article = builder.drizzleNode("postTable", {
     // federated in from remote servers don't have one — the upstream
     // metadata lives on the post itself, not in our articleSource table —
     // so the fields below have to be nullable to represent that.
+    sourceId: t.expose("articleSourceId", {
+      type: "UUID",
+      nullable: true,
+      description:
+        "The local source UUID for this article (`articleSourceTable.id`). " +
+        "Non-null only for source-backed local articles (articles originally " +
+        "composed on this instance). Use it when calling APIs that need to " +
+        "resolve the article's attached media, e.g. `renderMarkdown` with " +
+        "an `articleSourceId` argument for edit-time previews. `null` for " +
+        "articles federated in from remote instances.",
+    }),
     publishedYear: t.int({
       nullable: true,
       description:

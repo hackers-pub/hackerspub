@@ -5,8 +5,9 @@ import {
   useParams,
 } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
-import { graphql } from "relay-runtime";
-import { createSignal, Show } from "solid-js";
+import { fetchQuery, graphql } from "relay-runtime";
+import { createSignal, onCleanup, Show } from "solid-js";
+import { isServer } from "solid-js/web";
 import {
   createFragment,
   createMutation,
@@ -14,10 +15,17 @@ import {
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
+import IconLoader2 from "~icons/lucide/loader-2";
 import { LanguageSelect } from "~/components/LanguageSelect.tsx";
 import { TagInput } from "~/components/TagInput.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { MarkdownEditor } from "~/components/ui/markdown-editor.tsx";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "~/components/ui/tabs.tsx";
 import {
   TextField,
   TextFieldInput,
@@ -26,7 +34,11 @@ import {
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { editPageQuery } from "./__generated__/editPageQuery.graphql.ts";
-import type { edit_article$key } from "./__generated__/edit_article.graphql.ts";
+import type {
+  edit_article$data,
+  edit_article$key,
+} from "./__generated__/edit_article.graphql.ts";
+import type { edit_renderMarkdown_Query } from "./__generated__/edit_renderMarkdown_Query.graphql.ts";
 import type { edit_updateArticle_Mutation } from "./__generated__/edit_updateArticle_Mutation.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
@@ -93,6 +105,15 @@ interface ArticleEditFormProps {
   $article: edit_article$key;
 }
 
+const renderMarkdownQuery = graphql`
+  query edit_renderMarkdown_Query(
+    $content: String!
+    $articleSourceId: UUID
+  ) {
+    renderMarkdown(content: $content, articleSourceId: $articleSourceId)
+  }
+`;
+
 const updateArticleMutation = graphql`
   mutation edit_updateArticle_Mutation($input: UpdateArticleInput!) {
     updateArticle(input: $input) {
@@ -115,13 +136,11 @@ const updateArticleMutation = graphql`
 `;
 
 function ArticleEditForm(props: ArticleEditFormProps) {
-  const { t } = useLingui();
-  const navigate = useNavigate();
-
   const article = createFragment(
     graphql`
       fragment edit_article on Article {
         id
+        sourceId
         actor {
           isViewer
           username
@@ -141,32 +160,135 @@ function ArticleEditForm(props: ArticleEditFormProps) {
     () => props.$article,
   );
 
+  // Authorization runs on the server so unauthorized requests get an
+  // actual HTTP 403 instead of a blank 200 page. `isViewer` is only
+  // strictly `false` once the fragment has loaded (it's undefined while
+  // loading on the client), so the fallback only fires for genuine
+  // non-owners on either the server or the client.
+  return (
+    <Show
+      when={article()?.actor.isViewer !== false}
+      fallback={<HttpStatusCode code={403} />}
+    >
+      <ArticleEditFormGate article={article()} />
+    </Show>
+  );
+}
+
+interface ArticleEditFormGateProps {
+  article: edit_article$data | null | undefined;
+}
+
+function ArticleEditFormGate(props: ArticleEditFormGateProps) {
+  // The Relay store starts empty on the client after hydration, so
+  // `props.article` is initially undefined there even though the SSR
+  // render had data. Defer mounting the inner form until the fragment
+  // resolves so signals don't lock in empty initial values. To keep SSR
+  // and the client's first render in agreement (avoiding a hydration
+  // mismatch), the server also withholds the form until the client
+  // loads it.
+  const loadedArticle = () => (isServer ? undefined : props.article);
+  return (
+    <Show keyed when={loadedArticle()}>
+      {(article) => <ArticleEditFormInner article={article} />}
+    </Show>
+  );
+}
+
+interface ArticleEditFormInnerProps {
+  article: edit_article$data;
+}
+
+function ArticleEditFormInner(props: ArticleEditFormInnerProps) {
+  const { t } = useLingui();
+  const navigate = useNavigate();
+  const environment = useRelayEnvironment();
+
+  const article = () => props.article;
+
   const [commitUpdate, isUpdating] = createMutation<
     edit_updateArticle_Mutation
   >(updateArticleMutation);
 
   // Initialize form state from the original content (not translations)
   const content = () =>
-    article()?.contents?.find((c) => c.originalLanguage == null);
+    article().contents?.find((c) => c.originalLanguage == null);
   const [title, setTitle] = createSignal(content()?.title ?? "");
   const [markdown, setMarkdown] = createSignal(content()?.rawContent ?? "");
-  const [tags, setTags] = createSignal<string[]>([...(article()?.tags ?? [])]);
+  const [tags, setTags] = createSignal<string[]>([...(article().tags ?? [])]);
   const [language, setLanguage] = createSignal<Intl.Locale | undefined>(
     content()?.language ? new Intl.Locale(content()!.language) : undefined,
   );
   const [allowLlmTranslation, setAllowLlmTranslation] = createSignal(
-    article()?.allowLlmTranslation ?? false,
+    article().allowLlmTranslation ?? false,
   );
+
+  // Markdown preview state. Unlike the composer, there's no draft save to
+  // piggyback on, so the Preview tab calls `renderMarkdown` directly and
+  // caches the result for the last-rendered text.
+  const [activeTab, setActiveTab] = createSignal("write");
+  const [previewHtml, setPreviewHtml] = createSignal("");
+  const [previewLoading, setPreviewLoading] = createSignal(false);
+  const [previewError, setPreviewError] = createSignal(false);
+  let lastRenderedText = "";
+  let lastRenderedHtml = "";
+  let previewRequestVersion = 0;
+  let previewSubscription: { unsubscribe: () => void } | undefined;
+
+  onCleanup(() => previewSubscription?.unsubscribe());
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    previewSubscription?.unsubscribe();
+    previewSubscription = undefined;
+    if (tab !== "preview") {
+      setPreviewLoading(false);
+      return;
+    }
+    const text = markdown().trim();
+    if (!text) {
+      lastRenderedText = "";
+      setPreviewHtml("");
+      setPreviewError(false);
+      setPreviewLoading(false);
+      return;
+    }
+    if (text === lastRenderedText) {
+      setPreviewHtml(lastRenderedHtml);
+      setPreviewError(false);
+      setPreviewLoading(false);
+      return;
+    }
+    setPreviewLoading(true);
+    setPreviewError(false);
+    const requestVersion = ++previewRequestVersion;
+    previewSubscription = fetchQuery<edit_renderMarkdown_Query>(
+      environment(),
+      renderMarkdownQuery,
+      { content: text, articleSourceId: article().sourceId ?? null },
+    ).subscribe({
+      next(data) {
+        if (requestVersion !== previewRequestVersion) return;
+        lastRenderedText = text;
+        lastRenderedHtml = data.renderMarkdown;
+        setPreviewHtml(data.renderMarkdown);
+        setPreviewLoading(false);
+      },
+      error() {
+        if (requestVersion !== previewRequestVersion) return;
+        setPreviewError(true);
+        setPreviewHtml("");
+        setPreviewLoading(false);
+      },
+    });
+  };
 
   const handleSave = (e: SubmitEvent) => {
     e.preventDefault();
-    const a = article();
-    if (!a) return;
-
     commitUpdate({
       variables: {
         input: {
-          articleId: a.id,
+          articleId: article().id,
           title: title(),
           content: markdown(),
           tags: tags(),
@@ -221,125 +343,164 @@ function ArticleEditForm(props: ArticleEditFormProps) {
   };
 
   return (
-    <Show
-      when={article()?.actor.isViewer}
-      fallback={<HttpStatusCode code={403} />}
-    >
-      <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto">
-        <h1 class="text-2xl font-bold mb-6">{t`Edit article`}</h1>
+    <div class="mt-8 mb-4 px-4 max-w-3xl mx-auto">
+      <h1 class="text-2xl font-bold mb-6">{t`Edit article`}</h1>
 
-        <form onSubmit={handleSave} class="flex flex-col gap-6">
-          {/* Title */}
-          <TextField>
-            <TextFieldLabel>{t`Title`}</TextFieldLabel>
-            <TextFieldInput
-              value={title()}
-              onInput={(e) => setTitle(e.currentTarget.value)}
-              placeholder={t`Please enter a title for your article.`}
-              required
-              class="text-2xl font-bold"
-            />
-          </TextField>
+      <form onSubmit={handleSave} class="flex flex-col gap-6">
+        {/* Title */}
+        <TextField>
+          <TextFieldLabel>{t`Title`}</TextFieldLabel>
+          <TextFieldInput
+            value={title()}
+            onInput={(e) => setTitle(e.currentTarget.value)}
+            placeholder={t`Please enter a title for your article.`}
+            required
+            class="text-2xl font-bold"
+          />
+        </TextField>
 
-          {/* Content */}
-          <div class="flex flex-col gap-1">
-            <label class="flex items-center justify-between text-sm font-medium">
-              <span>{t`Content`}</span>
-              <a
-                href="/markdown"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="flex items-center gap-1 text-xs font-normal text-muted-foreground hover:text-foreground"
+        {/* Content */}
+        <div class="flex flex-col gap-1">
+          <label class="flex items-center justify-between text-sm font-medium">
+            <span>{t`Content`}</span>
+            <a
+              href="/markdown"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-1 text-xs font-normal text-muted-foreground hover:text-foreground"
+            >
+              <svg
+                fill="currentColor"
+                height="128"
+                viewBox="0 0 208 128"
+                width="208"
+                xmlns="http://www.w3.org/2000/svg"
+                class="size-4"
+                stroke="currentColor"
               >
-                <svg
-                  fill="currentColor"
-                  height="128"
-                  viewBox="0 0 208 128"
-                  width="208"
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="size-4"
-                  stroke="currentColor"
-                >
-                  <g>
-                    <path
-                      clip-rule="evenodd"
-                      d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
-                      fill-rule="evenodd"
-                    />
-                    <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
-                  </g>
-                </svg>
-                {t`Markdown supported`}
-              </a>
-            </label>
-            <MarkdownEditor
-              value={markdown()}
-              onInput={setMarkdown}
-              placeholder={t`Write your article here.`}
-              showToolbar
-              minHeight="400px"
-            />
-          </div>
-
-          {/* Tags */}
-          <div>
-            <label class="text-sm font-medium">{t`Tags`}</label>
-            <TagInput
-              value={tags()}
-              onChange={setTags}
-              placeholder={t`Type tags separated by spaces`}
-              class="mt-2"
-            />
-          </div>
-
-          {/* Language */}
-          <div>
-            <label class="text-sm font-medium">{t`Language`}</label>
-            <LanguageSelect
-              value={language()}
-              onChange={setLanguage}
-              class="mt-2"
-            />
-          </div>
-
-          {/* Allow LLM Translation */}
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={allowLlmTranslation()}
-              onChange={(e) => setAllowLlmTranslation(e.currentTarget.checked)}
-              class="rounded border-input"
-            />
-            <span class="text-sm">
-              {t`Allow automatic translation by AI`}
-            </span>
+                <g>
+                  <path
+                    clip-rule="evenodd"
+                    d="m15 10c-2.7614 0-5 2.2386-5 5v98c0 2.761 2.2386 5 5 5h178c2.761 0 5-2.239 5-5v-98c0-2.7614-2.239-5-5-5zm-15 5c0-8.28427 6.71573-15 15-15h178c8.284 0 15 6.71573 15 15v98c0 8.284-6.716 15-15 15h-178c-8.28427 0-15-6.716-15-15z"
+                    fill-rule="evenodd"
+                  />
+                  <path d="m30 98v-68h20l20 25 20-25h20v68h-20v-39l-20 25-20-25v39zm125 0-30-33h20v-35h20v35h20z" />
+                </g>
+              </svg>
+              {t`Markdown supported`}
+            </a>
           </label>
-
-          {/* Actions */}
-          <div class="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                const a = article();
-                if (a) {
-                  navigate(
-                    `/@${a.actor.username}/${a.publishedYear}/${a.slug}`,
-                  );
+          <Tabs value={activeTab()} onChange={handleTabChange}>
+            <TabsList class="h-8 w-full p-0.5 mb-1">
+              <TabsTrigger value="write" class="flex-1 text-xs">
+                {t`Write`}
+              </TabsTrigger>
+              <TabsTrigger value="preview" class="flex-1 text-xs">
+                {t`Preview`}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent
+              value="write"
+              class="mt-0 hidden data-[selected]:block"
+              forceMount
+            >
+              <MarkdownEditor
+                value={markdown()}
+                onInput={setMarkdown}
+                placeholder={t`Write your article here.`}
+                showToolbar
+                minHeight="400px"
+              />
+            </TabsContent>
+            <TabsContent value="preview" class="mt-0">
+              <Show
+                when={!previewLoading()}
+                fallback={
+                  <div class="min-h-[400px] flex items-center justify-center gap-2 text-sm text-muted-foreground rounded-md border border-input">
+                    <IconLoader2
+                      class="size-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                    {t`Rendering…`}
+                  </div>
                 }
-              }}
-            >
-              {t`Cancel`}
-            </Button>
-            <Button
-              type="submit"
-              disabled={isUpdating()}
-            >
-              {isUpdating() ? t`Saving…` : t`Save changes`}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </Show>
+              >
+                <Show
+                  when={previewHtml()}
+                  fallback={
+                    <div class="min-h-[400px] flex items-center justify-center text-sm text-muted-foreground rounded-md border border-input">
+                      {previewError()
+                        ? t`Failed to render preview`
+                        : t`Nothing to preview`}
+                    </div>
+                  }
+                >
+                  <div
+                    class="prose dark:prose-invert max-w-none min-h-[400px] rounded-md border border-input px-3 py-2"
+                    innerHTML={previewHtml()}
+                  />
+                </Show>
+              </Show>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Tags */}
+        <div>
+          <label class="text-sm font-medium">{t`Tags`}</label>
+          <TagInput
+            value={tags()}
+            onChange={setTags}
+            placeholder={t`Type tags separated by spaces`}
+            class="mt-2"
+          />
+        </div>
+
+        {/* Language */}
+        <div>
+          <label class="text-sm font-medium">{t`Language`}</label>
+          <LanguageSelect
+            value={language()}
+            onChange={setLanguage}
+            class="mt-2"
+          />
+        </div>
+
+        {/* Allow LLM Translation */}
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={allowLlmTranslation()}
+            onChange={(e) => setAllowLlmTranslation(e.currentTarget.checked)}
+            class="rounded border-input"
+          />
+          <span class="text-sm">
+            {t`Allow automatic translation by AI`}
+          </span>
+        </label>
+
+        {/* Actions */}
+        <div class="flex justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              const a = article();
+              navigate(
+                `/@${a.actor.username}/${a.publishedYear}/${a.slug}`,
+              );
+            }}
+          >
+            {t`Cancel`}
+          </Button>
+          <Button
+            type="submit"
+            disabled={isUpdating()}
+          >
+            {isUpdating() ? t`Saving…` : t`Save changes`}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

@@ -673,6 +673,11 @@ type Article implements Node & Post & Reactable {
   slug: String
 
   """
+  The local source UUID for this article (`articleSourceTable.id`). Non-null only for source-backed local articles (articles originally composed on this instance). Use it when calling APIs that need to resolve the article's attached media, e.g. `renderMarkdown` with an `articleSourceId` argument for edit-time previews. `null` for articles federated in from remote instances.
+  """
+  sourceId: UUID
+
+  """
   Author-provided or LLM-generated summary of the post. `null` when no summary has been set. For LLM summaries, check `ArticleContent.summary` and `summaryStarted` instead, as those are tracked per language on articles.
   """
   summary: String
@@ -2248,8 +2253,20 @@ type Query {
   """
   recommendedActors(limit: Int = 10, locale: Locale): [Actor!]!
 
-  """Renders a Markdown string to HTML."""
-  renderMarkdown(content: String!): HTML!
+  """
+  Renders a Markdown string to HTML. When `articleSourceId` is provided, `hp-medium:KEY` references in the markdown are resolved against that article source's attached media (e.g. for previewing edits to an existing article). Only the article's author may pass their own `articleSourceId`; otherwise the call is rejected.
+  """
+  renderMarkdown(
+    """
+    UUID of an `ArticleSource` owned by the viewer. When provided, the rendered HTML resolves `hp-medium:KEY` references against this source's media. The missing-medium placeholder is localized to the viewer's preferred locale.
+    """
+    articleSourceId: UUID
+
+    """
+    Markdown source text to render into sanitized `HTML`. Used by client-side previews while composing or editing posts.
+    """
+    content: String!
+  ): HTML!
 
   """
   Prefix search for @mention autocomplete. Matches against both username and host. Requires authentication to prevent unauthenticated callers from triggering outbound federation lookups. Capped at 50 results.
