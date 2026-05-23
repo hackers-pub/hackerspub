@@ -7,6 +7,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "~/components/ui/avatar.tsx";
+import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import { useMentionHoverCards } from "~/lib/mentionHoverCards.tsx";
 import {
@@ -48,6 +49,7 @@ export interface ArticleCardProps {
   connections?: string[];
   bookmarkListConnections?: string[];
   pinConnections?: string[];
+  deferHeavySections?: boolean;
 }
 
 export function ArticleCard(props: ArticleCardProps) {
@@ -88,6 +90,9 @@ export function ArticleCard(props: ArticleCardProps) {
   const [hover, setHover] = createSignal(false);
   const [articleRef, setArticleRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(articleRef);
+  const showDeferredSections = createDeferredRender(() =>
+    !!props.deferHeavySections
+  );
 
   return (
     <article
@@ -115,33 +120,35 @@ export function ArticleCard(props: ArticleCardProps) {
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
-                {(() => {
-                  // Prefer the pretty `/@user/{year}/{slug}` permalink
-                  // when the article exposes both `publishedYear` and
-                  // `slug`.  Otherwise (remote articles, or local
-                  // articles that haven't materialised those columns
-                  // yet) fall back to the UUID-based `[noteId]` route
-                  // — `actorByHandle.postByUuid` resolves any post type
-                  // on any actor, and `[noteId]/index.tsx` accepts
-                  // articles so `/replies` works there too.
-                  const prettyBase = article.actor.local &&
-                      article.publishedYear != null && article.slug != null
-                    ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
-                    : null;
-                  const engagementBase = prettyBase ??
-                    `/${
-                      encodeHandleSegment(article.actor.handle)
-                    }/${article.uuid}`;
-                  return (
-                    <PostEngagementBar
-                      $post={article}
-                      repliesHref={`${engagementBase}/replies`}
-                      engagementBase={engagementBase}
-                      bookmarkListConnections={props.bookmarkListConnections}
-                      class="mx-4 mb-2"
-                    />
-                  );
-                })()}
+                <Show when={showDeferredSections()}>
+                  {(() => {
+                    // Prefer the pretty `/@user/{year}/{slug}` permalink
+                    // when the article exposes both `publishedYear` and
+                    // `slug`.  Otherwise (remote articles, or local
+                    // articles that haven't materialised those columns
+                    // yet) fall back to the UUID-based `[noteId]` route:
+                    // `actorByHandle.postByUuid` resolves any post type
+                    // on any actor, and `[noteId]/index.tsx` accepts
+                    // articles so `/replies` works there too.
+                    const prettyBase = article.actor.local &&
+                        article.publishedYear != null && article.slug != null
+                      ? `/@${article.actor.username}/${article.publishedYear}/${article.slug}`
+                      : null;
+                    const engagementBase = prettyBase ??
+                      `/${
+                        encodeHandleSegment(article.actor.handle)
+                      }/${article.uuid}`;
+                    return (
+                      <PostEngagementBar
+                        $post={article}
+                        repliesHref={`${engagementBase}/replies`}
+                        engagementBase={engagementBase}
+                        bookmarkListConnections={props.bookmarkListConnections}
+                        class="mx-4 mb-2"
+                      />
+                    );
+                  })()}
+                </Show>
               </>
             }
           >
@@ -154,41 +161,45 @@ export function ArticleCard(props: ArticleCardProps) {
                   connections={props.connections}
                   pinConnections={props.pinConnections}
                 />
-                {(() => {
-                  // Mirror the standalone-article branch: prefer the
-                  // pretty `/@user/{year}/{slug}` permalink when it's
-                  // available; otherwise fall back to a UUID-based
-                  // `[noteId]` engagement base.  Both the count routes
-                  // and `/replies` accept articles on the UUID path.
-                  const prettyBase = sharedPost.actor?.local &&
-                      sharedPost.publishedYear != null &&
-                      sharedPost.slug != null
-                    ? `/@${sharedPost.actor.username}/${sharedPost.publishedYear}/${sharedPost.slug}`
-                    : null;
-                  const engagementBase = prettyBase ??
-                    (sharedPost.actor != null && sharedPost.uuid != null
-                      ? `/${
-                        encodeHandleSegment(sharedPost.actor.handle)
-                      }/${sharedPost.uuid}`
-                      : null);
-                  return (
-                    <PostEngagementBar
-                      $post={sharedPost}
-                      repliesHref={engagementBase == null
-                        ? null
-                        : `${engagementBase}/replies`}
-                      engagementBase={engagementBase}
-                      bookmarkListConnections={props.bookmarkListConnections}
-                      class="mx-4 mb-2"
-                    />
-                  );
-                })()}
+                <Show when={showDeferredSections()}>
+                  {(() => {
+                    // Mirror the standalone-article branch: prefer the
+                    // pretty `/@user/{year}/{slug}` permalink when it's
+                    // available; otherwise fall back to a UUID-based
+                    // `[noteId]` engagement base.  Both the count routes
+                    // and `/replies` accept articles on the UUID path.
+                    const prettyBase = sharedPost.actor?.local &&
+                        sharedPost.publishedYear != null &&
+                        sharedPost.slug != null
+                      ? `/@${sharedPost.actor.username}/${sharedPost.publishedYear}/${sharedPost.slug}`
+                      : null;
+                    const engagementBase = prettyBase ??
+                      (sharedPost.actor != null && sharedPost.uuid != null
+                        ? `/${
+                          encodeHandleSegment(sharedPost.actor.handle)
+                        }/${sharedPost.uuid}`
+                        : null);
+                    return (
+                      <PostEngagementBar
+                        $post={sharedPost}
+                        repliesHref={engagementBase == null
+                          ? null
+                          : `${engagementBase}/replies`}
+                        engagementBase={engagementBase}
+                        bookmarkListConnections={props.bookmarkListConnections}
+                        class="mx-4 mb-2"
+                      />
+                    );
+                  })()}
+                </Show>
               </>
             )}
           </Show>
         )}
       </Show>
-      <MentionHoverCardLayer state={mentionState} />
+      <Show when={showDeferredSections()}>
+        <MentionHoverCardLayer state={mentionState} />
+      </Show>
     </article>
   );
 }

@@ -17,6 +17,7 @@ import { Badge } from "~/components/ui/badge.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
+import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import {
@@ -45,6 +46,7 @@ export interface QuestionCardProps {
   connections?: string[];
   bookmarkListConnections?: string[];
   pinConnections?: string[];
+  deferHeavySections?: boolean;
   onDeleted?: () => void;
 }
 
@@ -118,6 +120,7 @@ export function QuestionCard(props: QuestionCardProps) {
                 connections={props.connections}
                 bookmarkListConnections={props.bookmarkListConnections}
                 pinConnections={props.pinConnections}
+                deferHeavySections={props.deferHeavySections}
                 onDeleted={props.onDeleted}
               />
             </div>
@@ -133,12 +136,16 @@ interface QuestionCardContentProps {
   connections?: string[];
   bookmarkListConnections?: string[];
   pinConnections?: string[];
+  deferHeavySections?: boolean;
   onDeleted?: () => void;
 }
 
 function QuestionCardContent(props: QuestionCardContentProps) {
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
+  const showDeferredSections = createDeferredRender(() =>
+    !!props.deferHeavySections
+  );
 
   const question = createFragment(
     graphql`
@@ -274,12 +281,14 @@ function QuestionCardContent(props: QuestionCardContentProps) {
                 </InternalLink>
                 &middot;
                 <VisibilityTag visibility={q.visibility} />
-                <QuestionActionMenu
-                  $question={q}
-                  connections={props.connections}
-                  pinConnections={props.pinConnections}
-                  onDeleted={props.onDeleted}
-                />
+                <Show when={showDeferredSections()}>
+                  <QuestionActionMenu
+                    $question={q}
+                    connections={props.connections}
+                    pinConnections={props.pinConnections}
+                    onDeleted={props.onDeleted}
+                  />
+                </Show>
               </span>
             </div>
             <div
@@ -288,50 +297,55 @@ function QuestionCardContent(props: QuestionCardContentProps) {
               lang={q.language ?? undefined}
               class="prose dark:prose-invert break-words overflow-wrap"
             />
-            <MentionHoverCardLayer state={mentionState} />
-            {
-              /* `keyed`: avoid Solid's stale-accessor race when this
-               Relay field flips to null inside a `batch()` update. */
-            }
-            <Show keyed when={q.poll}>
-              {(poll) => (
-                <PollPanel
-                  questionId={q.id}
-                  poll={poll}
-                />
-              )}
+            <Show when={showDeferredSections()}>
+              <MentionHoverCardLayer state={mentionState} />
+              {
+                /* `keyed`: avoid Solid's stale-accessor race when this
+                 Relay field flips to null inside a `batch()` update. */
+              }
+              <Show keyed when={q.poll}>
+                {(poll) => (
+                  <PollPanel
+                    questionId={q.id}
+                    poll={poll}
+                  />
+                )}
+              </Show>
+              {
+                /* `keyed`: avoid Solid's stale-accessor race when this
+                 Relay field flips to null inside a `batch()` update. */
+              }
+              <Show keyed when={q.quotedPost}>
+                {(quotedPost) => (
+                  <QuotedPostCard
+                    $post={quotedPost}
+                    quotePostId={q.id}
+                    canRevokeQuote={q.viewerCanRevokeQuote}
+                  />
+                )}
+              </Show>
+              <Show
+                keyed
+                when={q.quotedPost == null ? q.quoteTargetState : null}
+              >
+                {(state) => <QuoteTargetPlaceholder state={state} />}
+              </Show>
+              {(() => {
+                const base = `/${
+                  q.actor.local
+                    ? `@${q.actor.username}`
+                    : encodeHandleSegment(q.actor.handle)
+                }/${q.uuid}`;
+                return (
+                  <PostEngagementBar
+                    $post={q}
+                    repliesHref={`${base}/replies`}
+                    engagementBase={base}
+                    bookmarkListConnections={props.bookmarkListConnections}
+                  />
+                );
+              })()}
             </Show>
-            {
-              /* `keyed`: avoid Solid's stale-accessor race when this
-               Relay field flips to null inside a `batch()` update. */
-            }
-            <Show keyed when={q.quotedPost}>
-              {(quotedPost) => (
-                <QuotedPostCard
-                  $post={quotedPost}
-                  quotePostId={q.id}
-                  canRevokeQuote={q.viewerCanRevokeQuote}
-                />
-              )}
-            </Show>
-            <Show keyed when={q.quotedPost == null ? q.quoteTargetState : null}>
-              {(state) => <QuoteTargetPlaceholder state={state} />}
-            </Show>
-            {(() => {
-              const base = `/${
-                q.actor.local
-                  ? `@${q.actor.username}`
-                  : encodeHandleSegment(q.actor.handle)
-              }/${q.uuid}`;
-              return (
-                <PostEngagementBar
-                  $post={q}
-                  repliesHref={`${base}/replies`}
-                  engagementBase={base}
-                  bookmarkListConnections={props.bookmarkListConnections}
-                />
-              );
-            })()}
           </div>
         </div>
       )}

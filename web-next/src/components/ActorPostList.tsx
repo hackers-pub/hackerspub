@@ -111,6 +111,7 @@ export function ActorPostList(props: ActorPostListProps) {
                   $post={edge.node}
                   connections={data.posts?.__id ? [data.posts.__id] : []}
                   pinConnections={props.pinConnections}
+                  deferHeavySections
                 />
               )}
             </For>

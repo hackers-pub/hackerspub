@@ -14,6 +14,7 @@ export interface PostCardProps {
   connections?: string[];
   bookmarkListConnections?: string[];
   pinConnections?: string[];
+  deferHeavySections?: boolean;
   onDeleted?: () => void;
 }
 
@@ -46,6 +47,7 @@ export function PostCard(props: PostCardProps) {
               connections={props.connections}
               bookmarkListConnections={props.bookmarkListConnections}
               pinConnections={props.pinConnections}
+              deferHeavySections={props.deferHeavySections}
               onDeleted={props.onDeleted}
             />
           </Match>
@@ -57,6 +59,7 @@ export function PostCard(props: PostCardProps) {
               connections={props.connections}
               bookmarkListConnections={props.bookmarkListConnections}
               pinConnections={props.pinConnections}
+              deferHeavySections={props.deferHeavySections}
             />
           </Match>
           <Match when={post.__typename === "Question"}>
@@ -67,6 +70,7 @@ export function PostCard(props: PostCardProps) {
               connections={props.connections}
               bookmarkListConnections={props.bookmarkListConnections}
               pinConnections={props.pinConnections}
+              deferHeavySections={props.deferHeavySections}
               onDeleted={props.onDeleted}
             />
           </Match>

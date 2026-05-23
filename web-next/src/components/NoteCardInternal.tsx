@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
@@ -22,6 +23,7 @@ export interface NoteCardInternalProps {
   connections?: string[];
   bookmarkListConnections?: string[];
   pinConnections?: string[];
+  deferHeavySections?: boolean;
   onDeleted?: () => void;
 }
 
@@ -83,6 +85,9 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
 
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
+  const showDeferredSections = createDeferredRender(() =>
+    !!props.deferHeavySections
+  );
 
   return (
     <Show keyed when={note()}>
@@ -120,35 +125,39 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
                 lang={n.language ?? undefined}
                 class="prose dark:prose-invert mt-1 break-words overflow-wrap"
               />
-              <NoteMedia $note={n} postSensitive={n.sensitive} />
-              <LinkPreview $note={n} />
-              {
-                /* `keyed`: avoid Solid's stale-accessor race when this
-                 Relay field flips to null inside a `batch()` update. */
-              }
-              <Show keyed when={n.quotedPost}>
-                {(quotedPost) => (
-                  <QuotedPostCard
-                    $post={quotedPost}
-                    quotePostId={n.id}
-                    canRevokeQuote={n.viewerCanRevokeQuote}
-                  />
-                )}
-              </Show>
-              <Show
-                keyed
-                when={n.quotedPost == null ? n.quoteTargetState : null}
-              >
-                {(state) => <QuoteTargetPlaceholder state={state} />}
+              <Show when={showDeferredSections()}>
+                <NoteMedia $note={n} postSensitive={n.sensitive} />
+                <LinkPreview $note={n} />
+                {
+                  /* `keyed`: avoid Solid's stale-accessor race when this
+                   Relay field flips to null inside a `batch()` update. */
+                }
+                <Show keyed when={n.quotedPost}>
+                  {(quotedPost) => (
+                    <QuotedPostCard
+                      $post={quotedPost}
+                      quotePostId={n.id}
+                      canRevokeQuote={n.viewerCanRevokeQuote}
+                    />
+                  )}
+                </Show>
+                <Show
+                  keyed
+                  when={n.quotedPost == null ? n.quoteTargetState : null}
+                >
+                  {(state) => <QuoteTargetPlaceholder state={state} />}
+                </Show>
               </Show>
             </Show>
-            <MentionHoverCardLayer state={mentionState} />
-            <PostEngagementBar
-              $post={n}
-              repliesHref={repliesHref()}
-              engagementBase={permalinkBase()}
-              bookmarkListConnections={props.bookmarkListConnections}
-            />
+            <Show when={showDeferredSections()}>
+              <MentionHoverCardLayer state={mentionState} />
+              <PostEngagementBar
+                $post={n}
+                repliesHref={repliesHref()}
+                engagementBase={permalinkBase()}
+                bookmarkListConnections={props.bookmarkListConnections}
+              />
+            </Show>
           </div>
         </div>
       )}

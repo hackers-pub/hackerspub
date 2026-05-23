@@ -13,6 +13,7 @@ export interface NoteCardProps {
   connections?: string[];
   bookmarkListConnections?: string[];
   pinConnections?: string[];
+  deferHeavySections?: boolean;
   onDeleted?: () => void;
 }
 
@@ -51,6 +52,7 @@ export function NoteCard(props: NoteCardProps) {
                 connections={props.connections}
                 bookmarkListConnections={props.bookmarkListConnections}
                 pinConnections={props.pinConnections}
+                deferHeavySections={props.deferHeavySections}
                 onDeleted={props.onDeleted}
               />
             </div>

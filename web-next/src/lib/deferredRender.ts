@@ -1,3 +1,5 @@
+import { type Accessor, createEffect, createSignal, onCleanup } from "solid-js";
+
 type IdleWindow = Window & {
   requestIdleCallback?: (
     callback: () => void,
@@ -17,4 +19,23 @@ export function scheduleDeferredRender(callback: () => void): () => void {
 
   const handle = window.setTimeout(callback, 16);
   return () => window.clearTimeout(handle);
+}
+
+export function createDeferredRender(
+  shouldDefer: Accessor<boolean>,
+): Accessor<boolean> {
+  const [ready, setReady] = createSignal(!shouldDefer());
+
+  createEffect(() => {
+    if (!shouldDefer()) {
+      setReady(true);
+      return;
+    }
+    if (ready()) return;
+
+    const cancelDeferredRender = scheduleDeferredRender(() => setReady(true));
+    onCleanup(cancelDeferredRender);
+  });
+
+  return ready;
 }
