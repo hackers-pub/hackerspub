@@ -89,4 +89,4 @@ export default createHandler((context) => {
       )}
     />
   );
-});
+}, { mode: "async" });
