@@ -684,28 +684,33 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                   `${
                     globalThis.location?.origin ?? ""
                   }/@${props.username}/invite/${link.uuid}`;
+                const isExpired = link.invitationsLeft < 1 ||
+                  (link.expires != null &&
+                    new Date(link.expires) < new Date());
                 return (
                   <li class="flex flex-col gap-1.5 rounded-md border p-3">
                     <div class="flex items-center gap-2">
                       <code class="flex-1 truncate text-sm bg-muted px-2 py-1 rounded">
                         {linkUrl()}
                       </code>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        class="cursor-pointer shrink-0"
-                        on:click={() => copyToClipboard(linkUrl())}
-                      >
-                        {t`Copy`}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        class="cursor-pointer shrink-0"
-                        on:click={() => setQrUrl(linkUrl())}
-                      >
-                        {t`QR code`}
-                      </Button>
+                      <Show when={!isExpired}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          class="cursor-pointer shrink-0"
+                          on:click={() => copyToClipboard(linkUrl())}
+                        >
+                          {t`Copy`}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          class="cursor-pointer shrink-0"
+                          on:click={() => setQrUrl(linkUrl())}
+                        >
+                          {t`QR code`}
+                        </Button>
+                      </Show>
                       <Button
                         variant="destructive"
                         size="sm"
