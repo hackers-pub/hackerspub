@@ -34,6 +34,7 @@
     "./robots": "./robots.ts",
     "./schema": "./schema.ts",
     "./search": "./search.ts",
+    "./search-query": "./search-query.ts",
     "./searchPatterns": "./searchPatterns.ts",
     "./session": "./session.ts",
     "./signin": "./signin.ts",

@@ -1878,11 +1878,6 @@ msgstr "已取消置顶内容"
 msgid "Posts"
 msgstr "内容"
 
-#. placeholder {0}: "TAG"
-#: src/routes/(root)/tags/[tag].tsx:69
-msgid "Posts tagged with {0}"
-msgstr "{0} 内容"
-
 #: src/routes/(root)/[handle]/settings/preferences.tsx:185
 msgid "Prefer AI-generated summary"
 msgstr "优先使用 AI 生成的摘要"

@@ -22,7 +22,8 @@ import type {
   PostMedium,
   Reaction,
 } from "@hackerspub/models/schema";
-import { compileQuery, parseQuery } from "@hackerspub/models/search";
+import { parseQuery } from "@hackerspub/models/search";
+import { compileQuery } from "@hackerspub/models/search-query";
 import {
   FULL_HANDLE_REGEXP,
   HANDLE_REGEXP,

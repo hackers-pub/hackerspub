@@ -1,5 +1,6 @@
 import { page } from "@fresh/core";
-import { compileQuery, type Expr } from "@hackerspub/models/search";
+import type { Expr } from "@hackerspub/models/search";
+import { compileQuery } from "@hackerspub/models/search-query";
 import { validateUuid } from "@hackerspub/models/uuid";
 import { define } from "../../utils.ts";
 import SearchResults, { search, type SearchResultsProps } from "../search.tsx";

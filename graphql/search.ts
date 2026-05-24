@@ -6,7 +6,8 @@ import {
   isPostObject,
   persistPost,
 } from "@hackerspub/models/post";
-import { compileQuery, parseQuery } from "@hackerspub/models/search";
+import { parseQuery } from "@hackerspub/models/search";
+import { compileQuery } from "@hackerspub/models/search-query";
 import {
   FULL_HANDLE_REGEXP,
   HANDLE_REGEXP,

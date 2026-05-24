@@ -1,3 +1,4 @@
+import { parseQuery } from "@hackerspub/models/search";
 import {
   FULL_HANDLE_REGEXP,
   HANDLE_REGEXP,
@@ -113,6 +114,13 @@ export default function SearchPage() {
     if (searchQuery() === "") setIsPending(false);
   });
 
+  createEffect(() => {
+    const expr = parseQuery(searchQuery());
+    if (expr?.type === "hashtag") {
+      navigate(`/tags/${encodeURIComponent(expr.hashtag)}`, { replace: true });
+    }
+  });
+
   return (
     <NarrowContainer class="px-4 py-4 sm:py-6">
       <div class="relative mb-6">
@@ -125,6 +133,11 @@ export default function SearchPage() {
             const query = formData.get("q")?.toString() ?? "";
             searchInput?.blur();
             if (query === searchQuery()) return;
+            const expr = parseQuery(query);
+            if (expr?.type === "hashtag") {
+              navigate(`/tags/${encodeURIComponent(expr.hashtag)}`);
+              return;
+            }
             if (query !== "") setIsPending(true);
             navigate(`?q=${encodeURIComponent(query)}`);
           }}

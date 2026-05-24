@@ -1882,11 +1882,6 @@ msgstr "Post unpinned"
 msgid "Posts"
 msgstr "Posts"
 
-#. placeholder {0}: "TAG"
-#: src/routes/(root)/tags/[tag].tsx:69
-msgid "Posts tagged with {0}"
-msgstr "Posts tagged with {0}"
-
 #: src/routes/(root)/[handle]/settings/preferences.tsx:185
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"

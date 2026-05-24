@@ -1878,11 +1878,6 @@ msgstr "콘텐츠 고정을 해제했습니다"
 msgid "Posts"
 msgstr "콘텐츠"
 
-#. placeholder {0}: "TAG"
-#: src/routes/(root)/tags/[tag].tsx:69
-msgid "Posts tagged with {0}"
-msgstr "{0} 콘텐츠"
-
 #: src/routes/(root)/[handle]/settings/preferences.tsx:185
 msgid "Prefer AI-generated summary"
 msgstr "AI 생성 요약 선호"

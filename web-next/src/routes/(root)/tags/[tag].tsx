@@ -8,7 +8,6 @@ import {
 } from "solid-relay";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
-import { Trans } from "~/components/Trans.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { TagPageQuery } from "./__generated__/TagPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
@@ -45,7 +44,7 @@ const loadTagQuery = routePreloadedQuery(
 );
 
 export default function TagPage() {
-  const { i18n, t } = useLingui();
+  const { i18n } = useLingui();
   const params = useParams<{ tag: string }>();
   const tag = () => decodeURIComponent(params.tag);
   const searchQuery = () => `#${tag()}`;
@@ -64,13 +63,8 @@ export default function TagPage() {
     <Show keyed when={data()}>
       {(queryData) => (
         <NarrowContainer class="p-4">
-          <h1 class="text-2xl font-bold mb-4">
-            <Trans
-              message={t`Posts tagged with ${"TAG"}`}
-              values={{
-                TAG: () => <span class="text-primary">#{tag()}</span>,
-              }}
-            />
+          <h1 class="text-2xl font-bold mb-4 text-primary">
+            #{tag()}
           </h1>
           <SearchResults $posts={queryData} query={searchQuery} />
         </NarrowContainer>

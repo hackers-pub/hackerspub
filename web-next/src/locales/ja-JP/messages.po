@@ -1878,11 +1878,6 @@ msgstr "コンテンツの固定を解除しました"
 msgid "Posts"
 msgstr "コンテンツ"
 
-#. placeholder {0}: "TAG"
-#: src/routes/(root)/tags/[tag].tsx:69
-msgid "Posts tagged with {0}"
-msgstr "{0} コンテンツ"
-
 #: src/routes/(root)/[handle]/settings/preferences.tsx:185
 msgid "Prefer AI-generated summary"
 msgstr "AI生成の要約を優先"
