@@ -300,7 +300,29 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                 </span>
               </ActorHoverCard>
               <div class="flex flex-row items-center gap-1 text-sm text-muted-foreground/70">
-                <Timestamp value={article.published} capitalizeFirstLetter />
+                <Show
+                  when={article.actor.local &&
+                    article.publishedYear != null &&
+                    article.slug != null}
+                  fallback={
+                    <a href={article.url ?? article.iri}>
+                      <Timestamp
+                        value={article.published}
+                        capitalizeFirstLetter
+                      />
+                    </a>
+                  }
+                >
+                  <InternalLink
+                    href={article.url ?? article.iri}
+                    internalHref={`/@${article.actor.username}/${article.publishedYear}/${article.slug}`}
+                  >
+                    <Timestamp
+                      value={article.published}
+                      capitalizeFirstLetter
+                    />
+                  </InternalLink>
+                </Show>
                 <PostActionMenu
                   $post={article}
                   connections={props.connections}
