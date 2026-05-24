@@ -6,6 +6,7 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 interface NotFoundPageProps {
   embedded?: boolean;
+  fullscreen?: boolean;
 }
 
 export function NotFoundPage(props: NotFoundPageProps) {
@@ -50,6 +51,14 @@ export function NotFoundPage(props: NotFoundPageProps) {
       </div>
     </>
   );
+
+  if (props.fullscreen) {
+    return (
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-background px-6 py-16 text-foreground">
+        {content}
+      </div>
+    );
+  }
 
   if (props.embedded) {
     return (

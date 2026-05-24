@@ -10,6 +10,7 @@ import {
 import { ActorPostList } from "~/components/ActorPostList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
+import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
@@ -101,7 +102,11 @@ export default function ProfilePage() {
             re-mounts when navigating to a different actor.
           */
           }
-          <Show keyed when={data.actorByHandle}>
+          <Show
+            keyed
+            when={data.actorByHandle}
+            fallback={<NotFoundPage fullscreen />}
+          >
             {(actor) => {
               const pinConnections = () => [actor.pins.__id];
               const postConnections = () => [actor.posts.__id];

@@ -10,6 +10,7 @@ import {
 import { ActorArticleList } from "~/components/ActorArticleList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
+import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { ProfileTabs } from "~/components/ProfileTabs.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -75,7 +76,11 @@ export default function ProfileArticlesPage() {
             re-mounts when navigating to a different actor.
           */
           }
-          <Show keyed when={data.actorByHandle}>
+          <Show
+            keyed
+            when={data.actorByHandle}
+            fallback={<NotFoundPage fullscreen />}
+          >
             {(actor) => (
               <NarrowContainer>
                 <Title>

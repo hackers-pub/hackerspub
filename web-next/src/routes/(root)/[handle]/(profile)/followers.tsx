@@ -9,6 +9,7 @@ import {
 } from "solid-relay";
 import { ActorFollowerList } from "~/components/ActorFollowerList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
+import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -67,7 +68,11 @@ export default function ProfileFollowersPage() {
             only re-mounts when navigating to a different account.
           */
           }
-          <Show keyed when={data.accountByUsername}>
+          <Show
+            keyed
+            when={data.accountByUsername}
+            fallback={<NotFoundPage fullscreen />}
+          >
             {(account) => (
               <NarrowContainer>
                 <Title>{t`${account.name}'s followers`}</Title>
