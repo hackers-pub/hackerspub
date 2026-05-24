@@ -1,6 +1,6 @@
 import { useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { Show } from "solid-js";
+import { Show, Suspense } from "solid-js";
 import {
   createPreloadedQuery,
   loadQuery,
@@ -9,6 +9,7 @@ import {
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SearchForm } from "~/components/SearchForm.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
+import { SearchResultsSkeleton } from "~/components/SearchResultsSkeleton.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { TagPageQuery } from "./__generated__/TagPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
@@ -68,14 +69,16 @@ export default function TagPage() {
       <h1 class="text-2xl font-bold mb-4 text-primary">
         #{tag()}
       </h1>
-      <Show keyed when={data()}>
-        {(queryData) => (
-          <SearchResults
-            $posts={queryData}
-            query={searchQuery}
-          />
-        )}
-      </Show>
+      <Suspense fallback={<SearchResultsSkeleton />}>
+        <Show keyed when={data()}>
+          {(queryData) => (
+            <SearchResults
+              $posts={queryData}
+              query={searchQuery}
+            />
+          )}
+        </Show>
+      </Suspense>
     </NarrowContainer>
   );
 }
