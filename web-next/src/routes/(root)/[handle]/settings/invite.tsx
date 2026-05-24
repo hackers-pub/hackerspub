@@ -1,4 +1,5 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import encodeQR from "qr";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
@@ -25,6 +26,12 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card.tsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import {
   TextField,
@@ -489,6 +496,7 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
   );
   const [creating, setCreating] = createSignal(false);
   const [deletingId, setDeletingId] = createSignal<string | null>(null);
+  const [qrUrl, setQrUrl] = createSignal<string | null>(null);
 
   const rtf = new Intl.RelativeTimeFormat(i18n.locale, { numeric: "always" });
 
@@ -624,6 +632,31 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <Dialog
+          open={qrUrl() !== null}
+          onOpenChange={(open) => {
+            if (!open) setQrUrl(null);
+          }}
+        >
+          <DialogContent class="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t`QR code`}</DialogTitle>
+            </DialogHeader>
+            <Show when={qrUrl()}>
+              {(url) => (
+                <div class="flex flex-col items-center gap-4">
+                  <div
+                    class="w-full rounded bg-white p-3 [&>svg]:h-auto [&>svg]:w-full [&>svg]:fill-black"
+                    innerHTML={encodeQR(url(), "svg", { border: 4 })}
+                  />
+                  <code class="text-xs break-all text-center text-muted-foreground">
+                    {url()}
+                  </code>
+                </div>
+              )}
+            </Show>
+          </DialogContent>
+        </Dialog>
         <Show when={props.invitationLinks.length > 0}>
           <ul class="flex flex-col gap-3 mb-6">
             <For each={props.invitationLinks}>
@@ -645,6 +678,14 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
                         on:click={() => copyToClipboard(linkUrl())}
                       >
                         {t`Copy`}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        class="cursor-pointer shrink-0"
+                        on:click={() => setQrUrl(linkUrl())}
+                      >
+                        {t`QR code`}
                       </Button>
                       <Button
                         variant="destructive"

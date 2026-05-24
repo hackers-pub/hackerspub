@@ -45,7 +45,7 @@ msgstr "{0, plural, other {关注 # 人}}"
 
 #. placeholder {0}: link.invitationsLeft
 #: src/routes/(root)/[handle]/invite/[id].tsx:323
-#: src/routes/(root)/[handle]/settings/invite.tsx:675
+#: src/routes/(root)/[handle]/settings/invite.tsx:716
 msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {剩余 # 次邀请}}"
 
@@ -67,12 +67,12 @@ msgstr "{0, plural, other {可删除 # 个孤立媒体。}}"
 #~ msgstr "{0, plural, one {# 次转帖} other {# 次转帖}}"
 
 #. placeholder {0}: votes()
-#: src/components/QuestionCard.tsx:518
+#: src/components/QuestionCard.tsx:532
 msgid "{0, plural, one {# vote} other {# votes}}"
 msgstr "{0, plural, other {# 票}}"
 
 #. placeholder {0}: props.poll.voters.totalCount
-#: src/components/QuestionCard.tsx:464
+#: src/components/QuestionCard.tsx:478
 msgid "{0, plural, one {# voter} other {# voters}}"
 msgstr "{0, plural, other {# 位投票者}}"
 
@@ -87,7 +87,7 @@ msgid "{0, plural, one {Deleted # orphan medium.} other {Deleted # orphan media.
 msgstr "{0, plural, other {已删除 # 个孤立媒体。}}"
 
 #. placeholder {0}: account.invitationsLeft
-#: src/routes/(root)/[handle]/settings/invite.tsx:307
+#: src/routes/(root)/[handle]/settings/invite.tsx:314
 msgid "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up to # person.} other {Invite your friends to Hackers' Pub. You can invite up to # people.}}"
 msgstr "{0, plural, other {邀请你的朋友加入 Hackers' Pub。你可以邀请最多 # 个人。}}"
 
@@ -102,7 +102,7 @@ msgid "{0, plural, one {Regenerated invitations for # account.} other {Regenerat
 msgstr "{0, plural, other {已为 # 个账号重新发放邀请。}}"
 
 #. placeholder {0}: account.inviteesCount.totalCount
-#: src/routes/(root)/[handle]/settings/invite.tsx:434
+#: src/routes/(root)/[handle]/settings/invite.tsx:441
 msgid "{0, plural, one {You have invited total # person so far.} other {You have invited total # people so far.}}"
 msgstr "{0, plural, other {您已经邀请了总共 # 人。}}"
 
@@ -173,7 +173,7 @@ msgid "{0} followed you"
 msgstr "{0} 关注了你"
 
 #. placeholder {0}: "USER"
-#: src/routes/(root)/[handle]/settings/invite.tsx:357
+#: src/routes/(root)/[handle]/settings/invite.tsx:364
 msgid "{0} is already a member of Hackers' Pub."
 msgstr "{0} 已经是 Hackers' Pub 的成员。"
 
@@ -206,7 +206,7 @@ msgstr "{0} 回复了你的内容"
 #. placeholder {1}: "RELATIVE_TIME"
 #: src/components/ActorSharer.tsx:25
 #: src/components/PostSharer.tsx:37
-#: src/components/QuestionCard.tsx:88
+#: src/components/QuestionCard.tsx:90
 msgid "{0} shared {1}"
 msgstr "{0}在{1}转帖了"
 
@@ -321,8 +321,8 @@ msgstr "所有图片均需提供替代文字。"
 msgid "All languages"
 msgstr "所有语言"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:90
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:314
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:93
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:504
 msgid "Allow automatic translation by AI"
 msgstr "允许 AI 自动翻译"
 
@@ -361,9 +361,9 @@ msgid "An error occurred while saving your settings. Please try again, or contac
 msgstr "保存设置时发生错误。请重试，如果问题仍然存在，请联系支持。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:200
-#: src/routes/(root)/[handle]/settings/invite.tsx:266
-#: src/routes/(root)/[handle]/settings/invite.tsx:546
-#: src/routes/(root)/[handle]/settings/invite.tsx:596
+#: src/routes/(root)/[handle]/settings/invite.tsx:273
+#: src/routes/(root)/[handle]/settings/invite.tsx:554
+#: src/routes/(root)/[handle]/settings/invite.tsx:604
 msgid "An unexpected error occurred. Please try again later."
 msgstr "发生了意外错误。请稍后再试。"
 
@@ -406,11 +406,11 @@ msgstr "文章草稿"
 msgid "Article published"
 msgstr "文章已发布"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:183
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:330
 msgid "Article updated"
 msgstr "文章已更新"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:42
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:40
 msgid "article-url-slug"
 msgstr "文章网址别名"
 
@@ -493,14 +493,14 @@ msgstr "收藏"
 #: src/components/QuotedNoteCard.tsx:224
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:332
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:520
 #: src/routes/(root)/[handle]/settings/index.tsx:396
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:519
 #: src/routes/(root)/authorize_interaction.tsx:273
 msgid "Cancel"
 msgstr "取消"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:198
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:345
 msgid "Cannot change the language because translations already exist"
 msgstr "由于已存在翻译，无法更改语言"
 
@@ -512,7 +512,7 @@ msgstr "请检查你的邮箱"
 msgid "Check your email to complete sign-up. We've sent a verification link to your email address."
 msgstr "请检查你的邮箱以完成注册。我们已向你的邮箱地址发送了验证链接。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:382
+#: src/routes/(root)/[handle]/settings/invite.tsx:389
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "选择你的朋友使用的语言。这个语言只会用于邀请。"
 
@@ -528,7 +528,7 @@ msgstr "清除"
 msgid "Close"
 msgstr "关闭"
 
-#: src/components/QuestionCard.tsx:456
+#: src/components/QuestionCard.tsx:470
 msgid "Closed"
 msgstr "已结束"
 
@@ -553,7 +553,7 @@ msgstr "写作"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:65
 #: src/components/NoteComposer.tsx:1122
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:247
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:390
 msgid "Content"
 msgstr "内容"
 
@@ -565,19 +565,19 @@ msgstr "内容不能为空"
 msgid "Continue in browser"
 msgstr "在浏览器中继续"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:76
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:73
 msgid "Controls who can quote this article on their timeline."
 msgstr "设置谁可以在时间线上引用这篇文章。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:606
+#: src/routes/(root)/[handle]/settings/invite.tsx:614
 msgid "Copied"
 msgstr "已复制"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:647
+#: src/routes/(root)/[handle]/settings/invite.tsx:680
 msgid "Copy"
 msgstr "复制"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:613
+#: src/routes/(root)/[handle]/settings/invite.tsx:621
 msgid "Could not copy the link to the clipboard."
 msgstr "无法将链接复制到剪贴板。"
 
@@ -593,7 +593,7 @@ msgstr "无法加载个人资料。"
 msgid "Could not revoke quote"
 msgstr "无法撤销引用"
 
-#: src/components/QuestionCard.tsx:409
+#: src/components/QuestionCard.tsx:423
 msgid "Could not vote on this poll"
 msgstr "无法提交此投票"
 
@@ -602,7 +602,7 @@ msgstr "无法提交此投票"
 msgid "Create article"
 msgstr "创建文章"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:767
+#: src/routes/(root)/[handle]/settings/invite.tsx:808
 msgid "Create invitation link"
 msgstr "创建邀请链接"
 
@@ -613,7 +613,7 @@ msgstr "创建邀请链接"
 msgid "Create note"
 msgstr "创建帖子"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:623
+#: src/routes/(root)/[handle]/settings/invite.tsx:631
 msgid "Create shareable invitation links. Each link can be used multiple times until the invitation count runs out or the link expires."
 msgstr "创建可共享的邀请链接。每个链接可多次使用，直到邀请次数用完或链接过期。"
 
@@ -631,7 +631,7 @@ msgid "Creating account…"
 msgstr "正在创建账户…"
 
 #: src/components/NoteComposer.tsx:1408
-#: src/routes/(root)/[handle]/settings/invite.tsx:766
+#: src/routes/(root)/[handle]/settings/invite.tsx:807
 msgid "Creating…"
 msgstr "正在创建…"
 
@@ -648,7 +648,7 @@ msgstr "裁剪你的新头像"
 msgid "Cutoff:"
 msgstr "截止时间："
 
-#: src/components/NoteCardInternal.tsx:103
+#: src/components/NoteCardInternal.tsx:108
 #: src/components/QuotedNoteCard.tsx:178
 msgid "CW"
 msgstr "CW"
@@ -668,7 +668,7 @@ msgstr "默认转帖隐私设置"
 #: src/components/PostActionMenu.tsx:341
 #: src/components/PostActionMenu.tsx:361
 #: src/routes/(root)/[handle]/drafts/index.tsx:318
-#: src/routes/(root)/[handle]/settings/invite.tsx:656
+#: src/routes/(root)/[handle]/settings/invite.tsx:697
 msgid "Delete"
 msgstr "删除"
 
@@ -686,7 +686,7 @@ msgid "Delete post?"
 msgstr "删除内容？"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:21
-#: src/routes/(root)/[handle]/settings/invite.tsx:656
+#: src/routes/(root)/[handle]/settings/invite.tsx:697
 #: src/routes/(root)/admin/media.tsx:189
 msgid "Deleting…"
 msgstr "正在删除…"
@@ -746,7 +746,7 @@ msgstr "例如：@user@mastodon.social"
 msgid "Edit"
 msgstr "编辑"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:229
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:372
 msgid "Edit article"
 msgstr "编辑文章"
 
@@ -760,7 +760,7 @@ msgid "Edit note"
 msgstr "编辑帖子"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:368
-#: src/routes/(root)/[handle]/settings/invite.tsx:330
+#: src/routes/(root)/[handle]/settings/invite.tsx:337
 #: src/routes/(root)/sign/up/[token].tsx:315
 msgid "Email address"
 msgstr "电子邮件地址"
@@ -769,11 +769,11 @@ msgstr "电子邮件地址"
 msgid "Email or username"
 msgstr "邮箱或用户名"
 
-#: src/components/QuestionCard.tsx:459
+#: src/components/QuestionCard.tsx:473
 msgid "Ended"
 msgstr "已结束"
 
-#: src/components/QuestionCard.tsx:459
+#: src/components/QuestionCard.tsx:473
 msgid "Ends"
 msgstr "截止"
 
@@ -813,9 +813,10 @@ msgstr "请在下方输入您的邮箱或用户名以登录。"
 #: src/components/NoteComposer.tsx:965
 #: src/components/QuotedNoteCard.tsx:246
 #: src/components/QuotedNoteCard.tsx:254
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:196
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:206
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:215
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:255
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:343
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:353
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:362
 #: src/routes/(root)/[handle]/drafts/index.tsx:180
 #: src/routes/(root)/[handle]/drafts/index.tsx:189
 #: src/routes/(root)/[handle]/drafts/index.tsx:197
@@ -826,16 +827,16 @@ msgstr "错误"
 
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:336
-#: src/routes/(root)/[handle]/settings/invite.tsx:692
+#: src/routes/(root)/[handle]/settings/invite.tsx:733
 msgid "Expires {0}"
 msgstr "{0}过期"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:739
+#: src/routes/(root)/[handle]/settings/invite.tsx:780
 msgid "Expiry"
 msgstr "到期时间"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:387
-#: src/routes/(root)/[handle]/settings/invite.tsx:729
+#: src/routes/(root)/[handle]/settings/invite.tsx:394
+#: src/routes/(root)/[handle]/settings/invite.tsx:770
 msgid "Extra message"
 msgstr "额外消息"
 
@@ -849,17 +850,17 @@ msgstr "未能屏蔽此用户"
 msgid "Failed to bookmark"
 msgstr "收藏失败"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:612
+#: src/routes/(root)/[handle]/settings/invite.tsx:620
 msgid "Failed to copy"
 msgstr "复制失败"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:534
-#: src/routes/(root)/[handle]/settings/invite.tsx:544
+#: src/routes/(root)/[handle]/settings/invite.tsx:542
+#: src/routes/(root)/[handle]/settings/invite.tsx:552
 msgid "Failed to create invitation link"
 msgstr "创建邀请链接失败"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:583
-#: src/routes/(root)/[handle]/settings/invite.tsx:594
+#: src/routes/(root)/[handle]/settings/invite.tsx:591
+#: src/routes/(root)/[handle]/settings/invite.tsx:602
 msgid "Failed to delete invitation link"
 msgstr "删除邀请链接失败"
 
@@ -904,7 +905,7 @@ msgstr "加载更多粉丝失败，点击重试"
 msgid "Failed to load more following; click to retry"
 msgstr "加载更多关注失败，点击重试"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:880
+#: src/routes/(root)/[handle]/settings/invite.tsx:921
 msgid "Failed to load more invitees; click to retry"
 msgstr "加载更多受邀者失败；点击重试"
 
@@ -920,7 +921,7 @@ msgstr "加载更多通知失败；点击重试"
 msgid "Failed to load more passkeys; click to retry"
 msgstr "加载更多通行密钥失败，点击重试"
 
-#: src/components/ActorPostList.tsx:83
+#: src/components/ActorPostList.tsx:130
 #: src/components/ActorSharedPostList.tsx:83
 #: src/components/PersonalTimeline.tsx:249
 #: src/components/PublicTimeline.tsx:242
@@ -984,6 +985,7 @@ msgid "Failed to remove bookmark"
 msgstr "取消收藏失败"
 
 #: src/components/MarkdownEditor.tsx:192
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:459
 msgid "Failed to render preview"
 msgstr "预览渲染失败"
 
@@ -1009,8 +1011,8 @@ msgstr "保存设置失败"
 msgid "Failed to send email"
 msgstr "发送邮件失败"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:244
-#: src/routes/(root)/[handle]/settings/invite.tsx:264
+#: src/routes/(root)/[handle]/settings/invite.tsx:251
+#: src/routes/(root)/[handle]/settings/invite.tsx:271
 msgid "Failed to send invitation"
 msgstr "发送邀请失败"
 
@@ -1043,7 +1045,7 @@ msgstr "无法取消置顶内容"
 msgid "Failed to unshare post"
 msgstr "取消转帖失败"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:216
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:363
 msgid "Failed to update the article. Please try again."
 msgstr "文章更新失败，请重试。"
 
@@ -1053,10 +1055,11 @@ msgstr "文章更新失败，请重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:38
 #: src/components/NoteComposer.tsx:651
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:258
 msgid "Failed to upload image"
 msgstr "图片上传失败"
 
-#: src/components/QuestionCard.tsx:417
+#: src/components/QuestionCard.tsx:431
 msgid "Failed to vote"
 msgstr "投票失败"
 
@@ -1196,7 +1199,7 @@ msgstr "标题 2"
 msgid "Heading 3"
 msgstr "标题 3"
 
-#: src/components/NoteCardInternal.tsx:112
+#: src/components/NoteCardInternal.tsx:117
 #: src/components/NoteMedia.tsx:270
 #: src/components/QuotedNoteCard.tsx:189
 msgid "Hide"
@@ -1259,7 +1262,7 @@ msgstr "联邦宇宙用户名格式无效。"
 msgid "Invalid input: {0}"
 msgstr "无效输入：{0}"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:199
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:346
 msgid "Invalid input: {inputPath}"
 msgstr "无效输入：{inputPath}"
 
@@ -1268,23 +1271,23 @@ msgstr "无效输入：{inputPath}"
 msgid "Invitation from {0}"
 msgstr "来自 {0} 的邀请"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:375
+#: src/routes/(root)/[handle]/settings/invite.tsx:382
 msgid "Invitation language"
 msgstr "邀请语言"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:526
+#: src/routes/(root)/[handle]/settings/invite.tsx:534
 msgid "Invitation link created"
 msgstr "邀请链接已创建"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:577
+#: src/routes/(root)/[handle]/settings/invite.tsx:585
 msgid "Invitation link deleted"
 msgstr "邀请链接已删除"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:621
+#: src/routes/(root)/[handle]/settings/invite.tsx:629
 msgid "Invitation links"
 msgstr "邀请链接"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:254
+#: src/routes/(root)/[handle]/settings/invite.tsx:261
 msgid "Invitation sent"
 msgstr "邀请已发送"
 
@@ -1299,11 +1302,11 @@ msgstr "剩余邀请"
 
 #: src/components/AppSidebar.tsx:597
 #: src/components/SettingsTabs.tsx:68
-#: src/routes/(root)/[handle]/settings/invite.tsx:291
+#: src/routes/(root)/[handle]/settings/invite.tsx:298
 msgid "Invite"
 msgstr "邀请"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:300
+#: src/routes/(root)/[handle]/settings/invite.tsx:307
 msgid "Invite a friend"
 msgstr "邀请朋友"
 
@@ -1324,7 +1327,7 @@ msgid "John Doe"
 msgstr "张三"
 
 #. placeholder {0}: "DATE"
-#: src/routes/(root)/[handle]/settings/invite.tsx:854
+#: src/routes/(root)/[handle]/settings/invite.tsx:895
 msgid "Joined on {0}"
 msgstr "于{0}加入"
 
@@ -1332,10 +1335,10 @@ msgstr "于{0}加入"
 msgid "Keep editing"
 msgstr "继续编辑"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:56
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:53
 #: src/components/LanguageList.tsx:33
 #: src/components/LanguageSelect.tsx:93
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:297
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:487
 msgid "Language"
 msgstr "语言"
 
@@ -1409,7 +1412,7 @@ msgstr "加载更多粉丝"
 msgid "Load more following"
 msgstr "加载更多关注"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:883
+#: src/routes/(root)/[handle]/settings/invite.tsx:924
 msgid "Load more invitees"
 msgstr "加载更多受邀者"
 
@@ -1425,7 +1428,7 @@ msgstr "加载更多通知"
 msgid "Load more passkeys"
 msgstr "加载更多通行密钥"
 
-#: src/components/ActorPostList.tsx:86
+#: src/components/ActorPostList.tsx:133
 #: src/components/ActorSharedPostList.tsx:86
 #: src/components/PersonalTimeline.tsx:252
 #: src/components/PublicTimeline.tsx:245
@@ -1475,7 +1478,7 @@ msgstr "加载更多粉丝中…"
 msgid "Loading more following…"
 msgstr "正在加载更多关注…"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:877
+#: src/routes/(root)/[handle]/settings/invite.tsx:918
 msgid "Loading more invitees…"
 msgstr "正在加载更多受邀者…"
 
@@ -1491,7 +1494,7 @@ msgstr "正在加载更多通知…"
 msgid "Loading more passkeys…"
 msgstr "正在加载更多通行密钥…"
 
-#: src/components/ActorPostList.tsx:80
+#: src/components/ActorPostList.tsx:127
 #: src/components/ActorSharedPostList.tsx:80
 #: src/components/PersonalTimeline.tsx:246
 #: src/components/PublicTimeline.tsx:239
@@ -1549,7 +1552,7 @@ msgstr "Markdown 指南"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:90
 #: src/components/NoteComposer.tsx:1232
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:272
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:415
 msgid "Markdown supported"
 msgstr "Markdown 可用"
 
@@ -1585,7 +1588,7 @@ msgstr "移动到顶部"
 msgid "Move up"
 msgstr "向上移动"
 
-#: src/components/QuestionCard.tsx:453
+#: src/components/QuestionCard.tsx:467
 msgid "Multiple choice"
 msgstr "多选"
 
@@ -1609,8 +1612,8 @@ msgstr "本地名称"
 msgid "Never"
 msgstr "从未"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:688
-#: src/routes/(root)/[handle]/settings/invite.tsx:754
+#: src/routes/(root)/[handle]/settings/invite.tsx:729
+#: src/routes/(root)/[handle]/settings/invite.tsx:795
 msgid "Never expires"
 msgstr "永不过期"
 
@@ -1653,8 +1656,8 @@ msgid "No following found"
 msgstr "没有找到关注的用户"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:267
-#: src/routes/(root)/[handle]/settings/invite.tsx:406
-#: src/routes/(root)/[handle]/settings/invite.tsx:764
+#: src/routes/(root)/[handle]/settings/invite.tsx:413
+#: src/routes/(root)/[handle]/settings/invite.tsx:805
 msgid "No invitations left"
 msgstr "没有剩余邀请名额"
 
@@ -1680,7 +1683,7 @@ msgstr "暂无引用。"
 msgid "No one has shared this yet."
 msgstr "暂无转帖。"
 
-#: src/components/ActorPostList.tsx:93
+#: src/components/ActorPostList.tsx:140
 #: src/components/ActorSharedPostList.tsx:93
 #: src/components/PersonalTimeline.tsx:259
 #: src/components/PublicTimeline.tsx:252
@@ -1745,6 +1748,7 @@ msgid "Notes"
 msgstr "帖子"
 
 #: src/components/MarkdownEditor.tsx:193
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:460
 msgid "Nothing to preview"
 msgstr "没有可预览的内容"
 
@@ -1752,7 +1756,7 @@ msgstr "没有可预览的内容"
 msgid "Notifications"
 msgstr "通知"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:715
+#: src/routes/(root)/[handle]/settings/invite.tsx:756
 msgid "Number of invitations"
 msgstr "邀请次数"
 
@@ -1761,7 +1765,7 @@ msgstr "邀请次数"
 msgid "Only you can quote"
 msgstr "只有你可以引用"
 
-#: src/components/QuestionCard.tsx:456
+#: src/components/QuestionCard.tsx:470
 msgid "Open"
 msgstr "进行中"
 
@@ -1821,7 +1825,7 @@ msgstr "权限被拒绝"
 msgid "Pin to profile"
 msgstr "置顶到个人资料"
 
-#: src/routes/(root)/[handle]/(profile)/index.tsx:210
+#: src/routes/(root)/[handle]/(profile)/index.tsx:155
 msgid "Pinned posts"
 msgstr "已置顶内容"
 
@@ -1829,13 +1833,13 @@ msgstr "已置顶内容"
 msgid "Please choose an image file smaller than 5 MiB."
 msgstr "请选择小于 5 MiB 的图片文件。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:245
-#: src/routes/(root)/[handle]/settings/invite.tsx:535
+#: src/routes/(root)/[handle]/settings/invite.tsx:252
+#: src/routes/(root)/[handle]/settings/invite.tsx:543
 msgid "Please correct the errors and try again."
 msgstr "请修正错误并重试。"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:53
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:238
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:381
 msgid "Please enter a title for your article."
 msgstr "请输入文章标题。"
 
@@ -1849,11 +1853,11 @@ msgstr "请输入你的联邦宇宙用户名。"
 msgid "Please sign in to access this page"
 msgstr "请登录以访问此页面"
 
-#: src/components/QuestionCard.tsx:403
+#: src/components/QuestionCard.tsx:417
 msgid "Please sign in to vote"
 msgstr "请登录后投票"
 
-#: src/components/QuestionCard.tsx:378
+#: src/components/QuestionCard.tsx:392
 msgid "Poll closed"
 msgstr "投票已结束"
 
@@ -1899,6 +1903,7 @@ msgstr "偏好语言"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:111
 #: src/components/MarkdownEditor.tsx:164
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:424
 msgid "Preview"
 msgstr "预览"
 
@@ -1943,6 +1948,11 @@ msgstr "立即发布"
 msgid "Publishing…"
 msgstr "发布中…"
 
+#: src/routes/(root)/[handle]/settings/invite.tsx:643
+#: src/routes/(root)/[handle]/settings/invite.tsx:688
+msgid "QR code"
+msgstr "二维码"
+
 #: src/routes/(root)/search.tsx:365
 msgid "Query cannot be empty"
 msgstr "搜索关键词不能为空"
@@ -1959,7 +1969,7 @@ msgstr "悄悄公开"
 msgid "Quote"
 msgstr "引用"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:69
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:66
 #: src/components/NoteVisibilityQuotePolicySelect.tsx:134
 msgid "Quote permission"
 msgstr "引用权限"
@@ -2006,8 +2016,8 @@ msgstr "反应"
 msgid "Reactions"
 msgstr "反应"
 
-#: src/components/ArticleCard.tsx:470
-#: src/components/ArticleCard.tsx:490
+#: src/components/ArticleCard.tsx:481
+#: src/components/ArticleCard.tsx:501
 msgid "Read full article"
 msgstr "阅读完整文章"
 
@@ -2091,6 +2101,7 @@ msgstr "移除已过期且不再附加到头像、帖子、文章草稿或文章
 
 #: src/components/article-composer/ArticleComposerForm.tsx:134
 #: src/components/MarkdownEditor.tsx:181
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:450
 msgid "Rendering…"
 msgstr "渲染中…"
 
@@ -2136,7 +2147,7 @@ msgid "Save"
 msgstr "保存"
 
 #: src/components/NoteComposer.tsx:1412
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:526
 msgid "Save changes"
 msgstr "保存更改"
 
@@ -2150,7 +2161,7 @@ msgstr "保存草稿以查看预览"
 
 #: src/components/article-composer/ArticleComposerActions.tsx:36
 #: src/components/NoteComposer.tsx:1413
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:338
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:526
 #: src/routes/(root)/[handle]/settings/index.tsx:533
 #: src/routes/(root)/[handle]/settings/language.tsx:198
 #: src/routes/(root)/[handle]/settings/preferences.tsx:237
@@ -2185,11 +2196,11 @@ msgstr "{0}的搜索结果"
 msgid "Searching…"
 msgstr "搜索中…"
 
-#: src/components/QuestionCard.tsx:383
+#: src/components/QuestionCard.tsx:397
 msgid "Select an option"
 msgstr "请选择一个选项"
 
-#: src/components/QuestionCard.tsx:383
+#: src/components/QuestionCard.tsx:397
 msgid "Select options"
 msgstr "请选择选项"
 
@@ -2197,12 +2208,12 @@ msgstr "请选择选项"
 msgid "Select your preferred languages in order of preference. This will help tailor content to your preferences."
 msgstr "按偏好顺序选择您的偏好语言。这将有助于根据您的偏好定制内容。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:409
+#: src/routes/(root)/[handle]/settings/invite.tsx:416
 msgid "Send"
 msgstr "发送"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:406
-#: src/routes/(root)/[handle]/settings/invite.tsx:408
+#: src/routes/(root)/[handle]/settings/invite.tsx:415
 msgid "Sending…"
 msgstr "发送中…"
 
@@ -2237,7 +2248,7 @@ msgstr "转帖"
 msgid "Sharing is not available for this post"
 msgstr "无法转帖此内容。"
 
-#: src/components/NoteCardInternal.tsx:112
+#: src/components/NoteCardInternal.tsx:117
 #: src/components/QuotedNoteCard.tsx:189
 msgid "Show"
 msgstr "显示"
@@ -2259,7 +2270,7 @@ msgstr "登录"
 msgid "Sign in to Hackers' Pub"
 msgstr "登录 Hackers' Pub"
 
-#: src/components/QuestionCard.tsx:380
+#: src/components/QuestionCard.tsx:394
 msgid "Sign in to vote"
 msgstr "登录后投票"
 
@@ -2292,11 +2303,11 @@ msgstr "登录中…"
 msgid "Signing up for Hackers' Pub"
 msgstr "注册 Hackers' Pub"
 
-#: src/components/QuestionCard.tsx:453
+#: src/components/QuestionCard.tsx:467
 msgid "Single choice"
 msgstr "单选"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:34
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:32
 msgid "Slug (URL)"
 msgstr "URL 别名"
 
@@ -2321,7 +2332,7 @@ msgstr "出现错误，请重试。"
 #: src/components/article-composer/ArticleComposerContext.tsx:453
 #: src/components/NoteComposer.tsx:832
 #: src/components/NoteComposer.tsx:884
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:182
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:329
 #: src/routes/(root)/[handle]/drafts/index.tsx:172
 msgid "Success"
 msgstr "成功"
@@ -2338,7 +2349,7 @@ msgstr "设置已成功保存"
 msgid "Successfully saved settings"
 msgstr "设置保存成功"
 
-#: src/components/ArticleCard.tsx:443
+#: src/components/ArticleCard.tsx:454
 msgid "Summarized by LLM"
 msgstr "由 AI 生成的摘要"
 
@@ -2354,7 +2365,7 @@ msgstr "目录"
 #~ msgstr "标签"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:158
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:286
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:476
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1061
 msgid "Tags"
 msgstr "标签"
@@ -2376,11 +2387,11 @@ msgid "The default quote permission for your notes."
 msgstr "帖子的默认引用权限设置。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:171
-#: src/routes/(root)/[handle]/settings/invite.tsx:348
+#: src/routes/(root)/[handle]/settings/invite.tsx:355
 msgid "The email address is invalid."
 msgstr "电子邮件地址无效。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:343
+#: src/routes/(root)/[handle]/settings/invite.tsx:350
 msgid "The email address is not only used for receiving the invitation, but also for signing in to the account."
 msgstr "电子邮件地址不仅用于接收邀请，还用于登录账户。"
 
@@ -2392,23 +2403,23 @@ msgstr "以下通行密钥已注册到你的账户。你可以使用它们登录
 msgid "The invitation email could not be sent. Please try again later."
 msgstr "邀请邮件发送失败。请稍后再试。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:255
+#: src/routes/(root)/[handle]/settings/invite.tsx:262
 msgid "The invitation has been sent successfully."
 msgstr "邀请已成功发送。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:585
+#: src/routes/(root)/[handle]/settings/invite.tsx:593
 msgid "The invitation link could not be found or you are not authorized to delete it."
 msgstr "找不到该邀请链接，或您无权删除该链接。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:607
+#: src/routes/(root)/[handle]/settings/invite.tsx:615
 msgid "The invitation link has been copied to the clipboard."
 msgstr "邀请链接已复制到剪贴板。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:527
+#: src/routes/(root)/[handle]/settings/invite.tsx:535
 msgid "The invitation link has been created successfully."
 msgstr "邀请链接已成功创建。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:578
+#: src/routes/(root)/[handle]/settings/invite.tsx:586
 msgid "The invitation link has been deleted successfully."
 msgstr "邀请链接已成功删除。"
 
@@ -2420,7 +2431,7 @@ msgstr "您访问的页面不存在或已被移动。"
 msgid "The passkey has been successfully revoked."
 msgstr "通行密钥已成功撤销。"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:63
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:60
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要语言，用于无障碍功能和内容发现。"
 
@@ -2495,7 +2506,7 @@ msgstr "通常需要一分钟左右。翻译完成后页面将自动更新。"
 #~ msgid "This will be part of the article URL"
 #~ msgstr "这将成为文章 URL 的一部分"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:48
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:45
 msgid "This will be part of the article URL."
 msgstr "这将成为文章 URL 的一部分。"
 
@@ -2504,7 +2515,7 @@ msgid "Timeline"
 msgstr "时间线"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:49
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:234
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:377
 msgid "Title"
 msgstr "标题"
 
@@ -2527,7 +2538,7 @@ msgid "Total: {0}"
 msgstr "共 {0} 个"
 
 #. placeholder {0}: "LANGUAGE"
-#: src/components/ArticleCard.tsx:307
+#: src/components/ArticleCard.tsx:318
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:861
 msgid "Translated from {0}"
 msgstr "翻译自{0}"
@@ -2565,7 +2576,7 @@ msgid "Try again"
 msgstr "重试"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:162
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:290
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:480
 msgid "Type tags separated by spaces"
 msgstr "输入标签，用空格分隔"
 
@@ -2651,7 +2662,7 @@ msgstr "需要用户名"
 msgid "Username is too long. Maximum length is 15 characters."
 msgstr "用户名太长。不能长于 15 字符。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:431
+#: src/routes/(root)/[handle]/settings/invite.tsx:438
 msgid "Users you have invited"
 msgstr "您邀请的用户"
 
@@ -2717,19 +2728,19 @@ msgstr "所有人都可以看到，但不会出现在公共时间线中。只有
 msgid "Visible to everyone, including non-registered users. The post will appear in the public timeline as well."
 msgstr "包括未注册用户在内的所有人都可以看到。内容也会出现在公共时间线中。"
 
-#: src/components/QuestionCard.tsx:385
+#: src/components/QuestionCard.tsx:399
 msgid "Vote"
 msgstr "投票"
 
-#: src/components/QuestionCard.tsx:399
+#: src/components/QuestionCard.tsx:413
 msgid "Vote recorded"
 msgstr "已记录投票"
 
-#: src/components/QuestionCard.tsx:379
+#: src/components/QuestionCard.tsx:393
 msgid "Voted"
 msgstr "已投票"
 
-#: src/components/QuestionCard.tsx:381
+#: src/components/QuestionCard.tsx:395
 msgid "Voting…"
 msgstr "正在投票…"
 
@@ -2761,7 +2772,7 @@ msgstr "什么是 Hackers' Pub？"
 msgid "What's on your mind?"
 msgstr "你在想啥？"
 
-#: src/components/article-composer/ArticleComposerPublishFields.tsx:93
+#: src/components/article-composer/ArticleComposerPublishFields.tsx:99
 msgid "When enabled, AI may automatically translate this article into other languages."
 msgstr "启用后，AI 可能会自动将这篇文章翻译成其他语言。"
 
@@ -2775,6 +2786,7 @@ msgstr "不含转帖"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:108
 #: src/components/MarkdownEditor.tsx:161
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:421
 msgid "Write"
 msgstr "撰写"
 
@@ -2786,7 +2798,7 @@ msgstr "撰写"
 msgid "Write a reply…"
 msgstr "写个回复…"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:278
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:435
 msgid "Write your article here."
 msgstr "在此撰写您的文章。"
 
@@ -2823,8 +2835,8 @@ msgstr "你只能更改一次用户名，而旧的用户名会公开为别人使
 msgid "You can leave this empty to remove the link."
 msgstr "您可以将此处留空以删除链接。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:393
-#: src/routes/(root)/[handle]/settings/invite.tsx:735
+#: src/routes/(root)/[handle]/settings/invite.tsx:400
+#: src/routes/(root)/[handle]/settings/invite.tsx:776
 msgid "You can leave this field empty."
 msgstr "你可以留空此字段。"
 
@@ -2848,8 +2860,8 @@ msgstr "您只能查看自己的草稿"
 msgid "You don't have any passkeys registered yet."
 msgstr "您尚未注册任何通行密钥。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:305
-#: src/routes/(root)/[handle]/settings/invite.tsx:416
+#: src/routes/(root)/[handle]/settings/invite.tsx:312
+#: src/routes/(root)/[handle]/settings/invite.tsx:423
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你没有剩余邀请名额。请稍后再试。"
 
@@ -2872,7 +2884,7 @@ msgstr "您必须登录才能删除草稿"
 msgid "You must be signed in to edit a note"
 msgstr "编辑帖子需要登录。"
 
-#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:207
+#: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:354
 msgid "You must be signed in to edit an article"
 msgstr "您必须登录才能编辑文章"
 
@@ -2916,7 +2928,7 @@ msgstr "您的网络似乎不稳定。请检查网络后重试。"
 msgid "Your email address will be used to sign in to your account."
 msgstr "你的电子邮件地址将用于登录。"
 
-#: src/routes/(root)/[handle]/settings/invite.tsx:396
+#: src/routes/(root)/[handle]/settings/invite.tsx:403
 msgid "Your friend will see this message in the invitation email."
 msgstr "你的朋友将在邀请邮件中看到此信息。"
 
