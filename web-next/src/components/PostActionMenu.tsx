@@ -21,6 +21,7 @@ import {
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import IconEllipsis from "~icons/lucide/ellipsis";
+import IconPencil from "~icons/lucide/pencil";
 import IconPin from "~icons/lucide/pin";
 import IconPinOff from "~icons/lucide/pin-off";
 import IconTrash2 from "~icons/lucide/trash-2";
@@ -107,6 +108,7 @@ export interface PostActionMenuProps {
   connections?: string[];
   pinConnections?: string[];
   onDeleted?: () => void;
+  onEdit?: () => void;
 }
 
 interface PostActionMenuData {
@@ -143,6 +145,7 @@ export function PostActionMenu(props: PostActionMenuProps) {
       connections={props.connections}
       pinConnections={props.pinConnections}
       onDeleted={props.onDeleted}
+      onEdit={props.onEdit}
     />
   );
 }
@@ -152,6 +155,7 @@ export interface QuestionActionMenuProps {
   connections?: string[];
   pinConnections?: string[];
   onDeleted?: () => void;
+  onEdit?: () => void;
 }
 
 export function QuestionActionMenu(props: QuestionActionMenuProps) {
@@ -178,6 +182,7 @@ export function QuestionActionMenu(props: QuestionActionMenuProps) {
       connections={props.connections}
       pinConnections={props.pinConnections}
       onDeleted={props.onDeleted}
+      onEdit={props.onEdit}
     />
   );
 }
@@ -187,6 +192,7 @@ interface PostActionMenuContentProps {
   connections?: string[];
   pinConnections?: string[];
   onDeleted?: () => void;
+  onEdit?: () => void;
 }
 
 function PostActionMenuContent(props: PostActionMenuContentProps) {
@@ -316,6 +322,12 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
           )}
         />
         <DropdownMenuContent>
+          <Show when={props.onEdit != null}>
+            <DropdownMenuItem class="cursor-pointer" onSelect={props.onEdit}>
+              <IconPencil class="size-4" />
+              {t`Edit`}
+            </DropdownMenuItem>
+          </Show>
           <Show when={canPinPost()}>
             <DropdownMenuItem
               class="cursor-pointer"
