@@ -935,9 +935,13 @@ function ArticleTags(props: ArticleTagsProps) {
       <div class={`flex flex-wrap gap-1.5 ${props.class ?? ""}`}>
         <For each={props.tags ?? []}>
           {(tag) => (
-            <span class="bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full text-sm text-stone-600 dark:text-stone-400">
+            <a
+              href={`/tags/${encodeURIComponent(tag)}`}
+              rel="tag"
+              class="bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full text-sm text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+            >
               #{tag}
-            </span>
+            </a>
           )}
         </For>
       </div>
