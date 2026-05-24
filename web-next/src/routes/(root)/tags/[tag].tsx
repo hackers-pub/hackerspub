@@ -7,6 +7,7 @@ import {
   useRelayEnvironment,
 } from "solid-relay";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
+import { SearchForm } from "~/components/SearchForm.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { TagPageQuery } from "./__generated__/TagPageQuery.graphql.ts";
@@ -60,15 +61,21 @@ export default function TagPage() {
   );
 
   return (
-    <Show keyed when={data()}>
-      {(queryData) => (
-        <NarrowContainer class="p-4">
-          <h1 class="text-2xl font-bold mb-4 text-primary">
-            #{tag()}
-          </h1>
-          <SearchResults $posts={queryData} query={searchQuery} />
-        </NarrowContainer>
-      )}
-    </Show>
+    <NarrowContainer class="px-4 py-4 sm:py-6">
+      <div class="relative mb-6">
+        <SearchForm value={searchQuery()} />
+      </div>
+      <h1 class="text-2xl font-bold mb-4 text-primary">
+        #{tag()}
+      </h1>
+      <Show keyed when={data()}>
+        {(queryData) => (
+          <SearchResults
+            $posts={queryData}
+            query={searchQuery}
+          />
+        )}
+      </Show>
+    </NarrowContainer>
   );
 }
