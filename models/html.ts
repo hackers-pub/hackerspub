@@ -438,11 +438,10 @@ export function transformMentions(
           "title",
           `${actor.name ?? actor.username}\n${actor.handle}`,
         );
-        const localHref = actor.accountId == null
-          ? `/${actor.handle}`
-          : `/@${actor.username}`;
-        $el.attr("data-internal-href", localHref);
-        $el.attr("href", localHref);
+        $el.attr(
+          "data-internal-href",
+          actor.accountId == null ? `/${actor.handle}` : `/@${actor.username}`,
+        );
         if (actor.avatarUrl != null) {
           $el.prepend(
             `<img src="${actor.avatarUrl}" width="18" height="18" class="inline-block mr-1">`,
