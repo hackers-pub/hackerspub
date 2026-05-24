@@ -1,3 +1,4 @@
+import * as DialogPrimitive from "@kobalte/core/dialog";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import encodeQR from "qr";
 import { graphql } from "relay-runtime";
@@ -26,12 +27,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card.tsx";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog.tsx";
 import { Label } from "~/components/ui/label.tsx";
 import {
   TextField,
@@ -632,31 +627,55 @@ function InvitationLinksCard(props: InvitationLinksCardProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Dialog
+        <DialogPrimitive.Root
           open={qrUrl() !== null}
           onOpenChange={(open) => {
             if (!open) setQrUrl(null);
           }}
         >
-          <DialogContent class="max-w-md">
-            <DialogHeader>
-              <DialogTitle>{t`QR code`}</DialogTitle>
-            </DialogHeader>
-            <Show when={qrUrl()}>
-              {(url) => (
-                <div class="flex flex-col items-center gap-4">
-                  <div
-                    class="w-full rounded bg-white p-3 [&>svg]:h-auto [&>svg]:w-full [&>svg]:fill-black"
-                    innerHTML={encodeQR(url(), "svg", { border: 4 })}
-                  />
-                  <code class="text-xs break-all text-center text-muted-foreground">
-                    {url()}
-                  </code>
-                </div>
-              )}
-            </Show>
-          </DialogContent>
-        </Dialog>
+          <DialogPrimitive.Portal>
+            <DialogPrimitive.Overlay class="fixed inset-0 z-50 bg-black data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0" />
+            <DialogPrimitive.Content
+              class="fixed inset-0 z-50 flex items-center justify-center outline-none data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0"
+              onClick={(e: MouseEvent) => {
+                if (e.target === e.currentTarget) setQrUrl(null);
+              }}
+            >
+              <DialogPrimitive.Title class="sr-only">
+                {t`QR code`}
+              </DialogPrimitive.Title>
+              <DialogPrimitive.CloseButton class="absolute right-4 top-4 rounded-full bg-white/10 p-1.5 text-white/90 transition-colors hover:bg-white/20 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="size-6"
+                >
+                  <path d="M18 6l-12 12" />
+                  <path d="M6 6l12 12" />
+                </svg>
+                <span class="sr-only">{t`Close`}</span>
+              </DialogPrimitive.CloseButton>
+              <Show when={qrUrl()}>
+                {(url) => (
+                  <div class="flex max-h-[95vh] max-w-[95vw] flex-col items-center gap-4 p-4">
+                    <div
+                      class="aspect-square max-h-[85vh] w-full max-w-[85vh] [&>svg]:h-full [&>svg]:w-full [&>svg]:invert"
+                      innerHTML={encodeQR(url(), "svg", { border: 4 })}
+                    />
+                    <code class="max-w-full break-all text-center text-xs text-white/70">
+                      {url()}
+                    </code>
+                  </div>
+                )}
+              </Show>
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
+        </DialogPrimitive.Root>
         <Show when={props.invitationLinks.length > 0}>
           <ul class="flex flex-col gap-3 mb-6">
             <For each={props.invitationLinks}>
