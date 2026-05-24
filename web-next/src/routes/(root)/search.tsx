@@ -5,7 +5,7 @@ import {
 } from "@hackerspub/models/searchPatterns";
 import { Navigate, useNavigate, useSearchParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { type Accessor, createEffect, on, Show, Suspense } from "solid-js";
+import { type Accessor, createEffect, Show } from "solid-js";
 import {
   createPreloadedQuery,
   loadQuery,
@@ -21,6 +21,7 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { searchObjectPageQuery } from "./__generated__/searchObjectPageQuery.graphql.ts";
 import type { searchObjectPageQuery$data } from "./__generated__/searchObjectPageQuery.graphql.ts";
 import type { searchPostsPageQuery } from "./__generated__/searchPostsPageQuery.graphql.ts";
+import type { searchPostsPageQuery$data } from "./__generated__/searchPostsPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const searchPostsPageQuery = graphql`
@@ -94,6 +95,7 @@ const loadSearchObjectQuery = routePreloadedQuery(
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { i18n, t } = useLingui();
   const searchQuery = () =>
     (Array.isArray(searchParams.q) ? searchParams.q[0] : searchParams.q) ?? "";
 
@@ -104,115 +106,63 @@ export default function SearchPage() {
     }
   });
 
+  // Both queries lifted to top level so <Suspense> is not needed.
+  // Without <Suspense>, createPreloadedQuery returns undefined (not throws)
+  // while loading, so SSR and client hydration agree on the initial
+  // skeleton state — avoiding the streaming-replacement hydration mismatch
+  // that occurs when Relay store data is not serialized from server to client.
+  const postsData = createPreloadedQuery<searchPostsPageQuery>(
+    searchPostsPageQuery,
+    () =>
+      loadSearchPostsQuery(
+        searchQuery(),
+        i18n.locale,
+        i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
+      ),
+  );
+
+  const objectData = createPreloadedQuery<searchObjectPageQuery>(
+    searchObjectPageQuery,
+    () => loadSearchObjectQuery(searchQuery()),
+  );
+
   return (
     <NarrowContainer class="px-4 py-4 sm:py-6">
       <div class="relative mb-6">
         <SearchForm value={searchQuery()} />
       </div>
 
-      <Show
-        when={searchQuery()}
-        fallback={<SearchGuide />}
-        keyed
-      >
-        {(query) => (
-          <Suspense fallback={<SearchResultsSkeleton />}>
-            <SearchPageContent
-              searchQuery={() => query}
-              searchType={() => getSearchType(query)}
-              onLoaded={() => {}}
-            />
-          </Suspense>
-        )}
+      <Show when={searchQuery()} fallback={<SearchGuide />}>
+        <h1 class="text-2xl font-bold mb-4">
+          <Trans
+            message={t`Search results for ${"KEYWORD"}`}
+            values={{ KEYWORD: () => <q>{searchQuery()}</q> }}
+          />
+        </h1>
+        <Show when={getSearchType(searchQuery()) === "posts"}>
+          <Show
+            when={postsData()}
+            fallback={<SearchResultsSkeleton />}
+            keyed
+          >
+            {(queryData) => (
+              <SearchResults $posts={queryData} query={searchQuery} />
+            )}
+          </Show>
+        </Show>
+        <Show when={getSearchType(searchQuery()) !== "posts"}>
+          <Show when={objectData()} keyed>
+            {(data) => (
+              <SearchObjectResult
+                searchResult={data.searchObject}
+                searchQuery={searchQuery}
+                postsData={postsData}
+              />
+            )}
+          </Show>
+        </Show>
       </Show>
     </NarrowContainer>
-  );
-}
-
-function SearchPageContent(
-  props: {
-    searchQuery: Accessor<string>;
-    searchType: Accessor<"posts" | "url" | "handle">;
-    onLoaded: () => void;
-  },
-) {
-  const { t } = useLingui();
-
-  return (
-    <>
-      <h1 class="text-2xl font-bold mb-4">
-        <Trans
-          message={t`Search results for ${"KEYWORD"}`}
-          values={{ KEYWORD: () => <q>{props.searchQuery()}</q> }}
-        />
-      </h1>
-      <Show when={props.searchType() === "posts"}>
-        <SearchPostsContent
-          searchQuery={props.searchQuery}
-          onLoaded={props.onLoaded}
-        />
-      </Show>
-      <Show when={props.searchType() !== "posts" && props.searchQuery()} keyed>
-        {(searchQuery) => (
-          <SearchObjectContent
-            searchQuery={searchQuery}
-            onLoaded={props.onLoaded}
-          />
-        )}
-      </Show>
-    </>
-  );
-}
-
-function SearchPostsContent(
-  props: { searchQuery: Accessor<string>; onLoaded: () => void },
-) {
-  const { i18n } = useLingui();
-  const initialSearchQuery = props.searchQuery();
-
-  const data = createPreloadedQuery<searchPostsPageQuery>(
-    searchPostsPageQuery,
-    () =>
-      loadSearchPostsQuery(
-        initialSearchQuery,
-        i18n.locale,
-        i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
-      ),
-  );
-  createEffect(on(data, (value) => {
-    if (value != null) props.onLoaded();
-  }));
-
-  return (
-    <Show keyed when={data()}>
-      {(queryData) => (
-        <SearchResults $posts={queryData} query={props.searchQuery} />
-      )}
-    </Show>
-  );
-}
-
-function SearchObjectContent(
-  props: {
-    searchQuery: string;
-    onLoaded: () => void;
-  },
-) {
-  const data = createPreloadedQuery<searchObjectPageQuery>(
-    searchObjectPageQuery,
-    () => loadSearchObjectQuery(props.searchQuery),
-  );
-
-  return (
-    <Show when={data()} keyed>
-      {(data) => (
-        <SearchObjectResult
-          searchResult={data.searchObject}
-          searchQuery={props.searchQuery}
-          onLoaded={props.onLoaded}
-        />
-      )}
-    </Show>
   );
 }
 
@@ -221,18 +171,23 @@ type SearchObjectResultData = searchObjectPageQuery$data["searchObject"];
 function SearchObjectResult(
   props: {
     searchResult: SearchObjectResultData;
-    searchQuery: string;
-    onLoaded: () => void;
+    searchQuery: Accessor<string>;
+    postsData: Accessor<searchPostsPageQuery$data | undefined>;
   },
 ) {
   const { t } = useLingui();
 
   if (props.searchResult == null) {
     return (
-      <SearchPostsContent
-        searchQuery={() => props.searchQuery}
-        onLoaded={props.onLoaded}
-      />
+      <Show
+        when={props.postsData()}
+        fallback={<SearchResultsSkeleton />}
+        keyed
+      >
+        {(queryData) => (
+          <SearchResults $posts={queryData} query={props.searchQuery} />
+        )}
+      </Show>
     );
   }
   if ("url" in props.searchResult && props.searchResult.url) {
