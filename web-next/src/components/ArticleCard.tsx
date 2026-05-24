@@ -1,3 +1,4 @@
+import { useNavigate } from "@solidjs/router";
 import { clientOnly } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { Accessor, createSignal, Setter, Show } from "solid-js";
@@ -214,6 +215,7 @@ interface ArticleCardInternalProps {
 
 function ArticleCardInternal(props: ArticleCardInternalProps) {
   const { t, i18n } = useLingui();
+  const navigate = useNavigate();
   const article = createFragment(
     graphql`
       fragment ArticleCardInternal_article on Article
@@ -303,6 +305,14 @@ function ArticleCardInternal(props: ArticleCardInternalProps) {
                   $post={article}
                   connections={props.connections}
                   pinConnections={props.pinConnections}
+                  onEdit={article.actor.local && article.slug != null
+                    ? () =>
+                      navigate(
+                        `/@${article.actor.username}/${article.publishedYear}/${
+                          encodeURIComponent(article.slug!)
+                        }/edit`,
+                      )
+                    : undefined}
                 />
                 <Show
                   keyed
