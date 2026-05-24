@@ -346,7 +346,7 @@ function PostActionMenuContent(props: PostActionMenuContentProps) {
             </DropdownMenuItem>
           </Show>
           <DropdownMenuItem
-            class="text-destructive-foreground focus:text-destructive-foreground cursor-pointer"
+            class="text-destructive focus:text-destructive cursor-pointer"
             onSelect={() => setShowConfirm(true)}
           >
             <IconTrash2 class="size-4" />
