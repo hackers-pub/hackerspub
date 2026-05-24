@@ -19,6 +19,7 @@ import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { VisibilityTag } from "~/components/VisibilityTag.tsx";
+import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import {
   MentionHoverCardLayer,
@@ -73,6 +74,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
   const { t } = useLingui();
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
+  useContentLinkInterceptor(proseRef);
   const [revokeQuote, revoking] = createMutation<
     QuotedNoteCardRevokeQuoteMutation
   >(RevokeQuoteMutation);

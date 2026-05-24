@@ -438,10 +438,11 @@ export function transformMentions(
           "title",
           `${actor.name ?? actor.username}\n${actor.handle}`,
         );
-        $el.attr(
-          "data-internal-href",
-          actor.accountId == null ? `/${actor.handle}` : `/@${actor.username}`,
-        );
+        const localHref = actor.accountId == null
+          ? `/${actor.handle}`
+          : `/@${actor.username}`;
+        $el.attr("data-internal-href", localHref);
+        $el.attr("href", localHref);
         if (actor.avatarUrl != null) {
           $el.prepend(
             `<img src="${actor.avatarUrl}" width="18" height="18" class="inline-block mr-1">`,
@@ -472,12 +473,11 @@ export function transformMentions(
       tag = $el.text().replace(/^#/, "");
       if (href.toLowerCase() !== tags[tag.toLowerCase()]) return;
     }
-    $el.attr(
-      "data-internal-href",
-      `/tags/${encodeURIComponent(tag)}`,
-    );
+    const localHref = `/tags/${encodeURIComponent(tag)}`;
+    $el.attr("data-internal-href", localHref);
+    $el.attr("href", localHref);
   });
-  $("a.mention[data-internal-href]").attr(
+  $("a[data-internal-href]").attr(
     "onclick",
     "location.href = this.dataset.internalHref; return false;",
   );

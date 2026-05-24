@@ -28,6 +28,7 @@ import {
   removeQuoteInlineFallback,
   sanitizeExcerptHtml,
   stripHtml,
+  transformMentions,
   truncateHtml,
 } from "@hackerspub/models/html";
 import { negotiateLocale, normalizeLocale } from "@hackerspub/models/i18n";
@@ -276,10 +277,17 @@ export const Post = builder.drizzleInterface("postTable", {
           contentHtml: true,
           emojis: true,
           quotedPostId: true,
+          tags: true,
+        },
+        with: {
+          mentions: {
+            with: { actor: true },
+          },
         },
       },
       resolve: (post, _, ctx) => {
         let html = renderCustomEmojis(post.contentHtml, post.emojis);
+        html = transformMentions(html, post.mentions, post.tags);
         html = addExternalLinkTargets(
           html,
           new URL(ctx.fedCtx.canonicalOrigin),
@@ -935,6 +943,12 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
               post: {
                 columns: {
                   emojis: true,
+                  tags: true,
+                },
+                with: {
+                  mentions: {
+                    with: { actor: true },
+                  },
                 },
               },
             },
@@ -951,8 +965,11 @@ export const ArticleContent = builder.drizzleNode("articleContentTable", {
           ),
           missingMediumLabel: getMissingArticleMediumLabel(content.language),
         });
+        const post = content.source.post;
+        let rendered = renderCustomEmojis(html.html, post.emojis);
+        rendered = transformMentions(rendered, post.mentions, post.tags);
         return addExternalLinkTargets(
-          renderCustomEmojis(html.html, content.source.post.emojis),
+          rendered,
           new URL(ctx.fedCtx.canonicalOrigin),
         );
       },

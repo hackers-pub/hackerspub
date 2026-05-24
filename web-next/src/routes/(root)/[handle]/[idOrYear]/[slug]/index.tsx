@@ -30,6 +30,7 @@ import { Timestamp } from "~/components/Timestamp.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import IconLoader2 from "~icons/lucide/loader-2";
+import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import {
   MentionHoverCardLayer,
   useMentionHoverCards,
@@ -357,6 +358,7 @@ interface ArticleBodyProps {
 function ArticleBody(props: ArticleBodyProps) {
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
+  useContentLinkInterceptor(proseRef);
   const article = createFragment(
     graphql`
       fragment Slug_body on Article

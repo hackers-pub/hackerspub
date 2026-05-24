@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment } from "solid-relay";
+import { useContentLinkInterceptor } from "~/lib/contentLinkInterceptor.ts";
 import { createDeferredRender } from "~/lib/deferredRender.ts";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -85,6 +86,7 @@ export function NoteCardInternal(props: NoteCardInternalProps) {
 
   const [proseRef, setProseRef] = createSignal<HTMLElement>();
   const mentionState = useMentionHoverCards(proseRef);
+  useContentLinkInterceptor(proseRef);
   const showDeferredSections = createDeferredRender(() =>
     !!props.deferHeavySections
   );
