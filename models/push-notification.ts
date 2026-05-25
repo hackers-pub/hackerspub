@@ -295,7 +295,7 @@ export async function buildPushNotificationPayload(
 
   return {
     title: titleForType(locale, options.type),
-    body: preview == null ? body : `${body} ${preview}`,
+    body: preview == null ? body : `${body}\n${preview}`,
     url: "/notifications",
     data: {
       notificationId: options.notificationId,

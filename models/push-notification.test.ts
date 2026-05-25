@@ -43,7 +43,10 @@ test("buildPushNotificationPayload() includes previews according to account poli
       actorId: actor.id,
       postId: publicPost.id,
     });
-    assert.match(publicPayload.body, /Visible preview text/);
+    assert.equal(
+      publicPayload.body,
+      "Sender mentioned you.\nVisible preview text",
+    );
 
     const followersPayload = await buildPushNotificationPayload(tx, {
       accountId: account.id,
