@@ -58,8 +58,12 @@ self.addEventListener("notificationclick", (event) => {
         clientUrl.origin === targetUrl.origin &&
         clientUrl.pathname === targetUrl.pathname
       ) {
-        if ("navigate" in client) await client.navigate(targetUrl.href);
-        return await client.focus();
+        try {
+          if ("navigate" in client) await client.navigate(targetUrl.href);
+          return await client.focus();
+        } catch {
+          continue;
+        }
       }
     }
     return await self.clients.openWindow(targetUrl.href);

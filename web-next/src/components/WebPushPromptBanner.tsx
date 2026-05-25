@@ -65,6 +65,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
     string | null
   >(null);
   let refreshVersion = 0;
+  let wasEnabled = false;
 
   const visible = () =>
     mounted() &&
@@ -97,11 +98,15 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
     const vapidPublicKey = props.vapidPublicKey;
     if (!mounted() || !props.loaded) return;
     if (!props.enabled) {
+      const shouldCleanup = wasEnabled;
+      wasEnabled = false;
       refreshVersion++;
+      if (shouldCleanup) cleanupBrowserSubscription();
       setSubscribed(false);
       setRefreshingEndpoint(null);
       return;
     }
+    wasEnabled = true;
     if (vapidPublicKey == null || !supported()) return;
     void refreshExistingSubscription(vapidPublicKey);
   });
