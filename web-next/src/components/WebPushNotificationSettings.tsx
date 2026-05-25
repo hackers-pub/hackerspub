@@ -16,11 +16,12 @@ import {
 import { Label } from "~/components/ui/label.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import {
-  getExistingWebPushSubscription,
   getNotificationPermission,
+  getReusableWebPushSubscriptionData,
   isWebPushSupported,
   subscribeToWebPush,
   unsubscribeFromWebPush,
+  type WebPushSubscriptionData,
 } from "~/lib/webPush.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { WebPushNotificationSettings_account$key } from "./__generated__/WebPushNotificationSettings_account.graphql.ts";
@@ -150,12 +151,18 @@ export function WebPushNotificationSettings(
       return;
     }
     try {
-      const subscription = await getExistingWebPushSubscription();
+      const subscription = props.vapidPublicKey == null
+        ? null
+        : await getReusableWebPushSubscriptionData(props.vapidPublicKey);
       setSubscribed(subscription != null);
       setEndpoint(subscription?.endpoint ?? null);
       setPermission(getNotificationPermission());
+      if (subscription != null) {
+        registerSubscription(subscription, { silent: true });
+      }
     } catch (error) {
       console.error(error);
+      cleanupBrowserSubscription();
       setSubscribed(false);
       setEndpoint(null);
     } finally {
@@ -171,47 +178,62 @@ export function WebPushNotificationSettings(
     void unsubscribeFromWebPush().catch((error) => console.error(error));
   }
 
-  async function enablePush() {
-    const vapidPublicKey = props.vapidPublicKey;
-    if (vapidPublicKey == null) return;
-    try {
-      const subscription = await subscribeToWebPush(vapidPublicKey);
-      registerTarget({
-        variables: subscription,
-        onCompleted(response) {
-          if (
-            response.registerPushNotificationTarget?.__typename !==
-              "RegisterPushNotificationTargetPayload"
-          ) {
+  function registerSubscription(
+    subscription: WebPushSubscriptionData,
+    options: { silent?: boolean } = {},
+  ) {
+    registerTarget({
+      variables: subscription,
+      onCompleted(response) {
+        if (
+          response.registerPushNotificationTarget?.__typename !==
+            "RegisterPushNotificationTargetPayload"
+        ) {
+          if (!options.silent) {
             showToast({
               title: t`Failed to enable browser notifications`,
               variant: "error",
             });
-            cleanupBrowserSubscription();
-            return;
           }
-          setSubscribed(true);
-          setEndpoint(subscription.endpoint);
-          setPermission(getNotificationPermission());
+          cleanupBrowserSubscription();
+          setSubscribed(false);
+          setEndpoint(null);
+          return;
+        }
+        setSubscribed(true);
+        setEndpoint(subscription.endpoint);
+        setPermission(getNotificationPermission());
+        if (!options.silent) {
           showToast({
             title: t`Browser notifications enabled`,
             description:
               t`New notifications can now appear even when Hackers' Pub is not open.`,
             variant: "success",
           });
-        },
-        onError(error) {
-          console.error(error);
-          cleanupBrowserSubscription();
-          setSubscribed(false);
-          setEndpoint(null);
+        }
+      },
+      onError(error) {
+        console.error(error);
+        cleanupBrowserSubscription();
+        setSubscribed(false);
+        setEndpoint(null);
+        if (!options.silent) {
           showToast({
             title: t`Failed to enable browser notifications`,
             description: import.meta.env.DEV ? error.message : undefined,
             variant: "error",
           });
-        },
-      });
+        }
+      },
+    });
+  }
+
+  async function enablePush() {
+    const vapidPublicKey = props.vapidPublicKey;
+    if (vapidPublicKey == null) return;
+    try {
+      const subscription = await subscribeToWebPush(vapidPublicKey);
+      registerSubscription(subscription);
     } catch (error) {
       showToast({
         title: t`Failed to enable browser notifications`,

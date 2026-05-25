@@ -42,6 +42,25 @@ export async function getExistingWebPushSubscription(): Promise<
   return await registration.pushManager.getSubscription();
 }
 
+export async function getReusableWebPushSubscriptionData(
+  vapidPublicKey: string,
+): Promise<WebPushSubscriptionData | null> {
+  if (!isWebPushSupported()) return null;
+  const registration = await getWebPushRegistration();
+  const subscription = await registration.pushManager.getSubscription();
+  if (subscription == null) return null;
+
+  const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+  if (
+    !subscriptionUsesApplicationServerKey(subscription, applicationServerKey)
+  ) {
+    await subscription.unsubscribe();
+    return null;
+  }
+
+  return serializeWebPushSubscription(subscription);
+}
+
 export async function subscribeToWebPush(
   vapidPublicKey: string,
 ): Promise<WebPushSubscriptionData> {

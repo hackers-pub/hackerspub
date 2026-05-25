@@ -1,15 +1,16 @@
 import { graphql } from "relay-runtime";
-import { createSignal, onCleanup, onMount, Show } from "solid-js";
+import { createEffect, createSignal, onCleanup, onMount, Show } from "solid-js";
 import { createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import {
-  getExistingWebPushSubscription,
   getNotificationPermission,
+  getReusableWebPushSubscriptionData,
   isWebPushSupported,
   subscribeToWebPush,
   unsubscribeFromWebPush,
   WEB_PUSH_PERMISSION_CHANGE_EVENT,
+  type WebPushSubscriptionData,
 } from "~/lib/webPush.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { WebPushPromptBannerRegisterMutation } from "./__generated__/WebPushPromptBannerRegisterMutation.graphql.ts";
@@ -18,6 +19,7 @@ import IconX from "~icons/lucide/x";
 
 export interface WebPushPromptBannerProps {
   enabled: boolean;
+  loaded: boolean;
   vapidPublicKey?: string | null;
 }
 
@@ -59,6 +61,10 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
     null,
   );
   const [subscribed, setSubscribed] = createSignal(true);
+  const [refreshingEndpoint, setRefreshingEndpoint] = createSignal<
+    string | null
+  >(null);
+  let refreshVersion = 0;
 
   const visible = () =>
     mounted() &&
@@ -85,15 +91,20 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
         updatePermission,
       );
     });
-    void (async () => {
-      try {
-        const subscription = await getExistingWebPushSubscription();
-        setSubscribed(subscription != null);
-      } catch (error) {
-        console.error(error);
-        setSubscribed(false);
-      }
-    })();
+  });
+
+  createEffect(() => {
+    const vapidPublicKey = props.vapidPublicKey;
+    if (!mounted() || !props.loaded) return;
+    if (!props.enabled) {
+      refreshVersion++;
+      cleanupBrowserSubscription();
+      setSubscribed(false);
+      setRefreshingEndpoint(null);
+      return;
+    }
+    if (vapidPublicKey == null || !supported()) return;
+    void refreshExistingSubscription(vapidPublicKey);
   });
 
   function dismiss() {
@@ -105,45 +116,85 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
     void unsubscribeFromWebPush().catch((error) => console.error(error));
   }
 
-  async function enablePush() {
-    const vapidPublicKey = props.vapidPublicKey;
-    if (vapidPublicKey == null) return;
+  async function refreshExistingSubscription(vapidPublicKey: string) {
+    const currentRefresh = ++refreshVersion;
     try {
-      const subscription = await subscribeToWebPush(vapidPublicKey);
-      registerTarget({
-        variables: subscription,
-        onCompleted(response) {
-          if (
-            response.registerPushNotificationTarget?.__typename !==
-              "RegisterPushNotificationTargetPayload"
-          ) {
+      const subscription = await getReusableWebPushSubscriptionData(
+        vapidPublicKey,
+      );
+      if (currentRefresh !== refreshVersion) return;
+      if (subscription == null) {
+        setSubscribed(false);
+        setRefreshingEndpoint(null);
+        return;
+      }
+      if (refreshingEndpoint() === subscription.endpoint) return;
+      setRefreshingEndpoint(subscription.endpoint);
+      registerSubscription(subscription, { silent: true });
+    } catch (error) {
+      console.error(error);
+      cleanupBrowserSubscription();
+      setSubscribed(false);
+      setRefreshingEndpoint(null);
+    }
+  }
+
+  function registerSubscription(
+    subscription: WebPushSubscriptionData,
+    options: { silent?: boolean } = {},
+  ) {
+    registerTarget({
+      variables: subscription,
+      onCompleted(response) {
+        if (
+          response.registerPushNotificationTarget?.__typename !==
+            "RegisterPushNotificationTargetPayload"
+        ) {
+          if (!options.silent) {
             showToast({
               title: t`Failed to enable browser notifications`,
               variant: "error",
             });
-            cleanupBrowserSubscription();
-            return;
           }
+          cleanupBrowserSubscription();
+          setSubscribed(false);
+          setRefreshingEndpoint(null);
+          return;
+        }
+        if (!options.silent) {
           localStorage.setItem(DISMISSED_KEY, "1");
           setDismissed(true);
-          setSubscribed(true);
-          setPermission(getNotificationPermission());
           showToast({
             title: t`Browser notifications enabled`,
             variant: "success",
           });
-        },
-        onError(error) {
-          console.error(error);
-          cleanupBrowserSubscription();
-          setSubscribed(false);
+        }
+        setSubscribed(true);
+        setPermission(getNotificationPermission());
+        setRefreshingEndpoint(null);
+      },
+      onError(error) {
+        console.error(error);
+        cleanupBrowserSubscription();
+        setSubscribed(false);
+        setRefreshingEndpoint(null);
+        if (!options.silent) {
           showToast({
             title: t`Failed to enable browser notifications`,
             description: import.meta.env.DEV ? error.message : undefined,
             variant: "error",
           });
-        },
-      });
+        }
+      },
+    });
+  }
+
+  async function enablePush() {
+    const vapidPublicKey = props.vapidPublicKey;
+    if (vapidPublicKey == null) return;
+    try {
+      const subscription = await subscribeToWebPush(vapidPublicKey);
+      registerSubscription(subscription);
     } catch (error) {
       setPermission(getNotificationPermission());
       showToast({

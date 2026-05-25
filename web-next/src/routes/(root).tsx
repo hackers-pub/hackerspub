@@ -153,6 +153,7 @@ export default function RootLayout(props: RouteSectionProps) {
             <WebPushPromptBanner
               enabled={!signedAccount.pending &&
                 signedAccount()?.viewer != null}
+              loaded={!signedAccount.pending}
               vapidPublicKey={signedAccount()?.webPushVapidPublicKey}
             />
             <Suspense>{props.children}</Suspense>
