@@ -248,8 +248,10 @@ export function WebPushNotificationSettings(
     try {
       const removedEndpoint = await unsubscribeFromWebPush();
       const targetEndpoint = removedEndpoint ?? endpoint();
+      setSubscribed(false);
+      setEndpoint(null);
+      setPermission(getNotificationPermission());
       if (targetEndpoint == null) {
-        setSubscribed(false);
         return;
       }
       unregisterTarget({
@@ -265,8 +267,6 @@ export function WebPushNotificationSettings(
             });
             return;
           }
-          setSubscribed(false);
-          setEndpoint(null);
           showToast({
             title: t`Browser notifications disabled`,
             variant: "success",

@@ -8,22 +8,26 @@ self.addEventListener("push", (event) => {
       payload = { body: event.data.text() };
     }
   }
+  const safePayload = payload != null && typeof payload === "object"
+    ? payload
+    : {};
 
-  const title = typeof payload.title === "string" && payload.title.trim() !== ""
-    ? payload.title
+  const title = typeof safePayload.title === "string" &&
+      safePayload.title.trim() !== ""
+    ? safePayload.title
     : "Hackers' Pub";
-  const targetPath = typeof payload.url === "string" &&
-      payload.url.startsWith("/") &&
-      !payload.url.startsWith("//")
-    ? payload.url
+  const targetPath = typeof safePayload.url === "string" &&
+      safePayload.url.startsWith("/") &&
+      !safePayload.url.startsWith("//")
+    ? safePayload.url
     : fallbackUrl;
   const options = {
-    body: typeof payload.body === "string" ? payload.body : undefined,
+    body: typeof safePayload.body === "string" ? safePayload.body : undefined,
     icon: "/maskable-icon-192.png",
     badge: "/maskable-icon-192.png",
     data: {
-      ...typeof payload.data === "object" && payload.data != null
-        ? payload.data
+      ...typeof safePayload.data === "object" && safePayload.data != null
+        ? safePayload.data
         : {},
       url: targetPath,
     },

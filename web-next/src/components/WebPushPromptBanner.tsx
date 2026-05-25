@@ -98,7 +98,6 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
     if (!mounted() || !props.loaded) return;
     if (!props.enabled) {
       refreshVersion++;
-      cleanupBrowserSubscription();
       setSubscribed(false);
       setRefreshingEndpoint(null);
       return;
