@@ -1,7 +1,8 @@
 import { sortReactionGroups } from "@hackerspub/models/emoji";
 import { A, useNavigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
-import { createSignal, type JSX, Show } from "solid-js";
+import * as PopoverPrimitive from "@kobalte/core/popover";
+import { createSignal, type JSX, onMount, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import { Button } from "~/components/ui/button.tsx";
 import {
@@ -145,6 +146,8 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
   );
 
   const [showEmojiPopover, setShowEmojiPopover] = createSignal(false);
+  const [emojiPickerMounted, setEmojiPickerMounted] = createSignal(false);
+  onMount(() => setEmojiPickerMounted(true));
 
   const [sharePost, sharePending] = createMutation<
     PostEngagementBar_sharePost_Mutation
@@ -326,46 +329,51 @@ export function PostEngagementBar(props: PostEngagementBarProps) {
 
           {/* Reactions — icon opens emoji popover, count links to /reactions. */}
           <div class="inline-flex items-stretch">
-            <DropdownMenu
-              open={showEmojiPopover()}
-              onOpenChange={setShowEmojiPopover}
-            >
-              <DropdownMenuTrigger
-                class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
-                classList={{
-                  "text-muted-foreground hover:text-foreground":
-                    !userHasReacted(),
-                  "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300":
-                    userHasReacted(),
-                }}
-                aria-label={t`React`}
-                title={t`React`}
+            <Show when={emojiPickerMounted()}>
+              <PopoverPrimitive.Root
+                open={showEmojiPopover()}
+                onOpenChange={setShowEmojiPopover}
+                gutter={4}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill={userHasReacted() ? "currentColor" : "none"}
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor"
-                  class="size-4"
-                  aria-hidden="true"
+                <PopoverPrimitive.Trigger
+                  class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 px-2 cursor-pointer"
+                  classList={{
+                    "text-muted-foreground hover:text-foreground":
+                      !userHasReacted(),
+                    "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300":
+                      userHasReacted(),
+                  }}
+                  aria-label={t`React`}
+                  title={t`React`}
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-                  />
-                </svg>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent class="w-80 p-0">
-                <Show when={reactionPopoverData()}>
-                  <EmojiReactionPopover
-                    noteData={reactionPopoverData()!}
-                    onClose={() => setShowEmojiPopover(false)}
-                  />
-                </Show>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill={userHasReacted() ? "currentColor" : "none"}
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="size-4"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+                    />
+                  </svg>
+                </PopoverPrimitive.Trigger>
+                <PopoverPrimitive.Portal>
+                  <PopoverPrimitive.Content class="z-50 w-80 origin-[var(--kb-popover-content-transform-origin)] animate-content-hide overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-none data-[expanded]:animate-content-show">
+                    <Show when={reactionPopoverData()}>
+                      <EmojiReactionPopover
+                        noteData={reactionPopoverData()!}
+                        onClose={() => setShowEmojiPopover(false)}
+                      />
+                    </Show>
+                  </PopoverPrimitive.Content>
+                </PopoverPrimitive.Portal>
+              </PopoverPrimitive.Root>
+            </Show>
             <CountAffordance
               count={note.engagementStats.reactions}
               engagementBase={props.engagementBase ?? null}
