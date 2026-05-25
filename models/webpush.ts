@@ -1,5 +1,6 @@
 import { getLogger } from "@logtape/logtape";
 import { and, eq } from "drizzle-orm";
+import webPush from "web-push";
 import type { Database } from "./db.ts";
 import {
   buildPushNotificationPayload,
@@ -28,20 +29,11 @@ interface WebPushSubscription {
   };
 }
 
-interface WebPushModule {
-  setVapidDetails(subject: string, publicKey: string, privateKey: string): void;
-  sendNotification(
-    subscription: WebPushSubscription,
-    payload: string,
-  ): Promise<unknown>;
-}
-
 type WebPushSender = (
   subscription: WebPushSubscription,
   payload: string,
 ) => Promise<unknown>;
 
-let webPushModule: WebPushModule | undefined;
 let senderForTesting: WebPushSender | undefined;
 let configForTesting: WebPushConfig | undefined;
 
@@ -76,16 +68,6 @@ export function getWebPushVapidPublicKey(): string | null {
   return (configForTesting ?? readEnvConfig())?.publicKey ?? null;
 }
 
-async function getWebPushModule(): Promise<WebPushModule> {
-  if (webPushModule == null) {
-    const mod = await import("web-push") as WebPushModule & {
-      default?: WebPushModule;
-    };
-    webPushModule = mod.default ?? mod;
-  }
-  return webPushModule;
-}
-
 async function sendWebPush(
   config: WebPushConfig,
   subscription: WebPushSubscription,
@@ -94,7 +76,6 @@ async function sendWebPush(
   if (senderForTesting != null) {
     return await senderForTesting(subscription, payload);
   }
-  const webPush = await getWebPushModule();
   webPush.setVapidDetails(config.subject, config.publicKey, config.privateKey);
   return await webPush.sendNotification(subscription, payload);
 }
