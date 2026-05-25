@@ -94,3 +94,49 @@ test("buildPushNotificationPayload() includes previews according to account poli
     assert.doesNotMatch(nonePayload.body, /Followers only preview/);
   });
 });
+
+test("buildPushNotificationPayload() localizes titles and bodies", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "pushlocale",
+      name: "Push Locale",
+      email: "pushlocale@example.com",
+    });
+    const actor = await insertRemoteActor(tx, {
+      username: "sender",
+      name: "Sender",
+      host: "remote.example",
+    });
+
+    await tx.update(accountTable)
+      .set({ locales: ["ko-KR"] })
+      .where(eq(accountTable.id, account.id));
+    const koreanPayload = await buildPushNotificationPayload(tx, {
+      accountId: account.id,
+      notificationId: generateUuidV7(),
+      type: "quote",
+      actorId: actor.id,
+    });
+    assert.equal(koreanPayload.title, "새 인용");
+    assert.equal(
+      koreanPayload.body,
+      "Sender 님이 회원님의 콘텐츠를 인용했습니다",
+    );
+
+    await tx.update(accountTable)
+      .set({ locales: ["zh-HK"] })
+      .where(eq(accountTable.id, account.id));
+    const traditionalChinesePayload = await buildPushNotificationPayload(tx, {
+      accountId: account.id,
+      notificationId: generateUuidV7(),
+      type: "react",
+      actorId: actor.id,
+      emoji: "👍",
+    });
+    assert.equal(traditionalChinesePayload.title, "新的反應");
+    assert.equal(
+      traditionalChinesePayload.body,
+      "Sender 用 👍 對你的內容做出了反應",
+    );
+  });
+});
