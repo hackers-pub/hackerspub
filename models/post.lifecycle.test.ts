@@ -7,6 +7,7 @@ import { follow } from "./following.ts";
 import { revokeQuote, sharePost, unsharePost } from "./post.ts";
 import {
   followingTable,
+  noteSourceTable,
   postTable,
   quoteAuthorizationTable,
 } from "./schema.ts";
@@ -259,6 +260,11 @@ Deno.test({
           quotedPostId: quotedPost.id,
           attributedActorId: owner.actor.id,
         });
+        // Pin updated to epoch so revokeQuote's new Date() is always strictly
+        // greater, regardless of how fast the test runs.
+        await tx.update(noteSourceTable)
+          .set({ updated: new Date(0) })
+          .where(eq(noteSourceTable.id, quote.noteSourceId));
         const originalSource = await tx.query.noteSourceTable.findFirst({
           where: { id: quote.noteSourceId },
         });
