@@ -297,7 +297,7 @@ msgid "Add"
 msgstr "新增"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:314
+#: src/components/EmojiReactionPopover.tsx:452
 msgid "Add {0}"
 msgstr "新增{0}"
 
@@ -324,6 +324,10 @@ msgstr "所有圖片均需提供替代文字。"
 #: src/components/LanguageFilter.tsx:63
 msgid "All languages"
 msgstr "所有語言"
+
+#: src/components/PushNotificationPreviewPolicySelect.tsx:34
+msgid "All notifications"
+msgstr "所有通知"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:504
@@ -487,6 +491,31 @@ msgstr "收藏"
 msgid "Bookmarks"
 msgstr "收藏"
 
+#: src/components/WebPushNotificationSettings.tsx:304
+msgid "Browser notifications"
+msgstr "瀏覽器通知"
+
+#: src/components/WebPushNotificationSettings.tsx:315
+msgid "Browser notifications are not available."
+msgstr "瀏覽器通知無法使用。"
+
+#: src/components/WebPushNotificationSettings.tsx:319
+msgid "Browser notifications are off."
+msgstr "瀏覽器通知已關閉。"
+
+#: src/components/WebPushNotificationSettings.tsx:321
+msgid "Browser notifications are on."
+msgstr "瀏覽器通知已開啟。"
+
+#: src/components/WebPushNotificationSettings.tsx:241
+msgid "Browser notifications disabled"
+msgstr "已停用瀏覽器通知"
+
+#: src/components/WebPushNotificationSettings.tsx:192
+#: src/components/WebPushPromptBanner.tsx:116
+msgid "Browser notifications enabled"
+msgstr "已啟用瀏覽器通知"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1346
 #: src/components/NoteComposer.tsx:1347
@@ -508,6 +537,10 @@ msgstr "取消"
 msgid "Cannot change the language because translations already exist"
 msgstr "由於已存在翻譯，無法變更語言"
 
+#: src/components/WebPushNotificationSettings.tsx:347
+msgid "Check again"
+msgstr "重新檢查"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:246
 msgid "Check your email"
 msgstr "請檢查你的信箱"
@@ -516,9 +549,17 @@ msgstr "請檢查你的信箱"
 msgid "Check your email to complete sign-up. We've sent a verification link to your email address."
 msgstr "請檢查你的信箱以完成註冊。我們已向你的信箱地址發送了驗證連結。"
 
+#: src/components/WebPushNotificationSettings.tsx:347
+msgid "Checking…"
+msgstr "檢查中…"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:384
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
+
+#: src/components/WebPushNotificationSettings.tsx:383
+msgid "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
+msgstr "選擇推播通知是否可以包含內容摘要。隱藏預覽時會使用一般通知文字。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:397
 msgid "Choose your preferred language for the verification email."
@@ -527,6 +568,10 @@ msgstr "請選擇驗證信件的語言。"
 #: src/components/admin/AdminAccountsTable.tsx:213
 msgid "Clear"
 msgstr "清除"
+
+#: src/components/WebPushNotificationSettings.tsx:334
+msgid "Clicking a notification opens your notifications page."
+msgstr "點擊通知會開啟你的通知頁面。"
 
 #: src/components/ImageLightbox.tsx:74
 #: src/routes/(root)/[handle]/settings/invite.tsx:661
@@ -696,6 +741,14 @@ msgstr "刪除內容？"
 msgid "Deleting…"
 msgstr "正在刪除…"
 
+#: src/components/WebPushNotificationSettings.tsx:370
+msgid "Disable"
+msgstr "停用"
+
+#: src/components/WebPushNotificationSettings.tsx:370
+msgid "Disabling…"
+msgstr "停用中…"
+
 #: src/components/NoteComposeModal.tsx:137
 msgid "Discard"
 msgstr "放棄"
@@ -707,6 +760,10 @@ msgstr "放棄草稿？"
 #: src/components/article-composer/useUnsavedGuard.ts:13
 msgid "Discard unsaved changes - are you sure?"
 msgstr "放棄未儲存的變更 - 您確定嗎？"
+
+#: src/components/WebPushPromptBanner.tsx:167
+msgid "Dismiss"
+msgstr "關閉"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:465
 #: src/routes/(root)/sign/up/[token].tsx:381
@@ -773,6 +830,16 @@ msgstr "電子郵件地址"
 #: src/routes/(root)/sign/index.tsx:366
 msgid "Email or username"
 msgstr "電子郵件或使用者名稱"
+
+#: src/components/WebPushNotificationSettings.tsx:359
+#: src/components/WebPushPromptBanner.tsx:161
+msgid "Enable"
+msgstr "啟用"
+
+#: src/components/WebPushNotificationSettings.tsx:359
+#: src/components/WebPushPromptBanner.tsx:161
+msgid "Enabling…"
+msgstr "啟用中…"
 
 #: src/components/QuestionCard.tsx:473
 msgid "Ended"
@@ -883,6 +950,21 @@ msgstr "刪除孤立媒體失敗。"
 msgid "Failed to delete post"
 msgstr "刪除內容失敗"
 
+#: src/components/WebPushNotificationSettings.tsx:233
+#: src/components/WebPushNotificationSettings.tsx:248
+#: src/components/WebPushNotificationSettings.tsx:256
+msgid "Failed to disable browser notifications"
+msgstr "無法停用瀏覽器通知"
+
+#: src/components/WebPushNotificationSettings.tsx:182
+#: src/components/WebPushNotificationSettings.tsx:201
+#: src/components/WebPushNotificationSettings.tsx:209
+#: src/components/WebPushPromptBanner.tsx:105
+#: src/components/WebPushPromptBanner.tsx:123
+#: src/components/WebPushPromptBanner.tsx:132
+msgid "Failed to enable browser notifications"
+msgstr "無法啟用瀏覽器通知"
+
 #: src/components/FollowButton.tsx:160
 #: src/components/HashtagActionBar.tsx:154
 #: src/components/HashtagActionBar.tsx:158
@@ -980,6 +1062,10 @@ msgstr "無法釘選內容"
 #: src/components/EmojiReactionPopover.tsx:174
 #: src/components/EmojiReactionPopover.tsx:256
 #: src/components/EmojiReactionPopover.tsx:265
+#: src/components/EmojiReactionPopover.tsx:335
+#: src/components/EmojiReactionPopover.tsx:344
+#: src/components/EmojiReactionPopover.tsx:394
+#: src/components/EmojiReactionPopover.tsx:403
 msgid "Failed to react"
 msgstr "反應失敗"
 
@@ -1033,8 +1119,8 @@ msgstr "傳送郵件失敗"
 msgid "Failed to send invitation"
 msgstr "發送邀請失敗"
 
-#: src/components/PostEngagementBar.tsx:188
-#: src/components/PostEngagementBar.tsx:195
+#: src/components/PostEngagementBar.tsx:191
+#: src/components/PostEngagementBar.tsx:198
 msgid "Failed to share post"
 msgstr "轉貼失敗"
 
@@ -1059,10 +1145,14 @@ msgstr "取消關注失敗"
 msgid "Failed to unpin post"
 msgstr "無法取消釘選內容"
 
-#: src/components/PostEngagementBar.tsx:170
-#: src/components/PostEngagementBar.tsx:177
+#: src/components/PostEngagementBar.tsx:173
+#: src/components/PostEngagementBar.tsx:180
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
+
+#: src/components/WebPushNotificationSettings.tsx:293
+msgid "Failed to update push notification privacy"
+msgstr "無法更新推播通知隱私設定"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:363
 msgid "Failed to update the article. Please try again."
@@ -1140,6 +1230,10 @@ msgstr "格式"
 msgid "Generating…"
 msgstr "生成中…"
 
+#: src/components/WebPushPromptBanner.tsx:147
+msgid "Get browser notifications"
+msgstr "接收瀏覽器通知"
+
 #: src/components/AppSidebar.tsx:998
 msgid "GitHub repository"
 msgstr "GitHub 儲存庫"
@@ -1175,7 +1269,7 @@ msgstr "向自上次重新發放截止時間以來最活躍的帳號（按內容
 
 #: src/components/AppSidebar.tsx:314
 #: src/components/AppSidebar.tsx:429
-#: src/routes/(root).tsx:132
+#: src/routes/(root).tsx:134
 #: src/routes/(root)/coc.tsx:41
 #: src/routes/(root)/markdown.tsx:41
 #: src/routes/(root)/privacy.tsx:41
@@ -1183,7 +1277,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:124
+#: src/routes/(root).tsx:126
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub 首頁"
 
@@ -1203,7 +1297,7 @@ msgstr "Hackers' Pub：管理 · 邀請"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · 媒體"
 
-#: src/routes/(root)/notifications.tsx:45
+#: src/routes/(root)/notifications.tsx:48
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
@@ -1587,8 +1681,8 @@ msgstr "媒體"
 msgid "Mentioned only"
 msgstr "只提及使用者可見"
 
-#: src/components/PostEngagementBar.tsx:428
-#: src/components/PostEngagementBar.tsx:429
+#: src/components/PostEngagementBar.tsx:436
+#: src/components/PostEngagementBar.tsx:437
 msgid "More engagement views"
 msgstr "查看其他反應"
 
@@ -1645,6 +1739,10 @@ msgstr "從未使用過"
 #: src/routes/(root)/[handle]/drafts/new.tsx:84
 msgid "New article"
 msgstr "新建文章"
+
+#: src/components/WebPushNotificationSettings.tsx:194
+msgid "New notifications can now appear even when Hackers' Pub is not open."
+msgstr "現在即使 Hackers' Pub 未開啟，也可以顯示新通知。"
 
 #: src/components/PersonalTimeline.tsx:219
 #: src/components/PublicTimeline.tsx:214
@@ -1711,6 +1809,10 @@ msgstr "尚無轉貼。"
 msgid "No posts found"
 msgstr "未找到內容"
 
+#: src/components/PushNotificationPreviewPolicySelect.tsx:39
+msgid "No previews"
+msgstr "不顯示預覽"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:176
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:190
 msgid "No reactions yet."
@@ -1772,9 +1874,17 @@ msgstr "貼文"
 msgid "Nothing to preview"
 msgstr "沒有可預覽的內容"
 
+#: src/components/WebPushNotificationSettings.tsx:376
+msgid "Notification preview privacy"
+msgstr "通知預覽隱私"
+
 #: src/components/AppSidebar.tsx:557
 msgid "Notifications"
 msgstr "通知"
+
+#: src/components/WebPushNotificationSettings.tsx:332
+msgid "Notifications are blocked in your browser settings."
+msgstr "瀏覽器設定已封鎖通知。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:780
 msgid "Number of invitations"
@@ -1951,6 +2061,10 @@ msgstr "個人資料設定"
 msgid "Public"
 msgstr "公開"
 
+#: src/components/PushNotificationPreviewPolicySelect.tsx:29
+msgid "Public posts only"
+msgstr "僅公開內容"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:61
 msgid "Publish article"
 msgstr "發布文章"
@@ -1962,6 +2076,10 @@ msgstr "立即發布"
 #: src/components/article-composer/ArticleComposerActions.tsx:51
 msgid "Publishing…"
 msgstr "發布中…"
+
+#: src/components/WebPushNotificationSettings.tsx:282
+msgid "Push notification privacy updated"
+msgstr "已更新推播通知隱私設定"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:645
 #: src/routes/(root)/[handle]/settings/invite.tsx:711
@@ -1979,7 +2097,7 @@ msgid "Quiet public"
 msgstr "悄悄公開"
 
 #: src/components/NoteComposeModal.tsx:71
-#: src/components/PostEngagementBar.tsx:267
+#: src/components/PostEngagementBar.tsx:270
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
@@ -2007,21 +2125,21 @@ msgstr "引用內容已隱藏"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:268
+#: src/components/PostEngagementBar.tsx:271
 msgid "Quoting is not available for this post"
 msgstr "無法引用此內容。"
 
-#: src/components/PostEngagementBar.tsx:341
-#: src/components/PostEngagementBar.tsx:342
+#: src/components/PostEngagementBar.tsx:346
+#: src/components/PostEngagementBar.tsx:347
 msgid "React"
 msgstr "反應"
 
-#: src/components/EmojiReactionPopover.tsx:359
+#: src/components/EmojiReactionPopover.tsx:499
 msgid "React with {emoji}"
 msgstr "用{emoji}反應"
 
-#: src/components/EmojiReactionPopover.tsx:312
-#: src/components/EmojiReactionPopover.tsx:315
+#: src/components/EmojiReactionPopover.tsx:450
+#: src/components/EmojiReactionPopover.tsx:453
 msgid "reaction"
 msgstr "反應"
 
@@ -2039,6 +2157,14 @@ msgstr "閱讀完整文章"
 #: src/routes/(root)/sign/up/[token].tsx:447
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "閱讀完整的行為守則"
+
+#: src/components/WebPushPromptBanner.tsx:150
+msgid "Receive new notifications immediately, even when this tab is closed."
+msgstr "即使此分頁已關閉，也能立即收到新通知。"
+
+#: src/components/WebPushNotificationSettings.tsx:306
+msgid "Receive notifications immediately through this browser, even when this tab is closed."
+msgstr "透過此瀏覽器立即接收通知，即使此分頁已關閉。"
 
 #: src/components/AppSidebar.tsx:884
 msgid "Recent drafts"
@@ -2091,7 +2217,7 @@ msgid "Remove"
 msgstr "移除"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:311
+#: src/components/EmojiReactionPopover.tsx:449
 msgid "Remove {0}"
 msgstr "移除{0}"
 
@@ -2125,11 +2251,11 @@ msgid "Rendering…"
 msgstr "渲染中…"
 
 #: src/components/NoteComposeModal.tsx:70
-#: src/components/PostEngagementBar.tsx:255
+#: src/components/PostEngagementBar.tsx:258
 msgid "Reply"
 msgstr "回覆"
 
-#: src/components/PostEngagementBar.tsx:256
+#: src/components/PostEngagementBar.tsx:259
 msgid "Replying is not available for this post"
 msgstr "無法回覆此內容"
 
@@ -2252,7 +2378,7 @@ msgstr "設定您的個人偏好設定。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostEngagementBar.tsx:301
+#: src/components/PostEngagementBar.tsx:304
 msgid "Share"
 msgstr "分享"
 
@@ -2263,7 +2389,7 @@ msgstr "分享"
 msgid "Shares"
 msgstr "轉貼"
 
-#: src/components/PostEngagementBar.tsx:302
+#: src/components/PostEngagementBar.tsx:305
 msgid "Sharing is not available for this post"
 msgstr "無法轉貼此內容。"
 
@@ -2511,6 +2637,10 @@ msgstr "此內容引用了另一則內容，但目前未獲得引用授權。"
 msgid "This quote is waiting for approval from the original author."
 msgstr "此引用正在等待原作者核准。"
 
+#: src/components/WebPushNotificationSettings.tsx:328
+msgid "This server has not configured Web Push yet."
+msgstr "此伺服器尚未設定 Web Push。"
+
 #: src/components/RemoteFollowButton.tsx:137
 #: src/components/RemoteFollowButton.tsx:144
 #: src/components/RemoteFollowButton.tsx:150
@@ -2547,7 +2677,7 @@ msgstr "標題不能為空"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "要關注{0}，請輸入你的聯邦宇宙使用者名稱。"
 
-#: src/routes/(root).tsx:122
+#: src/routes/(root).tsx:124
 msgid "Toggle sidebar"
 msgstr "切換側邊欄"
 
@@ -2601,11 +2731,15 @@ msgstr "輸入標籤，用空格分隔"
 
 #: src/components/EmojiReactionPopover.tsx:257
 #: src/components/EmojiReactionPopover.tsx:266
+#: src/components/EmojiReactionPopover.tsx:395
+#: src/components/EmojiReactionPopover.tsx:404
 msgid "Unable to add reaction. Please try again."
 msgstr "無法新增反應。請重試。"
 
 #: src/components/EmojiReactionPopover.tsx:166
 #: src/components/EmojiReactionPopover.tsx:175
+#: src/components/EmojiReactionPopover.tsx:336
+#: src/components/EmojiReactionPopover.tsx:345
 msgid "Unable to remove reaction. Please try again."
 msgstr "無法移除反應。請重試。"
 
@@ -2628,7 +2762,7 @@ msgstr "取消關注"
 msgid "Unpin from profile"
 msgstr "從個人資料取消釘選"
 
-#: src/components/PostEngagementBar.tsx:299
+#: src/components/PostEngagementBar.tsx:302
 msgid "Unshare"
 msgstr "取消轉貼"
 
@@ -2704,23 +2838,23 @@ msgstr "查看所有草稿 →"
 msgid "View image"
 msgstr "查看圖片"
 
-#: src/components/PostEngagementBar.tsx:269
-#: src/components/PostEngagementBar.tsx:459
+#: src/components/PostEngagementBar.tsx:272
+#: src/components/PostEngagementBar.tsx:467
 msgid "View quotes"
 msgstr "查看引用"
 
-#: src/components/PostEngagementBar.tsx:373
-#: src/components/PostEngagementBar.tsx:471
+#: src/components/PostEngagementBar.tsx:381
+#: src/components/PostEngagementBar.tsx:479
 msgid "View reactions"
 msgstr "查看反應"
 
-#: src/components/PostEngagementBar.tsx:257
-#: src/components/PostEngagementBar.tsx:451
+#: src/components/PostEngagementBar.tsx:260
+#: src/components/PostEngagementBar.tsx:459
 msgid "View replies"
 msgstr "查看回覆"
 
-#: src/components/PostEngagementBar.tsx:303
-#: src/components/PostEngagementBar.tsx:465
+#: src/components/PostEngagementBar.tsx:306
+#: src/components/PostEngagementBar.tsx:473
 msgid "View shares"
 msgstr "查看轉貼"
 

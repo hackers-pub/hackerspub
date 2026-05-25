@@ -9,13 +9,16 @@ import {
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotificationList } from "~/components/NotificationList.tsx";
 import { Title } from "~/components/Title.tsx";
+import { WebPushNotificationSettings } from "~/components/WebPushNotificationSettings.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { notificationsPageQuery } from "./__generated__/notificationsPageQuery.graphql.ts";
 import { routePreloadedQuery } from "~/lib/relayPreload.ts";
 
 const notificationsPageQuery = graphql`
   query notificationsPageQuery {
+    webPushVapidPublicKey
     viewer {
+      ...WebPushNotificationSettings_account
       ...NotificationList_notifications
     }
   }
@@ -51,7 +54,15 @@ export default function NotificationsPage() {
               when={data.viewer}
               fallback={<Navigate href="/sign?next=%2Fnotifications" />}
             >
-              {(viewer) => <NotificationList $account={viewer} />}
+              {(viewer) => (
+                <div class="flex flex-col gap-4">
+                  <WebPushNotificationSettings
+                    $account={viewer}
+                    vapidPublicKey={data.webPushVapidPublicKey}
+                  />
+                  <NotificationList $account={viewer} />
+                </div>
+              )}
             </Show>
           )}
         </Show>
