@@ -73,7 +73,10 @@ function getIpv4FromMappedIpv6Host(hostname: string): string | null {
     return null;
   }
 
-  const words = normalized.slice(prefix.length, -1).split(":");
+  const suffix = normalized.slice(prefix.length, -1);
+  if (suffix.includes(".")) return getIpv4FromDottedDecimal(suffix);
+
+  const words = suffix.split(":");
   if (words.length !== 2) return null;
 
   if (words.some((word) => !/^[0-9a-f]{1,4}$/.test(word))) return null;
@@ -88,6 +91,18 @@ function getIpv4FromMappedIpv6Host(hostname: string): string | null {
     low >> 8,
     low & 0xff,
   ].join(".");
+}
+
+function getIpv4FromDottedDecimal(text: string): string | null {
+  const octets = text.split(".");
+  if (octets.length !== 4) return null;
+
+  const values = octets.map((octet) => {
+    if (!/^(0|[1-9][0-9]{0,2})$/.test(octet)) return null;
+    const value = Number.parseInt(octet, 10);
+    return value <= 255 ? value : null;
+  });
+  return values.some((value) => value == null) ? null : values.join(".");
 }
 
 export function normalizeWebPushKey(key: string): string | null {

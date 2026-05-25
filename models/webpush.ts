@@ -8,6 +8,7 @@ import {
 } from "./push-notification.ts";
 import {
   deleteStalePushNotificationTargets,
+  normalizeWebPushEndpoint,
   pushTargetHasEndpoint,
 } from "./push.ts";
 import { pushNotificationTargetTable } from "./schema.ts";
@@ -153,8 +154,21 @@ export async function sendWebPushNotification(
 
   await Promise.allSettled(
     targets.map(async (target) => {
+      const endpoint = normalizeWebPushEndpoint(target.endpoint);
+      if (endpoint == null) {
+        logger.warning(
+          "Skipping unsafe Web Push endpoint for account {accountId}, endpoint suffix {endpointSuffix}.",
+          {
+            accountId: options.accountId,
+            endpointSuffix: getEndpointSuffix(target.endpoint),
+          },
+        );
+        staleEndpoints.add(target.endpoint);
+        return;
+      }
+
       const subscription = {
-        endpoint: target.endpoint,
+        endpoint,
         expirationTime: target.expirationTime?.getTime() ?? null,
         keys: {
           p256dh: target.p256dh,

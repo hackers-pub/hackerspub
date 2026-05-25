@@ -43,6 +43,7 @@ test("sendWebPushNotification() sends browser subscriptions and prunes stale end
       });
       const activeEndpoint = "https://push.example/active";
       const staleEndpoint = "https://push.example/stale";
+      const unsafeEndpoint = "https://127.0.0.1/rebound";
 
       for (const endpoint of [activeEndpoint, staleEndpoint]) {
         await registerPushNotificationTarget(tx, account.id, {
@@ -54,6 +55,14 @@ test("sendWebPushNotification() sends browser subscriptions and prunes stale end
           },
         });
       }
+      await tx.insert(pushNotificationTargetTable).values({
+        id: generateUuidV7(),
+        service: "web_push",
+        accountId: account.id,
+        endpoint: unsafeEndpoint,
+        p256dh: "dGVzdC1wMjU2ZGg",
+        auth: "dGVzdC1hdXRo",
+      });
 
       await sendWebPushNotification(tx, {
         accountId: account.id,
