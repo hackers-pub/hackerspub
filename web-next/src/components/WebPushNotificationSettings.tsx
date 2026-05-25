@@ -194,10 +194,13 @@ export function WebPushNotificationSettings(
               title: t`Failed to enable browser notifications`,
               variant: "error",
             });
+            cleanupBrowserSubscription();
+            setSubscribed(false);
+            setEndpoint(null);
+          } else {
+            setSubscribed(true);
+            setEndpoint(subscription.endpoint);
           }
-          cleanupBrowserSubscription();
-          setSubscribed(false);
-          setEndpoint(null);
           return;
         }
         setSubscribed(true);
@@ -214,9 +217,14 @@ export function WebPushNotificationSettings(
       },
       onError(error) {
         console.error(error);
-        cleanupBrowserSubscription();
-        setSubscribed(false);
-        setEndpoint(null);
+        if (!options.silent) {
+          cleanupBrowserSubscription();
+          setSubscribed(false);
+          setEndpoint(null);
+        } else {
+          setSubscribed(true);
+          setEndpoint(subscription.endpoint);
+        }
         if (!options.silent) {
           showToast({
             title: t`Failed to enable browser notifications`,

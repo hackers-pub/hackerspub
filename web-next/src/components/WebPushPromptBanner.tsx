@@ -134,6 +134,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
       }
       if (refreshingEndpoint() === subscription.endpoint) return;
       setRefreshingEndpoint(subscription.endpoint);
+      setSubscribed(true);
       registerSubscription(subscription, { silent: true });
     } catch (error) {
       console.error(error);
@@ -159,9 +160,11 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
               title: t`Failed to enable browser notifications`,
               variant: "error",
             });
+            cleanupBrowserSubscription();
+            setSubscribed(false);
+          } else {
+            setSubscribed(true);
           }
-          cleanupBrowserSubscription();
-          setSubscribed(false);
           setRefreshingEndpoint(null);
           return;
         }
@@ -179,8 +182,12 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
       },
       onError(error) {
         console.error(error);
-        cleanupBrowserSubscription();
-        setSubscribed(false);
+        if (!options.silent) {
+          cleanupBrowserSubscription();
+          setSubscribed(false);
+        } else {
+          setSubscribed(true);
+        }
         setRefreshingEndpoint(null);
         if (!options.silent) {
           showToast({
