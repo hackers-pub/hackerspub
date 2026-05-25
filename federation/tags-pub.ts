@@ -232,8 +232,6 @@ export async function subscribeTagsPubHashtag(
   ctx: Context<ContextData>,
   tag: string,
 ): Promise<void> {
-  const config = getTagsPubRelayConfig();
-  if (!config.enabled) return;
   const hostname = new URL(ctx.canonicalOrigin).hostname;
   const followIri = getTagsPubHashtagFollowIri(ctx, tag);
   const tagActorUrl = getTagsPubHashtagActorUrl(tag);
@@ -264,8 +262,6 @@ export async function unsubscribeTagsPubHashtag(
   ctx: Context<ContextData>,
   tag: string,
 ): Promise<void> {
-  const config = getTagsPubRelayConfig();
-  if (!config.enabled) return;
   const hostname = new URL(ctx.canonicalOrigin).hostname;
   const followIri = getTagsPubHashtagFollowIri(ctx, tag);
   const tagActorUrl = getTagsPubHashtagActorUrl(tag);
