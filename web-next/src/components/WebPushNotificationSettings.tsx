@@ -198,6 +198,9 @@ export function WebPushNotificationSettings(
         },
         onError(error) {
           console.error(error);
+          void unsubscribeFromWebPush();
+          setSubscribed(false);
+          setEndpoint(null);
           showToast({
             title: t`Failed to enable browser notifications`,
             description: import.meta.env.DEV ? error.message : undefined,

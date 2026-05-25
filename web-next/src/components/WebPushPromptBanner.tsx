@@ -131,6 +131,8 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
         },
         onError(error) {
           console.error(error);
+          void unsubscribeFromWebPush();
+          setSubscribed(false);
           showToast({
             title: t`Failed to enable browser notifications`,
             description: import.meta.env.DEV ? error.message : undefined,
