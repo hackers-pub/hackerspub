@@ -50,22 +50,26 @@ function readEnvConfig(): WebPushConfig | null {
     logger.debug(
       "Web Push integration is disabled because WEB_PUSH_VAPID_* environment variables are not set.",
     );
-    return cachedEnvConfig = null;
+    cachedEnvConfig = null;
+    return null;
   }
   if (publicKey === "" || privateKey === "" || subject === "") {
     logger.warning(
       "Web Push integration is disabled because WEB_PUSH_VAPID_* environment variables are incomplete.",
     );
-    return cachedEnvConfig = null;
+    cachedEnvConfig = null;
+    return null;
   }
   if (!subject.startsWith("mailto:") && !subject.startsWith("https://")) {
     logger.warning(
       "Web Push integration is disabled because WEB_PUSH_VAPID_SUBJECT must be a mailto: address or an https:// URL.",
     );
-    return cachedEnvConfig = null;
+    cachedEnvConfig = null;
+    return null;
   }
 
-  return cachedEnvConfig = { publicKey, privateKey, subject };
+  cachedEnvConfig = { publicKey, privateKey, subject };
+  return cachedEnvConfig;
 }
 
 export function getWebPushVapidPublicKey(): string | null {
