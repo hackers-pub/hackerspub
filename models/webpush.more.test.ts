@@ -15,6 +15,10 @@ import {
   withRollback,
 } from "../test/postgres.ts";
 
+const validWebPushP256dh =
+  "BAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE";
+const validWebPushAuth = "AgICAgICAgICAgICAgICAg";
+
 test("sendWebPushNotification() sends browser subscriptions and prunes stale endpoints", async () => {
   const sent: Array<{ endpoint: string; payload: string }> = [];
   setWebPushConfigForTesting({
@@ -50,8 +54,8 @@ test("sendWebPushNotification() sends browser subscriptions and prunes stale end
           service: "web_push",
           subscription: {
             endpoint,
-            p256dh: "dGVzdC1wMjU2ZGg",
-            auth: "dGVzdC1hdXRo",
+            p256dh: validWebPushP256dh,
+            auth: validWebPushAuth,
           },
         });
       }
@@ -60,8 +64,8 @@ test("sendWebPushNotification() sends browser subscriptions and prunes stale end
         service: "web_push",
         accountId: account.id,
         endpoint: unsafeEndpoint,
-        p256dh: "dGVzdC1wMjU2ZGg",
-        auth: "dGVzdC1hdXRo",
+        p256dh: validWebPushP256dh,
+        auth: validWebPushAuth,
       });
 
       await sendWebPushNotification(tx, {

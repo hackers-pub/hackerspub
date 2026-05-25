@@ -12,8 +12,9 @@ import {
 } from "../test/postgres.ts";
 
 const validApnsToken = "0123456789abcdef".repeat(4);
-const validWebPushP256dh = "dGVzdC1wMjU2ZGg";
-const validWebPushAuth = "dGVzdC1hdXRo";
+const validWebPushP256dh =
+  "BAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE";
+const validWebPushAuth = "AgICAgICAgICAgICAgICAg";
 
 const vapidKeyQuery = parse(`
   query WebPushVapidPublicKey {
@@ -248,8 +249,20 @@ test("registerPushNotificationTarget rejects unsafe Web Push subscriptions", asy
         [{
           service: "WEB_PUSH",
           endpoint: "https://push.example/endpoint",
+          p256dh: "dG9vLXNob3J0",
+          auth: validWebPushAuth,
+        }, "p256dh"],
+        [{
+          service: "WEB_PUSH",
+          endpoint: "https://push.example/endpoint",
           p256dh: validWebPushP256dh,
           auth: "@@",
+        }, "auth"],
+        [{
+          service: "WEB_PUSH",
+          endpoint: "https://push.example/endpoint",
+          p256dh: validWebPushP256dh,
+          auth: "dG9vLXNob3J0",
         }, "auth"],
       ] as const
     ) {

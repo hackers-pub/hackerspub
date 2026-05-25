@@ -11,6 +11,8 @@ import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const APNS_DEVICE_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
 const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/;
+export const WEB_PUSH_AUTH_SECRET_BYTES = 16;
+export const WEB_PUSH_P256DH_KEY_BYTES = 65;
 export const MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE = 20;
 
 export interface WebPushSubscriptionInput {
@@ -105,13 +107,24 @@ function getIpv4FromDottedDecimal(text: string): string | null {
   return values.some((value) => value == null) ? null : values.join(".");
 }
 
-export function normalizeWebPushKey(key: string): string | null {
+function decodeBase64Url(value: string): string | null {
+  const padding = "=".repeat((4 - value.length % 4) % 4);
+  try {
+    return atob((value + padding).replace(/-/g, "+").replace(/_/g, "/"));
+  } catch {
+    return null;
+  }
+}
+
+export function normalizeWebPushKey(
+  key: string,
+  expectedBytes?: number,
+): string | null {
   const trimmed = key.trim();
   if (trimmed === "" || !BASE64URL_PATTERN.test(trimmed)) return null;
-  try {
-    const padding = "=".repeat((4 - trimmed.length % 4) % 4);
-    atob((trimmed + padding).replace(/-/g, "+").replace(/_/g, "/"));
-  } catch {
+  const decoded = decodeBase64Url(trimmed);
+  if (decoded == null) return null;
+  if (expectedBytes != null && decoded.length !== expectedBytes) {
     return null;
   }
   return trimmed;
@@ -125,10 +138,10 @@ function normalizeWebPushSubscription(
     : normalizeWebPushEndpoint(subscription.endpoint);
   const p256dh = subscription?.p256dh == null
     ? null
-    : normalizeWebPushKey(subscription.p256dh);
+    : normalizeWebPushKey(subscription.p256dh, WEB_PUSH_P256DH_KEY_BYTES);
   const auth = subscription?.auth == null
     ? null
-    : normalizeWebPushKey(subscription.auth);
+    : normalizeWebPushKey(subscription.auth, WEB_PUSH_AUTH_SECRET_BYTES);
   if (endpoint == null || p256dh == null || auth == null) return null;
   return {
     endpoint,
@@ -286,48 +299,54 @@ export async function unregisterPushNotificationTarget(
   accountId: Uuid,
   input: UnregisterPushNotificationTargetInput,
 ): Promise<boolean> {
-  let where;
-  switch (input.service) {
-    case "apns": {
-      const token = input.token == null
-        ? null
-        : normalizeApnsDeviceToken(input.token);
-      if (token == null) return false;
-      where = and(
-        eq(pushNotificationTargetTable.accountId, accountId),
-        eq(pushNotificationTargetTable.service, "apns"),
-        eq(pushNotificationTargetTable.token, token),
-      );
-      break;
-    }
-    case "fcm": {
-      const token = input.token == null
-        ? null
-        : normalizeFcmDeviceToken(input.token);
-      if (token == null) return false;
-      where = and(
-        eq(pushNotificationTargetTable.accountId, accountId),
-        eq(pushNotificationTargetTable.service, "fcm"),
-        eq(pushNotificationTargetTable.token, token),
-      );
-      break;
-    }
-    case "web_push": {
-      const endpoint = input.endpoint?.trim();
-      if (endpoint == null || endpoint === "") return false;
-      where = and(
-        eq(pushNotificationTargetTable.accountId, accountId),
-        eq(pushNotificationTargetTable.service, "web_push"),
-        eq(pushNotificationTargetTable.endpoint, endpoint),
-      );
-      break;
-    }
-  }
+  const where = buildUnregisterTargetWhere(accountId, input);
+  if (where == null) return false;
 
   const rows = await db.delete(pushNotificationTargetTable)
     .where(where)
     .returning({ id: pushNotificationTargetTable.id });
   return rows.length > 0;
+}
+
+function buildUnregisterTargetWhere(
+  accountId: Uuid,
+  input: UnregisterPushNotificationTargetInput,
+) {
+  switch (input.service) {
+    case "apns": {
+      const token = input.token == null
+        ? null
+        : normalizeApnsDeviceToken(input.token);
+      if (token == null) return null;
+      return and(
+        eq(pushNotificationTargetTable.accountId, accountId),
+        eq(pushNotificationTargetTable.service, "apns"),
+        eq(pushNotificationTargetTable.token, token),
+      );
+    }
+    case "fcm": {
+      const token = input.token == null
+        ? null
+        : normalizeFcmDeviceToken(input.token);
+      if (token == null) return null;
+      return and(
+        eq(pushNotificationTargetTable.accountId, accountId),
+        eq(pushNotificationTargetTable.service, "fcm"),
+        eq(pushNotificationTargetTable.token, token),
+      );
+    }
+    case "web_push": {
+      const endpoint = input.endpoint?.trim();
+      if (endpoint == null || endpoint === "") return null;
+      return and(
+        eq(pushNotificationTargetTable.accountId, accountId),
+        eq(pushNotificationTargetTable.service, "web_push"),
+        eq(pushNotificationTargetTable.endpoint, endpoint),
+      );
+    }
+    default:
+      return null;
+  }
 }
 
 export async function deleteStalePushNotificationTargets(

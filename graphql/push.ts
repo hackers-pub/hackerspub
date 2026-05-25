@@ -9,6 +9,8 @@ import {
   normalizeWebPushKey,
   registerPushNotificationTarget,
   unregisterPushNotificationTarget,
+  WEB_PUSH_AUTH_SECRET_BYTES,
+  WEB_PUSH_P256DH_KEY_BYTES,
 } from "@hackerspub/models/push";
 import { getWebPushVapidPublicKey } from "@hackerspub/models/webpush";
 import { assertNever } from "@std/assert/unstable-never";
@@ -205,11 +207,11 @@ builder.relayMutationField(
         if (endpoint == null) {
           throw new InvalidInputError("endpoint");
         }
-        p256dh = normalizeWebPushKey(p256dh);
+        p256dh = normalizeWebPushKey(p256dh, WEB_PUSH_P256DH_KEY_BYTES);
         if (p256dh == null) {
           throw new InvalidInputError("p256dh");
         }
-        auth = normalizeWebPushKey(auth);
+        auth = normalizeWebPushKey(auth, WEB_PUSH_AUTH_SECRET_BYTES);
         if (auth == null) {
           throw new InvalidInputError("auth");
         }

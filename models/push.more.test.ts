@@ -12,8 +12,9 @@ import { insertAccountWithActor, withRollback } from "../test/postgres.ts";
 function webSubscription(endpoint: string) {
   return {
     endpoint,
-    p256dh: "dGVzdC1wMjU2ZGg",
-    auth: "dGVzdC1hdXRo",
+    p256dh:
+      "BAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE",
+    auth: "AgICAgICAgICAgICAgICAg",
     expirationTime: null,
   };
 }
@@ -35,6 +36,14 @@ test("registerPushNotificationTarget() rejects unsafe Web Push subscriptions", a
         webSubscription("https://[::ffff:7f00:1]/endpoint"),
         { ...webSubscription("https://push.example/endpoint"), p256dh: "@@" },
         { ...webSubscription("https://push.example/endpoint"), auth: "@@" },
+        {
+          ...webSubscription("https://push.example/endpoint"),
+          p256dh: "dG9vLXNob3J0",
+        },
+        {
+          ...webSubscription("https://push.example/endpoint"),
+          auth: "dG9vLXNob3J0",
+        },
       ]
     ) {
       assert.equal(
