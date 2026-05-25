@@ -297,7 +297,7 @@ msgid "Add"
 msgstr "Add"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:314
+#: src/components/EmojiReactionPopover.tsx:452
 msgid "Add {0}"
 msgstr "Add {0}"
 
@@ -324,6 +324,10 @@ msgstr "All images require alt text"
 #: src/components/LanguageFilter.tsx:63
 msgid "All languages"
 msgstr "All languages"
+
+#: src/components/PushNotificationPreviewPolicySelect.tsx:34
+msgid "All notifications"
+msgstr "All notifications"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:504
@@ -487,6 +491,31 @@ msgstr "Bookmark"
 msgid "Bookmarks"
 msgstr "Bookmarks"
 
+#: src/components/WebPushNotificationSettings.tsx:366
+msgid "Browser notifications"
+msgstr "Browser notifications"
+
+#: src/components/WebPushNotificationSettings.tsx:377
+msgid "Browser notifications are not available."
+msgstr "Browser notifications are not available."
+
+#: src/components/WebPushNotificationSettings.tsx:381
+msgid "Browser notifications are off."
+msgstr "Browser notifications are off."
+
+#: src/components/WebPushNotificationSettings.tsx:383
+msgid "Browser notifications are on."
+msgstr "Browser notifications are on."
+
+#: src/components/WebPushNotificationSettings.tsx:311
+msgid "Browser notifications disabled"
+msgstr "Browser notifications disabled"
+
+#: src/components/WebPushNotificationSettings.tsx:243
+#: src/components/WebPushPromptBanner.tsx:196
+msgid "Browser notifications enabled"
+msgstr "Browser notifications enabled"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1346
 #: src/components/NoteComposer.tsx:1347
@@ -508,6 +537,10 @@ msgstr "Cancel"
 msgid "Cannot change the language because translations already exist"
 msgstr "Cannot change the language because translations already exist"
 
+#: src/components/WebPushNotificationSettings.tsx:409
+msgid "Check again"
+msgstr "Check again"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:246
 msgid "Check your email"
 msgstr "Check your email"
@@ -516,9 +549,17 @@ msgstr "Check your email"
 msgid "Check your email to complete sign-up. We've sent a verification link to your email address."
 msgstr "Check your email to complete sign-up. We've sent a verification link to your email address."
 
+#: src/components/WebPushNotificationSettings.tsx:409
+msgid "Checking…"
+msgstr "Checking…"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:384
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
+
+#: src/components/WebPushNotificationSettings.tsx:445
+msgid "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
+msgstr "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:397
 msgid "Choose your preferred language for the verification email."
@@ -527,6 +568,10 @@ msgstr "Choose your preferred language for the verification email."
 #: src/components/admin/AdminAccountsTable.tsx:213
 msgid "Clear"
 msgstr "Clear"
+
+#: src/components/WebPushNotificationSettings.tsx:396
+msgid "Clicking a notification opens your notifications page."
+msgstr "Clicking a notification opens your notifications page."
 
 #: src/components/ImageLightbox.tsx:74
 #: src/routes/(root)/[handle]/settings/invite.tsx:661
@@ -696,6 +741,14 @@ msgstr "Delete post?"
 msgid "Deleting…"
 msgstr "Deleting…"
 
+#: src/components/WebPushNotificationSettings.tsx:432
+msgid "Disable"
+msgstr "Disable"
+
+#: src/components/WebPushNotificationSettings.tsx:432
+msgid "Disabling…"
+msgstr "Disabling…"
+
 #: src/components/NoteComposeModal.tsx:137
 msgid "Discard"
 msgstr "Discard"
@@ -707,6 +760,10 @@ msgstr "Discard draft?"
 #: src/components/article-composer/useUnsavedGuard.ts:13
 msgid "Discard unsaved changes - are you sure?"
 msgstr "Discard unsaved changes - are you sure?"
+
+#: src/components/WebPushPromptBanner.tsx:269
+msgid "Dismiss"
+msgstr "Dismiss"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:465
 #: src/routes/(root)/sign/up/[token].tsx:381
@@ -773,6 +830,16 @@ msgstr "Email address"
 #: src/routes/(root)/sign/index.tsx:366
 msgid "Email or username"
 msgstr "Email or username"
+
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
+msgid "Enable"
+msgstr "Enable"
+
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
+msgid "Enabling…"
+msgstr "Enabling…"
 
 #: src/components/QuestionCard.tsx:473
 msgid "Ended"
@@ -887,6 +954,21 @@ msgstr "Failed to delete orphan media."
 msgid "Failed to delete post"
 msgstr "Failed to delete post"
 
+#: src/components/WebPushNotificationSettings.tsx:305
+#: src/components/WebPushNotificationSettings.tsx:318
+#: src/components/WebPushNotificationSettings.tsx:326
+msgid "Failed to disable browser notifications"
+msgstr "Failed to disable browser notifications"
+
+#: src/components/WebPushNotificationSettings.tsx:226
+#: src/components/WebPushNotificationSettings.tsx:262
+#: src/components/WebPushNotificationSettings.tsx:279
+#: src/components/WebPushPromptBanner.tsx:180
+#: src/components/WebPushPromptBanner.tsx:216
+#: src/components/WebPushPromptBanner.tsx:234
+msgid "Failed to enable browser notifications"
+msgstr "Failed to enable browser notifications"
+
 #: src/components/FollowButton.tsx:160
 #: src/components/HashtagActionBar.tsx:154
 #: src/components/HashtagActionBar.tsx:158
@@ -984,6 +1066,10 @@ msgstr "Failed to pin post"
 #: src/components/EmojiReactionPopover.tsx:174
 #: src/components/EmojiReactionPopover.tsx:256
 #: src/components/EmojiReactionPopover.tsx:265
+#: src/components/EmojiReactionPopover.tsx:335
+#: src/components/EmojiReactionPopover.tsx:344
+#: src/components/EmojiReactionPopover.tsx:394
+#: src/components/EmojiReactionPopover.tsx:403
 msgid "Failed to react"
 msgstr "Failed to react"
 
@@ -1037,8 +1123,8 @@ msgstr "Failed to send email"
 msgid "Failed to send invitation"
 msgstr "Failed to send invitation"
 
-#: src/components/PostEngagementBar.tsx:188
-#: src/components/PostEngagementBar.tsx:195
+#: src/components/PostEngagementBar.tsx:191
+#: src/components/PostEngagementBar.tsx:198
 msgid "Failed to share post"
 msgstr "Failed to share post"
 
@@ -1063,10 +1149,14 @@ msgstr "Failed to unfollow"
 msgid "Failed to unpin post"
 msgstr "Failed to unpin post"
 
-#: src/components/PostEngagementBar.tsx:170
-#: src/components/PostEngagementBar.tsx:177
+#: src/components/PostEngagementBar.tsx:173
+#: src/components/PostEngagementBar.tsx:180
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
+
+#: src/components/WebPushNotificationSettings.tsx:355
+msgid "Failed to update push notification privacy"
+msgstr "Failed to update push notification privacy"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:363
 msgid "Failed to update the article. Please try again."
@@ -1144,6 +1234,10 @@ msgstr "Formatting"
 msgid "Generating…"
 msgstr "Generating…"
 
+#: src/components/WebPushPromptBanner.tsx:249
+msgid "Get browser notifications"
+msgstr "Get browser notifications"
+
 #: src/components/AppSidebar.tsx:998
 msgid "GitHub repository"
 msgstr "GitHub repository"
@@ -1179,7 +1273,7 @@ msgstr "Grants one extra invitation to the most active accounts (the top third b
 
 #: src/components/AppSidebar.tsx:314
 #: src/components/AppSidebar.tsx:429
-#: src/routes/(root).tsx:132
+#: src/routes/(root).tsx:134
 #: src/routes/(root)/coc.tsx:41
 #: src/routes/(root)/markdown.tsx:41
 #: src/routes/(root)/privacy.tsx:41
@@ -1187,7 +1281,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:124
+#: src/routes/(root).tsx:126
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pub home"
 
@@ -1207,7 +1301,7 @@ msgstr "Hackers' Pub: Admin · Invitations"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub: Admin · Media"
 
-#: src/routes/(root)/notifications.tsx:45
+#: src/routes/(root)/notifications.tsx:48
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub: Notifications"
 
@@ -1591,8 +1685,8 @@ msgstr "Media"
 msgid "Mentioned only"
 msgstr "Mentioned only"
 
-#: src/components/PostEngagementBar.tsx:428
-#: src/components/PostEngagementBar.tsx:429
+#: src/components/PostEngagementBar.tsx:436
+#: src/components/PostEngagementBar.tsx:437
 msgid "More engagement views"
 msgstr "More engagement views"
 
@@ -1649,6 +1743,10 @@ msgstr "Never used"
 #: src/routes/(root)/[handle]/drafts/new.tsx:84
 msgid "New article"
 msgstr "New article"
+
+#: src/components/WebPushNotificationSettings.tsx:245
+msgid "New notifications can now appear even when Hackers' Pub is not open."
+msgstr "New notifications can now appear even when Hackers' Pub is not open."
 
 #: src/components/PersonalTimeline.tsx:219
 #: src/components/PublicTimeline.tsx:214
@@ -1715,6 +1813,10 @@ msgstr "No one has shared this yet."
 msgid "No posts found"
 msgstr "No posts found"
 
+#: src/components/PushNotificationPreviewPolicySelect.tsx:39
+msgid "No previews"
+msgstr "No previews"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:176
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:190
 msgid "No reactions yet."
@@ -1776,9 +1878,27 @@ msgstr "Notes"
 msgid "Nothing to preview"
 msgstr "Nothing to preview"
 
+#: src/components/WebPushNotificationSettings.tsx:156
+#: src/components/WebPushPromptBanner.tsx:91
+msgid "Notification permission was not granted."
+msgstr "Notification permission was not granted."
+
+#: src/components/WebPushNotificationSettings.tsx:438
+msgid "Notification preview privacy"
+msgstr "Notification preview privacy"
+
 #: src/components/AppSidebar.tsx:557
 msgid "Notifications"
 msgstr "Notifications"
+
+#: src/components/WebPushNotificationSettings.tsx:154
+#: src/components/WebPushPromptBanner.tsx:89
+msgid "Notifications are blocked for this site."
+msgstr "Notifications are blocked for this site."
+
+#: src/components/WebPushNotificationSettings.tsx:394
+msgid "Notifications are blocked in your browser settings."
+msgstr "Notifications are blocked in your browser settings."
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:780
 msgid "Number of invitations"
@@ -1955,6 +2075,10 @@ msgstr "Profile settings"
 msgid "Public"
 msgstr "Public"
 
+#: src/components/PushNotificationPreviewPolicySelect.tsx:29
+msgid "Public posts only"
+msgstr "Public posts only"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:61
 msgid "Publish article"
 msgstr "Publish article"
@@ -1966,6 +2090,10 @@ msgstr "Publish now"
 #: src/components/article-composer/ArticleComposerActions.tsx:51
 msgid "Publishing…"
 msgstr "Publishing…"
+
+#: src/components/WebPushNotificationSettings.tsx:344
+msgid "Push notification privacy updated"
+msgstr "Push notification privacy updated"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:645
 #: src/routes/(root)/[handle]/settings/invite.tsx:711
@@ -1983,7 +2111,7 @@ msgid "Quiet public"
 msgstr "Quiet public"
 
 #: src/components/NoteComposeModal.tsx:71
-#: src/components/PostEngagementBar.tsx:267
+#: src/components/PostEngagementBar.tsx:270
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "Quote"
@@ -2011,21 +2139,21 @@ msgstr "Quoted post hidden"
 msgid "Quotes"
 msgstr "Quotes"
 
-#: src/components/PostEngagementBar.tsx:268
+#: src/components/PostEngagementBar.tsx:271
 msgid "Quoting is not available for this post"
 msgstr "Quoting is not available for this post"
 
-#: src/components/PostEngagementBar.tsx:341
-#: src/components/PostEngagementBar.tsx:342
+#: src/components/PostEngagementBar.tsx:346
+#: src/components/PostEngagementBar.tsx:347
 msgid "React"
 msgstr "React"
 
-#: src/components/EmojiReactionPopover.tsx:359
+#: src/components/EmojiReactionPopover.tsx:499
 msgid "React with {emoji}"
 msgstr "React with {emoji}"
 
-#: src/components/EmojiReactionPopover.tsx:312
-#: src/components/EmojiReactionPopover.tsx:315
+#: src/components/EmojiReactionPopover.tsx:450
+#: src/components/EmojiReactionPopover.tsx:453
 msgid "reaction"
 msgstr "reaction"
 
@@ -2043,6 +2171,14 @@ msgstr "Read full article"
 #: src/routes/(root)/sign/up/[token].tsx:447
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "Read the full Code of conduct"
+
+#: src/components/WebPushPromptBanner.tsx:252
+msgid "Receive new notifications immediately, even when this tab is closed."
+msgstr "Receive new notifications immediately, even when this tab is closed."
+
+#: src/components/WebPushNotificationSettings.tsx:368
+msgid "Receive notifications immediately through this browser, even when this tab is closed."
+msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
 #: src/components/AppSidebar.tsx:884
 msgid "Recent drafts"
@@ -2095,7 +2231,7 @@ msgid "Remove"
 msgstr "Remove"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:311
+#: src/components/EmojiReactionPopover.tsx:449
 msgid "Remove {0}"
 msgstr "Remove {0}"
 
@@ -2129,11 +2265,11 @@ msgid "Rendering…"
 msgstr "Rendering…"
 
 #: src/components/NoteComposeModal.tsx:70
-#: src/components/PostEngagementBar.tsx:255
+#: src/components/PostEngagementBar.tsx:258
 msgid "Reply"
 msgstr "Reply"
 
-#: src/components/PostEngagementBar.tsx:256
+#: src/components/PostEngagementBar.tsx:259
 msgid "Replying is not available for this post"
 msgstr "Replying is not available for this post"
 
@@ -2256,7 +2392,7 @@ msgstr "Set your personal preferences."
 msgid "Settings"
 msgstr "Settings"
 
-#: src/components/PostEngagementBar.tsx:301
+#: src/components/PostEngagementBar.tsx:304
 msgid "Share"
 msgstr "Share"
 
@@ -2267,7 +2403,7 @@ msgstr "Share"
 msgid "Shares"
 msgstr "Shares"
 
-#: src/components/PostEngagementBar.tsx:302
+#: src/components/PostEngagementBar.tsx:305
 msgid "Sharing is not available for this post"
 msgstr "Sharing is not available for this post"
 
@@ -2397,6 +2533,11 @@ msgstr "Tags"
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
 
+#: src/components/WebPushNotificationSettings.tsx:158
+#: src/components/WebPushPromptBanner.tsx:93
+msgid "The browser did not provide a complete push subscription."
+msgstr "The browser did not provide a complete push subscription."
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:202
 msgid "The default privacy setting for your notes."
 msgstr "The default privacy setting for your notes."
@@ -2480,9 +2621,19 @@ msgstr "The title will appear at the top of your article and in link previews."
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
+#: src/components/WebPushNotificationSettings.tsx:160
+#: src/components/WebPushPromptBanner.tsx:95
+msgid "The Web Push public key is invalid."
+msgstr "The Web Push public key is invalid."
+
 #: src/components/PostActionMenu.tsx:363
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
+
+#: src/components/WebPushNotificationSettings.tsx:152
+#: src/components/WebPushPromptBanner.tsx:87
+msgid "This browser does not support Web Push."
+msgstr "This browser does not support Web Push."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:175
 #: src/routes/(root)/[handle]/invite/[id].tsx:179
@@ -2514,6 +2665,10 @@ msgstr "This post quoted another post, but the quote is not currently authorized
 #: src/components/QuoteTargetPlaceholder.tsx:35
 msgid "This quote is waiting for approval from the original author."
 msgstr "This quote is waiting for approval from the original author."
+
+#: src/components/WebPushNotificationSettings.tsx:390
+msgid "This server has not configured Web Push yet."
+msgstr "This server has not configured Web Push yet."
 
 #: src/components/RemoteFollowButton.tsx:137
 #: src/components/RemoteFollowButton.tsx:144
@@ -2551,7 +2706,7 @@ msgstr "Title cannot be empty"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "To follow {0}, enter your Fediverse handle."
 
-#: src/routes/(root).tsx:122
+#: src/routes/(root).tsx:124
 msgid "Toggle sidebar"
 msgstr "Toggle sidebar"
 
@@ -2605,11 +2760,15 @@ msgstr "Type tags separated by spaces"
 
 #: src/components/EmojiReactionPopover.tsx:257
 #: src/components/EmojiReactionPopover.tsx:266
+#: src/components/EmojiReactionPopover.tsx:395
+#: src/components/EmojiReactionPopover.tsx:404
 msgid "Unable to add reaction. Please try again."
 msgstr "Unable to add reaction. Please try again."
 
 #: src/components/EmojiReactionPopover.tsx:166
 #: src/components/EmojiReactionPopover.tsx:175
+#: src/components/EmojiReactionPopover.tsx:336
+#: src/components/EmojiReactionPopover.tsx:345
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
@@ -2632,7 +2791,7 @@ msgstr "Unfollow"
 msgid "Unpin from profile"
 msgstr "Unpin from profile"
 
-#: src/components/PostEngagementBar.tsx:299
+#: src/components/PostEngagementBar.tsx:302
 msgid "Unshare"
 msgstr "Unshare"
 
@@ -2708,23 +2867,23 @@ msgstr "View all drafts →"
 msgid "View image"
 msgstr "View image"
 
-#: src/components/PostEngagementBar.tsx:269
-#: src/components/PostEngagementBar.tsx:459
+#: src/components/PostEngagementBar.tsx:272
+#: src/components/PostEngagementBar.tsx:467
 msgid "View quotes"
 msgstr "View quotes"
 
-#: src/components/PostEngagementBar.tsx:373
-#: src/components/PostEngagementBar.tsx:471
+#: src/components/PostEngagementBar.tsx:381
+#: src/components/PostEngagementBar.tsx:479
 msgid "View reactions"
 msgstr "View reactions"
 
-#: src/components/PostEngagementBar.tsx:257
-#: src/components/PostEngagementBar.tsx:451
+#: src/components/PostEngagementBar.tsx:260
+#: src/components/PostEngagementBar.tsx:459
 msgid "View replies"
 msgstr "View replies"
 
-#: src/components/PostEngagementBar.tsx:303
-#: src/components/PostEngagementBar.tsx:465
+#: src/components/PostEngagementBar.tsx:306
+#: src/components/PostEngagementBar.tsx:473
 msgid "View shares"
 msgstr "View shares"
 

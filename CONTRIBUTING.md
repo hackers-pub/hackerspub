@@ -139,6 +139,20 @@ and set the values of the variables according to your environment.
 >     Warn that you should quote the key value with single quotes in the *.env*
 >     file, e.g., `INSTANCE_ACTOR_KEY='{"kty":"RSA",...}'`.
 >
+> - `WEB_PUSH_VAPID_PUBLIC_KEY` and `WEB_PUSH_VAPID_PRIVATE_KEY` are used by
+>     browser Web Push notifications.  You can generate a pair in *.env* format
+>     using the following command:
+>
+>     ~~~~ sh
+>     mise run generate-vapid-keys
+>     ~~~~
+>
+>     `WEB_PUSH_VAPID_SUBJECT` identifies the server to browser push services.
+>     Use a contact URI such as `mailto:admin@example.com` or a public HTTPS
+>     origin such as `https://example.com/`.  Localhost is a secure context for
+>     browser testing, but remote development and production deployments need
+>     HTTPS for browser Push API subscriptions.
+>
 >  -  `KV_URL` can start with `file://` to use a file-based cache, e.g.,
 >     `KV_URL=file:///tmp/kv.db`.
 >

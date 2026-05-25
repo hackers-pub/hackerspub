@@ -297,7 +297,7 @@ msgid "Add"
 msgstr "追加"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:314
+#: src/components/EmojiReactionPopover.tsx:452
 msgid "Add {0}"
 msgstr "{0}を追加"
 
@@ -324,6 +324,10 @@ msgstr "すべての画像に代替テキストが必要です。"
 #: src/components/LanguageFilter.tsx:63
 msgid "All languages"
 msgstr "すべての言語"
+
+#: src/components/PushNotificationPreviewPolicySelect.tsx:34
+msgid "All notifications"
+msgstr "すべての通知"
 
 #: src/components/article-composer/ArticleComposerPublishFields.tsx:93
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:504
@@ -487,6 +491,31 @@ msgstr "ブックマーク"
 msgid "Bookmarks"
 msgstr "ブックマーク"
 
+#: src/components/WebPushNotificationSettings.tsx:366
+msgid "Browser notifications"
+msgstr "ブラウザー通知"
+
+#: src/components/WebPushNotificationSettings.tsx:377
+msgid "Browser notifications are not available."
+msgstr "ブラウザー通知は利用できません。"
+
+#: src/components/WebPushNotificationSettings.tsx:381
+msgid "Browser notifications are off."
+msgstr "ブラウザー通知はオフです。"
+
+#: src/components/WebPushNotificationSettings.tsx:383
+msgid "Browser notifications are on."
+msgstr "ブラウザー通知はオンです。"
+
+#: src/components/WebPushNotificationSettings.tsx:311
+msgid "Browser notifications disabled"
+msgstr "ブラウザー通知を無効にしました"
+
+#: src/components/WebPushNotificationSettings.tsx:243
+#: src/components/WebPushPromptBanner.tsx:196
+msgid "Browser notifications enabled"
+msgstr "ブラウザー通知を有効にしました"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1346
 #: src/components/NoteComposer.tsx:1347
@@ -508,6 +537,10 @@ msgstr "キャンセル"
 msgid "Cannot change the language because translations already exist"
 msgstr "翻訳が既に存在するため、言語を変更できません"
 
+#: src/components/WebPushNotificationSettings.tsx:409
+msgid "Check again"
+msgstr "再確認"
+
 #: src/routes/(root)/[handle]/invite/[id].tsx:246
 msgid "Check your email"
 msgstr "メールを確認してください"
@@ -516,9 +549,17 @@ msgstr "メールを確認してください"
 msgid "Check your email to complete sign-up. We've sent a verification link to your email address."
 msgstr "登録を完了するにはメールを確認してください。確認リンクをメールアドレスに送信しました。"
 
+#: src/components/WebPushNotificationSettings.tsx:409
+msgid "Checking…"
+msgstr "確認中…"
+
 #: src/routes/(root)/[handle]/settings/invite.tsx:384
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
+
+#: src/components/WebPushNotificationSettings.tsx:445
+msgid "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
+msgstr "プッシュ通知にコンテンツの抜粋を含めるかを選択します。プレビューを非表示にすると、汎用の通知文が使われます。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:397
 msgid "Choose your preferred language for the verification email."
@@ -527,6 +568,10 @@ msgstr "確認メールの言語を選択してください。"
 #: src/components/admin/AdminAccountsTable.tsx:213
 msgid "Clear"
 msgstr "クリア"
+
+#: src/components/WebPushNotificationSettings.tsx:396
+msgid "Clicking a notification opens your notifications page."
+msgstr "通知をクリックすると通知ページが開きます。"
 
 #: src/components/ImageLightbox.tsx:74
 #: src/routes/(root)/[handle]/settings/invite.tsx:661
@@ -696,6 +741,14 @@ msgstr "コンテンツを削除しますか？"
 msgid "Deleting…"
 msgstr "削除中…"
 
+#: src/components/WebPushNotificationSettings.tsx:432
+msgid "Disable"
+msgstr "無効化"
+
+#: src/components/WebPushNotificationSettings.tsx:432
+msgid "Disabling…"
+msgstr "無効化中…"
+
 #: src/components/NoteComposeModal.tsx:137
 msgid "Discard"
 msgstr "破棄"
@@ -707,6 +760,10 @@ msgstr "下書きを破棄しますか？"
 #: src/components/article-composer/useUnsavedGuard.ts:13
 msgid "Discard unsaved changes - are you sure?"
 msgstr "未保存の変更を破棄してもよろしいですか？"
+
+#: src/components/WebPushPromptBanner.tsx:269
+msgid "Dismiss"
+msgstr "閉じる"
 
 #: src/routes/(root)/[handle]/settings/index.tsx:465
 #: src/routes/(root)/sign/up/[token].tsx:381
@@ -773,6 +830,16 @@ msgstr "メールアドレス"
 #: src/routes/(root)/sign/index.tsx:366
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
+
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
+msgid "Enable"
+msgstr "有効化"
+
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
+msgid "Enabling…"
+msgstr "有効化中…"
 
 #: src/components/QuestionCard.tsx:473
 msgid "Ended"
@@ -883,6 +950,21 @@ msgstr "孤立したメディアの削除に失敗しました。"
 msgid "Failed to delete post"
 msgstr "コンテンツの削除に失敗しました"
 
+#: src/components/WebPushNotificationSettings.tsx:305
+#: src/components/WebPushNotificationSettings.tsx:318
+#: src/components/WebPushNotificationSettings.tsx:326
+msgid "Failed to disable browser notifications"
+msgstr "ブラウザー通知を無効にできませんでした"
+
+#: src/components/WebPushNotificationSettings.tsx:226
+#: src/components/WebPushNotificationSettings.tsx:262
+#: src/components/WebPushNotificationSettings.tsx:279
+#: src/components/WebPushPromptBanner.tsx:180
+#: src/components/WebPushPromptBanner.tsx:216
+#: src/components/WebPushPromptBanner.tsx:234
+msgid "Failed to enable browser notifications"
+msgstr "ブラウザー通知を有効にできませんでした"
+
 #: src/components/FollowButton.tsx:160
 #: src/components/HashtagActionBar.tsx:154
 #: src/components/HashtagActionBar.tsx:158
@@ -980,6 +1062,10 @@ msgstr "コンテンツを固定できませんでした"
 #: src/components/EmojiReactionPopover.tsx:174
 #: src/components/EmojiReactionPopover.tsx:256
 #: src/components/EmojiReactionPopover.tsx:265
+#: src/components/EmojiReactionPopover.tsx:335
+#: src/components/EmojiReactionPopover.tsx:344
+#: src/components/EmojiReactionPopover.tsx:394
+#: src/components/EmojiReactionPopover.tsx:403
 msgid "Failed to react"
 msgstr "リアクションに失敗しました"
 
@@ -1033,8 +1119,8 @@ msgstr "メールの送信に失敗しました"
 msgid "Failed to send invitation"
 msgstr "招待状の送信に失敗しました"
 
-#: src/components/PostEngagementBar.tsx:188
-#: src/components/PostEngagementBar.tsx:195
+#: src/components/PostEngagementBar.tsx:191
+#: src/components/PostEngagementBar.tsx:198
 msgid "Failed to share post"
 msgstr "コンテンツの共有に失敗しました"
 
@@ -1059,10 +1145,14 @@ msgstr "フォロー解除に失敗しました"
 msgid "Failed to unpin post"
 msgstr "コンテンツの固定を解除できませんでした"
 
-#: src/components/PostEngagementBar.tsx:170
-#: src/components/PostEngagementBar.tsx:177
+#: src/components/PostEngagementBar.tsx:173
+#: src/components/PostEngagementBar.tsx:180
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
+
+#: src/components/WebPushNotificationSettings.tsx:355
+msgid "Failed to update push notification privacy"
+msgstr "プッシュ通知のプライバシー設定を更新できませんでした"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:363
 msgid "Failed to update the article. Please try again."
@@ -1140,6 +1230,10 @@ msgstr "書式設定"
 msgid "Generating…"
 msgstr "生成中…"
 
+#: src/components/WebPushPromptBanner.tsx:249
+msgid "Get browser notifications"
+msgstr "ブラウザー通知を受け取る"
+
 #: src/components/AppSidebar.tsx:998
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
@@ -1175,7 +1269,7 @@ msgstr "前回の再付与カットオフ以降、最も活発なアカウント
 
 #: src/components/AppSidebar.tsx:314
 #: src/components/AppSidebar.tsx:429
-#: src/routes/(root).tsx:132
+#: src/routes/(root).tsx:134
 #: src/routes/(root)/coc.tsx:41
 #: src/routes/(root)/markdown.tsx:41
 #: src/routes/(root)/privacy.tsx:41
@@ -1183,7 +1277,7 @@ msgid "Hackers' Pub"
 msgstr "Hackers' Pub"
 
 #: src/components/NotFoundPage.tsx:19
-#: src/routes/(root).tsx:124
+#: src/routes/(root).tsx:126
 msgid "Hackers' Pub home"
 msgstr "Hackers' Pubホーム"
 
@@ -1203,7 +1297,7 @@ msgstr "Hackers' Pub：管理 · 招待"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · メディア"
 
-#: src/routes/(root)/notifications.tsx:45
+#: src/routes/(root)/notifications.tsx:48
 msgid "Hackers' Pub: Notifications"
 msgstr "Hackers' Pub：通知"
 
@@ -1587,8 +1681,8 @@ msgstr "メディア"
 msgid "Mentioned only"
 msgstr "メンションされたユーザーのみ"
 
-#: src/components/PostEngagementBar.tsx:428
-#: src/components/PostEngagementBar.tsx:429
+#: src/components/PostEngagementBar.tsx:436
+#: src/components/PostEngagementBar.tsx:437
 msgid "More engagement views"
 msgstr "他のリアクションを見る"
 
@@ -1645,6 +1739,10 @@ msgstr "使用履歴なし"
 #: src/routes/(root)/[handle]/drafts/new.tsx:84
 msgid "New article"
 msgstr "新しい記事"
+
+#: src/components/WebPushNotificationSettings.tsx:245
+msgid "New notifications can now appear even when Hackers' Pub is not open."
+msgstr "Hackers' Pubを開いていなくても新しい通知が表示されるようになりました。"
 
 #: src/components/PersonalTimeline.tsx:219
 #: src/components/PublicTimeline.tsx:214
@@ -1711,6 +1809,10 @@ msgstr "まだ誰も共有していません。"
 msgid "No posts found"
 msgstr "コンテンツはありません"
 
+#: src/components/PushNotificationPreviewPolicySelect.tsx:39
+msgid "No previews"
+msgstr "プレビューなし"
+
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:176
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:190
 msgid "No reactions yet."
@@ -1772,9 +1874,27 @@ msgstr "投稿"
 msgid "Nothing to preview"
 msgstr "プレビューする内容がありません"
 
+#: src/components/WebPushNotificationSettings.tsx:156
+#: src/components/WebPushPromptBanner.tsx:91
+msgid "Notification permission was not granted."
+msgstr "通知の権限が許可されませんでした。"
+
+#: src/components/WebPushNotificationSettings.tsx:438
+msgid "Notification preview privacy"
+msgstr "通知プレビューのプライバシー"
+
 #: src/components/AppSidebar.tsx:557
 msgid "Notifications"
 msgstr "通知"
+
+#: src/components/WebPushNotificationSettings.tsx:154
+#: src/components/WebPushPromptBanner.tsx:89
+msgid "Notifications are blocked for this site."
+msgstr "このサイトの通知はブロックされています。"
+
+#: src/components/WebPushNotificationSettings.tsx:394
+msgid "Notifications are blocked in your browser settings."
+msgstr "ブラウザー設定で通知がブロックされています。"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:780
 msgid "Number of invitations"
@@ -1951,6 +2071,10 @@ msgstr "プロフィール設定"
 msgid "Public"
 msgstr "公開"
 
+#: src/components/PushNotificationPreviewPolicySelect.tsx:29
+msgid "Public posts only"
+msgstr "公開コンテンツのみ"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:61
 msgid "Publish article"
 msgstr "記事を公開"
@@ -1962,6 +2086,10 @@ msgstr "今すぐ公開"
 #: src/components/article-composer/ArticleComposerActions.tsx:51
 msgid "Publishing…"
 msgstr "公開中…"
+
+#: src/components/WebPushNotificationSettings.tsx:344
+msgid "Push notification privacy updated"
+msgstr "プッシュ通知のプライバシー設定を更新しました"
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:645
 #: src/routes/(root)/[handle]/settings/invite.tsx:711
@@ -1979,7 +2107,7 @@ msgid "Quiet public"
 msgstr "ひかえめな公開"
 
 #: src/components/NoteComposeModal.tsx:71
-#: src/components/PostEngagementBar.tsx:267
+#: src/components/PostEngagementBar.tsx:270
 #: src/components/ui/markdown-editor.tsx:289
 msgid "Quote"
 msgstr "引用"
@@ -2007,21 +2135,21 @@ msgstr "引用元は非表示です"
 msgid "Quotes"
 msgstr "引用"
 
-#: src/components/PostEngagementBar.tsx:268
+#: src/components/PostEngagementBar.tsx:271
 msgid "Quoting is not available for this post"
 msgstr "このコンテンツは引用できません。"
 
-#: src/components/PostEngagementBar.tsx:341
-#: src/components/PostEngagementBar.tsx:342
+#: src/components/PostEngagementBar.tsx:346
+#: src/components/PostEngagementBar.tsx:347
 msgid "React"
 msgstr "リアクション"
 
-#: src/components/EmojiReactionPopover.tsx:359
+#: src/components/EmojiReactionPopover.tsx:499
 msgid "React with {emoji}"
 msgstr "{emoji}でリアクション"
 
-#: src/components/EmojiReactionPopover.tsx:312
-#: src/components/EmojiReactionPopover.tsx:315
+#: src/components/EmojiReactionPopover.tsx:450
+#: src/components/EmojiReactionPopover.tsx:453
 msgid "reaction"
 msgstr "リアクション"
 
@@ -2039,6 +2167,14 @@ msgstr "記事全文を読む"
 #: src/routes/(root)/sign/up/[token].tsx:447
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "行動規範の全文を読む"
+
+#: src/components/WebPushPromptBanner.tsx:252
+msgid "Receive new notifications immediately, even when this tab is closed."
+msgstr "このタブを閉じていても新しい通知をすぐに受け取れます。"
+
+#: src/components/WebPushNotificationSettings.tsx:368
+msgid "Receive notifications immediately through this browser, even when this tab is closed."
+msgstr "このブラウザーで通知をすぐに受け取ります。このタブを閉じていても通知されます。"
 
 #: src/components/AppSidebar.tsx:884
 msgid "Recent drafts"
@@ -2091,7 +2227,7 @@ msgid "Remove"
 msgstr "削除"
 
 #. placeholder {0}: group.emoji || group.customEmoji?.name || t`reaction`
-#: src/components/EmojiReactionPopover.tsx:311
+#: src/components/EmojiReactionPopover.tsx:449
 msgid "Remove {0}"
 msgstr "{0}を削除"
 
@@ -2125,11 +2261,11 @@ msgid "Rendering…"
 msgstr "レンダリング中…"
 
 #: src/components/NoteComposeModal.tsx:70
-#: src/components/PostEngagementBar.tsx:255
+#: src/components/PostEngagementBar.tsx:258
 msgid "Reply"
 msgstr "返信"
 
-#: src/components/PostEngagementBar.tsx:256
+#: src/components/PostEngagementBar.tsx:259
 msgid "Replying is not available for this post"
 msgstr "このコンテンツには返信できません"
 
@@ -2252,7 +2388,7 @@ msgstr "個人の環境設定を設定してください。"
 msgid "Settings"
 msgstr "設定"
 
-#: src/components/PostEngagementBar.tsx:301
+#: src/components/PostEngagementBar.tsx:304
 msgid "Share"
 msgstr "共有"
 
@@ -2263,7 +2399,7 @@ msgstr "共有"
 msgid "Shares"
 msgstr "共有"
 
-#: src/components/PostEngagementBar.tsx:302
+#: src/components/PostEngagementBar.tsx:305
 msgid "Sharing is not available for this post"
 msgstr "このコンテンツは共有できません。"
 
@@ -2393,6 +2529,11 @@ msgstr "タグ"
 msgid "Tell us about yourself…"
 msgstr "自己紹介をお聞かせください…"
 
+#: src/components/WebPushNotificationSettings.tsx:158
+#: src/components/WebPushPromptBanner.tsx:93
+msgid "The browser did not provide a complete push subscription."
+msgstr "ブラウザーから完全なプッシュ通知サブスクリプションが提供されませんでした。"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:202
 msgid "The default privacy setting for your notes."
 msgstr "投稿のデフォルト公開設定です。"
@@ -2476,9 +2617,19 @@ msgstr "タイトルは記事の先頭とリンクプレビューに表示され
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 
+#: src/components/WebPushNotificationSettings.tsx:160
+#: src/components/WebPushPromptBanner.tsx:95
+msgid "The Web Push public key is invalid."
+msgstr "Web Push の公開鍵が無効です。"
+
 #: src/components/PostActionMenu.tsx:363
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "この操作は取り消せません。このコンテンツは完全に削除されます。"
+
+#: src/components/WebPushNotificationSettings.tsx:152
+#: src/components/WebPushPromptBanner.tsx:87
+msgid "This browser does not support Web Push."
+msgstr "このブラウザーは Web Push に対応していません。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:175
 #: src/routes/(root)/[handle]/invite/[id].tsx:179
@@ -2510,6 +2661,10 @@ msgstr "このコンテンツは別のコンテンツを引用していました
 #: src/components/QuoteTargetPlaceholder.tsx:35
 msgid "This quote is waiting for approval from the original author."
 msgstr "この引用は元の作成者からの承認を待っています。"
+
+#: src/components/WebPushNotificationSettings.tsx:390
+msgid "This server has not configured Web Push yet."
+msgstr "このサーバーではまだWeb Pushが設定されていません。"
 
 #: src/components/RemoteFollowButton.tsx:137
 #: src/components/RemoteFollowButton.tsx:144
@@ -2547,7 +2702,7 @@ msgstr "タイトルは空にできません"
 msgid "To follow {0}, enter your Fediverse handle."
 msgstr "{0}さんをフォローするには、フェディバースのハンドルを入力してください。"
 
-#: src/routes/(root).tsx:122
+#: src/routes/(root).tsx:124
 msgid "Toggle sidebar"
 msgstr "サイドバーを切り替える"
 
@@ -2601,11 +2756,15 @@ msgstr "スペースで区切ってタグを入力"
 
 #: src/components/EmojiReactionPopover.tsx:257
 #: src/components/EmojiReactionPopover.tsx:266
+#: src/components/EmojiReactionPopover.tsx:395
+#: src/components/EmojiReactionPopover.tsx:404
 msgid "Unable to add reaction. Please try again."
 msgstr "リアクションを追加できませんでした。もう一度お試しください。"
 
 #: src/components/EmojiReactionPopover.tsx:166
 #: src/components/EmojiReactionPopover.tsx:175
+#: src/components/EmojiReactionPopover.tsx:336
+#: src/components/EmojiReactionPopover.tsx:345
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
@@ -2628,7 +2787,7 @@ msgstr "フォロー解除"
 msgid "Unpin from profile"
 msgstr "プロフィールから固定解除"
 
-#: src/components/PostEngagementBar.tsx:299
+#: src/components/PostEngagementBar.tsx:302
 msgid "Unshare"
 msgstr "共有を取り消す"
 
@@ -2704,23 +2863,23 @@ msgstr "すべての下書きを表示 →"
 msgid "View image"
 msgstr "画像を表示"
 
-#: src/components/PostEngagementBar.tsx:269
-#: src/components/PostEngagementBar.tsx:459
+#: src/components/PostEngagementBar.tsx:272
+#: src/components/PostEngagementBar.tsx:467
 msgid "View quotes"
 msgstr "引用を見る"
 
-#: src/components/PostEngagementBar.tsx:373
-#: src/components/PostEngagementBar.tsx:471
+#: src/components/PostEngagementBar.tsx:381
+#: src/components/PostEngagementBar.tsx:479
 msgid "View reactions"
 msgstr "リアクションを見る"
 
-#: src/components/PostEngagementBar.tsx:257
-#: src/components/PostEngagementBar.tsx:451
+#: src/components/PostEngagementBar.tsx:260
+#: src/components/PostEngagementBar.tsx:459
 msgid "View replies"
 msgstr "返信を見る"
 
-#: src/components/PostEngagementBar.tsx:303
-#: src/components/PostEngagementBar.tsx:465
+#: src/components/PostEngagementBar.tsx:306
+#: src/components/PostEngagementBar.tsx:473
 msgid "View shares"
 msgstr "共有を見る"
 

@@ -1,17 +1,25 @@
 import process from "node:process";
 import { getLogger } from "@logtape/logtape";
-import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Database } from "./db.ts";
 import {
   type CustomEmoji,
-  type FcmDeviceToken,
-  fcmDeviceTokenTable,
   type NotificationType,
+  pushNotificationTargetTable,
 } from "./schema.ts";
+import {
+  deleteStalePushNotificationTargets,
+  MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE,
+  pushTargetHasToken,
+  registerPushNotificationTarget,
+  unregisterPushNotificationTarget,
+} from "./push.ts";
 import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "fcm"]);
-export const MAX_FCM_DEVICE_TOKENS_PER_ACCOUNT = 20;
+export const MAX_FCM_DEVICE_TOKENS_PER_ACCOUNT =
+  MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE;
+export { normalizeFcmDeviceToken } from "./push.ts";
 
 interface FcmServiceAccount {
   projectId: string;
@@ -171,61 +179,10 @@ export async function registerFcmDeviceToken(
   db: Database,
   accountId: Uuid,
   deviceToken: string,
-): Promise<FcmDeviceToken | undefined> {
-  const trimmed = deviceToken.trim();
-  if (trimmed.length < 1) return undefined;
-
-  return await db.transaction(async (tx) => {
-    await tx.execute(
-      sql`select id from "account" where id = ${accountId} for update`,
-    );
-
-    const existingToken = await tx.query.fcmDeviceTokenTable.findFirst({
-      columns: { accountId: true },
-      where: { deviceToken: trimmed },
-    });
-    if (existingToken?.accountId !== accountId) {
-      const tokenCounts = await tx.select({ count: count() })
-        .from(fcmDeviceTokenTable)
-        .where(eq(fcmDeviceTokenTable.accountId, accountId));
-      const tokenCount = Number(tokenCounts[0]?.count ?? 0);
-      if (tokenCount >= MAX_FCM_DEVICE_TOKENS_PER_ACCOUNT) {
-        const oldestTokens = await tx.select({
-          deviceToken: fcmDeviceTokenTable.deviceToken,
-        })
-          .from(fcmDeviceTokenTable)
-          .where(eq(fcmDeviceTokenTable.accountId, accountId))
-          .orderBy(
-            fcmDeviceTokenTable.updated,
-            fcmDeviceTokenTable.created,
-          )
-          .limit(1);
-        const oldestToken = oldestTokens[0]?.deviceToken;
-        if (oldestToken == null) return undefined;
-        await tx.delete(fcmDeviceTokenTable)
-          .where(
-            and(
-              eq(fcmDeviceTokenTable.accountId, accountId),
-              eq(fcmDeviceTokenTable.deviceToken, oldestToken),
-            ),
-          );
-      }
-    }
-
-    const rows = await tx.insert(fcmDeviceTokenTable)
-      .values({
-        accountId,
-        deviceToken: trimmed,
-      })
-      .onConflictDoUpdate({
-        target: fcmDeviceTokenTable.deviceToken,
-        set: {
-          accountId,
-          updated: sql`CURRENT_TIMESTAMP`,
-        },
-      })
-      .returning();
-    return rows[0];
+): ReturnType<typeof registerPushNotificationTarget> {
+  return registerPushNotificationTarget(db, accountId, {
+    service: "fcm",
+    token: deviceToken,
   });
 }
 
@@ -234,17 +191,10 @@ export async function unregisterFcmDeviceToken(
   accountId: Uuid,
   deviceToken: string,
 ): Promise<boolean> {
-  const trimmed = deviceToken.trim();
-  if (trimmed.length < 1) return false;
-  const rows = await db.delete(fcmDeviceTokenTable)
-    .where(
-      and(
-        eq(fcmDeviceTokenTable.accountId, accountId),
-        eq(fcmDeviceTokenTable.deviceToken, trimmed),
-      ),
-    )
-    .returning({ deviceToken: fcmDeviceTokenTable.deviceToken });
-  return rows.length > 0;
+  return unregisterPushNotificationTarget(db, accountId, {
+    service: "fcm",
+    token: deviceToken,
+  });
 }
 
 function getFcmAlert(
@@ -290,10 +240,16 @@ export async function sendFcmNotification(
     const accessToken = await getAccessToken();
     if (accessToken == null) return;
 
-    const tokens = await db.query.fcmDeviceTokenTable.findMany({
-      columns: { deviceToken: true },
-      where: { accountId: options.accountId },
-    });
+    const tokens = (await db.select({
+      token: pushNotificationTargetTable.token,
+    })
+      .from(pushNotificationTargetTable)
+      .where(
+        and(
+          eq(pushNotificationTargetTable.accountId, options.accountId),
+          eq(pushNotificationTargetTable.service, "fcm"),
+        ),
+      )).filter(pushTargetHasToken);
     if (tokens.length < 1) return;
 
     const emojiText = typeof options.emoji === "string"
@@ -303,7 +259,7 @@ export async function sendFcmNotification(
     const staleTokens = new Set<string>();
 
     await Promise.allSettled(
-      tokens.map(async ({ deviceToken }) => {
+      tokens.map(async ({ token }) => {
         try {
           const resp = await fetch(
             `https://fcm.googleapis.com/v1/projects/${sa.projectId}/messages:send`,
@@ -315,7 +271,7 @@ export async function sendFcmNotification(
               },
               body: JSON.stringify({
                 message: {
-                  token: deviceToken,
+                  token,
                   data: {
                     notificationId: options.notificationId,
                     type: options.type,
@@ -342,13 +298,13 @@ export async function sendFcmNotification(
               "FCM send failed for account {accountId}, token suffix {deviceTokenSuffix}: {status} {errorCode}",
               {
                 accountId: options.accountId,
-                deviceTokenSuffix: getDeviceTokenSuffix(deviceToken),
+                deviceTokenSuffix: getDeviceTokenSuffix(token),
                 status: resp.status,
                 errorCode,
               },
             );
             if (errorCode === "UNREGISTERED") {
-              staleTokens.add(deviceToken);
+              staleTokens.add(token);
             }
           }
         } catch (error) {
@@ -356,7 +312,7 @@ export async function sendFcmNotification(
             "FCM send error for account {accountId}, token suffix {deviceTokenSuffix}: {error}",
             {
               accountId: options.accountId,
-              deviceTokenSuffix: getDeviceTokenSuffix(deviceToken),
+              deviceTokenSuffix: getDeviceTokenSuffix(token),
               error,
             },
           );
@@ -365,13 +321,12 @@ export async function sendFcmNotification(
     );
 
     if (staleTokens.size < 1) return;
-    await db.delete(fcmDeviceTokenTable)
-      .where(
-        and(
-          eq(fcmDeviceTokenTable.accountId, options.accountId),
-          inArray(fcmDeviceTokenTable.deviceToken, [...staleTokens]),
-        ),
-      );
+    await deleteStalePushNotificationTargets(
+      db,
+      options.accountId,
+      "fcm",
+      [...staleTokens],
+    );
   } catch (error) {
     logger.error(
       "Unexpected FCM error for account {accountId}: {error}",

@@ -75,6 +75,10 @@ run = "godotenv -f .env.test -o deno run -A drizzle-kit migrate"
 description = "Generate an instance actor key pair (prints a JWK to stdout)"
 run = "deno run --allow-read --allow-env scripts/keygen.ts"
 
+[tasks."generate-vapid-keys"]
+description = "Generate Web Push VAPID keys for WEB_PUSH_VAPID_*_KEY"
+run = "deno run --allow-env --allow-read scripts/generate-vapid-keys.ts"
+
 [tasks."addaccount"]
 description = "Create a user account from the command line"
 run = "deno run --allow-all scripts/addaccount.ts"

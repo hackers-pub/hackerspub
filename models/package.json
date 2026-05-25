@@ -53,6 +53,7 @@
     "shiki": "catalog:",
     "ssrfcheck": "catalog:",
     "tinyld": "catalog:",
+    "web-push": "catalog:",
     "xss": "catalog:"
   }
 }

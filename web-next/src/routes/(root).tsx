@@ -17,6 +17,7 @@ import { FloatingComposeButton } from "~/components/FloatingComposeButton.tsx";
 import { NoteComposeModal } from "~/components/NoteComposeModal.tsx";
 import { SidebarProvider, SidebarTrigger } from "~/components/ui/sidebar.tsx";
 import { Toaster } from "~/components/ui/toast.tsx";
+import { WebPushPromptBanner } from "~/components/WebPushPromptBanner.tsx";
 import { NoteComposeProvider } from "~/contexts/NoteComposeContext.tsx";
 import { ViewerProvider } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -31,6 +32,7 @@ export const route = {
 
 const RootLayoutQuery = graphql`
   query RootLayoutQuery {
+    webPushVapidPublicKey
     viewer {
       uuid
       username
@@ -148,6 +150,12 @@ export default function RootLayout(props: RouteSectionProps) {
               "dark:bg-[url(/dev-bg-dark.svg)]": import.meta.env.DEV,
             }}
           >
+            <WebPushPromptBanner
+              enabled={!signedAccount.pending &&
+                signedAccount()?.viewer != null}
+              loaded={!signedAccount.pending}
+              vapidPublicKey={signedAccount()?.webPushVapidPublicKey}
+            />
             <Suspense>{props.children}</Suspense>
           </main>
           <FloatingComposeButton

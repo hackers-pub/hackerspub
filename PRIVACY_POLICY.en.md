@@ -1,7 +1,7 @@
 Hackers' Pub Privacy Policy
 ===========================
 
-*Last updated: April 3, 2026*
+*Last updated: May 25, 2026*
 
 
 1. Introduction
@@ -77,11 +77,13 @@ Links to external services (such as GitHub, Mastodon, or personal websites)
 that you choose to add to your profile, along with their cryptographic
 verification status.
 
-### Push Notifications (iOS)
+### Push Notifications
 
-If you enable push notifications on an iOS device, we store your **Apple Push
-Notification Service (APNS) device token** in order to deliver notifications to
-your device.
+If you enable push notifications, we store the push target needed to deliver
+notifications to your device or browser.  This may include an APNS device token,
+an FCM device token, or a browser Web Push endpoint and its subscription keys.
+Depending on your notification preview preference, push notification payloads
+may include short excerpts from posts.
 
 ### Invitation Data
 
@@ -138,7 +140,7 @@ passkeys or email address through this mechanism.
 | Sign-in tokens                    | 12 hours (automatic expiry)                                |
 | Server logs                       | No more than 90 days                                       |
 | Account data and posts            | Until you delete them or your account                      |
-| APNS device tokens                | Until you revoke push notifications or delete your account |
+| Push notification targets         | Until you revoke push notifications or delete your account |
 
 
 6. Data Security

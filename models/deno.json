@@ -30,6 +30,8 @@
     "./pin": "./pin.ts",
     "./poll": "./poll.ts",
     "./post": "./post.ts",
+    "./push": "./push.ts",
+    "./push-notification": "./push-notification.ts",
     "./reaction": "./reaction.ts",
     "./relations": "./relations.ts",
     "./robots": "./robots.ts",
@@ -45,7 +47,8 @@
     "./upload": "./upload.ts",
     "./url": "./url.ts",
     "./userValidation": "./userValidation.ts",
-    "./uuid": "./uuid.ts"
+    "./uuid": "./uuid.ts",
+    "./webpush": "./webpush.ts"
   },
   "lint": {
     "rules": {

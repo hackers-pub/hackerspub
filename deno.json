@@ -139,6 +139,7 @@
     "unified": "npm:unified@^11.0.5",
     "unist-util-visit": "npm:unist-util-visit@^5.0.0",
     "url-template": "npm:url-template@^3.1.1",
+    "web-push": "npm:web-push@^3.6.7",
     "xmlbuilder2": "npm:xmlbuilder2@^3.1.1",
     "xss": "npm:xss@^1.0.15"
   },

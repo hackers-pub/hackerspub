@@ -1,19 +1,26 @@
 import process from "node:process";
 import { getLogger } from "@logtape/logtape";
-import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { ApnsClient, Errors, Host, Notification } from "apns2";
 import type { Database } from "./db.ts";
 import {
-  type ApnsDeviceToken,
-  apnsDeviceTokenTable,
   type CustomEmoji,
   type NotificationType,
+  pushNotificationTargetTable,
 } from "./schema.ts";
+import {
+  deleteStalePushNotificationTargets,
+  MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE,
+  pushTargetHasToken,
+  registerPushNotificationTarget,
+  unregisterPushNotificationTarget,
+} from "./push.ts";
 import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "apns"]);
-const APNS_DEVICE_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
-export const MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT = 20;
+export const MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT =
+  MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE;
+export { normalizeApnsDeviceToken } from "./push.ts";
 
 interface ApnsConfig {
   teamId: string;
@@ -103,70 +110,14 @@ function getApnsClient(): ApnsClient | null {
   }
 }
 
-export function normalizeApnsDeviceToken(deviceToken: string): string | null {
-  const normalized = deviceToken.trim().replaceAll(/[<>\s]/g, "").toLowerCase();
-  return APNS_DEVICE_TOKEN_PATTERN.test(normalized) ? normalized : null;
-}
-
 export async function registerApnsDeviceToken(
   db: Database,
   accountId: Uuid,
   deviceToken: string,
-): Promise<ApnsDeviceToken | undefined> {
-  const normalized = normalizeApnsDeviceToken(deviceToken);
-  if (normalized == null) return undefined;
-
-  return await db.transaction(async (tx) => {
-    await tx.execute(
-      sql`select id from "account" where id = ${accountId} for update`,
-    );
-
-    const existingToken = await tx.query.apnsDeviceTokenTable.findFirst({
-      columns: { accountId: true },
-      where: { deviceToken: normalized },
-    });
-    if (existingToken?.accountId !== accountId) {
-      const tokenCounts = await tx.select({ count: count() })
-        .from(apnsDeviceTokenTable)
-        .where(eq(apnsDeviceTokenTable.accountId, accountId));
-      const tokenCount = Number(tokenCounts[0]?.count ?? 0);
-      if (tokenCount >= MAX_APNS_DEVICE_TOKENS_PER_ACCOUNT) {
-        const oldestTokens = await tx.select({
-          deviceToken: apnsDeviceTokenTable.deviceToken,
-        })
-          .from(apnsDeviceTokenTable)
-          .where(eq(apnsDeviceTokenTable.accountId, accountId))
-          .orderBy(
-            apnsDeviceTokenTable.updated,
-            apnsDeviceTokenTable.created,
-          )
-          .limit(1);
-        const oldestToken = oldestTokens[0]?.deviceToken;
-        if (oldestToken == null) return undefined;
-        await tx.delete(apnsDeviceTokenTable)
-          .where(
-            and(
-              eq(apnsDeviceTokenTable.accountId, accountId),
-              eq(apnsDeviceTokenTable.deviceToken, oldestToken),
-            ),
-          );
-      }
-    }
-
-    const rows = await tx.insert(apnsDeviceTokenTable)
-      .values({
-        accountId,
-        deviceToken: normalized,
-      })
-      .onConflictDoUpdate({
-        target: apnsDeviceTokenTable.deviceToken,
-        set: {
-          accountId,
-          updated: sql`CURRENT_TIMESTAMP`,
-        },
-      })
-      .returning();
-    return rows[0];
+): ReturnType<typeof registerPushNotificationTarget> {
+  return registerPushNotificationTarget(db, accountId, {
+    service: "apns",
+    token: deviceToken,
   });
 }
 
@@ -175,17 +126,10 @@ export async function unregisterApnsDeviceToken(
   accountId: Uuid,
   deviceToken: string,
 ): Promise<boolean> {
-  const normalized = normalizeApnsDeviceToken(deviceToken);
-  if (normalized == null) return false;
-  const rows = await db.delete(apnsDeviceTokenTable)
-    .where(
-      and(
-        eq(apnsDeviceTokenTable.accountId, accountId),
-        eq(apnsDeviceTokenTable.deviceToken, normalized),
-      ),
-    )
-    .returning({ deviceToken: apnsDeviceTokenTable.deviceToken });
-  return rows.length > 0;
+  return unregisterPushNotificationTarget(db, accountId, {
+    service: "apns",
+    token: deviceToken,
+  });
 }
 
 function getApnsAlert(
@@ -227,18 +171,24 @@ export async function sendApnsNotification(
   try {
     const client = getApnsClient();
     if (client == null) return;
-    const tokens = await db.query.apnsDeviceTokenTable.findMany({
-      columns: { deviceToken: true },
-      where: { accountId: options.accountId },
-    });
+    const tokens = (await db.select({
+      token: pushNotificationTargetTable.token,
+    })
+      .from(pushNotificationTargetTable)
+      .where(
+        and(
+          eq(pushNotificationTargetTable.accountId, options.accountId),
+          eq(pushNotificationTargetTable.service, "apns"),
+        ),
+      )).filter(pushTargetHasToken);
     if (tokens.length < 1) return;
 
     const emojiText = typeof options.emoji === "string"
       ? options.emoji
       : options.emoji?.name ?? null;
 
-    const notifications = tokens.map(({ deviceToken }) =>
-      new Notification(deviceToken, {
+    const notifications = tokens.map(({ token }) =>
+      new Notification(token, {
         alert: getApnsAlert(options.type, options.emoji),
         threadId: "notifications",
         collapseId: `notifications-${options.accountId}`,
@@ -289,13 +239,12 @@ export async function sendApnsNotification(
     }
 
     if (staleTokens.size < 1) return;
-    await db.delete(apnsDeviceTokenTable)
-      .where(
-        and(
-          eq(apnsDeviceTokenTable.accountId, options.accountId),
-          inArray(apnsDeviceTokenTable.deviceToken, [...staleTokens]),
-        ),
-      );
+    await deleteStalePushNotificationTargets(
+      db,
+      options.accountId,
+      "apns",
+      [...staleTokens],
+    );
   } catch (error) {
     logger.error(
       "Unexpected APNS error for account {accountId}: {error}",
