@@ -22,7 +22,11 @@ import {
   deleteBookmark,
   getBookmarkCountsForPosts,
 } from "@hackerspub/models/bookmark";
-import { isReactionEmoji, renderCustomEmojis } from "@hackerspub/models/emoji";
+import {
+  isReactionEmoji,
+  type ReactionEmoji,
+  renderCustomEmojis,
+} from "@hackerspub/models/emoji";
 import {
   addExternalLinkTargets,
   removeQuoteInlineFallback,
@@ -99,7 +103,7 @@ import {
   toQuotePolicy,
   toQuoteTargetState,
 } from "./quotepolicy.ts";
-import { Reactable, Reaction } from "./reactable.ts";
+import { CustomEmoji, Reactable, Reaction } from "./reactable.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 const articleContentOgImageComplexity = 2_000;
@@ -1983,14 +1987,16 @@ builder.relayMutationField(
   {
     description:
       "Add an emoji reaction to a post. Sends an ActivityPub `Like` " +
-      "activity. Idempotent: adding the same emoji twice has no effect. " +
-      "Requires authentication.",
+      "or `EmojiReact` activity. Idempotent: adding the same emoji twice " +
+      "has no effect. Exactly one of `emoji` or `customEmojiId` must be " +
+      "provided. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
         required: true,
       }),
-      emoji: t.string({ required: true }),
+      emoji: t.string({ required: false }),
+      customEmojiId: t.globalID({ for: CustomEmoji, required: false }),
     }),
   },
   {
@@ -2005,9 +2011,15 @@ builder.relayMutationField(
         throw new NotAuthenticatedError();
       }
 
-      const { postId, emoji } = args.input;
+      const { postId, emoji, customEmojiId } = args.input;
 
-      if (!isReactionEmoji(emoji)) {
+      if (emoji == null && customEmojiId == null) {
+        throw new InvalidInputError("emoji");
+      }
+      if (emoji != null && customEmojiId != null) {
+        throw new InvalidInputError("emoji");
+      }
+      if (emoji != null && !isReactionEmoji(emoji)) {
         throw new InvalidInputError("emoji");
       }
 
@@ -2040,7 +2052,8 @@ builder.relayMutationField(
         ctx.fedCtx,
         ctx.account,
         post,
-        emoji,
+        emoji as ReactionEmoji | null ?? null,
+        customEmojiId?.id as Uuid | undefined,
       );
 
       if (reaction != null) {
@@ -2048,11 +2061,13 @@ builder.relayMutationField(
       }
 
       const existingReaction = await ctx.db.query.reactionTable.findFirst({
-        where: {
-          postId: post.id,
-          actorId: ctx.account.actor.id,
-          emoji,
-        },
+        where: emoji != null
+          ? { postId: post.id, actorId: ctx.account.actor.id, emoji }
+          : {
+            postId: post.id,
+            actorId: ctx.account.actor.id,
+            customEmojiId: customEmojiId!.id as Uuid,
+          },
       });
 
       if (existingReaction != null) {
@@ -2081,13 +2096,15 @@ builder.relayMutationField(
     description:
       "Remove an emoji reaction from a post. Sends an ActivityPub `Undo " +
       "Like` activity. Idempotent: removing a reaction that doesn't exist " +
-      "returns `success: true`. Requires authentication.",
+      "returns `success: true`. Exactly one of `emoji` or `customEmojiId` " +
+      "must be provided. Requires authentication.",
     inputFields: (t) => ({
       postId: t.globalID({
         for: [Note, Article, Question],
         required: true,
       }),
-      emoji: t.string({ required: true }),
+      emoji: t.string({ required: false }),
+      customEmojiId: t.globalID({ for: CustomEmoji, required: false }),
     }),
   },
   {
@@ -2102,9 +2119,15 @@ builder.relayMutationField(
         throw new NotAuthenticatedError();
       }
 
-      const { postId, emoji } = args.input;
+      const { postId, emoji, customEmojiId } = args.input;
 
-      if (!isReactionEmoji(emoji)) {
+      if (emoji == null && customEmojiId == null) {
+        throw new InvalidInputError("emoji");
+      }
+      if (emoji != null && customEmojiId != null) {
+        throw new InvalidInputError("emoji");
+      }
+      if (emoji != null && !isReactionEmoji(emoji)) {
         throw new InvalidInputError("emoji");
       }
 
@@ -2137,7 +2160,8 @@ builder.relayMutationField(
         ctx.fedCtx,
         ctx.account,
         post,
-        emoji,
+        emoji as ReactionEmoji | null ?? null,
+        customEmojiId?.id as Uuid | undefined,
       );
 
       return { success: true };

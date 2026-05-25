@@ -524,11 +524,12 @@ enum ActorType {
 }
 
 """
-Add an emoji reaction to a post. Sends an ActivityPub `Like` activity. Idempotent: adding the same emoji twice has no effect. Requires authentication.
+Add an emoji reaction to a post. Sends an ActivityPub `Like` or `EmojiReact` activity. Idempotent: adding the same emoji twice has no effect. Exactly one of `emoji` or `customEmojiId` must be provided. Requires authentication.
 """
 input AddReactionToPostInput {
   clientMutationId: ID
-  emoji: String!
+  customEmojiId: ID
+  emoji: String
   postId: ID!
 }
 
@@ -2795,11 +2796,12 @@ type RemoveFollowerPayload {
 union RemoveFollowerResult = InvalidInputError | NotAuthenticatedError | RemoveFollowerPayload
 
 """
-Remove an emoji reaction from a post. Sends an ActivityPub `Undo Like` activity. Idempotent: removing a reaction that doesn't exist returns `success: true`. Requires authentication.
+Remove an emoji reaction from a post. Sends an ActivityPub `Undo Like` activity. Idempotent: removing a reaction that doesn't exist returns `success: true`. Exactly one of `emoji` or `customEmojiId` must be provided. Requires authentication.
 """
 input RemoveReactionFromPostInput {
   clientMutationId: ID
-  emoji: String!
+  customEmojiId: ID
+  emoji: String
   postId: ID!
 }
 

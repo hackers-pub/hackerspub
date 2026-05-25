@@ -274,6 +274,144 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
     }
   };
 
+  const handleCustomEmojiClick = async (customEmojiId: string) => {
+    if (isSubmitting()) return;
+
+    setIsSubmitting(true);
+    const noteData = props.noteData;
+    const postId = noteData.id;
+    try {
+      const existingReaction = noteData.reactionGroups.find((group) =>
+        group.customEmoji?.id === customEmojiId
+      );
+      const shouldUndo = existingReaction?.reactors?.viewerHasReacted;
+
+      if (shouldUndo) {
+        commitRemoveReaction({
+          variables: { input: { postId, customEmojiId } },
+          updater: (store) => {
+            const postRecord = store.get(postId);
+            if (postRecord) {
+              const engagementStats = postRecord.getLinkedRecord(
+                "engagementStats",
+              );
+              if (engagementStats) {
+                const current =
+                  engagementStats.getValue("reactions") as number || 0;
+                engagementStats.setValue(Math.max(0, current - 1), "reactions");
+              }
+              const reactionGroups =
+                postRecord.getLinkedRecords("reactionGroups") || [];
+              const idx = reactionGroups.findIndex((g) =>
+                g?.getLinkedRecord("customEmoji")?.getDataID() === customEmojiId
+              );
+              if (idx >= 0) {
+                const group = reactionGroups[idx];
+                if (group) {
+                  const reactors = group.getLinkedRecord("reactors");
+                  const count = reactors?.getValue("totalCount") as number || 0;
+                  if (count <= 1) {
+                    postRecord.setLinkedRecords(
+                      reactionGroups.filter((_, i) => i !== idx),
+                      "reactionGroups",
+                    );
+                    if (reactors) store.delete(reactors.getDataID());
+                    store.delete(group.getDataID());
+                  } else {
+                    reactors?.setValue(count - 1, "totalCount");
+                    reactors?.setValue(false, "viewerHasReacted");
+                  }
+                }
+              }
+            }
+          },
+          onCompleted: (result) => {
+            if (
+              !result.removeReactionFromPost ||
+              !("success" in result.removeReactionFromPost) ||
+              !result.removeReactionFromPost.success
+            ) {
+              showToast({
+                title: t`Failed to react`,
+                description: t`Unable to remove reaction. Please try again.`,
+                variant: "error",
+              });
+            }
+          },
+          onError: (error) => {
+            console.error("Failed to undo custom emoji reaction:", error);
+            showToast({
+              title: t`Failed to react`,
+              description: t`Unable to remove reaction. Please try again.`,
+              variant: "error",
+            });
+          },
+        });
+      } else {
+        commitAddReaction({
+          variables: { input: { postId, customEmojiId } },
+          updater: (store) => {
+            const postRecord = store.get(postId);
+            if (postRecord) {
+              const engagementStats = postRecord.getLinkedRecord(
+                "engagementStats",
+              );
+              if (engagementStats) {
+                const current =
+                  engagementStats.getValue("reactions") as number || 0;
+                engagementStats.setValue(current + 1, "reactions");
+              }
+              const reactionGroups =
+                postRecord.getLinkedRecords("reactionGroups") || [];
+              const idx = reactionGroups.findIndex((g) =>
+                g?.getLinkedRecord("customEmoji")?.getDataID() === customEmojiId
+              );
+              if (idx >= 0) {
+                const group = reactionGroups[idx];
+                if (group) {
+                  let reactors = group.getLinkedRecord("reactors");
+                  if (!reactors) {
+                    reactors = store.create(
+                      `${postId}_reaction_${customEmojiId}_reactors`,
+                      "ReactionGroupReactorsConnection",
+                    );
+                    group.setLinkedRecord(reactors, "reactors");
+                  }
+                  const count = reactors.getValue("totalCount") as number || 0;
+                  reactors.setValue(count + 1, "totalCount");
+                  reactors.setValue(true, "viewerHasReacted");
+                }
+              }
+            }
+          },
+          onCompleted: (result) => {
+            if (
+              !result.addReactionToPost ||
+              !("reaction" in result.addReactionToPost) ||
+              !result.addReactionToPost.reaction
+            ) {
+              showToast({
+                title: t`Failed to react`,
+                description: t`Unable to add reaction. Please try again.`,
+                variant: "error",
+              });
+            }
+          },
+          onError: (error) => {
+            console.error("Failed to add custom emoji reaction:", error);
+            showToast({
+              title: t`Failed to react`,
+              description: t`Unable to add reaction. Please try again.`,
+              variant: "error",
+            });
+          },
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const sortedReactionGroups = () => {
     return sortReactionGroups(props.noteData?.reactionGroups || []);
   };
@@ -315,8 +453,10 @@ export function EmojiReactionPopover(props: EmojiReactionPopoverProps) {
                       group.emoji || group.customEmoji?.name || t`reaction`
                     }`}
                   onClick={() => {
-                    if ("emoji" in group && group.emoji) {
+                    if (group.emoji) {
                       handleEmojiClick(group.emoji);
+                    } else if (group.customEmoji) {
+                      handleCustomEmojiClick(group.customEmoji.id);
                     }
                   }}
                 >

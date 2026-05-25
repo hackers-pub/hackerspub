@@ -203,39 +203,55 @@ export async function react(
   ctx: Context<ContextData>,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
-  emoji: ReactionEmoji,
+  emoji: ReactionEmoji | null,
+  customEmojiId?: Uuid,
 ): Promise<Reaction | undefined> {
-  const id = getEmojiReactId(ctx, account.id, post.id, emoji);
   const { db } = ctx.data;
+  let iri: string;
+  if (emoji != null) {
+    iri = getEmojiReactId(ctx, account.id, post.id, emoji).href;
+  } else {
+    iri = new URL(
+      `/ap/emojireacts/custom/${generateUuidV7()}`,
+      ctx.canonicalOrigin,
+    ).href;
+  }
   const rows = await db.insert(reactionTable)
     .values({
-      iri: id.href,
+      iri,
       postId: post.id,
       actorId: account.actor.id,
       emoji,
+      customEmojiId: customEmojiId ?? null,
     })
     .onConflictDoNothing()
     .returning();
   if (rows.length < 1) return undefined;
   await updateReactionsCounts(db, post.id);
-  if (
-    post.actor.accountId != null && post.actorId !== account.actor.id
-  ) {
+  if (post.actor.accountId != null && post.actorId !== account.actor.id) {
+    let notifEmoji: string | CustomEmoji = emoji ?? DEFAULT_REACTION_EMOJI;
+    if (emoji == null && customEmojiId != null) {
+      const customEmoji = await db.query.customEmojiTable.findFirst({
+        where: { id: customEmojiId },
+      });
+      if (customEmoji != null) notifEmoji = customEmoji;
+    }
     await createReactNotification(
       db,
       post.actor.accountId,
       post,
       account.actor,
-      emoji,
+      notifEmoji,
     );
   }
+  if (emoji == null) return rows[0];
   const activity = getEmojiReact(ctx, {
     ...rows[0],
     actor: account.actor,
     post,
   });
   if (activity == null) return rows[0];
-  const orderingKey = id.href;
+  const orderingKey = iri;
   await ctx.sendActivity(
     { identifier: account.id },
     {
@@ -269,29 +285,43 @@ export async function undoReaction(
   ctx: Context<ContextData>,
   account: Account & { actor: Actor },
   post: Post & { actor: Actor },
-  emoji: ReactionEmoji,
+  emoji: ReactionEmoji | null,
+  customEmojiId?: Uuid,
 ): Promise<Reaction | undefined> {
   const { db } = ctx.data;
-  const rows = await db.delete(reactionTable)
-    .where(
-      and(
-        eq(reactionTable.postId, post.id),
-        eq(reactionTable.actorId, account.actor.id),
-        eq(reactionTable.emoji, emoji),
-      ),
+  const whereClause = emoji != null
+    ? and(
+      eq(reactionTable.postId, post.id),
+      eq(reactionTable.actorId, account.actor.id),
+      eq(reactionTable.emoji, emoji),
     )
+    : and(
+      eq(reactionTable.postId, post.id),
+      eq(reactionTable.actorId, account.actor.id),
+      eq(reactionTable.customEmojiId, customEmojiId!),
+    );
+  const rows = await db.delete(reactionTable)
+    .where(whereClause)
     .returning();
   if (rows.length < 1) return undefined;
   await updateReactionsCounts(db, post.id);
   if (post.actor.accountId != null && post.actorId !== account.actor.id) {
+    let notifEmoji: string | CustomEmoji = emoji ?? DEFAULT_REACTION_EMOJI;
+    if (emoji == null && customEmojiId != null) {
+      const customEmoji = await db.query.customEmojiTable.findFirst({
+        where: { id: customEmojiId },
+      });
+      if (customEmoji != null) notifEmoji = customEmoji;
+    }
     await deleteReactNotification(
       db,
       post.actor.accountId,
       post,
       account.actor,
-      emoji,
+      notifEmoji,
     );
   }
+  if (emoji == null) return rows[0];
   const activity = getEmojiReact(ctx, {
     ...rows[0],
     actor: account.actor,
