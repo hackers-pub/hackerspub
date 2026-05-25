@@ -1,5 +1,5 @@
 import process from "node:process";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Database, RelationsFilter } from "./db.ts";
 import {
   getPostVisibilityFilter,
@@ -12,6 +12,7 @@ import {
   type Blocking,
   type Following,
   followingTable,
+  hashtagFollowingTable,
   type Instance,
   type Mention,
   type NewTimelineItem,
@@ -265,6 +266,37 @@ export async function addPostToTimeline(
         // and re-take the SHARE lock for no reason.
       },
     });
+
+  // Fan out to accounts that follow any of the post's hashtags. Only
+  // public posts are included — hashtag followers have no follower
+  // relationship with the author, so follower-only/DM posts must stay
+  // out of their feeds.
+  if (post.visibility === "public" && post.sharedPostId == null) {
+    const tagNames = Object.keys(post.tags ?? {});
+    if (tagNames.length > 0) {
+      const tagFollowers = await db
+        .selectDistinct({ accountId: hashtagFollowingTable.accountId })
+        .from(hashtagFollowingTable)
+        .where(inArray(hashtagFollowingTable.tag, tagNames));
+      if (tagFollowers.length > 0) {
+        const tagRecords: NewTimelineItem[] = tagFollowers.map(
+          ({ accountId }) => ({
+            accountId,
+            postId: post.id,
+            postType: post.type,
+            originalAuthorId: post.actorId,
+            lastSharerId: null,
+            sharersCount: 0,
+            added: post.published,
+            appended: post.published,
+          } satisfies NewTimelineItem),
+        );
+        await db.insert(timelineItemTable)
+          .values(tagRecords)
+          .onConflictDoNothing();
+      }
+    }
+  }
 }
 
 export async function removeFromTimeline(
