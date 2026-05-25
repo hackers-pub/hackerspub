@@ -8,6 +8,7 @@ import "./actor.ts";
 import { builder } from "./builder.ts";
 import "./error.ts";
 import "./doc.ts";
+import "./hashtag.ts";
 import "./invite.ts";
 import "./invitation-link.ts";
 import "./login.ts";

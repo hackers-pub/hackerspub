@@ -7,6 +7,11 @@ export function normalizeHashtag(tag: string): string {
   return tag.trim().replace(/^#/, "").toLowerCase();
 }
 
+export function validateHashtag(tag: string): boolean {
+  const normalized = normalizeHashtag(tag);
+  return normalized.length > 0 && normalized.length <= 100;
+}
+
 export async function followHashtag(
   db: Database,
   accountId: Uuid,
@@ -40,15 +45,17 @@ export async function pinHashtag(
   db: Database,
   accountId: Uuid,
   tag: string,
-): Promise<void> {
-  await db.update(hashtagFollowingTable)
+): Promise<boolean> {
+  const rows = await db.update(hashtagFollowingTable)
     .set({ pinned: true })
     .where(
       and(
         eq(hashtagFollowingTable.accountId, accountId),
         eq(hashtagFollowingTable.tag, normalizeHashtag(tag)),
       ),
-    );
+    )
+    .returning({ accountId: hashtagFollowingTable.accountId });
+  return rows.length > 0;
 }
 
 export async function unpinHashtag(

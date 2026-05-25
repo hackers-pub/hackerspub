@@ -17,6 +17,7 @@
     "./dblogger": "./dblogger.ts",
     "./emoji": "./emoji.ts",
     "./following": "./following.ts",
+    "./hashtag": "./hashtag.ts",
     "./html": "./html.ts",
     "./i18n": "./i18n.ts",
     "./instance": "./instance.ts",

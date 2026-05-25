@@ -34,6 +34,14 @@ type Account implements Node {
   defaultShareVisibility: PostVisibility!
 
   """
+  Whether the viewer follows the given hashtag. Always `false` for unauthenticated requests or when the account is not the viewer.
+  """
+  followsHashtag(
+    """Hashtag name without the leading `#`."""
+    tag: String!
+  ): Boolean!
+
+  """
   Full fediverse handle including the instance host, e.g., @alice@hackers.pub. Suitable for display and for cross-instance @-mention targeting.
   """
   handle: String!
@@ -90,6 +98,11 @@ type Account implements Node {
   """
   ogImageUrl: URL!
   passkeys(after: String, before: String, first: Int, last: Int): AccountPasskeysConnection!
+
+  """
+  Hashtags the viewer has pinned to their sidebar, in follow order. Returns an empty list for unauthenticated requests or when the account is not the viewer.
+  """
+  pinnedHashtags: [String!]!
 
   """
   The total number of posts authored by this account.  Visible only to moderators; null otherwise.
@@ -1064,6 +1077,26 @@ type FollowActorPayload {
 
 union FollowActorResult = FollowActorPayload | InvalidInputError | NotAuthenticatedError
 
+"""Follow a hashtag. Requires authentication."""
+input FollowHashtagInput {
+  clientMutationId: ID
+
+  """Hashtag name to follow (with or without leading `#`)."""
+  tag: String!
+}
+
+type FollowHashtagPayload {
+  clientMutationId: ID
+
+  """The normalized hashtag name that was followed."""
+  tag: String!
+
+  """The authenticated viewer's account after following."""
+  viewer: Account!
+}
+
+union FollowHashtagResult = FollowHashtagPayload | InvalidInputError | NotAuthenticatedError
+
 """Notification that one or more actors followed this account."""
 type FollowNotification implements Node & Notification {
   account: Account!
@@ -1342,6 +1375,7 @@ type Mutation {
   deletePost(input: DeletePostInput!): DeletePostResult!
   finishMediumUpload(input: FinishMediumUploadInput!): FinishMediumUploadResult!
   followActor(input: FollowActorInput!): FollowActorResult!
+  followHashtag(input: FollowHashtagInput!): FollowHashtagResult!
 
   """
   Generate WebAuthn authentication options for passkey sign-in. Pass a fresh client-generated UUID as `sessionId`; this same `sessionId` must be passed back to `loginByPasskey`.
@@ -1419,6 +1453,7 @@ type Mutation {
     """
     upTo: UUID
   ): DateTime!
+  pinHashtag(input: PinHashtagInput!): PinHashtagResult!
   pinPost(input: PinPostInput!): PinPostResult!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
   redeemInvitationLink(email: Email!, id: UUID!, locale: Locale!, verifyUrl: URITemplate!): RedeemInvitationLinkResult!
@@ -1450,6 +1485,8 @@ type Mutation {
   unblockActor(input: UnblockActorInput!): UnblockActorResult!
   unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
+  unfollowHashtag(input: UnfollowHashtagInput!): UnfollowHashtagResult!
+  unpinHashtag(input: UnpinHashtagInput!): UnpinHashtagResult!
   unpinPost(input: UnpinPostInput!): UnpinPostResult!
   unregisterApnsDeviceToken(input: UnregisterApnsDeviceTokenInput!): UnregisterApnsDeviceTokenResult!
   unregisterFcmDeviceToken(input: UnregisterFcmDeviceTokenInput!): UnregisterFcmDeviceTokenResult!
@@ -1726,6 +1763,28 @@ type PasskeyRegistrationResult {
   passkey: Passkey
   verified: Boolean!
 }
+
+"""
+Pin a followed hashtag to the sidebar. The hashtag must already be followed. Requires authentication.
+"""
+input PinHashtagInput {
+  clientMutationId: ID
+
+  """Hashtag name to pin (with or without leading `#`)."""
+  tag: String!
+}
+
+type PinHashtagPayload {
+  clientMutationId: ID
+
+  """The normalized hashtag name that was pinned."""
+  tag: String!
+
+  """The authenticated viewer's account after pinning."""
+  viewer: Account!
+}
+
+union PinHashtagResult = InvalidInputError | NotAuthenticatedError | PinHashtagPayload
 
 """
 Pin a post to the top of the viewer's profile. Only the post's author may pin it. Requires authentication.
@@ -3012,6 +3071,50 @@ type UnfollowActorPayload {
 }
 
 union UnfollowActorResult = InvalidInputError | NotAuthenticatedError | UnfollowActorPayload
+
+"""
+Unfollow a hashtag. Idempotent: unfollowing a tag not followed succeeds silently. Requires authentication.
+"""
+input UnfollowHashtagInput {
+  clientMutationId: ID
+
+  """Hashtag name to unfollow (with or without leading `#`)."""
+  tag: String!
+}
+
+type UnfollowHashtagPayload {
+  clientMutationId: ID
+
+  """The normalized hashtag name that was unfollowed."""
+  tag: String!
+
+  """The authenticated viewer's account after unfollowing."""
+  viewer: Account!
+}
+
+union UnfollowHashtagResult = InvalidInputError | NotAuthenticatedError | UnfollowHashtagPayload
+
+"""
+Remove a hashtag from the sidebar. Idempotent: unpinning an already-unpinned tag succeeds silently. Requires authentication.
+"""
+input UnpinHashtagInput {
+  clientMutationId: ID
+
+  """Hashtag name to unpin (with or without leading `#`)."""
+  tag: String!
+}
+
+type UnpinHashtagPayload {
+  clientMutationId: ID
+
+  """The normalized hashtag name that was unpinned."""
+  tag: String!
+
+  """The authenticated viewer's account after unpinning."""
+  viewer: Account!
+}
+
+union UnpinHashtagResult = InvalidInputError | NotAuthenticatedError | UnpinHashtagPayload
 
 """Remove a pin from the viewer's profile. Requires authentication."""
 input UnpinPostInput {
