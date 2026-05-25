@@ -281,11 +281,11 @@ export async function registerPushNotificationTarget(
           ],
         set: {
           accountId,
-          token: values.token,
-          endpoint: values.endpoint,
-          p256dh: values.p256dh,
-          auth: values.auth,
-          expirationTime: values.expirationTime,
+          token: values.token ?? null,
+          endpoint: values.endpoint ?? null,
+          p256dh: values.p256dh ?? null,
+          auth: values.auth ?? null,
+          expirationTime: values.expirationTime ?? null,
           updated: sql`CURRENT_TIMESTAMP`,
         },
         targetWhere: values.service === "web_push"

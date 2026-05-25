@@ -1478,6 +1478,10 @@ type Mutation {
   Deprecated FCM-only registration mutation kept for existing Android clients. New clients should call `registerPushNotificationTarget`.
   """
   registerFcmDeviceToken(input: RegisterFcmDeviceTokenInput!): RegisterFcmDeviceTokenResult! @deprecated(reason: "Use `registerPushNotificationTarget` with `service: FCM` instead.")
+
+  """
+  Register or refresh a push notification target for the authenticated viewer. `APNS` and `FCM` require `token`; `WEB_PUSH` requires `endpoint`, `p256dh`, and `auth` from the browser `PushSubscription`.
+  """
   registerPushNotificationTarget(input: RegisterPushNotificationTargetInput!): RegisterPushNotificationTargetResult!
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
@@ -1513,6 +1517,10 @@ type Mutation {
   Deprecated FCM-only unregister mutation kept for existing Android clients. New clients should call `unregisterPushNotificationTarget`.
   """
   unregisterFcmDeviceToken(input: UnregisterFcmDeviceTokenInput!): UnregisterFcmDeviceTokenResult! @deprecated(reason: "Use `unregisterPushNotificationTarget` with `service: FCM` instead.")
+
+  """
+  Remove a push notification target owned by the authenticated viewer. `APNS` and `FCM` identify targets by `token`; `WEB_PUSH` identifies targets by `endpoint`.
+  """
   unregisterPushNotificationTarget(input: UnregisterPushNotificationTargetInput!): UnregisterPushNotificationTargetResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!

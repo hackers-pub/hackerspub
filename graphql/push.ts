@@ -174,6 +174,10 @@ builder.relayMutationField(
     }),
   },
   {
+    description:
+      "Register or refresh a push notification target for the authenticated " +
+      "viewer. `APNS` and `FCM` require `token`; `WEB_PUSH` requires " +
+      "`endpoint`, `p256dh`, and `auth` from the browser `PushSubscription`.",
     errors: {
       types: [
         NotAuthenticatedError,
@@ -329,6 +333,10 @@ builder.relayMutationField(
     }),
   },
   {
+    description:
+      "Remove a push notification target owned by the authenticated viewer. " +
+      "`APNS` and `FCM` identify targets by `token`; `WEB_PUSH` identifies " +
+      "targets by `endpoint`.",
     errors: {
       types: [NotAuthenticatedError, InvalidInputError],
       union: {
