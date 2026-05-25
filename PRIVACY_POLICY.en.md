@@ -1,7 +1,7 @@
 Hackers' Pub Privacy Policy
 ===========================
 
-*Last updated: April 3, 2026*
+*Last updated: May 25, 2026*
 
 
 1. Introduction
