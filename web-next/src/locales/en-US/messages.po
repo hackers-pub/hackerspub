@@ -491,28 +491,28 @@ msgstr "Bookmark"
 msgid "Bookmarks"
 msgstr "Bookmarks"
 
-#: src/components/WebPushNotificationSettings.tsx:304
+#: src/components/WebPushNotificationSettings.tsx:366
 msgid "Browser notifications"
 msgstr "Browser notifications"
 
-#: src/components/WebPushNotificationSettings.tsx:315
+#: src/components/WebPushNotificationSettings.tsx:377
 msgid "Browser notifications are not available."
 msgstr "Browser notifications are not available."
 
-#: src/components/WebPushNotificationSettings.tsx:319
+#: src/components/WebPushNotificationSettings.tsx:381
 msgid "Browser notifications are off."
 msgstr "Browser notifications are off."
 
-#: src/components/WebPushNotificationSettings.tsx:321
+#: src/components/WebPushNotificationSettings.tsx:383
 msgid "Browser notifications are on."
 msgstr "Browser notifications are on."
 
-#: src/components/WebPushNotificationSettings.tsx:241
+#: src/components/WebPushNotificationSettings.tsx:311
 msgid "Browser notifications disabled"
 msgstr "Browser notifications disabled"
 
-#: src/components/WebPushNotificationSettings.tsx:192
-#: src/components/WebPushPromptBanner.tsx:116
+#: src/components/WebPushNotificationSettings.tsx:243
+#: src/components/WebPushPromptBanner.tsx:196
 msgid "Browser notifications enabled"
 msgstr "Browser notifications enabled"
 
@@ -537,7 +537,7 @@ msgstr "Cancel"
 msgid "Cannot change the language because translations already exist"
 msgstr "Cannot change the language because translations already exist"
 
-#: src/components/WebPushNotificationSettings.tsx:347
+#: src/components/WebPushNotificationSettings.tsx:409
 msgid "Check again"
 msgstr "Check again"
 
@@ -549,7 +549,7 @@ msgstr "Check your email"
 msgid "Check your email to complete sign-up. We've sent a verification link to your email address."
 msgstr "Check your email to complete sign-up. We've sent a verification link to your email address."
 
-#: src/components/WebPushNotificationSettings.tsx:347
+#: src/components/WebPushNotificationSettings.tsx:409
 msgid "Checking…"
 msgstr "Checking…"
 
@@ -557,7 +557,7 @@ msgstr "Checking…"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "Choose the language your friend prefers. This language will only be used for the invitation."
 
-#: src/components/WebPushNotificationSettings.tsx:383
+#: src/components/WebPushNotificationSettings.tsx:445
 msgid "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
 msgstr "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
 
@@ -569,7 +569,7 @@ msgstr "Choose your preferred language for the verification email."
 msgid "Clear"
 msgstr "Clear"
 
-#: src/components/WebPushNotificationSettings.tsx:334
+#: src/components/WebPushNotificationSettings.tsx:396
 msgid "Clicking a notification opens your notifications page."
 msgstr "Clicking a notification opens your notifications page."
 
@@ -741,11 +741,11 @@ msgstr "Delete post?"
 msgid "Deleting…"
 msgstr "Deleting…"
 
-#: src/components/WebPushNotificationSettings.tsx:370
+#: src/components/WebPushNotificationSettings.tsx:432
 msgid "Disable"
 msgstr "Disable"
 
-#: src/components/WebPushNotificationSettings.tsx:370
+#: src/components/WebPushNotificationSettings.tsx:432
 msgid "Disabling…"
 msgstr "Disabling…"
 
@@ -761,7 +761,7 @@ msgstr "Discard draft?"
 msgid "Discard unsaved changes - are you sure?"
 msgstr "Discard unsaved changes - are you sure?"
 
-#: src/components/WebPushPromptBanner.tsx:167
+#: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "Dismiss"
 
@@ -831,13 +831,13 @@ msgstr "Email address"
 msgid "Email or username"
 msgstr "Email or username"
 
-#: src/components/WebPushNotificationSettings.tsx:359
-#: src/components/WebPushPromptBanner.tsx:161
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
 msgid "Enable"
 msgstr "Enable"
 
-#: src/components/WebPushNotificationSettings.tsx:359
-#: src/components/WebPushPromptBanner.tsx:161
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
 msgid "Enabling…"
 msgstr "Enabling…"
 
@@ -954,18 +954,18 @@ msgstr "Failed to delete orphan media."
 msgid "Failed to delete post"
 msgstr "Failed to delete post"
 
-#: src/components/WebPushNotificationSettings.tsx:233
-#: src/components/WebPushNotificationSettings.tsx:248
-#: src/components/WebPushNotificationSettings.tsx:256
+#: src/components/WebPushNotificationSettings.tsx:305
+#: src/components/WebPushNotificationSettings.tsx:318
+#: src/components/WebPushNotificationSettings.tsx:326
 msgid "Failed to disable browser notifications"
 msgstr "Failed to disable browser notifications"
 
-#: src/components/WebPushNotificationSettings.tsx:182
-#: src/components/WebPushNotificationSettings.tsx:201
-#: src/components/WebPushNotificationSettings.tsx:209
-#: src/components/WebPushPromptBanner.tsx:105
-#: src/components/WebPushPromptBanner.tsx:123
-#: src/components/WebPushPromptBanner.tsx:132
+#: src/components/WebPushNotificationSettings.tsx:226
+#: src/components/WebPushNotificationSettings.tsx:262
+#: src/components/WebPushNotificationSettings.tsx:279
+#: src/components/WebPushPromptBanner.tsx:180
+#: src/components/WebPushPromptBanner.tsx:216
+#: src/components/WebPushPromptBanner.tsx:234
 msgid "Failed to enable browser notifications"
 msgstr "Failed to enable browser notifications"
 
@@ -1154,7 +1154,7 @@ msgstr "Failed to unpin post"
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
 
-#: src/components/WebPushNotificationSettings.tsx:293
+#: src/components/WebPushNotificationSettings.tsx:355
 msgid "Failed to update push notification privacy"
 msgstr "Failed to update push notification privacy"
 
@@ -1234,7 +1234,7 @@ msgstr "Formatting"
 msgid "Generating…"
 msgstr "Generating…"
 
-#: src/components/WebPushPromptBanner.tsx:147
+#: src/components/WebPushPromptBanner.tsx:249
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
@@ -1744,7 +1744,7 @@ msgstr "Never used"
 msgid "New article"
 msgstr "New article"
 
-#: src/components/WebPushNotificationSettings.tsx:194
+#: src/components/WebPushNotificationSettings.tsx:245
 msgid "New notifications can now appear even when Hackers' Pub is not open."
 msgstr "New notifications can now appear even when Hackers' Pub is not open."
 
@@ -1878,7 +1878,12 @@ msgstr "Notes"
 msgid "Nothing to preview"
 msgstr "Nothing to preview"
 
-#: src/components/WebPushNotificationSettings.tsx:376
+#: src/components/WebPushNotificationSettings.tsx:156
+#: src/components/WebPushPromptBanner.tsx:91
+msgid "Notification permission was not granted."
+msgstr "Notification permission was not granted."
+
+#: src/components/WebPushNotificationSettings.tsx:438
 msgid "Notification preview privacy"
 msgstr "Notification preview privacy"
 
@@ -1886,7 +1891,12 @@ msgstr "Notification preview privacy"
 msgid "Notifications"
 msgstr "Notifications"
 
-#: src/components/WebPushNotificationSettings.tsx:332
+#: src/components/WebPushNotificationSettings.tsx:154
+#: src/components/WebPushPromptBanner.tsx:89
+msgid "Notifications are blocked for this site."
+msgstr "Notifications are blocked for this site."
+
+#: src/components/WebPushNotificationSettings.tsx:394
 msgid "Notifications are blocked in your browser settings."
 msgstr "Notifications are blocked in your browser settings."
 
@@ -2081,7 +2091,7 @@ msgstr "Publish now"
 msgid "Publishing…"
 msgstr "Publishing…"
 
-#: src/components/WebPushNotificationSettings.tsx:282
+#: src/components/WebPushNotificationSettings.tsx:344
 msgid "Push notification privacy updated"
 msgstr "Push notification privacy updated"
 
@@ -2162,11 +2172,11 @@ msgstr "Read full article"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "Read the full Code of conduct"
 
-#: src/components/WebPushPromptBanner.tsx:150
+#: src/components/WebPushPromptBanner.tsx:252
 msgid "Receive new notifications immediately, even when this tab is closed."
 msgstr "Receive new notifications immediately, even when this tab is closed."
 
-#: src/components/WebPushNotificationSettings.tsx:306
+#: src/components/WebPushNotificationSettings.tsx:368
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
@@ -2523,6 +2533,11 @@ msgstr "Tags"
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
 
+#: src/components/WebPushNotificationSettings.tsx:158
+#: src/components/WebPushPromptBanner.tsx:93
+msgid "The browser did not provide a complete push subscription."
+msgstr "The browser did not provide a complete push subscription."
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:202
 msgid "The default privacy setting for your notes."
 msgstr "The default privacy setting for your notes."
@@ -2606,9 +2621,19 @@ msgstr "The title will appear at the top of your article and in link previews."
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "The URL of the link, e.g., https://github.com/yourhandle."
 
+#: src/components/WebPushNotificationSettings.tsx:160
+#: src/components/WebPushPromptBanner.tsx:95
+msgid "The Web Push public key is invalid."
+msgstr "The Web Push public key is invalid."
+
 #: src/components/PostActionMenu.tsx:363
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "This action cannot be undone. This will permanently delete this post."
+
+#: src/components/WebPushNotificationSettings.tsx:152
+#: src/components/WebPushPromptBanner.tsx:87
+msgid "This browser does not support Web Push."
+msgstr "This browser does not support Web Push."
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:175
 #: src/routes/(root)/[handle]/invite/[id].tsx:179
@@ -2641,7 +2666,7 @@ msgstr "This post quoted another post, but the quote is not currently authorized
 msgid "This quote is waiting for approval from the original author."
 msgstr "This quote is waiting for approval from the original author."
 
-#: src/components/WebPushNotificationSettings.tsx:328
+#: src/components/WebPushNotificationSettings.tsx:390
 msgid "This server has not configured Web Push yet."
 msgstr "This server has not configured Web Push yet."
 

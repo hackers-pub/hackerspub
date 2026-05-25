@@ -52,9 +52,43 @@ export function normalizeWebPushEndpoint(endpoint: string): string | null {
     return null;
   }
   if (url.protocol !== "https:") return null;
-  return isSSRFSafeURL(url.href, { autoPrependProtocol: false })
-    ? trimmed
-    : null;
+  return isSafeWebPushEndpoint(url) ? trimmed : null;
+}
+
+function isSafeWebPushEndpoint(url: URL): boolean {
+  const mappedIpv4 = getIpv4FromMappedIpv6Host(url.hostname);
+  if (
+    mappedIpv4 != null &&
+    !isSSRFSafeURL(`https://${mappedIpv4}/`, { autoPrependProtocol: false })
+  ) {
+    return false;
+  }
+  return isSSRFSafeURL(url.href, { autoPrependProtocol: false });
+}
+
+function getIpv4FromMappedIpv6Host(hostname: string): string | null {
+  const normalized = hostname.toLowerCase();
+  const prefix = "[::ffff:";
+  if (!normalized.startsWith(prefix) || !normalized.endsWith("]")) {
+    return null;
+  }
+
+  const words = normalized.slice(prefix.length, -1).split(":");
+  if (words.length !== 2) return null;
+
+  const values = words.map((word) => {
+    if (!/^[0-9a-f]{1,4}$/.test(word)) return null;
+    return Number.parseInt(word, 16);
+  });
+  if (values.some((value) => value == null || value > 0xffff)) return null;
+
+  const [high, low] = values as [number, number];
+  return [
+    high >> 8,
+    high & 0xff,
+    low >> 8,
+    low & 0xff,
+  ].join(".");
 }
 
 export function normalizeWebPushKey(key: string): string | null {

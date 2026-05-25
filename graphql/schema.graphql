@@ -2879,17 +2879,6 @@ type RegisterFcmDeviceTokenPayload {
 union RegisterFcmDeviceTokenResult = InvalidInputError | NotAuthenticatedError | RegisterFcmDeviceTokenFailedError | RegisterFcmDeviceTokenPayload
 
 """
-Returned when a push notification target cannot be registered after validating the input. The most common cause is a per-service device limit.
-"""
-type RegisterPushNotificationTargetFailedError {
-  """Maximum number of targets this account may register for one service."""
-  limit: Int!
-
-  """Human-readable explanation of the registration failure."""
-  message: String!
-}
-
-"""
 Register or refresh a push notification target for the authenticated viewer. `APNS` and `FCM` require `token`; `WEB_PUSH` requires `endpoint`, `p256dh`, and `auth` from the browser `PushSubscription`.
 """
 input RegisterPushNotificationTargetInput {
@@ -2942,7 +2931,7 @@ type RegisterPushNotificationTargetPayload {
 """
 Result of registering a push notification target. Successful responses return the stored target; invalid input and authentication failures are returned as typed errors.
 """
-union RegisterPushNotificationTargetResult = InvalidInputError | NotAuthenticatedError | RegisterPushNotificationTargetFailedError | RegisterPushNotificationTargetPayload
+union RegisterPushNotificationTargetResult = InvalidInputError | NotAuthenticatedError | RegisterPushNotificationTargetPayload
 
 input RemoveFollowerInput {
   actorId: ID!

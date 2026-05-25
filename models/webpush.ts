@@ -36,8 +36,11 @@ type WebPushSender = (
 
 let senderForTesting: WebPushSender | undefined;
 let configForTesting: WebPushConfig | undefined;
+let cachedEnvConfig: WebPushConfig | null | undefined;
 
 function readEnvConfig(): WebPushConfig | null {
+  if (cachedEnvConfig !== undefined) return cachedEnvConfig;
+
   const publicKey = Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY")?.trim() ?? "";
   const privateKey = Deno.env.get("WEB_PUSH_VAPID_PRIVATE_KEY")?.trim() ?? "";
   const subject = Deno.env.get("WEB_PUSH_VAPID_SUBJECT")?.trim() ?? "";
@@ -46,22 +49,22 @@ function readEnvConfig(): WebPushConfig | null {
     logger.debug(
       "Web Push integration is disabled because WEB_PUSH_VAPID_* environment variables are not set.",
     );
-    return null;
+    return cachedEnvConfig = null;
   }
   if (publicKey === "" || privateKey === "" || subject === "") {
     logger.warning(
       "Web Push integration is disabled because WEB_PUSH_VAPID_* environment variables are incomplete.",
     );
-    return null;
+    return cachedEnvConfig = null;
   }
   if (!subject.startsWith("mailto:") && !subject.startsWith("https://")) {
     logger.warning(
       "Web Push integration is disabled because WEB_PUSH_VAPID_SUBJECT must be a mailto: address or an https:// URL.",
     );
-    return null;
+    return cachedEnvConfig = null;
   }
 
-  return { publicKey, privateKey, subject };
+  return cachedEnvConfig = { publicKey, privateKey, subject };
 }
 
 export function getWebPushVapidPublicKey(): string | null {
@@ -115,6 +118,11 @@ export function setWebPushConfigForTesting(
   config: WebPushConfig | undefined,
 ): void {
   configForTesting = config;
+  cachedEnvConfig = undefined;
+}
+
+export function clearWebPushEnvConfigCacheForTesting(): void {
+  cachedEnvConfig = undefined;
 }
 
 export async function sendWebPushNotification(

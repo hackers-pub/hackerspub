@@ -10,6 +10,7 @@ import {
   subscribeToWebPush,
   unsubscribeFromWebPush,
   WEB_PUSH_PERMISSION_CHANGE_EVENT,
+  WebPushError,
   type WebPushSubscriptionData,
 } from "~/lib/webPush.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -75,6 +76,25 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
     permission() !== "denied" &&
     !subscribed() &&
     !dismissed();
+  const webPushErrorDescription = (error: unknown) => {
+    if (!(error instanceof WebPushError)) {
+      return import.meta.env.DEV && error instanceof Error
+        ? error.message
+        : undefined;
+    }
+    switch (error.code) {
+      case "unsupported":
+        return t`This browser does not support Web Push.`;
+      case "permission-denied":
+        return t`Notifications are blocked for this site.`;
+      case "permission-dismissed":
+        return t`Notification permission was not granted.`;
+      case "incomplete-subscription":
+        return t`The browser did not provide a complete push subscription.`;
+      case "invalid-vapid-public-key":
+        return t`The Web Push public key is invalid.`;
+    }
+  };
 
   onMount(() => {
     setMounted(true);
@@ -212,7 +232,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
       setPermission(getNotificationPermission());
       showToast({
         title: t`Failed to enable browser notifications`,
-        description: error instanceof Error ? error.message : undefined,
+        description: webPushErrorDescription(error),
         variant: "error",
       });
     }

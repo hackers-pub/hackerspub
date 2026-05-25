@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { clearWebPushEnvConfigCacheForTesting } from "@hackerspub/models/webpush";
 import { execute, parse } from "graphql";
 import { schema } from "./mod.ts";
 import {
@@ -140,6 +141,7 @@ test("webPushVapidPublicKey returns configured public key or null", async () => 
       Deno.env.delete("WEB_PUSH_VAPID_PUBLIC_KEY");
       Deno.env.delete("WEB_PUSH_VAPID_PRIVATE_KEY");
       Deno.env.delete("WEB_PUSH_VAPID_SUBJECT");
+      clearWebPushEnvConfigCacheForTesting();
       const missingResult = await execute({
         schema,
         document: vapidKeyQuery,
@@ -153,6 +155,7 @@ test("webPushVapidPublicKey returns configured public key or null", async () => 
       Deno.env.set("WEB_PUSH_VAPID_PUBLIC_KEY", " test-vapid-key ");
       Deno.env.set("WEB_PUSH_VAPID_PRIVATE_KEY", " test-vapid-private-key ");
       Deno.env.set("WEB_PUSH_VAPID_SUBJECT", " mailto:test@example.com ");
+      clearWebPushEnvConfigCacheForTesting();
       const configuredResult = await execute({
         schema,
         document: vapidKeyQuery,
@@ -179,6 +182,7 @@ test("webPushVapidPublicKey returns configured public key or null", async () => 
     } else {
       Deno.env.set("WEB_PUSH_VAPID_SUBJECT", originals.subject);
     }
+    clearWebPushEnvConfigCacheForTesting();
   }
 });
 
@@ -226,6 +230,12 @@ test("registerPushNotificationTarget rejects unsafe Web Push subscriptions", asy
         [{
           service: "WEB_PUSH",
           endpoint: "https://127.0.0.1/push",
+          p256dh: validWebPushP256dh,
+          auth: validWebPushAuth,
+        }, "endpoint"],
+        [{
+          service: "WEB_PUSH",
+          endpoint: "https://[::ffff:169.254.169.254]/push",
           p256dh: validWebPushP256dh,
           auth: validWebPushAuth,
         }, "endpoint"],

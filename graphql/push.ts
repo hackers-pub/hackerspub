@@ -3,7 +3,6 @@ import type {
   PushNotificationService as Service,
 } from "@hackerspub/models/schema";
 import {
-  MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE,
   normalizeApnsDeviceToken,
   normalizeFcmDeviceToken,
   normalizeWebPushEndpoint,
@@ -119,32 +118,6 @@ export function fromPushNotificationPreviewPolicy(
     );
 }
 
-class RegisterPushNotificationTargetFailedError extends Error {
-  public constructor(
-    public readonly limit: number = MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE,
-  ) {
-    super(`Cannot register more than ${limit} push notification targets.`);
-  }
-}
-
-builder.objectType(RegisterPushNotificationTargetFailedError, {
-  name: "RegisterPushNotificationTargetFailedError",
-  description:
-    "Returned when a push notification target cannot be registered after " +
-    "validating the input. The most common cause is a per-service device " +
-    "limit.",
-  fields: (t) => ({
-    message: t.expose("message", {
-      type: "String",
-      description: "Human-readable explanation of the registration failure.",
-    }),
-    limit: t.exposeInt("limit", {
-      description:
-        "Maximum number of targets this account may register for one service.",
-    }),
-  }),
-});
-
 builder.queryField("webPushVapidPublicKey", (t) =>
   t.string({
     nullable: true,
@@ -203,7 +176,6 @@ builder.relayMutationField(
       types: [
         NotAuthenticatedError,
         InvalidInputError,
-        RegisterPushNotificationTargetFailedError,
       ],
       union: {
         description:
@@ -276,7 +248,7 @@ builder.relayMutationField(
         },
       );
       if (result == null) {
-        throw new RegisterPushNotificationTargetFailedError();
+        throw new InvalidInputError("service");
       }
       return result;
     },

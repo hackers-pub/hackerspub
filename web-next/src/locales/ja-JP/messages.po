@@ -491,28 +491,28 @@ msgstr "ブックマーク"
 msgid "Bookmarks"
 msgstr "ブックマーク"
 
-#: src/components/WebPushNotificationSettings.tsx:304
+#: src/components/WebPushNotificationSettings.tsx:366
 msgid "Browser notifications"
 msgstr "ブラウザー通知"
 
-#: src/components/WebPushNotificationSettings.tsx:315
+#: src/components/WebPushNotificationSettings.tsx:377
 msgid "Browser notifications are not available."
 msgstr "ブラウザー通知は利用できません。"
 
-#: src/components/WebPushNotificationSettings.tsx:319
+#: src/components/WebPushNotificationSettings.tsx:381
 msgid "Browser notifications are off."
 msgstr "ブラウザー通知はオフです。"
 
-#: src/components/WebPushNotificationSettings.tsx:321
+#: src/components/WebPushNotificationSettings.tsx:383
 msgid "Browser notifications are on."
 msgstr "ブラウザー通知はオンです。"
 
-#: src/components/WebPushNotificationSettings.tsx:241
+#: src/components/WebPushNotificationSettings.tsx:311
 msgid "Browser notifications disabled"
 msgstr "ブラウザー通知を無効にしました"
 
-#: src/components/WebPushNotificationSettings.tsx:192
-#: src/components/WebPushPromptBanner.tsx:116
+#: src/components/WebPushNotificationSettings.tsx:243
+#: src/components/WebPushPromptBanner.tsx:196
 msgid "Browser notifications enabled"
 msgstr "ブラウザー通知を有効にしました"
 
@@ -537,7 +537,7 @@ msgstr "キャンセル"
 msgid "Cannot change the language because translations already exist"
 msgstr "翻訳が既に存在するため、言語を変更できません"
 
-#: src/components/WebPushNotificationSettings.tsx:347
+#: src/components/WebPushNotificationSettings.tsx:409
 msgid "Check again"
 msgstr "再確認"
 
@@ -549,7 +549,7 @@ msgstr "メールを確認してください"
 msgid "Check your email to complete sign-up. We've sent a verification link to your email address."
 msgstr "登録を完了するにはメールを確認してください。確認リンクをメールアドレスに送信しました。"
 
-#: src/components/WebPushNotificationSettings.tsx:347
+#: src/components/WebPushNotificationSettings.tsx:409
 msgid "Checking…"
 msgstr "確認中…"
 
@@ -557,7 +557,7 @@ msgstr "確認中…"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "招待する友達の使用言語を選択してください。この言語は招待状にのみ使用されます。"
 
-#: src/components/WebPushNotificationSettings.tsx:383
+#: src/components/WebPushNotificationSettings.tsx:445
 msgid "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
 msgstr "プッシュ通知にコンテンツの抜粋を含めるかを選択します。プレビューを非表示にすると、汎用の通知文が使われます。"
 
@@ -569,7 +569,7 @@ msgstr "確認メールの言語を選択してください。"
 msgid "Clear"
 msgstr "クリア"
 
-#: src/components/WebPushNotificationSettings.tsx:334
+#: src/components/WebPushNotificationSettings.tsx:396
 msgid "Clicking a notification opens your notifications page."
 msgstr "通知をクリックすると通知ページが開きます。"
 
@@ -741,11 +741,11 @@ msgstr "コンテンツを削除しますか？"
 msgid "Deleting…"
 msgstr "削除中…"
 
-#: src/components/WebPushNotificationSettings.tsx:370
+#: src/components/WebPushNotificationSettings.tsx:432
 msgid "Disable"
 msgstr "無効化"
 
-#: src/components/WebPushNotificationSettings.tsx:370
+#: src/components/WebPushNotificationSettings.tsx:432
 msgid "Disabling…"
 msgstr "無効化中…"
 
@@ -761,7 +761,7 @@ msgstr "下書きを破棄しますか？"
 msgid "Discard unsaved changes - are you sure?"
 msgstr "未保存の変更を破棄してもよろしいですか？"
 
-#: src/components/WebPushPromptBanner.tsx:167
+#: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "閉じる"
 
@@ -831,13 +831,13 @@ msgstr "メールアドレス"
 msgid "Email or username"
 msgstr "メールアドレスまたはユーザー名"
 
-#: src/components/WebPushNotificationSettings.tsx:359
-#: src/components/WebPushPromptBanner.tsx:161
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
 msgid "Enable"
 msgstr "有効化"
 
-#: src/components/WebPushNotificationSettings.tsx:359
-#: src/components/WebPushPromptBanner.tsx:161
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
 msgid "Enabling…"
 msgstr "有効化中…"
 
@@ -950,18 +950,18 @@ msgstr "孤立したメディアの削除に失敗しました。"
 msgid "Failed to delete post"
 msgstr "コンテンツの削除に失敗しました"
 
-#: src/components/WebPushNotificationSettings.tsx:233
-#: src/components/WebPushNotificationSettings.tsx:248
-#: src/components/WebPushNotificationSettings.tsx:256
+#: src/components/WebPushNotificationSettings.tsx:305
+#: src/components/WebPushNotificationSettings.tsx:318
+#: src/components/WebPushNotificationSettings.tsx:326
 msgid "Failed to disable browser notifications"
 msgstr "ブラウザー通知を無効にできませんでした"
 
-#: src/components/WebPushNotificationSettings.tsx:182
-#: src/components/WebPushNotificationSettings.tsx:201
-#: src/components/WebPushNotificationSettings.tsx:209
-#: src/components/WebPushPromptBanner.tsx:105
-#: src/components/WebPushPromptBanner.tsx:123
-#: src/components/WebPushPromptBanner.tsx:132
+#: src/components/WebPushNotificationSettings.tsx:226
+#: src/components/WebPushNotificationSettings.tsx:262
+#: src/components/WebPushNotificationSettings.tsx:279
+#: src/components/WebPushPromptBanner.tsx:180
+#: src/components/WebPushPromptBanner.tsx:216
+#: src/components/WebPushPromptBanner.tsx:234
 msgid "Failed to enable browser notifications"
 msgstr "ブラウザー通知を有効にできませんでした"
 
@@ -1150,7 +1150,7 @@ msgstr "コンテンツの固定を解除できませんでした"
 msgid "Failed to unshare post"
 msgstr "共有の取り消しに失敗しました"
 
-#: src/components/WebPushNotificationSettings.tsx:293
+#: src/components/WebPushNotificationSettings.tsx:355
 msgid "Failed to update push notification privacy"
 msgstr "プッシュ通知のプライバシー設定を更新できませんでした"
 
@@ -1230,7 +1230,7 @@ msgstr "書式設定"
 msgid "Generating…"
 msgstr "生成中…"
 
-#: src/components/WebPushPromptBanner.tsx:147
+#: src/components/WebPushPromptBanner.tsx:249
 msgid "Get browser notifications"
 msgstr "ブラウザー通知を受け取る"
 
@@ -1740,7 +1740,7 @@ msgstr "使用履歴なし"
 msgid "New article"
 msgstr "新しい記事"
 
-#: src/components/WebPushNotificationSettings.tsx:194
+#: src/components/WebPushNotificationSettings.tsx:245
 msgid "New notifications can now appear even when Hackers' Pub is not open."
 msgstr "Hackers' Pubを開いていなくても新しい通知が表示されるようになりました。"
 
@@ -1874,7 +1874,12 @@ msgstr "投稿"
 msgid "Nothing to preview"
 msgstr "プレビューする内容がありません"
 
-#: src/components/WebPushNotificationSettings.tsx:376
+#: src/components/WebPushNotificationSettings.tsx:156
+#: src/components/WebPushPromptBanner.tsx:91
+msgid "Notification permission was not granted."
+msgstr "通知の権限が許可されませんでした。"
+
+#: src/components/WebPushNotificationSettings.tsx:438
 msgid "Notification preview privacy"
 msgstr "通知プレビューのプライバシー"
 
@@ -1882,7 +1887,12 @@ msgstr "通知プレビューのプライバシー"
 msgid "Notifications"
 msgstr "通知"
 
-#: src/components/WebPushNotificationSettings.tsx:332
+#: src/components/WebPushNotificationSettings.tsx:154
+#: src/components/WebPushPromptBanner.tsx:89
+msgid "Notifications are blocked for this site."
+msgstr "このサイトの通知はブロックされています。"
+
+#: src/components/WebPushNotificationSettings.tsx:394
 msgid "Notifications are blocked in your browser settings."
 msgstr "ブラウザー設定で通知がブロックされています。"
 
@@ -2077,7 +2087,7 @@ msgstr "今すぐ公開"
 msgid "Publishing…"
 msgstr "公開中…"
 
-#: src/components/WebPushNotificationSettings.tsx:282
+#: src/components/WebPushNotificationSettings.tsx:344
 msgid "Push notification privacy updated"
 msgstr "プッシュ通知のプライバシー設定を更新しました"
 
@@ -2158,11 +2168,11 @@ msgstr "記事全文を読む"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "行動規範の全文を読む"
 
-#: src/components/WebPushPromptBanner.tsx:150
+#: src/components/WebPushPromptBanner.tsx:252
 msgid "Receive new notifications immediately, even when this tab is closed."
 msgstr "このタブを閉じていても新しい通知をすぐに受け取れます。"
 
-#: src/components/WebPushNotificationSettings.tsx:306
+#: src/components/WebPushNotificationSettings.tsx:368
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "このブラウザーで通知をすぐに受け取ります。このタブを閉じていても通知されます。"
 
@@ -2519,6 +2529,11 @@ msgstr "タグ"
 msgid "Tell us about yourself…"
 msgstr "自己紹介をお聞かせください…"
 
+#: src/components/WebPushNotificationSettings.tsx:158
+#: src/components/WebPushPromptBanner.tsx:93
+msgid "The browser did not provide a complete push subscription."
+msgstr "ブラウザーから完全なプッシュ通知サブスクリプションが提供されませんでした。"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:202
 msgid "The default privacy setting for your notes."
 msgstr "投稿のデフォルト公開設定です。"
@@ -2602,9 +2617,19 @@ msgstr "タイトルは記事の先頭とリンクプレビューに表示され
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "リンクのURL。（例：https://github.com/yourhandle）"
 
+#: src/components/WebPushNotificationSettings.tsx:160
+#: src/components/WebPushPromptBanner.tsx:95
+msgid "The Web Push public key is invalid."
+msgstr "Web Push の公開鍵が無効です。"
+
 #: src/components/PostActionMenu.tsx:363
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "この操作は取り消せません。このコンテンツは完全に削除されます。"
+
+#: src/components/WebPushNotificationSettings.tsx:152
+#: src/components/WebPushPromptBanner.tsx:87
+msgid "This browser does not support Web Push."
+msgstr "このブラウザーは Web Push に対応していません。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:175
 #: src/routes/(root)/[handle]/invite/[id].tsx:179
@@ -2637,7 +2662,7 @@ msgstr "このコンテンツは別のコンテンツを引用していました
 msgid "This quote is waiting for approval from the original author."
 msgstr "この引用は元の作成者からの承認を待っています。"
 
-#: src/components/WebPushNotificationSettings.tsx:328
+#: src/components/WebPushNotificationSettings.tsx:390
 msgid "This server has not configured Web Push yet."
 msgstr "このサーバーではまだWeb Pushが設定されていません。"
 

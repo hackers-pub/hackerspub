@@ -30,6 +30,8 @@ test("registerPushNotificationTarget() rejects unsafe Web Push subscriptions", a
       const subscription of [
         webSubscription("http://push.example/endpoint"),
         webSubscription("https://127.0.0.1/endpoint"),
+        webSubscription("https://[::ffff:169.254.169.254]/endpoint"),
+        webSubscription("https://[::ffff:7f00:1]/endpoint"),
         { ...webSubscription("https://push.example/endpoint"), p256dh: "@@" },
         { ...webSubscription("https://push.example/endpoint"), auth: "@@" },
       ]

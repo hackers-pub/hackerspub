@@ -5,6 +5,23 @@ export interface WebPushSubscriptionData {
   expirationTime: string | null;
 }
 
+export type WebPushErrorCode =
+  | "incomplete-subscription"
+  | "invalid-vapid-public-key"
+  | "permission-denied"
+  | "permission-dismissed"
+  | "unsupported";
+
+export class WebPushError extends Error {
+  constructor(
+    public readonly code: WebPushErrorCode,
+    options?: ErrorOptions,
+  ) {
+    super(code, options);
+    this.name = "WebPushError";
+  }
+}
+
 export const WEB_PUSH_PERMISSION_CHANGE_EVENT =
   "hackerspub:web-push-permission-change";
 
@@ -27,7 +44,7 @@ export async function getWebPushRegistration(): Promise<
   ServiceWorkerRegistration
 > {
   if (!isWebPushSupported()) {
-    throw new Error("Web Push is not supported in this browser.");
+    throw new WebPushError("unsupported");
   }
   return await navigator.serviceWorker.register("/web-push-sw.js", {
     scope: "/",
@@ -65,17 +82,17 @@ export async function subscribeToWebPush(
   vapidPublicKey: string,
 ): Promise<WebPushSubscriptionData> {
   if (!isWebPushSupported()) {
-    throw new Error("Web Push is not supported in this browser.");
+    throw new WebPushError("unsupported");
   }
   if (Notification.permission === "denied") {
     dispatchPermissionChange();
-    throw new Error("Notifications are blocked for this site.");
+    throw new WebPushError("permission-denied");
   }
   if (Notification.permission !== "granted") {
     const permission = await Notification.requestPermission();
     dispatchPermissionChange();
     if (permission !== "granted") {
-      throw new Error("Notification permission was not granted.");
+      throw new WebPushError("permission-dismissed");
     }
   }
 
@@ -115,7 +132,7 @@ export function serializeWebPushSubscription(
   ));
 
   if (json.endpoint == null || p256dh == null || auth == null) {
-    throw new Error("Browser did not provide a complete push subscription.");
+    throw new WebPushError("incomplete-subscription");
   }
 
   return {
@@ -135,7 +152,7 @@ function urlBase64ToUint8Array(value: string): Uint8Array<ArrayBuffer> {
     const raw = atob(base64);
     return Uint8Array.from(raw, (c) => c.charCodeAt(0));
   } catch (error) {
-    throw new Error("Invalid Web Push VAPID public key.", { cause: error });
+    throw new WebPushError("invalid-vapid-public-key", { cause: error });
   }
 }
 

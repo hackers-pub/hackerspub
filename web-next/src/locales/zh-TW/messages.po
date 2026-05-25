@@ -491,28 +491,28 @@ msgstr "收藏"
 msgid "Bookmarks"
 msgstr "收藏"
 
-#: src/components/WebPushNotificationSettings.tsx:304
+#: src/components/WebPushNotificationSettings.tsx:366
 msgid "Browser notifications"
 msgstr "瀏覽器通知"
 
-#: src/components/WebPushNotificationSettings.tsx:315
+#: src/components/WebPushNotificationSettings.tsx:377
 msgid "Browser notifications are not available."
 msgstr "瀏覽器通知無法使用。"
 
-#: src/components/WebPushNotificationSettings.tsx:319
+#: src/components/WebPushNotificationSettings.tsx:381
 msgid "Browser notifications are off."
 msgstr "瀏覽器通知已關閉。"
 
-#: src/components/WebPushNotificationSettings.tsx:321
+#: src/components/WebPushNotificationSettings.tsx:383
 msgid "Browser notifications are on."
 msgstr "瀏覽器通知已開啟。"
 
-#: src/components/WebPushNotificationSettings.tsx:241
+#: src/components/WebPushNotificationSettings.tsx:311
 msgid "Browser notifications disabled"
 msgstr "已停用瀏覽器通知"
 
-#: src/components/WebPushNotificationSettings.tsx:192
-#: src/components/WebPushPromptBanner.tsx:116
+#: src/components/WebPushNotificationSettings.tsx:243
+#: src/components/WebPushPromptBanner.tsx:196
 msgid "Browser notifications enabled"
 msgstr "已啟用瀏覽器通知"
 
@@ -537,7 +537,7 @@ msgstr "取消"
 msgid "Cannot change the language because translations already exist"
 msgstr "由於已存在翻譯，無法變更語言"
 
-#: src/components/WebPushNotificationSettings.tsx:347
+#: src/components/WebPushNotificationSettings.tsx:409
 msgid "Check again"
 msgstr "重新檢查"
 
@@ -549,7 +549,7 @@ msgstr "請檢查你的信箱"
 msgid "Check your email to complete sign-up. We've sent a verification link to your email address."
 msgstr "請檢查你的信箱以完成註冊。我們已向你的信箱地址發送了驗證連結。"
 
-#: src/components/WebPushNotificationSettings.tsx:347
+#: src/components/WebPushNotificationSettings.tsx:409
 msgid "Checking…"
 msgstr "檢查中…"
 
@@ -557,7 +557,7 @@ msgstr "檢查中…"
 msgid "Choose the language your friend prefers. This language will only be used for the invitation."
 msgstr "選擇你的朋友使用的語言。這個語言只會用於邀請。"
 
-#: src/components/WebPushNotificationSettings.tsx:383
+#: src/components/WebPushNotificationSettings.tsx:445
 msgid "Choose whether push notifications may include post excerpts. Generic notification text is used when previews are hidden."
 msgstr "選擇推播通知是否可以包含內容摘要。隱藏預覽時會使用一般通知文字。"
 
@@ -569,7 +569,7 @@ msgstr "請選擇驗證信件的語言。"
 msgid "Clear"
 msgstr "清除"
 
-#: src/components/WebPushNotificationSettings.tsx:334
+#: src/components/WebPushNotificationSettings.tsx:396
 msgid "Clicking a notification opens your notifications page."
 msgstr "點擊通知會開啟你的通知頁面。"
 
@@ -741,11 +741,11 @@ msgstr "刪除內容？"
 msgid "Deleting…"
 msgstr "正在刪除…"
 
-#: src/components/WebPushNotificationSettings.tsx:370
+#: src/components/WebPushNotificationSettings.tsx:432
 msgid "Disable"
 msgstr "停用"
 
-#: src/components/WebPushNotificationSettings.tsx:370
+#: src/components/WebPushNotificationSettings.tsx:432
 msgid "Disabling…"
 msgstr "停用中…"
 
@@ -761,7 +761,7 @@ msgstr "放棄草稿？"
 msgid "Discard unsaved changes - are you sure?"
 msgstr "放棄未儲存的變更 - 您確定嗎？"
 
-#: src/components/WebPushPromptBanner.tsx:167
+#: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
 msgstr "關閉"
 
@@ -831,13 +831,13 @@ msgstr "電子郵件地址"
 msgid "Email or username"
 msgstr "電子郵件或使用者名稱"
 
-#: src/components/WebPushNotificationSettings.tsx:359
-#: src/components/WebPushPromptBanner.tsx:161
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
 msgid "Enable"
 msgstr "啟用"
 
-#: src/components/WebPushNotificationSettings.tsx:359
-#: src/components/WebPushPromptBanner.tsx:161
+#: src/components/WebPushNotificationSettings.tsx:421
+#: src/components/WebPushPromptBanner.tsx:263
 msgid "Enabling…"
 msgstr "啟用中…"
 
@@ -950,18 +950,18 @@ msgstr "刪除孤立媒體失敗。"
 msgid "Failed to delete post"
 msgstr "刪除內容失敗"
 
-#: src/components/WebPushNotificationSettings.tsx:233
-#: src/components/WebPushNotificationSettings.tsx:248
-#: src/components/WebPushNotificationSettings.tsx:256
+#: src/components/WebPushNotificationSettings.tsx:305
+#: src/components/WebPushNotificationSettings.tsx:318
+#: src/components/WebPushNotificationSettings.tsx:326
 msgid "Failed to disable browser notifications"
 msgstr "無法停用瀏覽器通知"
 
-#: src/components/WebPushNotificationSettings.tsx:182
-#: src/components/WebPushNotificationSettings.tsx:201
-#: src/components/WebPushNotificationSettings.tsx:209
-#: src/components/WebPushPromptBanner.tsx:105
-#: src/components/WebPushPromptBanner.tsx:123
-#: src/components/WebPushPromptBanner.tsx:132
+#: src/components/WebPushNotificationSettings.tsx:226
+#: src/components/WebPushNotificationSettings.tsx:262
+#: src/components/WebPushNotificationSettings.tsx:279
+#: src/components/WebPushPromptBanner.tsx:180
+#: src/components/WebPushPromptBanner.tsx:216
+#: src/components/WebPushPromptBanner.tsx:234
 msgid "Failed to enable browser notifications"
 msgstr "無法啟用瀏覽器通知"
 
@@ -1150,7 +1150,7 @@ msgstr "無法取消釘選內容"
 msgid "Failed to unshare post"
 msgstr "取消轉貼失敗"
 
-#: src/components/WebPushNotificationSettings.tsx:293
+#: src/components/WebPushNotificationSettings.tsx:355
 msgid "Failed to update push notification privacy"
 msgstr "無法更新推播通知隱私設定"
 
@@ -1230,7 +1230,7 @@ msgstr "格式"
 msgid "Generating…"
 msgstr "生成中…"
 
-#: src/components/WebPushPromptBanner.tsx:147
+#: src/components/WebPushPromptBanner.tsx:249
 msgid "Get browser notifications"
 msgstr "接收瀏覽器通知"
 
@@ -1740,7 +1740,7 @@ msgstr "從未使用過"
 msgid "New article"
 msgstr "新建文章"
 
-#: src/components/WebPushNotificationSettings.tsx:194
+#: src/components/WebPushNotificationSettings.tsx:245
 msgid "New notifications can now appear even when Hackers' Pub is not open."
 msgstr "現在即使 Hackers' Pub 未開啟，也可以顯示新通知。"
 
@@ -1874,7 +1874,12 @@ msgstr "貼文"
 msgid "Nothing to preview"
 msgstr "沒有可預覽的內容"
 
-#: src/components/WebPushNotificationSettings.tsx:376
+#: src/components/WebPushNotificationSettings.tsx:156
+#: src/components/WebPushPromptBanner.tsx:91
+msgid "Notification permission was not granted."
+msgstr "未授予通知權限。"
+
+#: src/components/WebPushNotificationSettings.tsx:438
 msgid "Notification preview privacy"
 msgstr "通知預覽隱私"
 
@@ -1882,7 +1887,12 @@ msgstr "通知預覽隱私"
 msgid "Notifications"
 msgstr "通知"
 
-#: src/components/WebPushNotificationSettings.tsx:332
+#: src/components/WebPushNotificationSettings.tsx:154
+#: src/components/WebPushPromptBanner.tsx:89
+msgid "Notifications are blocked for this site."
+msgstr "此網站的通知已遭封鎖。"
+
+#: src/components/WebPushNotificationSettings.tsx:394
 msgid "Notifications are blocked in your browser settings."
 msgstr "瀏覽器設定已封鎖通知。"
 
@@ -2077,7 +2087,7 @@ msgstr "立即發布"
 msgid "Publishing…"
 msgstr "發布中…"
 
-#: src/components/WebPushNotificationSettings.tsx:282
+#: src/components/WebPushNotificationSettings.tsx:344
 msgid "Push notification privacy updated"
 msgstr "已更新推播通知隱私設定"
 
@@ -2158,11 +2168,11 @@ msgstr "閱讀完整文章"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "閱讀完整的行為守則"
 
-#: src/components/WebPushPromptBanner.tsx:150
+#: src/components/WebPushPromptBanner.tsx:252
 msgid "Receive new notifications immediately, even when this tab is closed."
 msgstr "即使此分頁已關閉，也能立即收到新通知。"
 
-#: src/components/WebPushNotificationSettings.tsx:306
+#: src/components/WebPushNotificationSettings.tsx:368
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "透過此瀏覽器立即接收通知，即使此分頁已關閉。"
 
@@ -2519,6 +2529,11 @@ msgstr "標籤"
 msgid "Tell us about yourself…"
 msgstr "介紹您自己…"
 
+#: src/components/WebPushNotificationSettings.tsx:158
+#: src/components/WebPushPromptBanner.tsx:93
+msgid "The browser did not provide a complete push subscription."
+msgstr "瀏覽器未提供完整的推播通知訂閱。"
+
 #: src/routes/(root)/[handle]/settings/preferences.tsx:202
 msgid "The default privacy setting for your notes."
 msgstr "您貼文的預設隱私設定。"
@@ -2602,9 +2617,19 @@ msgstr "標題將顯示在文章頂部和連結預覽中。"
 msgid "The URL of the link, e.g., https://github.com/yourhandle."
 msgstr "該連結的 URL，例如 https://github.com/你的使用者名稱。"
 
+#: src/components/WebPushNotificationSettings.tsx:160
+#: src/components/WebPushPromptBanner.tsx:95
+msgid "The Web Push public key is invalid."
+msgstr "Web Push 公開金鑰無效。"
+
 #: src/components/PostActionMenu.tsx:363
 msgid "This action cannot be undone. This will permanently delete this post."
 msgstr "此操作無法復原。這將永久刪除該內容。"
+
+#: src/components/WebPushNotificationSettings.tsx:152
+#: src/components/WebPushPromptBanner.tsx:87
+msgid "This browser does not support Web Push."
+msgstr "此瀏覽器不支援 Web Push。"
 
 #: src/routes/(root)/[handle]/invite/[id].tsx:175
 #: src/routes/(root)/[handle]/invite/[id].tsx:179
@@ -2637,7 +2662,7 @@ msgstr "此內容引用了另一則內容，但目前未獲得引用授權。"
 msgid "This quote is waiting for approval from the original author."
 msgstr "此引用正在等待原作者核准。"
 
-#: src/components/WebPushNotificationSettings.tsx:328
+#: src/components/WebPushNotificationSettings.tsx:390
 msgid "This server has not configured Web Push yet."
 msgstr "此伺服器尚未設定 Web Push。"
 
