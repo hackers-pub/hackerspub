@@ -1,0 +1,1 @@
+CREATE INDEX "hashtag_following_tag_account_id_index" ON "hashtag_following" ("tag","account_id");

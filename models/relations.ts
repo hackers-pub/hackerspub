@@ -31,6 +31,7 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.mediumTable.id,
     }),
     bookmarks: r.many.bookmarkTable(),
+    hashtagFollowings: r.many.hashtagFollowingTable(),
   },
   accountEmailTable: {
     account: r.one.accountTable({
@@ -80,6 +81,13 @@ export const relations = defineRelations(schema, (r) => ({
     posts: r.many.postTable(),
     pins: r.many.pinTable(),
     votedPolls: r.many.pollTable(),
+  },
+  hashtagFollowingTable: {
+    account: r.one.accountTable({
+      from: r.hashtagFollowingTable.accountId,
+      to: r.accountTable.id,
+      optional: false,
+    }),
   },
   followingTable: {
     follower: r.one.actorTable({

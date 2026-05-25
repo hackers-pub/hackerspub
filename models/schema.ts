@@ -388,6 +388,28 @@ export const followingTable = pgTable(
 export type Following = typeof followingTable.$inferSelect;
 export type NewFollowing = typeof followingTable.$inferInsert;
 
+export const hashtagFollowingTable = pgTable(
+  "hashtag_following",
+  {
+    accountId: uuid("account_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => accountTable.id, { onDelete: "cascade" }),
+    tag: text().notNull(),
+    pinned: boolean().notNull().default(false),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    primaryKey({ columns: [table.accountId, table.tag] }),
+    index().on(table.tag, table.accountId),
+  ],
+);
+
+export type HashtagFollowing = typeof hashtagFollowingTable.$inferSelect;
+export type NewHashtagFollowing = typeof hashtagFollowingTable.$inferInsert;
+
 export const blockingTable = pgTable(
   "blocking",
   {
