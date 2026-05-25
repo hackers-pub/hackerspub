@@ -14,6 +14,7 @@ CREATE TABLE "push_notification_target" (
 	CONSTRAINT "push_notification_target_shape_check" CHECK (
         CASE "service"
           WHEN 'apns' THEN
+            "token" IS NOT NULL AND
             "token" ~ '^[0-9a-f]{64}$' AND
             "endpoint" IS NULL AND
             "p256dh" IS NULL AND

@@ -1404,6 +1404,7 @@ export const pushNotificationTargetTable = pgTable(
       sql`
         CASE ${table.service}
           WHEN 'apns' THEN
+            ${table.token} IS NOT NULL AND
             ${table.token} ~ '^[0-9a-f]{64}$' AND
             ${table.endpoint} IS NULL AND
             ${table.p256dh} IS NULL AND
