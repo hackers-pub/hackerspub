@@ -207,8 +207,10 @@ function selectPushNotificationLocale(
 
 function truncatePreview(text: string, maxLength = 140): string {
   const normalized = text.replaceAll(/\s+/g, " ").trim();
-  if (normalized.length <= maxLength) return normalized;
-  return `${Array.from(normalized).slice(0, maxLength - 1).join("")}...`;
+  const characters = Array.from(normalized);
+  if (characters.length <= maxLength) return normalized;
+  if (maxLength <= 3) return ".".repeat(Math.max(maxLength, 0));
+  return `${characters.slice(0, maxLength - 3).join("")}...`;
 }
 
 function postPreview(

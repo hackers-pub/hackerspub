@@ -98,6 +98,40 @@ test("buildPushNotificationPayload() includes previews according to account poli
   });
 });
 
+test("buildPushNotificationPayload() caps truncated previews", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "pushlength",
+      name: "Push Length",
+      email: "pushlength@example.com",
+    });
+    const actor = await insertRemoteActor(tx, {
+      username: "sender",
+      name: "Sender",
+      host: "remote.example",
+    });
+    const { post } = await insertNotePost(tx, {
+      account,
+      actorId: actor.id,
+      contentHtml: `<p>${"x".repeat(200)}</p>`,
+      visibility: "public",
+    });
+
+    const payload = await buildPushNotificationPayload(tx, {
+      accountId: account.id,
+      notificationId: generateUuidV7(),
+      type: "mention",
+      actorId: actor.id,
+      postId: post.id,
+    });
+    const preview = payload.body.split("\n")[1];
+
+    assert.equal(typeof preview, "string");
+    assert.equal(preview.length, 140);
+    assert.match(preview, /\.\.\.$/);
+  });
+});
+
 test("buildPushNotificationPayload() localizes titles and bodies", async () => {
   await withRollback(async (tx) => {
     const { account } = await insertAccountWithActor(tx, {
