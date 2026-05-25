@@ -76,11 +76,10 @@ function getIpv4FromMappedIpv6Host(hostname: string): string | null {
   const words = normalized.slice(prefix.length, -1).split(":");
   if (words.length !== 2) return null;
 
-  const values = words.map((word) => {
-    if (!/^[0-9a-f]{1,4}$/.test(word)) return null;
-    return Number.parseInt(word, 16);
-  });
-  if (values.some((value) => value == null || value > 0xffff)) return null;
+  if (words.some((word) => !/^[0-9a-f]{1,4}$/.test(word))) return null;
+
+  const values = words.map((word) => Number.parseInt(word, 16));
+  if (values.some((value) => value > 0xffff)) return null;
 
   const [high, low] = values as [number, number];
   return [

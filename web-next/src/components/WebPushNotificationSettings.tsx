@@ -183,7 +183,6 @@ export function WebPushNotificationSettings(
       }
     } catch (error) {
       console.error(error);
-      cleanupBrowserSubscription();
       setSubscribed(false);
       setEndpoint(null);
     } finally {
