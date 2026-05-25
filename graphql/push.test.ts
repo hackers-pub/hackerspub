@@ -211,6 +211,40 @@ test("registerPushNotificationTarget rejects invalid APNS tokens", async () => {
   });
 });
 
+test("unregisterPushNotificationTarget rejects malformed identifiers", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "graphqlpushunregisterinvalid",
+      name: "GraphQL Push Unregister Invalid",
+      email: "graphqlpushunregisterinvalid@example.com",
+    });
+
+    for (
+      const [input, inputPath] of [
+        [{ service: "APNS", token: "invalid-token" }, "token"],
+        [{ service: "FCM", token: "  " }, "token"],
+        [{ service: "WEB_PUSH", endpoint: "  " }, "endpoint"],
+      ] as const
+    ) {
+      const result = await execute({
+        schema,
+        document: unregisterMutation,
+        variableValues: { input },
+        contextValue: makeUserContext(tx, account.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.equal(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), {
+        unregisterPushNotificationTarget: {
+          __typename: "InvalidInputError",
+          inputPath,
+        },
+      });
+    }
+  });
+});
+
 test("registerPushNotificationTarget and unregisterPushNotificationTarget round-trip APNS tokens", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {

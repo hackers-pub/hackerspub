@@ -2917,6 +2917,9 @@ input RegisterPushNotificationTargetInput {
   token: String
 }
 
+"""
+Successful response for `registerPushNotificationTarget`. Contains the normalized token or endpoint that was stored.
+"""
 type RegisterPushNotificationTargetPayload {
   clientMutationId: ID
 
@@ -2936,6 +2939,9 @@ type RegisterPushNotificationTargetPayload {
   updated: DateTime!
 }
 
+"""
+Result of registering a push notification target. Successful responses return the stored target; invalid input and authentication failures are returned as typed errors.
+"""
 union RegisterPushNotificationTargetResult = InvalidInputError | NotAuthenticatedError | RegisterPushNotificationTargetFailedError | RegisterPushNotificationTargetPayload
 
 input RemoveFollowerInput {
@@ -3360,6 +3366,9 @@ input UnregisterPushNotificationTargetInput {
   token: String
 }
 
+"""
+Successful response for `unregisterPushNotificationTarget`. Identifies the target requested for removal and whether it was owned by the viewer.
+"""
 type UnregisterPushNotificationTargetPayload {
   clientMutationId: ID
 
@@ -3378,6 +3387,9 @@ type UnregisterPushNotificationTargetPayload {
   unregistered: Boolean!
 }
 
+"""
+Result of unregistering a push notification target. Successful responses report whether a matching target was removed; invalid input and authentication failures are returned as typed errors.
+"""
 union UnregisterPushNotificationTargetResult = InvalidInputError | NotAuthenticatedError | UnregisterPushNotificationTargetPayload
 
 """

@@ -76,8 +76,13 @@ async function sendWebPush(
   if (senderForTesting != null) {
     return await senderForTesting(subscription, payload);
   }
-  webPush.setVapidDetails(config.subject, config.publicKey, config.privateKey);
-  return await webPush.sendNotification(subscription, payload);
+  return await webPush.sendNotification(subscription, payload, {
+    vapidDetails: {
+      subject: config.subject,
+      publicKey: config.publicKey,
+      privateKey: config.privateKey,
+    },
+  });
 }
 
 function getStatusCode(error: unknown): number | undefined {
@@ -90,6 +95,14 @@ function getStatusCode(error: unknown): number | undefined {
 
 function getEndpointSuffix(endpoint: string): string {
   return endpoint.length <= 16 ? endpoint : endpoint.slice(-16);
+}
+
+function getErrorName(error: unknown): string | undefined {
+  return typeof error === "object" && error != null &&
+      "name" in error &&
+      typeof error.name === "string"
+    ? error.name
+    : undefined;
 }
 
 export function setWebPushSenderForTesting(
@@ -145,13 +158,14 @@ export async function sendWebPushNotification(
         await sendWebPush(config, subscription, payload);
       } catch (error) {
         const statusCode = getStatusCode(error);
+        const errorName = getErrorName(error);
         logger.warning(
-          "Web Push send failed for account {accountId}, endpoint suffix {endpointSuffix}: {statusCode} {error}",
+          "Web Push send failed for account {accountId}, endpoint suffix {endpointSuffix}: {statusCode} {errorName}",
           {
             accountId: options.accountId,
             endpointSuffix: getEndpointSuffix(target.endpoint),
             statusCode,
-            error,
+            errorName,
           },
         );
         if (statusCode === 404 || statusCode === 410) {

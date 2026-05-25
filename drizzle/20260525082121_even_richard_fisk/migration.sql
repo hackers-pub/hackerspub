@@ -73,10 +73,10 @@ SELECT
   "updated"
 FROM "fcm_device_token";
 --> statement-breakpoint
-DROP TABLE "apns_device_token";--> statement-breakpoint
-DROP TABLE "fcm_device_token";--> statement-breakpoint
 ALTER TABLE "account" ADD COLUMN "push_notification_preview_policy" "push_notification_preview_policy" DEFAULT 'public_only'::"push_notification_preview_policy" NOT NULL;--> statement-breakpoint
 CREATE INDEX "push_notification_target_account_id_index" ON "push_notification_target" ("account_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "push_notification_target_service_token_unique" ON "push_notification_target" ("service","token") WHERE ("token" is not null);--> statement-breakpoint
 CREATE UNIQUE INDEX "push_notification_target_endpoint_unique" ON "push_notification_target" ("endpoint") WHERE ("endpoint" is not null);--> statement-breakpoint
-ALTER TABLE "push_notification_target" ADD CONSTRAINT "push_notification_target_account_id_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "account"("id") ON DELETE CASCADE;
+ALTER TABLE "push_notification_target" ADD CONSTRAINT "push_notification_target_account_id_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "account"("id") ON DELETE CASCADE;--> statement-breakpoint
+DROP TABLE "apns_device_token";--> statement-breakpoint
+DROP TABLE "fcm_device_token";

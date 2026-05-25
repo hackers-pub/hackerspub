@@ -203,6 +203,12 @@ builder.relayMutationField(
         InvalidInputError,
         RegisterPushNotificationTargetFailedError,
       ],
+      union: {
+        description:
+          "Result of registering a push notification target. Successful " +
+          "responses return the stored target; invalid input and " +
+          "authentication failures are returned as typed errors.",
+      },
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
@@ -268,6 +274,9 @@ builder.relayMutationField(
     },
   },
   {
+    description:
+      "Successful response for `registerPushNotificationTarget`. Contains " +
+      "the normalized token or endpoint that was stored.",
     outputFields: (t) => ({
       service: t.field({
         type: PushNotificationService,
@@ -340,18 +349,34 @@ builder.relayMutationField(
   {
     errors: {
       types: [NotAuthenticatedError, InvalidInputError],
+      union: {
+        description:
+          "Result of unregistering a push notification target. Successful " +
+          "responses report whether a matching target was removed; invalid " +
+          "input and authentication failures are returned as typed errors.",
+      },
     },
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
       if (session == null) throw new NotAuthenticatedError();
 
       const service = fromPushNotificationService(args.input.service);
+      let token = args.input.token;
+      let endpoint = args.input.endpoint;
       if (service === "web_push") {
-        if (args.input.endpoint == null || args.input.token != null) {
+        if (endpoint == null || token != null) {
           throw new InvalidInputError("service");
         }
-      } else if (args.input.token == null || args.input.endpoint != null) {
+        endpoint = endpoint.trim();
+        if (endpoint === "") throw new InvalidInputError("endpoint");
+      } else if (token == null || endpoint != null) {
         throw new InvalidInputError("service");
+      } else if (service === "apns") {
+        token = normalizeApnsDeviceToken(token);
+        if (token == null) throw new InvalidInputError("token");
+      } else if (service === "fcm") {
+        token = normalizeFcmDeviceToken(token);
+        if (token == null) throw new InvalidInputError("token");
       }
 
       const unregistered = await unregisterPushNotificationTarget(
@@ -359,19 +384,23 @@ builder.relayMutationField(
         session.accountId,
         {
           service,
-          token: args.input.token,
-          endpoint: args.input.endpoint,
+          token,
+          endpoint,
         },
       );
       return {
         service,
-        token: args.input.token,
-        endpoint: args.input.endpoint,
+        token,
+        endpoint,
         unregistered,
       };
     },
   },
   {
+    description:
+      "Successful response for `unregisterPushNotificationTarget`. " +
+      "Identifies the target requested for removal and whether it was owned " +
+      "by the viewer.",
     outputFields: (t) => ({
       service: t.field({
         type: PushNotificationService,
