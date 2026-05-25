@@ -115,6 +115,11 @@ type Account implements Node {
   preferAiSummary: Boolean!
 
   """
+  Controls whether push notification payloads may include short post content previews. Only visible to the account holder and moderators.
+  """
+  pushNotificationPreviewPolicy: PushNotificationPreviewPolicy!
+
+  """
   Number of notifications created after the account's last `markNotificationsAsRead` call. Only visible to the account holder.
   """
   unreadNotificationsCount: Int!
@@ -1463,8 +1468,7 @@ type Mutation {
   Grant +1 invitation to the top third of accounts with at least one post since the last regeneration cutoff, and persist the new last-regen timestamp.
   """
   regenerateInvitations: RegenerateInvitationsResult!
-  registerApnsDeviceToken(input: RegisterApnsDeviceTokenInput!): RegisterApnsDeviceTokenResult!
-  registerFcmDeviceToken(input: RegisterFcmDeviceTokenInput!): RegisterFcmDeviceTokenResult!
+  registerPushNotificationTarget(input: RegisterPushNotificationTargetInput!): RegisterPushNotificationTargetResult!
   removeFollower(input: RemoveFollowerInput!): RemoveFollowerResult!
   removeReactionFromPost(input: RemoveReactionFromPostInput!): RemoveReactionFromPostResult!
   requestArticleTranslation(input: RequestArticleTranslationInput!): RequestArticleTranslationResult!
@@ -1489,8 +1493,7 @@ type Mutation {
   unfollowHashtag(input: UnfollowHashtagInput!): UnfollowHashtagResult!
   unpinHashtag(input: UnpinHashtagInput!): UnpinHashtagResult!
   unpinPost(input: UnpinPostInput!): UnpinPostResult!
-  unregisterApnsDeviceToken(input: UnregisterApnsDeviceTokenInput!): UnregisterApnsDeviceTokenResult!
-  unregisterFcmDeviceToken(input: UnregisterFcmDeviceTokenInput!): UnregisterFcmDeviceTokenResult!
+  unregisterPushNotificationTarget(input: UnregisterPushNotificationTargetInput!): UnregisterPushNotificationTargetResult!
   unsharePost(input: UnsharePostInput!): UnsharePostResult!
   updateAccount(input: UpdateAccountInput!): UpdateAccountPayload!
   updateArticle(input: UpdateArticleInput!): UpdateArticleResult!
@@ -2198,6 +2201,38 @@ type PublishArticleDraftPayload {
 
 union PublishArticleDraftResult = InvalidInputError | NotAuthenticatedError | PublishArticleDraftPayload
 
+"""
+Controls how much post content may be included in push notification payloads. Payloads can be displayed on a lock screen and pass through third-party push services.
+"""
+enum PushNotificationPreviewPolicy {
+  """
+  Include a short preview whenever the notification has post content, including restricted or sensitive posts.
+  """
+  ALL
+
+  """Never include post content previews in push notification payloads."""
+  NONE
+
+  """
+  Include a short preview only for non-sensitive `PUBLIC` or `UNLISTED` posts. Other notifications use generic copy.
+  """
+  PUBLIC_ONLY
+}
+
+"""
+Push delivery service for a registered notification target. Use `WEB_PUSH` for browser Push API subscriptions.
+"""
+enum PushNotificationService {
+  """Apple Push Notification service target used by iOS clients."""
+  APNS
+
+  """Firebase Cloud Messaging target used by Android clients."""
+  FCM
+
+  """Browser Push API subscription delivered with the Web Push protocol."""
+  WEB_PUSH
+}
+
 type Query {
   """
   Look up a local account by its username (without the `@host` suffix). Returns `null` when no account with that username exists.
@@ -2397,6 +2432,11 @@ type Query {
   The `Account` of the currently authenticated user, or `null` when not authenticated. Use this as the entry point for all viewer-specific data (notifications, drafts, settings).
   """
   viewer: Account
+
+  """
+  URL-safe Base64 VAPID public key for browser Push API subscriptions. Returns `null` when Web Push delivery is not configured on the server.
+  """
+  webPushVapidPublicKey: String
 }
 
 type QueryBookmarksConnection {
@@ -2740,47 +2780,65 @@ type RegenerateInvitationsPayload {
 
 union RegenerateInvitationsResult = NotAuthenticatedError | NotAuthorizedError | RegenerateInvitationsPayload
 
-type RegisterApnsDeviceTokenFailedError {
+"""
+Returned when a push notification target cannot be registered after validating the input. The most common cause is a per-service device limit.
+"""
+type RegisterPushNotificationTargetFailedError {
+  """Maximum number of targets this account may register for one service."""
   limit: Int!
+
+  """Human-readable explanation of the registration failure."""
   message: String!
 }
 
-input RegisterApnsDeviceTokenInput {
+"""
+Register or refresh a push notification target for the authenticated viewer. `APNS` and `FCM` require `token`; `WEB_PUSH` requires `endpoint`, `p256dh`, and `auth` from the browser `PushSubscription`.
+"""
+input RegisterPushNotificationTargetInput {
+  """URL-safe Base64 `auth` secret from `PushSubscription`."""
+  auth: String
   clientMutationId: ID
 
-  """The APNS device token."""
-  deviceToken: String!
+  """
+  Browser push service endpoint from `PushSubscription.endpoint`. Required for `WEB_PUSH` and omitted otherwise.
+  """
+  endpoint: String
+
+  """
+  Optional browser subscription expiration time. `null` means the browser did not provide an expiration.
+  """
+  expirationTime: DateTime
+
+  """URL-safe Base64 `p256dh` encryption key from `PushSubscription`."""
+  p256dh: String
+
+  """Push service that owns the target."""
+  service: PushNotificationService!
+
+  """Device token for `APNS` or `FCM`. Must be omitted for `WEB_PUSH`."""
+  token: String
 }
 
-type RegisterApnsDeviceTokenPayload {
+type RegisterPushNotificationTargetPayload {
   clientMutationId: ID
+
+  """When this target was first registered."""
   created: DateTime!
-  deviceToken: String!
+
+  """Browser Push API endpoint. `null` for APNS and FCM targets."""
+  endpoint: String
+
+  """Push service for the registered target."""
+  service: PushNotificationService!
+
+  """`APNS` or `FCM` device token. `null` for browser Web Push targets."""
+  token: String
+
+  """When this target was last refreshed or reassigned to an account."""
   updated: DateTime!
 }
 
-union RegisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | RegisterApnsDeviceTokenFailedError | RegisterApnsDeviceTokenPayload
-
-type RegisterFcmDeviceTokenFailedError {
-  limit: Int!
-  message: String!
-}
-
-input RegisterFcmDeviceTokenInput {
-  clientMutationId: ID
-
-  """The FCM device token."""
-  deviceToken: String!
-}
-
-type RegisterFcmDeviceTokenPayload {
-  clientMutationId: ID
-  created: DateTime!
-  deviceToken: String!
-  updated: DateTime!
-}
-
-union RegisterFcmDeviceTokenResult = InvalidInputError | NotAuthenticatedError | RegisterFcmDeviceTokenFailedError | RegisterFcmDeviceTokenPayload
+union RegisterPushNotificationTargetResult = InvalidInputError | NotAuthenticatedError | RegisterPushNotificationTargetFailedError | RegisterPushNotificationTargetPayload
 
 input RemoveFollowerInput {
   actorId: ID!
@@ -3132,35 +3190,43 @@ type UnpinPostPayload {
 
 union UnpinPostResult = InvalidInputError | NotAuthenticatedError | UnpinPostPayload
 
-input UnregisterApnsDeviceTokenInput {
+"""
+Remove a push notification target owned by the authenticated viewer. `APNS` and `FCM` identify targets by `token`; `WEB_PUSH` identifies targets by `endpoint`.
+"""
+input UnregisterPushNotificationTargetInput {
   clientMutationId: ID
 
-  """The APNS device token."""
-  deviceToken: String!
+  """
+  Browser push service endpoint for `WEB_PUSH`. Must be omitted for `APNS` and `FCM`.
+  """
+  endpoint: String
+
+  """Push service that owns the target."""
+  service: PushNotificationService!
+
+  """Device token for `APNS` or `FCM`. Must be omitted for `WEB_PUSH`."""
+  token: String
 }
 
-type UnregisterApnsDeviceTokenPayload {
+type UnregisterPushNotificationTargetPayload {
   clientMutationId: ID
-  deviceToken: String!
+
+  """`WEB_PUSH` endpoint requested for removal."""
+  endpoint: String
+
+  """Push service for the requested target."""
+  service: PushNotificationService!
+
+  """`APNS` or `FCM` device token requested for removal."""
+  token: String
+
+  """
+  `true` when an owned target was deleted. `false` when the target did not exist or belonged to a different account.
+  """
   unregistered: Boolean!
 }
 
-union UnregisterApnsDeviceTokenResult = InvalidInputError | NotAuthenticatedError | UnregisterApnsDeviceTokenPayload
-
-input UnregisterFcmDeviceTokenInput {
-  clientMutationId: ID
-
-  """The FCM device token."""
-  deviceToken: String!
-}
-
-type UnregisterFcmDeviceTokenPayload {
-  clientMutationId: ID
-  deviceToken: String!
-  unregistered: Boolean!
-}
-
-union UnregisterFcmDeviceTokenResult = InvalidInputError | NotAuthenticatedError | UnregisterFcmDeviceTokenPayload
+union UnregisterPushNotificationTargetResult = InvalidInputError | NotAuthenticatedError | UnregisterPushNotificationTargetPayload
 
 """
 Undo a boost by deleting the share wrapper post and sending an ActivityPub `Undo Announce` activity. Pass the original post's `id` (not the wrapper's). Requires authentication.
@@ -3199,6 +3265,11 @@ input UpdateAccountInput {
   locales: [Locale!]
   name: String
   preferAiSummary: Boolean
+
+  """
+  New policy for including post content previews in push notification payloads.
+  """
+  pushNotificationPreviewPolicy: PushNotificationPreviewPolicy
   username: String
 }
 

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import process from "node:process";
 import test from "node:test";
+import { and, eq } from "drizzle-orm";
 import { resetFcmStateForTesting, sendFcmNotification } from "./fcm.ts";
-import { fcmDeviceTokenTable } from "./schema.ts";
+import { pushNotificationTargetTable } from "./schema.ts";
 import { generateUuidV7 } from "./uuid.ts";
 import { insertAccountWithActor, withRollback } from "../test/postgres.ts";
 
@@ -137,9 +138,11 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
       });
 
       for (const deviceToken of allTokens) {
-        await tx.insert(fcmDeviceTokenTable).values({
+        await tx.insert(pushNotificationTargetTable).values({
+          id: generateUuidV7(),
           accountId: account.id,
-          deviceToken,
+          service: "fcm",
+          token: deviceToken,
         });
       }
 
@@ -160,11 +163,16 @@ test("sendFcmNotification dispatches per-token requests concurrently and prunes 
         `expected concurrent dispatch, observed maxInFlight=${maxInFlight}`,
       );
 
-      const remaining = await tx.query.fcmDeviceTokenTable.findMany({
-        where: { accountId: account.id },
-        columns: { deviceToken: true },
-      });
-      const remainingSet = new Set(remaining.map((row) => row.deviceToken));
+      const remaining = await tx.select({
+        token: pushNotificationTargetTable.token,
+      }).from(pushNotificationTargetTable)
+        .where(
+          and(
+            eq(pushNotificationTargetTable.accountId, account.id),
+            eq(pushNotificationTargetTable.service, "fcm"),
+          ),
+        );
+      const remainingSet = new Set(remaining.map((row) => row.token));
       assert.ok(
         !remainingSet.has(staleToken),
         "expected UNREGISTERED token to be pruned",

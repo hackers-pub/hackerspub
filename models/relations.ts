@@ -24,8 +24,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     invitationLinks: r.many.invitationLinkTable(),
     notifications: r.many.notificationTable(),
-    apnsDeviceTokens: r.many.apnsDeviceTokenTable(),
-    fcmDeviceTokens: r.many.fcmDeviceTokenTable(),
+    pushNotificationTargets: r.many.pushNotificationTargetTable(),
     avatarMedium: r.one.mediumTable({
       from: r.accountTable.avatarMediumId,
       to: r.mediumTable.id,
@@ -395,16 +394,9 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.actorTable.id,
     }),
   },
-  apnsDeviceTokenTable: {
+  pushNotificationTargetTable: {
     account: r.one.accountTable({
-      from: r.apnsDeviceTokenTable.accountId,
-      to: r.accountTable.id,
-      optional: false,
-    }),
-  },
-  fcmDeviceTokenTable: {
-    account: r.one.accountTable({
-      from: r.fcmDeviceTokenTable.accountId,
+      from: r.pushNotificationTargetTable.accountId,
       to: r.accountTable.id,
       optional: false,
     }),

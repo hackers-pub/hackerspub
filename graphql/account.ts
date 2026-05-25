@@ -33,6 +33,11 @@ import {
   toPostVisibility,
 } from "./postvisibility.ts";
 import { fromQuotePolicy, QuotePolicy, toQuotePolicy } from "./quotepolicy.ts";
+import {
+  fromPushNotificationPreviewPolicy,
+  PushNotificationPreviewPolicy,
+  toPushNotificationPreviewPolicy,
+} from "./push.ts";
 
 const profileOgImageComplexity = 2_000;
 
@@ -223,6 +228,24 @@ export const Account = builder.drizzleNode("accountTable", {
       },
       resolve(account) {
         return toQuotePolicy(account.quotePolicy);
+      },
+    }),
+    pushNotificationPreviewPolicy: t.field({
+      type: PushNotificationPreviewPolicy,
+      authScopes: (parent) => ({
+        moderator: true,
+        selfAccount: parent.id,
+      }),
+      description:
+        "Controls whether push notification payloads may include short post " +
+        "content previews. Only visible to the account holder and moderators.",
+      select: {
+        columns: { pushNotificationPreviewPolicy: true },
+      },
+      resolve(account) {
+        return toPushNotificationPreviewPolicy(
+          account.pushNotificationPreviewPolicy,
+        );
       },
     }),
     updated: t.expose("updated", { type: "DateTime" }),
@@ -720,6 +743,11 @@ builder.relayMutationField(
           "`FOLLOWERS`, `DIRECT`, or `NONE` (whether set in this request " +
           "or already stored on the account).",
       }),
+      pushNotificationPreviewPolicy: t.field({
+        type: PushNotificationPreviewPolicy,
+        description: "New policy for including post content previews in push " +
+          "notification payloads.",
+      }),
       links: t.field({
         type: [AccountLinkInput],
       }),
@@ -808,6 +836,12 @@ builder.relayMutationField(
               ? undefined
               : fromQuotePolicy(args.input.defaultQuotePolicy);
           })(),
+          pushNotificationPreviewPolicy:
+            args.input.pushNotificationPreviewPolicy == null
+              ? undefined
+              : fromPushNotificationPreviewPolicy(
+                args.input.pushNotificationPreviewPolicy,
+              ),
           links: args.input.links ?? undefined,
         },
       );

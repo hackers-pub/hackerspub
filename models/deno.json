@@ -30,6 +30,7 @@
     "./pin": "./pin.ts",
     "./poll": "./poll.ts",
     "./post": "./post.ts",
+    "./push": "./push.ts",
     "./reaction": "./reaction.ts",
     "./relations": "./relations.ts",
     "./robots": "./robots.ts",

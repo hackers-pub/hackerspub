@@ -46,6 +46,30 @@ export const quotePolicyEnum = pgEnum("quote_policy", [
 
 export type QuotePolicy = (typeof quotePolicyEnum.enumValues)[number];
 
+export const pushNotificationPreviewPolicyEnum = pgEnum(
+  "push_notification_preview_policy",
+  [
+    "public_only",
+    "all",
+    "none",
+  ],
+);
+
+export type PushNotificationPreviewPolicy =
+  (typeof pushNotificationPreviewPolicyEnum.enumValues)[number];
+
+export const pushNotificationServiceEnum = pgEnum(
+  "push_notification_service",
+  [
+    "apns",
+    "fcm",
+    "web_push",
+  ],
+);
+
+export type PushNotificationService =
+  (typeof pushNotificationServiceEnum.enumValues)[number];
+
 export const accountTable = pgTable(
   "account",
   {
@@ -85,6 +109,11 @@ export const accountTable = pgTable(
     quotePolicy: quotePolicyEnum("quote_policy")
       .notNull()
       .default("everyone"),
+    pushNotificationPreviewPolicy: pushNotificationPreviewPolicyEnum(
+      "push_notification_preview_policy",
+    )
+      .notNull()
+      .default("public_only"),
     updated: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -1341,14 +1370,20 @@ export const timelineItemTable = pgTable(
 export type TimelineItem = typeof timelineItemTable.$inferSelect;
 export type NewTimelineItem = typeof timelineItemTable.$inferInsert;
 
-export const apnsDeviceTokenTable = pgTable(
-  "apns_device_token",
+export const pushNotificationTargetTable = pgTable(
+  "push_notification_target",
   {
-    deviceToken: varchar("device_token", { length: 64 }).primaryKey(),
+    id: uuid().$type<Uuid>().primaryKey(),
+    service: pushNotificationServiceEnum().notNull(),
     accountId: uuid("account_id")
       .$type<Uuid>()
       .notNull()
       .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
+    token: text(),
+    endpoint: text(),
+    p256dh: text(),
+    auth: text(),
+    expirationTime: timestamp("expiration_time", { withTimezone: true }),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -1358,38 +1393,47 @@ export const apnsDeviceTokenTable = pgTable(
   },
   (table) => [
     index().on(table.accountId),
+    uniqueIndex("push_notification_target_service_token_unique")
+      .on(table.service, table.token)
+      .where(isNotNull(table.token)),
+    uniqueIndex("push_notification_target_endpoint_unique")
+      .on(table.endpoint)
+      .where(isNotNull(table.endpoint)),
     check(
-      "apns_device_token_device_token_check",
-      sql`${table.deviceToken} ~ '^[0-9a-f]{64}$'`,
+      "push_notification_target_shape_check",
+      sql`
+        CASE ${table.service}
+          WHEN 'apns' THEN
+            ${table.token} ~ '^[0-9a-f]{64}$' AND
+            ${table.endpoint} IS NULL AND
+            ${table.p256dh} IS NULL AND
+            ${table.auth} IS NULL AND
+            ${table.expirationTime} IS NULL
+          WHEN 'fcm' THEN
+            ${table.token} IS NOT NULL AND
+            length(${table.token}) > 0 AND
+            ${table.endpoint} IS NULL AND
+            ${table.p256dh} IS NULL AND
+            ${table.auth} IS NULL AND
+            ${table.expirationTime} IS NULL
+          WHEN 'web_push' THEN
+            ${table.token} IS NULL AND
+            ${table.endpoint} IS NOT NULL AND
+            length(${table.endpoint}) > 0 AND
+            ${table.p256dh} IS NOT NULL AND
+            length(${table.p256dh}) > 0 AND
+            ${table.auth} IS NOT NULL AND
+            length(${table.auth}) > 0
+        END
+      `,
     ),
   ],
 );
 
-export type ApnsDeviceToken = typeof apnsDeviceTokenTable.$inferSelect;
-export type NewApnsDeviceToken = typeof apnsDeviceTokenTable.$inferInsert;
-
-export const fcmDeviceTokenTable = pgTable(
-  "fcm_device_token",
-  {
-    deviceToken: text("device_token").primaryKey(),
-    accountId: uuid("account_id")
-      .$type<Uuid>()
-      .notNull()
-      .references((): AnyPgColumn => accountTable.id, { onDelete: "cascade" }),
-    created: timestamp({ withTimezone: true })
-      .notNull()
-      .default(currentTimestamp),
-    updated: timestamp({ withTimezone: true })
-      .notNull()
-      .default(currentTimestamp),
-  },
-  (table) => [
-    index().on(table.accountId),
-  ],
-);
-
-export type FcmDeviceToken = typeof fcmDeviceTokenTable.$inferSelect;
-export type NewFcmDeviceToken = typeof fcmDeviceTokenTable.$inferInsert;
+export type PushNotificationTarget =
+  typeof pushNotificationTargetTable.$inferSelect;
+export type NewPushNotificationTarget =
+  typeof pushNotificationTargetTable.$inferInsert;
 
 export const notificationTypeEnum = pgEnum("notification_type", [
   "follow",
