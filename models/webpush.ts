@@ -88,6 +88,10 @@ function getStatusCode(error: unknown): number | undefined {
     : undefined;
 }
 
+function getEndpointSuffix(endpoint: string): string {
+  return endpoint.length <= 16 ? endpoint : endpoint.slice(-16);
+}
+
 export function setWebPushSenderForTesting(
   sender: WebPushSender | undefined,
 ): void {
@@ -142,10 +146,10 @@ export async function sendWebPushNotification(
       } catch (error) {
         const statusCode = getStatusCode(error);
         logger.warning(
-          "Web Push send failed for account {accountId}, endpoint {endpoint}: {statusCode} {error}",
+          "Web Push send failed for account {accountId}, endpoint suffix {endpointSuffix}: {statusCode} {error}",
           {
             accountId: options.accountId,
-            endpoint: target.endpoint,
+            endpointSuffix: getEndpointSuffix(target.endpoint),
             statusCode,
             error,
           },
