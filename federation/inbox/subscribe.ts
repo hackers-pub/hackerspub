@@ -36,8 +36,10 @@ import {
 import { pinTable, type Post, reactionTable } from "@hackerspub/models/schema";
 import {
   addPostToTimeline,
+  addTagsPubPostToTimeline,
   removeFromTimeline,
 } from "@hackerspub/models/timeline";
+import { isTagsPubHashtagActor } from "../tags-pub.ts";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, or } from "drizzle-orm";
 
@@ -145,6 +147,11 @@ export async function onPostShared(
         post.actor,
         post.published,
       );
+    }
+    // When tags.pub announces a post, fan out the original to our local
+    // hashtag followers — the share wrapper itself has no audience here.
+    if (isTagsPubHashtagActor(post.actor.iri)) {
+      await addTagsPubPostToTimeline(db, post.sharedPost);
     }
   }
 }

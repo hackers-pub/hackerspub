@@ -196,3 +196,102 @@ function defaultActorUrlFromInbox(inboxId: URL): URL {
   }
   return new URL(".", inboxId);
 }
+
+export const TAGS_PUB_ORIGIN = "https://tags.pub";
+
+export function getTagsPubHashtagActorUrl(tag: string): URL {
+  return new URL(`${TAGS_PUB_ORIGIN}/user/${encodeURIComponent(tag)}`);
+}
+
+export function isTagsPubHashtagActor(iri: string): boolean {
+  try {
+    const url = new URL(iri);
+    const match = url.pathname.match(/^\/user\/([^/]+)$/);
+    return url.origin === TAGS_PUB_ORIGIN &&
+      match != null &&
+      !match[1].startsWith("_");
+  } catch {
+    return false;
+  }
+}
+
+function getTagsPubHashtagFollowIri(
+  ctx: Context<ContextData>,
+  tag: string,
+): URL {
+  const hostname = new URL(ctx.canonicalOrigin).hostname;
+  return new URL(
+    `/ap/actors/${hostname}/hashtag-follows/tags.pub/${
+      encodeURIComponent(tag)
+    }`,
+    ctx.canonicalOrigin,
+  );
+}
+
+export async function subscribeTagsPubHashtag(
+  ctx: Context<ContextData>,
+  tag: string,
+): Promise<void> {
+  const config = getTagsPubRelayConfig();
+  if (!config.enabled) return;
+  const hostname = new URL(ctx.canonicalOrigin).hostname;
+  const followIri = getTagsPubHashtagFollowIri(ctx, tag);
+  const tagActorUrl = getTagsPubHashtagActorUrl(tag);
+  const recipient: Recipient = {
+    id: tagActorUrl,
+    inboxId: new URL(`${tagActorUrl.href}/inbox`),
+    endpoints: {
+      sharedInbox: new URL(`${TAGS_PUB_ORIGIN}/shared/inbox`),
+    },
+  };
+  await ctx.sendActivity(
+    { identifier: hostname },
+    recipient,
+    new vocab.Follow({
+      id: followIri,
+      actor: ctx.getActorUri(hostname),
+      object: tagActorUrl,
+    }),
+    {
+      orderingKey: followIri.href,
+      excludeBaseUris: [new URL(ctx.canonicalOrigin), new URL(ctx.origin)],
+      preferSharedInbox: false,
+    },
+  );
+}
+
+export async function unsubscribeTagsPubHashtag(
+  ctx: Context<ContextData>,
+  tag: string,
+): Promise<void> {
+  const config = getTagsPubRelayConfig();
+  if (!config.enabled) return;
+  const hostname = new URL(ctx.canonicalOrigin).hostname;
+  const followIri = getTagsPubHashtagFollowIri(ctx, tag);
+  const tagActorUrl = getTagsPubHashtagActorUrl(tag);
+  const recipient: Recipient = {
+    id: tagActorUrl,
+    inboxId: new URL(`${tagActorUrl.href}/inbox`),
+    endpoints: {
+      sharedInbox: new URL(`${TAGS_PUB_ORIGIN}/shared/inbox`),
+    },
+  };
+  await ctx.sendActivity(
+    { identifier: hostname },
+    recipient,
+    new vocab.Undo({
+      id: new URL(`${followIri.href}/undo`),
+      actor: ctx.getActorUri(hostname),
+      object: new vocab.Follow({
+        id: followIri,
+        actor: ctx.getActorUri(hostname),
+        object: tagActorUrl,
+      }),
+    }),
+    {
+      orderingKey: followIri.href,
+      excludeBaseUris: [new URL(ctx.canonicalOrigin), new URL(ctx.origin)],
+      preferSharedInbox: false,
+    },
+  );
+}

@@ -299,6 +299,34 @@ export async function addPostToTimeline(
   }
 }
 
+export async function addTagsPubPostToTimeline(
+  db: Database,
+  post: Post,
+): Promise<void> {
+  if (post.visibility !== "public") return;
+  const tagNames = Object.keys(post.tags ?? {});
+  if (tagNames.length === 0) return;
+  const tagFollowers = await db
+    .selectDistinct({ accountId: hashtagFollowingTable.accountId })
+    .from(hashtagFollowingTable)
+    .where(inArray(hashtagFollowingTable.tag, tagNames));
+  if (tagFollowers.length === 0) return;
+  await db.insert(timelineItemTable)
+    .values(
+      tagFollowers.map(({ accountId }) => ({
+        accountId,
+        postId: post.id,
+        postType: post.type,
+        originalAuthorId: post.actorId,
+        lastSharerId: null,
+        sharersCount: 0,
+        added: post.published,
+        appended: post.published,
+      } satisfies NewTimelineItem)),
+    )
+    .onConflictDoNothing();
+}
+
 export async function removeFromTimeline(
   db: Database,
   post: Post,

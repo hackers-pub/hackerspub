@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import type { Database } from "./db.ts";
 import { type HashtagFollowing, hashtagFollowingTable } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
@@ -95,6 +95,16 @@ export async function getPinnedHashtags(
     orderBy: (t, { asc }) => [asc(t.created), asc(t.tag)],
   });
   return rows.map((r) => r.tag);
+}
+
+export async function getHashtagFollowerCount(
+  db: Database,
+  tag: string,
+): Promise<number> {
+  const rows = await db.select({ count: count() })
+    .from(hashtagFollowingTable)
+    .where(eq(hashtagFollowingTable.tag, normalizeHashtag(tag)));
+  return rows[0]?.count ?? 0;
 }
 
 export async function getFollowedHashtagNames(
