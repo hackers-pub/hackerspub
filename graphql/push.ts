@@ -276,7 +276,7 @@ builder.relayMutationField(
   {
     description:
       "Successful response for `registerPushNotificationTarget`. Contains " +
-      "the normalized token or endpoint that was stored.",
+      "the normalized `token` or `endpoint` that was stored.",
     outputFields: (t) => ({
       service: t.field({
         type: PushNotificationService,

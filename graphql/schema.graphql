@@ -2918,7 +2918,7 @@ input RegisterPushNotificationTargetInput {
 }
 
 """
-Successful response for `registerPushNotificationTarget`. Contains the normalized token or endpoint that was stored.
+Successful response for `registerPushNotificationTarget`. Contains the normalized `token` or `endpoint` that was stored.
 """
 type RegisterPushNotificationTargetPayload {
   clientMutationId: ID
