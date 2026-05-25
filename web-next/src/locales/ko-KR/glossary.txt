@@ -33,3 +33,4 @@ orphan media → 연결되지 않은 미디어
 preferences → 환경 설정
 notification → 알림
 moderator → 모더레이터
+sidebar → 사이드바

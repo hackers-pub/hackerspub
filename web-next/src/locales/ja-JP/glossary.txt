@@ -33,3 +33,4 @@ orphan media → 孤立したメディア
 preferences → 環境設定
 notification → 通知
 moderator → モデレーター
+sidebar → サイドバー

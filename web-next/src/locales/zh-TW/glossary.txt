@@ -33,3 +33,4 @@ orphan media → 孤立媒體
 preferences → 偏好設定
 notification → 通知
 moderator → 版主
+sidebar → 側邊欄
