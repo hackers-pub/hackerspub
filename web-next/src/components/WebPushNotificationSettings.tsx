@@ -198,8 +198,8 @@ export function WebPushNotificationSettings(
             setSubscribed(false);
             setEndpoint(null);
           } else {
-            setSubscribed(true);
-            setEndpoint(subscription.endpoint);
+            setSubscribed(false);
+            setEndpoint(null);
           }
           return;
         }
@@ -222,8 +222,8 @@ export function WebPushNotificationSettings(
           setSubscribed(false);
           setEndpoint(null);
         } else {
-          setSubscribed(true);
-          setEndpoint(subscription.endpoint);
+          setSubscribed(false);
+          setEndpoint(null);
         }
         if (!options.silent) {
           showToast({

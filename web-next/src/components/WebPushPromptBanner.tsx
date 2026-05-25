@@ -163,7 +163,8 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
             cleanupBrowserSubscription();
             setSubscribed(false);
           } else {
-            setSubscribed(true);
+            setDismissed(false);
+            setSubscribed(false);
           }
           setRefreshingEndpoint(null);
           return;
@@ -186,7 +187,8 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
           cleanupBrowserSubscription();
           setSubscribed(false);
         } else {
-          setSubscribed(true);
+          setDismissed(false);
+          setSubscribed(false);
         }
         setRefreshingEndpoint(null);
         if (!options.silent) {
