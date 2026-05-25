@@ -133,9 +133,7 @@ function urlBase64ToUint8Array(value: string): Uint8Array<ArrayBuffer> {
     const padding = "=".repeat((4 - value.length % 4) % 4);
     const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
     const raw = atob(base64);
-    const output = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; i++) output[i] = raw.charCodeAt(i);
-    return output;
+    return Uint8Array.from(raw, (c) => c.charCodeAt(0));
   } catch (error) {
     throw new Error("Invalid Web Push VAPID public key.", { cause: error });
   }
