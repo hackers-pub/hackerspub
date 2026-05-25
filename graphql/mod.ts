@@ -6,6 +6,8 @@ import "./actor.ts";
 import { builder } from "./builder.ts";
 import "./error.ts";
 import "./doc.ts";
+import "./apns.ts";
+import "./fcm.ts";
 import "./hashtag.ts";
 import "./invite.ts";
 import "./invitation-link.ts";

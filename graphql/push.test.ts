@@ -55,6 +55,78 @@ const unregisterMutation = parse(`
   }
 `);
 
+const deprecatedPushAliasesQuery = parse(`
+  query DeprecatedPushAliases {
+    __schema {
+      mutationType {
+        fields(includeDeprecated: true) {
+          name
+          isDeprecated
+          deprecationReason
+        }
+      }
+    }
+  }
+`);
+
+const registerApnsAliasMutation = parse(`
+  mutation RegisterApnsDeviceToken($deviceToken: String!) {
+    registerApnsDeviceToken(input: { deviceToken: $deviceToken }) {
+      __typename
+      ... on RegisterApnsDeviceTokenPayload {
+        deviceToken
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
+const unregisterApnsAliasMutation = parse(`
+  mutation UnregisterApnsDeviceToken($deviceToken: String!) {
+    unregisterApnsDeviceToken(input: { deviceToken: $deviceToken }) {
+      __typename
+      ... on UnregisterApnsDeviceTokenPayload {
+        deviceToken
+        unregistered
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
+const registerFcmAliasMutation = parse(`
+  mutation RegisterFcmDeviceToken($deviceToken: String!) {
+    registerFcmDeviceToken(input: { deviceToken: $deviceToken }) {
+      __typename
+      ... on RegisterFcmDeviceTokenPayload {
+        deviceToken
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
+const unregisterFcmAliasMutation = parse(`
+  mutation UnregisterFcmDeviceToken($deviceToken: String!) {
+    unregisterFcmDeviceToken(input: { deviceToken: $deviceToken }) {
+      __typename
+      ... on UnregisterFcmDeviceTokenPayload {
+        deviceToken
+        unregistered
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+    }
+  }
+`);
+
 test("webPushVapidPublicKey returns configured public key or null", async () => {
   const originals = {
     publicKey: Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY"),
@@ -250,6 +322,143 @@ test("registerPushNotificationTarget and unregisterPushNotificationTarget round-
         service: "WEB_PUSH",
         token: null,
         endpoint,
+        unregistered: true,
+      },
+    });
+  });
+});
+
+test("legacy APNS and FCM mutations remain available but deprecated", async () => {
+  await withRollback(async (tx) => {
+    const result = await execute({
+      schema,
+      document: deprecatedPushAliasesQuery,
+      contextValue: makeGuestContext(tx),
+    });
+
+    assert.equal(result.errors, undefined);
+    const data = toPlainJson(result.data) as {
+      __schema: {
+        mutationType: {
+          fields: {
+            name: string;
+            isDeprecated: boolean;
+            deprecationReason: string | null;
+          }[];
+        };
+      };
+    };
+    const fields = data.__schema.mutationType.fields;
+    const byName = new Map(fields.map((field) => [field.name, field]));
+
+    assert.deepEqual(byName.get("registerApnsDeviceToken"), {
+      name: "registerApnsDeviceToken",
+      isDeprecated: true,
+      deprecationReason:
+        "Use `registerPushNotificationTarget` with `service: APNS` instead.",
+    });
+    assert.deepEqual(byName.get("unregisterApnsDeviceToken"), {
+      name: "unregisterApnsDeviceToken",
+      isDeprecated: true,
+      deprecationReason:
+        "Use `unregisterPushNotificationTarget` with `service: APNS` instead.",
+    });
+    assert.deepEqual(byName.get("registerFcmDeviceToken"), {
+      name: "registerFcmDeviceToken",
+      isDeprecated: true,
+      deprecationReason:
+        "Use `registerPushNotificationTarget` with `service: FCM` instead.",
+    });
+    assert.deepEqual(byName.get("unregisterFcmDeviceToken"), {
+      name: "unregisterFcmDeviceToken",
+      isDeprecated: true,
+      deprecationReason:
+        "Use `unregisterPushNotificationTarget` with `service: FCM` instead.",
+    });
+  });
+});
+
+test("legacy APNS mutation aliases round-trip device tokens", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "graphqlpushapnsalias",
+      name: "GraphQL Push APNS Alias",
+      email: "graphqlpushapnsalias@example.com",
+    });
+
+    const registerResult = await execute({
+      schema,
+      document: registerApnsAliasMutation,
+      variableValues: { deviceToken: `<${validApnsToken.toUpperCase()}>` },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(registerResult.errors, undefined);
+    assert.deepEqual(toPlainJson(registerResult.data), {
+      registerApnsDeviceToken: {
+        __typename: "RegisterApnsDeviceTokenPayload",
+        deviceToken: validApnsToken,
+      },
+    });
+
+    const unregisterResult = await execute({
+      schema,
+      document: unregisterApnsAliasMutation,
+      variableValues: { deviceToken: validApnsToken },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(unregisterResult.errors, undefined);
+    assert.deepEqual(toPlainJson(unregisterResult.data), {
+      unregisterApnsDeviceToken: {
+        __typename: "UnregisterApnsDeviceTokenPayload",
+        deviceToken: validApnsToken,
+        unregistered: true,
+      },
+    });
+  });
+});
+
+test("legacy FCM mutation aliases round-trip device tokens", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "graphqlpushfcmalias",
+      name: "GraphQL Push FCM Alias",
+      email: "graphqlpushfcmalias@example.com",
+    });
+    const fcmToken = "fcm-token-alias";
+
+    const registerResult = await execute({
+      schema,
+      document: registerFcmAliasMutation,
+      variableValues: { deviceToken: ` ${fcmToken} ` },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(registerResult.errors, undefined);
+    assert.deepEqual(toPlainJson(registerResult.data), {
+      registerFcmDeviceToken: {
+        __typename: "RegisterFcmDeviceTokenPayload",
+        deviceToken: fcmToken,
+      },
+    });
+
+    const unregisterResult = await execute({
+      schema,
+      document: unregisterFcmAliasMutation,
+      variableValues: { deviceToken: fcmToken },
+      contextValue: makeUserContext(tx, account.account),
+      onError: "NO_PROPAGATE",
+    });
+
+    assert.equal(unregisterResult.errors, undefined);
+    assert.deepEqual(toPlainJson(unregisterResult.data), {
+      unregisterFcmDeviceToken: {
+        __typename: "UnregisterFcmDeviceTokenPayload",
+        deviceToken: fcmToken,
         unregistered: true,
       },
     });
