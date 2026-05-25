@@ -1,4 +1,4 @@
-import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { isSSRFSafeURL } from "ssrfcheck";
 import type { Database } from "./db.ts";
 import {
@@ -225,8 +225,8 @@ export async function registerPushNotificationTarget(
           updated: sql`CURRENT_TIMESTAMP`,
         },
         targetWhere: values.service === "web_push"
-          ? sql`${pushNotificationTargetTable.endpoint} IS NOT NULL`
-          : sql`${pushNotificationTargetTable.token} IS NOT NULL`,
+          ? isNotNull(pushNotificationTargetTable.endpoint)
+          : isNotNull(pushNotificationTargetTable.token),
       })
       .returning();
     return rows[0];
