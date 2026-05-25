@@ -6,6 +6,8 @@ import {
   MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE,
   normalizeApnsDeviceToken,
   normalizeFcmDeviceToken,
+  normalizeWebPushEndpoint,
+  normalizeWebPushKey,
   registerPushNotificationTarget,
   unregisterPushNotificationTarget,
 } from "@hackerspub/models/push";
@@ -215,29 +217,35 @@ builder.relayMutationField(
       if (session == null) throw new NotAuthenticatedError();
 
       const service = fromPushNotificationService(args.input.service);
+      let endpoint = args.input.endpoint;
+      let p256dh = args.input.p256dh;
+      let auth = args.input.auth;
       if (service === "web_push") {
         if (
-          args.input.endpoint == null ||
-          args.input.p256dh == null ||
-          args.input.auth == null ||
+          endpoint == null ||
+          p256dh == null ||
+          auth == null ||
           args.input.token != null
         ) {
           throw new InvalidInputError("service");
         }
-        if (args.input.endpoint.trim() === "") {
+        endpoint = normalizeWebPushEndpoint(endpoint);
+        if (endpoint == null) {
           throw new InvalidInputError("endpoint");
         }
-        if (args.input.p256dh.trim() === "") {
+        p256dh = normalizeWebPushKey(p256dh);
+        if (p256dh == null) {
           throw new InvalidInputError("p256dh");
         }
-        if (args.input.auth.trim() === "") {
+        auth = normalizeWebPushKey(auth);
+        if (auth == null) {
           throw new InvalidInputError("auth");
         }
       } else if (
         args.input.token == null ||
-        args.input.endpoint != null ||
-        args.input.p256dh != null ||
-        args.input.auth != null ||
+        endpoint != null ||
+        p256dh != null ||
+        auth != null ||
         args.input.expirationTime != null
       ) {
         throw new InvalidInputError("service");
@@ -259,9 +267,9 @@ builder.relayMutationField(
           token: args.input.token,
           subscription: service === "web_push"
             ? {
-              endpoint: args.input.endpoint!,
-              p256dh: args.input.p256dh!,
-              auth: args.input.auth!,
+              endpoint: endpoint!,
+              p256dh: p256dh!,
+              auth: auth!,
               expirationTime: args.input.expirationTime,
             }
             : null,

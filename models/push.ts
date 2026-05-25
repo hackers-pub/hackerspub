@@ -1,4 +1,5 @@
 import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { isSSRFSafeURL } from "ssrfcheck";
 import type { Database } from "./db.ts";
 import {
   type NewPushNotificationTarget,
@@ -9,6 +10,7 @@ import {
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const APNS_DEVICE_TOKEN_PATTERN = /^[0-9a-f]{64}$/;
+const BASE64URL_PATTERN = /^[A-Za-z0-9_-]+$/;
 export const MAX_PUSH_NOTIFICATION_TARGETS_PER_SERVICE = 20;
 
 export interface WebPushSubscriptionInput {
@@ -40,13 +42,46 @@ export function normalizeFcmDeviceToken(deviceToken: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+export function normalizeWebPushEndpoint(endpoint: string): string | null {
+  const trimmed = endpoint.trim();
+  if (trimmed === "") return null;
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:") return null;
+  return isSSRFSafeURL(url.href, { autoPrependProtocol: false })
+    ? trimmed
+    : null;
+}
+
+export function normalizeWebPushKey(key: string): string | null {
+  const trimmed = key.trim();
+  if (trimmed === "" || !BASE64URL_PATTERN.test(trimmed)) return null;
+  try {
+    const padding = "=".repeat((4 - trimmed.length % 4) % 4);
+    atob((trimmed + padding).replace(/-/g, "+").replace(/_/g, "/"));
+  } catch {
+    return null;
+  }
+  return trimmed;
+}
+
 function normalizeWebPushSubscription(
   subscription: WebPushSubscriptionInput | null | undefined,
 ): WebPushSubscriptionInput | null {
-  const endpoint = subscription?.endpoint.trim() ?? "";
-  const p256dh = subscription?.p256dh.trim() ?? "";
-  const auth = subscription?.auth.trim() ?? "";
-  if (endpoint === "" || p256dh === "" || auth === "") return null;
+  const endpoint = subscription?.endpoint == null
+    ? null
+    : normalizeWebPushEndpoint(subscription.endpoint);
+  const p256dh = subscription?.p256dh == null
+    ? null
+    : normalizeWebPushKey(subscription.p256dh);
+  const auth = subscription?.auth == null
+    ? null
+    : normalizeWebPushKey(subscription.auth);
+  if (endpoint == null || p256dh == null || auth == null) return null;
   return {
     endpoint,
     p256dh,

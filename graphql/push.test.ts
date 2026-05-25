@@ -11,6 +11,8 @@ import {
 } from "../test/postgres.ts";
 
 const validApnsToken = "0123456789abcdef".repeat(4);
+const validWebPushP256dh = "dGVzdC1wMjU2ZGg";
+const validWebPushAuth = "dGVzdC1hdXRo";
 
 const vapidKeyQuery = parse(`
   query WebPushVapidPublicKey {
@@ -211,6 +213,55 @@ test("registerPushNotificationTarget rejects invalid APNS tokens", async () => {
   });
 });
 
+test("registerPushNotificationTarget rejects unsafe Web Push subscriptions", async () => {
+  await withRollback(async (tx) => {
+    const account = await insertAccountWithActor(tx, {
+      username: "graphqlpushwebinvalid",
+      name: "GraphQL Push Web Invalid",
+      email: "graphqlpushwebinvalid@example.com",
+    });
+
+    for (
+      const [input, inputPath] of [
+        [{
+          service: "WEB_PUSH",
+          endpoint: "https://127.0.0.1/push",
+          p256dh: validWebPushP256dh,
+          auth: validWebPushAuth,
+        }, "endpoint"],
+        [{
+          service: "WEB_PUSH",
+          endpoint: "https://push.example/endpoint",
+          p256dh: "@@",
+          auth: validWebPushAuth,
+        }, "p256dh"],
+        [{
+          service: "WEB_PUSH",
+          endpoint: "https://push.example/endpoint",
+          p256dh: validWebPushP256dh,
+          auth: "@@",
+        }, "auth"],
+      ] as const
+    ) {
+      const result = await execute({
+        schema,
+        document: registerMutation,
+        variableValues: { input },
+        contextValue: makeUserContext(tx, account.account),
+        onError: "NO_PROPAGATE",
+      });
+
+      assert.equal(result.errors, undefined);
+      assert.deepEqual(toPlainJson(result.data), {
+        registerPushNotificationTarget: {
+          __typename: "InvalidInputError",
+          inputPath,
+        },
+      });
+    }
+  });
+});
+
 test("unregisterPushNotificationTarget rejects malformed identifiers", async () => {
   await withRollback(async (tx) => {
     const account = await insertAccountWithActor(tx, {
@@ -318,8 +369,8 @@ test("registerPushNotificationTarget and unregisterPushNotificationTarget round-
         input: {
           service: "WEB_PUSH",
           endpoint,
-          p256dh: "test-p256dh",
-          auth: "test-auth",
+          p256dh: validWebPushP256dh,
+          auth: validWebPushAuth,
         },
       },
       contextValue: makeUserContext(tx, account.account),

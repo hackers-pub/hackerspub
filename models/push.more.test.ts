@@ -12,11 +12,42 @@ import { insertAccountWithActor, withRollback } from "../test/postgres.ts";
 function webSubscription(endpoint: string) {
   return {
     endpoint,
-    p256dh: "test-p256dh",
-    auth: "test-auth",
+    p256dh: "dGVzdC1wMjU2ZGg",
+    auth: "dGVzdC1hdXRo",
     expirationTime: null,
   };
 }
+
+test("registerPushNotificationTarget() rejects unsafe Web Push subscriptions", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "pushunsafe",
+      name: "Push Unsafe",
+      email: "pushunsafe@example.com",
+    });
+
+    for (
+      const subscription of [
+        webSubscription("http://push.example/endpoint"),
+        webSubscription("https://127.0.0.1/endpoint"),
+        { ...webSubscription("https://push.example/endpoint"), p256dh: "@@" },
+        { ...webSubscription("https://push.example/endpoint"), auth: "@@" },
+      ]
+    ) {
+      assert.equal(
+        await registerPushNotificationTarget(tx, account.id, {
+          service: "web_push",
+          subscription,
+        }),
+        undefined,
+      );
+    }
+
+    const stored = await tx.select().from(pushNotificationTargetTable)
+      .where(eq(pushNotificationTargetTable.accountId, account.id));
+    assert.deepEqual(stored, []);
+  });
+});
 
 test("registerPushNotificationTarget() reassigns an existing Web Push endpoint", async () => {
   await withRollback(async (tx) => {

@@ -49,8 +49,8 @@ test("sendWebPushNotification() sends browser subscriptions and prunes stale end
           service: "web_push",
           subscription: {
             endpoint,
-            p256dh: `p256dh-${endpoint}`,
-            auth: `auth-${endpoint}`,
+            p256dh: "dGVzdC1wMjU2ZGg",
+            auth: "dGVzdC1hdXRo",
           },
         });
       }
