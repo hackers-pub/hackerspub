@@ -101,6 +101,10 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
     setDismissed(true);
   }
 
+  function cleanupBrowserSubscription() {
+    void unsubscribeFromWebPush().catch((error) => console.error(error));
+  }
+
   async function enablePush() {
     const vapidPublicKey = props.vapidPublicKey;
     if (vapidPublicKey == null) return;
@@ -117,7 +121,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
               title: t`Failed to enable browser notifications`,
               variant: "error",
             });
-            void unsubscribeFromWebPush();
+            cleanupBrowserSubscription();
             return;
           }
           localStorage.setItem(DISMISSED_KEY, "1");
@@ -131,7 +135,7 @@ export function WebPushPromptBanner(props: WebPushPromptBannerProps) {
         },
         onError(error) {
           console.error(error);
-          void unsubscribeFromWebPush();
+          cleanupBrowserSubscription();
           setSubscribed(false);
           showToast({
             title: t`Failed to enable browser notifications`,

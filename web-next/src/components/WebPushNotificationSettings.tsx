@@ -167,6 +167,10 @@ export function WebPushNotificationSettings(
     void refreshSubscriptionState();
   });
 
+  function cleanupBrowserSubscription() {
+    void unsubscribeFromWebPush().catch((error) => console.error(error));
+  }
+
   async function enablePush() {
     const vapidPublicKey = props.vapidPublicKey;
     if (vapidPublicKey == null) return;
@@ -183,7 +187,7 @@ export function WebPushNotificationSettings(
               title: t`Failed to enable browser notifications`,
               variant: "error",
             });
-            void unsubscribeFromWebPush();
+            cleanupBrowserSubscription();
             return;
           }
           setSubscribed(true);
@@ -198,7 +202,7 @@ export function WebPushNotificationSettings(
         },
         onError(error) {
           console.error(error);
-          void unsubscribeFromWebPush();
+          cleanupBrowserSubscription();
           setSubscribed(false);
           setEndpoint(null);
           showToast({
