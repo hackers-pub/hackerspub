@@ -107,10 +107,13 @@ function getIpv4FromDottedDecimal(text: string): string | null {
   return values.some((value) => value == null) ? null : values.join(".");
 }
 
-function decodeBase64Url(value: string): string | null {
+function decodeBase64Url(value: string): Uint8Array | null {
   const padding = "=".repeat((4 - value.length % 4) % 4);
   try {
-    return atob((value + padding).replace(/-/g, "+").replace(/_/g, "/"));
+    const binary = atob(
+      (value + padding).replace(/-/g, "+").replace(/_/g, "/"),
+    );
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
   } catch {
     return null;
   }
@@ -124,7 +127,7 @@ export function normalizeWebPushKey(
   if (trimmed === "" || !BASE64URL_PATTERN.test(trimmed)) return null;
   const decoded = decodeBase64Url(trimmed);
   if (decoded == null) return null;
-  if (expectedBytes != null && decoded.length !== expectedBytes) {
+  if (expectedBytes != null && decoded.byteLength !== expectedBytes) {
     return null;
   }
   return trimmed;
