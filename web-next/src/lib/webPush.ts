@@ -157,7 +157,7 @@ function subscriptionUsesApplicationServerKey(
   applicationServerKey: Uint8Array<ArrayBuffer>,
 ): boolean {
   const currentKey = subscription.options.applicationServerKey;
-  if (currentKey == null) return true;
+  if (currentKey == null) return false;
   const currentBytes = new Uint8Array(currentKey);
   if (currentBytes.byteLength !== applicationServerKey.byteLength) return false;
   return currentBytes.every((byte, index) =>

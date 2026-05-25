@@ -1,5 +1,5 @@
 import { graphql } from "relay-runtime";
-import { createSignal, onMount, Show } from "solid-js";
+import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import { createFragment, createMutation } from "solid-relay";
 import {
   type PushNotificationPreviewPolicy,
@@ -21,6 +21,7 @@ import {
   isWebPushSupported,
   subscribeToWebPush,
   unsubscribeFromWebPush,
+  WEB_PUSH_PERMISSION_CHANGE_EVENT,
   type WebPushSubscriptionData,
 } from "~/lib/webPush.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -172,6 +173,17 @@ export function WebPushNotificationSettings(
 
   onMount(() => {
     void refreshSubscriptionState();
+    const updatePermission = () => setPermission(getNotificationPermission());
+    window.addEventListener(
+      WEB_PUSH_PERMISSION_CHANGE_EVENT,
+      updatePermission,
+    );
+    onCleanup(() => {
+      window.removeEventListener(
+        WEB_PUSH_PERMISSION_CHANGE_EVENT,
+        updatePermission,
+      );
+    });
   });
 
   function cleanupBrowserSubscription() {
