@@ -56,10 +56,16 @@ const unregisterMutation = parse(`
 `);
 
 test("webPushVapidPublicKey returns configured public key or null", async () => {
-  const original = Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY");
+  const originals = {
+    publicKey: Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY"),
+    privateKey: Deno.env.get("WEB_PUSH_VAPID_PRIVATE_KEY"),
+    subject: Deno.env.get("WEB_PUSH_VAPID_SUBJECT"),
+  };
   try {
     await withRollback(async (tx) => {
       Deno.env.delete("WEB_PUSH_VAPID_PUBLIC_KEY");
+      Deno.env.delete("WEB_PUSH_VAPID_PRIVATE_KEY");
+      Deno.env.delete("WEB_PUSH_VAPID_SUBJECT");
       const missingResult = await execute({
         schema,
         document: vapidKeyQuery,
@@ -71,6 +77,8 @@ test("webPushVapidPublicKey returns configured public key or null", async () => 
       });
 
       Deno.env.set("WEB_PUSH_VAPID_PUBLIC_KEY", " test-vapid-key ");
+      Deno.env.set("WEB_PUSH_VAPID_PRIVATE_KEY", " test-vapid-private-key ");
+      Deno.env.set("WEB_PUSH_VAPID_SUBJECT", " mailto:test@example.com ");
       const configuredResult = await execute({
         schema,
         document: vapidKeyQuery,
@@ -82,10 +90,20 @@ test("webPushVapidPublicKey returns configured public key or null", async () => 
       });
     });
   } finally {
-    if (original == null) {
+    if (originals.publicKey == null) {
       Deno.env.delete("WEB_PUSH_VAPID_PUBLIC_KEY");
     } else {
-      Deno.env.set("WEB_PUSH_VAPID_PUBLIC_KEY", original);
+      Deno.env.set("WEB_PUSH_VAPID_PUBLIC_KEY", originals.publicKey);
+    }
+    if (originals.privateKey == null) {
+      Deno.env.delete("WEB_PUSH_VAPID_PRIVATE_KEY");
+    } else {
+      Deno.env.set("WEB_PUSH_VAPID_PRIVATE_KEY", originals.privateKey);
+    }
+    if (originals.subject == null) {
+      Deno.env.delete("WEB_PUSH_VAPID_SUBJECT");
+    } else {
+      Deno.env.set("WEB_PUSH_VAPID_SUBJECT", originals.subject);
     }
   }
 });

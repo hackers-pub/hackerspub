@@ -9,6 +9,7 @@ import {
   registerPushNotificationTarget,
   unregisterPushNotificationTarget,
 } from "@hackerspub/models/push";
+import { getWebPushVapidPublicKey } from "@hackerspub/models/webpush";
 import { assertNever } from "@std/assert/unstable-never";
 import { builder } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
@@ -149,7 +150,7 @@ builder.queryField("webPushVapidPublicKey", (t) =>
       "URL-safe Base64 VAPID public key for browser Push API subscriptions. " +
       "Returns `null` when Web Push delivery is not configured on the server.",
     resolve() {
-      return Deno.env.get("WEB_PUSH_VAPID_PUBLIC_KEY")?.trim() || null;
+      return getWebPushVapidPublicKey();
     },
   }));
 

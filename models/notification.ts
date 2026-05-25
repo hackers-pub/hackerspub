@@ -2,6 +2,7 @@ import { getLogger } from "@logtape/logtape";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { type ApnsNotificationOptions, sendApnsNotification } from "./apns.ts";
 import { type FcmNotificationOptions, sendFcmNotification } from "./fcm.ts";
+import { sendWebPushNotification } from "./webpush.ts";
 import type { Database } from "./db.ts";
 import {
   type Account,
@@ -62,7 +63,27 @@ async function sendPushNotificationsBestEffort(
   await Promise.all([
     sendApnsNotificationBestEffort(db, options),
     sendFcmNotificationBestEffort(db, options),
+    sendWebPushNotificationBestEffort(db, options),
   ]);
+}
+
+async function sendWebPushNotificationBestEffort(
+  db: Database,
+  options: ApnsNotificationOptions & FcmNotificationOptions,
+): Promise<void> {
+  try {
+    await sendWebPushNotification(db, options);
+  } catch (error) {
+    logger.error(
+      "Failed to send Web Push notification after persistence for account {accountId}, notification {notificationId}, type {type}: {error}",
+      {
+        accountId: options.accountId,
+        notificationId: options.notificationId,
+        type: options.type,
+        error,
+      },
+    );
+  }
 }
 
 /**
