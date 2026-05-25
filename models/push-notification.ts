@@ -35,7 +35,10 @@ export interface PushNotificationPayload {
 function actorName(
   actor: Pick<typeof actorTable.$inferSelect, "name" | "handle" | "username">,
 ): string {
-  return actor.name?.trim() || actor.handle || actor.username;
+  return truncatePreview(
+    actor.name?.trim() || actor.handle || actor.username,
+    80,
+  );
 }
 
 function emojiText(emoji: string | CustomEmoji | null | undefined): string {

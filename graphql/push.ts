@@ -1,7 +1,4 @@
-import type {
-  PushNotificationPreviewPolicy as PreviewPolicy,
-  PushNotificationService as Service,
-} from "@hackerspub/models/schema";
+import { assertNever } from "@std/assert/unstable-never";
 import {
   normalizeApnsDeviceToken,
   normalizeFcmDeviceToken,
@@ -12,8 +9,11 @@ import {
   WEB_PUSH_AUTH_SECRET_BYTES,
   WEB_PUSH_P256DH_KEY_BYTES,
 } from "@hackerspub/models/push";
+import type {
+  PushNotificationPreviewPolicy as PreviewPolicy,
+  PushNotificationService as Service,
+} from "@hackerspub/models/schema";
 import { getWebPushVapidPublicKey } from "@hackerspub/models/webpush";
-import { assertNever } from "@std/assert/unstable-never";
 import { builder } from "./builder.ts";
 import { InvalidInputError } from "./error.ts";
 import { NotAuthenticatedError } from "./session.ts";

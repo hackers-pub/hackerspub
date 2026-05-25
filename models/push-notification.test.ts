@@ -132,6 +132,32 @@ test("buildPushNotificationPayload() caps truncated previews", async () => {
   });
 });
 
+test("buildPushNotificationPayload() caps actor labels", async () => {
+  await withRollback(async (tx) => {
+    const { account } = await insertAccountWithActor(tx, {
+      username: "pushactorlength",
+      name: "Push Actor Length",
+      email: "pushactorlength@example.com",
+    });
+    const actor = await insertRemoteActor(tx, {
+      username: "longsender",
+      name: "A".repeat(200),
+      host: "remote.example",
+    });
+
+    const payload = await buildPushNotificationPayload(tx, {
+      accountId: account.id,
+      notificationId: generateUuidV7(),
+      type: "mention",
+      actorId: actor.id,
+    });
+    const actorLabel = payload.body.replace(" mentioned you.", "");
+
+    assert.equal(actorLabel.length, 80);
+    assert.equal(actorLabel, `${"A".repeat(77)}...`);
+  });
+});
+
 test("buildPushNotificationPayload() localizes titles and bodies", async () => {
   await withRollback(async (tx) => {
     const { account } = await insertAccountWithActor(tx, {
