@@ -42,7 +42,7 @@ import type { UserContext } from "./builder.ts";
 //   aborting one of the involved transactions.
 const RETRYABLE_PG_CODES = new Set(["40001", "40P01"]);
 
-function isRetryableError(err: unknown): boolean {
+export function isRetryableError(err: unknown): boolean {
   return err instanceof postgres.PostgresError &&
     RETRYABLE_PG_CODES.has(err.code);
 }

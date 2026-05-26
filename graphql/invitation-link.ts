@@ -9,16 +9,35 @@ import {
 import { createSignupToken } from "@hackerspub/models/signup";
 import { generateUuidV7, type Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte, sql, TransactionRollbackError } from "drizzle-orm";
 import { parseTemplate } from "url-template";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
 import { getEmailMessage } from "./email-helpers.ts";
 import { InvalidInputError } from "./error.ts";
 import { EXPIRATION } from "./invite.ts";
+import { isRetryableError } from "./query-tx-plugin.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
 const logger = getLogger(["hackerspub", "graphql", "invitation-link"]);
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+): Promise<T> {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (isRetryableError(err) && attempt < maxRetries) {
+        attempt++;
+        continue;
+      }
+      throw err;
+    }
+  }
+}
 
 export const InvitationLink = builder.drizzleNode("invitationLinkTable", {
   name: "InvitationLink",
@@ -206,34 +225,36 @@ builder.mutationField("createInvitationLink", (t) =>
       }
       const expiresDate = parseExpires(args.expires);
       const id = generateUuidV7();
-      await ctx.db.transaction(async (tx) => {
-        const updated = await tx.update(accountTable)
-          .set({
-            leftInvitations:
-              sql`${accountTable.leftInvitations} - ${args.invitationsLeft}`,
-          })
-          .where(
-            and(
-              eq(accountTable.id, ctx.account!.id),
-              gte(accountTable.leftInvitations, args.invitationsLeft),
-            ),
-          )
-          .returning();
-        if (updated.length < 1) {
-          throw new InvalidInputError("invitationsLeft");
-        }
-        await tx.insert(invitationLinkTable).values(
-          {
-            id,
-            inviterId: ctx.account!.id,
-            invitationsLeft: args.invitationsLeft,
-            message: args.message?.trim() === ""
-              ? null
-              : (args.message ?? null),
-            expires: expiresDate,
-          } satisfies NewInvitationLink,
-        );
-      });
+      await withRetry(() =>
+        ctx.db.transaction(async (tx) => {
+          const updated = await tx.update(accountTable)
+            .set({
+              leftInvitations:
+                sql`${accountTable.leftInvitations} - ${args.invitationsLeft}`,
+            })
+            .where(
+              and(
+                eq(accountTable.id, ctx.account!.id),
+                gte(accountTable.leftInvitations, args.invitationsLeft),
+              ),
+            )
+            .returning();
+          if (updated.length < 1) {
+            throw new InvalidInputError("invitationsLeft");
+          }
+          await tx.insert(invitationLinkTable).values(
+            {
+              id,
+              inviterId: ctx.account!.id,
+              invitationsLeft: args.invitationsLeft,
+              message: args.message?.trim() === ""
+                ? null
+                : (args.message ?? null),
+              expires: expiresDate,
+            } satisfies NewInvitationLink,
+          );
+        })
+      );
       return { linkId: id, accountId: ctx.account.id };
     },
   }));
@@ -275,22 +296,24 @@ builder.mutationField("deleteInvitationLink", (t) =>
       if (link == null || link.inviterId !== ctx.account.id) {
         throw new InvitationLinkNotFoundError();
       }
-      await ctx.db.transaction(async (tx) => {
-        const deleted = await tx.delete(invitationLinkTable)
-          .where(and(
-            eq(invitationLinkTable.inviterId, ctx.account!.id),
-            eq(invitationLinkTable.id, args.id),
-          ))
-          .returning();
-        if (deleted.length < 1) return;
-        await tx.update(accountTable)
-          .set({
-            leftInvitations: sql`${accountTable.leftInvitations} + ${
-              deleted[0].invitationsLeft
-            }`,
-          })
-          .where(eq(accountTable.id, ctx.account!.id));
-      });
+      await withRetry(() =>
+        ctx.db.transaction(async (tx) => {
+          const deleted = await tx.delete(invitationLinkTable)
+            .where(and(
+              eq(invitationLinkTable.inviterId, ctx.account!.id),
+              eq(invitationLinkTable.id, args.id),
+            ))
+            .returning();
+          if (deleted.length < 1) return;
+          await tx.update(accountTable)
+            .set({
+              leftInvitations: sql`${accountTable.leftInvitations} + ${
+                deleted[0].invitationsLeft
+              }`,
+            })
+            .where(eq(accountTable.id, ctx.account!.id));
+        })
+      );
       return { linkId: null, accountId: ctx.account.id };
     },
   }));
@@ -474,20 +497,26 @@ builder.mutationField("redeemInvitationLink", (t) =>
       // Decrement link invitations in transaction
       let exhausted = false;
       try {
-        await ctx.db.transaction(async (tx) => {
-          const result = await tx.update(invitationLinkTable)
-            .set({
-              invitationsLeft: sql`${invitationLinkTable.invitationsLeft} - 1`,
-            })
-            .where(eq(invitationLinkTable.id, link.id))
-            .returning();
-          if (result.length < 1 || result[0].invitationsLeft < 0) {
-            tx.rollback();
-          }
-        });
-      } catch {
-        // tx.rollback() throws TransactionRollbackError
-        exhausted = true;
+        await withRetry(() =>
+          ctx.db.transaction(async (tx) => {
+            const result = await tx.update(invitationLinkTable)
+              .set({
+                invitationsLeft:
+                  sql`${invitationLinkTable.invitationsLeft} - 1`,
+              })
+              .where(eq(invitationLinkTable.id, link.id))
+              .returning();
+            if (result.length < 1 || result[0].invitationsLeft < 0) {
+              tx.rollback();
+            }
+          })
+        );
+      } catch (err) {
+        if (err instanceof TransactionRollbackError) {
+          exhausted = true;
+        } else {
+          throw err;
+        }
       }
 
       if (exhausted) {
