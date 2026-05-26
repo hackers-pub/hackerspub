@@ -1,9 +1,18 @@
 import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
+import { assertRejects } from "@std/assert/rejects";
 import { parse } from "graphql";
 import type { Plugin as EnvelopPlugin } from "graphql-yoga";
+import postgres from "postgres";
 import type { UserContext } from "./builder.ts";
 import { useQuerySnapshotTransaction } from "./query-tx-plugin.ts";
+
+function makePgError(code: string): postgres.PostgresError {
+  const err = new postgres.PostgresError(`pg error ${code}`);
+  // `code` is a writable property on PostgresError instances.
+  (err as unknown as Record<string, unknown>).code = code;
+  return err;
+}
 
 type OnExecuteHook = NonNullable<EnvelopPlugin<UserContext>["onExecute"]>;
 type OnExecutePayload = Parameters<OnExecuteHook>[0];
@@ -207,4 +216,182 @@ Deno.test("useQuerySnapshotTransaction handles an unnamed single query", async (
   assert(typeof h.registeredExecute === "function");
   await h.registeredExecute!(h.payload.args);
   assertEquals(h.txCalls.length, 1);
+});
+
+Deno.test("useQuerySnapshotTransaction retries on serialization failure (40001)", async () => {
+  const plugin = useQuerySnapshotTransaction();
+  let calls = 0;
+  const txCalls: number[] = [];
+  const stubDb = {
+    id: "root-db" as const,
+    async transaction(
+      cb: (tx: { readonly id: "tx" }) => Promise<unknown>,
+      _config: { isolationLevel?: string },
+    ): Promise<unknown> {
+      const n = ++calls;
+      txCalls.push(n);
+      if (n === 1) throw makePgError("40001");
+      return await cb({ id: "tx" });
+    },
+  };
+  const fedData = { db: stubDb as unknown };
+  const contextValue = {
+    db: stubDb,
+    fedCtx: { data: fedData },
+  } as unknown as UserContext;
+  let registeredExecute: ExecuteFn | undefined;
+  const payload = {
+    args: {
+      document: parse("query Q { __typename }"),
+      operationName: "Q",
+      contextValue,
+    } as unknown as OnExecutePayload["args"],
+    executeFn: (async () => ({ data: { __typename: "Query" } })) as ExecuteFn,
+    setExecuteFn(fn: ExecuteFn) {
+      registeredExecute = fn;
+    },
+    setResultAndStopExecution() {},
+    context: contextValue,
+    extendContext() {},
+  } as unknown as OnExecutePayload;
+
+  await plugin.onExecute!(payload);
+  assert(typeof registeredExecute === "function");
+  const result = await registeredExecute!(payload.args);
+
+  assertEquals(txCalls.length, 2, "should have retried once");
+  assertEquals(
+    (result as { data: { __typename: string } }).data.__typename,
+    "Query",
+  );
+});
+
+Deno.test("useQuerySnapshotTransaction retries on deadlock (40P01)", async () => {
+  const plugin = useQuerySnapshotTransaction();
+  let calls = 0;
+  const stubDb = {
+    id: "root-db" as const,
+    async transaction(
+      cb: (tx: { readonly id: "tx" }) => Promise<unknown>,
+      _config: { isolationLevel?: string },
+    ): Promise<unknown> {
+      if (++calls === 1) throw makePgError("40P01");
+      return await cb({ id: "tx" });
+    },
+  };
+  const fedData = { db: stubDb as unknown };
+  const contextValue = {
+    db: stubDb,
+    fedCtx: { data: fedData },
+  } as unknown as UserContext;
+  let registeredExecute: ExecuteFn | undefined;
+  const payload = {
+    args: {
+      document: parse("query Q { __typename }"),
+      operationName: "Q",
+      contextValue,
+    } as unknown as OnExecutePayload["args"],
+    executeFn: (async () => ({ data: { __typename: "Query" } })) as ExecuteFn,
+    setExecuteFn(fn: ExecuteFn) {
+      registeredExecute = fn;
+    },
+    setResultAndStopExecution() {},
+    context: contextValue,
+    extendContext() {},
+  } as unknown as OnExecutePayload;
+
+  await plugin.onExecute!(payload);
+  assert(typeof registeredExecute === "function");
+  await registeredExecute!(payload.args);
+
+  assertEquals(calls, 2, "should have retried once after deadlock");
+});
+
+Deno.test("useQuerySnapshotTransaction gives up after maxRetries", async () => {
+  const plugin = useQuerySnapshotTransaction({ maxRetries: 2 });
+  let calls = 0;
+  const stubDb = {
+    id: "root-db" as const,
+    async transaction(
+      _cb: (tx: { readonly id: "tx" }) => Promise<unknown>,
+      _config: { isolationLevel?: string },
+    ): Promise<unknown> {
+      calls++;
+      throw makePgError("40001");
+    },
+  };
+  const fedData = { db: stubDb as unknown };
+  const contextValue = {
+    db: stubDb,
+    fedCtx: { data: fedData },
+  } as unknown as UserContext;
+  let registeredExecute: ExecuteFn | undefined;
+  const payload = {
+    args: {
+      document: parse("query Q { __typename }"),
+      operationName: "Q",
+      contextValue,
+    } as unknown as OnExecutePayload["args"],
+    executeFn: (async () => ({ data: { __typename: "Query" } })) as ExecuteFn,
+    setExecuteFn(fn: ExecuteFn) {
+      registeredExecute = fn;
+    },
+    setResultAndStopExecution() {},
+    context: contextValue,
+    extendContext() {},
+  } as unknown as OnExecutePayload;
+
+  await plugin.onExecute!(payload);
+  assert(typeof registeredExecute === "function");
+  await assertRejects(
+    () => registeredExecute!(payload.args),
+    postgres.PostgresError,
+  );
+
+  assertEquals(calls, 3, "should have tried 3 times (1 initial + 2 retries)");
+});
+
+Deno.test("useQuerySnapshotTransaction does not retry non-retryable errors", async () => {
+  const plugin = useQuerySnapshotTransaction();
+  let calls = 0;
+  const stubDb = {
+    id: "root-db" as const,
+    async transaction(
+      _cb: (tx: { readonly id: "tx" }) => Promise<unknown>,
+      _config: { isolationLevel?: string },
+    ): Promise<unknown> {
+      calls++;
+      throw new Error("some other error");
+    },
+  };
+  const fedData = { db: stubDb as unknown };
+  const contextValue = {
+    db: stubDb,
+    fedCtx: { data: fedData },
+  } as unknown as UserContext;
+  let registeredExecute: ExecuteFn | undefined;
+  const payload = {
+    args: {
+      document: parse("query Q { __typename }"),
+      operationName: "Q",
+      contextValue,
+    } as unknown as OnExecutePayload["args"],
+    executeFn: (async () => ({ data: { __typename: "Query" } })) as ExecuteFn,
+    setExecuteFn(fn: ExecuteFn) {
+      registeredExecute = fn;
+    },
+    setResultAndStopExecution() {},
+    context: contextValue,
+    extendContext() {},
+  } as unknown as OnExecutePayload;
+
+  await plugin.onExecute!(payload);
+  assert(typeof registeredExecute === "function");
+  await assertRejects(
+    () => registeredExecute!(payload.args),
+    Error,
+    "some other error",
+  );
+
+  assertEquals(calls, 1, "should not have retried a non-retryable error");
 });

@@ -1,6 +1,7 @@
 import type { Database } from "@hackerspub/models/db";
 import { type DocumentNode, Kind, type OperationDefinitionNode } from "graphql";
 import type { Plugin as EnvelopPlugin } from "graphql-yoga";
+import postgres from "postgres";
 import type { UserContext } from "./builder.ts";
 
 // Wrap GraphQL query operations in a single PostgreSQL REPEATABLE READ
@@ -30,7 +31,25 @@ import type { UserContext } from "./builder.ts";
 // READ COMMITTED).  Mutations want to see freshly-committed data from
 // concurrent writers; subscriptions are long-lived streams where pinning
 // a snapshot would defeat their purpose.
-export function useQuerySnapshotTransaction(): EnvelopPlugin<UserContext> {
+// PostgreSQL error codes that indicate the transaction conflicted with a
+// concurrent writer and should be retried from scratch.  Both codes are
+// documented in the PostgreSQL Error Codes appendix.
+//
+// 40001 — serialization_failure: raised by REPEATABLE READ when the
+//   snapshot detects that the committed data it read has been modified by
+//   another transaction since the snapshot was taken.
+// 40P01 — deadlock_detected: raised when the server breaks a deadlock by
+//   aborting one of the involved transactions.
+const RETRYABLE_PG_CODES = new Set(["40001", "40P01"]);
+
+function isRetryableError(err: unknown): boolean {
+  return err instanceof postgres.PostgresError &&
+    RETRYABLE_PG_CODES.has(err.code);
+}
+
+export function useQuerySnapshotTransaction(
+  { maxRetries = 3 }: { maxRetries?: number } = {},
+): EnvelopPlugin<UserContext> {
   return {
     onExecute({ args, executeFn, setExecuteFn }) {
       if (!isReadOnlyOperation(args.document, args.operationName)) return;
@@ -43,44 +62,56 @@ export function useQuerySnapshotTransaction(): EnvelopPlugin<UserContext> {
       const ctx = args.contextValue as UserContext;
       const rootDb = ctx.db;
 
-      setExecuteFn((innerArgs) =>
-        rootDb.transaction(
-          async (tx) => {
-            // Swap every database handle reachable through the context so
-            // both direct Drizzle access (`ctx.db` for resolvers and
-            // Pothos drizzle's re-fetches, via the schema's
-            // `drizzle.client: (ctx) => ctx.db` factory) and federation
-            // helpers (`ctx.fedCtx.data.db` used by `persistActor`,
-            // `persistPost`, `addPostToTimeline`, …) share the same
-            // snapshot.  Leaving `fedCtx.data.db` pointing at the root
-            // pool would let a query resolver write outside the
-            // transaction and then fail to see its own write through
-            // `ctx.db`.  `contextValue` is typed `Readonly` by envelop,
-            // but at runtime it is the same object resolvers consume,
-            // and per-request mutation is the standard envelop pattern
-            // for request-scoped overrides.
-            const liveCtx = innerArgs.contextValue as unknown as UserContext;
-            const originalDb = liveCtx.db;
-            const fedData = liveCtx.fedCtx.data;
-            const originalFedDb = fedData.db;
-            // Cast: PostgresJsTransaction structurally satisfies the
-            // PostgresJsDatabase interface (both extend PgAsyncDatabase),
-            // but Drizzle's nominal class typing makes TypeScript reject
-            // direct assignment.  The runtime contract is identical for
-            // every method Pothos and resolvers call.
-            const txAsDb = tx as unknown as Database;
-            liveCtx.db = txAsDb;
-            fedData.db = txAsDb;
-            try {
-              return await wrappedExecute(innerArgs);
-            } finally {
-              liveCtx.db = originalDb;
-              fedData.db = originalFedDb;
+      setExecuteFn(async (innerArgs) => {
+        let attempt = 0;
+        while (true) {
+          try {
+            return await rootDb.transaction(
+              async (tx) => {
+                // Swap every database handle reachable through the context so
+                // both direct Drizzle access (`ctx.db` for resolvers and
+                // Pothos drizzle's re-fetches, via the schema's
+                // `drizzle.client: (ctx) => ctx.db` factory) and federation
+                // helpers (`ctx.fedCtx.data.db` used by `persistActor`,
+                // `persistPost`, `addPostToTimeline`, …) share the same
+                // snapshot.  Leaving `fedCtx.data.db` pointing at the root
+                // pool would let a query resolver write outside the
+                // transaction and then fail to see its own write through
+                // `ctx.db`.  `contextValue` is typed `Readonly` by envelop,
+                // but at runtime it is the same object resolvers consume,
+                // and per-request mutation is the standard envelop pattern
+                // for request-scoped overrides.
+                const liveCtx = innerArgs
+                  .contextValue as unknown as UserContext;
+                const originalDb = liveCtx.db;
+                const fedData = liveCtx.fedCtx.data;
+                const originalFedDb = fedData.db;
+                // Cast: PostgresJsTransaction structurally satisfies the
+                // PostgresJsDatabase interface (both extend PgAsyncDatabase),
+                // but Drizzle's nominal class typing makes TypeScript reject
+                // direct assignment.  The runtime contract is identical for
+                // every method Pothos and resolvers call.
+                const txAsDb = tx as unknown as Database;
+                liveCtx.db = txAsDb;
+                fedData.db = txAsDb;
+                try {
+                  return await wrappedExecute(innerArgs);
+                } finally {
+                  liveCtx.db = originalDb;
+                  fedData.db = originalFedDb;
+                }
+              },
+              { isolationLevel: "repeatable read" },
+            );
+          } catch (err) {
+            if (isRetryableError(err) && attempt < maxRetries) {
+              attempt++;
+              continue;
             }
-          },
-          { isolationLevel: "repeatable read" },
-        )
-      );
+            throw err;
+          }
+        }
+      });
     },
   };
 }
