@@ -5,6 +5,7 @@ import { expandGlob } from "@std/fs";
 import { escape } from "@std/html/entities";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
+import { createGraphQLError } from "graphql-yoga";
 import { parseTemplate } from "url-template";
 import { EMAIL_FROM } from "./email.ts";
 
@@ -71,8 +72,14 @@ async function getEmailTemplate(
 
   const template = cachedTemplates!.get(selectedLocale.baseName);
   if (!template) {
-    throw new Error(
-      `No email template found for locale ${selectedLocale.baseName}`,
+    throw createGraphQLError(
+      `No email template found for locale ${selectedLocale.baseName}.`,
+      {
+        originalError: new Error(
+          `No email template found for locale ${selectedLocale.baseName}.`,
+        ),
+        extensions: { code: "INTERNAL_SERVER_ERROR" },
+      },
     );
   }
 
@@ -138,7 +145,10 @@ export async function getEmailMessage(
           parsed == null ||
           !["https:", "http:", "hackerspub:"].includes(parsed.protocol)
         ) {
-          throw new Error(`Unsupported verify URL scheme: ${verifyUrl}`);
+          throw createGraphQLError(
+            `Unsupported verify URL scheme: ${verifyUrl}.`,
+            { extensions: { code: "BAD_USER_INPUT" } },
+          );
         }
         const safeVerifyUrl = parsed.toString();
         const escapedText = escape(textContent);

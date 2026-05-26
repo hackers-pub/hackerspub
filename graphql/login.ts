@@ -25,6 +25,7 @@ import { escape } from "@std/html/entities";
 import { join } from "@std/path";
 import { createMessage, type Message } from "@upyo/core";
 import { sql } from "drizzle-orm";
+import { createGraphQLError } from "graphql-yoga";
 import { parseTemplate } from "url-template";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
@@ -420,7 +421,10 @@ async function getEmailMessage({ locale, to, verifyUrlTemplate, token }: {
           parsed == null ||
           !["https:", "http:", "hackerspub:"].includes(parsed.protocol)
         ) {
-          throw new Error(`Unsupported verify URL scheme: ${verifyUrl}`);
+          throw createGraphQLError(
+            `Unsupported verify URL scheme: ${verifyUrl}.`,
+            { extensions: { code: "BAD_USER_INPUT" } },
+          );
         }
         const safeVerifyUrl = parsed.toString();
         const escapedText = escape(textContent);

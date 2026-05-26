@@ -4,6 +4,7 @@ import type { RelationsFilter } from "@hackerspub/models/db";
 import { getViewerReactionsForPosts } from "@hackerspub/models/reaction";
 import { relations } from "@hackerspub/models/relations";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import { createGraphQLError } from "graphql-yoga";
 import { Actor } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
 
@@ -330,7 +331,15 @@ export const Reaction = builder.drizzleNode("reactionTable", {
         } else if (reaction.customEmoji) {
           return reaction.customEmoji;
         } else {
-          throw new Error("Reaction has neither emoji nor customEmojiId");
+          throw createGraphQLError(
+            "Reaction has neither emoji nor customEmojiId.",
+            {
+              originalError: new Error(
+                "Reaction has neither emoji nor customEmojiId.",
+              ),
+              extensions: { code: "INTERNAL_SERVER_ERROR" },
+            },
+          );
         }
       },
     }),

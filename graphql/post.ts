@@ -89,6 +89,7 @@ import {
   MEDIUM_UPLOAD_TTL_MS,
   setMediumOwner,
 } from "./medium-upload.ts";
+import { createGraphQLError } from "graphql-yoga";
 import { Account } from "./account.ts";
 import { Actor } from "./actor.ts";
 import { builder, Node, type UserContext } from "./builder.ts";
@@ -1542,7 +1543,10 @@ builder.relayMutationField(
           throw error;
         }
         if (note == null) {
-          throw new Error("Failed to create note");
+          throw createGraphQLError("Failed to create note.", {
+            originalError: new Error("Failed to create note."),
+            extensions: { code: "INTERNAL_SERVER_ERROR" },
+          });
         }
         return note;
       });
@@ -1950,7 +1954,10 @@ builder.relayMutationField(
       });
 
       if (!article) {
-        throw new Error("Failed to publish article");
+        throw createGraphQLError("Failed to publish article.", {
+          originalError: new Error("Failed to publish article."),
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        });
       }
 
       // Delete draft after successful publish
@@ -2074,7 +2081,10 @@ builder.relayMutationField(
         return existingReaction;
       }
 
-      throw new Error("Failed to react to the post");
+      throw createGraphQLError("Failed to react to the post.", {
+        originalError: new Error("Failed to react to the post."),
+        extensions: { code: "INTERNAL_SERVER_ERROR" },
+      });
     },
   },
   {
@@ -2649,7 +2659,9 @@ builder.queryField("articleDraft", (t) =>
 
       // At least one of id or uuid must be provided
       if (!args.id && !args.uuid) {
-        throw new Error("Either id or uuid must be provided");
+        throw createGraphQLError("Either id or uuid must be provided.", {
+          extensions: { code: "BAD_USER_INPUT" },
+        });
       }
 
       // Use uuid if provided, otherwise use id

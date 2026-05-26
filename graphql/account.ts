@@ -21,6 +21,7 @@ import {
   notificationTable,
 } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
+import { createGraphQLError } from "graphql-yoga";
 import { Actor } from "./actor.ts";
 import { builder, type UserContext } from "./builder.ts";
 import { InvitationLink } from "./invitation-link.ts";
@@ -756,26 +757,37 @@ builder.relayMutationField(
   {
     async resolve(_root, args, ctx) {
       const session = await ctx.session;
-      if (session == null) throw new Error("Not authenticated.");
-      else if (session.accountId !== args.input.id.id) {
-        throw new Error("Not authorized.");
+      if (session == null) {
+        throw createGraphQLError("Not authenticated.", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      } else if (session.accountId !== args.input.id.id) {
+        throw createGraphQLError("Not authorized.", {
+          extensions: { code: "FORBIDDEN" },
+        });
       }
       const account = await ctx.db.query.accountTable.findFirst({
         where: {
           id: args.input.id.id,
         },
       });
-      if (account == null) throw new Error("Account not found.");
+      if (account == null) {
+        throw createGraphQLError("Account not found.", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
       if (args.input.username != null && account.usernameChanged != null) {
-        throw new Error(
+        throw createGraphQLError(
           "Username cannot be changed after it has been changed.",
+          { extensions: { code: "BAD_USER_INPUT" } },
         );
       }
       let avatarMediumId: Uuid | undefined;
       if (args.input.avatarUrl != null) {
         if (args.input.avatarMediumId != null) {
-          throw new Error(
+          throw createGraphQLError(
             "avatarUrl and avatarMediumId are mutually exclusive.",
+            { extensions: { code: "BAD_USER_INPUT" } },
           );
         }
         const medium = await createAvatarMediumFromUrl(
@@ -785,21 +797,29 @@ builder.relayMutationField(
           { userAgentUrl: new URL(ctx.fedCtx.canonicalOrigin) },
         );
         if (medium == null) {
-          throw new Error("Avatar URL must point to an image.");
+          throw createGraphQLError("Avatar URL must point to an image.", {
+            extensions: { code: "BAD_USER_INPUT" },
+          });
         }
         avatarMediumId = medium.id;
       } else if (args.input.avatarMediumId != null) {
         const medium = await ctx.db.query.mediumTable.findFirst({
           where: { id: args.input.avatarMediumId },
         });
-        if (medium == null) throw new Error("Medium not found.");
+        if (medium == null) {
+          throw createGraphQLError("Medium not found.", {
+            extensions: { code: "NOT_FOUND" },
+          });
+        }
         const avatarMedium = await createAvatarMediumFromMedium(
           ctx.db,
           ctx.disk,
           medium,
         );
         if (avatarMedium == null) {
-          throw new Error("Avatar medium must point to an image.");
+          throw createGraphQLError("Avatar medium must point to an image.", {
+            extensions: { code: "BAD_USER_INPUT" },
+          });
         }
         avatarMediumId = avatarMedium.id;
       }
@@ -845,7 +865,12 @@ builder.relayMutationField(
           links: args.input.links ?? undefined,
         },
       );
-      if (result == null) throw new Error("Account not found");
+      if (result == null) {
+        throw createGraphQLError("Failed to update account.", {
+          originalError: new Error("Failed to update account."),
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        });
+      }
       const emails = await ctx.db.query.accountEmailTable.findMany({
         where: { accountId: result.id },
       });

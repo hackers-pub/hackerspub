@@ -1,4 +1,5 @@
 import type { Session } from "@hackerspub/models/session";
+import { createGraphQLError } from "graphql-yoga";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
 
@@ -34,7 +35,15 @@ SessionRef.implement({
           with: { actor: true },
         });
         if (!account) {
-          throw new Error(`Account with ID ${session.accountId} not found.`);
+          throw createGraphQLError(
+            `Account with ID ${session.accountId} not found.`,
+            {
+              originalError: new Error(
+                `Account with ID ${session.accountId} not found.`,
+              ),
+              extensions: { code: "INTERNAL_SERVER_ERROR" },
+            },
+          );
         }
         return account;
       },

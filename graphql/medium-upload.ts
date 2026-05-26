@@ -6,6 +6,7 @@ import {
 } from "@hackerspub/models/medium";
 import type { Uuid } from "@hackerspub/models/uuid";
 import { validateUuid } from "@hackerspub/models/uuid";
+import { createGraphQLError } from "graphql-yoga";
 
 const KV_NAMESPACE = "medium-upload";
 export const MEDIUM_UPLOAD_TTL_MS = 30 * 60 * 1000;
@@ -37,11 +38,22 @@ export async function setMediumOwner(
   const windowKey = getMediumUploadWindowKey(mediumId);
   // Keyv adapters can return false (not throw) when throwOnErrors is disabled.
   if ((await kv.set(ownerKey, true, MEDIUM_OWNER_TTL_MS)) !== true) {
-    throw new Error("KV write failed for medium owner key");
+    throw createGraphQLError("KV write failed for medium owner key.", {
+      originalError: new Error("KV write failed for medium owner key."),
+      extensions: { code: "INTERNAL_SERVER_ERROR" },
+    });
   }
   try {
     if ((await kv.set(windowKey, true, MEDIUM_OWNER_TTL_MS)) !== true) {
-      throw new Error("KV write failed for medium upload window key");
+      throw createGraphQLError(
+        "KV write failed for medium upload window key.",
+        {
+          originalError: new Error(
+            "KV write failed for medium upload window key.",
+          ),
+          extensions: { code: "INTERNAL_SERVER_ERROR" },
+        },
+      );
     }
   } catch (error) {
     await kv.delete(ownerKey).catch(() => {});

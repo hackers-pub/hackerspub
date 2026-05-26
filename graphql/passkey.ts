@@ -12,6 +12,7 @@ import {
 } from "@pothos/plugin-relay";
 import type { RegistrationResponseJSON } from "@simplewebauthn/server";
 import { and, desc, eq, gt, lt } from "drizzle-orm";
+import { createGraphQLError } from "graphql-yoga";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
 
@@ -112,15 +113,25 @@ builder.mutationFields((t) => ({
     },
     async resolve(_, args, ctx) {
       const session = await ctx.session;
-      if (session == null) throw new Error("Not authenticated.");
+      if (session == null) {
+        throw createGraphQLError("Not authenticated.", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
       if (session.accountId !== args.accountId.id) {
-        throw new Error("Not authorized.");
+        throw createGraphQLError("Not authorized.", {
+          extensions: { code: "FORBIDDEN" },
+        });
       }
       const account = await ctx.db.query.accountTable.findFirst({
         where: { id: args.accountId.id },
         with: { passkeys: true },
       });
-      if (account == null) throw new Error("Account not found.");
+      if (account == null) {
+        throw createGraphQLError("Account not found.", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
       const options = await getRegistrationOptions(
         ctx.kv,
         ctx.fedCtx.canonicalOrigin,
@@ -143,15 +154,25 @@ builder.mutationFields((t) => ({
     },
     async resolve(_, args, ctx) {
       const session = await ctx.session;
-      if (session == null) throw new Error("Not authenticated.");
+      if (session == null) {
+        throw createGraphQLError("Not authenticated.", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
       if (session.accountId !== args.accountId.id) {
-        throw new Error("Not authorized.");
+        throw createGraphQLError("Not authorized.", {
+          extensions: { code: "FORBIDDEN" },
+        });
       }
       const account = await ctx.db.query.accountTable.findFirst({
         where: { id: args.accountId.id },
         with: { passkeys: true },
       });
-      if (account == null) throw new Error("Account not found.");
+      if (account == null) {
+        throw createGraphQLError("Account not found.", {
+          extensions: { code: "NOT_FOUND" },
+        });
+      }
       const origins = resolvePasskeyOrigins(
         ctx.fedCtx.canonicalOrigin,
         (args.platform ?? "web") as PasskeyPlatform,
@@ -195,13 +216,19 @@ builder.mutationFields((t) => ({
     },
     async resolve(_, args, ctx) {
       const session = await ctx.session;
-      if (session == null) throw new Error("Not authenticated.");
+      if (session == null) {
+        throw createGraphQLError("Not authenticated.", {
+          extensions: { code: "UNAUTHENTICATED" },
+        });
+      }
       const passkey = await ctx.db.query.passkeyTable.findFirst({
         where: { id: args.passkeyId.id },
       });
       if (passkey == null) return null;
       if (passkey.accountId !== session.accountId) {
-        throw new Error("Not authorized.");
+        throw createGraphQLError("Not authorized.", {
+          extensions: { code: "FORBIDDEN" },
+        });
       }
       await ctx.db.delete(passkeyTable).where(
         eq(passkeyTable.id, args.passkeyId.id),

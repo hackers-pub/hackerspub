@@ -7,6 +7,7 @@ import {
 import type { Uuid } from "@hackerspub/models/uuid";
 import { getLogger } from "@logtape/logtape";
 import { and, eq, gt, sql } from "drizzle-orm";
+import { createGraphQLError } from "graphql-yoga";
 import { parseTemplate } from "url-template";
 import { Account } from "./account.ts";
 import { builder } from "./builder.ts";
@@ -34,8 +35,14 @@ InvitationRef.implement({
           with: { actor: true },
         });
         if (account == null) {
-          throw new Error(
+          throw createGraphQLError(
             `Account with ID ${invitation.inviterId} not found.`,
+            {
+              originalError: new Error(
+                `Account with ID ${invitation.inviterId} not found.`,
+              ),
+              extensions: { code: "INTERNAL_SERVER_ERROR" },
+            },
           );
         }
         return account;
