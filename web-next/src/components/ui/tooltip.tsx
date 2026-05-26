@@ -1,5 +1,11 @@
 import type { ValidComponent } from "solid-js";
-import { type Component, splitProps } from "solid-js";
+import {
+  type Component,
+  createSignal,
+  onMount,
+  Show,
+  splitProps,
+} from "solid-js";
 
 import type { PolymorphicProps } from "@kobalte/core/polymorphic";
 import * as TooltipPrimitive from "@kobalte/core/tooltip";
@@ -9,7 +15,18 @@ import { cn } from "~/lib/utils.ts";
 const TooltipTrigger = TooltipPrimitive.Trigger;
 
 const Tooltip: Component<TooltipPrimitive.TooltipRootProps> = (props) => {
-  return <TooltipPrimitive.Root gutter={4} {...props} />;
+  const [mounted, setMounted] = createSignal(false);
+  onMount(() => setMounted(true));
+
+  // Kobalte tooltips contain Polymorphic/Dynamic nodes; an SSR/client shape
+  // mismatch causes Solid to hydrate a dynamic element that was never rendered
+  // and crash in getNextElement(), or pass a stale non-Element ref into
+  // FloatingUI's getComputedStyle (throws on Safari 18.5+).
+  return (
+    <Show when={mounted()}>
+      <TooltipPrimitive.Root gutter={4} {...props} />
+    </Show>
+  );
 };
 
 type TooltipContentProps<T extends ValidComponent = "div"> =
