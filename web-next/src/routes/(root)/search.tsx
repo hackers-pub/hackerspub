@@ -113,17 +113,24 @@ export default function SearchPage() {
   // that occurs when Relay store data is not serialized from server to client.
   const postsData = createPreloadedQuery<searchPostsPageQuery>(
     searchPostsPageQuery,
-    () =>
-      loadSearchPostsQuery(
-        searchQuery(),
+    () => {
+      const q = searchQuery();
+      if (!q) return null;
+      return loadSearchPostsQuery(
+        q,
         i18n.locale,
         i18n.locales != null && Array.isArray(i18n.locales) ? i18n.locales : [],
-      ),
+      );
+    },
   );
 
   const objectData = createPreloadedQuery<searchObjectPageQuery>(
     searchObjectPageQuery,
-    () => loadSearchObjectQuery(searchQuery()),
+    () => {
+      const q = searchQuery();
+      if (!q) return null;
+      return loadSearchObjectQuery(q);
+    },
   );
 
   return (
@@ -172,7 +179,7 @@ function SearchObjectResult(
   props: {
     searchResult: SearchObjectResultData;
     searchQuery: Accessor<string>;
-    postsData: Accessor<searchPostsPageQuery$data | undefined>;
+    postsData: Accessor<searchPostsPageQuery$data | null | undefined>;
   },
 ) {
   const { t } = useLingui();
