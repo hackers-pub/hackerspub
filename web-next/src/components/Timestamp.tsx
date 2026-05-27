@@ -1,4 +1,5 @@
-import { createSignal } from "solid-js";
+import { createMemo, createSignal, onCleanup } from "solid-js";
+import { isServer } from "solid-js/web";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export interface TimestampProps {
@@ -10,20 +11,36 @@ export interface TimestampProps {
 
 export function Timestamp(props: TimestampProps) {
   const { i18n } = useLingui();
-  const date = new Date(props.value);
-  const [targetDate, setTargetDate] = createSignal(new Date());
-  setInterval(() => {
-    setTargetDate(new Date());
-  }, 1000);
+  const date = createMemo(() => new Date(props.value));
+  const [currentDate, setCurrentDate] = createSignal(new Date());
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  let disposed = false;
+
+  const scheduleNextUpdate = () => {
+    if (disposed) return;
+    timeout = setTimeout(() => {
+      setCurrentDate(new Date());
+      scheduleNextUpdate();
+    }, getRelativeTimeUpdateDelayMs(currentDate(), date(), props.allowFuture));
+  };
+
+  if (!isServer) {
+    scheduleNextUpdate();
+    onCleanup(() => {
+      disposed = true;
+      if (timeout != null) clearTimeout(timeout);
+    });
+  }
+
   return (
     <time
-      datetime={date.toISOString()}
-      title={date.toLocaleString(i18n.locale, {
+      datetime={date().toISOString()}
+      title={date().toLocaleString(i18n.locale, {
         dateStyle: "full",
         timeStyle: "full",
       })}
     >
-      {formatRelativeTime(targetDate(), date, i18n.locale, {
+      {formatRelativeTime(currentDate(), date(), i18n.locale, {
         capitalizeFirstLetter: props.capitalizeFirstLetter,
         allowFuture: props.allowFuture,
         style: props.relativeStyle,
@@ -41,6 +58,35 @@ const UNITS: { unit: Intl.RelativeTimeFormatUnit; ms: number }[] = [
   { unit: "minute", ms: 60000 }, // 60 seconds
   { unit: "second", ms: 1000 },
 ];
+
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const WEEK = 7 * DAY;
+const MONTH = 30.4166666667 * DAY;
+const YEAR = 365 * DAY;
+
+export function getRelativeTimeUpdateDelayMs(
+  currentDate: Date,
+  targetDate: Date,
+  allowFuture = false,
+): number {
+  const diffMs = allowFuture
+    ? targetDate.getTime() - currentDate.getTime()
+    : Math.min(targetDate.getTime() - currentDate.getTime(), 0);
+  const absDiff = Math.abs(diffMs);
+
+  // Most timestamps on timelines are old enough that per-second updates only
+  // create browser work without changing the rendered relative time.
+  if (absDiff < MINUTE) return SECOND;
+  if (absDiff < HOUR) return 30 * SECOND;
+  if (absDiff < DAY) return MINUTE;
+  if (absDiff < WEEK) return 15 * MINUTE;
+  if (absDiff < MONTH) return HOUR;
+  if (absDiff < YEAR) return 6 * HOUR;
+  return DAY;
+}
 
 function formatRelativeTime(
   currentDate: Date,
