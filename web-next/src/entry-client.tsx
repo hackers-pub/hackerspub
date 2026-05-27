@@ -5,8 +5,11 @@ import { solidRouterBrowserTracingIntegration } from "@sentry/solidstart/solidro
 import { mount, StartClient } from "@solidjs/start/client";
 import { render } from "solid-js/web";
 import { startClientMemoryWatchdog } from "~/lib/clientMemoryWatchdog.ts";
-import "solid-devtools";
 import packageJson from "../package.json" with { type: "json" };
+
+if (import.meta.env.DEV) {
+  void import("~/lib/installSolidDevtools.ts");
+}
 
 // SENTRY_DSN is injected at runtime by the SSR document (entry-server.tsx)
 // as `window.__SENTRY_DSN__`. The inline script that sets it runs before
