@@ -6,7 +6,14 @@ import {
   getRequestProtocol,
 } from "@solidjs/start/http";
 import { fetchQuery, graphql, type Subscription } from "relay-runtime";
-import { createEffect, createSignal, For, onCleanup, Show } from "solid-js";
+import {
+  createEffect,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+} from "solid-js";
 import { getRequestEvent } from "solid-js/web";
 import {
   createFragment,
@@ -97,6 +104,7 @@ export function AppSidebar(props: AppSidebarProps) {
   const [unreadNotificationsCount, setUnreadNotificationsCount] = createSignal<
     number
   >();
+  const [documentVisible, setDocumentVisible] = createSignal(true);
   const signedAccount = createFragment(
     graphql`
       fragment AppSidebar_signedAccount on Account
@@ -135,8 +143,19 @@ export function AppSidebar(props: AppSidebarProps) {
     setUnreadNotificationsCount(signedAccount.latest?.unreadNotificationsCount);
   });
 
+  onMount(() => {
+    const onVisibilityChange = () => {
+      setDocumentVisible(document.visibilityState === "visible");
+    };
+    onVisibilityChange();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    onCleanup(() => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    });
+  });
+
   createEffect(() => {
-    if (signedAccount.latest?.username == null) {
+    if (signedAccount.latest?.username == null || !documentVisible()) {
       return;
     }
 

@@ -147,8 +147,29 @@ export function PublicTimeline(props: PublicTimelineProps) {
     const pollIntervalMs = import.meta.env.DEV ? 10_000 : 60_000;
     let pendingPollSub: { unsubscribe(): void } | null = null;
     let isPolling = false;
-    const intervalId = setInterval(() => {
-      if (posts.pending || hasNewPosts() || isPolling) return;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    const [documentVisible, setDocumentVisible] = createSignal(
+      document.visibilityState === "visible",
+    );
+    const onVisibilityChange = () => {
+      setDocumentVisible(document.visibilityState === "visible");
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    const stopPolling = () => {
+      if (intervalId != null) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+      pendingPollSub?.unsubscribe();
+      pendingPollSub = null;
+      isPolling = false;
+    };
+
+    const poll = () => {
+      if (!documentVisible() || posts.pending || hasNewPosts() || isPolling) {
+        return;
+      }
 
       const lang = props.activeLanguage?.();
       isPolling = true;
@@ -179,12 +200,21 @@ export function PublicTimeline(props: PublicTimelineProps) {
           pendingPollSub = null;
         },
       });
-    }, pollIntervalMs);
+    };
+
+    createEffect(() => {
+      if (!documentVisible() || hasNewPosts()) {
+        stopPolling();
+        return;
+      }
+      if (intervalId == null) {
+        intervalId = setInterval(poll, pollIntervalMs);
+      }
+    });
 
     onCleanup(() => {
-      clearInterval(intervalId);
-      pendingPollSub?.unsubscribe();
-      isPolling = false;
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      stopPolling();
     });
   });
 
