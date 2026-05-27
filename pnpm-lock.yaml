@@ -463,8 +463,8 @@ importers:
         specifier: ^1.9.10
         version: 1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)
       solid-relay:
-        specifier: 1.0.0-beta.25
-        version: 1.0.0-beta.25(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
+        specifier: 1.0.0-beta.26
+        version: 1.0.0-beta.26(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc))
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.5.0
@@ -5588,8 +5588,8 @@ packages:
     peerDependencies:
       solid-js: ^1.3
 
-  solid-relay@1.0.0-beta.25:
-    resolution: {integrity: sha512-cjsLZadZMM7CFWhCiMC6hW7VDfU+GR01TnLDO6dzvu2M6Y5Uol1/3E5JEq2MQmLaDcOvHt3rFo4+6MYK2EtlwQ==}
+  solid-relay@1.0.0-beta.26:
+    resolution: {integrity: sha512-qVj9RtdSisaoF2IlBEbKPDcdEqCpAj8nubDTgtcPQapDK8xnmVQUth5l0xGqGrS6+SyWigG1+BcY3Hi3SJ0C0w==}
     peerDependencies:
       relay-runtime: ^18.1.0 || ^19 || ^20
       seroval: ^1.1.0
@@ -12028,7 +12028,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  solid-relay@1.0.0-beta.25(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
+  solid-relay@1.0.0-beta.26(relay-runtime@19.0.0)(seroval@1.5.2)(solid-js@1.9.12(patch_hash=e1d4b15462056babc6bc3de4094e36ef15bb7673147815a0b1bd7408d7ff5fcc)):
     dependencies:
       dequal: 2.0.3
       relay-runtime: 19.0.0

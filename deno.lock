@@ -255,7 +255,7 @@
     "npm:shiki@^3.8.1": "3.12.2",
     "npm:solid-devtools@~0.34.4": "0.34.4_solid-js@1.9.10__seroval@1.3.2_vite@7.3.2__@types+node@24.2.0__picomatch@4.0.3_@babel+core@7.28.3_@types+node@24.2.0",
     "npm:solid-js@^1.9.10": "1.9.10_seroval@1.3.2",
-    "npm:solid-relay@1.0.0-beta.25": "1.0.0-beta.25_relay-runtime@19.0.0_seroval@1.5.4_solid-js@1.9.10__seroval@1.3.2",
+    "npm:solid-relay@1.0.0-beta.26": "1.0.0-beta.26_relay-runtime@19.0.0_seroval@1.5.4_solid-js@1.9.10__seroval@1.3.2",
     "npm:ssrfcheck@^1.2.0": "1.2.0",
     "npm:storybook-solidjs-vite@^10.0.12": "10.0.12_solid-js@1.9.10__seroval@1.3.2_storybook@10.3.5__@testing-library+dom@10.4.1__react@19.2.5__react-dom@19.2.5___react@19.2.5_typescript@6.0.3_vite@7.3.2__@types+node@24.2.0__picomatch@4.0.3_@testing-library+dom@10.4.1_esbuild@0.23.1_react@19.2.5_react-dom@19.2.5__react@19.2.5",
     "npm:storybook@^10.3.5": "10.3.5_@testing-library+dom@10.4.1_react@19.2.5_react-dom@19.2.5__react@19.2.5",
@@ -11875,8 +11875,8 @@
         "solid-js"
       ]
     },
-    "solid-relay@1.0.0-beta.25_relay-runtime@19.0.0_seroval@1.5.4_solid-js@1.9.10__seroval@1.3.2": {
-      "integrity": "sha512-cjsLZadZMM7CFWhCiMC6hW7VDfU+GR01TnLDO6dzvu2M6Y5Uol1/3E5JEq2MQmLaDcOvHt3rFo4+6MYK2EtlwQ==",
+    "solid-relay@1.0.0-beta.26_relay-runtime@19.0.0_seroval@1.5.4_solid-js@1.9.10__seroval@1.3.2": {
+      "integrity": "sha512-qVj9RtdSisaoF2IlBEbKPDcdEqCpAj8nubDTgtcPQapDK8xnmVQUth5l0xGqGrS6+SyWigG1+BcY3Hi3SJ0C0w==",
       "dependencies": [
         "dequal",
         "relay-runtime@19.0.0",
@@ -13255,7 +13255,7 @@
             "npm:relay-runtime@19",
             "npm:solid-devtools@~0.34.4",
             "npm:solid-js@^1.9.10",
-            "npm:solid-relay@1.0.0-beta.25",
+            "npm:solid-relay@1.0.0-beta.26",
             "npm:storybook-solidjs-vite@^10.0.12",
             "npm:storybook@^10.3.5",
             "npm:tailwind-merge@^3.3.1",
