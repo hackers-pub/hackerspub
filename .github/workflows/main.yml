@@ -147,7 +147,7 @@ jobs:
         # upload via @sentry/vite-plugin) without the token ever being
         # baked into an image layer. Only set on push builds — fork PRs
         # don't get repo secrets, and PR builds don't need to upload
-        # ephemeral source maps anyway.
+        # their source maps to Sentry.
         secrets: |
           github_token=${{ github.token }}
           sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}

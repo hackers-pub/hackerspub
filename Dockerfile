@@ -106,7 +106,9 @@ RUN if [ -n "$GIT_COMMIT" ]; then \
 # provides the secret via docker/build-push-action's `secrets:` input
 # (see .github/workflows/main.yml). Without the secret the build still
 # succeeds — the Sentry Vite plugin (vite.config.ts) just skips its
-# source-map upload when SENTRY_AUTH_TOKEN is unset.
+# source-map upload when SENTRY_AUTH_TOKEN is unset. Source maps remain
+# in the deployed web-next output so production browser and server
+# debugging can use the same artifacts.
 RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
   cp .env.sample .env && \
   sed -i '/^INSTANCE_ACTOR_KEY=/d' .env && \

@@ -37,31 +37,16 @@ const sentryPlugins = sentryAuthToken
       // `0.2.0+<git_commit>` *before* the web-next build, so Sentry sees
       // a unique release per deployed commit.
       release: { name: packageJson.version },
-      sourcemaps: {
-        // Strip .map files from the production output after they have
-        // been uploaded to Sentry, so they don't ship in the public
-        // Docker image and aren't reachable from the open web. Sentry
-        // can still symbolicate stack traces because it has its own
-        // copy of the maps.
-        filesToDeleteAfterUpload: [
-          "./.output/public/_build/assets/*.map",
-          "./.output/server/**/*.map",
-        ],
-      },
     }),
   ]
   : [];
 
 export default defineConfig(() => ({
-  // 'hidden' emits .map files for the Sentry plugin to upload but omits
-  // the trailing `//# sourceMappingURL=` comment from the .js bundles.
-  // Without that comment the browser doesn't try to fetch the maps —
-  // which matters because the maps get deleted from the build output
-  // after upload (see `filesToDeleteAfterUpload` below), so the browser
-  // would otherwise log "Source map error" warnings on every page load.
-  // Sentry still gets the maps because the plugin reads them from disk
-  // during the build, before the deletion step runs.
-  build: { sourcemap: "hidden" },
+  // Emit production source maps into the deployed web-next output. Client
+  // bundles keep their `sourceMappingURL` comments so browser DevTools can
+  // load the maps, and server bundles keep theirs so Node can map production
+  // stack traces when started with `--enable-source-maps`.
+  build: { sourcemap: true },
   plugins: [
     solidStart({
       middleware: "src/middleware.ts",

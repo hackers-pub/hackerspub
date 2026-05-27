@@ -45,7 +45,7 @@ run = "cd graphql && deno task start"
 
 [tasks."prod:web-next"]
 description = "Start the web-next stack in production"
-run = "cd web-next && node --import ./instrument.server.mjs .output/server/index.mjs"
+run = "cd web-next && node --enable-source-maps --import ./instrument.server.mjs .output/server/index.mjs"
 
 [tasks."prod:hc:web"]
 description = "Health check the legacy web stack"
