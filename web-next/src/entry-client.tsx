@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/solidstart";
 import { solidRouterBrowserTracingIntegration } from "@sentry/solidstart/solidrouter";
 import { mount, StartClient } from "@solidjs/start/client";
 import { render } from "solid-js/web";
+import { startClientMemoryWatchdog } from "~/lib/clientMemoryWatchdog.ts";
 import "solid-devtools";
 import packageJson from "../package.json" with { type: "json" };
 
@@ -32,6 +33,7 @@ if (sentryDsn) {
     // users where useful.
     sendDefaultPii: true,
   });
+  startClientMemoryWatchdog();
 }
 
 // PLAUSIBLE is injected at runtime by the SSR document (entry-server.tsx).
