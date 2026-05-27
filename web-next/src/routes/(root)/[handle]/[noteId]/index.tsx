@@ -259,7 +259,7 @@ function PostMetaHead(props: PostMetaHeadProps) {
         updated
         actor {
           handle
-          name
+          rawName
           username
         }
         language
@@ -276,7 +276,9 @@ function PostMetaHead(props: PostMetaHeadProps) {
     <Show keyed when={post()}>
       {(post) => (
         <>
-          <Title>{t`${post.actor.name}: ${post.excerpt}`}</Title>
+          <Title>
+            {t`${post.actor.rawName ?? post.actor.username}: ${post.excerpt}`}
+          </Title>
           <Meta property="og:title" content={post.excerpt} />
           <Meta property="og:description" content={post.excerpt} />
           <Meta property="og:type" content="article" />
@@ -288,7 +290,7 @@ function PostMetaHead(props: PostMetaHeadProps) {
             property="article:modified_time"
             content={post.updated}
           />
-          <Show keyed when={post.actor.name}>
+          <Show keyed when={post.actor.rawName}>
             {(name) => (
               <Meta
                 property="article:author"
