@@ -2,10 +2,10 @@ import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createFragment } from "solid-relay";
 import { ActorSharer, ActorSharerActor } from "./ActorSharer.tsx";
-import { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
 import { MutedReplyPlaceholder } from "./MutedReplyPlaceholder.tsx";
 import { NoteCardInternal } from "./NoteCardInternal.tsx";
 import { PostSharer } from "./PostSharer.tsx";
+import { NoteCard_note$key } from "./__generated__/NoteCard_note.graphql.ts";
 
 export interface NoteCardProps {
   $note: NoteCard_note$key;
