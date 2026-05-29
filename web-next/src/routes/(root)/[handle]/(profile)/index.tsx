@@ -1,5 +1,6 @@
 import { Link, Meta } from "@solidjs/meta";
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createEffect, createSignal, For, onMount, Show } from "solid-js";
 import {
@@ -159,11 +160,11 @@ export default function ProfilePage() {
   const params = useParams();
   const baseData = createStablePreloadedQuery<ProfilePageBaseQuery>(
     ProfilePageBaseQuery,
-    () => loadBaseQuery(params.handle!),
+    () => loadBaseQuery(decodeRouteParam(params.handle!)),
   );
   const contentData = createStablePreloadedQuery<ProfilePageContentQuery>(
     ProfilePageContentQuery,
-    () => loadContentQuery(params.handle!, i18n.locale),
+    () => loadContentQuery(decodeRouteParam(params.handle!), i18n.locale),
   );
 
   // Pins are loaded client-side only, and must not render during the hydration
@@ -182,7 +183,9 @@ export default function ProfilePage() {
   >(null);
   createEffect(() => {
     if (!hydrated()) return;
-    setPinsQueryRef(loadPinsQuery(params.handle!, i18n.locale));
+    setPinsQueryRef(
+      loadPinsQuery(decodeRouteParam(params.handle!), i18n.locale),
+    );
   });
   const pinsData = createPreloadedQuery<ProfilePagePinsQuery>(
     ProfilePagePinsQuery,

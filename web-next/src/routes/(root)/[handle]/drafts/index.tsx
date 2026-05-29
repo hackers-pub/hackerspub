@@ -1,4 +1,5 @@
 import { A, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpStatusCode } from "@solidjs/start";
 import { ConnectionHandler, graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
@@ -206,7 +207,8 @@ export default function ArticleDraftsListPage() {
 
   return (
     <Show
-      when={data()?.viewer?.username === params.handle!.substring(1)}
+      when={data()?.viewer?.username ===
+        decodeRouteParam(params.handle!).substring(1)}
       fallback={
         <WideContainer class="px-4 py-6 sm:px-6 lg:py-8">
           <HttpStatusCode code={403} />

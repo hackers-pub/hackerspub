@@ -1,4 +1,5 @@
 import { useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { Show, Suspense } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
@@ -54,7 +55,7 @@ const loadTagQuery = routePreloadedQuery(
 export default function TagPage() {
   const { i18n } = useLingui();
   const params = useParams<{ tag: string }>();
-  const tag = () => decodeURIComponent(params.tag);
+  const tag = () => decodeRouteParam(params.tag);
   const searchQuery = () => `#${tag()}`;
 
   const data = createStablePreloadedQuery<TagPageQuery>(

@@ -1,4 +1,5 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import {
@@ -57,7 +58,7 @@ export default function LanguagePage() {
   const { t } = useLingui();
   const data = createStablePreloadedQuery<languagePageQuery>(
     languagePageQuery,
-    () => loadLanguagePageQuery(params.handle!),
+    () => loadLanguagePageQuery(decodeRouteParam(params.handle!)),
   );
 
   return (

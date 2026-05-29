@@ -1,4 +1,5 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createMemo, createSignal, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
@@ -90,7 +91,7 @@ export default function PreferencesPage() {
   let preferAiSummaryDiv: HTMLDivElement | undefined;
   const data = createStablePreloadedQuery<preferencesPageQuery>(
     preferencesPageQuery,
-    () => loadPreferencesPageQuery(params.handle!),
+    () => loadPreferencesPageQuery(decodeRouteParam(params.handle!)),
   );
   const [noteVisibility, setNoteVisibility] = createSignal<
     PostVisibility | undefined

@@ -6,6 +6,7 @@ import {
   useNavigate,
   useParams,
 } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpHeader } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import {
@@ -155,7 +156,7 @@ export default function NotePage() {
     >
       <NotePageLoaded
         noteId={params.noteId! as Uuid}
-        username={decodeURIComponent(params.handle!).replace(/^@/, "")}
+        username={decodeRouteParam(params.handle!).replace(/^@/, "")}
       />
     </Show>
   );

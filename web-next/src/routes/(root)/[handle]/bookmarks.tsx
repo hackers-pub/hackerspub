@@ -5,6 +5,7 @@ import {
   useParams,
   useSearchParams,
 } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { Show, Suspense } from "solid-js";
@@ -72,7 +73,7 @@ export default function BookmarksPage() {
     () => loadBookmarksPageQuery(i18n.locale),
   );
 
-  const handleUsername = () => params.handle!.substring(1);
+  const handleUsername = () => decodeRouteParam(params.handle!).substring(1);
   const activeType = () => searchParams.type ?? "all";
   const postType = () => mapTypeParam(searchParams.type);
 

@@ -1,5 +1,6 @@
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
@@ -70,7 +71,7 @@ export default function SharesPage() {
     >
       <SharesPageLoaded
         noteId={params.noteId! as Uuid}
-        handle={decodeURIComponent(params.handle!)}
+        handle={decodeRouteParam(params.handle!)}
       />
     </Show>
   );

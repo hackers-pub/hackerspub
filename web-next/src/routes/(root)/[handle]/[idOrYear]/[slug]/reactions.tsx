@@ -1,5 +1,6 @@
 import { sortReactionGroups } from "@hackerspub/models/emoji";
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
@@ -110,9 +111,9 @@ export default function ArticleReactionsPage() {
   const params = useParams();
   return (
     <ArticleReactionsLoaded
-      handle={params.handle!}
+      handle={decodeRouteParam(params.handle!)}
       idOrYear={params.idOrYear!}
-      slug={params.slug!}
+      slug={decodeRouteParam(params.slug!)}
     />
   );
 }

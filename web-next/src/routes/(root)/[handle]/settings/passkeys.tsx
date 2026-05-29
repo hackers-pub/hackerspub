@@ -4,6 +4,7 @@ import {
   startRegistration,
 } from "@simplewebauthn/browser";
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Show } from "solid-js";
 import {
@@ -162,7 +163,7 @@ export default function passkeysPage() {
 
   const data = createStablePreloadedQuery<passkeysPageQuery>(
     passkeysPageQuery,
-    () => loadPageQuery(params.handle!),
+    () => loadPageQuery(decodeRouteParam(params.handle!)),
   );
 
   const [getOptions] = createMutation<

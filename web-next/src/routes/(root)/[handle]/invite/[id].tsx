@@ -1,4 +1,5 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
@@ -112,7 +113,11 @@ export default function InvitationLinkPage() {
   const { t, i18n } = useLingui();
   const data = createStablePreloadedQuery<IdInvitationLinkPageQuery>(
     invitationLinkPageQuery,
-    () => loadInvitationLinkPageQuery(params.id!, params.handle!),
+    () =>
+      loadInvitationLinkPageQuery(
+        params.id!,
+        decodeRouteParam(params.handle!),
+      ),
   );
   const [email, setEmail] = createSignal("");
   const [locale, setLocale] = createSignal(i18n.locale);

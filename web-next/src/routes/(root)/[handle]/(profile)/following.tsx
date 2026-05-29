@@ -1,5 +1,6 @@
 import { Meta } from "@solidjs/meta";
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
@@ -47,7 +48,7 @@ const loadPageQuery = routePreloadedQuery(
 export default function ProfileFollowingPage() {
   const params = useParams();
   const { t } = useLingui();
-  const username = params.handle!.substring(1);
+  const username = decodeRouteParam(params.handle!).substring(1);
   const data = createStablePreloadedQuery<followingPageQuery>(
     followingPageQuery,
     () => loadPageQuery(username),

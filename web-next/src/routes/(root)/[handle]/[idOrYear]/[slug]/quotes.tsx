@@ -1,4 +1,5 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
@@ -67,9 +68,9 @@ export default function ArticleQuotesPage() {
   const params = useParams();
   return (
     <ArticleQuotesLoaded
-      handle={params.handle!}
+      handle={decodeRouteParam(params.handle!)}
       idOrYear={params.idOrYear!}
-      slug={params.slug!}
+      slug={decodeRouteParam(params.slug!)}
     />
   );
 }

@@ -1,6 +1,7 @@
 import { sortReactionGroups } from "@hackerspub/models/emoji";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
@@ -105,7 +106,7 @@ export default function ReactionsPage() {
     >
       <ReactionsPageLoaded
         noteId={params.noteId! as Uuid}
-        handle={decodeURIComponent(params.handle!)}
+        handle={decodeRouteParam(params.handle!)}
       />
     </Show>
   );

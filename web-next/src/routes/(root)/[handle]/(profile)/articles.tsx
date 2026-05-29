@@ -1,5 +1,6 @@
 import { Meta } from "@solidjs/meta";
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
@@ -58,7 +59,7 @@ export default function ProfileArticlesPage() {
   const { t, i18n } = useLingui();
   const data = createStablePreloadedQuery<articlesPageQuery>(
     articlesPageQuery,
-    () => loadPageQuery(params.handle!, i18n.locale),
+    () => loadPageQuery(decodeRouteParam(params.handle!), i18n.locale),
   );
   return (
     <Show keyed when={data()}>

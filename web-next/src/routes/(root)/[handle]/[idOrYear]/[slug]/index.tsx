@@ -2,6 +2,7 @@ import { normalizeLocale } from "@hackerspub/models/i18n";
 import type { Toc } from "@hackerspub/models/markup";
 import { Link, Meta } from "@solidjs/meta";
 import { revalidate, type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
@@ -84,9 +85,9 @@ const loadPageQuery = routePreloadedQuery(
 
 export default function ArticlePage() {
   const params = useParams();
-  const handle = params.handle!;
+  const handle = decodeRouteParam(params.handle!);
   const idOrYear = params.idOrYear!;
-  const slug = params.slug!;
+  const slug = decodeRouteParam(params.slug!);
   const { onNoteCreated } = useNoteCompose();
 
   onMount(() => {

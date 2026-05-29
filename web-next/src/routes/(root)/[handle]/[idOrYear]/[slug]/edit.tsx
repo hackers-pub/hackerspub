@@ -4,6 +4,7 @@ import {
   useNavigate,
   useParams,
 } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpStatusCode } from "@solidjs/start";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createSignal, onCleanup, Show } from "solid-js";
@@ -80,9 +81,9 @@ const loadPageQuery = routePreloadedQuery(
 
 export default function ArticleEditPage() {
   const params = useParams();
-  const handle = params.handle!;
+  const handle = decodeRouteParam(params.handle!);
   const idOrYear = params.idOrYear!;
-  const slug = params.slug!;
+  const slug = decodeRouteParam(params.slug!);
 
   const data = createStablePreloadedQuery<editPageQuery>(
     editPageQueryDef,

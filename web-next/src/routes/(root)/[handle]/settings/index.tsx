@@ -1,4 +1,5 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { createDropzone } from "@soorria/solid-dropzone";
 import type {
   CropperCanvas,
@@ -100,7 +101,7 @@ export default function SettingsPage() {
   const { t } = useLingui();
   const data = createStablePreloadedQuery<settingsPageQuery>(
     settingsPageQuery,
-    () => loadPageQuery(params.handle!),
+    () => loadPageQuery(decodeRouteParam(params.handle!)),
   );
   return (
     <Show keyed when={data()}>

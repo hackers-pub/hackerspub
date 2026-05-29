@@ -1,5 +1,6 @@
 import * as DialogPrimitive from "@kobalte/core/dialog";
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import encodeQR from "qr";
 import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
@@ -209,7 +210,7 @@ export default function InvitePage() {
 
   const data = createStablePreloadedQuery<invitePageQuery>(
     invitePageQuery,
-    () => loadInvitePageQuery(params.handle!),
+    () => loadInvitePageQuery(decodeRouteParam(params.handle!)),
   );
   const [inviterError, setInviterError] = createSignal<
     InviteInviterError | undefined

@@ -1,5 +1,6 @@
 import { normalizeLocale } from "@hackerspub/models/i18n";
 import { Navigate, type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { HttpStatusCode } from "@solidjs/start";
 import {
   type Disposable,
@@ -165,9 +166,9 @@ export default function ArticleLangPage() {
     >
       {(language) => (
         <ArticleLangPageContent
-          handle={params.handle!}
+          handle={decodeRouteParam(params.handle!)}
           idOrYear={params.idOrYear!}
-          slug={params.slug!}
+          slug={decodeRouteParam(params.slug!)}
           language={language}
         />
       )}

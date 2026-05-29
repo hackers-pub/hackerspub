@@ -1,4 +1,5 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
+import { decodeRouteParam } from "~/lib/routeParam.ts";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
@@ -61,7 +62,7 @@ export default function BlocksPage() {
 
   const data = createStablePreloadedQuery<blocksPageQuery>(
     blocksPageQuery,
-    () => loadPageQuery(params.handle!),
+    () => loadPageQuery(decodeRouteParam(params.handle!)),
   );
 
   return (
