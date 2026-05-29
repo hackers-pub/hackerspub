@@ -1,11 +1,10 @@
-import { assertEquals } from "@std/assert/equals";
-import { and, eq, or } from "drizzle-orm";
-import { encodeGlobalID } from "@pothos/plugin-relay";
-import { execute, parse } from "graphql";
 import { follow } from "@hackerspub/models/following";
 import { mute } from "@hackerspub/models/muting";
 import { followingTable, mutingTable } from "@hackerspub/models/schema";
-import { schema } from "./mod.ts";
+import { encodeGlobalID } from "@pothos/plugin-relay";
+import { assertEquals } from "@std/assert/equals";
+import { and, eq, or } from "drizzle-orm";
+import { execute, parse } from "graphql";
 import {
   createFedCtx,
   insertAccountWithActor,
@@ -13,6 +12,7 @@ import {
   makeUserContext,
   withRollback,
 } from "../test/postgres.ts";
+import { schema } from "./mod.ts";
 
 const muteActorMutation = parse(`
   mutation MuteActor($actorId: ID!) {
@@ -178,6 +178,22 @@ Deno.test({
         (guestResult.data as { muteActor: { __typename: string } }).muteActor
           .__typename,
         "NotAuthenticatedError",
+      );
+
+      // A well-typed global ID carrying a non-UUID must be rejected as invalid
+      // input rather than reaching the uuid column and erroring out.
+      const malformedResult = await execute({
+        schema,
+        document: muteActorMutation,
+        variableValues: { actorId: encodeGlobalID("Actor", "not-a-uuid") },
+        contextValue: makeUserContext(tx, account.account),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(malformedResult.errors, undefined);
+      assertEquals(
+        (malformedResult.data as { muteActor: { __typename: string } })
+          .muteActor.__typename,
+        "InvalidInputError",
       );
     });
   },

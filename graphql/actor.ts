@@ -1367,6 +1367,10 @@ builder.relayMutationField(
         throw new NotAuthenticatedError();
       }
 
+      if (!validateUuid(args.input.actorId.id)) {
+        throw new InvalidInputError("actorId");
+      }
+
       const mutee = await ctx.db.query.actorTable.findFirst({
         where: { id: args.input.actorId.id },
       });
@@ -1435,6 +1439,10 @@ builder.relayMutationField(
       const session = await ctx.session;
       if (session == null || ctx.account == null) {
         throw new NotAuthenticatedError();
+      }
+
+      if (!validateUuid(args.input.actorId.id)) {
+        throw new InvalidInputError("actorId");
       }
 
       const mutee = await ctx.db.query.actorTable.findFirst({
