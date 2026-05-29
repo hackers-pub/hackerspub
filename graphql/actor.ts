@@ -1345,6 +1345,7 @@ builder.relayMutationField(
       actorId: t.globalID({
         for: [Actor],
         required: true,
+        description: "The global ID of the `Actor` to mute.",
       }),
     }),
   },
@@ -1424,6 +1425,7 @@ builder.relayMutationField(
       actorId: t.globalID({
         for: [Actor],
         required: true,
+        description: "The global ID of the `Actor` to unmute.",
       }),
     }),
   },

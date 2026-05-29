@@ -1580,6 +1580,7 @@ type Mutation {
 }
 
 input MuteActorInput {
+  """The global ID of the `Actor` to mute."""
   actorId: ID!
   clientMutationId: ID
 }
@@ -3318,6 +3319,7 @@ type UnfollowHashtagPayload {
 union UnfollowHashtagResult = InvalidInputError | NotAuthenticatedError | UnfollowHashtagPayload
 
 input UnmuteActorInput {
+  """The global ID of the `Actor` to unmute."""
   actorId: ID!
   clientMutationId: ID
 }
