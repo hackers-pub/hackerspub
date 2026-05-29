@@ -39,62 +39,64 @@ export function AccountListBase(props: AccountListBaseProps) {
     `/${node.local ? `@${node.username}` : node.handle}`;
   return (
     <Show
-      when={props.edges.length > 0}
+      when={props.edges.length > 0 || props.hasNext}
       fallback={
         <p class="px-4 py-8 text-center text-muted-foreground">
           {props.emptyMessage}
         </p>
       }
     >
-      <ul class="divide-y divide-solid">
-        <For each={props.edges}>
-          {(edge) => (
-            <li class="flex items-center gap-3 px-4 py-3">
-              <ActorHoverCard handle={edge.node.handle} class="shrink-0">
-                <Avatar class="size-10 shrink-0">
-                  <a href={profileHref(edge.node)}>
-                    <AvatarImage src={edge.node.avatarUrl} class="size-10" />
-                  </a>
-                </Avatar>
-              </ActorHoverCard>
-              <div class="flex min-w-0 grow flex-col">
-                <Show
-                  when={(edge.node.name ?? "").trim() !== ""}
-                  fallback={
+      <Show when={props.edges.length > 0}>
+        <ul class="divide-y divide-solid">
+          <For each={props.edges}>
+            {(edge) => (
+              <li class="flex items-center gap-3 px-4 py-3">
+                <ActorHoverCard handle={edge.node.handle} class="shrink-0">
+                  <Avatar class="size-10 shrink-0">
+                    <a href={profileHref(edge.node)}>
+                      <AvatarImage src={edge.node.avatarUrl} class="size-10" />
+                    </a>
+                  </Avatar>
+                </ActorHoverCard>
+                <div class="flex min-w-0 grow flex-col">
+                  <Show
+                    when={(edge.node.name ?? "").trim() !== ""}
+                    fallback={
+                      <a
+                        href={profileHref(edge.node)}
+                        class="truncate font-semibold"
+                      >
+                        {edge.node.username}
+                      </a>
+                    }
+                  >
                     <a
                       href={profileHref(edge.node)}
+                      innerHTML={edge.node.name ?? ""}
                       class="truncate font-semibold"
-                    >
-                      {edge.node.username}
-                    </a>
-                  }
+                    />
+                  </Show>
+                  <span
+                    class="truncate text-sm text-muted-foreground select-all"
+                    title={edge.node.handle}
+                  >
+                    {edge.node.handle}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  class="shrink-0"
+                  disabled={props.actionDisabled}
+                  onClick={() => props.onAction(edge.node.id)}
                 >
-                  <a
-                    href={profileHref(edge.node)}
-                    innerHTML={edge.node.name ?? ""}
-                    class="truncate font-semibold"
-                  />
-                </Show>
-                <span
-                  class="truncate text-sm text-muted-foreground select-all"
-                  title={edge.node.handle}
-                >
-                  {edge.node.handle}
-                </span>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                class="shrink-0"
-                disabled={props.actionDisabled}
-                onClick={() => props.onAction(edge.node.id)}
-              >
-                {props.actionLabel}
-              </Button>
-            </li>
-          )}
-        </For>
-      </ul>
+                  {props.actionLabel}
+                </Button>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
       <Show when={props.hasNext}>
         <button
           type="button"
