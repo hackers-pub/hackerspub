@@ -1049,8 +1049,8 @@ msgstr "載入更多回覆失敗，點擊重試"
 msgid "Failed to load more shares; click to retry"
 msgstr "載入更多轉貼失敗，點擊重試"
 
-#: src/components/BlockedAccountsList.tsx:183
-#: src/components/MutedAccountsList.tsx:180
+#: src/components/BlockedAccountsList.tsx:199
+#: src/components/MutedAccountsList.tsx:196
 msgid "Failed to load more; click to retry"
 msgstr "載入更多失敗；點擊重試"
 
@@ -1487,10 +1487,13 @@ msgstr "語言"
 msgid "Language code"
 msgstr "語言代碼"
 
-#: src/components/SettingsTabs.tsx:61
 #: src/routes/(root)/[handle]/settings/language.tsx:82
 msgid "Language settings"
 msgstr "語言設定"
+
+#: src/components/SettingsTabs.tsx:61
+msgid "Languages"
+msgstr "語言"
 
 #: src/components/admin/AdminAccountsTable.tsx:278
 msgid "Last activity"
@@ -1529,8 +1532,8 @@ msgstr "連結名"
 msgid "List"
 msgstr "列表"
 
-#: src/components/BlockedAccountsList.tsx:186
-#: src/components/MutedAccountsList.tsx:183
+#: src/components/BlockedAccountsList.tsx:202
+#: src/components/MutedAccountsList.tsx:199
 #: src/routes/(root)/[handle]/drafts/index.tsx:348
 msgid "Load more"
 msgstr "載入更多"
@@ -1663,8 +1666,8 @@ msgstr "正在載入更多回覆…"
 msgid "Loading more shares…"
 msgstr "正在載入更多轉貼…"
 
-#: src/components/BlockedAccountsList.tsx:180
-#: src/components/MutedAccountsList.tsx:177
+#: src/components/BlockedAccountsList.tsx:196
+#: src/components/MutedAccountsList.tsx:193
 msgid "Loading more…"
 msgstr "正在載入更多…"
 
@@ -1757,6 +1760,9 @@ msgid "Muted accounts are hidden from your feeds and stop notifying you, except 
 msgstr "被靜音的帳號不會出現在你的時間軸中，也不會通知你，但你關注的帳號的回覆與提及仍會通知你。你仍可造訪其個人檔案；靜音是私密的，且不會進行聯邦。"
 
 #: src/components/SettingsTabs.tsx:85
+msgid "Mutes & blocks"
+msgstr "靜音與封鎖"
+
 #: src/routes/(root)/[handle]/settings/blocks.tsx:77
 msgid "Mutes and blocks"
 msgstr "靜音與封鎖"
@@ -2110,11 +2116,14 @@ msgstr "優先級"
 msgid "Privacy policy"
 msgstr "隱私權政策"
 
+#: src/components/SettingsTabs.tsx:45
+msgid "Profile"
+msgstr "個人資料"
+
 #: src/components/ProfileActionMenu.tsx:344
 msgid "Profile actions"
 msgstr "個人檔案操作"
 
-#: src/components/SettingsTabs.tsx:45
 #: src/routes/(root)/[handle]/settings/index.tsx:124
 #: src/routes/(root)/[handle]/settings/index.tsx:125
 msgid "Profile settings"
@@ -2829,7 +2838,7 @@ msgstr "無法新增反應。請重試。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "無法移除反應。請重試。"
 
-#: src/components/BlockedAccountsList.tsx:165
+#: src/components/BlockedAccountsList.tsx:181
 #: src/components/ProfileActionMenu.tsx:377
 #: src/components/ProfileActionMenu.tsx:405
 #: src/components/ProfileActionMenu.tsx:413
@@ -2845,7 +2854,7 @@ msgstr "解除封鎖使用者？"
 msgid "Unfollow"
 msgstr "取消關注"
 
-#: src/components/MutedAccountsList.tsx:162
+#: src/components/MutedAccountsList.tsx:178
 #: src/components/ProfileActionMenu.tsx:361
 msgid "Unmute"
 msgstr "解除靜音"

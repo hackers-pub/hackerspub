@@ -42,7 +42,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
                 href={`/@${account.username}/settings`}
                 class="shrink-0"
               >
-                {t`Profile settings`}
+                {t`Profile`}
               </TabsTrigger>
               <TabsTrigger
                 as={A}
@@ -58,7 +58,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
                 href={`/@${account.username}/settings/language`}
                 class="shrink-0"
               >
-                {t`Language settings`}
+                {t`Languages`}
               </TabsTrigger>
               <TabsTrigger
                 as={A}
@@ -82,7 +82,7 @@ export function SettingsTabs(props: SettingsTabsProps) {
                 href={`/@${account.username}/settings/blocks`}
                 class="shrink-0"
               >
-                {t`Mutes and blocks`}
+                {t`Mutes & blocks`}
               </TabsTrigger>
             </TabsList>
           </div>

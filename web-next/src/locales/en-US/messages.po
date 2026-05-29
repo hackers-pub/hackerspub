@@ -1053,8 +1053,8 @@ msgstr "Failed to load more replies; click to retry"
 msgid "Failed to load more shares; click to retry"
 msgstr "Failed to load more shares; click to retry"
 
-#: src/components/BlockedAccountsList.tsx:183
-#: src/components/MutedAccountsList.tsx:180
+#: src/components/BlockedAccountsList.tsx:199
+#: src/components/MutedAccountsList.tsx:196
 msgid "Failed to load more; click to retry"
 msgstr "Failed to load more; click to retry"
 
@@ -1491,10 +1491,13 @@ msgstr "Language"
 msgid "Language code"
 msgstr "Language code"
 
-#: src/components/SettingsTabs.tsx:61
 #: src/routes/(root)/[handle]/settings/language.tsx:82
 msgid "Language settings"
 msgstr "Language settings"
+
+#: src/components/SettingsTabs.tsx:61
+msgid "Languages"
+msgstr "Languages"
 
 #: src/components/admin/AdminAccountsTable.tsx:278
 msgid "Last activity"
@@ -1533,8 +1536,8 @@ msgstr "Link name"
 msgid "List"
 msgstr "List"
 
-#: src/components/BlockedAccountsList.tsx:186
-#: src/components/MutedAccountsList.tsx:183
+#: src/components/BlockedAccountsList.tsx:202
+#: src/components/MutedAccountsList.tsx:199
 #: src/routes/(root)/[handle]/drafts/index.tsx:348
 msgid "Load more"
 msgstr "Load more"
@@ -1667,8 +1670,8 @@ msgstr "Loading more replies…"
 msgid "Loading more shares…"
 msgstr "Loading more shares…"
 
-#: src/components/BlockedAccountsList.tsx:180
-#: src/components/MutedAccountsList.tsx:177
+#: src/components/BlockedAccountsList.tsx:196
+#: src/components/MutedAccountsList.tsx:193
 msgid "Loading more…"
 msgstr "Loading more…"
 
@@ -1761,6 +1764,9 @@ msgid "Muted accounts are hidden from your feeds and stop notifying you, except 
 msgstr "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
 
 #: src/components/SettingsTabs.tsx:85
+msgid "Mutes & blocks"
+msgstr "Mutes & blocks"
+
 #: src/routes/(root)/[handle]/settings/blocks.tsx:77
 msgid "Mutes and blocks"
 msgstr "Mutes and blocks"
@@ -2114,11 +2120,14 @@ msgstr "Priority"
 msgid "Privacy policy"
 msgstr "Privacy policy"
 
+#: src/components/SettingsTabs.tsx:45
+msgid "Profile"
+msgstr "Profile"
+
 #: src/components/ProfileActionMenu.tsx:344
 msgid "Profile actions"
 msgstr "Profile actions"
 
-#: src/components/SettingsTabs.tsx:45
 #: src/routes/(root)/[handle]/settings/index.tsx:124
 #: src/routes/(root)/[handle]/settings/index.tsx:125
 msgid "Profile settings"
@@ -2833,7 +2842,7 @@ msgstr "Unable to add reaction. Please try again."
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
-#: src/components/BlockedAccountsList.tsx:165
+#: src/components/BlockedAccountsList.tsx:181
 #: src/components/ProfileActionMenu.tsx:377
 #: src/components/ProfileActionMenu.tsx:405
 #: src/components/ProfileActionMenu.tsx:413
@@ -2849,7 +2858,7 @@ msgstr "Unblock user?"
 msgid "Unfollow"
 msgstr "Unfollow"
 
-#: src/components/MutedAccountsList.tsx:162
+#: src/components/MutedAccountsList.tsx:178
 #: src/components/ProfileActionMenu.tsx:361
 msgid "Unmute"
 msgstr "Unmute"
