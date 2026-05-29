@@ -18,6 +18,7 @@ follow → 關注
 followee → 關注
 follower → 粉絲
 block → 封鎖
+mute → 靜音
 fediverse → 聯邦宇宙
 timeline → 時間軸
 passkey → 通行金鑰

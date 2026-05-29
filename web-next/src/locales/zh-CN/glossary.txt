@@ -18,6 +18,7 @@ follow → 关注
 followee → 关注
 follower → 粉丝
 block → 屏蔽
+mute → 隐藏
 fediverse → 联邦宇宙
 timeline → 时间线
 passkey → 通行密钥
