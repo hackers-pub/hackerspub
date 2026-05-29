@@ -130,7 +130,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
         <div class={props.class} classList={props.classList}>
           <div class="w-0 h-0 border-l-[15px] border-r-[15px] border-b-[20px] border-l-transparent border-r-transparent border-b-muted ml-4" />
           <Show
-            when={!post.actor.viewerMutes || muteRevealed()}
+            when={!post.actor?.viewerMutes || muteRevealed()}
             fallback={
               <div class="flex items-center gap-3 bg-muted p-4 text-sm text-muted-foreground">
                 <IconVolumeX class="size-4 shrink-0" />

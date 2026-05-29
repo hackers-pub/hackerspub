@@ -53,7 +53,7 @@ export function NoteCard(props: NoteCardProps) {
         const displayPost = () => note.sharedPost ?? note;
         const mutedActor = () =>
           props.placeholderIfMuted && !revealed() &&
-            displayPost().actor.viewerMutes
+            displayPost().actor?.viewerMutes
             ? displayPost().actor
             : null;
         return (

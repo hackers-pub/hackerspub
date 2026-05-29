@@ -89,7 +89,7 @@ export function BlockedAccountsList(props: BlockedAccountsListProps) {
     unblockActor({
       variables: { input: { actorId }, connections: [connectionId] },
       onCompleted(response) {
-        if (response.unblockActor.__typename === "UnblockActorPayload") {
+        if (response.unblockActor?.__typename === "UnblockActorPayload") {
           showToast({ title: t`User unblocked`, variant: "success" });
         } else {
           showToast({

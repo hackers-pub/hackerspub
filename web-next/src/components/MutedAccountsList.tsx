@@ -89,7 +89,7 @@ export function MutedAccountsList(props: MutedAccountsListProps) {
     unmuteActor({
       variables: { input: { actorId }, connections: [connectionId] },
       onCompleted(response) {
-        if (response.unmuteActor.__typename === "UnmuteActorPayload") {
+        if (response.unmuteActor?.__typename === "UnmuteActorPayload") {
           showToast({ title: t`User unmuted`, variant: "success" });
         } else {
           showToast({ title: t`Failed to unmute this user`, variant: "error" });

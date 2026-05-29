@@ -296,7 +296,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
           input: { actorId: actorData.id },
         },
         onCompleted(response) {
-          const typename = response.unmuteActor.__typename;
+          const typename = response.unmuteActor?.__typename;
           if (handleMutationError(typename, t`Failed to unmute this user`)) {
             return;
           }
@@ -314,7 +314,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
           input: { actorId: actorData.id },
         },
         onCompleted(response) {
-          const typename = response.muteActor.__typename;
+          const typename = response.muteActor?.__typename;
           if (handleMutationError(typename, t`Failed to mute this user`)) {
             return;
           }

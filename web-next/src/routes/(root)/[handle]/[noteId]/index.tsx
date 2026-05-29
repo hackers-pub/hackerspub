@@ -725,7 +725,7 @@ function ContextPostCard(props: ContextPostCardProps) {
         const internalHref = () => getContextPostInternalHref(post);
         return (
           <Show
-            when={!post.actor.viewerMutes || revealed()}
+            when={!post.actor?.viewerMutes || revealed()}
             fallback={
               <div class="border-b last:border-none">
                 <MutedReplyPlaceholder
