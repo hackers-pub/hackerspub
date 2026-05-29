@@ -18,6 +18,7 @@ follow → follow
 followee → following
 follower → follower
 block → block
+mute → mute
 fediverse → fediverse
 timeline → timeline
 passkey → passkey

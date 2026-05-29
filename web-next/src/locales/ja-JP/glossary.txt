@@ -18,6 +18,7 @@ follow → フォロー
 followee → フォロー中
 follower → フォロワー
 block → ブロック
+mute → ミュート
 fediverse → フェディバース
 timeline → タイムライン
 passkey → パスキー

@@ -4,6 +4,8 @@ import { createFragment, createMutation } from "solid-relay";
 import IconBan from "~icons/lucide/ban";
 import IconEllipsis from "~icons/lucide/ellipsis";
 import IconUndo2 from "~icons/lucide/undo-2";
+import IconVolume2 from "~icons/lucide/volume-2";
+import IconVolumeX from "~icons/lucide/volume-x";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +34,9 @@ import {
 } from "~/lib/profileContentQueries.ts";
 import type { ProfileActionMenu_actor$key } from "./__generated__/ProfileActionMenu_actor.graphql.ts";
 import type { ProfileActionMenu_blockActor_Mutation } from "./__generated__/ProfileActionMenu_blockActor_Mutation.graphql.ts";
+import type { ProfileActionMenu_muteActor_Mutation } from "./__generated__/ProfileActionMenu_muteActor_Mutation.graphql.ts";
 import type { ProfileActionMenu_unblockActor_Mutation } from "./__generated__/ProfileActionMenu_unblockActor_Mutation.graphql.ts";
+import type { ProfileActionMenu_unmuteActor_Mutation } from "./__generated__/ProfileActionMenu_unmuteActor_Mutation.graphql.ts";
 
 export interface ProfileActionMenuProps {
   $actor: ProfileActionMenu_actor$key;
@@ -124,6 +128,46 @@ const unblockActorMutation = graphql`
   }
 `;
 
+const muteActorMutation = graphql`
+  mutation ProfileActionMenu_muteActor_Mutation($input: MuteActorInput!) {
+    muteActor(input: $input) {
+      __typename
+      ... on MuteActorPayload {
+        mutee {
+          id
+          viewerMutes
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
+
+const unmuteActorMutation = graphql`
+  mutation ProfileActionMenu_unmuteActor_Mutation($input: UnmuteActorInput!) {
+    unmuteActor(input: $input) {
+      __typename
+      ... on UnmuteActorPayload {
+        mutee {
+          id
+          viewerMutes
+        }
+      }
+      ... on InvalidInputError {
+        inputPath
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+    }
+  }
+`;
+
 export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const { t } = useLingui();
   const viewer = useViewer();
@@ -139,6 +183,7 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
         isViewer
         viewerBlocks
         blocksViewer
+        viewerMutes
       }
     `,
     () => props.$actor,
@@ -150,6 +195,12 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
   const [unblockActor, isUnblocking] = createMutation<
     ProfileActionMenu_unblockActor_Mutation
   >(unblockActorMutation);
+  const [muteActor, isMuting] = createMutation<
+    ProfileActionMenu_muteActor_Mutation
+  >(muteActorMutation);
+  const [unmuteActor, isUnmuting] = createMutation<
+    ProfileActionMenu_unmuteActor_Mutation
+  >(unmuteActorMutation);
 
   const displayName = () => actor()?.rawName ?? actor()?.username ?? "";
   const isPending = () => isBlocking() || isUnblocking();
@@ -234,6 +285,50 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
     }
   };
 
+  const isMutePending = () => isMuting() || isUnmuting();
+  const handleMuteToggle = () => {
+    const actorData = actor();
+    if (!actorData) return;
+
+    if (actorData.viewerMutes) {
+      unmuteActor({
+        variables: {
+          input: { actorId: actorData.id },
+        },
+        onCompleted(response) {
+          const typename = response.unmuteActor?.__typename;
+          if (handleMutationError(typename, t`Failed to unmute this user`)) {
+            return;
+          }
+          if (typename === "UnmuteActorPayload") {
+            showToast({ title: t`User unmuted` });
+          }
+        },
+        onError() {
+          showErrorToast(t`Failed to unmute this user`);
+        },
+      });
+    } else {
+      muteActor({
+        variables: {
+          input: { actorId: actorData.id },
+        },
+        onCompleted(response) {
+          const typename = response.muteActor?.__typename;
+          if (handleMutationError(typename, t`Failed to mute this user`)) {
+            return;
+          }
+          if (typename === "MuteActorPayload") {
+            showToast({ title: t`User muted` });
+          }
+        },
+        onError() {
+          showErrorToast(t`Failed to mute this user`);
+        },
+      });
+    }
+  };
+
   return (
     <Show
       when={actor() && viewer.isLoaded() &&
@@ -254,6 +349,18 @@ export function ProfileActionMenu(props: ProfileActionMenuProps) {
           )}
         />
         <DropdownMenuContent class="min-w-40">
+          <DropdownMenuItem
+            class="cursor-pointer"
+            disabled={isMutePending()}
+            onSelect={handleMuteToggle}
+          >
+            <Show when={actor()?.viewerMutes} fallback={<IconVolumeX />}>
+              <IconVolume2 />
+            </Show>
+            <Show when={actor()?.viewerMutes} fallback={t`Mute`}>
+              {t`Unmute`}
+            </Show>
+          </DropdownMenuItem>
           <DropdownMenuItem
             classList={{
               "cursor-pointer": true,

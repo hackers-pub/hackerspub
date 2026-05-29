@@ -24,6 +24,7 @@
     "./langdet": "./langdet.ts",
     "./markup": "./markup.ts",
     "./medium": "./medium.ts",
+    "./muting": "./muting.ts",
     "./note": "./note.ts",
     "./notification": "./notification.ts",
     "./passkey": "./passkey.ts",

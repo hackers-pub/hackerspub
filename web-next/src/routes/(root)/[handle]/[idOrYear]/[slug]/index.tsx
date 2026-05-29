@@ -1025,7 +1025,7 @@ function ArticleReplies(props: ArticleRepliesProps) {
             <Show when={article.replies?.edges.length}>
               <div class="border rounded-xl">
                 <For each={article.replies?.edges}>
-                  {(edge) => <NoteCard $note={edge.node} />}
+                  {(edge) => <NoteCard $note={edge.node} placeholderIfMuted />}
                 </For>
               </div>
             </Show>

@@ -469,6 +469,35 @@ export const blockingTable = pgTable(
 export type Blocking = typeof blockingTable.$inferSelect;
 export type NewBlocking = typeof blockingTable.$inferInsert;
 
+export const mutingTable = pgTable(
+  "muting",
+  {
+    id: uuid().$type<Uuid>().primaryKey(),
+    muterId: uuid("muter_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    muteeId: uuid("mutee_id")
+      .$type<Uuid>()
+      .notNull()
+      .references(() => actorTable.id, { onDelete: "cascade" }),
+    created: timestamp({ withTimezone: true })
+      .notNull()
+      .default(currentTimestamp),
+  },
+  (table) => [
+    unique().on(table.muterId, table.muteeId),
+    index().on(table.muteeId),
+    check(
+      "muting_muter_mutee_check",
+      sql`${table.muterId} != ${table.muteeId}`,
+    ),
+  ],
+);
+
+export type Muting = typeof mutingTable.$inferSelect;
+export type NewMuting = typeof mutingTable.$inferInsert;
+
 export const instanceTable = pgTable(
   "instance",
   {

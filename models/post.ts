@@ -2117,6 +2117,29 @@ export async function getPostInteractionPolicies(
   return result;
 }
 
+/**
+ * Builds a post filter that excludes posts whose author (or whose shared
+ * original's author) is muted by the given muter.  The `sharedPost` clause
+ * matters for the public timeline, where shares are wrapper posts: it hides a
+ * muted author's content even when an unmuted account boosts it.  (In the
+ * personal timeline `post_id` always points at the underlying post, so the
+ * `sharedPost` clause is a harmless no-op there; muted *sharers* are handled
+ * separately via `timeline_item.last_sharer_id`.)
+ *
+ * Unlike {@link getActorContentExclusionFilter} (used for blocking), this is
+ * intentionally NOT folded into {@link getPostVisibilityFilter}: muting must
+ * only hide content from feeds, not from the muted actor's own profile or from
+ * thread views.  Apply it explicitly in feed queries.
+ */
+export function getMutedActorExclusionFilter(
+  muterActorId: Uuid,
+): RelationsFilter<"postTable"> {
+  return {
+    actor: { NOT: { muters: { muterId: muterActorId } } },
+    NOT: { sharedPost: { actor: { muters: { muterId: muterActorId } } } },
+  } satisfies RelationsFilter<"postTable">;
+}
+
 function getActorContentExclusionFilter(
   actorId: Uuid,
 ): RelationsFilter<"actorTable"> {
