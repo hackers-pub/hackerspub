@@ -531,7 +531,7 @@ msgstr "已啟用瀏覽器通知"
 #: src/components/PostActionMenu.tsx:367
 #: src/components/ProfileActionMenu.tsx:401
 #: src/components/ProfileActionMenu.tsx:402
-#: src/components/QuotedNoteCard.tsx:226
+#: src/components/QuotedNoteCard.tsx:248
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:522
@@ -647,7 +647,7 @@ msgstr "無法將連結複製到剪貼簿。"
 msgid "Could not load profile."
 msgstr "無法載入個人資料。"
 
-#: src/components/QuotedNoteCard.tsx:249
+#: src/components/QuotedNoteCard.tsx:271
 msgid "Could not revoke quote"
 msgstr "無法撤銷引用"
 
@@ -707,7 +707,7 @@ msgid "Cutoff:"
 msgstr "截止時間："
 
 #: src/components/NoteCardInternal.tsx:110
-#: src/components/QuotedNoteCard.tsx:180
+#: src/components/QuotedNoteCard.tsx:202
 msgid "CW"
 msgstr "CW"
 
@@ -891,8 +891,8 @@ msgstr "請在下方輸入您的電子郵件或使用者名稱以登入。"
 #: src/components/NoteComposer.tsx:900
 #: src/components/NoteComposer.tsx:908
 #: src/components/NoteComposer.tsx:965
-#: src/components/QuotedNoteCard.tsx:248
-#: src/components/QuotedNoteCard.tsx:256
+#: src/components/QuotedNoteCard.tsx:270
+#: src/components/QuotedNoteCard.tsx:278
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:257
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:345
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:355
@@ -1342,7 +1342,7 @@ msgstr "標題 3"
 
 #: src/components/NoteCardInternal.tsx:119
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:191
+#: src/components/QuotedNoteCard.tsx:213
 msgid "Hide"
 msgstr "隱藏"
 
@@ -2181,7 +2181,7 @@ msgstr "引用"
 msgid "Quote permission"
 msgstr "引用權限"
 
-#: src/components/QuotedNoteCard.tsx:243
+#: src/components/QuotedNoteCard.tsx:265
 msgid "Quote revoked"
 msgstr "引用已撤銷"
 
@@ -2350,12 +2350,12 @@ msgstr "撤銷"
 msgid "Revoke passkey"
 msgstr "撤銷通行金鑰"
 
-#: src/components/QuotedNoteCard.tsx:214
-#: src/components/QuotedNoteCard.tsx:264
+#: src/components/QuotedNoteCard.tsx:236
+#: src/components/QuotedNoteCard.tsx:286
 msgid "Revoke quote"
 msgstr "撤銷引用"
 
-#: src/components/QuotedNoteCard.tsx:219
+#: src/components/QuotedNoteCard.tsx:241
 msgid "Revoke this quote?"
 msgstr "撤銷此引用？"
 
@@ -2436,7 +2436,7 @@ msgstr "發送"
 msgid "Sending…"
 msgstr "發送中…"
 
-#: src/components/QuotedNoteCard.tsx:184
+#: src/components/QuotedNoteCard.tsx:206
 msgid "Sensitive content"
 msgstr "敏感內容"
 
@@ -2469,7 +2469,8 @@ msgstr "無法轉貼此內容。"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:119
-#: src/components/QuotedNoteCard.tsx:191
+#: src/components/QuotedNoteCard.tsx:146
+#: src/components/QuotedNoteCard.tsx:213
 msgid "Show"
 msgstr "顯示"
 
@@ -2660,7 +2661,7 @@ msgstr "通行金鑰已成功撤銷。"
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "文章的主要語言，用於無障礙功能和內容發現。"
 
-#: src/components/QuotedNoteCard.tsx:222
+#: src/components/QuotedNoteCard.tsx:244
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "引用內容將不再把你的內容作為引用包含在內。"
 
@@ -2726,6 +2727,11 @@ msgstr "此內容引用了另一則內容，但目前未獲得引用授權。"
 #: src/components/QuoteTargetPlaceholder.tsx:35
 msgid "This quote is waiting for approval from the original author."
 msgstr "此引用正在等待原作者核准。"
+
+#. placeholder {0}: post.actor.handle
+#: src/components/QuotedNoteCard.tsx:138
+msgid "This quoted post is hidden because you muted {0}."
+msgstr "因為你已靜音 {0}，此引用已被隱藏。"
 
 #. placeholder {0}: props.handle
 #: src/components/MutedReplyPlaceholder.tsx:24

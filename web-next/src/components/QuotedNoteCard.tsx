@@ -26,6 +26,7 @@ import {
   useMentionHoverCards,
 } from "~/lib/mentionHoverCards.tsx";
 import IconBan from "~icons/lucide/ban";
+import IconVolumeX from "~icons/lucide/volume-x";
 import type {
   QuotedNoteCard_post$data,
   QuotedNoteCard_post$key,
@@ -96,6 +97,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
           local
           url
           iri
+          viewerMutes
         }
         content
         language
@@ -111,6 +113,7 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
   );
 
   const [cwRevealed, setCwRevealed] = createSignal(false);
+  const [muteRevealed, setMuteRevealed] = createSignal(false);
   // For Articles, `summary` is an article/LLM description, not a CW field.
   // Only treat `summary` as CW for Note/Question types.
   const hasCW = () => {
@@ -126,149 +129,169 @@ export function QuotedNoteCard(props: QuotedNoteCardProps) {
       {(post) => (
         <div class={props.class} classList={props.classList}>
           <div class="w-0 h-0 border-l-[15px] border-r-[15px] border-b-[20px] border-l-transparent border-r-transparent border-b-muted ml-4" />
-          <div class="flex flex-col bg-muted p-4">
-            <div class="flex min-w-0 gap-4">
-              <ActorHoverCard handle={post.actor.handle} class="shrink-0">
-                <Avatar class="size-12 shrink-0">
-                  <InternalLink
-                    href={post.actor.url ?? post.actor.iri}
-                    internalHref={post.actor.local
-                      ? `/@${post.actor.username}`
-                      : `/${post.actor.handle}`}
-                  >
-                    <AvatarImage src={post.actor.avatarUrl} class="size-12" />
-                  </InternalLink>
-                </Avatar>
-              </ActorHoverCard>
-              <div class="flex min-w-0 flex-col">
-                <ActorHoverCard
-                  handle={post.actor.handle}
-                  class="min-w-0 flex flex-wrap items-baseline gap-x-1"
+          <Show
+            when={!post.actor.viewerMutes || muteRevealed()}
+            fallback={
+              <div class="flex items-center gap-3 bg-muted p-4 text-sm text-muted-foreground">
+                <IconVolumeX class="size-4 shrink-0" />
+                <p class="grow min-w-0">
+                  {t`This quoted post is hidden because you muted ${post.actor.handle}.`}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  class="shrink-0 cursor-pointer"
+                  onClick={() => setMuteRevealed(true)}
                 >
-                  <Show when={(post.actor.name ?? "").trim() !== ""}>
+                  {t`Show`}
+                </Button>
+              </div>
+            }
+          >
+            <div class="flex flex-col bg-muted p-4">
+              <div class="flex min-w-0 gap-4">
+                <ActorHoverCard handle={post.actor.handle} class="shrink-0">
+                  <Avatar class="size-12 shrink-0">
                     <InternalLink
                       href={post.actor.url ?? post.actor.iri}
                       internalHref={post.actor.local
                         ? `/@${post.actor.username}`
                         : `/${post.actor.handle}`}
-                      innerHTML={post.actor.name ?? ""}
-                      class="font-semibold"
-                    />
-                  </Show>
-                  <span
-                    class="min-w-0 break-all select-all text-muted-foreground"
-                    title={post.actor.handle}
-                  >
-                    {post.actor.handle}
-                  </span>
+                    >
+                      <AvatarImage src={post.actor.avatarUrl} class="size-12" />
+                    </InternalLink>
+                  </Avatar>
                 </ActorHoverCard>
-                <div class="flex min-w-0 flex-row flex-wrap gap-1 text-muted-foreground">
-                  <InternalLink
-                    href={post.url ?? post.iri}
-                    internalHref={getQuotedPostInternalHref(post)}
+                <div class="flex min-w-0 flex-col">
+                  <ActorHoverCard
+                    handle={post.actor.handle}
+                    class="min-w-0 flex flex-wrap items-baseline gap-x-1"
                   >
-                    <Timestamp value={post.published} capitalizeFirstLetter />
-                  </InternalLink>{" "}
-                  &middot; <VisibilityTag visibility={post.visibility} />
+                    <Show when={(post.actor.name ?? "").trim() !== ""}>
+                      <InternalLink
+                        href={post.actor.url ?? post.actor.iri}
+                        internalHref={post.actor.local
+                          ? `/@${post.actor.username}`
+                          : `/${post.actor.handle}`}
+                        innerHTML={post.actor.name ?? ""}
+                        class="font-semibold"
+                      />
+                    </Show>
+                    <span
+                      class="min-w-0 break-all select-all text-muted-foreground"
+                      title={post.actor.handle}
+                    >
+                      {post.actor.handle}
+                    </span>
+                  </ActorHoverCard>
+                  <div class="flex min-w-0 flex-row flex-wrap gap-1 text-muted-foreground">
+                    <InternalLink
+                      href={post.url ?? post.iri}
+                      internalHref={getQuotedPostInternalHref(post)}
+                    >
+                      <Timestamp value={post.published} capitalizeFirstLetter />
+                    </InternalLink>{" "}
+                    &middot; <VisibilityTag visibility={post.visibility} />
+                  </div>
                 </div>
               </div>
-            </div>
-            <Show when={hasCW()}>
-              <div class="mt-3 flex items-center gap-2 rounded-md border bg-background px-3 py-2">
-                <p class="grow text-sm text-muted-foreground">
-                  <strong class="font-semibold text-foreground">
-                    {t`CW`}:
-                  </strong>{" "}
-                  {post.__typename !== "Article" && post.summary
-                    ? post.summary
-                    : t`Sensitive content`}
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCwRevealed((v) => !v)}
-                >
-                  {cwRevealed() ? t`Hide` : t`Show`}
-                </Button>
-              </div>
-            </Show>
-            <Show when={contentVisible()}>
-              <div
-                ref={setProseRef}
-                innerHTML={post.content}
-                lang={post.language ?? undefined}
-                class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
-              />
-            </Show>
-            <MentionHoverCardLayer state={mentionState} />
-            <Show when={props.canRevokeQuote && props.quotePostId != null}>
-              <div class="mt-3 flex justify-end border-t border-border/60 pt-3">
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    as={Button}
+              <Show when={hasCW()}>
+                <div class="mt-3 flex items-center gap-2 rounded-md border bg-background px-3 py-2">
+                  <p class="grow text-sm text-muted-foreground">
+                    <strong class="font-semibold text-foreground">
+                      {t`CW`}:
+                    </strong>{" "}
+                    {post.__typename !== "Article" && post.summary
+                      ? post.summary
+                      : t`Sensitive content`}
+                  </p>
+                  <Button
                     variant="outline"
                     size="sm"
-                    disabled={revoking()}
+                    onClick={() => setCwRevealed((v) => !v)}
                   >
-                    <IconBan class="size-4" />
-                    {t`Revoke quote`}
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        {t`Revoke this quote?`}
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t`The quoting post will no longer include your post as a quote.`}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogClose>{t`Cancel`}</AlertDialogClose>
-                      <AlertDialogAction
-                        disabled={revoking()}
-                        onClick={() => {
-                          if (revoking()) return;
-                          const quotePostId = props.quotePostId;
-                          if (quotePostId == null) return;
-                          revokeQuote({
-                            variables: {
-                              input: { quotePostId },
-                            },
-                            onCompleted(response) {
-                              if (
-                                response.revokeQuote.__typename ===
-                                  "RevokeQuotePayload"
-                              ) {
-                                showToast({
-                                  title: t`Quote revoked`,
-                                  variant: "success",
-                                });
-                              } else {
+                    {cwRevealed() ? t`Hide` : t`Show`}
+                  </Button>
+                </div>
+              </Show>
+              <Show when={contentVisible()}>
+                <div
+                  ref={setProseRef}
+                  innerHTML={post.content}
+                  lang={post.language ?? undefined}
+                  class="prose dark:prose-invert break-words overflow-wrap px-4 pt-4"
+                />
+              </Show>
+              <MentionHoverCardLayer state={mentionState} />
+              <Show when={props.canRevokeQuote && props.quotePostId != null}>
+                <div class="mt-3 flex justify-end border-t border-border/60 pt-3">
+                  <AlertDialog>
+                    <AlertDialogTrigger
+                      as={Button}
+                      variant="outline"
+                      size="sm"
+                      disabled={revoking()}
+                    >
+                      <IconBan class="size-4" />
+                      {t`Revoke quote`}
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          {t`Revoke this quote?`}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {t`The quoting post will no longer include your post as a quote.`}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogClose>{t`Cancel`}</AlertDialogClose>
+                        <AlertDialogAction
+                          disabled={revoking()}
+                          onClick={() => {
+                            if (revoking()) return;
+                            const quotePostId = props.quotePostId;
+                            if (quotePostId == null) return;
+                            revokeQuote({
+                              variables: {
+                                input: { quotePostId },
+                              },
+                              onCompleted(response) {
+                                if (
+                                  response.revokeQuote.__typename ===
+                                    "RevokeQuotePayload"
+                                ) {
+                                  showToast({
+                                    title: t`Quote revoked`,
+                                    variant: "success",
+                                  });
+                                } else {
+                                  showToast({
+                                    title: t`Error`,
+                                    description: t`Could not revoke quote`,
+                                    variant: "error",
+                                  });
+                                }
+                              },
+                              onError(error) {
                                 showToast({
                                   title: t`Error`,
-                                  description: t`Could not revoke quote`,
+                                  description: error.message,
                                   variant: "error",
                                 });
-                              }
-                            },
-                            onError(error) {
-                              showToast({
-                                title: t`Error`,
-                                description: error.message,
-                                variant: "error",
-                              });
-                            },
-                          });
-                        }}
-                      >
-                        {t`Revoke quote`}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </Show>
-          </div>
+                              },
+                            });
+                          }}
+                        >
+                          {t`Revoke quote`}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </Show>
+            </div>
+          </Show>
         </div>
       )}
     </Show>

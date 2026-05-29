@@ -531,7 +531,7 @@ msgstr "Browser notifications enabled"
 #: src/components/PostActionMenu.tsx:367
 #: src/components/ProfileActionMenu.tsx:401
 #: src/components/ProfileActionMenu.tsx:402
-#: src/components/QuotedNoteCard.tsx:226
+#: src/components/QuotedNoteCard.tsx:248
 #: src/components/RemoteFollowButton.tsx:218
 #: src/components/RemoteFollowButton.tsx:280
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:522
@@ -647,7 +647,7 @@ msgstr "Could not copy the link to the clipboard."
 msgid "Could not load profile."
 msgstr "Could not load profile."
 
-#: src/components/QuotedNoteCard.tsx:249
+#: src/components/QuotedNoteCard.tsx:271
 msgid "Could not revoke quote"
 msgstr "Could not revoke quote"
 
@@ -707,7 +707,7 @@ msgid "Cutoff:"
 msgstr "Cutoff:"
 
 #: src/components/NoteCardInternal.tsx:110
-#: src/components/QuotedNoteCard.tsx:180
+#: src/components/QuotedNoteCard.tsx:202
 msgid "CW"
 msgstr "CW"
 
@@ -895,8 +895,8 @@ msgstr "Enter your email or username below to sign in."
 #: src/components/NoteComposer.tsx:900
 #: src/components/NoteComposer.tsx:908
 #: src/components/NoteComposer.tsx:965
-#: src/components/QuotedNoteCard.tsx:248
-#: src/components/QuotedNoteCard.tsx:256
+#: src/components/QuotedNoteCard.tsx:270
+#: src/components/QuotedNoteCard.tsx:278
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:257
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:345
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/edit.tsx:355
@@ -1346,7 +1346,7 @@ msgstr "Heading 3"
 
 #: src/components/NoteCardInternal.tsx:119
 #: src/components/NoteMedia.tsx:270
-#: src/components/QuotedNoteCard.tsx:191
+#: src/components/QuotedNoteCard.tsx:213
 msgid "Hide"
 msgstr "Hide"
 
@@ -2185,7 +2185,7 @@ msgstr "Quote"
 msgid "Quote permission"
 msgstr "Quote permission"
 
-#: src/components/QuotedNoteCard.tsx:243
+#: src/components/QuotedNoteCard.tsx:265
 msgid "Quote revoked"
 msgstr "Quote revoked"
 
@@ -2354,12 +2354,12 @@ msgstr "Revoke"
 msgid "Revoke passkey"
 msgstr "Revoke passkey"
 
-#: src/components/QuotedNoteCard.tsx:214
-#: src/components/QuotedNoteCard.tsx:264
+#: src/components/QuotedNoteCard.tsx:236
+#: src/components/QuotedNoteCard.tsx:286
 msgid "Revoke quote"
 msgstr "Revoke quote"
 
-#: src/components/QuotedNoteCard.tsx:219
+#: src/components/QuotedNoteCard.tsx:241
 msgid "Revoke this quote?"
 msgstr "Revoke this quote?"
 
@@ -2440,7 +2440,7 @@ msgstr "Send"
 msgid "Sending…"
 msgstr "Sending…"
 
-#: src/components/QuotedNoteCard.tsx:184
+#: src/components/QuotedNoteCard.tsx:206
 msgid "Sensitive content"
 msgstr "Sensitive content"
 
@@ -2473,7 +2473,8 @@ msgstr "Sharing is not available for this post"
 
 #: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:119
-#: src/components/QuotedNoteCard.tsx:191
+#: src/components/QuotedNoteCard.tsx:146
+#: src/components/QuotedNoteCard.tsx:213
 msgid "Show"
 msgstr "Show"
 
@@ -2664,7 +2665,7 @@ msgstr "The passkey has been successfully revoked."
 msgid "The primary language of your article, used for accessibility and discovery."
 msgstr "The primary language of your article, used for accessibility and discovery."
 
-#: src/components/QuotedNoteCard.tsx:222
+#: src/components/QuotedNoteCard.tsx:244
 msgid "The quoting post will no longer include your post as a quote."
 msgstr "The quoting post will no longer include your post as a quote."
 
@@ -2730,6 +2731,11 @@ msgstr "This post quoted another post, but the quote is not currently authorized
 #: src/components/QuoteTargetPlaceholder.tsx:35
 msgid "This quote is waiting for approval from the original author."
 msgstr "This quote is waiting for approval from the original author."
+
+#. placeholder {0}: post.actor.handle
+#: src/components/QuotedNoteCard.tsx:138
+msgid "This quoted post is hidden because you muted {0}."
+msgstr "This quoted post is hidden because you muted {0}."
 
 #. placeholder {0}: props.handle
 #: src/components/MutedReplyPlaceholder.tsx:24
