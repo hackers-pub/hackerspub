@@ -553,6 +553,126 @@ Deno.test({
 });
 
 Deno.test({
+  name:
+    "getPersonalTimeline() keeps a multi-sharer post attributed to an unmuted sharer after muting the latest sharer",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "multisharerviewer",
+        name: "Multi Sharer Viewer",
+        email: "multisharerviewer@example.com",
+      });
+      const sharerA = await insertAccountWithActor(tx, {
+        username: "multisharera",
+        name: "Multi Sharer A",
+        email: "multisharera@example.com",
+      });
+      const sharerB = await insertAccountWithActor(tx, {
+        username: "multisharerb",
+        name: "Multi Sharer B",
+        email: "multisharerb@example.com",
+      });
+      const remoteActor = await insertRemoteActor(tx, {
+        username: "multisharerremote",
+        name: "Multi Sharer Remote",
+        host: "multi-sharer.example",
+      });
+      const remotePost = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Shared by two followed accounts</p>",
+      });
+
+      await follow(fedCtx, viewer.account, sharerA.actor);
+      await follow(fedCtx, viewer.account, sharerB.actor);
+
+      // B shares first, then A: A becomes the most recent sharer.
+      const shareB = await sharePost(fedCtx, sharerB.account, {
+        ...remotePost,
+        actor: remoteActor,
+      });
+      await tx.update(postTable)
+        .set({ published: new Date("2026-04-15T00:00:01.000Z") })
+        .where(eq(postTable.id, shareB.id));
+      const shareA = await sharePost(fedCtx, sharerA.account, {
+        ...remotePost,
+        actor: remoteActor,
+      });
+      await tx.update(postTable)
+        .set({ published: new Date("2026-04-15T00:00:02.000Z") })
+        .where(eq(postTable.id, shareA.id));
+
+      const before = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assertEquals(before.map((e) => e.post.id), [remotePost.id]);
+      assertEquals(before[0].lastSharer?.id, sharerA.actor.id);
+      assertEquals(before[0].sharersCount, 2);
+
+      // Muting A keeps the post (B still shared it), re-attributed to B.
+      await mute(tx, viewer.account, sharerA.actor);
+      const after = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assertEquals(after.map((e) => e.post.id), [remotePost.id]);
+      assertEquals(after[0].lastSharer?.id, sharerB.actor.id);
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "getPersonalTimeline() excludes a muted actor's boosts made after muting",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "postmuteviewer",
+        name: "Post Mute Viewer",
+        email: "postmuteviewer@example.com",
+      });
+      const sharer = await insertAccountWithActor(tx, {
+        username: "postmutesharer",
+        name: "Post Mute Sharer",
+        email: "postmutesharer@example.com",
+      });
+      const remoteActor = await insertRemoteActor(tx, {
+        username: "postmuteremote",
+        name: "Post Mute Remote",
+        host: "post-mute.example",
+      });
+      const remotePost = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Boosted after the mute</p>",
+      });
+
+      // Viewer follows the sharer but mutes them, then the sharer boosts.
+      await follow(fedCtx, viewer.account, sharer.actor);
+      await mute(tx, viewer.account, sharer.actor);
+      const share = await sharePost(fedCtx, sharer.account, {
+        ...remotePost,
+        actor: remoteActor,
+      });
+      await tx.update(postTable)
+        .set({ published: new Date("2026-04-15T00:00:04.000Z") })
+        .where(eq(postTable.id, share.id));
+
+      const timeline = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assertEquals(timeline, []);
+    });
+  },
+});
+
+Deno.test({
   name: "getPersonalTimeline() excludes posts authored by a muted actor",
   sanitizeOps: false,
   sanitizeResources: false,

@@ -1,7 +1,6 @@
 import process from "node:process";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Database, RelationsFilter } from "./db.ts";
-import { getMutedActorIds } from "./muting.ts";
 import {
   getMutedActorExclusionFilter,
   getPostVisibilityFilter,
@@ -17,6 +16,7 @@ import {
   hashtagFollowingTable,
   type Instance,
   type Mention,
+  mutingTable,
   type NewTimelineItem,
   type Post,
   type PostLink,
@@ -229,6 +229,13 @@ export async function addPostToTimeline(
           ],
         },
         getPostVisibilityFilter(post),
+        // For a share (boost), skip recipients who mute the sharer so the
+        // muted actor's boosts never enter (or bump) their feed. Originals
+        // (sharedPostId == null) still fan out and are hidden at read time by
+        // getMutedActorExclusionFilter, so unmuting restores them.
+        ...(post.sharedPostId == null
+          ? []
+          : [{ NOT: { mutees: { muteeId: post.actorId } } }]),
       ],
     },
   });
@@ -346,8 +353,15 @@ export async function removeFromTimeline(
               ON ${actorTable.accountId} = ${timelineItemTable.accountId}
             JOIN ${followingTable}
               ON ${followingTable.followerId} = ${actorTable.id}
+              AND ${followingTable.accepted} IS NOT NULL
             WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
               AND ${postTable.actorId} = ${followingTable.followeeId}
+              AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+              AND NOT EXISTS (
+                SELECT 1 FROM ${mutingTable}
+                WHERE ${mutingTable.muterId} = ${actorTable.id}
+                  AND ${mutingTable.muteeId} = ${postTable.actorId}
+              )
             ORDER BY ${postTable.published} DESC
             LIMIT 1
           )
@@ -367,8 +381,15 @@ export async function removeFromTimeline(
               ON ${actorTable.accountId} = ${timelineItemTable.accountId}
             JOIN ${followingTable}
               ON ${followingTable.followerId} = ${actorTable.id}
+              AND ${followingTable.accepted} IS NOT NULL
             WHERE ${postTable.sharedPostId} = ${post.sharedPostId}
               AND ${postTable.actorId} = ${followingTable.followeeId}
+              AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+              AND NOT EXISTS (
+                SELECT 1 FROM ${mutingTable}
+                WHERE ${mutingTable.muterId} = ${actorTable.id}
+                  AND ${mutingTable.muteeId} = ${postTable.actorId}
+              )
           )
         END
       `,
@@ -382,6 +403,77 @@ export async function removeFromTimeline(
   await db.delete(timelineItemTable)
     .where(
       and(
+        isNull(timelineItemTable.originalAuthorId),
+        isNull(timelineItemTable.lastSharerId),
+      ),
+    );
+}
+
+/**
+ * Removes a newly muted actor's boosts from the muter's personal timeline.
+ *
+ * Call right after the mute row is inserted. For each of the muter's timeline
+ * rows whose most recent sharer is the muted actor, the last sharer is
+ * recomputed to the latest still-followed, non-muted sharer of the same post
+ * (mirroring {@link removeFromTimeline}); `sharersCount` and `appended` follow.
+ * Rows left with neither a followed original author nor any such sharer are
+ * deleted. Future boosts by the muted actor are kept out separately by
+ * {@link addPostToTimeline}. The muted actor's own authored posts are left in
+ * place (followers keep the row) and hidden at read time, so unmuting restores
+ * them.
+ */
+export async function pruneMutedActorFromTimeline(
+  db: Database,
+  muterAccountId: Uuid,
+  muterActorId: Uuid,
+  muteeActorId: Uuid,
+): Promise<void> {
+  await db.update(timelineItemTable)
+    .set({
+      lastSharerId: sql`(
+        SELECT ${postTable.actorId}
+        FROM ${postTable}
+        JOIN ${followingTable}
+          ON ${followingTable.followerId} = ${muterActorId}
+          AND ${followingTable.followeeId} = ${postTable.actorId}
+          AND ${followingTable.accepted} IS NOT NULL
+        WHERE ${postTable.sharedPostId} = ${timelineItemTable.postId}
+          AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+          AND ${postTable.actorId} NOT IN (
+            SELECT ${mutingTable.muteeId}
+            FROM ${mutingTable}
+            WHERE ${mutingTable.muterId} = ${muterActorId}
+          )
+        ORDER BY ${postTable.published} DESC
+        LIMIT 1
+      )`,
+      appended: sql`(
+        SELECT coalesce(max(${postTable.published}), ${timelineItemTable.added})
+        FROM ${postTable}
+        JOIN ${followingTable}
+          ON ${followingTable.followerId} = ${muterActorId}
+          AND ${followingTable.followeeId} = ${postTable.actorId}
+          AND ${followingTable.accepted} IS NOT NULL
+        WHERE ${postTable.sharedPostId} = ${timelineItemTable.postId}
+          AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+          AND ${postTable.actorId} NOT IN (
+            SELECT ${mutingTable.muteeId}
+            FROM ${mutingTable}
+            WHERE ${mutingTable.muterId} = ${muterActorId}
+          )
+      )`,
+      sharersCount: sql`greatest(${timelineItemTable.sharersCount} - 1, 0)`,
+    })
+    .where(
+      and(
+        eq(timelineItemTable.accountId, muterAccountId),
+        eq(timelineItemTable.lastSharerId, muteeActorId),
+      ),
+    );
+  await db.delete(timelineItemTable)
+    .where(
+      and(
+        eq(timelineItemTable.accountId, muterAccountId),
         isNull(timelineItemTable.originalAuthorId),
         isNull(timelineItemTable.lastSharerId),
       ),
@@ -1068,14 +1160,6 @@ export async function getPersonalTimeline(
             },
           }
           : {}),
-        // Drop share-only rows (the post is in the feed solely because a muted
-        // actor shared it: no followed author backs it) so a muted actor's
-        // boosts never surface. Rows that ALSO have a followed original author
-        // are kept; the muted sharer attribution is stripped below.
-        NOT: {
-          originalAuthorId: { isNull: true },
-          lastSharer: { muters: { muterId: currentAccount.actor.id } },
-        },
         post: {
           AND: [
             getPostVisibilityFilter(currentAccount.actor),
@@ -1140,17 +1224,6 @@ export async function getPersonalTimeline(
       [...actorIdSet],
     );
 
-    // Identify which sharers in this batch are muted so their "shared by …"
-    // attribution can be stripped from kept rows (muted-only shares are already
-    // excluded by the WHERE clause above).
-    const mutedSharerIds = await getMutedActorIds(
-      db,
-      currentAccount.actor.id,
-      items
-        .map((item) => item.lastSharerId)
-        .filter((id): id is Uuid => id != null),
-    );
-
     for (const item of items) {
       const post = item.post as { actor: unknown } | null;
       if (post == null || post.actor == null) continue;
@@ -1206,11 +1279,7 @@ export async function getPersonalTimeline(
           enrichedPost as unknown as typeof item.post,
         ) as unknown as TimelineEntry["post"],
         cursor: withoutShares ? item.added : item.appended,
-        lastSharer: withoutShares ||
-            (item.lastSharerId != null &&
-              mutedSharerIds.has(item.lastSharerId))
-          ? null
-          : item.lastSharer,
+        lastSharer: withoutShares ? null : item.lastSharer,
       });
     }
 

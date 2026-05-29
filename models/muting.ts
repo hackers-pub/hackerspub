@@ -6,6 +6,7 @@ import {
   type Muting,
   mutingTable,
 } from "./schema.ts";
+import { pruneMutedActorFromTimeline } from "./timeline.ts";
 import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 /**
@@ -35,6 +36,9 @@ export async function mute(
       },
     });
   }
+  // Clean the muted actor's already-propagated boosts out of the muter's feed.
+  // (Future boosts are kept out by addPostToTimeline.)
+  await pruneMutedActorFromTimeline(db, muter.id, muter.actor.id, mutee.id);
   return rows[0];
 }
 
