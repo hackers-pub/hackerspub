@@ -5,7 +5,6 @@ import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
   createMutation,
   createPaginationFragment,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -27,7 +26,10 @@ import { showToast } from "~/components/ui/toast.tsx";
 import type { draftsQuery } from "./__generated__/draftsQuery.graphql.ts";
 import type { draftsDeleteMutation } from "./__generated__/draftsDeleteMutation.graphql.ts";
 import type { draftsPaginationFragment$key } from "./__generated__/draftsPaginationFragment.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const DRAFTS_PAGE_SIZE = 50 as const;
 
@@ -101,7 +103,7 @@ export default function ArticleDraftsListPage() {
   const { t, i18n } = useLingui();
   const params = useParams();
 
-  const data = createPreloadedQuery<draftsQuery>(
+  const data = createStablePreloadedQuery<draftsQuery>(
     DraftsQuery,
     () => loadDraftsQuery(),
   );

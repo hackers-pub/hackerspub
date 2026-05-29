@@ -23,7 +23,6 @@ import {
 import {
   createFragment,
   createPaginationFragment,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -59,7 +58,10 @@ import type { NoteId_noteBody$key } from "./__generated__/NoteId_noteBody.graphq
 import type { NoteId_questionBody$key } from "./__generated__/NoteId_questionBody.graphql.ts";
 import type { NoteIdThreadQuery } from "./__generated__/NoteIdThreadQuery.graphql.ts";
 import type { NoteIdThread_post$key } from "./__generated__/NoteIdThread_post.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 type NoteIdPagePost = NonNullable<
   NonNullable<
@@ -171,7 +173,7 @@ function NotePageLoaded(props: NotePageLoadedProps) {
     onCleanup(onNoteCreated(() => void revalidateNotePageQueries()));
   });
 
-  const noteData = createPreloadedQuery<NoteIdPageQuery>(
+  const noteData = createStablePreloadedQuery<NoteIdPageQuery>(
     NoteIdPageQuery,
     () => loadNotePageQuery(props.username, props.noteId, i18n.locale),
   );
@@ -572,7 +574,7 @@ function PermalinkThread(props: PermalinkThreadProps) {
   return (
     // Guard against transiently-invalid params during route transitions:
     // useParams() can briefly reflect a different route before this component
-    // unmounts, causing createPreloadedQuery to fire with undefined noteId.
+    // unmounts, causing createStablePreloadedQuery to fire with undefined noteId.
     <Show when={validateUuid(props.noteId)} fallback={<>{props.children}</>}>
       <ErrorBoundary fallback={() => <>{props.children}</>}>
         <PermalinkThreadLoaded {...props} />
@@ -586,7 +588,7 @@ function PermalinkThreadLoaded(props: PermalinkThreadProps) {
   const [loadingState, setLoadingState] = createSignal<
     "loaded" | "loading" | "errored"
   >("loaded");
-  const data = createPreloadedQuery<NoteIdThreadQuery>(
+  const data = createStablePreloadedQuery<NoteIdThreadQuery>(
     NoteIdThreadQuery,
     () => loadNoteThreadQuery(props.username, props.noteId),
   );

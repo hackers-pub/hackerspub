@@ -4,7 +4,6 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
   createPaginationFragment,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -15,7 +14,10 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Title } from "~/components/Title.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import type {
   quotesNoteEngagementQuery,
   quotesNoteEngagementQuery$data,
@@ -79,7 +81,7 @@ type QuotesPagePost = NonNullable<
 
 function QuotesPageLoaded(props: { noteId: Uuid; handle: string }) {
   const username = () => props.handle.replace(/^@/, "");
-  const data = createPreloadedQuery<quotesNoteEngagementQuery>(
+  const data = createStablePreloadedQuery<quotesNoteEngagementQuery>(
     quotesNoteEngagementQuery,
     () => loadQuotesQuery(username(), props.noteId),
   );

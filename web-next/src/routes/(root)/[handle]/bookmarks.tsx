@@ -8,11 +8,7 @@ import {
 import { HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { Show, Suspense } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { type BookmarkPostType, Bookmarks } from "~/components/Bookmarks.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -29,7 +25,10 @@ import { WideContainer } from "~/components/WideContainer.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { bookmarksPageQuery } from "./__generated__/bookmarksPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -68,7 +67,7 @@ export default function BookmarksPage() {
   const viewer = useViewer();
   const params = useParams();
   const [searchParams, setSearchParams] = useSearchParams<{ type?: string }>();
-  const data = createPreloadedQuery<bookmarksPageQuery>(
+  const data = createStablePreloadedQuery<bookmarksPageQuery>(
     bookmarksPageQuery,
     () => loadBookmarksPageQuery(i18n.locale),
   );

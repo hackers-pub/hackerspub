@@ -9,8 +9,20 @@ import {
   type OperationType,
   type VariablesOf,
 } from "relay-runtime";
-import { getOwner, type Owner, runWithOwner } from "solid-js";
-import { type PreloadedQuery, useRelayEnvironment } from "solid-relay";
+import {
+  createMemo,
+  createSignal,
+  getOwner,
+  onMount,
+  type Owner,
+  runWithOwner,
+} from "solid-js";
+import {
+  createPreloadedQuery,
+  type DataStore,
+  type PreloadedQuery,
+  useRelayEnvironment,
+} from "solid-relay";
 
 export type MaybePromise<T> = T | Promise<T>;
 
@@ -155,4 +167,55 @@ function runCached<TLoader extends (...args: never[]) => unknown>(
 ): ReturnType<TLoader> {
   if (owner == null) return cached(...args) as ReturnType<TLoader>;
   return runWithOwner(owner, () => cached(...args)) as ReturnType<TLoader>;
+}
+
+// Like solid-relay's `createPreloadedQuery`, but keeps the `<Show keyed
+// when={data()}>` subtree mounted through hydration so a transient
+// `null`/`undefined` cannot crash the page.
+//
+// The flash: solid-relay republishes a query/fragment snapshot inside `batch()`
+// (the "stale read from `<Show>`" race), so `data()` momentarily reads falsy. If
+// that happens while `isHydrating()` is true, the `Show` unmounts and remounts
+// its subtree; the remount re-enters Solid's hydration path with
+// hydration-registry nodes that were already consumed, and Kobalte's
+// `Polymorphic` (a string-component `Dynamic`) then calls `getNextElement()`
+// with no `template` fallback and throws `TypeError: <x> is not a function`.
+//
+// Fix: hold the last non-null value, but only until `onMount` (i.e. until
+// hydration finishes). After that, fall back to the live store value so genuine
+// input changes (search, sort, route params) are reflected immediately instead
+// of masked by stale data; a remount after hydration is harmless because
+// `getNextElement()` is no longer on the path. This also preserves SSR
+// streaming, unlike a `!data.pending && data()` guard that short-circuits the
+// resource and stops the SSR Suspense boundary from ever suspending.
+//
+// `.latest` keeps the conventional `DataStore` meaning (the last resolved
+// value, even while a refetch is pending); `.pending`/`.error` are delegated to
+// the underlying store.
+export function createStablePreloadedQuery<TQuery extends OperationType>(
+  query: GraphQLTaggedNode,
+  preloadedQuery: () => MaybePromise<PreloadedQuery<TQuery> | null | undefined>,
+): DataStore<TQuery["response"] | null | undefined> {
+  const store = createPreloadedQuery<TQuery>(query, preloadedQuery);
+  // Derive from `store.latest` (a non-throwing getter), not `store()` (which
+  // rethrows in an error state to propagate to the nearest `ErrorBoundary`), so
+  // reading `.latest` never throws.
+  const latest = createMemo<TQuery["response"] | null | undefined>(
+    (prev) => store.latest ?? prev,
+  );
+  const [hydrated, setHydrated] = createSignal(false);
+  onMount(() => setHydrated(true));
+  const current = createMemo<TQuery["response"] | null | undefined>((prev) => {
+    const value = store();
+    return value != null || hydrated() ? value : prev;
+  });
+  const accessor = (() => current()) as unknown as DataStore<
+    TQuery["response"] | null | undefined
+  >;
+  Object.defineProperties(accessor, {
+    latest: { get: () => latest(), enumerable: true },
+    error: { get: () => store.error, enumerable: true },
+    pending: { get: () => store.pending, enumerable: true },
+  });
+  return accessor;
 }

@@ -3,11 +3,7 @@ import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { EngagementTabs } from "~/components/EngagementTabs.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { ReactionGroupSection } from "~/components/ReactionGroupSection.tsx";
@@ -16,7 +12,10 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { Title } from "~/components/Title.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import type {
   reactionsNoteEngagementQuery,
   reactionsNoteEngagementQuery$data,
@@ -118,7 +117,7 @@ type ReactionsPagePost = NonNullable<
 
 function ReactionsPageLoaded(props: { noteId: Uuid; handle: string }) {
   const username = () => props.handle.replace(/^@/, "");
-  const data = createPreloadedQuery<reactionsNoteEngagementQuery>(
+  const data = createStablePreloadedQuery<reactionsNoteEngagementQuery>(
     reactionsNoteEngagementQuery,
     () => loadReactionsQuery(username(), props.noteId),
   );

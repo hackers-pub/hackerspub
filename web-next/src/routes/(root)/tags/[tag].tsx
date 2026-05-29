@@ -1,18 +1,17 @@
 import { useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show, Suspense } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { HashtagActionBar } from "~/components/HashtagActionBar.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { SearchForm } from "~/components/SearchForm.tsx";
 import { SearchResults } from "~/components/SearchResults.tsx";
 import { SearchResultsSkeleton } from "~/components/SearchResultsSkeleton.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import type { TagPageQuery } from "./__generated__/TagPageQuery.graphql.ts";
 
 const TagPageQuery = graphql`
@@ -58,7 +57,7 @@ export default function TagPage() {
   const tag = () => decodeURIComponent(params.tag);
   const searchQuery = () => `#${tag()}`;
 
-  const data = createPreloadedQuery<TagPageQuery>(
+  const data = createStablePreloadedQuery<TagPageQuery>(
     TagPageQuery,
     () =>
       loadTagQuery(

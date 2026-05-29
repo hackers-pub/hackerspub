@@ -1,10 +1,7 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
+import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { SearchGuide_searchGuideQuery } from "./__generated__/SearchGuide_searchGuideQuery.graphql.ts";
 
@@ -21,7 +18,7 @@ export function SearchGuide() {
   const { i18n } = useLingui();
   const env = useRelayEnvironment();
 
-  const data = createPreloadedQuery<SearchGuide_searchGuideQuery>(
+  const data = createStablePreloadedQuery<SearchGuide_searchGuideQuery>(
     searchGuideQuery,
     () => loadQuery(env(), searchGuideQuery, { locale: i18n.locale }),
   );

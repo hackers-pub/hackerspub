@@ -27,7 +27,10 @@ import IconPin from "~icons/lucide/pin";
 import type { ProfilePageBaseQuery } from "./__generated__/ProfilePageBaseQuery.graphql.ts";
 import type { ProfilePageContentQuery } from "./__generated__/ProfilePageContentQuery.graphql.ts";
 import type { ProfilePagePinsQuery } from "./__generated__/ProfilePagePinsQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -154,11 +157,11 @@ const loadPinsQuery = routePreloadedQuery(
 export default function ProfilePage() {
   const { i18n, t } = useLingui();
   const params = useParams();
-  const baseData = createPreloadedQuery<ProfilePageBaseQuery>(
+  const baseData = createStablePreloadedQuery<ProfilePageBaseQuery>(
     ProfilePageBaseQuery,
     () => loadBaseQuery(params.handle!),
   );
-  const contentData = createPreloadedQuery<ProfilePageContentQuery>(
+  const contentData = createStablePreloadedQuery<ProfilePageContentQuery>(
     ProfilePageContentQuery,
     () => loadContentQuery(params.handle!, i18n.locale),
   );

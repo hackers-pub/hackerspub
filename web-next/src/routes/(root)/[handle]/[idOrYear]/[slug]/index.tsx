@@ -5,12 +5,7 @@ import { revalidate, type RouteDefinition, useParams } from "@solidjs/router";
 import { HttpHeader, HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
-import {
-  createFragment,
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createFragment, loadQuery, useRelayEnvironment } from "solid-relay";
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
@@ -42,7 +37,10 @@ import type { Slug_head$key } from "./__generated__/Slug_head.graphql.ts";
 import type { Slug_languageSwitcher$key } from "./__generated__/Slug_languageSwitcher.graphql.ts";
 import type { Slug_replies$key } from "./__generated__/Slug_replies.graphql.ts";
 import type { Slug_viewer$key } from "./__generated__/Slug_viewer.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -97,7 +95,7 @@ export default function ArticlePage() {
     }));
   });
 
-  const data = createPreloadedQuery<SlugPageQuery>(
+  const data = createStablePreloadedQuery<SlugPageQuery>(
     SlugPageQueryDef,
     () => loadPageQuery(handle, idOrYear, slug),
   );

@@ -16,17 +16,15 @@ import {
   Show,
   Switch,
 } from "solid-js";
-import {
-  createMutation,
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { LangPageQuery } from "./__generated__/LangPageQuery.graphql.ts";
 import type { LangPage_requestArticleTranslation_Mutation } from "./__generated__/LangPage_requestArticleTranslation_Mutation.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import {
   ArticleBody,
   ArticleMetaHead,
@@ -194,7 +192,7 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
   let pendingRequest: Disposable | null = null;
   onCleanup(() => pendingRequest?.dispose());
 
-  const data = createPreloadedQuery<LangPageQuery>(
+  const data = createStablePreloadedQuery<LangPageQuery>(
     LangPageQueryDef,
     () =>
       loadLangPageQuery(
@@ -423,7 +421,7 @@ function ArticleLangPageContent(props: ArticleLangPageContentProps) {
   // `onCleanup` registered inside this effect's tracking scope.
   // `fetchQuery` is used (instead of revalidating the Solid Router
   // cache key) because it forces a network round trip and writes the
-  // fresh response into the Relay store, which `createPreloadedQuery`
+  // fresh response into the Relay store, which `createStablePreloadedQuery`
   // observes; revalidating the router cache alone would leave the
   // already-populated Relay store unchanged.
   createEffect(() => {

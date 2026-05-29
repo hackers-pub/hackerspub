@@ -10,12 +10,8 @@ import {
   useContext,
 } from "solid-js";
 import { isServer } from "solid-js/web";
-import {
-  createMutation,
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
+import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { showToast } from "~/components/ui/toast.tsx";
 import type { QuotePolicy } from "~/components/QuotePolicySelect.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
@@ -189,7 +185,7 @@ export const ArticleComposerProvider: ParentComponent<ArticleComposerProps> = (
 
   // Draft loading
   const draftData = props.draftUuid
-    ? createPreloadedQuery<ArticleComposerContextDraftQueryType>(
+    ? createStablePreloadedQuery<ArticleComposerContextDraftQueryType>(
       ArticleComposerDraftQuery,
       () =>
         loadQuery<ArticleComposerContextDraftQueryType>(

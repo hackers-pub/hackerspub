@@ -2,18 +2,17 @@ import { A, useNavigate, useParams } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { ArticleComposer } from "~/components/article-composer/index.ts";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { Title } from "~/components/Title.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { newConnectionsQuery } from "./__generated__/newConnectionsQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const NewDraftConnectionsQuery = graphql`
   query newConnectionsQuery {
@@ -40,7 +39,7 @@ export default function NewArticleDraftPage() {
   const navigate = useNavigate();
   const [draftId, setDraftId] = createSignal<string | undefined>(undefined);
 
-  const connectionsData = createPreloadedQuery<newConnectionsQuery>(
+  const connectionsData = createStablePreloadedQuery<newConnectionsQuery>(
     NewDraftConnectionsQuery,
     () => loadNewDraftConnectionsQuery(),
   );

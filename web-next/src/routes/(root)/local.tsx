@@ -1,16 +1,15 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { AboutHackersPub } from "~/components/AboutHackersPub.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { localTimelineQuery } from "./__generated__/localTimelineQuery.graphql.ts";
 
@@ -44,7 +43,7 @@ export default function LocalTimeline() {
   const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
     "/local",
   );
-  const data = createPreloadedQuery<localTimelineQuery>(
+  const data = createStablePreloadedQuery<localTimelineQuery>(
     localTimelineQuery,
     () => loadLocalTimelineQuery(i18n.locale, initialLang ? [initialLang] : []),
   );

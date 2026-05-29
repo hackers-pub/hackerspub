@@ -6,7 +6,6 @@ import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
   createMutation,
   createPaginationFragment,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -47,7 +46,10 @@ import type {
   inviteMutation,
 } from "./__generated__/inviteMutation.graphql.ts";
 import type { invitePageQuery } from "./__generated__/invitePageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -205,7 +207,7 @@ export default function InvitePage() {
   const params = useParams();
   const { t, i18n } = useLingui();
 
-  const data = createPreloadedQuery<invitePageQuery>(
+  const data = createStablePreloadedQuery<invitePageQuery>(
     invitePageQuery,
     () => loadInvitePageQuery(params.handle!),
   );

@@ -4,7 +4,6 @@ import { createSignal, Show } from "solid-js";
 import {
   createFragment,
   createMutation,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -18,7 +17,10 @@ import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { languageMutation } from "./__generated__/languageMutation.graphql.ts";
 import type { languagePageQuery } from "./__generated__/languagePageQuery.graphql.ts";
 import type { languagePreferredLanguagesForm_locales$key } from "./__generated__/languagePreferredLanguagesForm_locales.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -53,7 +55,7 @@ const loadLanguagePageQuery = routePreloadedQuery(
 export default function LanguagePage() {
   const params = useParams();
   const { t } = useLingui();
-  const data = createPreloadedQuery<languagePageQuery>(
+  const data = createStablePreloadedQuery<languagePageQuery>(
     languagePageQuery,
     () => loadLanguagePageQuery(params.handle!),
   );

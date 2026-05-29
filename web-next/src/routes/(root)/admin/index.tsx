@@ -1,11 +1,7 @@
 import { Navigate, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { AdminAccountsTable } from "~/components/admin/AdminAccountsTable.tsx";
 import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
@@ -15,7 +11,10 @@ import type {
   adminAccountsPageQuery,
   OrderDirection,
 } from "./__generated__/adminAccountsPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import { ADMIN_SORT_FIELDS } from "~/lib/adminSort.ts";
 
 const adminAccountsPageQuery = graphql`
@@ -76,7 +75,7 @@ export default function AdminAccountsPage() {
   const { t } = useLingui();
   const location = useLocation();
   const queryParams = () => parseQueryParams(location.search);
-  const data = createPreloadedQuery<adminAccountsPageQuery>(
+  const data = createStablePreloadedQuery<adminAccountsPageQuery>(
     adminAccountsPageQuery,
     () => {
       const { orderBy, orderDirection, search } = queryParams();

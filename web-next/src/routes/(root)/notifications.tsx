@@ -1,18 +1,17 @@
 import { Navigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotificationList } from "~/components/NotificationList.tsx";
 import { Title } from "~/components/Title.tsx";
 import { WebPushNotificationSettings } from "~/components/WebPushNotificationSettings.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { notificationsPageQuery } from "./__generated__/notificationsPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const notificationsPageQuery = graphql`
   query notificationsPageQuery {
@@ -39,7 +38,7 @@ const loadPageQuery = routePreloadedQuery(
 
 export default function NotificationsPage() {
   const { t } = useLingui();
-  const data = createPreloadedQuery<notificationsPageQuery>(
+  const data = createStablePreloadedQuery<notificationsPageQuery>(
     notificationsPageQuery,
     () => loadPageQuery(),
   );

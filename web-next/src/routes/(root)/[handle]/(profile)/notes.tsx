@@ -2,11 +2,7 @@ import { Meta } from "@solidjs/meta";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { ActorNoteList } from "~/components/ActorNoteList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
@@ -20,7 +16,10 @@ import {
   profileContentRevalidating,
 } from "~/lib/profileContentQueries.ts";
 import type { notesPageQuery } from "./__generated__/notesPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -57,7 +56,7 @@ const loadPageQuery = routePreloadedQuery(
 export default function ProfileNotesPage() {
   const params = useParams();
   const { t } = useLingui();
-  const data = createPreloadedQuery<notesPageQuery>(
+  const data = createStablePreloadedQuery<notesPageQuery>(
     notesPageQuery,
     () => loadPageQuery(params.handle!),
   );

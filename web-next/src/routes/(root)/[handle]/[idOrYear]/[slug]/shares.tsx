@@ -3,7 +3,6 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
   createPaginationFragment,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -14,7 +13,10 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import type {
   sharesArticleEngagementQuery,
   sharesArticleEngagementQuery$data,
@@ -76,7 +78,7 @@ export default function ArticleSharesPage() {
 function ArticleSharesLoaded(
   props: { handle: string; idOrYear: string; slug: string },
 ) {
-  const data = createPreloadedQuery<sharesArticleEngagementQuery>(
+  const data = createStablePreloadedQuery<sharesArticleEngagementQuery>(
     sharesArticleEngagementQuery,
     () => loadSharesQuery(props.handle, props.idOrYear, props.slug),
   );

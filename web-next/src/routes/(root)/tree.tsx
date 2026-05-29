@@ -1,13 +1,12 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { ForceGraph } from "~/components/ForceGraph.tsx";
 import type { treeQuery } from "./__generated__/treeQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const TreeQueryDocument = graphql`
   query treeQuery {
@@ -57,7 +56,7 @@ function transformToGraphData(treeData: readonly TreeNode[]) {
 }
 
 export default function Tree() {
-  const data = createPreloadedQuery<treeQuery>(
+  const data = createStablePreloadedQuery<treeQuery>(
     TreeQueryDocument,
     () => loadTreeQuery(),
   );

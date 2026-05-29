@@ -2,11 +2,7 @@ import { Meta } from "@solidjs/meta";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { ActorFollowingList } from "~/components/ActorFollowingList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NotFoundPage } from "~/components/NotFoundPage.tsx";
@@ -14,7 +10,10 @@ import { ProfileCard } from "~/components/ProfileCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { followingPageQuery } from "./__generated__/followingPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -49,7 +48,7 @@ export default function ProfileFollowingPage() {
   const params = useParams();
   const { t } = useLingui();
   const username = params.handle!.substring(1);
-  const data = createPreloadedQuery<followingPageQuery>(
+  const data = createStablePreloadedQuery<followingPageQuery>(
     followingPageQuery,
     () => loadPageQuery(username),
   );

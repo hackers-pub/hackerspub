@@ -1,12 +1,7 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createMemo, createSignal, Show } from "solid-js";
-import {
-  createMutation,
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import {
   PostVisibility,
   PostVisibilitySelect,
@@ -24,7 +19,10 @@ import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { preferencesMutation } from "./__generated__/preferencesMutation.graphql.ts";
 import type { preferencesPageQuery } from "./__generated__/preferencesPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -90,7 +88,7 @@ export default function PreferencesPage() {
   const params = useParams();
   const { t } = useLingui();
   let preferAiSummaryDiv: HTMLDivElement | undefined;
-  const data = createPreloadedQuery<preferencesPageQuery>(
+  const data = createStablePreloadedQuery<preferencesPageQuery>(
     preferencesPageQuery,
     () => loadPreferencesPageQuery(params.handle!),
   );

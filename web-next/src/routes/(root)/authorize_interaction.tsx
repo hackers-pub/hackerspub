@@ -1,12 +1,7 @@
 import { useNavigate, useSearchParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createEffect, Show } from "solid-js";
-import {
-  createFragment,
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createFragment, loadQuery, useRelayEnvironment } from "solid-relay";
 import { FollowButton } from "~/components/FollowButton.tsx";
 import { Title } from "~/components/Title.tsx";
 import {
@@ -16,7 +11,10 @@ import {
 } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import type { authorizeInteractionPageByHandleQuery } from "./__generated__/authorizeInteractionPageByHandleQuery.graphql.ts";
 import type { authorizeInteractionPageByUrlQuery } from "./__generated__/authorizeInteractionPageByUrlQuery.graphql.ts";
 import type { authorizeInteractionPage_actor$key } from "./__generated__/authorizeInteractionPage_actor.graphql.ts";
@@ -115,7 +113,9 @@ export default function AuthorizeInteractionPage() {
 }
 
 function ByHandle(props: { handle: string }) {
-  const data = createPreloadedQuery<authorizeInteractionPageByHandleQuery>(
+  const data = createStablePreloadedQuery<
+    authorizeInteractionPageByHandleQuery
+  >(
     authorizeInteractionPageByHandleQuery,
     () => loadByHandleQuery(props.handle),
   );
@@ -133,7 +133,7 @@ function ByHandle(props: { handle: string }) {
 }
 
 function ByUrl(props: { url: string }) {
-  const data = createPreloadedQuery<authorizeInteractionPageByUrlQuery>(
+  const data = createStablePreloadedQuery<authorizeInteractionPageByUrlQuery>(
     authorizeInteractionPageByUrlQuery,
     () => loadByUrlQuery(props.url),
   );

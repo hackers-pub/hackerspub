@@ -2,18 +2,17 @@ import { A, useParams } from "@solidjs/router";
 import { HttpStatusCode } from "@solidjs/start";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { ArticleComposer } from "~/components/article-composer/index.ts";
 import { Title } from "~/components/Title.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { IdQuery } from "./__generated__/IdQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const EditDraftViewerQuery = graphql`
   query IdQuery {
@@ -37,7 +36,7 @@ const loadEditDraftViewerQuery = routePreloadedQuery(
 export default function EditArticleDraftPage() {
   const { t } = useLingui();
   const params = useParams();
-  const data = createPreloadedQuery<IdQuery>(
+  const data = createStablePreloadedQuery<IdQuery>(
     EditDraftViewerQuery,
     () => loadEditDraftViewerQuery(),
   );

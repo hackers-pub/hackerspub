@@ -1,18 +1,17 @@
 import { Navigate, type RouteDefinition, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { feedTimelineQuery } from "./__generated__/feedTimelineQuery.graphql.ts";
 
@@ -51,13 +50,13 @@ const loadFeedTimelineQuery = routePreloadedQuery(
 );
 
 // Mounted only after the viewer is known to be authenticated. Keeping
-// `createPreloadedQuery` inside this child means the protected feed
+// `createStablePreloadedQuery` inside this child means the protected feed
 // query is never even read for anonymous visitors — preventing the
 // render path from triggering it before <Navigate> takes over.
 function AuthenticatedFeedTimeline() {
   const { i18n } = useLingui();
   const { activeLanguage, initialLang, buildHref } = useLanguageFilter("/feed");
-  const data = createPreloadedQuery<feedTimelineQuery>(
+  const data = createStablePreloadedQuery<feedTimelineQuery>(
     feedTimelineQuery,
     () => loadFeedTimelineQuery(i18n.locale, initialLang ? [initialLang] : []),
   );

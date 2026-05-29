@@ -1,16 +1,15 @@
 import { Title } from "@solidjs/meta";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { DocumentView } from "~/components/DocumentView.tsx";
 import { WideContainer } from "~/components/WideContainer.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { privacyPolicyPageQuery } from "./__generated__/privacyPolicyPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const privacyPolicyPageQuery = graphql`
   query privacyPolicyPageQuery($locale: Locale!) {
@@ -32,7 +31,7 @@ const loadPageQuery = routePreloadedQuery(
 
 export default function PrivacyPage() {
   const { t, i18n } = useLingui();
-  const data = createPreloadedQuery<privacyPolicyPageQuery>(
+  const data = createStablePreloadedQuery<privacyPolicyPageQuery>(
     privacyPolicyPageQuery,
     () => loadPageQuery(i18n.locale),
   );

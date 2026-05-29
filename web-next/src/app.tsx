@@ -3,15 +3,8 @@ import { withSentryRouterRouting } from "@sentry/solidstart/solidrouter";
 import { MetaProvider } from "@solidjs/meta";
 import { Router } from "@solidjs/router";
 import { graphql } from "relay-runtime";
+import { ErrorBoundary, type ParentProps, Show, Suspense } from "solid-js";
 import {
-  createMemo,
-  ErrorBoundary,
-  type ParentProps,
-  Show,
-  Suspense,
-} from "solid-js";
-import {
-  createPreloadedQuery,
   loadQuery,
   RelayEnvironmentProvider,
   useRelayEnvironment,
@@ -38,7 +31,10 @@ const SentryErrorBoundary = withSentryErrorBoundary(ErrorBoundary);
 
 import "pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css";
 import "~/app.css";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const appQuery = graphql`
   query appQuery {
@@ -57,16 +53,9 @@ const loadAppQuery = routePreloadedQuery(
 );
 
 function I18nProviderWrapper(props: ParentProps) {
-  const rawData = createPreloadedQuery<appQuery>(
+  const data = createStablePreloadedQuery<appQuery>(
     appQuery,
     () => loadAppQuery(),
-  );
-  // Hold the last non-null query result so that a transient undefined during
-  // re-fetch (caused by routePreloadedQuery's reactive signal update) does not
-  // flip the Show condition and unmount the entire app tree — including the
-  // sidebar and all route content — for the duration of the flash.
-  const data = createMemo<ReturnType<typeof rawData> | undefined>(
-    (prev) => rawData() ?? prev,
   );
 
   return (

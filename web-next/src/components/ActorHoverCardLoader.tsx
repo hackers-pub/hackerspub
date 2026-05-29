@@ -1,10 +1,7 @@
 import { graphql } from "relay-runtime";
 import { ErrorBoundary, type JSX, Show, Suspense } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
+import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { ActorHoverCardLoaderByHandleQuery } from "./__generated__/ActorHoverCardLoaderByHandleQuery.graphql.ts";
 import type { ActorHoverCardLoaderByUrlQuery } from "./__generated__/ActorHoverCardLoaderByUrlQuery.graphql.ts";
@@ -52,7 +49,7 @@ export interface ActorHoverCardLoaderProps {
 
 export function ActorHoverCardLoader(props: ActorHoverCardLoaderProps) {
   const env = useRelayEnvironment();
-  const data = createPreloadedQuery<ActorHoverCardLoaderByHandleQuery>(
+  const data = createStablePreloadedQuery<ActorHoverCardLoaderByHandleQuery>(
     actorHoverCardLoaderByHandleQuery,
     () =>
       loadQuery(env(), actorHoverCardLoaderByHandleQuery, {
@@ -92,7 +89,7 @@ export function ActorHoverCardLoaderByUrl(
   props: ActorHoverCardLoaderByUrlProps,
 ) {
   const env = useRelayEnvironment();
-  const data = createPreloadedQuery<ActorHoverCardLoaderByUrlQuery>(
+  const data = createStablePreloadedQuery<ActorHoverCardLoaderByUrlQuery>(
     actorHoverCardLoaderByUrlQuery,
     () => loadQuery(env(), actorHoverCardLoaderByUrlQuery, { url: props.url }),
   );

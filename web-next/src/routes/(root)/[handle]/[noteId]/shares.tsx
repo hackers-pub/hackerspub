@@ -4,7 +4,6 @@ import { graphql } from "relay-runtime";
 import { createSignal, For, Match, Show, Switch } from "solid-js";
 import {
   createPaginationFragment,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -16,7 +15,10 @@ import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { encodeHandleSegment } from "~/lib/handleSegment.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import type {
   sharesNoteEngagementQuery,
   sharesNoteEngagementQuery$data,
@@ -80,7 +82,7 @@ type SharesPagePost = NonNullable<
 
 function SharesPageLoaded(props: { noteId: Uuid; handle: string }) {
   const username = () => props.handle.replace(/^@/, "");
-  const data = createPreloadedQuery<sharesNoteEngagementQuery>(
+  const data = createStablePreloadedQuery<sharesNoteEngagementQuery>(
     sharesNoteEngagementQuery,
     () => loadSharesQuery(username(), props.noteId),
   );

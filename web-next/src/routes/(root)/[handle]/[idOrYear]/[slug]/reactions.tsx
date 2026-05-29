@@ -2,11 +2,7 @@ import { sortReactionGroups } from "@hackerspub/models/emoji";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { For, Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { EngagementTabs } from "~/components/EngagementTabs.tsx";
 import { ReactionGroupSection } from "~/components/ReactionGroupSection.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
@@ -14,7 +10,10 @@ import { NotFoundPage } from "~/components/NotFoundPage.tsx";
 import { PostCard } from "~/components/PostCard.tsx";
 import { Title } from "~/components/Title.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import type {
   reactionsArticleEngagementQuery,
   reactionsArticleEngagementQuery$data,
@@ -121,7 +120,7 @@ export default function ArticleReactionsPage() {
 function ArticleReactionsLoaded(
   props: { handle: string; idOrYear: string; slug: string },
 ) {
-  const data = createPreloadedQuery<reactionsArticleEngagementQuery>(
+  const data = createStablePreloadedQuery<reactionsArticleEngagementQuery>(
     reactionsArticleEngagementQuery,
     () => loadReactionsQuery(props.handle, props.idOrYear, props.slug),
   );

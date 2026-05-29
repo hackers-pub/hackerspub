@@ -1,18 +1,17 @@
 import { Navigate, type RouteDefinition, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { withoutSharesFeedTimelineQuery } from "./__generated__/withoutSharesFeedTimelineQuery.graphql.ts";
 
@@ -55,7 +54,7 @@ function AuthenticatedWithoutSharesFeedTimeline() {
   const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
     "/feed/without-shares",
   );
-  const data = createPreloadedQuery<withoutSharesFeedTimelineQuery>(
+  const data = createStablePreloadedQuery<withoutSharesFeedTimelineQuery>(
     withoutSharesFeedTimelineQuery,
     () =>
       loadWithoutSharesFeedTimelineQuery(

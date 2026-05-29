@@ -1,12 +1,7 @@
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
-import {
-  createMutation,
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { LocaleSelect } from "~/components/LocaleSelect.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -31,7 +26,10 @@ import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import type { IdInvitationLinkPageQuery } from "./__generated__/IdInvitationLinkPageQuery.graphql.ts";
 import type { IdRedeemInvitationLinkMutation } from "./__generated__/IdRedeemInvitationLinkMutation.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -112,7 +110,7 @@ const invitationLinkRedeemMutation = graphql`
 export default function InvitationLinkPage() {
   const params = useParams();
   const { t, i18n } = useLingui();
-  const data = createPreloadedQuery<IdInvitationLinkPageQuery>(
+  const data = createStablePreloadedQuery<IdInvitationLinkPageQuery>(
     invitationLinkPageQuery,
     () => loadInvitationLinkPageQuery(params.id!, params.handle!),
   );

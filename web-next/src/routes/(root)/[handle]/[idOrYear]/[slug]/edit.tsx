@@ -11,7 +11,6 @@ import { isServer } from "solid-js/web";
 import {
   createFragment,
   createMutation,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -41,7 +40,10 @@ import type {
 } from "./__generated__/edit_article.graphql.ts";
 import type { edit_renderMarkdown_Query } from "./__generated__/edit_renderMarkdown_Query.graphql.ts";
 import type { edit_updateArticle_Mutation } from "./__generated__/edit_updateArticle_Mutation.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -82,7 +84,7 @@ export default function ArticleEditPage() {
   const idOrYear = params.idOrYear!;
   const slug = params.slug!;
 
-  const data = createPreloadedQuery<editPageQuery>(
+  const data = createStablePreloadedQuery<editPageQuery>(
     editPageQueryDef,
     () => loadPageQuery(handle, idOrYear, slug),
   );

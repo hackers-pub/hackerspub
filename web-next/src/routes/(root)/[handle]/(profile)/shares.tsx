@@ -2,11 +2,7 @@ import { Meta } from "@solidjs/meta";
 import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { ActorSharedPostList } from "~/components/ActorSharedPostList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NavigateIfHandleIsNotCanonical } from "~/components/NavigateIfHandleIsNotCanonical.tsx";
@@ -20,7 +16,10 @@ import {
   profileContentRevalidating,
 } from "~/lib/profileContentQueries.ts";
 import type { sharesPageQuery } from "./__generated__/sharesPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -57,7 +56,7 @@ const loadPageQuery = routePreloadedQuery(
 export default function ProfileSharesPage() {
   const params = useParams();
   const { t, i18n } = useLingui();
-  const data = createPreloadedQuery<sharesPageQuery>(
+  const data = createStablePreloadedQuery<sharesPageQuery>(
     sharesPageQuery,
     () => loadPageQuery(params.handle!, i18n.locale),
   );

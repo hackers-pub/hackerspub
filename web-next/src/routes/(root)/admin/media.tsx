@@ -1,12 +1,7 @@
 import { Navigate, revalidate, useNavigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
-import {
-  createMutation,
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -23,7 +18,10 @@ import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import type { mediaDeleteOrphanMediaMutation } from "./__generated__/mediaDeleteOrphanMediaMutation.graphql.ts";
 import type { mediaPageQuery } from "./__generated__/mediaPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const mediaPageQuery = graphql`
   query mediaPageQuery {
@@ -73,7 +71,7 @@ const mediaDeleteOrphanMediaMutation = graphql`
 export default function AdminMediaPage() {
   const { i18n, t } = useLingui();
   const navigate = useNavigate();
-  const data = createPreloadedQuery<mediaPageQuery>(
+  const data = createStablePreloadedQuery<mediaPageQuery>(
     mediaPageQuery,
     () => loadAdminMediaPageQuery(),
   );

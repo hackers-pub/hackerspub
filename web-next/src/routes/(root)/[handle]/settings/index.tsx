@@ -12,7 +12,6 @@ import { createStore } from "solid-js/store";
 import {
   createFragment,
   createMutation,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -44,7 +43,10 @@ import { SettingsOwnerGuard } from "~/components/SettingsOwnerGuard.tsx";
 import type { settingsForm_account$key } from "./__generated__/settingsForm_account.graphql.ts";
 import type { settingsMutation } from "./__generated__/settingsMutation.graphql.ts";
 import type { settingsPageQuery } from "./__generated__/settingsPageQuery.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 export const route = {
   matchFilters: {
@@ -96,7 +98,7 @@ const settingsMutation = graphql`
 export default function SettingsPage() {
   const params = useParams();
   const { t } = useLingui();
-  const data = createPreloadedQuery<settingsPageQuery>(
+  const data = createStablePreloadedQuery<settingsPageQuery>(
     settingsPageQuery,
     () => loadPageQuery(params.handle!),
   );

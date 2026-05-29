@@ -8,12 +8,8 @@ import { validateUuid } from "@hackerspub/models/uuid";
 import { type RouteSectionProps } from "@solidjs/router";
 import { fetchQuery, graphql } from "relay-runtime";
 import { createEffect, createSignal, Show } from "solid-js";
-import {
-  createMutation,
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
+import { createStablePreloadedQuery } from "~/lib/relayPreload.ts";
 import { DocumentView } from "~/components/DocumentView.tsx";
 import { MarkdownEditor } from "~/components/MarkdownEditor.tsx";
 import { Button } from "~/components/ui/button.tsx";
@@ -98,7 +94,7 @@ export default function SignupPage(props: RouteSectionProps) {
     bio: null as SignupBioError | null,
   });
 
-  const codeOfConductData = createPreloadedQuery<TokenCodeOfConductQuery>(
+  const codeOfConductData = createStablePreloadedQuery<TokenCodeOfConductQuery>(
     codeOfConductQuery,
     () =>
       loadQuery<TokenCodeOfConductQuery>(

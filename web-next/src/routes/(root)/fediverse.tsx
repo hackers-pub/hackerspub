@@ -1,16 +1,15 @@
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { AboutHackersPub } from "~/components/AboutHackersPub.tsx";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PublicTimeline } from "~/components/PublicTimeline.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { fediverseTimelineQuery } from "./__generated__/fediverseTimelineQuery.graphql.ts";
 
@@ -48,7 +47,7 @@ export default function FediverseTimeline() {
   const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
     "/fediverse",
   );
-  const data = createPreloadedQuery<fediverseTimelineQuery>(
+  const data = createStablePreloadedQuery<fediverseTimelineQuery>(
     fediverseTimelineQuery,
     () =>
       loadFediverseTimelineQuery(

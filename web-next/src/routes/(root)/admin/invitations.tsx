@@ -1,12 +1,7 @@
 import { Navigate, revalidate, useNavigate } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
-import {
-  createMutation,
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { createMutation, loadQuery, useRelayEnvironment } from "solid-relay";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { Timestamp } from "~/components/Timestamp.tsx";
 import { Title } from "~/components/Title.tsx";
@@ -23,7 +18,10 @@ import { showToast } from "~/components/ui/toast.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import type { invitationsPageQuery } from "./__generated__/invitationsPageQuery.graphql.ts";
 import type { invitationsRegenerateMutation } from "./__generated__/invitationsRegenerateMutation.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const invitationsPageQuery = graphql`
   query invitationsPageQuery {
@@ -77,7 +75,7 @@ const invitationsRegenerateMutation = graphql`
 export default function AdminInvitationsPage() {
   const { i18n, t } = useLingui();
   const navigate = useNavigate();
-  const data = createPreloadedQuery<invitationsPageQuery>(
+  const data = createStablePreloadedQuery<invitationsPageQuery>(
     invitationsPageQuery,
     () => loadAdminInvitationsPageQuery(),
   );

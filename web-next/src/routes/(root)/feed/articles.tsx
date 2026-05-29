@@ -1,18 +1,17 @@
 import { Navigate, type RouteDefinition, useLocation } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
-import {
-  createPreloadedQuery,
-  loadQuery,
-  useRelayEnvironment,
-} from "solid-relay";
+import { loadQuery, useRelayEnvironment } from "solid-relay";
 import { LanguageFilter } from "~/components/LanguageFilter.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { PersonalTimeline } from "~/components/PersonalTimeline.tsx";
 import { useViewer } from "~/contexts/ViewerContext.tsx";
 import { buildSignInHref, gateOnAuthentication } from "~/lib/authGate.ts";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 import { useLanguageFilter } from "~/lib/useLanguageFilter.ts";
 import type { articlesFeedTimelineQuery } from "./__generated__/articlesFeedTimelineQuery.graphql.ts";
 
@@ -55,7 +54,7 @@ function AuthenticatedArticlesFeedTimeline() {
   const { activeLanguage, initialLang, buildHref } = useLanguageFilter(
     "/feed/articles",
   );
-  const data = createPreloadedQuery<articlesFeedTimelineQuery>(
+  const data = createStablePreloadedQuery<articlesFeedTimelineQuery>(
     articlesFeedTimelineQuery,
     () =>
       loadArticlesFeedTimelineQuery(

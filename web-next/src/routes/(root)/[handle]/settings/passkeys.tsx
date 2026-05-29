@@ -9,7 +9,6 @@ import { createSignal, For, Show } from "solid-js";
 import {
   createMutation,
   createPaginationFragment,
-  createPreloadedQuery,
   loadQuery,
   useRelayEnvironment,
 } from "solid-relay";
@@ -49,7 +48,10 @@ import type { passkeysGetPasskeyRegistrationOptionsMutation } from "./__generate
 import type { passkeysPageQuery } from "./__generated__/passkeysPageQuery.graphql.ts";
 import type { passkeysRevokePasskeyMutation } from "./__generated__/passkeysRevokePasskeyMutation.graphql.ts";
 import type { passkeysVerifyPasskeyRegistrationMutation } from "./__generated__/passkeysVerifyPasskeyRegistrationMutation.graphql.ts";
-import { routePreloadedQuery } from "~/lib/relayPreload.ts";
+import {
+  createStablePreloadedQuery,
+  routePreloadedQuery,
+} from "~/lib/relayPreload.ts";
 
 const PASSKEYS_PAGE_SIZE = 10 as const;
 
@@ -158,7 +160,7 @@ export default function passkeysPage() {
   const params = useParams();
   const { t } = useLingui();
 
-  const data = createPreloadedQuery<passkeysPageQuery>(
+  const data = createStablePreloadedQuery<passkeysPageQuery>(
     passkeysPageQuery,
     () => loadPageQuery(params.handle!),
   );
