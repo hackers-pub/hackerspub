@@ -230,7 +230,7 @@ msgstr "{0} 更新了你轉貼過的內容"
 #. placeholder {1}: post.excerpt
 #. placeholder {1}: title()
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:237
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:282
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:283
 msgid "{0}: {1}"
 msgstr "{0}：{1}"
 
@@ -1032,7 +1032,7 @@ msgstr "載入更多引用失敗，點擊重試"
 msgid "Failed to load more reactors; click to retry"
 msgstr "載入更多反應者失敗，點擊重試"
 
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:669
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:670
 msgid "Failed to load more replies; click to retry"
 msgstr "載入更多回覆失敗，點擊重試"
 
@@ -1347,17 +1347,17 @@ msgstr "啟用後，AI 將為您生成文章摘要。否則，將使用文章的
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1013
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:546
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:547
 msgid "If you have a fediverse account, you can reply to this article from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在聯邦宇宙有個帳戶，你可以在你自己的站台裡評論此文章。在你的站台搜尋 {0} 後回覆。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:392
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:393
 msgid "If you have a fediverse account, you can reply to this note from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你在聯邦宇宙有個帳戶，你可以在你自己的實例裡評論此貼文。在你的實例搜尋 {0} 後回覆。"
 
 #. placeholder {0}: "ACTIVITYPUB_URI"
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:470
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:471
 msgid "If you have a fediverse account, you can reply to this post from your own instance. Search {0} on your instance and reply to it."
 msgstr "如果你有聯邦宇宙帳號，可以從自己的站台回覆此內容。在你的站台中搜尋 {0} 並回覆。"
 
@@ -1569,7 +1569,7 @@ msgstr "載入更多引用"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "載入更多反應者 (+{0})"
 
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:672
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:673
 msgid "Load more replies"
 msgstr "載入更多回覆"
 
@@ -1635,7 +1635,7 @@ msgstr "正在載入更多引用…"
 msgid "Loading more reactors…"
 msgstr "正在載入更多反應者…"
 
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:666
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:667
 msgid "Loading more replies…"
 msgstr "正在載入更多回覆…"
 
@@ -2417,6 +2417,7 @@ msgstr "轉貼"
 msgid "Sharing is not available for this post"
 msgstr "無法轉貼此內容。"
 
+#: src/components/MutedReplyPlaceholder.tsx:32
 #: src/components/NoteCardInternal.tsx:119
 #: src/components/QuotedNoteCard.tsx:191
 msgid "Show"
@@ -2675,6 +2676,11 @@ msgstr "此內容引用了另一則內容，但目前未獲得引用授權。"
 #: src/components/QuoteTargetPlaceholder.tsx:35
 msgid "This quote is waiting for approval from the original author."
 msgstr "此引用正在等待原作者核准。"
+
+#. placeholder {0}: props.handle
+#: src/components/MutedReplyPlaceholder.tsx:24
+msgid "This reply is hidden because you muted {0}."
+msgstr "因為你已靜音 {0}，此回覆已被隱藏。"
 
 #: src/components/WebPushNotificationSettings.tsx:389
 msgid "This server has not configured Web Push yet."
@@ -2997,9 +3003,9 @@ msgstr "撰寫"
 
 #: src/components/NoteComposeModal.tsx:109
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/index.tsx:1004
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:383
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:461
-#: src/routes/(root)/[handle]/[noteId]/index.tsx:537
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:384
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:462
+#: src/routes/(root)/[handle]/[noteId]/index.tsx:538
 msgid "Write a reply…"
 msgstr "寫個回覆…"
 

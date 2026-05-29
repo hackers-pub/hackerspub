@@ -29,6 +29,7 @@ import {
 import { ActorHoverCard } from "~/components/ActorHoverCard.tsx";
 import { ArticleCard } from "~/components/ArticleCard.tsx";
 import { InternalLink } from "~/components/InternalLink.tsx";
+import { MutedReplyPlaceholder } from "~/components/MutedReplyPlaceholder.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
 import { NoteCard } from "~/components/NoteCard.tsx";
 import { NoteComposer } from "~/components/NoteComposer.tsx";
@@ -708,12 +709,14 @@ function ContextPostCard(props: ContextPostCardProps) {
           local
           url
           iri
+          viewerMutes
           ...PostAvatar_actor
         }
       }
     `,
     () => props.$post,
   );
+  const [revealed, setRevealed] = createSignal(false);
 
   return (
     <Show keyed when={post()}>
@@ -721,56 +724,71 @@ function ContextPostCard(props: ContextPostCardProps) {
         const href = () => post.url ?? post.iri;
         const internalHref = () => getContextPostInternalHref(post);
         return (
-          <article class="border-b px-4 py-3 transition-colors hover:bg-muted/30 last:border-none">
-            <div class="flex gap-3 sm:gap-4">
-              <PostAvatar $actor={post.actor} />
-              <div class="min-w-0 grow">
-                <div class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5">
-                  <ActorHoverCard
-                    handle={post.actor.handle}
-                    class="min-w-0 grow flex flex-wrap items-baseline gap-x-1"
-                  >
-                    <Show when={(post.actor.name ?? "").trim() !== ""}>
-                      <InternalLink
-                        href={post.actor.url ?? post.actor.iri}
-                        internalHref={post.actor.local
-                          ? `/@${post.actor.username}`
-                          : `/${post.actor.handle}`}
-                        innerHTML={post.actor.name ?? ""}
-                        class="font-semibold"
-                      />
-                    </Show>
-                    <span
-                      class="min-w-0 truncate select-all text-muted-foreground"
-                      title={post.actor.handle}
-                    >
-                      {post.actor.handle}
-                    </span>
-                  </ActorHoverCard>
-                  <span class="flex items-center gap-1.5 text-sm text-muted-foreground/70">
-                    <ContextPostLink
-                      href={href()}
-                      internalHref={internalHref()}
-                    >
-                      <Timestamp value={post.published} capitalizeFirstLetter />
-                    </ContextPostLink>
-                  </span>
-                </div>
-                <ContextPostLink
-                  href={href()}
-                  internalHref={internalHref()}
-                  class="mt-1 block text-sm text-foreground"
-                >
-                  <Show
-                    when={post.name != null && post.name.trim() !== ""}
-                    fallback={post.excerpt}
-                  >
-                    <span class="font-medium">{post.name}</span>
-                  </Show>
-                </ContextPostLink>
+          <Show
+            when={!post.actor.viewerMutes || revealed()}
+            fallback={
+              <div class="border-b last:border-none">
+                <MutedReplyPlaceholder
+                  handle={post.actor.handle}
+                  onReveal={() => setRevealed(true)}
+                />
               </div>
-            </div>
-          </article>
+            }
+          >
+            <article class="border-b px-4 py-3 transition-colors hover:bg-muted/30 last:border-none">
+              <div class="flex gap-3 sm:gap-4">
+                <PostAvatar $actor={post.actor} />
+                <div class="min-w-0 grow">
+                  <div class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5">
+                    <ActorHoverCard
+                      handle={post.actor.handle}
+                      class="min-w-0 grow flex flex-wrap items-baseline gap-x-1"
+                    >
+                      <Show when={(post.actor.name ?? "").trim() !== ""}>
+                        <InternalLink
+                          href={post.actor.url ?? post.actor.iri}
+                          internalHref={post.actor.local
+                            ? `/@${post.actor.username}`
+                            : `/${post.actor.handle}`}
+                          innerHTML={post.actor.name ?? ""}
+                          class="font-semibold"
+                        />
+                      </Show>
+                      <span
+                        class="min-w-0 truncate select-all text-muted-foreground"
+                        title={post.actor.handle}
+                      >
+                        {post.actor.handle}
+                      </span>
+                    </ActorHoverCard>
+                    <span class="flex items-center gap-1.5 text-sm text-muted-foreground/70">
+                      <ContextPostLink
+                        href={href()}
+                        internalHref={internalHref()}
+                      >
+                        <Timestamp
+                          value={post.published}
+                          capitalizeFirstLetter
+                        />
+                      </ContextPostLink>
+                    </span>
+                  </div>
+                  <ContextPostLink
+                    href={href()}
+                    internalHref={internalHref()}
+                    class="mt-1 block text-sm text-foreground"
+                  >
+                    <Show
+                      when={post.name != null && post.name.trim() !== ""}
+                      fallback={post.excerpt}
+                    >
+                      <span class="font-medium">{post.name}</span>
+                    </Show>
+                  </ContextPostLink>
+                </div>
+              </div>
+            </article>
+          </Show>
         );
       }}
     </Show>
