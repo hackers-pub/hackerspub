@@ -164,6 +164,9 @@ catalogs:
       version: 1.0.15
 
 patchedDependencies:
+  '@floating-ui/utils@0.2.11':
+    hash: 1e16e53952cd7dae85f44b04b0561143d2153e3ae0709f6362c9ba9317314f76
+    path: patches/@floating-ui__utils@0.2.11.patch
   '@kobalte/core@0.13.11':
     hash: 0e9ebaa19196c640af5fb0d7dc0d8bb5c8243b5315d53897219526bab4fd8be4
     path: patches/@kobalte__core@0.13.11.patch
@@ -7062,14 +7065,14 @@ snapshots:
 
   '@floating-ui/core@1.7.5':
     dependencies:
-      '@floating-ui/utils': 0.2.11
+      '@floating-ui/utils': 0.2.11(patch_hash=1e16e53952cd7dae85f44b04b0561143d2153e3ae0709f6362c9ba9317314f76)
 
   '@floating-ui/dom@1.7.6':
     dependencies:
       '@floating-ui/core': 1.7.5
-      '@floating-ui/utils': 0.2.11
+      '@floating-ui/utils': 0.2.11(patch_hash=1e16e53952cd7dae85f44b04b0561143d2153e3ae0709f6362c9ba9317314f76)
 
-  '@floating-ui/utils@0.2.11': {}
+  '@floating-ui/utils@0.2.11(patch_hash=1e16e53952cd7dae85f44b04b0561143d2153e3ae0709f6362c9ba9317314f76)': {}
 
   '@hackerspub/markdown-it-texmath@1.0.1': {}
 

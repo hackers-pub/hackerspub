@@ -1,0 +1,57 @@
+diff --git a/dist/floating-ui.utils.dom.esm.js b/dist/floating-ui.utils.dom.esm.js
+index f05dd508eec398359df7831fa826798392f1b6a1..1f1f8f7bd30a239c8a08183b29b15530a48ae82a 100644
+--- a/dist/floating-ui.utils.dom.esm.js
++++ b/dist/floating-ui.utils.dom.esm.js
+@@ -43,6 +43,14 @@ function isShadowRoot(value) {
+   return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
+ }
+ function isOverflowElement(element) {
++  // Patch (hackerspub): `autoUpdate` can walk an ancestor chain to a node that
++  // is no longer a connected Element (e.g. a Kobalte Popover whose anchor
++  // button was detached in the same tick it opened). `getComputedStyle` then
++  // throws "parameter 1 is not of type 'Element'". Treat a non-Element as a
++  // non-overflow element instead of crashing. See Sentry WEB-NEXT-1H.
++  if (!isElement(element)) {
++    return false;
++  }
+   const {
+     overflow,
+     overflowX,
+diff --git a/dist/floating-ui.utils.dom.mjs b/dist/floating-ui.utils.dom.mjs
+index f05dd508eec398359df7831fa826798392f1b6a1..1f1f8f7bd30a239c8a08183b29b15530a48ae82a 100644
+--- a/dist/floating-ui.utils.dom.mjs
++++ b/dist/floating-ui.utils.dom.mjs
+@@ -43,6 +43,14 @@ function isShadowRoot(value) {
+   return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
+ }
+ function isOverflowElement(element) {
++  // Patch (hackerspub): `autoUpdate` can walk an ancestor chain to a node that
++  // is no longer a connected Element (e.g. a Kobalte Popover whose anchor
++  // button was detached in the same tick it opened). `getComputedStyle` then
++  // throws "parameter 1 is not of type 'Element'". Treat a non-Element as a
++  // non-overflow element instead of crashing. See Sentry WEB-NEXT-1H.
++  if (!isElement(element)) {
++    return false;
++  }
+   const {
+     overflow,
+     overflowX,
+diff --git a/dist/floating-ui.utils.dom.umd.js b/dist/floating-ui.utils.dom.umd.js
+index 4ba7e4a0c98e5e0a0ceeea22ccaca573cac8349d..db92056df1c58b96ca5f683c3d32ba0967146bcc 100644
+--- a/dist/floating-ui.utils.dom.umd.js
++++ b/dist/floating-ui.utils.dom.umd.js
+@@ -49,6 +49,14 @@
+     return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
+   }
+   function isOverflowElement(element) {
++    // Patch (hackerspub): `autoUpdate` can walk an ancestor chain to a node
++    // that is no longer a connected Element (e.g. a Kobalte Popover whose
++    // anchor button was detached in the same tick it opened). `getComputedStyle`
++    // then throws "parameter 1 is not of type 'Element'". Treat a non-Element as
++    // a non-overflow element instead of crashing. See Sentry WEB-NEXT-1H.
++    if (!isElement(element)) {
++      return false;
++    }
+     const {
+       overflow,
+       overflowX,
