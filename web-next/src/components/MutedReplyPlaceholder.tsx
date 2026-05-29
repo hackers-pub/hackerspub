@@ -26,7 +26,7 @@ export function MutedReplyPlaceholder(props: MutedReplyPlaceholderProps) {
       <Button
         variant="outline"
         size="sm"
-        class="shrink-0 cursor-pointer"
+        class="shrink-0"
         onClick={() => props.onReveal()}
       >
         {t`Show`}

@@ -1,13 +1,11 @@
 import { graphql } from "relay-runtime";
-import { createSignal, For, Match, Show, Switch } from "solid-js";
+import { createSignal, Show } from "solid-js";
 import { createMutation, createPaginationFragment } from "solid-relay";
-import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
-import { Button } from "~/components/ui/button.tsx";
 import { showToast } from "~/components/ui/toast.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { BlockedAccountsList_actor$key } from "./__generated__/BlockedAccountsList_actor.graphql.ts";
 import type { BlockedAccountsList_unblockActor_Mutation } from "./__generated__/BlockedAccountsList_unblockActor_Mutation.graphql.ts";
-import { ActorHoverCard } from "./ActorHoverCard.tsx";
+import { AccountListBase } from "./AccountListBase.tsx";
 
 export interface BlockedAccountsListProps {
   $actor: BlockedAccountsList_actor$key;
@@ -109,102 +107,17 @@ export function BlockedAccountsList(props: BlockedAccountsListProps) {
   return (
     <Show keyed when={blocked()}>
       {(data) => (
-        <Show
-          when={data.blockedActors.edges.length > 0}
-          fallback={
-            <p class="px-4 py-8 text-center text-muted-foreground">
-              {t`You haven't blocked anyone.`}
-            </p>
-          }
-        >
-          <ul class="divide-y divide-solid">
-            <For each={data.blockedActors.edges}>
-              {(edge) => (
-                <li class="flex items-center gap-3 px-4 py-3">
-                  <ActorHoverCard handle={edge.node.handle} class="shrink-0">
-                    <Avatar class="size-10 shrink-0">
-                      <a
-                        href={`/${
-                          edge.node.local
-                            ? `@${edge.node.username}`
-                            : edge.node.handle
-                        }`}
-                      >
-                        <AvatarImage
-                          src={edge.node.avatarUrl}
-                          class="size-10"
-                        />
-                      </a>
-                    </Avatar>
-                  </ActorHoverCard>
-                  <div class="flex min-w-0 grow flex-col">
-                    <Show
-                      when={(edge.node.name ?? "").trim() !== ""}
-                      fallback={
-                        <a
-                          href={`/${
-                            edge.node.local
-                              ? `@${edge.node.username}`
-                              : edge.node.handle
-                          }`}
-                          class="truncate font-semibold"
-                        >
-                          {edge.node.username}
-                        </a>
-                      }
-                    >
-                      <a
-                        href={`/${
-                          edge.node.local
-                            ? `@${edge.node.username}`
-                            : edge.node.handle
-                        }`}
-                        innerHTML={edge.node.name ?? ""}
-                        class="truncate font-semibold"
-                      />
-                    </Show>
-                    <span
-                      class="truncate text-sm text-muted-foreground select-all"
-                      title={edge.node.handle}
-                    >
-                      {edge.node.handle}
-                    </span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    class="shrink-0 cursor-pointer"
-                    disabled={isUnblocking()}
-                    onClick={() =>
-                      onUnblock(edge.node.id, data.blockedActors.__id)}
-                  >
-                    {t`Unblock`}
-                  </Button>
-                </li>
-              )}
-            </For>
-          </ul>
-          <Show when={blocked.hasNext}>
-            <button
-              type="button"
-              on:click={loadingState() === "loading" ? undefined : onLoadMore}
-              disabled={blocked.pending || loadingState() === "loading"}
-              class="block w-full cursor-pointer px-4 py-6 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <Switch>
-                <Match when={blocked.pending || loadingState() === "loading"}>
-                  {t`Loading more…`}
-                </Match>
-                <Match when={loadingState() === "errored"}>
-                  {t`Failed to load more; click to retry`}
-                </Match>
-                <Match when={loadingState() === "loaded"}>
-                  {t`Load more`}
-                </Match>
-              </Switch>
-            </button>
-          </Show>
-        </Show>
+        <AccountListBase
+          edges={data.blockedActors.edges}
+          hasNext={blocked.hasNext}
+          pending={blocked.pending}
+          loadingState={loadingState()}
+          onLoadMore={onLoadMore}
+          onAction={(actorId) => onUnblock(actorId, data.blockedActors.__id)}
+          actionLabel={t`Unblock`}
+          actionDisabled={isUnblocking()}
+          emptyMessage={t`You haven't blocked anyone.`}
+        />
       )}
     </Show>
   );

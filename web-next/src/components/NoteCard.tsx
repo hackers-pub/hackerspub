@@ -58,38 +58,40 @@ export function NoteCard(props: NoteCardProps) {
             : null;
         return (
           <Show
-            when={mutedActor() == null}
+            when={mutedActor()}
             fallback={
-              <article class="border-b last:border-none">
-                <MutedReplyPlaceholder
-                  handle={mutedActor()!.handle}
-                  onReveal={() => setRevealed(true)}
-                />
+              <article class="border-b px-4 py-4 transition-colors hover:bg-muted/30 last:border-none">
+                <div class="flex flex-col gap-0.5">
+                  <Show when={note.sharedPost}>
+                    <PostSharer $post={note} class="ml-14" />
+                  </Show>
+                  <Show when={props.sharerActor}>
+                    <ActorSharer
+                      actor={props.sharerActor!}
+                      timestamp={props.sharerTimestamp!}
+                      class="ml-14"
+                    />
+                  </Show>
+                  <NoteCardInternal
+                    $note={displayPost()}
+                    connections={props.connections}
+                    bookmarkListConnections={props.bookmarkListConnections}
+                    pinConnections={props.pinConnections}
+                    deferHeavySections={props.deferHeavySections}
+                    onDeleted={props.onDeleted}
+                  />
+                </div>
               </article>
             }
           >
-            <article class="border-b px-4 py-4 transition-colors hover:bg-muted/30 last:border-none">
-              <div class="flex flex-col gap-0.5">
-                <Show when={note.sharedPost}>
-                  <PostSharer $post={note} class="ml-14" />
-                </Show>
-                <Show when={props.sharerActor}>
-                  <ActorSharer
-                    actor={props.sharerActor!}
-                    timestamp={props.sharerTimestamp!}
-                    class="ml-14"
-                  />
-                </Show>
-                <NoteCardInternal
-                  $note={displayPost()}
-                  connections={props.connections}
-                  bookmarkListConnections={props.bookmarkListConnections}
-                  pinConnections={props.pinConnections}
-                  deferHeavySections={props.deferHeavySections}
-                  onDeleted={props.onDeleted}
+            {(actor) => (
+              <article class="border-b last:border-none">
+                <MutedReplyPlaceholder
+                  handle={actor().handle}
+                  onReveal={() => setRevealed(true)}
                 />
-              </div>
-            </article>
+              </article>
+            )}
           </Show>
         );
       }}
