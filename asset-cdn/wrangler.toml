@@ -1,0 +1,23 @@
+# Cloudflare Worker that serves web-next's `/_build/assets/*` for hackers.pub
+# from the R2 bucket CI mirrors each deploy's chunks into. See src/index.ts
+# for the rationale.
+#
+# Deploy with: `npx wrangler deploy` (run from this directory). Requires a
+# Cloudflare API token with Workers + the target zone; see README.md.
+
+name = "hackerspub-asset-cdn"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# Route every `/_build/assets/*` request for the apex zone through this Worker.
+# hackers.pub must be proxied (orange-cloud) through Cloudflare for the route
+# to take effect.
+routes = [
+  { pattern = "hackers.pub/_build/assets/*", zone_name = "hackers.pub" },
+]
+
+# Binds the bucket that `upload-assets` (.github/workflows/main.yml) syncs into.
+# `bucket_name` must match the real bucket; adjust if you name it differently.
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "hackerspub-assets"

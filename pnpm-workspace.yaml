@@ -3,6 +3,7 @@ packages:
   - federation
   - models
   - web-next
+  - asset-cdn
 
 catalog:
   '@c4spar/mock-fetch': jsr:^1.0.0

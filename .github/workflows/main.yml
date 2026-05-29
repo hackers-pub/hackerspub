@@ -49,6 +49,11 @@ jobs:
     - name: Run checks
       if: always()
       run: deno task check
+    - name: Typecheck asset-cdn Worker
+      if: always()
+      # asset-cdn is excluded from `deno task check` (it targets the Cloudflare
+      # Workers runtime, not Deno), so type-check it with its own tsc.
+      run: pnpm --filter @hackerspub/asset-cdn typecheck
     - name: Check for untranslated messages
       if: always()
       run: |
@@ -208,3 +213,54 @@ jobs:
         inputs: ghcr.io/${{ github.repository }}:git-${{ github.sha }},ghcr.io/${{ github.repository }}:latest
         images: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-amd64,ghcr.io/${{ github.repository }}:git-${{ github.sha }}-arm64
         push: true
+
+  # Mirror this build's content-hashed client assets to Cloudflare R2 so the
+  # asset-cdn Worker (see asset-cdn/) can keep serving older deploys' route
+  # chunks after the container image (which carries only the current build) is
+  # replaced. This is what prevents Sentry WEB-NEXT-C
+  # ("error loading dynamically imported module") for tabs that outlive a
+  # deploy. We pull the assets out of the already-built amd64 image rather than
+  # rebuilding, so they are byte-for-byte what production serves (the Docker
+  # build stamps the version into the bundle, changing hashes vs. the `test`
+  # job's build). Assets are architecture-independent, so amd64 alone suffices.
+  #
+  # Dormant until the R2_ASSET_UPLOAD repo variable is set to "true", so this
+  # is a no-op until the bucket and credentials exist. See asset-cdn/README.md.
+  upload-assets:
+    if: github.event_name == 'push' && vars.R2_ASSET_UPLOAD == 'true'
+    needs: [image]
+    permissions:
+      contents: read
+      packages: read
+    runs-on: namespace-profile-linux-amd64-8cpu-16gb
+    steps:
+    - uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    - name: Extract built client assets from the image
+      env:
+        IMAGE: ghcr.io/${{ github.repository }}:git-${{ github.sha }}-amd64
+      run: |
+        set -euo pipefail
+        cid="$(docker create "$IMAGE")"
+        docker cp "$cid:/app/web-next/.output/public/_build" ./_build
+        docker rm "$cid"
+    - name: Upload to Cloudflare R2
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: auto
+        R2_S3_ENDPOINT: ${{ secrets.R2_S3_ENDPOINT }}
+        R2_BUCKET: ${{ vars.R2_BUCKET }}
+      run: |
+        set -euo pipefail
+        # `sync` without `--delete`: upload newly added content-hashed files
+        # and leave every previously uploaded object in place, so already-loaded
+        # tabs never 404 on an old chunk. Hashed names make this safe (no churn
+        # on unchanged files, no collisions across builds).
+        aws s3 sync ./_build "s3://${R2_BUCKET}/_build" \
+          --endpoint-url "$R2_S3_ENDPOINT" \
+          --cache-control "public, max-age=31536000, immutable" \
+          --no-progress

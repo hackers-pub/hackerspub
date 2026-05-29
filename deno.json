@@ -176,6 +176,7 @@
     ".claude/skills/",
     ".claude/worktrees/",
     ".github/",
+    "asset-cdn/",
     "drizzle/",
     "node_modules/",
     "web-next/dist/",
