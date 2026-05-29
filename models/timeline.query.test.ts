@@ -620,6 +620,72 @@ Deno.test({
       });
       assertEquals(after.map((e) => e.post.id), [remotePost.id]);
       assertEquals(after[0].lastSharer?.id, sharerB.actor.id);
+      assertEquals(after[0].sharersCount, 1);
+    });
+  },
+});
+
+Deno.test({
+  name: "getPersonalTimeline() drops a muted non-latest sharer from the count",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "nonlatestviewer",
+        name: "Non Latest Viewer",
+        email: "nonlatestviewer@example.com",
+      });
+      const sharerA = await insertAccountWithActor(tx, {
+        username: "nonlatesta",
+        name: "Non Latest A",
+        email: "nonlatesta@example.com",
+      });
+      const sharerB = await insertAccountWithActor(tx, {
+        username: "nonlatestb",
+        name: "Non Latest B",
+        email: "nonlatestb@example.com",
+      });
+      const remoteActor = await insertRemoteActor(tx, {
+        username: "nonlatestremote",
+        name: "Non Latest Remote",
+        host: "non-latest.example",
+      });
+      const remotePost = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Shared by two followed accounts</p>",
+      });
+
+      await follow(fedCtx, viewer.account, sharerA.actor);
+      await follow(fedCtx, viewer.account, sharerB.actor);
+
+      // B shares first, then A: A is the most recent sharer, B is not.
+      const shareB = await sharePost(fedCtx, sharerB.account, {
+        ...remotePost,
+        actor: remoteActor,
+      });
+      await tx.update(postTable)
+        .set({ published: new Date("2026-04-15T00:00:01.000Z") })
+        .where(eq(postTable.id, shareB.id));
+      const shareA = await sharePost(fedCtx, sharerA.account, {
+        ...remotePost,
+        actor: remoteActor,
+      });
+      await tx.update(postTable)
+        .set({ published: new Date("2026-04-15T00:00:02.000Z") })
+        .where(eq(postTable.id, shareA.id));
+
+      // Muting B (the non-latest sharer) leaves the row attributed to A but
+      // must drop B from the count rather than leaving it stale.
+      await mute(tx, viewer.account, sharerB.actor);
+      const after = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assertEquals(after.map((e) => e.post.id), [remotePost.id]);
+      assertEquals(after[0].lastSharer?.id, sharerA.actor.id);
+      assertEquals(after[0].sharersCount, 1);
     });
   },
 });

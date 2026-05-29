@@ -484,7 +484,15 @@ export async function pruneMutedActorFromTimeline(
     .where(
       and(
         eq(timelineItemTable.accountId, muterAccountId),
-        eq(timelineItemTable.lastSharerId, muteeActorId),
+        // Every row the muted actor boosted, not just those where they are the
+        // current lastSharer, so sharersCount and attribution stay correct even
+        // when an unmuted sharer is more recent.
+        sql`EXISTS (
+          SELECT 1
+          FROM ${postTable}
+          WHERE ${postTable.sharedPostId} = ${timelineItemTable.postId}
+            AND ${postTable.actorId} = ${muteeActorId}
+        )`,
       ),
     );
   await db.delete(timelineItemTable)
