@@ -464,7 +464,22 @@ export async function pruneMutedActorFromTimeline(
               AND ${mutingTable.muteeId} = ${postTable.actorId}
           )
       )`,
-      sharersCount: sql`greatest(${timelineItemTable.sharersCount} - 1, 0)`,
+      sharersCount: sql`(
+        SELECT count(DISTINCT ${postTable.actorId})
+        FROM ${postTable}
+        JOIN ${followingTable}
+          ON ${followingTable.followerId} = ${muterActorId}
+          AND ${followingTable.followeeId} = ${postTable.actorId}
+          AND ${followingTable.accepted} IS NOT NULL
+        WHERE ${postTable.sharedPostId} = ${timelineItemTable.postId}
+          AND ${postTable.visibility} IN ('public', 'unlisted', 'followers')
+          AND NOT EXISTS (
+            SELECT 1
+            FROM ${mutingTable}
+            WHERE ${mutingTable.muterId} = ${muterActorId}
+              AND ${mutingTable.muteeId} = ${postTable.actorId}
+          )
+      )`,
     })
     .where(
       and(
