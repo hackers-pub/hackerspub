@@ -98,7 +98,7 @@ export function AccountListBase(props: AccountListBaseProps) {
       <Show when={props.hasNext}>
         <button
           type="button"
-          on:click={props.onLoadMore}
+          onClick={props.onLoadMore}
           disabled={props.pending || props.loadingState === "loading"}
           class="block w-full cursor-pointer px-4 py-6 text-center text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
         >
