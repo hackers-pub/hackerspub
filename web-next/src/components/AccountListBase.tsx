@@ -1,8 +1,8 @@
 import { For, Match, Show, Switch } from "solid-js";
+import { ActorHoverCard } from "./ActorHoverCard.tsx";
 import { Avatar, AvatarImage } from "~/components/ui/avatar.tsx";
 import { Button } from "~/components/ui/button.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
-import { ActorHoverCard } from "./ActorHoverCard.tsx";
 
 /** The actor fields a row needs; structurally satisfied by the list fragments. */
 export interface AccountListItem {

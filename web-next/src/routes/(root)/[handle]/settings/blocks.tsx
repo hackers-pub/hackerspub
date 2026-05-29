@@ -2,6 +2,7 @@ import { type RouteDefinition, useParams } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
+import type { blocksPageQuery } from "./__generated__/blocksPageQuery.graphql.ts";
 import { BlockedAccountsList } from "~/components/BlockedAccountsList.tsx";
 import { MutedAccountsList } from "~/components/MutedAccountsList.tsx";
 import { NarrowContainer } from "~/components/NarrowContainer.tsx";
@@ -20,7 +21,6 @@ import {
   createStablePreloadedQuery,
   routePreloadedQuery,
 } from "~/lib/relayPreload.ts";
-import type { blocksPageQuery } from "./__generated__/blocksPageQuery.graphql.ts";
 
 export const route = {
   matchFilters: {

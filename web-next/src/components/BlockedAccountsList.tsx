@@ -1,11 +1,11 @@
 import { graphql } from "relay-runtime";
 import { createSignal, Show } from "solid-js";
 import { createMutation, createPaginationFragment } from "solid-relay";
-import { showToast } from "~/components/ui/toast.tsx";
-import { useLingui } from "~/lib/i18n/macro.d.ts";
+import { AccountListBase } from "./AccountListBase.tsx";
 import type { BlockedAccountsList_actor$key } from "./__generated__/BlockedAccountsList_actor.graphql.ts";
 import type { BlockedAccountsList_unblockActor_Mutation } from "./__generated__/BlockedAccountsList_unblockActor_Mutation.graphql.ts";
-import { AccountListBase } from "./AccountListBase.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
+import { useLingui } from "~/lib/i18n/macro.d.ts";
 
 export interface BlockedAccountsListProps {
   $actor: BlockedAccountsList_actor$key;
