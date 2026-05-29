@@ -104,6 +104,32 @@ export async function createNotification(
   created?: Date | null,
   emoji?: string | CustomEmoji | null,
 ): Promise<Notification | undefined> {
+  // Suppress notifications triggered by an actor the recipient has muted.
+  // The only exception: a `reply` or `mention` from a muted actor the recipient
+  // ALSO follows still notifies (muting someone you follow only hides them from
+  // feeds). Every other notification type (and any type from a muted actor the
+  // recipient does not follow) is suppressed. Muting is local-only, so this is
+  // enforced at creation time: a later unmute does not retroactively recover
+  // notifications that were never created.
+  const muted = await db.query.mutingTable.findFirst({
+    where: {
+      muteeId: actorId,
+      muter: { accountId },
+    },
+  });
+  if (muted != null) {
+    const followExempt = type === "reply" || type === "mention";
+    if (!followExempt) return undefined;
+    const following = await db.query.followingTable.findFirst({
+      where: {
+        followeeId: actorId,
+        accepted: { isNotNull: true },
+        follower: { accountId },
+      },
+    });
+    if (following == null) return undefined;
+  }
+
   const postId = post?.id;
   const effectiveCreated = created == null
     ? sql`CURRENT_TIMESTAMP`

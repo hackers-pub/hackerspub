@@ -2,6 +2,7 @@ import { assert } from "@std/assert/assert";
 import { assertEquals } from "@std/assert/equals";
 import { and, eq } from "drizzle-orm";
 import { follow } from "./following.ts";
+import { mute } from "./muting.ts";
 import { sharePost } from "./post.ts";
 import {
   addPostToTimeline,
@@ -489,6 +490,143 @@ Deno.test({
           allIds.includes(jaPost.id),
         "empty languages returns all posts",
       );
+    });
+  },
+});
+
+Deno.test({
+  name: "getPersonalTimeline() excludes share-only rows from a muted sharer",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "mutesharerviewer",
+        name: "Mute Sharer Viewer",
+        email: "mutesharerviewer@example.com",
+      });
+      const sharer = await insertAccountWithActor(tx, {
+        username: "mutesharersharer",
+        name: "Mute Sharer Sharer",
+        email: "mutesharersharer@example.com",
+      });
+      const remoteActor = await insertRemoteActor(tx, {
+        username: "mutesharerremote",
+        name: "Mute Sharer Remote",
+        host: "mute-sharer.example",
+      });
+      const remotePost = await insertRemotePost(tx, {
+        actorId: remoteActor.id,
+        contentHtml: "<p>Boosted by a soon-to-be-muted sharer</p>",
+      });
+
+      await follow(fedCtx, viewer.account, sharer.actor);
+      const share = await sharePost(fedCtx, sharer.account, {
+        ...remotePost,
+        actor: remoteActor,
+      });
+      await tx.update(postTable)
+        .set({
+          published: new Date("2026-04-15T00:00:04.000Z"),
+          updated: new Date("2026-04-15T00:00:04.000Z"),
+        })
+        .where(eq(postTable.id, share.id));
+
+      // Before muting, the boosted post is visible (shared by the sharer).
+      const before = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assertEquals(before.map((e) => e.post.id), [remotePost.id]);
+      assertEquals(before[0].lastSharer?.id, sharer.actor.id);
+
+      // After muting the sharer, the share-only row disappears entirely.
+      await mute(tx, viewer.account, sharer.actor);
+      const after = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assertEquals(after, []);
+    });
+  },
+});
+
+Deno.test({
+  name: "getPersonalTimeline() excludes posts authored by a muted actor",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const viewer = await insertAccountWithActor(tx, {
+        username: "muteauthorviewer",
+        name: "Mute Author Viewer",
+        email: "muteauthorviewer@example.com",
+      });
+      const author = await insertAccountWithActor(tx, {
+        username: "muteauthorauthor",
+        name: "Mute Author Author",
+        email: "muteauthorauthor@example.com",
+      });
+      await follow(fedCtx, viewer.account, author.actor);
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Authored by a soon-to-be-muted actor",
+        published: new Date("2026-04-15T00:00:01.000Z"),
+      });
+      await addPostToTimeline(tx, post);
+
+      const before = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assertEquals(before.map((e) => e.post.id), [post.id]);
+
+      await mute(tx, viewer.account, author.actor);
+      const after = await getPersonalTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assertEquals(after, []);
+    });
+  },
+});
+
+Deno.test({
+  name: "getPublicTimeline() excludes posts authored by a muted actor",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const viewer = await insertAccountWithActor(tx, {
+        username: "mutepublicviewer",
+        name: "Mute Public Viewer",
+        email: "mutepublicviewer@example.com",
+      });
+      const author = await insertAccountWithActor(tx, {
+        username: "mutepublicauthor",
+        name: "Mute Public Author",
+        email: "mutepublicauthor@example.com",
+      });
+      const { post } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Public post by a soon-to-be-muted actor",
+        published: new Date("2026-04-15T00:00:01.000Z"),
+      });
+
+      const before = await getPublicTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assert(before.map((e) => e.post.id).includes(post.id));
+
+      await mute(tx, viewer.account, author.actor);
+      const after = await getPublicTimeline(tx, {
+        currentAccount: viewer.account,
+        window: 10,
+      });
+      assertEquals(after.map((e) => e.post.id).includes(post.id), false);
     });
   },
 });

@@ -1,7 +1,9 @@
 import process from "node:process";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Database, RelationsFilter } from "./db.ts";
+import { getMutedActorIds } from "./muting.ts";
 import {
+  getMutedActorExclusionFilter,
   getPostVisibilityFilter,
   getPublicTimelineVisibilityFilter,
 } from "./post.ts";
@@ -660,6 +662,9 @@ export async function getPublicTimeline(
     const batchFilter: RelationsFilter<"postTable"> = {
       AND: [
         getPublicTimelineVisibilityFilter(currentAccount?.actor ?? null),
+        ...(currentAccount == null
+          ? []
+          : [getMutedActorExclusionFilter(currentAccount.actor.id)]),
         ...batchCursorFilters,
         languages.size < 1
           ? (currentAccount?.hideForeignLanguages &&
@@ -1063,9 +1068,18 @@ export async function getPersonalTimeline(
             },
           }
           : {}),
+        // Drop share-only rows (the post is in the feed solely because a muted
+        // actor shared it: no followed author backs it) so a muted actor's
+        // boosts never surface. Rows that ALSO have a followed original author
+        // are kept; the muted sharer attribution is stripped below.
+        NOT: {
+          originalAuthorId: { isNull: true },
+          lastSharer: { muters: { muterId: currentAccount.actor.id } },
+        },
         post: {
           AND: [
             getPostVisibilityFilter(currentAccount.actor),
+            getMutedActorExclusionFilter(currentAccount.actor.id),
             local
               ? {
                 OR: [
@@ -1126,6 +1140,17 @@ export async function getPersonalTimeline(
       [...actorIdSet],
     );
 
+    // Identify which sharers in this batch are muted so their "shared by …"
+    // attribution can be stripped from kept rows (muted-only shares are already
+    // excluded by the WHERE clause above).
+    const mutedSharerIds = await getMutedActorIds(
+      db,
+      currentAccount.actor.id,
+      items
+        .map((item) => item.lastSharerId)
+        .filter((id): id is Uuid => id != null),
+    );
+
     for (const item of items) {
       const post = item.post as { actor: unknown } | null;
       if (post == null || post.actor == null) continue;
@@ -1181,7 +1206,11 @@ export async function getPersonalTimeline(
           enrichedPost as unknown as typeof item.post,
         ) as unknown as TimelineEntry["post"],
         cursor: withoutShares ? item.added : item.appended,
-        lastSharer: withoutShares ? null : item.lastSharer,
+        lastSharer: withoutShares ||
+            (item.lastSharerId != null &&
+              mutedSharerIds.has(item.lastSharerId))
+          ? null
+          : item.lastSharer,
       });
     }
 

@@ -76,6 +76,8 @@ export const relations = defineRelations(schema, (r) => ({
     followees: r.many.followingTable({ alias: "follower" }),
     blockers: r.many.blockingTable({ alias: "blockee" }),
     blockees: r.many.blockingTable({ alias: "blocker" }),
+    muters: r.many.mutingTable({ alias: "mutee" }),
+    mutees: r.many.mutingTable({ alias: "muter" }),
     mentions: r.many.mentionTable(),
     posts: r.many.postTable(),
     pins: r.many.pinTable(),
@@ -112,6 +114,20 @@ export const relations = defineRelations(schema, (r) => ({
     blockee: r.one.actorTable({
       alias: "blockee",
       from: r.blockingTable.blockeeId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+  },
+  mutingTable: {
+    muter: r.one.actorTable({
+      alias: "muter",
+      from: r.mutingTable.muterId,
+      to: r.actorTable.id,
+      optional: false,
+    }),
+    mutee: r.one.actorTable({
+      alias: "mutee",
+      from: r.mutingTable.muteeId,
       to: r.actorTable.id,
       optional: false,
     }),
