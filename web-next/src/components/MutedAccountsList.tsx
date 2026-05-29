@@ -135,15 +135,31 @@ export function MutedAccountsList(props: MutedAccountsListProps) {
                     </Avatar>
                   </ActorHoverCard>
                   <div class="flex min-w-0 grow flex-col">
-                    <a
-                      href={`/${
-                        edge.node.local
-                          ? `@${edge.node.username}`
-                          : edge.node.handle
-                      }`}
-                      innerHTML={edge.node.name ?? edge.node.username}
-                      class="truncate font-semibold"
-                    />
+                    <Show
+                      when={(edge.node.name ?? "").trim() !== ""}
+                      fallback={
+                        <a
+                          href={`/${
+                            edge.node.local
+                              ? `@${edge.node.username}`
+                              : edge.node.handle
+                          }`}
+                          class="truncate font-semibold"
+                        >
+                          {edge.node.username}
+                        </a>
+                      }
+                    >
+                      <a
+                        href={`/${
+                          edge.node.local
+                            ? `@${edge.node.username}`
+                            : edge.node.handle
+                        }`}
+                        innerHTML={edge.node.name ?? ""}
+                        class="truncate font-semibold"
+                      />
+                    </Show>
                     <span
                       class="truncate text-sm text-muted-foreground select-all"
                       title={edge.node.handle}
