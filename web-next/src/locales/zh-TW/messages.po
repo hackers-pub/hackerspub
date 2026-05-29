@@ -477,6 +477,14 @@ msgstr "封鎖"
 msgid "Block user?"
 msgstr "封鎖使用者？"
 
+#: src/routes/(root)/[handle]/settings/blocks.tsx:98
+msgid "Blocked accounts"
+msgstr "已封鎖的帳號"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:100
+msgid "Blocked accounts cannot follow you or see your posts. Unlike muting, blocking is federated to the blocked account's instance."
+msgstr "被封鎖的帳號無法關注你或查看你的內容。與靜音不同，封鎖會聯邦到被封鎖帳號所在的站台。"
+
 #: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "粗體"
@@ -1041,6 +1049,11 @@ msgstr "載入更多回覆失敗，點擊重試"
 msgid "Failed to load more shares; click to retry"
 msgstr "載入更多轉貼失敗，點擊重試"
 
+#: src/components/BlockedAccountsList.tsx:183
+#: src/components/MutedAccountsList.tsx:180
+msgid "Failed to load more; click to retry"
+msgstr "載入更多失敗；點擊重試"
+
 #: src/components/NoteComposer.tsx:1014
 msgid "Failed to load post"
 msgstr "無法載入內容"
@@ -1134,6 +1147,8 @@ msgstr "轉貼失敗"
 msgid "Failed to sign out: {0}"
 msgstr "登出失敗：{0}"
 
+#: src/components/BlockedAccountsList.tsx:98
+#: src/components/BlockedAccountsList.tsx:104
 #: src/components/ProfileActionMenu.tsx:258
 #: src/components/ProfileActionMenu.tsx:264
 msgid "Failed to unblock this user"
@@ -1145,6 +1160,8 @@ msgstr "無法解除封鎖此使用者"
 msgid "Failed to unfollow"
 msgstr "取消關注失敗"
 
+#: src/components/MutedAccountsList.tsx:97
+#: src/components/MutedAccountsList.tsx:101
 #: src/components/ProfileActionMenu.tsx:300
 #: src/components/ProfileActionMenu.tsx:308
 msgid "Failed to unmute this user"
@@ -1425,7 +1442,7 @@ msgid "Invitations left"
 msgstr "剩餘邀請"
 
 #: src/components/AppSidebar.tsx:642
-#: src/components/SettingsTabs.tsx:68
+#: src/components/SettingsTabs.tsx:69
 #: src/routes/(root)/[handle]/settings/invite.tsx:295
 msgid "Invite"
 msgstr "邀請"
@@ -1470,7 +1487,7 @@ msgstr "語言"
 msgid "Language code"
 msgstr "語言代碼"
 
-#: src/components/SettingsTabs.tsx:60
+#: src/components/SettingsTabs.tsx:61
 #: src/routes/(root)/[handle]/settings/language.tsx:82
 msgid "Language settings"
 msgstr "語言設定"
@@ -1512,6 +1529,8 @@ msgstr "連結名"
 msgid "List"
 msgstr "列表"
 
+#: src/components/BlockedAccountsList.tsx:186
+#: src/components/MutedAccountsList.tsx:183
 #: src/routes/(root)/[handle]/drafts/index.tsx:348
 msgid "Load more"
 msgstr "載入更多"
@@ -1644,6 +1663,11 @@ msgstr "正在載入更多回覆…"
 msgid "Loading more shares…"
 msgstr "正在載入更多轉貼…"
 
+#: src/components/BlockedAccountsList.tsx:180
+#: src/components/MutedAccountsList.tsx:177
+msgid "Loading more…"
+msgstr "正在載入更多…"
+
 #: src/components/NoteComposer.tsx:1066
 msgid "Loading quoted post…"
 msgstr "正在載入引用內容…"
@@ -1719,6 +1743,23 @@ msgstr "多選"
 #: src/components/ProfileActionMenu.tsx:360
 msgid "Mute"
 msgstr "靜音"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:84
+msgid "Muted accounts"
+msgstr "已靜音的帳號"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:86
+#~ msgid "Muted accounts are hidden from your feeds and stop notifying you, but you can still visit their profiles. Muting is private and is never federated."
+#~ msgstr "被靜音的帳號不會出現在你的時間軸中，也不會向你發送通知，但你仍可造訪其個人檔案。靜音是私密的，且不會進行聯邦。"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:86
+msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
+msgstr "被靜音的帳號不會出現在你的時間軸中，也不會通知你，但你關注的帳號的回覆與提及仍會通知你。你仍可造訪其個人檔案；靜音是私密的，且不會進行聯邦。"
+
+#: src/components/SettingsTabs.tsx:85
+#: src/routes/(root)/[handle]/settings/blocks.tsx:77
+msgid "Mutes and blocks"
+msgstr "靜音與封鎖"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:375
 msgid "My passkey"
@@ -1959,7 +2000,7 @@ msgstr "通行金鑰註冊成功"
 msgid "Passkey revoked"
 msgstr "通行金鑰已撤銷"
 
-#: src/components/SettingsTabs.tsx:76
+#: src/components/SettingsTabs.tsx:77
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:355
 msgid "Passkeys"
 msgstr "通行金鑰"
@@ -2036,7 +2077,7 @@ msgstr "內容"
 msgid "Prefer AI-generated summary"
 msgstr "優先使用 AI 生成的摘要"
 
-#: src/components/SettingsTabs.tsx:52
+#: src/components/SettingsTabs.tsx:53
 #: src/routes/(root)/[handle]/settings/preferences.tsx:169
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 msgid "Preferences"
@@ -2073,7 +2114,7 @@ msgstr "隱私權政策"
 msgid "Profile actions"
 msgstr "個人檔案操作"
 
-#: src/components/SettingsTabs.tsx:44
+#: src/components/SettingsTabs.tsx:45
 #: src/routes/(root)/[handle]/settings/index.tsx:124
 #: src/routes/(root)/[handle]/settings/index.tsx:125
 msgid "Profile settings"
@@ -2788,6 +2829,7 @@ msgstr "無法新增反應。請重試。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "無法移除反應。請重試。"
 
+#: src/components/BlockedAccountsList.tsx:165
 #: src/components/ProfileActionMenu.tsx:377
 #: src/components/ProfileActionMenu.tsx:405
 #: src/components/ProfileActionMenu.tsx:413
@@ -2803,6 +2845,7 @@ msgstr "解除封鎖使用者？"
 msgid "Unfollow"
 msgstr "取消關注"
 
+#: src/components/MutedAccountsList.tsx:162
 #: src/components/ProfileActionMenu.tsx:361
 msgid "Unmute"
 msgstr "解除靜音"
@@ -2844,10 +2887,12 @@ msgstr "已靜音使用者"
 msgid "User not found."
 msgstr "未找到使用者資訊。"
 
+#: src/components/BlockedAccountsList.tsx:95
 #: src/components/ProfileActionMenu.tsx:259
 msgid "User unblocked"
 msgstr "已解除封鎖使用者"
 
+#: src/components/MutedAccountsList.tsx:95
 #: src/components/ProfileActionMenu.tsx:304
 msgid "User unmuted"
 msgstr "已解除靜音使用者"
@@ -3075,6 +3120,14 @@ msgstr "您尚未註冊任何通行金鑰。"
 #: src/routes/(root)/[handle]/settings/invite.tsx:420
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你沒有剩餘邀請名額。請稍後再試。"
+
+#: src/components/BlockedAccountsList.tsx:116
+msgid "You haven't blocked anyone."
+msgstr "你還沒有封鎖任何帳號。"
+
+#: src/components/MutedAccountsList.tsx:113
+msgid "You haven't muted anyone."
+msgstr "你還沒有靜音任何帳號。"
 
 #: src/components/FollowButton.tsx:131
 #: src/components/FollowButton.tsx:149

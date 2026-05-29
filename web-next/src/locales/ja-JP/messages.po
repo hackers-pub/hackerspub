@@ -477,6 +477,14 @@ msgstr "ブロック"
 msgid "Block user?"
 msgstr "ユーザーをブロックしますか？"
 
+#: src/routes/(root)/[handle]/settings/blocks.tsx:98
+msgid "Blocked accounts"
+msgstr "ブロックしたアカウント"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:100
+msgid "Blocked accounts cannot follow you or see your posts. Unlike muting, blocking is federated to the blocked account's instance."
+msgstr "ブロックしたアカウントは、あなたをフォローしたり、あなたのコンテンツを見たりできません。ミュートとは異なり、ブロックはブロックした相手のインスタンスにも連合されます。"
+
 #: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "太字"
@@ -1041,6 +1049,11 @@ msgstr "返信の読み込みに失敗しました。クリックして再試行
 msgid "Failed to load more shares; click to retry"
 msgstr "共有の追加読み込みに失敗しました。再試行するにはクリックしてください"
 
+#: src/components/BlockedAccountsList.tsx:183
+#: src/components/MutedAccountsList.tsx:180
+msgid "Failed to load more; click to retry"
+msgstr "読み込みに失敗しました。クリックして再試行してください"
+
 #: src/components/NoteComposer.tsx:1014
 msgid "Failed to load post"
 msgstr "コンテンツの読み込みに失敗しました"
@@ -1134,6 +1147,8 @@ msgstr "コンテンツの共有に失敗しました"
 msgid "Failed to sign out: {0}"
 msgstr "ログアウトに失敗：{0}"
 
+#: src/components/BlockedAccountsList.tsx:98
+#: src/components/BlockedAccountsList.tsx:104
 #: src/components/ProfileActionMenu.tsx:258
 #: src/components/ProfileActionMenu.tsx:264
 msgid "Failed to unblock this user"
@@ -1145,6 +1160,8 @@ msgstr "このユーザーのブロックを解除できませんでした"
 msgid "Failed to unfollow"
 msgstr "フォロー解除に失敗しました"
 
+#: src/components/MutedAccountsList.tsx:97
+#: src/components/MutedAccountsList.tsx:101
 #: src/components/ProfileActionMenu.tsx:300
 #: src/components/ProfileActionMenu.tsx:308
 msgid "Failed to unmute this user"
@@ -1425,7 +1442,7 @@ msgid "Invitations left"
 msgstr "残り招待数"
 
 #: src/components/AppSidebar.tsx:642
-#: src/components/SettingsTabs.tsx:68
+#: src/components/SettingsTabs.tsx:69
 #: src/routes/(root)/[handle]/settings/invite.tsx:295
 msgid "Invite"
 msgstr "招待"
@@ -1470,7 +1487,7 @@ msgstr "言語"
 msgid "Language code"
 msgstr "言語コード"
 
-#: src/components/SettingsTabs.tsx:60
+#: src/components/SettingsTabs.tsx:61
 #: src/routes/(root)/[handle]/settings/language.tsx:82
 msgid "Language settings"
 msgstr "言語設定"
@@ -1512,6 +1529,8 @@ msgstr "リンク名"
 msgid "List"
 msgstr "リスト"
 
+#: src/components/BlockedAccountsList.tsx:186
+#: src/components/MutedAccountsList.tsx:183
 #: src/routes/(root)/[handle]/drafts/index.tsx:348
 msgid "Load more"
 msgstr "さらに読み込む"
@@ -1644,6 +1663,11 @@ msgstr "返信を読み込み中…"
 msgid "Loading more shares…"
 msgstr "共有を読み込み中…"
 
+#: src/components/BlockedAccountsList.tsx:180
+#: src/components/MutedAccountsList.tsx:177
+msgid "Loading more…"
+msgstr "さらに読み込んでいます…"
+
 #: src/components/NoteComposer.tsx:1066
 msgid "Loading quoted post…"
 msgstr "引用コンテンツを読み込み中…"
@@ -1719,6 +1743,23 @@ msgstr "複数選択"
 #: src/components/ProfileActionMenu.tsx:360
 msgid "Mute"
 msgstr "ミュート"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:84
+msgid "Muted accounts"
+msgstr "ミュートしたアカウント"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:86
+#~ msgid "Muted accounts are hidden from your feeds and stop notifying you, but you can still visit their profiles. Muting is private and is never federated."
+#~ msgstr "ミュートしたアカウントはタイムラインに表示されず、通知も届きません。ただし、プロフィールは引き続き閲覧できます。ミュートは非公開で、連合されることはありません。"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:86
+msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
+msgstr "ミュートしたアカウントはタイムラインに表示されず、通知も届きません。ただし、フォローしているアカウントからの返信やメンションは通知されます。プロフィールは引き続き閲覧でき、ミュートは非公開で連合されることはありません。"
+
+#: src/components/SettingsTabs.tsx:85
+#: src/routes/(root)/[handle]/settings/blocks.tsx:77
+msgid "Mutes and blocks"
+msgstr "ミュートとブロック"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:375
 msgid "My passkey"
@@ -1959,7 +2000,7 @@ msgstr "パスキーの登録に成功しました"
 msgid "Passkey revoked"
 msgstr "パスキーを取り消しました"
 
-#: src/components/SettingsTabs.tsx:76
+#: src/components/SettingsTabs.tsx:77
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:355
 msgid "Passkeys"
 msgstr "パスキー"
@@ -2036,7 +2077,7 @@ msgstr "コンテンツ"
 msgid "Prefer AI-generated summary"
 msgstr "AI生成の要約を優先"
 
-#: src/components/SettingsTabs.tsx:52
+#: src/components/SettingsTabs.tsx:53
 #: src/routes/(root)/[handle]/settings/preferences.tsx:169
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 msgid "Preferences"
@@ -2073,7 +2114,7 @@ msgstr "プライバシーポリシー"
 msgid "Profile actions"
 msgstr "プロフィール操作"
 
-#: src/components/SettingsTabs.tsx:44
+#: src/components/SettingsTabs.tsx:45
 #: src/routes/(root)/[handle]/settings/index.tsx:124
 #: src/routes/(root)/[handle]/settings/index.tsx:125
 msgid "Profile settings"
@@ -2788,6 +2829,7 @@ msgstr "リアクションを追加できませんでした。もう一度お試
 msgid "Unable to remove reaction. Please try again."
 msgstr "リアクションを削除できませんでした。もう一度お試しください。"
 
+#: src/components/BlockedAccountsList.tsx:165
 #: src/components/ProfileActionMenu.tsx:377
 #: src/components/ProfileActionMenu.tsx:405
 #: src/components/ProfileActionMenu.tsx:413
@@ -2803,6 +2845,7 @@ msgstr "ユーザーのブロックを解除しますか？"
 msgid "Unfollow"
 msgstr "フォロー解除"
 
+#: src/components/MutedAccountsList.tsx:162
 #: src/components/ProfileActionMenu.tsx:361
 msgid "Unmute"
 msgstr "ミュート解除"
@@ -2844,10 +2887,12 @@ msgstr "ユーザーをミュートしました"
 msgid "User not found."
 msgstr "ユーザー情報が見つかりません。"
 
+#: src/components/BlockedAccountsList.tsx:95
 #: src/components/ProfileActionMenu.tsx:259
 msgid "User unblocked"
 msgstr "ユーザーのブロックを解除しました"
 
+#: src/components/MutedAccountsList.tsx:95
 #: src/components/ProfileActionMenu.tsx:304
 msgid "User unmuted"
 msgstr "ユーザーのミュートを解除しました"
@@ -3075,6 +3120,14 @@ msgstr "まだパスキーが登録されていません。"
 #: src/routes/(root)/[handle]/settings/invite.tsx:420
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "招待状が残っていません。追加されるまでお待ちください。"
+
+#: src/components/BlockedAccountsList.tsx:116
+msgid "You haven't blocked anyone."
+msgstr "ブロックしているアカウントはありません。"
+
+#: src/components/MutedAccountsList.tsx:113
+msgid "You haven't muted anyone."
+msgstr "ミュートしているアカウントはありません。"
 
 #: src/components/FollowButton.tsx:131
 #: src/components/FollowButton.tsx:149

@@ -477,6 +477,14 @@ msgstr "Block"
 msgid "Block user?"
 msgstr "Block user?"
 
+#: src/routes/(root)/[handle]/settings/blocks.tsx:98
+msgid "Blocked accounts"
+msgstr "Blocked accounts"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:100
+msgid "Blocked accounts cannot follow you or see your posts. Unlike muting, blocking is federated to the blocked account's instance."
+msgstr "Blocked accounts cannot follow you or see your posts. Unlike muting, blocking is federated to the blocked account's instance."
+
 #: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "Bold"
@@ -1045,6 +1053,11 @@ msgstr "Failed to load more replies; click to retry"
 msgid "Failed to load more shares; click to retry"
 msgstr "Failed to load more shares; click to retry"
 
+#: src/components/BlockedAccountsList.tsx:183
+#: src/components/MutedAccountsList.tsx:180
+msgid "Failed to load more; click to retry"
+msgstr "Failed to load more; click to retry"
+
 #: src/components/NoteComposer.tsx:1014
 msgid "Failed to load post"
 msgstr "Failed to load post"
@@ -1138,6 +1151,8 @@ msgstr "Failed to share post"
 msgid "Failed to sign out: {0}"
 msgstr "Failed to sign out: {0}"
 
+#: src/components/BlockedAccountsList.tsx:98
+#: src/components/BlockedAccountsList.tsx:104
 #: src/components/ProfileActionMenu.tsx:258
 #: src/components/ProfileActionMenu.tsx:264
 msgid "Failed to unblock this user"
@@ -1149,6 +1164,8 @@ msgstr "Failed to unblock this user"
 msgid "Failed to unfollow"
 msgstr "Failed to unfollow"
 
+#: src/components/MutedAccountsList.tsx:97
+#: src/components/MutedAccountsList.tsx:101
 #: src/components/ProfileActionMenu.tsx:300
 #: src/components/ProfileActionMenu.tsx:308
 msgid "Failed to unmute this user"
@@ -1429,7 +1446,7 @@ msgid "Invitations left"
 msgstr "Invitations left"
 
 #: src/components/AppSidebar.tsx:642
-#: src/components/SettingsTabs.tsx:68
+#: src/components/SettingsTabs.tsx:69
 #: src/routes/(root)/[handle]/settings/invite.tsx:295
 msgid "Invite"
 msgstr "Invite"
@@ -1474,7 +1491,7 @@ msgstr "Language"
 msgid "Language code"
 msgstr "Language code"
 
-#: src/components/SettingsTabs.tsx:60
+#: src/components/SettingsTabs.tsx:61
 #: src/routes/(root)/[handle]/settings/language.tsx:82
 msgid "Language settings"
 msgstr "Language settings"
@@ -1516,6 +1533,8 @@ msgstr "Link name"
 msgid "List"
 msgstr "List"
 
+#: src/components/BlockedAccountsList.tsx:186
+#: src/components/MutedAccountsList.tsx:183
 #: src/routes/(root)/[handle]/drafts/index.tsx:348
 msgid "Load more"
 msgstr "Load more"
@@ -1648,6 +1667,11 @@ msgstr "Loading more replies…"
 msgid "Loading more shares…"
 msgstr "Loading more shares…"
 
+#: src/components/BlockedAccountsList.tsx:180
+#: src/components/MutedAccountsList.tsx:177
+msgid "Loading more…"
+msgstr "Loading more…"
+
 #: src/components/NoteComposer.tsx:1066
 msgid "Loading quoted post…"
 msgstr "Loading quoted post…"
@@ -1723,6 +1747,23 @@ msgstr "Multiple choice"
 #: src/components/ProfileActionMenu.tsx:360
 msgid "Mute"
 msgstr "Mute"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:84
+msgid "Muted accounts"
+msgstr "Muted accounts"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:86
+#~ msgid "Muted accounts are hidden from your feeds and stop notifying you, but you can still visit their profiles. Muting is private and is never federated."
+#~ msgstr "Muted accounts are hidden from your feeds and stop notifying you, but you can still visit their profiles. Muting is private and is never federated."
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:86
+msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
+msgstr "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
+
+#: src/components/SettingsTabs.tsx:85
+#: src/routes/(root)/[handle]/settings/blocks.tsx:77
+msgid "Mutes and blocks"
+msgstr "Mutes and blocks"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:375
 msgid "My passkey"
@@ -1963,7 +2004,7 @@ msgstr "Passkey registered successfully"
 msgid "Passkey revoked"
 msgstr "Passkey revoked"
 
-#: src/components/SettingsTabs.tsx:76
+#: src/components/SettingsTabs.tsx:77
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:355
 msgid "Passkeys"
 msgstr "Passkeys"
@@ -2040,7 +2081,7 @@ msgstr "Posts"
 msgid "Prefer AI-generated summary"
 msgstr "Prefer AI-generated summary"
 
-#: src/components/SettingsTabs.tsx:52
+#: src/components/SettingsTabs.tsx:53
 #: src/routes/(root)/[handle]/settings/preferences.tsx:169
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 msgid "Preferences"
@@ -2077,7 +2118,7 @@ msgstr "Privacy policy"
 msgid "Profile actions"
 msgstr "Profile actions"
 
-#: src/components/SettingsTabs.tsx:44
+#: src/components/SettingsTabs.tsx:45
 #: src/routes/(root)/[handle]/settings/index.tsx:124
 #: src/routes/(root)/[handle]/settings/index.tsx:125
 msgid "Profile settings"
@@ -2792,6 +2833,7 @@ msgstr "Unable to add reaction. Please try again."
 msgid "Unable to remove reaction. Please try again."
 msgstr "Unable to remove reaction. Please try again."
 
+#: src/components/BlockedAccountsList.tsx:165
 #: src/components/ProfileActionMenu.tsx:377
 #: src/components/ProfileActionMenu.tsx:405
 #: src/components/ProfileActionMenu.tsx:413
@@ -2807,6 +2849,7 @@ msgstr "Unblock user?"
 msgid "Unfollow"
 msgstr "Unfollow"
 
+#: src/components/MutedAccountsList.tsx:162
 #: src/components/ProfileActionMenu.tsx:361
 msgid "Unmute"
 msgstr "Unmute"
@@ -2848,10 +2891,12 @@ msgstr "User muted"
 msgid "User not found."
 msgstr "User not found."
 
+#: src/components/BlockedAccountsList.tsx:95
 #: src/components/ProfileActionMenu.tsx:259
 msgid "User unblocked"
 msgstr "User unblocked"
 
+#: src/components/MutedAccountsList.tsx:95
 #: src/components/ProfileActionMenu.tsx:304
 msgid "User unmuted"
 msgstr "User unmuted"
@@ -3079,6 +3124,14 @@ msgstr "You don't have any passkeys registered yet."
 #: src/routes/(root)/[handle]/settings/invite.tsx:420
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "You have no invitations left. Please wait until you receive more."
+
+#: src/components/BlockedAccountsList.tsx:116
+msgid "You haven't blocked anyone."
+msgstr "You haven't blocked anyone."
+
+#: src/components/MutedAccountsList.tsx:113
+msgid "You haven't muted anyone."
+msgstr "You haven't muted anyone."
 
 #: src/components/FollowButton.tsx:131
 #: src/components/FollowButton.tsx:149

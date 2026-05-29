@@ -477,6 +477,14 @@ msgstr "屏蔽"
 msgid "Block user?"
 msgstr "屏蔽用户？"
 
+#: src/routes/(root)/[handle]/settings/blocks.tsx:98
+msgid "Blocked accounts"
+msgstr "已屏蔽的账户"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:100
+msgid "Blocked accounts cannot follow you or see your posts. Unlike muting, blocking is federated to the blocked account's instance."
+msgstr "被屏蔽的账户无法关注你或查看你的内容。与隐藏不同，屏蔽会联邦到被屏蔽账户所在的实例。"
+
 #: src/components/ui/markdown-editor.tsx:275
 msgid "Bold"
 msgstr "粗体"
@@ -1041,6 +1049,11 @@ msgstr "加载更多回复失败，点击重试"
 msgid "Failed to load more shares; click to retry"
 msgstr "加载更多转帖失败，点击重试"
 
+#: src/components/BlockedAccountsList.tsx:183
+#: src/components/MutedAccountsList.tsx:180
+msgid "Failed to load more; click to retry"
+msgstr "加载更多失败；点击重试"
+
 #: src/components/NoteComposer.tsx:1014
 msgid "Failed to load post"
 msgstr "无法加载内容"
@@ -1134,6 +1147,8 @@ msgstr "转帖失败"
 msgid "Failed to sign out: {0}"
 msgstr "登出失败：{0}"
 
+#: src/components/BlockedAccountsList.tsx:98
+#: src/components/BlockedAccountsList.tsx:104
 #: src/components/ProfileActionMenu.tsx:258
 #: src/components/ProfileActionMenu.tsx:264
 msgid "Failed to unblock this user"
@@ -1145,6 +1160,8 @@ msgstr "未能取消屏蔽此用户"
 msgid "Failed to unfollow"
 msgstr "取消关注失败"
 
+#: src/components/MutedAccountsList.tsx:97
+#: src/components/MutedAccountsList.tsx:101
 #: src/components/ProfileActionMenu.tsx:300
 #: src/components/ProfileActionMenu.tsx:308
 msgid "Failed to unmute this user"
@@ -1425,7 +1442,7 @@ msgid "Invitations left"
 msgstr "剩余邀请"
 
 #: src/components/AppSidebar.tsx:642
-#: src/components/SettingsTabs.tsx:68
+#: src/components/SettingsTabs.tsx:69
 #: src/routes/(root)/[handle]/settings/invite.tsx:295
 msgid "Invite"
 msgstr "邀请"
@@ -1470,7 +1487,7 @@ msgstr "语言"
 msgid "Language code"
 msgstr "语言代码"
 
-#: src/components/SettingsTabs.tsx:60
+#: src/components/SettingsTabs.tsx:61
 #: src/routes/(root)/[handle]/settings/language.tsx:82
 msgid "Language settings"
 msgstr "语言设置"
@@ -1512,6 +1529,8 @@ msgstr "链接名"
 msgid "List"
 msgstr "列表"
 
+#: src/components/BlockedAccountsList.tsx:186
+#: src/components/MutedAccountsList.tsx:183
 #: src/routes/(root)/[handle]/drafts/index.tsx:348
 msgid "Load more"
 msgstr "加载更多"
@@ -1644,6 +1663,11 @@ msgstr "正在加载更多回复…"
 msgid "Loading more shares…"
 msgstr "正在加载更多转帖…"
 
+#: src/components/BlockedAccountsList.tsx:180
+#: src/components/MutedAccountsList.tsx:177
+msgid "Loading more…"
+msgstr "正在加载更多…"
+
 #: src/components/NoteComposer.tsx:1066
 msgid "Loading quoted post…"
 msgstr "正在加载引用内容…"
@@ -1719,6 +1743,23 @@ msgstr "多选"
 #: src/components/ProfileActionMenu.tsx:360
 msgid "Mute"
 msgstr "隐藏"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:84
+msgid "Muted accounts"
+msgstr "已隐藏的账户"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:86
+#~ msgid "Muted accounts are hidden from your feeds and stop notifying you, but you can still visit their profiles. Muting is private and is never federated."
+#~ msgstr "被隐藏的账户不会出现在你的时间线中，也不会向你发送通知，但你仍可访问其个人资料。隐藏是私密的，且不会进行联邦。"
+
+#: src/routes/(root)/[handle]/settings/blocks.tsx:86
+msgid "Muted accounts are hidden from your feeds and stop notifying you, except for replies and mentions from accounts you follow. You can still visit their profiles, and muting is private and never federated."
+msgstr "被隐藏的账户不会出现在你的时间线中，也不会通知你，但你关注的账户的回复和提及仍会通知你。你仍可访问其个人资料；隐藏是私密的，且不会进行联邦。"
+
+#: src/components/SettingsTabs.tsx:85
+#: src/routes/(root)/[handle]/settings/blocks.tsx:77
+msgid "Mutes and blocks"
+msgstr "隐藏与屏蔽"
 
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:375
 msgid "My passkey"
@@ -1959,7 +2000,7 @@ msgstr "通行密钥注册成功"
 msgid "Passkey revoked"
 msgstr "通行密钥已撤销"
 
-#: src/components/SettingsTabs.tsx:76
+#: src/components/SettingsTabs.tsx:77
 #: src/routes/(root)/[handle]/settings/passkeys.tsx:355
 msgid "Passkeys"
 msgstr "通行密钥"
@@ -2036,7 +2077,7 @@ msgstr "内容"
 msgid "Prefer AI-generated summary"
 msgstr "优先使用 AI 生成的摘要"
 
-#: src/components/SettingsTabs.tsx:52
+#: src/components/SettingsTabs.tsx:53
 #: src/routes/(root)/[handle]/settings/preferences.tsx:169
 #: src/routes/(root)/[handle]/settings/preferences.tsx:170
 msgid "Preferences"
@@ -2073,7 +2114,7 @@ msgstr "隐私政策"
 msgid "Profile actions"
 msgstr "个人资料操作"
 
-#: src/components/SettingsTabs.tsx:44
+#: src/components/SettingsTabs.tsx:45
 #: src/routes/(root)/[handle]/settings/index.tsx:124
 #: src/routes/(root)/[handle]/settings/index.tsx:125
 msgid "Profile settings"
@@ -2788,6 +2829,7 @@ msgstr "无法添加反应。请重试。"
 msgid "Unable to remove reaction. Please try again."
 msgstr "无法移除反应。请重试。"
 
+#: src/components/BlockedAccountsList.tsx:165
 #: src/components/ProfileActionMenu.tsx:377
 #: src/components/ProfileActionMenu.tsx:405
 #: src/components/ProfileActionMenu.tsx:413
@@ -2803,6 +2845,7 @@ msgstr "取消屏蔽用户？"
 msgid "Unfollow"
 msgstr "取消关注"
 
+#: src/components/MutedAccountsList.tsx:162
 #: src/components/ProfileActionMenu.tsx:361
 msgid "Unmute"
 msgstr "取消隐藏"
@@ -2844,10 +2887,12 @@ msgstr "已隐藏用户"
 msgid "User not found."
 msgstr "未找到用户信息。"
 
+#: src/components/BlockedAccountsList.tsx:95
 #: src/components/ProfileActionMenu.tsx:259
 msgid "User unblocked"
 msgstr "已取消屏蔽用户"
 
+#: src/components/MutedAccountsList.tsx:95
 #: src/components/ProfileActionMenu.tsx:304
 msgid "User unmuted"
 msgstr "已取消隐藏用户"
@@ -3075,6 +3120,14 @@ msgstr "您尚未注册任何通行密钥。"
 #: src/routes/(root)/[handle]/settings/invite.tsx:420
 msgid "You have no invitations left. Please wait until you receive more."
 msgstr "你没有剩余邀请名额。请稍后再试。"
+
+#: src/components/BlockedAccountsList.tsx:116
+msgid "You haven't blocked anyone."
+msgstr "你还没有屏蔽任何账户。"
+
+#: src/components/MutedAccountsList.tsx:113
+msgid "You haven't muted anyone."
+msgstr "你还没有隐藏任何账户。"
 
 #: src/components/FollowButton.tsx:131
 #: src/components/FollowButton.tsx:149
