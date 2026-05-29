@@ -21,6 +21,7 @@ import {
   removeFollower as removeFollowerModel,
   unfollow,
 } from "@hackerspub/models/following";
+import { getMutedActorIds, mute, unmute } from "@hackerspub/models/muting";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import { type Actor as ActorRow, actorTable } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
@@ -632,6 +633,22 @@ builder.drizzleObjectFields(Actor, (t) => ({
     load: createRelationshipBooleanLoader(getBlockerActorIds),
     resolve: (actor) => actor.id,
   }),
+  viewerMutes: t.loadable({
+    type: "Boolean",
+    description:
+      "True if the authenticated viewer has muted this actor. Always `false` " +
+      "for unauthenticated requests. Muting is local-only and one-directional: " +
+      "it hides the actor from the viewer's feeds and suppresses notifications " +
+      "from them (except replies and mentions when the viewer also follows " +
+      "them), but unlike `viewerBlocks` it does not federate and the actor " +
+      "remains visible on their profile and in threads.",
+    // cache: false so muteActor and unmuteActor mutations are reflected by
+    // subsequent reads of the field within the same request rather than a
+    // stale per-request cached value.
+    loaderOptions: { cache: false },
+    load: createRelationshipBooleanLoader(getMutedActorIds),
+    resolve: (actor) => actor.id,
+  }),
   followsViewer: t.loadable({
     type: "Boolean",
     description:
@@ -697,6 +714,46 @@ builder.drizzleObjectFields(Actor, (t) => ({
       }) != null;
     },
   }),
+  mutedActors: t.connection({
+    type: Actor,
+    description:
+      "Actors the authenticated viewer has muted, most recently muted first. " +
+      "Only readable for the viewer's own actor: querying another actor's " +
+      "`mutedActors` (or querying as a guest) yields an empty connection, since " +
+      "a mute list is private. Use this to build a mute-management view; the " +
+      "per-actor boolean check is `viewerMutes`.",
+    select: (args, ctx, nestedSelection) => ({
+      with: {
+        mutees: muteeConnectionHelpers.getQuery(args, ctx, nestedSelection),
+      },
+    }),
+    resolve: (actor, args, ctx) =>
+      muteeConnectionHelpers.resolve(
+        ctx.account?.actor.id === actor.id ? actor.mutees : [],
+        args,
+        ctx,
+      ),
+  }),
+  blockedActors: t.connection({
+    type: Actor,
+    description:
+      "Actors the authenticated viewer has blocked, most recently blocked " +
+      "first. Only readable for the viewer's own actor: querying another " +
+      "actor's `blockedActors` (or querying as a guest) yields an empty " +
+      "connection, since a block list is private. Use this to build a " +
+      "block-management view; the per-actor boolean check is `viewerBlocks`.",
+    select: (args, ctx, nestedSelection) => ({
+      with: {
+        blockees: blockeeConnectionHelpers.getQuery(args, ctx, nestedSelection),
+      },
+    }),
+    resolve: (actor, args, ctx) =>
+      blockeeConnectionHelpers.resolve(
+        ctx.account?.actor.id === actor.id ? actor.blockees : [],
+        args,
+        ctx,
+      ),
+  }),
 }));
 
 interface ActorField {
@@ -737,6 +794,34 @@ const followeeConnectionHelpers = drizzleConnectionHelpers(
       },
     }),
     resolveNode: (following) => following.followee,
+  },
+);
+
+const muteeConnectionHelpers = drizzleConnectionHelpers(
+  builder,
+  "mutingTable",
+  {
+    query: () => ({ orderBy: { created: "desc" } }),
+    select: (nodeSelection) => ({
+      with: {
+        mutee: nodeSelection({}),
+      },
+    }),
+    resolveNode: (muting) => muting.mutee,
+  },
+);
+
+const blockeeConnectionHelpers = drizzleConnectionHelpers(
+  builder,
+  "blockingTable",
+  {
+    query: () => ({ orderBy: { created: "desc" } }),
+    select: (nodeSelection) => ({
+      with: {
+        blockee: nodeSelection({}),
+      },
+    }),
+    resolveNode: (blocking) => blocking.blockee,
   },
 );
 
@@ -1243,6 +1328,151 @@ builder.relayMutationField(
         async resolve(query, result, _args, ctx) {
           const actor = await ctx.db.query.actorTable.findFirst(
             query({ where: { id: result.blockeeId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "muteActor",
+  {
+    inputFields: (t) => ({
+      actorId: t.globalID({
+        for: [Actor],
+        required: true,
+      }),
+    }),
+  },
+  {
+    description:
+      "Mutes an actor on behalf of the authenticated viewer. Muting is " +
+      "local-only and one-directional: it hides the actor from the viewer's " +
+      "feeds and suppresses notifications from them (except replies and " +
+      "mentions when the viewer also follows them), but unlike `blockActor` it " +
+      "does not federate, does not remove follow relationships, and leaves the " +
+      "actor visible on their profile and in threads. Idempotent: muting an " +
+      "already-muted actor succeeds. Rejects muting yourself with " +
+      "`InvalidInputError`.",
+    errors: {
+      types: [NotAuthenticatedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const mutee = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.input.actorId.id },
+      });
+
+      if (mutee == null || mutee.accountId === session.accountId) {
+        throw new InvalidInputError("actorId");
+      }
+
+      await mute(ctx.db, ctx.account, mutee);
+
+      return {
+        muterId: ctx.account.actor.id,
+        muteeId: mutee.id,
+      };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      muter: t.drizzleField({
+        type: Actor,
+        description: "The viewer's actor that performed the mute.",
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.muterId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+      mutee: t.drizzleField({
+        type: Actor,
+        description: "The actor that was muted.",
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.muteeId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+    }),
+  },
+);
+
+builder.relayMutationField(
+  "unmuteActor",
+  {
+    inputFields: (t) => ({
+      actorId: t.globalID({
+        for: [Actor],
+        required: true,
+      }),
+    }),
+  },
+  {
+    description:
+      "Removes a mute previously created by `muteActor` on behalf of the " +
+      "authenticated viewer. Idempotent: unmuting an actor that was not muted " +
+      "succeeds. Rejects targeting yourself with `InvalidInputError`.",
+    errors: {
+      types: [NotAuthenticatedError, InvalidInputError],
+    },
+    async resolve(_root, args, ctx) {
+      const session = await ctx.session;
+      if (session == null || ctx.account == null) {
+        throw new NotAuthenticatedError();
+      }
+
+      const mutee = await ctx.db.query.actorTable.findFirst({
+        where: { id: args.input.actorId.id },
+      });
+
+      if (mutee == null || mutee.accountId === session.accountId) {
+        throw new InvalidInputError("actorId");
+      }
+
+      await unmute(ctx.db, ctx.account, mutee);
+
+      return {
+        muterId: ctx.account.actor.id,
+        muteeId: mutee.id,
+      };
+    },
+  },
+  {
+    outputFields: (t) => ({
+      muter: t.drizzleField({
+        type: Actor,
+        description: "The viewer's actor that performed the unmute.",
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.muterId } }),
+          );
+          assert(actor != undefined);
+
+          return actor;
+        },
+      }),
+      mutee: t.drizzleField({
+        type: Actor,
+        description: "The actor that was unmuted.",
+        async resolve(query, result, _args, ctx) {
+          const actor = await ctx.db.query.actorTable.findFirst(
+            query({ where: { id: result.muteeId } }),
           );
           assert(actor != undefined);
 

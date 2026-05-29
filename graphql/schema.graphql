@@ -262,6 +262,11 @@ type Actor implements Node {
   bio: HTML
 
   """
+  Actors the authenticated viewer has blocked, most recently blocked first. Only readable for the viewer's own actor: querying another actor's `blockedActors` (or querying as a guest) yields an empty connection, since a block list is private. Use this to build a block-management view; the per-actor boolean check is `viewerBlocks`.
+  """
+  blockedActors(after: String, before: String, first: Int, last: Int): ActorBlockedActorsConnection!
+
+  """
   True if this actor has blocked the authenticated viewer. Always false for unauthenticated requests.
   """
   blocksViewer: Boolean!
@@ -334,6 +339,11 @@ type Actor implements Node {
   True if this actor was created on this instance (has an associated local `Account`). False for actors fetched from remote fediverse instances via ActivityPub.
   """
   local: Boolean!
+
+  """
+  Actors the authenticated viewer has muted, most recently muted first. Only readable for the viewer's own actor: querying another actor's `mutedActors` (or querying as a guest) yields an empty connection, since a mute list is private. Use this to build a mute-management view; the per-actor boolean check is `viewerMutes`.
+  """
+  mutedActors(after: String, before: String, first: Int, last: Int): ActorMutedActorsConnection!
 
   """
   The actor's display name rendered as HTML, with custom emoji shortcodes replaced by inline `<img>` elements. `null` when the actor has no display name set.
@@ -412,6 +422,11 @@ type Actor implements Node {
   True if the authenticated viewer follows this actor. Always false for unauthenticated requests or when the actor is the viewer themselves.
   """
   viewerFollows: Boolean!
+
+  """
+  True if the authenticated viewer has muted this actor. Always `false` for unauthenticated requests. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `viewerBlocks` it does not federate and the actor remains visible on their profile and in threads.
+  """
+  viewerMutes: Boolean!
 }
 
 type ActorArticlesConnection {
@@ -422,6 +437,16 @@ type ActorArticlesConnection {
 type ActorArticlesConnectionEdge {
   cursor: String!
   node: Article!
+}
+
+type ActorBlockedActorsConnection {
+  edges: [ActorBlockedActorsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorBlockedActorsConnectionEdge {
+  cursor: String!
+  node: Actor!
 }
 
 """A property pair in an actor's account."""
@@ -455,6 +480,16 @@ type ActorFollowersConnectionEdge {
   created: DateTime!
   cursor: String!
   iri: URL!
+  node: Actor!
+}
+
+type ActorMutedActorsConnection {
+  edges: [ActorMutedActorsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type ActorMutedActorsConnectionEdge {
+  cursor: String!
   node: Actor!
 }
 
@@ -1459,6 +1494,11 @@ type Mutation {
     """
     upTo: UUID
   ): DateTime!
+
+  """
+  Mutes an actor on behalf of the authenticated viewer. Muting is local-only and one-directional: it hides the actor from the viewer's feeds and suppresses notifications from them (except replies and mentions when the viewer also follows them), but unlike `blockActor` it does not federate, does not remove follow relationships, and leaves the actor visible on their profile and in threads. Idempotent: muting an already-muted actor succeeds. Rejects muting yourself with `InvalidInputError`.
+  """
+  muteActor(input: MuteActorInput!): MuteActorResult!
   pinHashtag(input: PinHashtagInput!): PinHashtagResult!
   pinPost(input: PinPostInput!): PinPostResult!
   publishArticleDraft(input: PublishArticleDraftInput!): PublishArticleDraftResult!
@@ -1505,6 +1545,11 @@ type Mutation {
   unbookmarkPost(input: UnbookmarkPostInput!): UnbookmarkPostResult!
   unfollowActor(input: UnfollowActorInput!): UnfollowActorResult!
   unfollowHashtag(input: UnfollowHashtagInput!): UnfollowHashtagResult!
+
+  """
+  Removes a mute previously created by `muteActor` on behalf of the authenticated viewer. Idempotent: unmuting an actor that was not muted succeeds. Rejects targeting yourself with `InvalidInputError`.
+  """
+  unmuteActor(input: UnmuteActorInput!): UnmuteActorResult!
   unpinHashtag(input: UnpinHashtagInput!): UnpinHashtagResult!
   unpinPost(input: UnpinPostInput!): UnpinPostResult!
 
@@ -1533,6 +1578,23 @@ type Mutation {
   verifyPasskeyRegistration(accountId: ID!, name: String!, platform: String = "web", registrationResponse: JSON!): PasskeyRegistrationResult!
   voteOnPoll(input: VoteOnPollInput!): VoteOnPollResult!
 }
+
+input MuteActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type MuteActorPayload {
+  clientMutationId: ID
+
+  """The actor that was muted."""
+  mutee: Actor!
+
+  """The viewer's actor that performed the mute."""
+  muter: Actor!
+}
+
+union MuteActorResult = InvalidInputError | MuteActorPayload | NotAuthenticatedError
 
 interface Node {
   id: ID!
@@ -3254,6 +3316,23 @@ type UnfollowHashtagPayload {
 }
 
 union UnfollowHashtagResult = InvalidInputError | NotAuthenticatedError | UnfollowHashtagPayload
+
+input UnmuteActorInput {
+  actorId: ID!
+  clientMutationId: ID
+}
+
+type UnmuteActorPayload {
+  clientMutationId: ID
+
+  """The actor that was unmuted."""
+  mutee: Actor!
+
+  """The viewer's actor that performed the unmute."""
+  muter: Actor!
+}
+
+union UnmuteActorResult = InvalidInputError | NotAuthenticatedError | UnmuteActorPayload
 
 """
 Remove a hashtag from the sidebar. Idempotent: unpinning an already-unpinned tag succeeds silently. Requires authentication.
