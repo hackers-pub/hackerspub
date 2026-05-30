@@ -2609,11 +2609,26 @@ export async function deletePost(
   // may itself be a sharing post), and the links of the posts this post replied
   // to / quoted (whose public reply/quote count dropped).
   const affectedLinkIds = new Set<Uuid>();
+  const parentIds = new Set<Uuid>();
   for (const deleted of interactions) {
     if (deleted.linkId != null) affectedLinkIds.add(deleted.linkId);
+    // A bulk-deleted interaction may reply to or quote a story other than this
+    // post (e.g. a post that quoted this one while also replying to a different
+    // story); that story's public reply/quote count just dropped too.
+    if (deleted.replyTargetId != null) parentIds.add(deleted.replyTargetId);
+    if (deleted.quotedPostId != null) parentIds.add(deleted.quotedPostId);
   }
   for (const original of originalPosts) {
     if (original.linkId != null) affectedLinkIds.add(original.linkId);
+  }
+  if (parentIds.size > 0) {
+    const parents = await db.query.postTable.findMany({
+      where: { id: { in: [...parentIds] } },
+      columns: { linkId: true },
+    });
+    for (const parent of parents) {
+      if (parent.linkId != null) affectedLinkIds.add(parent.linkId);
+    }
   }
   await refreshNewsScores(db, [...affectedLinkIds]);
   const noteSourceIds = interactions
