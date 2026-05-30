@@ -1597,6 +1597,38 @@ type MuteActorPayload {
 
 union MuteActorResult = InvalidInputError | MuteActorPayload | NotAuthenticatedError
 
+"""Ordering for the `newsStories` feed of shared links."""
+enum NewsOrder {
+  """
+  Highest total weighted engagement mass first, ignoring recency: an all-time-best view rather than what is hot right now.
+  """
+  ALL_TIME
+
+  """Most recently first-shared links first, ignoring engagement."""
+  NEWEST
+
+  """
+  Hacker-News-style score combining weighted engagement mass with recency.  The default; what most readers want.
+  """
+  POPULAR
+}
+
+"""
+How a link's public shares break down by origin.  Hackers' Pub posts carry the most weight, generic remote instances less, and Bluesky-bridged accounts (`@…@bsky.brid.gy`) the least.
+"""
+type NewsSourceBreakdown {
+  """Public shares bridged from Bluesky (`@…@bsky.brid.gy`)."""
+  bluesky: Int!
+
+  """Public shares authored by local Hackers' Pub accounts."""
+  local: Int!
+
+  """
+  Public shares from generic remote fediverse instances (Mastodon, Pleroma, etc.).
+  """
+  remote: Int!
+}
+
 interface Node {
   id: ID!
 }
@@ -2151,12 +2183,47 @@ type PostLink implements Node {
   author: String
   creator: Actor
   description: String
+
+  """
+  When this link was first shared publicly, or `null` if it has never been.  Drives the `NEWEST` order.
+  """
+  firstSharedAt: DateTime
   id: ID!
   image: PostLinkImage
+
+  """
+  Timestamp of the freshest activity on this link's shares (the share itself, a reply, a quote, or a reaction).  `null` means the link is not a news story (no public share); such links are excluded from the feed.
+  """
+  latestActivityAt: DateTime
+
+  """
+  Number of public, non-boost posts across the fediverse that share this link.
+  """
+  postCount: Int!
+
+  """
+  Popularity-over-time rank used by the `POPULAR` feed order: `log10(max(1, weightedMass)) + recency`.  Computed by a batch job and refreshed incrementally; recompute is idempotent and the value is time-stable (it changes only when the underlying posts or engagement change, not as the clock advances).  `0` for links never shared publicly.
+  """
+  score: Float!
+
+  """
+  The posts that share this link, most recently published first, filtered to those visible to the viewer.  These are the roots of the link's discussion tree.
+  """
+  sharingPosts(after: String, before: String, first: Int, last: Int): PostLinkSharingPostsConnection!
   siteName: String
+
+  """
+  Counts of this link's public shares by origin (local / remote / Bluesky bridge).
+  """
+  sourceBreakdown: NewsSourceBreakdown!
   title: String
   type: String
   url: URL!
+
+  """
+  Recency-independent engagement mass: the weighted sum over this link's public shares of source weight times account reputation times (quotes, replies, reactions).  Drives the `ALL_TIME` order.
+  """
+  weightedMass: Float!
 }
 
 type PostLinkImage {
@@ -2166,6 +2233,16 @@ type PostLinkImage {
   type: MediaType
   url: URL!
   width: Int
+}
+
+type PostLinkSharingPostsConnection {
+  edges: [PostLinkSharingPostsConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PostLinkSharingPostsConnectionEdge {
+  cursor: String!
+  node: Post!
 }
 
 """
@@ -2413,6 +2490,19 @@ type Query {
     """The locale for the Markdown guide."""
     locale: Locale!
   ): Document!
+
+  """
+  Links shared across the fediverse, ranked as a news feed.  Forward pagination only (`first`/`after`); `last`/`before` raise a `PAGINATION_ERROR`.  Pages are capped at 100 stories.  No authentication required.
+  """
+  newsStories(
+    after: String
+    before: String
+    first: Int
+    last: Int
+
+    """How to rank the feed.  Defaults to `POPULAR`."""
+    order: NewsOrder = POPULAR
+  ): QueryNewsStoriesConnection!
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
 
@@ -2538,6 +2628,16 @@ type QueryBookmarksConnection {
 type QueryBookmarksConnectionEdge {
   cursor: String!
   node: Post!
+}
+
+type QueryNewsStoriesConnection {
+  edges: [QueryNewsStoriesConnectionEdge!]!
+  pageInfo: PageInfo!
+}
+
+type QueryNewsStoriesConnectionEdge {
+  cursor: String!
+  node: PostLink!
 }
 
 type QueryPersonalTimelineConnection {

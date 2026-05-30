@@ -1300,7 +1300,7 @@ const MediumUploadHeader = builder.simpleObject("MediumUploadHeader", {
   }),
 });
 
-const PostLink = builder.drizzleNode("postLinkTable", {
+export const PostLink = builder.drizzleNode("postLinkTable", {
   variant: "PostLink",
   description: "OpenGraph / oEmbed metadata for a link embedded in a post. " +
     "Populated asynchronously after the post is created; individual " +

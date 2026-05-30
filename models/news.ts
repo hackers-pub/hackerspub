@@ -61,6 +61,17 @@ export const NEWS_EPOCH_SECONDS = 1_704_067_200;
  */
 export const NEWS_TAU_SECONDS = 50_000;
 
+// Detects a Bluesky-bridged actor (`@…@bsky.brid.gy`).  References the actor
+// alias `a` and instance alias `i`, which both source queries below join under
+// those names, so the classification stays identical wherever it is reused.
+// `coalesce(... , false)` keeps the predicate boolean-total: `instance.software`
+// can be `null`, and a bare `null ilike …` would make `NOT condition` evaluate
+// to `null` (not `true`), which would drop NULL-software remote actors out of
+// the `remote` count while the recompute still scores them as remote.
+const blueskyBridgeCondition: SQL = sql`(
+  coalesce(i.software ilike '%bsky%', false) or a.handle_host = 'bsky.brid.gy'
+)`;
+
 // ---------------------------------------------------------------------------
 // Recompute
 // ---------------------------------------------------------------------------
@@ -274,7 +285,7 @@ async function recomputeAggregate(
         p.reactions_count as reactions_count,
         case
           when a.account_id is not null then ${NEWS_SOURCE_WEIGHT_LOCAL}::double precision
-          when i.software ilike '%bsky%' or a.handle_host = 'bsky.brid.gy'
+          when ${blueskyBridgeCondition}
             then ${NEWS_SOURCE_WEIGHT_BLUESKY}::double precision
           else ${NEWS_SOURCE_WEIGHT_REMOTE}::double precision
         end as source_weight,
@@ -336,7 +347,10 @@ async function recomputeAggregate(
     )
     update post_link pl set
       post_count = final.post_count,
-      first_shared_at = final.first_shared_at,
+      -- Truncate to milliseconds so the stored value matches the precision of
+      -- the JS-Date-derived NEWEST feed cursor (toISOString is ms-only);
+      -- otherwise sub-millisecond rows after a cursor would be skipped.
+      first_shared_at = date_trunc('milliseconds', final.first_shared_at),
       latest_activity_at = final.latest_activity_at,
       weighted_mass = final.weighted_mass,
       recency_component =
@@ -461,4 +475,61 @@ export async function getNewsScoreStatus(
     scoredLinkCount: Number(row?.scoredLinkCount ?? 0),
     lastRecomputedAt: row?.lastRecomputedAt ?? null,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Source breakdown
+// ---------------------------------------------------------------------------
+
+export interface NewsSourceBreakdown {
+  /** Public sharing posts from local Hackers' Pub accounts. */
+  readonly local: number;
+  /** Public sharing posts from generic remote fediverse instances. */
+  readonly remote: number;
+  /** Public sharing posts bridged from Bluesky (`@…@bsky.brid.gy`). */
+  readonly bluesky: number;
+}
+
+/**
+ * Count, per link, how many of its public sharing posts come from local,
+ * generic-remote, and Bluesky-bridged accounts.  Batched for the GraphQL
+ * `PostLink.sourceBreakdown` loader; links with no public share are absent
+ * from the returned map.
+ */
+export async function getNewsSourceBreakdowns(
+  db: Database,
+  linkIds: readonly Uuid[],
+): Promise<Map<Uuid, NewsSourceBreakdown>> {
+  const result = new Map<Uuid, NewsSourceBreakdown>();
+  const ids = [...new Set(linkIds)];
+  if (ids.length < 1) return result;
+  const literal = `{${ids.join(",")}}`;
+  const rows = await db.execute<
+    { link_id: Uuid; local: string; remote: string; bluesky: string }
+  >(sql`
+    select
+      p.link_id as link_id,
+      count(*) filter (where a.account_id is not null) as local,
+      count(*) filter (
+        where a.account_id is null and ${blueskyBridgeCondition}
+      ) as bluesky,
+      count(*) filter (
+        where a.account_id is null and not ${blueskyBridgeCondition}
+      ) as remote
+    from post p
+    join actor a on a.id = p.actor_id
+    join instance i on i.host = a.instance_host
+    where p.link_id = any(${literal}::uuid[])
+      and p.visibility in ('public', 'unlisted')
+      and p.shared_post_id is null
+    group by p.link_id
+  `);
+  for (const row of rows) {
+    result.set(row.link_id, {
+      local: Number(row.local),
+      remote: Number(row.remote),
+      bluesky: Number(row.bluesky),
+    });
+  }
+  return result;
 }

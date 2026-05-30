@@ -1,10 +1,11 @@
 import { assert } from "@std/assert/assert";
 import { assertAlmostEquals } from "@std/assert/almost-equals";
 import { assertEquals } from "@std/assert/equals";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Transaction } from "./db.ts";
 import {
   getNewsScoreStatus,
+  getNewsSourceBreakdowns,
   getNewsStories,
   NEWS_EPOCH_SECONDS,
   NEWS_SOURCE_WEIGHT_BLUESKY,
@@ -19,7 +20,7 @@ import {
   refreshNewsScores,
 } from "./news.ts";
 import { syncPostFromNoteSource } from "./post.ts";
-import { postTable } from "./schema.ts";
+import { instanceTable, postTable } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
 import {
   createFedCtx,
@@ -698,6 +699,60 @@ Deno.test({
 });
 
 Deno.test({
+  name: "getNewsStories newest pagination keeps sub-millisecond-close links",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "micropage",
+        name: "Micro Page",
+        email: "micropage@example.com",
+      });
+      const a = await insertPostLink(tx, { url: "https://example.com/ua" });
+      const b = await insertPostLink(tx, { url: "https://example.com/ub" });
+      const { post: postA } = await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: a.id, url: a.url },
+      });
+      const { post: postB } = await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: b.id, url: b.url },
+      });
+      // Same millisecond, different microseconds: the precision a JS-Date
+      // cursor cannot represent.
+      await tx.execute(
+        sql`update post set published = '2026-05-20T00:00:00.000800Z'
+            where id = ${postA.id}`,
+      );
+      await tx.execute(
+        sql`update post set published = '2026-05-20T00:00:00.000300Z'
+            where id = ${postB.id}`,
+      );
+      await recomputeNewsScores(tx);
+
+      // Walk the feed one story at a time using the encoded cursor.
+      const seen: Uuid[] = [];
+      let after: { value: number | Date; id: Uuid } | undefined;
+      for (let i = 0; i < 3; i++) {
+        const page = await getNewsStories(tx, {
+          order: "newest",
+          limit: 1,
+          after,
+        });
+        if (page.length < 1) break;
+        const link = page[0];
+        seen.push(link.id);
+        after = { value: link.firstSharedAt!, id: link.id };
+      }
+      assertEquals(new Set(seen).size, 2);
+      assert(seen.includes(a.id));
+      assert(seen.includes(b.id));
+    });
+  },
+});
+
+Deno.test({
   name: "getNewsScoreStatus reports scored link count and last recompute",
   sanitizeOps: false,
   sanitizeResources: false,
@@ -825,6 +880,61 @@ Deno.test({
       // ...and the incremental refresh of the previous link drops the story.
       assertEquals((await readLink(tx, link.id)).latestActivityAt, null);
       assertEquals((await readLink(tx, link.id)).score, 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "getNewsSourceBreakdowns counts NULL-software instances as remote",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const local = await insertAccountWithActor(tx, {
+        username: "brklocal",
+        name: "Brk Local",
+        email: "brklocal@example.com",
+      });
+      // A remote instance whose `software` is unknown (NULL).
+      await tx.insert(instanceTable).values({
+        host: "unknown.example",
+        software: null,
+        softwareVersion: null,
+      });
+      const unknownRemote = await insertRemoteActor(tx, {
+        username: "brkunknown",
+        name: "Brk Unknown",
+        host: "unknown.example",
+      });
+      const bridged = await insertRemoteActor(tx, {
+        username: "brkbsky.bsky.social",
+        name: "Brk Bsky",
+        host: "bsky.brid.gy",
+        handleHost: "bsky.brid.gy",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/brk" });
+      await insertNotePost(tx, {
+        account: local.account,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: local.account,
+        actorId: unknownRemote.id,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: local.account,
+        actorId: bridged.id,
+        link: { id: link.id, url: link.url },
+      });
+
+      const breakdowns = await getNewsSourceBreakdowns(tx, [link.id]);
+      // The NULL-software actor must land in `remote`, not vanish.
+      assertEquals(breakdowns.get(link.id), {
+        local: 1,
+        remote: 1,
+        bluesky: 1,
+      });
     });
   },
 });
