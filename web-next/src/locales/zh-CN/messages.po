@@ -172,6 +172,21 @@ msgstr "{0} 和其他 {1} 人更新了你转发过的内容"
 msgid "{0} followed you"
 msgstr "{0} 关注了你"
 
+#. placeholder {0}: s.sourceBreakdown.bluesky
+#: src/components/NewsStoryHeader.tsx:116
+msgid "{0} from Bluesky"
+msgstr "来自 Bluesky 的 {0} 次"
+
+#. placeholder {0}: s.sourceBreakdown.local
+#: src/components/NewsStoryHeader.tsx:110
+msgid "{0} from Hackers' Pub"
+msgstr "来自 Hackers' Pub 的 {0} 次"
+
+#. placeholder {0}: s.sourceBreakdown.remote
+#: src/components/NewsStoryHeader.tsx:113
+msgid "{0} from the fediverse"
+msgstr "来自联邦宇宙的 {0} 次"
+
 #. placeholder {0}: "USER"
 #: src/routes/(root)/[handle]/settings/invite.tsx:362
 msgid "{0} is already a member of Hackers' Pub."
@@ -265,6 +280,7 @@ msgid "{0}'s shares"
 msgstr "{0}的转帖"
 
 #: src/components/NewsStoryCard.tsx:51
+#: src/components/NewsStoryHeader.tsx:53
 msgid "{count, plural, one {# share} other {# shares}}"
 msgstr "{count, plural, one {# 次转帖} other {# 次转帖}}"
 
@@ -1073,6 +1089,10 @@ msgstr "无法加载内容"
 msgid "Failed to load quoted post"
 msgstr "无法加载引用内容"
 
+#: src/components/NewsDiscussionThread.tsx:288
+msgid "Failed to load replies; click to retry"
+msgstr "加载回复失败，点击重试"
+
 #: src/components/RemoteFollowButton.tsx:126
 msgid "Failed to look up user."
 msgstr "查找用户失败。"
@@ -1222,6 +1242,10 @@ msgstr "联邦宇宙用户名"
 msgid "Feed"
 msgstr "订阅流"
 
+#: src/components/NewsStoryHeader.tsx:105
+msgid "First shared"
+msgstr "首次转帖"
+
 #: src/components/FollowButton.tsx:195
 #: src/components/HashtagActionBar.tsx:237
 msgid "Follow"
@@ -1335,6 +1359,7 @@ msgstr "Hackers' Pub：管理 · 邀请"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · 媒体"
 
+#: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
 msgid "Hackers' Pub: News"
 msgstr "Hackers' Pub：新闻"
@@ -1609,6 +1634,7 @@ msgstr "加载更多引用"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "加载更多反应者 (+{0})"
 
+#: src/components/NewsDiscussionThread.tsx:279
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:674
 msgid "Load more replies"
 msgstr "加载更多回复"
@@ -1687,6 +1713,10 @@ msgstr "正在加载更多回复…"
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:211
 msgid "Loading more shares…"
 msgstr "正在加载更多转帖…"
+
+#: src/components/NewsDiscussion.tsx:67
+msgid "Loading more sharing posts…"
+msgstr "正在加载更多转帖内容…"
 
 #: src/components/NewsList.tsx:128
 msgid "Loading more stories…"
@@ -1890,6 +1920,10 @@ msgstr "未找到帖子"
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:179
 msgid "No one has quoted this yet."
 msgstr "暂无引用。"
+
+#: src/components/NewsDiscussion.tsx:74
+msgid "No one has shared this link in a public post yet."
+msgstr "还没有人在公开帖子中转帖这个链接。"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:176
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:185
@@ -2499,6 +2533,7 @@ msgid "Share"
 msgstr "分享"
 
 #: src/components/NewsStoryCard.tsx:167
+#: src/components/NewsStoryHeader.tsx:124
 msgid "Share this link"
 msgstr "转帖此链接"
 
@@ -2519,6 +2554,15 @@ msgstr "无法转帖此内容。"
 #: src/components/QuotedNoteCard.tsx:213
 msgid "Show"
 msgstr "显示"
+
+#. placeholder {0}: childCount()
+#: src/components/NewsDiscussionThread.tsx:259
+msgid "Show {0} more in this thread"
+msgstr "显示该讨论中的另外 {0} 条"
+
+#: src/components/NewsDiscussion.tsx:65
+msgid "Show more sharing posts"
+msgstr "显示更多转帖内容"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 #~ msgid "Show preview"

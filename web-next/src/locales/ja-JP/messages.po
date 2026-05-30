@@ -172,6 +172,21 @@ msgstr "{0}さん他{1}人があなたが共有したコンテンツを更新し
 msgid "{0} followed you"
 msgstr "{0}さんがあなたをフォローしました"
 
+#. placeholder {0}: s.sourceBreakdown.bluesky
+#: src/components/NewsStoryHeader.tsx:116
+msgid "{0} from Bluesky"
+msgstr "Blueskyから{0}件"
+
+#. placeholder {0}: s.sourceBreakdown.local
+#: src/components/NewsStoryHeader.tsx:110
+msgid "{0} from Hackers' Pub"
+msgstr "Hackers' Pubから{0}件"
+
+#. placeholder {0}: s.sourceBreakdown.remote
+#: src/components/NewsStoryHeader.tsx:113
+msgid "{0} from the fediverse"
+msgstr "フェディバースから{0}件"
+
 #. placeholder {0}: "USER"
 #: src/routes/(root)/[handle]/settings/invite.tsx:362
 msgid "{0} is already a member of Hackers' Pub."
@@ -265,6 +280,7 @@ msgid "{0}'s shares"
 msgstr "{0}さんの共有"
 
 #: src/components/NewsStoryCard.tsx:51
+#: src/components/NewsStoryHeader.tsx:53
 msgid "{count, plural, one {# share} other {# shares}}"
 msgstr "{count, plural, one {共有 #件} other {共有 #件}}"
 
@@ -1073,6 +1089,10 @@ msgstr "コンテンツの読み込みに失敗しました"
 msgid "Failed to load quoted post"
 msgstr "引用コンテンツの読み込みに失敗しました"
 
+#: src/components/NewsDiscussionThread.tsx:288
+msgid "Failed to load replies; click to retry"
+msgstr "返信の読み込みに失敗しました。クリックして再試行してください"
+
 #: src/components/RemoteFollowButton.tsx:126
 msgid "Failed to look up user."
 msgstr "ユーザーの検索に失敗しました。"
@@ -1222,6 +1242,10 @@ msgstr "フェディバースのハンドル"
 msgid "Feed"
 msgstr "フィード"
 
+#: src/components/NewsStoryHeader.tsx:105
+msgid "First shared"
+msgstr "最初の共有"
+
 #: src/components/FollowButton.tsx:195
 #: src/components/HashtagActionBar.tsx:237
 msgid "Follow"
@@ -1335,6 +1359,7 @@ msgstr "Hackers' Pub：管理 · 招待"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · メディア"
 
+#: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
 msgid "Hackers' Pub: News"
 msgstr "Hackers' Pub：ニュース"
@@ -1609,6 +1634,7 @@ msgstr "引用をもっと読み込む"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "リアクターをもっと読み込む (+{0})"
 
+#: src/components/NewsDiscussionThread.tsx:279
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:674
 msgid "Load more replies"
 msgstr "返信をもっと読み込む"
@@ -1687,6 +1713,10 @@ msgstr "返信を読み込み中…"
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:211
 msgid "Loading more shares…"
 msgstr "共有を読み込み中…"
+
+#: src/components/NewsDiscussion.tsx:67
+msgid "Loading more sharing posts…"
+msgstr "共有コンテンツをもっと読み込み中…"
 
 #: src/components/NewsList.tsx:128
 msgid "Loading more stories…"
@@ -1890,6 +1920,10 @@ msgstr "投稿はありません"
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:179
 msgid "No one has quoted this yet."
 msgstr "まだ誰も引用していません。"
+
+#: src/components/NewsDiscussion.tsx:74
+msgid "No one has shared this link in a public post yet."
+msgstr "このリンクを公開投稿で共有した人はまだいません。"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:176
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:185
@@ -2499,6 +2533,7 @@ msgid "Share"
 msgstr "共有"
 
 #: src/components/NewsStoryCard.tsx:167
+#: src/components/NewsStoryHeader.tsx:124
 msgid "Share this link"
 msgstr "このリンクを共有"
 
@@ -2519,6 +2554,15 @@ msgstr "このコンテンツは共有できません。"
 #: src/components/QuotedNoteCard.tsx:213
 msgid "Show"
 msgstr "表示"
+
+#. placeholder {0}: childCount()
+#: src/components/NewsDiscussionThread.tsx:259
+msgid "Show {0} more in this thread"
+msgstr "このスレッドであと{0}件を表示"
+
+#: src/components/NewsDiscussion.tsx:65
+msgid "Show more sharing posts"
+msgstr "共有コンテンツをもっと表示"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 #~ msgid "Show preview"

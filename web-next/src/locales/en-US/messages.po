@@ -172,6 +172,21 @@ msgstr "{0} and {1} others updated a post you shared"
 msgid "{0} followed you"
 msgstr "{0} followed you"
 
+#. placeholder {0}: s.sourceBreakdown.bluesky
+#: src/components/NewsStoryHeader.tsx:116
+msgid "{0} from Bluesky"
+msgstr "{0} from Bluesky"
+
+#. placeholder {0}: s.sourceBreakdown.local
+#: src/components/NewsStoryHeader.tsx:110
+msgid "{0} from Hackers' Pub"
+msgstr "{0} from Hackers' Pub"
+
+#. placeholder {0}: s.sourceBreakdown.remote
+#: src/components/NewsStoryHeader.tsx:113
+msgid "{0} from the fediverse"
+msgstr "{0} from the fediverse"
+
 #. placeholder {0}: "USER"
 #: src/routes/(root)/[handle]/settings/invite.tsx:362
 msgid "{0} is already a member of Hackers' Pub."
@@ -265,6 +280,7 @@ msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
 #: src/components/NewsStoryCard.tsx:51
+#: src/components/NewsStoryHeader.tsx:53
 msgid "{count, plural, one {# share} other {# shares}}"
 msgstr "{count, plural, one {# share} other {# shares}}"
 
@@ -1077,6 +1093,10 @@ msgstr "Failed to load post"
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
+#: src/components/NewsDiscussionThread.tsx:288
+msgid "Failed to load replies; click to retry"
+msgstr "Failed to load replies; click to retry"
+
 #: src/components/RemoteFollowButton.tsx:126
 msgid "Failed to look up user."
 msgstr "Failed to look up user."
@@ -1226,6 +1246,10 @@ msgstr "Fediverse handle"
 msgid "Feed"
 msgstr "Feed"
 
+#: src/components/NewsStoryHeader.tsx:105
+msgid "First shared"
+msgstr "First shared"
+
 #: src/components/FollowButton.tsx:195
 #: src/components/HashtagActionBar.tsx:237
 msgid "Follow"
@@ -1339,6 +1363,7 @@ msgstr "Hackers' Pub: Admin · Invitations"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub: Admin · Media"
 
+#: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
 msgid "Hackers' Pub: News"
 msgstr "Hackers' Pub: News"
@@ -1613,6 +1638,7 @@ msgstr "Load more quotes"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "Load more reactors (+{0})"
 
+#: src/components/NewsDiscussionThread.tsx:279
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:674
 msgid "Load more replies"
 msgstr "Load more replies"
@@ -1691,6 +1717,10 @@ msgstr "Loading more replies…"
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:211
 msgid "Loading more shares…"
 msgstr "Loading more shares…"
+
+#: src/components/NewsDiscussion.tsx:67
+msgid "Loading more sharing posts…"
+msgstr "Loading more sharing posts…"
 
 #: src/components/NewsList.tsx:128
 msgid "Loading more stories…"
@@ -1894,6 +1924,10 @@ msgstr "No notes found"
 #: src/routes/(root)/[handle]/[noteId]/quotes.tsx:179
 msgid "No one has quoted this yet."
 msgstr "No one has quoted this yet."
+
+#: src/components/NewsDiscussion.tsx:74
+msgid "No one has shared this link in a public post yet."
+msgstr "No one has shared this link in a public post yet."
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/shares.tsx:176
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:185
@@ -2503,6 +2537,7 @@ msgid "Share"
 msgstr "Share"
 
 #: src/components/NewsStoryCard.tsx:167
+#: src/components/NewsStoryHeader.tsx:124
 msgid "Share this link"
 msgstr "Share this link"
 
@@ -2523,6 +2558,15 @@ msgstr "Sharing is not available for this post"
 #: src/components/QuotedNoteCard.tsx:213
 msgid "Show"
 msgstr "Show"
+
+#. placeholder {0}: childCount()
+#: src/components/NewsDiscussionThread.tsx:259
+msgid "Show {0} more in this thread"
+msgstr "Show {0} more in this thread"
+
+#: src/components/NewsDiscussion.tsx:65
+msgid "Show more sharing posts"
+msgstr "Show more sharing posts"
 
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 #~ msgid "Show preview"
