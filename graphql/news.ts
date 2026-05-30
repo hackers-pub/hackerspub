@@ -1,19 +1,27 @@
 import {
+  addNewsExcludedPattern,
   getNewsDiscussionCounts,
+  getNewsExcludedPatterns,
+  getNewsPenalizedStories,
   getNewsScoreStatus,
   getNewsSourceBreakdowns,
   getNewsStories,
+  InvalidNewsPatternError,
   NEWS_BOT_ACTOR_TYPES,
+  NEWS_PENALTY_BURY,
+  NEWS_PENALTY_DEMOTE,
   type NewsOrder as NewsOrderValue,
   type NewsStoriesCursor,
   recomputeNewsScores,
+  removeNewsExcludedPattern,
+  setNewsScorePenalty,
 } from "@hackerspub/models/news";
 import { getPostVisibilityFilter } from "@hackerspub/models/post";
 import type { PostLink as PostLinkRow } from "@hackerspub/models/schema";
 import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { createGraphQLError } from "graphql-yoga";
 import { builder } from "./builder.ts";
-import { NotAuthorizedError } from "./error.ts";
+import { InvalidInputError, NotAuthorizedError } from "./error.ts";
 import { Post, PostLink } from "./post.ts";
 import { NotAuthenticatedError } from "./session.ts";
 
@@ -45,6 +53,43 @@ export const NewsOrder = builder.enumType("NewsOrder", {
     },
   } as const,
 });
+
+// ---------------------------------------------------------------------------
+// Moderator score penalty
+// ---------------------------------------------------------------------------
+
+type NewsPenaltyValue = "none" | "demote" | "bury";
+
+export const NewsPenalty = builder.enumType("NewsPenalty", {
+  description:
+    "A moderator's score penalty on a news link, demoting it in the " +
+    "`POPULAR` feed.  Set via `setNewsScorePenalty`; only moderators can read " +
+    "or change it.  To remove a link from every order instead, exclude its " +
+    "URL with a pattern (`addNewsExcludedPattern`).",
+  values: {
+    NONE: { value: "none", description: "No penalty." },
+    DEMOTE: {
+      value: "demote",
+      description: "Push the link well down the popular feed.",
+    },
+    BURY: {
+      value: "bury",
+      description: "Sink the link to the bottom of the popular feed.",
+    },
+  } as const,
+});
+
+const PENALTY_VALUE: Record<NewsPenaltyValue, number> = {
+  none: 0,
+  demote: NEWS_PENALTY_DEMOTE,
+  bury: NEWS_PENALTY_BURY,
+};
+
+function penaltyLevel(scorePenalty: number): NewsPenaltyValue {
+  if (scorePenalty <= 0) return "none";
+  if (scorePenalty >= NEWS_PENALTY_BURY) return "bury";
+  return "demote";
+}
 
 // ---------------------------------------------------------------------------
 // PostLink scoring fields
@@ -173,6 +218,19 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     load: async (linkIds: Uuid[], ctx) => {
       const counts = await getNewsDiscussionCounts(ctx.db, linkIds);
       return linkIds.map((id) => counts.get(id) ?? 0);
+    },
+  }),
+  penalty: t.field({
+    type: NewsPenalty,
+    nullable: true,
+    description:
+      "The moderator score penalty on this link (demoting it in the " +
+      "`POPULAR` feed).  `null` for non-moderators; moderators see `NONE` " +
+      "when the link is unpenalized.  Set it with `setNewsScorePenalty`.",
+    select: { columns: { scorePenalty: true } },
+    resolve(link, _args, ctx) {
+      if (ctx.session == null || !ctx.account?.moderator) return null;
+      return penaltyLevel(link.scorePenalty);
     },
   }),
 }));
@@ -386,5 +444,187 @@ builder.mutationField("recomputeNewsScores", (t) =>
         recomputedAt: result.recomputedAt,
         status,
       };
+    },
+  }));
+
+// ---------------------------------------------------------------------------
+// Admin: per-link score penalty
+// ---------------------------------------------------------------------------
+
+builder.mutationField("setNewsScorePenalty", (t) =>
+  t.field({
+    type: PostLink,
+    nullable: true,
+    description:
+      "Set (or clear with `NONE`) a moderator score penalty on a news link, " +
+      "demoting it in the `POPULAR` feed.  Requires a moderator account.  " +
+      "Returns the updated link, or `null` if no link has that id.",
+    errors: { types: [NotAuthenticatedError, NotAuthorizedError] },
+    args: {
+      id: t.arg({
+        type: "UUID",
+        required: true,
+        description: "The link's row UUID (`PostLink.uuid`).",
+      }),
+      penalty: t.arg({
+        type: NewsPenalty,
+        required: true,
+        description: "The penalty level to apply (`NONE` clears it).",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      const link = await ctx.db.query.postLinkTable.findFirst({
+        where: { id: args.id },
+      });
+      if (link == null) return null;
+      await setNewsScorePenalty(ctx.db, args.id, PENALTY_VALUE[args.penalty]);
+      return await ctx.db.query.postLinkTable.findFirst({
+        where: { id: args.id },
+      }) ?? null;
+    },
+  }));
+
+builder.queryField("newsPenalizedStories", (t) =>
+  t.field({
+    type: [PostLink],
+    nullable: true,
+    description:
+      "Moderator-only list of news links currently carrying a score penalty, " +
+      "heaviest first, for reviewing/clearing demotions (a buried link is no " +
+      "longer near the top of the feed).  `null` for non-moderators.",
+    async resolve(_root, _args, ctx) {
+      if (ctx.session == null) return null;
+      if (!ctx.account?.moderator) return null;
+      return await getNewsPenalizedStories(ctx.db);
+    },
+  }));
+
+// ---------------------------------------------------------------------------
+// Admin: URL exclusion patterns
+// ---------------------------------------------------------------------------
+
+const NewsExcludedPattern = builder.simpleObject("NewsExcludedPattern", {
+  description:
+    "A moderator-managed `URLPattern` string; links whose URL matches it are " +
+    "hidden from the news feed list (every sort order).  Their discussion " +
+    "page stays reachable by direct link.",
+  fields: (t) => ({
+    id: t.field({ type: "UUID", description: "The pattern's row UUID." }),
+    pattern: t.string({
+      description: "The `URLPattern` string, e.g. `https://example.com/*` or " +
+        "`https://*.example.com/*`.",
+    }),
+    note: t.string({
+      nullable: true,
+      description: "An optional moderator note explaining the exclusion.",
+    }),
+    created: t.field({
+      type: "DateTime",
+      description: "When the pattern was added.",
+    }),
+  }),
+});
+
+builder.queryField("newsExcludedPatterns", (t) =>
+  t.field({
+    type: [NewsExcludedPattern],
+    nullable: true,
+    description:
+      "Moderator-only list of news feed exclusion patterns, newest first.  " +
+      "`null` for non-moderators.",
+    async resolve(_root, _args, ctx) {
+      if (ctx.session == null) return null;
+      if (!ctx.account?.moderator) return null;
+      const rows = await getNewsExcludedPatterns(ctx.db);
+      return rows.map((row) => ({
+        id: row.id,
+        pattern: row.pattern,
+        note: row.note,
+        created: row.created,
+      }));
+    },
+  }));
+
+builder.mutationField("addNewsExcludedPattern", (t) =>
+  t.field({
+    type: NewsExcludedPattern,
+    description:
+      "Add a news feed exclusion pattern (a `URLPattern` string) and hide " +
+      "matching links from the feed list.  Idempotent on the pattern string.  " +
+      "Requires a moderator account.  An invalid pattern raises " +
+      "`InvalidInputError`.",
+    errors: {
+      types: [NotAuthenticatedError, NotAuthorizedError, InvalidInputError],
+    },
+    args: {
+      pattern: t.arg.string({
+        required: true,
+        description:
+          "The `URLPattern` string to exclude, e.g. `https://example.com/*`.",
+      }),
+      note: t.arg.string({
+        description: "An optional note explaining the exclusion.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      try {
+        const row = await addNewsExcludedPattern(ctx.db, {
+          pattern: args.pattern,
+          note: args.note ?? null,
+          creatorId: ctx.account.id,
+        });
+        return {
+          id: row.id,
+          pattern: row.pattern,
+          note: row.note,
+          created: row.created,
+        };
+      } catch (error) {
+        if (error instanceof InvalidNewsPatternError) {
+          throw new InvalidInputError("pattern");
+        }
+        throw error;
+      }
+    },
+  }));
+
+const RemoveNewsExcludedPatternPayload = builder.simpleObject(
+  "RemoveNewsExcludedPatternPayload",
+  {
+    description: "The result of removing a news feed exclusion pattern.",
+    fields: (t) => ({
+      removedId: t.field({
+        type: "UUID",
+        nullable: true,
+        description:
+          "The removed pattern's id, or `null` if no pattern had that id.",
+      }),
+    }),
+  },
+);
+
+builder.mutationField("removeNewsExcludedPattern", (t) =>
+  t.field({
+    type: RemoveNewsExcludedPatternPayload,
+    description:
+      "Remove a news feed exclusion pattern by id, un-hiding links it no " +
+      "longer matches.  Requires a moderator account.",
+    errors: { types: [NotAuthenticatedError, NotAuthorizedError] },
+    args: {
+      id: t.arg({
+        type: "UUID",
+        required: true,
+        description: "The pattern's row UUID.",
+      }),
+    },
+    async resolve(_root, args, ctx) {
+      if (ctx.session == null) throw new NotAuthenticatedError();
+      if (!ctx.account?.moderator) throw new NotAuthorizedError();
+      const removed = await removeNewsExcludedPattern(ctx.db, args.id);
+      return { removedId: removed ? args.id : null };
     },
   }));

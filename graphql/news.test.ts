@@ -738,3 +738,246 @@ Deno.test({
     });
   },
 });
+
+// ---------------------------------------------------------------------------
+// Moderation: score penalty + URL exclusions
+// ---------------------------------------------------------------------------
+
+const setPenaltyMutation = parse(`
+  mutation SetPenalty($id: UUID!, $penalty: NewsPenalty!) {
+    setNewsScorePenalty(id: $id, penalty: $penalty) {
+      __typename
+      ... on PostLink { uuid penalty }
+      ... on NotAuthenticatedError { notAuthenticated }
+      ... on NotAuthorizedError { notAuthorized }
+    }
+  }
+`);
+
+function penaltyTypename(data: unknown): string {
+  return (data as { setNewsScorePenalty: { __typename: string } })
+    .setNewsScorePenalty.__typename;
+}
+
+Deno.test({
+  name: "setNewsScorePenalty demotes for a moderator and rejects others",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const moderator = await makeModerator(tx, {
+        username: "penmod",
+        name: "Pen Mod",
+        email: "penmod@example.com",
+      });
+      const a = await insertPostLink(tx, { url: "https://example.com/pena" });
+      const b = await insertPostLink(tx, { url: "https://example.com/penb" });
+      const at = new Date("2026-05-20T00:00:00.000Z");
+      await insertNotePost(tx, {
+        account: moderator,
+        published: at,
+        link: { id: a.id, url: a.url },
+      });
+      await insertNotePost(tx, {
+        account: moderator,
+        published: at,
+        link: { id: b.id, url: b.url },
+      });
+      await recomputeNewsScores(tx);
+
+      // Guest and non-moderator are rejected.
+      const guest = await execute({
+        schema,
+        document: setPenaltyMutation,
+        variableValues: { id: a.id, penalty: "DEMOTE" },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(guest.errors, undefined);
+      assertEquals(penaltyTypename(guest.data), "NotAuthenticatedError");
+
+      const { account: plain } = await insertAccountWithActor(tx, {
+        username: "penplain",
+        name: "Pen Plain",
+        email: "penplain@example.com",
+      });
+      const nonMod = await execute({
+        schema,
+        document: setPenaltyMutation,
+        variableValues: { id: a.id, penalty: "DEMOTE" },
+        contextValue: makeUserContext(tx, plain),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(nonMod.errors, undefined);
+      assertEquals(penaltyTypename(nonMod.data), "NotAuthorizedError");
+
+      // A moderator demotes link A.
+      const set = await execute({
+        schema,
+        document: setPenaltyMutation,
+        variableValues: { id: a.id, penalty: "DEMOTE" },
+        contextValue: makeUserContext(tx, moderator),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(set.errors, undefined);
+      const payload = (set.data as {
+        setNewsScorePenalty: { __typename: string; penalty: string };
+      }).setNewsScorePenalty;
+      assertEquals(payload.__typename, "PostLink");
+      assertEquals(payload.penalty, "DEMOTE");
+
+      // The unpenalized peer now ranks above the demoted link in POPULAR.
+      const feed = await execute({
+        schema,
+        document: newsStoriesQuery,
+        variableValues: { first: 10 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(feed.errors, undefined);
+      const urls = (feed.data as unknown as NewsStoriesResult).newsStories.edges
+        .map((e) => e.node.url);
+      assert(urls.indexOf(b.url) < urls.indexOf(a.url));
+    });
+  },
+});
+
+const addPatternMutation = parse(`
+  mutation AddPattern($pattern: String!, $note: String) {
+    addNewsExcludedPattern(pattern: $pattern, note: $note) {
+      __typename
+      ... on NewsExcludedPattern { id pattern note }
+      ... on NotAuthenticatedError { notAuthenticated }
+      ... on NotAuthorizedError { notAuthorized }
+      ... on InvalidInputError { inputPath }
+    }
+  }
+`);
+const patternsQuery = parse(
+  `query { newsExcludedPatterns { id pattern note } }`,
+);
+const removePatternMutation = parse(`
+  mutation RemovePattern($id: UUID!) {
+    removeNewsExcludedPattern(id: $id) {
+      __typename
+      ... on RemoveNewsExcludedPatternPayload { removedId }
+      ... on NotAuthenticatedError { notAuthenticated }
+      ... on NotAuthorizedError { notAuthorized }
+    }
+  }
+`);
+
+Deno.test({
+  name: "news exclusion patterns hide links and are moderator-only",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const moderator = await makeModerator(tx, {
+        username: "exclmod",
+        name: "Excl Mod",
+        email: "exclmod@example.com",
+      });
+      const spam = await insertPostLink(tx, { url: "https://spam.example/x" });
+      const good = await insertPostLink(tx, { url: "https://good.example/y" });
+      await insertNotePost(tx, {
+        account: moderator,
+        link: { id: spam.id, url: spam.url },
+      });
+      await insertNotePost(tx, {
+        account: moderator,
+        link: { id: good.id, url: good.url },
+      });
+      await recomputeNewsScores(tx);
+
+      // Guests cannot add patterns or read the list.
+      const guestAdd = await execute({
+        schema,
+        document: addPatternMutation,
+        variableValues: { pattern: "https://spam.example/*", note: null },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(
+        (guestAdd.data as { addNewsExcludedPattern: { __typename: string } })
+          .addNewsExcludedPattern.__typename,
+        "NotAuthenticatedError",
+      );
+      const guestList = await execute({
+        schema,
+        document: patternsQuery,
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(
+        (guestList.data as { newsExcludedPatterns: unknown })
+          .newsExcludedPatterns,
+        null,
+      );
+
+      // An invalid pattern is an InvalidInputError.
+      const bad = await execute({
+        schema,
+        document: addPatternMutation,
+        variableValues: { pattern: "https://example.com/(", note: null },
+        contextValue: makeUserContext(tx, moderator),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(
+        (bad.data as { addNewsExcludedPattern: { __typename: string } })
+          .addNewsExcludedPattern.__typename,
+        "InvalidInputError",
+      );
+
+      // A moderator adds a valid pattern; the spam link leaves the feed.
+      const add = await execute({
+        schema,
+        document: addPatternMutation,
+        variableValues: { pattern: "https://spam.example/*", note: "spam" },
+        contextValue: makeUserContext(tx, moderator),
+        onError: "NO_PROPAGATE",
+      });
+      const added = (add.data as {
+        addNewsExcludedPattern: { __typename: string; id: string };
+      }).addNewsExcludedPattern;
+      assertEquals(added.__typename, "NewsExcludedPattern");
+
+      const feed = await execute({
+        schema,
+        document: newsStoriesQuery,
+        variableValues: { first: 10 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      const urls = (feed.data as unknown as NewsStoriesResult).newsStories.edges
+        .map((e) => e.node.url);
+      assert(!urls.includes(spam.url));
+      assert(urls.includes(good.url));
+
+      // Removing the pattern restores the link.
+      const remove = await execute({
+        schema,
+        document: removePatternMutation,
+        variableValues: { id: added.id },
+        contextValue: makeUserContext(tx, moderator),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(
+        (remove.data as {
+          removeNewsExcludedPattern: { __typename: string; removedId: string };
+        }).removeNewsExcludedPattern.removedId,
+        added.id,
+      );
+      const feed2 = await execute({
+        schema,
+        document: newsStoriesQuery,
+        variableValues: { first: 10 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      const urls2 = (feed2.data as unknown as NewsStoriesResult).newsStories
+        .edges.map((e) => e.node.url);
+      assert(urls2.includes(spam.url));
+    });
+  },
+});
