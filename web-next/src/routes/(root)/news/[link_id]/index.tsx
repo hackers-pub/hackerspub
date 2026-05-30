@@ -1,6 +1,6 @@
+import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { Title } from "@solidjs/meta";
 import { useLocation, useParams } from "@solidjs/router";
-import { type Uuid, validateUuid } from "@hackerspub/models/uuid";
 import { graphql } from "relay-runtime";
 import { createMemo, Show } from "solid-js";
 import { loadQuery, useRelayEnvironment } from "solid-relay";
