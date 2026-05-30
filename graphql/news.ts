@@ -350,15 +350,20 @@ builder.queryField("newsStory", (t) =>
     description:
       "Look up a news story (a shared link) by its row UUID, for the " +
       "discussion permalink `/news/{uuid}`.  Returns `null` for a malformed " +
-      "id or a link that does not exist.  The link need not currently be in " +
-      "the feed.",
+      "id, or for a link that is not a public news story: only links with a " +
+      "qualifying public share (`latestActivityAt` is not `null`) resolve, so " +
+      "a link seen only in followers-only or direct posts stays private.  A " +
+      "link hidden from the feed by an exclusion pattern (`excludedFromNews`) " +
+      "is still reachable here.",
     args: {
       id: t.arg({ type: "UUID", required: true }),
     },
     resolve(query, _root, args, ctx) {
       if (!validateUuid(args.id)) return null;
       return ctx.db.query.postLinkTable.findFirst(
-        query({ where: { id: args.id } }),
+        query({
+          where: { id: args.id, latestActivityAt: { isNotNull: true } },
+        }),
       );
     },
   }));
