@@ -2237,6 +2237,11 @@ type PostLink implements Node {
   url: URL!
 
   """
+  The link's row UUID.  Use this for the stable discussion permalink `/news/{uuid}`; the opaque Relay `id` is for `node(id:)` lookups.
+  """
+  uuid: UUID!
+
+  """
   Recency-independent engagement mass: the weighted sum over this link's public shares of source weight times account reputation times (quotes, replies, reactions).  Drives the `ALL_TIME` order.
   """
   weightedMass: Float!
@@ -2524,6 +2529,11 @@ type Query {
     """How to rank the feed.  Defaults to `POPULAR`."""
     order: NewsOrder = POPULAR
   ): QueryNewsStoriesConnection!
+
+  """
+  Look up a news story (a shared link) by its row UUID, for the discussion permalink `/news/{uuid}`.  Returns `null` for a malformed id or a link that does not exist.  The link need not currently be in the feed.
+  """
+  newsStory(id: UUID!): PostLink
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
 

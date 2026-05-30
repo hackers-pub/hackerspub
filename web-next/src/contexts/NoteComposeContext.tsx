@@ -23,7 +23,9 @@ interface NoteComposeContextValue {
   replyDefaultVisibility: () => PostVisibility | null;
   editingNoteId: () => string | null;
   editInitialData: () => NoteEditInitialData | null;
+  initialContent: () => string | null;
   open: () => void;
+  openWithContent: (content: string) => void;
   openWithQuote: (quotedPostId: string) => void;
   openWithReply: (
     replyTargetId: string,
@@ -49,6 +51,7 @@ export const NoteComposeProvider: ParentComponent = (props) => {
   const [editInitialData, setEditInitialData] = createSignal<
     NoteEditInitialData | null
   >(null);
+  const [initialContent, setInitialContent] = createSignal<string | null>(null);
   const [callbacks, setCallbacks] = createSignal<Set<NoteCreatedCallback>>(
     new Set(),
   );
@@ -59,6 +62,16 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     setReplyDefaultVisibility(null);
     setEditingNoteId(null);
     setEditInitialData(null);
+    setInitialContent(null);
+    setIsOpen(true);
+  };
+  const openWithContent = (content: string) => {
+    setQuotedPostId(null);
+    setReplyTargetId(null);
+    setReplyDefaultVisibility(null);
+    setEditingNoteId(null);
+    setEditInitialData(null);
+    setInitialContent(content);
     setIsOpen(true);
   };
   const openWithQuote = (quotedPostId: string) => {
@@ -67,6 +80,7 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     setReplyDefaultVisibility(null);
     setEditingNoteId(null);
     setEditInitialData(null);
+    setInitialContent(null);
     setIsOpen(true);
   };
   const openWithReply = (
@@ -78,6 +92,7 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     setReplyDefaultVisibility(defaultVisibility);
     setEditingNoteId(null);
     setEditInitialData(null);
+    setInitialContent(null);
     setIsOpen(true);
   };
   const openForEdit = (noteId: string, data: NoteEditInitialData) => {
@@ -86,6 +101,7 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     setReplyDefaultVisibility(null);
     setEditingNoteId(noteId);
     setEditInitialData(data);
+    setInitialContent(null);
     setIsOpen(true);
   };
   const close = () => {
@@ -94,6 +110,7 @@ export const NoteComposeProvider: ParentComponent = (props) => {
     setReplyDefaultVisibility(null);
     setEditingNoteId(null);
     setEditInitialData(null);
+    setInitialContent(null);
     setIsOpen(false);
   };
   const clearQuote = () => {
@@ -125,7 +142,9 @@ export const NoteComposeProvider: ParentComponent = (props) => {
         replyDefaultVisibility,
         editingNoteId,
         editInitialData,
+        initialContent,
         open,
+        openWithContent,
         openWithQuote,
         openWithReply,
         openForEdit,

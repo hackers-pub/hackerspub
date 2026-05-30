@@ -37,7 +37,7 @@ export default function Home() {
               <Navigate href="/feed" />
             </Match>
             <Match when={data.viewer == null}>
-              <Navigate href="/local" />
+              <Navigate href="/news" />
             </Match>
           </Switch>
         </>

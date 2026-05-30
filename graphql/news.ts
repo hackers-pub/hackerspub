@@ -69,6 +69,12 @@ const NewsSourceBreakdown = builder.simpleObject("NewsSourceBreakdown", {
 });
 
 builder.drizzleObjectFields(PostLink, (t) => ({
+  uuid: t.expose("id", {
+    type: "UUID",
+    description:
+      "The link's row UUID.  Use this for the stable discussion permalink " +
+      "`/news/{uuid}`; the opaque Relay `id` is for `node(id:)` lookups.",
+  }),
   score: t.exposeFloat("score", {
     description:
       "Popularity-over-time rank used by the `POPULAR` feed order: " +
@@ -236,6 +242,26 @@ builder.queryField("newsStories", (t) =>
           cursor: formatNewsCursor(link, order),
         })),
       };
+    },
+  }));
+
+builder.queryField("newsStory", (t) =>
+  t.drizzleField({
+    type: PostLink,
+    nullable: true,
+    description:
+      "Look up a news story (a shared link) by its row UUID, for the " +
+      "discussion permalink `/news/{uuid}`.  Returns `null` for a malformed " +
+      "id or a link that does not exist.  The link need not currently be in " +
+      "the feed.",
+    args: {
+      id: t.arg({ type: "UUID", required: true }),
+    },
+    resolve(query, _root, args, ctx) {
+      if (!validateUuid(args.id)) return null;
+      return ctx.db.query.postLinkTable.findFirst(
+        query({ where: { id: args.id } }),
+      );
     },
   }));
 

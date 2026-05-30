@@ -356,6 +356,61 @@ const statusQuery = parse(`
 `);
 
 Deno.test({
+  name: "newsStory looks a link up by uuid for the discussion permalink",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "storylookup",
+        name: "Story Lookup",
+        email: "storylookup@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/by" });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+
+      const doc = parse(`
+        query Story($id: UUID!) {
+          newsStory(id: $id) { uuid url postCount }
+        }
+      `);
+      const found = await execute({
+        schema,
+        document: doc,
+        variableValues: { id: link.id },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(found.errors, undefined);
+      const story = (found.data as {
+        newsStory: { uuid: string; url: string; postCount: number } | null;
+      }).newsStory;
+      assertEquals(story?.uuid, link.id);
+      assertEquals(story?.url, link.url);
+      assertEquals(story?.postCount, 1);
+
+      // A well-formed but unknown uuid resolves to null (not an error).
+      const missing = await execute({
+        schema,
+        document: doc,
+        variableValues: { id: "00000000-0000-7000-8000-000000000000" },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(missing.errors, undefined);
+      assertEquals(
+        (missing.data as { newsStory: unknown }).newsStory,
+        null,
+      );
+    });
+  },
+});
+
+Deno.test({
   name: "newsScoreStatus is null for guests and non-moderators",
   sanitizeOps: false,
   sanitizeResources: false,
