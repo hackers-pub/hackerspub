@@ -50,7 +50,7 @@ msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, one {# invitation left} other {# invitations left}}"
 
 #. placeholder {0}: status()?.scoredLinkCount ?? 0
-#: src/routes/(root)/admin/news.tsx:151
+#: src/routes/(root)/admin/news.tsx:350
 msgid "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
 msgstr "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
 
@@ -102,7 +102,7 @@ msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 
 #. placeholder {0}: result.linksUpdated!
-#: src/routes/(root)/admin/news.tsx:92
+#: src/routes/(root)/admin/news.tsx:190
 msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 msgstr "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 
@@ -289,7 +289,7 @@ msgstr "{0}'s notes"
 msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
-#: src/components/NewsStoryCard.tsx:49
+#: src/components/NewsStoryCard.tsx:107
 #: src/components/NewsStoryHeader.tsx:54
 msgid "{count, plural, one {# opinion} other {# opinions}}"
 msgstr "{count, plural, one {# opinion} other {# opinions}}"
@@ -328,6 +328,7 @@ msgid "Actions"
 msgstr "Actions"
 
 #: src/routes/(root)/[handle]/settings/language.tsx:196
+#: src/routes/(root)/admin/news.tsx:421
 msgid "Add"
 msgstr "Add"
 
@@ -339,6 +340,10 @@ msgstr "Add {0}"
 #: src/components/HashtagActionBar.tsx:258
 msgid "Add to sidebar"
 msgstr "Add to sidebar"
+
+#: src/routes/(root)/admin/news.tsx:421
+msgid "Adding…"
+msgstr "Adding…"
 
 #: src/components/AppSidebar.tsx:751
 msgid "Admin"
@@ -364,7 +369,7 @@ msgstr "All languages"
 msgid "All notifications"
 msgstr "All notifications"
 
-#: src/components/NewsList.tsx:87
+#: src/components/NewsList.tsx:90
 msgid "All-time"
 msgstr "All-time"
 
@@ -563,6 +568,15 @@ msgstr "Browser notifications disabled"
 msgid "Browser notifications enabled"
 msgstr "Browser notifications enabled"
 
+#: src/components/NewsStoryCard.tsx:215
+#: src/routes/(root)/admin/news.tsx:492
+msgid "Buried"
+msgstr "Buried"
+
+#: src/components/NewsStoryCard.tsx:258
+msgid "Bury"
+msgstr "Bury"
+
 #: src/components/article-composer/ArticleComposerActions.tsx:48
 #: src/components/NoteComposer.tsx:1357
 #: src/components/NoteComposer.tsx:1358
@@ -613,8 +627,13 @@ msgid "Choose your preferred language for the verification email."
 msgstr "Choose your preferred language for the verification email."
 
 #: src/components/admin/AdminAccountsTable.tsx:213
+#: src/routes/(root)/admin/news.tsx:501
 msgid "Clear"
 msgstr "Clear"
+
+#: src/components/NewsStoryCard.tsx:264
+msgid "Clear penalty"
+msgstr "Clear penalty"
 
 #: src/components/WebPushNotificationSettings.tsx:395
 msgid "Clicking a notification opens your notifications page."
@@ -788,6 +807,15 @@ msgstr "Delete post?"
 msgid "Deleting…"
 msgstr "Deleting…"
 
+#: src/components/NewsStoryCard.tsx:252
+msgid "Demote"
+msgstr "Demote"
+
+#: src/components/NewsStoryCard.tsx:215
+#: src/routes/(root)/admin/news.tsx:493
+msgid "Demoted"
+msgstr "Demoted"
+
 #: src/components/WebPushNotificationSettings.tsx:431
 msgid "Disable"
 msgstr "Disable"
@@ -952,6 +980,18 @@ msgstr "Enter your email or username below to sign in."
 msgid "Error"
 msgstr "Error"
 
+#: src/routes/(root)/admin/news.tsx:382
+msgid "Excluded URL patterns"
+msgstr "Excluded URL patterns"
+
+#: src/routes/(root)/admin/news.tsx:233
+msgid "Exclusion pattern added."
+msgstr "Exclusion pattern added."
+
+#: src/routes/(root)/admin/news.tsx:268
+msgid "Exclusion pattern removed."
+msgstr "Exclusion pattern removed."
+
 #. placeholder {0}: "DATE"
 #: src/routes/(root)/[handle]/invite/[id].tsx:339
 #: src/routes/(root)/[handle]/settings/invite.tsx:760
@@ -967,6 +1007,10 @@ msgstr "Expiry"
 msgid "Extra message"
 msgstr "Extra message"
 
+#: src/routes/(root)/admin/news.tsx:252
+msgid "Failed to add exclusion pattern."
+msgstr "Failed to add exclusion pattern."
+
 #: src/components/HashtagActionBar.tsx:192
 #: src/components/HashtagActionBar.tsx:199
 msgid "Failed to add to sidebar"
@@ -981,6 +1025,10 @@ msgstr "Failed to block this user"
 #: src/components/BookmarkButton.tsx:129
 msgid "Failed to bookmark"
 msgstr "Failed to bookmark"
+
+#: src/routes/(root)/admin/news.tsx:310
+msgid "Failed to clear penalty."
+msgstr "Failed to clear penalty."
 
 #: src/routes/(root)/[handle]/settings/invite.tsx:618
 msgid "Failed to copy"
@@ -1137,7 +1185,7 @@ msgstr "Failed to pin post"
 msgid "Failed to react"
 msgstr "Failed to react"
 
-#: src/routes/(root)/admin/news.tsx:114
+#: src/routes/(root)/admin/news.tsx:212
 msgid "Failed to recompute news scores."
 msgstr "Failed to recompute news scores."
 
@@ -1153,6 +1201,10 @@ msgstr "Failed to register passkey"
 #: src/components/BookmarkButton.tsx:109
 msgid "Failed to remove bookmark"
 msgstr "Failed to remove bookmark"
+
+#: src/routes/(root)/admin/news.tsx:281
+msgid "Failed to remove exclusion pattern."
+msgstr "Failed to remove exclusion pattern."
 
 #: src/components/HashtagActionBar.tsx:212
 #: src/components/HashtagActionBar.tsx:219
@@ -1230,6 +1282,11 @@ msgstr "Failed to unpin post"
 #: src/components/PostEngagementBar.tsx:180
 msgid "Failed to unshare post"
 msgstr "Failed to unshare post"
+
+#: src/components/NewsStoryCard.tsx:87
+#: src/components/NewsStoryCard.tsx:91
+msgid "Failed to update penalty."
+msgstr "Failed to update penalty."
 
 #: src/components/WebPushNotificationSettings.tsx:354
 msgid "Failed to update push notification privacy"
@@ -1382,9 +1439,13 @@ msgstr "Hackers' Pub: Admin · Invitations"
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub: Admin · Media"
 
+#: src/routes/(root)/admin/news.tsx:320
+msgid "Hackers' Pub: Admin · News"
+msgstr "Hackers' Pub: Admin · News"
+
 #: src/routes/(root)/admin/news.tsx:124
-msgid "Hackers' Pub: Admin · News scores"
-msgstr "Hackers' Pub: Admin · News scores"
+#~ msgid "Hackers' Pub: Admin · News scores"
+#~ msgstr "Hackers' Pub: Admin · News scores"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
@@ -1412,6 +1473,10 @@ msgstr "Heading 3"
 #: src/components/QuotedNoteCard.tsx:213
 msgid "Hide"
 msgstr "Hide"
+
+#: src/routes/(root)/admin/news.tsx:384
+msgid "Hide links matching a URL pattern from the news feed list (every sort order). Their discussion pages stay reachable by direct link. Patterns use the URLPattern syntax, e.g. https://example.com/* or https://*.example.com/*."
+msgstr "Hide links matching a URL pattern from the news feed list (every sort order). Their discussion pages stay reachable by direct link. Patterns use the URLPattern syntax, e.g. https://example.com/* or https://*.example.com/*."
 
 #: src/components/article-composer/ArticleComposerForm.tsx:73
 #~ msgid "Hide preview"
@@ -1566,7 +1631,7 @@ msgstr "Language settings"
 msgid "Languages"
 msgstr "Languages"
 
-#: src/components/NewsStoryCard.tsx:147
+#: src/components/NewsStoryCard.tsx:205
 #: src/components/NewsStoryHeader.tsx:106
 msgid "Last active"
 msgstr "Last active"
@@ -1575,7 +1640,7 @@ msgstr "Last active"
 msgid "Last activity"
 msgstr "Last activity"
 
-#: src/routes/(root)/admin/news.tsx:161
+#: src/routes/(root)/admin/news.tsx:360
 msgid "Last recomputed:"
 msgstr "Last recomputed:"
 
@@ -1607,6 +1672,10 @@ msgstr "Link expired"
 #: src/routes/(root)/[handle]/settings/index.tsx:561
 msgid "Link name"
 msgstr "Link name"
+
+#: src/routes/(root)/admin/news.tsx:465
+msgid "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
+msgstr "Links a moderator has demoted in the popular feed. Clear a penalty to restore a link's normal ranking."
 
 #: src/routes/(root)/news/index.tsx:41
 msgid "Links circulating across the fediverse, ranked by how much they are being shared and discussed."
@@ -1684,7 +1753,7 @@ msgstr "Load more replies"
 msgid "Load more shares"
 msgstr "Load more shares"
 
-#: src/components/NewsList.tsx:126
+#: src/components/NewsList.tsx:139
 msgid "Load more stories"
 msgstr "Load more stories"
 
@@ -1754,11 +1823,11 @@ msgstr "Loading more replies…"
 msgid "Loading more shares…"
 msgstr "Loading more shares…"
 
-#: src/components/NewsDiscussion.tsx:77
+#: src/components/NewsDiscussion.tsx:79
 msgid "Loading more sharing posts…"
 msgstr "Loading more sharing posts…"
 
-#: src/components/NewsList.tsx:128
+#: src/components/NewsList.tsx:141
 msgid "Loading more stories…"
 msgstr "Loading more stories…"
 
@@ -1812,6 +1881,11 @@ msgstr "Media"
 #: src/components/VisibilityTag.tsx:98
 msgid "Mentioned only"
 msgstr "Mentioned only"
+
+#: src/components/NewsStoryCard.tsx:225
+#: src/components/NewsStoryCard.tsx:243
+msgid "Moderate"
+msgstr "Moderate"
 
 #: src/components/PostEngagementBar.tsx:436
 #: src/components/PostEngagementBar.tsx:437
@@ -1878,7 +1952,7 @@ msgstr "Name is too long. Maximum length is 50 characters."
 msgid "Native name"
 msgstr "Native name"
 
-#: src/routes/(root)/admin/news.tsx:166
+#: src/routes/(root)/admin/news.tsx:365
 msgid "never"
 msgstr "never"
 
@@ -1909,19 +1983,21 @@ msgstr "New notifications can now appear even when Hackers' Pub is not open."
 msgid "New posts available — click to load"
 msgstr "New posts available — click to load"
 
-#: src/components/NewsList.tsx:86
+#: src/components/NewsList.tsx:89
 msgid "Newest"
 msgstr "Newest"
 
 #: src/components/AppSidebar.tsx:244
+#: src/components/AppSidebar.tsx:842
+#: src/routes/(root)/admin/news.tsx:337
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
 msgstr "News"
 
 #: src/components/AppSidebar.tsx:842
 #: src/routes/(root)/admin/news.tsx:139
-msgid "News scores"
-msgstr "News scores"
+#~ msgid "News scores"
+#~ msgstr "News scores"
 
 #: src/components/ImageLightbox.tsx:126
 msgid "Next image"
@@ -1938,6 +2014,10 @@ msgstr "No draft to delete"
 #: src/routes/(root)/[handle]/drafts/index.tsx:264
 msgid "No drafts yet. Create your first article!"
 msgstr "No drafts yet. Create your first article!"
+
+#: src/routes/(root)/admin/news.tsx:428
+msgid "No exclusion patterns yet."
+msgstr "No exclusion patterns yet."
 
 #: src/components/ActorFollowerList.tsx:92
 msgid "No followers found"
@@ -1970,7 +2050,7 @@ msgstr "No notes found"
 msgid "No one has quoted this yet."
 msgstr "No one has quoted this yet."
 
-#: src/components/NewsDiscussion.tsx:84
+#: src/components/NewsDiscussion.tsx:86
 msgid "No one has shared this link in a public post yet."
 msgstr "No one has shared this link in a public post yet."
 
@@ -1978,6 +2058,10 @@ msgstr "No one has shared this link in a public post yet."
 #: src/routes/(root)/[handle]/[noteId]/shares.tsx:185
 msgid "No one has shared this yet."
 msgstr "No one has shared this yet."
+
+#: src/routes/(root)/admin/news.tsx:473
+msgid "No penalized links."
+msgstr "No penalized links."
 
 #: src/components/ActorPostList.tsx:140
 #: src/components/ActorSharedPostList.tsx:93
@@ -2000,7 +2084,7 @@ msgstr "No reactions yet."
 msgid "No reactors loaded."
 msgstr "No reactors loaded."
 
-#: src/components/NewsList.tsx:135
+#: src/components/NewsList.tsx:148
 msgid "No shared links yet. Once links start circulating across the fediverse, they will appear here."
 msgstr "No shared links yet. Once links start circulating across the fediverse, they will appear here."
 
@@ -2012,11 +2096,20 @@ msgstr "No such account in Hackers' Pub—please try again."
 msgid "No user URI provided."
 msgstr "No user URI provided."
 
+#: src/routes/(root)/admin/news.tsx:303
+msgid "Not authorized to clear penalties."
+msgstr "Not authorized to clear penalties."
+
 #: src/routes/(root)/admin/media.tsx:117
 msgid "Not authorized to delete orphan media."
 msgstr "Not authorized to delete orphan media."
 
-#: src/routes/(root)/admin/news.tsx:105
+#: src/routes/(root)/admin/news.tsx:244
+#: src/routes/(root)/admin/news.tsx:274
+msgid "Not authorized to manage exclusions."
+msgstr "Not authorized to manage exclusions."
+
+#: src/routes/(root)/admin/news.tsx:203
 msgid "Not authorized to recompute news scores."
 msgstr "Not authorized to recompute news scores."
 
@@ -2036,6 +2129,10 @@ msgstr "Not found"
 #: src/routes/(root)/[handle]/[noteId].tsx:247
 #~ msgid "Note"
 #~ msgstr "Note"
+
+#: src/routes/(root)/admin/news.tsx:407
+msgid "Note (optional)"
+msgstr "Note (optional)"
 
 #: src/components/NoteComposer.tsx:896
 msgid "Note created successfully"
@@ -2136,6 +2233,14 @@ msgstr "Passkey revoked"
 msgid "Passkeys"
 msgstr "Passkeys"
 
+#: src/routes/(root)/admin/news.tsx:463
+msgid "Penalized links"
+msgstr "Penalized links"
+
+#: src/routes/(root)/admin/news.tsx:297
+msgid "Penalty cleared."
+msgstr "Penalty cleared."
+
 #: src/routes/(root)/[handle]/bookmarks.tsx:99
 #: src/routes/(root)/[handle]/bookmarks.tsx:102
 #: src/routes/(root)/[handle]/drafts/[id].tsx:52
@@ -2187,7 +2292,7 @@ msgstr "Please sign in to vote"
 msgid "Poll closed"
 msgstr "Poll closed"
 
-#: src/components/NewsList.tsx:85
+#: src/components/NewsList.tsx:88
 msgid "Popular"
 msgstr "Popular"
 
@@ -2361,7 +2466,7 @@ msgstr "Read full article"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "Read the full Code of conduct"
 
-#: src/routes/(root)/admin/news.tsx:145
+#: src/routes/(root)/admin/news.tsx:344
 msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 msgstr "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
 
@@ -2377,12 +2482,12 @@ msgstr "Receive notifications immediately through this browser, even when this t
 msgid "Recent drafts"
 msgstr "Recent drafts"
 
-#: src/routes/(root)/admin/news.tsx:143
-#: src/routes/(root)/admin/news.tsx:176
+#: src/routes/(root)/admin/news.tsx:342
+#: src/routes/(root)/admin/news.tsx:375
 msgid "Recompute news scores"
 msgstr "Recompute news scores"
 
-#: src/routes/(root)/admin/news.tsx:175
+#: src/routes/(root)/admin/news.tsx:374
 msgid "Recomputing…"
 msgstr "Recomputing…"
 
@@ -2429,6 +2534,7 @@ msgid "Remote follow"
 msgstr "Remote follow"
 
 #: src/components/LanguageList.tsx:225
+#: src/routes/(root)/admin/news.tsx:451
 msgid "Remove"
 msgstr "Remove"
 
@@ -2598,7 +2704,7 @@ msgstr "Settings"
 msgid "Share"
 msgstr "Share"
 
-#: src/components/NewsStoryCard.tsx:140
+#: src/components/NewsStoryCard.tsx:198
 #: src/components/NewsStoryHeader.tsx:132
 msgid "Share this link"
 msgstr "Share this link"
@@ -2630,7 +2736,7 @@ msgstr "Show"
 msgid "Show {0} more in this thread"
 msgstr "Show {0} more in this thread"
 
-#: src/components/NewsDiscussion.tsx:75
+#: src/components/NewsDiscussion.tsx:77
 msgid "Show more sharing posts"
 msgstr "Show more sharing posts"
 
@@ -2758,6 +2864,10 @@ msgstr "Tags"
 #: src/routes/(root)/sign/up/[token].tsx:414
 msgid "Tell us about yourself…"
 msgstr "Tell us about yourself…"
+
+#: src/routes/(root)/admin/news.tsx:237
+msgid "That is not a valid URL pattern."
+msgstr "That is not a valid URL pattern."
 
 #: src/components/WebPushNotificationSettings.tsx:158
 #: src/components/WebPushPromptBanner.tsx:93
@@ -3057,6 +3167,10 @@ msgstr "Upload progress"
 #: src/routes/(root)/[handle]/settings/index.tsx:586
 msgid "URL"
 msgstr "URL"
+
+#: src/routes/(root)/admin/news.tsx:394
+msgid "URL pattern"
+msgstr "URL pattern"
 
 #: src/components/ProfileActionMenu.tsx:277
 msgid "User blocked"

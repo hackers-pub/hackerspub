@@ -1,14 +1,48 @@
 import { A } from "@solidjs/router";
 import { graphql } from "relay-runtime";
 import { createMemo, Show } from "solid-js";
-import { createFragment } from "solid-relay";
+import { createFragment, createMutation } from "solid-relay";
 import { Timestamp } from "~/components/Timestamp.tsx";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu.tsx";
+import { showToast } from "~/components/ui/toast.tsx";
 import { useNoteCompose } from "~/contexts/NoteComposeContext.tsx";
 import { msg, plural, useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NewsStoryCard_story$key } from "./__generated__/NewsStoryCard_story.graphql.ts";
+import type { NewsStoryCard_setPenalty_Mutation } from "./__generated__/NewsStoryCard_setPenalty_Mutation.graphql.ts";
+
+const setPenaltyMutation = graphql`
+  mutation NewsStoryCard_setPenalty_Mutation(
+    $id: UUID!
+    $penalty: NewsPenalty!
+  ) {
+    setNewsScorePenalty(id: $id, penalty: $penalty) {
+      __typename
+      ... on PostLink {
+        id
+        penalty
+        score
+      }
+      ... on NotAuthenticatedError {
+        notAuthenticated
+      }
+      ... on NotAuthorizedError {
+        notAuthorized
+      }
+    }
+  }
+`;
 
 export interface NewsStoryCardProps {
   $story: NewsStoryCard_story$key;
+  /** Whether the viewer is a moderator (shows the demote/bury control). */
+  isModerator?: boolean;
+  /** Called after a penalty change, to refetch the feed so it reorders. */
+  onPenaltyChanged?: () => void;
 }
 
 export function NewsStoryCard(props: NewsStoryCardProps) {
@@ -24,6 +58,7 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
         description
         discussionCount
         latestActivityAt
+        penalty
         image {
           url
           alt
@@ -34,6 +69,29 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
     `,
     () => props.$story,
   );
+
+  const [setPenalty] = createMutation<NewsStoryCard_setPenalty_Mutation>(
+    setPenaltyMutation,
+  );
+
+  function applyPenalty(
+    uuid: `${string}-${string}-${string}-${string}-${string}`,
+    penalty: "NONE" | "DEMOTE" | "BURY",
+  ) {
+    setPenalty({
+      variables: { id: uuid, penalty },
+      onCompleted(response) {
+        if (response.setNewsScorePenalty?.__typename === "PostLink") {
+          props.onPenaltyChanged?.();
+        } else {
+          showToast({ title: t`Failed to update penalty.`, variant: "error" });
+        }
+      },
+      onError() {
+        showToast({ title: t`Failed to update penalty.`, variant: "error" });
+      },
+    });
+  }
 
   const host = createMemo(() => {
     const s = story();
@@ -149,6 +207,64 @@ export function NewsStoryCard(props: NewsStoryCardProps) {
                     </span>
                   </>
                 )}
+              </Show>
+              <Show when={props.isModerator}>
+                <Show when={s.penalty && s.penalty !== "NONE"}>
+                  <span aria-hidden="true">·</span>
+                  <span class="text-muted-foreground/70">
+                    {s.penalty === "BURY" ? t`Buried` : t`Demoted`}
+                  </span>
+                </Show>
+                <span aria-hidden="true">·</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    as={(triggerProps: Record<string, unknown>) => (
+                      <button
+                        {...triggerProps}
+                        type="button"
+                        aria-label={t`Moderate`}
+                        class="inline-flex items-center gap-1 transition-colors hover:text-foreground"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                          aria-hidden="true"
+                          class="size-3.5"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+                          />
+                        </svg>
+                        {t`Moderate`}
+                      </button>
+                    )}
+                  />
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      class="cursor-pointer"
+                      onSelect={() => applyPenalty(s.uuid, "DEMOTE")}
+                    >
+                      {t`Demote`}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      class="cursor-pointer"
+                      onSelect={() => applyPenalty(s.uuid, "BURY")}
+                    >
+                      {t`Bury`}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      class="cursor-pointer"
+                      onSelect={() => applyPenalty(s.uuid, "NONE")}
+                    >
+                      {t`Clear penalty`}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </Show>
             </div>
           </div>

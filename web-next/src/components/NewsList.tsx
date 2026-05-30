@@ -37,6 +37,9 @@ export function NewsList(props: NewsListProps) {
         )
       {
         __id
+        viewer {
+          moderator
+        }
         newsStories(after: $cursor, first: $count, order: $order)
           @connection(key: "NewsList__newsStories")
         {
@@ -114,7 +117,17 @@ export function NewsList(props: NewsListProps) {
           {(data) => (
             <>
               <For each={data.newsStories.edges}>
-                {(edge) => <NewsStoryCard $story={edge.node} />}
+                {(edge) => (
+                  <NewsStoryCard
+                    $story={edge.node}
+                    isModerator={data.viewer?.moderator ?? false}
+                    onPenaltyChanged={() =>
+                      stories.refetch(
+                        { order: props.activeSort() },
+                        { fetchPolicy: "network-only" },
+                      )}
+                  />
+                )}
               </For>
               <Show when={stories.hasNext}>
                 <button
