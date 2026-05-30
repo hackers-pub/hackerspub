@@ -283,8 +283,14 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
   useMentionHoverCards(proseRef);
   useContentLinkInterceptor(proseRef);
 
-  const engagementBase = (p: NewsDiscussionThread_post$data) =>
-    p.actor.local && p.url != null ? new URL(p.url).pathname : null;
+  const engagementBase = (p: NewsDiscussionThread_post$data) => {
+    if (!p.actor.local || p.url == null) return null;
+    try {
+      return new URL(p.url).pathname;
+    } catch {
+      return null;
+    }
+  };
 
   return (
     <Show keyed when={post()}>
