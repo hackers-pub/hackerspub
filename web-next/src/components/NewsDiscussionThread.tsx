@@ -40,14 +40,16 @@ const childrenQuery = graphql`
     $id: ID!
     $cursor: String
     $quoteCursor: String
+    $loadReplies: Boolean!
+    $loadQuotes: Boolean!
   ) {
     node(id: $id) {
       ... on Post {
-        replies(after: $cursor, first: 10) {
+        replies(after: $cursor, first: 10) @include(if: $loadReplies) {
           edges { node { id ...NewsDiscussionThread_post } }
           pageInfo { hasNextPage endCursor }
         }
-        quotes(after: $quoteCursor, first: 20) {
+        quotes(after: $quoteCursor, first: 20) @include(if: $loadQuotes) {
           edges { node { id ...NewsDiscussionThread_post } }
           pageInfo { hasNextPage endCursor }
         }
@@ -163,9 +165,13 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
       setQuoteChildren([]);
       setReplyCursor(null);
       setQuoteCursor(null);
+      setReplyHasMore(false);
+      setQuoteHasMore(false);
     }
     setExpanded(true);
     setLoadState("loading");
+    // Only fetch the connection this load touches; the other would just be
+    // refetched and discarded.
     fetchQuery<NewsDiscussionThreadChildrenQuery>(
       environment(),
       childrenQuery,
@@ -173,6 +179,8 @@ export function NewsDiscussionThread(props: NewsDiscussionThreadProps) {
         id: p.id,
         cursor: mode === "replies" ? replyCursor() : null,
         quoteCursor: mode === "quotes" ? quoteCursor() : null,
+        loadReplies: mode !== "quotes",
+        loadQuotes: mode !== "replies",
       },
     ).subscribe({
       next(data) {
