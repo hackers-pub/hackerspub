@@ -1,14 +1,21 @@
 import { assert } from "@std/assert/assert";
 import { assertAlmostEquals } from "@std/assert/almost-equals";
 import { assertEquals } from "@std/assert/equals";
+import { assertRejects } from "@std/assert/rejects";
 import { eq, sql } from "drizzle-orm";
 import type { Transaction } from "./db.ts";
 import {
+  addNewsExcludedPattern,
   getNewsDiscussionCounts,
+  getNewsExcludedPatterns,
+  getNewsPenalizedStories,
   getNewsScoreStatus,
   getNewsSourceBreakdowns,
   getNewsStories,
+  InvalidNewsPatternError,
   NEWS_EPOCH_SECONDS,
+  NEWS_PENALTY_BURY,
+  NEWS_PENALTY_DEMOTE,
   NEWS_REPEAT_CAP,
   NEWS_REPEAT_FRESH_MIN_SECONDS,
   NEWS_REPEAT_RECOVERY_TAU_SECONDS,
@@ -24,6 +31,8 @@ import {
   refreshNewsScores,
   refreshNewsScoresForActor,
   refreshNewsScoresForPostLinks,
+  removeNewsExcludedPattern,
+  setNewsScorePenalty,
 } from "./news.ts";
 import { syncPostFromNoteSource } from "./post.ts";
 import { actorTable, instanceTable, postTable } from "./schema.ts";
@@ -1858,6 +1867,182 @@ Deno.test({
       // The bare repeat share would not refresh freshness (gap < FRESH_MIN), but
       // its genuine reply does, so the link is fresh as of t1.
       assertEquals(row.latestActivityAt?.getTime(), t1.getTime());
+    });
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Moderation: score penalties + URL exclusions
+// ---------------------------------------------------------------------------
+
+Deno.test({
+  name: "setNewsScorePenalty demotes a link in the popular feed",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "penalty",
+        name: "Penalty",
+        email: "penalty@example.com",
+      });
+      const a = await insertPostLink(tx, { url: "https://example.com/pa" });
+      const b = await insertPostLink(tx, { url: "https://example.com/pb" });
+      const at = new Date("2026-05-20T00:00:00.000Z");
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: at,
+        link: { id: a.id, url: a.url },
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: at,
+        link: { id: b.id, url: b.url },
+      });
+      await recomputeNewsScores(tx);
+
+      const baseA = (await readLink(tx, a.id)).score;
+      const baseB = (await readLink(tx, b.id)).score;
+      assertAlmostEquals(baseA, baseB, 1e-9); // identical base scores
+
+      await setNewsScorePenalty(tx, a.id, NEWS_PENALTY_DEMOTE);
+      const penalized = await readLink(tx, a.id);
+      assertEquals(penalized.scorePenalty, NEWS_PENALTY_DEMOTE);
+      assertAlmostEquals(penalized.score, baseA - NEWS_PENALTY_DEMOTE, 1e-6);
+
+      // The unpenalized peer now ranks above the demoted link.
+      const popular = await getNewsStories(tx, { order: "popular", limit: 10 });
+      const ai = popular.findIndex((l) => l.id === a.id);
+      const bi = popular.findIndex((l) => l.id === b.id);
+      assert(ai >= 0 && bi >= 0 && bi < ai);
+
+      // Clearing the penalty restores the score.
+      await setNewsScorePenalty(tx, a.id, 0);
+      assertAlmostEquals((await readLink(tx, a.id)).score, baseA, 1e-6);
+    });
+  },
+});
+
+Deno.test({
+  name: "getNewsStories excludes links matching an exclusion pattern",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "excl",
+        name: "Excl",
+        email: "excl@example.com",
+      });
+      const spam = await insertPostLink(tx, { url: "https://spam.example/a" });
+      const good = await insertPostLink(tx, { url: "https://good.example/b" });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: spam.id, url: spam.url },
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: good.id, url: good.url },
+      });
+      await recomputeNewsScores(tx);
+      const before = (await getNewsStories(tx, { order: "popular", limit: 10 }))
+        .map((l) => l.id);
+      assert(before.includes(spam.id) && before.includes(good.id));
+
+      await addNewsExcludedPattern(tx, { pattern: "https://spam.example/*" });
+
+      // Excluded from every sort order, but the row remains (reachable by id).
+      for (const order of ["popular", "newest", "allTime"] as const) {
+        const got = (await getNewsStories(tx, { order, limit: 10 }))
+          .map((l) => l.id);
+        assert(!got.includes(spam.id), `${order} must exclude the spam link`);
+        assert(got.includes(good.id), `${order} must keep the good link`);
+      }
+      assertEquals((await readLink(tx, spam.id)).excludedFromNews, true);
+      assertEquals((await readLink(tx, good.id)).excludedFromNews, false);
+
+      // Removing the pattern un-flags and restores the link.
+      const [pattern] = await getNewsExcludedPatterns(tx);
+      await removeNewsExcludedPattern(tx, pattern.id);
+      assertEquals((await readLink(tx, spam.id)).excludedFromNews, false);
+      const after = (await getNewsStories(tx, { order: "popular", limit: 10 }))
+        .map((l) => l.id);
+      assert(after.includes(spam.id));
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores flags a newly-shared link matching a pattern",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "exclnew",
+        name: "Excl New",
+        email: "exclnew@example.com",
+      });
+      await addNewsExcludedPattern(tx, {
+        pattern: "https://blocked.example/*",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://blocked.example/post",
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+
+      assertEquals((await readLink(tx, link.id)).excludedFromNews, true);
+      const ids = (await getNewsStories(tx, { order: "popular", limit: 10 }))
+        .map((l) => l.id);
+      assert(!ids.includes(link.id));
+    });
+  },
+});
+
+Deno.test({
+  name: "addNewsExcludedPattern rejects an invalid URLPattern",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      await assertRejects(
+        () => addNewsExcludedPattern(tx, { pattern: "https://example.com/(" }),
+        InvalidNewsPatternError,
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "getNewsPenalizedStories lists links carrying a penalty",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "penlist",
+        name: "Pen List",
+        email: "penlist@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/pl" });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+      assertEquals((await getNewsPenalizedStories(tx)).length, 0);
+
+      await setNewsScorePenalty(tx, link.id, NEWS_PENALTY_BURY);
+      const penalized = await getNewsPenalizedStories(tx);
+      assertEquals(penalized.length, 1);
+      assertEquals(penalized[0].id, link.id);
+
+      await setNewsScorePenalty(tx, link.id, 0);
+      assertEquals((await getNewsPenalizedStories(tx)).length, 0);
     });
   },
 });

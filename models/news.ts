@@ -4,6 +4,8 @@ import {
   count,
   desc,
   eq,
+  gt,
+  inArray,
   isNotNull,
   lt,
   or,
@@ -11,8 +13,14 @@ import {
   sql,
 } from "drizzle-orm";
 import type { Database, Transaction } from "./db.ts";
-import { type ActorType, type PostLink, postLinkTable } from "./schema.ts";
-import type { Uuid } from "./uuid.ts";
+import {
+  type ActorType,
+  type NewsExcludedPattern,
+  newsExcludedPatternTable,
+  type PostLink,
+  postLinkTable,
+} from "./schema.ts";
+import { generateUuidV7, type Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "news"]);
 
@@ -90,6 +98,26 @@ export const NEWS_REPEAT_RECOVERY_TAU_SECONDS = 2_592_000; // 30 days
  * pin a link at the top); genuine replies/quotes/reactions still refresh it.
  */
 export const NEWS_REPEAT_FRESH_MIN_SECONDS = 604_800; // 7 days
+
+// ---------------------------------------------------------------------------
+// Moderator score penalties
+//
+// A moderator demotes a link by subtracting a penalty from its `score` (the
+// `POPULAR` order).  Presets, not free numbers, since the raw score scale is
+// recency-dominated and unintuitive.  Tunable.
+// ---------------------------------------------------------------------------
+
+/**
+ * "Demote": push a link well down the popular feed (roughly a month of recency
+ * worth of score), without removing it.
+ */
+export const NEWS_PENALTY_DEMOTE = 50;
+/**
+ * "Bury": sink a link to the very bottom of the popular feed.  Large enough that
+ * the score goes negative regardless of engagement/recency.  (To remove a link
+ * from every order, use an exclusion pattern instead.)
+ */
+export const NEWS_PENALTY_BURY = 100_000;
 
 // Detects a Bluesky-bridged actor (`@…@bsky.brid.gy`).  References the actor
 // alias `a` and instance alias `i`, which both source queries below join under
@@ -190,6 +218,11 @@ export async function recomputeNewsScores(
   const run = async (tx: Database): Promise<number> => {
     const linksUpdated = await recomputeAggregate(tx, scope);
     await zeroStaleLinks(tx, scope);
+    // Flag newly-scored (or rescored) links that match an exclusion pattern.
+    await applyNewsExclusions(
+      tx,
+      scope.kind === "links" ? scope.ids : undefined,
+    );
     return linksUpdated;
   };
 
@@ -545,7 +578,8 @@ async function recomputeAggregate(
       score =
         log(greatest(1::double precision, final.weighted_mass))
         + (extract(epoch from final.latest_activity_at) - ${NEWS_EPOCH_SECONDS}::double precision)
-            / ${NEWS_TAU_SECONDS}::double precision,
+            / ${NEWS_TAU_SECONDS}::double precision
+        - pl.score_penalty,
       score_updated = now()
     from final
     where pl.id = final.link_id
@@ -618,7 +652,10 @@ export async function getNewsStories(
     ? postLinkTable.weightedMass
     : postLinkTable.score;
 
-  const conditions: SQL[] = [isNotNull(postLinkTable.latestActivityAt)];
+  const conditions: SQL[] = [
+    isNotNull(postLinkTable.latestActivityAt),
+    eq(postLinkTable.excludedFromNews, false),
+  ];
   if (options.after != null) {
     const { value, id } = options.after;
     conditions.push(
@@ -784,4 +821,171 @@ export async function getNewsDiscussionCounts(
     result.set(row.link_id, Number(row.cnt));
   }
   return result;
+}
+
+// ---------------------------------------------------------------------------
+// Moderation: exclusion patterns + score penalties
+// ---------------------------------------------------------------------------
+
+/** Thrown when a news exclusion pattern is not a valid `URLPattern`. */
+export class InvalidNewsPatternError extends Error {}
+
+/**
+ * Re-evaluate `excludedFromNews` for the given links (or every scored link when
+ * omitted) against the current exclusion patterns: a link is excluded when its
+ * URL matches any pattern (Web-standard `URLPattern`).  Invalid stored patterns
+ * are skipped (and logged).  Only rows whose flag actually changes are written.
+ */
+export async function applyNewsExclusions(
+  db: Database,
+  linkIds?: readonly Uuid[],
+): Promise<void> {
+  if (linkIds != null && linkIds.length < 1) return;
+  const scope = linkIds != null
+    ? inArray(postLinkTable.id, [...linkIds])
+    : isNotNull(postLinkTable.latestActivityAt);
+
+  const patternRows = await db
+    .select({ pattern: newsExcludedPatternTable.pattern })
+    .from(newsExcludedPatternTable);
+  const patterns: URLPattern[] = [];
+  for (const { pattern } of patternRows) {
+    try {
+      patterns.push(new URLPattern(pattern));
+    } catch (error) {
+      logger.warn(
+        "Skipping invalid news exclusion pattern {pattern}: {error}",
+        { pattern, error },
+      );
+    }
+  }
+
+  const links = await db
+    .select({ id: postLinkTable.id, url: postLinkTable.url })
+    .from(postLinkTable)
+    .where(scope);
+  const excludedIds = links
+    .filter((link) => patterns.some((p) => p.test(link.url)))
+    .map((link) => link.id);
+  const literal = `{${excludedIds.join(",")}}`;
+  const target = sql`${postLinkTable.id} = any(${literal}::uuid[])`;
+  // `is distinct from` skips no-op writes so a periodic full pass does not churn
+  // every scored row.
+  await db
+    .update(postLinkTable)
+    .set({ excludedFromNews: target })
+    .where(
+      and(
+        scope,
+        sql`${postLinkTable.excludedFromNews} is distinct from ${target}`,
+      ),
+    );
+}
+
+/** List all exclusion patterns, newest first (for the admin page). */
+export function getNewsExcludedPatterns(
+  db: Database,
+): Promise<NewsExcludedPattern[]> {
+  return db
+    .select()
+    .from(newsExcludedPatternTable)
+    .orderBy(desc(newsExcludedPatternTable.created));
+}
+
+/**
+ * Add an exclusion pattern (idempotent on the pattern string) and re-flag every
+ * scored link against it.  Throws `InvalidNewsPatternError` if the pattern is
+ * not a valid `URLPattern`.
+ */
+export async function addNewsExcludedPattern(
+  db: Database,
+  values: { pattern: string; note?: string | null; creatorId?: Uuid | null },
+): Promise<NewsExcludedPattern> {
+  const pattern = values.pattern.trim();
+  if (pattern.length < 1) {
+    throw new InvalidNewsPatternError("Pattern must not be empty.");
+  }
+  try {
+    new URLPattern(pattern);
+  } catch (error) {
+    throw new InvalidNewsPatternError(
+      `Invalid URLPattern: ${pattern} (${error})`,
+    );
+  }
+  const run = async (tx: Database): Promise<NewsExcludedPattern> => {
+    const inserted = await tx
+      .insert(newsExcludedPatternTable)
+      .values({
+        id: generateUuidV7(),
+        pattern,
+        note: values.note?.trim() || null,
+        creatorId: values.creatorId ?? null,
+      })
+      .onConflictDoNothing({ target: newsExcludedPatternTable.pattern })
+      .returning();
+    let row = inserted[0];
+    if (row == null) {
+      [row] = await tx
+        .select()
+        .from(newsExcludedPatternTable)
+        .where(eq(newsExcludedPatternTable.pattern, pattern))
+        .limit(1);
+    }
+    if (row == null) throw new Error("Failed to persist exclusion pattern.");
+    await applyNewsExclusions(tx);
+    return row;
+  };
+  return isTransaction(db) ? await run(db) : await db.transaction(run);
+}
+
+/** Remove an exclusion pattern and un-flag links it no longer matches. */
+export async function removeNewsExcludedPattern(
+  db: Database,
+  id: Uuid,
+): Promise<boolean> {
+  const run = async (tx: Database): Promise<boolean> => {
+    const rows = await tx
+      .delete(newsExcludedPatternTable)
+      .where(eq(newsExcludedPatternTable.id, id))
+      .returning();
+    if (rows.length < 1) return false;
+    await applyNewsExclusions(tx);
+    return true;
+  };
+  return isTransaction(db) ? await run(db) : await db.transaction(run);
+}
+
+/**
+ * Set a link's moderator score penalty (subtracted from its `score`) and
+ * recompute that link so the feed reflects it.
+ */
+export async function setNewsScorePenalty(
+  db: Database,
+  linkId: Uuid,
+  penalty: number,
+): Promise<void> {
+  // Guard against a negative penalty (which would *boost* the score) or a
+  // non-finite value poisoning the ranking column.
+  if (!Number.isFinite(penalty) || penalty < 0) {
+    throw new RangeError(`Invalid news score penalty: ${penalty}`);
+  }
+  const run = async (tx: Database): Promise<void> => {
+    await tx
+      .update(postLinkTable)
+      .set({ scorePenalty: penalty })
+      .where(eq(postLinkTable.id, linkId));
+    await recomputeNewsScores(tx, { linkIds: [linkId] });
+  };
+  if (isTransaction(db)) await run(db);
+  else await db.transaction(run);
+}
+
+/** Links currently carrying a moderator penalty, heaviest first (admin review). */
+export function getNewsPenalizedStories(db: Database): Promise<PostLink[]> {
+  return db
+    .select()
+    .from(postLinkTable)
+    .where(gt(postLinkTable.scorePenalty, 0))
+    .orderBy(desc(postLinkTable.scorePenalty), desc(postLinkTable.id))
+    .limit(100);
 }
