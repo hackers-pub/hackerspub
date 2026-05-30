@@ -49,6 +49,11 @@ msgstr "{0, plural, other {#フォロー}}"
 msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, other {残り#件の招待}}"
 
+#. placeholder {0}: status()?.scoredLinkCount ?? 0
+#: src/routes/(root)/admin/news.tsx:151
+msgid "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
+msgstr "{0, plural, one {現在ニュースフィードに#件のリンクがあります。} other {現在ニュースフィードに#件のリンクがあります。}}"
+
 #. placeholder {0}: count()
 #: src/routes/(root)/admin/media.tsx:172
 msgid "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
@@ -95,6 +100,11 @@ msgstr "{0, plural, one {友達をHackers' Pubに招待しましょう。最大#
 #: src/components/ReactionGroupSection.tsx:218
 msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {リアクター #件をもっと読み込む} other {リアクター #件をもっと読み込む}}"
+
+#. placeholder {0}: result.linksUpdated!
+#: src/routes/(root)/admin/news.tsx:92
+msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
+msgstr "{0, plural, one {#件のリンクのスコアを再計算しました。} other {#件のリンクのスコアを再計算しました。}}"
 
 #. placeholder {0}: result.accountsAffected!
 #: src/routes/(root)/admin/invitations.tsx:97
@@ -618,7 +628,7 @@ msgstr "終了"
 msgid "Code"
 msgstr "コード"
 
-#: src/components/AppSidebar.tsx:1000
+#: src/components/AppSidebar.tsx:1023
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -628,7 +638,7 @@ msgstr "行動規範"
 #~ msgid "Comments ({0})"
 #~ msgstr "コメント（{0}）"
 
-#: src/components/AppSidebar.tsx:842
+#: src/components/AppSidebar.tsx:865
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "作成"
@@ -679,7 +689,7 @@ msgstr "引用を取り消せませんでした"
 msgid "Could not vote on this poll"
 msgstr "このアンケートに投票できませんでした"
 
-#: src/components/AppSidebar.tsx:888
+#: src/components/AppSidebar.tsx:911
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "記事を作成"
@@ -688,7 +698,7 @@ msgstr "記事を作成"
 msgid "Create invitation link"
 msgstr "招待リンクを作成"
 
-#: src/components/AppSidebar.tsx:864
+#: src/components/AppSidebar.tsx:887
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:73
 #: src/components/NoteComposer.tsx:1408
@@ -1089,7 +1099,7 @@ msgstr "コンテンツの読み込みに失敗しました"
 msgid "Failed to load quoted post"
 msgstr "引用コンテンツの読み込みに失敗しました"
 
-#: src/components/NewsDiscussionThread.tsx:288
+#: src/components/NewsDiscussionThread.tsx:339
 msgid "Failed to load replies; click to retry"
 msgstr "返信の読み込みに失敗しました。クリックして再試行してください"
 
@@ -1117,6 +1127,10 @@ msgstr "コンテンツを固定できませんでした"
 #: src/components/EmojiReactionPopover.tsx:403
 msgid "Failed to react"
 msgstr "リアクションに失敗しました"
+
+#: src/routes/(root)/admin/news.tsx:114
+msgid "Failed to recompute news scores."
+msgstr "ニュースのスコアを再計算できませんでした。"
 
 #: src/routes/(root)/admin/invitations.tsx:125
 msgid "Failed to regenerate invitations."
@@ -1296,7 +1310,7 @@ msgstr "生成中…"
 msgid "Get browser notifications"
 msgstr "ブラウザー通知を受け取る"
 
-#: src/components/AppSidebar.tsx:1038
+#: src/components/AppSidebar.tsx:1061
 msgid "GitHub repository"
 msgstr "GitHubリポジトリ"
 
@@ -1358,6 +1372,10 @@ msgstr "Hackers' Pub：管理 · 招待"
 #: src/routes/(root)/admin/media.tsx:136
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub：管理 · メディア"
+
+#: src/routes/(root)/admin/news.tsx:124
+msgid "Hackers' Pub: Admin · News scores"
+msgstr "Hackers' Pub：管理 · ニュースのスコア"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
@@ -1539,6 +1557,10 @@ msgstr "言語"
 msgid "Last activity"
 msgstr "最終アクティビティ"
 
+#: src/routes/(root)/admin/news.tsx:161
+msgid "Last recomputed:"
+msgstr "最終再計算："
+
 #: src/routes/(root)/admin/invitations.tsx:160
 msgid "Last regenerated:"
 msgstr "最終再付与："
@@ -1634,7 +1656,7 @@ msgstr "引用をもっと読み込む"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "リアクターをもっと読み込む (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:279
+#: src/components/NewsDiscussionThread.tsx:330
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:674
 msgid "Load more replies"
 msgstr "返信をもっと読み込む"
@@ -1714,7 +1736,7 @@ msgstr "返信を読み込み中…"
 msgid "Loading more shares…"
 msgstr "共有を読み込み中…"
 
-#: src/components/NewsDiscussion.tsx:67
+#: src/components/NewsDiscussion.tsx:71
 msgid "Loading more sharing posts…"
 msgstr "共有コンテンツをもっと読み込み中…"
 
@@ -1838,6 +1860,10 @@ msgstr "名前が長すぎます。最大50文字です。"
 msgid "Native name"
 msgstr "現地名"
 
+#: src/routes/(root)/admin/news.tsx:166
+msgid "never"
+msgstr "なし"
+
 #: src/routes/(root)/admin/invitations.tsx:167
 msgid "Never"
 msgstr "なし"
@@ -1873,6 +1899,11 @@ msgstr "最新"
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
 msgstr "ニュース"
+
+#: src/components/AppSidebar.tsx:842
+#: src/routes/(root)/admin/news.tsx:139
+msgid "News scores"
+msgstr "ニュースのスコア"
 
 #: src/components/ImageLightbox.tsx:126
 msgid "Next image"
@@ -1921,7 +1952,7 @@ msgstr "投稿はありません"
 msgid "No one has quoted this yet."
 msgstr "まだ誰も引用していません。"
 
-#: src/components/NewsDiscussion.tsx:74
+#: src/components/NewsDiscussion.tsx:78
 msgid "No one has shared this link in a public post yet."
 msgstr "このリンクを公開投稿で共有した人はまだいません。"
 
@@ -1966,6 +1997,10 @@ msgstr "ユーザーURIが提供されていません。"
 #: src/routes/(root)/admin/media.tsx:117
 msgid "Not authorized to delete orphan media."
 msgstr "孤立したメディアを削除する権限がありません。"
+
+#: src/routes/(root)/admin/news.tsx:105
+msgid "Not authorized to recompute news scores."
+msgstr "ニュースのスコアを再計算する権限がありません。"
 
 #: src/routes/(root)/admin/invitations.tsx:116
 msgid "Not authorized to regenerate invitations."
@@ -2187,7 +2222,7 @@ msgstr "前の画像"
 msgid "Priority"
 msgstr "優先度"
 
-#: src/components/AppSidebar.tsx:1005
+#: src/components/AppSidebar.tsx:1028
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "プライバシーポリシー"
@@ -2308,6 +2343,10 @@ msgstr "記事全文を読む"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "行動規範の全文を読む"
 
+#: src/routes/(root)/admin/news.tsx:145
+msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
+msgstr "共有されたすべてのリンクの人気スコアを一から再構築します。この操作は冪等で、いつ実行しても安全です。スコアは通常自動的に最新の状態に保たれるため、これは主に手動の予備手段および開発ツールです。"
+
 #: src/components/WebPushPromptBanner.tsx:252
 msgid "Receive new notifications immediately, even when this tab is closed."
 msgstr "このタブを閉じていても新しい通知をすぐに受け取れます。"
@@ -2316,9 +2355,18 @@ msgstr "このタブを閉じていても新しい通知をすぐに受け取れ
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "このブラウザーで通知をすぐに受け取ります。このタブを閉じていても通知されます。"
 
-#: src/components/AppSidebar.tsx:924
+#: src/components/AppSidebar.tsx:947
 msgid "Recent drafts"
 msgstr "最近の下書き"
+
+#: src/routes/(root)/admin/news.tsx:143
+#: src/routes/(root)/admin/news.tsx:176
+msgid "Recompute news scores"
+msgstr "ニュースのスコアを再計算"
+
+#: src/routes/(root)/admin/news.tsx:175
+msgid "Recomputing…"
+msgstr "再計算中…"
 
 #: src/routes/(root)/admin/invitations.tsx:203
 msgid "Regenerate"
@@ -2556,11 +2604,11 @@ msgid "Show"
 msgstr "表示"
 
 #. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:259
+#: src/components/NewsDiscussionThread.tsx:308
 msgid "Show {0} more in this thread"
 msgstr "このスレッドであと{0}件を表示"
 
-#: src/components/NewsDiscussion.tsx:65
+#: src/components/NewsDiscussion.tsx:69
 msgid "Show more sharing posts"
 msgstr "共有コンテンツをもっと表示"
 
@@ -2589,7 +2637,7 @@ msgstr "ログインして投票"
 msgid "Sign in with passkey"
 msgstr "パスキーでサインイン"
 
-#: src/components/AppSidebar.tsx:987
+#: src/components/AppSidebar.tsx:1010
 msgid "Sign out"
 msgstr "ログアウト"
 
@@ -2761,7 +2809,7 @@ msgstr "登録リンクが無効です。受信したメールのリンクを正
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1029
+#: src/components/AppSidebar.tsx:1052
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "このウェブサイトのソースコードは{1}ライセンスで{0}で公開されています。"
 
@@ -3037,7 +3085,7 @@ msgstr "{1}に{0}さんがこのリンクの所有者であることを確認済
 msgid "Verifying your invitation…"
 msgstr "招待を確認中…"
 
-#: src/components/AppSidebar.tsx:950
+#: src/components/AppSidebar.tsx:973
 msgid "View all drafts →"
 msgstr "すべての下書きを表示 →"
 

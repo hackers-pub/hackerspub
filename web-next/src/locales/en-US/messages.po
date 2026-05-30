@@ -49,6 +49,11 @@ msgstr "{0, plural, one {# following} other {# following}}"
 msgid "{0, plural, one {# invitation left} other {# invitations left}}"
 msgstr "{0, plural, one {# invitation left} other {# invitations left}}"
 
+#. placeholder {0}: status()?.scoredLinkCount ?? 0
+#: src/routes/(root)/admin/news.tsx:151
+msgid "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
+msgstr "{0, plural, one {# link is currently in the news feed.} other {# links are currently in the news feed.}}"
+
 #. placeholder {0}: count()
 #: src/routes/(root)/admin/media.tsx:172
 msgid "{0, plural, one {# orphan medium can be deleted.} other {# orphan media can be deleted.}}"
@@ -95,6 +100,11 @@ msgstr "{0, plural, one {Invite your friends to Hackers' Pub. You can invite up 
 #: src/components/ReactionGroupSection.tsx:218
 msgid "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
 msgstr "{0, plural, one {Load # more reactor} other {Load # more reactors}}"
+
+#. placeholder {0}: result.linksUpdated!
+#: src/routes/(root)/admin/news.tsx:92
+msgid "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
+msgstr "{0, plural, one {Recomputed # link.} other {Recomputed # links.}}"
 
 #. placeholder {0}: result.accountsAffected!
 #: src/routes/(root)/admin/invitations.tsx:97
@@ -618,7 +628,7 @@ msgstr "Closed"
 msgid "Code"
 msgstr "Code"
 
-#: src/components/AppSidebar.tsx:1000
+#: src/components/AppSidebar.tsx:1023
 #: src/routes/(root)/coc.tsx:40
 #: src/routes/(root)/sign/up/[token].tsx:458
 msgid "Code of conduct"
@@ -628,7 +638,7 @@ msgstr "Code of conduct"
 #~ msgid "Comments ({0})"
 #~ msgstr "Comments ({0})"
 
-#: src/components/AppSidebar.tsx:842
+#: src/components/AppSidebar.tsx:865
 #: src/components/FloatingComposeButton.tsx:61
 msgid "Compose"
 msgstr "Compose"
@@ -679,7 +689,7 @@ msgstr "Could not revoke quote"
 msgid "Could not vote on this poll"
 msgstr "Could not vote on this poll"
 
-#: src/components/AppSidebar.tsx:888
+#: src/components/AppSidebar.tsx:911
 #: src/components/FloatingComposeButton.tsx:123
 msgid "Create article"
 msgstr "Create article"
@@ -688,7 +698,7 @@ msgstr "Create article"
 msgid "Create invitation link"
 msgstr "Create invitation link"
 
-#: src/components/AppSidebar.tsx:864
+#: src/components/AppSidebar.tsx:887
 #: src/components/FloatingComposeButton.tsx:99
 #: src/components/NoteComposeModal.tsx:73
 #: src/components/NoteComposer.tsx:1408
@@ -1093,7 +1103,7 @@ msgstr "Failed to load post"
 msgid "Failed to load quoted post"
 msgstr "Failed to load quoted post"
 
-#: src/components/NewsDiscussionThread.tsx:288
+#: src/components/NewsDiscussionThread.tsx:339
 msgid "Failed to load replies; click to retry"
 msgstr "Failed to load replies; click to retry"
 
@@ -1121,6 +1131,10 @@ msgstr "Failed to pin post"
 #: src/components/EmojiReactionPopover.tsx:403
 msgid "Failed to react"
 msgstr "Failed to react"
+
+#: src/routes/(root)/admin/news.tsx:114
+msgid "Failed to recompute news scores."
+msgstr "Failed to recompute news scores."
 
 #: src/routes/(root)/admin/invitations.tsx:125
 msgid "Failed to regenerate invitations."
@@ -1300,7 +1314,7 @@ msgstr "Generating…"
 msgid "Get browser notifications"
 msgstr "Get browser notifications"
 
-#: src/components/AppSidebar.tsx:1038
+#: src/components/AppSidebar.tsx:1061
 msgid "GitHub repository"
 msgstr "GitHub repository"
 
@@ -1362,6 +1376,10 @@ msgstr "Hackers' Pub: Admin · Invitations"
 #: src/routes/(root)/admin/media.tsx:136
 msgid "Hackers' Pub: Admin · Media"
 msgstr "Hackers' Pub: Admin · Media"
+
+#: src/routes/(root)/admin/news.tsx:124
+msgid "Hackers' Pub: Admin · News scores"
+msgstr "Hackers' Pub: Admin · News scores"
 
 #: src/routes/(root)/news/[link_id]/index.tsx:56
 #: src/routes/(root)/news/index.tsx:37
@@ -1543,6 +1561,10 @@ msgstr "Languages"
 msgid "Last activity"
 msgstr "Last activity"
 
+#: src/routes/(root)/admin/news.tsx:161
+msgid "Last recomputed:"
+msgstr "Last recomputed:"
+
 #: src/routes/(root)/admin/invitations.tsx:160
 msgid "Last regenerated:"
 msgstr "Last regenerated:"
@@ -1638,7 +1660,7 @@ msgstr "Load more quotes"
 #~ msgid "Load more reactors (+{0})"
 #~ msgstr "Load more reactors (+{0})"
 
-#: src/components/NewsDiscussionThread.tsx:279
+#: src/components/NewsDiscussionThread.tsx:330
 #: src/routes/(root)/[handle]/[noteId]/index.tsx:674
 msgid "Load more replies"
 msgstr "Load more replies"
@@ -1718,7 +1740,7 @@ msgstr "Loading more replies…"
 msgid "Loading more shares…"
 msgstr "Loading more shares…"
 
-#: src/components/NewsDiscussion.tsx:67
+#: src/components/NewsDiscussion.tsx:71
 msgid "Loading more sharing posts…"
 msgstr "Loading more sharing posts…"
 
@@ -1842,6 +1864,10 @@ msgstr "Name is too long. Maximum length is 50 characters."
 msgid "Native name"
 msgstr "Native name"
 
+#: src/routes/(root)/admin/news.tsx:166
+msgid "never"
+msgstr "never"
+
 #: src/routes/(root)/admin/invitations.tsx:167
 msgid "Never"
 msgstr "Never"
@@ -1877,6 +1903,11 @@ msgstr "Newest"
 #: src/routes/(root)/news/index.tsx:39
 msgid "News"
 msgstr "News"
+
+#: src/components/AppSidebar.tsx:842
+#: src/routes/(root)/admin/news.tsx:139
+msgid "News scores"
+msgstr "News scores"
 
 #: src/components/ImageLightbox.tsx:126
 msgid "Next image"
@@ -1925,7 +1956,7 @@ msgstr "No notes found"
 msgid "No one has quoted this yet."
 msgstr "No one has quoted this yet."
 
-#: src/components/NewsDiscussion.tsx:74
+#: src/components/NewsDiscussion.tsx:78
 msgid "No one has shared this link in a public post yet."
 msgstr "No one has shared this link in a public post yet."
 
@@ -1970,6 +2001,10 @@ msgstr "No user URI provided."
 #: src/routes/(root)/admin/media.tsx:117
 msgid "Not authorized to delete orphan media."
 msgstr "Not authorized to delete orphan media."
+
+#: src/routes/(root)/admin/news.tsx:105
+msgid "Not authorized to recompute news scores."
+msgstr "Not authorized to recompute news scores."
 
 #: src/routes/(root)/admin/invitations.tsx:116
 msgid "Not authorized to regenerate invitations."
@@ -2191,7 +2226,7 @@ msgstr "Previous image"
 msgid "Priority"
 msgstr "Priority"
 
-#: src/components/AppSidebar.tsx:1005
+#: src/components/AppSidebar.tsx:1028
 #: src/routes/(root)/privacy.tsx:40
 msgid "Privacy policy"
 msgstr "Privacy policy"
@@ -2312,6 +2347,10 @@ msgstr "Read full article"
 #~ msgid "Read the full Code of conduct"
 #~ msgstr "Read the full Code of conduct"
 
+#: src/routes/(root)/admin/news.tsx:145
+msgid "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
+msgstr "Rebuilds the popularity score of every shared link from scratch. The operation is idempotent and safe to run at any time; scores normally stay fresh on their own, so this is mainly a manual backstop and a development tool."
+
 #: src/components/WebPushPromptBanner.tsx:252
 msgid "Receive new notifications immediately, even when this tab is closed."
 msgstr "Receive new notifications immediately, even when this tab is closed."
@@ -2320,9 +2359,18 @@ msgstr "Receive new notifications immediately, even when this tab is closed."
 msgid "Receive notifications immediately through this browser, even when this tab is closed."
 msgstr "Receive notifications immediately through this browser, even when this tab is closed."
 
-#: src/components/AppSidebar.tsx:924
+#: src/components/AppSidebar.tsx:947
 msgid "Recent drafts"
 msgstr "Recent drafts"
+
+#: src/routes/(root)/admin/news.tsx:143
+#: src/routes/(root)/admin/news.tsx:176
+msgid "Recompute news scores"
+msgstr "Recompute news scores"
+
+#: src/routes/(root)/admin/news.tsx:175
+msgid "Recomputing…"
+msgstr "Recomputing…"
 
 #: src/routes/(root)/admin/invitations.tsx:203
 msgid "Regenerate"
@@ -2560,11 +2608,11 @@ msgid "Show"
 msgstr "Show"
 
 #. placeholder {0}: childCount()
-#: src/components/NewsDiscussionThread.tsx:259
+#: src/components/NewsDiscussionThread.tsx:308
 msgid "Show {0} more in this thread"
 msgstr "Show {0} more in this thread"
 
-#: src/components/NewsDiscussion.tsx:65
+#: src/components/NewsDiscussion.tsx:69
 msgid "Show more sharing posts"
 msgstr "Show more sharing posts"
 
@@ -2593,7 +2641,7 @@ msgstr "Sign in to vote"
 msgid "Sign in with passkey"
 msgstr "Sign in with passkey"
 
-#: src/components/AppSidebar.tsx:987
+#: src/components/AppSidebar.tsx:1010
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -2765,7 +2813,7 @@ msgstr "The sign-up link is invalid. Please make sure you're using the correct l
 
 #. placeholder {0}: "GITHUB_REPOSITORY"
 #. placeholder {1}: "AGPL-3.0"
-#: src/components/AppSidebar.tsx:1029
+#: src/components/AppSidebar.tsx:1052
 msgid "The source code of this website is available on {0} under the {1} license."
 msgstr "The source code of this website is available on {0} under the {1} license."
 
@@ -3041,7 +3089,7 @@ msgstr "Verified that this link is owned by {0} {1}"
 msgid "Verifying your invitation…"
 msgstr "Verifying your invitation…"
 
-#: src/components/AppSidebar.tsx:950
+#: src/components/AppSidebar.tsx:973
 msgid "View all drafts →"
 msgstr "View all drafts →"
 
