@@ -16,10 +16,13 @@ import {
   NEWS_W_REPLY,
   NEWS_W_SHARE,
   recomputeNewsScores,
+  refreshNewsScores,
 } from "./news.ts";
+import { syncPostFromNoteSource } from "./post.ts";
 import { postTable } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
 import {
+  createFedCtx,
   insertAccountWithActor,
   insertNotePost,
   insertPostLink,
@@ -718,6 +721,124 @@ Deno.test({
       const after = await getNewsScoreStatus(tx);
       assertEquals(after.scoredLinkCount, 1);
       assert(after.lastRecomputedAt != null);
+    });
+  },
+});
+
+Deno.test({
+  name: "refreshNewsScores scores a newly shared link without a batch run",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "hookshare",
+        name: "Hook Share",
+        email: "hookshare@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/hk" });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: link.id, url: link.url },
+      });
+
+      assertEquals((await readLink(tx, link.id)).latestActivityAt, null);
+      await refreshNewsScores(tx, [link.id]);
+      const row = await readLink(tx, link.id);
+      assert(row.latestActivityAt != null);
+      assert(row.score > 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "refreshNewsScores drops a link whose share is no longer public",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "hookdrop",
+        name: "Hook Drop",
+        email: "hookdrop@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/hd" });
+      const { post } = await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: link.id, url: link.url },
+      });
+      await refreshNewsScores(tx, [link.id]);
+      assert((await readLink(tx, link.id)).latestActivityAt != null);
+
+      // The edit removes the only public share; refreshing the (previous) link
+      // drops it from the feed.
+      await tx.update(postTable).set({ visibility: "followers" }).where(
+        eq(postTable.id, post.id),
+      );
+      await refreshNewsScores(tx, [link.id]);
+      assertEquals((await readLink(tx, link.id)).latestActivityAt, null);
+      assertEquals((await readLink(tx, link.id)).score, 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "syncPostFromNoteSource clears a removed link and drops the story",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const fedCtx = createFedCtx(tx);
+      const author = await insertAccountWithActor(tx, {
+        username: "editor",
+        name: "Editor",
+        email: "editor@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/edited",
+      });
+      // The note carries a link on the row but its content has none, so a
+      // re-sync renders no link and must clear `link_id`.
+      const { noteSourceId } = await insertNotePost(tx, {
+        account: author.account,
+        content: "Hello world",
+        link: { id: link.id, url: link.url },
+      });
+      await refreshNewsScores(tx, [link.id]);
+      assert((await readLink(tx, link.id)).latestActivityAt != null);
+
+      const noteSource = await tx.query.noteSourceTable.findFirst({
+        where: { id: noteSourceId },
+        with: {
+          account: {
+            with: { avatarMedium: true, emails: true, links: true },
+          },
+          media: { with: { medium: true } },
+        },
+      });
+      assert(noteSource != null);
+
+      const updated = await syncPostFromNoteSource(fedCtx, noteSource);
+      assert(updated != null);
+      // The link is cleared (not left as the stale previous value)...
+      assertEquals(updated.linkId, null);
+      // ...and the incremental refresh of the previous link drops the story.
+      assertEquals((await readLink(tx, link.id)).latestActivityAt, null);
+      assertEquals((await readLink(tx, link.id)).score, 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "refreshNewsScores ignores null/empty link ids",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      await refreshNewsScores(tx, []);
+      await refreshNewsScores(tx, [null, undefined]);
+      const status = await getNewsScoreStatus(tx);
+      assertEquals(status.scoredLinkCount, 0);
     });
   },
 });

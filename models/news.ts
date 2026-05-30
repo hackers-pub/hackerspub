@@ -131,6 +131,36 @@ export async function recomputeNewsScores(
   return { linksUpdated, recomputedAt };
 }
 
+/**
+ * Best-effort incremental refresh of specific links' scores, for the write
+ * paths (a link is shared, unshared, or its sharing post changes link).  Nulls
+ * are dropped and deduped; an empty set is a no-op.
+ *
+ * Isolation: the recompute runs in its own (sub)transaction so a scoring
+ * failure rolls back only itself and is swallowed (logged) rather than
+ * propagating.  This matters when `db` is already a transaction: without the
+ * savepoint a Postgres error would poison the caller's transaction and block
+ * the post write even though the exception is caught.  Engagement-driven
+ * re-ranking (new replies, quotes, reactions on a story) is left to the
+ * periodic sweep, which derives its target set from source timestamps and so
+ * sees correct, settled counts.
+ */
+export async function refreshNewsScores(
+  db: Database,
+  linkIds: ReadonlyArray<Uuid | null | undefined>,
+): Promise<void> {
+  const ids = [...new Set(linkIds.filter((id): id is Uuid => id != null))];
+  if (ids.length < 1) return;
+  try {
+    await db.transaction((tx) => recomputeNewsScores(tx, { linkIds: ids }));
+  } catch (error) {
+    logger.error(
+      "Failed to refresh news scores for {linkIds}: {error}",
+      { linkIds: ids, error },
+    );
+  }
+}
+
 /** Which links a recompute targets. */
 type RecomputeScope =
   | { readonly kind: "all" }

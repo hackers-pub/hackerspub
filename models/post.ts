@@ -50,6 +50,7 @@ import type { Database, RelationsFilter, Transaction } from "./db.ts";
 import { extractExternalLinks } from "./html.ts";
 import { getMissingArticleMediumLabel, renderMarkup } from "./markup.ts";
 import { persistPostMedium } from "./medium.ts";
+import { refreshNewsScores } from "./news.ts";
 import {
   createQuotedPostUpdatedNotification,
   createSharedPostUpdatedNotification,
@@ -585,6 +586,7 @@ export async function syncPostFromNoteSource(
       quotedPostId: true,
       quoteAuthorizationIri: true,
       quoteTargetState: true,
+      linkId: true,
     },
     where: { noteSourceId: noteSource.id },
   });
@@ -642,9 +644,13 @@ export async function syncPostFromNoteSource(
         }`,
       ]),
     ),
-    linkId: link?.id,
+    // Use explicit `null` (not `undefined`) so editing a note to remove its
+    // link actually clears `link_id` on update: drizzle drops `undefined` from
+    // the update set, which would otherwise leave the old link attached (and
+    // keep a dropped story in the news feed).  Matches `persistPost`.
+    linkId: link?.id ?? null,
     linkUrl: link == null
-      ? undefined
+      ? null
       : externalLinks[0].hash === ""
       ? link.url
       : new URL(externalLinks[0].hash, link.url).href,
@@ -742,6 +748,9 @@ export async function syncPostFromNoteSource(
       with: { actor: true },
     }) ?? null;
   const quoteRequestTarget = quoteRequestRequired ? quotedPost ?? null : null;
+  // Score the link this note now shares; also refresh the previous link when
+  // an edit changed or removed it, so the old story can drop out.
+  await refreshNewsScores(db, [post.linkId, existingPost?.linkId]);
   return {
     ...post,
     actor,
@@ -964,7 +973,13 @@ export async function persistPost(
     );
   let quoteAuthorizationIri = post.quoteAuthorizationId?.href;
   const existingPost = await db.query.postTable.findFirst({
-    columns: { id: true, name: true, contentHtml: true, quotedPostId: true },
+    columns: {
+      id: true,
+      name: true,
+      contentHtml: true,
+      quotedPostId: true,
+      linkId: true,
+    },
     where: { iri: post.id.href },
   });
   if (quoteAuthorizationIri != null && quotedPost != null) {
@@ -1285,6 +1300,11 @@ export async function persistPost(
   let poll: Poll | undefined;
   if (post instanceof vocab.Question) {
     poll = await persistPoll(db, post, persistedPost.id);
+  }
+  // Only refresh at the top level: recursive reply backfill (depth > 0) would
+  // re-score the same story once per reply; the periodic sweep covers those.
+  if (depth === 0) {
+    await refreshNewsScores(db, [persistedPost.linkId, existingPost?.linkId]);
   }
   return {
     ...persistedPost,
