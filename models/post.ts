@@ -50,7 +50,7 @@ import type { Database, RelationsFilter, Transaction } from "./db.ts";
 import { extractExternalLinks } from "./html.ts";
 import { getMissingArticleMediumLabel, renderMarkup } from "./markup.ts";
 import { persistPostMedium } from "./medium.ts";
-import { refreshNewsScores } from "./news.ts";
+import { refreshNewsScores, refreshNewsScoresForPostLinks } from "./news.ts";
 import {
   createQuotedPostUpdatedNotification,
   createSharedPostUpdatedNotification,
@@ -1954,12 +1954,15 @@ export async function deletePersistedPost(
   ).returning();
   if (deletedPosts.length < 1) return false;
   const [deletedPost] = deletedPosts;
-  if (deletedPost.replyTargetId == null) return true;
-  const replyTarget = await db.query.postTable.findFirst({
-    where: { id: deletedPost.replyTargetId },
-  });
-  if (replyTarget == null) return true;
-  await updateRepliesCount(db, replyTarget, -1);
+  if (deletedPost.replyTargetId != null) {
+    const replyTarget = await db.query.postTable.findFirst({
+      where: { id: deletedPost.replyTargetId },
+    });
+    if (replyTarget != null) await updateRepliesCount(db, replyTarget, -1);
+  }
+  // Re-score the link this post shared and the links of the posts it replied
+  // to / quoted (their public reply/quote count dropped).
+  await refreshNewsScoresForPostLinks(db, deletedPost);
   return true;
 }
 
@@ -2380,6 +2383,8 @@ export async function revokeQuote(
     }
   }
   await updateQuotesCount(db, quotedPost, -1);
+  // The quoted post lost a public quote, so re-score its link.
+  await refreshNewsScores(db, [quotedPost.linkId]);
   return updatedPost;
 }
 
@@ -2599,6 +2604,18 @@ export async function deletePost(
       }
     }
   }
+  // Re-score every link affected by this cascade: the link each deleted post
+  // shared (this post plus its bulk-deleted replies/quotes/boosts, any of which
+  // may itself be a sharing post), and the links of the posts this post replied
+  // to / quoted (whose public reply/quote count dropped).
+  const affectedLinkIds = new Set<Uuid>();
+  for (const deleted of interactions) {
+    if (deleted.linkId != null) affectedLinkIds.add(deleted.linkId);
+  }
+  for (const original of originalPosts) {
+    if (original.linkId != null) affectedLinkIds.add(original.linkId);
+  }
+  await refreshNewsScores(db, [...affectedLinkIds]);
   const noteSourceIds = interactions
     .filter((i) => i.noteSourceId != null)
     .map((i) => i.noteSourceId!);

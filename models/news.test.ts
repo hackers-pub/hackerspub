@@ -18,6 +18,7 @@ import {
   NEWS_W_SHARE,
   recomputeNewsScores,
   refreshNewsScores,
+  refreshNewsScoresForPostLinks,
 } from "./news.ts";
 import { syncPostFromNoteSource } from "./post.ts";
 import { instanceTable, postTable } from "./schema.ts";
@@ -208,20 +209,29 @@ Deno.test({
       const reactLink = await insertPostLink(tx, {
         url: "https://example.com/x",
       });
-      await insertNotePost(tx, {
+      const { post: quoteShare } = await insertNotePost(tx, {
         account: sharer.account,
-        quotesCount: 1,
         link: { id: quoteLink.id, url: quoteLink.url },
       });
-      await insertNotePost(tx, {
+      const { post: replyShare } = await insertNotePost(tx, {
         account: sharer.account,
-        repliesCount: 1,
         link: { id: replyLink.id, url: replyLink.url },
       });
       await insertNotePost(tx, {
         account: sharer.account,
         reactionsCounts: { "❤️": 1 },
         link: { id: reactLink.id, url: reactLink.url },
+      });
+      // A public quote of the quote-link's share, and a public reply of the
+      // reply-link's share, drive the mass (the denormalized counts would also
+      // include private posts, which must not count).
+      await insertNotePost(tx, {
+        account: sharer.account,
+        quotedPostId: quoteShare.id,
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        replyTargetId: replyShare.id,
       });
 
       await recomputeNewsScores(tx);
@@ -234,6 +244,56 @@ Deno.test({
       assertAlmostEquals(x.weightedMass, mass(1, 1, { reactions: 1 }), 1e-9);
       assert(q.weightedMass > r.weightedMass);
       assert(r.weightedMass > x.weightedMass);
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores excludes non-public replies and quotes",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "privacy",
+        name: "Privacy",
+        email: "privacy@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/pv" });
+      const { post: share } = await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: link.id, url: link.url },
+      });
+      // One public reply + one public quote count toward the score…
+      await insertNotePost(tx, {
+        account: sharer.account,
+        replyTargetId: share.id,
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        quotedPostId: share.id,
+      });
+      // …but followers-only and direct replies/quotes must not (they would
+      // otherwise leak private discussion volume into a public score).
+      await insertNotePost(tx, {
+        account: sharer.account,
+        visibility: "followers",
+        replyTargetId: share.id,
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        visibility: "direct",
+        quotedPostId: share.id,
+      });
+
+      await recomputeNewsScores(tx);
+
+      const row = await readLink(tx, link.id);
+      assertAlmostEquals(
+        row.weightedMass,
+        mass(1, 1, { quotes: 1, replies: 1 }),
+        1e-9,
+      );
     });
   },
 });
@@ -349,13 +409,21 @@ Deno.test({
       });
       const a = await insertPostLink(tx, { url: "https://example.com/a" });
       const b = await insertPostLink(tx, { url: "https://example.com/b" });
-      await insertNotePost(tx, {
+      const { post: aShare } = await insertNotePost(tx, {
         account: sharer.account,
-        quotesCount: 2,
-        repliesCount: 5,
         reactionsCounts: { "❤️": 3 },
         published: new Date("2026-03-01T00:00:00.000Z"),
         link: { id: a.id, url: a.url },
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        quotedPostId: aShare.id,
+        published: new Date("2026-03-01T00:00:00.000Z"),
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        replyTargetId: aShare.id,
+        published: new Date("2026-03-01T00:00:00.000Z"),
       });
       await insertNotePost(tx, {
         account: sharer.account,
@@ -540,10 +608,12 @@ Deno.test({
       await recomputeNewsScores(tx);
       const before = await readLink(tx, link.id);
 
-      // A federated Update bumps `updated` and revises the engagement count
+      // A federated Update bumps `updated` and revises the reaction totals
       // without creating any local reply/quote/reaction row.
       await tx.execute(
-        sql`update post set updated = '2026-05-29T00:00:00Z', quotes_count = 5
+        sql`update post
+            set updated = '2026-05-29T00:00:00Z',
+                reactions_counts = '{"❤️": 5}'::jsonb
             where id = ${post.id}`,
       );
       const result = await recomputeNewsScores(tx, {
@@ -617,9 +687,7 @@ Deno.test({
       // Heavy engagement but shared a year ago.
       await insertNotePost(tx, {
         account: sharer.account,
-        quotesCount: 50,
-        repliesCount: 50,
-        reactionsCounts: { "❤️": 50 },
+        reactionsCounts: { "❤️": 150 },
         published: new Date("2025-05-30T00:00:00.000Z"),
         link: { id: heavyOld.id, url: heavyOld.url },
       });
@@ -972,6 +1040,75 @@ Deno.test({
         remote: 1,
         bluesky: 1,
       });
+    });
+  },
+});
+
+Deno.test({
+  name: "refreshNewsScoresForPostLinks reflects a deleted public reply",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "deletereply",
+        name: "Delete Reply",
+        email: "deletereply@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/dr" });
+      const { post: share } = await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: link.id, url: link.url },
+      });
+      const { post: reply } = await insertNotePost(tx, {
+        account: sharer.account,
+        replyTargetId: share.id,
+      });
+      await recomputeNewsScores(tx);
+      assertAlmostEquals(
+        (await readLink(tx, link.id)).weightedMass,
+        mass(1, 1, { replies: 1 }),
+        1e-9,
+      );
+
+      // Delete the reply, then refresh through the destructive-path helper:
+      // the parent link's mass drops back to just the share.
+      await tx.delete(postTable).where(eq(postTable.id, reply.id));
+      await refreshNewsScoresForPostLinks(tx, reply);
+      assertAlmostEquals(
+        (await readLink(tx, link.id)).weightedMass,
+        mass(1, 1),
+        1e-9,
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "refreshNewsScoresForPostLinks drops a link when its share is deleted",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "deleteshare",
+        name: "Delete Share",
+        email: "deleteshare@example.com",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/ds" });
+      const { post: share } = await insertNotePost(tx, {
+        account: sharer.account,
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+      assert((await readLink(tx, link.id)).latestActivityAt != null);
+
+      await tx.delete(postTable).where(eq(postTable.id, share.id));
+      await refreshNewsScoresForPostLinks(tx, share);
+      const row = await readLink(tx, link.id);
+      assertEquals(row.score, 0);
+      assertEquals(row.latestActivityAt, null);
+      assertEquals(row.postCount, 0);
     });
   },
 });

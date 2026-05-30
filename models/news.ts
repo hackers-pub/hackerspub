@@ -171,6 +171,55 @@ export async function refreshNewsScores(
   }
 }
 
+/**
+ * Refresh the news score for the link a post shares, given only the post's id.
+ * For destructive paths (e.g. a federated reaction undo) that hold the post id
+ * but not its row, and which the source-derived sweep cannot detect.
+ */
+export async function refreshNewsScoresForPostId(
+  db: Database,
+  postId: Uuid,
+): Promise<void> {
+  const post = await db.query.postTable.findFirst({
+    where: { id: postId },
+    columns: { linkId: true },
+  });
+  if (post?.linkId != null) await refreshNewsScores(db, [post.linkId]);
+}
+
+/**
+ * Refresh the links a removed or changed post affects: its own shared link,
+ * plus the link of any post it replied to or quoted (whose public reply/quote
+ * count just changed).  Used by the destructive paths (delete, quote revoke),
+ * which the source-derived periodic sweep cannot detect, so without this a
+ * deleted share or reply could keep a link in the feed or inflate its mass
+ * until a manual full recompute.
+ */
+export async function refreshNewsScoresForPostLinks(
+  db: Database,
+  post: {
+    readonly linkId: Uuid | null;
+    readonly replyTargetId: Uuid | null;
+    readonly quotedPostId: Uuid | null;
+  },
+): Promise<void> {
+  const linkIds = new Set<Uuid>();
+  if (post.linkId != null) linkIds.add(post.linkId);
+  const parentIds = [post.replyTargetId, post.quotedPostId].filter(
+    (id): id is Uuid => id != null,
+  );
+  if (parentIds.length > 0) {
+    const parents = await db.query.postTable.findMany({
+      where: { id: { in: parentIds } },
+      columns: { linkId: true },
+    });
+    for (const parent of parents) {
+      if (parent.linkId != null) linkIds.add(parent.linkId);
+    }
+  }
+  await refreshNewsScores(db, [...linkIds]);
+}
+
 /** Which links a recompute targets. */
 type RecomputeScope =
   | { readonly kind: "all" }
@@ -283,8 +332,6 @@ async function recomputeAggregate(
         p.link_id as link_id,
         p.id as post_id,
         p.published as published,
-        p.quotes_count as quotes_count,
-        p.replies_count as replies_count,
         p.reactions_count as reactions_count,
         case
           when a.account_id is not null then ${NEWS_SOURCE_WEIGHT_LOCAL}::double precision
@@ -305,6 +352,23 @@ async function recomputeAggregate(
       where p.link_id is not null
         and p.visibility in ('public', 'unlisted')
         and p.shared_post_id is null${scopeFilter(scope, sql`p.link_id`)}
+    ),
+    -- Count only public/unlisted replies and quotes: the denormalized
+    -- replies_count/quotes_count include followers-only and direct posts,
+    -- which must not influence (or leak through) a public news score.
+    reply_counts as (
+      select s.post_id as post_id, count(*) as cnt
+      from shares s
+      join post c on c.reply_target_id = s.post_id
+        and c.visibility in ('public', 'unlisted')
+      group by s.post_id
+    ),
+    quote_counts as (
+      select s.post_id as post_id, count(*) as cnt
+      from shares s
+      join post c on c.quoted_post_id = s.post_id
+        and c.visibility in ('public', 'unlisted')
+      group by s.post_id
     ),
     child_activity as (
       select s.link_id as link_id, max(c.published) as latest
@@ -329,12 +393,14 @@ async function recomputeAggregate(
         sum(
           s.source_weight * s.account_weight * (
             ${NEWS_W_SHARE}::double precision
-            + ${NEWS_W_QUOTE}::double precision * s.quotes_count
-            + ${NEWS_W_REPLY}::double precision * s.replies_count
+            + ${NEWS_W_QUOTE}::double precision * coalesce(qc.cnt, 0)
+            + ${NEWS_W_REPLY}::double precision * coalesce(rc.cnt, 0)
             + ${NEWS_W_REACT}::double precision * s.reactions_count
           )
         ) as weighted_mass
       from shares s
+      left join reply_counts rc on rc.post_id = s.post_id
+      left join quote_counts qc on qc.post_id = s.post_id
       group by s.link_id
     ),
     final as (

@@ -77,7 +77,7 @@ Deno.test({
       const low = await insertPostLink(tx, { url: "https://example.com/low" });
       await insertNotePost(tx, {
         account: sharer.account,
-        quotesCount: 10,
+        reactionsCounts: { "❤️": 10 },
         published: new Date("2026-05-20T00:00:00.000Z"),
         link: { id: high.id, url: high.url },
       });
@@ -124,8 +124,7 @@ Deno.test({
       });
       await insertNotePost(tx, {
         account: sharer.account,
-        quotesCount: 50,
-        repliesCount: 50,
+        reactionsCounts: { "❤️": 100 },
         published: new Date("2025-05-30T00:00:00.000Z"),
         link: { id: heavyOld.id, url: heavyOld.url },
       });
@@ -174,7 +173,7 @@ Deno.test({
         });
         await insertNotePost(tx, {
           account: sharer.account,
-          quotesCount: i, // distinct scores
+          reactionsCounts: { "❤️": i + 1 }, // distinct scores
           published: new Date("2026-05-20T00:00:00.000Z"),
           link: { id: link.id, url: link.url },
         });
@@ -211,7 +210,7 @@ Deno.test({
       const seen = [...data1.newsStories.edges, ...data2.newsStories.edges]
         .map((e) => e.node.url);
       assertEquals(new Set(seen).size, 3);
-      // Highest score (quotesCount 2) first.
+      // Highest score (most reactions) first.
       assertEquals(seen[0], urls[2]);
       assertEquals(seen[2], urls[0]);
     });

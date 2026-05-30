@@ -13,6 +13,7 @@ import {
 } from "@fedify/vocab";
 import { getPersistedActor, persistActor } from "@hackerspub/models/actor";
 import type { ContextData } from "@hackerspub/models/context";
+import { refreshNewsScoresForPostId } from "@hackerspub/models/news";
 import {
   createMentionNotification,
   createQuoteNotification,
@@ -213,11 +214,15 @@ export async function onReactionUndoneOnPost(
       .returning();
     if (rows.length < 1) return false;
     await updateReactionsCounts(db, rows[0].postId);
+    // A removed remote reaction leaves no recent source row for the sweep, so
+    // re-score the reacted post's link (if any) here.
+    await refreshNewsScoresForPostId(db, rows[0].postId);
     return true;
   } else if (object instanceof Like || object instanceof EmojiReact) {
     const reaction = await deleteReaction(db, object, fedCtx);
     if (reaction == null) return false;
     await updateReactionsCounts(db, reaction.postId);
+    await refreshNewsScoresForPostId(db, reaction.postId);
     return true;
   }
   return false;
