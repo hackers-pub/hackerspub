@@ -5,6 +5,7 @@ import {
   boolean,
   bytea,
   check,
+  doublePrecision,
   foreignKey,
   index,
   integer,
@@ -1115,6 +1116,13 @@ export const postLinkTable = pgTable(
     creatorId: uuid("creator_id")
       .$type<Uuid>()
       .references((): AnyPgColumn => actorTable.id, { onDelete: "set null" }),
+    score: doublePrecision().notNull().default(0),
+    weightedMass: doublePrecision("weighted_mass").notNull().default(0),
+    recencyComponent: doublePrecision("recency_component").notNull().default(0),
+    postCount: integer("post_count").notNull().default(0),
+    firstSharedAt: timestamp("first_shared_at", { withTimezone: true }),
+    latestActivityAt: timestamp("latest_activity_at", { withTimezone: true }),
+    scoreUpdated: timestamp("score_updated", { withTimezone: true }),
     created: timestamp({ withTimezone: true })
       .notNull()
       .default(currentTimestamp),
@@ -1164,6 +1172,21 @@ export const postLinkTable = pgTable(
       `,
     ),
     index().on(table.creatorId),
+    // News feed sorts.  The partial predicate `latest_activity_at IS NOT NULL`
+    // is the canonical "has at least one public, non-boost sharing post" flag,
+    // so scraped-but-never-publicly-shared links stay out of every feed query.
+    // Every index carries the `id DESC` tiebreaker so it fully covers the
+    // `(sortKey, id)` keyset pagination order (scores tie at 0 before/between
+    // batch runs, and `first_shared_at` timestamps can collide).
+    index("idx_post_link_score")
+      .on(desc(table.score), desc(table.id))
+      .where(isNotNull(table.latestActivityAt)),
+    index("idx_post_link_first_shared")
+      .on(desc(table.firstSharedAt), desc(table.id))
+      .where(isNotNull(table.latestActivityAt)),
+    index("idx_post_link_weighted_mass")
+      .on(desc(table.weightedMass), desc(table.id))
+      .where(isNotNull(table.latestActivityAt)),
   ],
 );
 
