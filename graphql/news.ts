@@ -356,7 +356,13 @@ builder.queryField("newsStory", (t) =>
       "link hidden from the feed by an exclusion pattern (`excludedFromNews`) " +
       "is still reachable here.",
     args: {
-      id: t.arg({ type: "UUID", required: true }),
+      id: t.arg({
+        type: "UUID",
+        required: true,
+        description:
+          "The link's row UUID (`PostLink.uuid`), as embedded in the " +
+          "`/news/{uuid}` permalink.",
+      }),
     },
     resolve(query, _root, args, ctx) {
       if (!validateUuid(args.id)) return null;

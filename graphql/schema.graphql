@@ -2617,7 +2617,12 @@ type Query {
   """
   Look up a news story (a shared link) by its row UUID, for the discussion permalink `/news/{uuid}`.  Returns `null` for a malformed id, or for a link that is not a public news story: only links with a qualifying public share (`latestActivityAt` is not `null`) resolve, so a link seen only in followers-only or direct posts stays private.  A link hidden from the feed by an exclusion pattern (`excludedFromNews`) is still reachable here.
   """
-  newsStory(id: UUID!): PostLink
+  newsStory(
+    """
+    The link's row UUID (`PostLink.uuid`), as embedded in the `/news/{uuid}` permalink.
+    """
+    id: UUID!
+  ): PostLink
   node(id: ID!): Node
   nodes(ids: [ID!]!): [Node]!
 
