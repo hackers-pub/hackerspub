@@ -1,6 +1,7 @@
 import { graphql } from "relay-runtime";
 import { For, Match, Show, Switch } from "solid-js";
 import { createPaginationFragment } from "solid-relay";
+import { NewsDiscussionComposer } from "~/components/NewsDiscussionComposer.tsx";
 import { NewsDiscussionThread } from "~/components/NewsDiscussionThread.tsx";
 import { useLingui } from "~/lib/i18n/macro.d.ts";
 import type { NewsDiscussion_story$key } from "./__generated__/NewsDiscussion_story.graphql.ts";
@@ -24,6 +25,7 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
           count: { type: "Int", defaultValue: 20 }
         )
       {
+        url
         sharingPosts(after: $cursor, first: $count)
           @connection(key: "NewsDiscussion__sharingPosts")
         {
@@ -43,10 +45,16 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
   );
 
   return (
-    <div class="mt-4 mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
-      <Show keyed when={story()}>
-        {(data) => (
-          <>
+    <Show keyed when={story()}>
+      {(data) => (
+        <>
+          <NewsDiscussionComposer
+            url={data.url}
+            // Force the network: an unchanged-variables refetch would otherwise
+            // resolve from the store and miss the just-posted opinion.
+            onPosted={() => story.refetch({}, { fetchPolicy: "network-only" })}
+          />
+          <div class="mt-4 mb-10 overflow-hidden border bg-card md:mb-12 md:rounded-lg md:shadow-sm">
             <For each={data.sharingPosts.edges}>
               {(edge) => (
                 <div class="border-b last:border-none">
@@ -78,9 +86,9 @@ export function NewsDiscussion(props: NewsDiscussionProps) {
                 {t`No one has shared this link in a public post yet.`}
               </div>
             </Show>
-          </>
-        )}
-      </Show>
-    </div>
+          </div>
+        </>
+      )}
+    </Show>
   );
 }
