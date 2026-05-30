@@ -183,17 +183,17 @@ msgid "{0} followed you"
 msgstr "{0} followed you"
 
 #. placeholder {0}: s.sourceBreakdown.bluesky
-#: src/components/NewsStoryHeader.tsx:116
+#: src/components/NewsStoryHeader.tsx:124
 msgid "{0} from Bluesky"
 msgstr "{0} from Bluesky"
 
 #. placeholder {0}: s.sourceBreakdown.local
-#: src/components/NewsStoryHeader.tsx:110
+#: src/components/NewsStoryHeader.tsx:118
 msgid "{0} from Hackers' Pub"
 msgstr "{0} from Hackers' Pub"
 
 #. placeholder {0}: s.sourceBreakdown.remote
-#: src/components/NewsStoryHeader.tsx:113
+#: src/components/NewsStoryHeader.tsx:121
 msgid "{0} from the fediverse"
 msgstr "{0} from the fediverse"
 
@@ -289,10 +289,15 @@ msgstr "{0}'s notes"
 msgid "{0}'s shares"
 msgstr "{0}'s shares"
 
+#: src/components/NewsStoryCard.tsx:49
+#: src/components/NewsStoryHeader.tsx:54
+msgid "{count, plural, one {# opinion} other {# opinions}}"
+msgstr "{count, plural, one {# opinion} other {# opinions}}"
+
 #: src/components/NewsStoryCard.tsx:51
 #: src/components/NewsStoryHeader.tsx:53
-msgid "{count, plural, one {# share} other {# shares}}"
-msgstr "{count, plural, one {# share} other {# shares}}"
+#~ msgid "{count, plural, one {# share} other {# shares}}"
+#~ msgstr "{count, plural, one {# share} other {# shares}}"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:231
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:253
@@ -804,8 +809,8 @@ msgid "Discard unsaved changes - are you sure?"
 msgstr "Discard unsaved changes - are you sure?"
 
 #: src/components/NewsStoryCard.tsx:145
-msgid "Discussion"
-msgstr "Discussion"
+#~ msgid "Discussion"
+#~ msgstr "Discussion"
 
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
@@ -1260,7 +1265,7 @@ msgstr "Fediverse handle"
 msgid "Feed"
 msgstr "Feed"
 
-#: src/components/NewsStoryHeader.tsx:105
+#: src/components/NewsStoryHeader.tsx:113
 msgid "First shared"
 msgstr "First shared"
 
@@ -1556,6 +1561,11 @@ msgstr "Language settings"
 #: src/components/SettingsTabs.tsx:61
 msgid "Languages"
 msgstr "Languages"
+
+#: src/components/NewsStoryCard.tsx:147
+#: src/components/NewsStoryHeader.tsx:106
+msgid "Last active"
+msgstr "Last active"
 
 #: src/components/admin/AdminAccountsTable.tsx:278
 msgid "Last activity"
@@ -2584,8 +2594,8 @@ msgstr "Settings"
 msgid "Share"
 msgstr "Share"
 
-#: src/components/NewsStoryCard.tsx:167
-#: src/components/NewsStoryHeader.tsx:124
+#: src/components/NewsStoryCard.tsx:140
+#: src/components/NewsStoryHeader.tsx:132
 msgid "Share this link"
 msgstr "Share this link"
 

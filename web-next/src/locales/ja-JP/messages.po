@@ -183,17 +183,17 @@ msgid "{0} followed you"
 msgstr "{0}さんがあなたをフォローしました"
 
 #. placeholder {0}: s.sourceBreakdown.bluesky
-#: src/components/NewsStoryHeader.tsx:116
+#: src/components/NewsStoryHeader.tsx:124
 msgid "{0} from Bluesky"
 msgstr "Blueskyから{0}件"
 
 #. placeholder {0}: s.sourceBreakdown.local
-#: src/components/NewsStoryHeader.tsx:110
+#: src/components/NewsStoryHeader.tsx:118
 msgid "{0} from Hackers' Pub"
 msgstr "Hackers' Pubから{0}件"
 
 #. placeholder {0}: s.sourceBreakdown.remote
-#: src/components/NewsStoryHeader.tsx:113
+#: src/components/NewsStoryHeader.tsx:121
 msgid "{0} from the fediverse"
 msgstr "フェディバースから{0}件"
 
@@ -289,10 +289,15 @@ msgstr "{0}さんの投稿"
 msgid "{0}'s shares"
 msgstr "{0}さんの共有"
 
+#: src/components/NewsStoryCard.tsx:49
+#: src/components/NewsStoryHeader.tsx:54
+msgid "{count, plural, one {# opinion} other {# opinions}}"
+msgstr "{count, plural, other {#件の意見}}"
+
 #: src/components/NewsStoryCard.tsx:51
 #: src/components/NewsStoryHeader.tsx:53
-msgid "{count, plural, one {# share} other {# shares}}"
-msgstr "{count, plural, one {共有 #件} other {共有 #件}}"
+#~ msgid "{count, plural, one {# share} other {# shares}}"
+#~ msgstr "{count, plural, one {共有 #件} other {共有 #件}}"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:231
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:253
@@ -804,8 +809,8 @@ msgid "Discard unsaved changes - are you sure?"
 msgstr "未保存の変更を破棄してもよろしいですか？"
 
 #: src/components/NewsStoryCard.tsx:145
-msgid "Discussion"
-msgstr "議論"
+#~ msgid "Discussion"
+#~ msgstr "議論"
 
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
@@ -1256,7 +1261,7 @@ msgstr "フェディバースのハンドル"
 msgid "Feed"
 msgstr "フィード"
 
-#: src/components/NewsStoryHeader.tsx:105
+#: src/components/NewsStoryHeader.tsx:113
 msgid "First shared"
 msgstr "最初の共有"
 
@@ -1552,6 +1557,11 @@ msgstr "言語設定"
 #: src/components/SettingsTabs.tsx:61
 msgid "Languages"
 msgstr "言語"
+
+#: src/components/NewsStoryCard.tsx:147
+#: src/components/NewsStoryHeader.tsx:106
+msgid "Last active"
+msgstr "最後の活動"
 
 #: src/components/admin/AdminAccountsTable.tsx:278
 msgid "Last activity"
@@ -2580,8 +2590,8 @@ msgstr "設定"
 msgid "Share"
 msgstr "共有"
 
-#: src/components/NewsStoryCard.tsx:167
-#: src/components/NewsStoryHeader.tsx:124
+#: src/components/NewsStoryCard.tsx:140
+#: src/components/NewsStoryHeader.tsx:132
 msgid "Share this link"
 msgstr "このリンクを共有"
 

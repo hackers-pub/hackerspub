@@ -21,8 +21,9 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
         title
         siteName
         description
-        postCount
+        discussionCount
         firstSharedAt
+        latestActivityAt
         image {
           url
           alt
@@ -49,8 +50,8 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
     }
   });
 
-  const sharesText = (count: number) =>
-    i18n._(msg`${plural(count, { one: "# share", other: "# shares" })}`);
+  const opinionsText = (count: number) =>
+    i18n._(msg`${plural(count, { one: "# opinion", other: "# opinions" })}`);
 
   return (
     <Show keyed when={story()}>
@@ -97,8 +98,15 @@ export function NewsStoryHeader(props: NewsStoryHeaderProps) {
           </a>
           <div class="flex flex-wrap items-center gap-x-4 gap-y-2 border-t bg-muted/40 px-5 py-3 text-sm text-muted-foreground">
             <span class="font-medium text-foreground">
-              {sharesText(s.postCount)}
+              {opinionsText(s.discussionCount)}
             </span>
+            <Show keyed when={s.latestActivityAt}>
+              {(at) => (
+                <span>
+                  {t`Last active`} <Timestamp value={at} />
+                </span>
+              )}
+            </Show>
             <Show keyed when={s.firstSharedAt}>
               {(at) => (
                 <span>

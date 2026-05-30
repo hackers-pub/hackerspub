@@ -183,17 +183,17 @@ msgid "{0} followed you"
 msgstr "{0} 님이 팔로했습니다"
 
 #. placeholder {0}: s.sourceBreakdown.bluesky
-#: src/components/NewsStoryHeader.tsx:116
+#: src/components/NewsStoryHeader.tsx:124
 msgid "{0} from Bluesky"
 msgstr "Bluesky에서 {0}번"
 
 #. placeholder {0}: s.sourceBreakdown.local
-#: src/components/NewsStoryHeader.tsx:110
+#: src/components/NewsStoryHeader.tsx:118
 msgid "{0} from Hackers' Pub"
 msgstr "Hackers' Pub에서 {0}번"
 
 #. placeholder {0}: s.sourceBreakdown.remote
-#: src/components/NewsStoryHeader.tsx:113
+#: src/components/NewsStoryHeader.tsx:121
 msgid "{0} from the fediverse"
 msgstr "연합우주에서 {0}번"
 
@@ -289,10 +289,15 @@ msgstr "{0} 님의 단문"
 msgid "{0}'s shares"
 msgstr "{0} 님의 공유"
 
+#: src/components/NewsStoryCard.tsx:49
+#: src/components/NewsStoryHeader.tsx:54
+msgid "{count, plural, one {# opinion} other {# opinions}}"
+msgstr "{count, plural, other {의견 #개}}"
+
 #: src/components/NewsStoryCard.tsx:51
 #: src/components/NewsStoryHeader.tsx:53
-msgid "{count, plural, one {# share} other {# shares}}"
-msgstr "{count, plural, one {공유 #번} other {공유 #번}}"
+#~ msgid "{count, plural, one {# share} other {# shares}}"
+#~ msgstr "{count, plural, one {공유 #번} other {공유 #번}}"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:231
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:253
@@ -804,8 +809,8 @@ msgid "Discard unsaved changes - are you sure?"
 msgstr "저장하지 않은 변경 사항을 삭제하시겠습니까?"
 
 #: src/components/NewsStoryCard.tsx:145
-msgid "Discussion"
-msgstr "토론"
+#~ msgid "Discussion"
+#~ msgstr "토론"
 
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
@@ -1256,7 +1261,7 @@ msgstr "연합우주 핸들"
 msgid "Feed"
 msgstr "피드"
 
-#: src/components/NewsStoryHeader.tsx:105
+#: src/components/NewsStoryHeader.tsx:113
 msgid "First shared"
 msgstr "최초 공유"
 
@@ -1552,6 +1557,11 @@ msgstr "언어 설정"
 #: src/components/SettingsTabs.tsx:61
 msgid "Languages"
 msgstr "언어"
+
+#: src/components/NewsStoryCard.tsx:147
+#: src/components/NewsStoryHeader.tsx:106
+msgid "Last active"
+msgstr "마지막 활동"
 
 #: src/components/admin/AdminAccountsTable.tsx:278
 msgid "Last activity"
@@ -2580,8 +2590,8 @@ msgstr "설정"
 msgid "Share"
 msgstr "공유"
 
-#: src/components/NewsStoryCard.tsx:167
-#: src/components/NewsStoryHeader.tsx:124
+#: src/components/NewsStoryCard.tsx:140
+#: src/components/NewsStoryHeader.tsx:132
 msgid "Share this link"
 msgstr "이 링크 공유"
 

@@ -183,17 +183,17 @@ msgid "{0} followed you"
 msgstr "{0} 关注了你"
 
 #. placeholder {0}: s.sourceBreakdown.bluesky
-#: src/components/NewsStoryHeader.tsx:116
+#: src/components/NewsStoryHeader.tsx:124
 msgid "{0} from Bluesky"
 msgstr "来自 Bluesky 的 {0} 次"
 
 #. placeholder {0}: s.sourceBreakdown.local
-#: src/components/NewsStoryHeader.tsx:110
+#: src/components/NewsStoryHeader.tsx:118
 msgid "{0} from Hackers' Pub"
 msgstr "来自 Hackers' Pub 的 {0} 次"
 
 #. placeholder {0}: s.sourceBreakdown.remote
-#: src/components/NewsStoryHeader.tsx:113
+#: src/components/NewsStoryHeader.tsx:121
 msgid "{0} from the fediverse"
 msgstr "来自联邦宇宙的 {0} 次"
 
@@ -289,10 +289,15 @@ msgstr "{0}的帖子"
 msgid "{0}'s shares"
 msgstr "{0}的转帖"
 
+#: src/components/NewsStoryCard.tsx:49
+#: src/components/NewsStoryHeader.tsx:54
+msgid "{count, plural, one {# opinion} other {# opinions}}"
+msgstr "{count, plural, other {# 条意见}}"
+
 #: src/components/NewsStoryCard.tsx:51
 #: src/components/NewsStoryHeader.tsx:53
-msgid "{count, plural, one {# share} other {# shares}}"
-msgstr "{count, plural, one {# 次转帖} other {# 次转帖}}"
+#~ msgid "{count, plural, one {# share} other {# shares}}"
+#~ msgstr "{count, plural, one {# 次转帖} other {# 次转帖}}"
 
 #: src/routes/(root)/[handle]/[idOrYear]/[slug]/reactions.tsx:231
 #: src/routes/(root)/[handle]/[noteId]/reactions.tsx:253
@@ -804,8 +809,8 @@ msgid "Discard unsaved changes - are you sure?"
 msgstr "放弃未保存的更改 - 您确定吗？"
 
 #: src/components/NewsStoryCard.tsx:145
-msgid "Discussion"
-msgstr "讨论"
+#~ msgid "Discussion"
+#~ msgstr "讨论"
 
 #: src/components/WebPushPromptBanner.tsx:269
 msgid "Dismiss"
@@ -1256,7 +1261,7 @@ msgstr "联邦宇宙用户名"
 msgid "Feed"
 msgstr "订阅流"
 
-#: src/components/NewsStoryHeader.tsx:105
+#: src/components/NewsStoryHeader.tsx:113
 msgid "First shared"
 msgstr "首次转帖"
 
@@ -1552,6 +1557,11 @@ msgstr "语言设置"
 #: src/components/SettingsTabs.tsx:61
 msgid "Languages"
 msgstr "语言"
+
+#: src/components/NewsStoryCard.tsx:147
+#: src/components/NewsStoryHeader.tsx:106
+msgid "Last active"
+msgstr "最近活动"
 
 #: src/components/admin/AdminAccountsTable.tsx:278
 msgid "Last activity"
@@ -2580,8 +2590,8 @@ msgstr "设置"
 msgid "Share"
 msgstr "分享"
 
-#: src/components/NewsStoryCard.tsx:167
-#: src/components/NewsStoryHeader.tsx:124
+#: src/components/NewsStoryCard.tsx:140
+#: src/components/NewsStoryHeader.tsx:132
 msgid "Share this link"
 msgstr "转帖此链接"
 
