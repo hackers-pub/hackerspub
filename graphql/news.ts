@@ -85,20 +85,27 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       "time-stable (it changes only when the underlying posts or engagement " +
       "change, not as the clock advances).  Shares from bot accounts " +
       "(`Service`/`Application` actors) never count, so a link shared only by " +
-      "bots stays at `0`, as do links never shared publicly.",
+      "bots stays at `0`, as do links never shared publicly.  When one account " +
+      "shares the same link repeatedly, each share after the first adds only a " +
+      "small, gap-dependent fraction of the base weight (and a rapid repeat " +
+      "does not refresh recency), so re-posting cannot inflate the rank.",
   }),
   weightedMass: t.exposeFloat("weightedMass", {
     description:
       "Recency-independent engagement mass: the weighted sum over this " +
       "link's public shares (excluding bot `Service`/`Application` accounts) " +
       "of source weight times account reputation times (quotes, replies, " +
-      "reactions).  Drives the `ALL_TIME` order.",
+      "reactions).  Repeated shares of the same link by the same account add " +
+      "diminishing base weight (recovering with the gap but always below a " +
+      "first share).  Drives the `ALL_TIME` order.",
   }),
   postCount: t.exposeInt("postCount", {
     description:
       "Number of public, non-boost posts across the fediverse that share " +
       "this link, excluding shares from bot (`Service`/`Application`) " +
-      "accounts.",
+      "accounts.  Counts every such post, including an account's repeated " +
+      "shares of the same link (a high count with a modest `score` is " +
+      "expected, since repeats contribute diminishing weight).",
   }),
   firstSharedAt: t.expose("firstSharedAt", {
     type: "DateTime",
@@ -113,9 +120,12 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     description:
       "Timestamp of the freshest activity on this link's qualifying shares " +
       "(the share itself, a reply, a quote, or a reaction); shares are public " +
-      "and authored by non-bot accounts.  `null` means the link is not a news " +
-      "story (no qualifying public share); such links are excluded from the " +
-      "feed.",
+      "and authored by non-bot accounts.  A rapid repeat share by the same " +
+      "account does not refresh this (only a first share, a sufficiently-" +
+      "gapped re-share, or genuine replies/quotes/reactions do), so re-posting " +
+      "cannot keep a link pinned at the top.  `null` means the link is not a " +
+      "news story (no qualifying public share); such links are excluded from " +
+      "the feed.",
   }),
   sharingPosts: t.relatedConnection("posts", {
     type: Post,

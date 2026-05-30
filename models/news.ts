@@ -60,6 +60,37 @@ export const NEWS_EPOCH_SECONDS = 1_704_067_200;
  */
 export const NEWS_TAU_SECONDS = 50_000;
 
+// ---------------------------------------------------------------------------
+// Repeated-share damping
+//
+// The same account re-sharing the same link should not pile up score: from its
+// second share of a given link onward, the extra base-share weight is heavily
+// discounted, recovering with the gap since that account's previous share of
+// the link but never reaching a first share's weight.  A short-gap repeat also
+// does not refresh the link's freshness, so rapid re-sharing cannot pin a link
+// at the top (genuine replies/quotes/reactions still do).
+// ---------------------------------------------------------------------------
+
+/**
+ * Maximum base-share weight a *repeat* share of the same link by the same
+ * account can contribute, as a fraction of a first share.  Strictly `< 1`, so a
+ * repeat is always lighter than the first share however long the gap.
+ */
+export const NEWS_REPEAT_CAP = 0.5;
+/**
+ * Time constant (seconds) over which a repeat share's base weight recovers
+ * toward `NEWS_REPEAT_CAP` as the gap since the account's previous share of the
+ * same link grows.  Larger values mean the weight recovers more slowly.
+ */
+export const NEWS_REPEAT_RECOVERY_TAU_SECONDS = 2_592_000; // 30 days
+/**
+ * Minimum gap (seconds) since an account's previous share of the same link for
+ * a repeat share to refresh the link's freshness (`latestActivityAt`).  Below
+ * this, a repeat is not treated as fresh activity (so rapid re-sharing cannot
+ * pin a link at the top); genuine replies/quotes/reactions still refresh it.
+ */
+export const NEWS_REPEAT_FRESH_MIN_SECONDS = 604_800; // 7 days
+
 // Detects a Bluesky-bridged actor (`@…@bsky.brid.gy`).  References the actor
 // alias `a` and instance alias `i`, which both source queries below join under
 // those names, so the classification stays identical wherever it is reused.
@@ -401,7 +432,14 @@ async function recomputeAggregate(
             * (1 + greatest(a.followers_count, 0)::double precision
                 / (greatest(a.followees_count, 0) + 1))
             * ${NEWS_ACCOUNT_RATIO_FACTOR}::double precision
-        )) as account_weight
+        )) as account_weight,
+        -- Seconds since this account's previous share of this same link (NULL
+        -- for its first share), to damp repeated re-shares below.
+        extract(epoch from (
+          p.published - lag(p.published) over (
+            partition by p.actor_id, p.link_id order by p.published, p.id
+          )
+        )) as gap_seconds
       from post p
       join actor a on a.id = p.actor_id
       join instance i on i.host = a.instance_host
@@ -446,10 +484,32 @@ async function recomputeAggregate(
         s.link_id as link_id,
         count(*) as post_count,
         min(s.published) as first_shared_at,
-        max(s.published) as latest_share,
+        -- Only a first share or a sufficiently-gapped re-share refreshes the
+        -- link's freshness, so rapid re-sharing cannot pin it at the top.
+        -- (Genuine replies/quotes/reactions still refresh it via the activity
+        -- CTEs below.)  Every account's first share has a NULL gap, so this is
+        -- non-NULL whenever the link has any share.
+        max(s.published) filter (
+          where s.gap_seconds is null
+            or s.gap_seconds >= ${NEWS_REPEAT_FRESH_MIN_SECONDS}::double precision
+        ) as latest_share,
         sum(
           s.source_weight * s.account_weight * (
-            ${NEWS_W_SHARE}::double precision
+            -- Damp only the base share weight of a repeat: it recovers toward
+            -- NEWS_REPEAT_CAP as the gap since this account's previous share of
+            -- this link grows, but never reaches a first share's weight.  The
+            -- per-post engagement below is never discounted.
+            ${NEWS_W_SHARE}::double precision * (
+              case
+                when s.gap_seconds is null then 1::double precision
+                else ${NEWS_REPEAT_CAP}::double precision * (
+                  1 - exp(
+                    -s.gap_seconds
+                      / ${NEWS_REPEAT_RECOVERY_TAU_SECONDS}::double precision
+                  )
+                )
+              end
+            )
             + ${NEWS_W_QUOTE}::double precision * coalesce(qc.cnt, 0)
             + ${NEWS_W_REPLY}::double precision * coalesce(rc.cnt, 0)
             + ${NEWS_W_REACT}::double precision * s.reactions_count

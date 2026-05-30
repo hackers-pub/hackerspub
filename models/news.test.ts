@@ -8,6 +8,9 @@ import {
   getNewsSourceBreakdowns,
   getNewsStories,
   NEWS_EPOCH_SECONDS,
+  NEWS_REPEAT_CAP,
+  NEWS_REPEAT_FRESH_MIN_SECONDS,
+  NEWS_REPEAT_RECOVERY_TAU_SECONDS,
   NEWS_SOURCE_WEIGHT_BLUESKY,
   NEWS_SOURCE_WEIGHT_LOCAL,
   NEWS_SOURCE_WEIGHT_REMOTE,
@@ -51,6 +54,12 @@ function mass(
 }
 function score(weightedMass: number, latestActivity: Date): number {
   return Math.log10(Math.max(1, weightedMass)) + recency(latestActivity);
+}
+// Base-share multiplier for a repeat share, mirroring the SQL: a first share is
+// 1, a repeat recovers toward NEWS_REPEAT_CAP as the gap grows.
+function repeatFactor(gapSeconds: number): number {
+  return NEWS_REPEAT_CAP *
+    (1 - Math.exp(-gapSeconds / NEWS_REPEAT_RECOVERY_TAU_SECONDS));
 }
 
 async function readLink(tx: Transaction, id: Uuid) {
@@ -721,21 +730,23 @@ Deno.test({
   sanitizeResources: false,
   async fn() {
     await withRollback(async (tx) => {
-      const sharer = await insertAccountWithActor(tx, {
-        username: "aggr",
-        name: "Aggr",
-        email: "aggr@example.com",
-      });
       const link = await insertPostLink(tx, { url: "https://example.com/agg" });
       const times = [
         new Date("2026-05-10T00:00:00.000Z"),
         new Date("2026-05-12T00:00:00.000Z"),
         new Date("2026-05-11T00:00:00.000Z"),
       ];
-      for (const published of times) {
+      // Distinct accounts so each is a full-weight first share (this exercises
+      // aggregation, not the same-account repeat damping).
+      for (let i = 0; i < times.length; i++) {
+        const sharer = await insertAccountWithActor(tx, {
+          username: `aggr${i}`,
+          name: `Aggr ${i}`,
+          email: `aggr${i}@example.com`,
+        });
         await insertNotePost(tx, {
           account: sharer.account,
-          published,
+          published: times[i],
           link: { id: link.id, url: link.url },
         });
       }
@@ -1459,6 +1470,257 @@ Deno.test({
       );
       await refreshNewsScoresForActor(tx, actor.id);
       assert((await readLink(tx, link.id)).latestActivityAt != null);
+    });
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Repeated-share damping: the same account re-sharing the same link adds little
+// extra base weight (recovering with the gap, capped below a first share) and a
+// rapid repeat does not refresh freshness.  Different accounts are independent,
+// and engagement on a repeat post is never discounted.
+// ---------------------------------------------------------------------------
+
+Deno.test({
+  name: "recomputeNewsScores damps a rapid repeat share's base mass",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "rapid",
+        name: "Rapid",
+        email: "rapid@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/rapid",
+      });
+      const t0 = new Date("2026-05-20T00:00:00.000Z");
+      const t1 = new Date("2026-05-20T01:00:00.000Z"); // +1h = 3600s
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t0,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t1,
+        link: { id: link.id, url: link.url },
+      });
+
+      await recomputeNewsScores(tx);
+
+      const row = await readLink(tx, link.id);
+      assertEquals(row.postCount, 2);
+      // The second share contributes only repeatFactor(3600) of a base share.
+      assertAlmostEquals(
+        row.weightedMass,
+        NEWS_W_SHARE * (1 + repeatFactor(3600)),
+        1e-9,
+      );
+      // Far below two independent shares.
+      assert(row.weightedMass < 2 * NEWS_W_SHARE);
+    });
+  },
+});
+
+Deno.test({
+  name:
+    "recomputeNewsScores lets a long-gap repeat recover, but below a fresh share",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "recover",
+        name: "Recover",
+        email: "recover@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/recover",
+      });
+      const t0 = new Date("2026-02-19T00:00:00.000Z");
+      const t1 = new Date("2026-05-20T00:00:00.000Z"); // +90 days
+      const gap = (t1.getTime() - t0.getTime()) / 1000;
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t0,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t1,
+        link: { id: link.id, url: link.url },
+      });
+
+      await recomputeNewsScores(tx);
+
+      const row = await readLink(tx, link.id);
+      assertAlmostEquals(
+        row.weightedMass,
+        NEWS_W_SHARE * (1 + repeatFactor(gap)),
+        1e-9,
+      );
+      // The long gap recovers more than a rapid repeat would, yet a repeat is
+      // always lighter than a fresh share.
+      assert(repeatFactor(gap) > repeatFactor(3600));
+      assert(repeatFactor(gap) < 1);
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores does not damp shares from different accounts",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const a = await insertAccountWithActor(tx, {
+        username: "distincta",
+        name: "Distinct A",
+        email: "distincta@example.com",
+      });
+      const b = await insertAccountWithActor(tx, {
+        username: "distinctb",
+        name: "Distinct B",
+        email: "distinctb@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/distinct",
+      });
+      // Same link, same instant, but two different accounts: both full weight.
+      await insertNotePost(tx, {
+        account: a.account,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: b.account,
+        link: { id: link.id, url: link.url },
+      });
+
+      await recomputeNewsScores(tx);
+
+      const row = await readLink(tx, link.id);
+      assertEquals(row.postCount, 2);
+      assertAlmostEquals(row.weightedMass, 2 * NEWS_W_SHARE, 1e-9);
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores keeps a rapid repeat from refreshing freshness",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "nopin",
+        name: "No Pin",
+        email: "nopin@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/nopin",
+      });
+      const t0 = new Date("2026-05-20T00:00:00.000Z");
+      const t1 = new Date("2026-05-21T00:00:00.000Z"); // +1 day < FRESH_MIN
+      assert(
+        (t1.getTime() - t0.getTime()) / 1000 < NEWS_REPEAT_FRESH_MIN_SECONDS,
+      );
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t0,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t1,
+        link: { id: link.id, url: link.url },
+      });
+
+      await recomputeNewsScores(tx);
+
+      const row = await readLink(tx, link.id);
+      assertEquals(row.postCount, 2);
+      // The rapid second share does not count as fresh activity.
+      assertEquals(row.latestActivityAt?.getTime(), t0.getTime());
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores lets a long-gap repeat refresh freshness",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "resurface",
+        name: "Resurface",
+        email: "resurface@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/resurface",
+      });
+      const t0 = new Date("2026-01-01T00:00:00.000Z");
+      const t1 = new Date("2026-05-21T00:00:00.000Z"); // well past FRESH_MIN
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t0,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t1,
+        link: { id: link.id, url: link.url },
+      });
+
+      await recomputeNewsScores(tx);
+
+      const row = await readLink(tx, link.id);
+      assertEquals(row.latestActivityAt?.getTime(), t1.getTime());
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores still refreshes freshness from a repeat's replies",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const sharer = await insertAccountWithActor(tx, {
+        username: "repreply",
+        name: "Repeat Reply",
+        email: "repreply@example.com",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/repreply",
+      });
+      const t0 = new Date("2026-05-20T00:00:00.000Z");
+      const t1 = new Date("2026-05-21T00:00:00.000Z"); // gap < FRESH_MIN
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t0,
+        link: { id: link.id, url: link.url },
+      });
+      const { post: repeat } = await insertNotePost(tx, {
+        account: sharer.account,
+        published: t1,
+        link: { id: link.id, url: link.url },
+      });
+      // A public reply to the rapid repeat, published at t1.
+      await insertNotePost(tx, {
+        account: sharer.account,
+        published: t1,
+        replyTargetId: repeat.id,
+      });
+
+      await recomputeNewsScores(tx);
+
+      const row = await readLink(tx, link.id);
+      // The bare repeat share would not refresh freshness (gap < FRESH_MIN), but
+      // its genuine reply does, so the link is fresh as of t1.
+      assertEquals(row.latestActivityAt?.getTime(), t1.getTime());
     });
   },
 });
