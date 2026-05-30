@@ -9,6 +9,7 @@ import {
   accountEmailTable,
   accountTable,
   actorTable,
+  type ActorType,
   instanceTable,
   mentionTable,
   type NewPost,
@@ -93,6 +94,7 @@ export async function insertAccountWithActor(
     iri?: string;
     inboxUrl?: string;
     host?: string;
+    type?: ActorType;
     followersCount?: number;
     followeesCount?: number;
   },
@@ -128,7 +130,7 @@ export async function insertAccountWithActor(
   await tx.insert(actorTable).values({
     id: actorId,
     iri: values.iri ?? `http://${host}/@${values.username}`,
-    type: "Person",
+    type: values.type ?? "Person",
     username: values.username,
     instanceHost: host,
     handleHost: host,
@@ -171,6 +173,7 @@ export async function insertRemoteActor(
     inboxUrl?: string;
     url?: string;
     handleHost?: string;
+    type?: ActorType;
     followersCount?: number;
     followeesCount?: number;
   },
@@ -183,7 +186,7 @@ export async function insertRemoteActor(
   await tx.insert(actorTable).values({
     id: actorId,
     iri: values.iri ?? `https://${values.host}/users/${values.username}`,
-    type: "Person",
+    type: values.type ?? "Person",
     username: values.username,
     instanceHost: values.host,
     handleHost: values.handleHost ?? values.host,

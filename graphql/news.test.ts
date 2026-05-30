@@ -322,6 +322,135 @@ Deno.test({
 });
 
 Deno.test({
+  name: "sharingPosts and postCount exclude bot-account shares",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const local = await insertAccountWithActor(tx, {
+        username: "gqlbothuman",
+        name: "GQL Human",
+        email: "gqlbothuman@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "gqlbot",
+        name: "GQL Bot",
+        host: "bots.example",
+        type: "Application",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/botmix",
+      });
+      await insertNotePost(tx, {
+        account: local.account,
+        link: { id: link.id, url: link.url },
+      });
+      // A bot's share of the same link must not become a discussion root nor
+      // inflate the public share count.
+      await insertNotePost(tx, {
+        account: local.account,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+      await recomputeNewsScores(tx);
+
+      const result = await execute({
+        schema,
+        document: parse(`
+          query {
+            newsStories(first: 10) {
+              edges {
+                node {
+                  url
+                  postCount
+                  sourceBreakdown { local remote bluesky }
+                  sharingPosts(first: 10) {
+                    edges { node { __typename } }
+                  }
+                }
+              }
+            }
+          }
+        `),
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(result.errors, undefined);
+      const node = (result.data as {
+        newsStories: {
+          edges: {
+            node: {
+              url: string;
+              postCount: number;
+              sourceBreakdown: {
+                local: number;
+                remote: number;
+                bluesky: number;
+              };
+              sharingPosts: { edges: unknown[] };
+            };
+          }[];
+        };
+      }).newsStories.edges[0].node;
+      assertEquals(node.url, link.url);
+      assertEquals(node.postCount, 1);
+      assertEquals(node.sourceBreakdown, { local: 1, remote: 0, bluesky: 0 });
+      assertEquals(node.sharingPosts.edges.length, 1);
+    });
+  },
+});
+
+Deno.test({
+  name: "newsStories omits a link shared only by a bot account",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const host = await insertAccountWithActor(tx, {
+        username: "gqlbotonly",
+        name: "GQL Bot Only",
+        email: "gqlbotonly@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "gqlonlybot",
+        name: "GQL Only Bot",
+        host: "bots.example",
+        type: "Service",
+      });
+      const humanLink = await insertPostLink(tx, {
+        url: "https://example.com/gqlhuman",
+      });
+      const botLink = await insertPostLink(tx, {
+        url: "https://example.com/gqlbotonly",
+      });
+      await insertNotePost(tx, {
+        account: host.account,
+        link: { id: humanLink.id, url: humanLink.url },
+      });
+      await insertNotePost(tx, {
+        account: host.account,
+        actorId: bot.id,
+        link: { id: botLink.id, url: botLink.url },
+      });
+      await recomputeNewsScores(tx);
+
+      const result = await execute({
+        schema,
+        document: newsStoriesQuery,
+        variableValues: { first: 10 },
+        contextValue: makeGuestContext(tx),
+        onError: "NO_PROPAGATE",
+      });
+      assertEquals(result.errors, undefined);
+      const urls = (result.data as unknown as NewsStoriesResult)
+        .newsStories.edges.map((e) => e.node.url);
+      assert(urls.includes(humanLink.url));
+      assert(!urls.includes(botLink.url));
+    });
+  },
+});
+
+Deno.test({
   name: "newsStories rejects backward pagination",
   sanitizeOps: false,
   sanitizeResources: false,

@@ -18,10 +18,11 @@ import {
   NEWS_W_SHARE,
   recomputeNewsScores,
   refreshNewsScores,
+  refreshNewsScoresForActor,
   refreshNewsScoresForPostLinks,
 } from "./news.ts";
 import { syncPostFromNoteSource } from "./post.ts";
-import { instanceTable, postTable } from "./schema.ts";
+import { actorTable, instanceTable, postTable } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
 import {
   createFedCtx,
@@ -1123,6 +1124,341 @@ Deno.test({
       await refreshNewsScores(tx, [null, undefined]);
       const status = await getNewsScoreStatus(tx);
       assertEquals(status.scoredLinkCount, 0);
+    });
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Bot exclusion: shares authored by Service/Application actors (automated link
+// feeds) must not surface a link as news.  Replies/quotes/reactions are not
+// filtered by author; only the *sharing* post's actor type matters.
+// ---------------------------------------------------------------------------
+
+Deno.test({
+  name: "recomputeNewsScores excludes a Service-actor (bot) share",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const host = await insertAccountWithActor(tx, {
+        username: "bothost1",
+        name: "Bot Host",
+        email: "bothost1@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "feedbot",
+        name: "Feed Bot",
+        host: "bots.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/svc" });
+      await insertNotePost(tx, {
+        account: host.account,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+
+      const result = await recomputeNewsScores(tx);
+      assertEquals(result.linksUpdated, 0);
+      const row = await readLink(tx, link.id);
+      assertEquals(row.score, 0);
+      assertEquals(row.latestActivityAt, null);
+      assertEquals(row.postCount, 0);
+      const stories = await getNewsStories(tx, { order: "popular", limit: 10 });
+      assertEquals(stories.find((s) => s.id === link.id), undefined);
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores excludes an Application-actor (bot) share",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const host = await insertAccountWithActor(tx, {
+        username: "bothost2",
+        name: "Bot Host 2",
+        email: "bothost2@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "appbot",
+        name: "App Bot",
+        host: "bots.example",
+        type: "Application",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/app" });
+      await insertNotePost(tx, {
+        account: host.account,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+
+      await recomputeNewsScores(tx);
+      const row = await readLink(tx, link.id);
+      assertEquals(row.latestActivityAt, null);
+      assertEquals(row.postCount, 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores ignores a bot share when a human also shares",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const human = await insertAccountWithActor(tx, {
+        username: "humanmix",
+        name: "Human Mix",
+        email: "humanmix@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "mixbot",
+        name: "Mix Bot",
+        host: "bots.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/mix" });
+      const baseline = await insertPostLink(tx, {
+        url: "https://example.com/base",
+      });
+      // The link gets one human share and one bot share; the baseline gets only
+      // the same human share.  The bot share must contribute nothing, so the two
+      // links end up with identical mass and score.
+      await insertNotePost(tx, {
+        account: human.account,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: human.account,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: human.account,
+        link: { id: baseline.id, url: baseline.url },
+      });
+
+      await recomputeNewsScores(tx);
+
+      const linkRow = await readLink(tx, link.id);
+      const baselineRow = await readLink(tx, baseline.id);
+      assertEquals(linkRow.postCount, 1);
+      assertAlmostEquals(linkRow.weightedMass, baselineRow.weightedMass, 1e-9);
+      assertAlmostEquals(linkRow.score, baselineRow.score, 1e-9);
+      assertEquals(
+        linkRow.latestActivityAt?.getTime(),
+        baselineRow.latestActivityAt?.getTime(),
+      );
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores still scores a Group-actor share",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const host = await insertAccountWithActor(tx, {
+        username: "grouphost",
+        name: "Group Host",
+        email: "grouphost@example.com",
+      });
+      // Group/Organization accounts are not bots: their shares still count.
+      const group = await insertRemoteActor(tx, {
+        username: "guppe",
+        name: "Guppe Group",
+        host: "a.gup.pe",
+        type: "Group",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/group",
+      });
+      await insertNotePost(tx, {
+        account: host.account,
+        actorId: group.id,
+        link: { id: link.id, url: link.url },
+      });
+
+      await recomputeNewsScores(tx);
+      const row = await readLink(tx, link.id);
+      assert(row.latestActivityAt != null);
+      assertEquals(row.postCount, 1);
+    });
+  },
+});
+
+Deno.test({
+  name: "refreshNewsScores drops a link left with only a bot share",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const human = await insertAccountWithActor(tx, {
+        username: "dropbot",
+        name: "Drop Bot",
+        email: "dropbot@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "lingerbot",
+        name: "Linger Bot",
+        host: "bots.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/drop",
+      });
+      const { post: humanShare } = await insertNotePost(tx, {
+        account: human.account,
+        link: { id: link.id, url: link.url },
+      });
+      await insertNotePost(tx, {
+        account: human.account,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+
+      await recomputeNewsScores(tx);
+      assert((await readLink(tx, link.id)).latestActivityAt != null);
+      assertEquals((await readLink(tx, link.id)).postCount, 1);
+
+      // Delete the only human share: the bot share remains but does not qualify,
+      // so the incremental refresh drops the link from the feed.
+      await tx.delete(postTable).where(eq(postTable.id, humanShare.id));
+      await refreshNewsScores(tx, [link.id]);
+
+      const row = await readLink(tx, link.id);
+      assertEquals(row.score, 0);
+      assertEquals(row.latestActivityAt, null);
+      assertEquals(row.postCount, 0);
+    });
+  },
+});
+
+Deno.test({
+  name: "recomputeNewsScores activeSince skips a bot-only link",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const host = await insertAccountWithActor(tx, {
+        username: "sweepbot",
+        name: "Sweep Bot Host",
+        email: "sweepbot@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "sweepfeedbot",
+        name: "Sweep Feed Bot",
+        host: "bots.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, { url: "https://example.com/swb" });
+      await insertNotePost(tx, {
+        account: host.account,
+        actorId: bot.id,
+        published: new Date("2026-05-20T00:00:00.000Z"),
+        link: { id: link.id, url: link.url },
+      });
+
+      const result = await recomputeNewsScores(tx, {
+        activeSince: new Date("2026-01-01T00:00:00.000Z"),
+      });
+      assertEquals(result.linksUpdated, 0);
+      assertEquals((await readLink(tx, link.id)).latestActivityAt, null);
+    });
+  },
+});
+
+Deno.test({
+  name: "getNewsSourceBreakdowns excludes bot shares",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const local = await insertAccountWithActor(tx, {
+        username: "brkbotlocal",
+        name: "Brk Bot Local",
+        email: "brkbotlocal@example.com",
+      });
+      const bot = await insertRemoteActor(tx, {
+        username: "brkbot",
+        name: "Brk Bot",
+        host: "mastodon.example",
+        type: "Service",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/brkbot",
+      });
+      await insertNotePost(tx, {
+        account: local.account,
+        link: { id: link.id, url: link.url },
+      });
+      // A remote Service share would otherwise be counted as `remote`.
+      await insertNotePost(tx, {
+        account: local.account,
+        actorId: bot.id,
+        link: { id: link.id, url: link.url },
+      });
+
+      const breakdowns = await getNewsSourceBreakdowns(tx, [link.id]);
+      assertEquals(breakdowns.get(link.id), {
+        local: 1,
+        remote: 0,
+        bluesky: 0,
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "refreshNewsScoresForActor re-scores links across a bot transition",
+  sanitizeOps: false,
+  sanitizeResources: false,
+  async fn() {
+    await withRollback(async (tx) => {
+      const host = await insertAccountWithActor(tx, {
+        username: "transhost",
+        name: "Trans Host",
+        email: "transhost@example.com",
+      });
+      // The actor starts as a Person, so its share counts.
+      const actor = await insertRemoteActor(tx, {
+        username: "flipper",
+        name: "Flipper",
+        host: "mastodon.example",
+        type: "Person",
+      });
+      const link = await insertPostLink(tx, {
+        url: "https://example.com/flip",
+      });
+      await insertNotePost(tx, {
+        account: host.account,
+        actorId: actor.id,
+        link: { id: link.id, url: link.url },
+      });
+
+      await recomputeNewsScores(tx);
+      assert((await readLink(tx, link.id)).latestActivityAt != null);
+
+      // The actor toggles Mastodon's bot flag, federating as a Service: its
+      // share no longer qualifies, and refreshing by actor drops the link.
+      await tx.update(actorTable).set({ type: "Service" }).where(
+        eq(actorTable.id, actor.id),
+      );
+      await refreshNewsScoresForActor(tx, actor.id);
+      const botted = await readLink(tx, link.id);
+      assertEquals(botted.score, 0);
+      assertEquals(botted.latestActivityAt, null);
+      assertEquals(botted.postCount, 0);
+
+      // Turning the bot flag back off re-scores the link.
+      await tx.update(actorTable).set({ type: "Person" }).where(
+        eq(actorTable.id, actor.id),
+      );
+      await refreshNewsScoresForActor(tx, actor.id);
+      assert((await readLink(tx, link.id)).latestActivityAt != null);
     });
   },
 });

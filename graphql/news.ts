@@ -2,6 +2,7 @@ import {
   getNewsScoreStatus,
   getNewsSourceBreakdowns,
   getNewsStories,
+  NEWS_BOT_ACTOR_TYPES,
   type NewsOrder as NewsOrderValue,
   type NewsStoriesCursor,
   recomputeNewsScores,
@@ -52,7 +53,8 @@ const NewsSourceBreakdown = builder.simpleObject("NewsSourceBreakdown", {
   description:
     "How a link's public shares break down by origin.  Hackers' Pub posts " +
     "carry the most weight, generic remote instances less, and Bluesky-" +
-    "bridged accounts (`@…@bsky.brid.gy`) the least.",
+    "bridged accounts (`@…@bsky.brid.gy`) the least.  Shares authored by bot " +
+    "accounts (`Service`/`Application` actors) are excluded throughout.",
   fields: (t) => ({
     local: t.int({
       description: "Public shares authored by local Hackers' Pub accounts.",
@@ -81,44 +83,54 @@ builder.drizzleObjectFields(PostLink, (t) => ({
       "`log10(max(1, weightedMass)) + recency`.  Computed by a batch job and " +
       "refreshed incrementally; recompute is idempotent and the value is " +
       "time-stable (it changes only when the underlying posts or engagement " +
-      "change, not as the clock advances).  `0` for links never shared " +
-      "publicly.",
+      "change, not as the clock advances).  Shares from bot accounts " +
+      "(`Service`/`Application` actors) never count, so a link shared only by " +
+      "bots stays at `0`, as do links never shared publicly.",
   }),
   weightedMass: t.exposeFloat("weightedMass", {
     description:
       "Recency-independent engagement mass: the weighted sum over this " +
-      "link's public shares of source weight times account reputation times " +
-      "(quotes, replies, reactions).  Drives the `ALL_TIME` order.",
+      "link's public shares (excluding bot `Service`/`Application` accounts) " +
+      "of source weight times account reputation times (quotes, replies, " +
+      "reactions).  Drives the `ALL_TIME` order.",
   }),
   postCount: t.exposeInt("postCount", {
     description:
       "Number of public, non-boost posts across the fediverse that share " +
-      "this link.",
+      "this link, excluding shares from bot (`Service`/`Application`) " +
+      "accounts.",
   }),
   firstSharedAt: t.expose("firstSharedAt", {
     type: "DateTime",
     nullable: true,
     description:
-      "When this link was first shared publicly, or `null` if it has never " +
-      "been.  Drives the `NEWEST` order.",
+      "When this link was first shared publicly by a non-bot account, or " +
+      "`null` if it has never been.  Drives the `NEWEST` order.",
   }),
   latestActivityAt: t.expose("latestActivityAt", {
     type: "DateTime",
     nullable: true,
     description:
-      "Timestamp of the freshest activity on this link's shares (the share " +
-      "itself, a reply, a quote, or a reaction).  `null` means the link is " +
-      "not a news story (no public share); such links are excluded from the " +
+      "Timestamp of the freshest activity on this link's qualifying shares " +
+      "(the share itself, a reply, a quote, or a reaction); shares are public " +
+      "and authored by non-bot accounts.  `null` means the link is not a news " +
+      "story (no qualifying public share); such links are excluded from the " +
       "feed.",
   }),
   sharingPosts: t.relatedConnection("posts", {
     type: Post,
     description:
       "The posts that share this link, most recently published first, " +
-      "filtered to those visible to the viewer.  These are the roots of the " +
-      "link's discussion tree.",
+      "filtered to those visible to the viewer.  Shares authored by bot " +
+      "accounts (`Service`/`Application` actors) are excluded, matching the " +
+      "scoring.  These are the roots of the link's discussion tree.",
     query: (_args, ctx) => ({
-      where: getPostVisibilityFilter(ctx.account?.actor ?? null),
+      where: {
+        AND: [
+          getPostVisibilityFilter(ctx.account?.actor ?? null),
+          { actor: { type: { notIn: [...NEWS_BOT_ACTOR_TYPES] } } },
+        ],
+      },
       orderBy: { published: "desc" },
     }),
   }),
@@ -126,7 +138,8 @@ builder.drizzleObjectFields(PostLink, (t) => ({
     type: NewsSourceBreakdown,
     description:
       "Counts of this link's public shares by origin (local / remote / " +
-      "Bluesky bridge).",
+      "Bluesky bridge), excluding shares from bot (`Service`/`Application`) " +
+      "accounts.",
     resolve: (link) => link.id,
     load: async (linkIds: Uuid[], ctx) => {
       const breakdowns = await getNewsSourceBreakdowns(ctx.db, linkIds);

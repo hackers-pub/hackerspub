@@ -11,7 +11,7 @@ import {
   sql,
 } from "drizzle-orm";
 import type { Database, Transaction } from "./db.ts";
-import { type PostLink, postLinkTable } from "./schema.ts";
+import { type ActorType, type PostLink, postLinkTable } from "./schema.ts";
 import type { Uuid } from "./uuid.ts";
 
 const logger = getLogger(["hackerspub", "models", "news"]);
@@ -70,6 +70,37 @@ export const NEWS_TAU_SECONDS = 50_000;
 const blueskyBridgeCondition: SQL = sql`(
   coalesce(i.software ilike '%bsky%', false) or a.handle_host = 'bsky.brid.gy'
 )`;
+
+/**
+ * Actor types treated as bots, whose *shares* are excluded from News: a link
+ * shared only by `Service`/`Application` actors (automated link feeds) must not
+ * surface as a news story.  `Person`, `Group`, and `Organization` stay
+ * eligible.  Replies/quotes/reactions are not filtered by author; only the
+ * sharing post's actor type matters.  Exported so the GraphQL `sharingPosts`
+ * filter stays in lockstep with this SQL.
+ */
+export const NEWS_BOT_ACTOR_TYPES: readonly ActorType[] = [
+  "Service",
+  "Application",
+];
+
+/**
+ * Whether an actor `type` is treated as a bot for News purposes (its shares are
+ * excluded).  Use this to detect when a federated actor crosses the bot/non-bot
+ * boundary so the links it shares can be re-scored.
+ */
+export function isNewsBotActorType(type: ActorType): boolean {
+  return NEWS_BOT_ACTOR_TYPES.includes(type);
+}
+
+// A qualifying sharing post must be authored by a non-bot actor.  References the
+// actor alias `a`, which every source query below joins under that name.  Cast
+// `a.type` to text so the bound type list compares cleanly (an enum column has
+// no implicit operator against a bound text parameter), keeping a single source
+// of truth with `NEWS_BOT_ACTOR_TYPES`.
+const nonBotSharerCondition: SQL = sql`a.type::text not in (${
+  sql.join(NEWS_BOT_ACTOR_TYPES.map((t) => sql`${t}`), sql`, `)
+})`;
 
 // ---------------------------------------------------------------------------
 // Recompute
@@ -220,6 +251,29 @@ export async function refreshNewsScoresForPostLinks(
   await refreshNewsScores(db, [...linkIds]);
 }
 
+/**
+ * Refresh every link an actor shares, for when the actor's `type` crosses the
+ * bot/non-bot boundary (e.g. a remote `Person` toggles Mastodon's bot flag and
+ * federates as a `Service`).  Such a transition silently changes which of the
+ * actor's shares qualify, and the periodic sweep cannot detect it (its active
+ * set is keyed on recent *qualifying* activity, which the just-(un)botted share
+ * may no longer have), so the caller must trigger this explicitly.
+ */
+export async function refreshNewsScoresForActor(
+  db: Database,
+  actorId: Uuid,
+): Promise<void> {
+  const shares = await db.query.postTable.findMany({
+    where: {
+      actorId,
+      linkId: { isNotNull: true },
+      sharedPostId: { isNull: true },
+    },
+    columns: { linkId: true },
+  });
+  await refreshNewsScores(db, shares.map((s) => s.linkId));
+}
+
 /** Which links a recompute targets. */
 type RecomputeScope =
   | { readonly kind: "all" }
@@ -294,9 +348,11 @@ function activeLinkIdsSubquery(activeSince: Date): SQL {
   return sql`
     select s.link_id
     from post s
+    join actor a on a.id = s.actor_id
     where s.link_id is not null
       and s.visibility in ('public', 'unlisted')
       and s.shared_post_id is null
+      and ${nonBotSharerCondition}
       and (
         s.published >= ${since}
         -- A federated Update to a share (e.g. its replies/likes totals) bumps
@@ -351,7 +407,8 @@ async function recomputeAggregate(
       join instance i on i.host = a.instance_host
       where p.link_id is not null
         and p.visibility in ('public', 'unlisted')
-        and p.shared_post_id is null${scopeFilter(scope, sql`p.link_id`)}
+        and p.shared_post_id is null
+        and ${nonBotSharerCondition}${scopeFilter(scope, sql`p.link_id`)}
     ),
     -- Count only public/unlisted replies and quotes: the denormalized
     -- replies_count/quotes_count include followers-only and direct posts,
@@ -457,9 +514,11 @@ async function zeroStaleLinks(
     where pl.latest_activity_at is not null${staleScopeFilter(scope)}
       and not exists (
         select 1 from post p
+        join actor a on a.id = p.actor_id
         where p.link_id = pl.id
           and p.visibility in ('public', 'unlisted')
           and p.shared_post_id is null
+          and ${nonBotSharerCondition}
       )
   `);
 }
@@ -597,6 +656,7 @@ export async function getNewsSourceBreakdowns(
     where p.link_id = any(${literal}::uuid[])
       and p.visibility in ('public', 'unlisted')
       and p.shared_post_id is null
+      and ${nonBotSharerCondition}
     group by p.link_id
   `);
   for (const row of rows) {
